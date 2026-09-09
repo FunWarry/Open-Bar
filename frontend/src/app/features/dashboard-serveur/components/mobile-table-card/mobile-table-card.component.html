@@ -52,46 +52,51 @@
       </span>
     </div>
 
-    <div
-      class="wait-time-banner wait-timer"
-      [class]="WaitTimeClass"
-      *ngIf="waitTimeMinutes > 0"
-      [attr.data-testid]="'mobile-table-wait-time-' + table.id">
-      <ion-icon name="time-outline"></ion-icon>
-      <span>{{ 'SERVEUR_MOBILE.CARD.WAIT_TIME' | transloco: { min: waitTimeMinutes } }}</span>
-    </div>
+    @if (waitTimeMinutes > 0) {
+      <div
+        class="wait-time-banner wait-timer"
+        [class]="WaitTimeClass"
+        [attr.data-testid]="'mobile-table-wait-time-' + table.id">
+        <ion-icon name="time-outline"></ion-icon>
+        <span>{{ 'SERVEUR_MOBILE.CARD.WAIT_TIME' | transloco: { min: waitTimeMinutes } }}</span>
+      </div>
+    }
   </div>
 
   <div class="tile-footer">
-    <div class="total-badge" *ngIf="activeTotal > 0">
-      <span class="label">{{ 'SERVEUR_MOBILE.CARD.TOTAL' | transloco }}</span>
-      <span class="amount">{{ activeTotal | appCurrency }}</span>
-    </div>
-    
+    @if (activeTotal > 0) {
+      <div class="total-badge">
+        <span class="label">{{ 'SERVEUR_MOBILE.CARD.TOTAL' | transloco }}</span>
+        <span class="amount">{{ activeTotal | appCurrency }}</span>
+      </div>
+    }
+
     <div class="card-action-buttons">
       <!-- Direct Occupy button if free -->
-      <button
-        *ngIf="!table.occupee"
-        type="button"
-        class="occupy-btn"
-        [attr.data-testid]="'mobile-table-occupy-btn-' + table.id"
-        (click)="$event.stopPropagation(); occupyTable.emit(table)"
-        (keyup.enter)="$event.stopPropagation(); occupyTable.emit(table)">
-        <ion-icon name="person-add-outline"></ion-icon>
-        <span>{{ 'SERVEUR_MOBILE.CARD.OCCUPY_CTA' | transloco }}</span>
-      </button>
+      @if (!table.occupee) {
+        <button
+          type="button"
+          class="occupy-btn"
+          [attr.data-testid]="'mobile-table-occupy-btn-' + table.id"
+          (click)="$event.stopPropagation(); occupyTable.emit(table)"
+          (keyup.enter)="$event.stopPropagation(); occupyTable.emit(table)">
+          <ion-icon name="person-add-outline"></ion-icon>
+          <span>{{ 'SERVEUR_MOBILE.CARD.OCCUPY_CTA' | transloco }}</span>
+        </button>
+      }
 
       <!-- Direct Free button if occupied without active orders -->
-      <button
-        *ngIf="table.occupee && pendingOrdersCount === 0"
-        type="button"
-        class="free-btn"
-        [attr.data-testid]="'mobile-table-free-btn-' + table.id"
-        (click)="$event.stopPropagation(); freeTable.emit(table)"
-        (keyup.enter)="$event.stopPropagation(); freeTable.emit(table)">
-        <ion-icon name="checkmark-done-outline"></ion-icon>
-        <span>{{ 'SERVEUR_MOBILE.CARD.FREE_CTA' | transloco }}</span>
-      </button>
+      @if (table.occupee && pendingOrdersCount === 0) {
+        <button
+          type="button"
+          class="free-btn"
+          [attr.data-testid]="'mobile-table-free-btn-' + table.id"
+          (click)="$event.stopPropagation(); freeTable.emit(table)"
+          (keyup.enter)="$event.stopPropagation(); freeTable.emit(table)">
+          <ion-icon name="checkmark-done-outline"></ion-icon>
+          <span>{{ 'SERVEUR_MOBILE.CARD.FREE_CTA' | transloco }}</span>
+        </button>
+      }
 
       <!-- Order / New Order button -->
       <button

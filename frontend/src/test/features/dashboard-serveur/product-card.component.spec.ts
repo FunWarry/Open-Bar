@@ -45,4 +45,16 @@ describe('ProductCardComponent', () => {
     component.onAdd();
     expect(component.add.emit).toHaveBeenCalledWith(mockProduct);
   });
+
+  it('should detect allergens from product ingredients', () => {
+    component.product = {
+      ...mockProduct,
+      ingredients: [
+        { ingredientNom: 'Lait', allergens: ['LAIT'] },
+        { ingredientNom: 'Bière', allergens: ['GLUTEN'] }
+      ]
+    };
+    fixture.detectChanges();
+    expect(component.detectedAllergens.map(a => a.key)).toEqual(['LAIT', 'GLUTEN']);
+  });
 });

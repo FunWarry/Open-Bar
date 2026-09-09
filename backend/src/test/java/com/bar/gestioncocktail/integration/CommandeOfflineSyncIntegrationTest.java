@@ -50,7 +50,7 @@ class CommandeOfflineSyncIntegrationTest extends BaseIntegrationTest {
         Cocktail cocktail = new Cocktail();
         cocktail.setNom("Spritz Offline Test");
         cocktail.setPrix(new BigDecimal("9.50"));
-        cocktail.setCategorie(CocktailCategorie.ALCOOLISE);
+        cocktail.setCategorie(CocktailCategorie.SANS_ALCOOL);
         cocktail = cocktailRepository.save(cocktail);
 
         CommandeItemRequestDTO itemDTO = new CommandeItemRequestDTO(

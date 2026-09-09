@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
@@ -33,14 +33,13 @@ const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
   styleUrls: ['./personnalisation.component.css'],
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     TranslocoModule,
     IonIcon,
     ActionButtonComponent,
     RoleBadgeComponent,
     StatusBadgeComponent
-  ]
+]
 })
 export class PersonnalisationComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);

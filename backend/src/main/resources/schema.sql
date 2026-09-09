@@ -81,10 +81,20 @@ CREATE TABLE IF NOT EXISTS ingredients (
     numero_lot VARCHAR(100),
     date_peremption TIMESTAMP,
     prix_unitaire DECIMAL(10,4) DEFAULT 0,
+    degre_alcool DECIMAL(5,2) DEFAULT 0.0,
+    is_vegan BOOLEAN DEFAULT true,
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS ingredient_allergens (
+    ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+    allergen VARCHAR(50) NOT NULL,
+    PRIMARY KEY (ingredient_id, allergen)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ingredient_allergens_ingredient_id ON ingredient_allergens(ingredient_id);
 
 CREATE TABLE IF NOT EXISTS cocktail_ingredients (
     id BIGSERIAL PRIMARY KEY,
@@ -579,3 +589,7 @@ CREATE TABLE IF NOT EXISTS daily_cash_closures (
 
 CREATE INDEX IF NOT EXISTS idx_daily_cash_closures_date ON daily_cash_closures(closure_date);
 CREATE INDEX IF NOT EXISTS idx_daily_cash_closures_number ON daily_cash_closures(closure_number);
+
+-- Idempotent column migrations for ingredients
+ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS degre_alcool DECIMAL(5,2) DEFAULT 0.0;
+ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS is_vegan BOOLEAN DEFAULT true;

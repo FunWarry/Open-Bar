@@ -92,4 +92,23 @@ class JwtAuthorizationFilterTest {
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
         verify(filterChain).doFilter(request, response);
     }
+
+    @Test
+    @DisplayName("doFilterInternal - literal null, undefined or empty bearer tokens continue chain without auth")
+    void doFilterInternal_literalNullOrUndefinedToken_continuesChainWithoutAuth() throws ServletException, IOException {
+        when(request.getHeader("Authorization")).thenReturn("Bearer null");
+        filter.doFilterInternal(request, response, filterChain);
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+
+        when(request.getHeader("Authorization")).thenReturn("Bearer undefined");
+        filter.doFilterInternal(request, response, filterChain);
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+
+        when(request.getHeader("Authorization")).thenReturn("Bearer ");
+        filter.doFilterInternal(request, response, filterChain);
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+
+        verify(jwtTokenProvider, never()).validateToken(anyString());
+        verify(filterChain, times(3)).doFilter(request, response);
+    }
 }

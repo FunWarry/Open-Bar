@@ -27,16 +27,17 @@
           {{ 'SHIFTS.CLOSURES.WEEKLY_SUBTITLE' | transloco }}
         </p>
         <div class="weekly-days-grid">
-          <button
-            type="button"
-            *ngFor="let day of weeklyDays"
-            class="day-chip-btn"
-            [class.is-closed]="day.isClosed"
-            (click)="toggleWeeklyDay(day)"
-            [attr.data-testid]="'checkbox-day-' + day.dayOfWeek">
-            <span class="day-chip-name">{{ day.label }}</span>
-            <ion-icon [name]="day.isClosed ? 'lock-closed-outline' : 'checkmark-circle-outline'" class="chip-status-icon"></ion-icon>
-          </button>
+          @for (day of weeklyDays; track day) {
+            <button
+              type="button"
+              class="day-chip-btn"
+              [class.is-closed]="day.isClosed"
+              (click)="toggleWeeklyDay(day)"
+              [attr.data-testid]="'checkbox-day-' + day.dayOfWeek">
+              <span class="day-chip-name">{{ day.label }}</span>
+              <ion-icon [name]="day.isClosed ? 'lock-closed-outline' : 'checkmark-circle-outline'" class="chip-status-icon"></ion-icon>
+            </button>
+          }
         </div>
       </ion-card-content>
     </ion-card>
@@ -70,14 +71,15 @@
           <div class="presets-wrapper full-width">
             <span class="presets-label">{{ 'SHIFTS.CLOSURES.QUICK_SUGGESTIONS' | transloco }}</span>
             <div class="presets-chips">
-              <button
-                type="button"
-                *ngFor="let p of presetReasons"
-                class="preset-chip"
-                [class.active]="newClosureReason === p"
-                (click)="selectPreset(p)">
-                {{ p }}
-              </button>
+              @for (p of presetReasons; track p) {
+                <button
+                  type="button"
+                  class="preset-chip"
+                  [class.active]="newClosureReason === p"
+                  (click)="selectPreset(p)">
+                  {{ p }}
+                </button>
+              }
             </div>
           </div>
 
@@ -91,43 +93,46 @@
           </div>
 
           <!-- Single Date Input -->
-          <div class="form-field" *ngIf="!newIsDateRange">
-            <span class="field-label">{{ 'SHIFTS.CLOSURES.START_DATE' | transloco }}</span>
-            <ion-input
-              id="closure-date-input-field"
-              type="date"
-              [(ngModel)]="newClosureDate"
-              fill="outline"
-              class="custom-input"
-              data-testid="input-closure-date"
-              [attr.aria-label]="'SHIFTS.CLOSURES.START_DATE' | transloco">
-            </ion-input>
-          </div>
-
-          <!-- Range Inputs (When enabled) -->
-          <div class="range-inputs-grid full-width" *ngIf="newIsDateRange">
+          @if (!newIsDateRange) {
             <div class="form-field">
               <span class="field-label">{{ 'SHIFTS.CLOSURES.START_DATE' | transloco }}</span>
               <ion-input
-                id="closure-start-range"
+                id="closure-date-input-field"
                 type="date"
                 [(ngModel)]="newClosureDate"
                 fill="outline"
-                class="custom-input">
+                class="custom-input"
+                data-testid="input-closure-date"
+                [attr.aria-label]="'SHIFTS.CLOSURES.START_DATE' | transloco">
               </ion-input>
             </div>
+          }
 
-            <div class="form-field">
-              <span class="field-label">{{ 'SHIFTS.CLOSURES.END_DATE' | transloco }}</span>
-              <ion-input
-                id="closure-end-range"
-                type="date"
-                [(ngModel)]="newEndDate"
-                fill="outline"
-                class="custom-input">
-              </ion-input>
+          <!-- Range Inputs (When enabled) -->
+          @if (newIsDateRange) {
+            <div class="range-inputs-grid full-width">
+              <div class="form-field">
+                <span class="field-label">{{ 'SHIFTS.CLOSURES.START_DATE' | transloco }}</span>
+                <ion-input
+                  id="closure-start-range"
+                  type="date"
+                  [(ngModel)]="newClosureDate"
+                  fill="outline"
+                  class="custom-input">
+                </ion-input>
+              </div>
+              <div class="form-field">
+                <span class="field-label">{{ 'SHIFTS.CLOSURES.END_DATE' | transloco }}</span>
+                <ion-input
+                  id="closure-end-range"
+                  type="date"
+                  [(ngModel)]="newEndDate"
+                  fill="outline"
+                  class="custom-input">
+                </ion-input>
+              </div>
             </div>
-          </div>
+          }
 
           <!-- Annual Recurrence Toggle -->
           <div class="toggle-field full-width">
@@ -154,25 +159,35 @@
         </div>
 
         <!-- Exceptional Closures List -->
-        <div class="closures-list" *ngIf="exceptionalClosures.length > 0">
-          <div *ngFor="let c of exceptionalClosures" class="closure-item" [attr.data-testid]="'closure-item-' + c.id">
-            <div class="closure-details">
-              <span class="closure-reason">{{ c.reason }}</span>
-              <span class="closure-date-badge">
-                📅 {{ c.closureDate }}<span *ngIf="c.endDate"> ➔ {{ c.endDate }}</span>
-                <ion-badge color="tertiary" *ngIf="c.isAnnualRecurring" class="annual-badge">{{ 'SHIFTS.CLOSURES.ANNUAL_BADGE' | transloco }}</ion-badge>
-              </span>
+        @if (exceptionalClosures.length > 0) {
+          <div class="closures-list">
+            @for (c of exceptionalClosures; track c) {
+              <div class="closure-item" [attr.data-testid]="'closure-item-' + c.id">
+                <div class="closure-details">
+                  <span class="closure-reason">{{ c.reason }}</span>
+                  <span class="closure-date-badge">
+                    📅 {{ c.closureDate }}@if (c.endDate) {
+                    <span> ➔ {{ c.endDate }}</span>
+                  }
+                  @if (c.isAnnualRecurring) {
+                    <ion-badge color="tertiary" class="annual-badge">{{ 'SHIFTS.CLOSURES.ANNUAL_BADGE' | transloco }}</ion-badge>
+                  }
+                </span>
+              </div>
+              <ion-button fill="clear" color="danger" size="small" class="delete-btn" (click)="deleteClosure(c.id)" (keydown.enter)="deleteClosure(c.id)" [attr.data-testid]="'delete-closure-btn-' + c.id">
+                <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+              </ion-button>
             </div>
-            <ion-button fill="clear" color="danger" size="small" class="delete-btn" (click)="deleteClosure(c.id)" (keydown.enter)="deleteClosure(c.id)" [attr.data-testid]="'delete-closure-btn-' + c.id">
-              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
-            </ion-button>
-          </div>
+          }
         </div>
+      }
 
-        <p *ngIf="exceptionalClosures.length === 0" class="empty-notice">
+      @if (exceptionalClosures.length === 0) {
+        <p class="empty-notice">
           {{ 'SHIFTS.CLOSURES.NO_CLOSURES' | transloco }}
         </p>
-      </ion-card-content>
-    </ion-card>
-  </div>
+      }
+    </ion-card-content>
+  </ion-card>
+</div>
 </ion-content>

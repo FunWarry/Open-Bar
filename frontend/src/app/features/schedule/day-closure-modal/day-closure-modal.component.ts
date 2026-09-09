@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader,
@@ -25,7 +25,6 @@ import { TranslocoModule } from '@jsverse/transloco';
   selector: 'app-day-closure-modal',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslocoModule,
     IonHeader,
@@ -38,7 +37,7 @@ import { TranslocoModule } from '@jsverse/transloco';
     IonToggle,
     IonBadge,
     IonButtons
-  ],
+],
   templateUrl: './day-closure-modal.component.html',
   styleUrls: ['./day-closure-modal.component.css']
 })

@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.EmployeeShiftResponseDTO;
 import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.*;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -35,7 +36,7 @@ import java.util.*;
 @Service
 @Transactional
 @DependsOn({"glasswareDataSeederService", "cocktailDataSeederService"})
-@Profile({"dev", "test"})
+@Profile({"dev", "test", "staging"})
 public class SampleDataSeederService {
 
     private static final Logger log = LoggerFactory.getLogger(SampleDataSeederService.class);
@@ -665,7 +666,7 @@ public class SampleDataSeederService {
     }
 
     private void seedWeekPublicationsFromJson(JsonNode pubsNode) {
-        if (pubsNode == null || !pubsNode.isArray() || weekSchedulePublicationRepository.count() > 0) return;
+        if (pubsNode == null || !pubsNode.isArray()) return;
 
         LocalDate today = LocalDate.now(ZoneId.systemDefault());
         LocalDate monday = today.minusDays((long) today.getDayOfWeek().getValue() - 1);
@@ -673,13 +674,23 @@ public class SampleDataSeederService {
         for (JsonNode pNode : pubsNode) {
             long weekOffset = pNode.has("weekOffset") ? pNode.get("weekOffset").asLong() : 0L;
             LocalDate weekStart = monday.plusWeeks(weekOffset);
-            String publishedBy = pNode.hasNonNull("publishedBy") ? pNode.get("publishedBy").asText() : "Directeur Démo";
-            String snapshotJson = pNode.hasNonNull("snapshotJson") ? pNode.get("snapshotJson").asText() : "{}";
+            String publishedBy = pNode.hasNonNull("publishedBy") ? pNode.get("publishedBy").asText() : "Sophie Martin";
 
             if (weekSchedulePublicationRepository.findByWeekStart(weekStart).isEmpty()) {
+                LocalDate sunday = weekStart.plusDays(6);
+                List<EmployeeShift> shifts = employeeShiftRepository.findByDateShiftBetween(weekStart, sunday);
+                String snapshotJson = "[]";
+                try {
+                    List<EmployeeShiftResponseDTO> dtos = shifts.stream()
+                            .map(EmployeeShiftResponseDTO::from)
+                            .toList();
+                    snapshotJson = objectMapper.writeValueAsString(dtos);
+                } catch (Exception e) {
+                    log.error("Failed to serialize shifts snapshot for week publication on {}", weekStart, e);
+                }
                 WeekSchedulePublication pub = new WeekSchedulePublication(weekStart, timeService.now(), publishedBy, snapshotJson);
                 weekSchedulePublicationRepository.save(pub);
-                log.trace("Week publication seeded for week: {}", weekStart);
+                log.info("Week publication seeded with real shifts snapshot for week: {}", weekStart);
             }
         }
     }

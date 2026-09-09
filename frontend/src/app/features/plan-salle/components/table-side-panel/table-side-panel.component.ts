@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, inject, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { IonIcon, ModalController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -29,11 +29,10 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
   selector: 'app-table-side-panel',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslocoModule,
-    IonIcon,
-  ],
+    IonIcon
+],
   templateUrl: './table-side-panel.component.html',
   styleUrls: ['./table-side-panel.component.scss'],
 })

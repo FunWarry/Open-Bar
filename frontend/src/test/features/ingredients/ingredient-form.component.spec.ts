@@ -104,8 +104,49 @@ describe('IngredientFormComponent', () => {
         quantiteStock: 10,
         seuilAlerte: 5,
         prixUnitaire: 2.5,
+        allergens: [],
+        degreAlcool: 0,
+        isVegan: true,
       });
       expect(component.ingredientForm.valid).toBeTrue();
+    });
+
+    it('toggleAllergen() adds and removes allergen from form control', () => {
+      expect(component.isAllergenSelected('LAIT')).toBeFalse();
+      component.toggleAllergen('LAIT');
+      expect(component.isAllergenSelected('LAIT')).toBeTrue();
+      expect(component.ingredientForm.get('allergens')?.value).toContain('LAIT');
+
+      component.toggleAllergen('LAIT');
+      expect(component.isAllergenSelected('LAIT')).toBeFalse();
+      expect(component.ingredientForm.get('allergens')?.value).not.toContain('LAIT');
+    });
+
+    it('automatically marks isVegan as false when toggling LAIT or OEUF', () => {
+      component.ingredientForm.get('isVegan')?.setValue(true);
+      component.toggleAllergen('LAIT');
+      expect(component.ingredientForm.get('isVegan')?.value).toBeFalse();
+
+      component.ingredientForm.get('isVegan')?.setValue(true);
+      component.toggleAllergen('OEUF');
+      expect(component.ingredientForm.get('isVegan')?.value).toBeFalse();
+    });
+
+    it('validates degreAlcool bounds between 0 and 100', () => {
+      component.ingredientForm.patchValue({ degreAlcool: -1 });
+      expect(component.ingredientForm.get('degreAlcool')?.invalid).toBeTrue();
+
+      component.ingredientForm.patchValue({ degreAlcool: 101 });
+      expect(component.ingredientForm.get('degreAlcool')?.invalid).toBeTrue();
+
+      component.ingredientForm.patchValue({ degreAlcool: 40 });
+      expect(component.ingredientForm.get('degreAlcool')?.valid).toBeTrue();
+    });
+
+    it('toggleAllergen() does nothing when canEdit is false', () => {
+      component.canEdit = false;
+      component.toggleAllergen('GLUTEN');
+      expect(component.isAllergenSelected('GLUTEN')).toBeFalse();
     });
 
     it('quantiteStock field is invalid if negative', () => {
@@ -181,6 +222,9 @@ describe('IngredientFormComponent', () => {
         quantiteStock: 0,
         seuilAlerte: 5,
         prixUnitaire: 0.1,
+        allergens: [],
+        degreAlcool: 0,
+        isVegan: true,
       });
       expect(component.ingredientForm.get('quantiteStock')?.valid).toBeTrue();
     });
@@ -216,6 +260,9 @@ describe('IngredientFormComponent', () => {
         quantiteStock: 20,
         seuilAlerte: 5,
         prixUnitaire: 1.2,
+        allergens: ['GLUTEN'],
+        degreAlcool: 40,
+        isVegan: true,
       });
       component.onSubmit();
       const modalCtrl = TestBed.inject(ToastController); // injector lookup

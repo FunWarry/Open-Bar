@@ -243,12 +243,16 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
         }
       }
 
-      // Allergen filter (exclude drinks containing selected allergen in ingredient names)
+      // Allergen filter (exclude drinks containing selected allergen from ingredient allergens)
       if (this.selectedAllergen !== 'NONE' && cocktail.ingredients) {
-        const allergenKey = this.selectedAllergen.toLowerCase().replaceAll('_', ' ');
-        const hasAllergen = cocktail.ingredients.some(ing =>
-          ing.ingredientNom?.toLowerCase().includes(allergenKey)
-        );
+        const allergenKey = this.selectedAllergen;
+        const normalizedKey = allergenKey === 'LACTOSE' ? 'LAIT' : allergenKey;
+        const hasAllergen = cocktail.ingredients.some(ing => {
+          if (ing && typeof ing === 'object' && ing.allergens && Array.isArray(ing.allergens)) {
+            return ing.allergens.includes(normalizedKey as any) || ing.allergens.includes(allergenKey as any);
+          }
+          return false;
+        });
         if (hasAllergen) {
           return false;
         }

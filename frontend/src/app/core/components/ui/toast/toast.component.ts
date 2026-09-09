@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -20,7 +20,7 @@ export type ToastSeverity = 'success' | 'warning' | 'danger' | 'info';
 @Component({
   selector: 'app-toast',
   standalone: true,
-  imports: [CommonModule, IonIcon],
+  imports: [IonIcon],
   templateUrl: './toast.component.html',
   styleUrls: ['./toast.component.css'],
 })

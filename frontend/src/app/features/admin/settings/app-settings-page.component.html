@@ -342,7 +342,7 @@
                           (keyup.enter)="checkForUpdates()"
                           [disabled]="isCheckingUpdates"
                           data-testid="check-updates-btn"
-                        >
+                          >
                           <ion-icon name="refresh-outline" slot="start"></ion-icon>
                           <span>{{ isCheckingUpdates ? ('APP_SETTINGS_UPDATES.CHECKING' | transloco) : ('APP_SETTINGS_UPDATES.CHECK_UPDATES_BTN' | transloco) }}</span>
                         </ion-button>
@@ -1431,7 +1431,9 @@
                             <ion-icon name="wifi-outline"></ion-icon>
                             <div class="mockup-wifi-text">
                               <strong data-testid="preview-stand-ssid">Wi-Fi : {{ appSettingsForm.get('wifiSsid')?.value }}</strong>
-                              <span *ngIf="appSettingsForm.get('wifiPassword')?.value">Pass : {{ appSettingsForm.get('wifiPassword')?.value }}</span>
+                              @if (appSettingsForm.get('wifiPassword')?.value) {
+                                <span>Pass : {{ appSettingsForm.get('wifiPassword')?.value }}</span>
+                              }
                             </div>
                           </div>
                         }

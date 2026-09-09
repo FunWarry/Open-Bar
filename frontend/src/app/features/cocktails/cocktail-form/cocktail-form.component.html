@@ -170,37 +170,81 @@
               ></app-input-field>
             </div>
 
-            <!-- Dietary & Alcohol Preferences Section -->
+            <!-- Dietary & Alcohol Preferences Section (Auto-calculated from ingredients & glassware) -->
             <div class="section-dietary-flavors" data-testid="cocktail-form-dietary-section">
               <div class="sub-section-header">
-                <ion-icon name="nutrition-outline"></ion-icon>
-                <h4>{{ 'COCKTAIL.DIETARY_FILTERS_LABEL' | transloco }}</h4>
+                <div class="header-title-group">
+                  <ion-icon name="nutrition-outline"></ion-icon>
+                  <h4>{{ 'COCKTAIL.DIETARY_FILTERS_LABEL' | transloco }}</h4>
+                </div>
+                <span class="auto-calc-badge">
+                  <ion-icon name="shield-checkmark-outline"></ion-icon>
+                  {{ 'COCKTAIL.AUTO_CALCULATED_HINT' | transloco }}
+                </span>
               </div>
 
-              <div class="dietary-controls-grid">
-                <app-input-field
-                  formControlName="alcoholLevel"
-                  type="number"
-                  [label]="'COCKTAIL.ALCOHOL_LEVEL_LABEL' | transloco"
-                  placeholder="0.0"
-                  testId="cocktail-form-alcohol-level-input">
-                </app-input-field>
+              <div class="auto-metrics-cards-grid">
+                <!-- Alcohol Metric Card -->
+                <div class="auto-metric-card" data-testid="auto-abv-display">
+                  <div class="metric-header">
+                    <span class="metric-label">{{ 'COCKTAIL.ALCOHOL_LEVEL_LABEL' | transloco }}</span>
+                    @if (calculatedDietary().isMocktail) {
+                      <span class="dietary-status-pill mocktail" data-testid="auto-mocktail-badge">
+                        💧 {{ 'COCKTAIL.MOCKTAIL_LABEL' | transloco }}
+                      </span>
+                    } @else {
+                      <span class="dietary-status-pill alcoholic" data-testid="auto-alcoholic-badge">
+                        🍸 {{ 'COCKTAIL.ALCOHOLIC_LABEL' | transloco }}
+                      </span>
+                    }
+                  </div>
+                  <div class="metric-value-row">
+                    <span class="metric-value">{{ calculatedAlcoholMetrics().abv }}</span>
+                    <span class="metric-unit">% ABV</span>
+                  </div>
+                  <div class="metric-subtext">
+                    {{ 'COCKTAIL.CALCULATION_DETAILS' | transloco: { pureAlcohol: calculatedAlcoholMetrics().pureAlcoholCl, totalLiquid: calculatedAlcoholMetrics().totalLiquidCl } }}
+                    @if (calculatedAlcoholMetrics().glasswareCl) {
+                      • {{ 'COCKTAIL.GLASS_CAPACITY_NOTE' | transloco: { capacity: calculatedAlcoholMetrics().glasswareCl } }}
+                    }
+                  </div>
+                </div>
 
-                <div class="dietary-checkboxes-group">
-                  <label class="dietary-check-item" data-testid="toggle-mocktail-label">
-                    <input type="checkbox" formControlName="isMocktail" data-testid="toggle-mocktail-checkbox" />
-                    <span>{{ 'COCKTAIL.MOCKTAIL_LABEL' | transloco }}</span>
-                  </label>
+                <!-- Dietary & Allergen Badges Card -->
+                <div class="auto-metric-card dietary-badges-card">
+                  <div class="metric-header">
+                    <span class="metric-label">{{ 'COCKTAILS.DIETARY' | transloco }}</span>
+                  </div>
+                  <div class="dietary-badges-row">
+                    @if (calculatedDietary().isVegan) {
+                      <span class="dietary-status-pill success" data-testid="auto-vegan-badge">
+                        🌱 {{ 'COCKTAIL.VEGAN_LABEL' | transloco }}
+                      </span>
+                    } @else {
+                      <span class="dietary-status-pill warning" data-testid="auto-vegan-badge">
+                        ⚠️ {{ 'COCKTAIL.NOT_VEGAN_LABEL' | transloco }}
+                      </span>
+                    }
 
-                  <label class="dietary-check-item" data-testid="toggle-vegan-label">
-                    <input type="checkbox" formControlName="isVegan" data-testid="toggle-vegan-checkbox" />
-                    <span>🌱 {{ 'COCKTAIL.VEGAN_LABEL' | transloco }}</span>
-                  </label>
+                    @if (calculatedDietary().isGlutenFree) {
+                      <span class="dietary-status-pill success" data-testid="auto-gluten-free-badge">
+                        🌾 {{ 'COCKTAIL.GLUTEN_FREE_LABEL' | transloco }}
+                      </span>
+                    } @else {
+                      <span class="dietary-status-pill warning" data-testid="auto-gluten-free-badge">
+                        ⚠️ {{ 'COCKTAIL.CONTAINS_GLUTEN_LABEL' | transloco }}
+                      </span>
+                    }
+                  </div>
 
-                  <label class="dietary-check-item" data-testid="toggle-gluten-free-label">
-                    <input type="checkbox" formControlName="isGlutenFree" data-testid="toggle-gluten-free-checkbox" />
-                    <span>🌾 {{ 'COCKTAIL.GLUTEN_FREE_LABEL' | transloco }}</span>
-                  </label>
+                  @if (calculatedDietary().detectedAllergens.length > 0) {
+                    <div class="detected-allergens-row" data-testid="detected-allergens-row">
+                      <span class="allergens-label">{{ 'COCKTAILS.ALLERGENS_WARNING_LABEL' | transloco }}</span>
+                      @for (allergen of calculatedDietary().detectedAllergens; track allergen) {
+                        <span class="allergen-tag">{{ allergen }}</span>
+                      }
+                    </div>
+                  }
                 </div>
               </div>
             </div>
@@ -208,8 +252,15 @@
             <!-- Flavor Profiles Chip Selection Section -->
             <div class="section-flavor-profiles" data-testid="cocktail-form-flavors-section">
               <div class="sub-section-header">
-                <ion-icon name="sparkles-outline"></ion-icon>
-                <h4>{{ 'COCKTAIL.FLAVOR_PROFILES_LABEL' | transloco }}</h4>
+                <div class="header-title-group">
+                  <ion-icon name="sparkles-outline"></ion-icon>
+                  <h4>{{ 'COCKTAIL.FLAVOR_PROFILES_LABEL' | transloco }}</h4>
+                  @if (selectedFlavors().length > 0) {
+                    <span class="selected-count-badge" data-testid="selected-flavors-count">
+                      {{ selectedFlavors().length }}
+                    </span>
+                  }
+                </div>
               </div>
               <p class="flavor-section-hint">{{ 'COCKTAILS.FLAVORS' | transloco }}</p>
 
@@ -647,6 +698,16 @@
                   </div>
                   <h2 class="preview-name">{{ cocktailForm.get('name')?.value || 'Nouveau Cocktail' }}</h2>
                   <p class="preview-desc">{{ cocktailForm.get('description')?.value }}</p>
+                  @if (selectedFlavors().length > 0) {
+                    <div class="preview-flavor-badges" data-testid="preview-flavor-badges">
+                      @for (flavor of selectedFlavors(); track flavor) {
+                        <span class="preview-flavor-badge" [attr.data-testid]="'preview-flavor-badge-' + flavor.toLowerCase()">
+                          <ion-icon [name]="getFlavorIcon(flavor)"></ion-icon>
+                          <span>{{ 'COCKTAIL.FLAVOR_' + flavor | transloco }}</span>
+                        </span>
+                      }
+                    </div>
+                  }
                 </div>
               </div>
 

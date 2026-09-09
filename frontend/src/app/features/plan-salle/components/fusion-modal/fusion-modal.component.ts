@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ModalController, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon } from '@ionic/angular/standalone';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
@@ -14,11 +14,16 @@ import { ActionButtonComponent } from '../../../../core/components/ui/action-but
   selector: 'app-fusion-modal',
   standalone: true,
   imports: [
-    CommonModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonButtons,
+    IonButton,
+    IonIcon,
     ActionButtonComponent,
-    TranslocoPipe,
-  ],
+    TranslocoPipe
+],
   templateUrl: './fusion-modal.component.html',
   styleUrls: ['./fusion-modal.component.scss'],
 })

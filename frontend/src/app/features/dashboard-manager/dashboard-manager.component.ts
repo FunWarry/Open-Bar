@@ -8,8 +8,7 @@ import {
   IonRefresher, IonRefresherContent,
   IonGrid, IonRow, IonCol,
   IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-  IonButton, IonIcon, IonSpinner, ToastController, ModalController,
-  IonBadge
+  IonButton, IonIcon, IonSpinner, ToastController, ModalController
 } from '@ionic/angular/standalone';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { StatCardComponent } from '../../core/components/ui/stat-card/stat-card.component';
@@ -47,7 +46,15 @@ import {
   arrowForwardOutline,
   calculatorOutline,
   trashOutline,
-  pricetagOutline
+  pricetagOutline,
+  giftOutline,
+  cubeOutline,
+  personCircleOutline,
+  trendingDownOutline,
+  chatbubbleEllipsesOutline,
+  chevronForwardOutline,
+  addCircleOutline,
+  scaleOutline
 } from 'ionicons/icons';
 import { getMarginBadgeClass } from '../../core/utils/margin-calculation.util';
 import { AppSettingsService } from '../../core/services/app-settings.service';
@@ -79,7 +86,7 @@ import { AppCurrencyPipe } from '../../core/pipes/app-currency.pipe';
     IonRefresher, IonRefresherContent,
     IonGrid, IonRow, IonCol,
     IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-    IonButton, IonIcon, IonSpinner, IonBadge,
+    IonButton, IonIcon, IonSpinner,
     StatCardComponent,
     RoleBadgeComponent,
     EmptyStateComponent,
@@ -152,7 +159,15 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
       arrowForwardOutline,
       calculatorOutline,
       trashOutline,
-      pricetagOutline
+      pricetagOutline,
+      giftOutline,
+      cubeOutline,
+      personCircleOutline,
+      trendingDownOutline,
+      chatbubbleEllipsesOutline,
+      chevronForwardOutline,
+      addCircleOutline,
+      scaleOutline
     });
   }
 
@@ -547,5 +562,28 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
    */
   getWasteReasonLabelKey(reason: StockWasteReason): string {
     return `STOCK.WASTE_REASON_${reason}`;
+  }
+
+  /**
+   * Resolves Ionicon icon identifier for a declared waste reason.
+   *
+   * @param reason Declared reason
+   * @returns Ionicon icon name string
+   */
+  getWasteReasonIcon(reason: StockWasteReason): string {
+    switch (reason) {
+      case 'CASSE':
+        return 'wine-outline';
+      case 'PEREMPTION':
+        return 'time-outline';
+      case 'OFFERT_PATRON':
+        return 'gift-outline';
+      case 'DEGUSTATION_STAFF':
+        return 'people-outline';
+      case 'ERREUR_PREPARATION':
+        return 'warning-outline';
+      default:
+        return 'pricetag-outline';
+    }
   }
 }

@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import {
@@ -42,7 +42,6 @@ interface EmployeeSummary {
   styleUrls: ['./employees.component.css'],
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     RouterModule,
     TranslocoModule,
@@ -60,7 +59,7 @@ interface EmployeeSummary {
     IonIcon,
     IonBadge,
     IonSpinner
-  ]
+]
 })
 export class EmployeesComponent implements OnInit {
   private readonly userService = inject(UserService);

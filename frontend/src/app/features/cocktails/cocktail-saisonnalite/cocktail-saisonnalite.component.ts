@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import {
   IonIcon,
@@ -44,7 +44,6 @@ const MONTH_KEYS = [
   selector: 'app-cocktail-saisonnalite',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslocoModule,
     IonIcon,
@@ -52,8 +51,8 @@ const MONTH_KEYS = [
     IonToggle,
     IonLabel,
     SearchableSelectComponent,
-    ActionButtonComponent,
-  ],
+    ActionButtonComponent
+],
   templateUrl: './cocktail-saisonnalite.component.html',
   styleUrls: ['./cocktail-saisonnalite.component.scss'],
 })

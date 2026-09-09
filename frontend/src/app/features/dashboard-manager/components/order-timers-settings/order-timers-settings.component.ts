@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
@@ -67,12 +67,17 @@ export interface CurrencyPreset {
   selector: 'app-order-timers-settings',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     TranslocoModule,
-    IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
-    IonIcon, IonSpinner, IonRange
-  ],
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardSubtitle,
+    IonCardContent,
+    IonIcon,
+    IonSpinner,
+    IonRange
+],
   templateUrl: './order-timers-settings.component.html',
   styleUrls: ['./order-timers-settings.component.scss']
 })

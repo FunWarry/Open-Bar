@@ -5,7 +5,7 @@ import {
   HostListener,
   inject,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import {
   ReactiveFormsModule,
   FormsModule,
@@ -194,7 +194,6 @@ export interface VatPreset {
   styleUrls: ['./app-settings-page.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     FormsModule,
     IonGrid,
@@ -216,8 +215,8 @@ export interface VatPreset {
     InputFieldComponent,
     SearchableSelectComponent,
     TicketReceiptComponent,
-    HappyHourConfigComponent,
-  ],
+    HappyHourConfigComponent
+],
 })
 export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingChanges {
   private readonly fb = inject(FormBuilder);

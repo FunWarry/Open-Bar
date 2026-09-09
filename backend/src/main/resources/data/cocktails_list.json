@@ -25,25 +25,29 @@
           "nom": "Jus de Raisin",
           "quantite": 8,
           "unite": "cl",
-          "cout_eur": 0.24
+          "cout_eur": 0.24,
+          "allergens": []
         },
         {
           "nom": "Sirop de Canelle",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron jaune",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": []
         },
         {
           "nom": "Angostura",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.2
+          "cout_eur": 0.2,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -116,7 +120,14 @@
         "Alcoolisé",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET",
+        "BITTER",
+        "SPICY"
+      ]
     },
     {
       "id": 2,
@@ -140,19 +151,22 @@
           "nom": "Citron jaune",
           "quantite": 1,
           "unite": "u",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         },
         {
           "nom": "Calvados",
           "quantite": 5,
           "unite": "cl",
-          "cout_eur": 0.15
+          "cout_eur": 0.15,
+          "allergens": []
         },
         {
           "nom": "Sirop de Grenadine",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -217,7 +231,12 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 3,
@@ -241,25 +260,29 @@
           "nom": "Jus d'Orange",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron jaune",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Jus de Pamplemousse",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Sirop de Fraise",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -325,7 +348,12 @@
       "tags": [
         "Mocktail / Sans Alcool"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 4,
@@ -349,31 +377,38 @@
           "nom": "Blanc d'oeuf",
           "quantite": 1,
           "unite": "u",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": [
+            "OEUF"
+          ]
         },
         {
           "nom": "Nectar de Cramberry",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 0.18
+          "cout_eur": 0.18,
+          "allergens": []
         },
         {
           "nom": "Jus d'Orange",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Sirop de Caramel",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         },
         {
           "nom": "Sirop de Pomme",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -448,7 +483,11 @@
         "Mocktail / Sans Alcool",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SWEET"
+      ]
     },
     {
       "id": 5,
@@ -472,19 +511,24 @@
           "nom": "Aperole",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": [
+            "SULFITES"
+          ]
         },
         {
           "nom": "Glaçons",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Prosceco",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -563,7 +607,10 @@
       ],
       "saisonnier": true,
       "mois_debut": 5,
-      "mois_fin": 9
+      "mois_fin": 9,
+      "flavor_profiles": [
+        "BITTER"
+      ]
     },
     {
       "id": 6,
@@ -587,19 +634,22 @@
           "nom": "Brandy",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 1.2
+          "cout_eur": 1.2,
+          "allergens": []
         },
         {
           "nom": "Expresso",
           "quantite": 1,
           "unite": "u",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         },
         {
           "nom": "Kirsch",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 1.714
+          "cout_eur": 1.714,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -664,7 +714,10 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY"
+      ]
     },
     {
       "id": 7,
@@ -688,25 +741,33 @@
           "nom": "Cognac",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         },
         {
           "nom": "Liqueur de Cacao",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         },
         {
           "nom": "Crème liquide",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": [
+            "LAIT"
+          ]
         },
         {
           "nom": "Lait",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": [
+            "LAIT"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -780,7 +841,10 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "SWEET"
+      ]
     },
     {
       "id": 8,
@@ -804,25 +868,29 @@
           "nom": "Rhum Blanc (agricole)",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Curaçao Bleu",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Jus d'Ananas",
           "quantite": 8,
           "unite": "cl",
-          "cout_eur": 0.24
+          "cout_eur": 0.24,
+          "allergens": []
         },
         {
           "nom": "Lait de Coco",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -903,7 +971,10 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY"
+      ]
     },
     {
       "id": 9,
@@ -927,13 +998,15 @@
           "nom": "Vodka",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 1.714
+          "cout_eur": 1.714,
+          "allergens": []
         },
         {
           "nom": "Liqueur de Café",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.09
+          "cout_eur": 0.09,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -981,7 +1054,10 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "SWEET"
+      ]
     },
     {
       "id": 10,
@@ -1005,43 +1081,50 @@
           "nom": "Vodka",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Jus de Tomate",
           "quantite": 12,
           "unite": "cl",
-          "cout_eur": 2.4
+          "cout_eur": 2.4,
+          "allergens": []
         },
         {
           "nom": "Citron jaune",
           "quantite": 0.5,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Sauce Worcestershire",
           "quantite": 1,
           "unite": "g",
-          "cout_eur": 0.2
+          "cout_eur": 0.2,
+          "allergens": []
         },
         {
           "nom": "Tabasco",
           "quantite": 2,
           "unite": "g",
-          "cout_eur": 0.4
+          "cout_eur": 0.4,
+          "allergens": []
         },
         {
           "nom": "Poivre",
           "quantite": 1,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Sel de Celeri",
           "quantite": 1,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -1125,7 +1208,12 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SPICY"
+      ]
     },
     {
       "id": 11,
@@ -1149,19 +1237,22 @@
           "nom": "Vodka",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Curaçao Bleu",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.09
+          "cout_eur": 0.09,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron jaune",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -1226,7 +1317,11 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR"
+      ]
     },
     {
       "id": 12,
@@ -1250,19 +1345,22 @@
           "nom": "Curaçao",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         },
         {
           "nom": "Génépi",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": []
         },
         {
           "nom": "Crément",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -1318,7 +1416,10 @@
       "tags": [
         "Mocktail / Sans Alcool"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY"
+      ]
     },
     {
       "id": 13,
@@ -1342,19 +1443,22 @@
           "nom": "Rhum Blanc (agricole)",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 1.714
+          "cout_eur": 1.714,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron vert",
           "quantite": 2,
           "unite": "u",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Coca",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -1402,7 +1506,11 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR"
+      ]
     },
     {
       "id": 14,
@@ -1426,25 +1534,29 @@
           "nom": "Cointreau",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.09
+          "cout_eur": 0.09,
+          "allergens": []
         },
         {
           "nom": "Vodka",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Sirop de Crambery",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.857
+          "cout_eur": 0.857,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron vert",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -1510,7 +1622,12 @@
         "Alcoolisé",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 15,
@@ -1534,25 +1651,31 @@
           "nom": "Pisco (cognac)",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 1.2
+          "cout_eur": 1.2,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron vert",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "cuillère de cassonade",
           "quantite": 1,
           "unite": "u",
-          "cout_eur": 0.2
+          "cout_eur": 0.2,
+          "allergens": []
         },
         {
           "nom": "Blanc d'oeuf",
           "quantite": 1,
           "unite": "u",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": [
+            "OEUF"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -1618,7 +1741,11 @@
         "Alcoolisé",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR"
+      ]
     },
     {
       "id": 16,
@@ -1642,19 +1769,22 @@
           "nom": "Citron morceau",
           "quantite": 4,
           "unite": "u",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "cuillère de cassonade",
           "quantite": 1,
           "unite": "u",
-          "cout_eur": 0.2
+          "cout_eur": 0.2,
+          "allergens": []
         },
         {
           "nom": "Cachaça",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 0.18
+          "cout_eur": 0.18,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -1713,6 +1843,10 @@
           "multiplicateur_ingredient": 1,
           "disponible": true
         }
+      ],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR"
       ]
     },
     {
@@ -1737,19 +1871,26 @@
           "nom": "Expresso",
           "quantite": 1,
           "unite": "u",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         },
         {
           "nom": "Lait chaud",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": [
+            "LAIT"
+          ]
         },
         {
           "nom": "Mousse de Lait",
           "quantite": 1,
           "unite": "u",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": [
+            "LAIT"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -1797,7 +1938,10 @@
       "tags": [
         "Mocktail / Sans Alcool"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY"
+      ]
     },
     {
       "id": 18,
@@ -1821,19 +1965,22 @@
           "nom": "Rhum Cubain (Bacaedi)",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Citron vert",
           "quantite": 0.5,
           "unite": "u",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Sirop de Sucre de canne",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -1898,7 +2045,12 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 19,
@@ -1922,25 +2074,29 @@
           "nom": "Cointreau",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Jus de Pomme",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Sirop de Violette",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron jaune",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -2021,7 +2177,12 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 20,
@@ -2045,25 +2206,29 @@
           "nom": "Vodka Black",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Nectar de Cramberry",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron vert",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Sirop de Fruit de la passion",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -2144,7 +2309,12 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 21,
@@ -2168,19 +2338,24 @@
           "nom": "Expresso",
           "quantite": 1,
           "unite": "u",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         },
         {
           "nom": "Vodka",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 1.714
+          "cout_eur": 1.714,
+          "allergens": []
         },
         {
           "nom": "Baileys",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.857
+          "cout_eur": 0.857,
+          "allergens": [
+            "LAIT"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -2260,6 +2435,9 @@
           "multiplicateur_ingredient": 1,
           "disponible": true
         }
+      ],
+      "flavor_profiles": [
+        "SWEET"
       ]
     },
     {
@@ -2284,19 +2462,22 @@
           "nom": "Tequila",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron vert",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Curaçao Bleu",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -2370,7 +2551,11 @@
         "Incontournable",
         "Best-Seller"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR"
+      ]
     },
     {
       "id": 23,
@@ -2394,19 +2579,22 @@
           "nom": "Sirop de Pèche",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Nectar de Cramberry",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Crément",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -2455,7 +2643,10 @@
       "tags": [
         "Mocktail / Sans Alcool"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "SWEET"
+      ]
     },
     {
       "id": 24,
@@ -2479,31 +2670,36 @@
           "nom": "Citron vert",
           "quantite": 0.5,
           "unite": "u",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Glaçons",
           "quantite": 5,
           "unite": "u",
-          "cout_eur": 1.429
+          "cout_eur": 1.429,
+          "allergens": []
         },
         {
           "nom": "Tequila",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Crème de Cassis",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Ginger Ale",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -2569,7 +2765,13 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SPICY",
+        "HERBAL"
+      ]
     },
     {
       "id": 25,
@@ -2593,19 +2795,24 @@
           "nom": "Vodka",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Crème de Châtaigne",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.4
+          "cout_eur": 0.4,
+          "allergens": [
+            "FRUITS_A_COQUE"
+          ]
         },
         {
           "nom": "Jus de Pomme",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 0.18
+          "cout_eur": 0.18,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -2669,7 +2876,10 @@
         "Alcoolisé",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY"
+      ]
     },
     {
       "id": 26,
@@ -2693,49 +2903,57 @@
           "nom": "Rhum Blanc (agricole)",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Citron vert",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Sirop de Sucre de canne",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Morceau de fruit",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Sirop de Rhum",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Citron vert",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Sirop de Sucre de canne",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Morceau de fruit",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -2839,7 +3057,12 @@
       "variantes": [],
       "saisonnier": true,
       "mois_debut": 5,
-      "mois_fin": 9
+      "mois_fin": 9,
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 27,
@@ -2863,25 +3086,29 @@
           "nom": "Glaçons",
           "quantite": 4,
           "unite": "u",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Gin",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Schweppes Tonic",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Citron morceau",
           "quantite": 4,
           "unite": "u",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -2954,6 +3181,12 @@
           "multiplicateur_ingredient": 1,
           "disponible": true
         }
+      ],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "BITTER",
+        "HERBAL"
       ]
     },
     {
@@ -2978,13 +3211,17 @@
           "nom": "Vodka",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Amaretto",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": [
+            "FRUITS_A_COQUE"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -3023,7 +3260,10 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY"
+      ]
     },
     {
       "id": 29,
@@ -3047,13 +3287,19 @@
           "nom": "Bourbon",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": [
+            "GLUTEN"
+          ]
         },
         {
           "nom": "Amaretto",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": [
+            "FRUITS_A_COQUE"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -3092,7 +3338,10 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY"
+      ]
     },
     {
       "id": 30,
@@ -3116,19 +3365,26 @@
           "nom": "Vodka",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.857
+          "cout_eur": 0.857,
+          "allergens": []
         },
         {
           "nom": "Amaretto",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.857
+          "cout_eur": 0.857,
+          "allergens": [
+            "FRUITS_A_COQUE"
+          ]
         },
         {
           "nom": "Crème fraiche liquide",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.6
+          "cout_eur": 0.6,
+          "allergens": [
+            "LAIT"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -3176,7 +3432,10 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY"
+      ]
     },
     {
       "id": 31,
@@ -3200,31 +3459,36 @@
           "nom": "Gin",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 0.18
+          "cout_eur": 0.18,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron jaune",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Morceau de Fruit",
           "quantite": 8,
           "unite": "u",
-          "cout_eur": 2.286
+          "cout_eur": 2.286,
+          "allergens": []
         },
         {
           "nom": "Sirop de Sucre de canne",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Limonade",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -3314,7 +3578,13 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET",
+        "HERBAL"
+      ]
     },
     {
       "id": 32,
@@ -3338,31 +3608,36 @@
           "nom": "Rhum Ambré",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.8
+          "cout_eur": 0.8,
+          "allergens": []
         },
         {
           "nom": "Cuillère de sucre",
           "quantite": 1,
           "unite": "u",
-          "cout_eur": 0.2
+          "cout_eur": 0.2,
+          "allergens": []
         },
         {
           "nom": "Citron jaune",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": []
         },
         {
           "nom": "Cannelle",
           "quantite": 1,
           "unite": "u",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "eau chaude",
           "quantite": 1,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -3440,7 +3715,13 @@
       "variantes": [],
       "saisonnier": true,
       "mois_debut": 11,
-      "mois_fin": 2
+      "mois_fin": 2,
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET",
+        "SPICY"
+      ]
     },
     {
       "id": 33,
@@ -3464,19 +3745,22 @@
           "nom": "Miel",
           "quantite": 450,
           "unite": "g",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Eau",
           "quantite": 150,
           "unite": "cl",
-          "cout_eur": 30
+          "cout_eur": 30,
+          "allergens": []
         },
         {
           "nom": "Levures",
           "quantite": 2,
           "unite": "g",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -3523,7 +3807,10 @@
       "tags": [
         "Mocktail / Sans Alcool"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "SWEET"
+      ]
     },
     {
       "id": 34,
@@ -3547,19 +3834,24 @@
           "nom": "Jack daniel's (whiskey)",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": [
+            "GLUTEN"
+          ]
         },
         {
           "nom": "Sirop de Speculoos",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron vert",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 0.18
+          "cout_eur": 0.18,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -3626,7 +3918,12 @@
       "variantes": [],
       "saisonnier": true,
       "mois_debut": 11,
-      "mois_fin": 2
+      "mois_fin": 2,
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 35,
@@ -3650,31 +3947,40 @@
           "nom": "Crème de Mûre",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": []
         },
         {
           "nom": "Martinie Blanco",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.8
+          "cout_eur": 0.8,
+          "allergens": [
+            "SULFITES"
+          ]
         },
         {
           "nom": "Amaretto",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": [
+            "FRUITS_A_COQUE"
+          ]
         },
         {
           "nom": "Jus de Raisin",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Angostura",
           "quantite": 4,
           "unite": "u",
-          "cout_eur": 0.8
+          "cout_eur": 0.8,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -3756,7 +4062,11 @@
         "Alcoolisé",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "BITTER"
+      ]
     },
     {
       "id": 36,
@@ -3780,25 +4090,33 @@
           "nom": "Jack daniel's (whiskey)",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.09
+          "cout_eur": 0.09,
+          "allergens": [
+            "GLUTEN"
+          ]
         },
         {
           "nom": "Café",
           "quantite": 5,
           "unite": "cl",
-          "cout_eur": 0.15
+          "cout_eur": 0.15,
+          "allergens": []
         },
         {
           "nom": "Cuillère de sucre",
           "quantite": 1,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Chantilly",
           "quantite": 1,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": [
+            "LAIT"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -3858,7 +4176,10 @@
       "variantes": [],
       "saisonnier": true,
       "mois_debut": 11,
-      "mois_fin": 2
+      "mois_fin": 2,
+      "flavor_profiles": [
+        "SWEET"
+      ]
     },
     {
       "id": 37,
@@ -3882,31 +4203,42 @@
           "nom": "Lait",
           "quantite": 10,
           "unite": "cl",
-          "cout_eur": 2.857
+          "cout_eur": 2.857,
+          "allergens": [
+            "LAIT"
+          ]
         },
         {
           "nom": "Jack daniel's (whiskey)",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": [
+            "GLUTEN"
+          ]
         },
         {
           "nom": "Cuillère de sucre",
           "quantite": 1,
           "unite": "shooter",
-          "cout_eur": 0.2
+          "cout_eur": 0.2,
+          "allergens": []
         },
         {
           "nom": "Jaune d'oeuf",
           "quantite": 1,
           "unite": "u",
-          "cout_eur": 0.2
+          "cout_eur": 0.2,
+          "allergens": [
+            "OEUF"
+          ]
         },
         {
           "nom": "Cannelle",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -3985,7 +4317,11 @@
       "variantes": [],
       "saisonnier": true,
       "mois_debut": 11,
-      "mois_fin": 2
+      "mois_fin": 2,
+      "flavor_profiles": [
+        "SWEET",
+        "SPICY"
+      ]
     },
     {
       "id": 38,
@@ -4009,43 +4345,50 @@
           "nom": "Vodka",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         },
         {
           "nom": "Gin",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         },
         {
           "nom": "Rhum Blanc (agricole)",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         },
         {
           "nom": "Tequila",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         },
         {
           "nom": "Cointreau",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         },
         {
           "nom": "Citron jaune",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         },
         {
           "nom": "Coca",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -4138,7 +4481,12 @@
         "Alcoolisé",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "HERBAL"
+      ]
     },
     {
       "id": 39,
@@ -4162,19 +4510,22 @@
           "nom": "Tequila",
           "quantite": 5,
           "unite": "cl",
-          "cout_eur": 0.15
+          "cout_eur": 0.15,
+          "allergens": []
         },
         {
           "nom": "Cointreau",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.09
+          "cout_eur": 0.09,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron vert",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -4258,6 +4609,10 @@
           "disponible": true,
           "instructions": "Remplacer le triple sec par du sirop d'agave"
         }
+      ],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR"
       ]
     },
     {
@@ -4282,43 +4637,50 @@
           "nom": "Feuille de Menthe",
           "quantite": 4,
           "unite": "u",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Sirop de Sucre de canne",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.09
+          "cout_eur": 0.09,
+          "allergens": []
         },
         {
           "nom": "Sucre de canne",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Citron morceau",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Glaçons",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Rhum Blanc (agricole)",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 1.714
+          "cout_eur": 1.714,
+          "allergens": []
         },
         {
           "nom": "Perrier",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -4428,6 +4790,12 @@
           "multiplicateur_ingredient": 1,
           "disponible": true
         }
+      ],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET",
+        "HERBAL"
       ]
     },
     {
@@ -4452,19 +4820,26 @@
           "nom": "Scotch Whisky",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": [
+            "GLUTEN"
+          ]
         },
         {
           "nom": "Matini",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": [
+            "SULFITES"
+          ]
         },
         {
           "nom": "Angostura",
           "quantite": 2,
           "unite": "goute",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -4526,7 +4901,11 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "BITTER",
+        "SMOKY"
+      ]
     },
     {
       "id": 42,
@@ -4550,19 +4929,24 @@
           "nom": "Champagne",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": [
+            "SULFITES"
+          ]
         },
         {
           "nom": "Jus d'Orange",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 0.18
+          "cout_eur": 0.18,
+          "allergens": []
         },
         {
           "nom": "Cointreau",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -4611,7 +4995,10 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY"
+      ]
     },
     {
       "id": 43,
@@ -4635,31 +5022,40 @@
           "nom": "Vin Blanc",
           "quantite": 10,
           "unite": "cl",
-          "cout_eur": 2
+          "cout_eur": 2,
+          "allergens": [
+            "SULFITES"
+          ]
         },
         {
           "nom": "Aperole",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": [
+            "SULFITES"
+          ]
         },
         {
           "nom": "Cointreau",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         },
         {
           "nom": "Fleure de Sureau",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         },
         {
           "nom": "Sucre de canne",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -4734,7 +5130,11 @@
         "Alcoolisé",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "SWEET",
+        "BITTER"
+      ]
     },
     {
       "id": 44,
@@ -4758,25 +5158,33 @@
           "nom": "Glaçons",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Sirop de Citron",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         },
         {
           "nom": "Vin Blanc Sec",
           "quantite": 10,
           "unite": "cl",
-          "cout_eur": 1
+          "cout_eur": 1,
+          "allergens": [
+            "SULFITES"
+          ]
         },
         {
           "nom": "Blonde pression",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": [
+            "GLUTEN"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -4833,7 +5241,12 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 45,
@@ -4857,43 +5270,50 @@
           "nom": "Citron vert",
           "quantite": 0.5,
           "unite": "u",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Ginger Ale",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Au choix :",
           "quantite": 1,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Gin",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Vodka",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Rhum Blanc (agricole)",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Tequila",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -4978,7 +5398,13 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SPICY",
+        "HERBAL"
+      ]
     },
     {
       "id": 46,
@@ -5002,37 +5428,45 @@
           "nom": "Rhum Blanc (agricole)",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Rhum Ambré",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.8
+          "cout_eur": 0.8,
+          "allergens": []
         },
         {
           "nom": "Cointreau",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Sirop de Sucre de canne",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron vert",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Sirop de Orgeat",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": [
+            "FRUITS_A_COQUE"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -5124,7 +5558,12 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 47,
@@ -5148,31 +5587,40 @@
           "nom": "Glaçons",
           "quantite": 6,
           "unite": "u",
-          "cout_eur": 1.714
+          "cout_eur": 1.714,
+          "allergens": []
         },
         {
           "nom": "Campari",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": [
+            "SULFITES"
+          ]
         },
         {
           "nom": "Martinie Rosso",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.4
+          "cout_eur": 0.4,
+          "allergens": [
+            "SULFITES"
+          ]
         },
         {
           "nom": "Gin",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Rondelle d'Orange",
           "quantite": 2,
           "unite": "u",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -5238,7 +5686,12 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "BITTER",
+        "HERBAL"
+      ]
     },
     {
       "id": 48,
@@ -5262,19 +5715,24 @@
           "nom": "Jus de Carotte",
           "quantite": 12,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Sirop de Noisette",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": [
+            "FRUITS_A_COQUE"
+          ]
         },
         {
           "nom": "Fleure de Sureau",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -5338,7 +5796,11 @@
         "Mocktail / Sans Alcool",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SWEET"
+      ]
     },
     {
       "id": 49,
@@ -5362,19 +5824,22 @@
           "nom": "Sirop de Mangue",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Sirop de Banane",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Jus d'Ananas",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -5422,7 +5887,11 @@
       "tags": [
         "Mocktail / Sans Alcool"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SWEET"
+      ]
     },
     {
       "id": 50,
@@ -5446,31 +5915,38 @@
           "nom": "Morceau de Sucre",
           "quantite": 1,
           "unite": "u",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Angostura",
           "quantite": 5,
           "unite": "u",
-          "cout_eur": 1
+          "cout_eur": 1,
+          "allergens": []
         },
         {
           "nom": "Glaçons",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Scotch Whisky",
           "quantite": 5,
           "unite": "cl",
-          "cout_eur": 1.429
+          "cout_eur": 1.429,
+          "allergens": [
+            "GLUTEN"
+          ]
         },
         {
           "nom": "Perrier",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -5552,6 +6028,11 @@
           "multiplicateur_ingredient": 1,
           "disponible": true
         }
+      ],
+      "flavor_profiles": [
+        "SWEET",
+        "BITTER",
+        "SMOKY"
       ]
     },
     {
@@ -5576,31 +6057,36 @@
           "nom": "Gin",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Cointreau",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Liqueur de Cassis",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Pulco citron",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Schweppes Tonic",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -5690,7 +6176,14 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET",
+        "BITTER",
+        "HERBAL"
+      ]
     },
     {
       "id": 52,
@@ -5714,37 +6207,49 @@
           "nom": "Gin",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron jaune",
           "quantite": 0.5,
           "unite": "u",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Goute de Grenadine",
           "quantite": 1,
           "unite": "u",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Blanc d'oeuf",
           "quantite": 1,
           "unite": "u",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": [
+            "OEUF"
+          ]
         },
         {
           "nom": "Crème fraiche liquide",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.2
+          "cout_eur": 0.2,
+          "allergens": [
+            "LAIT"
+          ]
         },
         {
           "nom": "Lait",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": [
+            "LAIT"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -5836,7 +6341,13 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET",
+        "HERBAL"
+      ]
     },
     {
       "id": 53,
@@ -5860,25 +6371,29 @@
           "nom": "Génépi",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": []
         },
         {
           "nom": "Crème de Pèche",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Crème de Cassis",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         },
         {
           "nom": "Jus d'Orange",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -5944,7 +6459,10 @@
       "tags": [
         "Mocktail / Sans Alcool"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY"
+      ]
     },
     {
       "id": 54,
@@ -5968,25 +6486,29 @@
           "nom": "Rhum Blanc (agricole)",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Rhum Ambré",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.4
+          "cout_eur": 0.4,
+          "allergens": []
         },
         {
           "nom": "Jus d'Ananas",
           "quantite": 12,
           "unite": "cl",
-          "cout_eur": 0.36
+          "cout_eur": 0.36,
+          "allergens": []
         },
         {
           "nom": "Lait de Coco",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -6068,6 +6590,9 @@
           "multiplicateur_ingredient": 1.2,
           "disponible": true
         }
+      ],
+      "flavor_profiles": [
+        "FRUITY"
       ]
     },
     {
@@ -6092,31 +6617,44 @@
           "nom": "Baileys",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.857
+          "cout_eur": 0.857,
+          "allergens": [
+            "LAIT"
+          ]
         },
         {
           "nom": "Vodka",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.857
+          "cout_eur": 0.857,
+          "allergens": []
         },
         {
           "nom": "Amaretto",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.857
+          "cout_eur": 0.857,
+          "allergens": [
+            "FRUITS_A_COQUE"
+          ]
         },
         {
           "nom": "Liqueure de Chataigne",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": [
+            "FRUITS_A_COQUE"
+          ]
         },
         {
           "nom": "Chantilly",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": [
+            "LAIT"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -6191,7 +6729,10 @@
         "Alcoolisé",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "SWEET"
+      ]
     },
     {
       "id": 56,
@@ -6215,25 +6756,31 @@
           "nom": "Scotch Whisky",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": [
+            "GLUTEN"
+          ]
         },
         {
           "nom": "Sirop de Vanille",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Sirop de Canelle",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         },
         {
           "nom": "Sucre de canne",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -6306,7 +6853,12 @@
         "Alcoolisé",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "SWEET",
+        "SPICY",
+        "SMOKY"
+      ]
     },
     {
       "id": 57,
@@ -6330,19 +6882,22 @@
           "nom": "Cointreau",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Cognac",
           "quantite": 5,
           "unite": "cl",
-          "cout_eur": 1.429
+          "cout_eur": 1.429,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron jaune",
           "quantite": 1,
           "unite": "u",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -6407,7 +6962,11 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR"
+      ]
     },
     {
       "id": 58,
@@ -6431,31 +6990,42 @@
           "nom": "Baileys",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.857
+          "cout_eur": 0.857,
+          "allergens": [
+            "LAIT"
+          ]
         },
         {
           "nom": "Vodka",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.857
+          "cout_eur": 0.857,
+          "allergens": []
         },
         {
           "nom": "Amaretto",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.857
+          "cout_eur": 0.857,
+          "allergens": [
+            "FRUITS_A_COQUE"
+          ]
         },
         {
           "nom": "Liqueur de Café",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.09
+          "cout_eur": 0.09,
+          "allergens": []
         },
         {
           "nom": "Chantilly",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": [
+            "LAIT"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -6530,7 +7100,10 @@
         "Alcoolisé",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "SWEET"
+      ]
     },
     {
       "id": 59,
@@ -6554,37 +7127,43 @@
           "nom": "Vodka",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": []
         },
         {
           "nom": "Cointreau",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Crème de Pèche",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Crème de Cassis",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         },
         {
           "nom": "Jus de Cramberry",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Jus d'Orange / anana",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -6678,7 +7257,10 @@
         "Incontournable",
         "Best-Seller"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY"
+      ]
     },
     {
       "id": 60,
@@ -6702,19 +7284,22 @@
           "nom": "Sirop de Grenadine",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Ginger Beer",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Limonade",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 1.714
+          "cout_eur": 1.714,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -6771,7 +7356,13 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SWEET",
+        "SPICY",
+        "HERBAL"
+      ]
     },
     {
       "id": 61,
@@ -6795,19 +7386,22 @@
           "nom": "Tequila",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 0.18
+          "cout_eur": 0.18,
+          "allergens": []
         },
         {
           "nom": "Jus d'Orange",
           "quantite": 12,
           "unite": "cl",
-          "cout_eur": 0.36
+          "cout_eur": 0.36,
+          "allergens": []
         },
         {
           "nom": "Sirop de Grenadine",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -6864,7 +7458,11 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SWEET"
+      ]
     },
     {
       "id": 62,
@@ -6888,19 +7486,22 @@
           "nom": "Citron morceau",
           "quantite": 4,
           "unite": "u",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Sirop de Sucre de canne",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Rhum Blanc (agricole)",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 1.714
+          "cout_eur": 1.714,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -6949,7 +7550,12 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 63,
@@ -6973,25 +7579,29 @@
           "nom": "Tequila",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron jaune",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": []
         },
         {
           "nom": "Sucre de canne",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         },
         {
           "nom": "Eau gazeuse",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -7057,7 +7667,12 @@
         "Alcoolisé",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 64,
@@ -7081,31 +7696,40 @@
           "nom": "Scotch Whisky",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": [
+            "GLUTEN"
+          ]
         },
         {
           "nom": "Brandy",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Martinie Rosso",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": [
+            "SULFITES"
+          ]
         },
         {
           "nom": "Bénédictine",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Angostura",
           "quantite": 1,
           "unite": "g",
-          "cout_eur": 0.2
+          "cout_eur": 0.2,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -7171,7 +7795,11 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "BITTER",
+        "SMOKY"
+      ]
     },
     {
       "id": 65,
@@ -7195,19 +7823,22 @@
           "nom": "Gin",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Cointreau",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Citron vert Pressé",
           "quantite": 0.5,
           "unite": "u",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -7279,7 +7910,12 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "HERBAL"
+      ]
     },
     {
       "id": 66,
@@ -7303,31 +7939,40 @@
           "nom": "Glaçons",
           "quantite": 6,
           "unite": "u",
-          "cout_eur": 1.714
+          "cout_eur": 1.714,
+          "allergens": []
         },
         {
           "nom": "Vodka",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Liqueur de Café",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Lait",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": [
+            "LAIT"
+          ]
         },
         {
           "nom": "Crème fraiche liquide",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.4
+          "cout_eur": 0.4,
+          "allergens": [
+            "LAIT"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -7410,7 +8055,10 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "SWEET"
+      ]
     },
     {
       "id": 67,
@@ -7434,13 +8082,15 @@
           "nom": "Cointreau",
           "quantite": 8,
           "unite": "cl",
-          "cout_eur": 0.24
+          "cout_eur": 0.24,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron jaune",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -7496,7 +8146,11 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR"
+      ]
     },
     {
       "id": 68,
@@ -7520,31 +8174,38 @@
           "nom": "Sirop de Grenadine",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         },
         {
           "nom": "Sirop de Orgeat",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": [
+            "FRUITS_A_COQUE"
+          ]
         },
         {
           "nom": "Jus de Citron jaune",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": []
         },
         {
           "nom": "Jus d'Ananas",
           "quantite": 8,
           "unite": "cl",
-          "cout_eur": 0.24
+          "cout_eur": 0.24,
+          "allergens": []
         },
         {
           "nom": "Jus d'Orange",
           "quantite": 8,
           "unite": "cl",
-          "cout_eur": 0.24
+          "cout_eur": 0.24,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -7627,7 +8288,12 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 69,
@@ -7651,19 +8317,22 @@
           "nom": "Cointreau",
           "quantite": 7,
           "unite": "cl",
-          "cout_eur": 0.21
+          "cout_eur": 0.21,
+          "allergens": []
         },
         {
           "nom": "Sirop de Crambery",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.857
+          "cout_eur": 0.857,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron vert",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -7720,7 +8389,12 @@
         "Alcoolisé",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 70,
@@ -7744,31 +8418,36 @@
           "nom": "Feuille de Menthe",
           "quantite": 8,
           "unite": "u",
-          "cout_eur": 0.24
+          "cout_eur": 0.24,
+          "allergens": []
         },
         {
           "nom": "Purré de Concombre",
           "quantite": 10,
           "unite": "u",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron jaune",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": []
         },
         {
           "nom": "Jus de Pomme",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Ginger Beer",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -7849,7 +8528,13 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SPICY",
+        "HERBAL"
+      ]
     },
     {
       "id": 71,
@@ -7873,43 +8558,50 @@
           "nom": "Feuille de Menthe",
           "quantite": 4,
           "unite": "u",
-          "cout_eur": 0.12
+          "cout_eur": 0.12,
+          "allergens": []
         },
         {
           "nom": "Sirop de Sucre de canne",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.09
+          "cout_eur": 0.09,
+          "allergens": []
         },
         {
           "nom": "Sucre de canne",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Citron morceau",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Glaçons",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Sirop de Rhum",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Perrier",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -8004,7 +8696,13 @@
         "Incontournable",
         "Best-Seller"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET",
+        "HERBAL"
+      ]
     },
     {
       "id": 72,
@@ -8028,25 +8726,29 @@
           "nom": "Jus de Citron jaune",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Morceau de Fruit",
           "quantite": 12,
           "unite": "u",
-          "cout_eur": 3.429
+          "cout_eur": 3.429,
+          "allergens": []
         },
         {
           "nom": "Sirop de Sucre de canne",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Limonade",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -8127,7 +8829,13 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET",
+        "HERBAL"
+      ]
     },
     {
       "id": 73,
@@ -8151,49 +8859,57 @@
           "nom": "Rhum Blanc (agricole)",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Citron vert",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Sirop de Sucre de canne",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Morceau de fruit",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Sirop de Rhum",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Citron vert",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Sirop de Sucre de canne",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Morceau de fruit",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -8297,7 +9013,12 @@
       "variantes": [],
       "saisonnier": true,
       "mois_debut": 5,
-      "mois_fin": 9
+      "mois_fin": 9,
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 74,
@@ -8321,19 +9042,24 @@
           "nom": "Boule de vanille",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Lait",
           "quantite": 40,
           "unite": "cl",
-          "cout_eur": 11.429
+          "cout_eur": 11.429,
+          "allergens": [
+            "LAIT"
+          ]
         },
         {
           "nom": "Fruits",
           "quantite": 100,
           "unite": "g",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -8389,7 +9115,11 @@
       "tags": [
         "Mocktail / Sans Alcool"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SWEET"
+      ]
     },
     {
       "id": 75,
@@ -8413,25 +9143,29 @@
           "nom": "Get 27",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Anisette",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron vert",
           "quantite": 0.5,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Limonade",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -8512,7 +9246,11 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR"
+      ]
     },
     {
       "id": 76,
@@ -8536,31 +9274,36 @@
           "nom": "Sirop de Violette",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.571
+          "cout_eur": 0.571,
+          "allergens": []
         },
         {
           "nom": "Nectar de Cramberry",
           "quantite": 8,
           "unite": "cl",
-          "cout_eur": 0.24
+          "cout_eur": 0.24,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron vert",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Sirop de Fruit de la passion",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         },
         {
           "nom": "sirop de mure",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -8650,7 +9393,12 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 77,
@@ -8674,49 +9422,59 @@
           "nom": "Vodka",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         },
         {
           "nom": "Gin",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         },
         {
           "nom": "Curaçao Bleu",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron vert",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.03
+          "cout_eur": 0.03,
+          "allergens": []
         },
         {
           "nom": "Scotch Whisky",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": [
+            "GLUTEN"
+          ]
         },
         {
           "nom": "Cognac",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.286
+          "cout_eur": 0.286,
+          "allergens": []
         },
         {
           "nom": "Sirop de Grenadine",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.06
+          "cout_eur": 0.06,
+          "allergens": []
         },
         {
           "nom": "Jus d'Orange",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -8810,7 +9568,14 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET",
+        "SMOKY",
+        "HERBAL"
+      ]
     },
     {
       "id": 78,
@@ -8834,25 +9599,33 @@
           "nom": "Glaçons",
           "quantite": 6,
           "unite": "u",
-          "cout_eur": 1.714
+          "cout_eur": 1.714,
+          "allergens": []
         },
         {
           "nom": "Martinie Rosso",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.4
+          "cout_eur": 0.4,
+          "allergens": [
+            "SULFITES"
+          ]
         },
         {
           "nom": "Campari",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": [
+            "SULFITES"
+          ]
         },
         {
           "nom": "eau gazeuse ?",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -8918,7 +9691,10 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "BITTER"
+      ]
     },
     {
       "id": 79,
@@ -8942,31 +9718,36 @@
           "nom": "Rhum Blanc (agricole)",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.143
+          "cout_eur": 1.143,
+          "allergens": []
         },
         {
           "nom": "Jus d'Orange",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Jus d'Ananas",
           "quantite": 2,
           "unite": "pincée",
-          "cout_eur": 0.35
+          "cout_eur": 0.35,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron vert",
           "quantite": 3,
           "unite": "cl",
-          "cout_eur": 0.09
+          "cout_eur": 0.09,
+          "allergens": []
         },
         {
           "nom": "Sirop de Fraise",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.4
+          "cout_eur": 0.4,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -9041,7 +9822,12 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 80,
@@ -9065,7 +9851,10 @@
           "nom": "Bière Blonde Artisanale",
           "quantite": 25,
           "unite": "cl",
-          "cout_eur": 0.9
+          "cout_eur": 0.9,
+          "allergens": [
+            "GLUTEN"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -9124,6 +9913,9 @@
           "disponible": true,
           "instructions": "Remplir le pichet"
         }
+      ],
+      "flavor_profiles": [
+        "FRUITY"
       ]
     },
     {
@@ -9148,7 +9940,10 @@
           "nom": "Bière IPA Houblonnée 33cl",
           "quantite": 33,
           "unite": "cl",
-          "cout_eur": 1.4
+          "cout_eur": 1.4,
+          "allergens": [
+            "GLUTEN"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -9193,6 +9988,9 @@
           "disponible": true,
           "instructions": "Disposer 5 bouteilles dans un seau à glace"
         }
+      ],
+      "flavor_profiles": [
+        "FRUITY"
       ]
     },
     {
@@ -9217,13 +10015,17 @@
           "nom": "Bière Blanche 33cl",
           "quantite": 33,
           "unite": "cl",
-          "cout_eur": 1.2
+          "cout_eur": 1.2,
+          "allergens": [
+            "GLUTEN"
+          ]
         },
         {
           "nom": "Tranche de Citron jaune",
           "quantite": 1,
           "unite": "tranche",
-          "cout_eur": 0.1
+          "cout_eur": 0.1,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -9251,7 +10053,11 @@
         "Agrumes",
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR"
+      ]
     },
     {
       "id": 83,
@@ -9275,7 +10081,10 @@
           "nom": "Vin Blanc Sauvignon AOP",
           "quantite": 12,
           "unite": "cl",
-          "cout_eur": 1.2
+          "cout_eur": 1.2,
+          "allergens": [
+            "SULFITES"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -9314,6 +10123,9 @@
           "disponible": true,
           "instructions": "Servir la bouteille au seau"
         }
+      ],
+      "flavor_profiles": [
+        "FRUITY"
       ]
     },
     {
@@ -9338,7 +10150,10 @@
           "nom": "Vin Rouge Côtes-du-Rhône AOP",
           "quantite": 12,
           "unite": "cl",
-          "cout_eur": 1.3
+          "cout_eur": 1.3,
+          "allergens": [
+            "SULFITES"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -9377,6 +10192,9 @@
           "disponible": true,
           "instructions": "Déboucher la bouteille"
         }
+      ],
+      "flavor_profiles": [
+        "FRUITY"
       ]
     },
     {
@@ -9401,7 +10219,10 @@
           "nom": "Champagne Brut AOP",
           "quantite": 12,
           "unite": "cl",
-          "cout_eur": 2.8
+          "cout_eur": 2.8,
+          "allergens": [
+            "SULFITES"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -9423,7 +10244,10 @@
         "Prestige",
         "Festif"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY"
+      ]
     },
     {
       "id": 86,
@@ -9447,7 +10271,10 @@
           "nom": "Prosecco DOC",
           "quantite": 12,
           "unite": "cl",
-          "cout_eur": 1.5
+          "cout_eur": 1.5,
+          "allergens": [
+            "SULFITES"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -9469,7 +10296,10 @@
         "Effervescent",
         "Apéritif"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY"
+      ]
     },
     {
       "id": 87,
@@ -9493,19 +10323,26 @@
           "nom": "Assortiment Charcuteries Fines",
           "quantite": 120,
           "unite": "g",
-          "cout_eur": 2
+          "cout_eur": 2,
+          "allergens": []
         },
         {
           "nom": "Assortiment Fromages AOP (Comté, Brie, Chèvre)",
           "quantite": 120,
           "unite": "g",
-          "cout_eur": 1.5
+          "cout_eur": 1.5,
+          "allergens": [
+            "LAIT"
+          ]
         },
         {
           "nom": "Pain Traditionnel & Cornichons",
           "quantite": 1,
           "unite": "portion",
-          "cout_eur": 0.3
+          "cout_eur": 0.3,
+          "allergens": [
+            "GLUTEN"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -9563,6 +10400,9 @@
           "disponible": true,
           "instructions": "Remplacer la charcuterie par des tartinades et légumes"
         }
+      ],
+      "flavor_profiles": [
+        "FRUITY"
       ]
     },
     {
@@ -9587,19 +10427,24 @@
           "nom": "Tortilla Chips Maïs",
           "quantite": 150,
           "unite": "g",
-          "cout_eur": 0.6
+          "cout_eur": 0.6,
+          "allergens": []
         },
         {
           "nom": "Guacamole Frais Maison",
           "quantite": 80,
           "unite": "g",
-          "cout_eur": 0.8
+          "cout_eur": 0.8,
+          "allergens": []
         },
         {
           "nom": "Cheddar Fondu & Piment Jalapeño",
           "quantite": 50,
           "unite": "g",
-          "cout_eur": 0.4
+          "cout_eur": 0.4,
+          "allergens": [
+            "LAIT"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -9644,6 +10489,9 @@
           "disponible": true,
           "instructions": "Gratiner la grande portion"
         }
+      ],
+      "flavor_profiles": [
+        "SPICY"
       ]
     },
     {
@@ -9668,13 +10516,15 @@
           "nom": "Pommes de Terre Fraîches",
           "quantite": 250,
           "unite": "g",
-          "cout_eur": 0.5
+          "cout_eur": 0.5,
+          "allergens": []
         },
         {
           "nom": "Sauces Maison (Mayonnaise herbes, Ketchup épicé)",
           "quantite": 50,
           "unite": "g",
-          "cout_eur": 0.6
+          "cout_eur": 0.6,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -9702,7 +10552,12 @@
         "Frites",
         "Gourmand"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SPICY",
+        "HERBAL"
+      ]
     },
     {
       "id": 90,
@@ -9726,13 +10581,15 @@
           "nom": "Coca-Cola 33cl",
           "quantite": 33,
           "unite": "cl",
-          "cout_eur": 0.6
+          "cout_eur": 0.6,
+          "allergens": []
         },
         {
           "nom": "Tranche de Citron jaune",
           "quantite": 1,
           "unite": "tranche",
-          "cout_eur": 0.1
+          "cout_eur": 0.1,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -9760,7 +10617,12 @@
         "Pétillant",
         "Classique"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "HERBAL"
+      ]
     },
     {
       "id": 91,
@@ -9784,19 +10646,22 @@
           "nom": "Limonade Artisanale Bio",
           "quantite": 25,
           "unite": "cl",
-          "cout_eur": 0.4
+          "cout_eur": 0.4,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron jaune",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.15
+          "cout_eur": 0.15,
+          "allergens": []
         },
         {
           "nom": "Feuilles de Menthe",
           "quantite": 2,
           "unite": "feuille",
-          "cout_eur": 0.05
+          "cout_eur": 0.05,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -9825,7 +10690,12 @@
         "Bio",
         "Rafraîchissant"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "HERBAL"
+      ]
     },
     {
       "id": 92,
@@ -9849,7 +10719,8 @@
           "nom": "Jus de Pomme Pur Fruit Bio",
           "quantite": 25,
           "unite": "cl",
-          "cout_eur": 0.8
+          "cout_eur": 0.8,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -9871,7 +10742,10 @@
         "Bio",
         "Sans Alcool"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY"
+      ]
     },
     {
       "id": 93,
@@ -9895,13 +10769,15 @@
           "nom": "Eau Minérale Gazeuse 50cl",
           "quantite": 50,
           "unite": "cl",
-          "cout_eur": 0.5
+          "cout_eur": 0.5,
+          "allergens": []
         },
         {
           "nom": "Tranche de Citron jaune",
           "quantite": 1,
           "unite": "tranche",
-          "cout_eur": 0.1
+          "cout_eur": 0.1,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -9922,7 +10798,11 @@
         "Pétillante",
         "Sans Alcool"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR"
+      ]
     },
     {
       "id": 94,
@@ -9946,25 +10826,31 @@
           "nom": "Jus d'Ananas",
           "quantite": 14,
           "unite": "cl",
-          "cout_eur": 0.6
+          "cout_eur": 0.6,
+          "allergens": []
         },
         {
           "nom": "Lait de Coco",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 0.5
+          "cout_eur": 0.5,
+          "allergens": []
         },
         {
           "nom": "Crème Liquide",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.2
+          "cout_eur": 0.2,
+          "allergens": [
+            "LAIT"
+          ]
         },
         {
           "nom": "Sirop de Canne",
           "quantite": 1,
           "unite": "cl",
-          "cout_eur": 0.1
+          "cout_eur": 0.1,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -9998,7 +10884,12 @@
         "Exotique",
         "Onctueux"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SWEET",
+        "HERBAL"
+      ]
     },
     {
       "id": 95,
@@ -10022,25 +10913,29 @@
           "nom": "Jus d'Ananas",
           "quantite": 10,
           "unite": "cl",
-          "cout_eur": 0.45
+          "cout_eur": 0.45,
+          "allergens": []
         },
         {
           "nom": "Jus de Fruit de la Passion",
           "quantite": 6,
           "unite": "cl",
-          "cout_eur": 0.45
+          "cout_eur": 0.45,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron jaune",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.2
+          "cout_eur": 0.2,
+          "allergens": []
         },
         {
           "nom": "Sirop de Grenadine",
           "quantite": 1.5,
           "unite": "cl",
-          "cout_eur": 0.2
+          "cout_eur": 0.2,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -10074,7 +10969,12 @@
         "Sans Alcool",
         "Couleurs"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SWEET"
+      ]
     },
     {
       "id": 96,
@@ -10098,25 +10998,29 @@
           "nom": "Vodka",
           "quantite": 5,
           "unite": "cl",
-          "cout_eur": 1.1
+          "cout_eur": 1.1,
+          "allergens": []
         },
         {
           "nom": "Ginger Beer Épicée",
           "quantite": 12,
           "unite": "cl",
-          "cout_eur": 0.6
+          "cout_eur": 0.6,
+          "allergens": []
         },
         {
           "nom": "Jus de Citron Vert",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.3
+          "cout_eur": 0.3,
+          "allergens": []
         },
         {
           "nom": "Feuilles de Menthe",
           "quantite": 3,
           "unite": "feuille",
-          "cout_eur": 0.1
+          "cout_eur": 0.1,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -10182,6 +11086,12 @@
           "disponible": true,
           "instructions": "Remplacer la vodka par du Bourbon"
         }
+      ],
+      "flavor_profiles": [
+        "FRUITY",
+        "SOUR",
+        "SPICY",
+        "HERBAL"
       ]
     },
     {
@@ -10206,19 +11116,22 @@
           "nom": "Tequila",
           "quantite": 5,
           "unite": "cl",
-          "cout_eur": 1.2
+          "cout_eur": 1.2,
+          "allergens": []
         },
         {
           "nom": "Jus d'Orange Frais",
           "quantite": 12,
           "unite": "cl",
-          "cout_eur": 0.5
+          "cout_eur": 0.5,
+          "allergens": []
         },
         {
           "nom": "Sirop de Grenadine",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.2
+          "cout_eur": 0.2,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -10252,7 +11165,11 @@
         "Orange",
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SWEET"
+      ]
     },
     {
       "id": 98,
@@ -10276,19 +11193,24 @@
           "nom": "Kahlua",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.45
+          "cout_eur": 0.45,
+          "allergens": []
         },
         {
           "nom": "Baileys",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.45
+          "cout_eur": 0.45,
+          "allergens": [
+            "LAIT"
+          ]
         },
         {
           "nom": "Cointreau",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.4
+          "cout_eur": 0.4,
+          "allergens": []
         }
       ],
       "recette_resume_etapes": [
@@ -10322,7 +11244,10 @@
         "Digestif",
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "flavor_profiles": [
+        "SWEET"
+      ]
     },
     {
       "id": 99,
@@ -10346,25 +11271,33 @@
           "nom": "Whisky",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 1.1
+          "cout_eur": 1.1,
+          "allergens": [
+            "GLUTEN"
+          ]
         },
         {
           "nom": "Café Espresso Chaud",
           "quantite": 10,
           "unite": "cl",
-          "cout_eur": 0.3
+          "cout_eur": 0.3,
+          "allergens": []
         },
         {
           "nom": "Sirop de Canne",
           "quantite": 2,
           "unite": "cl",
-          "cout_eur": 0.2
+          "cout_eur": 0.2,
+          "allergens": []
         },
         {
           "nom": "Crème Liquide Fouettée",
           "quantite": 4,
           "unite": "cl",
-          "cout_eur": 0.6
+          "cout_eur": 0.6,
+          "allergens": [
+            "LAIT"
+          ]
         }
       ],
       "recette_resume_etapes": [
@@ -10402,7 +11335,10 @@
       "variantes": [],
       "saisonnier": true,
       "mois_debut": 11,
-      "mois_fin": 2
+      "mois_fin": 2,
+      "flavor_profiles": [
+        "SWEET"
+      ]
     }
   ]
 }

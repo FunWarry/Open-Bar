@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { IonIcon } from '@ionic/angular/standalone';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
@@ -20,7 +20,7 @@ import {
 @Component({
   selector: 'app-mobile-table-card',
   standalone: true,
-  imports: [CommonModule, IonIcon, TranslocoPipe, AppCurrencyPipe],
+  imports: [IonIcon, TranslocoPipe, AppCurrencyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './mobile-table-card.component.html',
   styleUrls: ['./mobile-table-card.component.scss'],

@@ -69,6 +69,9 @@ public class IngredientService {
         existing.setPrixUnitaire(updatedData.getPrixUnitaire());
         existing.setFournisseur(updatedData.getFournisseur());
         existing.setNotes(updatedData.getNotes());
+        existing.setAllergens(updatedData.getAllergens());
+        existing.setDegreAlcool(updatedData.getDegreAlcool());
+        existing.setIsVegan(updatedData.getIsVegan());
         existing.setUpdatedAt(timeService.now());
         return ingredientRepository.save(existing);
     }

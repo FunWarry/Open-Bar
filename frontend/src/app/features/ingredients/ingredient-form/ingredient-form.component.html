@@ -81,6 +81,45 @@
       testId="ingredient-cost-input">
     </app-input-field>
 
+    <app-input-field
+      formControlName="degreAlcool"
+      type="number"
+      [label]="('INGREDIENTS.ALCOHOL_DEGREE_LABEL' | transloco) + ' (% ABV)'"
+      placeholder="0.0"
+      icon="wine-outline"
+      [required]="false"
+      testId="ingredient-alcohol-degree-input">
+    </app-input-field>
+
+    <div class="dietary-toggle-field">
+      <label class="dietary-check-item" data-testid="ingredient-is-vegan-label">
+        <input type="checkbox" formControlName="isVegan" [disabled]="!canEdit" data-testid="ingredient-is-vegan-checkbox" />
+        <span>🌱 {{ 'COCKTAIL.VEGAN_LABEL' | transloco }}</span>
+      </label>
+    </div>
+
+    <div class="allergens-field-group">
+      <span class="field-label">{{ 'INGREDIENTS.ALLERGENS_LABEL' | transloco }}</span>
+      <p class="field-hint">{{ 'INGREDIENTS.ALLERGENS_HINT' | transloco }}</p>
+      <div class="allergen-chips-grid">
+        @for (allergen of availableAllergens; track allergen.key) {
+          <button
+            type="button"
+            class="allergen-chip-btn"
+            [class.selected]="isAllergenSelected(allergen.key)"
+            [disabled]="!canEdit"
+            (click)="toggleAllergen(allergen.key)"
+            [attr.data-testid]="'allergen-chip-' + allergen.key.toLowerCase()">
+            <ion-icon [name]="allergen.icon" class="chip-icon"></ion-icon>
+            <span class="chip-label">{{ allergen.labelKey | transloco }}</span>
+            @if (isAllergenSelected(allergen.key)) {
+              <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
+            }
+          </button>
+        }
+      </div>
+    </div>
+
     <div class="form-actions">
       <ion-button fill="outline" color="medium" type="button" (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="ingredient-cancel-btn">
         {{ (canEdit ? 'COMMON.CANCEL' : 'COMMON.CLOSE') | transloco }}

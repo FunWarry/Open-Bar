@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
@@ -60,7 +60,6 @@ export const EURO_DENOMINATIONS: CashDenomination[] = [
   selector: 'app-cloture-caisse-modal',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslocoModule,
     AppCurrencyPipe,
@@ -78,7 +77,7 @@ export const EURO_DENOMINATIONS: CashDenomination[] = [
     IonCardContent,
     IonBadge,
     IonSpinner
-  ],
+],
   templateUrl: './cloture-caisse-modal.component.html',
   styleUrls: ['./cloture-caisse-modal.component.scss']
 })

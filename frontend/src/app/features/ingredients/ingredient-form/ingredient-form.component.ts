@@ -23,11 +23,15 @@ import {
   checkmarkCircle,
   closeOutline,
   arrowBackOutline,
-  cashOutline
+  cashOutline,
+  nutritionOutline,
+  leafOutline,
+  eggOutline,
+  wineOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IngredientService } from '../../../core/services/ingredient.service';
-import { Ingredient } from '../../../core/models/ingredient.model';
+import { Ingredient, Allergen } from '../../../core/models/ingredient.model';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 
 /**
@@ -72,6 +76,16 @@ export class IngredientFormComponent implements OnInit {
     { value: 'L', label: 'Litre (L)' }
   ];
 
+  readonly availableAllergens: { key: Allergen; labelKey: string; icon: string }[] = [
+    { key: 'LAIT', labelKey: 'COCKTAILS.ALLERGENS.LAIT', icon: 'nutrition-outline' },
+    { key: 'GLUTEN', labelKey: 'COCKTAILS.ALLERGENS.GLUTEN', icon: 'leaf-outline' },
+    { key: 'OEUF', labelKey: 'COCKTAILS.ALLERGENS.OEUF', icon: 'egg-outline' },
+    { key: 'FRUITS_A_COQUE', labelKey: 'COCKTAILS.ALLERGENS.FRUITS_A_COQUE', icon: 'nutrition-outline' },
+    { key: 'ARACHIDE', labelKey: 'COCKTAILS.ALLERGENS.ARACHIDE', icon: 'nutrition-outline' },
+    { key: 'SULFITES', labelKey: 'COCKTAILS.ALLERGENS.SULFITES', icon: 'wine-outline' },
+    { key: 'SOJA', labelKey: 'COCKTAILS.ALLERGENS.SOJA', icon: 'leaf-outline' },
+  ];
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly router: Router,
@@ -89,7 +103,11 @@ export class IngredientFormComponent implements OnInit {
       checkmarkCircle,
       closeOutline,
       arrowBackOutline,
-      cashOutline
+      cashOutline,
+      nutritionOutline,
+      leafOutline,
+      eggOutline,
+      wineOutline
     });
 
     this.ingredientForm = this.fb.group({
@@ -97,7 +115,10 @@ export class IngredientFormComponent implements OnInit {
       uniteMesure: ['', [Validators.required]],
       quantiteStock: [0, [Validators.required, Validators.min(0)]],
       seuilAlerte: [5, [Validators.required, Validators.min(0)]],
-      prixUnitaire: [0, [Validators.min(0)]]
+      prixUnitaire: [0, [Validators.min(0)]],
+      degreAlcool: [0, [Validators.min(0), Validators.max(100)]],
+      isVegan: [true],
+      allergens: [[] as Allergen[]]
     });
   }
 
@@ -110,7 +131,10 @@ export class IngredientFormComponent implements OnInit {
         uniteMesure: this.ingredient.uniteMesure,
         quantiteStock: this.ingredient.quantiteStock,
         seuilAlerte: this.ingredient.seuilAlerte,
-        prixUnitaire: this.ingredient.prixUnitaire ?? this.ingredient.unitCost ?? 0
+        prixUnitaire: this.ingredient.prixUnitaire ?? this.ingredient.unitCost ?? 0,
+        degreAlcool: this.ingredient.degreAlcool ?? 0,
+        isVegan: this.ingredient.isVegan ?? true,
+        allergens: this.ingredient.allergens || []
       });
       if (!this.canEdit) {
         this.ingredientForm.disable();
@@ -129,7 +153,10 @@ export class IngredientFormComponent implements OnInit {
             uniteMesure: ingredient.uniteMesure,
             quantiteStock: ingredient.quantiteStock,
             seuilAlerte: ingredient.seuilAlerte,
-            prixUnitaire: ingredient.prixUnitaire ?? ingredient.unitCost ?? 0
+            prixUnitaire: ingredient.prixUnitaire ?? ingredient.unitCost ?? 0,
+            degreAlcool: ingredient.degreAlcool ?? 0,
+            isVegan: ingredient.isVegan ?? true,
+            allergens: ingredient.allergens || []
           });
           if (!this.canEdit) {
             this.ingredientForm.disable();
@@ -150,6 +177,27 @@ export class IngredientFormComponent implements OnInit {
   get formTitleKey(): string {
     if (!this.isEditMode) return 'INGREDIENTS.NEW_TITLE';
     return this.canEdit ? 'INGREDIENTS.EDIT_TITLE' : 'INGREDIENTS.DETAILS_TITLE';
+  }
+
+  isAllergenSelected(key: Allergen): boolean {
+    const list: Allergen[] = this.ingredientForm.get('allergens')?.value || [];
+    return list.includes(key);
+  }
+
+  toggleAllergen(key: Allergen): void {
+    if (!this.canEdit) return;
+    const current: Allergen[] = [...(this.ingredientForm.get('allergens')?.value || [])];
+    const index = current.indexOf(key);
+    if (index >= 0) {
+      current.splice(index, 1);
+    } else {
+      current.push(key);
+    }
+    this.ingredientForm.patchValue({ allergens: current });
+    if (current.includes('LAIT') || current.includes('OEUF')) {
+      this.ingredientForm.patchValue({ isVegan: false });
+    }
+    this.ingredientForm.markAsDirty();
   }
 
   onSubmit(): void {

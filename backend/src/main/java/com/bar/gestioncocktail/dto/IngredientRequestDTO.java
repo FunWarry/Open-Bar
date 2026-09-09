@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.dto;
 
+import com.bar.gestioncocktail.model.Allergen;
 import com.bar.gestioncocktail.model.Ingredient;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -8,6 +9,8 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Request DTO for creating or updating an ingredient.
@@ -22,6 +25,7 @@ import java.time.LocalDateTime;
  * @param unitCost       Optional unit cost alias
  * @param fournisseur    Optional supplier name
  * @param notes          Optional notes
+ * @param allergens      Optional set of allergens contained in the ingredient
  */
 public record IngredientRequestDTO(
     @NotBlank(message = "Ingredient name is required")
@@ -55,10 +59,54 @@ public record IngredientRequestDTO(
     String fournisseur,
 
     @Size(max = 2000, message = "Notes cannot exceed 2000 characters")
-    String notes
+    String notes,
+
+    Set<Allergen> allergens,
+
+    @DecimalMin(value = "0.0", message = "Alcohol degree cannot be negative")
+    BigDecimal degreAlcool,
+
+    Boolean isVegan
 ) {
     /**
-     * Backward-compatible constructor without unitCost alias.
+     * Backward-compatible constructor without degreAlcool and isVegan.
+     */
+    public IngredientRequestDTO(
+        String nom,
+        String uniteMesure,
+        BigDecimal quantiteStock,
+        BigDecimal seuilAlerte,
+        String numeroLot,
+        LocalDateTime datePeremption,
+        BigDecimal prixUnitaire,
+        BigDecimal unitCost,
+        String fournisseur,
+        String notes,
+        Set<Allergen> allergens
+    ) {
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, BigDecimal.ZERO, true);
+    }
+
+    /**
+     * Backward-compatible constructor without allergens, degreAlcool and isVegan.
+     */
+    public IngredientRequestDTO(
+        String nom,
+        String uniteMesure,
+        BigDecimal quantiteStock,
+        BigDecimal seuilAlerte,
+        String numeroLot,
+        LocalDateTime datePeremption,
+        BigDecimal prixUnitaire,
+        BigDecimal unitCost,
+        String fournisseur,
+        String notes
+    ) {
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, Set.of(), BigDecimal.ZERO, true);
+    }
+
+    /**
+     * Backward-compatible constructor without unitCost alias, allergens, degreAlcool and isVegan.
      */
     public IngredientRequestDTO(
         String nom,
@@ -71,7 +119,7 @@ public record IngredientRequestDTO(
         String fournisseur,
         String notes
     ) {
-        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, null, fournisseur, notes);
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, null, fournisseur, notes, Set.of(), BigDecimal.ZERO, true);
     }
 
     /**
@@ -91,6 +139,9 @@ public record IngredientRequestDTO(
         ingredient.setPrixUnitaire(effectiveCost);
         ingredient.setFournisseur(fournisseur);
         ingredient.setNotes(notes);
+        ingredient.setAllergens(allergens != null ? allergens : new HashSet<>());
+        ingredient.setDegreAlcool(degreAlcool != null ? degreAlcool : BigDecimal.ZERO);
+        ingredient.setIsVegan(isVegan == null || isVegan);
         return ingredient;
     }
 }

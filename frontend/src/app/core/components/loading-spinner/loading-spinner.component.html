@@ -1,3 +1,5 @@
-<div class="loading-spinner-overlay" *ngIf="isLoading">
-  <ion-spinner name="crescent"></ion-spinner>
-</div>
+@if (isLoading) {
+  <div class="loading-spinner-overlay">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+}

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { NgIf } from '@angular/common';
+
 import { IonIcon, IonButton } from '@ionic/angular/standalone';
 
 /**
@@ -8,7 +8,7 @@ import { IonIcon, IonButton } from '@ionic/angular/standalone';
 @Component({
   selector: 'app-empty-state',
   standalone: true,
-  imports: [IonIcon, IonButton, NgIf],
+  imports: [IonIcon, IonButton],
   templateUrl: './empty-state.component.html',
   styleUrls: ['./empty-state.component.css']
 })

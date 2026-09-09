@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -69,7 +69,6 @@ import { FeatureFlagService } from '../../core/services/feature-flag.service';
   selector: 'app-dashboard-barman',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslocoModule,
     IonContent,
@@ -91,7 +90,7 @@ import { FeatureFlagService } from '../../core/services/feature-flag.service';
     CommandeCardComponent,
     EmptyStateComponent,
     RecipeSidePanelComponent
-  ],
+],
   templateUrl: './dashboard-barman.component.html',
   styleUrls: ['./dashboard-barman.component.scss']
 })

@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { IonIcon } from '@ionic/angular/standalone';
 import { StockSeverityBadgeComponent } from '../../../../core/components/ui/stock-severity-badge/stock-severity-badge.component';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
@@ -8,6 +8,8 @@ import { wineOutline, beerOutline, waterOutline, flameOutline, fastFoodOutline }
 /**
  * Recipe variant option for beverage cards.
  */
+
+import { TranslocoPipe } from '@jsverse/transloco';
 
 export interface ProductVariant {
   id?: number;
@@ -34,7 +36,7 @@ export interface ProductItem {
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [CommonModule, IonIcon, StockSeverityBadgeComponent, AppCurrencyPipe],
+  imports: [IonIcon, StockSeverityBadgeComponent, AppCurrencyPipe, TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './product-card.component.html',
   styleUrls: ['./product-card.component.scss'],
@@ -60,29 +62,30 @@ export class ProductCardComponent {
     return this.canSeeLowStock && this.product.stockStatus === 'FAIBLE';
   }
 
-  static readonly ALLERGEN_DEFINITIONS = [
-    { key: 'LAIT', label: 'Lactose', symbol: '🥛', keywords: ['lait', 'creme', 'crème', 'cream', 'beurre', 'lactose', 'baileys', 'yaourt', 'fromage'] },
-    { key: 'GLUTEN', label: 'Gluten', symbol: '🌾', keywords: ['biere', 'bière', 'beer', 'whisky', 'whiskey', 'orge', 'seigle', 'ble', 'blé', 'gluten'] },
-    { key: 'OEUF', label: 'Œuf', symbol: '🥚', keywords: ['oeuf', 'œuf', 'egg', 'albumine'] },
-    { key: 'FRUITS_A_COQUE', label: 'Noix', symbol: '🥜', keywords: ['amande', 'almond', 'amaretto', 'noisette', 'hazelnut', 'noix', 'walnut', 'pistache', 'pistachio', 'cashew', 'anacarde'] },
-    { key: 'ARACHIDE', label: 'Arachide', symbol: '🥜', keywords: ['arachide', 'peanut', 'cacahuete', 'cacahuète'] },
-    { key: 'SULFITES', label: 'Sulfites', symbol: '🍷', keywords: ['vin', 'wine', 'champagne', 'prosecco', 'vermouth', 'sulfite', 'sulfites', 'cidre', 'cider', 'aperol', 'campari'] },
-    { key: 'SOJA', label: 'Soja', symbol: '🌱', keywords: ['soja', 'soy', 'tofu'] },
+  static readonly ALLERGEN_DEFINITIONS: readonly { key: string; labelKey: string; symbol: string }[] = [
+    { key: 'LAIT', labelKey: 'COCKTAILS.ALLERGENS.LAIT', symbol: '🥛' },
+    { key: 'GLUTEN', labelKey: 'COCKTAILS.ALLERGENS.GLUTEN', symbol: '🌾' },
+    { key: 'OEUF', labelKey: 'COCKTAILS.ALLERGENS.OEUF', symbol: '🥚' },
+    { key: 'FRUITS_A_COQUE', labelKey: 'COCKTAILS.ALLERGENS.FRUITS_A_COQUE', symbol: '🥜' },
+    { key: 'ARACHIDE', labelKey: 'COCKTAILS.ALLERGENS.ARACHIDE', symbol: '🥜' },
+    { key: 'SULFITES', labelKey: 'COCKTAILS.ALLERGENS.SULFITES', symbol: '🍷' },
+    { key: 'SOJA', labelKey: 'COCKTAILS.ALLERGENS.SOJA', symbol: '🌱' },
   ];
 
-  get detectedAllergens(): { key: string; label: string; symbol: string }[] {
-    const ingredientsText = Array.isArray(this.product.ingredients)
-      ? this.product.ingredients.map(i => (typeof i === 'object' && i !== null) ? (i.ingredientNom || i.nom || '') : i).join(' ')
-      : '';
-    const textToSearch = [
-      this.product.nom,
-      this.product.description || '',
-      ingredientsText,
-    ].join(' ').toLowerCase();
-
+  get detectedAllergens(): { key: string; labelKey: string; symbol: string }[] {
+    if (!this.product.ingredients || !Array.isArray(this.product.ingredients)) {
+      return [];
+    }
+    const foundAllergens = new Set<string>();
+    for (const item of this.product.ingredients) {
+      if (typeof item === 'object' && item !== null && 'allergens' in item && Array.isArray((item as any).allergens)) {
+        for (const a of (item as any).allergens) {
+          foundAllergens.add(a);
+        }
+      }
+    }
     return ProductCardComponent.ALLERGEN_DEFINITIONS
-      .filter(a => a.keywords.some(kw => textToSearch.includes(kw)))
-      .map(a => ({ key: a.key, label: a.label, symbol: a.symbol }));
+      .filter(a => foundAllergens.has(a.key));
   }
 
   onRightClick(event: MouseEvent) {

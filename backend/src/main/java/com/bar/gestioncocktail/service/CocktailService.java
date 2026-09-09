@@ -30,7 +30,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import com.bar.gestioncocktail.model.Allergen;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -232,9 +234,106 @@ public class CocktailService {
         if (request.isGlutenFree() != null) {
             cocktail.setGlutenFree(request.isGlutenFree());
         }
+        if (request.alcoholLevel() == null || request.isVegan() == null || request.isGlutenFree() == null) {
+            recalculateDietaryAndAlcoholMetrics(cocktail);
+        }
         if (request.station() != null) {
             cocktail.setStation(request.station());
         }
+    }
+
+    /**
+     * Recalculates dietary preferences and alcohol degree (% ABV) from cocktail ingredients and glassware.
+     *
+     * @param cocktail target cocktail entity
+     */
+    public void recalculateDietaryAndAlcoholMetrics(Cocktail cocktail) {
+        if (cocktail.getIngredients() == null || cocktail.getIngredients().isEmpty()) {
+            return;
+        }
+        calculateAlcoholMetrics(cocktail);
+        calculateDietaryPreferences(cocktail);
+    }
+
+    private void calculateAlcoholMetrics(Cocktail cocktail) {
+        BigDecimal totalPureAlcoholCl = BigDecimal.ZERO;
+        BigDecimal totalLiquidVolumeCl = BigDecimal.ZERO;
+
+        for (CocktailIngredient ci : cocktail.getIngredients()) {
+            Ingredient ing = ci.getIngredient();
+            if (ing == null) {
+                continue;
+            }
+            BigDecimal qtyCl = normalizeToCentilitres(ci.getQuantite(), ci.getUnite());
+            if (qtyCl.compareTo(BigDecimal.ZERO) > 0) {
+                totalLiquidVolumeCl = totalLiquidVolumeCl.add(qtyCl);
+                BigDecimal ingAbv = ing.getDegreAlcool() != null ? ing.getDegreAlcool() : BigDecimal.ZERO;
+                if (ingAbv.compareTo(BigDecimal.ZERO) > 0) {
+                    BigDecimal pureAlc = qtyCl.multiply(ingAbv).divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+                    totalPureAlcoholCl = totalPureAlcoholCl.add(pureAlc);
+                }
+            }
+        }
+
+        BigDecimal finishedVolumeCl = totalLiquidVolumeCl;
+        if (finishedVolumeCl.compareTo(BigDecimal.ZERO) <= 0 && cocktail.getGlassware() != null && cocktail.getGlassware().getContenanceCl() != null) {
+            finishedVolumeCl = cocktail.getGlassware().getContenanceCl();
+        }
+
+        if (finishedVolumeCl.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal abv = totalPureAlcoholCl.multiply(BigDecimal.valueOf(100))
+                .divide(finishedVolumeCl, 1, RoundingMode.HALF_UP);
+            cocktail.setAlcoholLevel(abv);
+            cocktail.setMocktail(abv.compareTo(BigDecimal.valueOf(0.5)) < 0);
+        } else {
+            cocktail.setAlcoholLevel(BigDecimal.ZERO);
+            cocktail.setMocktail(true);
+        }
+    }
+
+    private void calculateDietaryPreferences(Cocktail cocktail) {
+        boolean hasGluten = false;
+        boolean allVegan = true;
+
+        for (CocktailIngredient ci : cocktail.getIngredients()) {
+            Ingredient ing = ci.getIngredient();
+            if (ing == null) {
+                continue;
+            }
+            if (ing.getAllergens() != null) {
+                if (ing.getAllergens().contains(Allergen.GLUTEN)) {
+                    hasGluten = true;
+                }
+                if (ing.getAllergens().contains(Allergen.LAIT) || ing.getAllergens().contains(Allergen.OEUF)) {
+                    allVegan = false;
+                }
+            }
+            if (Boolean.FALSE.equals(ing.getIsVegan())) {
+                allVegan = false;
+            }
+        }
+
+        cocktail.setGlutenFree(!hasGluten);
+        cocktail.setVegan(allVegan);
+    }
+
+    private BigDecimal normalizeToCentilitres(BigDecimal quantite, String unite) {
+        if (quantite == null || quantite.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+        if (unite == null) {
+            return quantite;
+        }
+        String u = unite.trim().toLowerCase();
+        return switch (u) {
+            case "cl" -> quantite;
+            case "ml" -> quantite.divide(BigDecimal.valueOf(10), 4, RoundingMode.HALF_UP);
+            case "l", "litre", "litres" -> quantite.multiply(BigDecimal.valueOf(100));
+            case "dash", "trait" -> quantite.multiply(BigDecimal.valueOf(0.08));
+            case "goutte", "drop" -> quantite.multiply(BigDecimal.valueOf(0.005));
+            case "g", "gramme", "grammes" -> quantite.divide(BigDecimal.valueOf(10), 4, RoundingMode.HALF_UP);
+            default -> quantite;
+        };
     }
 
     /**
