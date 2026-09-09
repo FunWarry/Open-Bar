@@ -75,6 +75,17 @@ describe('ItemCustomizationModalComponent', () => {
     expect(component.hasQuickNote('Sans glaçons')).toBeFalse();
   });
 
+  it('should toggle quick notes using translation keys via hasQuickNoteKey and toggleQuickNoteKey', () => {
+    const key = 'SERVEUR.QUICK_NOTES_OPTIONS.NO_ICE';
+    expect(component.hasQuickNoteKey(key)).toBeFalse();
+
+    component.toggleQuickNoteKey(key);
+    expect(component.hasQuickNoteKey(key)).toBeTrue();
+
+    component.toggleQuickNoteKey(key);
+    expect(component.hasQuickNoteKey(key)).toBeFalse();
+  });
+
   it('should dismiss with cancel on close', () => {
     component.close();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null, 'cancel');
