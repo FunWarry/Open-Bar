@@ -80,7 +80,8 @@ describe('RupturesModalComponent', () => {
       'getCocktails',
       'getIngredients',
       'toggleCocktailDisponibilite',
-      'updateIngredientStock'
+      'updateIngredientStock',
+      'getCocktailsByIngredient'
     ]);
     dashboardServiceSpy.getCocktails.and.returnValue(of(mockCocktails));
     dashboardServiceSpy.getIngredients.and.returnValue(of(mockIngredients));
@@ -90,6 +91,7 @@ describe('RupturesModalComponent', () => {
     dashboardServiceSpy.updateIngredientStock.and.returnValue(
       of({ ...mockIngredients[0], quantiteStock: 0 })
     );
+    dashboardServiceSpy.getCocktailsByIngredient.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [RupturesModalComponent, getTranslocoTestingModule()],
@@ -162,12 +164,30 @@ describe('RupturesModalComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalled();
   });
 
-  it('updateStock() met a jour le stock et displays a toast', () => {
+  it('updateStock() updates positive stock directly', () => {
+    const ingredient = component.ingredients[0];
+    component.updateStock(ingredient, 50);
+
+    expect(dashboardServiceSpy.updateIngredientStock).toHaveBeenCalledWith(ingredient.id, 50);
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('updateStock() zeroes stock directly when no cocktails use the ingredient', () => {
+    dashboardServiceSpy.getCocktailsByIngredient.and.returnValue(of([]));
     const ingredient = component.ingredients[0];
     component.updateStock(ingredient, 0);
 
+    expect(dashboardServiceSpy.getCocktailsByIngredient).toHaveBeenCalledWith(ingredient.id);
     expect(dashboardServiceSpy.updateIngredientStock).toHaveBeenCalledWith(ingredient.id, 0);
-    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('updateStock() opens RuptureImpactModalComponent when cocktails use the ingredient', async () => {
+    dashboardServiceSpy.getCocktailsByIngredient.and.returnValue(of(mockCocktails));
+    const ingredient = component.ingredients[0];
+    component.updateStock(ingredient, 0);
+
+    expect(dashboardServiceSpy.getCocktailsByIngredient).toHaveBeenCalledWith(ingredient.id);
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
   });
 
   it('dismiss() ferme la modale', () => {
