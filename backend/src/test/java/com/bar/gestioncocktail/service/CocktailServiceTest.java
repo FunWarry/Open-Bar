@@ -1053,5 +1053,192 @@ class CocktailServiceTest {
         assertThat(response).isNotNull();
         assertThat(cocktail.getStation()).isEqualTo(com.bar.gestioncocktail.model.PreparationStation.SNACK);
     }
+
+    @Test
+    @DisplayName("recalculateDietaryAndAlcoholMetrics - nominal case calculates ABV and dietary flags")
+    void recalculateDietaryAndAlcoholMetrics_calculatesAbvAndDietaryFlags() {
+        Cocktail c = new Cocktail();
+        c.setNom("Vodka Orange");
+
+        Ingredient vodka = new Ingredient();
+        vodka.setNom("Vodka");
+        vodka.setDegreAlcool(new BigDecimal("40.0"));
+        vodka.setIsVegan(true);
+        vodka.setAllergens(Set.of());
+
+        Ingredient orange = new Ingredient();
+        orange.setNom("Jus d'orange");
+        orange.setDegreAlcool(BigDecimal.ZERO);
+        orange.setIsVegan(true);
+        orange.setAllergens(Set.of());
+
+        CocktailIngredient ci1 = new CocktailIngredient();
+        ci1.setIngredient(vodka);
+        ci1.setQuantite(new BigDecimal("5"));
+        ci1.setUnite("cl");
+
+        CocktailIngredient ci2 = new CocktailIngredient();
+        ci2.setIngredient(orange);
+        ci2.setQuantite(new BigDecimal("15"));
+        ci2.setUnite("cl");
+
+        c.setIngredients(List.of(ci1, ci2));
+
+        cocktailService.recalculateDietaryAndAlcoholMetrics(c);
+
+        assertThat(c.getAlcoholLevel()).isEqualByComparingTo(new BigDecimal("10.0"));
+        assertThat(c.isMocktail()).isFalse();
+        assertThat(c.isVegan()).isTrue();
+        assertThat(c.isGlutenFree()).isTrue();
+    }
+
+    @Test
+    @DisplayName("recalculateDietaryAndAlcoholMetrics - low ABV sets mocktail true")
+    void recalculateDietaryAndAlcoholMetrics_lowAbvSetsMocktailTrue() {
+        Cocktail c = new Cocktail();
+        c.setNom("Virgin Mojito");
+
+        Ingredient mint = new Ingredient();
+        mint.setNom("Menthe");
+        mint.setDegreAlcool(BigDecimal.ZERO);
+        mint.setIsVegan(true);
+        mint.setAllergens(Set.of());
+
+        CocktailIngredient ci1 = new CocktailIngredient();
+        ci1.setIngredient(mint);
+        ci1.setQuantite(new BigDecimal("10"));
+        ci1.setUnite("cl");
+
+        c.setIngredients(List.of(ci1));
+
+        cocktailService.recalculateDietaryAndAlcoholMetrics(c);
+
+        assertThat(c.getAlcoholLevel()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(c.isMocktail()).isTrue();
+    }
+
+    @Test
+    @DisplayName("recalculateDietaryAndAlcoholMetrics - detects allergens and non-vegan ingredients")
+    void recalculateDietaryAndAlcoholMetrics_detectsAllergensAndNonVegan() {
+        Cocktail c = new Cocktail();
+        c.setNom("Beer Cocktail with Milk");
+
+        Ingredient beer = new Ingredient();
+        beer.setNom("Bière Blanche");
+        beer.setDegreAlcool(new BigDecimal("5.0"));
+        beer.setIsVegan(true);
+        beer.setAllergens(Set.of(Allergen.GLUTEN));
+
+        Ingredient cream = new Ingredient();
+        cream.setNom("Crème");
+        cream.setDegreAlcool(BigDecimal.ZERO);
+        cream.setIsVegan(false);
+        cream.setAllergens(Set.of(Allergen.LAIT));
+
+        CocktailIngredient ci1 = new CocktailIngredient();
+        ci1.setIngredient(beer);
+        ci1.setQuantite(new BigDecimal("250"));
+        ci1.setUnite("ml");
+
+        CocktailIngredient ci2 = new CocktailIngredient();
+        ci2.setIngredient(cream);
+        ci2.setQuantite(new BigDecimal("5"));
+        ci2.setUnite("cl");
+
+        c.setIngredients(List.of(ci1, ci2));
+
+        cocktailService.recalculateDietaryAndAlcoholMetrics(c);
+
+        assertThat(c.isGlutenFree()).isFalse();
+        assertThat(c.isVegan()).isFalse();
+        assertThat(c.isMocktail()).isFalse();
+    }
+
+    @Test
+    @DisplayName("recalculateDietaryAndAlcoholMetrics - glassware contenance fallback when finished volume is zero")
+    void recalculateDietaryAndAlcoholMetrics_glasswareContenanceFallback() {
+        Cocktail c = new Cocktail();
+        c.setNom("Mist Cocktail");
+
+        Glassware g = new Glassware();
+        g.setNom("Coupe");
+        g.setContenanceCl(new BigDecimal("20.0"));
+        c.setGlassware(g);
+
+        Ingredient spirit = new Ingredient();
+        spirit.setNom("Absinthe");
+        spirit.setDegreAlcool(new BigDecimal("60.0"));
+        spirit.setIsVegan(true);
+
+        CocktailIngredient ci = new CocktailIngredient();
+        ci.setIngredient(spirit);
+        ci.setQuantite(BigDecimal.ZERO);
+        ci.setUnite("cl");
+
+        c.setIngredients(List.of(ci));
+
+        cocktailService.recalculateDietaryAndAlcoholMetrics(c);
+
+        assertThat(c.getAlcoholLevel()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(c.isMocktail()).isTrue();
+    }
+
+    @Test
+    @DisplayName("recalculateDietaryAndAlcoholMetrics - normalizes diverse units")
+    void recalculateDietaryAndAlcoholMetrics_normalizesDiverseUnits() {
+        Cocktail c = new Cocktail();
+        c.setNom("Complex Punch");
+
+        Ingredient bitter = new Ingredient();
+        bitter.setNom("Angostura");
+        bitter.setDegreAlcool(new BigDecimal("44.7"));
+        bitter.setIsVegan(true);
+
+        CocktailIngredient ci1 = new CocktailIngredient();
+        ci1.setIngredient(bitter);
+        ci1.setQuantite(new BigDecimal("3"));
+        ci1.setUnite("dash");
+
+        CocktailIngredient ci2 = new CocktailIngredient();
+        ci2.setIngredient(bitter);
+        ci2.setQuantite(new BigDecimal("5"));
+        ci2.setUnite("drop");
+
+        CocktailIngredient ci3 = new CocktailIngredient();
+        ci3.setIngredient(bitter);
+        ci3.setQuantite(new BigDecimal("0.1"));
+        ci3.setUnite("l");
+
+        CocktailIngredient ci4 = new CocktailIngredient();
+        ci4.setIngredient(bitter);
+        ci4.setQuantite(new BigDecimal("20"));
+        ci4.setUnite("g");
+
+        CocktailIngredient ci5 = new CocktailIngredient();
+        ci5.setIngredient(bitter);
+        ci5.setQuantite(new BigDecimal("10"));
+        ci5.setUnite(null);
+
+        c.setIngredients(List.of(ci1, ci2, ci3, ci4, ci5));
+
+        cocktailService.recalculateDietaryAndAlcoholMetrics(c);
+
+        assertThat(c.getAlcoholLevel()).isGreaterThan(BigDecimal.ZERO);
+        assertThat(c.isMocktail()).isFalse();
+    }
+
+    @Test
+    @DisplayName("recalculateDietaryAndAlcoholMetrics - empty or null ingredients does nothing")
+    void recalculateDietaryAndAlcoholMetrics_emptyOrNullIngredients_noop() {
+        Cocktail c = new Cocktail();
+        c.setAlcoholLevel(new BigDecimal("12.5"));
+        c.setIngredients(null);
+        cocktailService.recalculateDietaryAndAlcoholMetrics(c);
+        assertThat(c.getAlcoholLevel()).isEqualByComparingTo(new BigDecimal("12.5"));
+
+        c.setIngredients(List.of());
+        cocktailService.recalculateDietaryAndAlcoholMetrics(c);
+        assertThat(c.getAlcoholLevel()).isEqualByComparingTo(new BigDecimal("12.5"));
+    }
 }
 
