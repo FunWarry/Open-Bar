@@ -56,6 +56,9 @@ export class CocktailMatcherBarComponent {
   /** Active selected flavor profile tags. */
   @Input() activeFlavors: FlavorProfile[] = [];
 
+  /** Whether to show the mocktail / non-alcoholic dietary filter button. Default is true. */
+  @Input() showMocktail = true;
+
   /** Non-alcoholic / mocktail filter state. */
   @Input() mocktail = false;
 

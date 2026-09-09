@@ -918,7 +918,11 @@
     "DELETE_SUCCESS": "Ingrédient supprimé",
     "DELETE_ERROR": "Impossible de supprimer cet ingrédient",
     "SELECT_UNIT": "Sélectionner une unité",
-    "NAME_PLACEHOLDER": "ex: Citron"
+    "NAME_PLACEHOLDER": "ex: Citron",
+    "ALLERGENS_LABEL": "Allergènes",
+    "ALLERGENS_HINT": "Sélectionnez les allergènes présents dans cet ingrédient",
+    "ALCOHOL_DEGREE_LABEL": "Degré d'alcool",
+    "ALCOHOL_DEGREE_HINT": "Pourcentage volumique d'alcool (% ABV)"
   },
   "TABLES": {
     "TABLE": "Table",
@@ -2062,7 +2066,8 @@
       "ALREADY_PUBLISHED": "Déjà publié",
       "PUBLISHED_BY": "Publié le {{date}} par {{user}}",
       "MODIFIED_SINCE_PUBLISHED": "⚠️ Modifications non publiées (Dernière pub. {{date}} par {{user}})",
-      "PUBLISH_SUCCESS": "Planning de la semaine publié avec succès"
+      "PUBLISH_SUCCESS": "Planning de la semaine publié avec succès",
+      "DRAFT_STATUS": "Brouillon non publié — Cliquez sur « Publier le planning » pour figer la version officielle et activer le comparateur de différences"
     },
     "DIFF": {
       "COMPARE_BTN": "Comparer avec la publication",
@@ -2702,6 +2707,7 @@
     "LOW_ABV_LABEL": "Faible en alcool (Low-ABV)",
     "ALCOHOL_LEVEL_LABEL": "Degré d'alcool (% ABV)",
     "COST_LABEL": "Coût de revient",
+    "COST_RECIPE": "Coût recette",
     "COST_UNIT": "Coût unitaire d'achat",
     "COST_RECIPE_TOTAL": "Coût total de la recette (COGS)",
     "COST_SELLING_PRICE_HT": "Prix de vente HT",
@@ -2712,7 +2718,13 @@
     "COST_MEDIUM_MARGIN": "Rentabilité saine",
     "COST_LOW_MARGIN": "Faible marge",
     "COST_SUMMARY_TITLE": "Analyse Financière & Marge",
-    "COST_UNIT_PRICE_HINT": "Prix au litre, kg ou pièce"
+    "COST_UNIT_PRICE_HINT": "Prix au litre, kg ou pièce",
+    "AUTO_CALCULATED_HINT": "Calculé automatiquement à partir des ingrédients et du verre",
+    "ALCOHOLIC_LABEL": "Alcoolisé",
+    "NOT_VEGAN_LABEL": "Non végane",
+    "CONTAINS_GLUTEN_LABEL": "Contient du gluten",
+    "CALCULATION_DETAILS": "{{ pureAlcohol }} cl d'alcool pur / {{ totalLiquid }} cl",
+    "GLASS_CAPACITY_NOTE": "Verre : {{ capacity }} cl"
   },
   "ANALYTICS": {
     "MARGIN_TITLE": "Santé Financière & Rentabilité",

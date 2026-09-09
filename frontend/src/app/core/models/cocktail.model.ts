@@ -1,5 +1,6 @@
 import { Glassware } from './glassware.model';
 import { CocktailRecipeStep } from './recipe-step.model';
+import { Allergen } from './ingredient.model';
 /**
  * Beverage catalog category classification.
  */
@@ -38,6 +39,7 @@ export interface CocktailIngredientItem {
   ingredientNom: string;
   quantite: number;
   uniteMesure: string;
+  allergens?: Allergen[];
 }
 
 export interface CocktailVarianteIngredient {
@@ -47,6 +49,7 @@ export interface CocktailVarianteIngredient {
   quantite: number;
   unite?: string;
   notes?: string;
+  allergens?: Allergen[];
 }
 
 export interface CocktailVariante {
