@@ -889,4 +889,184 @@ describe('CocktailFormComponent', () => {
       expect(component.marginBadgeClass()).toBe('danger');
     });
   });
+
+  describe('Automatic Alcohol & Dietary Calculation', () => {
+    beforeEach(async () => {
+      await buildModule(null);
+    });
+
+    it('should normalize various volume units to centilitres correctly', () => {
+      expect(component.normalizeVolumeToCl(5, 'cl')).toBe(5);
+      expect(component.normalizeVolumeToCl(50, 'ml')).toBe(5);
+      expect(component.normalizeVolumeToCl(0.1, 'l')).toBe(10);
+      expect(component.normalizeVolumeToCl(1, 'dl')).toBe(10);
+      expect(component.normalizeVolumeToCl(1, 'oz')).toBeCloseTo(2.957, 2);
+      expect(component.normalizeVolumeToCl(2, 'dash')).toBe(0.2);
+      expect(component.normalizeVolumeToCl(2, 'tsp')).toBe(1.0);
+      expect(component.normalizeVolumeToCl(1, 'piece')).toBe(0);
+      expect(component.normalizeVolumeToCl(0, 'cl')).toBe(0);
+    });
+
+    it('should automatically calculate ABV from alcoholic and non-alcoholic ingredients', () => {
+      component.ingredientsList.set([
+        {
+          id: 1,
+          nom: 'Vodka',
+          uniteMesure: 'cl',
+          quantiteStock: 10,
+          seuilAlerte: 2,
+          degreAlcool: 40,
+          isVegan: true,
+          allergens: [],
+          createdAt: '',
+          updatedAt: '',
+        },
+        {
+          id: 2,
+          nom: 'Orange Juice',
+          uniteMesure: 'cl',
+          quantiteStock: 50,
+          seuilAlerte: 5,
+          degreAlcool: 0,
+          isVegan: true,
+          allergens: [],
+          createdAt: '',
+          updatedAt: '',
+        },
+      ]);
+
+      component.recipeStepsArray.push(
+        (component as any).fb.group({
+          stepOrder: [1],
+          stepType: ['INGREDIENT'],
+          ingredientId: [1],
+          ingredientNom: ['Vodka'],
+          quantite: [5],
+          unite: ['cl'],
+        })
+      );
+      component.recipeStepsArray.push(
+        (component as any).fb.group({
+          stepOrder: [2],
+          stepType: ['INGREDIENT'],
+          ingredientId: [2],
+          ingredientNom: ['Orange Juice'],
+          quantite: [15],
+          unite: ['cl'],
+        })
+      );
+
+      component.recipeVersion.update((v: number) => v + 1);
+
+      const metrics = component.calculatedAlcoholMetrics();
+      // 5cl * 40% = 2cl pure alcohol; 20cl total liquid -> 10% ABV
+      expect(metrics.pureAlcoholCl).toBe(2);
+      expect(metrics.totalLiquidCl).toBe(20);
+      expect(metrics.abv).toBe(10);
+
+      const dietary = component.calculatedDietary();
+      expect(dietary.isMocktail).toBeFalse();
+      expect(dietary.isVegan).toBeTrue();
+      expect(dietary.isGlutenFree).toBeTrue();
+    });
+
+    it('should automatically detect allergens and adjust vegan and gluten-free statuses', () => {
+      component.ingredientsList.set([
+        {
+          id: 10,
+          nom: 'Beer',
+          uniteMesure: 'cl',
+          quantiteStock: 20,
+          seuilAlerte: 5,
+          degreAlcool: 5,
+          isVegan: true,
+          allergens: ['GLUTEN'],
+          createdAt: '',
+          updatedAt: '',
+        },
+        {
+          id: 11,
+          nom: 'Baileys',
+          uniteMesure: 'cl',
+          quantiteStock: 10,
+          seuilAlerte: 2,
+          degreAlcool: 17,
+          isVegan: false,
+          allergens: ['LAIT'],
+          createdAt: '',
+          updatedAt: '',
+        },
+      ]);
+
+      component.recipeStepsArray.push(
+        (component as any).fb.group({
+          stepOrder: [1],
+          stepType: ['INGREDIENT'],
+          ingredientId: [10],
+          ingredientNom: ['Beer'],
+          quantite: [25],
+          unite: ['cl'],
+        })
+      );
+
+      component.recipeVersion.update((v: number) => v + 1);
+      let dietary = component.calculatedDietary();
+      expect(dietary.isGlutenFree).toBeFalse();
+      expect(dietary.isVegan).toBeTrue();
+      expect(dietary.detectedAllergens).toContain('GLUTEN');
+
+      component.recipeStepsArray.push(
+        (component as any).fb.group({
+          stepOrder: [2],
+          stepType: ['INGREDIENT'],
+          ingredientId: [11],
+          ingredientNom: ['Baileys'],
+          quantite: [5],
+          unite: ['cl'],
+        })
+      );
+
+      component.recipeVersion.update((v: number) => v + 1);
+      dietary = component.calculatedDietary();
+      expect(dietary.isVegan).toBeFalse();
+      expect(dietary.isGlutenFree).toBeFalse();
+      expect(dietary.detectedAllergens).toContain('LAIT');
+      expect(dietary.detectedAllergens).toContain('GLUTEN');
+    });
+
+    it('should identify 0% ABV drinks as mocktails', () => {
+      component.ingredientsList.set([
+        {
+          id: 20,
+          nom: 'Syrup',
+          uniteMesure: 'cl',
+          quantiteStock: 10,
+          seuilAlerte: 2,
+          degreAlcool: 0,
+          isVegan: true,
+          allergens: [],
+          createdAt: '',
+          updatedAt: '',
+        },
+      ]);
+
+      component.recipeStepsArray.push(
+        (component as any).fb.group({
+          stepOrder: [1],
+          stepType: ['INGREDIENT'],
+          ingredientId: [20],
+          ingredientNom: ['Syrup'],
+          quantite: [4],
+          unite: ['cl'],
+        })
+      );
+
+      component.recipeVersion.update((v: number) => v + 1);
+      const metrics = component.calculatedAlcoholMetrics();
+      const dietary = component.calculatedDietary();
+
+      expect(metrics.abv).toBe(0);
+      expect(dietary.isMocktail).toBeTrue();
+    });
+  });
 });

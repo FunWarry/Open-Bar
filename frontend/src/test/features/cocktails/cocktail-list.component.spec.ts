@@ -147,8 +147,8 @@ describe('CocktailListComponent', () => {
     const cocktailLait: Cocktail = {
       ...mockCocktails[0],
       ingredients: [
-        { id: 1, ingredientId: 10, ingredientNom: 'Rhum', quantite: 5, uniteMesure: 'cl' },
-        { id: 2, ingredientId: 12, ingredientNom: 'Sour cream', quantite: 3, uniteMesure: 'cl' },
+        { id: 1, ingredientId: 10, ingredientNom: 'Rhum', quantite: 5, uniteMesure: 'cl', allergens: [] },
+        { id: 2, ingredientId: 12, ingredientNom: 'Sour cream', quantite: 3, uniteMesure: 'cl', allergens: ['LAIT'] },
       ],
     };
     const allergens = component.getCocktailAllergens(cocktailLait);
@@ -174,8 +174,8 @@ describe('CocktailListComponent', () => {
     const cocktailLait: Cocktail = {
       ...makeC(10, 'Pina Colada'),
       ingredients: [
-        { id: 1, ingredientId: 10, ingredientNom: 'Rhum', quantite: 5, uniteMesure: 'cl' },
-        { id: 2, ingredientId: 12, ingredientNom: 'Lait de coco', quantite: 5, uniteMesure: 'cl' },
+        { id: 1, ingredientId: 10, ingredientNom: 'Rhum', quantite: 5, uniteMesure: 'cl', allergens: [] },
+        { id: 2, ingredientId: 12, ingredientNom: 'Lait de coco', quantite: 5, uniteMesure: 'cl', allergens: ['LAIT'] },
       ],
     };
     const cocktailNormal: Cocktail = makeC(11, 'Mojito Simple');
@@ -393,4 +393,80 @@ describe('CocktailListComponent', () => {
     component.onResetMatcherFilters();
     expect(component.filteredCocktails).toHaveSize(2);
   });
+
+  // --- Allergen Detection & Non-Regression Tests ---
+
+  it('getCocktailAllergens() does NOT detect gluten from substring "tumbler" in Agrumes 4/4', () => {
+    const agrumes: Cocktail = {
+      id: 3,
+      nom: 'Agrumes 4/4',
+      prix: 6.5,
+      categorie: 'SANS_ALCOOL',
+      disponible: true,
+      description: 'Délicieux cocktail servi dans un verre tumbler avec glaçons',
+      saisonnier: false,
+      isGlutenFree: true,
+      isVegan: true,
+      ingredients: [
+        { id: 1, ingredientId: 1, ingredientNom: "Jus d'Orange", quantite: 2, uniteMesure: 'cl' },
+        { id: 2, ingredientId: 2, ingredientNom: 'Jus de Citron jaune', quantite: 2, uniteMesure: 'cl' },
+        { id: 3, ingredientId: 3, ingredientNom: 'Jus de Pamplemousse', quantite: 2, uniteMesure: 'cl' },
+        { id: 4, ingredientId: 4, ingredientNom: 'Sirop de Fraise', quantite: 2, uniteMesure: 'cl' },
+      ],
+      variantes: [],
+      createdAt: '',
+      updatedAt: '',
+    };
+
+    const allergens = component.getCocktailAllergens(agrumes);
+    expect(allergens).not.toContain('GLUTEN');
+    expect(allergens).toEqual([]);
+  });
+
+  it('getCocktailAllergens() never detects GLUTEN when isGlutenFree is true', () => {
+    const cocktail: Cocktail = {
+      ...mockCocktails[0],
+      nom: 'Cocktail Gluten-Free Special',
+      description: 'Contient arôme blé désactivé mais certifié sans gluten',
+      isGlutenFree: true,
+      ingredients: [
+        { id: 1, ingredientId: 1, ingredientNom: 'Arôme blé désactivé', quantite: 5, uniteMesure: 'cl', allergens: ['GLUTEN'] }
+      ]
+    };
+
+    const allergens = component.getCocktailAllergens(cocktail);
+    expect(allergens).not.toContain('GLUTEN');
+  });
+
+  it('getCocktailAllergens() correctly detects GLUTEN for real gluten ingredients like bière or whisky', () => {
+    const cocktailBiere: Cocktail = {
+      ...mockCocktails[0],
+      nom: 'Panaché',
+      description: 'Bière et limonade',
+      isGlutenFree: false,
+      ingredients: [
+        { id: 1, ingredientId: 1, ingredientNom: 'Bière blonde', quantite: 25, uniteMesure: 'cl', allergens: ['GLUTEN'] }
+      ],
+    };
+
+    const allergens = component.getCocktailAllergens(cocktailBiere);
+    expect(allergens).toContain('GLUTEN');
+  });
+
+  it('getCocktailAllergens() excludes LAIT and OEUF when cocktail isVegan is true', () => {
+    const veganCocktail: Cocktail = {
+      ...mockCocktails[0],
+      nom: 'Vegan Delight',
+      description: 'Lait végétal',
+      isVegan: true,
+      ingredients: [
+        { id: 1, ingredientId: 1, ingredientNom: 'Lait de coco enrichi', quantite: 10, uniteMesure: 'cl', allergens: ['LAIT', 'OEUF'] }
+      ],
+    };
+
+    const allergens = component.getCocktailAllergens(veganCocktail);
+    expect(allergens).not.toContain('LAIT');
+    expect(allergens).not.toContain('OEUF');
+  });
 });
+
