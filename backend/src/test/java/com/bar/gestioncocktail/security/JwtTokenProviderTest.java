@@ -60,4 +60,15 @@ class JwtTokenProviderTest {
     void testValidateTokenInvalid() {
         assertFalse(jwtTokenProvider.validateToken("invalid.token.here"));
     }
+
+    @Test
+    void testValidateTokenWithNullEmptyOrUndefinedLiteral() {
+        assertFalse(jwtTokenProvider.validateToken(null));
+        assertFalse(jwtTokenProvider.validateToken(""));
+        assertFalse(jwtTokenProvider.validateToken("   "));
+        assertFalse(jwtTokenProvider.validateToken("null"));
+        assertFalse(jwtTokenProvider.validateToken("NULL"));
+        assertFalse(jwtTokenProvider.validateToken("undefined"));
+        assertFalse(jwtTokenProvider.validateToken("UNDEFINED"));
+    }
 }
