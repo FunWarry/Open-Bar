@@ -16,9 +16,11 @@
               <ion-icon name="card-outline"></ion-icon>
               {{ t('FACTURES.HERO_BADGE') | uppercase }}
             </span>
-            <span class="hero-count-pill" *ngIf="periodFilteredFactures.length > 0">
-              {{ periodFilteredFactures.length }} {{ periodFilteredFactures.length > 1 ? t('FACTURES.STATS.TOTAL_COUNT') : t('FACTURES.NUMBER') }}
-            </span>
+            @if (periodFilteredFactures.length > 0) {
+              <span class="hero-count-pill">
+                {{ periodFilteredFactures.length }} {{ periodFilteredFactures.length > 1 ? t('FACTURES.STATS.TOTAL_COUNT') : t('FACTURES.NUMBER') }}
+              </span>
+            }
           </div>
           <h1 class="hero-title">{{ t('FACTURES.TITLE') }}</h1>
           <p class="hero-subtitle">{{ t('FACTURES.SUBTITLE') }}</p>
@@ -26,22 +28,25 @@
       </div>
 
       <div class="hero-actions">
-        <ion-button
-          fill="outline"
-          size="small"
-          class="btn-refresh"
-          (click)="charger()"
-          (keyup.enter)="charger()"
+        <app-action-button
+          variant="secondary"
+          icon="refresh-outline"
+          iconSlot="icon-only"
+          [loading]="loading"
+          (btnClick)="charger()"
           [title]="t('FACTURES.ACTIONS.REFRESH')"
+          testId="factures-refresh-btn"
           data-testid="factures-refresh-btn">
-          <ion-icon slot="icon-only" name="refresh-outline" [class.spinning]="loading"></ion-icon>
-        </ion-button>
+        </app-action-button>
 
-        <a routerLink="/factures/recap" class="btn-zreport-hero" data-testid="hero-zreport-btn">
-          <ion-icon name="stats-chart-outline"></ion-icon>
-          <span>{{ t('FACTURES.STATS.RECAP_BTN') }}</span>
-          <ion-icon name="arrow-forward-outline" class="btn-arrow"></ion-icon>
-        </a>
+        <app-action-button
+          variant="primary"
+          icon="stats-chart-outline"
+          (btnClick)="goToRecap()"
+          testId="hero-zreport-btn"
+          data-testid="hero-zreport-btn">
+          {{ t('FACTURES.STATS.RECAP_BTN') }}
+        </app-action-button>
       </div>
     </header>
 
@@ -90,24 +95,6 @@
             <ion-progress-bar [value]="settledRatio" color="warning" class="kpi-progress"></ion-progress-bar>
           </div>
         </div>
-      </div>
-
-      <!-- Z-Report Quick Link Card -->
-      <div class="kpi-card action-card" data-testid="kpi-zreport-btn">
-        <a routerLink="/factures/recap" class="zreport-link">
-          <div class="zreport-main">
-            <div class="zreport-icon-box">
-              <ion-icon name="analytics-outline"></ion-icon>
-            </div>
-            <div class="zreport-text">
-              <span class="zreport-title">{{ t('FACTURES.STATS.RECAP_BTN') }}</span>
-              <span class="zreport-desc">{{ t('FACTURES.STATS.RECAP_DESC') }}</span>
-            </div>
-          </div>
-          <div class="zreport-arrow-box">
-            <ion-icon name="arrow-forward-outline"></ion-icon>
-          </div>
-        </a>
       </div>
     </section>
 
@@ -163,70 +150,67 @@
       </div>
 
       <!-- Quick presets and date selector controls -->
-      <div class="period-controls-row" *ngIf="periodMode !== 'ALL_TIME'">
-        <!-- Quick Presets -->
-        <div class="quick-presets-group">
-          <ng-container *ngIf="periodMode === 'OPERATIONAL_DAY'">
-            <button type="button" class="preset-btn" (click)="setToday()" data-testid="preset-today">
-              {{ t('FACTURES.PERIOD.TODAY') }}
-            </button>
-            <button type="button" class="preset-btn" (click)="setYesterday()" data-testid="preset-yesterday">
-              {{ t('FACTURES.PERIOD.YESTERDAY') }}
-            </button>
-          </ng-container>
-
-          <ng-container *ngIf="periodMode === 'WEEK'">
-            <button type="button" class="preset-btn" (click)="setThisWeek()" data-testid="preset-this-week">
-              {{ t('FACTURES.PERIOD.THIS_WEEK') }}
-            </button>
-            <button type="button" class="preset-btn" (click)="setLastWeek()" data-testid="preset-last-week">
-              {{ t('FACTURES.PERIOD.LAST_WEEK') }}
-            </button>
-          </ng-container>
-
-          <ng-container *ngIf="periodMode === 'MONTH'">
-            <button type="button" class="preset-btn" (click)="setThisMonth()" data-testid="preset-this-month">
-              {{ t('FACTURES.PERIOD.THIS_MONTH') }}
-            </button>
-            <button type="button" class="preset-btn" (click)="setLastMonth()" data-testid="preset-last-month">
-              {{ t('FACTURES.PERIOD.LAST_MONTH') }}
-            </button>
-          </ng-container>
+      @if (periodMode !== 'ALL_TIME') {
+        <div class="period-controls-row">
+          <!-- Quick Presets -->
+          <div class="quick-presets-group">
+            @if (periodMode === 'OPERATIONAL_DAY') {
+              <button type="button" class="preset-btn" (click)="setToday()" data-testid="preset-today">
+                {{ t('FACTURES.PERIOD.TODAY') }}
+              </button>
+              <button type="button" class="preset-btn" (click)="setYesterday()" data-testid="preset-yesterday">
+                {{ t('FACTURES.PERIOD.YESTERDAY') }}
+              </button>
+            }
+            @if (periodMode === 'WEEK') {
+              <button type="button" class="preset-btn" (click)="setThisWeek()" data-testid="preset-this-week">
+                {{ t('FACTURES.PERIOD.THIS_WEEK') }}
+              </button>
+              <button type="button" class="preset-btn" (click)="setLastWeek()" data-testid="preset-last-week">
+                {{ t('FACTURES.PERIOD.LAST_WEEK') }}
+              </button>
+            }
+            @if (periodMode === 'MONTH') {
+              <button type="button" class="preset-btn" (click)="setThisMonth()" data-testid="preset-this-month">
+                {{ t('FACTURES.PERIOD.THIS_MONTH') }}
+              </button>
+              <button type="button" class="preset-btn" (click)="setLastMonth()" data-testid="preset-last-month">
+                {{ t('FACTURES.PERIOD.LAST_MONTH') }}
+              </button>
+            }
+          </div>
+          <!-- HTML5 Native Date Pickers according to active mode -->
+          <div class="period-input-box">
+            @if (periodMode === 'OPERATIONAL_DAY') {
+              <label class="input-label" for="period-day-input">{{ t('FACTURES.PERIOD.SELECT_DAY') }}</label>
+              <input
+                id="period-day-input"
+                type="date"
+                class="period-date-input"
+                [(ngModel)]="selectedDay"
+                data-testid="period-date-day-picker" />
+            }
+            @if (periodMode === 'WEEK') {
+              <label class="input-label" for="period-week-input">{{ t('FACTURES.PERIOD.SELECT_WEEK') }}</label>
+              <input
+                id="period-week-input"
+                type="week"
+                class="period-date-input"
+                [(ngModel)]="selectedWeek"
+                data-testid="period-date-week-picker" />
+            }
+            @if (periodMode === 'MONTH') {
+              <label class="input-label" for="period-month-input">{{ t('FACTURES.PERIOD.SELECT_MONTH') }}</label>
+              <input
+                id="period-month-input"
+                type="month"
+                class="period-date-input"
+                [(ngModel)]="selectedMonth"
+                data-testid="period-date-month-picker" />
+            }
+          </div>
         </div>
-
-        <!-- HTML5 Native Date Pickers according to active mode -->
-        <div class="period-input-box">
-          <ng-container *ngIf="periodMode === 'OPERATIONAL_DAY'">
-            <label class="input-label" for="period-day-input">{{ t('FACTURES.PERIOD.SELECT_DAY') }}</label>
-            <input
-              id="period-day-input"
-              type="date"
-              class="period-date-input"
-              [(ngModel)]="selectedDay"
-              data-testid="period-date-day-picker" />
-          </ng-container>
-
-          <ng-container *ngIf="periodMode === 'WEEK'">
-            <label class="input-label" for="period-week-input">{{ t('FACTURES.PERIOD.SELECT_WEEK') }}</label>
-            <input
-              id="period-week-input"
-              type="week"
-              class="period-date-input"
-              [(ngModel)]="selectedWeek"
-              data-testid="period-date-week-picker" />
-          </ng-container>
-
-          <ng-container *ngIf="periodMode === 'MONTH'">
-            <label class="input-label" for="period-month-input">{{ t('FACTURES.PERIOD.SELECT_MONTH') }}</label>
-            <input
-              id="period-month-input"
-              type="month"
-              class="period-date-input"
-              [(ngModel)]="selectedMonth"
-              data-testid="period-date-month-picker" />
-          </ng-container>
-        </div>
-      </div>
+      }
     </section>
 
     <!-- Search, Filter & View Controls Bar -->
@@ -331,7 +315,7 @@
               [class.card-pending]="!facture.reglee"
               [routerLink]="['/factures', facture.id]"
               data-testid="invoice-card-item">
-              
+
               <!-- Card Header -->
               <div class="card-top">
                 <div class="invoice-num-group">

@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
@@ -27,6 +27,7 @@ import { environment } from '../../../../environments/environment';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
+import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 /**
  * Filter options for invoice list queries.
  */
@@ -94,7 +95,7 @@ export const getOperationalMonthString = getMonthString;
     TranslocoModule,
     IonContent, SearchBarComponent, IonButton,
     IonRefresher, IonRefresherContent, IonIcon, IonSpinner, IonProgressBar,
-    SearchableSelectComponent
+    SearchableSelectComponent, ActionButtonComponent
   ],
   templateUrl: './facture-list.component.html',
   styleUrls: ['./facture-list.component.scss'],
@@ -103,6 +104,7 @@ export class FactureListComponent implements OnInit, OnDestroy {
   private readonly factureService = inject(FactureService);
   private readonly toastCtrl = inject(ToastController);
   private readonly transloco = inject(TranslocoService);
+  private readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
 
   factures: Facture[] = [];
@@ -162,6 +164,13 @@ export class FactureListComponent implements OnInit, OnDestroy {
           this.factures = [];
         }
       });
+  }
+
+  /**
+   * Navigates to the daily recap and cash register closure (Z-Report) page.
+   */
+  goToRecap(): void {
+    this.router.navigate(['/factures/recap']);
   }
 
   /**
