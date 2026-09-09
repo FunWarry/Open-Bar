@@ -1,6 +1,7 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { Router } from '@angular/router';
 import { of, throwError, Subject } from 'rxjs';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { FactureListComponent } from '../../../app/features/factures/facture-list/facture-list.component';
@@ -381,6 +382,13 @@ describe('FactureListComponent', () => {
     component.ngOnDestroy();
 
     expect(() => subject.next([])).not.toThrow();
+  });
+
+  it('goToRecap() navigates to /factures/recap', () => {
+    const router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+    component.goToRecap();
+    expect(router.navigate).toHaveBeenCalledWith(['/factures/recap']);
   });
 });
 
