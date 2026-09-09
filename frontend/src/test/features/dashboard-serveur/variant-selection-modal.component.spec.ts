@@ -3,6 +3,8 @@ import { VariantSelectionModalComponent } from '../../../app/features/dashboard-
 import { ModalController } from '@ionic/angular/standalone';
 import { ProductItem, ProductVariant } from '../../../app/features/dashboard-serveur/components/product-card/product-card.component';
 
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
+
 describe('VariantSelectionModalComponent', () => {
   let component: VariantSelectionModalComponent;
   let fixture: ComponentFixture<VariantSelectionModalComponent>;
@@ -28,7 +30,7 @@ describe('VariantSelectionModalComponent', () => {
     modalCtrlSpy.dismiss.and.returnValue(Promise.resolve(true));
 
     await TestBed.configureTestingModule({
-      imports: [VariantSelectionModalComponent],
+      imports: [VariantSelectionModalComponent, getTranslocoTestingModule()],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy },
       ],

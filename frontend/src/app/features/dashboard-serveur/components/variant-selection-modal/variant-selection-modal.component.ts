@@ -1,5 +1,5 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule, DecimalPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, ModalController
 } from '@ionic/angular/standalone';
@@ -7,49 +7,53 @@ import { addIcons } from 'ionicons';
 import { closeOutline, optionsOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { ProductItem, ProductVariant } from '../product-card/product-card.component';
 
+import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
+import { TranslocoPipe } from '@jsverse/transloco';
+
 /**
  * Modal for selecting cocktail variant options.
  */
 @Component({
   selector: 'app-variant-selection-modal',
   standalone: true,
-  imports: [CommonModule, DecimalPipe, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent],
+  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, TranslocoPipe, AppCurrencyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ion-header class="ion-no-border">
       <ion-toolbar>
         <ion-title>
           <ion-icon name="options-outline" class="title-icon"></ion-icon>
-          Choisir une variante — {{ product.nom }}
+          {{ 'SERVEUR.SELECT_VARIANTE' | transloco }} — {{ product.nom }}
         </ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="close()" aria-label="Fermer">
+          <ion-button (click)="close()" [attr.aria-label]="'COMMON.CLOSE' | transloco">
             <ion-icon name="close-outline"></ion-icon>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
-
+    
     <ion-content class="ion-padding variant-modal-content">
       <p class="modal-subtitle">
-        Veuillez sélectionner le format ou la variante souhaitée pour {{ product.nom }} :
+        {{ 'SERVEUR.SELECT_VARIANT_SUBTITLE' | transloco: { product: product.nom } }}
       </p>
-
+    
       <div class="variants-list">
-        <button
-          *ngFor="let v of product.variantes; let i = index"
-          class="variant-card-btn"
-          (click)="selectVariant(v)"
-          (keyup.enter)="selectVariant(v)">
-          <div class="variant-info">
-            <span class="variant-name">{{ v.nom }}</span>
-            <span class="variant-price">{{ v.prix | number:'1.2-2' }} €</span>
-          </div>
-          <ion-icon name="checkmark-circle-outline" class="select-icon"></ion-icon>
-        </button>
+        @for (v of product.variantes; track v; let i = $index) {
+          <button
+            class="variant-card-btn"
+            (click)="selectVariant(v)"
+            (keyup.enter)="selectVariant(v)">
+            <div class="variant-info">
+              <span class="variant-name">{{ v.nom }}</span>
+              <span class="variant-price">{{ v.prix | appCurrency }}</span>
+            </div>
+            <ion-icon name="checkmark-circle-outline" class="select-icon"></ion-icon>
+          </button>
+        }
       </div>
     </ion-content>
-  `,
+    `,
   styles: [`
     :host {
       --background: var(--background-surface-1, #16192b);

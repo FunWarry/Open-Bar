@@ -3,6 +3,8 @@ import { ItemCustomizationModalComponent } from '../../../app/features/dashboard
 import { ModalController } from '@ionic/angular/standalone';
 import { ProductItem } from '../../../app/features/dashboard-serveur/components/product-card/product-card.component';
 
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
+
 describe('ItemCustomizationModalComponent', () => {
   let component: ItemCustomizationModalComponent;
   let fixture: ComponentFixture<ItemCustomizationModalComponent>;
@@ -22,7 +24,7 @@ describe('ItemCustomizationModalComponent', () => {
     modalCtrlSpy.dismiss.and.returnValue(Promise.resolve(true));
 
     await TestBed.configureTestingModule({
-      imports: [ItemCustomizationModalComponent],
+      imports: [ItemCustomizationModalComponent, getTranslocoTestingModule()],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy },
       ],
@@ -71,6 +73,17 @@ describe('ItemCustomizationModalComponent', () => {
 
     component.toggleQuickNote('Sans glaçons');
     expect(component.hasQuickNote('Sans glaçons')).toBeFalse();
+  });
+
+  it('should toggle quick notes using translation keys via hasQuickNoteKey and toggleQuickNoteKey', () => {
+    const key = 'SERVEUR.QUICK_NOTES_OPTIONS.NO_ICE';
+    expect(component.hasQuickNoteKey(key)).toBeFalse();
+
+    component.toggleQuickNoteKey(key);
+    expect(component.hasQuickNoteKey(key)).toBeTrue();
+
+    component.toggleQuickNoteKey(key);
+    expect(component.hasQuickNoteKey(key)).toBeFalse();
   });
 
   it('should dismiss with cancel on close', () => {
