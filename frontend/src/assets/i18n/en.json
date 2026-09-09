@@ -2284,6 +2284,7 @@
     },
     "BAR_TICKET_PREVIEW": "Preparation Ticket Preview",
     "PRINT_TICKET": "Print Ticket (80mm)",
+    "PRINT_BUTTON": "Print Ticket (80mm)",
     "DIRECT_ESCPOS_PRINT": "Direct ESC/POS Print",
     "DIRECT_PRINT_SUCCESS": "Order #{{id}} sent successfully to thermal printer",
     "DIRECT_PRINT_FAILED": "Direct print error: {{error}}",

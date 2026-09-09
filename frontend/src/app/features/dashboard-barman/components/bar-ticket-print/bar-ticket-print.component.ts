@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import {
   IonHeader,
   IonToolbar,
@@ -9,11 +9,12 @@ import {
   IonContent,
   IonIcon,
   IonFooter,
+  IonSpinner,
   ModalController,
   ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { printOutline, closeOutline, hardwareChipOutline } from 'ionicons/icons';
+import { printOutline, closeOutline, closeCircleOutline, hardwareChipOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CommandeView, CommandeItemView } from '../../models/commande-view.model';
 import { groupCommandeItems } from '../../../../core/utils/order-item-grouper';
@@ -27,7 +28,6 @@ import { PrinterService } from '../../../../core/services/printer.service';
   selector: 'app-bar-ticket-print',
   standalone: true,
   imports: [
-    CommonModule,
     DatePipe,
     TranslocoPipe,
     IonHeader,
@@ -37,7 +37,8 @@ import { PrinterService } from '../../../../core/services/printer.service';
     IonButton,
     IonContent,
     IonIcon,
-    IonFooter
+    IonFooter,
+    IonSpinner
   ],
   templateUrl: './bar-ticket-print.component.html',
   styleUrls: ['./bar-ticket-print.component.scss']
@@ -56,7 +57,7 @@ export class BarTicketPrintComponent implements OnInit {
   private readonly translocoService = inject(TranslocoService);
 
   constructor() {
-    addIcons({ printOutline, closeOutline, hardwareChipOutline });
+    addIcons({ printOutline, closeOutline, closeCircleOutline, hardwareChipOutline });
   }
 
   ngOnInit(): void {

@@ -765,9 +765,9 @@ ion-modal.delete-modal {
 }
 
 ion-modal.bar-ticket-modal-container {
-  --width: min(440px, 92vw);
-  --height: min(540px, 80vh);
-  --max-height: 80vh;
+  --width: min(660px, 95vw);
+  --height: min(760px, 88vh);
+  --max-height: 90vh;
 }
 
 ion-modal.ruptures-modal-container,
