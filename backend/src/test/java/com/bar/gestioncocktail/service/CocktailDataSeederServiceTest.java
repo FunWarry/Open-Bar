@@ -170,5 +170,39 @@ class CocktailDataSeederServiceTest {
         seederService.ensureIngredientAllergensPopulated();
         verify(ingredientRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("ensureFlavorProfilesPopulated backfills cocktails with empty profiles")
+    void ensureFlavorProfilesPopulated_backfillsEmptyProfiles() {
+        Cocktail c1 = new Cocktail();
+        c1.setNom("Mojito");
+        c1.setFlavorProfiles(new java.util.HashSet<>());
+
+        Cocktail c2 = new Cocktail();
+        c2.setNom("Custom NonDataset Cocktail");
+        c2.setDescription("A smoky herbal concoction");
+        c2.setFlavorProfiles(null);
+
+        Cocktail c3 = new Cocktail();
+        c3.setNom("Already Populated");
+        c3.setFlavorProfiles(Set.of(FlavorProfile.SWEET));
+
+        when(cocktailRepository.findAll()).thenReturn(List.of(c1, c2, c3));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        seederService.ensureFlavorProfilesPopulated();
+
+        verify(cocktailRepository, atLeast(2)).save(any(Cocktail.class));
+        assertThat(c1.getFlavorProfiles()).isNotEmpty();
+        assertThat(c2.getFlavorProfiles()).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("ensureFlavorProfilesPopulated skips when repository is empty")
+    void ensureFlavorProfilesPopulated_skipsWhenEmpty() {
+        when(cocktailRepository.findAll()).thenReturn(List.of());
+        seederService.ensureFlavorProfilesPopulated();
+        verify(cocktailRepository, never()).save(any());
+    }
 }
 
