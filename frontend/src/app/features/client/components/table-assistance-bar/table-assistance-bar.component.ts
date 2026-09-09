@@ -1,5 +1,5 @@
 import { Component, Input, OnDestroy, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ToastController } from '@ionic/angular/standalone';
 import { TableAppelService } from '../../../../core/services/table-appel.service';
@@ -12,7 +12,7 @@ import { TableAppelType } from '../../../../core/models/table-appel.model';
 @Component({
   selector: 'app-table-assistance-bar',
   standalone: true,
-  imports: [CommonModule, TranslocoPipe],
+  imports: [TranslocoPipe],
   templateUrl: './table-assistance-bar.component.html',
   styleUrls: ['./table-assistance-bar.component.scss']
 })

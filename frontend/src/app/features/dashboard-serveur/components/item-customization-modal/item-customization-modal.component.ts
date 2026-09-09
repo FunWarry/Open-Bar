@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, ModalController
@@ -8,89 +8,95 @@ import { addIcons } from 'ionicons';
 import { closeOutline, chatbubbleEllipsesOutline, checkmarkCircleOutline, removeCircleOutline, createOutline } from 'ionicons/icons';
 import { ProductItem } from '../product-card/product-card.component';
 
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+
 /**
  * Modal for customizing beverage recipes and adding notes.
  */
 @Component({
   selector: 'app-item-customization-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent],
+  imports: [FormsModule, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ion-header class="ion-no-border">
       <ion-toolbar>
         <ion-title>
           <ion-icon name="chatbubble-ellipses-outline" class="title-icon"></ion-icon>
-          Personnalisation — {{ product.nom }} {{ variantNom ? '(' + variantNom + ')' : '' }}
+          {{ 'SERVEUR.CUSTOMIZATION_TITLE' | transloco: { product: product.nom + (variantNom ? ' (' + variantNom + ')' : '') } }}
         </ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="close()" aria-label="Fermer">
+          <ion-button (click)="close()" [attr.aria-label]="'COMMON.CLOSE' | transloco">
             <ion-icon name="close-outline"></ion-icon>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
-
+    
     <ion-content class="ion-padding custom-modal-content">
       <!-- Exclusions d'ingrédients -->
-      <div class="section-block" *ngIf="ingredientsList.length > 0">
-        <label class="section-label">
-          <ion-icon name="remove-circle-outline"></ion-icon>
-          Retirer des ingrédients (spécificités) :
-        </label>
-        <div class="ingredients-chips">
-          <button
-            *ngFor="let ing of ingredientsList"
-            class="chip-btn"
-            [class.excluded]="excludedIngredients.includes(ing)"
-            (click)="toggleIngredientExclusion(ing)">
-            <span class="chip-prefix">{{ excludedIngredients.includes(ing) ? '✕' : '−' }}</span>
-            Sans {{ ing }}
-          </button>
+      @if (ingredientsList.length > 0) {
+        <div class="section-block">
+          <label class="section-label">
+            <ion-icon name="remove-circle-outline"></ion-icon>
+            {{ 'SERVEUR.REMOVE_INGREDIENTS' | transloco }}
+          </label>
+          <div class="ingredients-chips">
+            @for (ing of ingredientsList; track ing) {
+              <button
+                class="chip-btn"
+                [class.excluded]="excludedIngredients.includes(ing)"
+                (click)="toggleIngredientExclusion(ing)">
+                <span class="chip-prefix">{{ excludedIngredients.includes(ing) ? '✕' : '−' }}</span>
+                {{ ('COCKTAILS.ALLERGENS.SANS_PREFIX' | transloco) + ' ' + ing }}
+              </button>
+            }
+          </div>
         </div>
-      </div>
-
+      }
+    
       <!-- Quick Note Chips -->
       <div class="section-block">
         <label class="section-label">
           <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-          Remarques fréquentes :
+          {{ 'SERVEUR.QUICK_NOTES' | transloco }}
         </label>
         <div class="quick-notes-chips">
-          <button
-            *ngFor="let note of quickNotes"
-            class="chip-btn quick-chip"
-            [class.active]="hasQuickNote(note)"
-            (click)="toggleQuickNote(note)">
-            {{ note }}
-          </button>
+          @for (noteKey of quickNoteKeys; track noteKey) {
+            <button
+              class="chip-btn quick-chip"
+              [class.active]="hasQuickNoteKey(noteKey)"
+              (click)="toggleQuickNoteKey(noteKey)">
+              {{ noteKey | transloco }}
+            </button>
+          }
         </div>
       </div>
-
+    
       <!-- Free Comment Input -->
       <div class="section-block">
         <label class="section-label" for="custom-comment-input">
           <ion-icon name="create-outline"></ion-icon>
-          Commentaire / Instruction personnalisée :
+          {{ 'SERVEUR.CUSTOM_NOTE' | transloco }}
         </label>
         <textarea
           id="custom-comment-input"
           class="custom-textarea"
           rows="3"
-          placeholder="Ex: Moins de glaçons, verre ballon, bien frais..."
+          [placeholder]="'SERVEUR.CUSTOM_NOTE_PLACEHOLDER' | transloco"
           [(ngModel)]="commentaire">
         </textarea>
       </div>
-
+    
       <!-- Submit Action Button -->
       <div class="actions-row">
         <button class="confirm-btn" (click)="save()" (keyup.enter)="save()">
           <ion-icon name="checkmark-circle-outline"></ion-icon>
-          Valider la personnalisation
+          {{ 'SERVEUR.CONFIRM_CUSTOMIZATION' | transloco }}
         </button>
       </div>
     </ion-content>
-  `,
+    `,
   styles: [`
     :host {
       display: flex;
@@ -231,17 +237,20 @@ export class ItemCustomizationModalComponent implements OnInit {
   commentaire = '';
   excludedIngredients: string[] = [];
 
-  readonly quickNotes = [
-    'Sans glaçons',
-    'Moins de glaçons',
-    'Sur glace',
-    'Tranche de citron',
-    'Bien frappé',
-    'Servir très frais',
-    'Paille supplémentaire',
+  readonly quickNoteKeys = [
+    'SERVEUR.QUICK_NOTES_OPTIONS.NO_ICE',
+    'SERVEUR.QUICK_NOTES_OPTIONS.LESS_ICE',
+    'SERVEUR.QUICK_NOTES_OPTIONS.ON_THE_ROCKS',
+    'SERVEUR.QUICK_NOTES_OPTIONS.LEMON_SLICE',
+    'SERVEUR.QUICK_NOTES_OPTIONS.EXTRA_SHAKEN',
+    'SERVEUR.QUICK_NOTES_OPTIONS.SERVE_VERY_COLD',
+    'SERVEUR.QUICK_NOTES_OPTIONS.EXTRA_STRAW',
   ];
 
-  constructor(private readonly modalCtrl: ModalController) {
+  constructor(
+    private readonly modalCtrl: ModalController,
+    private readonly translocoService: TranslocoService
+  ) {
     addIcons({ closeOutline, chatbubbleEllipsesOutline, checkmarkCircleOutline, removeCircleOutline, createOutline });
   }
 
@@ -282,6 +291,16 @@ export class ItemCustomizationModalComponent implements OnInit {
     } else {
       this.excludedIngredients.push(ing);
     }
+  }
+
+  hasQuickNoteKey(noteKey: string): boolean {
+    const text = this.translocoService.translate(noteKey);
+    return this.hasQuickNote(text);
+  }
+
+  toggleQuickNoteKey(noteKey: string) {
+    const note = this.translocoService.translate(noteKey);
+    this.toggleQuickNote(note);
   }
 
   hasQuickNote(note: string): boolean {

@@ -411,6 +411,58 @@ describe('ScheduleComponent', () => {
       expect(component.getCellDiff(1, '2026-08-12')?.status).toBe('ADDED');
     });
 
+    it('calculateScheduleDifferences(true) should automatically activate isComparisonMode when changes exist', () => {
+      component.publication = {
+        id: 1,
+        weekStart: '2026-08-10',
+        publishedAt: '2026-08-10T10:00:00',
+        publishedBy: 'admin',
+        snapshotJson: JSON.stringify([
+          { userId: 1, dateShift: '2026-08-10', typeShift: 'MATIN', heureDebut: '08:00', heureFin: '16:00' }
+        ])
+      };
+
+      component.schedule = {
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        totalHours: 8,
+        totalEmployees: 1,
+        activeEmployees: 1,
+        employees: [
+          {
+            employeeId: 1,
+            name: 'Bob',
+            role: 'SERVEUR',
+            shifts: [
+              { day: 'Mon', date: '2026-08-10', isClosed: false, startTime: '09:00', endTime: '17:00', typeShift: 'MATIN', rawShift: { id: 101 } as any } as any
+            ]
+          }
+        ]
+      };
+
+      component.isComparisonMode = false;
+      component.calculateScheduleDifferences(true);
+
+      expect(component.hasUnpublishedChanges).toBeTrue();
+      expect(component.isComparisonMode).toBeTrue();
+    });
+
+    it('navigation methods should reset isComparisonMode to false', () => {
+      component.isComparisonMode = true;
+      spyOn(component, 'loadSchedule');
+
+      component.prevWeek();
+      expect(component.isComparisonMode).toBeFalse();
+
+      component.isComparisonMode = true;
+      component.nextWeek();
+      expect(component.isComparisonMode).toBeFalse();
+
+      component.isComparisonMode = true;
+      component.goToCurrentWeek();
+      expect(component.isComparisonMode).toBeFalse();
+    });
+
     it('executeDragDuplication() should call createShift for target cells on mouseup', fakeAsync(() => {
       mockShiftService.createShift.and.returnValue(of({} as any));
 
@@ -764,9 +816,10 @@ describe('ScheduleComponent', () => {
       }));
     });
 
-    it('onCellClick() on filled cell should open employee modal without openInCreateMode', async () => {
+    it('onCellClick() on filled cell should open employee modal directly in edit mode for that shift', async () => {
       const emp: any = { employeeId: 5, name: 'Lucas B.', role: 'SERVEUR', shifts: [] };
-      const filledShift: any = { date: '2026-08-11', isClosed: false, startTime: '08:00', rawShift: { id: 42 } };
+      const rawShiftObj = { id: 42, role: 'SERVEUR' };
+      const filledShift: any = { date: '2026-08-11', isClosed: false, startTime: '08:00', rawShift: rawShiftObj };
 
       const mockModal = {
         present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
@@ -782,8 +835,15 @@ describe('ScheduleComponent', () => {
 
       await component.onCellClick(emp, filledShift);
 
-      const callArgs = mockModalCtrl.create.calls.mostRecent().args[0];
-      expect(callArgs['componentProps']?.['openInCreateMode']).toBeFalsy();
+      expect(mockModalCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+        componentProps: jasmine.objectContaining({
+          employee: { id: 5 },
+          initialDate: '2026-08-11',
+          initialShift: rawShiftObj,
+          initialShiftId: 42,
+          openInEditMode: true
+        })
+      }));
     });
 
     it('onEmployeeHeaderClick() should open shift list modal for the employee', async () => {

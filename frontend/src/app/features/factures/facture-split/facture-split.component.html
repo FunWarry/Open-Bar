@@ -8,8 +8,12 @@
         <div class="title-text-wrap">
           <h1 class="modal-main-title">{{ 'SPLIT.TITLE' | transloco }}</h1>
           <div class="modal-subtitle-badges">
-            <span *ngIf="factureNumero" class="meta-tag invoice-tag">#{{ factureNumero }}</span>
-            <span *ngIf="factureTableNumero" class="meta-tag table-tag">{{ 'FACTURES.TABLE_LABEL' | transloco:{ num: factureTableNumero } }}</span>
+            @if (factureNumero) {
+              <span class="meta-tag invoice-tag">#{{ factureNumero }}</span>
+            }
+            @if (factureTableNumero) {
+              <span class="meta-tag table-tag">{{ 'FACTURES.TABLE_LABEL' | transloco:{ num: factureTableNumero } }}</span>
+            }
             <span class="meta-tag total-tag">{{ totalBillAmount | appCurrency }}</span>
           </div>
         </div>
@@ -77,13 +81,12 @@
     </div>
 
     <!-- ── Mode 1 : Parts Égales (Equal Split) ────────────────────── -->
-    <ng-container *ngIf="mode === 'equal'">
+    @if (mode === 'equal') {
       <div class="section-card">
         <div class="section-title-wrap">
           <ion-icon name="people-outline" class="title-icon"></ion-icon>
           <h3>{{ 'SPLIT.GUEST_COUNT' | transloco }}</h3>
         </div>
-
         <div class="stepper-center-box">
           <button
             type="button"
@@ -94,12 +97,10 @@
             [attr.aria-label]="'SPLIT.LESS_GUESTS' | transloco">
             <ion-icon name="remove-outline"></ion-icon>
           </button>
-
           <div class="stepper-value-wrap">
             <span class="stepper-number" data-testid="convives-count">{{ guestCount }}</span>
             <span class="stepper-sublabel">{{ 'SPLIT.GUESTS_UNIT' | transloco }}</span>
           </div>
-
           <button
             type="button"
             class="stepper-btn plus"
@@ -110,26 +111,24 @@
             <ion-icon name="add-outline"></ion-icon>
           </button>
         </div>
-
         <!-- Preset Chips -->
         <div class="guest-presets-bar">
-          <button
-            type="button"
-            *ngFor="let p of guestPresets"
-            class="preset-chip"
-            [class.selected]="guestCount === p"
-            (click)="guestCount = p">
-            {{ 'SPLIT.PERS_UNIT' | transloco:{ count: p } }}
-          </button>
+          @for (p of guestPresets; track p) {
+            <button
+              type="button"
+              class="preset-chip"
+              [class.selected]="guestCount === p"
+              (click)="guestCount = p">
+              {{ 'SPLIT.PERS_UNIT' | transloco:{ count: p } }}
+            </button>
+          }
         </div>
-
         <div class="share-preview-banner">
           <span class="preview-label">{{ 'SPLIT.AMOUNT_PER_PERSON' | transloco }}</span>
           <strong class="preview-val">
             {{ (totalBillAmount / guestCount) | appCurrency }}
           </strong>
         </div>
-
         <ion-button
           expand="block"
           class="btn-action-primary"
@@ -137,51 +136,68 @@
           (keydown.enter)="calculateEqualSplit()"
           [disabled]="loading"
           data-testid="calculate-split-btn">
-          <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
-          <ion-icon *ngIf="!loading" name="calculator-outline" slot="start"></ion-icon>
+          @if (loading) {
+            <ion-spinner name="crescent" slot="start"></ion-spinner>
+          }
+          @if (!loading) {
+            <ion-icon name="calculator-outline" slot="start"></ion-icon>
+          }
           <span>{{ 'SPLIT.CALCULATE_PARTS' | transloco }}</span>
         </ion-button>
-
-        <p *ngIf="errorMessage" class="error-message-text" data-testid="split-error-msg">{{ errorMessage }}</p>
+        @if (errorMessage) {
+          <p class="error-message-text" data-testid="split-error-msg">{{ errorMessage }}</p>
+        }
       </div>
-    </ng-container>
+    }
 
     <!-- ── Mode 2 : Par Article (Itemized Split) ──────────────────── -->
     <!-- ── Mode 2 : Par Article (Guest-First Item Assignment) ──────── -->
-    <ng-container *ngIf="mode === 'itemized'">
-
+    @if (mode === 'itemized') {
       <!-- 1. Pool Summary: Bill Items & Remaining Counters -->
-      <div class="section-card" *ngIf="facture; else loadingArticles">
-        <div class="section-title-wrap">
-          <ion-icon name="list-outline" class="title-icon"></ion-icon>
-          <h3>{{ 'SPLIT.POOL_TITLE' | transloco }}</h3>
-          <span class="badge-count" [class.success]="allItemsAssigned" data-testid="pool-status-badge">
-            <ion-icon *ngIf="allItemsAssigned" name="checkmark-circle-outline"></ion-icon>
-            {{ allItemsAssigned ? ('SPLIT.ALL_ASSIGNED_SUCCESS' | transloco) : ('SPLIT.UNASSIGNED_REMAINING' | transloco:{ count: totalUnassignedCount }) }}
-          </span>
-        </div>
-        <p class="section-hint-text">{{ 'SPLIT.POOL_HINT' | transloco }}</p>
-
-        <!-- Pool Items Chips Grid -->
-        <div class="pool-items-grid">
-          <div
-            *ngFor="let item of factureItems"
-            class="pool-item-chip"
-            [class.completed]="getUnassignedCount(item.id) === 0"
-            [attr.data-testid]="'pool-item-' + item.id">
-            <div class="pool-item-info">
-              <span class="pool-item-name">{{ item.description }}</span>
-              <span class="pool-item-price">{{ item.prixUnitaire | appCurrency }}</span>
-            </div>
-            <div class="pool-item-count">
-              <span class="count-pill" [class.done]="getUnassignedCount(item.id) === 0">
-                {{ getUnassignedCount(item.id) }}/{{ item.quantite || 1 }}
-              </span>
-            </div>
+      @if (facture) {
+        <div class="section-card">
+          <div class="section-title-wrap">
+            <ion-icon name="list-outline" class="title-icon"></ion-icon>
+            <h3>{{ 'SPLIT.POOL_TITLE' | transloco }}</h3>
+            <span class="badge-count" [class.success]="allItemsAssigned" data-testid="pool-status-badge">
+              @if (allItemsAssigned) {
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+              }
+              {{ allItemsAssigned ? ('SPLIT.ALL_ASSIGNED_SUCCESS' | transloco) : ('SPLIT.UNASSIGNED_REMAINING' | transloco:{ count: totalUnassignedCount }) }}
+            </span>
+          </div>
+          <p class="section-hint-text">{{ 'SPLIT.POOL_HINT' | transloco }}</p>
+          <!-- Pool Items Chips Grid -->
+          <div class="pool-items-grid">
+            @for (item of factureItems; track item) {
+              <div
+                class="pool-item-chip"
+                [class.completed]="getUnassignedCount(item.id) === 0"
+                [attr.data-testid]="'pool-item-' + item.id">
+                <div class="pool-item-info">
+                  <span class="pool-item-name">{{ item.description }}</span>
+                  <span class="pool-item-price">{{ item.prixUnitaire | appCurrency }}</span>
+                </div>
+                <div class="pool-item-count">
+                  <span class="count-pill" [class.done]="getUnassignedCount(item.id) === 0">
+                    {{ getUnassignedCount(item.id) }}/{{ item.quantite || 1 }}
+                  </span>
+                </div>
+              </div>
+            }
           </div>
         </div>
-      </div>
-
+      } @else {
+        @if (!errorMessage) {
+          <div class="loading-state-box">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>{{ 'SPLIT.LOADING_ITEMS' | transloco }}</p>
+          </div>
+        }
+        @if (errorMessage) {
+          <p class="error-message-text">{{ errorMessage }}</p>
+        }
+      }
       <!-- 2. Convives & Assigned Items per Guest -->
       <div class="section-card">
         <div class="section-title-wrap">
@@ -189,123 +205,117 @@
           <h3>{{ 'SPLIT.GUESTS' | transloco }}</h3>
           <span class="badge-count">{{ 'SPLIT.GUESTS_COUNT_BADGE' | transloco:{ count: guests.length } }}</span>
         </div>
-
         <div class="guests-cards-container">
-          <div
-            *ngFor="let g of guests; let i = index"
-            class="guest-assignment-card"
-            [attr.data-testid]="'guest-card-' + i">
-
-            <!-- Guest Card Header: Avatar, Name Input, Subtotal, Delete -->
-            <div class="guest-card-header">
-              <div class="guest-identity-group">
-                <span class="guest-avatar-small">{{ i + 1 }}</span>
-                <input
-                  type="text"
-                  [id]="'guest-name-field-' + i"
-                  [(ngModel)]="guests[i].name"
-                  [placeholder]="'SPLIT.GUEST_PLACEHOLDER' | transloco:{ number: i + 1 }"
-                  [attr.aria-label]="'SPLIT.GUEST_PLACEHOLDER' | transloco:{ number: i + 1 }"
-                  class="guest-name-field"
-                  [attr.data-testid]="'convive-input-' + i" />
-              </div>
-
-              <div class="guest-header-actions">
-                <div class="guest-subtotal-badge" [attr.data-testid]="'guest-subtotal-' + i">
-                  <span class="subtotal-label">{{ 'SPLIT.SUBTOTAL_GUEST' | transloco }}</span>
-                  <strong class="subtotal-amount">{{ getGuestTotal(i) | appCurrency }}</strong>
+          @for (g of guests; track g; let i = $index) {
+            <div
+              class="guest-assignment-card"
+              [attr.data-testid]="'guest-card-' + i">
+              <!-- Guest Card Header: Avatar, Name Input, Subtotal, Delete -->
+              <div class="guest-card-header">
+                <div class="guest-identity-group">
+                  <span class="guest-avatar-small">{{ i + 1 }}</span>
+                  <input
+                    type="text"
+                    [id]="'guest-name-field-' + i"
+                    [(ngModel)]="guests[i].name"
+                    [placeholder]="'SPLIT.GUEST_PLACEHOLDER' | transloco:{ number: i + 1 }"
+                    [attr.aria-label]="'SPLIT.GUEST_PLACEHOLDER' | transloco:{ number: i + 1 }"
+                    class="guest-name-field"
+                    [attr.data-testid]="'convive-input-' + i" />
                 </div>
-
-                <button
-                  type="button"
-                  class="btn-remove-guest"
-                  *ngIf="guests.length > 2"
-                  (click)="removeGuest(i)"
-                  [attr.aria-label]="'SPLIT.DELETE_GUEST' | transloco"
-                  [attr.data-testid]="'remove-convive-btn-' + i">
-                  <ion-icon name="close-outline"></ion-icon>
-                </button>
-              </div>
-            </div>
-
-            <!-- List of items currently assigned to this guest -->
-            <div class="guest-assigned-items-list">
-              <div
-                *ngFor="let item of getAssignedItemsForGuest(i)"
-                class="assigned-item-row"
-                [attr.data-testid]="'guest-' + i + '-item-' + item.itemId">
-                <div class="assigned-item-details">
-                  <span class="assigned-item-name">{{ item.description }}</span>
-                  <span class="assigned-item-unit-price">{{ item.unitPrice | appCurrency }} / u</span>
-                </div>
-
-                <div class="assigned-item-controls">
-                  <!-- Stepper -->
-                  <div class="stepper-mini">
-                    <button
-                      type="button"
-                      class="stepper-mini-btn"
-                      (click)="unassignOneUnitFromGuest(i, item.itemId)"
-                      [attr.aria-label]="'COMMON.DECREASE' | transloco"
-                      [attr.data-testid]="'guest-' + i + '-item-' + item.itemId + '-minus'">
-                      <ion-icon name="remove-outline"></ion-icon>
-                    </button>
-
-                    <span class="stepper-mini-val">{{ item.count }}x</span>
-
-                    <button
-                      type="button"
-                      class="stepper-mini-btn"
-                      (click)="assignOneUnitToGuest(i, item.itemId)"
-                      [disabled]="getUnassignedCount(item.itemId) <= 0"
-                      [attr.aria-label]="'COMMON.INCREASE' | transloco"
-                      [attr.data-testid]="'guest-' + i + '-item-' + item.itemId + '-plus'">
-                      <ion-icon name="add-outline"></ion-icon>
-                    </button>
+                <div class="guest-header-actions">
+                  <div class="guest-subtotal-badge" [attr.data-testid]="'guest-subtotal-' + i">
+                    <span class="subtotal-label">{{ 'SPLIT.SUBTOTAL_GUEST' | transloco }}</span>
+                    <strong class="subtotal-amount">{{ getGuestTotal(i) | appCurrency }}</strong>
                   </div>
-
-                  <!-- Line Total -->
-                  <span class="assigned-item-total">{{ item.total | appCurrency }}</span>
-
-                  <!-- Remove all button -->
-                  <button
-                    type="button"
-                    class="btn-trash-item"
-                    (click)="removeAllUnitsOfItemFromGuest(i, item.itemId)"
-                    [attr.aria-label]="'SPLIT.REMOVE_ITEM_FROM_GUEST' | transloco"
-                    [attr.data-testid]="'guest-' + i + '-item-' + item.itemId + '-remove'">
-                    <ion-icon name="trash-outline"></ion-icon>
-                  </button>
+                  @if (guests.length > 2) {
+                    <button
+                      type="button"
+                      class="btn-remove-guest"
+                      (click)="removeGuest(i)"
+                      [attr.aria-label]="'SPLIT.DELETE_GUEST' | transloco"
+                      [attr.data-testid]="'remove-convive-btn-' + i">
+                      <ion-icon name="close-outline"></ion-icon>
+                    </button>
+                  }
                 </div>
               </div>
-
-              <div *ngIf="getAssignedItemsForGuest(i).length === 0" class="empty-guest-items">
-                <span>{{ 'SPLIT.NO_ITEMS_ASSIGNED_YET' | transloco }}</span>
+              <!-- List of items currently assigned to this guest -->
+              <div class="guest-assigned-items-list">
+                @for (item of getAssignedItemsForGuest(i); track item) {
+                  <div
+                    class="assigned-item-row"
+                    [attr.data-testid]="'guest-' + i + '-item-' + item.itemId">
+                    <div class="assigned-item-details">
+                      <span class="assigned-item-name">{{ item.description }}</span>
+                      <span class="assigned-item-unit-price">{{ item.unitPrice | appCurrency }} / u</span>
+                    </div>
+                    <div class="assigned-item-controls">
+                      <!-- Stepper -->
+                      <div class="stepper-mini">
+                        <button
+                          type="button"
+                          class="stepper-mini-btn"
+                          (click)="unassignOneUnitFromGuest(i, item.itemId)"
+                          [attr.aria-label]="'COMMON.DECREASE' | transloco"
+                          [attr.data-testid]="'guest-' + i + '-item-' + item.itemId + '-minus'">
+                          <ion-icon name="remove-outline"></ion-icon>
+                        </button>
+                        <span class="stepper-mini-val">{{ item.count }}x</span>
+                        <button
+                          type="button"
+                          class="stepper-mini-btn"
+                          (click)="assignOneUnitToGuest(i, item.itemId)"
+                          [disabled]="getUnassignedCount(item.itemId) <= 0"
+                          [attr.aria-label]="'COMMON.INCREASE' | transloco"
+                          [attr.data-testid]="'guest-' + i + '-item-' + item.itemId + '-plus'">
+                          <ion-icon name="add-outline"></ion-icon>
+                        </button>
+                      </div>
+                      <!-- Line Total -->
+                      <span class="assigned-item-total">{{ item.total | appCurrency }}</span>
+                      <!-- Remove all button -->
+                      <button
+                        type="button"
+                        class="btn-trash-item"
+                        (click)="removeAllUnitsOfItemFromGuest(i, item.itemId)"
+                        [attr.aria-label]="'SPLIT.REMOVE_ITEM_FROM_GUEST' | transloco"
+                        [attr.data-testid]="'guest-' + i + '-item-' + item.itemId + '-remove'">
+                        <ion-icon name="trash-outline"></ion-icon>
+                      </button>
+                    </div>
+                  </div>
+                }
+                @if (getAssignedItemsForGuest(i).length === 0) {
+                  <div class="empty-guest-items">
+                    <span>{{ 'SPLIT.NO_ITEMS_ASSIGNED_YET' | transloco }}</span>
+                  </div>
+                }
               </div>
+              <!-- Quick Add Item Action for this Guest (Clear, distinct clickable action buttons) -->
+              @if (availableInvoiceItems.length > 0) {
+                <div class="guest-add-item-action">
+                  <span class="quick-add-title">{{ 'SPLIT.ASSIGN_PLACEHOLDER' | transloco }}</span>
+                  <div class="quick-add-chips-wrap">
+                    @for (opt of availableInvoiceItems; track opt) {
+                      <button
+                        type="button"
+                        class="btn-quick-add-chip"
+                        (click)="assignOneUnitToGuest(i, opt.id)"
+                        [attr.aria-label]="opt.description"
+                        [attr.data-testid]="'guest-add-item-btn-' + i + '-' + opt.id">
+                        <span class="chip-plus-badge">+ 1x</span>
+                        <span class="chip-item-title">{{ opt.description }}</span>
+                        <span class="chip-item-remaining">({{ opt.remaining }} {{ 'SPLIT.REMAINING_SHORT' | transloco }})</span>
+                        <span class="chip-item-price">{{ opt.prixUnitaire | appCurrency }}</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
             </div>
-
-            <!-- Quick Add Item Action for this Guest (Clear, distinct clickable action buttons) -->
-            <div class="guest-add-item-action" *ngIf="availableInvoiceItems.length > 0">
-              <span class="quick-add-title">{{ 'SPLIT.ASSIGN_PLACEHOLDER' | transloco }}</span>
-              <div class="quick-add-chips-wrap">
-                <button
-                  type="button"
-                  *ngFor="let opt of availableInvoiceItems"
-                  class="btn-quick-add-chip"
-                  (click)="assignOneUnitToGuest(i, opt.id)"
-                  [attr.aria-label]="opt.description"
-                  [attr.data-testid]="'guest-add-item-btn-' + i + '-' + opt.id">
-                  <span class="chip-plus-badge">+ 1x</span>
-                  <span class="chip-item-title">{{ opt.description }}</span>
-                  <span class="chip-item-remaining">({{ opt.remaining }} {{ 'SPLIT.REMAINING_SHORT' | transloco }})</span>
-                  <span class="chip-item-price">{{ opt.prixUnitaire | appCurrency }}</span>
-                </button>
-              </div>
-            </div>
-
-          </div>
+          }
         </div>
-
         <button
           type="button"
           class="btn-add-guest"
@@ -316,14 +326,14 @@
           <span>{{ 'SPLIT.ADD_GUEST' | transloco }}</span>
         </button>
       </div>
-
       <!-- Validation & Calculate Button -->
       <div class="section-card calculate-section-card">
-        <div class="unassigned-warning" *ngIf="!allItemsAssigned && factureItems.length > 0">
-          <ion-icon name="alert-circle-outline"></ion-icon>
-          <span>{{ 'SPLIT.ALL_ITEMS_MUST_BE_ASSIGNED' | transloco }} ({{ 'SPLIT.UNASSIGNED_REMAINING' | transloco:{ count: totalUnassignedCount } }})</span>
-        </div>
-
+        @if (!allItemsAssigned && factureItems.length > 0) {
+          <div class="unassigned-warning">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <span>{{ 'SPLIT.ALL_ITEMS_MUST_BE_ASSIGNED' | transloco }} ({{ 'SPLIT.UNASSIGNED_REMAINING' | transloco:{ count: totalUnassignedCount } }})</span>
+          </div>
+        }
         <ion-button
           expand="block"
           class="btn-action-primary"
@@ -331,115 +341,122 @@
           (keydown.enter)="calculateItemizedSplit()"
           [disabled]="loading || !allItemsAssigned"
           data-testid="calculate-split-selection-btn">
-          <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
-          <ion-icon *ngIf="!loading" name="calculator-outline" slot="start"></ion-icon>
+          @if (loading) {
+            <ion-spinner name="crescent" slot="start"></ion-spinner>
+          }
+          @if (!loading) {
+            <ion-icon name="calculator-outline" slot="start"></ion-icon>
+          }
           <span>{{ 'SPLIT.CALCULATE_DISTRIBUTION' | transloco }}</span>
         </ion-button>
-
-        <p *ngIf="errorMessage" class="error-message-text">{{ errorMessage }}</p>
+        @if (errorMessage) {
+          <p class="error-message-text">{{ errorMessage }}</p>
+        }
       </div>
-
-      <ng-template #loadingArticles>
-        <div class="loading-state-box" *ngIf="!errorMessage">
-          <ion-spinner name="crescent"></ion-spinner>
-          <p>{{ 'SPLIT.LOADING_ITEMS' | transloco }}</p>
-        </div>
-        <p *ngIf="errorMessage" class="error-message-text">{{ errorMessage }}</p>
-      </ng-template>
-    </ng-container>
+    }
 
     <!-- ── 3. Results & Individual Settlement Cards ────────────────── -->
-    <div class="split-results-section" *ngIf="results.length > 0" data-testid="split-results-container">
-      <div class="results-header">
-        <h2 class="results-title">{{ 'SPLIT.GUEST_SETTLEMENT_TITLE' | transloco }}</h2>
-        <span class="results-badge">{{ 'SPLIT.PARTS_BADGE' | transloco:{ count: results.length } }}</span>
-      </div>
-
-      <div class="guest-settlement-cards-grid">
-        <div
-          *ngFor="let part of results; let i = index"
-          class="guest-part-card"
-          [class.settled]="partStates[i]?.settled"
-          [attr.data-testid]="'split-guest-item-' + i">
-
-          <div class="part-header">
-            <div class="part-avatar">{{ i + 1 }}</div>
-            <div class="part-title-wrap">
-              <h3 class="part-name">{{ part.nomConvive }}</h3>
-              <span *ngIf="part.items && part.items.length > 0" class="part-items-summary">
-                {{ 'SPLIT.ITEMS_COUNT' | transloco:{ count: part.items.length } }}
-              </span>
-            </div>
-
-            <div class="part-status-badge">
-              <span class="status-pill settled-pill" *ngIf="partStates[i]?.settled" data-testid="guest-settled-badge">
-                <ion-icon name="checkmark-circle-outline"></ion-icon>
-                {{ 'SPLIT.SETTLED' | transloco }}
-              </span>
-              <span class="status-pill pending-pill" *ngIf="!partStates[i]?.settled" data-testid="guest-pending-badge">
-                {{ 'SPLIT.PENDING' | transloco }}
-              </span>
-            </div>
-          </div>
-
-          <div class="part-body">
-            <div class="part-amount-row">
-              <span class="amount-label">{{ 'SPLIT.AMOUNT_DUE' | transloco }}</span>
-              <strong class="amount-value" data-testid="guest-part-amount">
-                {{ part.sousTotal | appCurrency }}
-              </strong>
-            </div>
-
-            <div *ngIf="partStates[i]?.settled" class="part-settled-info">
-              <div class="settled-details-wrap">
-                <span class="settled-detail">
-                  {{ 'SPLIT.MODE' | transloco:{ mode: partStates[i]?.paymentMethod } }}
-                </span>
-                <span *ngIf="partStates[i]?.tip" class="tip-detail">
-                  {{ 'SPLIT.TIP_LABEL' | transloco:{ amount: (partStates[i]?.tip | appCurrency) } }}
-                </span>
+    @if (results.length > 0) {
+      <div class="split-results-section" data-testid="split-results-container">
+        <div class="results-header">
+          <h2 class="results-title">{{ 'SPLIT.GUEST_SETTLEMENT_TITLE' | transloco }}</h2>
+          <span class="results-badge">{{ 'SPLIT.PARTS_BADGE' | transloco:{ count: results.length } }}</span>
+        </div>
+        <div class="guest-settlement-cards-grid">
+          @for (part of results; track part; let i = $index) {
+            <div
+              class="guest-part-card"
+              [class.settled]="partStates[i]?.settled"
+              [attr.data-testid]="'split-guest-item-' + i">
+              <div class="part-header">
+                <div class="part-avatar">{{ i + 1 }}</div>
+                <div class="part-title-wrap">
+                  <h3 class="part-name">{{ part.nomConvive }}</h3>
+                  @if (part.items && part.items.length > 0) {
+                    <span class="part-items-summary">
+                      {{ 'SPLIT.ITEMS_COUNT' | transloco:{ count: part.items.length } }}
+                    </span>
+                  }
+                </div>
+                <div class="part-status-badge">
+                  @if (partStates[i]?.settled) {
+                    <span class="status-pill settled-pill" data-testid="guest-settled-badge">
+                      <ion-icon name="checkmark-circle-outline"></ion-icon>
+                      {{ 'SPLIT.SETTLED' | transloco }}
+                    </span>
+                  }
+                  @if (!partStates[i]?.settled) {
+                    <span class="status-pill pending-pill" data-testid="guest-pending-badge">
+                      {{ 'SPLIT.PENDING' | transloco }}
+                    </span>
+                  }
+                </div>
               </div>
-              <button
-                type="button"
-                class="btn-print-part-receipt"
-                (click)="printPartReceipt(i, part)"
-                [attr.data-testid]="'print-part-receipt-btn-' + i">
-                <ion-icon name="print-outline"></ion-icon>
-                <span>{{ 'FACTURES.PRINT_TICKET' | transloco }}</span>
-              </button>
+              <div class="part-body">
+                <div class="part-amount-row">
+                  <span class="amount-label">{{ 'SPLIT.AMOUNT_DUE' | transloco }}</span>
+                  <strong class="amount-value" data-testid="guest-part-amount">
+                    {{ part.sousTotal | appCurrency }}
+                  </strong>
+                </div>
+                @if (partStates[i]?.settled) {
+                  <div class="part-settled-info">
+                    <div class="settled-details-wrap">
+                      <span class="settled-detail">
+                        {{ 'SPLIT.MODE' | transloco:{ mode: partStates[i]?.paymentMethod } }}
+                      </span>
+                      @if (partStates[i]?.tip) {
+                        <span class="tip-detail">
+                          {{ 'SPLIT.TIP_LABEL' | transloco:{ amount: (partStates[i]?.tip | appCurrency) } }}
+                        </span>
+                      }
+                    </div>
+                    <button
+                      type="button"
+                      class="btn-print-part-receipt"
+                      (click)="printPartReceipt(i, part)"
+                      [attr.data-testid]="'print-part-receipt-btn-' + i">
+                      <ion-icon name="print-outline"></ion-icon>
+                      <span>{{ 'FACTURES.PRINT_TICKET' | transloco }}</span>
+                    </button>
+                  </div>
+                }
+                @if (!partStates[i]?.settled) {
+                  <div class="part-action-row">
+                    <button
+                      type="button"
+                      class="btn-pay-part"
+                      (click)="settleGuestPart(i, part)"
+                      [attr.data-testid]="'pay-guest-btn-' + i">
+                      <ion-icon name="card-outline"></ion-icon>
+                      <span>{{ 'SPLIT.PAY_THIS_PART' | transloco }}</span>
+                    </button>
+                  </div>
+                }
+              </div>
             </div>
-
-            <div class="part-action-row" *ngIf="!partStates[i]?.settled">
-              <button
-                type="button"
-                class="btn-pay-part"
-                (click)="settleGuestPart(i, part)"
-                [attr.data-testid]="'pay-guest-btn-' + i">
-                <ion-icon name="card-outline"></ion-icon>
-                <span>{{ 'SPLIT.PAY_THIS_PART' | transloco }}</span>
-              </button>
+          }
+        </div>
+        <!-- Global Completion Banner -->
+        @if (allPartsSettled) {
+          <div class="all-settled-banner-card" data-testid="split-all-settled-banner">
+            <div class="celebrate-icon-box">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
             </div>
+            <div class="celebrate-content">
+              <h3>{{ 'SPLIT.ALL_SETTLED_TITLE' | transloco }}</h3>
+              <p>{{ 'SPLIT.ALL_SETTLED_DESC' | transloco }}</p>
+            </div>
+            <button
+              type="button"
+              class="btn-finish-modal"
+              (click)="closeModal(true)">
+              {{ 'SPLIT.FINISH_AND_CLOSE' | transloco }}
+            </button>
           </div>
-        </div>
+        }
       </div>
-
-      <!-- Global Completion Banner -->
-      <div *ngIf="allPartsSettled" class="all-settled-banner-card" data-testid="split-all-settled-banner">
-        <div class="celebrate-icon-box">
-          <ion-icon name="checkmark-circle-outline"></ion-icon>
-        </div>
-        <div class="celebrate-content">
-          <h3>{{ 'SPLIT.ALL_SETTLED_TITLE' | transloco }}</h3>
-          <p>{{ 'SPLIT.ALL_SETTLED_DESC' | transloco }}</p>
-        </div>
-        <button
-          type="button"
-          class="btn-finish-modal"
-          (click)="closeModal(true)">
-          {{ 'SPLIT.FINISH_AND_CLOSE' | transloco }}
-        </button>
-      </div>
-    </div>
+    }
 
   </div>
 </ion-content>

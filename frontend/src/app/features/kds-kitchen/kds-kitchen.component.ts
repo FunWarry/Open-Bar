@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin, interval, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -54,7 +54,6 @@ import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
   selector: 'app-kds-kitchen',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslocoModule,
     IonContent,
@@ -74,7 +73,7 @@ import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
     IonBadge,
     EmptyStateComponent,
     ActionButtonComponent
-  ],
+],
   templateUrl: './kds-kitchen.component.html',
   styleUrls: ['./kds-kitchen.component.scss']
 })

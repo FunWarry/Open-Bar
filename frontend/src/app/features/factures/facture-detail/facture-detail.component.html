@@ -8,61 +8,63 @@
           <span class="back-text">{{ t('FACTURES.BACK_TO_LIST') }}</span>
         </a>
 
-        <div class="invoice-heading-group" *ngIf="facture">
-          <div class="tag-row">
-            <span class="invoice-mono-pill">
-              <ion-icon name="receipt-outline"></ion-icon>
-              <span>{{ facture.numero }}</span>
-            </span>
-            <span class="status-pill" [class.settled]="facture.reglee" [class.pending]="!facture.reglee" data-testid="facture-status-badge">
-              @if (facture.reglee) {
-                <ion-icon name="checkmark-circle-outline"></ion-icon>
-                <span>{{ t('FACTURES.SETTLED') }}</span>
-              } @else {
-                <span class="pulse-indicator"></span>
-                <span>{{ t('FACTURES.PENDING') }}</span>
-              }
-            </span>
+        @if (facture) {
+          <div class="invoice-heading-group">
+            <div class="tag-row">
+              <span class="invoice-mono-pill">
+                <ion-icon name="receipt-outline"></ion-icon>
+                <span>{{ facture.numero }}</span>
+              </span>
+              <span class="status-pill" [class.settled]="facture.reglee" [class.pending]="!facture.reglee" data-testid="facture-status-badge">
+                @if (facture.reglee) {
+                  <ion-icon name="checkmark-circle-outline"></ion-icon>
+                  <span>{{ t('FACTURES.SETTLED') }}</span>
+                } @else {
+                  <span class="pulse-indicator"></span>
+                  <span>{{ t('FACTURES.PENDING') }}</span>
+                }
+              </span>
+            </div>
+            <h1 class="hero-title">{{ t('FACTURES.INVOICE_DETAILS') }}</h1>
           </div>
-          <h1 class="hero-title">{{ t('FACTURES.INVOICE_DETAILS') }}</h1>
-        </div>
+        }
       </div>
 
       <!-- Quick Action Buttons in Header -->
-      <div class="hero-actions" *ngIf="facture">
-        @if (!facture.reglee) {
+      @if (facture) {
+        <div class="hero-actions">
+          @if (!facture.reglee) {
+            <button
+              type="button"
+              class="btn-cta btn-settle"
+              (click)="reglerFacture()"
+              (keydown.enter)="reglerFacture()"
+              data-testid="mark-settled-btn">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <span>{{ t('FACTURES.SETTLE') }}</span>
+            </button>
+          }
           <button
             type="button"
-            class="btn-cta btn-settle"
-            (click)="reglerFacture()"
-            (keydown.enter)="reglerFacture()"
-            data-testid="mark-settled-btn">
-            <ion-icon name="checkmark-circle-outline"></ion-icon>
-            <span>{{ t('FACTURES.SETTLE') }}</span>
+            class="btn-cta btn-pdf"
+            (click)="telechargerPdf()"
+            (keydown.enter)="telechargerPdf()"
+            data-testid="download-pdf-btn">
+            <ion-icon name="download-outline"></ion-icon>
+            <span>{{ t('FACTURES.DOWNLOAD_PDF') }}</span>
           </button>
-        }
-
-        <button
-          type="button"
-          class="btn-cta btn-pdf"
-          (click)="telechargerPdf()"
-          (keydown.enter)="telechargerPdf()"
-          data-testid="download-pdf-btn">
-          <ion-icon name="download-outline"></ion-icon>
-          <span>{{ t('FACTURES.DOWNLOAD_PDF') }}</span>
-        </button>
-
-        @if (facture.items && facture.items.length > 0) {
-          <button
-            type="button"
-            (click)="openSplitModal()"
-            class="btn-cta btn-split"
-            data-testid="split-bill-btn">
-            <ion-icon name="people-outline"></ion-icon>
-            <span>{{ t('FACTURES.SPLIT') }}</span>
-          </button>
-        }
-      </div>
+          @if (facture.items && facture.items.length > 0) {
+            <button
+              type="button"
+              (click)="openSplitModal()"
+              class="btn-cta btn-split"
+              data-testid="split-bill-btn">
+              <ion-icon name="people-outline"></ion-icon>
+              <span>{{ t('FACTURES.SPLIT') }}</span>
+            </button>
+          }
+        </div>
+      }
     </header>
 
     <!-- Loading State -->
@@ -109,23 +111,35 @@
                 </div>
                 <div class="brand-names">
                   <h2 class="est-name">{{ establishmentConfig?.legalName || 'OpenBar' }}</h2>
-                  <span class="est-form" *ngIf="establishmentConfig as cfg">{{ cfg.legalForm }}</span>
+                  @if (establishmentConfig; as cfg) {
+                    <span class="est-form">{{ cfg.legalForm }}</span>
+                  }
                 </div>
               </div>
-              <div class="est-details-list" *ngIf="establishmentConfig as cfg">
-                <p class="est-line" *ngIf="cfg.address">
-                  <ion-icon name="location-outline"></ion-icon>
-                  <span>{{ cfg.address }}</span>
-                </p>
-                <p class="est-line" *ngIf="cfg.phone">
-                  <ion-icon name="call-outline"></ion-icon>
-                  <span>{{ cfg.phone }}</span>
-                </p>
-                <div class="est-legal-ids">
-                  <span class="legal-tag" *ngIf="cfg.siret">SIRET: {{ cfg.siret }}</span>
-                  <span class="legal-tag" *ngIf="cfg.tvaNumber">N° TVA: {{ cfg.tvaNumber }}</span>
+              @if (establishmentConfig; as cfg) {
+                <div class="est-details-list">
+                  @if (cfg.address) {
+                    <p class="est-line">
+                      <ion-icon name="location-outline"></ion-icon>
+                      <span>{{ cfg.address }}</span>
+                    </p>
+                  }
+                  @if (cfg.phone) {
+                    <p class="est-line">
+                      <ion-icon name="call-outline"></ion-icon>
+                      <span>{{ cfg.phone }}</span>
+                    </p>
+                  }
+                  <div class="est-legal-ids">
+                    @if (cfg.siret) {
+                      <span class="legal-tag">SIRET: {{ cfg.siret }}</span>
+                    }
+                    @if (cfg.tvaNumber) {
+                      <span class="legal-tag">N° TVA: {{ cfg.tvaNumber }}</span>
+                    }
+                  </div>
                 </div>
-              </div>
+              }
             </div>
 
             <!-- Facture Meta Information Card -->
@@ -139,22 +153,30 @@
                   <span class="cell-label">{{ t('COMMON.DATE') }}</span>
                   <span class="cell-val">{{ facture.dateFacture | date:'dd/MM/yyyy HH:mm' }}</span>
                 </div>
-                <div class="meta-cell" *ngIf="facture.tableNumero">
-                  <span class="cell-label">{{ t('COMMANDES.TABLE') }}</span>
-                  <span class="cell-val table-badge">{{ t('FACTURES.TABLE_LABEL', { num: facture.tableNumero }) }}</span>
-                </div>
-                <div class="meta-cell" *ngIf="facture.serveurNom">
-                  <span class="cell-label">{{ t('FACTURES.TABLE_HEADERS.SERVER') }}</span>
-                  <span class="cell-val">{{ facture.serveurNom }}</span>
-                </div>
-                <div class="meta-cell" *ngIf="facture.modePaiement">
-                  <span class="cell-label">{{ t('FACTURES.PAYMENT_METHOD') }}</span>
-                  <span class="cell-val payment-pill">{{ facture.modePaiement }}</span>
-                </div>
-                <div class="meta-cell" *ngIf="facture.dateReglement">
-                  <span class="cell-label">{{ t('FACTURES.SETTLED_AT') }}</span>
-                  <span class="cell-val settled-date">{{ facture.dateReglement | date:'dd/MM/yyyy HH:mm' }}</span>
-                </div>
+                @if (facture.tableNumero) {
+                  <div class="meta-cell">
+                    <span class="cell-label">{{ t('COMMANDES.TABLE') }}</span>
+                    <span class="cell-val table-badge">{{ t('FACTURES.TABLE_LABEL', { num: facture.tableNumero }) }}</span>
+                  </div>
+                }
+                @if (facture.serveurNom) {
+                  <div class="meta-cell">
+                    <span class="cell-label">{{ t('FACTURES.TABLE_HEADERS.SERVER') }}</span>
+                    <span class="cell-val">{{ facture.serveurNom }}</span>
+                  </div>
+                }
+                @if (facture.modePaiement) {
+                  <div class="meta-cell">
+                    <span class="cell-label">{{ t('FACTURES.PAYMENT_METHOD') }}</span>
+                    <span class="cell-val payment-pill">{{ facture.modePaiement }}</span>
+                  </div>
+                }
+                @if (facture.dateReglement) {
+                  <div class="meta-cell">
+                    <span class="cell-label">{{ t('FACTURES.SETTLED_AT') }}</span>
+                    <span class="cell-val settled-date">{{ facture.dateReglement | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                }
               </div>
 
               @if (facture.notes) {
@@ -173,9 +195,11 @@
                 <ion-icon name="fast-food-outline"></ion-icon>
                 <h3 class="section-title">{{ t('FACTURES.ITEMS_CONSUMED') }}</h3>
               </div>
-              <span class="items-count-badge" *ngIf="facture.items && facture.items.length > 0">
-                {{ facture.items.length }} {{ facture.items.length > 1 ? t('COMMON.ITEMS') : t('COMMON.ITEM') }}
-              </span>
+              @if (facture.items && facture.items.length > 0) {
+                <span class="items-count-badge">
+                  {{ facture.items.length }} {{ facture.items.length > 1 ? t('COMMON.ITEMS') : t('COMMON.ITEM') }}
+                </span>
+              }
             </div>
 
             @if (facture.items && facture.items.length > 0) {
@@ -236,10 +260,14 @@
                 <ion-icon name="information-circle-outline"></ion-icon>
                 <div class="legal-notice-text">
                   <span class="notice-title">{{ t('FACTURES.ESTABLISHMENT_INFO') }}</span>
-                  <p class="notice-desc" *ngIf="establishmentConfig as cfg">
-                    {{ cfg.legalName || 'OpenBar' }} — {{ cfg.address }}
-                    <span *ngIf="cfg.rcsNumber"> — RCS {{ cfg.rcsCity }} {{ cfg.rcsNumber }}</span>
-                  </p>
+                  @if (establishmentConfig; as cfg) {
+                    <p class="notice-desc">
+                      {{ cfg.legalName || 'OpenBar' }} — {{ cfg.address }}
+                      @if (cfg.rcsNumber) {
+                        <span> — RCS {{ cfg.rcsCity }} {{ cfg.rcsNumber }}</span>
+                      }
+                    </p>
+                  }
                 </div>
               </div>
 
@@ -298,55 +326,63 @@
           </section>
 
           <!-- Split Settlements Breakdown Section (when split payments exist) -->
-          <section class="split-history-section" *ngIf="facture.reglements && facture.reglements.length > 0" data-testid="split-history-container">
-            <div class="split-history-header">
-              <div class="split-history-title-wrap">
-                <ion-icon name="people-outline"></ion-icon>
-                <h3>{{ t('FACTURES.SPLIT_HISTORY_TITLE') }}</h3>
-              </div>
-              <span class="split-count-badge">{{ t('FACTURES.SPLIT_PARTS_COUNT', { count: facture.reglements.length }) }}</span>
-            </div>
-
-            <div class="split-parts-list">
-              <div *ngFor="let reg of facture.reglements; let i = index" class="split-part-row" [attr.data-testid]="'split-history-row-' + i">
-                <div class="part-info-block">
-                  <div class="part-name-line">
-                    <span class="part-index-badge">#{{ reg.partIndex }}</span>
-                    <strong class="part-guest-name">{{ reg.nomConvive }}</strong>
-                    <span class="part-mode-badge">{{ reg.modePaiement }}</span>
-                    <span class="part-type-pill">{{ reg.typeSplit === 'EGAL' ? t('SPLIT.EQUAL_MODE') : t('SPLIT.ITEMIZED_MODE') }}</span>
-                  </div>
-                  <div class="part-date-line">
-                    <span>{{ (reg.dateReglement || facture.dateFacture) | date:'dd/MM/yyyy HH:mm' }}</span>
-                  </div>
-                  <!-- If itemized, list assigned items -->
-                  <div class="part-items-chips" *ngIf="reg.items && reg.items.length > 0">
-                    <span *ngFor="let item of reg.items" class="part-item-chip">
-                      {{ item.quantite }}x {{ item.description }} ({{ item.total | appCurrency }})
-                    </span>
-                  </div>
+          @if (facture.reglements && facture.reglements.length > 0) {
+            <section class="split-history-section" data-testid="split-history-container">
+              <div class="split-history-header">
+                <div class="split-history-title-wrap">
+                  <ion-icon name="people-outline"></ion-icon>
+                  <h3>{{ t('FACTURES.SPLIT_HISTORY_TITLE') }}</h3>
                 </div>
-
-                <div class="part-amount-block">
-                  <div class="part-amounts-wrap">
-                    <span class="part-net-amount">{{ reg.montant | appCurrency }}</span>
-                    <span class="part-tip-amount" *ngIf="reg.pourboire && reg.pourboire > 0">
-                      +{{ reg.pourboire | appCurrency }} {{ t('FACTURES.TIP') }}
-                    </span>
-                    <strong class="part-total-paid">{{ reg.totalRegle | appCurrency }}</strong>
-                  </div>
-                  <button
-                    type="button"
-                    class="btn-print-split-ticket"
-                    (click)="imprimerTicketPart(reg)"
-                    [attr.data-testid]="'print-history-ticket-btn-' + i">
-                    <ion-icon name="print-outline"></ion-icon>
-                    <span>{{ t('FACTURES.PRINT_TICKET') }}</span>
-                  </button>
-                </div>
+                <span class="split-count-badge">{{ t('FACTURES.SPLIT_PARTS_COUNT', { count: facture.reglements.length }) }}</span>
               </div>
-            </div>
-          </section>
+              <div class="split-parts-list">
+                @for (reg of facture.reglements; track reg; let i = $index) {
+                  <div class="split-part-row" [attr.data-testid]="'split-history-row-' + i">
+                    <div class="part-info-block">
+                      <div class="part-name-line">
+                        <span class="part-index-badge">#{{ reg.partIndex }}</span>
+                        <strong class="part-guest-name">{{ reg.nomConvive }}</strong>
+                        <span class="part-mode-badge">{{ reg.modePaiement }}</span>
+                        <span class="part-type-pill">{{ reg.typeSplit === 'EGAL' ? t('SPLIT.EQUAL_MODE') : t('SPLIT.ITEMIZED_MODE') }}</span>
+                      </div>
+                      <div class="part-date-line">
+                        <span>{{ (reg.dateReglement || facture.dateFacture) | date:'dd/MM/yyyy HH:mm' }}</span>
+                      </div>
+                      <!-- If itemized, list assigned items -->
+                      @if (reg.items && reg.items.length > 0) {
+                        <div class="part-items-chips">
+                          @for (item of reg.items; track item) {
+                            <span class="part-item-chip">
+                              {{ item.quantite }}x {{ item.description }} ({{ item.total | appCurrency }})
+                            </span>
+                          }
+                        </div>
+                      }
+                    </div>
+                    <div class="part-amount-block">
+                      <div class="part-amounts-wrap">
+                        <span class="part-net-amount">{{ reg.montant | appCurrency }}</span>
+                        @if (reg.pourboire && reg.pourboire > 0) {
+                          <span class="part-tip-amount">
+                            +{{ reg.pourboire | appCurrency }} {{ t('FACTURES.TIP') }}
+                          </span>
+                        }
+                        <strong class="part-total-paid">{{ reg.totalRegle | appCurrency }}</strong>
+                      </div>
+                      <button
+                        type="button"
+                        class="btn-print-split-ticket"
+                        (click)="imprimerTicketPart(reg)"
+                        [attr.data-testid]="'print-history-ticket-btn-' + i">
+                        <ion-icon name="print-outline"></ion-icon>
+                        <span>{{ t('FACTURES.PRINT_TICKET') }}</span>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
 
           <!-- Bottom Actions Bar -->
           <footer class="sheet-footer-actions no-print">

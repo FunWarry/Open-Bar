@@ -1,5 +1,5 @@
 import { Component, Input, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import {
   IonIcon,
   IonSpinner,
@@ -47,11 +47,10 @@ export interface ConfirmDeleteResult {
   styleUrls: ['./confirm-delete-modal.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
     IonIcon,
     IonSpinner,
     TranslocoPipe
-  ]
+]
 })
 export class ConfirmDeleteModalComponent {
   private readonly modalCtrl = inject(ModalController);

@@ -32,7 +32,7 @@
 
   .page-title {
     font-family: var(--font-display, var(--font, 'Outfit', 'Inter', sans-serif));
-    font-size: 1.35rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-primary, #eceefb);
     margin: 0;
@@ -46,24 +46,40 @@
   gap: 2px;
 }
 
-.week-label {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text-secondary, #a4add0);
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  flex-wrap: wrap;
 }
 
-.top-actions {
+.tools-btn-group {
   display: flex;
   align-items: center;
   gap: var(--space-2, 8px);
   flex-wrap: wrap;
 }
 
+.action-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border-medium, rgba(255, 255, 255, 0.12));
+  margin: 0 4px;
+
+  @media (max-width: 900px) {
+    display: none;
+  }
+}
+
 .publish-wrapper {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
   gap: 4px;
+
+  @media (max-width: 768px) {
+    align-items: flex-start;
+  }
 }
 
 .publish-btn-group {
@@ -87,11 +103,13 @@
     border-color: var(--semantic-warning, #f59e0b);
     background: rgba(245, 158, 11, 0.12);
   }
-}
 
-.nav-buttons {
-  display: flex;
-  gap: var(--space-2, 8px);
+  &.draft-badge {
+    color: var(--text-muted);
+    border-color: var(--border-medium);
+    background: var(--background-surface-1);
+    font-weight: 500;
+  }
 }
 
 // Comparison Mode Banner
@@ -207,18 +225,122 @@
   }
 }
 
-// Schedule Filters Bar
-.schedule-filters {
+// Schedule Controls & Navigation Toolbar (Fixed right above the calendar)
+.schedule-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3, 12px);
   margin-bottom: var(--space-3, 12px);
-  padding: 8px 12px;
+  padding: 8px 14px;
   background: var(--background-surface-1, #16192b);
   border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md, 10px);
   flex-wrap: wrap;
+
+  .week-nav-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .week-nav-chevrons {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: var(--background-surface-2, #21263f);
+    border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.12));
+    border-radius: var(--radius-md, 8px);
+    padding: 2px;
+  }
+
+  .nav-chevron-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: transparent;
+    border: none;
+    color: var(--text-primary, #eceefb);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    ion-icon {
+      font-size: 1.15rem;
+    }
+
+    &:hover {
+      background: var(--primary, #6c7fe8);
+      color: var(--text-on-accent, #ffffff);
+      transform: scale(1.04);
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+
+  .today-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: var(--radius-md, 8px);
+    background: var(--background-surface-2, #21263f);
+    border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.12));
+    color: var(--text-primary, #eceefb);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+
+    ion-icon {
+      font-size: 1.05rem;
+      color: var(--primary, #6c7fe8);
+    }
+
+    &:hover {
+      border-color: var(--primary, #6c7fe8);
+      background: rgba(108, 127, 232, 0.12);
+      color: var(--primary, #6c7fe8);
+    }
+  }
+
+  .week-label-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(108, 127, 232, 0.08);
+    border: 1px solid rgba(108, 127, 232, 0.2);
+    border-radius: var(--radius-md, 8px);
+
+    .week-icon {
+      font-size: 1.05rem;
+      color: var(--primary, #6c7fe8);
+    }
+
+    .week-label-text {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-primary, #eceefb);
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+  }
+
+  .calendar-filters-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3, 12px);
+    flex-wrap: wrap;
+  }
 
   .filter-roles {
     display: flex;

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, effect } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -60,6 +60,7 @@ import {
   statsChartOutline,
   beerOutline,
   pizzaOutline,
+  shieldCheckmarkOutline,
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { of } from 'rxjs';
@@ -440,6 +441,21 @@ export class CocktailFormComponent implements OnInit {
       statsChartOutline,
       beerOutline,
       pizzaOutline,
+      shieldCheckmarkOutline,
+    });
+
+    effect(() => {
+      const metrics = this.calculatedAlcoholMetrics();
+      const dietary = this.calculatedDietary();
+      this.cocktailForm.patchValue(
+        {
+          alcoholLevel: metrics.abv,
+          isMocktail: dietary.isMocktail,
+          isVegan: dietary.isVegan,
+          isGlutenFree: dietary.isGlutenFree,
+        },
+        { emitEvent: false }
+      );
     });
   }
 
@@ -466,6 +482,178 @@ export class CocktailFormComponent implements OnInit {
       }
     }
     return Math.round(total * 100) / 100;
+  });
+
+  /**
+   * Normalizes an ingredient volume to centilitres (cl).
+   * @param qty Quantity in original unit
+   * @param unite Unit of measure (e.g. 'cl', 'ml', 'oz', 'dash', 'tsp')
+   * @returns Volume in cl
+   */
+  normalizeVolumeToCl(qty: number, unite?: string | null): number {
+    if (!qty || qty <= 0) return 0;
+    if (!unite) return qty;
+    const u = unite.trim().toLowerCase();
+    switch (u) {
+      case 'cl':
+        return qty;
+      case 'ml':
+        return qty / 10;
+      case 'l':
+        return qty * 100;
+      case 'dl':
+        return qty * 10;
+      case 'g':
+      case 'gr':
+      case 'gramme':
+      case 'grammes':
+        return qty / 10;
+      case 'oz':
+      case 'fl oz':
+        return qty * 2.95735;
+      case 'dash':
+      case 'trait':
+      case 'goutte':
+      case 'gouttes':
+        return qty * 0.1;
+      case 'cuillere':
+      case 'barspoon':
+      case 'tsp':
+        return qty * 0.5;
+      default:
+        return 0;
+    }
+  }
+
+  /**
+   * Evaluates volume and pure alcohol contribution of a recipe step.
+   */
+  private evaluateStepAlcohol(
+    ctrl: AbstractControl,
+    ingredients: Ingredient[]
+  ): { volCl: number; pureAlcoholCl: number } {
+    if (ctrl.get('stepType')?.value !== 'INGREDIENT') {
+      return { volCl: 0, pureAlcoholCl: 0 };
+    }
+
+    const ingId = ctrl.get('ingredientId')?.value;
+    const qty = Number(ctrl.get('quantite')?.value) || 0;
+    const unite = ctrl.get('unite')?.value || 'cl';
+    const volCl = this.normalizeVolumeToCl(qty, unite);
+
+    if (!ingId || qty <= 0) {
+      return { volCl, pureAlcoholCl: 0 };
+    }
+
+    const ing = ingredients.find((i) => i.id === Number(ingId));
+    if (!ing?.degreAlcool || ing.degreAlcool <= 0) {
+      return { volCl, pureAlcoholCl: 0 };
+    }
+
+    const effectiveVol = volCl > 0 ? volCl : qty;
+    const pureAlcoholCl = effectiveVol * (ing.degreAlcool / 100);
+    return { volCl, pureAlcoholCl };
+  }
+
+  /**
+   * Computed alcohol metrics automatically calculated from recipe ingredients and glassware.
+   */
+  calculatedAlcoholMetrics = computed<{
+    abv: number;
+    pureAlcoholCl: number;
+    totalLiquidCl: number;
+    glasswareCl: number | null;
+  }>(() => {
+    this.recipeVersion();
+    const steps = this.recipeStepsArray.controls;
+    const ingredients = this.ingredientsList();
+    const glassId = this.selectedGlasswareId() ?? this.cocktailForm.get('glasswareId')?.value;
+    const glass = this.glasswareList().find((g) => g.id === Number(glassId));
+    const glasswareCl = glass ? glass.contenanceCl : null;
+
+    let totalLiquidCl = 0;
+    let pureAlcoholCl = 0;
+
+    for (const ctrl of steps) {
+      const stepContrib = this.evaluateStepAlcohol(ctrl, ingredients);
+      totalLiquidCl += stepContrib.volCl;
+      pureAlcoholCl += stepContrib.pureAlcoholCl;
+    }
+
+    const finishedVolume = totalLiquidCl > 0 ? totalLiquidCl : (glasswareCl ?? 0);
+    const rawAbv = finishedVolume > 0 ? (pureAlcoholCl / finishedVolume) * 100 : 0;
+    const abv = Math.round(rawAbv * 10) / 10;
+
+    return {
+      abv,
+      pureAlcoholCl: Math.round(pureAlcoholCl * 100) / 100,
+      totalLiquidCl: Math.round(totalLiquidCl * 10) / 10,
+      glasswareCl,
+    };
+  });
+
+  /**
+   * Updates dietary accumulator with an ingredient's properties and allergens.
+   */
+  private processIngredientDietary(
+    ing: Ingredient,
+    state: { isVegan: boolean; isGlutenFree: boolean; allergenSet: Set<string> }
+  ): void {
+    if (ing.isVegan === false) {
+      state.isVegan = false;
+    }
+    if (!ing.allergens || ing.allergens.length === 0) {
+      return;
+    }
+    for (const all of ing.allergens) {
+      state.allergenSet.add(all);
+      if (all === 'GLUTEN') {
+        state.isGlutenFree = false;
+      }
+      if (all === 'LAIT' || all === 'OEUF') {
+        state.isVegan = false;
+      }
+    }
+  }
+
+  /**
+   * Computed dietary and allergen preferences automatically deduced from ingredients and ABV.
+   */
+  calculatedDietary = computed<{
+    isMocktail: boolean;
+    isVegan: boolean;
+    isGlutenFree: boolean;
+    detectedAllergens: string[];
+  }>(() => {
+    this.recipeVersion();
+    const steps = this.recipeStepsArray.controls;
+    const ingredients = this.ingredientsList();
+    const alcohol = this.calculatedAlcoholMetrics();
+
+    const state = {
+      isVegan: true,
+      isGlutenFree: true,
+      allergenSet: new Set<string>(),
+    };
+
+    const ingredientSteps = steps.filter(
+      (c) => c.get('stepType')?.value === 'INGREDIENT' && c.get('ingredientId')?.value
+    );
+
+    for (const ctrl of ingredientSteps) {
+      const ingId = Number(ctrl.get('ingredientId')?.value);
+      const ing = ingredients.find((i) => i.id === ingId);
+      if (ing) {
+        this.processIngredientDietary(ing, state);
+      }
+    }
+
+    return {
+      isMocktail: alcohol.abv < 0.5,
+      isVegan: state.isVegan,
+      isGlutenFree: state.isGlutenFree,
+      detectedAllergens: Array.from(state.allergenSet),
+    };
   });
 
   /** Computed VAT-exclusive selling price. */
@@ -548,6 +736,16 @@ export class CocktailFormComponent implements OnInit {
    */
   isFlavorSelected(flavor: FlavorProfile): boolean {
     return this.selectedFlavors().includes(flavor);
+  }
+
+  /**
+   * Retrieves icon name corresponding to a flavor profile.
+   * @param flavor Flavor profile key
+   * @returns Ionic icon name string
+   */
+  getFlavorIcon(flavor: FlavorProfile): string {
+    const item = this.availableFlavors.find((f) => f.key === flavor);
+    return item ? item.icon : 'sparkles-outline';
   }
 
   get recipeStepsArray(): FormArray {
@@ -1301,10 +1499,10 @@ export class CocktailFormComponent implements OnInit {
       instructions: formVal.instructions || null,
       station: formVal.station || 'BAR',
       flavorProfiles: this.selectedFlavors(),
-      alcoholLevel: formVal.alcoholLevel !== null && formVal.alcoholLevel !== '' ? +formVal.alcoholLevel : null,
-      isMocktail: formVal.isMocktail ?? false,
-      isVegan: formVal.isVegan ?? false,
-      isGlutenFree: formVal.isGlutenFree ?? false,
+      alcoholLevel: this.calculatedAlcoholMetrics().abv,
+      isMocktail: this.calculatedDietary().isMocktail,
+      isVegan: this.calculatedDietary().isVegan,
+      isGlutenFree: this.calculatedDietary().isGlutenFree,
       disponible: this.cocktailData ? this.cocktailData.disponible : true,
       saisonnier: this.saisonnaliteState.saisonnier,
       dateDebutSaison: this.cocktailData?.dateDebutSaison || null,

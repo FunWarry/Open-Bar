@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, forwardRef, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -19,7 +19,7 @@ import { BaseControlValueAccessor } from '../base-control-value-accessor';
 @Component({
   selector: 'app-search-bar',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonIcon],
+  imports: [FormsModule, IonIcon],
   templateUrl: './search-bar.component.html',
   styleUrls: ['./search-bar.component.scss'],
   providers: [

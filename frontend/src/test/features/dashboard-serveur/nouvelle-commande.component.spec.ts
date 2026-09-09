@@ -372,7 +372,7 @@ describe('NouvelleCommandeComponent', () => {
   it('filteredCocktails excludes drinks containing selected allergen', () => {
     const cocktailWithLactose: Cocktail = {
       id: 3, nom: 'Piña Colada', prix: 10, categorie: 'ALCOOLISE', disponible: true,
-      saisonnier: false, ingredients: [{ id: 1, ingredientId: 10, ingredientNom: 'Cream lactose', quantite: 5, uniteMesure: 'cl' }],
+      saisonnier: false, ingredients: [{ id: 1, ingredientId: 10, ingredientNom: 'Lait', quantite: 5, uniteMesure: 'cl', allergens: ['LAIT'] }],
       variantes: [], createdAt: '', updatedAt: '',
     };
     component.cocktails = [...mockCocktails, cocktailWithLactose];

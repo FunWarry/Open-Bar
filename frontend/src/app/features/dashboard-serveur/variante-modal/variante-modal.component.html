@@ -29,23 +29,28 @@
     </ion-item>
 
     <!-- Available variants -->
-    <ion-item
-      *ngFor="let variante of variantesDisponibles"
-      class="variante-item"
-      lines="none"
-      [attr.data-testid]="'variante-item-' + variante.id">
-      <ion-radio slot="start" [value]="variante.id" [attr.data-testid]="'radio-variante-' + variante.id"></ion-radio>
-      <ion-label>
-        <div class="variante-nom">{{ variante.nom }}</div>
-        <div class="variante-description" *ngIf="variante.description">{{ variante.description }}</div>
-        <div class="variante-prix">
-          {{ (cocktail.prix + variante.prixSupplement) | currency:'EUR':'symbol':'1.2-2':'fr' }}
-          <span class="supplement" *ngIf="variante.prixSupplement !== 0">
-            ({{ variante.prixSupplement > 0 ? '+' : '' }}{{ variante.prixSupplement | currency:'EUR':'symbol':'1.2-2':'fr' }})
-          </span>
-        </div>
-      </ion-label>
-    </ion-item>
+    @for (variante of variantesDisponibles; track variante) {
+      <ion-item
+        class="variante-item"
+        lines="none"
+        [attr.data-testid]="'variante-item-' + variante.id">
+        <ion-radio slot="start" [value]="variante.id" [attr.data-testid]="'radio-variante-' + variante.id"></ion-radio>
+        <ion-label>
+          <div class="variante-nom">{{ variante.nom }}</div>
+          @if (variante.description) {
+            <div class="variante-description">{{ variante.description }}</div>
+          }
+          <div class="variante-prix">
+            {{ (cocktail.prix + variante.prixSupplement) | currency:'EUR':'symbol':'1.2-2':'fr' }}
+            @if (variante.prixSupplement !== 0) {
+              <span class="supplement">
+                ({{ variante.prixSupplement > 0 ? '+' : '' }}{{ variante.prixSupplement | currency:'EUR':'symbol':'1.2-2':'fr' }})
+              </span>
+            }
+          </div>
+        </ion-label>
+      </ion-item>
+    }
   </ion-radio-group>
 
   <!-- Barman notes -->
@@ -65,7 +70,9 @@
     <span class="prix-label">{{ 'COMMON.TOTAL' | transloco }}</span>
     <span class="prix-valeur" data-testid="prix-effectif">
       {{ prixEffectif | currency:'EUR':'symbol':'1.2-2':'fr' }}
-      <span class="supplement-label" *ngIf="supplementLabel">{{ supplementLabel }}</span>
+      @if (supplementLabel) {
+        <span class="supplement-label">{{ supplementLabel }}</span>
+      }
     </span>
   </div>
 </ion-content>

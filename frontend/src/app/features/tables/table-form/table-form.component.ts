@@ -24,7 +24,7 @@ import {
   createOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { CommonModule } from '@angular/common';
+
 import { TableService } from '../../../core/services/table.service';
 import { ZoneService, ZoneBar } from '../../../core/services/zone.service';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
@@ -43,14 +43,13 @@ import { ConfirmDeleteModalComponent } from '../../../core/components/ui/confirm
   styleUrls: ['./table-form.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
     IonIcon,
     IonSpinner,
     InputFieldComponent,
     SearchableSelectComponent,
     ReactiveFormsModule,
     TranslocoModule
-  ]
+]
 })
 export class TableFormComponent implements OnInit, OnDestroy {
   /** Optional table identifier passed via modal componentProps. */

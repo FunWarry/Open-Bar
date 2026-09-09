@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
@@ -49,7 +49,6 @@ import { SearchBarComponent } from '../../../../core/components/ui/search-bar/se
   selector: 'app-ruptures-modal',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslocoModule,
     AppCurrencyPipe,
@@ -69,7 +68,7 @@ import { SearchBarComponent } from '../../../../core/components/ui/search-bar/se
     IonToggle,
     IonSpinner,
     IonBadge
-  ],
+],
   templateUrl: './ruptures-modal.component.html',
   styleUrls: ['./ruptures-modal.component.scss']
 })

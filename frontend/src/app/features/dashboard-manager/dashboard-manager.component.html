@@ -13,11 +13,13 @@
       </div>
 
       <div class="toolbar-actions">
-        <span class="last-sync-badge" *ngIf="stats">
-          <span class="sync-dot"></span>
-          <ion-icon name="time-outline"></ion-icon>
-          <span>{{ 'MANAGER_DASHBOARD.LAST_UPDATE' | transloco: { time: formattedLastUpdated } }}</span>
-        </span>
+        @if (stats) {
+          <span class="last-sync-badge">
+            <span class="sync-dot"></span>
+            <ion-icon name="time-outline"></ion-icon>
+            <span>{{ 'MANAGER_DASHBOARD.LAST_UPDATE' | transloco: { time: formattedLastUpdated } }}</span>
+          </span>
+        }
 
         <ion-button
           fill="outline"
@@ -46,552 +48,638 @@
 </ion-header>
 
 <!-- État chargé -->
-<ion-content *ngIf="stats && !loading" class="manager-content">
-  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher>
-
-  <div class="dashboard-body">
-    <!-- Operational Alerts Summary Banner (Top Priority Position) -->
-    <section class="alerts-container" *ngIf="stats.stockIngredientsCritiques > 0 || stats.commandesEnAttente >= 5" aria-label="Alertes prioritaires">
-      <div class="alert-banner warning" *ngIf="stats.commandesEnAttente >= 5" data-testid="alert-pending-orders">
-        <div class="alert-icon-wrapper">
-          <span class="alert-beacon"></span>
-          <ion-icon name="time-outline"></ion-icon>
-        </div>
-        <div class="alert-body">
-          <div class="alert-header-row">
-            <span class="alert-title">{{ 'MANAGER_DASHBOARD.ALERT_PENDING_ORDERS_TITLE' | transloco }}</span>
-            <span class="alert-count-pill">{{ stats.commandesEnAttente }}</span>
-          </div>
-          <span class="alert-text">{{ 'MANAGER_DASHBOARD.ALERT_PENDING_ORDERS_MSG' | transloco: { count: stats.commandesEnAttente } }}</span>
-        </div>
-        <ion-button size="small" fill="outline" class="btn-alert-cta warning" routerLink="/barman" data-testid="alert-btn-view-barman">
-          <span>{{ 'MANAGER_DASHBOARD.ALERT_ACTION_BARMAN' | transloco }}</span>
-          <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
-        </ion-button>
-      </div>
-
-      <div class="alert-banner critical" *ngIf="stats.stockIngredientsCritiques > 0" data-testid="alert-critical-stock">
-        <div class="alert-icon-wrapper">
-          <span class="alert-beacon"></span>
-          <ion-icon name="alert-circle-outline"></ion-icon>
-        </div>
-        <div class="alert-body">
-          <div class="alert-header-row">
-            <span class="alert-title">{{ 'MANAGER_DASHBOARD.ALERT_CRITICAL_STOCK_TITLE' | transloco }}</span>
-            <span class="alert-count-pill">{{ stats.stockIngredientsCritiques }}</span>
-          </div>
-          <span class="alert-text">{{ 'MANAGER_DASHBOARD.ALERT_CRITICAL_STOCK_MSG' | transloco: { count: stats.stockIngredientsCritiques } }}</span>
-        </div>
-        <ion-button size="small" fill="outline" class="btn-alert-cta critical" routerLink="/barman" data-testid="alert-btn-view-stock">
-          <span>{{ 'MANAGER_DASHBOARD.ALERT_ACTION_STOCK' | transloco }}</span>
-          <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
-        </ion-button>
-      </div>
-    </section>
-
-    <!-- Quick Access Actions Bar (Modern Action Tiles) -->
-    <section class="quick-actions-bar" aria-label="Actions rapides manager">
-      <div class="quick-actions-scroll">
-        <ion-button routerLink="/manager/schedule" fill="clear" class="qa-action-tile qa-tile-schedule" data-testid="manager-btn-schedule">
-          <div class="qa-tile-inner">
-            <div class="qa-icon-wrapper schedule">
-              <ion-icon name="calendar-outline"></ion-icon>
+@if (stats && !loading) {
+  <ion-content class="manager-content">
+    <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+      <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
+    <div class="dashboard-body">
+      <!-- Operational Alerts Summary Banner (Top Priority Position) -->
+      @if (stats.stockIngredientsCritiques > 0 || stats.commandesEnAttente >= 5) {
+        <section class="alerts-container" aria-label="Alertes prioritaires">
+          @if (stats.commandesEnAttente >= 5) {
+            <div class="alert-banner warning" data-testid="alert-pending-orders">
+              <div class="alert-icon-wrapper">
+                <span class="alert-beacon"></span>
+                <ion-icon name="time-outline"></ion-icon>
+              </div>
+              <div class="alert-body">
+                <div class="alert-header-row">
+                  <span class="alert-title">{{ 'MANAGER_DASHBOARD.ALERT_PENDING_ORDERS_TITLE' | transloco }}</span>
+                  <span class="alert-count-pill">{{ stats.commandesEnAttente }}</span>
+                </div>
+                <span class="alert-text">{{ 'MANAGER_DASHBOARD.ALERT_PENDING_ORDERS_MSG' | transloco: { count: stats.commandesEnAttente } }}</span>
+              </div>
+              <ion-button size="small" fill="outline" class="btn-alert-cta warning" routerLink="/barman" data-testid="alert-btn-view-barman">
+                <span>{{ 'MANAGER_DASHBOARD.ALERT_ACTION_BARMAN' | transloco }}</span>
+                <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+              </ion-button>
             </div>
-            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_SCHEDULE' | transloco }}</span>
-          </div>
-        </ion-button>
-
-        <ion-button routerLink="/manager/employees" fill="clear" class="qa-action-tile qa-tile-employees" data-testid="manager-btn-employees">
-          <div class="qa-tile-inner">
-            <div class="qa-icon-wrapper employees">
-              <ion-icon name="people-outline"></ion-icon>
+          }
+          @if (stats.stockIngredientsCritiques > 0) {
+            <div class="alert-banner critical" data-testid="alert-critical-stock">
+              <div class="alert-icon-wrapper">
+                <span class="alert-beacon"></span>
+                <ion-icon name="alert-circle-outline"></ion-icon>
+              </div>
+              <div class="alert-body">
+                <div class="alert-header-row">
+                  <span class="alert-title">{{ 'MANAGER_DASHBOARD.ALERT_CRITICAL_STOCK_TITLE' | transloco }}</span>
+                  <span class="alert-count-pill">{{ stats.stockIngredientsCritiques }}</span>
+                </div>
+                <span class="alert-text">{{ 'MANAGER_DASHBOARD.ALERT_CRITICAL_STOCK_MSG' | transloco: { count: stats.stockIngredientsCritiques } }}</span>
+              </div>
+              <ion-button size="small" fill="outline" class="btn-alert-cta critical" routerLink="/barman" data-testid="alert-btn-view-stock">
+                <span>{{ 'MANAGER_DASHBOARD.ALERT_ACTION_STOCK' | transloco }}</span>
+                <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+              </ion-button>
             </div>
-            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_EMPLOYEES' | transloco }}</span>
-          </div>
-        </ion-button>
-
-        <ion-button routerLink="/manager/shift-presets" fill="clear" class="qa-action-tile qa-tile-presets" data-testid="manager-btn-presets">
-          <div class="qa-tile-inner">
-            <div class="qa-icon-wrapper presets">
-              <ion-icon name="settings-outline"></ion-icon>
+          }
+        </section>
+      }
+      <!-- Quick Access Actions Bar (Modern Action Tiles) -->
+      <section class="quick-actions-bar" aria-label="Actions rapides manager">
+        <div class="quick-actions-scroll">
+          <ion-button routerLink="/manager/schedule" fill="clear" class="qa-action-tile qa-tile-schedule" data-testid="manager-btn-schedule">
+            <div class="qa-tile-inner">
+              <div class="qa-icon-wrapper schedule">
+                <ion-icon name="calendar-outline"></ion-icon>
+              </div>
+              <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_SCHEDULE' | transloco }}</span>
             </div>
-            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_PRESETS' | transloco }}</span>
-          </div>
-        </ion-button>
-
-        <ion-button routerLink="/manager/timers" fill="clear" class="qa-action-tile qa-tile-timers" data-testid="manager-btn-timers">
-          <div class="qa-tile-inner">
-            <div class="qa-icon-wrapper timers">
-              <ion-icon name="timer-outline"></ion-icon>
+          </ion-button>
+          <ion-button routerLink="/manager/employees" fill="clear" class="qa-action-tile qa-tile-employees" data-testid="manager-btn-employees">
+            <div class="qa-tile-inner">
+              <div class="qa-icon-wrapper employees">
+                <ion-icon name="people-outline"></ion-icon>
+              </div>
+              <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_EMPLOYEES' | transloco }}</span>
             </div>
-            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_ORDER_TIMERS' | transloco }}</span>
-          </div>
-        </ion-button>
-
-        <ion-button routerLink="/plan-salle" fill="clear" class="qa-action-tile qa-tile-floor" data-testid="manager-btn-floor-plan">
-          <div class="qa-tile-inner">
-            <div class="qa-icon-wrapper floor">
-              <ion-icon name="map-outline"></ion-icon>
+          </ion-button>
+          <ion-button routerLink="/manager/shift-presets" fill="clear" class="qa-action-tile qa-tile-presets" data-testid="manager-btn-presets">
+            <div class="qa-tile-inner">
+              <div class="qa-icon-wrapper presets">
+                <ion-icon name="settings-outline"></ion-icon>
+              </div>
+              <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_PRESETS' | transloco }}</span>
             </div>
-            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_FLOOR_PLAN' | transloco }}</span>
-          </div>
-        </ion-button>
-
-        <ion-button routerLink="/barman" fill="clear" class="qa-action-tile qa-tile-bar" data-testid="manager-btn-bar-stock">
-          <div class="qa-tile-inner">
-            <div class="qa-icon-wrapper bar">
-              <ion-icon name="wine-outline"></ion-icon>
+          </ion-button>
+          <ion-button routerLink="/manager/timers" fill="clear" class="qa-action-tile qa-tile-timers" data-testid="manager-btn-timers">
+            <div class="qa-tile-inner">
+              <div class="qa-icon-wrapper timers">
+                <ion-icon name="timer-outline"></ion-icon>
+              </div>
+              <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_ORDER_TIMERS' | transloco }}</span>
             </div>
-            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_BAR_STOCK' | transloco }}</span>
-          </div>
-        </ion-button>
-
-        <ion-button fill="clear" class="qa-action-tile qa-tile-waste" (click)="openStockWasteModal()" (keyup.enter)="openStockWasteModal()" data-testid="manager-btn-stock-waste">
-          <div class="qa-tile-inner">
-            <div class="qa-icon-wrapper waste">
-              <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+          <ion-button routerLink="/plan-salle" fill="clear" class="qa-action-tile qa-tile-floor" data-testid="manager-btn-floor-plan">
+            <div class="qa-tile-inner">
+              <div class="qa-icon-wrapper floor">
+                <ion-icon name="map-outline"></ion-icon>
+              </div>
+              <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_FLOOR_PLAN' | transloco }}</span>
             </div>
-            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_STOCK_WASTE' | transloco }}</span>
-          </div>
-        </ion-button>
-      </div>
-    </section>
-
-    <!-- Enriched 6 KPI Stat Cards Grid -->
-    <ion-grid class="stats-grid ion-no-padding">
-      <ion-row>
-        <!-- CA du Jour -->
-        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
-          <app-stat-card
-            [title]="'MANAGER_DASHBOARD.KPI_REVENUE_TODAY' | transloco"
-            [value]="formatCurrency(stats.chiffreAffairesJour)"
-            icon="cash-outline"
-            color="success"
-            trend="+8%"
-            trendDirection="up"
-            testId="stat-card-revenue">
-          </app-stat-card>
-        </ion-col>
-
-        <!-- CA du Mois -->
-        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
-          <app-stat-card
-            [title]="'MANAGER_DASHBOARD.KPI_REVENUE_MONTH' | transloco"
-            [value]="formatCurrency(stats.chiffreAffairesMois)"
-            icon="cash-outline"
-            color="success"
-            trendDirection="neutral"
-            testId="stat-card-revenue-month">
-          </app-stat-card>
-        </ion-col>
-
-        <!-- Commandes Actives -->
-        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
-          <app-stat-card
-            [title]="'MANAGER_DASHBOARD.KPI_ACTIVE_ORDERS' | transloco"
-            [value]="activeOrdersCount"
-            icon="receipt-outline"
-            color="primary"
-            [trend]="stats.commandesTotales + ' au total'"
-            trendDirection="neutral"
-            testId="stat-card-orders">
-          </app-stat-card>
-        </ion-col>
-
-        <!-- Panier Moyen -->
-        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
-          <app-stat-card
-            [title]="'MANAGER_DASHBOARD.KPI_AVERAGE_BASKET' | transloco"
-            [value]="formatCurrency(averageTicket)"
-            icon="trending-up-outline"
-            color="secondary"
-            trendDirection="neutral"
-            testId="stat-card-basket">
-          </app-stat-card>
-        </ion-col>
-
-        <!-- Taux d'Occupation -->
-        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
-          <app-stat-card
-            [title]="'MANAGER_DASHBOARD.KPI_OCCUPANCY_RATE' | transloco"
-            [value]="occupancyRate + '%'"
-            icon="restaurant-outline"
-            color="warning"
-            [trend]="stats.tablesOccupees + ' / ' + stats.tablesTotales + ' tables'"
-            trendDirection="neutral"
-            testId="stat-card-occupancy">
-          </app-stat-card>
-        </ion-col>
-
-        <!-- Taux de Service / Livraison -->
-        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
-          <app-stat-card
-            [title]="'MANAGER_DASHBOARD.KPI_DELIVERY_RATE' | transloco"
-            [value]="deliveryRate + '%'"
-            icon="checkmark-circle-outline"
-            color="tertiary"
-            [trend]="stats.commandesLivrees + ' livrée(s)'"
-            trendDirection="up"
-            testId="stat-card-delivery-rate">
-          </app-stat-card>
-        </ion-col>
-      </ion-row>
-
-      <!-- Financial Health & Live COGS KPI Row -->
-      <ion-row class="financial-health-kpi-row">
-        <!-- COGS du Jour -->
-        <ion-col size="12" size-sm="6" size-md="4">
-          <app-stat-card
-            [title]="'ANALYTICS.MARGIN_COGS_TODAY' | transloco"
-            [value]="formatCurrency(stats.totalCogsJour || 0)"
-            icon="calculator-outline"
-            color="secondary"
-            [trend]="'ANALYTICS.MARGIN_COGS_HINT' | transloco"
-            trendDirection="neutral"
-            testId="stat-card-cogs">
-          </app-stat-card>
-        </ion-col>
-
-        <!-- Marge Brute du Jour -->
-        <ion-col size="12" size-sm="6" size-md="4">
-          <app-stat-card
-            [title]="'ANALYTICS.MARGIN_GROSS_MARGIN_TODAY' | transloco"
-            [value]="formatCurrency(stats.margeBruteJour || 0)"
-            icon="cash-outline"
-            color="success"
-            [trend]="'ANALYTICS.MARGIN_GROSS_MARGIN' | transloco"
-            trendDirection="up"
-            testId="stat-card-gross-margin">
-          </app-stat-card>
-        </ion-col>
-
-        <!-- Taux de Marge Brute -->
-        <ion-col size="12" size-sm="6" size-md="4">
-          <app-stat-card
-            [title]="'ANALYTICS.MARGIN_AVERAGE_MARGIN_RATE' | transloco"
-            [value]="(stats.tauxMargeBruteJour || 0) + '%'"
-            icon="trending-up-outline"
-            [color]="(stats.tauxMargeBruteJour || 0) >= targetMargin ? 'success' : ((stats.tauxMargeBruteJour || 0) >= warningMargin ? 'warning' : 'danger')"
-            [trend]="(stats.tauxMargeBruteJour || 0) >= targetMargin ? 'Optimal (>= ' + targetMargin + '%)' : ((stats.tauxMargeBruteJour || 0) >= warningMargin ? 'Moyen' : 'Critique')"
-            [trendDirection]="(stats.tauxMargeBruteJour || 0) >= targetMargin ? 'up' : 'down'"
-            testId="stat-card-margin-rate">
-          </app-stat-card>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
-
-    <!-- Two-Column Operations & Analytics Grid -->
-    <div class="analytics-grid">
-      <!-- Top Cocktails du Jour -->
-      <ion-card class="analytics-card" data-testid="card-top-cocktails">
-        <ion-card-header>
-          <div class="card-title-row">
-            <div class="title-with-icon">
-              <div class="analytics-icon-badge">
+          </ion-button>
+          <ion-button routerLink="/barman" fill="clear" class="qa-action-tile qa-tile-bar" data-testid="manager-btn-bar-stock">
+            <div class="qa-tile-inner">
+              <div class="qa-icon-wrapper bar">
                 <ion-icon name="wine-outline"></ion-icon>
               </div>
-              <ion-card-title>{{ 'MANAGER_DASHBOARD.TOP_COCKTAILS_TITLE' | transloco }}</ion-card-title>
+              <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_BAR_STOCK' | transloco }}</span>
             </div>
-            <span class="analytics-count-badge">{{ stats.topCocktails.length }} cocktail(s)</span>
-          </div>
-        </ion-card-header>
-        <ion-card-content>
-          <div *ngIf="stats.topCocktails && stats.topCocktails.length > 0; else emptyTopCocktails" class="top-cocktails-list">
-            <div
-              class="top-cocktail-item"
-              *ngFor="let cocktail of stats.topCocktails; let i = index; trackBy: trackByCocktailId">
-              <span class="rank-badge" [class.rank-gold]="i === 0" [class.rank-silver]="i === 1" [class.rank-bronze]="i === 2">
-                {{ getRankLabel(i) }}
-              </span>
-              <div class="cocktail-info">
-                <div class="cocktail-name-row">
-                  <span class="cocktail-name">{{ cocktail.nom }}</span>
-                  <span class="sold-badge">{{ 'MANAGER_DASHBOARD.SOLD_COUNT' | transloco: { count: cocktail.nombreCommandes } }}</span>
+          </ion-button>
+          <ion-button fill="clear" class="qa-action-tile qa-tile-waste" (click)="openStockWasteModal()" (keyup.enter)="openStockWasteModal()" data-testid="manager-btn-stock-waste">
+            <div class="qa-tile-inner">
+              <div class="qa-icon-wrapper waste">
+                <ion-icon name="trash-outline"></ion-icon>
+              </div>
+              <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_STOCK_WASTE' | transloco }}</span>
+            </div>
+          </ion-button>
+        </div>
+      </section>
+      <!-- Enriched 6 KPI Stat Cards Grid -->
+      <ion-grid class="stats-grid ion-no-padding">
+        <ion-row>
+          <!-- CA du Jour -->
+          <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
+            <app-stat-card
+              [title]="'MANAGER_DASHBOARD.KPI_REVENUE_TODAY' | transloco"
+              [value]="formatCurrency(stats.chiffreAffairesJour)"
+              icon="cash-outline"
+              color="success"
+              trend="+8%"
+              trendDirection="up"
+              testId="stat-card-revenue">
+            </app-stat-card>
+          </ion-col>
+          <!-- CA du Mois -->
+          <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
+            <app-stat-card
+              [title]="'MANAGER_DASHBOARD.KPI_REVENUE_MONTH' | transloco"
+              [value]="formatCurrency(stats.chiffreAffairesMois)"
+              icon="cash-outline"
+              color="success"
+              trendDirection="neutral"
+              testId="stat-card-revenue-month">
+            </app-stat-card>
+          </ion-col>
+          <!-- Commandes Actives -->
+          <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
+            <app-stat-card
+              [title]="'MANAGER_DASHBOARD.KPI_ACTIVE_ORDERS' | transloco"
+              [value]="activeOrdersCount"
+              icon="receipt-outline"
+              color="primary"
+              [trend]="stats.commandesTotales + ' au total'"
+              trendDirection="neutral"
+              testId="stat-card-orders">
+            </app-stat-card>
+          </ion-col>
+          <!-- Panier Moyen -->
+          <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
+            <app-stat-card
+              [title]="'MANAGER_DASHBOARD.KPI_AVERAGE_BASKET' | transloco"
+              [value]="formatCurrency(averageTicket)"
+              icon="trending-up-outline"
+              color="secondary"
+              trendDirection="neutral"
+              testId="stat-card-basket">
+            </app-stat-card>
+          </ion-col>
+          <!-- Taux d'Occupation -->
+          <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
+            <app-stat-card
+              [title]="'MANAGER_DASHBOARD.KPI_OCCUPANCY_RATE' | transloco"
+              [value]="occupancyRate + '%'"
+              icon="restaurant-outline"
+              color="warning"
+              [trend]="stats.tablesOccupees + ' / ' + stats.tablesTotales + ' tables'"
+              trendDirection="neutral"
+              testId="stat-card-occupancy">
+            </app-stat-card>
+          </ion-col>
+          <!-- Taux de Service / Livraison -->
+          <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
+            <app-stat-card
+              [title]="'MANAGER_DASHBOARD.KPI_DELIVERY_RATE' | transloco"
+              [value]="deliveryRate + '%'"
+              icon="checkmark-circle-outline"
+              color="tertiary"
+              [trend]="stats.commandesLivrees + ' livrée(s)'"
+              trendDirection="up"
+              testId="stat-card-delivery-rate">
+            </app-stat-card>
+          </ion-col>
+        </ion-row>
+        <!-- Financial Health & Live COGS KPI Row -->
+        <ion-row class="financial-health-kpi-row">
+          <!-- COGS du Jour -->
+          <ion-col size="12" size-sm="6" size-md="4">
+            <app-stat-card
+              [title]="'ANALYTICS.MARGIN_COGS_TODAY' | transloco"
+              [value]="formatCurrency(stats.totalCogsJour || 0)"
+              icon="calculator-outline"
+              color="secondary"
+              [trend]="'ANALYTICS.MARGIN_COGS_HINT' | transloco"
+              trendDirection="neutral"
+              testId="stat-card-cogs">
+            </app-stat-card>
+          </ion-col>
+          <!-- Marge Brute du Jour -->
+          <ion-col size="12" size-sm="6" size-md="4">
+            <app-stat-card
+              [title]="'ANALYTICS.MARGIN_GROSS_MARGIN_TODAY' | transloco"
+              [value]="formatCurrency(stats.margeBruteJour || 0)"
+              icon="cash-outline"
+              color="success"
+              [trend]="'ANALYTICS.MARGIN_GROSS_MARGIN' | transloco"
+              trendDirection="up"
+              testId="stat-card-gross-margin">
+            </app-stat-card>
+          </ion-col>
+          <!-- Taux de Marge Brute -->
+          <ion-col size="12" size-sm="6" size-md="4">
+            <app-stat-card
+              [title]="'ANALYTICS.MARGIN_AVERAGE_MARGIN_RATE' | transloco"
+              [value]="(stats.tauxMargeBruteJour || 0) + '%'"
+              icon="trending-up-outline"
+              [color]="(stats.tauxMargeBruteJour || 0) >= targetMargin ? 'success' : ((stats.tauxMargeBruteJour || 0) >= warningMargin ? 'warning' : 'danger')"
+              [trend]="(stats.tauxMargeBruteJour || 0) >= targetMargin ? 'Optimal (>= ' + targetMargin + '%)' : ((stats.tauxMargeBruteJour || 0) >= warningMargin ? 'Moyen' : 'Critique')"
+              [trendDirection]="(stats.tauxMargeBruteJour || 0) >= targetMargin ? 'up' : 'down'"
+              testId="stat-card-margin-rate">
+            </app-stat-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+      <!-- Two-Column Operations & Analytics Grid -->
+      <div class="analytics-grid">
+        <!-- Top Cocktails du Jour -->
+        <ion-card class="analytics-card" data-testid="card-top-cocktails">
+          <ion-card-header>
+            <div class="card-title-row">
+              <div class="title-with-icon">
+                <div class="analytics-icon-badge">
+                  <ion-icon name="wine-outline"></ion-icon>
                 </div>
-                <div class="progress-bar-track">
-                  <div class="progress-bar-fill" [style.width.%]="getBarWidth(cocktail)"></div>
+                <ion-card-title>{{ 'MANAGER_DASHBOARD.TOP_COCKTAILS_TITLE' | transloco }}</ion-card-title>
+              </div>
+              <span class="analytics-count-badge">{{ stats.topCocktails.length }} cocktail(s)</span>
+            </div>
+          </ion-card-header>
+          <ion-card-content>
+            @if (stats.topCocktails && stats.topCocktails.length > 0) {
+              <div class="top-cocktails-list">
+                @for (cocktail of stats.topCocktails; track $index; let i = $index) {
+                  <div
+                    class="top-cocktail-item"
+                    >
+                    <span class="rank-badge" [class.rank-gold]="i === 0" [class.rank-silver]="i === 1" [class.rank-bronze]="i === 2">
+                      {{ getRankLabel(i) }}
+                    </span>
+                    <div class="cocktail-info">
+                      <div class="cocktail-name-row">
+                        <span class="cocktail-name">{{ cocktail.nom }}</span>
+                        <span class="sold-badge">{{ 'MANAGER_DASHBOARD.SOLD_COUNT' | transloco: { count: cocktail.nombreCommandes } }}</span>
+                      </div>
+                      <div class="progress-bar-track">
+                        <div class="progress-bar-fill" [style.width.%]="getBarWidth(cocktail)"></div>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="empty-substate">
+                <p>{{ 'MANAGER_DASHBOARD.TOP_COCKTAILS_EMPTY' | transloco }}</p>
+              </div>
+            }
+          </ion-card-content>
+        </ion-card>
+        <!-- Workflow Distribution Card -->
+        <ion-card class="analytics-card" data-testid="card-workflow-overview">
+          <ion-card-header>
+            <div class="card-title-row">
+              <div class="title-with-icon">
+                <div class="analytics-icon-badge workflow">
+                  <ion-icon name="stats-chart-outline"></ion-icon>
                 </div>
+                <ion-card-title>{{ 'MANAGER_DASHBOARD.WORKFLOW_OVERVIEW_TITLE' | transloco }}</ion-card-title>
               </div>
             </div>
-          </div>
-          <ng-template #emptyTopCocktails>
-            <div class="empty-substate">
-              <p>{{ 'MANAGER_DASHBOARD.TOP_COCKTAILS_EMPTY' | transloco }}</p>
-            </div>
-          </ng-template>
-        </ion-card-content>
-      </ion-card>
-
-      <!-- Workflow Distribution Card -->
-      <ion-card class="analytics-card" data-testid="card-workflow-overview">
-        <ion-card-header>
-          <div class="card-title-row">
-            <div class="title-with-icon">
-              <div class="analytics-icon-badge workflow">
-                <ion-icon name="stats-chart-outline"></ion-icon>
-              </div>
-              <ion-card-title>{{ 'MANAGER_DASHBOARD.WORKFLOW_OVERVIEW_TITLE' | transloco }}</ion-card-title>
-            </div>
-          </div>
-        </ion-card-header>
-        <ion-card-content>
-          <div class="workflow-rows">
-            <!-- En Attente -->
-            <div class="workflow-row">
-              <div class="wf-header">
-                <span class="wf-status status-pending">
-                  <span class="dot"></span>
-                  {{ 'MANAGER_DASHBOARD.STATUS_PENDING' | transloco }}
-                </span>
-                <strong class="wf-count">{{ stats.commandesEnAttente }}</strong>
-              </div>
-              <div class="wf-track">
-                <div class="wf-fill pending-fill" [style.width.%]="stats.commandesTotales ? (stats.commandesEnAttente / stats.commandesTotales * 100) : 0"></div>
-              </div>
-            </div>
-
-            <!-- En Préparation -->
-            <div class="workflow-row">
-              <div class="wf-header">
-                <span class="wf-status status-prep">
-                  <span class="dot"></span>
-                  {{ 'MANAGER_DASHBOARD.STATUS_IN_PROGRESS' | transloco }}
-                </span>
-                <strong class="wf-count">{{ stats.commandesEnPreparation }}</strong>
-              </div>
-              <div class="wf-track">
-                <div class="wf-fill prep-fill" [style.width.%]="stats.commandesTotales ? (stats.commandesEnPreparation / stats.commandesTotales * 100) : 0"></div>
-              </div>
-            </div>
-
-            <!-- Prêtes -->
-            <div class="workflow-row">
-              <div class="wf-header">
-                <span class="wf-status status-ready">
-                  <span class="dot"></span>
-                  {{ 'MANAGER_DASHBOARD.STATUS_READY' | transloco }}
-                </span>
-                <strong class="wf-count">{{ stats.commandesPret }}</strong>
-              </div>
-              <div class="wf-track">
-                <div class="wf-fill ready-fill" [style.width.%]="stats.commandesTotales ? (stats.commandesPret / stats.commandesTotales * 100) : 0"></div>
-              </div>
-            </div>
-
-            <!-- Livrées / Clôturées -->
-            <div class="workflow-row">
-              <div class="wf-header">
-                <span class="wf-status status-delivered">
-                  <span class="dot"></span>
-                  {{ 'MANAGER_DASHBOARD.STATUS_DELIVERED' | transloco }}
-                </span>
-                <strong class="wf-count">{{ stats.commandesLivrees }}</strong>
-              </div>
-              <div class="wf-track">
-                <div class="wf-fill delivered-fill" [style.width.%]="stats.commandesTotales ? (stats.commandesLivrees / stats.commandesTotales * 100) : 0"></div>
-              </div>
-            </div>
-          </div>
-        </ion-card-content>
-      </ion-card>
-
-      <!-- Most Profitable Cocktails Card -->
-      <ion-card class="analytics-card" data-testid="card-profitable-cocktails">
-        <ion-card-header>
-          <div class="card-title-row">
-            <div class="title-with-icon">
-              <div class="analytics-icon-badge profitable">
-                <ion-icon name="trending-up-outline"></ion-icon>
-              </div>
-              <ion-card-title>{{ 'ANALYTICS.MARGIN_MOST_PROFITABLE' | transloco }}</ion-card-title>
-            </div>
-            <span class="analytics-count-badge" *ngIf="stats.mostProfitableCocktails">{{ stats.mostProfitableCocktails.length }} cocktail(s)</span>
-          </div>
-        </ion-card-header>
-        <ion-card-content>
-          <div *ngIf="stats.mostProfitableCocktails && stats.mostProfitableCocktails.length > 0; else emptyProfitable" class="top-cocktails-list">
-            <div
-              class="top-cocktail-item profitable-cocktail-item"
-              *ngFor="let item of stats.mostProfitableCocktails; let i = index">
-              <span class="rank-badge" [class.rank-gold]="i === 0" [class.rank-silver]="i === 1" [class.rank-bronze]="i === 2">
-                {{ getRankLabel(i) }}
-              </span>
-              <div class="cocktail-info">
-                <div class="cocktail-name-row">
-                  <span class="cocktail-name">{{ item.nom }}</span>
-                  <span class="profit-rate-badge" [class]="'badge-' + getMarginBadgeClass(item.grossMarginPercentage)" [attr.data-testid]="'profitable-rate-' + item.cocktailId">
-                    {{ item.grossMarginPercentage }}%
+          </ion-card-header>
+          <ion-card-content>
+            <div class="workflow-rows">
+              <!-- En Attente -->
+              <div class="workflow-row">
+                <div class="wf-header">
+                  <span class="wf-status status-pending">
+                    <span class="dot"></span>
+                    {{ 'MANAGER_DASHBOARD.STATUS_PENDING' | transloco }}
                   </span>
+                  <strong class="wf-count">{{ stats.commandesEnAttente }}</strong>
                 </div>
-                <div class="profit-details-row">
-                  <span class="profit-detail-item">{{ 'ANALYTICS.MARGIN_PRICE' | transloco }} {{ formatCurrency(item.prixTTC) }}</span>
-                  <span class="profit-detail-item">{{ 'ANALYTICS.MARGIN_COST' | transloco }} {{ formatCurrency(item.recipeCost) }}</span>
-                  <span class="profit-detail-item highlight">{{ 'ANALYTICS.MARGIN_MARGIN' | transloco }} {{ formatCurrency(item.grossMargin) }}</span>
+                <div class="wf-track">
+                  <div class="wf-fill pending-fill" [style.width.%]="stats.commandesTotales ? (stats.commandesEnAttente / stats.commandesTotales * 100) : 0"></div>
+                </div>
+              </div>
+              <!-- En Préparation -->
+              <div class="workflow-row">
+                <div class="wf-header">
+                  <span class="wf-status status-prep">
+                    <span class="dot"></span>
+                    {{ 'MANAGER_DASHBOARD.STATUS_IN_PROGRESS' | transloco }}
+                  </span>
+                  <strong class="wf-count">{{ stats.commandesEnPreparation }}</strong>
+                </div>
+                <div class="wf-track">
+                  <div class="wf-fill prep-fill" [style.width.%]="stats.commandesTotales ? (stats.commandesEnPreparation / stats.commandesTotales * 100) : 0"></div>
+                </div>
+              </div>
+              <!-- Prêtes -->
+              <div class="workflow-row">
+                <div class="wf-header">
+                  <span class="wf-status status-ready">
+                    <span class="dot"></span>
+                    {{ 'MANAGER_DASHBOARD.STATUS_READY' | transloco }}
+                  </span>
+                  <strong class="wf-count">{{ stats.commandesPret }}</strong>
+                </div>
+                <div class="wf-track">
+                  <div class="wf-fill ready-fill" [style.width.%]="stats.commandesTotales ? (stats.commandesPret / stats.commandesTotales * 100) : 0"></div>
+                </div>
+              </div>
+              <!-- Livrées / Clôturées -->
+              <div class="workflow-row">
+                <div class="wf-header">
+                  <span class="wf-status status-delivered">
+                    <span class="dot"></span>
+                    {{ 'MANAGER_DASHBOARD.STATUS_DELIVERED' | transloco }}
+                  </span>
+                  <strong class="wf-count">{{ stats.commandesLivrees }}</strong>
+                </div>
+                <div class="wf-track">
+                  <div class="wf-fill delivered-fill" [style.width.%]="stats.commandesTotales ? (stats.commandesLivrees / stats.commandesTotales * 100) : 0"></div>
                 </div>
               </div>
             </div>
-          </div>
-          <ng-template #emptyProfitable>
-            <div class="empty-top-cocktails">
-              <ion-icon name="trending-up-outline"></ion-icon>
-              <p>{{ 'ANALYTICS.MARGIN_EMPTY_PROFITABLE' | transloco }}</p>
+          </ion-card-content>
+        </ion-card>
+        <!-- Most Profitable Cocktails Card -->
+        <ion-card class="analytics-card" data-testid="card-profitable-cocktails">
+          <ion-card-header>
+            <div class="card-title-row">
+              <div class="title-with-icon">
+                <div class="analytics-icon-badge profitable">
+                  <ion-icon name="trending-up-outline"></ion-icon>
+                </div>
+                <ion-card-title>{{ 'ANALYTICS.MARGIN_MOST_PROFITABLE' | transloco }}</ion-card-title>
+              </div>
+              @if (stats.mostProfitableCocktails) {
+                <span class="analytics-count-badge">{{ stats.mostProfitableCocktails.length }} cocktail(s)</span>
+              }
             </div>
-          </ng-template>
+          </ion-card-header>
+          <ion-card-content>
+            @if (stats.mostProfitableCocktails && stats.mostProfitableCocktails.length > 0) {
+              <div class="top-cocktails-list">
+                @for (item of stats.mostProfitableCocktails; track item; let i = $index) {
+                  <div
+                    class="top-cocktail-item profitable-cocktail-item"
+                    >
+                    <span class="rank-badge" [class.rank-gold]="i === 0" [class.rank-silver]="i === 1" [class.rank-bronze]="i === 2">
+                      {{ getRankLabel(i) }}
+                    </span>
+                    <div class="cocktail-info">
+                      <div class="cocktail-name-row">
+                        <span class="cocktail-name">{{ item.nom }}</span>
+                        <span class="profit-rate-badge" [class]="'badge-' + getMarginBadgeClass(item.grossMarginPercentage)" [attr.data-testid]="'profitable-rate-' + item.cocktailId">
+                          {{ item.grossMarginPercentage }}%
+                        </span>
+                      </div>
+                      <div class="profit-details-row">
+                        <span class="profit-detail-item">{{ 'ANALYTICS.MARGIN_PRICE' | transloco }} {{ formatCurrency(item.prixTTC) }}</span>
+                        <span class="profit-detail-item">{{ 'ANALYTICS.MARGIN_COST' | transloco }} {{ formatCurrency(item.recipeCost) }}</span>
+                        <span class="profit-detail-item highlight">{{ 'ANALYTICS.MARGIN_MARGIN' | transloco }} {{ formatCurrency(item.grossMargin) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="empty-top-cocktails">
+                <ion-icon name="trending-up-outline"></ion-icon>
+                <p>{{ 'ANALYTICS.MARGIN_EMPTY_PROFITABLE' | transloco }}</p>
+              </div>
+            }
+          </ion-card-content>
+        </ion-card>
+      </div>
+      <!-- Stock Shrinkage & Loss Audit Card -->
+      <ion-card class="analytics-card waste-audit-card" data-testid="waste-audit-card">
+        <ion-card-header>
+          <div class="card-title-row">
+            <div class="title-with-icon">
+              <div class="analytics-icon-badge waste-gradient">
+                <ion-icon name="trash-outline"></ion-icon>
+              </div>
+              <div>
+                <div class="header-title-flex">
+                  <ion-card-title>{{ 'STOCK.WASTE_AUDIT_TITLE' | transloco }}</ion-card-title>
+                  @if (wasteSummary?.totalMovements; as totalMovementsCount) {
+                    <span class="audit-counter-pill">
+                      {{ totalMovementsCount }} {{ 'STOCK.WASTE_AUDIT_TOTAL_COUNT' | transloco | lowercase }}
+                    </span>
+                  }
+                </div>
+                <p class="card-header-subtitle">{{ 'STOCK.WASTE_AUDIT_SUBTITLE' | transloco }}</p>
+              </div>
+            </div>
+            <ion-button
+              size="default"
+              fill="solid"
+              class="btn-declare-waste-hero"
+              (click)="openStockWasteModal()"
+              (keyup.enter)="openStockWasteModal()"
+              data-testid="manager-btn-declare-waste">
+              <ion-icon slot="start" name="alert-circle-outline"></ion-icon>
+              <span>{{ 'STOCK.WASTE_RECORD_BTN' | transloco }}</span>
+            </ion-button>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <!-- Modern KPI Stat Cards Grid -->
+          <div class="waste-kpi-grid">
+            <div class="waste-kpi-card loss-kpi">
+              <div class="kpi-icon-bubble danger-bubble">
+                <ion-icon name="trending-down-outline"></ion-icon>
+              </div>
+              <div class="kpi-body">
+                <span class="kpi-label">{{ 'STOCK.WASTE_AUDIT_TOTAL_LOSS' | transloco }}</span>
+                <strong class="kpi-value danger" data-testid="waste-stat-total-loss">
+                  {{ (wasteSummary?.totalLossValue || 0) | appCurrency }}
+                </strong>
+                <span class="kpi-subtext">Coût d'achat cumulé HT</span>
+              </div>
+            </div>
+            <div class="waste-kpi-card count-kpi">
+              <div class="kpi-icon-bubble primary-bubble">
+                <ion-icon name="receipt-outline"></ion-icon>
+              </div>
+              <div class="kpi-body">
+                <span class="kpi-label">{{ 'STOCK.WASTE_AUDIT_TOTAL_COUNT' | transloco }}</span>
+                <strong class="kpi-value">{{ wasteSummary?.totalMovements || 0 }}</strong>
+                <span class="kpi-subtext">Déclarations enregistrées</span>
+              </div>
+            </div>
+            <div class="waste-kpi-card qty-kpi">
+              <div class="kpi-icon-bubble warning-bubble">
+                <ion-icon name="cube-outline"></ion-icon>
+              </div>
+              <div class="kpi-body">
+                <span class="kpi-label">{{ 'STOCK.WASTE_AUDIT_TOTAL_QTY' | transloco }}</span>
+                <strong class="kpi-value" data-testid="waste-stat-total-qty">
+                  {{ wasteSummary?.totalQuantityLost || 0 }}
+                </strong>
+                <span class="kpi-subtext">Unités / volumes sortis</span>
+              </div>
+            </div>
+          </div>
+          <!-- Breakdown by Reason & Recent Movements -->
+          <div class="waste-audit-grid">
+            <!-- Left column: Breakdown by reason -->
+            <div class="waste-breakdown-col">
+              <div class="sub-section-header">
+                <h4 class="sub-section-title">{{ 'STOCK.WASTE_AUDIT_BREAKDOWN' | transloco }}</h4>
+                <span class="sub-section-tag">Par motif</span>
+              </div>
+              <div class="reason-breakdown-list">
+                @for (r of wasteReasons; track r) {
+                  <div
+                    class="reason-breakdown-item"
+                    [class.empty-reason]="getReasonCount(r) === 0">
+                    <div class="reason-header">
+                      <div class="reason-title-group">
+                        <div class="reason-icon-indicator" [class]="'indicator-' + r.toLowerCase()">
+                          <ion-icon [name]="getWasteReasonIcon(r)"></ion-icon>
+                        </div>
+                        <span class="reason-name">{{ getWasteReasonLabelKey(r) | transloco }}</span>
+                      </div>
+                      <div class="reason-metrics-group">
+                        <span class="reason-amount" [class.danger-text]="getReasonLossValue(r) > 0">
+                          {{ getReasonLossValue(r) | appCurrency }}
+                        </span>
+                        @if (getReasonCount(r) > 0) {
+                          <span class="reason-count-tag">
+                            {{ getReasonCount(r) }} &times;
+                          </span>
+                        }
+                        @if (getWasteReasonPercent(r) > 0) {
+                          <span class="reason-percent-pill">
+                            {{ getWasteReasonPercent(r) }}%
+                          </span>
+                        }
+                      </div>
+                    </div>
+                    <div class="progress-bar-track">
+                      <div
+                        class="progress-bar-fill"
+                        [class]="'fill-' + r.toLowerCase()"
+                        [style.width.%]="getWasteReasonPercent(r)">
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+            <!-- Right column: Recent declarations -->
+            <div class="waste-recent-col">
+              <div class="sub-section-header">
+                <h4 class="sub-section-title">{{ 'STOCK.WASTE_AUDIT_RECENT' | transloco }}</h4>
+                @if (recentWasteMovements.length > 0) {
+                  <span class="sub-section-tag">
+                    {{ recentWasteMovements.length }} récents
+                  </span>
+                }
+              </div>
+              @if (recentWasteMovements.length > 0) {
+                <div class="recent-movements-list">
+                  @for (m of recentWasteMovements; track m) {
+                    <div
+                      class="recent-movement-row"
+                      [attr.data-testid]="'waste-movement-' + m.id">
+                      <div class="movement-top-bar">
+                        <div class="movement-ing-group">
+                          <div class="movement-ing-icon">
+                            <ion-icon name="wine-outline"></ion-icon>
+                          </div>
+                          <span class="movement-ing-name">{{ m.ingredientNom }}</span>
+                        </div>
+                        <div class="movement-reason-badge" [class]="'badge-' + m.reason.toLowerCase()">
+                          <ion-icon [name]="getWasteReasonIcon(m.reason)"></ion-icon>
+                          <span>{{ getWasteReasonLabelKey(m.reason) | transloco }}</span>
+                        </div>
+                      </div>
+                      <div class="movement-meta-chips">
+                        <span class="meta-chip qty-chip">
+                          <ion-icon name="scale-outline"></ion-icon>
+                          {{ m.quantity }} {{ m.unit }}
+                        </span>
+                        <span class="meta-chip cost-chip danger">
+                          -{{ (m.cost || 0) | appCurrency }}
+                        </span>
+                        @if (m.reportedByUsername) {
+                          <span class="meta-chip staff-chip">
+                            <ion-icon name="person-circle-outline"></ion-icon>
+                            {{ m.reportedByUsername }}
+                          </span>
+                        }
+                        @if (m.recordedAt) {
+                          <span class="meta-chip date-chip">
+                            <ion-icon name="time-outline"></ion-icon>
+                            {{ m.recordedAt | date:'dd/MM HH:mm' }}
+                          </span>
+                        }
+                      </div>
+                      @if (m.notes) {
+                        <div class="movement-notes-quote">
+                          <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+                          <p>{{ m.notes }}</p>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="empty-waste-card">
+                  <div class="empty-icon-bubble">
+                    <ion-icon name="checkmark-circle-outline"></ion-icon>
+                  </div>
+                  <h5 class="empty-title">Aucune perte enregistrée</h5>
+                  <p class="empty-subtitle">{{ 'STOCK.WASTE_AUDIT_EMPTY' | transloco }}</p>
+                </div>
+              }
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+      <!-- Ongoing Orders — Kanban Section -->
+      <ion-card class="kanban-section-card" data-testid="manager-kanban-section">
+        <ion-card-header>
+          <div class="card-title-row">
+            <div class="title-with-icon">
+              <div class="analytics-icon-badge kanban">
+                <ion-icon name="receipt-outline"></ion-icon>
+              </div>
+              <ion-card-title>{{ 'MANAGER_DASHBOARD.ONGOING_ORDERS_TITLE' | transloco }}</ion-card-title>
+            </div>
+            <div class="header-right-actions">
+              <ion-button
+                size="small"
+                [fill]="showDelivered ? 'solid' : 'outline'"
+                class="btn-toggle-delivered"
+                [class.active]="showDelivered"
+                (click)="toggleShowDelivered()"
+                (keyup.enter)="toggleShowDelivered()"
+                data-testid="btn-toggle-delivered">
+                <ion-icon slot="start" [name]="showDelivered ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+                {{ (showDelivered ? 'MANAGER_DASHBOARD.HIDE_DELIVERED' : 'MANAGER_DASHBOARD.SHOW_DELIVERED') | transloco }}
+              </ion-button>
+              <span class="kanban-active-count-pill">{{ ongoingOrders.length }} active(s)</span>
+            </div>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <app-kanban-board [orders]="ongoingOrders" [showDelivered]="showDelivered"></app-kanban-board>
         </ion-card-content>
       </ion-card>
     </div>
-
-    <!-- Stock Shrinkage & Loss Audit Card -->
-    <ion-card class="analytics-card waste-audit-card" data-testid="waste-audit-card">
-      <ion-card-header>
-        <div class="card-title-row">
-          <div class="title-with-icon">
-            <div class="analytics-icon-badge waste">
-              <ion-icon name="trash-outline"></ion-icon>
-            </div>
-            <div>
-              <ion-card-title>{{ 'STOCK.WASTE_AUDIT_TITLE' | transloco }}</ion-card-title>
-              <p class="card-header-subtitle">{{ 'STOCK.WASTE_AUDIT_SUBTITLE' | transloco }}</p>
-            </div>
-          </div>
-          <ion-button
-            size="small"
-            fill="outline"
-            color="warning"
-            class="btn-declare-waste-header"
-            (click)="openStockWasteModal()"
-            (keyup.enter)="openStockWasteModal()"
-            data-testid="manager-btn-declare-waste">
-            <ion-icon slot="start" name="alert-circle-outline"></ion-icon>
-            {{ 'STOCK.WASTE_RECORD_BTN' | transloco }}
-          </ion-button>
-        </div>
-      </ion-card-header>
-      <ion-card-content>
-        <!-- Metrics summary strip -->
-        <div class="waste-metrics-strip">
-          <div class="waste-metric-box loss-box">
-            <span class="metric-label">{{ 'STOCK.WASTE_AUDIT_TOTAL_LOSS' | transloco }}</span>
-            <strong class="metric-value danger" data-testid="waste-stat-total-loss">{{ (wasteSummary?.totalLossValue || 0) | appCurrency }}</strong>
-          </div>
-          <div class="waste-metric-box">
-            <span class="metric-label">{{ 'STOCK.WASTE_AUDIT_TOTAL_COUNT' | transloco }}</span>
-            <strong class="metric-value">{{ wasteSummary?.totalMovements || 0 }}</strong>
-          </div>
-          <div class="waste-metric-box">
-            <span class="metric-label">{{ 'STOCK.WASTE_AUDIT_TOTAL_QTY' | transloco }}</span>
-            <strong class="metric-value" data-testid="waste-stat-total-qty">{{ wasteSummary?.totalQuantityLost || 0 }}</strong>
-          </div>
-        </div>
-
-        <!-- Breakdown by Reason & Recent Movements -->
-        <div class="waste-audit-grid">
-          <!-- Left column: Breakdown by reason -->
-          <div class="waste-breakdown-col">
-            <h4 class="sub-section-title">{{ 'STOCK.WASTE_AUDIT_BREAKDOWN' | transloco }}</h4>
-            <div class="reason-breakdown-list">
-              <div class="reason-breakdown-item" *ngFor="let r of wasteReasons">
-                <div class="reason-header">
-                  <span class="reason-title">
-                    <ion-badge [color]="getWasteReasonBadgeColor(r)" class="reason-badge">
-                      {{ getWasteReasonLabelKey(r) | transloco }}
-                    </ion-badge>
-                  </span>
-                  <span class="reason-amount">
-                    {{ getReasonLossValue(r) | appCurrency }}
-                    <small>({{ getReasonCount(r) }})</small>
-                  </span>
-                </div>
-                <div class="progress-bar-track">
-                  <div class="progress-bar-fill" [style.width.%]="getWasteReasonPercent(r)"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right column: Recent declarations -->
-          <div class="waste-recent-col">
-            <h4 class="sub-section-title">{{ 'STOCK.WASTE_AUDIT_RECENT' | transloco }}</h4>
-            <div *ngIf="recentWasteMovements.length > 0; else emptyWaste" class="recent-movements-list">
-              <div class="recent-movement-row" *ngFor="let m of recentWasteMovements" [attr.data-testid]="'waste-movement-' + m.id">
-                <div class="movement-main">
-                  <span class="movement-ing-name">{{ m.ingredientNom }}</span>
-                  <ion-badge [color]="getWasteReasonBadgeColor(m.reason)" class="movement-badge">
-                    {{ getWasteReasonLabelKey(m.reason) | transloco }}
-                  </ion-badge>
-                </div>
-                <div class="movement-meta">
-                  <span class="movement-qty">{{ m.quantity }} {{ m.unit }}</span>
-                  <span class="movement-cost danger">-{{ (m.cost || 0) | appCurrency }}</span>
-                  <span class="movement-staff" *ngIf="m.reportedByUsername">({{ m.reportedByUsername }})</span>
-                </div>
-                <p class="movement-notes" *ngIf="m.notes">{{ m.notes }}</p>
-              </div>
-            </div>
-            <ng-template #emptyWaste>
-              <div class="empty-substate">
-                <p>{{ 'STOCK.WASTE_AUDIT_EMPTY' | transloco }}</p>
-              </div>
-            </ng-template>
-          </div>
-        </div>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Ongoing Orders — Kanban Section -->
-    <ion-card class="kanban-section-card" data-testid="manager-kanban-section">
-      <ion-card-header>
-        <div class="card-title-row">
-          <div class="title-with-icon">
-            <div class="analytics-icon-badge kanban">
-              <ion-icon name="receipt-outline"></ion-icon>
-            </div>
-            <ion-card-title>{{ 'MANAGER_DASHBOARD.ONGOING_ORDERS_TITLE' | transloco }}</ion-card-title>
-          </div>
-          <div class="header-right-actions">
-            <ion-button
-              size="small"
-              [fill]="showDelivered ? 'solid' : 'outline'"
-              class="btn-toggle-delivered"
-              [class.active]="showDelivered"
-              (click)="toggleShowDelivered()"
-              (keyup.enter)="toggleShowDelivered()"
-              data-testid="btn-toggle-delivered">
-              <ion-icon slot="start" [name]="showDelivered ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
-              {{ (showDelivered ? 'MANAGER_DASHBOARD.HIDE_DELIVERED' : 'MANAGER_DASHBOARD.SHOW_DELIVERED') | transloco }}
-            </ion-button>
-            <span class="kanban-active-count-pill">{{ ongoingOrders.length }} active(s)</span>
-          </div>
-        </div>
-      </ion-card-header>
-      <ion-card-content>
-        <app-kanban-board [orders]="ongoingOrders" [showDelivered]="showDelivered"></app-kanban-board>
-      </ion-card-content>
-    </ion-card>
-  </div>
-</ion-content>
+  </ion-content>
+}
 
 <!-- État chargement -->
-<ion-content *ngIf="loading" class="manager-content">
-  <div class="loading-state-wrapper">
-    <ion-spinner name="crescent" color="primary"></ion-spinner>
-    <p>{{ 'MANAGER_DASHBOARD.LOADING_STATS' | transloco }}</p>
-  </div>
-</ion-content>
+@if (loading) {
+  <ion-content class="manager-content">
+    <div class="loading-state-wrapper">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>{{ 'MANAGER_DASHBOARD.LOADING_STATS' | transloco }}</p>
+    </div>
+  </ion-content>
+}
 
 <!-- État erreur -->
-<ion-content *ngIf="!stats && !loading" class="manager-content">
-  <div class="error-state-wrapper">
-    <app-empty-state
-      [title]="'MANAGER_DASHBOARD.ERROR_STATS' | transloco"
-      icon="warning-outline">
-    </app-empty-state>
-    <ion-button class="btn-retry-modern" fill="solid" (click)="chargerStats()" (keyup.enter)="chargerStats()" data-testid="manager-btn-retry">
-      <ion-icon slot="start" name="refresh-outline"></ion-icon>
-      {{ 'MANAGER_DASHBOARD.RETRY' | transloco }}
-    </ion-button>
-  </div>
-</ion-content>
+@if (!stats && !loading) {
+  <ion-content class="manager-content">
+    <div class="error-state-wrapper">
+      <app-empty-state
+        [title]="'MANAGER_DASHBOARD.ERROR_STATS' | transloco"
+        icon="warning-outline">
+      </app-empty-state>
+      <ion-button class="btn-retry-modern" fill="solid" (click)="chargerStats()" (keyup.enter)="chargerStats()" data-testid="manager-btn-retry">
+        <ion-icon slot="start" name="refresh-outline"></ion-icon>
+        {{ 'MANAGER_DASHBOARD.RETRY' | transloco }}
+      </ion-button>
+    </div>
+  </ion-content>
+}
 

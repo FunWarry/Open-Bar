@@ -1,6 +1,6 @@
 import { Component, Input, forwardRef } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { BaseToggleControl } from '../base-control-value-accessor';
 
 /**
@@ -11,7 +11,7 @@ import { BaseToggleControl } from '../base-control-value-accessor';
 @Component({
   selector: 'app-checkbox-field',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './checkbox-field.component.html',
   styleUrls: ['./checkbox-field.component.css'],
   providers: [

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader,
@@ -60,7 +60,6 @@ import { SearchableSelectComponent, SearchableOption } from '../../../core/compo
   styleUrls: ['./employee-shift-modal.component.css'],
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslocoModule,
     SearchableSelectComponent,
@@ -78,7 +77,7 @@ import { SearchableSelectComponent, SearchableOption } from '../../../core/compo
     IonSpinner,
     IonInput,
     IonTextarea
-  ]
+]
 })
 export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
   /** The employee whose shifts are being managed. */
@@ -96,6 +95,21 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
    * of showing the shift list first.
    */
   @Input() openInCreateMode = false;
+
+  /**
+   * When true, the modal will open directly in shift edit mode for a specific shift.
+   */
+  @Input() openInEditMode = false;
+
+  /**
+   * Optional shift object to edit directly without waiting for network.
+   */
+  @Input() initialShift: EmployeeShift | null = null;
+
+  /**
+   * Optional shift ID to edit directly.
+   */
+  @Input() initialShiftId: number | null = null;
 
   private readonly modalCtrl = inject(ModalController);
   private readonly alertCtrl = inject(AlertController);
@@ -243,8 +257,16 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
     this.loadPresets();
     this.loadShifts();
 
-    // If opened from the schedule grid with a pre-selected date, jump straight to the creation form (managers only)
-    if (this.openInCreateMode && this.initialDate && this.canCreateShift) {
+    // If opened directly in edit mode with a shift provided
+    if (this.openInEditMode) {
+      if (this.initialShift) {
+        this.openEditShiftForm(this.initialShift);
+      } else if (this.initialShiftId) {
+        this.editingShiftId = this.initialShiftId;
+        this.showForm = true;
+      }
+    } else if (this.openInCreateMode && this.initialDate && this.canCreateShift) {
+      // If opened from the schedule grid with a pre-selected date, jump straight to the creation form (managers only)
       this.formDate = this.initialDate;
       this.showForm = true;
       this.editingShiftId = null;
@@ -314,6 +336,12 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
       next: (allShifts) => {
         this.shifts = allShifts.filter((s) => s.userId === this.employee.id);
         this.loading = false;
+        if (this.openInEditMode && this.editingShiftId && !this.initialShift) {
+          const found = this.shifts.find((s) => s.id === this.editingShiftId);
+          if (found) {
+            this.openEditShiftForm(found);
+          }
+        }
       },
       error: () => {
         this.loading = false;
@@ -435,6 +463,10 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
   }
 
   closeForm(): void {
+    if (this.openInEditMode || this.openInCreateMode) {
+      this.dismiss();
+      return;
+    }
     this.showForm = false;
     this.editingShiftId = null;
   }
@@ -481,6 +513,10 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
       this.shiftService.updateShift(this.editingShiftId, payload).subscribe({
         next: () => {
           this.saving = false;
+          if (this.openInEditMode || this.openInCreateMode) {
+            this.dismiss();
+            return;
+          }
           this.closeForm();
           this.loadShifts();
         },
@@ -492,6 +528,10 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
       this.shiftService.createShift(payload).subscribe({
         next: () => {
           this.saving = false;
+          if (this.openInEditMode || this.openInCreateMode) {
+            this.dismiss();
+            return;
+          }
           this.closeForm();
           this.loadShifts();
         },
@@ -535,12 +575,17 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
     if (data?.confirmed) {
       this.shiftService.deleteShift(shift.id).subscribe({
         next: () => {
-          this.loadShifts();
           this.toastCtrl.create({
             message: this.transloco.translate('SHIFTS.DELETE_SUCCESS'),
             duration: 2000,
             color: 'success'
           }).then(t => t.present());
+          if (this.openInEditMode || this.openInCreateMode) {
+            this.dismiss();
+            return;
+          }
+          this.closeForm();
+          this.loadShifts();
         },
         error: () => {
           this.toastCtrl.create({
@@ -550,6 +595,17 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
           }).then(t => t.present());
         }
       });
+    }
+  }
+
+  /**
+   * Deletes the shift currently open in the edit form after confirmation.
+   */
+  async deleteCurrentEditingShift(): Promise<void> {
+    if (!this.editingShiftId) return;
+    const shift = this.shifts.find((s) => s.id === this.editingShiftId) || this.initialShift;
+    if (shift) {
+      await this.confirmDeleteShift(shift);
     }
   }
 

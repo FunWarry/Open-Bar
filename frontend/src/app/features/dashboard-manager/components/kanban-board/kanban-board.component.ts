@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { IonBadge } from '@ionic/angular/standalone';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { KanbanColumn, OngoingOrder } from '../../models/ongoing-order.model';
@@ -12,7 +12,7 @@ import { MiniCommandeCardComponent } from '../mini-commande-card/mini-commande-c
 @Component({
   selector: 'app-kanban-board',
   standalone: true,
-  imports: [CommonModule, IonBadge, TranslocoPipe, MiniCommandeCardComponent],
+  imports: [IonBadge, TranslocoPipe, MiniCommandeCardComponent],
   templateUrl: './kanban-board.component.html',
   styleUrls: ['./kanban-board.component.scss'],
 })

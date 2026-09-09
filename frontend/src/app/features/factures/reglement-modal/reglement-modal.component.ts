@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonButtons, IonButton, IonIcon,
@@ -39,7 +39,6 @@ export interface ReglementModalResult {
   selector: 'app-reglement-modal',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     AppCurrencyPipe,
     TranslocoModule,
@@ -50,7 +49,7 @@ export interface ReglementModalResult {
     IonIcon,
     IonContent,
     IonFooter
-  ],
+],
   templateUrl: './reglement-modal.component.html',
   styleUrls: ['./reglement-modal.component.scss']
 })

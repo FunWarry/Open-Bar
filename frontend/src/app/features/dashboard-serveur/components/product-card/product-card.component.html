@@ -15,42 +15,57 @@
     </div>
 
     <!-- Badge Indisponible / Rupture (Visible pour tous en cas de rupture) -->
-    <span *ngIf="isUnavailable" class="badge-indisponible" data-testid="badge-indisponible">
-      Indisponible
-    </span>
+    @if (isUnavailable) {
+      <span class="badge-indisponible" data-testid="badge-indisponible">
+        {{ 'COCKTAILS.UNAVAILABLE' | transloco }}
+      </span>
+    }
 
     <!-- Badge Stock Faible (Visible uniquement pour Barman / Manager) -->
-    <app-stock-severity-badge
-      *ngIf="!isUnavailable && isStockLow"
-      severity="FAIBLE"
-      data-testid="badge-stock-faible">
-    </app-stock-severity-badge>
+    @if (!isUnavailable && isStockLow) {
+      <app-stock-severity-badge
+        severity="FAIBLE"
+        data-testid="badge-stock-faible">
+      </app-stock-severity-badge>
+    }
   </div>
 
   <div class="product-body">
     <h4 class="product-title">{{ product.nom }}</h4>
-    <p class="product-description" *ngIf="product.description">{{ product.description }}</p>
+    @if (product.description) {
+      <p class="product-description">{{ product.description }}</p>
+    }
 
     <!-- Badges d'allergènes détectés sur la boisson -->
-    <div *ngIf="detectedAllergens.length > 0" class="allergens-badges-row">
-      <span *ngFor="let alg of detectedAllergens" class="card-allergen-badge" [title]="'Contient : ' + alg.label">
-        <span class="alg-symbol">{{ alg.symbol }}</span> {{ alg.label }}
-      </span>
-    </div>
+    @if (detectedAllergens.length > 0) {
+      <div class="allergens-badges-row">
+        @for (alg of detectedAllergens; track alg.key) {
+          <span class="card-allergen-badge" [title]="('COCKTAILS.ALLERGENS.EXCLUDE_LABEL' | transloco) + ' ' + (alg.labelKey | transloco)">
+            <span class="alg-symbol">{{ alg.symbol }}</span> {{ alg.labelKey | transloco }}
+          </span>
+        }
+      </div>
+    }
 
     <div class="product-footer-row">
       <div class="product-price-box">
-        <span *ngIf="product.isHappyHour && product.originalPrice" class="original-price-struck" data-testid="product-original-price">
-          {{ product.originalPrice | appCurrency }}
-        </span>
+        @if (product.isHappyHour && product.originalPrice) {
+          <span class="original-price-struck" data-testid="product-original-price">
+            {{ product.originalPrice | appCurrency }}
+          </span>
+        }
         <span class="product-price" [class.discounted]="product.isHappyHour" data-testid="product-price">
           {{ product.prix | appCurrency }}
         </span>
-        <span *ngIf="product.isHappyHour" class="hh-pill" data-testid="product-hh-pill">HH</span>
+        @if (product.isHappyHour) {
+          <span class="hh-pill" data-testid="product-hh-pill">HH</span>
+        }
       </div>
-      <span *ngIf="product.variantes && product.variantes.length > 0" class="variants-badge">
-        {{ product.variantes.length }} formats
-      </span>
+      @if (product.variantes && product.variantes.length > 0) {
+        <span class="variants-badge">
+          {{ 'SERVEUR.FORMATS_COUNT' | transloco: { count: product.variantes.length } }}
+        </span>
+      }
     </div>
   </div>
 </button>

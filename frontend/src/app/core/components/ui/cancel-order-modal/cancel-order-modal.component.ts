@@ -1,5 +1,5 @@
 import { Component, Input, inject, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import {
   IonIcon,
@@ -42,12 +42,11 @@ export interface CancelOrderModalResult {
   styleUrl: './cancel-order-modal.component.scss',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslocoPipe,
     AppCurrencyPipe,
     IonIcon
-  ]
+]
 })
 export class CancelOrderModalComponent {
   private readonly modalCtrl = inject(ModalController);

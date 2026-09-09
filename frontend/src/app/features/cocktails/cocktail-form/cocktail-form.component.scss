@@ -934,6 +934,31 @@
         font-size: 0.875rem;
         color: var(--text-secondary);
       }
+
+      .preview-flavor-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-top: 0.5rem;
+
+        .preview-flavor-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          padding: 0.2rem 0.55rem;
+          border-radius: var(--radius-pill, 999px);
+          background: var(--background-surface-2);
+          border: 1px solid var(--border-medium);
+          color: var(--text-secondary);
+          font-size: 0.725rem;
+          font-weight: 600;
+
+          ion-icon {
+            font-size: 0.8rem;
+            color: var(--primary);
+          }
+        }
+      }
     }
   }
 
@@ -1759,6 +1784,12 @@
     gap: 0.5rem;
     margin-bottom: 0.75rem;
 
+    .header-title-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
     ion-icon {
       font-size: 1.25rem;
       color: var(--primary);
@@ -1770,51 +1801,170 @@
       font-weight: 700;
       color: var(--text-primary);
     }
+
+    .selected-count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: var(--radius-pill, 999px);
+      background: var(--primary);
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
   }
 }
 
-.dietary-controls-grid {
+.auto-calc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: rgba(var(--primary-rgb, 108, 127, 232), 0.12);
+  border: 1px solid rgba(var(--primary-rgb, 108, 127, 232), 0.25);
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-pill, 999px);
+
+  ion-icon {
+    font-size: 0.85rem;
+  }
+}
+
+.auto-metrics-cards-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem;
 
-  @media (min-width: 768px) {
-    grid-template-columns: 240px 1fr;
-    align-items: center;
+  @media (min-width: 640px) {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
-.dietary-checkboxes-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.dietary-check-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1rem;
+.auto-metric-card {
   background: var(--background-surface-2);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md, 10px);
-  color: var(--text-primary);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  user-select: none;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    border-color: var(--primary);
+    border-color: var(--primary-light);
   }
 
-  input[type="checkbox"] {
-    accent-color: var(--primary);
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
+  .metric-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+
+    .metric-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+  }
+
+  .metric-value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+
+    .metric-value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.1;
+    }
+
+    .metric-unit {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+  }
+
+  .metric-subtext {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.3;
+  }
+
+  .dietary-badges-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+
+  .detected-allergens-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed var(--border-medium);
+
+    .allergens-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .allergen-tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.15rem 0.45rem;
+      border-radius: var(--radius-pill, 999px);
+      background: rgba(var(--semantic-warning-rgb, 245, 158, 11), 0.15);
+      color: var(--semantic-warning);
+      border: 1px solid rgba(var(--semantic-warning-rgb, 245, 158, 11), 0.3);
+    }
+  }
+}
+
+.dietary-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-pill, 999px);
+  user-select: none;
+
+  &.mocktail {
+    background: rgba(var(--semantic-info-rgb, 43, 168, 232), 0.15);
+    color: var(--semantic-info);
+    border: 1px solid rgba(var(--semantic-info-rgb, 43, 168, 232), 0.3);
+  }
+
+  &.alcoholic {
+    background: rgba(var(--primary-rgb, 108, 127, 232), 0.15);
+    color: var(--primary-light);
+    border: 1px solid rgba(var(--primary-rgb, 108, 127, 232), 0.3);
+  }
+
+  &.success {
+    background: rgba(var(--semantic-success-rgb, 47, 191, 107), 0.15);
+    color: var(--semantic-success);
+    border: 1px solid rgba(var(--semantic-success-rgb, 47, 191, 107), 0.3);
+  }
+
+  &.warning {
+    background: rgba(var(--semantic-warning-rgb, 245, 158, 11), 0.15);
+    color: var(--semantic-warning);
+    border: 1px solid rgba(var(--semantic-warning-rgb, 245, 158, 11), 0.3);
   }
 }
 

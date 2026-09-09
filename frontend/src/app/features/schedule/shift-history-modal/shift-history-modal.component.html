@@ -16,80 +16,98 @@
 
 <ion-content class="modal-content">
   <div class="shift-history-container">
-    <div class="employee-header-bar" *ngIf="employeeName">
-      <span class="emp-name">👤 {{ employeeName }}</span>
-      <span class="shift-id-tag">ID #{{ shiftId }}</span>
-    </div>
+    @if (employeeName) {
+      <div class="employee-header-bar">
+        <span class="emp-name">👤 {{ employeeName }}</span>
+        <span class="shift-id-tag">ID #{{ shiftId }}</span>
+      </div>
+    }
 
     <!-- Loading State -->
-    <div class="loading-container" *ngIf="loading">
-      <ion-spinner name="crescent"></ion-spinner>
-      <span>{{ 'COMMON.LOADING' | transloco }}</span>
-    </div>
+    @if (loading) {
+      <div class="loading-container">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>{{ 'COMMON.LOADING' | transloco }}</span>
+      </div>
+    }
 
     <!-- Empty State -->
-    <div class="empty-state" *ngIf="!loading && logs.length === 0" data-testid="shift-history-empty-state">
-      <ion-icon name="information-circle-outline" class="empty-icon"></ion-icon>
-      <h3>{{ 'SHIFTS.AUDIT.NO_LOGS_FOUND' | transloco }}</h3>
-    </div>
+    @if (!loading && logs.length === 0) {
+      <div class="empty-state" data-testid="shift-history-empty-state">
+        <ion-icon name="information-circle-outline" class="empty-icon"></ion-icon>
+        <h3>{{ 'SHIFTS.AUDIT.NO_LOGS_FOUND' | transloco }}</h3>
+      </div>
+    }
 
     <!-- History List -->
-    <div class="history-list" *ngIf="!loading && logs.length > 0">
-      <div
-        class="history-card"
-        *ngFor="let item of logs"
-        [attr.data-testid]="'shift-history-item-' + item.id">
-        <div class="card-header">
-          <ion-badge [color]="getActionBadgeColor(item.action)" class="action-badge">
-            <ion-icon [name]="getActionIcon(item.action)" class="badge-icon"></ion-icon>
-            {{ ('SHIFTS.AUDIT.ACTION_' + item.action) | transloco }}
-          </ion-badge>
-          <span class="timestamp">⏱️ {{ item.changedAt | date:'dd/MM/yyyy HH:mm:ss' }}</span>
-          <span class="author">👤 {{ item.changedBy }}</span>
-        </div>
-
-        <div class="card-snapshots">
-          <div class="snapshot-box prev-box" *ngIf="item.previousSnapshot && parseSnapshot(item.previousSnapshot) as prev">
-            <span class="snapshot-tag">{{ 'SHIFTS.AUDIT.BEFORE' | transloco }}</span>
-            <div class="snapshot-row">
-              <span class="label">{{ 'SHIFTS.AUDIT.HOURS' | transloco }}:</span>
-              <span>{{ prev.heureDebut }} - {{ prev.heureFin }}</span>
+    @if (!loading && logs.length > 0) {
+      <div class="history-list">
+        @for (item of logs; track item) {
+          <div
+            class="history-card"
+            [attr.data-testid]="'shift-history-item-' + item.id">
+            <div class="card-header">
+              <ion-badge [color]="getActionBadgeColor(item.action)" class="action-badge">
+                <ion-icon [name]="getActionIcon(item.action)" class="badge-icon"></ion-icon>
+                {{ ('SHIFTS.AUDIT.ACTION_' + item.action) | transloco }}
+              </ion-badge>
+              <span class="timestamp">⏱️ {{ item.changedAt | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+              <span class="author">👤 {{ item.changedBy }}</span>
             </div>
-            <div class="snapshot-row">
-              <span class="label">{{ 'SHIFTS.AUDIT.TYPE' | transloco }}:</span>
-              <span>{{ prev.typeShift }}</span>
-            </div>
-            <div class="snapshot-row" *ngIf="prev.heureDebutReelle">
-              <span class="label">{{ 'SHIFTS.AUDIT.REAL_HOURS' | transloco }}:</span>
-              <span>{{ prev.heureDebutReelle }} - {{ prev.heureFinReelle }}</span>
+            <div class="card-snapshots">
+              @if (item.previousSnapshot && parseSnapshot(item.previousSnapshot); as prev) {
+                <div class="snapshot-box prev-box">
+                  <span class="snapshot-tag">{{ 'SHIFTS.AUDIT.BEFORE' | transloco }}</span>
+                  <div class="snapshot-row">
+                    <span class="label">{{ 'SHIFTS.AUDIT.HOURS' | transloco }}:</span>
+                    <span>{{ prev.heureDebut }} - {{ prev.heureFin }}</span>
+                  </div>
+                  <div class="snapshot-row">
+                    <span class="label">{{ 'SHIFTS.AUDIT.TYPE' | transloco }}:</span>
+                    <span>{{ prev.typeShift }}</span>
+                  </div>
+                  @if (prev.heureDebutReelle) {
+                    <div class="snapshot-row">
+                      <span class="label">{{ 'SHIFTS.AUDIT.REAL_HOURS' | transloco }}:</span>
+                      <span>{{ prev.heureDebutReelle }} - {{ prev.heureFinReelle }}</span>
+                    </div>
+                  }
+                </div>
+              }
+              @if (item.previousSnapshot && item.newSnapshot) {
+                <div class="diff-arrow">
+                  <ion-icon name="arrow-forward-outline"></ion-icon>
+                </div>
+              }
+              @if (item.newSnapshot && parseSnapshot(item.newSnapshot); as curr) {
+                <div class="snapshot-box new-box">
+                  <span class="snapshot-tag">{{ 'SHIFTS.AUDIT.AFTER' | transloco }}</span>
+                  <div class="snapshot-row">
+                    <span class="label">{{ 'SHIFTS.AUDIT.HOURS' | transloco }}:</span>
+                    <span class="val-highlight">{{ curr.heureDebut }} - {{ curr.heureFin }}</span>
+                  </div>
+                  <div class="snapshot-row">
+                    <span class="label">{{ 'SHIFTS.AUDIT.TYPE' | transloco }}:</span>
+                    <span>{{ curr.typeShift }}</span>
+                  </div>
+                  @if (curr.heureDebutReelle) {
+                    <div class="snapshot-row">
+                      <span class="label">{{ 'SHIFTS.AUDIT.REAL_HOURS' | transloco }}:</span>
+                      <span class="val-highlight">{{ curr.heureDebutReelle }} - {{ curr.heureFinReelle }}</span>
+                    </div>
+                  }
+                  @if (curr.notes) {
+                    <div class="snapshot-row">
+                      <span class="label">{{ 'SHIFTS.AUDIT.NOTES' | transloco }}:</span>
+                      <span>{{ curr.notes }}</span>
+                    </div>
+                  }
+                </div>
+              }
             </div>
           </div>
-
-          <div class="diff-arrow" *ngIf="item.previousSnapshot && item.newSnapshot">
-            <ion-icon name="arrow-forward-outline"></ion-icon>
-          </div>
-
-          <div class="snapshot-box new-box" *ngIf="item.newSnapshot && parseSnapshot(item.newSnapshot) as curr">
-            <span class="snapshot-tag">{{ 'SHIFTS.AUDIT.AFTER' | transloco }}</span>
-            <div class="snapshot-row">
-              <span class="label">{{ 'SHIFTS.AUDIT.HOURS' | transloco }}:</span>
-              <span class="val-highlight">{{ curr.heureDebut }} - {{ curr.heureFin }}</span>
-            </div>
-            <div class="snapshot-row">
-              <span class="label">{{ 'SHIFTS.AUDIT.TYPE' | transloco }}:</span>
-              <span>{{ curr.typeShift }}</span>
-            </div>
-            <div class="snapshot-row" *ngIf="curr.heureDebutReelle">
-              <span class="label">{{ 'SHIFTS.AUDIT.REAL_HOURS' | transloco }}:</span>
-              <span class="val-highlight">{{ curr.heureDebutReelle }} - {{ curr.heureFinReelle }}</span>
-            </div>
-            <div class="snapshot-row" *ngIf="curr.notes">
-              <span class="label">{{ 'SHIFTS.AUDIT.NOTES' | transloco }}:</span>
-              <span>{{ curr.notes }}</span>
-            </div>
-          </div>
-        </div>
+        }
       </div>
-    </div>
+    }
   </div>
 </ion-content>

@@ -918,7 +918,11 @@
     "DELETE_SUCCESS": "Ingredient deleted",
     "DELETE_ERROR": "Unable to delete this ingredient",
     "SELECT_UNIT": "Select a unit",
-    "NAME_PLACEHOLDER": "e.g.: Lemon"
+    "NAME_PLACEHOLDER": "e.g.: Lemon",
+    "ALLERGENS_LABEL": "Allergens",
+    "ALLERGENS_HINT": "Select allergens present in this ingredient",
+    "ALCOHOL_DEGREE_LABEL": "Alcohol by Volume",
+    "ALCOHOL_DEGREE_HINT": "Alcohol percentage by volume (% ABV)"
   },
   "TABLES": {
     "TABLE": "Table",
@@ -1337,6 +1341,23 @@
     "SELECT_VARIANTE": "Pick a variant",
     "NO_VARIANTE": "Classic version",
     "VARIANTE_DISPO": "variant(s) available",
+    "FORMATS_COUNT": "{{count}} sizes",
+    "CUSTOMIZATION_TITLE": "Customization — {{product}}",
+    "REMOVE_INGREDIENTS": "Remove ingredients (specifics):",
+    "QUICK_NOTES": "Frequent notes:",
+    "QUICK_NOTES_OPTIONS": {
+      "NO_ICE": "No ice",
+      "LESS_ICE": "Less ice",
+      "ON_THE_ROCKS": "On the rocks",
+      "LEMON_SLICE": "Lemon slice",
+      "EXTRA_SHAKEN": "Extra shaken",
+      "SERVE_VERY_COLD": "Serve extra cold",
+      "EXTRA_STRAW": "Extra straw"
+    },
+    "CUSTOM_NOTE": "Custom instructions / notes:",
+    "CUSTOM_NOTE_PLACEHOLDER": "e.g.: Less ice, balloon glass, extra chilled...",
+    "CONFIRM_CUSTOMIZATION": "Confirm customization",
+    "SELECT_VARIANT_SUBTITLE": "Please select the desired size or variant for {{product}}:",
     "NOTES_BARMAN": "Notes for the barman",
     "NOTES_PLACEHOLDER": "Ex: no mint, strawberry allergy...",
     "ADD_TO_CART": "Add to cart",
@@ -2045,7 +2066,8 @@
       "ALREADY_PUBLISHED": "Already published",
       "PUBLISHED_BY": "Published on {{date}} by {{user}}",
       "MODIFIED_SINCE_PUBLISHED": "⚠️ Pending changes (Last pub. {{date}} by {{user}})",
-      "PUBLISH_SUCCESS": "Week schedule published successfully"
+      "PUBLISH_SUCCESS": "Week schedule published successfully",
+      "DRAFT_STATUS": "Unpublished draft — Click \"Publish schedule\" to freeze the baseline and enable the differences comparator"
     },
     "DIFF": {
       "COMPARE_BTN": "Compare with published",
@@ -2685,6 +2707,7 @@
     "LOW_ABV_LABEL": "Low-alcohol (Low-ABV)",
     "ALCOHOL_LEVEL_LABEL": "Alcohol by volume (% ABV)",
     "COST_LABEL": "Recipe Cost",
+    "COST_RECIPE": "Recipe cost",
     "COST_UNIT": "Unit Purchase Cost",
     "COST_RECIPE_TOTAL": "Total Recipe Cost (COGS)",
     "COST_SELLING_PRICE_HT": "Selling Price (excl. VAT)",
@@ -2695,7 +2718,13 @@
     "COST_MEDIUM_MARGIN": "Healthy Margin",
     "COST_LOW_MARGIN": "Low Margin",
     "COST_SUMMARY_TITLE": "Financial & Margin Analytics",
-    "COST_UNIT_PRICE_HINT": "Cost per liter, kg or piece"
+    "COST_UNIT_PRICE_HINT": "Cost per liter, kg or piece",
+    "AUTO_CALCULATED_HINT": "Automatically calculated from recipe ingredients and glassware",
+    "ALCOHOLIC_LABEL": "Alcoholic",
+    "NOT_VEGAN_LABEL": "Not vegan",
+    "CONTAINS_GLUTEN_LABEL": "Contains gluten",
+    "CALCULATION_DETAILS": "{{ pureAlcohol }} cl pure alcohol / {{ totalLiquid }} cl",
+    "GLASS_CAPACITY_NOTE": "Glassware: {{ capacity }} cl"
   },
   "ANALYTICS": {
     "MARGIN_TITLE": "Financial Health & Profitability",

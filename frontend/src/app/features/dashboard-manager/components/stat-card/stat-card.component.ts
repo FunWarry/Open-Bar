@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { IonCard, IonCardContent } from '@ionic/angular/standalone';
 
 /**
@@ -8,7 +8,7 @@ import { IonCard, IonCardContent } from '@ionic/angular/standalone';
 @Component({
   selector: 'app-stat-card',
   standalone: true,
-  imports: [CommonModule, IonCard, IonCardContent],
+  imports: [IonCard, IonCardContent],
   templateUrl: './stat-card.component.html',
   styleUrls: ['./stat-card.component.scss'],
 })

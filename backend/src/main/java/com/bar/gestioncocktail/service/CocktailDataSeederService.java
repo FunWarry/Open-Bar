@@ -24,8 +24,12 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -34,7 +38,7 @@ import java.util.Set;
  */
 @Service
 @DependsOn("glasswareDataSeederService")
-@Profile({"dev", "test"})
+@Profile({"dev", "test", "staging"})
 public class CocktailDataSeederService {
 
     private static final Logger log = LoggerFactory.getLogger(CocktailDataSeederService.class);
@@ -56,12 +60,19 @@ public class CocktailDataSeederService {
     private static final String KEY_WHISKY = "whisky";
     private static final String KEY_APEROL = "aperol";
     private static final String KEY_BIERE = "bière";
+    private static final String KEY_BIERE_ASCII = "biere";
     private static final String KEY_BAILEYS = "baileys";
+    private static final String KEY_WHISKEY = "whiskey";
+    private static final String KEY_MARTINI = "martini";
+    private static final String KEY_CAMPARI = "campari";
+    private static final String KEY_COCKTAILS = "cocktails";
+    private static final String KEY_INGREDIENTS = "ingredients";
+    private static final String KEY_ALLERGENS = "allergens";
     private static final String KEY_FLAVOR_PROFILES = "flavor_profiles";
 
     private static final Set<String> ALCOHOL_KEYWORDS = Set.of(
-            "rhum", "vodka", "gin", "tequila", KEY_WHISKY, "whiskey", "calvados", "cognac", "armagnac",
-            "liqueur", "cointreau", "triple sec", "martini", "campari", KEY_APEROL, KEY_BIERE, "vin",
+            "rhum", "vodka", "gin", "tequila", KEY_WHISKY, KEY_WHISKEY, "calvados", "cognac", "armagnac",
+            "liqueur", "cointreau", "triple sec", KEY_MARTINI, KEY_CAMPARI, KEY_APEROL, KEY_BIERE, "vin",
             "prosecco", KEY_CHAMPAGNE, "kahlua", KEY_BAILEYS, "get", "manzana", "pastis", "ricard",
             "angostura", "bourbon", "absinthe", "amaretto", "malibu", "chartreuse", "suze");
 
@@ -109,6 +120,8 @@ public class CocktailDataSeederService {
     @Transactional
     public void seedCocktailsIfEmpty() {
         fixLegacyImageUrls();
+        ensureFlavorProfilesPopulated();
+        ensureIngredientAllergensPopulated();
         if (!isTestProfileActive()) {
             log.info("Skipping automatic cocktail startup seeding (active profile is not 'test'). Database remains clean.");
             return;
@@ -124,6 +137,8 @@ public class CocktailDataSeederService {
     @Transactional
     public void seedCocktails(boolean force) {
         fixLegacyImageUrls();
+        ensureFlavorProfilesPopulated();
+        ensureIngredientAllergensPopulated();
         if (!force && cocktailRepository.count() > 0) {
             log.info("Database already contains cocktails, skipping seeding.");
             return;
@@ -145,7 +160,7 @@ public class CocktailDataSeederService {
 
         try (InputStream stream = is) {
             JsonNode root = objectMapper.readTree(stream);
-            JsonNode cocktailsNode = root.get("cocktails");
+            JsonNode cocktailsNode = root.get(KEY_COCKTAILS);
             if (cocktailsNode == null || !cocktailsNode.isArray()) {
                 log.warn("Invalid cocktail JSON dataset format.");
                 return;
@@ -219,7 +234,7 @@ public class CocktailDataSeederService {
             Cocktail cocktail = buildBaseCocktail(node, nom, allGlassware);
             Cocktail savedCocktail = cocktailRepository.save(cocktail);
 
-            JsonNode ingredientsNode = node.get("ingredients");
+            JsonNode ingredientsNode = node.get(KEY_INGREDIENTS);
             List<CocktailIngredient> ingredientsList = importIngredients(savedCocktail, ingredientsNode);
             savedCocktail.setIngredients(ingredientsList);
 
@@ -248,15 +263,15 @@ public class CocktailDataSeederService {
         applySeasonality(cocktail, node);
         applyMedia(cocktail, node);
 
-        JsonNode ingredientsNode = node.get("ingredients");
+        JsonNode ingredientsNode = node.get(KEY_INGREDIENTS);
         boolean containsAlcohol = detectAlcohol(ingredientsNode, nom);
         cocktail.setCategorie(detectCategory(node, containsAlcohol));
         cocktail.setVatRate(resolveVatRate(nom, containsAlcohol));
         cocktail.setGlassware(resolveGlassware(node, allGlassware));
         cocktail.setMocktail(resolveMocktail(node, containsAlcohol, cocktail.getCategorie()));
         cocktail.setAlcoholLevel(resolveAlcoholLevel(node, nom, containsAlcohol, cocktail.getCategorie()));
-        cocktail.setVegan(resolveVegan(node, ingredientsNode, nom));
-        cocktail.setGlutenFree(resolveGlutenFree(node, ingredientsNode, nom));
+        cocktail.setVegan(resolveVegan(node, ingredientsNode));
+        cocktail.setGlutenFree(resolveGlutenFree(node, ingredientsNode));
         cocktail.setFlavorProfiles(resolveFlavorProfiles(node, ingredientsNode, nom));
         cocktail.setStation(resolveStation(node, nom));
         return cocktail;
@@ -355,7 +370,7 @@ public class CocktailDataSeederService {
     }
 
     private boolean isMartiniGlass(String verre, String nom) {
-        return verre.contains("martini") || verre.contains("coupe") || verre.contains("coupette") || nom.contains("cosmopolitan") || nom.contains("manhattan");
+        return verre.contains(KEY_MARTINI) || verre.contains("coupe") || verre.contains("coupette") || nom.contains("cosmopolitan") || nom.contains("manhattan");
     }
 
     private boolean isCopaGlass(String verre, String nom) {
@@ -502,39 +517,102 @@ public class CocktailDataSeederService {
         }
 
         String unite = ingNode.has(KEY_UNITE) ? ingNode.get(KEY_UNITE).asText().trim() : "cl";
-        double qtyRaw = ingNode.has(KEY_QUANTITE) ? ingNode.get(KEY_QUANTITE).asDouble(1.0) : 1.0;
-        if (Double.isNaN(qtyRaw) || Double.isInfinite(qtyRaw)) {
-            qtyRaw = 1.0;
-        }
+        BigDecimal qty = extractQuantity(ingNode);
+        double costRaw = extractCost(ingNode);
+        Set<Allergen> allergens = extractAllergens(ingNode);
+        BigDecimal abv = extractAbv(ingNode);
 
-        double costRaw = ingNode.has("cout_eur") ? ingNode.get("cout_eur").asDouble(0.0) : 0.0;
-        if (Double.isNaN(costRaw) || Double.isInfinite(costRaw)) {
-            costRaw = 0.0;
-        }
-
-        Ingredient ingredient = findOrCreateIngredient(ingNom, unite, costRaw);
+        Ingredient ingredient = findOrCreateIngredient(ingNom, unite, costRaw, allergens, abv);
 
         CocktailIngredient ci = new CocktailIngredient();
         ci.setCocktail(savedCocktail);
         ci.setIngredient(ingredient);
-        ci.setQuantite(BigDecimal.valueOf(qtyRaw).setScale(2, RoundingMode.HALF_UP));
+        ci.setQuantite(qty);
         ci.setUnite(unite.isEmpty() || unite.equalsIgnoreCase("nan") ? "cl" : unite);
         return cocktailIngredientRepository.save(ci);
     }
 
-    private Ingredient findOrCreateIngredient(String ingNom, String unite, double costRaw) {
+    private BigDecimal extractAbv(JsonNode node) {
+        if (node.hasNonNull("degre_alcool")) {
+            return BigDecimal.valueOf(node.get("degre_alcool").asDouble()).setScale(1, RoundingMode.HALF_UP);
+        }
+        return BigDecimal.ZERO;
+    }
+
+    private BigDecimal extractQuantity(JsonNode node) {
+        double qtyRaw = node.has(KEY_QUANTITE) ? node.get(KEY_QUANTITE).asDouble(1.0) : 1.0;
+        if (Double.isNaN(qtyRaw) || Double.isInfinite(qtyRaw)) {
+            qtyRaw = 1.0;
+        }
+        return BigDecimal.valueOf(qtyRaw).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private double extractCost(JsonNode node) {
+        double costRaw = node.has("cout_eur") ? node.get("cout_eur").asDouble(0.0) : 0.0;
+        if (Double.isNaN(costRaw) || Double.isInfinite(costRaw)) {
+            return 0.0;
+        }
+        return costRaw;
+    }
+
+    private Set<Allergen> extractAllergens(JsonNode ingNode) {
+        if (!ingNode.has(KEY_ALLERGENS) || !ingNode.get(KEY_ALLERGENS).isArray()) {
+            return Collections.emptySet();
+        }
+        Set<Allergen> allergens = new HashSet<>();
+        for (JsonNode aNode : ingNode.get(KEY_ALLERGENS)) {
+            parseAllergen(aNode.asText().trim()).ifPresent(allergens::add);
+        }
+        return allergens;
+    }
+
+    private Optional<Allergen> parseAllergen(String raw) {
+        try {
+            return Optional.of(Allergen.valueOf(raw.toUpperCase(java.util.Locale.ROOT)));
+        } catch (IllegalArgumentException _) {
+            return Optional.empty();
+        }
+    }
+
+    private Ingredient findOrCreateIngredient(String ingNom, String unite, double costRaw, Set<Allergen> allergens, BigDecimal abv) {
         return ingredientRepository.findByNomIgnoreCase(ingNom)
-                .orElseGet(() -> {
-                    Ingredient newIng = new Ingredient();
-                    newIng.setNom(ingNom);
-                    newIng.setUniteMesure(unite.isEmpty() || unite.equalsIgnoreCase("nan") ? "cl" : unite);
-                    newIng.setQuantiteStock(BigDecimal.valueOf(100.0));
-                    newIng.setSeuilAlerte(BigDecimal.valueOf(10.0));
-                    newIng.setPrixUnitaire(BigDecimal.valueOf(costRaw > 0 ? costRaw : 0.50).setScale(4, RoundingMode.HALF_UP));
-                    newIng.setFournisseur("Fournisseur Boissons & Primeurs");
-                    newIng.setDatePeremption(LocalDateTime.now(java.time.ZoneId.of("Europe/Paris")).plusMonths(6));
-                    return ingredientRepository.save(newIng);
-                });
+                .map(existing -> updateExistingIngredient(existing, allergens, abv))
+                .orElseGet(() -> createNewIngredient(ingNom, unite, costRaw, allergens, abv));
+    }
+
+    private Ingredient updateExistingIngredient(Ingredient existing, Set<Allergen> allergens, BigDecimal abv) {
+        boolean modified = false;
+        if (allergens != null && !allergens.isEmpty()
+                && (existing.getAllergens() == null || existing.getAllergens().isEmpty())) {
+            existing.setAllergens(allergens);
+            modified = true;
+        }
+        if (abv != null && abv.compareTo(BigDecimal.ZERO) > 0 && (existing.getDegreAlcool() == null || existing.getDegreAlcool().compareTo(BigDecimal.ZERO) == 0)) {
+            existing.setDegreAlcool(abv);
+            modified = true;
+        }
+        if (allergens != null && (allergens.contains(Allergen.LAIT) || allergens.contains(Allergen.OEUF))) {
+            existing.setIsVegan(false);
+            modified = true;
+        }
+        return modified ? ingredientRepository.save(existing) : existing;
+    }
+
+    private Ingredient createNewIngredient(String ingNom, String unite, double costRaw, Set<Allergen> allergens, BigDecimal abv) {
+        Ingredient newIng = new Ingredient();
+        newIng.setNom(ingNom);
+        newIng.setUniteMesure(unite.isEmpty() || unite.equalsIgnoreCase("nan") ? "cl" : unite);
+        newIng.setQuantiteStock(BigDecimal.valueOf(100.0));
+        newIng.setSeuilAlerte(BigDecimal.valueOf(10.0));
+        newIng.setPrixUnitaire(BigDecimal.valueOf(costRaw > 0 ? costRaw : 0.50).setScale(4, RoundingMode.HALF_UP));
+        newIng.setFournisseur("Fournisseur Boissons & Primeurs");
+        newIng.setDatePeremption(LocalDateTime.now(java.time.ZoneId.of("Europe/Paris")).plusMonths(6));
+        if (allergens != null && !allergens.isEmpty()) {
+            newIng.setAllergens(allergens);
+        }
+        newIng.setDegreAlcool(abv != null ? abv : BigDecimal.ZERO);
+        newIng.setIsVegan(allergens == null || (!allergens.contains(Allergen.LAIT) && !allergens.contains(Allergen.OEUF)));
+        return ingredientRepository.save(newIng);
     }
 
     private String buildDescription(JsonNode node) {
@@ -610,7 +688,7 @@ public class CocktailDataSeederService {
             return BigDecimal.ZERO;
         }
         String lower = nom.toLowerCase();
-        if (lower.contains(KEY_BIERE) || lower.contains("biere") || lower.contains("cidre")) {
+        if (lower.contains(KEY_BIERE) || lower.contains(KEY_BIERE_ASCII) || lower.contains("cidre")) {
             return BigDecimal.valueOf(5.0);
         }
         if (lower.contains("spritz") || lower.contains(KEY_APEROL) || lower.contains("mimosa") || lower.contains("bellini")) {
@@ -645,21 +723,21 @@ public class CocktailDataSeederService {
         return resolveAlcoholLevel(nom, containsAlcohol, cat);
     }
 
-    private boolean resolveVegan(JsonNode node, JsonNode ingredientsNode, String nom) {
+    private boolean resolveVegan(JsonNode node, JsonNode ingredientsNode) {
         if (node.hasNonNull("vegan")) {
             return node.get("vegan").asBoolean();
         }
-        return detectVegan(ingredientsNode, nom);
+        return detectVegan(ingredientsNode);
     }
 
-    private boolean resolveGlutenFree(JsonNode node, JsonNode ingredientsNode, String nom) {
+    private boolean resolveGlutenFree(JsonNode node, JsonNode ingredientsNode) {
         if (node.hasNonNull("gluten_free")) {
             return node.get("gluten_free").asBoolean();
         }
         if (node.hasNonNull("glutenFree")) {
             return node.get("glutenFree").asBoolean();
         }
-        return detectGlutenFree(ingredientsNode, nom);
+        return detectGlutenFree(ingredientsNode);
     }
 
     private Set<FlavorProfile> resolveFlavorProfiles(JsonNode node, JsonNode ingredientsNode, String nom) {
@@ -679,51 +757,173 @@ public class CocktailDataSeederService {
         return detectFlavorProfiles(ingredientsNode, nom);
     }
 
-    private boolean detectVegan(JsonNode ingredientsNode, String cocktailName) {
-        String combined = collectAllText(ingredientsNode, cocktailName).toLowerCase();
-        String[] nonVeganWords = {"lait", "creme", "crème", "cream", "beurre", "oeuf", "œuf", "egg", "miel", "honey", KEY_BAILEYS};
-        for (String word : nonVeganWords) {
-            if (combined.contains(word)) {
-                return false;
+    private boolean containsAnyAllergen(JsonNode ingredientsNode, Set<String> targetAllergens) {
+        if (ingredientsNode == null || !ingredientsNode.isArray()) {
+            return false;
+        }
+        for (JsonNode ing : ingredientsNode) {
+            JsonNode allergensNode = ing.get(KEY_ALLERGENS);
+            if (allergensNode != null && allergensNode.isArray()) {
+                for (JsonNode a : allergensNode) {
+                    if (targetAllergens.contains(a.asText().toUpperCase(java.util.Locale.ROOT))) {
+                        return true;
+                    }
+                }
             }
         }
-        return true;
+        return false;
     }
 
-    private boolean detectGlutenFree(JsonNode ingredientsNode, String cocktailName) {
-        String combined = collectAllText(ingredientsNode, cocktailName).toLowerCase();
-        String[] glutenWords = {KEY_BIERE, "biere", "beer", "orge", "seigle", "blé", "ble", KEY_WHISKY, "whiskey"};
-        for (String word : glutenWords) {
-            if (combined.contains(word)) {
-                return false;
+    private boolean detectVegan(JsonNode ingredientsNode) {
+        return !containsAnyAllergen(ingredientsNode, Set.of("LAIT", "OEUF"));
+    }
+
+    private boolean detectGlutenFree(JsonNode ingredientsNode) {
+        return !containsAnyAllergen(ingredientsNode, Set.of("GLUTEN"));
+    }
+
+    /**
+     * Backfills flavor profiles for any existing cocktails in the database that currently have empty flavor profiles,
+     * matching by name against the test dataset JSON first.
+     */
+    public void ensureFlavorProfilesPopulated() {
+        try {
+            List<Cocktail> existing = cocktailRepository.findAll();
+            if (existing.isEmpty()) {
+                return;
+            }
+            Map<String, Set<FlavorProfile>> jsonProfiles = loadFlavorProfilesFromJson();
+            int backfilledCount = 0;
+            for (Cocktail c : existing) {
+                if (c.getFlavorProfiles() == null || c.getFlavorProfiles().isEmpty()) {
+                    String normName = c.getNom() != null ? c.getNom().trim().toLowerCase() : "";
+                    Set<FlavorProfile> profiles = jsonProfiles.get(normName);
+                    if (profiles == null || profiles.isEmpty()) {
+                        profiles = detectFlavorProfilesForCocktail(c);
+                    }
+                    c.setFlavorProfiles(profiles);
+                    cocktailRepository.save(c);
+                    backfilledCount++;
+                }
+            }
+            if (backfilledCount > 0) {
+                log.info("Successfully backfilled {} cocktails with flavor profiles from dataset.", backfilledCount);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to backfill flavor profiles: {}", e.getMessage());
+        }
+    }
+
+    private Map<String, Set<FlavorProfile>> loadFlavorProfilesFromJson() {
+        Map<String, Set<FlavorProfile>> map = new HashMap<>();
+        try (InputStream is = loadResourceStream()) {
+            if (is == null) {
+                return map;
+            }
+            JsonNode root = objectMapper.readTree(is);
+            JsonNode cocktailsNode = root.isArray() ? root : root.get(KEY_COCKTAILS);
+            populateProfilesMap(cocktailsNode, map);
+        } catch (Exception e) {
+            log.warn("Could not load flavor profiles from dataset JSON: {}", e.getMessage());
+        }
+        return map;
+    }
+
+    private void populateProfilesMap(JsonNode cocktailsNode, Map<String, Set<FlavorProfile>> map) {
+        if (cocktailsNode == null || !cocktailsNode.isArray()) {
+            return;
+        }
+        for (JsonNode cNode : cocktailsNode) {
+            if (cNode.hasNonNull("nom") && cNode.hasNonNull(KEY_FLAVOR_PROFILES) && cNode.get(KEY_FLAVOR_PROFILES).isArray()) {
+                String name = cNode.get("nom").asText().trim().toLowerCase();
+                Set<FlavorProfile> profiles = extractFlavorProfilesFromNode(cNode.get(KEY_FLAVOR_PROFILES));
+                if (!profiles.isEmpty()) {
+                    map.put(name, profiles);
+                }
             }
         }
-        return true;
+    }
+
+    private Set<FlavorProfile> extractFlavorProfilesFromNode(JsonNode arrayNode) {
+        Set<FlavorProfile> profiles = new HashSet<>();
+        for (JsonNode fpNode : arrayNode) {
+            FlavorProfile profile = parseFlavorProfile(fpNode.asText());
+            if (profile != null) {
+                profiles.add(profile);
+            }
+        }
+        return profiles;
+    }
+
+    private FlavorProfile parseFlavorProfile(String text) {
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+        try {
+            return FlavorProfile.valueOf(text.trim().toUpperCase());
+        } catch (IllegalArgumentException _) {
+            return null;
+        }
+    }
+
+    /**
+     * Detects flavor profiles from a Cocktail entity's name, description, and associated ingredients.
+     *
+     * @param cocktail Cocktail entity to inspect
+     * @return Set of detected FlavorProfile enums
+     */
+    public Set<FlavorProfile> detectFlavorProfilesForCocktail(Cocktail cocktail) {
+        if (cocktail == null) {
+            return Set.of(FlavorProfile.FRUITY);
+        }
+        StringBuilder sb = new StringBuilder();
+        if (cocktail.getNom() != null) {
+            sb.append(cocktail.getNom()).append(" ");
+        }
+        if (cocktail.getDescription() != null) {
+            sb.append(cocktail.getDescription()).append(" ");
+        }
+        if (cocktail.getIngredients() != null) {
+            for (CocktailIngredient ci : cocktail.getIngredients()) {
+                if (ci.getIngredient() != null && ci.getIngredient().getNom() != null) {
+                    sb.append(ci.getIngredient().getNom()).append(" ");
+                }
+            }
+        }
+        return detectFlavorProfilesFromText(sb.toString().toLowerCase());
     }
 
     private Set<FlavorProfile> detectFlavorProfiles(JsonNode ingredientsNode, String cocktailName) {
-        Set<FlavorProfile> profiles = new HashSet<>();
         String text = collectAllText(ingredientsNode, cocktailName).toLowerCase();
+        return detectFlavorProfilesFromText(text);
+    }
 
-        if (containsAny(text, "jus", "fruit", "citron", "lime", "orange", "fraise", "framboise", "ananas", "passion", "raisin", "pomme", "cranberry", "mangue", "pêche", "peche", "abricot", "mûre", "cerise", "grenadine", "curaçao")) {
+    public static Set<FlavorProfile> detectFlavorProfilesFromText(String text) {
+        Set<FlavorProfile> profiles = new HashSet<>();
+        if (text == null) {
+            profiles.add(FlavorProfile.FRUITY);
+            return profiles;
+        }
+
+        if (containsAnyText(text, "jus", "fruit", "citron", "lime", "orange", "fraise", "framboise", "ananas", "passion", "raisin", "pomme", "cranberry", "mangue", "pêche", "peche", "abricot", "mûre", "cerise", "grenadine", "curaçao")) {
             profiles.add(FlavorProfile.FRUITY);
         }
-        if (containsAny(text, "citron", "lime", "sour", "acid", "pamplemousse", "cranberry", "vinaigre")) {
+        if (containsAnyText(text, "citron", "lime", "sour", "acid", "pamplemousse", "cranberry", "vinaigre")) {
             profiles.add(FlavorProfile.SOUR);
         }
-        if (containsAny(text, "sirop", "sucre", "sugar", "sweet", "miel", "honey", "liqueur", "grenadine", "vanille", "caramel", "chocolat", KEY_BAILEYS, "cacao")) {
+        if (containsAnyText(text, "sirop", "sucre", "sugar", "sweet", "miel", "honey", "liqueur", "grenadine", "vanille", "caramel", "chocolat", KEY_BAILEYS, "cacao")) {
             profiles.add(FlavorProfile.SWEET);
         }
-        if (containsAny(text, "angostura", "bitter", "campari", KEY_APEROL, "suze", "tonic", "amaro", "vermouth", "gentiane")) {
+        if (containsAnyText(text, "angostura", "bitter", KEY_CAMPARI, KEY_APEROL, "suze", "tonic", "amaro", "vermouth", "gentiane")) {
             profiles.add(FlavorProfile.BITTER);
         }
-        if (containsAny(text, "canelle", "cannelle", "gingembre", "ginger", "piment", "chili", "tabasco", "poivre", "epice", "épicé", "muscade", "clou")) {
+        if (containsAnyText(text, "canelle", "cannelle", "gingembre", "ginger", "piment", "chili", "tabasco", "poivre", "epice", "épicé", "muscade", "clou")) {
             profiles.add(FlavorProfile.SPICY);
         }
-        if (containsAny(text, "fumé", "fume", "smoke", "smoky", "mezcal", "scotch", "tourbe", "islay", "bois")) {
+        if (containsAnyText(text, "fumé", "fume", "smoke", "smoky", "mezcal", "scotch", "tourbe", "islay", "bois")) {
             profiles.add(FlavorProfile.SMOKY);
         }
-        if (containsAny(text, "menthe", "mint", "basilic", "romarin", "thym", "herbe", "herbal", "concombre", "chartreuse", "genièvre", "gin", "estragon", "sauges")) {
+        if (containsAnyText(text, "menthe", "mint", "basilic", "romarin", "thym", "herbe", "herbal", "concombre", "chartreuse", "genièvre", "gin", "estragon", "sauges")) {
             profiles.add(FlavorProfile.HERBAL);
         }
 
@@ -745,13 +945,87 @@ public class CocktailDataSeederService {
         return sb.toString();
     }
 
-    private boolean containsAny(String text, String... keywords) {
+    private static boolean containsAnyText(String text, String... keywords) {
         for (String kw : keywords) {
             if (text.contains(kw)) {
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Ensures all existing ingredients in the database have their allergens populated from the test dataset
+     * during development/test mode if they are currently empty.
+     */
+    public void ensureIngredientAllergensPopulated() {
+        try {
+            List<Ingredient> ingredients = ingredientRepository.findAll();
+            if (ingredients.isEmpty()) {
+                return;
+            }
+            Map<String, Set<Allergen>> datasetAllergens = loadDatasetAllergensMap();
+            if (datasetAllergens.isEmpty()) {
+                return;
+            }
+            int count = 0;
+            for (Ingredient ing : ingredients) {
+                if ((ing.getAllergens() == null || ing.getAllergens().isEmpty()) && ing.getNom() != null) {
+                    Set<Allergen> fromDataset = datasetAllergens.get(ing.getNom().trim().toLowerCase(java.util.Locale.ROOT));
+                    if (fromDataset != null && !fromDataset.isEmpty()) {
+                        ing.setAllergens(new HashSet<>(fromDataset));
+                        ingredientRepository.save(ing);
+                        count++;
+                    }
+                }
+            }
+            if (count > 0) {
+                log.info("Successfully populated allergens for {} test ingredients from dataset.", count);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to populate ingredient allergens: {}", e.getMessage());
+        }
+    }
+
+    private Map<String, Set<Allergen>> loadDatasetAllergensMap() {
+        Map<String, Set<Allergen>> map = new HashMap<>();
+        InputStream is = loadResourceStream();
+        if (is == null) {
+            return map;
+        }
+        try (InputStream stream = is) {
+            JsonNode root = objectMapper.readTree(stream);
+            populateAllergensFromRoot(root, map);
+        } catch (Exception e) {
+            log.warn("Failed to read test dataset allergens map: {}", e.getMessage());
+        }
+        return map;
+    }
+
+    private void populateAllergensFromRoot(JsonNode root, Map<String, Set<Allergen>> map) {
+        JsonNode cocktailsNode = root.get(KEY_COCKTAILS);
+        if (cocktailsNode == null || !cocktailsNode.isArray()) {
+            return;
+        }
+        for (JsonNode cNode : cocktailsNode) {
+            populateAllergensFromCocktail(cNode, map);
+        }
+    }
+
+    private void populateAllergensFromCocktail(JsonNode cNode, Map<String, Set<Allergen>> map) {
+        JsonNode ingArray = cNode.get(KEY_INGREDIENTS);
+        if (ingArray == null || !ingArray.isArray()) {
+            return;
+        }
+        for (JsonNode ingNode : ingArray) {
+            if (ingNode.has("nom")) {
+                String name = ingNode.get("nom").asText().trim().toLowerCase(java.util.Locale.ROOT);
+                Set<Allergen> extracted = extractAllergens(ingNode);
+                if (!extracted.isEmpty()) {
+                    map.computeIfAbsent(name, _ -> new HashSet<>()).addAll(extracted);
+                }
+            }
+        }
     }
 }
 

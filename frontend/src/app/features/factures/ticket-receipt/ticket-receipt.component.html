@@ -54,23 +54,37 @@
       [class.format-58mm]="selectedFormat === '58mm'"
       [class.format-80mm]="selectedFormat === '80mm'"
       data-testid="thermal-receipt">
-      
+
       <!-- Establishment Branding & Legal Header -->
-      <header class="receipt-header" *ngIf="establishmentConfig as cfg">
-        <div class="receipt-logo-title">
-          <span class="bar-title">{{ cfg.legalName || 'OpenBar' }}</span>
-        </div>
-        <p class="legal-form" *ngIf="cfg.legalForm">
-          {{ cfg.legalForm }}
-          <span *ngIf="cfg.capitalSocial"> - Cap. {{ cfg.capitalSocial | appCurrency:0:0 }}</span>
-        </p>
-        <p class="legal-address" *ngIf="cfg.address">{{ cfg.address }}</p>
-        <p class="legal-contact" *ngIf="cfg.phone">{{ tr('PHONE_LABEL') }}: {{ cfg.phone }}</p>
-        <div class="legal-tax-row">
-          <span *ngIf="cfg.siret">SIRET: {{ cfg.siret }}</span>
-          <span *ngIf="cfg.tvaNumber">N° TVA: {{ cfg.tvaNumber }}</span>
-        </div>
-      </header>
+      @if (establishmentConfig; as cfg) {
+        <header class="receipt-header">
+          <div class="receipt-logo-title">
+            <span class="bar-title">{{ cfg.legalName || 'OpenBar' }}</span>
+          </div>
+          @if (cfg.legalForm) {
+            <p class="legal-form">
+              {{ cfg.legalForm }}
+              @if (cfg.capitalSocial) {
+                <span> - Cap. {{ cfg.capitalSocial | appCurrency:0:0 }}</span>
+              }
+            </p>
+          }
+          @if (cfg.address) {
+            <p class="legal-address">{{ cfg.address }}</p>
+          }
+          @if (cfg.phone) {
+            <p class="legal-contact">{{ tr('PHONE_LABEL') }}: {{ cfg.phone }}</p>
+          }
+          <div class="legal-tax-row">
+            @if (cfg.siret) {
+              <span>SIRET: {{ cfg.siret }}</span>
+            }
+            @if (cfg.tvaNumber) {
+              <span>N° TVA: {{ cfg.tvaNumber }}</span>
+            }
+          </div>
+        </header>
+      }
 
       <div class="receipt-dashed-divider"></div>
 
@@ -84,14 +98,18 @@
           <span class="meta-label">{{ tr('DATE') }} :</span>
           <span class="meta-value">{{ (reglement?.dateReglement || facture.dateFacture) | date:'dd/MM/yyyy HH:mm' }}</span>
         </div>
-        <div class="metadata-row" *ngIf="facture.tableNumero">
-          <span class="meta-label">{{ tr('TABLE') }} :</span>
-          <span class="meta-value">{{ tr('TABLE') }} {{ facture.tableNumero }}</span>
-        </div>
-        <div class="metadata-row" *ngIf="reglement?.modePaiement || facture.modePaiement">
-          <span class="meta-label">{{ tr('PAYMENT_MODE') }} :</span>
-          <span class="meta-value">{{ reglement?.modePaiement || facture.modePaiement }}</span>
-        </div>
+        @if (facture.tableNumero) {
+          <div class="metadata-row">
+            <span class="meta-label">{{ tr('TABLE') }} :</span>
+            <span class="meta-value">{{ tr('TABLE') }} {{ facture.tableNumero }}</span>
+          </div>
+        }
+        @if (reglement?.modePaiement || facture.modePaiement) {
+          <div class="metadata-row">
+            <span class="meta-label">{{ tr('PAYMENT_MODE') }} :</span>
+            <span class="meta-value">{{ reglement?.modePaiement || facture.modePaiement }}</span>
+          </div>
+        }
       </section>
 
       <div class="receipt-dashed-divider"></div>
@@ -113,9 +131,11 @@
                   <span class="col-qty item-count">{{ item.quantite }}x</span>
                   <span class="col-total item-price">{{ item.total | appCurrency }}</span>
                 </div>
-                <div class="entry-secondary" *ngIf="item.quantite > 1">
-                  <span>{{ item.quantite }} × {{ item.prixUnitaire | appCurrency }}</span>
-                </div>
+                @if (item.quantite > 1) {
+                  <div class="entry-secondary">
+                    <span>{{ item.quantite }} × {{ item.prixUnitaire | appCurrency }}</span>
+                  </div>
+                }
               </div>
             }
           } @else {
@@ -126,9 +146,11 @@
                   <span class="col-qty item-count">{{ item.quantite }}x</span>
                   <span class="col-total item-price">{{ item.total | appCurrency }}</span>
                 </div>
-                <div class="entry-secondary" *ngIf="item.quantite > 1 || item.vatRate">
-                  <span>{{ item.quantite }} × {{ item.prixUnitaire | appCurrency }} (TVA {{ item.vatRate || '20%' }})</span>
-                </div>
+                @if (item.quantite > 1 || item.vatRate) {
+                  <div class="entry-secondary">
+                    <span>{{ item.quantite }} × {{ item.prixUnitaire | appCurrency }} (TVA {{ item.vatRate || '20%' }})</span>
+                  </div>
+                }
               </div>
             }
           }

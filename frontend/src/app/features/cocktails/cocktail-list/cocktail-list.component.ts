@@ -26,6 +26,7 @@ import { AppSettingsService } from '../../../core/services/app-settings.service'
 import { Cocktail, CocktailFacets, FlavorProfile } from '../../../core/models/cocktail.model';
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { CocktailMatcherBarComponent, CocktailMatcherFilters } from '../../../core/components/ui/cocktail-matcher-bar/cocktail-matcher-bar.component';
+import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { getMarginBadgeClass } from '../../../core/utils/margin-calculation.util';
 import { environment } from '../../../../environments/environment';
@@ -37,14 +38,12 @@ export interface AllergenOption {
   key: string;
   labelKey: string;
   icon: string;
-  keywords: string[];
 }
 
 /**
  * Global Cocktails Management component in OpenBar (Figma styled).
- * Features card grid with picture toggle, category pill badges, ingredient subtitles,
- * search query filters, allergen exclusion filtering, status filtering (Available/Unavailable),
- * interactive flavor profile matcher, and CRUD actions.
+ * Supports grid & list views, allergen & category filters, real-time WebSocket sync,
+ * and bulk batch actions.
  */
 @Component({
   selector: 'app-cocktail-list',
@@ -58,8 +57,9 @@ export interface AllergenOption {
     IonRefresher, IonRefresherContent,
     IonSpinner, IonThumbnail, IonGrid, IonRow, IonCol,
     CocktailMatcherBarComponent,
-    SearchBarComponent
-  ],
+    SearchBarComponent,
+    ActionButtonComponent
+  ]
 })
 export class CocktailListComponent implements OnInit, OnDestroy {
   private readonly PICTURES_CACHE_KEY = 'openbar_show_pictures';
@@ -85,13 +85,13 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   }
 
   readonly availableAllergens: AllergenOption[] = [
-    { key: 'LAIT', labelKey: 'COCKTAILS.ALLERGENS.LAIT', icon: 'nutrition-outline', keywords: ['lait', 'creme', 'crème', 'cream', 'beurre', 'lactose', 'baileys', 'yaourt', 'fromage'] },
-    { key: 'GLUTEN', labelKey: 'COCKTAILS.ALLERGENS.GLUTEN', icon: 'leaf-outline', keywords: ['biere', 'bière', 'beer', 'whisky', 'whiskey', 'orge', 'seigle', 'ble', 'blé', 'gluten'] },
-    { key: 'OEUF', labelKey: 'COCKTAILS.ALLERGENS.OEUF', icon: 'egg-outline', keywords: ['oeuf', 'œuf', 'egg', 'albumine'] },
-    { key: 'FRUITS_A_COQUE', labelKey: 'COCKTAILS.ALLERGENS.FRUITS_A_COQUE', icon: 'nutrition-outline', keywords: ['amande', 'almond', 'amaretto', 'noisette', 'hazelnut', 'noix', 'walnut', 'pistache', 'pistachio', 'cashew', 'anacarde'] },
-    { key: 'ARACHIDE', labelKey: 'COCKTAILS.ALLERGENS.ARACHIDE', icon: 'nutrition-outline', keywords: ['arachide', 'peanut', 'cacahuete', 'cacahuète'] },
-    { key: 'SULFITES', labelKey: 'COCKTAILS.ALLERGENS.SULFITES', icon: 'wine-outline', keywords: ['vin', 'wine', 'champagne', 'prosecco', 'vermouth', 'sulfite', 'sulfites', 'cidre', 'cider', 'aperol', 'campari'] },
-    { key: 'SOJA', labelKey: 'COCKTAILS.ALLERGENS.SOJA', icon: 'leaf-outline', keywords: ['soja', 'soy', 'tofu'] },
+    { key: 'LAIT', labelKey: 'COCKTAILS.ALLERGENS.LAIT', icon: 'nutrition-outline' },
+    { key: 'GLUTEN', labelKey: 'COCKTAILS.ALLERGENS.GLUTEN', icon: 'leaf-outline' },
+    { key: 'OEUF', labelKey: 'COCKTAILS.ALLERGENS.OEUF', icon: 'egg-outline' },
+    { key: 'FRUITS_A_COQUE', labelKey: 'COCKTAILS.ALLERGENS.FRUITS_A_COQUE', icon: 'nutrition-outline' },
+    { key: 'ARACHIDE', labelKey: 'COCKTAILS.ALLERGENS.ARACHIDE', icon: 'nutrition-outline' },
+    { key: 'SULFITES', labelKey: 'COCKTAILS.ALLERGENS.SULFITES', icon: 'wine-outline' },
+    { key: 'SOJA', labelKey: 'COCKTAILS.ALLERGENS.SOJA', icon: 'leaf-outline' },
   ];
 
   isLoading = false;
@@ -111,8 +111,9 @@ export class CocktailListComponent implements OnInit, OnDestroy {
     this.isAdmin$ = this.store.select(selectIsAdmin);
     addIcons({
       add, create, trash, leafOutline, toggle, toggleOutline, gridOutline, listOutline,
-      search, imageOutline, image, wineOutline, nutritionOutline, eggOutline,
-      funnelOutline, closeCircleOutline, alertCircleOutline
+      search, image, imageOutline, wineOutline, nutritionOutline, eggOutline,
+      funnelOutline, closeCircleOutline, alertCircleOutline,
+      'image-outline': imageOutline
     });
   }
 
@@ -249,22 +250,34 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Detects list of allergen keys present in a cocktail based on ingredient names, description, and instructions.
+   * Retrieves allergen keys present in a cocktail based strictly on its ingredients' declared allergens.
+   *
    * @param cocktail Target cocktail model
    * @returns List of matching allergen keys
    */
   getCocktailAllergens(cocktail: Cocktail): string[] {
     if (!cocktail) return [];
-    const textToSearch = [
-      cocktail.nom,
-      cocktail.description || '',
-      cocktail.instructions || '',
-      ...(cocktail.ingredients ? cocktail.ingredients.map(i => i.ingredientNom) : [])
-    ].join(' ').toLowerCase();
+    const allergens = new Set<string>();
 
-    return this.availableAllergens
-      .filter(allergen => allergen.keywords.some(kw => textToSearch.includes(kw)))
-      .map(allergen => allergen.key);
+    if (cocktail.ingredients) {
+      for (const item of cocktail.ingredients) {
+        if (item.allergens && Array.isArray(item.allergens)) {
+          for (const a of item.allergens) {
+            allergens.add(a);
+          }
+        }
+      }
+    }
+
+    if (cocktail.isGlutenFree) {
+      allergens.delete('GLUTEN');
+    }
+    if (cocktail.isVegan) {
+      allergens.delete('LAIT');
+      allergens.delete('OEUF');
+    }
+
+    return Array.from(allergens);
   }
 
   /**
@@ -367,7 +380,7 @@ export class CocktailListComponent implements OnInit, OnDestroy {
         'background-color': color,
         'border-color': color,
         'color': '#ffffff',
-        'box-shadow': `0 4px 14px ${color}66`
+        'box-shadow': `0 2px 10px ${color}55`
       };
     }
     return {

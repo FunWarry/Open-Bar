@@ -84,6 +84,67 @@ ion-select {
   margin: 2px 0 0 0;
 }
 
+.allergens-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.field-hint {
+  font-size: var(--fs-xs, 12px);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.allergen-chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.allergen-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full, 9999px);
+  border: 1px solid var(--border-medium);
+  background: var(--background-surface-2);
+  color: var(--text-secondary);
+  font-size: var(--fs-sm, 13px);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  outline: none;
+}
+
+.allergen-chip-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--text-primary);
+}
+
+.allergen-chip-btn.selected {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.allergen-chip-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.chip-icon {
+  font-size: 15px;
+}
+
+.check-icon {
+  font-size: 14px;
+  color: var(--primary);
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;
@@ -96,4 +157,27 @@ ion-select {
 .form-actions ion-button {
   --border-radius: var(--radius-md, 8px);
   font-weight: 600;
+}
+
+.dietary-toggle-field {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.dietary-check-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: var(--fs-sm, 14px);
+  color: var(--text-primary);
+  user-select: none;
+}
+
+.dietary-check-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
 }

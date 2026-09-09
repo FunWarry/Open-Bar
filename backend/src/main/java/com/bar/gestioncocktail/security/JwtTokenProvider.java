@@ -91,11 +91,14 @@ public class JwtTokenProvider {
      * @return {@code true} if valid, {@code false} if altered or expired
      */
     public boolean validateToken(String authToken) {
+        if (authToken == null || authToken.isBlank() || "null".equalsIgnoreCase(authToken) || "undefined".equalsIgnoreCase(authToken)) {
+            return false;
+        }
         try {
             Jwts.parser().verifyWith(key).build().parseSignedClaims(authToken);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-            logger.error("Invalid JWT token: {}", e.getMessage());
+            logger.warn("Invalid JWT token: {}", e.getMessage());
             return false;
         }
     }

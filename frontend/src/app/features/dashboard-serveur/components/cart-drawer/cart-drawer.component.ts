@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { IonIcon, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
 import { CartModel, CartItemModel } from '../../models/cart.model';
@@ -20,7 +20,6 @@ import { cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutlin
   selector: 'app-cart-drawer',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     IonIcon,
     IonSelect,
@@ -29,8 +28,8 @@ import { cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutlin
     ActionButtonComponent,
     EmptyStateComponent,
     TranslocoPipe,
-    AppCurrencyPipe,
-  ],
+    AppCurrencyPipe
+],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './cart-drawer.component.html',
   styleUrls: ['./cart-drawer.component.scss'],

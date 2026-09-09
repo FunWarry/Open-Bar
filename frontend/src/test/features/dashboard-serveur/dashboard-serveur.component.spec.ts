@@ -818,8 +818,8 @@ describe('DashboardServeurComponent', () => {
 
     it('filters products by category, query, and allergens', () => {
       component.products = [
-        { id: 1, nom: 'Mojito', prix: 8.5, categorie: 'ALCOOLISE', stockStatus: 'NORMAL', disponible: true, description: 'Rhum menthe' },
-        { id: 2, nom: 'Bière Blonde', prix: 5.0, categorie: 'BEER', stockStatus: 'NORMAL', disponible: true, description: 'Gluten orge' },
+        { id: 1, nom: 'Mojito', prix: 8.5, categorie: 'ALCOOLISE', stockStatus: 'NORMAL', disponible: true, description: 'Rhum menthe', ingredients: [{ ingredientNom: 'Menthe', allergens: [] }] },
+        { id: 2, nom: 'Bière Blonde', prix: 5.0, categorie: 'BEER', stockStatus: 'NORMAL', disponible: true, description: 'Bière', ingredients: [{ ingredientNom: 'Orge', allergens: ['GLUTEN'] }] },
       ];
 
       component.productSearchQuery = 'Mojito';

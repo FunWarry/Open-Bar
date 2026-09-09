@@ -354,6 +354,26 @@ describe('EmployeeShiftModalComponent', () => {
       expect(mockModalCtrl.create).not.toHaveBeenCalled();
     });
   });
+
+  describe('openInEditMode behavior', () => {
+    it('should open edit form directly when openInEditMode and initialShift are passed', () => {
+      component.openInEditMode = true;
+      component.initialShift = sampleShift;
+      component.ngOnInit();
+
+      expect(component.showForm).toBeTrue();
+      expect(component.editingShiftId).toBe(10);
+      expect(component.formDate).toBe('2026-08-10');
+      expect(component.formHeureDebut).toBe('08:00');
+      expect(component.formHeureFin).toBe('16:00');
+    });
+
+    it('closeForm() should dismiss modal when openInEditMode is true', () => {
+      component.openInEditMode = true;
+      component.closeForm();
+      expect(mockModalCtrl.dismiss).toHaveBeenCalled();
+    });
+  });
 });
 
 

@@ -16,7 +16,6 @@ import {
   IonSelect,
   IonSelectOption
 } from '@ionic/angular/standalone';
-import { NgFor, NgIf } from '@angular/common';
 
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
@@ -33,8 +32,6 @@ describe('RegisterComponent', () => {
         RegisterComponent,
         ReactiveFormsModule,
         getTranslocoTestingModule(),
-        NgIf,
-        NgFor,
         IonCard,
         IonCardHeader,
         IonCardTitle,
