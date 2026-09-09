@@ -770,7 +770,8 @@ ion-modal.bar-ticket-modal-container {
   --max-height: 80vh;
 }
 
-ion-modal.ruptures-modal-container {
+ion-modal.ruptures-modal-container,
+ion-modal.rupture-impact-modal-container {
   --width: min(640px, 94vw);
   --height: min(660px, 82vh);
   --max-height: 85vh;

@@ -27,6 +27,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -84,7 +85,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("getAllCocktails - returns all cocktails from repository")
-    void getAllCocktails_returnsAll() {
+    void getAllCocktailsReturnsAll() {
         when(cocktailRepository.findAll()).thenReturn(List.of(cocktail));
 
         List<Cocktail> result = cocktailService.getAllCocktails();
@@ -95,7 +96,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("getCocktailById - returns cocktail when found")
-    void getCocktailById_existant_retourneCocktail() {
+    void getCocktailByIdExistantRetourneCocktail() {
         when(cocktailRepository.findById(1L)).thenReturn(Optional.of(cocktail));
 
         Optional<Cocktail> result = cocktailService.getCocktailById(1L);
@@ -106,7 +107,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("getCocktailById - returns empty when not found")
-    void getCocktailById_inexistant_retourneEmpty() {
+    void getCocktailByIdInexistantRetourneEmpty() {
         when(cocktailRepository.findById(99L)).thenReturn(Optional.empty());
 
         Optional<Cocktail> result = cocktailService.getCocktailById(99L);
@@ -116,7 +117,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("createCocktail - saves and returns entity")
-    void createCocktail_sauvegarde_etRetourne() {
+    void createCocktailSauvegardeEtRetourne() {
         Cocktail nouveau = new Cocktail();
         nouveau.setNom("Margarita");
         nouveau.setPrix(new BigDecimal("9.00"));
@@ -132,7 +133,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("createCocktailFromRequest - creates cocktail with recipe steps mapping ingredients and templates")
-    void createCocktailFromRequest_withRecipeSteps_mapsAndSaves() {
+    void createCocktailFromRequestWithRecipeStepsMapsAndSaves() {
         Ingredient rum = new Ingredient();
         rum.setId(10L);
         rum.setNom("White Rum");
@@ -178,7 +179,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("createCocktailFromRequest - creates cocktail without recipe steps")
-    void createCocktailFromRequest_withoutSteps() {
+    void createCocktailFromRequestWithoutSteps() {
         when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(inv -> {
             Cocktail c = inv.getArgument(0);
             c.setId(43L);
@@ -200,7 +201,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("updateCocktail - updates existing cocktail entity")
-    void updateCocktail_existant_miseAJour() {
+    void updateCocktailExistantMiseAJour() {
         cocktail.setNom("Mojito Revisited");
         when(cocktailRepository.save(any(Cocktail.class))).thenReturn(cocktail);
 
@@ -212,7 +213,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("updateCocktailFromRequest - updates cocktail and replaces recipe steps")
-    void updateCocktailFromRequest_updatesExistingCocktail() {
+    void updateCocktailFromRequestUpdatesExistingCocktail() {
         when(cocktailRepository.findById(1L)).thenReturn(Optional.of(cocktail));
         when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -222,7 +223,7 @@ class CocktailServiceTest {
 
         CocktailRequestDTO request = new CocktailRequestDTO(
             "Mojito Classic", "Updated description", new BigDecimal("10.00"),
-            CocktailCategorie.ALCOOLISE, true, true, LocalDateTime.now(), LocalDateTime.now().plusMonths(3),
+            CocktailCategorie.ALCOOLISE, true, true, LocalDateTime.now(ZoneOffset.UTC), LocalDateTime.now(ZoneOffset.UTC).plusMonths(3),
             6, 9, "Build in glass", "http://image.png", List.of(step)
         );
 
@@ -236,7 +237,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("updateCocktailFromRequest - throws ResourceNotFoundException when cocktail missing")
-    void updateCocktailFromRequest_notFound_throwsException() {
+    void updateCocktailFromRequestNotFoundThrowsException() {
         when(cocktailRepository.findById(99L)).thenReturn(Optional.empty());
 
         CocktailRequestDTO request = new CocktailRequestDTO(
@@ -251,7 +252,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("deleteCocktail - deletes by ID")
-    void deleteCocktail_existant_supprime() {
+    void deleteCocktailExistantSupprime() {
         cocktailService.deleteCocktail(1L);
 
         verify(cocktailRepository, times(1)).deleteById(1L);
@@ -259,7 +260,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("toggleDisponibilite - toggles availability flag")
-    void toggleDisponibilite_basculeLaValeur() {
+    void toggleDisponibiliteBasculeLaValeur() {
         assertThat(cocktail.isDisponible()).isTrue();
         when(cocktailRepository.save(any(Cocktail.class))).thenReturn(cocktail);
 
@@ -271,7 +272,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("getCocktailsByCategorie - finds cocktails by category")
-    void getCocktailsByCategorie_returnsMatching() {
+    void getCocktailsByCategorieReturnsMatching() {
         when(cocktailRepository.findByCategorie(CocktailCategorie.ALCOOLISE)).thenReturn(List.of(cocktail));
 
         List<Cocktail> result = cocktailService.getCocktailsByCategorie(CocktailCategorie.ALCOOLISE);
@@ -282,7 +283,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("getCocktailsDisponibles - filters available cocktails")
-    void getCocktailsDisponibles_filtreSurDisponible() {
+    void getCocktailsDisponiblesFiltreSurDisponible() {
         when(cocktailRepository.findByDisponible(true)).thenReturn(List.of(cocktail));
 
         List<Cocktail> result = cocktailService.getCocktailsDisponibles();
@@ -293,7 +294,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("getCocktailsSaisonniers - returns seasonal cocktails")
-    void getCocktailsSaisonniers_returnsSeasonal() {
+    void getCocktailsSaisonniersReturnsSeasonal() {
         cocktail.setSaisonnier(true);
         when(cocktailRepository.findBySaisonnier(true)).thenReturn(List.of(cocktail));
 
@@ -305,7 +306,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("getCocktailsSaisonniersActuels - returns currently seasonal cocktails")
-    void getCocktailsSaisonniersActuels_returnsActiveSeasonal() {
+    void getCocktailsSaisonniersActuelsReturnsActiveSeasonal() {
         when(cocktailRepository.findBySaisonnierAndDateDebutSaisonBeforeAndDateFinSaisonAfter(
             eq(true), any(LocalDateTime.class), any(LocalDateTime.class)
         )).thenReturn(List.of(cocktail));
@@ -317,7 +318,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("searchCocktails - performs case-insensitive name search")
-    void searchCocktails_returnsMatching() {
+    void searchCocktailsReturnsMatching() {
         when(cocktailRepository.findByNomContainingIgnoreCase("moji")).thenReturn(List.of(cocktail));
 
         List<Cocktail> result = cocktailService.searchCocktails("moji");
@@ -328,8 +329,8 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("definirSaisonnalite - sets exact date bounds")
-    void definirSaisonnalite_setsDatesAndSaves() {
-        LocalDateTime start = LocalDateTime.now();
+    void definirSaisonnaliteSetsDatesAndSaves() {
+        LocalDateTime start = LocalDateTime.now(ZoneOffset.UTC);
         LocalDateTime end = start.plusMonths(2);
         when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -343,7 +344,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("updateSaisonnalite - updates month numbers and seasonality")
-    void updateSaisonnalite_updatesMonths() {
+    void updateSaisonnaliteUpdatesMonths() {
         when(cocktailRepository.findById(1L)).thenReturn(Optional.of(cocktail));
         when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -356,7 +357,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("updateSaisonnalite - throws ResourceNotFoundException for missing cocktail")
-    void updateSaisonnalite_cocktailInexistant_throwsResourceNotFoundException() {
+    void updateSaisonnaliteCocktailInexistantThrowsResourceNotFoundException() {
         when(cocktailRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> cocktailService.updateSaisonnalite(99L, 6, 8))
@@ -366,7 +367,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("updateCocktailImage - saves photo and updates entity")
-    void updateCocktailImage_sauvegardePhotoEtMetAJourCocktail() {
+    void updateCocktailImageSauvegardePhotoEtMetAJourCocktail() {
         MockMultipartFile file = new MockMultipartFile("file", "mojito.jpg", "image/jpeg", "bytes".getBytes());
         when(cocktailRepository.findById(1L)).thenReturn(Optional.of(cocktail));
         when(fileUploadService.storeCocktailPhoto(1L, file)).thenReturn("/uploads/cocktails/cocktail_1_abc.jpg");
@@ -381,7 +382,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("updateCocktailImage - throws ResourceNotFoundException when cocktail is missing")
-    void updateCocktailImage_throwsWhenNotFound() {
+    void updateCocktailImageThrowsWhenNotFound() {
         MockMultipartFile file = new MockMultipartFile("file", "mojito.jpg", "image/jpeg", "bytes".getBytes());
         when(cocktailRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -900,7 +901,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("getFacets - computes flavor counts and dietary counts accurately")
-    void getFacets_computesAccurateCounts() {
+    void getFacetsComputesAccurateCounts() {
         Cocktail c1 = new Cocktail();
         c1.setId(10L);
         c1.setNom("Fruity Mojito");
@@ -951,7 +952,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("filterAndMatchCocktails - matches by flavors, max ABV and dietary flags")
-    void filterAndMatchCocktails_filtersCorrectly() {
+    void filterAndMatchCocktailsFiltersCorrectly() {
         Cocktail c1 = new Cocktail();
         c1.setId(10L);
         c1.setNom("Fruity Mojito");
@@ -1005,7 +1006,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("updateCocktailFromRequest - correctly updates flavor profiles and dietary flags")
-    void updateCocktailFromRequest_updatesFlavorAndDietary() {
+    void updateCocktailFromRequestUpdatesFlavorAndDietary() {
         when(cocktailRepository.findById(1L)).thenReturn(Optional.of(cocktail));
         when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -1032,7 +1033,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("updateCocktailFromRequest - correctly updates preparation workstation station")
-    void updateCocktailFromRequest_updatesStation() {
+    void updateCocktailFromRequestUpdatesStation() {
         when(cocktailRepository.findById(1L)).thenReturn(Optional.of(cocktail));
         when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -1056,7 +1057,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("recalculateDietaryAndAlcoholMetrics - nominal case calculates ABV and dietary flags")
-    void recalculateDietaryAndAlcoholMetrics_calculatesAbvAndDietaryFlags() {
+    void recalculateDietaryAndAlcoholMetricsCalculatesAbvAndDietaryFlags() {
         Cocktail c = new Cocktail();
         c.setNom("Vodka Orange");
 
@@ -1094,7 +1095,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("recalculateDietaryAndAlcoholMetrics - low ABV sets mocktail true")
-    void recalculateDietaryAndAlcoholMetrics_lowAbvSetsMocktailTrue() {
+    void recalculateDietaryAndAlcoholMetricsLowAbvSetsMocktailTrue() {
         Cocktail c = new Cocktail();
         c.setNom("Virgin Mojito");
 
@@ -1119,7 +1120,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("recalculateDietaryAndAlcoholMetrics - detects allergens and non-vegan ingredients")
-    void recalculateDietaryAndAlcoholMetrics_detectsAllergensAndNonVegan() {
+    void recalculateDietaryAndAlcoholMetricsDetectsAllergensAndNonVegan() {
         Cocktail c = new Cocktail();
         c.setNom("Beer Cocktail with Milk");
 
@@ -1156,7 +1157,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("recalculateDietaryAndAlcoholMetrics - glassware contenance fallback when finished volume is zero")
-    void recalculateDietaryAndAlcoholMetrics_glasswareContenanceFallback() {
+    void recalculateDietaryAndAlcoholMetricsGlasswareContenanceFallback() {
         Cocktail c = new Cocktail();
         c.setNom("Mist Cocktail");
 
@@ -1185,7 +1186,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("recalculateDietaryAndAlcoholMetrics - normalizes diverse units")
-    void recalculateDietaryAndAlcoholMetrics_normalizesDiverseUnits() {
+    void recalculateDietaryAndAlcoholMetricsNormalizesDiverseUnits() {
         Cocktail c = new Cocktail();
         c.setNom("Complex Punch");
 
@@ -1229,7 +1230,7 @@ class CocktailServiceTest {
 
     @Test
     @DisplayName("recalculateDietaryAndAlcoholMetrics - empty or null ingredients does nothing")
-    void recalculateDietaryAndAlcoholMetrics_emptyOrNullIngredients_noop() {
+    void recalculateDietaryAndAlcoholMetricsEmptyOrNullIngredientsNoop() {
         Cocktail c = new Cocktail();
         c.setAlcoholLevel(new BigDecimal("12.5"));
         c.setIngredients(null);
@@ -1239,6 +1240,73 @@ class CocktailServiceTest {
         c.setIngredients(List.of());
         cocktailService.recalculateDietaryAndAlcoholMetrics(c);
         assertThat(c.getAlcoholLevel()).isEqualByComparingTo(new BigDecimal("12.5"));
+    }
+
+    @Test
+    @DisplayName("getCocktailsByIngredientId - returns matching cocktails when ingredient exists")
+    void getCocktailsByIngredientIdWhenIngredientExistsReturnsCocktails() {
+        Long ingredientId = 10L;
+        when(ingredientRepository.existsById(ingredientId)).thenReturn(true);
+        when(cocktailRepository.findByIngredientId(ingredientId)).thenReturn(List.of(cocktail));
+
+        List<Cocktail> result = cocktailService.getCocktailsByIngredientId(ingredientId);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getNom()).isEqualTo("Mojito");
+        verify(ingredientRepository).existsById(ingredientId);
+        verify(cocktailRepository).findByIngredientId(ingredientId);
+    }
+
+    @Test
+    @DisplayName("getCocktailsByIngredientId - throws ResourceNotFoundException when ingredient does not exist")
+    void getCocktailsByIngredientIdWhenIngredientNotFoundThrowsException() {
+        Long ingredientId = 99L;
+        when(ingredientRepository.existsById(ingredientId)).thenReturn(false);
+
+        assertThatThrownBy(() -> cocktailService.getCocktailsByIngredientId(ingredientId))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Ingredient not found with id: 99");
+        verify(cocktailRepository, never()).findByIngredientId(any());
+    }
+
+    @Test
+    @DisplayName("setDisponibiliteBatch - updates availability and broadcasts STOMP notifications")
+    void setDisponibiliteBatchUpdatesAvailabilityAndBroadcasts() {
+        Cocktail c2 = new Cocktail();
+        c2.setId(2L);
+        c2.setNom("Daiquiri");
+        c2.setDisponible(true);
+
+        when(cocktailRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(cocktail, c2));
+        when(cocktailRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        List<Cocktail> updated = cocktailService.setDisponibiliteBatch(List.of(1L, 2L), false);
+
+        assertThat(updated).hasSize(2);
+        assertThat(cocktail.isDisponible()).isFalse();
+        assertThat(c2.isDisponible()).isFalse();
+        verify(notificationService).notifierCocktailMisAJour(cocktail);
+        verify(notificationService).notifierCocktailMisAJour(c2);
+    }
+
+    @Test
+    @DisplayName("setDisponibiliteBatch - empty list returns empty without updating")
+    void setDisponibiliteBatchWhenEmptyListReturnsEmpty() {
+        List<Cocktail> result = cocktailService.setDisponibiliteBatch(List.of(), false);
+
+        assertThat(result).isEmpty();
+        verify(cocktailRepository, never()).findAllById(any());
+        verify(cocktailRepository, never()).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("setDisponibiliteBatch - null input returns empty without updating")
+    void setDisponibiliteBatchWhenNullInputReturnsEmpty() {
+        List<Cocktail> result = cocktailService.setDisponibiliteBatch(null, false);
+
+        assertThat(result).isEmpty();
+        verify(cocktailRepository, never()).findAllById(any());
+        verify(cocktailRepository, never()).saveAll(any());
     }
 }
 

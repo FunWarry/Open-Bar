@@ -153,5 +153,27 @@ describe('CocktailService', () => {
     expect(req.request.method).toBe('GET');
     req.flush([{ id: 1, nom: 'Virgin Mojito' }]);
   });
+
+  it('getByIngredient() calls GET /api/cocktails/by-ingredient/:id', () => {
+    service.getByIngredient(10).subscribe(res => {
+      expect(res).toHaveSize(1);
+      expect(res[0].nom).toBe('Mojito');
+    });
+
+    const req = httpMock.expectOne(`${baseUrl}/by-ingredient/10`);
+    expect(req.request.method).toBe('GET');
+    req.flush([{ id: 1, nom: 'Mojito' }]);
+  });
+
+  it('setDisponibiliteBatch() calls PUT /api/cocktails/disponibilite-batch', () => {
+    service.setDisponibiliteBatch([1, 2], false).subscribe(res => {
+      expect(res).toHaveSize(2);
+    });
+
+    const req = httpMock.expectOne(`${baseUrl}/disponibilite-batch`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ cocktailIds: [1, 2], disponible: false });
+    req.flush([{ id: 1, disponible: false }, { id: 2, disponible: false }]);
+  });
 });
 

@@ -114,6 +114,27 @@ export class DashboardBarmanService {
   }
 
   /**
+   * Fetches all cocktails using a specific ingredient in their recipe or variants.
+   *
+   * @param ingredientId Target ingredient ID
+   * @returns Observable emitting associated cocktails
+   */
+  getCocktailsByIngredient(ingredientId: number): Observable<Cocktail[]> {
+    return this.http.get<Cocktail[]>(`${this.cocktailsUrl}/by-ingredient/${ingredientId}`);
+  }
+
+  /**
+   * Batch updates availability status across multiple cocktails.
+   *
+   * @param cocktailIds Array of cocktail identifiers
+   * @param disponible Target availability boolean
+   * @returns Observable emitting list of updated cocktails
+   */
+  setCocktailsDisponibiliteBatch(cocktailIds: number[], disponible: boolean): Observable<Cocktail[]> {
+    return this.http.put<Cocktail[]>(`${this.cocktailsUrl}/disponibilite-batch`, { cocktailIds, disponible });
+  }
+
+  /**
    * Fetches all inventory ingredients for stock overview and quick depletion toggles.
    *
    * @returns Observable emitting all ingredients.

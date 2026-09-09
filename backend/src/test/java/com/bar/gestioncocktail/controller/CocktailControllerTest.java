@@ -241,5 +241,35 @@ class CocktailControllerTest {
         assertThat(response.getBody()).hasSize(1);
         assertThat(response.getBody().get(0).nom()).isEqualTo("Mojito");
     }
+
+    @Test
+    @DisplayName("getCocktailsByIngredient - returns matching cocktail DTOs")
+    void getCocktailsByIngredientSuccess() {
+        when(cocktailService.getCocktailsByIngredientId(10L)).thenReturn(List.of(cocktail));
+
+        ResponseEntity<List<CocktailResponseDTO>> response = cocktailController.getCocktailsByIngredient(10L);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).nom()).isEqualTo("Mojito");
+        verify(cocktailService).getCocktailsByIngredientId(10L);
+    }
+
+    @Test
+    @DisplayName("updateDisponibiliteBatch - updates multiple cocktails availability")
+    void updateDisponibiliteBatchSuccess() {
+        cocktail.setDisponible(false);
+        when(cocktailService.setDisponibiliteBatch(List.of(1L), false)).thenReturn(List.of(cocktail));
+
+        com.bar.gestioncocktail.dto.CocktailBatchDisponibiliteRequestDTO request =
+                new com.bar.gestioncocktail.dto.CocktailBatchDisponibiliteRequestDTO(List.of(1L), false);
+
+        ResponseEntity<List<CocktailResponseDTO>> response = cocktailController.updateDisponibiliteBatch(request);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).disponible()).isFalse();
+        verify(cocktailService).setDisponibiliteBatch(List.of(1L), false);
+    }
 }
 

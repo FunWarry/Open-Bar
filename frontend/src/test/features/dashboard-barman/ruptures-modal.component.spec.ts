@@ -80,7 +80,8 @@ describe('RupturesModalComponent', () => {
       'getCocktails',
       'getIngredients',
       'toggleCocktailDisponibilite',
-      'updateIngredientStock'
+      'updateIngredientStock',
+      'getCocktailsByIngredient'
     ]);
     dashboardServiceSpy.getCocktails.and.returnValue(of(mockCocktails));
     dashboardServiceSpy.getIngredients.and.returnValue(of(mockIngredients));
@@ -90,6 +91,7 @@ describe('RupturesModalComponent', () => {
     dashboardServiceSpy.updateIngredientStock.and.returnValue(
       of({ ...mockIngredients[0], quantiteStock: 0 })
     );
+    dashboardServiceSpy.getCocktailsByIngredient.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [RupturesModalComponent, getTranslocoTestingModule()],
@@ -162,12 +164,30 @@ describe('RupturesModalComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalled();
   });
 
-  it('updateStock() met a jour le stock et displays a toast', () => {
+  it('updateStock() updates positive stock directly', () => {
+    const ingredient = component.ingredients[0];
+    component.updateStock(ingredient, 50);
+
+    expect(dashboardServiceSpy.updateIngredientStock).toHaveBeenCalledWith(ingredient.id, 50);
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('updateStock() zeroes stock directly when no cocktails use the ingredient', () => {
+    dashboardServiceSpy.getCocktailsByIngredient.and.returnValue(of([]));
     const ingredient = component.ingredients[0];
     component.updateStock(ingredient, 0);
 
+    expect(dashboardServiceSpy.getCocktailsByIngredient).toHaveBeenCalledWith(ingredient.id);
     expect(dashboardServiceSpy.updateIngredientStock).toHaveBeenCalledWith(ingredient.id, 0);
-    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('updateStock() opens RuptureImpactModalComponent when cocktails use the ingredient', async () => {
+    dashboardServiceSpy.getCocktailsByIngredient.and.returnValue(of(mockCocktails));
+    const ingredient = component.ingredients[0];
+    component.updateStock(ingredient, 0);
+
+    expect(dashboardServiceSpy.getCocktailsByIngredient).toHaveBeenCalledWith(ingredient.id);
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
   });
 
   it('dismiss() ferme la modale', () => {
@@ -181,5 +201,60 @@ describe('RupturesModalComponent', () => {
     expect(modalCtrlSpy.create).toHaveBeenCalled();
     // 50 - 10 = 40
     expect(ingredient.quantiteStock).toBe(40);
+  });
+
+  it('updateStock() falls back to executeStockUpdate when getCocktailsByIngredient throws error', () => {
+    dashboardServiceSpy.getCocktailsByIngredient.and.returnValue(throwError(() => new Error('Network error')));
+    const ingredient = component.ingredients[0];
+    component.updateStock(ingredient, 0);
+
+    expect(dashboardServiceSpy.updateIngredientStock).toHaveBeenCalledWith(ingredient.id, 0);
+  });
+
+  it('openRuptureImpactModal() marks cocktails as unavailable and zeroes ingredient stock when cascaded', async () => {
+    const ingredient = { ...mockIngredients[0], quantiteStock: 50 };
+    component.cocktails = [{ ...mockCocktails[0], disponible: true }];
+    const modalWithCascade = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(
+        Promise.resolve({ data: { action: 'cascaded', cocktailIds: [1] } })
+      )
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalWithCascade as any));
+
+    await component.openRuptureImpactModal(ingredient, mockCocktails);
+
+    expect(ingredient.quantiteStock).toBe(0);
+    expect(component.cocktails[0].disponible).toBeFalse();
+  });
+
+  it('openRuptureImpactModal() zeroes ingredient stock when dismissed with ingredient_only', async () => {
+    const ingredient = { ...mockIngredients[0], quantiteStock: 50 };
+    const modalWithIngredientOnly = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(
+        Promise.resolve({ data: { action: 'ingredient_only' } })
+      )
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalWithIngredientOnly as any));
+
+    await component.openRuptureImpactModal(ingredient, mockCocktails);
+
+    expect(ingredient.quantiteStock).toBe(0);
+  });
+
+  it('openRuptureImpactModal() updates ingredient stock when dismissed with restocked', async () => {
+    const ingredient = { ...mockIngredients[0], quantiteStock: 0 };
+    const modalWithRestocked = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(
+        Promise.resolve({ data: { action: 'restocked', newStock: 25 } })
+      )
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalWithRestocked as any));
+
+    await component.openRuptureImpactModal(ingredient, mockCocktails);
+
+    expect(ingredient.quantiteStock).toBe(25);
   });
 });

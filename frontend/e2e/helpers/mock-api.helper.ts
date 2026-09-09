@@ -312,6 +312,14 @@ export async function setupMockApi(page: Page): Promise<void> {
       });
       return;
     }
+    if (route.request().method() === 'PUT') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: 'Updated', count: 1 }),
+      });
+      return;
+    }
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -371,6 +379,14 @@ export async function setupMockApi(page: Page): Promise<void> {
   });
 
   await page.route('**/api/ingredients**', async (route) => {
+    if (route.request().method() === 'PUT' || route.request().method() === 'PATCH') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ id: 1, nom: 'Rhum Blanc', quantiteStock: 0, seuilAlerte: 20, uniteMesure: 'cl' }),
+      });
+      return;
+    }
     await route.fulfill({
       status: 200,
       contentType: 'application/json',

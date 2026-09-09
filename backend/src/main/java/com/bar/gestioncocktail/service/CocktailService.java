@@ -863,6 +863,43 @@ public class CocktailService {
     }
 
     /**
+     * Retrieves all cocktails that utilize a specific ingredient in their base recipe or variants.
+     *
+     * @param ingredientId Identifier of the ingredient
+     * @return List of cocktails using the ingredient
+     */
+    public List<Cocktail> getCocktailsByIngredientId(Long ingredientId) {
+        if (!ingredientRepository.existsById(ingredientId)) {
+            throw new ResourceNotFoundException("Ingredient not found with id: " + ingredientId);
+        }
+        return cocktailRepository.findByIngredientId(ingredientId);
+    }
+
+    /**
+     * Batch updates the availability status for a list of cocktails and broadcasts notifications.
+     *
+     * @param cocktailIds List of cocktail identifiers to update
+     * @param disponible Target availability status
+     * @return List of updated cocktail entities
+     */
+    public List<Cocktail> setDisponibiliteBatch(List<Long> cocktailIds, boolean disponible) {
+        if (cocktailIds == null || cocktailIds.isEmpty()) {
+            return List.of();
+        }
+        List<Cocktail> cocktails = cocktailRepository.findAllById(cocktailIds);
+        LocalDateTime now = timeService.now();
+        for (Cocktail cocktail : cocktails) {
+            cocktail.setDisponible(disponible);
+            cocktail.setUpdatedAt(now);
+        }
+        List<Cocktail> savedCocktails = cocktailRepository.saveAll(cocktails);
+        for (Cocktail cocktail : savedCocktails) {
+            notificationService.notifierCocktailMisAJour(cocktail);
+        }
+        return savedCocktails;
+    }
+
+    /**
      * Defines seasonality period of a cocktail with exact timestamps.
      *
      * @param cocktail Cocktail entity

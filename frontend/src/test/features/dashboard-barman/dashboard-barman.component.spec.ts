@@ -45,7 +45,10 @@ describe('DashboardBarmanComponent', () => {
   ];
 
   const mockToast = { present: jasmine.createSpy('present') };
-  const mockModal = { present: jasmine.createSpy('present').and.returnValue(Promise.resolve()) };
+  const mockModal = {
+    present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+    onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: null, role: 'cancel' }))
+  };
 
   beforeEach(async () => {
     notification$ = new Subject<AppNotification>();
@@ -714,6 +717,49 @@ describe('DashboardBarmanComponent', () => {
       expect(badge).toBeTruthy();
       expect(badge?.classList.contains('segment-badge')).toBeTrue();
       expect(badge?.textContent?.trim()).toBe('5');
+    });
+
+    it('should display critical stock banner when stock alert drops to zero', () => {
+      component.activeCriticalStockAlert = {
+        ingredientId: 5,
+        nom: 'Fresh Mint',
+        uniteMesure: 'g',
+        quantiteStock: 0
+      };
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const banner = compiled.querySelector('[data-testid="critical-stock-banner"]');
+      expect(banner).toBeTruthy();
+      expect(banner?.textContent).toContain('Fresh Mint');
+    });
+
+    it('should dismiss critical stock alert on dismissCriticalStockAlert call', () => {
+      component.activeCriticalStockAlert = {
+        ingredientId: 5,
+        nom: 'Fresh Mint',
+        uniteMesure: 'g',
+        quantiteStock: 0
+      };
+      component.dismissCriticalStockAlert();
+      expect(component.activeCriticalStockAlert).toBeNull();
+    });
+
+    it('should open RuptureImpactModalComponent when clicking verify on critical stock alert', async () => {
+      component.activeCriticalStockAlert = {
+        ingredientId: 5,
+        nom: 'Fresh Mint',
+        uniteMesure: 'g',
+        quantiteStock: 0
+      };
+      await component.openCriticalStockImpactModal();
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
+      expect(component.activeCriticalStockAlert).toBeNull();
+    });
+
+    it('should do nothing in openCriticalStockImpactModal when activeCriticalStockAlert is null', async () => {
+      component.activeCriticalStockAlert = null;
+      await component.openCriticalStockImpactModal();
+      expect(modalCtrlSpy.create).not.toHaveBeenCalled();
     });
   });
 });

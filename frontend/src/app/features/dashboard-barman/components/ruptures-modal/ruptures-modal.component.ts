@@ -39,6 +39,7 @@ import { DashboardBarmanService } from '../../services/dashboard-barman.service'
 import { Cocktail } from '../../../../core/models/cocktail.model';
 import { Ingredient } from '../../../../core/models/ingredient.model';
 import { StockWasteModalComponent } from '../../../ingredients/stock-waste-modal/stock-waste-modal.component';
+import { RuptureImpactModalComponent } from '../rupture-impact-modal/rupture-impact-modal.component';
 import { SearchBarComponent } from '../../../../core/components/ui/search-bar/search-bar.component';
 
 /**
@@ -215,6 +216,64 @@ export class RupturesModalComponent implements OnInit, OnDestroy {
    */
   updateStock(ingredient: Ingredient, newStock: number): void {
     const validStock = Math.max(0, newStock);
+    if (validStock === 0) {
+      this.dashboardService
+        .getCocktailsByIngredient(ingredient.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: async (cocktails) => {
+            if (cocktails && cocktails.length > 0) {
+              await this.openRuptureImpactModal(ingredient, cocktails);
+            } else {
+              this.executeStockUpdate(ingredient, 0);
+            }
+          },
+          error: () => {
+            this.executeStockUpdate(ingredient, 0);
+          }
+        });
+      return;
+    }
+    this.executeStockUpdate(ingredient, validStock);
+  }
+
+  /**
+   * Opens the rupture impact verification modal for an ingredient and its associated cocktails.
+   *
+   * @param ingredient Target ingredient
+   * @param cocktails List of cocktails using this ingredient
+   */
+  async openRuptureImpactModal(ingredient: Ingredient, cocktails: Cocktail[]): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: RuptureImpactModalComponent,
+      componentProps: {
+        ingredient,
+        affectedCocktails: cocktails,
+        source: 'manual'
+      },
+      cssClass: 'rupture-impact-modal-container'
+    });
+
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.action === 'cascaded') {
+      ingredient.quantiteStock = 0;
+      if (data.cocktailIds && Array.isArray(data.cocktailIds)) {
+        const idSet = new Set<number>(data.cocktailIds);
+        for (const c of this.cocktails) {
+          if (idSet.has(c.id)) {
+            c.disponible = false;
+          }
+        }
+      }
+    } else if (data?.action === 'ingredient_only') {
+      ingredient.quantiteStock = 0;
+    } else if (data?.action === 'restocked' && data.newStock != null) {
+      ingredient.quantiteStock = data.newStock;
+    }
+  }
+
+  private executeStockUpdate(ingredient: Ingredient, validStock: number): void {
     this.dashboardService
       .updateIngredientStock(ingredient.id, validStock)
       .pipe(takeUntil(this.destroy$))
