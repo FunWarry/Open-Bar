@@ -292,26 +292,45 @@
     }
 
     .primary-action {
-      --box-shadow: none;
+      --box-shadow: 0 2px 8px rgba(229, 96, 79, 0.35);
+      --border-radius: 10px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+
+      ion-icon {
+        font-size: 1.15rem;
+        margin-right: 4px;
+      }
     }
 
     .secondary-action {
       --background: var(--background-surface-2);
-      --border-color: var(--border-medium);
+      --background-hover: var(--background-surface-3);
+      --background-activated: var(--surface-3);
+      --background-focused: var(--background-surface-3);
+      --border-color: var(--border-light);
       --border-style: solid;
-      --border-width: 1px;
+      --border-width: 1.5px;
+      --border-radius: 10px;
       --color: var(--text-primary);
+      --color-hover: #ffffff;
+      --box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      --padding-start: 16px;
+      --padding-end: 16px;
       font-weight: 600;
+      letter-spacing: 0.02em;
       transition: all 0.2s ease;
 
       &:hover {
-        --background: var(--background-surface-3, rgba(255, 255, 255, 0.08));
-        --border-color: var(--text-muted);
+        --background: var(--background-surface-3);
+        --border-color: var(--primary-light);
+        --color: #ffffff;
       }
 
       ion-icon {
-        font-size: 1.1rem;
+        font-size: 1.15rem;
         margin-right: 6px;
+        color: var(--text-secondary);
       }
     }
   }
