@@ -774,6 +774,10 @@ export class CocktailFormComponent implements OnInit {
     if (id) {
       this.isEditMode = true;
       this.cocktailId = +id;
+      if (Number.isNaN(this.cocktailId)) {
+        this.router.navigate(['/404']);
+        return;
+      }
       this.cocktailService.getById(this.cocktailId).subscribe({
         next: (cocktail) => {
           this.cocktailData = cocktail;
@@ -846,6 +850,9 @@ export class CocktailFormComponent implements OnInit {
               );
             });
           }
+        },
+        error: () => {
+          this.router.navigate(['/404']);
         },
       });
     }

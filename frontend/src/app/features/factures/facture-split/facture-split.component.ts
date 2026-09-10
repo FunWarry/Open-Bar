@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonContent, IonHeader, IonToolbar, IonButtons,
   IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel,
@@ -45,7 +45,7 @@ export interface PartSettlementState {
   selector: 'app-facture-split',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, AppCurrencyPipe, TranslocoModule,
+    CommonModule, FormsModule, TranslocoModule, AppCurrencyPipe,
     IonContent, IonHeader, IonToolbar, IonButtons,
     IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel,
     IonSpinner, IonProgressBar
@@ -151,6 +151,7 @@ export class FactureSplitComponent implements OnInit {
   partStates: { [index: number]: PartSettlementState } = {};
 
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly factureService = inject(FactureService);
   private readonly modalCtrl = inject(ModalController);
   private readonly toastCtrl = inject(ToastController);
@@ -168,6 +169,10 @@ export class FactureSplitComponent implements OnInit {
       const routeId = this.route.snapshot?.paramMap?.get('id');
       if (routeId) {
         this.factureId = +routeId;
+        if (Number.isNaN(this.factureId)) {
+          this.router.navigate(['/404']);
+          return;
+        }
       }
     }
 
@@ -193,7 +198,12 @@ export class FactureSplitComponent implements OnInit {
   private loadFacture() {
     this.factureService.getFactureById(this.factureId).subscribe({
       next: f => { this.facture = f; },
-      error: () => { this.errorMessage = String(this.transloco.translate('SPLIT.LOAD_ITEMS_ERROR')); },
+      error: () => {
+        this.errorMessage = String(this.transloco.translate('SPLIT.LOAD_ITEMS_ERROR'));
+        if (this.route.snapshot?.paramMap?.get('id')) {
+          this.router.navigate(['/404']);
+        }
+      },
     });
   }
 

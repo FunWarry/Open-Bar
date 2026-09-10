@@ -1,4 +1,4 @@
-<div class="error-404-container">
+<div class="error-404-container" data-testid="error-404-container">
   <div class="ellipse-bg-primary"></div>
   <div class="ellipse-bg-tertiary"></div>
 
@@ -11,6 +11,7 @@
       <app-action-button
         variant="primary"
         size="large"
+        data-testid="btn-404-home"
         routerLink="/app-home">
         {{ 'ERROR_404.BACK_HOME' | transloco }}
       </app-action-button>

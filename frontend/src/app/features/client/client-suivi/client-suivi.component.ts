@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -30,6 +30,7 @@ import { TableAssistanceBarComponent } from '../components/table-assistance-bar/
 })
 export class ClientSuiviComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly commandeService = inject(CommandeService);
   private readonly websocketService = inject(WebSocketService);
   private readonly destroy$ = new Subject<void>();
@@ -45,6 +46,8 @@ export class ClientSuiviComponent implements OnInit, OnDestroy {
         this.commandeId = id;
         this.loadCommande(id);
         this.subscribeWebSocket(id);
+      } else {
+        this.router.navigate(['/404']);
       }
     });
   }
@@ -66,6 +69,7 @@ export class ClientSuiviComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.isLoading = false;
+          this.router.navigate(['/404']);
         }
       });
   }

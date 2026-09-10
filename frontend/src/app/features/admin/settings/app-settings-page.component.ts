@@ -509,16 +509,30 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
     if (this.route?.data) {
       this.route.data.pipe(takeUntil(this.destroy$)).subscribe(data => {
-        if (data?.['defaultTab'] && validTabs.has(data['defaultTab'] as SettingsTab)) {
-          this.activeTab = data['defaultTab'] as SettingsTab;
+        if (data?.['defaultTab']) {
+          const defTab = data['defaultTab'] as SettingsTab;
+          if (!validTabs.has(defTab) ||
+              (defTab === 'pricing' && !this.happyHourEnabled()) ||
+              (defTab === 'qr' && !this.qrClientOrderingEnabled())) {
+            this.router.navigate(['/404']);
+            return;
+          }
+          this.activeTab = defTab;
         }
       });
     }
 
     if (this.route?.queryParams) {
       this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-        if (params?.['tab'] && validTabs.has(params['tab'] as SettingsTab)) {
-          this.activeTab = params['tab'] as SettingsTab;
+        if (params?.['tab']) {
+          const tab = params['tab'] as SettingsTab;
+          if (!validTabs.has(tab) ||
+              (tab === 'pricing' && !this.happyHourEnabled()) ||
+              (tab === 'qr' && !this.qrClientOrderingEnabled())) {
+            this.router.navigate(['/404']);
+            return;
+          }
+          this.activeTab = tab;
         }
       });
     }
@@ -556,6 +570,14 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   }
 
   selectTab(tab: SettingsTab): void {
+    if (tab === 'pricing' && !this.happyHourEnabled()) {
+      this.router.navigate(['/404']);
+      return;
+    }
+    if (tab === 'qr' && !this.qrClientOrderingEnabled()) {
+      this.router.navigate(['/404']);
+      return;
+    }
     this.activeTab = tab;
     this.router.navigate([], {
       relativeTo: this.route,

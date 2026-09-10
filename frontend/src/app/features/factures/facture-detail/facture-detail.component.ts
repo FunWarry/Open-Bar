@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Subject } from 'rxjs';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Subject, EMPTY } from 'rxjs';
 import { takeUntil, switchMap } from 'rxjs/operators';
 import {
   IonContent, IonIcon, ToastController,
@@ -43,6 +43,7 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
   activeView: 'invoice' | 'ticket' = 'invoice';
 
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly factureService = inject(FactureService);
   private readonly etablissementService = inject(EtablissementService);
   private readonly toastCtrl = inject(ToastController);
@@ -59,9 +60,19 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.route.paramMap.pipe(
-      switchMap(params => this.factureService.getFactureById(Number(params.get('id')))),
+      switchMap(params => {
+        const id = Number(params.get('id'));
+        if (Number.isNaN(id)) {
+          this.router.navigate(['/404']);
+          return EMPTY;
+        }
+        return this.factureService.getFactureById(id);
+      }),
       takeUntil(this.destroy$)
-    ).subscribe({ next: f => this.facture = f });
+    ).subscribe({
+      next: f => this.facture = f,
+      error: () => this.router.navigate(['/404'])
+    });
 
     this.etablissementService.getConfig()
       .pipe(takeUntil(this.destroy$))

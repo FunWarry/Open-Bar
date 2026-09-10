@@ -124,6 +124,10 @@ export class TableFormComponent implements OnInit, OnDestroy {
     this.loadZones();
 
     const idFromRoute = this.route?.snapshot?.params?.['id'];
+    if (idFromRoute && Number.isNaN(+idFromRoute)) {
+      this.router.navigate(['/404']);
+      return;
+    }
     const targetId = this.tableId ?? (idFromRoute ? +idFromRoute : (this.table?.id ?? null));
 
     if (targetId) {
@@ -141,12 +145,17 @@ export class TableFormComponent implements OnInit, OnDestroy {
               this.populateForm(t);
             },
             error: async () => {
-              const toast = await this.toastCtrl.create({
-                message: this.transloco.translate('ERRORS.SERVER'),
-                duration: 3000,
-                color: 'danger'
-              });
-              toast.present();
+              const topModal = await this.modalCtrl.getTop();
+              if (topModal) {
+                const toast = await this.toastCtrl.create({
+                  message: this.transloco.translate('ERRORS.SERVER'),
+                  duration: 3000,
+                  color: 'danger'
+                });
+                toast.present();
+                return;
+              }
+              this.router.navigate(['/404']);
             }
           });
       }

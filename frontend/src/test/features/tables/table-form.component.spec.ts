@@ -1,9 +1,9 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ToastController, ModalController } from '@ionic/angular/standalone';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TableFormComponent } from '../../../app/features/tables/table-form/table-form.component';
@@ -151,5 +151,22 @@ describe('TableFormComponent', () => {
     component.onCancel();
     tick();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalled();
+  }));
+
+  it('ngOnInit() redirects to /404 when route id is NaN', () => {
+    (component as any).route = { snapshot: { params: { id: 'invalid' } } };
+    component.ngOnInit();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+  });
+
+  it('ngOnInit() redirects to /404 when routed and getById fails', fakeAsync(() => {
+    modalCtrlSpy.getTop.and.returnValue(Promise.resolve(null as any));
+    tableServiceSpy.getById.and.returnValue(throwError(() => new Error('Not found')));
+    (component as any).route = { snapshot: { params: { id: '999' } } };
+    component.table = null;
+    component.ngOnInit();
+    tick();
+    flushMicrotasks();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
   }));
 });
