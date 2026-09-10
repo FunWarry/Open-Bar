@@ -7,14 +7,19 @@ import { Router } from '@angular/router';
 import { of } from 'rxjs';
 import { selectCurrentUser, selectIsAdmin, selectIsBarman, selectIsManager, selectIsServeur } from '../../../app/core/store/auth.selectors';
 
+import { signal } from '@angular/core';
+import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
+
 describe('HomeComponent', () => {
   let component: HomeComponent;
   let fixture: ComponentFixture<HomeComponent>;
   let storeSpy: jasmine.SpyObj<Store>;
   let router: Router;
+  let floorPlanSignal = signal(true);
 
   beforeEach(async () => {
     storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
+    floorPlanSignal = signal(true);
 
     storeSpy.select.and.callFake((selector: any) => {
       if (selector === selectCurrentUser) return of({ username: 'testuser', roles: ['SERVEUR'] });
@@ -28,7 +33,8 @@ describe('HomeComponent', () => {
     await TestBed.configureTestingModule({
       imports: [HomeComponent, RouterTestingModule, getTranslocoTestingModule()],
       providers: [
-        { provide: Store, useValue: storeSpy }
+        { provide: Store, useValue: storeSpy },
+        { provide: FeatureFlagService, useValue: { floorPlanEnabled: floorPlanSignal } }
       ]
     }).compileComponents();
 
@@ -61,5 +67,11 @@ describe('HomeComponent', () => {
   it('navigateTo() should call router.navigate with the correct path', () => {
     component.navigateTo('/serveur');
     expect(router.navigate).toHaveBeenCalledWith(['/serveur']);
+  });
+
+  it('floorPlanEnabled should reflect feature flag signal', () => {
+    expect(component.floorPlanEnabled()).toBeTrue();
+    floorPlanSignal.set(false);
+    expect(component.floorPlanEnabled()).toBeFalse();
   });
 });

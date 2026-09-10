@@ -462,6 +462,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/onboarding/onboarding.component').then(m => m.OnboardingComponent),
     canActivate: [AuthGuard]
   },
+  // 404 Not Found explicit route & fallback
+  {
+    path: '404',
+    loadComponent: () => import('./features/error-404/error-404.component').then(m => m.Error404Component),
+  },
   {
     path: '**',
     loadComponent: () => import('./features/error-404/error-404.component').then(m => m.Error404Component),
