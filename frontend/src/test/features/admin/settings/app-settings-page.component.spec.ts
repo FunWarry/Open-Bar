@@ -16,7 +16,7 @@ import { AppUpdateService } from '../../../../app/core/services/app-update.servi
 import { AuthService } from '../../../../app/core/services/auth.service';
 import { OnboardingService } from '../../../../app/core/services/onboarding.service';
 import { FeatureFlagService } from '../../../../app/core/services/feature-flag.service';
-import { ESTABLISHMENT_PRESETS } from '../../../../app/core/models/establishment-module.model';
+import { ESTABLISHMENT_PRESETS, EstablishmentPresetType } from '../../../../app/core/models/establishment-module.model';
 
 describe('AppSettingsPageComponent', () => {
   let component: AppSettingsPageComponent;
@@ -850,6 +850,17 @@ describe('AppSettingsPageComponent', () => {
       component.resetModules();
       expect(component.modulesForm.get('cuisineKds')?.value).toBeFalse();
       expect(component.modulesForm.pristine).toBeTrue();
+    });
+
+    it('should handle edge cases when modulesForm is null or preset is invalid', () => {
+      const originalForm = component.modulesForm;
+      (component as { modulesForm: unknown }).modulesForm = null;
+
+      expect(component.activeModulesCount).toBe(0);
+      expect(component.isModulePresetActive('BAR')).toBeFalse();
+
+      (component as { modulesForm: unknown }).modulesForm = originalForm;
+      expect(component.isModulePresetActive('CUSTOM' as unknown as Exclude<EstablishmentPresetType, 'CUSTOM'>)).toBeFalse();
     });
   });
 
