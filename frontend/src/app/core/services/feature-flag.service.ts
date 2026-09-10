@@ -96,16 +96,11 @@ export class FeatureFlagService implements OnDestroy {
    * Fetches latest modular feature configuration from the backend API.
    * Reuses an in-flight HTTP request if one is already pending to avoid redundant calls.
    *
-   * @param force Whether to bypass cached state and force a new backend fetch
    * @returns Observable emitting loaded {@link EstablishmentModules}
    */
-  loadModules(force = false): Observable<EstablishmentModules> {
+  loadModules(): Observable<EstablishmentModules> {
     if (!this.http) {
       this.isLoaded.set(true);
-      return of(this.modules());
-    }
-
-    if (!force && this.isLoaded()) {
       return of(this.modules());
     }
 
