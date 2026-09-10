@@ -145,16 +145,17 @@ export class TableFormComponent implements OnInit, OnDestroy {
               this.populateForm(t);
             },
             error: async () => {
-              if (idFromRoute) {
-                this.router.navigate(['/404']);
+              const topModal = await this.modalCtrl.getTop();
+              if (topModal) {
+                const toast = await this.toastCtrl.create({
+                  message: this.transloco.translate('ERRORS.SERVER'),
+                  duration: 3000,
+                  color: 'danger'
+                });
+                toast.present();
                 return;
               }
-              const toast = await this.toastCtrl.create({
-                message: this.transloco.translate('ERRORS.SERVER'),
-                duration: 3000,
-                color: 'danger'
-              });
-              toast.present();
+              this.router.navigate(['/404']);
             }
           });
       }

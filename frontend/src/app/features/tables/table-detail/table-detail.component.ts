@@ -111,17 +111,18 @@ export class TableDetailComponent implements OnInit, OnDestroy {
           );
         },
         error: async () => {
-          if (idParam) {
-            this.router.navigate(['/404']);
+          const topModal = await this.modalCtrl.getTop();
+          if (topModal) {
+            const toast = await this.toastCtrl.create({
+              message: String(this.transloco.translate('ERRORS.SERVER') || 'Erreur lors du chargement'),
+              duration: 3000,
+              color: 'danger'
+            });
+            toast.present();
+            this.onClose();
             return;
           }
-          const toast = await this.toastCtrl.create({
-            message: String(this.transloco.translate('ERRORS.SERVER') || 'Erreur lors du chargement'),
-            duration: 3000,
-            color: 'danger'
-          });
-          toast.present();
-          this.onClose();
+          this.router.navigate(['/404']);
         }
       });
   }
