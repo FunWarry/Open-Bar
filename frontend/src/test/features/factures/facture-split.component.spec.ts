@@ -77,6 +77,7 @@ describe('FactureSplitComponent', () => {
   });
 
   it('redirects to /404 when route id is NaN', () => {
+    (component as any).factureId = undefined;
     (component as any).route = { snapshot: { paramMap: { get: () => 'invalid-id' } } };
     component.ngOnInit();
     expect(router.navigate).toHaveBeenCalledWith(['/404']);
