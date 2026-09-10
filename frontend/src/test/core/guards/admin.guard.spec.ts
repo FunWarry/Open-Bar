@@ -33,38 +33,38 @@ describe('AdminGuard', () => {
     });
   });
 
-  it('returns UrlTree to / when user has no ADMIN role', (done) => {
+  it('returns UrlTree to /404 when user has no ADMIN role', (done) => {
     store.overrideSelector(selectCurrentUser, {id: 1, email: '', username: '', roles: ['MANAGER'], enabled: true, createdAt: '', updatedAt: ''});
     guard.canActivate().subscribe(result => {
       expect(result).not.toBeTrue();
-      expect(router.createUrlTree).toHaveBeenCalledWith(['/']);
+      expect(router.createUrlTree).toHaveBeenCalledWith(['/404']);
       done();
     });
   });
 
-  it('returns UrlTree to / when user is null', (done) => {
+  it('returns UrlTree to /404 when user is null', (done) => {
     store.overrideSelector(selectCurrentUser, null);
     guard.canActivate().subscribe(result => {
       expect(result).not.toBeTrue();
-      expect(router.createUrlTree).toHaveBeenCalledWith(['/']);
+      expect(router.createUrlTree).toHaveBeenCalledWith(['/404']);
       done();
     });
   });
 
-  it('returns UrlTree to / when user has only SERVEUR role', (done) => {
+  it('returns UrlTree to /404 when user has only SERVEUR role', (done) => {
     store.overrideSelector(selectCurrentUser, {id: 2, email: '', username: '', roles: ['SERVEUR'], enabled: true, createdAt: '', updatedAt: ''});
     guard.canActivate().subscribe(result => {
       expect(result).not.toBeTrue();
-      expect(router.createUrlTree).toHaveBeenCalledWith(['/']);
+      expect(router.createUrlTree).toHaveBeenCalledWith(['/404']);
       done();
     });
   });
 
-  it('returns UrlTree to / when user has only BARMAN role', (done) => {
+  it('returns UrlTree to /404 when user has only BARMAN role', (done) => {
     store.overrideSelector(selectCurrentUser, {id: 3, email: '', username: '', roles: ['BARMAN'], enabled: true, createdAt: '', updatedAt: ''});
     guard.canActivate().subscribe(result => {
       expect(result).not.toBeTrue();
-      expect(router.createUrlTree).toHaveBeenCalledWith(['/']);
+      expect(router.createUrlTree).toHaveBeenCalledWith(['/404']);
       done();
     });
   });

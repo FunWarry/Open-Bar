@@ -77,6 +77,10 @@ export class TableDetailComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const idParam = this.route?.snapshot?.paramMap?.get('id');
+    if (idParam && Number.isNaN(+idParam)) {
+      this.router.navigate(['/404']);
+      return;
+    }
     const targetId = this.tableId ?? (idParam ? +idParam : (this.table?.id ?? null));
 
     if (!targetId) return;
@@ -90,6 +94,7 @@ export class TableDetailComponent implements OnInit, OnDestroy {
   }
 
   loadTableData(id: number): void {
+    const idParam = this.route?.snapshot?.paramMap?.get('id');
     this.isLoading = true;
     forkJoin({
       table: this.table ? of(this.table) : this.tableService.getById(id),
@@ -106,6 +111,10 @@ export class TableDetailComponent implements OnInit, OnDestroy {
           );
         },
         error: async () => {
+          if (idParam) {
+            this.router.navigate(['/404']);
+            return;
+          }
           const toast = await this.toastCtrl.create({
             message: String(this.transloco.translate('ERRORS.SERVER') || 'Erreur lors du chargement'),
             duration: 3000,

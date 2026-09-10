@@ -24,7 +24,7 @@ export class AdminGuard implements CanActivate {
   /**
    * Verifies if the authenticated user has the ADMIN role.
    *
-   * @returns Observable emitting {@code true} if admin, or redirecting to home otherwise.
+   * @returns Observable emitting {@code true} if admin, or redirecting to /404 otherwise.
    */
   canActivate(): Observable<boolean | UrlTree> {
     return this.store.select(selectCurrentUser).pipe(
@@ -33,7 +33,7 @@ export class AdminGuard implements CanActivate {
         if (user?.roles.includes('ADMIN')) {
           return true;
         }
-        return this.router.createUrlTree(['/']);
+        return this.router.createUrlTree(['/404']);
       })
     );
   }

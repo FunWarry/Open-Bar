@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController } from '@ionic/angular/standalone';
-import { of, EMPTY } from 'rxjs';
+import { of, EMPTY, throwError } from 'rxjs';
 import { ClientSuiviComponent } from '../../../app/features/client/client-suivi/client-suivi.component';
 import { CommandeService } from '../../../app/core/services/commande.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
@@ -17,6 +17,7 @@ describe('ClientSuiviComponent', () => {
   let websocketServiceSpy: jasmine.SpyObj<WebSocketService>;
   let tableAppelServiceSpy: jasmine.SpyObj<TableAppelService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let router: Router;
 
   const mockAppel: TableAppel = {
     id: 10,
@@ -78,6 +79,8 @@ describe('ClientSuiviComponent', () => {
       ]
     }).compileComponents();
 
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
     fixture = TestBed.createComponent(ClientSuiviComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -121,5 +124,20 @@ describe('ClientSuiviComponent', () => {
     component.commande = null;
     expect(component.statusStep).toBe(1);
     expect(component.statusLabelKey).toBe('CLIENT.STATUS_RECEIVED');
+  });
+
+  it('should redirect to /404 when id is NaN', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    (route as any).params = of({ id: 'invalid-id' });
+    const localFixture = TestBed.createComponent(ClientSuiviComponent);
+    localFixture.detectChanges();
+    expect(router.navigate).toHaveBeenCalledWith(['/404']);
+  });
+
+  it('should redirect to /404 when loadCommande encounters error', () => {
+    commandeServiceSpy.getById.and.returnValue(throwError(() => new Error('Not found')));
+    const localFixture = TestBed.createComponent(ClientSuiviComponent);
+    localFixture.detectChanges();
+    expect(router.navigate).toHaveBeenCalledWith(['/404']);
   });
 });

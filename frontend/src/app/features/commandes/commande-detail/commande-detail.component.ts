@@ -53,19 +53,17 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    if (Number.isNaN(this.commandeId)) {
+      this.router.navigate(['/404']);
+      return;
+    }
     this.isLoading = true;
     this.commandeService.getById(this.commandeId)
       .pipe(takeUntil(this.destroy$), finalize(() => (this.isLoading = false)))
       .subscribe({
         next: commande => (this.commande = commande),
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Commande introuvable',
-            duration: 3000,
-            color: 'danger',
-          });
-          toast.present();
-          this.onBack();
+        error: () => {
+          this.router.navigate(['/404']);
         },
       });
   }

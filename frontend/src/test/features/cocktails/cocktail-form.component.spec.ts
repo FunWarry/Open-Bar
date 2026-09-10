@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController, ModalController } from '@ionic/angular/standalone';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { CocktailFormComponent } from '../../../app/features/cocktails/cocktail-form/cocktail-form.component';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
 import { IngredientService } from '../../../app/core/services/ingredient.service';
@@ -1067,6 +1067,59 @@ describe('CocktailFormComponent', () => {
 
       expect(metrics.abv).toBe(0);
       expect(dietary.isMocktail).toBeTrue();
+    });
+  });
+
+  describe('redirects to /404 on invalid or not found cocktail id', () => {
+    it('redirects to /404 when route id is not a number', async () => {
+      await buildModule('invalid-id');
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+
+    it('redirects to /404 when cocktailService.getById returns an error', async () => {
+      cocktailServiceSpy = jasmine.createSpyObj('CocktailService', [
+        'getAll', 'getById', 'create', 'update', 'delete', 'toggleDisponibilite', 'search', 'getDisponibles', 'updateSaisonnalite', 'uploadImage'
+      ]);
+      cocktailServiceSpy.getById.and.returnValue(throwError(() => new Error('Not found')));
+      ingredientServiceSpy = jasmine.createSpyObj('IngredientService', ['getAll']);
+      templateServiceSpy = jasmine.createSpyObj('RecipeStepTemplateService', ['getAll', 'create']);
+      glasswareServiceSpy = jasmine.createSpyObj('GlasswareService', ['getAll', 'create', 'uploadImage']);
+      routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+      toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+      modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
+
+      ingredientServiceSpy.getAll.and.returnValue(of(mockIngredients));
+      templateServiceSpy.getAll.and.returnValue(of(mockTemplates));
+      glasswareServiceSpy.getAll.and.returnValue(of(mockGlassware));
+
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [CocktailFormComponent, RouterTestingModule, getTranslocoTestingModule()],
+        providers: [
+          { provide: CocktailService, useValue: cocktailServiceSpy },
+          { provide: IngredientService, useValue: ingredientServiceSpy },
+          { provide: RecipeStepTemplateService, useValue: templateServiceSpy },
+          { provide: GlasswareService, useValue: glasswareServiceSpy },
+          { provide: Router, useValue: routerSpy },
+          { provide: ToastController, useValue: toastCtrlSpy },
+          { provide: ModalController, useValue: modalCtrlSpy },
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              snapshot: {
+                paramMap: {
+                  get: (key: string) => (key === 'id' ? '999' : null),
+                },
+              },
+            },
+          },
+        ],
+      }).compileComponents();
+
+      const fixture = TestBed.createComponent(CocktailFormComponent);
+      fixture.detectChanges();
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
     });
   });
 });

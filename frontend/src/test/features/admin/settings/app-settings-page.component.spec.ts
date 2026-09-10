@@ -1018,6 +1018,28 @@ describe('AppSettingsPageComponent', () => {
       expect(parsed.length).toBeGreaterThan(0);
     });
   });
+
+  describe('Tab validation and 404 routing', () => {
+    it('should redirect to /404 when unknown tab is passed in queryParams', () => {
+      (component as any).route = { queryParams: of({ tab: 'unknown-tab' }), data: of({}) };
+      component.ngOnInit();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+
+    it('should redirect to /404 when pricing tab is requested but happy hour module is disabled', () => {
+      spyOn(component, 'happyHourEnabled').and.returnValue(false);
+      (component as any).route = { queryParams: of({ tab: 'pricing' }), data: of({}) };
+      component.ngOnInit();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+
+    it('should redirect to /404 when qr tab is requested but qr ordering module is disabled', () => {
+      spyOn(component, 'qrClientOrderingEnabled').and.returnValue(false);
+      (component as any).route = { queryParams: of({ tab: 'qr' }), data: of({}) };
+      component.ngOnInit();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+  });
 });
 
 

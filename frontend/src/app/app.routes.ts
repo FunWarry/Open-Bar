@@ -65,25 +65,25 @@ export const routes: Routes = [
   {
     path: 'ingredients',
     loadComponent: () => import('./features/ingredients/ingredient-list/ingredient-list.component').then(m => m.IngredientListComponent),
-    canActivate: [AuthGuard, RoleGuard, ModuleGuard],
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
     data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.STOCK_TRACKING }
   },
   {
     path: 'ingredients/new',
     loadComponent: () => import('./features/ingredients/ingredient-form/ingredient-form.component').then(m => m.IngredientFormComponent),
-    canActivate: [AuthGuard, RoleGuard, ModuleGuard],
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
     data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.STOCK_TRACKING }
   },
   {
     path: 'ingredients/:id',
     loadComponent: () => import('./features/ingredients/ingredient-form/ingredient-form.component').then(m => m.IngredientFormComponent),
-    canActivate: [AuthGuard, RoleGuard, ModuleGuard],
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
     data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.STOCK_TRACKING }
   },
   {
     path: 'ingredients/:id/edit',
     loadComponent: () => import('./features/ingredients/ingredient-form/ingredient-form.component').then(m => m.IngredientFormComponent),
-    canActivate: [AuthGuard, RoleGuard, ModuleGuard],
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
     data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.STOCK_TRACKING }
   },
 
@@ -240,13 +240,13 @@ export const routes: Routes = [
   {
     path: 'kitchen',
     loadComponent: () => import('./features/kds-kitchen/kds-kitchen.component').then(m => m.KdsKitchenComponent),
-    canActivate: [AuthGuard, RoleGuard, ModuleGuard],
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
     data: { roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS }
   },
   {
     path: 'cuisine',
     loadComponent: () => import('./features/kds-kitchen/kds-kitchen.component').then(m => m.KdsKitchenComponent),
-    canActivate: [AuthGuard, RoleGuard, ModuleGuard],
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
     data: { roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS }
   },
   {
@@ -301,13 +301,13 @@ export const routes: Routes = [
   {
     path: 'floor-plan',
     loadComponent: () => import('./features/plan-salle/plan-salle.component').then(m => m.PlanSalleComponent),
-    canActivate: [AuthGuard, RoleGuard, ModuleGuard],
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
     data: { roles: ['MANAGER', 'ADMIN'], requiredModule: EstablishmentModule.FLOOR_PLAN }
   },
   {
     path: 'plan-salle',
     loadComponent: () => import('./features/plan-salle/plan-salle.component').then(m => m.PlanSalleComponent),
-    canActivate: [AuthGuard, RoleGuard, ModuleGuard],
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
     data: { roles: ['MANAGER', 'ADMIN'], requiredModule: EstablishmentModule.FLOOR_PLAN }
   },
 
@@ -321,19 +321,19 @@ export const routes: Routes = [
   {
     path: 'manager/employees',
     loadComponent: () => import('./features/employees/employees.component').then(m => m.EmployeesComponent),
-    canActivate: [AuthGuard, RoleGuard, ModuleGuard],
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
     data: { roles: ['MANAGER', 'ADMIN'], requiredModule: EstablishmentModule.EMPLOYEE_MANAGEMENT }
   },
   {
     path: 'manager/schedule',
     loadComponent: () => import('./features/schedule/schedule.component').then(m => m.ScheduleComponent),
-    canActivate: [AuthGuard, RoleGuard, ModuleGuard],
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
     data: { roles: ['MANAGER', 'ADMIN'], requiredModule: EstablishmentModule.EMPLOYEE_MANAGEMENT }
   },
   {
     path: 'manager/shift-presets',
     loadComponent: () => import('./features/shift-presets/shift-presets-config.component').then(m => m.ShiftPresetsConfigComponent),
-    canActivate: [AuthGuard, RoleGuard, ModuleGuard],
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
     data: { roles: ['MANAGER', 'ADMIN'], requiredModule: EstablishmentModule.EMPLOYEE_MANAGEMENT }
   },
   {
@@ -360,14 +360,14 @@ export const routes: Routes = [
   {
     path: 'manager/pricing',
     loadComponent: () => import('./features/admin/settings/app-settings-page.component').then(m => m.AppSettingsPageComponent),
-    canActivate: [AuthGuard, RoleGuard, ModuleGuard],
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
     canDeactivate: [PendingChangesGuard],
     data: { roles: ['MANAGER', 'ADMIN'], defaultTab: 'pricing', requiredModule: EstablishmentModule.HAPPY_HOUR }
   },
   {
     path: 'admin/pricing',
     loadComponent: () => import('./features/admin/settings/app-settings-page.component').then(m => m.AppSettingsPageComponent),
-    canActivate: [AuthGuard, RoleGuard, ModuleGuard],
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
     canDeactivate: [PendingChangesGuard],
     data: { roles: ['MANAGER', 'ADMIN'], defaultTab: 'pricing', requiredModule: EstablishmentModule.HAPPY_HOUR }
   },
@@ -469,6 +469,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    loadComponent: () => import('./features/error-404/error-404.component').then(m => m.Error404Component),
+    redirectTo: '/404'
   }
 ];
