@@ -82,6 +82,8 @@ rtk git commit -m "feat(#X): description courte"
 
 ### Étape 4 — Écrire les tests (Unitaires, Non-Régression, Intégration et E2E)
 
+> 💡 **Automatisation :** Utiliser le skill `openbar-test-gen` pour générer automatiquement l'intégralité de la pyramide de tests requise ainsi que le jeu de démo.
+
 **Règle absolue : les tests font partie intégrante du même ticket, pas d'un ticket séparé.**
 
 #### 1. Tests Unitaires & Non-Régression Frontend (Karma — `src/test/`)
@@ -91,6 +93,7 @@ rtk git commit -m "feat(#X): description courte"
   - ✅ Cas d'erreur (HTTP 4xx/5xx, champ null, état vide)
   - ✅ Cas limites (liste vide, valeur zéro, permissions insuffisantes)
   - ✅ Non-régression : test dédié pour tout bugfix
+  - ✅ Zéro `any`
 
 #### 2. Tests Unitaires & Non-Régression Backend (JUnit 5 + Mockito — `backend/src/test/java/`)
 - Un test par méthode métier dans `XxxServiceTest` (nominal, erreurs, limites, non-régression).
@@ -116,31 +119,40 @@ git commit -m "test(#X): unit, non-regression, integration, e2e tests and platfo
 
 ### Étape 5 — Validation complète en LOCAL avant push (OBLIGATOIRE)
 
-**Ne jamais pousser vers GitHub sans avoir exécuté et validé TOUS les tests et builds en local.**
+**Ne jamais pousser vers GitHub sans avoir exécuté et validé la suite pré-push.**
 
-1. **Frontend — Type check & Tests unitaires :**
+> 🚀 **Automatisation Pré-Push (`openbar-pre-push`) :**
+> Lancer la suite de vérification complète en une commande :
+> ```bash
+> node scripts/pre-push-check.js
+> ```
+> Ce script valide automatiquement les 5 points critiques en ~12s :
+> - Parité Transloco i18n (`fr.json` vs `en.json`)
+> - Zéro `@SuppressWarnings` dans les fichiers modifiés
+> - Zéro couleur hexadécimale en dur (variables CSS obligatoires)
+> - Zéro problème IDE / compilation TypeScript propre (`npx tsc --noEmit`)
+> - Compilation Java 22 / Spring Boot 4 (`mvn test-compile -q`)
+
+1. **Exécution des tests unitaires Frontend :**
 ```bash
-cd frontend && npx tsc --noEmit && npx ng test --watch=false --browsers=ChromeHeadless
+cd frontend && npx ng test --watch=false --browsers=ChromeHeadless
 ```
 > **RÈGLE STRICTE ZÉRO PROBLÈMES IDE** : Vérifier que la fenêtre "Problems" de l'IDE (et `@[current_problems]`) est 100% vide (0 erreur, 0 warning). Ne JAMAIS pousser avec le moindre warning ou problème résiduel.
 
 2. **Architecture Modulaire Plug & Play (OBLIGATOIRE)** :
 > Toute nouvelle fonctionnalité majeure ou capability métier doit être un module activable/désactivable dans l'onboarding (`/setup`) et les paramètres (`AppSettingsPageComponent` onglet "Capacités & Modules"). Vérifier que désactiver le module masque les éléments d'interface et protège les routes (`ModuleGuard`).
 
-3. **Frontend — Tests E2E Playwright en local :**
+3. **Frontend — Tests E2E Playwright en local (si applicable) :**
 ```bash
 cd frontend && npm run test:e2e
 ```
 
-4. **Backend — Compilation et tests Maven (unitaires + intégration) :**
+4. **Backend — Tests Maven (unitaires + intégration) :**
 ```bash
 cd backend && mvn test -q
 ```
-```bash
-cd backend && mvn test-compile dependency:copy-dependencies -DincludeScope=test -DoutputDirectory=target/dependency -q
-```
 
-5. **Scan Sonar & Qualité en LOCAL (OBLIGATOIRE avant tout push/commit) :**
+5. **Scan Sonar & Qualité en LOCAL :**
 ```powershell
 .\scripts\sonar-scan.ps1
 ```
@@ -225,16 +237,20 @@ EOF
 
 ### Étape 8 — Corrections, re-run tests, vérification CI
 
+> 🤖 **Surveillance & Auto-Patching CI (`openbar-ci-watch`) :**
+> Déclencher le skill `openbar-ci-watch` pour surveiller les checks, extraire automatiquement les logs en cas d'erreur (`gh run view --log-failed`), appliquer les patchs nécessaires et attendre que les 3 checks soient au vert.
+
 Pour chaque issue trouvée :
 ```bash
-rtk git add <fichier>
-rtk git commit -m "fix(#X): <correction>"
-rtk git push origin <branche>
+git add <fichier>
+git commit -m "fix(#X): <correction>"
+node scripts/pre-push-check.js
+git push origin <branche>
 ```
 
 **Attendre que TOUS LES CHECKS CI (y compris SonarCloud) soient 100% VERTS (`pass`) avant de merger :**
 ```bash
-rtk gh pr checks <NUM> --repo FunWarry/Open-Bar --watch
+gh pr checks <NUM> --repo FunWarry/Open-Bar --watch
 ```
 
 **RÈGLE ABSOLUE ET STRICTE DE NON-MERGE AVANT ATTENTE DE SONARCLOUD :**

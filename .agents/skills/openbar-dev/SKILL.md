@@ -342,10 +342,14 @@ Topics existants : `/topic/commandes`, `/topic/commandes/{id}`, `/topic/tables`,
 - Localisation : `frontend/e2e/<domaine>/<feature>.spec.ts`
 - Exécution : `npm run test:e2e`
 
+> 💡 **Génération de Tests & Seeding :** Déclencher le skill `openbar-test-gen` pour générer automatiquement la pyramide de tests requise et le jeu de démo associé.
+
 ---
 
 ## Checklist avant de livrer le code
 
+- [ ] **Validation Pré-Push (`openbar-pre-push`) validée à 100%** (`node scripts/pre-push-check.js`)
+- [ ] **Zéro problème dans la fenêtre Problems de l'IDE** (`@[current_problems]` 100% vide, 0 warning, 0 error)
 - [ ] Modèle JPA avec `@PrePersist`/`@PreUpdate`
 - [ ] Table dans `schema.sql`
 - [ ] Repository extends `JpaRepository`
@@ -363,4 +367,5 @@ Topics existants : `/topic/commandes`, `/topic/commandes/{id}`, `/topic/tables`,
 - [ ] **Tests d'intégration backend (Testcontainers)** si nouvelle logique d'API ou flux complexe
 - [ ] **Tests E2E Playwright** pour toute nouvelle vue ou flow utilisateur
 - [ ] **Données de démo et test plateforme ajoutées/mises à jour** (`demo_dataset.json`, `SampleDataSeederService.java`)
+- [ ] **Modularité Plug & Play respectée** : activation/désactivation dans `/setup` et `AppSettingsPageComponent`
 - [ ] Lien navbar si pertinent

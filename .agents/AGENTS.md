@@ -114,6 +114,10 @@ Skills in `.agents/skills/` define reusable workflows for this project:
 | `openbar-install` | "setup project" / after ❌ in check | Install/repair the full dev environment |
 | `openbar-dev` | "add feature X" / "generate component" | Generate code following OpenBar conventions |
 | `openbar-ticket` | "implement issue #N" / "treat ticket #N" | Full ticket pipeline (branch → impl → tests → PR → merge) |
+| `openbar-fast-ticket` | "fast ticket #N" / "traite le bugfix #N" | Express automated pipeline for minor tickets & bugfixes |
+| `openbar-test-gen` | "génère les tests pour X" / "test pyramid" | Full test pyramid generator (Karma, JUnit 5, seeder, Playwright) |
+| `openbar-pre-push` | "pre-push" / "valide avant push" | Fast local pre-push validation suite (i18n, zero problems, CSS, compilation) |
+| `openbar-ci-watch` | "watch CI" / "surveille la CI" | Autonomous CI & SonarCloud watcher with log diagnosis and auto-patching |
 | `openbar-post-merge` | "post-merge" / "after merge PR #X" | Post-merge cleanup, issue/board closure & KI sync |
 | `openbar-ki-update` | "update KIs" / after PR merged | Sync knowledge base with project state |
 
