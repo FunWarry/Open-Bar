@@ -332,4 +332,41 @@ describe('ClotureCaisseModalComponent', () => {
     expect(suffixEl).toBeTruthy();
     expect(suffixEl.textContent.trim()).toBe('CHF');
   });
+
+  describe('Edge cases and fallbacks', () => {
+    it('should fall back to EURO_DENOMINATIONS when getCashDenominations returns empty', () => {
+      appSettingsServiceSpy.getCashDenominations.and.returnValue([]);
+      (component as any).refreshDenominations();
+      expect(component.denominations).toEqual(jasmine.any(Array));
+      expect(component.denominations.length).toBeGreaterThan(10);
+      expect(component.denominations[0].key).toBe('500e');
+    });
+
+    it('should set date to current date ISO string if not initially provided', () => {
+      component.date = '';
+      component.ngOnInit();
+      expect(component.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+
+    it('should safely return 0 cashRevenue when recap has no ventilationModePaiement', () => {
+      component.recap = {} as any;
+      expect(component.cashRevenue).toBe(0);
+    });
+
+    it('should safely handle onCountChange with invalid non-numeric or negative string', () => {
+      component.onCountChange('50e', 'not-a-number');
+      expect(component.counting['50e']).toBe(0);
+
+      component.onCountChange('50e', '-5');
+      expect(component.counting['50e']).toBe(0);
+
+      component.onCountChange('50e', '12');
+      expect(component.counting['50e']).toBe(12);
+    });
+
+    it('should call modalCtrl.dismiss with closed false by default', () => {
+      component.dismiss();
+      expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ closed: false, closure: null });
+    });
+  });
 });

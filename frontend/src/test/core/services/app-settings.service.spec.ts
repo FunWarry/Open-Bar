@@ -201,6 +201,85 @@ describe('AppSettingsService', () => {
     });
   });
 
+  describe('Cash Register Denominations', () => {
+    it('should return default EUR denominations when no settings are loaded', () => {
+      const denoms = service.getCashDenominations();
+      expect(denoms.length).toBeGreaterThan(10);
+      expect(denoms[0].key).toBe('500e');
+      expect(denoms[0].value).toBe(500);
+      expect(denoms.some(d => d.key === '001e')).toBeTrue();
+    });
+
+    it('should return parsed custom denominations when cashDenominationsJson is valid', () => {
+      const customList = [
+        { key: '100usd', label: '$ 100', value: 100, type: 'bill' },
+        { key: '50usd', label: '$ 50', value: 50, type: 'bill' },
+      ];
+      service.getSettings().subscribe();
+      const req = httpMock.expectOne(baseUrl);
+      req.flush({
+        ...mockSettings,
+        currencyCode: 'USD',
+        currencySymbol: '$',
+        currencyPosition: 'BEFORE',
+        cashDenominationsJson: JSON.stringify(customList)
+      });
+
+      const result = service.getCashDenominations();
+      expect(result).toEqual(customList as any);
+    });
+
+    it('should fall back to defaults when cashDenominationsJson is malformed JSON', () => {
+      spyOn(console, 'warn');
+      service.getSettings().subscribe();
+      const req = httpMock.expectOne(baseUrl);
+      req.flush({
+        ...mockSettings,
+        currencyCode: 'USD',
+        currencySymbol: '$',
+        currencyPosition: 'BEFORE',
+        cashDenominationsJson: '{malformed_json}'
+      });
+
+      const result = service.getCashDenominations();
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0].key).toContain('usd');
+      expect(console.warn).toHaveBeenCalled();
+    });
+
+    it('should fall back to defaults when cashDenominationsJson is an empty JSON array', () => {
+      service.getSettings().subscribe();
+      const req = httpMock.expectOne(baseUrl);
+      req.flush({
+        ...mockSettings,
+        currencyCode: 'EUR',
+        currencySymbol: '€',
+        currencyPosition: 'AFTER',
+        cashDenominationsJson: '[]'
+      });
+
+      const result = service.getCashDenominations();
+      expect(result.length).toBeGreaterThan(10);
+      expect(result[0].key).toBe('500e');
+    });
+
+    it('should generate currency-specific defaults when currency changes', () => {
+      service.getSettings().subscribe();
+      const req = httpMock.expectOne(baseUrl);
+      req.flush({
+        ...mockSettings,
+        currencyCode: 'CHF',
+        currencySymbol: 'CHF',
+        currencyPosition: 'BEFORE',
+        cashDenominationsJson: null
+      });
+
+      const result = service.getCashDenominations();
+      expect(result[0].key).toBe('1000chf');
+      expect(result[0].label).toBe('1000 CHF');
+    });
+  });
+
   describe('Wi-Fi QR Code Generation', () => {
     it('getWifiQrCodeUrl should return formatted URL', () => {
       const url = service.getWifiQrCodeUrl('SVG', 250);

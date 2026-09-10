@@ -876,6 +876,54 @@ describe('AppSettingsPageComponent', () => {
       expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'info' }));
     });
 
+    it('should ignore adding custom denomination when value is null, zero or negative', () => {
+      const initialCount = component.configuredDenominations().length;
+
+      component.newDenomValue = null;
+      component.addCustomDenomination();
+      expect(component.configuredDenominations()).toHaveSize(initialCount);
+
+      component.newDenomValue = 0;
+      component.addCustomDenomination();
+      expect(component.configuredDenominations()).toHaveSize(initialCount);
+
+      component.newDenomValue = -10;
+      component.addCustomDenomination();
+      expect(component.configuredDenominations()).toHaveSize(initialCount);
+    });
+
+    it('should correctly resolve and parse existing cashDenominationsJson from settings', () => {
+      const customDenoms = [
+        { key: 'custom_bill', label: '15 €', value: 15, type: 'bill' as const }
+      ];
+      const resolved = (component as any).resolveDenominations({
+        currencyCode: 'EUR',
+        currencySymbol: '€',
+        currencyPosition: 'AFTER',
+        cashDenominationsJson: JSON.stringify(customDenoms)
+      });
+      expect(resolved).toEqual(customDenoms);
+    });
+
+    it('should fall back to defaults when cashDenominationsJson is invalid JSON in resolveDenominations', () => {
+      const resolved = (component as any).resolveDenominations({
+        currencyCode: 'EUR',
+        currencySymbol: '€',
+        currencyPosition: 'AFTER',
+        cashDenominationsJson: 'INVALID_JSON'
+      });
+      expect(resolved.length).toBeGreaterThan(10);
+      expect(resolved[0].key).toBe('500e');
+    });
+
+    it('should reset denominations to initial value when discardChanges is called', () => {
+      component.removeDenomination('500e');
+      expect(component.configuredDenominations().some(d => d.key === '500e')).toBeFalse();
+
+      component.discardChanges();
+      expect(component.configuredDenominations().some(d => d.key === '500e')).toBeTrue();
+    });
+
     it('should serialize cashDenominationsJson into payload when saveAll is called', () => {
       component.saveAll();
 
