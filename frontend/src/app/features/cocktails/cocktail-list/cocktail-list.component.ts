@@ -15,7 +15,8 @@ import { addIcons } from 'ionicons';
 import {
   add, create, trash, leafOutline, toggle, toggleOutline, gridOutline, listOutline,
   search, imageOutline, image, wineOutline, nutritionOutline, eggOutline,
-  funnelOutline, closeCircleOutline, alertCircleOutline
+  funnelOutline, closeCircleOutline, alertCircleOutline,
+  checkmarkCircle
 } from 'ionicons/icons';
 import { AsyncPipe, CurrencyPipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -113,6 +114,8 @@ export class CocktailListComponent implements OnInit, OnDestroy {
       add, create, trash, leafOutline, toggle, toggleOutline, gridOutline, listOutline,
       search, image, imageOutline, wineOutline, nutritionOutline, eggOutline,
       funnelOutline, closeCircleOutline, alertCircleOutline,
+      checkmarkCircle,
+      'checkmark-circle': checkmarkCircle,
       'image-outline': imageOutline
     });
   }
@@ -174,6 +177,13 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   togglePictures(): void {
     this.showPictures = !this.showPictures;
     localStorage.setItem(this.PICTURES_CACHE_KEY, String(this.showPictures));
+  }
+
+  /**
+   * Toggles filtering between all cocktails and only available cocktails.
+   */
+  toggleAvailableOnly(): void {
+    this.filtre = this.filtre === 'disponibles' ? 'tous' : 'disponibles';
   }
 
   ngOnDestroy(): void {

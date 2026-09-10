@@ -44,6 +44,21 @@
             <span class="toggle-indicator-dot" [class.on]="showPictures"></span>
           </button>
 
+          <!-- Available Only Toggle Button (Sleek Pill) -->
+          <button
+            type="button"
+            class="available-only-toggle-pill"
+            [class.active]="filtre === 'disponibles'"
+            (click)="toggleAvailableOnly()"
+            (keydown.enter)="toggleAvailableOnly()"
+            data-testid="available-only-toggle"
+            [attr.aria-pressed]="filtre === 'disponibles'"
+            [title]="'COCKTAILS.AVAILABLE_ONLY' | transloco">
+            <ion-icon name="checkmark-circle"></ion-icon>
+            <span>{{ 'COCKTAILS.AVAILABLE_ONLY' | transloco }}</span>
+            <span class="toggle-indicator-dot" [class.on]="filtre === 'disponibles'"></span>
+          </button>
+
           <!-- View Mode Toggle Pill Group (Exact match to reference) -->
           <div class="view-mode-pill-group" data-testid="cocktail-view-mode-toggle">
             <button
@@ -235,7 +250,7 @@
                           {{ ('COCKTAILS.CATEGORIES.' + cocktail.categorie) | transloco }}
                         </span>
                         @if (!cocktail.disponible) {
-                          <span class="figma-alert-pill critical">⚠️ {{ 'COCKTAILS.UNAVAILABLE' | transloco }}</span>
+                          <span class="figma-alert-pill critical" data-testid="badge-cocktail-unavailable">⚠️ {{ 'COCKTAILS.UNAVAILABLE' | transloco }}</span>
                         }
                         @if (isHorsSaison(cocktail)) {
                           <span class="figma-alert-pill low">⚠️ {{ 'COCKTAILS.OFF_SEASON' | transloco }}</span>

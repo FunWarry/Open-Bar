@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import {
   IonCard,
   IonCardHeader,
@@ -25,6 +25,7 @@ import { UserService } from '../../core/services/user.service';
 import { ShiftService } from '../../core/services/shift.service';
 import { EmployeeShiftModalComponent } from './employee-shift-modal/employee-shift-modal.component';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
+import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
 
 interface EmployeeSummary {
   user: User;
@@ -46,6 +47,7 @@ interface EmployeeSummary {
     RouterModule,
     TranslocoModule,
     SearchBarComponent,
+    ActionButtonComponent,
     IonCard,
     IonCardHeader,
     IonCardTitle,
@@ -65,6 +67,14 @@ export class EmployeesComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly shiftService = inject(ShiftService);
   private readonly modalCtrl = inject(ModalController);
+  private readonly router = inject(Router);
+
+  /**
+   * Navigates to the shift presets management page.
+   */
+  goToShiftPresets(): void {
+    this.router.navigate(['/manager/shift-presets']);
+  }
 
   loading = true;
   users: User[] = [];
