@@ -16,7 +16,7 @@ import { AppUpdateService } from '../../../../app/core/services/app-update.servi
 import { AuthService } from '../../../../app/core/services/auth.service';
 import { OnboardingService } from '../../../../app/core/services/onboarding.service';
 import { FeatureFlagService } from '../../../../app/core/services/feature-flag.service';
-import { ESTABLISHMENT_PRESETS } from '../../../../app/core/models/establishment-module.model';
+import { ESTABLISHMENT_PRESETS, EstablishmentPresetType } from '../../../../app/core/models/establishment-module.model';
 
 describe('AppSettingsPageComponent', () => {
   let component: AppSettingsPageComponent;
@@ -781,6 +781,86 @@ describe('AppSettingsPageComponent', () => {
       component.discardChanges();
       expect(component.modulesForm.get('cuisineKds')?.value).toBeTrue();
       expect(component.modulesForm.pristine).toBeTrue();
+    });
+
+    it('should compute activeModulesCount correctly', () => {
+      component.modulesForm.patchValue({
+        cuisineKds: true,
+        happyHour: true,
+        employeeManagement: false,
+        floorPlan: false,
+        qrClientOrdering: true,
+        stockTracking: true,
+      });
+      expect(component.activeModulesCount).toBe(4);
+
+      component.modulesForm.patchValue({
+        cuisineKds: false,
+        happyHour: false,
+        employeeManagement: false,
+        floorPlan: false,
+        qrClientOrdering: false,
+        stockTracking: false,
+      });
+      expect(component.activeModulesCount).toBe(0);
+    });
+
+    it('should determine isModuleControlActive accurately', () => {
+      component.modulesForm.patchValue({ cuisineKds: true, floorPlan: false });
+      expect(component.isModuleControlActive('cuisineKds')).toBeTrue();
+      expect(component.isModuleControlActive('floorPlan')).toBeFalse();
+      expect(component.isModuleControlActive('nonExistentKey')).toBeFalse();
+    });
+
+    it('should identify matching preset with isModulePresetActive()', () => {
+      component.applyModulesPreset('BAR');
+      expect(component.isModulePresetActive('BAR')).toBeTrue();
+      expect(component.isModulePresetActive('RESTAURANT')).toBeFalse();
+      expect(component.isModulePresetActive('FOOD_TRUCK')).toBeFalse();
+      expect(component.isModulePresetActive('NIGHTCLUB')).toBeFalse();
+
+      component.applyModulesPreset('FOOD_TRUCK');
+      expect(component.isModulePresetActive('FOOD_TRUCK')).toBeTrue();
+      expect(component.isModulePresetActive('BAR')).toBeFalse();
+
+      component.applyModulesPreset('RESTAURANT');
+      expect(component.isModulePresetActive('RESTAURANT')).toBeTrue();
+
+      component.applyModulesPreset('NIGHTCLUB');
+      expect(component.isModulePresetActive('NIGHTCLUB')).toBeTrue();
+
+      // Custom configuration does not match any known preset
+      component.modulesForm.patchValue({ cuisineKds: true, stockTracking: false });
+      expect(component.isModulePresetActive('BAR')).toBeFalse();
+      expect(component.isModulePresetActive('NIGHTCLUB')).toBeFalse();
+    });
+
+    it('should reset modules form with resetModules()', () => {
+      component.initialModulesValue = {
+        cuisineKds: false,
+        happyHour: false,
+        employeeManagement: false,
+        floorPlan: false,
+        qrClientOrdering: false,
+        stockTracking: false,
+      };
+      component.applyModulesPreset('RESTAURANT');
+      expect(component.modulesForm.dirty).toBeTrue();
+
+      component.resetModules();
+      expect(component.modulesForm.get('cuisineKds')?.value).toBeFalse();
+      expect(component.modulesForm.pristine).toBeTrue();
+    });
+
+    it('should handle edge cases when modulesForm is null or preset is invalid', () => {
+      const originalForm = component.modulesForm;
+      (component as { modulesForm: unknown }).modulesForm = null;
+
+      expect(component.activeModulesCount).toBe(0);
+      expect(component.isModulePresetActive('BAR')).toBeFalse();
+
+      (component as { modulesForm: unknown }).modulesForm = originalForm;
+      expect(component.isModulePresetActive('CUSTOM' as unknown as Exclude<EstablishmentPresetType, 'CUSTOM'>)).toBeFalse();
     });
   });
 

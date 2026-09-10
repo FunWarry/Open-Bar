@@ -445,7 +445,7 @@
             <ion-grid>
               <ion-row>
                 <!-- Colonne Gauche : Presets & Configuration des 6 Modules -->
-                <ion-col size="12" sizeLg="8">
+                <ion-col size="12" sizeLg="7">
                   <!-- Section Presets -->
                   <ion-card class="settings-card" data-testid="card-module-presets">
                     <ion-card-header>
@@ -456,18 +456,29 @@
                       <p class="card-subtitle">{{ 'SETTINGS.MODULES_PRESETS_SUBTITLE' | transloco }}</p>
                     </ion-card-header>
                     <ion-card-content>
-                      <div class="cadence-presets-grid">
+                      <div class="module-presets-grid">
                         @for (preset of modulePresets; track preset.type) {
                           <button
                             type="button"
-                            class="cadence-card"
+                            class="module-preset-card"
+                            [class.preset-active]="isModulePresetActive(preset.type)"
                             (click)="applyModulesPreset(preset.type)"
                             [attr.data-testid]="'preset-module-' + preset.type.toLowerCase()">
-                            <span class="cadence-name">
-                              <ion-icon [name]="preset.icon" style="margin-right: 6px;"></ion-icon>
-                              {{ preset.labelKey | transloco }}
-                            </span>
-                            <span class="card-subtitle" style="font-size: 0.78rem; margin: 4px 0 0;">{{ preset.descKey | transloco }}</span>
+                            <div class="preset-card-header">
+                              <div class="preset-title-wrap">
+                                <div class="preset-icon-box">
+                                  <ion-icon [name]="preset.icon"></ion-icon>
+                                </div>
+                                <span class="preset-name">{{ preset.labelKey | transloco }}</span>
+                              </div>
+                              @if (isModulePresetActive(preset.type)) {
+                                <span class="preset-active-pill" data-testid="pill-preset-active">
+                                  <ion-icon name="checkmark-outline"></ion-icon>
+                                  {{ 'SETTINGS.MODULES_STATUS_ACTIVE' | transloco }}
+                                </span>
+                              }
+                            </div>
+                            <p class="preset-desc">{{ preset.descKey | transloco }}</p>
                           </button>
                         }
                       </div>
@@ -561,30 +572,194 @@
                   </ion-card>
                 </ion-col>
 
-                <!-- Colonne Droite : Statut & Actions Rapides -->
-                <ion-col size="12" sizeLg="4">
-                  <ion-card class="settings-card preview-sticky">
+                <!-- Colonne Droite : Aperçu Visuel de l'Écosystème & Actions -->
+                <ion-col size="12" sizeLg="5">
+                  <ion-card class="settings-card sticky-preview-card" data-testid="card-modules-ecosystem-preview">
                     <ion-card-header>
-                      <ion-card-title class="card-title">
-                        <ion-icon name="shield-checkmark-outline"></ion-icon>
-                        <span>{{ 'SETTINGS.MODULES_SAVE_BTN' | transloco }}</span>
-                      </ion-card-title>
-                      <p class="card-subtitle">{{ 'SETTINGS.MODULES_SUBTITLE' | transloco }}</p>
+                      <div class="preview-header-flex">
+                        <ion-card-title class="card-title">
+                          <ion-icon name="sparkles-outline" class="title-icon"></ion-icon>
+                          <span>{{ 'SETTINGS.MODULES_ECOSYSTEM_TITLE' | transloco }}</span>
+                        </ion-card-title>
+                        <span class="active-count-badge" data-testid="badge-active-modules-count">
+                          {{ 'SETTINGS.MODULES_ACTIVE_COUNT' | transloco: { active: activeModulesCount, total: totalModulesCount } }}
+                        </span>
+                      </div>
+                      <p class="card-subtitle">{{ 'SETTINGS.MODULES_ECOSYSTEM_SUBTITLE' | transloco }}</p>
+
+                      <!-- Barre de Progression de Complétude Modulaire -->
+                      <div class="ecosystem-progress-track">
+                        <div
+                          class="ecosystem-progress-fill"
+                          [style.width.%]="(activeModulesCount / totalModulesCount) * 100"
+                          data-testid="progress-active-modules">
+                        </div>
+                      </div>
                     </ion-card-header>
+
                     <ion-card-content>
-                      <div class="action-buttons-stack" style="display: flex; flex-direction: column; gap: 12px;">
+                      <!-- Carte Schéma Visuel de l'Écosystème Connecté -->
+                      <div class="ecosystem-blueprint">
+                        <!-- Node Central : Le Bar (Toujours Actif) -->
+                        <div class="blueprint-core-station" data-testid="station-core-bar">
+                          <div class="station-icon-glow">
+                            <ion-icon name="wine-outline"></ion-icon>
+                          </div>
+                          <div class="station-details">
+                            <div class="station-header">
+                              <span class="station-name">{{ 'SETTINGS.MODULES_STATION_CORE_BAR' | transloco }}</span>
+                              <span class="status-chip always-active">
+                                <span class="pulse-dot"></span>
+                                {{ 'SETTINGS.MODULES_STATUS_ACTIVE' | transloco }}
+                              </span>
+                            </div>
+                            <span class="station-desc">{{ 'SETTINGS.MODULES_STATION_CORE_BAR_DESC' | transloco }}</span>
+                          </div>
+                        </div>
+
+                        <!-- Grille des Stations & Flux Modulaires -->
+                        <div class="blueprint-nodes-grid">
+                          <!-- 1. Cuisine KDS -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('cuisineKds')"
+                            [class.node-inactive]="!isModuleControlActive('cuisineKds')"
+                            data-testid="preview-node-cuisine-kds">
+                            <div class="node-icon-box">
+                              <ion-icon name="restaurant-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_CUISINE_KDS_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('cuisineKds')">
+                                  {{ (isModuleControlActive('cuisineKds') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_KITCHEN' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 2. Plan de Salle 2D -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('floorPlan')"
+                            [class.node-inactive]="!isModuleControlActive('floorPlan')"
+                            data-testid="preview-node-floor-plan">
+                            <div class="node-icon-box">
+                              <ion-icon name="grid-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_FLOOR_PLAN_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('floorPlan')">
+                                  {{ (isModuleControlActive('floorPlan') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_FLOOR_PLAN' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 3. Commande Client QR -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('qrClientOrdering')"
+                            [class.node-inactive]="!isModuleControlActive('qrClientOrdering')"
+                            data-testid="preview-node-qr-client-ordering">
+                            <div class="node-icon-box">
+                              <ion-icon name="qr-code-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_QR_CLIENT_ORDERING_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('qrClientOrdering')">
+                                  {{ (isModuleControlActive('qrClientOrdering') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_QR' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 4. Gestion Employés & Plannings -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('employeeManagement')"
+                            [class.node-inactive]="!isModuleControlActive('employeeManagement')"
+                            data-testid="preview-node-employee-management">
+                            <div class="node-icon-box">
+                              <ion-icon name="people-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_EMPLOYEE_MANAGEMENT_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('employeeManagement')">
+                                  {{ (isModuleControlActive('employeeManagement') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_EMPLOYEES' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 5. Happy Hour & Promotions -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('happyHour')"
+                            [class.node-inactive]="!isModuleControlActive('happyHour')"
+                            data-testid="preview-node-happy-hour">
+                            <div class="node-icon-box">
+                              <ion-icon name="pricetag-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_HAPPY_HOUR_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('happyHour')">
+                                  {{ (isModuleControlActive('happyHour') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_HAPPY_HOUR' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 6. Déduction Automatique Stocks -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('stockTracking')"
+                            [class.node-inactive]="!isModuleControlActive('stockTracking')"
+                            data-testid="preview-node-stock-tracking">
+                            <div class="node-icon-box">
+                              <ion-icon name="nutrition-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_STOCK_TRACKING_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('stockTracking')">
+                                  {{ (isModuleControlActive('stockTracking') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_STOCK' | transloco }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Actions Rapides Stylisées -->
+                      <div class="module-action-buttons-stack">
                         <button
                           type="button"
-                          class="action-btn-primary"
+                          class="module-btn-primary"
                           (click)="saveModules()"
                           [disabled]="!modulesForm.dirty || isSaving"
                           data-testid="btn-save-modules">
-                          <ion-icon name="save-outline"></ion-icon>
-                          <span>{{ 'SETTINGS.MODULES_SAVE_BTN' | transloco }}</span>
+                          @if (isSaving) {
+                            <ion-spinner name="crescent"></ion-spinner>
+                            <span>{{ 'SETTINGS.SAVING' | transloco }}</span>
+                          } @else {
+                            <ion-icon name="save-outline"></ion-icon>
+                            <span>{{ 'SETTINGS.MODULES_SAVE_BTN' | transloco }}</span>
+                          }
                         </button>
                         <button
                           type="button"
-                          class="action-btn-outline"
+                          class="module-btn-outline"
                           (click)="resetModules()"
                           [disabled]="!modulesForm.dirty || isSaving"
                           data-testid="btn-reset-modules">

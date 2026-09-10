@@ -50,6 +50,7 @@ import {
   desktopOutline,
   warningOutline,
   checkmarkCircleOutline,
+  checkmarkOutline,
   speedometerOutline,
   receiptOutline,
   alertCircleOutline,
@@ -439,6 +440,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       desktopOutline,
       warningOutline,
       checkmarkCircleOutline,
+      checkmarkOutline,
       speedometerOutline,
       receiptOutline,
       alertCircleOutline,
@@ -1212,6 +1214,59 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       this.modulesForm.patchValue(presetValues);
       this.modulesForm.markAsDirty();
     }
+  }
+
+  /**
+   * Checks whether the current modular capability toggles match an establishment preset.
+   *
+   * @param preset Preset key (BAR, RESTAURANT, FOOD_TRUCK, NIGHTCLUB)
+   * @returns True if active form values match the preset definition
+   */
+  isModulePresetActive(preset: Exclude<EstablishmentPresetType, 'CUSTOM'>): boolean {
+    if (!this.modulesForm) {
+      return false;
+    }
+    const current = this.modulesForm.value;
+    const target = ESTABLISHMENT_PRESETS[preset];
+    if (!target) {
+      return false;
+    }
+    return (
+      !!current.cuisineKds === target.cuisineKds &&
+      !!current.happyHour === target.happyHour &&
+      !!current.employeeManagement === target.employeeManagement &&
+      !!current.floorPlan === target.floorPlan &&
+      !!current.qrClientOrdering === target.qrClientOrdering &&
+      !!current.stockTracking === target.stockTracking
+    );
+  }
+
+  /**
+   * Total count of available modular capabilities.
+   */
+  readonly totalModulesCount = 6;
+
+  /**
+   * Computes the number of currently active modules in modulesForm.
+   *
+   * @returns Active modules count between 0 and 6
+   */
+  get activeModulesCount(): number {
+    if (!this.modulesForm) {
+      return 0;
+    }
+    const val = this.modulesForm.value;
+    return Object.values(val).filter(Boolean).length;
+  }
+
+  /**
+   * Checks whether a specific module control is enabled in modulesForm.
+   *
+   * @param key Control key name in modulesForm
+   * @returns True if active
+   */
+  isModuleControlActive(key: string): boolean {
+    return !!this.modulesForm?.get(key)?.value;
   }
 
   /**

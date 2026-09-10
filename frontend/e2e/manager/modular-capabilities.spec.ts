@@ -42,13 +42,19 @@ test.describe('Modular Capabilities Settings E2E', () => {
     await expect(page.locator('[data-testid="unified-app-settings-page"]').first()).toBeVisible();
     await page.click('[data-testid="tab-modules"]');
 
+    // Ecosystem preview card is visible
+    await expect(page.locator('[data-testid="card-modules-ecosystem-preview"]')).toBeVisible();
+    await expect(page.locator('[data-testid="badge-active-modules-count"]')).toBeVisible();
+
     // Click Food Truck preset
     await page.click('[data-testid="preset-module-food_truck"]');
 
-    // Form should become dirty and save button enabled
-    await expect(page.locator('[data-testid="status-dirty"]')).toBeVisible();
-    const saveBtn = page.locator('[data-testid="btn-save-all-settings"]');
-    await expect(saveBtn).toBeEnabled();
+    // Preset active pill should be visible on the selected preset card
+    await expect(page.locator('[data-testid="preset-module-food_truck"] [data-testid="pill-preset-active"]')).toBeVisible();
+
+    // Form should become dirty and dedicated module save button enabled
+    const moduleSaveBtn = page.locator('[data-testid="btn-save-modules"]');
+    await expect(moduleSaveBtn).toBeEnabled();
   });
 
   test('should toggle capability and save changes', async ({ page }) => {
