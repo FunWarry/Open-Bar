@@ -77,6 +77,8 @@ features/<name>/
 - **Adaptive Theme System & No Hardcoded Colors** — The application supports dynamic Light/Dark theme switching. NEVER hardcode hex (`#1a1a2e`), RGB, or named colors in CSS/SCSS/TS. Always use CSS variables from `frontend/src/theme/variables.css` (`var(--background-bg-0)`, `var(--background-surface-1)`, `var(--background-surface-2)`, `var(--text-primary)`, `var(--text-secondary)`, `var(--text-muted)`, `var(--border-medium)`, `var(--primary)`, `var(--semantic-success)`, `var(--semantic-danger)`, `var(--semantic-warning)`, `var(--semantic-info)`, etc.).
 - **Language & Documentation**: All TSDoc comments, service methods, variables, and models MUST be written in English.
 - **Component Reusability & Proactive Factoring**: Always inspect `app/core/components/ui/` before creating UI elements to reuse existing components (`app-search-bar`, `app-empty-state`, `app-searchable-select`, `app-toggle-switch`, `app-checkbox-field`). Proactively factor out recurring patterns across 2+ views into `core/components/ui/` and migrate existing ad-hoc code for 100% uniformity and reusability.
+- **Zero Problems in IDE Panel Mandatory**: Never commit or push code with unresolved errors or warnings in the IDE Problems window (or reported via `@[current_problems]`). Always run `npx tsc --noEmit` and `mvn test-compile` to guarantee 0 errors.
+- **Mandatory Plug-and-Play Modular Architecture**: Every new feature or distinct capability must be a toggleable plugin integrated into `EstablishmentModule` and `FeatureFlagService` (`ModuleGuard`), configurable from `AppSettingsPageComponent` ("Capacités & Modules") and onboarding (`/setup`).
 
 ### Internationalization (Transloco)
 - Keys in `SCREAMING_SNAKE_CASE`: `COMMANDE.STATUT.EN_ATTENTE`

@@ -44,6 +44,9 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
 2. **Documentation is MANDATORY for all new or modified code** (JavaDoc on backend, TSDoc on frontend, OpenAPI annotations on controllers).
 3. **NEVER use `@SuppressWarnings` annotations to bypass quality/security issues** — always refactor and resolve underlying code issues directly.
 
+4. **NEVER push with unresolved IDE Problems (Zero Problems Mandatory)** — NEVER commit or push code while there are unresolved errors or warnings in the IDE "Problems" panel (or reported via `@[current_problems]`). Always run `npx tsc --noEmit` (frontend) and `mvn test-compile` (backend) to ensure 0 errors and 0 warnings before committing or pushing.
+5. **Mandatory Plug-and-Play Modular Architecture (Toggleable Plugins)** — ALL new features and business capabilities MUST be designed as "plug-and-play" modules that can be dynamically enabled or disabled per establishment. They must integrate with `EstablishmentModule` on the backend and `FeatureFlagService` (`ModuleGuard`) on the frontend, with toggle switches in App Settings (`AppSettingsPageComponent` Tab "Capacités & Modules") and onboarding (`/setup`). When a module is disabled, its UI elements/routes are hidden and its endpoints reject operations cleanly.
+
 ### Backend
 1. **Never `@Autowired` on a field** — always constructor injection
 2. **Never return JPA entities** from controllers — always a DTO (`Java record` with `static from(Entity e)`)

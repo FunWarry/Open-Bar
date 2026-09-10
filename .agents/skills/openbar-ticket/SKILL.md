@@ -122,13 +122,17 @@ git commit -m "test(#X): unit, non-regression, integration, e2e tests and platfo
 ```bash
 cd frontend && npx tsc --noEmit && npx ng test --watch=false --browsers=ChromeHeadless
 ```
+> **RÈGLE STRICTE ZÉRO PROBLÈMES IDE** : Vérifier que la fenêtre "Problems" de l'IDE (et `@[current_problems]`) est 100% vide (0 erreur, 0 warning). Ne JAMAIS pousser avec le moindre warning ou problème résiduel.
 
-2. **Frontend — Tests E2E Playwright en local :**
+2. **Architecture Modulaire Plug & Play (OBLIGATOIRE)** :
+> Toute nouvelle fonctionnalité majeure ou capability métier doit être un module activable/désactivable dans l'onboarding (`/setup`) et les paramètres (`AppSettingsPageComponent` onglet "Capacités & Modules"). Vérifier que désactiver le module masque les éléments d'interface et protège les routes (`ModuleGuard`).
+
+3. **Frontend — Tests E2E Playwright en local :**
 ```bash
 cd frontend && npm run test:e2e
 ```
 
-3. **Backend — Compilation et tests Maven (unitaires + intégration) :**
+4. **Backend — Compilation et tests Maven (unitaires + intégration) :**
 ```bash
 cd backend && mvn test -q
 ```
@@ -136,7 +140,7 @@ cd backend && mvn test -q
 cd backend && mvn test-compile dependency:copy-dependencies -DincludeScope=test -DoutputDirectory=target/dependency -q
 ```
 
-4. **Scan Sonar & Qualité en LOCAL (OBLIGATOIRE avant tout push/commit) :**
+5. **Scan Sonar & Qualité en LOCAL (OBLIGATOIRE avant tout push/commit) :**
 ```powershell
 .\scripts\sonar-scan.ps1
 ```
@@ -352,6 +356,8 @@ Déclencher le skill `openbar-ki-update` pour synchroniser les KIs avec l'état 
 ## Checklist avant de merger
 
 - [ ] Zéro erreur TypeScript (`rtk tsc --noEmit | grep -v node_modules`)
+- [ ] **Zéro problème dans la fenêtre Problems de l'IDE** (`@[current_problems]` 100% vide, 0 warning, 0 error)
+- [ ] **Architecture Plug-and-Play respectée** : feature activable/désactivable dans les paramètres (`AppSettingsPageComponent`) et l'onboarding (`/setup`)
 - [ ] Tests écrits : cas nominal + cas d'erreur + cas limites
 - [ ] Tests passent (`ng test --watch=false` ou `mvn test`)
 - [ ] CI vert sur la PR (`gh pr checks --watch`) — build Angular + tests
