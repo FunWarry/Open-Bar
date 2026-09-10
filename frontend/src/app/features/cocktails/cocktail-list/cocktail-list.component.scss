@@ -164,6 +164,70 @@
   }
 }
 
+/* Available Only Toggle Pill */
+.available-only-toggle-pill {
+  height: 38px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--background-surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-medium);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .pill-icon,
+  ion-icon {
+    width: 1.15rem;
+    height: 1.15rem;
+    font-size: 1.15rem;
+    min-width: 1.15rem;
+    min-height: 1.15rem;
+    color: var(--text-secondary);
+    display: inline-block;
+    flex-shrink: 0;
+    transition: color 0.2s ease;
+  }
+
+  .toggle-indicator-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    transition: all 0.2s ease;
+  }
+
+  &:hover {
+    background: var(--background-surface-3);
+    color: var(--text-primary);
+
+    .pill-icon,
+    ion-icon {
+      color: var(--text-primary);
+    }
+  }
+
+  &.active {
+    background: rgba(47, 191, 107, 0.15);
+    color: var(--semantic-success);
+    border-color: var(--semantic-success);
+
+    .pill-icon,
+    ion-icon {
+      color: var(--semantic-success);
+    }
+
+    .toggle-indicator-dot {
+      background: var(--semantic-success);
+      box-shadow: 0 0 6px var(--semantic-success);
+    }
+  }
+}
+
 /* View Mode Toggle Pill Group (Exact match to reference Image) */
 .view-mode-pill-group {
   display: inline-flex;
@@ -470,8 +534,6 @@ app-cocktail-matcher-bar {
   &.unavailable {
     background: var(--state-unavailable-bg);
     border: 1.5px dashed var(--state-unavailable-border);
-    opacity: var(--state-unavailable-opacity);
-    filter: var(--state-unavailable-filter);
     box-shadow: none;
 
     .figma-card-image-area img {
@@ -481,6 +543,7 @@ app-cocktail-matcher-bar {
 
     .figma-cocktail-name {
       color: var(--state-unavailable-text);
+      opacity: 0.8;
     }
 
     .figma-ingredients-sub {
@@ -499,6 +562,22 @@ app-cocktail-matcher-bar {
       }
     }
 
+    /* Only the "Indisponible" badge remains in vivid semantic danger color */
+    .figma-alert-pill.critical {
+      background: var(--state-unavailable-badge-bg, rgba(229, 96, 79, 0.2)) !important;
+      color: var(--state-unavailable-badge-color, var(--semantic-danger)) !important;
+      border: 1px solid var(--state-unavailable-badge-color, var(--semantic-danger)) !important;
+      opacity: 1 !important;
+      box-shadow: 0 0 10px rgba(229, 96, 79, 0.25);
+    }
+
+    .figma-alert-pill.low {
+      background: var(--background-surface-2) !important;
+      border-color: var(--border-medium) !important;
+      color: var(--text-muted) !important;
+      opacity: 0.6;
+    }
+
     .figma-cocktail-price {
       color: var(--state-unavailable-text);
       opacity: 0.65;
@@ -512,18 +591,41 @@ app-cocktail-matcher-bar {
     }
 
     .figma-allergen-badge {
-      background: var(--background-surface-3);
-      border-color: var(--border-medium);
-      color: var(--text-muted);
+      background: var(--background-surface-3) !important;
+      border-color: var(--border-medium) !important;
+      color: var(--text-muted) !important;
     }
 
-    .card-allergens-row {
+    .figma-flavor-badge {
+      background: var(--background-surface-2) !important;
+      border-color: var(--border-medium) !important;
+      color: var(--text-muted) !important;
+      opacity: 0.6;
+    }
+
+    .dietary-badge {
+      background: var(--background-surface-2) !important;
+      border-color: var(--border-medium) !important;
+      color: var(--text-muted) !important;
+    }
+
+    .card-allergens-row,
+    .card-flavors-row,
+    .card-dietary-row {
+      opacity: 0.6;
+    }
+
+    .availability-slider-btn {
+      opacity: 0.75;
+    }
+
+    ion-button[color="danger"] {
+      --color: var(--text-muted);
+      color: var(--text-muted);
       opacity: 0.6;
     }
 
     &:hover {
-      opacity: 0.9;
-      filter: grayscale(0.25);
       border-color: var(--border-light);
       border-style: dashed;
       transform: translateY(-1px);
@@ -788,6 +890,13 @@ app-cocktail-matcher-bar {
 
     h3, p {
       color: var(--state-unavailable-text);
+    }
+
+    .dietary-badge,
+    .figma-flavor-badge {
+      background: var(--background-surface-2) !important;
+      border-color: var(--border-medium) !important;
+      color: var(--text-muted) !important;
     }
   }
 }

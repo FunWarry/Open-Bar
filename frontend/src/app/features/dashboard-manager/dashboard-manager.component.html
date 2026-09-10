@@ -21,27 +21,26 @@
           </span>
         }
 
-        <ion-button
-          fill="outline"
+        <app-action-button
+          variant="secondary"
           size="small"
-          class="btn-manager-refresh"
-          (click)="onRefresh()"
-          (keyup.enter)="onRefresh()"
+          icon="refresh-outline"
+          iconSlot="icon-only"
+          (btnClick)="onRefresh()"
           [title]="'MANAGER_DASHBOARD.REFRESH_TOOLTIP' | transloco"
+          testId="manager-btn-refresh"
           data-testid="manager-btn-refresh">
-          <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
-        </ion-button>
+        </app-action-button>
 
-        <ion-button
-          fill="solid"
+        <app-action-button
+          variant="primary"
           size="small"
-          class="btn-manager-export"
-          (click)="onExportCsv()"
-          (keyup.enter)="onExportCsv()"
+          icon="download-outline"
+          (btnClick)="onExportCsv()"
+          testId="manager-btn-export-csv"
           data-testid="manager-btn-export-csv">
-          <ion-icon slot="start" name="download-outline"></ion-icon>
           {{ 'MANAGER_DASHBOARD.ACTION_EXPORT_CSV' | transloco }}
-        </ion-button>
+        </app-action-button>
       </div>
     </div>
   </ion-toolbar>
@@ -455,16 +454,14 @@
                 <p class="card-header-subtitle">{{ 'STOCK.WASTE_AUDIT_SUBTITLE' | transloco }}</p>
               </div>
             </div>
-            <ion-button
-              size="default"
-              fill="solid"
-              class="btn-declare-waste-hero"
-              (click)="openStockWasteModal()"
-              (keyup.enter)="openStockWasteModal()"
+            <app-action-button
+              variant="primary"
+              icon="alert-circle-outline"
+              (btnClick)="openStockWasteModal()"
+              testId="manager-btn-declare-waste"
               data-testid="manager-btn-declare-waste">
-              <ion-icon slot="start" name="alert-circle-outline"></ion-icon>
-              <span>{{ 'STOCK.WASTE_RECORD_BTN' | transloco }}</span>
-            </ion-button>
+              {{ 'STOCK.WASTE_RECORD_BTN' | transloco }}
+            </app-action-button>
           </div>
         </ion-card-header>
         <ion-card-content>
@@ -634,17 +631,15 @@
               <ion-card-title>{{ 'MANAGER_DASHBOARD.ONGOING_ORDERS_TITLE' | transloco }}</ion-card-title>
             </div>
             <div class="header-right-actions">
-              <ion-button
+              <app-action-button
+                [variant]="showDelivered ? 'primary' : 'secondary'"
                 size="small"
-                [fill]="showDelivered ? 'solid' : 'outline'"
-                class="btn-toggle-delivered"
-                [class.active]="showDelivered"
-                (click)="toggleShowDelivered()"
-                (keyup.enter)="toggleShowDelivered()"
+                [icon]="showDelivered ? 'eye-off-outline' : 'eye-outline'"
+                (btnClick)="toggleShowDelivered()"
+                testId="btn-toggle-delivered"
                 data-testid="btn-toggle-delivered">
-                <ion-icon slot="start" [name]="showDelivered ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
                 {{ (showDelivered ? 'MANAGER_DASHBOARD.HIDE_DELIVERED' : 'MANAGER_DASHBOARD.SHOW_DELIVERED') | transloco }}
-              </ion-button>
+              </app-action-button>
               <span class="kanban-active-count-pill">{{ 'MANAGER_DASHBOARD.ACTIVE_ORDERS_COUNT' | transloco: { count: ongoingOrders.length } }}</span>
             </div>
           </div>
@@ -675,10 +670,14 @@
         [title]="'MANAGER_DASHBOARD.ERROR_STATS' | transloco"
         icon="warning-outline">
       </app-empty-state>
-      <ion-button class="btn-retry-modern" fill="solid" (click)="chargerStats()" (keyup.enter)="chargerStats()" data-testid="manager-btn-retry">
-        <ion-icon slot="start" name="refresh-outline"></ion-icon>
+      <app-action-button
+        variant="primary"
+        icon="refresh-outline"
+        (btnClick)="chargerStats()"
+        testId="manager-btn-retry"
+        data-testid="manager-btn-retry">
         {{ 'MANAGER_DASHBOARD.RETRY' | transloco }}
-      </ion-button>
+      </app-action-button>
     </div>
   </ion-content>
 }

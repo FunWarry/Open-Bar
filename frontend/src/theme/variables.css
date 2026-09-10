@@ -164,6 +164,62 @@
   --state-unavailable-text: var(--text-muted);
   --state-unavailable-badge-bg: rgba(229, 96, 79, 0.15);
   --state-unavailable-badge-color: var(--semantic-danger);
+
+  /* Mapping vers les variables Ionic globales — Dark (défaut) */
+  --ion-font-family: var(--font, 'Inter', system-ui, sans-serif);
+  --ion-background-color: var(--background-bg-0);
+  --ion-text-color: var(--text-primary);
+
+  --ion-color-primary: var(--primary);
+  --ion-color-primary-rgb: 108, 127, 232;
+  --ion-color-primary-contrast: var(--text-on-accent, #ffffff);
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: var(--primary-strong);
+  --ion-color-primary-tint: var(--primary-light);
+
+  --ion-color-secondary: var(--text-secondary, #a4add0);
+  --ion-color-secondary-rgb: 164, 173, 208;
+  --ion-color-secondary-contrast: #0f0f1a;
+  --ion-color-secondary-shade: #8f98ba;
+  --ion-color-secondary-tint: #b5bdd8;
+
+  --ion-color-tertiary: var(--semantic-info);
+  --ion-color-tertiary-rgb: 43, 168, 232;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #2494cc;
+  --ion-color-tertiary-tint: #40b4e8;
+
+  --ion-color-danger: var(--semantic-danger);
+  --ion-color-danger-rgb: 229, 96, 79;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-shade: #c95445;
+  --ion-color-danger-tint: #ea7061;
+
+  --ion-color-success: var(--semantic-success);
+  --ion-color-success-rgb: 47, 191, 107;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-shade: #29a85e;
+  --ion-color-success-tint: #44c57a;
+
+  --ion-color-warning: var(--semantic-warning);
+  --ion-color-warning-rgb: 244, 165, 42;
+  --ion-color-warning-contrast: #ffffff;
+  --ion-color-warning-shade: #d79125;
+  --ion-color-warning-tint: #f5ae3f;
+
+  --ion-color-info: var(--semantic-info);
+  --ion-color-light: var(--surface-2);
+  --ion-color-light-contrast: var(--text-primary);
+  --ion-color-medium: var(--surface-3);
+  --ion-color-medium-contrast: var(--text-secondary);
+  --ion-color-dark: var(--bg-0);
+  --ion-color-dark-contrast: var(--text-primary);
+
+  --ion-item-background: var(--background-surface-1);
+  --ion-toolbar-background: var(--background-surface-1);
+  --ion-card-background: var(--background-surface-1);
+  --ion-border-color: var(--border-medium);
 }
 
 /* Thème Clair (.light-theme) — conçu pour conformité WCAG AA (ticket #154) */
@@ -257,6 +313,62 @@ body.light-theme,
   --state-unavailable-text: var(--text-muted);
   --state-unavailable-badge-bg: rgba(229, 96, 79, 0.12);
   --state-unavailable-badge-color: var(--semantic-danger);
+
+  /* Mapping vers les variables Ionic globales — Light Mode */
+  --ion-font-family: var(--font, 'Inter', system-ui, sans-serif);
+  --ion-background-color: var(--background-bg-0);
+  --ion-text-color: var(--text-primary);
+
+  --ion-color-primary: var(--primary);
+  --ion-color-primary-rgb: 79, 70, 229;
+  --ion-color-primary-contrast: var(--text-on-accent, #ffffff);
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: var(--primary-strong);
+  --ion-color-primary-tint: var(--primary-light);
+
+  --ion-color-secondary: var(--text-secondary, #334155);
+  --ion-color-secondary-rgb: 51, 65, 85;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-shade: #242e3c;
+  --ion-color-secondary-tint: #475a72;
+
+  --ion-color-tertiary: var(--semantic-info);
+  --ion-color-tertiary-rgb: 43, 168, 232;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #2494cc;
+  --ion-color-tertiary-tint: #40b4e8;
+
+  --ion-color-danger: var(--semantic-danger);
+  --ion-color-danger-rgb: 229, 96, 79;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-shade: #c95445;
+  --ion-color-danger-tint: #ea7061;
+
+  --ion-color-success: var(--semantic-success);
+  --ion-color-success-rgb: 47, 191, 107;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-shade: #29a85e;
+  --ion-color-success-tint: #44c57a;
+
+  --ion-color-warning: var(--semantic-warning);
+  --ion-color-warning-rgb: 244, 165, 42;
+  --ion-color-warning-contrast: #ffffff;
+  --ion-color-warning-shade: #d79125;
+  --ion-color-warning-tint: #f5ae3f;
+
+  --ion-color-info: var(--semantic-info);
+  --ion-color-light: var(--surface-2);
+  --ion-color-light-contrast: var(--text-primary);
+  --ion-color-medium: var(--surface-3);
+  --ion-color-medium-contrast: var(--text-secondary);
+  --ion-color-dark: var(--bg-0);
+  --ion-color-dark-contrast: var(--text-primary);
+
+  --ion-item-background: var(--background-surface-1);
+  --ion-toolbar-background: var(--background-surface-1);
+  --ion-card-background: var(--background-surface-1);
+  --ion-border-color: var(--border-medium);
 }
 
 /* Mapping vers les variables Ionic — Dark (défaut) */

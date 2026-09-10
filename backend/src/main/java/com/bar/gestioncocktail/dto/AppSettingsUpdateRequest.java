@@ -111,10 +111,34 @@ public record AppSettingsUpdateRequest(
     @jakarta.validation.constraints.Max(value = 65535, message = "Printer port cannot exceed 65535")
     Integer printerPort,
 
-    Boolean directPrintingEnabled
+    Boolean directPrintingEnabled,
+
+    String cashDenominationsJson
 ) {
     /**
-     * Backwards-compatible 20-parameter constructor defaulting printer fields to null/9100/false.
+     * Backwards-compatible 25-parameter constructor defaulting cashDenominationsJson to null.
+     */
+    public AppSettingsUpdateRequest(
+            String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled,
+            Boolean tableSessionValidationEnabled, java.math.BigDecimal defaultVatRate,
+            java.math.BigDecimal targetGrossMarginPercentage, java.math.BigDecimal warningGrossMarginPercentage,
+            String barPrinterIp, String kitchenPrinterIp, String cashDeskPrinterIp,
+            Integer printerPort, Boolean directPrintingEnabled) {
+        this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
+                tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled, null);
+    }
+
+    /**
+     * Backwards-compatible 20-parameter constructor defaulting printer fields to null/9100/false and cash denominations to null.
      */
     public AppSettingsUpdateRequest(
             String primaryColor, String primaryColorStrong, String logoUrl,
@@ -130,11 +154,11 @@ public record AppSettingsUpdateRequest(
                 tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
                 wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
                 defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
-                null, null, null, 9100, false);
+                null, null, null, 9100, false, null);
     }
 
     /**
-     * Backwards-compatible 17-parameter constructor defaulting financial margin fields to null and printer fields to null/9100/false.
+     * Backwards-compatible 17-parameter constructor defaulting financial margin fields to null, printer fields to null/9100/false, and cash denominations to null.
      */
     public AppSettingsUpdateRequest(
             String primaryColor, String primaryColorStrong, String logoUrl,
@@ -148,11 +172,11 @@ public record AppSettingsUpdateRequest(
                 currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
                 tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
                 wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
-                null, null, null, null, null, null, 9100, false);
+                null, null, null, null, null, null, 9100, false, null);
     }
 
     /**
-     * Backwards-compatible 16-parameter constructor defaulting tableSessionValidationEnabled to false, margins to null, and printers to null/9100/false.
+     * Backwards-compatible 16-parameter constructor defaulting tableSessionValidationEnabled to false, margins to null, printers to null/9100/false, and cash denominations to null.
      */
     public AppSettingsUpdateRequest(
             String primaryColor, String primaryColorStrong, String logoUrl,
@@ -165,7 +189,7 @@ public record AppSettingsUpdateRequest(
                 currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
                 tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
                 wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, false, null, null, null,
-                null, null, null, 9100, false);
+                null, null, null, 9100, false, null);
     }
 }
 

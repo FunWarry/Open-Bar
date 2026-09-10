@@ -57,7 +57,10 @@
             <label for="opening-float-input" class="input-label">
               {{ 'CLOTURE.FLOAT_LABEL' | transloco }}
             </label>
-            <div class="currency-input-wrapper">
+            <div class="currency-input-wrapper" [class.prefix-mode]="currencyPosition === 'BEFORE'">
+              @if (currencyPosition === 'BEFORE') {
+                <span class="currency-prefix">{{ currencySymbol }}</span>
+              }
               <input
                 id="opening-float-input"
                 type="number"
@@ -67,7 +70,9 @@
                 class="large-amount-input"
                 data-testid="opening-float-input"
               />
-              <span class="currency-suffix">€</span>
+              @if (currencyPosition === 'AFTER') {
+                <span class="currency-suffix">{{ currencySymbol }}</span>
+              }
             </div>
           </div>
 
@@ -375,23 +380,45 @@
 <!-- Modal Footer with navigation actions -->
 <ion-footer class="ion-no-border modal-footer">
   <div class="footer-actions">
-    @if (currentStep > 1 && currentStep <= 4) {
-      <ion-button fill="outline" color="medium" (click)="goToPrevStep()" (keydown.enter)="goToPrevStep()" data-testid="cloture-prev-btn">
+    @if (currentStep === 1) {
+      <ion-button
+        fill="clear"
+        class="footer-btn cancel-btn"
+        (click)="dismiss(false)"
+        (keydown.enter)="dismiss(false)"
+        data-testid="cloture-cancel-btn"
+      >
+        <ion-icon name="close-outline" slot="start"></ion-icon>
+        <span>{{ 'COMMON.CANCEL' | transloco }}</span>
+      </ion-button>
+    } @else if (currentStep > 1 && currentStep <= 4) {
+      <ion-button
+        fill="clear"
+        class="footer-btn prev-btn"
+        (click)="goToPrevStep()"
+        (keydown.enter)="goToPrevStep()"
+        data-testid="cloture-prev-btn"
+      >
         <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
-        {{ 'COMMON.PREVIOUS' | transloco }}
+        <span>{{ 'COMMON.PREVIOUS' | transloco }}</span>
       </ion-button>
     }
 
     <div class="spacer"></div>
 
     @if (currentStep < 4) {
-      <ion-button color="primary" (click)="goToNextStep()" (keydown.enter)="goToNextStep()" data-testid="cloture-next-btn">
-        {{ 'COMMON.NEXT' | transloco }}
+      <ion-button
+        class="footer-btn next-btn"
+        (click)="goToNextStep()"
+        (keydown.enter)="goToNextStep()"
+        data-testid="cloture-next-btn"
+      >
+        <span>{{ 'COMMON.NEXT' | transloco }}</span>
         <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
       </ion-button>
     } @else if (currentStep === 4) {
       <ion-button
-        color="danger"
+        class="footer-btn confirm-btn"
         (click)="confirmClosure()"
         (keydown.enter)="confirmClosure()"
         [disabled]="isSubmitting"
@@ -402,11 +429,17 @@
         } @else {
           <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
         }
-        {{ 'CLOTURE.CONFIRM_AND_LOCK' | transloco }}
+        <span>{{ 'CLOTURE.CONFIRM_AND_LOCK' | transloco }}</span>
       </ion-button>
     } @else if (currentStep === 5) {
-      <ion-button color="primary" expand="block" (click)="dismiss(true)" (keydown.enter)="dismiss(true)" data-testid="cloture-finish-btn">
-        {{ 'COMMON.FINISH' | transloco }}
+      <ion-button
+        class="footer-btn finish-btn"
+        (click)="dismiss(true)"
+        (keydown.enter)="dismiss(true)"
+        data-testid="cloture-finish-btn"
+      >
+        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+        <span>{{ 'COMMON.FINISH' | transloco }}</span>
       </ion-button>
     }
   </div>

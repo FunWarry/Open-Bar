@@ -14,6 +14,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { StatCardComponent } from '../../core/components/ui/stat-card/stat-card.component';
 import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
 import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
+import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
 import { KanbanBoardComponent } from './components/kanban-board/kanban-board.component';
 import { DashboardManagerService } from './services/dashboard-manager.service';
 import { DashboardStats, TopCocktail } from './models/dashboard-stats.model';
@@ -90,6 +91,7 @@ import { AppCurrencyPipe } from '../../core/pipes/app-currency.pipe';
     StatCardComponent,
     RoleBadgeComponent,
     EmptyStateComponent,
+    ActionButtonComponent,
     KanbanBoardComponent,
     AppCurrencyPipe,
   ],

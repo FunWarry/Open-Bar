@@ -88,6 +88,9 @@ public class AppSettingsService {
         if (request.currencyPosition() != null) {
             current.setCurrencyPosition(request.currencyPosition());
         }
+        if (request.cashDenominationsJson() != null) {
+            current.setCashDenominationsJson(request.cashDenominationsJson());
+        }
     }
 
     private void applyAlertThresholds(AppSettings current, AppSettingsUpdateRequest request) {

@@ -4,6 +4,8 @@ import {
   OnDestroy,
   HostListener,
   inject,
+  signal,
+  computed,
 } from '@angular/core';
 
 import {
@@ -69,6 +71,8 @@ import {
   nutritionOutline,
   documentTextOutline,
   briefcaseOutline,
+  addCircleOutline,
+  closeOutline,
 } from 'ionicons/icons';
 import { HappyHourConfigComponent } from './components/happy-hour-config/happy-hour-config.component';
 import { LegalComponent, LegalTab } from '../../legal/legal.component';
@@ -79,6 +83,11 @@ import { EtablissementService } from '../../../core/services/etablissement.servi
 import { EstablishmentConfig } from '../../../core/models/establishment-config.model';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
 import { AppSettings, CurrencyPosition } from '../../../core/models/app-settings.model';
+import {
+  CashDenomination,
+  DEFAULT_EUR_DENOMINATIONS,
+  getDefaultDenominationsForCurrency,
+} from '../../../core/models/cash-denomination.model';
 import { HasPendingChanges } from '../../../core/guards/pending-changes.guard';
 import {
   ThemeService,
@@ -316,6 +325,20 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   initialThemeMode: AppTheme = 'dark';
   initialColors: CustomThemeColors = { ...DEFAULT_FIGMA_PALETTE };
 
+  // Configured cash register denominations
+  configuredDenominations = signal<CashDenomination[]>([...DEFAULT_EUR_DENOMINATIONS]);
+  readonly bills = computed(() => this.configuredDenominations().filter(d => d.type === 'bill'));
+  readonly coins = computed(() => this.configuredDenominations().filter(d => d.type === 'coin'));
+  get billsCount(): number {
+    return this.bills().length;
+  }
+  get coinsCount(): number {
+    return this.coins().length;
+  }
+
+  newDenomType: 'bill' | 'coin' = 'bill';
+  newDenomValue: number | null = null;
+
   readonly modulePresets: { type: Exclude<EstablishmentPresetType, 'CUSTOM'>; labelKey: string; icon: string; descKey: string }[] = [
     { type: 'BAR', labelKey: 'SETTINGS.MODULES_PRESET_BAR', icon: 'beer-outline', descKey: 'SETTINGS.MODULES_PRESET_BAR_DESC' },
     { type: 'RESTAURANT', labelKey: 'SETTINGS.MODULES_PRESET_RESTAURANT', icon: 'restaurant-outline', descKey: 'SETTINGS.MODULES_PRESET_RESTAURANT_DESC' },
@@ -438,6 +461,8 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       nutritionOutline,
       documentTextOutline,
       briefcaseOutline,
+      addCircleOutline,
+      closeOutline,
     });
     this.initForms();
   }
@@ -576,6 +601,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       currencyCode: ['EUR', [Validators.required, Validators.minLength(3), Validators.maxLength(3)]],
       currencySymbol: ['€', [Validators.required]],
       currencyPosition: ['AFTER', [Validators.required]],
+      cashDenominationsJson: [''],
       defaultVatRate: [20.0, [Validators.required, Validators.min(0), Validators.max(100)]],
       targetGrossMarginPercentage: [70.0, [Validators.required, Validators.min(0), Validators.max(100)]],
       warningGrossMarginPercentage: [50.0, [Validators.required, Validators.min(0), Validators.max(100)]],
@@ -642,17 +668,9 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
           }
 
           if (etab && Object.keys(etab).length > 0) {
-            if (!etab.siret || !/^\d{14}$/.test(etab.siret) || siretLuhnValidator({ value: etab.siret } as AbstractControl) !== null) {
-              etab = { ...etab, siret: '73282932000074' };
-            }
-            if (!etab.country) {
-              etab = { ...etab, country: 'France' };
-            }
-            if (!etab.language) {
-              etab = { ...etab, language: 'fr' };
-            }
-            this.initialEtabValue = { ...etab };
-            this.etabForm.patchValue(etab);
+            const normalizedEtab = this.normalizeEtabConfig(etab);
+            this.initialEtabValue = { ...normalizedEtab };
+            this.etabForm.patchValue(normalizedEtab);
             this.etabForm.markAsPristine();
           }
 
@@ -661,10 +679,13 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
             this.appSettingsForm.patchValue(appSettings);
             this.appSettingsForm.markAsPristine();
 
-            // Sync colorForm primary with appSettings if exists
             if (appSettings.primaryColor) {
               this.colorForm.patchValue({ primary: appSettings.primaryColor }, { emitEvent: false });
             }
+
+            this.configuredDenominations.set(this.resolveDenominations(appSettings));
+          } else {
+            this.configuredDenominations.set([...DEFAULT_EUR_DENOMINATIONS]);
           }
 
           if (modules) {
@@ -681,6 +702,44 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
           this.isLoading = false;
         },
       });
+  }
+
+  /**
+   * Validates and normalizes establishment legal configuration fields with sensible defaults.
+   */
+  private normalizeEtabConfig(etab: EstablishmentConfig): EstablishmentConfig {
+    const normalized = { ...etab };
+    if (!normalized.siret || !/^\d{14}$/.test(normalized.siret) || siretLuhnValidator({ value: normalized.siret } as AbstractControl) !== null) {
+      normalized.siret = '73282932000074';
+    }
+    if (!normalized.country) {
+      normalized.country = 'France';
+    }
+    if (!normalized.language) {
+      normalized.language = 'fr';
+    }
+    return normalized;
+  }
+
+  /**
+   * Resolves configured cash register denominations from serialized JSON or currency defaults.
+   */
+  private resolveDenominations(settings?: Partial<AppSettings> | null): CashDenomination[] {
+    if (settings?.cashDenominationsJson) {
+      try {
+        const parsed = JSON.parse(settings.cashDenominationsJson);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch {
+        // Fallback to currency defaults on invalid JSON
+      }
+    }
+    return getDefaultDenominationsForCurrency(
+      settings?.currencyCode || 'EUR',
+      settings?.currencySymbol || '€',
+      settings?.currencyPosition || 'AFTER'
+    );
   }
 
   // --- Cadence Presets ---
@@ -800,13 +859,15 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     }
   }
 
-  // --- Currency Presets ---
+  // --- Currency Presets & Cash Denominations ---
   applyCurrencyPreset(preset: CurrencyPreset): void {
     this.appSettingsForm.patchValue({
       currencyCode: preset.code,
       currencySymbol: preset.symbol,
       currencyPosition: preset.position,
     });
+    const defaults = getDefaultDenominationsForCurrency(preset.code, preset.symbol, preset.position);
+    this.configuredDenominations.set(defaults);
     this.appSettingsForm.markAsDirty();
   }
 
@@ -824,6 +885,63 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     }).format(amount);
 
     return pos === 'BEFORE' ? `${symbol} ${formatted}` : `${formatted} ${symbol}`;
+  }
+
+  /**
+   * Removes a denomination from the current active cash counting list.
+   *
+   * @param key Unique key of the denomination to remove
+   */
+  removeDenomination(key: string): void {
+    const updated = this.configuredDenominations().filter(d => d.key !== key);
+    this.configuredDenominations.set(updated);
+    this.appSettingsForm.markAsDirty();
+  }
+
+  /**
+   * Adds a user-defined custom banknote or coin denomination to the active currency list.
+   */
+  addCustomDenomination(): void {
+    if (this.newDenomValue === null || this.newDenomValue === undefined || this.newDenomValue <= 0) {
+      return;
+    }
+    const val = Number(Number(this.newDenomValue).toFixed(2));
+    const symbol = this.appSettingsForm.get('currencySymbol')?.value || '€';
+    const pos = this.appSettingsForm.get('currencyPosition')?.value || 'AFTER';
+    const label = pos === 'BEFORE' ? `${symbol} ${val}` : `${val} ${symbol}`;
+    const key = `${this.newDenomType}_${val.toString().replace('.', '_')}`;
+
+    const current = this.configuredDenominations();
+    if (current.some(d => d.key === key || (d.value === val && d.type === this.newDenomType))) {
+      this.showToast(this.translocoService.translate('SETTINGS.DENOMINATION_EXISTS'), 'warning');
+      return;
+    }
+
+    const updated: CashDenomination[] = [
+      ...current,
+      {
+        key,
+        label,
+        value: val,
+        type: this.newDenomType,
+      },
+    ];
+    updated.sort((a, b) => b.value - a.value);
+    this.configuredDenominations.set(updated);
+    this.newDenomValue = null;
+    this.appSettingsForm.markAsDirty();
+  }
+
+  /**
+   * Resets the active denomination list to the official default banknotes and coins for the selected currency.
+   */
+  resetDenominationsToDefault(): void {
+    const code = this.appSettingsForm.get('currencyCode')?.value || 'EUR';
+    const symbol = this.appSettingsForm.get('currencySymbol')?.value || '€';
+    const position = this.appSettingsForm.get('currencyPosition')?.value || 'AFTER';
+    this.configuredDenominations.set(getDefaultDenominationsForCurrency(code, symbol, position));
+    this.appSettingsForm.markAsDirty();
+    this.showToast(this.translocoService.translate('SETTINGS.DENOMINATIONS_RESET_SUCCESS'), 'info');
   }
 
   // --- VAT & Margin Helpers ---
@@ -966,6 +1084,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     if (this.initialAppSettingsValue) {
       this.appSettingsForm.patchValue(this.initialAppSettingsValue);
       this.appSettingsForm.markAsPristine();
+      this.configuredDenominations.set(this.resolveDenominations(this.initialAppSettingsValue));
     }
     if (this.initialColors) {
       this.colorForm.patchValue(this.initialColors);
@@ -1009,6 +1128,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       primaryColor: colors.primary,
       primaryColorStrong: this.darkenHex(colors.primary, 15),
       establishmentName: etabPayload.legalName || this.appSettingsForm.value.establishmentName || 'OpenBar',
+      cashDenominationsJson: JSON.stringify(this.configuredDenominations()),
     };
 
     const updatePayload: Record<string, any> = {

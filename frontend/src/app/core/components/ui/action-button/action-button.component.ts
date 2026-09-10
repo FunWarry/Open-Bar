@@ -5,13 +5,13 @@ import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
  * Supported styling variants for action buttons.
  */
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'edit' | 'mark';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'warning' | 'edit' | 'mark';
 export type ButtonSize = 'small' | 'medium' | 'large';
 
 /**
  * Action Button component conforming to Figma Design System ActionButton (ID 374:210).
  *
- * Supports multiple style variants (primary, secondary, ghost, danger, edit, mark) and sizes.
+ * Supports multiple style variants (primary, secondary, ghost, danger, warning, edit, mark) and sizes.
  */
 @Component({
   selector: 'app-action-button',
@@ -45,6 +45,9 @@ export class ActionButtonComponent {
   /** Optional expand layout attribute ('block' or 'full'). */
   @Input() expand?: 'block' | 'full';
 
+  /** Optional tooltip title. */
+  @Input() title?: string;
+
   /** Custom data-testid attribute for End-to-End testing. */
   @Input() testId = 'action-button';
 
@@ -60,13 +63,14 @@ export class ActionButtonComponent {
 
   get colorAttr(): string | undefined {
     if (this.variant === 'danger') return 'danger';
+    if (this.variant === 'warning') return 'warning';
     if (this.variant === 'primary') return 'primary';
     return undefined;
   }
 
   get fillAttr(): 'solid' | 'outline' | 'clear' {
     if (this.variant === 'ghost') return 'clear';
-    if (this.variant === 'secondary' || this.variant === 'edit') return 'outline';
+    if (this.variant === 'secondary' || this.variant === 'edit' || this.variant === 'warning') return 'outline';
     return 'solid';
   }
 }

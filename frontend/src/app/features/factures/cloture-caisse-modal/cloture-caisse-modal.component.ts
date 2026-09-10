@@ -1,5 +1,6 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
-
+import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
@@ -17,36 +18,17 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { FactureService } from '../../../core/services/facture.service';
 import { PrinterService } from '../../../core/services/printer.service';
+import { AppSettingsService } from '../../../core/services/app-settings.service';
 import { DailyRecap } from '../../../core/models/daily-recap.model';
 import { ClotureCaisseRequest, DailyCashClosure } from '../../../core/models/daily-cash-closure.model';
+import { CashDenomination, DEFAULT_EUR_DENOMINATIONS } from '../../../core/models/cash-denomination.model';
+
+export type { CashDenomination };
 
 /**
- * Currency denomination item configuration for cash drawer counting.
+ * Denominations supported in Eurozone cash register counting (fallback default).
  */
-export interface CashDenomination {
-  key: string;
-  label: string;
-  value: number;
-  type: 'bill' | 'coin';
-}
-
-/**
- * Denominations supported in Eurozone cash register counting.
- */
-export const EURO_DENOMINATIONS: CashDenomination[] = [
-  { key: '50e', label: '50 €', value: 50.0, type: 'bill' },
-  { key: '20e', label: '20 €', value: 20.0, type: 'bill' },
-  { key: '10e', label: '10 €', value: 10.0, type: 'bill' },
-  { key: '5e', label: '5 €', value: 5.0, type: 'bill' },
-  { key: '2e', label: '2 €', value: 2.0, type: 'coin' },
-  { key: '1e', label: '1 €', value: 1.0, type: 'coin' },
-  { key: '050e', label: '0.50 €', value: 0.50, type: 'coin' },
-  { key: '020e', label: '0.20 €', value: 0.20, type: 'coin' },
-  { key: '010e', label: '0.10 €', value: 0.10, type: 'coin' },
-  { key: '005e', label: '0.05 €', value: 0.05, type: 'coin' },
-  { key: '002e', label: '0.02 €', value: 0.02, type: 'coin' },
-  { key: '001e', label: '0.01 €', value: 0.01, type: 'coin' },
-];
+export const EURO_DENOMINATIONS: CashDenomination[] = DEFAULT_EUR_DENOMINATIONS;
 
 /**
  * Modal wizard guiding managers through end-of-day register closing (Z-Report):
@@ -81,22 +63,35 @@ export const EURO_DENOMINATIONS: CashDenomination[] = [
   templateUrl: './cloture-caisse-modal.component.html',
   styleUrls: ['./cloture-caisse-modal.component.scss']
 })
-export class ClotureCaisseModalComponent implements OnInit {
+export class ClotureCaisseModalComponent implements OnInit, OnDestroy {
   @Input() date!: string;
   @Input() recap!: DailyRecap;
 
-  readonly denominations = EURO_DENOMINATIONS;
+  denominations: CashDenomination[] = EURO_DENOMINATIONS;
   readonly modalCtrl = inject(ModalController);
   private readonly factureService = inject(FactureService);
   private readonly printerService = inject(PrinterService);
+  private readonly appSettingsService = inject(AppSettingsService);
   private readonly toastCtrl = inject(ToastController);
   private readonly transloco = inject(TranslocoService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroy$ = new Subject<void>();
 
   currentStep: 1 | 2 | 3 | 4 | 5 = 1;
 
   openingFloat = 150.0;
   counting: Record<string, number> = {};
   discrepancyReason = '';
+
+  /** Active establishment currency symbol (e.g. '€', '$', '£'). */
+  get currencySymbol(): string {
+    return this.appSettingsService?.currencySymbol || '€';
+  }
+
+  /** Active establishment currency position ('BEFORE' or 'AFTER'). */
+  get currencyPosition(): 'BEFORE' | 'AFTER' {
+    return this.appSettingsService?.currencyPosition || 'AFTER';
+  }
 
   isSubmitting = false;
   isPrinting = false;
@@ -129,8 +124,34 @@ export class ClotureCaisseModalComponent implements OnInit {
     if (!this.date) {
       this.date = new Date().toISOString().split('T')[0];
     }
+    this.refreshDenominations();
+
+    if (this.appSettingsService?.getSettings) {
+      this.appSettingsService.getSettings()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.refreshDenominations();
+            this.cdr.markForCheck();
+          }
+        });
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private refreshDenominations(): void {
+    const configured = this.appSettingsService?.getCashDenominations?.();
+    if (configured && configured.length > 0) {
+      this.denominations = configured;
+    } else {
+      this.denominations = EURO_DENOMINATIONS;
+    }
     for (const d of this.denominations) {
-      this.counting[d.key] = 0;
+      this.counting[d.key] ??= 0;
     }
   }
 

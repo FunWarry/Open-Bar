@@ -4,7 +4,7 @@ import { UserService } from '../../../app/core/services/user.service';
 import { ShiftService } from '../../../app/core/services/shift.service';
 import { ModalController } from '@ionic/angular/standalone';
 import { TranslocoTestingModule } from '@jsverse/transloco';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { User } from '../../../app/core/models/user.model';
 import { EmployeeShift } from '../../../app/core/models/shift.model';
@@ -136,6 +136,19 @@ describe('EmployeesComponent', () => {
     expect(component.getRoleBadgeColor('OTHER')).toBe('primary');
 
     expect(component.trackById(0, component.employeeSummaries[0])).toBe(1);
+  });
+
+  it('goToShiftPresets() navigates to /manager/shift-presets', () => {
+    const router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+    component.goToShiftPresets();
+    expect(router.navigate).toHaveBeenCalledWith(['/manager/shift-presets']);
+  });
+
+  it('renders employees presets button with data-testid', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const presetsBtn = compiled.querySelector('[data-testid="employees-btn-presets"]');
+    expect(presetsBtn).toBeTruthy();
   });
 });
 

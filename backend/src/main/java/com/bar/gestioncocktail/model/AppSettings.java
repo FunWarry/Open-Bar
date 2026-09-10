@@ -149,6 +149,12 @@ public class AppSettings {
     @Column(name = "direct_printing_enabled")
     private Boolean directPrintingEnabled = false;
 
+    /**
+     * Serialized JSON configuration of physical banknotes and coins used for cash drawer counting.
+     */
+    @Column(name = "cash_denominations_json", columnDefinition = "TEXT")
+    private String cashDenominationsJson;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

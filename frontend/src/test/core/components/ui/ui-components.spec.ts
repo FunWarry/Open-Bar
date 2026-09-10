@@ -47,6 +47,10 @@ describe('Shared UI Components (Figma Design System)', () => {
       component.variant = 'secondary';
       expect(component.fillAttr).toBe('outline');
 
+      component.variant = 'warning';
+      expect(component.colorAttr).toBe('warning');
+      expect(component.fillAttr).toBe('outline');
+
       component.variant = 'edit';
       expect(component.fillAttr).toBe('outline');
     });
