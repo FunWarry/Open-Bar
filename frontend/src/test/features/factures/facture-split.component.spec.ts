@@ -1,7 +1,7 @@
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { IonicModule } from '@ionic/angular';
 import { ModalController, ToastController } from '@ionic/angular/standalone';
@@ -33,6 +33,7 @@ describe('FactureSplitComponent', () => {
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let toastSpy: jasmine.SpyObj<HTMLIonToastElement>;
+  let router: Router;
 
   beforeEach(async () => {
     factureServiceSpy = jasmine.createSpyObj<FactureService>('FactureService', [
@@ -70,7 +71,23 @@ describe('FactureSplitComponent', () => {
 
     fixture = TestBed.createComponent(FactureSplitComponent);
     component = fixture.componentInstance;
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
     fixture.detectChanges();
+  });
+
+  it('redirects to /404 when route id is NaN', () => {
+    (component as any).route = { snapshot: { paramMap: { get: () => 'invalid-id' } } };
+    component.ngOnInit();
+    expect(router.navigate).toHaveBeenCalledWith(['/404']);
+  });
+
+  it('redirects to /404 when loadFacture fails on a routed split view', () => {
+    factureServiceSpy.getFactureById.and.returnValue(throwError(() => new Error('Not found')));
+    (component as any).route = { snapshot: { paramMap: { get: () => '999' } } };
+    (component as any).factureId = 999;
+    (component as any).loadFacture();
+    expect(router.navigate).toHaveBeenCalledWith(['/404']);
   });
 
   it('should create and initialize factureId from route param', () => {

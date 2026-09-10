@@ -1039,6 +1039,44 @@ describe('AppSettingsPageComponent', () => {
       component.ngOnInit();
       expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
     });
+
+    it('should redirect to /404 when defaultTab in route.data is invalid', () => {
+      (component as any).route = { queryParams: of({}), data: of({ defaultTab: 'invalid-tab' }) };
+      component.ngOnInit();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+
+    it('should redirect to /404 when defaultTab is pricing but happy hour is disabled', () => {
+      spyOn(component, 'happyHourEnabled').and.returnValue(false);
+      (component as any).route = { queryParams: of({}), data: of({ defaultTab: 'pricing' }) };
+      component.ngOnInit();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+
+    it('should redirect to /404 when defaultTab is qr but qr client ordering is disabled', () => {
+      spyOn(component, 'qrClientOrderingEnabled').and.returnValue(false);
+      (component as any).route = { queryParams: of({}), data: of({ defaultTab: 'qr' }) };
+      component.ngOnInit();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+
+    it('should set activeTab when defaultTab in route.data is valid', () => {
+      (component as any).route = { queryParams: of({}), data: of({ defaultTab: 'theme' }) };
+      component.ngOnInit();
+      expect(component.activeTab).toBe('theme');
+    });
+
+    it('should redirect to /404 in selectTab when selecting pricing while happyHour is disabled', () => {
+      spyOn(component, 'happyHourEnabled').and.returnValue(false);
+      component.selectTab('pricing');
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+
+    it('should redirect to /404 in selectTab when selecting qr while qrClientOrdering is disabled', () => {
+      spyOn(component, 'qrClientOrderingEnabled').and.returnValue(false);
+      component.selectTab('qr');
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
   });
 });
 

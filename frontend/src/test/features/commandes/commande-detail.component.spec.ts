@@ -75,6 +75,12 @@ describe('CommandeDetailComponent', () => {
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
   }));
 
+  it('ngOnInit() navigates to /404 if commandeId is NaN', () => {
+    (component as any).commandeId = NaN;
+    component.ngOnInit();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+  });
+
   it('getStatutColor() mappe EN_ATTENTE → warning', () => {
     expect(component.getStatutColor('EN_ATTENTE')).toBe('warning');
   });
