@@ -2448,6 +2448,8 @@
     "CASH_CALCULATOR_TITLE": "Calculateur de monnaie (Espèces)",
     "CASH_RECEIVED_LABEL": "Montant reçu",
     "EXACT_AMOUNT": "Montant exact",
+    "NEXT_BILL": "Billet supérieur",
+    "SUGGEST_AMOUNT": "Montant suggéré",
     "CHANGE_TO_RETURN": "Monnaie à rendre",
     "INSUFFICIENT_CASH_WARNING": "Le montant reçu est insuffisant",
     "TIP_SELECTION": "Pourboire au serveur",

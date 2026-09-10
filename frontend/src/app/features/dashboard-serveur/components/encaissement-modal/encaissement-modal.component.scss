@@ -343,26 +343,83 @@
   .quick-cash-chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    align-items: center;
+    gap: 8px;
 
     .cash-chip {
-      padding: 6px 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      min-height: 38px;
+      padding: 8px 14px;
       background: var(--background-surface-1);
       border: 1px solid var(--border-medium);
-      border-radius: 6px;
+      border-radius: 8px;
       color: var(--text-primary);
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       font-weight: 600;
       cursor: pointer;
+      user-select: none;
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+
+      .chip-icon {
+        font-size: 1rem;
+      }
 
       &:hover {
         border-color: var(--primary);
+        background: var(--background-surface-2);
+        transform: translateY(-1px);
+      }
+
+      &:active {
+        transform: scale(0.96);
       }
 
       &.exact-chip {
-        background: var(--primary-subtle, rgba(var(--primary-rgb, 100, 100, 255), 0.1));
+        background: var(--primary-subtle, rgba(var(--primary-rgb, 100, 100, 255), 0.12));
         color: var(--primary);
         border-color: var(--primary);
+        font-weight: 700;
+
+        &:hover {
+          background: var(--primary-subtle, rgba(var(--primary-rgb, 100, 100, 255), 0.2));
+        }
+      }
+
+      &.suggestion-chip {
+        background: rgba(var(--semantic-warning-rgb, 234, 179, 8), 0.12);
+        color: var(--semantic-warning);
+        border-color: rgba(var(--semantic-warning-rgb, 234, 179, 8), 0.35);
+
+        .chip-icon {
+          color: var(--semantic-warning);
+        }
+
+        &:hover {
+          border-color: var(--semantic-warning);
+          background: rgba(var(--semantic-warning-rgb, 234, 179, 8), 0.2);
+        }
+
+        &.active {
+          background: var(--semantic-warning);
+          color: var(--background-bg-0);
+          border-color: var(--semantic-warning);
+
+          .chip-icon {
+            color: var(--background-bg-0);
+          }
+        }
+      }
+
+      &.increment-chip {
+        color: var(--text-primary);
+
+        &:hover {
+          border-color: var(--primary);
+          color: var(--primary);
+        }
       }
     }
   }

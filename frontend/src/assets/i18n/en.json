@@ -2448,6 +2448,8 @@
     "CASH_CALCULATOR_TITLE": "Cash & Change Calculator",
     "CASH_RECEIVED_LABEL": "Cash Received",
     "EXACT_AMOUNT": "Exact Amount",
+    "NEXT_BILL": "Next bill",
+    "SUGGEST_AMOUNT": "Suggested amount",
     "CHANGE_TO_RETURN": "Change to return",
     "INSUFFICIENT_CASH_WARNING": "Cash received is insufficient",
     "TIP_SELECTION": "Server Tip",
