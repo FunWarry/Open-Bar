@@ -32,6 +32,7 @@ export interface AppSettings {
   cashDeskPrinterIp?: string;
   printerPort?: number;
   directPrintingEnabled?: boolean;
+  cashDenominationsJson?: string;
   updatedAt: string | null;
 }
 

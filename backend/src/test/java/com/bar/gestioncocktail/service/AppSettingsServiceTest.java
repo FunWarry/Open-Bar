@@ -342,4 +342,22 @@ class AppSettingsServiceTest {
         assertThat(updated.getPrinterPort()).isEqualTo(9100);
         assertThat(updated.getDirectPrintingEnabled()).isTrue();
     }
+
+    @Test
+    @DisplayName("updateSettings persists custom cash denominations JSON configuration")
+    void updateSettings_persistsCashDenominationsJson_success() {
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+        when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        String denominationsJson = "[{\"key\":\"500e\",\"label\":\"500 €\",\"value\":500,\"type\":\"bill\"}]";
+        AppSettingsUpdateRequest req = new AppSettingsUpdateRequest(
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
+            "EUR", "€", null, 3, 5, 10, null, null, null, null, false, false,
+            null, null, null, null, null, null, 9100, false, denominationsJson
+        );
+
+        AppSettings updated = appSettingsService.updateSettings(req);
+
+        assertThat(updated.getCashDenominationsJson()).isEqualTo(denominationsJson);
+    }
 }

@@ -777,6 +777,293 @@ ion-col {
   border-color: var(--semantic-success) !important;
 }
 
+/* --- Cash Register Denominations --- */
+.card-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.reset-denoms-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm, 6px);
+  background: var(--background-surface-2, #1a1d30);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.1));
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  ion-icon {
+    font-size: 0.95rem;
+  }
+
+  &:hover {
+    background: rgba(108, 127, 232, 0.12);
+    border-color: var(--primary, #6c7fe8);
+    color: var(--primary, #6c7fe8);
+  }
+}
+
+.denominations-group {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--background-surface-2, #181a2e);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.08));
+
+  .group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+
+    .group-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .group-icon {
+      font-size: 1.1rem;
+
+      &.bill-icon {
+        color: var(--primary, #6c7fe8);
+      }
+
+      &.coin-icon {
+        color: var(--semantic-warning, #f59e0b);
+      }
+    }
+
+    .group-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-primary, #ffffff);
+    }
+
+    .count-pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-secondary, #94a3b8);
+    }
+  }
+
+  .denominations-chips-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .denom-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--background-surface-1, #121422);
+    border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.1));
+    transition: all 0.2s ease;
+
+    &.bill-tag {
+      border-color: rgba(108, 127, 232, 0.3);
+
+      .denom-type-badge {
+        background: rgba(108, 127, 232, 0.18);
+        color: var(--primary, #6c7fe8);
+      }
+    }
+
+    &.coin-tag {
+      border-color: rgba(245, 158, 11, 0.3);
+
+      .denom-type-badge {
+        background: rgba(245, 158, 11, 0.18);
+        color: var(--semantic-warning, #f59e0b);
+      }
+    }
+
+    .denom-type-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+
+    .denom-label {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-primary, #ffffff);
+    }
+
+    .delete-denom-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      color: var(--text-muted, #64748b);
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.15s ease;
+
+      ion-icon {
+        font-size: 0.9rem;
+      }
+
+      &:hover {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--semantic-danger, #ef4444);
+      }
+    }
+  }
+
+  .empty-denoms-note {
+    font-size: 0.82rem;
+    color: var(--text-muted, #64748b);
+    font-style: italic;
+  }
+}
+
+.add-denom-box {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--background-surface-2, #181a2e);
+  border: 1px dashed var(--border-medium, rgba(255, 255, 255, 0.15));
+
+  .add-denom-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: var(--text-primary, #ffffff);
+
+    ion-icon {
+      color: var(--primary, #6c7fe8);
+      font-size: 1.1rem;
+    }
+  }
+
+  .add-denom-fields {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .denom-type-toggle {
+    display: flex;
+    border-radius: 8px;
+    background: var(--background-surface-1, #121422);
+    padding: 3px;
+    border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.08));
+
+    .type-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary, #94a3b8);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      ion-icon {
+        font-size: 0.95rem;
+      }
+
+      &.active {
+        background: var(--background-surface-2, #1e2238);
+        color: var(--text-primary, #ffffff);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
+
+  .denom-value-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 140px;
+
+    .custom-denom-input {
+      width: 100%;
+      padding: 8px 36px 8px 12px;
+      border-radius: 8px;
+      background: var(--background-surface-1, #121422);
+      border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.1));
+      color: var(--text-primary, #ffffff);
+      font-size: 0.88rem;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.2s ease;
+
+      &:focus {
+        border-color: var(--primary, #6c7fe8);
+      }
+    }
+
+    .denom-currency-affix {
+      position: absolute;
+      right: 12px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted, #64748b);
+      pointer-events: none;
+    }
+  }
+
+  .add-denom-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: var(--primary, #6c7fe8);
+    border: none;
+    color: var(--text-on-accent, var(--text-primary));
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    ion-icon {
+      font-size: 1rem;
+    }
+
+    &:hover:not(:disabled) {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
 /* --- Theme Controls --- */
 .sub-title {
   font-size: 0.92rem;
@@ -1329,5 +1616,17 @@ ion-col {
   margin-top: 20px;
   display: flex;
   justify-content: center;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 

@@ -422,6 +422,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
     cash_desk_printer_ip VARCHAR(100),
     printer_port INTEGER DEFAULT 9100,
     direct_printing_enabled BOOLEAN DEFAULT false,
+    cash_denominations_json TEXT,
     updated_at TIMESTAMP
 );
 

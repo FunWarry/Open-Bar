@@ -122,6 +122,7 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
         date: this.selectedDate,
         recap: this.recap
       },
+      cssClass: 'cloture-caisse-modal-dialog',
       backdropDismiss: false
     });
 

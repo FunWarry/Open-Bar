@@ -807,6 +807,89 @@ describe('AppSettingsPageComponent', () => {
       });
     });
   });
+
+  describe('Cash Register Denominations', () => {
+    it('should initialize with default EUR denominations when none configured', () => {
+      expect(component.configuredDenominations().length).toBeGreaterThan(10);
+      expect(component.bills()).toHaveSize(7); // 500, 200, 100, 50, 20, 10, 5
+      expect(component.coins()).toHaveSize(8); // 2, 1, 0.50, 0.20, 0.10, 0.05, 0.02, 0.01
+      expect(component.billsCount).toBe(7);
+      expect(component.coinsCount).toBe(8);
+    });
+
+    it('should update denominations when currency preset is applied', () => {
+      const usdPreset = { code: 'USD', symbol: '$', position: 'BEFORE' as const };
+      component.applyCurrencyPreset(usdPreset);
+
+      expect(component.appSettingsForm.get('currencyCode')?.value).toBe('USD');
+      expect(component.appSettingsForm.get('currencySymbol')?.value).toBe('$');
+      expect(component.configuredDenominations().some(d => d.key === '100usd')).toBeTrue();
+      expect(component.configuredDenominations().some(d => d.label === '$ 100')).toBeTrue();
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+
+    it('should remove a denomination correctly', () => {
+      const initialCount = component.configuredDenominations().length;
+      component.removeDenomination('500e');
+
+      expect(component.configuredDenominations()).toHaveSize(initialCount - 1);
+      expect(component.configuredDenominations().some(d => d.key === '500e')).toBeFalse();
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+
+    it('should add a custom denomination and keep list sorted by value descending', () => {
+      component.newDenomType = 'bill';
+      component.newDenomValue = 250;
+      component.addCustomDenomination();
+
+      const denoms = component.configuredDenominations();
+      const added = denoms.find(d => d.value === 250);
+      expect(added).toBeTruthy();
+      expect(added?.type).toBe('bill');
+      expect(component.newDenomValue).toBeNull();
+      expect(component.appSettingsForm.dirty).toBeTrue();
+
+      // Verify descending order
+      for (let i = 0; i < denoms.length - 1; i++) {
+        expect(denoms[i].value).toBeGreaterThanOrEqual(denoms[i + 1].value);
+      }
+    });
+
+    it('should prevent adding duplicate denomination', () => {
+      component.newDenomType = 'bill';
+      component.newDenomValue = 50; // Already in EUR denominations
+      const countBefore = component.configuredDenominations().length;
+
+      component.addCustomDenomination();
+      expect(component.configuredDenominations()).toHaveSize(countBefore);
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'warning' }));
+    });
+
+    it('should reset denominations to defaults for current currency', () => {
+      component.removeDenomination('500e');
+      component.removeDenomination('200e');
+      expect(component.configuredDenominations().some(d => d.key === '500e')).toBeFalse();
+
+      component.resetDenominationsToDefault();
+      expect(component.configuredDenominations().some(d => d.key === '500e')).toBeTrue();
+      expect(component.configuredDenominations().some(d => d.key === '200e')).toBeTrue();
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'info' }));
+    });
+
+    it('should serialize cashDenominationsJson into payload when saveAll is called', () => {
+      component.saveAll();
+
+      expect(appSettingsServiceSpy.updateSettings).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          cashDenominationsJson: jasmine.any(String),
+        })
+      );
+      const callArg = appSettingsServiceSpy.updateSettings.calls.mostRecent().args[0];
+      const parsed = JSON.parse(callArg.cashDenominationsJson!);
+      expect(Array.isArray(parsed)).toBeTrue();
+      expect(parsed.length).toBeGreaterThan(0);
+    });
+  });
 });
 
 

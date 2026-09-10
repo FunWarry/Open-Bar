@@ -1035,6 +1035,150 @@
                   </ion-card>
                 </ion-col>
               </ion-row>
+
+              <!-- Row 3: Coupures et Pièces de Caisse (Détail de Comptage) -->
+              <ion-row>
+                <ion-col size="12">
+                  <ion-card class="settings-card" data-testid="card-cash-denominations">
+                    <ion-card-header>
+                      <div class="card-header-flex">
+                        <ion-card-title class="card-title">
+                          <ion-icon name="cash-outline" class="title-icon"></ion-icon>
+                          {{ 'SETTINGS.DENOMINATIONS_TITLE' | transloco }}
+                        </ion-card-title>
+                        <button
+                          type="button"
+                          class="reset-denoms-btn"
+                          (click)="resetDenominationsToDefault()"
+                          data-testid="btn-reset-denominations">
+                          <ion-icon name="refresh-outline"></ion-icon>
+                          <span>{{ 'SETTINGS.RESET_DENOMINATIONS' | transloco }}</span>
+                        </button>
+                      </div>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="block-desc">{{ 'SETTINGS.DENOMINATIONS_SUBTITLE' | transloco }}</p>
+
+                      <!-- Banknotes Section -->
+                      <div class="denominations-group">
+                        <div class="group-header">
+                          <div class="group-header-left">
+                            <ion-icon name="cash-outline" class="group-icon bill-icon"></ion-icon>
+                            <span class="group-title">{{ 'SETTINGS.DENOMINATIONS_BILLS' | transloco }}</span>
+                          </div>
+                          <span class="count-pill">{{ billsCount }}</span>
+                        </div>
+                        <div class="denominations-chips-grid" data-testid="bills-chips-list">
+                          @for (d of bills(); track d.key) {
+                            <div class="denom-tag bill-tag" [attr.data-testid]="'denom-tag-' + d.key">
+                              <span class="denom-type-badge">{{ 'SETTINGS.BILL' | transloco }}</span>
+                              <span class="denom-label">{{ d.label }}</span>
+                              <button
+                                type="button"
+                                class="delete-denom-btn"
+                                (click)="removeDenomination(d.key)"
+                                [attr.title]="'COMMON.DELETE' | transloco"
+                                [attr.data-testid]="'delete-denom-' + d.key">
+                                <ion-icon name="close-outline"></ion-icon>
+                              </button>
+                            </div>
+                          }
+                          @if (bills().length === 0) {
+                            <div class="empty-denoms-note">{{ 'SETTINGS.NO_BILLS_CONFIGURED' | transloco }}</div>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Coins Section -->
+                      <div class="denominations-group">
+                        <div class="group-header">
+                          <div class="group-header-left">
+                            <ion-icon name="hardware-chip-outline" class="group-icon coin-icon"></ion-icon>
+                            <span class="group-title">{{ 'SETTINGS.DENOMINATIONS_COINS' | transloco }}</span>
+                          </div>
+                          <span class="count-pill">{{ coinsCount }}</span>
+                        </div>
+                        <div class="denominations-chips-grid" data-testid="coins-chips-list">
+                          @for (d of coins(); track d.key) {
+                            <div class="denom-tag coin-tag" [attr.data-testid]="'denom-tag-' + d.key">
+                              <span class="denom-type-badge">{{ 'SETTINGS.COIN' | transloco }}</span>
+                              <span class="denom-label">{{ d.label }}</span>
+                              <button
+                                type="button"
+                                class="delete-denom-btn"
+                                (click)="removeDenomination(d.key)"
+                                [attr.title]="'COMMON.DELETE' | transloco"
+                                [attr.data-testid]="'delete-denom-' + d.key">
+                                <ion-icon name="close-outline"></ion-icon>
+                              </button>
+                            </div>
+                          }
+                          @if (coins().length === 0) {
+                            <div class="empty-denoms-note">{{ 'SETTINGS.NO_COINS_CONFIGURED' | transloco }}</div>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Add Custom Denomination Form -->
+                      <div class="add-denom-box" data-testid="add-custom-denom-box">
+                        <h4 class="add-denom-heading">
+                          <ion-icon name="add-circle-outline"></ion-icon>
+                          {{ 'SETTINGS.ADD_DENOMINATION' | transloco }}
+                        </h4>
+                        <div class="add-denom-fields">
+                          <div class="denom-type-toggle">
+                            <button
+                              type="button"
+                              class="type-btn"
+                              [class.active]="newDenomType === 'bill'"
+                              (click)="newDenomType = 'bill'"
+                              data-testid="select-type-bill">
+                              <ion-icon name="cash-outline"></ion-icon>
+                              {{ 'SETTINGS.BILL' | transloco }}
+                            </button>
+                            <button
+                              type="button"
+                              class="type-btn"
+                              [class.active]="newDenomType === 'coin'"
+                              (click)="newDenomType = 'coin'"
+                              data-testid="select-type-coin">
+                              <ion-icon name="hardware-chip-outline"></ion-icon>
+                              {{ 'SETTINGS.COIN' | transloco }}
+                            </button>
+                          </div>
+
+                          <div class="denom-value-input-wrapper">
+                            <label for="input-new-denom-val" class="sr-only">{{ 'SETTINGS.ENTER_AMOUNT' | transloco }}</label>
+                            <input
+                              id="input-new-denom-val"
+                              type="number"
+                              step="0.01"
+                              min="0.01"
+                              [(ngModel)]="newDenomValue"
+                              [ngModelOptions]="{standalone: true}"
+                              [placeholder]="'SETTINGS.ENTER_AMOUNT' | transloco"
+                              class="custom-denom-input"
+                              data-testid="input-new-denom-value"
+                              (keyup.enter)="addCustomDenomination()"
+                            />
+                            <span class="denom-currency-affix">{{ appSettingsForm.get('currencySymbol')?.value || '€' }}</span>
+                          </div>
+
+                          <button
+                            type="button"
+                            class="add-denom-btn"
+                            (click)="addCustomDenomination()"
+                            [disabled]="!newDenomValue || newDenomValue <= 0"
+                            data-testid="btn-add-custom-denom">
+                            <ion-icon name="add-circle-outline"></ion-icon>
+                            <span>{{ 'COMMON.ADD' | transloco }}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
             </ion-grid>
           </form>
         </section>
