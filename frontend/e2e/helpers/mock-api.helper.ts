@@ -586,7 +586,72 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
+  await page.route('**/api/factures/table/*/addition', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        tableId: 1,
+        tableNumero: 1,
+        zone: 'TERRASSE',
+        serveurId: 2,
+        serveurNom: 'Jean Dupont',
+        dateOccupation: new Date().toISOString(),
+        items: [
+          {
+            itemId: 1,
+            commandeId: 10,
+            cocktailNom: 'Mojito',
+            quantite: 2,
+            prixUnitaire: 9.0,
+            total: 18.0,
+            priceHT: 15.0,
+            vatAmount: 3.0,
+            vatRate: '20%'
+          },
+          {
+            itemId: 2,
+            commandeId: 10,
+            cocktailNom: 'Piña Colada',
+            quantite: 1,
+            prixUnitaire: 10.0,
+            total: 10.0,
+            priceHT: 8.33,
+            vatAmount: 1.67,
+            vatRate: '20%'
+          }
+        ],
+        commandeIds: [10],
+        totalHT: 23.33,
+        totalVAT: 4.67,
+        totalTTC: 28.0,
+        nombreArticles: 3,
+        hasUnpaidFacture: false
+      }),
+    });
+  });
+
+  await page.route('**/api/factures/table/*/encaisser', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 50,
+        numero: 'FAC-2026-00050',
+        tableNumero: 1,
+        totalTTC: 28.0,
+        reglee: true,
+        dateFacture: new Date().toISOString()
+      }),
+    });
+  });
+
   await page.route('**/api/factures**', async (route) => {
+    const url = route.request().url();
+    if (url.includes('/table/')) {
+      await route.fallback();
+      return;
+    }
     await route.fulfill({
       status: 200,
       contentType: 'application/json',

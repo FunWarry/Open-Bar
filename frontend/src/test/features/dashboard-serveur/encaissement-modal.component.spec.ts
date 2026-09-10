@@ -1,4 +1,4 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { TestBed, ComponentFixture, fakeAsync, tick } from '@angular/core/testing';
 import { ModalController, ToastController } from '@ionic/angular/standalone';
 import { of, throwError } from 'rxjs';
 import { EncaissementModalComponent } from '../../../app/features/dashboard-serveur/components/encaissement-modal/encaissement-modal.component';
@@ -10,9 +10,18 @@ import {
 import { FactureService } from '../../../app/features/factures/services/facture.service';
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 import { TranslocoTestingModule } from '@jsverse/transloco';
+import { AppSettingsService } from '../../../app/core/services/app-settings.service';
+import {
+  DEFAULT_EUR_DENOMINATIONS,
+  DEFAULT_USD_DENOMINATIONS,
+  DEFAULT_CHF_DENOMINATIONS,
+  DEFAULT_JPY_DENOMINATIONS
+} from '../../../app/core/models/cash-denomination.model';
 
 describe('EncaissementModalComponent', () => {
   let component: EncaissementModalComponent;
+  let fixture: ComponentFixture<EncaissementModalComponent>;
+  let appSettingsService: AppSettingsService;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let toastSpy: { present: jasmine.Spy };
@@ -108,9 +117,10 @@ describe('EncaissementModalComponent', () => {
       ]
     }).compileComponents();
 
-    const fixture = TestBed.createComponent(EncaissementModalComponent);
+    fixture = TestBed.createComponent(EncaissementModalComponent);
     component = fixture.componentInstance;
     component.table = mockTable;
+    appSettingsService = TestBed.inject(AppSettingsService);
   });
 
   it('should initialize and load table addition details', () => {
@@ -161,6 +171,60 @@ describe('EncaissementModalComponent', () => {
     expect(component.totalNetAPayer).toBe(31.5);
   });
 
+  it('should return primary cash increments dynamically for EUR', () => {
+    spyOnProperty(appSettingsService, 'currencyCode', 'get').and.returnValue('EUR');
+    spyOn(appSettingsService, 'getCashDenominations').and.returnValue(DEFAULT_EUR_DENOMINATIONS);
+    expect(component.primaryCashIncrements).toEqual([5, 10, 20, 50, 100]);
+  });
+
+  it('should return primary cash increments dynamically for USD, CHF, and JPY', () => {
+    spyOnProperty(appSettingsService, 'currencyCode', 'get').and.returnValue('USD');
+    spyOn(appSettingsService, 'getCashDenominations').and.returnValue(DEFAULT_USD_DENOMINATIONS);
+    expect(component.primaryCashIncrements).toEqual([1, 5, 10, 20, 50, 100]);
+
+    (Object.getOwnPropertyDescriptor(appSettingsService, 'currencyCode')?.get as jasmine.Spy).and.returnValue('CHF');
+    (appSettingsService.getCashDenominations as jasmine.Spy).and.returnValue(DEFAULT_CHF_DENOMINATIONS);
+    expect(component.primaryCashIncrements).toEqual([10, 20, 50, 100]);
+
+    (Object.getOwnPropertyDescriptor(appSettingsService, 'currencyCode')?.get as jasmine.Spy).and.returnValue('JPY');
+    (appSettingsService.getCashDenominations as jasmine.Spy).and.returnValue(DEFAULT_JPY_DENOMINATIONS);
+    expect(component.primaryCashIncrements).toEqual([1000, 2000, 5000, 10000]);
+  });
+
+  it('should fallback to default increments if denominations contain no bills', () => {
+    spyOn(appSettingsService, 'getCashDenominations').and.returnValue([]);
+    expect(component.primaryCashIncrements).toEqual([5, 10, 20, 50]);
+  });
+
+  it('should calculate intelligent smart cash suggestions for different amounts', () => {
+    spyOnProperty(appSettingsService, 'currencyCode', 'get').and.returnValue('EUR');
+    spyOn(appSettingsService, 'getCashDenominations').and.returnValue(DEFAULT_EUR_DENOMINATIONS);
+
+    // 34.50 € -> next round 10 is 40, next bill is 50
+    component.addition = { ...mockAddition, totalTTC: 34.50 };
+    expect(component.smartCashSuggestions).toEqual([40, 50]);
+
+    // 48.00 € -> next 10 is 50, next bill is 50, next bill 2 is 100
+    component.addition = { ...mockAddition, totalTTC: 48.00 };
+    expect(component.smartCashSuggestions).toEqual([50, 100]);
+
+    // 8.50 € -> next 10 is 10, next bill 2 is 20
+    component.addition = { ...mockAddition, totalTTC: 8.50 };
+    expect(component.smartCashSuggestions).toEqual([10, 20]);
+
+    // 0 € -> empty suggestions
+    component.addition = { ...mockAddition, totalTTC: 0 };
+    expect(component.smartCashSuggestions).toEqual([]);
+  });
+
+  it('should calculate smart cash suggestions for JPY amounts', () => {
+    spyOnProperty(appSettingsService, 'currencyCode', 'get').and.returnValue('JPY');
+    spyOn(appSettingsService, 'getCashDenominations').and.returnValue(DEFAULT_JPY_DENOMINATIONS);
+
+    component.addition = { ...mockAddition, totalTTC: 3450 };
+    expect(component.smartCashSuggestions).toEqual([4000, 5000]);
+  });
+
   it('should calculate cash received and change to return accurately', () => {
     component.addition = mockAddition;
     component.modePaiement = 'ESPECES';
@@ -177,9 +241,34 @@ describe('EncaissementModalComponent', () => {
     expect(component.montantRecu).toBe(28.0);
     expect(component.monnaieARendre).toBe(0);
 
+    component.definirMontantRecu(50.0);
+    expect(component.montantRecu).toBe(50.0);
+    expect(component.monnaieARendre).toBe(22.0);
+
     component.ajouterEspeces(10.0);
-    expect(component.montantRecu).toBe(38.0);
-    expect(component.monnaieARendre).toBe(10.0);
+    expect(component.montantRecu).toBe(60.0);
+    expect(component.monnaieARendre).toBe(32.0);
+  });
+
+  it('should render quick cash chips in template and allow clicking next bill shortcut', () => {
+    component.addition = mockAddition; // 28.00 € -> suggestions: [30, 50]
+    component.modePaiement = 'ESPECES';
+    component.isLoading = false;
+    fixture.detectChanges();
+
+    const quickChips = fixture.nativeElement.querySelector('[data-testid="quick-cash-chips"]');
+    expect(quickChips).toBeTruthy();
+
+    const exactBtn = fixture.nativeElement.querySelector('[data-testid="chip-cash-exact"]');
+    expect(exactBtn).toBeTruthy();
+
+    const nextBillBtn = fixture.nativeElement.querySelector('[data-testid="chip-cash-next-bill"]');
+    expect(nextBillBtn).toBeTruthy();
+    nextBillBtn.click();
+    fixture.detectChanges();
+
+    expect(component.montantRecu).toBe(30.0);
+    expect(component.monnaieARendre).toBe(2.0);
   });
 
   it('should submit single table payment and dismiss with settled invoice', fakeAsync(() => {
