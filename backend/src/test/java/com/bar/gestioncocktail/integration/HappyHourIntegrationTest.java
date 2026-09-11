@@ -82,13 +82,18 @@ class HappyHourIntegrationTest extends BaseIntegrationTest {
         Number ruleIdNum = objectMapper.readTree(responseJson).get("id").numberValue();
         Long ruleId = ruleIdNum.longValue();
 
-        // 2. List rules as Serveur
+        // 2. List rules as Serveur and anonymously (public QR client menu)
         String serveurToken = getServeurToken();
         mockMvc.perform(get("/api/happy-hour")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + serveurToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))))
                 .andExpect(jsonPath("$[?(@.id == " + ruleId + ")].name").value("Friday Cocktail Rush"));
+
+        // Verify anonymous patrons can also read happy hour rules
+        mockMvc.perform(get("/api/happy-hour"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));
 
         // 3. Simulate pricing preview inside promotional window
         // Friday 2026-09-04 at 18:30 -> in window, 12.00 EUR - 25% = 9.00 EUR

@@ -48,7 +48,6 @@ public class HappyHourController {
      * @return List of all rules
      */
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "List all Happy Hour rules", description = "Retrieves all configured promotional pricing rules.")
     @ApiResponse(responseCode = "200", description = "List of rules successfully retrieved")
     public ResponseEntity<List<HappyHourRuleResponseDTO>> getAllRules() {
@@ -65,7 +64,6 @@ public class HappyHourController {
      * @return List of enabled rules
      */
     @GetMapping("/active")
-    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "List active Happy Hour rules", description = "Retrieves promotional rules currently marked as active.")
     @ApiResponse(responseCode = "200", description = "List of active rules successfully retrieved")
     public ResponseEntity<List<HappyHourRuleResponseDTO>> getActiveRules() {
@@ -83,7 +81,6 @@ public class HappyHourController {
      * @return Found rule DTO
      */
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get Happy Hour rule by ID", description = "Retrieves details of a specific promotional rule.")
     @ApiResponse(responseCode = "200", description = "Rule found")
     @ApiResponse(responseCode = "404", description = "Rule not found")
@@ -174,7 +171,6 @@ public class HappyHourController {
      * @return Detailed pricing preview simulation DTO
      */
     @GetMapping("/pricing-preview")
-    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Simulate cocktail pricing", description = "Calculates the effective price and promotional savings for a drink at an arbitrary date and time.")
     @ApiResponse(responseCode = "200", description = "Pricing simulation successfully evaluated")
     @ApiResponse(responseCode = "404", description = "Cocktail or variant not found")
