@@ -94,7 +94,6 @@ export class TableDetailComponent implements OnInit, OnDestroy {
   }
 
   loadTableData(id: number): void {
-    const idParam = this.route?.snapshot?.paramMap?.get('id');
     this.isLoading = true;
     forkJoin({
       table: this.table ? of(this.table) : this.tableService.getById(id),
