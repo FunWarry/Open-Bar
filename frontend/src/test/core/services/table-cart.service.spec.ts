@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { of, Subject } from 'rxjs';
 import { IMessage } from '@stomp/stompjs';
@@ -497,5 +497,66 @@ describe('TableCartService', () => {
     expect(me).toBeDefined();
     expect(me?.items.length).toBe(1);
     expect(me?.totalPrice).toBe(19.0);
+  });
+
+  it('startGraceCountdown should decrement seconds and refresh when countdown finishes', fakeAsync(() => {
+    (service as any).activeTableId.set(5);
+
+    service.startGraceCountdown(2);
+    expect(service.graceRemainingSeconds()).toBe(2);
+
+    tick(1000);
+    expect(service.graceRemainingSeconds()).toBe(1);
+
+    tick(1000);
+    expect(service.graceRemainingSeconds()).toBe(0);
+
+    const reqCart = httpMock.expectOne(`${baseUrl}/5/cart`);
+    reqCart.flush(sampleCart);
+    const reqOrders = httpMock.expectOne(`${baseUrl}/5/cart/orders`);
+    reqOrders.flush(sampleOrdersSummary);
+
+    service.stopGraceCountdown();
+  }));
+
+  it('handleCartGracePeriod should compute seconds from dispatchAt', () => {
+    const futureDate = new Date(Date.now() + 60000).toISOString();
+    const cartWithDispatch: TableCart = {
+      ...sampleCart,
+      dispatchAt: futureDate
+    };
+
+    (service as any).handleCartGracePeriod(cartWithDispatch);
+    expect(service.graceRemainingSeconds()).toBeGreaterThan(0);
+
+    service.stopGraceCountdown();
+    expect(service.graceRemainingSeconds()).toBe(0);
+  });
+
+  it('handleIncomingJoinRequest should manage pendingJoinRequests signal', () => {
+    service.setOwnership(true, 'Host');
+    const req1: TableJoinRequest = { id: 10, tableId: 5, applicantSessionId: 'app-1', applicantName: 'One', status: 'PENDING' };
+    (service as any).handleIncomingJoinRequest(req1);
+    expect(service.pendingJoinRequests()).toHaveSize(1);
+
+    const req1Updated: TableJoinRequest = { id: 10, tableId: 5, applicantSessionId: 'app-1', applicantName: 'One Renamed', status: 'PENDING' };
+    (service as any).handleIncomingJoinRequest(req1Updated);
+    expect(service.pendingJoinRequests()).toHaveSize(1);
+    expect(service.pendingJoinRequests()[0].applicantName).toBe('One Renamed');
+
+    const req1Approved: TableJoinRequest = { id: 10, tableId: 5, applicantSessionId: 'app-1', applicantName: 'One', status: 'APPROVED' };
+    (service as any).handleIncomingJoinRequest(req1Approved);
+    expect(service.pendingJoinRequests()).toHaveSize(0);
+  });
+
+  it('setGuestName should update local storage and currentGuestName signal', () => {
+    service.setGuestName('NewNickname');
+    expect(service.getGuestName()).toBe('NewNickname');
+    expect(service.currentGuestName()).toBe('NewNickname');
+  });
+
+  it('ngOnDestroy should cleanup intervals and subscriptions without throwing', () => {
+    service.startGraceCountdown(60);
+    expect(() => service.ngOnDestroy()).not.toThrow();
   });
 });

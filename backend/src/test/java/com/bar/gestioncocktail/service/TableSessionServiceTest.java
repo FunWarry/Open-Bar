@@ -536,4 +536,220 @@ class TableSessionServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().applicantName()).isEqualTo("Sam");
     }
+
+    @Test
+    @DisplayName("getPendingJoinRequests: returns empty list when caller is not owner or session null")
+    void getPendingJoinRequests_whenNotOwnerOrNullSession_returnsEmptyList() {
+        when(tableRepository.findById(5L)).thenReturn(Optional.empty());
+        when(tableRepository.findByNumero(5)).thenReturn(Optional.empty());
+
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.empty());
+
+        List<TableJoinRequestDTO> result1 = tableSessionService.getPendingJoinRequests(5L, "owner-alex");
+        assertThat(result1).isEmpty();
+
+        TableSession activeSession = new TableSession();
+        activeSession.setTableId(5L);
+        activeSession.setOwnerGuestSessionId("actual-owner");
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.of(activeSession));
+
+        List<TableJoinRequestDTO> result2 = tableSessionService.getPendingJoinRequests(5L, "intruder");
+        assertThat(result2).isEmpty();
+    }
+
+    @Test
+    @DisplayName("getJoinRequestStatus: returns DTO with token if approved, without token if pending, null if not found")
+    void getJoinRequestStatus_coversApprovedPendingAndNotFound() {
+        when(tableRepository.findById(5L)).thenReturn(Optional.empty());
+        when(tableRepository.findByNumero(5)).thenReturn(Optional.empty());
+
+        when(tableJoinRequestRepository.findFirstByTableIdAndApplicantSessionIdOrderByCreatedAtDesc(5L, "guest-unknown"))
+                .thenReturn(Optional.empty());
+        assertThat(tableSessionService.getJoinRequestStatus(5L, "guest-unknown")).isNull();
+
+        TableJoinRequest pendingReq = new TableJoinRequest();
+        pendingReq.setId(10L);
+        pendingReq.setTableId(5L);
+        pendingReq.setApplicantSessionId("guest-pending");
+        pendingReq.setStatus(TableJoinRequestStatus.PENDING);
+        when(tableJoinRequestRepository.findFirstByTableIdAndApplicantSessionIdOrderByCreatedAtDesc(5L, "guest-pending"))
+                .thenReturn(Optional.of(pendingReq));
+
+        TableJoinRequestDTO pendingDto = tableSessionService.getJoinRequestStatus(5L, "guest-pending");
+        assertThat(pendingDto).isNotNull();
+        assertThat(pendingDto.sessionToken()).isNull();
+
+        TableJoinRequest approvedReq = new TableJoinRequest();
+        approvedReq.setId(11L);
+        approvedReq.setTableId(5L);
+        approvedReq.setApplicantSessionId("guest-approved");
+        approvedReq.setStatus(TableJoinRequestStatus.APPROVED);
+        when(tableJoinRequestRepository.findFirstByTableIdAndApplicantSessionIdOrderByCreatedAtDesc(5L, "guest-approved"))
+                .thenReturn(Optional.of(approvedReq));
+
+        TableSession activeSession = new TableSession();
+        activeSession.setSessionToken("approved-token-xyz");
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.of(activeSession));
+
+        TableJoinRequestDTO approvedDto = tableSessionService.getJoinRequestStatus(5L, "guest-approved");
+        assertThat(approvedDto).isNotNull();
+        assertThat(approvedDto.sessionToken()).isEqualTo("approved-token-xyz");
+    }
+
+    @Test
+    @DisplayName("respondToJoinRequest: throws BusinessException when non-owner tries to approve or table mismatch")
+    void respondToJoinRequest_unauthorizedAndTableMismatch() {
+        when(tableRepository.findById(5L)).thenReturn(Optional.empty());
+        when(tableRepository.findByNumero(5)).thenReturn(Optional.empty());
+
+        TableSession activeSession = new TableSession();
+        activeSession.setTableId(5L);
+        activeSession.setOwnerGuestSessionId("owner-alex");
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.of(activeSession));
+
+        TableJoinApprovalRequestDTO wrongOwnerDto = new TableJoinApprovalRequestDTO("wrong-owner", true);
+        assertThatThrownBy(() -> tableSessionService.respondToJoinRequest(5L, 77L, wrongOwnerDto))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .hasMessageContaining("Only the table owner can approve");
+
+        TableJoinApprovalRequestDTO correctOwnerDto = new TableJoinApprovalRequestDTO("owner-alex", true);
+        TableJoinRequest wrongTableReq = new TableJoinRequest();
+        wrongTableReq.setId(77L);
+        wrongTableReq.setTableId(99L);
+        when(tableJoinRequestRepository.findById(77L)).thenReturn(Optional.of(wrongTableReq));
+
+        assertThatThrownBy(() -> tableSessionService.respondToJoinRequest(5L, 77L, correctOwnerDto))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .hasMessageContaining("does not belong to table");
+    }
+
+    @Test
+    @DisplayName("requestTableJoin: updates name and re-broadcasts if request is already pending")
+    void requestTableJoin_whenExistingPending_updatesNameAndRebroadcasts() {
+        when(tableRepository.findById(5L)).thenReturn(Optional.empty());
+        when(tableRepository.findByNumero(5)).thenReturn(Optional.empty());
+
+        TableSession activeSession = new TableSession();
+        activeSession.setTableId(5L);
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.of(activeSession));
+
+        TableJoinRequest existing = new TableJoinRequest();
+        existing.setId(77L);
+        existing.setTableId(5L);
+        existing.setApplicantSessionId("guest-sam");
+        existing.setApplicantName("OldSam");
+        existing.setStatus(TableJoinRequestStatus.PENDING);
+
+        when(tableJoinRequestRepository.findFirstByTableIdAndApplicantSessionIdOrderByCreatedAtDesc(5L, "guest-sam"))
+                .thenReturn(Optional.of(existing));
+        when(tableJoinRequestRepository.save(any(TableJoinRequest.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TableJoinRequestDTO dto = new TableJoinRequestDTO(null, 5L, "guest-sam", "NewSam", "PENDING", null, null);
+        TableJoinRequestDTO result = tableSessionService.createJoinRequest(5L, dto);
+
+        assertThat(result.applicantName()).isEqualTo("NewSam");
+        verify(messagingTemplate).convertAndSend(eq("/topic/tables/5/owner"), any(TableJoinRequestDTO.class));
+    }
+
+    @Test
+    @DisplayName("validateSession: claims ownership on free and occupied tables")
+    void validateSession_claimsOwnership() {
+        TableEntity freeTable = new TableEntity();
+        freeTable.setId(5L);
+        freeTable.setOccupee(false);
+        when(tableRepository.findById(5L)).thenReturn(Optional.of(freeTable));
+
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.empty());
+        when(tableSessionRepository.save(any(TableSession.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TableSessionResponseDTO freeRes = tableSessionService.validateSession(5L, null, "guest-first", "FirstGuest");
+        assertThat(freeRes.isOwner()).isTrue();
+
+        TableEntity occTable = new TableEntity();
+        occTable.setId(6L);
+        occTable.setOccupee(true);
+        when(tableRepository.findById(6L)).thenReturn(Optional.of(occTable));
+
+        TableSession unownedOccSession = new TableSession();
+        unownedOccSession.setTableId(6L);
+        unownedOccSession.setSessionToken("token-occ-6");
+        unownedOccSession.setStatus(TableSessionStatus.ACTIVE);
+        unownedOccSession.setExpiresAt(fixedNow.plusHours(1));
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(6L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.of(unownedOccSession));
+
+        TableSessionResponseDTO occRes = tableSessionService.validateSession(6L, null, "guest-first", "FirstGuest");
+        assertThat(occRes.isOwner()).isTrue();
+
+        TableSessionResponseDTO ownerRes = tableSessionService.validateSession(6L, null, "guest-first", "FirstGuest");
+        assertThat(ownerRes.isOwner()).isTrue();
+    }
+
+    @Test
+    @DisplayName("generateSessionQrCode and refreshSession: covers SVG, PNG and token resolution")
+    void generateSessionQrCode_and_refreshSession() {
+        when(tableRepository.findById(5L)).thenReturn(Optional.empty());
+        when(tableRepository.findByNumero(5)).thenReturn(Optional.empty());
+
+        when(qrCodeService.generateSvg(anyString(), anyInt())).thenReturn("<svg>test</svg>");
+        when(qrCodeService.generatePng(anyString(), anyInt(), anyInt())).thenReturn(new byte[]{1, 2, 3});
+        when(qrCodeService.buildTableOrderUrl(anyString(), anyInt(), anyString())).thenReturn("https://openbar.lan/client/5");
+
+        byte[] svgBytes = tableSessionService.generateSessionQrCode(5L, "my-token", "SVG", 400, "http://myhost:8080");
+        assertThat(new String(svgBytes, java.nio.charset.StandardCharsets.UTF_8)).isEqualTo("<svg>test</svg>");
+
+        byte[] pngBytes = tableSessionService.generateSessionQrCode(5L, "my-token", "PNG", 0, null);
+        assertThat(pngBytes).isEqualTo(new byte[]{1, 2, 3});
+
+        TableSession activeSession = new TableSession();
+        activeSession.setTableId(5L);
+        activeSession.setSessionToken("active-tok");
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.of(activeSession));
+
+        byte[] pngAutoToken = tableSessionService.generateSessionQrCode(5L, null, "PNG", 300, null);
+        assertThat(pngAutoToken).isEqualTo(new byte[]{1, 2, 3});
+
+        TableSessionResponseDTO refreshed = tableSessionService.refreshSession(5L);
+        assertThat(refreshed.valid()).isTrue();
+        assertThat(refreshed.message()).isEqualTo("Table session refreshed");
+    }
+
+    @Test
+    @DisplayName("isSessionValidForOrder: covers table mismatch, expired token and closed status")
+    void isSessionValidForOrder_edgeCases() {
+        appSettings.setTableSessionValidationEnabled(true);
+        when(appSettingsService.getSettings()).thenReturn(appSettings);
+
+        when(tableRepository.findById(5L)).thenReturn(Optional.empty());
+        when(tableRepository.findByNumero(5)).thenReturn(Optional.empty());
+
+        TableSession wrongTableSession = new TableSession();
+        wrongTableSession.setTableId(99L);
+        wrongTableSession.setSessionToken("tok-wrong-table");
+        when(tableSessionRepository.findBySessionToken("tok-wrong-table")).thenReturn(Optional.of(wrongTableSession));
+        assertThat(tableSessionService.isSessionValidForOrder(5L, "tok-wrong-table")).isFalse();
+
+        TableSession expiredSession = new TableSession();
+        expiredSession.setTableId(5L);
+        expiredSession.setSessionToken("tok-expired");
+        expiredSession.setExpiresAt(fixedNow.minusMinutes(10));
+        when(tableSessionRepository.findBySessionToken("tok-expired")).thenReturn(Optional.of(expiredSession));
+        when(tableSessionRepository.save(any(TableSession.class))).thenAnswer(inv -> inv.getArgument(0));
+        assertThat(tableSessionService.isSessionValidForOrder(5L, "tok-expired")).isFalse();
+
+        TableSession closedSession = new TableSession();
+        closedSession.setTableId(5L);
+        closedSession.setSessionToken("tok-closed");
+        closedSession.setStatus(TableSessionStatus.CLOSED);
+        closedSession.setExpiresAt(fixedNow.plusHours(1));
+        when(tableSessionRepository.findBySessionToken("tok-closed")).thenReturn(Optional.of(closedSession));
+        assertThat(tableSessionService.isSessionValidForOrder(5L, "tok-closed")).isFalse();
+    }
 }

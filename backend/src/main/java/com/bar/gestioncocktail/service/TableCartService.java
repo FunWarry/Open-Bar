@@ -85,21 +85,6 @@ public class TableCartService {
     }
 
     /**
-     * Backward-compatible constructor for existing tests and call sites.
-     */
-    public TableCartService(
-            TableCartItemRepository tableCartItemRepository,
-            TableRepository tableRepository,
-            CocktailRepository cocktailRepository,
-            CocktailVarianteRepository varianteRepository,
-            PublicCommandeService publicCommandeService,
-            SimpMessagingTemplate messagingTemplate,
-            TimeService timeService) {
-        this(tableCartItemRepository, tableRepository, cocktailRepository, varianteRepository,
-                publicCommandeService, messagingTemplate, timeService, null, null);
-    }
-
-    /**
      * Retrieves the current consolidated collaborative cart for a table.
      *
      * @param tableId Table identifier

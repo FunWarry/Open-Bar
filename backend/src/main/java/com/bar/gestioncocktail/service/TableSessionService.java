@@ -84,18 +84,6 @@ public class TableSessionService {
     }
 
     /**
-     * Backward-compatible constructor for existing tests and call sites.
-     */
-    public TableSessionService(
-            TableSessionRepository tableSessionRepository,
-            AppSettingsService appSettingsService,
-            TimeService timeService,
-            QrCodeService qrCodeService,
-            TableRepository tableRepository) {
-        this(tableSessionRepository, appSettingsService, timeService, qrCodeService, tableRepository, null, null);
-    }
-
-    /**
      * Resolves a table entity by either its primary key ID or its visible table number (numero).
      *
      * @param tableIdOrNumero Primary key ID or visible table number

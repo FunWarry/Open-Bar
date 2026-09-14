@@ -478,4 +478,77 @@ class TableCartServiceTest {
         assertThat(result.status()).isEqualTo("OPEN");
         verify(messagingTemplate).convertAndSend(eq("/topic/tables/1/cart"), any(TableCartResponseDTO.class));
     }
+
+    @Test
+    @DisplayName("removeItem: throws BusinessException when item belongs to different table")
+    void removeItem_tableMismatch_throwsBusinessException() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+
+        TableCartItem item = new TableCartItem();
+        item.setId(99L);
+        item.setTableId(2L); // Different table!
+        when(tableCartItemRepository.findById(99L)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> tableCartService.removeItem(1L, 99L, "guest-me"))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .hasMessageContaining("does not belong to table");
+    }
+
+    @Test
+    @DisplayName("submitCart: merges into existing pending order when within 2-min grace period")
+    void submitCart_whenActiveGraceOrderExists_mergesIntoExisting() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+
+        TableCartItem cartItem = new TableCartItem();
+        cartItem.setId(10L);
+        cartItem.setTableId(1L);
+        cartItem.setCocktailId(10L);
+        cartItem.setGuestSessionId("guest-sam");
+        cartItem.setGuestName("Sam");
+        cartItem.setQuantite(2);
+        when(tableCartItemRepository.findByTableIdOrderByCreatedAtAsc(1L)).thenReturn(List.of(cartItem));
+
+        Commande pendingOrder = new Commande();
+        pendingOrder.setId(500L);
+        pendingOrder.setTable(mockTable);
+        pendingOrder.setStatut(CommandeStatut.EN_ATTENTE);
+        pendingOrder.setDateCommande(fixedNow.minusSeconds(30)); // 30s ago, well within 120s grace!
+
+        when(commandeRepository.findByTableAndStatut(mockTable, CommandeStatut.EN_ATTENTE))
+                .thenReturn(List.of(pendingOrder));
+
+        Commande mergedCmd = new Commande();
+        mergedCmd.setId(500L);
+        mergedCmd.setTrackingToken("trk-500");
+        mergedCmd.setStatut(CommandeStatut.EN_ATTENTE);
+        mergedCmd.setTable(mockTable);
+        mergedCmd.setTotal(BigDecimal.valueOf(35.0));
+        mergedCmd.setDateCommande(fixedNow.minusSeconds(30));
+
+        PublicCommandeResponseDTO mergedResponse = PublicCommandeResponseDTO.from(mergedCmd, 10);
+        when(publicCommandeService.ajouterArticlesACommande(eq(500L), anyList())).thenReturn(mergedResponse);
+
+        TableCartSubmitRequestDTO submitDto = new TableCartSubmitRequestDTO("Sam", "guest-sam", "Add mint", "tok-123");
+        PublicCommandeResponseDTO result = tableCartService.submitCart(1L, submitDto);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getCommandeId()).isEqualTo(500L);
+        verify(publicCommandeService).ajouterArticlesACommande(eq(500L), anyList());
+        verify(tableCartItemRepository).deleteByTableId(1L);
+    }
+
+    @Test
+    @DisplayName("handleTableLiberated: handles null event or null table gracefully")
+    void handleTableLiberated_nullSafety() {
+        tableCartService.handleTableLiberated(null);
+        tableCartService.handleTableLiberated(new com.bar.gestioncocktail.event.TableLiberatedEvent(null));
+        verify(tableCartItemRepository, never()).deleteByTableId(anyLong());
+    }
+
+    @Test
+    @DisplayName("validateTableExists and resolveTable: throws BusinessException when tableId is null")
+    void tableIdNull_throwsBusinessException() {
+        assertThatThrownBy(() -> tableCartService.getCart(null))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class);
+    }
 }

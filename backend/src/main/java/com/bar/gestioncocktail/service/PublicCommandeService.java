@@ -56,29 +56,7 @@ public class PublicCommandeService {
         this.happyHourService = happyHourService;
     }
 
-    public PublicCommandeService(
-            CommandeRepository commandeRepository,
-            TableRepository tableRepository,
-            CocktailRepository cocktailRepository,
-            CocktailVarianteRepository varianteRepository,
-            ApplicationEventPublisher eventPublisher,
-            TimeService timeService,
-            TableSessionService tableSessionService) {
-        this(commandeRepository, tableRepository, cocktailRepository, varianteRepository,
-                eventPublisher, timeService, tableSessionService, null);
-    }
-
-    public PublicCommandeService(
-            CommandeRepository commandeRepository,
-            TableRepository tableRepository,
-            CocktailRepository cocktailRepository,
-            CocktailVarianteRepository varianteRepository,
-            ApplicationEventPublisher eventPublisher,
-            TimeService timeService) {
-        this(commandeRepository, tableRepository, cocktailRepository, varianteRepository,
-                eventPublisher, timeService, null, null);
-    }
-/**
+    /**
      * Validates and processes a patron self-order submitted via QR code scan.
      *
      * @param dto Public order request payload

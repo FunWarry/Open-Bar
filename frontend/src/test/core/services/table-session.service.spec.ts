@@ -214,4 +214,24 @@ describe('TableSessionService', () => {
     expect(req.request.method).toBe('GET');
     req.flush(mockReqs);
   });
+
+  it('validateSession should include guestSessionId and guestName params when provided', () => {
+    service.validateSession(4, 'tok-123', 'guest-uuid-1', 'Charlie').subscribe();
+
+    const req = httpMock.expectOne(
+      `${baseUrl}/4/session?token=tok-123&guestSessionId=guest-uuid-1&guestName=Charlie`
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush(mockActiveSessionResponse);
+  });
+
+  it('getSessionQrCodeUrl and downloadSessionQrCode should support SVG format and default window origin', () => {
+    const svgUrl = service.getSessionQrCodeUrl(9, null, 'SVG', 400);
+    expect(svgUrl).toContain('format=SVG');
+    expect(svgUrl).toContain('size=400');
+
+    service.downloadSessionQrCode(9, null, 'SVG', 400).subscribe();
+    const req = httpMock.expectOne((r) => r.url === `${baseUrl}/9/session/qrcode` && r.params.get('format') === 'SVG');
+    req.flush(new Blob(['<svg></svg>'], { type: 'image/svg+xml' }));
+  });
 });

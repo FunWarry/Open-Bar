@@ -80,9 +80,17 @@ describe('ClientCommandeComponent', () => {
     tableSessionServiceSpy = jasmine.createSpyObj('TableSessionService', [
       'validateSession',
       'refreshSession',
-      'getSessionQrCodeUrl'
+      'getSessionQrCodeUrl',
+      'submitJoinRequest',
+      'getJoinRequestStatus',
+      'respondToJoinRequest',
+      'getPendingJoinRequests'
     ]);
     tableSessionServiceSpy.getSessionQrCodeUrl.and.returnValue('http://localhost:8080/api/public/tables/4/session/qrcode?format=PNG&size=300');
+    tableSessionServiceSpy.submitJoinRequest.and.returnValue(of({ id: 1, tableId: 4, applicantSessionId: 'guest-me', applicantName: 'Alex', status: 'PENDING' }));
+    tableSessionServiceSpy.getJoinRequestStatus.and.returnValue(of({ id: 1, tableId: 4, applicantSessionId: 'guest-me', applicantName: 'Alex', status: 'APPROVED', sessionToken: 'tok-approved' }));
+    tableSessionServiceSpy.respondToJoinRequest.and.returnValue(of({ id: 1, tableId: 4, applicantSessionId: 'guest-peer', applicantName: 'Peer', status: 'APPROVED', sessionToken: 'tok-peer' }));
+    tableSessionServiceSpy.getPendingJoinRequests.and.returnValue(of([]));
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     websocketServiceSpy = jasmine.createSpyObj('WebSocketService', ['watch']);
     cocktailWsSubject = new Subject<any>();
@@ -123,12 +131,14 @@ describe('ClientCommandeComponent', () => {
       getOrCreateGuestSessionId: jasmine.createSpy('getOrCreateGuestSessionId').and.returnValue('guest-me'),
       initCart: jasmine.createSpy('initCart').and.returnValue(of(mockCart)),
       loadTableOrdersSummary: jasmine.createSpy('loadTableOrdersSummary').and.returnValue(of(null)),
-      finalizeGrace: jasmine.createSpy('finalizeGrace').and.returnValue(of(null)),
+      fetchTableOrdersSummary: jasmine.createSpy('fetchTableOrdersSummary').and.returnValue(of(null)),
+      finalizeGrace: jasmine.createSpy('finalizeGrace').and.returnValue(of({ success: true, message: 'Grace finalized', commandeId: 99 })),
       addItem: jasmine.createSpy('addItem').and.returnValue(of(mockCart)),
       updateItem: jasmine.createSpy('updateItem').and.returnValue(of(mockCart)),
       removeItem: jasmine.createSpy('removeItem').and.returnValue(of(mockCart)),
       submitCart: jasmine.createSpy('submitCart').and.returnValue(of({ commandeId: 99, trackingToken: 'trk-99' })),
       setOwnership: jasmine.createSpy('setOwnership'),
+      setPendingJoinRequests: jasmine.createSpy('setPendingJoinRequests'),
       reset: jasmine.createSpy('reset')
     };
 
@@ -898,6 +908,88 @@ describe('ClientCommandeComponent', () => {
       plusBtn.click();
 
       expect(component.addToCart).toHaveBeenCalledWith(cocktailWithIngredients);
+    });
+  });
+
+  describe('Table Join Approval, Grace Period, and Orders Modal', () => {
+    beforeEach(() => {
+      component.tableNumero = 4;
+      fixture.detectChanges();
+    });
+
+    it('submitJoinRequest should submit join request, set pending and listen on websocket', () => {
+      component.joinRequestNameForm.setValue({ applicantName: 'Charlie' });
+      component.submitJoinRequest();
+
+      expect(component.isJoinPending()).toBeTrue();
+      expect(tableCartServiceMock.setGuestName).toHaveBeenCalledWith('Charlie');
+      expect(tableSessionServiceSpy.submitJoinRequest).toHaveBeenCalledWith(4, 'guest-me', 'Charlie');
+    });
+
+    it('retryJoinRequest should reset join pending and rejected flags', () => {
+      component.isJoinPending.set(true);
+      component.isJoinRejected.set(true);
+
+      component.retryJoinRequest();
+
+      expect(component.isJoinPending()).toBeFalse();
+      expect(component.isJoinRejected()).toBeFalse();
+    });
+
+    it('acceptApplicant should call respondToJoinRequest with approved true and update pending list', () => {
+      const mockReq = { id: 77, tableId: 4, applicantSessionId: 'guest-peer', applicantName: 'Peer', status: 'PENDING' as const };
+      tableCartServiceMock.pendingJoinRequests.set([mockReq]);
+
+      component.acceptApplicant(mockReq);
+
+      expect(tableSessionServiceSpy.respondToJoinRequest).toHaveBeenCalledWith(4, 77, 'guest-me', true);
+      expect(tableCartServiceMock.setPendingJoinRequests).toHaveBeenCalledWith([]);
+    });
+
+    it('declineApplicant should call respondToJoinRequest with approved false and update pending list', () => {
+      const mockReq = { id: 77, tableId: 4, applicantSessionId: 'guest-peer', applicantName: 'Peer', status: 'PENDING' as const };
+      tableCartServiceMock.pendingJoinRequests.set([mockReq]);
+
+      component.declineApplicant(mockReq);
+
+      expect(tableSessionServiceSpy.respondToJoinRequest).toHaveBeenCalledWith(4, 77, 'guest-me', false);
+      expect(tableCartServiceMock.setPendingJoinRequests).toHaveBeenCalledWith([]);
+    });
+
+    it('finalizeGracePeriod should call tableCartService.finalizeGrace and present toast', fakeAsync(() => {
+      component.finalizeGracePeriod();
+      tick();
+
+      expect(tableCartServiceMock.finalizeGrace).toHaveBeenCalledWith(4);
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    }));
+
+    it('openTableOrdersModal, closeTableOrdersModal, and onTableOrdersBackdropClick should toggle signal', () => {
+      component.openTableOrdersModal();
+      expect(component.showTableOrdersModal()).toBeTrue();
+      expect(tableCartServiceMock.fetchTableOrdersSummary).toHaveBeenCalledWith(4);
+
+      component.closeTableOrdersModal();
+      expect(component.showTableOrdersModal()).toBeFalse();
+
+      component.openTableOrdersModal();
+      const fakeBackdropEvent = { target: 'backdrop', currentTarget: 'backdrop' } as any;
+      component.onTableOrdersBackdropClick(fakeBackdropEvent);
+      expect(component.showTableOrdersModal()).toBeFalse();
+    });
+
+    it('onInviteBackdropClick should close invite modal when target matches currentTarget', () => {
+      component.openInviteModal();
+      expect(component.showInviteModal()).toBeTrue();
+
+      const fakeBackdropEvent = { target: 'backdrop', currentTarget: 'backdrop' } as any;
+      component.onInviteBackdropClick(fakeBackdropEvent);
+      expect(component.showInviteModal()).toBeFalse();
+    });
+
+    it('isHappyHour and getEffectivePrice should delegate to happyHourService', () => {
+      expect(component.isHappyHour(mockCocktail)).toBeFalse();
+      expect(component.getEffectivePrice(mockCocktail)).toBe(8.5);
     });
   });
 });
