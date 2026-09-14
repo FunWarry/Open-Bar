@@ -1388,6 +1388,25 @@ class FactureServiceTest {
     }
 
     @Test
+    void exportCSV_escapesSpecialCharactersAndFormulas() {
+        Facture dangerousFacture = new Facture();
+        dangerousFacture.setNumero("=cmd|' /C calc'!A0");
+        dangerousFacture.setDateFacture(LocalDateTime.of(2026, java.time.Month.SEPTEMBER, 14, 20, 0));
+        dangerousFacture.setTotalHT(BigDecimal.valueOf(10.00));
+        dangerousFacture.setTotalTTC(BigDecimal.valueOf(12.00));
+        dangerousFacture.setModePaiement("CB; \"VIP\"");
+        dangerousFacture.setReglee(true);
+
+        when(factureRepository.findAll()).thenReturn(List.of(dangerousFacture));
+
+        String csv = factureService.exportCSV(null, null);
+
+        assertThat(csv)
+                .contains("\"'=cmd|' /C calc'!A0\"")
+                .contains("\"CB; \"\"VIP\"\"\"");
+    }
+
+    @Test
     void finalizeFacture_setsRetentionAndArchivedPath() {
         when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
         when(factureRepository.save(any(Facture.class))).thenAnswer(inv -> inv.getArgument(0));

@@ -22,7 +22,8 @@ import {
   calculatorOutline,
   scaleOutline,
   cashOutline,
-  sparklesOutline
+  sparklesOutline,
+  downloadOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
@@ -31,6 +32,8 @@ import { Ingredient } from '../../../core/models/ingredient.model';
 import { IngredientService } from '../../../core/services/ingredient.service';
 import { StockWasteService } from '../../../core/services/stock-waste.service';
 import { StockWasteReason } from '../../../core/models/stock-waste.model';
+import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+import { CsvExportService } from '../../../core/services/csv-export.service';
 
 /**
  * Metadata definition for stock waste reasons with visual icons and theme badges.
@@ -43,9 +46,8 @@ export interface WasteReasonOption {
 }
 
 /**
- * Modal component allowing barmen and managers to declare stock shrinkage, breakage,
- * expiration, complimentary rounds, staff tastings, and preparation spills.
- * Immediately deducts inventory balance and triggers low-stock alerts.
+ * Modern modal dialog enabling staff and managers to report stock breakage, expiration,
+ * and waste events with live inventory impact and accounting traceability.
  */
 @Component({
   selector: 'app-stock-waste-modal',
@@ -55,6 +57,7 @@ export interface WasteReasonOption {
     TranslocoModule,
     AppCurrencyPipe,
     SearchableSelectComponent,
+    ActionButtonComponent,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -106,6 +109,7 @@ export class StockWasteModalComponent implements OnInit {
   private readonly modalCtrl = inject(ModalController);
   private readonly toastCtrl = inject(ToastController);
   private readonly transloco = inject(TranslocoService);
+  private readonly csvExportService = inject(CsvExportService);
 
   constructor() {
     addIcons({
@@ -123,7 +127,8 @@ export class StockWasteModalComponent implements OnInit {
       calculatorOutline,
       scaleOutline,
       cashOutline,
-      sparklesOutline
+      sparklesOutline,
+      downloadOutline
     });
   }
 
@@ -303,6 +308,28 @@ export class StockWasteModalComponent implements OnInit {
           color: 'danger'
         });
         await toast.present();
+      }
+    });
+  }
+
+  /**
+   * Exports recorded stock waste movements to CSV.
+   */
+  exportWasteHistoryCsv(): void {
+    const ingredientId = this.ingredient?.id ?? this.preselectedIngredientId ?? this.selectedIngredientId ?? undefined;
+    this.stockWasteService.getMovements(ingredientId).subscribe({
+      next: (movements) => {
+        if (!movements || movements.length === 0) {
+          this.toastCtrl.create({
+            message: this.transloco.translate('CSV_EXPORT.NO_DATA'),
+            duration: 2500,
+            color: 'warning'
+          }).then(t => t.present());
+          return;
+        }
+
+        const columns = this.stockWasteService.getWasteMovementCsvColumns();
+        this.csvExportService.exportTable(movements, columns, 'pertes_stock_historique');
       }
     });
   }

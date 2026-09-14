@@ -47,6 +47,7 @@ import { DayClosureModalComponent } from './day-closure-modal/day-closure-modal.
 import { ScheduleHistoryModalComponent } from './schedule-history-modal/schedule-history-modal.component';
 import { ConfirmDeleteModalComponent } from '../../core/components/ui/confirm-delete-modal/confirm-delete-modal.component';
 import { EmployeeShift, EmployeeShiftRequest, TypePoste } from '../../core/models/shift.model';
+import { CsvExportService, CsvColumn } from '../../core/services/csv-export.service';
 
 import { FormsModule } from '@angular/forms';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
@@ -99,6 +100,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   private readonly toastCtrl = inject(ToastController);
   private readonly alertCtrl = inject(AlertController);
   private readonly translocoService = inject(TranslocoService);
+  private readonly csvExportService = inject(CsvExportService);
 
   /** Eraser / Bulk deletion mode active */
   isDeleteMode = false;
@@ -504,6 +506,72 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     if (data?.action === 'replay' && data.timestamp) {
       this.startReplay(data.timestamp);
     }
+  }
+
+  /**
+   * Exports the current week schedule shifts to a standardized CSV file.
+   */
+  exportScheduleCsv(): void {
+    const sched = this.displaySchedule;
+    if (!sched?.employees?.length) {
+      this.toastCtrl.create({
+        message: this.translocoService.translate('CSV_EXPORT.NO_DATA'),
+        duration: 2500,
+        color: 'warning'
+      }).then(t => t.present());
+      return;
+    }
+
+    interface FlatShiftRow {
+      employeeName: string;
+      role: string;
+      date: string;
+      day: string;
+      shiftType: string;
+      startTime: string;
+      endTime: string;
+      hours: string | number;
+    }
+
+    const flatShifts: FlatShiftRow[] = [];
+    for (const emp of sched.employees) {
+      for (const shift of emp.shifts) {
+        if (shift.type !== 'EMPTY' && shift.type !== 'CLOSED') {
+          flatShifts.push({
+            employeeName: emp.name,
+            role: emp.role,
+            date: shift.date,
+            day: shift.day,
+            shiftType: shift.typeShift || shift.type || '',
+            startTime: shift.startTime || '',
+            endTime: shift.endTime || '',
+            hours: shift.rawShift?.heuresEffectuees ?? ''
+          });
+        }
+      }
+    }
+
+    if (flatShifts.length === 0) {
+      this.toastCtrl.create({
+        message: this.translocoService.translate('CSV_EXPORT.NO_DATA'),
+        duration: 2500,
+        color: 'warning'
+      }).then(t => t.present());
+      return;
+    }
+
+    const columns: CsvColumn<FlatShiftRow>[] = [
+      { key: 'employeeName', header: 'Employe' },
+      { key: 'role', header: 'Role' },
+      { key: 'date', header: 'Date' },
+      { key: 'day', header: 'Jour' },
+      { key: 'shiftType', header: 'Type_Shift' },
+      { key: 'startTime', header: 'Heure_Debut' },
+      { key: 'endTime', header: 'Heure_Fin' },
+      { key: 'hours', header: 'Heures_Effectuees' }
+    ];
+
+    this.csvExportService.exportTable(flatShifts, columns, `planning_shifts_${sched.weekStart}`);
   }
 
   /**

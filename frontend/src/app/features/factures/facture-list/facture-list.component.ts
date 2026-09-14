@@ -502,6 +502,28 @@ export class FactureListComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Triggers accounting CSV export for invoices.
+   */
+  exportFacturesCsv(): void {
+    let url = `${environment.apiUrl}/factures/export/csv`;
+    const params: string[] = [];
+    if (this.periodMode === 'OPERATIONAL_DAY' && this.selectedDay) {
+      params.push(`dateFrom=${this.selectedDay}`, `dateTo=${this.selectedDay}`);
+    } else if (this.periodMode === 'MONTH' && this.selectedMonth) {
+      const [yearStr, monthStr] = this.selectedMonth.split('-');
+      const year = Number(yearStr);
+      const month = Number(monthStr);
+      const lastDay = new Date(year, month, 0).getDate();
+      const lastDayStr = String(lastDay).padStart(2, '0');
+      params.push(`dateFrom=${this.selectedMonth}-01`, `dateTo=${this.selectedMonth}-${lastDayStr}`);
+    }
+    if (params.length > 0) {
+      url += `?${params.join('&')}`;
+    }
+    window.open(url, '_blank');
+  }
+
+  /**
    * TrackBy function for invoice list rendering optimization.
    */
   trackById(_: number, f: Facture): number {

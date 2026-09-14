@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { EmployeesComponent } from '../../../app/features/employees/employees.component';
+import { EmployeesComponent, EmployeeSummary } from '../../../app/features/employees/employees.component';
 import { UserService } from '../../../app/core/services/user.service';
 import { ShiftService } from '../../../app/core/services/shift.service';
 import { ModalController } from '@ionic/angular/standalone';
@@ -8,6 +8,7 @@ import { provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { User } from '../../../app/core/models/user.model';
 import { EmployeeShift } from '../../../app/core/models/shift.model';
+import { CsvExportService, CsvColumn } from '../../../app/core/services/csv-export.service';
 
 describe('EmployeesComponent', () => {
   let component: EmployeesComponent;
@@ -15,6 +16,7 @@ describe('EmployeesComponent', () => {
   let mockUserService: jasmine.SpyObj<UserService>;
   let mockShiftService: jasmine.SpyObj<ShiftService>;
   let mockModalCtrl: jasmine.SpyObj<ModalController>;
+  let mockCsvExportService: jasmine.SpyObj<CsvExportService>;
 
   const sampleUsers: User[] = [
     { id: 1, username: 'serveur1', email: 'serveur1@openbar.fr', nom: 'Bernard', prenom: 'Lucas', roles: ['SERVEUR'], enabled: true, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
@@ -49,6 +51,7 @@ describe('EmployeesComponent', () => {
     mockUserService = jasmine.createSpyObj('UserService', ['getUsers']);
     mockShiftService = jasmine.createSpyObj('ShiftService', ['getShiftsForWeek']);
     mockModalCtrl = jasmine.createSpyObj('ModalController', ['create']);
+    mockCsvExportService = jasmine.createSpyObj('CsvExportService', ['exportTable']);
 
     mockUserService.getUsers.and.returnValue(of(sampleUsers));
     mockShiftService.getShiftsForWeek.and.returnValue(of(sampleShifts));
@@ -83,7 +86,8 @@ describe('EmployeesComponent', () => {
         provideRouter([]),
         { provide: UserService, useValue: mockUserService },
         { provide: ShiftService, useValue: mockShiftService },
-        { provide: ModalController, useValue: mockModalCtrl }
+        { provide: ModalController, useValue: mockModalCtrl },
+        { provide: CsvExportService, useValue: mockCsvExportService }
       ]
     }).compileComponents();
 
@@ -149,6 +153,78 @@ describe('EmployeesComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const presetsBtn = compiled.querySelector('[data-testid="employees-btn-presets"]');
     expect(presetsBtn).toBeTruthy();
+  });
+
+  it('exportEmployeeHoursCsv should export table when employee summaries exist and format correctly', () => {
+    component.filteredSummaries = [
+      {
+        user: {
+          id: 1,
+          username: 'serveur1',
+          email: 'serveur1@openbar.fr',
+          nom: 'Bernard',
+          prenom: 'Lucas',
+          roles: ['SERVEUR', 'BARMAN'],
+          enabled: true,
+          createdAt: '2026-01-01',
+          updatedAt: '2026-01-01'
+        },
+        shiftsCount: 2,
+        totalHours: 15.5
+      },
+      {
+        user: {
+          id: 2,
+          username: 'emptyname',
+          email: 'empty@openbar.fr',
+          nom: '',
+          prenom: '',
+          roles: [],
+          enabled: true,
+          createdAt: '2026-01-01',
+          updatedAt: '2026-01-01'
+        },
+        shiftsCount: 0,
+        totalHours: 0
+      }
+    ];
+
+    component.exportEmployeeHoursCsv();
+
+    expect(mockCsvExportService.exportTable).toHaveBeenCalledWith(
+      jasmine.any(Array),
+      jasmine.any(Array),
+      'heures_employes'
+    );
+
+    const callArgs = mockCsvExportService.exportTable.calls.mostRecent().args;
+    const columns = callArgs[1] as CsvColumn<EmployeeSummary>[];
+
+    const idCol = columns.find(c => c.header === 'ID');
+    const nameCol = columns.find(c => c.header === 'Nom_Complet');
+    const userCol = columns.find(c => c.header === 'Identifiant');
+    const emailCol = columns.find(c => c.header === 'Email');
+    const rolesCol = columns.find(c => c.header === 'Roles');
+    const hoursCol = columns.find(c => c.header === 'Heures_Travaillees');
+
+    expect(idCol?.formatter?.(null, component.filteredSummaries[0])).toBe(1);
+    expect(nameCol?.formatter?.(null, component.filteredSummaries[0])).toBe('Bernard Lucas');
+    expect(nameCol?.formatter?.(null, component.filteredSummaries[1])).toBe('emptyname');
+    expect(userCol?.formatter?.(null, component.filteredSummaries[0])).toBe('serveur1');
+    expect(emailCol?.formatter?.(null, component.filteredSummaries[0])).toBe('serveur1@openbar.fr');
+    expect(rolesCol?.formatter?.(null, component.filteredSummaries[0])).toBe('SERVEUR, BARMAN');
+    expect(rolesCol?.formatter?.(null, component.filteredSummaries[1])).toBe('');
+    expect(hoursCol?.formatter?.(15.5, component.filteredSummaries[0])).toBe('15.50');
+    expect(hoursCol?.formatter?.(null, component.filteredSummaries[1])).toBe('0.00');
+  });
+
+  it('exportEmployeeHoursCsv should return early when filteredSummaries is empty', () => {
+    component.filteredSummaries = [];
+    mockCsvExportService.exportTable.calls.reset();
+
+    component.exportEmployeeHoursCsv();
+
+    expect(mockCsvExportService.exportTable).not.toHaveBeenCalled();
   });
 });
 

@@ -4,6 +4,7 @@ import { Observable, forkJoin, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { DashboardMarginAnalytics, DashboardStats } from '../models/dashboard-stats.model';
 import { OngoingOrder } from '../models/ongoing-order.model';
+import { CsvExportService } from '../../../core/services/csv-export.service';
 
 /**
  * Service managing data retrieval and analytics for the Manager Dashboard.
@@ -14,7 +15,10 @@ export class DashboardManagerService {
   private readonly apiUrl = `${environment.apiUrl}/dashboard`;
   private readonly commandesUrl = `${environment.apiUrl}/commandes`;
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly csvExportService: CsvExportService
+  ) {}
 
   /**
    * Retrieves live consolidated stats and KPIs for the manager dashboard.
@@ -85,36 +89,27 @@ export class DashboardManagerService {
    */
   exportStatsCsv(stats: DashboardStats, date: Date = new Date()): void {
     const dateStr = date.toISOString().split('T')[0];
-    const headers = 'Metrique,Valeur\n';
-    const rows = [
-      `Date,${dateStr}`,
-      `Chiffre d'Affaires du Jour,${stats.chiffreAffairesJour} EUR`,
-      `Chiffre d'Affaires du Mois,${stats.chiffreAffairesMois} EUR`,
-      `Coût des Marchandises Vendues (COGS),${stats.totalCogsJour ?? 0} EUR`,
-      `Marge Brute du Jour,${stats.margeBruteJour ?? 0} EUR`,
-      `Taux de Marge Brute,${stats.tauxMargeBruteJour ?? 0} %`,
-      `Commandes Totales,${stats.commandesTotales}`,
-      `Commandes En Attente,${stats.commandesEnAttente}`,
-      `Commandes En Preparation,${stats.commandesEnPreparation}`,
-      `Commandes Pretes,${stats.commandesPret}`,
-      `Commandes Livrees,${stats.commandesLivrees}`,
-      `Tables Occupees,${stats.tablesOccupees}/${stats.tablesTotales}`,
-      `Ingredients sous Seuil Critique,${stats.stockIngredientsCritiques}`,
-      '',
-      'Top Cocktails,Nombre de Ventes',
-      ...(stats.topCocktails || []).map(tc => `"${tc.nom.replaceAll('"', '""')}",${tc.nombreCommandes}`)
-    ].join('\n');
+    const rows: (string | number | boolean | null | undefined)[][] = [
+      ['Metrique', 'Valeur'],
+      ['Date', dateStr],
+      ["Chiffre d'Affaires du Jour", `${stats.chiffreAffairesJour} EUR`],
+      ["Chiffre d'Affaires du Mois", `${stats.chiffreAffairesMois} EUR`],
+      ['Coût des Marchandises Vendues (COGS)', `${stats.totalCogsJour ?? 0} EUR`],
+      ['Marge Brute du Jour', `${stats.margeBruteJour ?? 0} EUR`],
+      ['Taux de Marge Brute', `${stats.tauxMargeBruteJour ?? 0} %`],
+      ['Commandes Totales', stats.commandesTotales],
+      ['Commandes En Attente', stats.commandesEnAttente],
+      ['Commandes En Preparation', stats.commandesEnPreparation],
+      ['Commandes Pretes', stats.commandesPret],
+      ['Commandes Livrees', stats.commandesLivrees],
+      ['Tables Occupees', `${stats.tablesOccupees}/${stats.tablesTotales}`],
+      ['Ingredients sous Seuil Critique', stats.stockIngredientsCritiques],
+      ['', ''],
+      ['Top Cocktails', 'Nombre de Ventes'],
+      ...(stats.topCocktails || []).map(tc => [tc.nom, tc.nombreCommandes])
+    ];
 
-    const csvContent = '\uFEFF' + headers + rows;
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `openbar_rapport_manager_${dateStr}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    this.csvExportService.exportRows(rows, 'rapport_manager', { referenceDate: date });
   }
 }
 

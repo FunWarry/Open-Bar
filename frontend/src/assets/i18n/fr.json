@@ -56,6 +56,12 @@
     "VIEW_ORDERS": "Voir commandes",
     "FREE_TABLE": "Libérer"
   },
+  "CSV_EXPORT": {
+    "SUCCESS": "Export CSV réussi",
+    "ERROR": "Erreur lors de l'export CSV",
+    "NO_DATA": "Aucune donnée à exporter",
+    "DOWNLOADING": "Génération du fichier CSV..."
+  },
   "TABLE_MODAL": {
     "TITLE": "{{ nom }}",
     "STATUS_OCCUPIED": "Occupée",
@@ -1310,7 +1316,8 @@
       "PDF": "PDF",
       "COPY_NUM": "Copier le numéro",
       "COPIED": "Numéro copié !",
-      "REFRESH": "Actualiser"
+      "REFRESH": "Actualiser",
+      "EXPORT_CSV": "Exporter (CSV)"
     },
     "UNASSIGNED": "Non assigné",
     "TABLE_LABEL": "Table {{num}}",
@@ -1748,6 +1755,9 @@
   },
   "STOCK": {
     "GLOBAL_TITLE": "Vue Globale des Stocks",
+    "EXPORT_INVENTORY_CSV": "Exporter inventaire (CSV)",
+    "EXPORT_WASTE_CSV": "Exporter pertes (CSV)",
+    "WASTE_HISTORY_EXPORT": "Historique pertes (CSV)",
     "SEARCH_PLACEHOLDER": "Rechercher un ingrédient, unité...",
     "ALL": "Tous",
     "STATUS_ALL": "Tous",
@@ -1996,7 +2006,8 @@
     "NO_EMPLOYEES": "Aucun employé trouvé",
     "EMPTY_SUBTEXT": "Essayez de modifier vos critères de recherche.",
     "PRESETS_BTN": "Modèles & Presets",
-    "FILTER_BY_ROLE": "Filtrer par rôle"
+    "FILTER_BY_ROLE": "Filtrer par rôle",
+    "EXPORT_HOURS_CSV": "Exporter heures (CSV)"
   },
   "SHIFTS": {
     "TITLE": "Créneaux de travail",
@@ -2145,6 +2156,7 @@
     },
     "SCHEDULE": {
       "THIS_WEEK": "Cette semaine",
+      "EXPORT_CSV": "Exporter planning (CSV)",
       "PUBLISH": "Publier le planning",
       "REPUBLISH": "Publier les modifications",
       "ALREADY_PUBLISHED": "Déjà publié",

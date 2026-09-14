@@ -6,15 +6,27 @@
           <ion-card-title>{{ 'EMPLOYEES.TITLE' | transloco }}</ion-card-title>
           <ion-card-subtitle>{{ 'EMPLOYEES.SUBTITLE' | transloco }}</ion-card-subtitle>
         </div>
-        <app-action-button
-          variant="secondary"
-          size="small"
-          icon="settings-outline"
-          (btnClick)="goToShiftPresets()"
-          testId="employees-btn-presets"
-          data-testid="employees-btn-presets">
-          {{ 'EMPLOYEES.PRESETS_BTN' | transloco }}
-        </app-action-button>
+        <div class="header-actions">
+          <app-action-button
+            variant="secondary"
+            size="small"
+            icon="download-outline"
+            (btnClick)="exportEmployeeHoursCsv()"
+            [disabled]="filteredSummaries.length === 0"
+            testId="employees-btn-export-csv"
+            data-testid="employees-btn-export-csv">
+            {{ 'EMPLOYEES.EXPORT_HOURS_CSV' | transloco }}
+          </app-action-button>
+          <app-action-button
+            variant="secondary"
+            size="small"
+            icon="settings-outline"
+            (btnClick)="goToShiftPresets()"
+            testId="employees-btn-presets"
+            data-testid="employees-btn-presets">
+            {{ 'EMPLOYEES.PRESETS_BTN' | transloco }}
+          </app-action-button>
+        </div>
       </div>
 
       <!-- Filters & Search Toolbar -->
