@@ -77,14 +77,12 @@ export class CsvExportService {
     let str: string;
     if (typeof value === 'string') {
       str = value;
-    } else if (typeof value === 'number' || typeof value === 'boolean') {
+    } else if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
       str = value.toString();
     } else if (value instanceof Date) {
       str = value.toISOString();
-    } else if (typeof value === 'object') {
-      str = JSON.stringify(value);
     } else {
-      str = (value as object).toString();
+      str = JSON.stringify(value) ?? '';
     }
 
     if (sanitizeFormulas) {
