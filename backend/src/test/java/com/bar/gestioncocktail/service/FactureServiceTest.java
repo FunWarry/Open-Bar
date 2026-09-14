@@ -6,7 +6,11 @@ import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.dto.MergeFacturesRequestDTO;
 import com.bar.gestioncocktail.dto.SplitAdditionRequest;
+import com.bar.gestioncocktail.dto.SplitMontantPartRequest;
+import com.bar.gestioncocktail.dto.SplitMontantsRequest;
 import com.bar.gestioncocktail.dto.SplitPartRequest;
+import com.bar.gestioncocktail.dto.SplitPourcentagePartRequest;
+import com.bar.gestioncocktail.dto.SplitPourcentagesRequest;
 import com.bar.gestioncocktail.dto.SplitResultDTO;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
@@ -194,16 +198,42 @@ class FactureServiceTest {
     }
 
     @Test
-    void splitEqual_threeGuests_roundsHalfUp() {
-        // total 25.00 / 3 = 8.33 (arrondi HALF_UP)
+    void splitEqual_threeGuests_distributesRemainderCentsEquitably() {
+        // total 25.00 / 3 = 8.34, 8.33, 8.33 (sum = 25.00 exact)
         given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
 
         List<SplitResultDTO> result = factureService.splitEgal(10L, 3);
 
         assertThat(result).hasSize(3);
-        result.forEach(part ->
-            assertThat(part.sousTotal()).isEqualByComparingTo(new BigDecimal("8.33"))
-        );
+        assertThat(result.get(0).sousTotal()).isEqualByComparingTo(new BigDecimal("8.34"));
+        assertThat(result.get(1).sousTotal()).isEqualByComparingTo(new BigDecimal("8.33"));
+        assertThat(result.get(2).sousTotal()).isEqualByComparingTo(new BigDecimal("8.33"));
+        BigDecimal sum = BigDecimal.ZERO;
+        for (SplitResultDTO part : result) {
+            sum = sum.add(part.sousTotal());
+        }
+        assertThat(sum).isEqualByComparingTo(new BigDecimal("25.00"));
+    }
+
+    @Test
+    void splitEqual_fourGuests_conservesExactCentBalance() {
+        // total 63.50 / 4 = 15.88, 15.88, 15.87, 15.87 (sum = 63.50 exact, never 63.52)
+        facture.setTotal(new BigDecimal("63.50"));
+        facture.setTotalTTC(new BigDecimal("63.50"));
+        given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
+
+        List<SplitResultDTO> result = factureService.splitEgal(10L, 4);
+
+        assertThat(result).hasSize(4);
+        assertThat(result.get(0).sousTotal()).isEqualByComparingTo(new BigDecimal("15.88"));
+        assertThat(result.get(1).sousTotal()).isEqualByComparingTo(new BigDecimal("15.88"));
+        assertThat(result.get(2).sousTotal()).isEqualByComparingTo(new BigDecimal("15.87"));
+        assertThat(result.get(3).sousTotal()).isEqualByComparingTo(new BigDecimal("15.87"));
+        BigDecimal sum4 = BigDecimal.ZERO;
+        for (SplitResultDTO part : result) {
+            sum4 = sum4.add(part.sousTotal());
+        }
+        assertThat(sum4).isEqualByComparingTo(new BigDecimal("63.50"));
     }
 
     @Test
@@ -263,6 +293,100 @@ class FactureServiceTest {
 
         assertThat(result).hasSize(4);
         result.forEach(part -> assertThat(part.items()).isEmpty());
+    }
+
+    @Test
+    void splitEqual_withExistingPartialPayment_splitsRemainingBalance() {
+        facture.setTotal(new BigDecimal("50.00"));
+        facture.setTotalTTC(new BigDecimal("50.00"));
+        given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
+
+        com.bar.gestioncocktail.model.FactureReglement reg = new com.bar.gestioncocktail.model.FactureReglement();
+        reg.setMontant(new BigDecimal("20.00"));
+        given(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).willReturn(List.of(reg));
+
+        List<SplitResultDTO> result = factureService.splitEgal(10L, 2);
+
+        assertThat(result).hasSize(2);
+        // (50 - 20) / 2 = 15.00 each
+        assertThat(result.get(0).sousTotal()).isEqualByComparingTo(new BigDecimal("15.00"));
+        assertThat(result.get(1).sousTotal()).isEqualByComparingTo(new BigDecimal("15.00"));
+    }
+
+    // ─── splitParMontants ──────────────────────────────────────────────────────
+
+    @Test
+    void splitParMontants_nominal_returnsCalculatedParts() {
+        facture.setTotal(new BigDecimal("50.00"));
+        facture.setTotalTTC(new BigDecimal("50.00"));
+        given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
+
+        SplitMontantsRequest request = new SplitMontantsRequest(List.of(
+                new SplitMontantPartRequest("Alice", new BigDecimal("30.00")),
+                new SplitMontantPartRequest("Bob", new BigDecimal("20.00"))
+        ));
+
+        List<SplitResultDTO> result = factureService.splitParMontants(10L, request);
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).nomConvive()).isEqualTo("Alice");
+        assertThat(result.get(0).sousTotal()).isEqualByComparingTo(new BigDecimal("30.00"));
+        assertThat(result.get(1).nomConvive()).isEqualTo("Bob");
+        assertThat(result.get(1).sousTotal()).isEqualByComparingTo(new BigDecimal("20.00"));
+    }
+
+    @Test
+    void splitParMontants_sumDoesNotMatch_throwsBusinessException() {
+        facture.setTotal(new BigDecimal("50.00"));
+        facture.setTotalTTC(new BigDecimal("50.00"));
+        given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
+
+        SplitMontantsRequest request = new SplitMontantsRequest(List.of(
+                new SplitMontantPartRequest("Alice", new BigDecimal("20.00")),
+                new SplitMontantPartRequest("Bob", new BigDecimal("20.00"))
+        ));
+
+        assertThatThrownBy(() -> factureService.splitParMontants(10L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("does not match remaining balance");
+    }
+
+    // ─── splitParPourcentages ──────────────────────────────────────────────────
+
+    @Test
+    void splitParPourcentages_nominal_returnsCalculatedParts() {
+        facture.setTotal(new BigDecimal("60.00"));
+        facture.setTotalTTC(new BigDecimal("60.00"));
+        given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
+
+        SplitPourcentagesRequest request = new SplitPourcentagesRequest(List.of(
+                new SplitPourcentagePartRequest("Alice", new BigDecimal("60.0")),
+                new SplitPourcentagePartRequest("Bob", new BigDecimal("40.0"))
+        ));
+
+        List<SplitResultDTO> result = factureService.splitParPourcentages(10L, request);
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).nomConvive()).isEqualTo("Alice");
+        assertThat(result.get(0).sousTotal()).isEqualByComparingTo(new BigDecimal("36.00"));
+        assertThat(result.get(1).nomConvive()).isEqualTo("Bob");
+        assertThat(result.get(1).sousTotal()).isEqualByComparingTo(new BigDecimal("24.00"));
+    }
+
+    @Test
+    void splitParPourcentages_sumNot100Percent_throwsBusinessException() {
+        facture.setTotal(new BigDecimal("60.00"));
+        facture.setTotalTTC(new BigDecimal("60.00"));
+        given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
+
+        SplitPourcentagesRequest request = new SplitPourcentagesRequest(List.of(
+                new SplitPourcentagePartRequest("Alice", new BigDecimal("50.0")),
+                new SplitPourcentagePartRequest("Bob", new BigDecimal("40.0"))
+        ));
+
+        assertThatThrownBy(() -> factureService.splitParPourcentages(10L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("must equal 100%");
     }
 
     // ─── splitParSelection ────────────────────────────────────────────────────
@@ -1062,6 +1186,58 @@ class FactureServiceTest {
     }
 
     @Test
+    void encaisserPart_whenInvoiceAlreadySettled_throwsBusinessException() {
+        Facture f = new Facture();
+        f.setId(10L);
+        f.setNumero("FAC-SPLIT-SETTLED");
+        f.setTotal(new BigDecimal("40.00"));
+        f.setTotalTTC(new BigDecimal("40.00"));
+        f.setReglee(true);
+
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(f));
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest 1", 1, 2, new BigDecimal("20.00"), BigDecimal.ZERO,
+                new BigDecimal("20.00"), "CARTE", "EGAL", List.of()
+        );
+
+        assertThatThrownBy(() -> factureService.encaisserPart(10L, req))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("already fully settled");
+    }
+
+    @Test
+    void encaisserPart_whenTotalExceedsTarget_throwsBusinessException() {
+        Facture f = new Facture();
+        f.setId(10L);
+        f.setNumero("FAC-SPLIT-EXCEED");
+        f.setTotal(new BigDecimal("40.00"));
+        f.setTotalTTC(new BigDecimal("40.00"));
+        f.setReglee(false);
+
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(f));
+
+        com.bar.gestioncocktail.model.FactureReglement part1 = new com.bar.gestioncocktail.model.FactureReglement();
+        part1.setId(101L);
+        part1.setMontant(new BigDecimal("30.00"));
+
+        com.bar.gestioncocktail.model.FactureReglement part2 = new com.bar.gestioncocktail.model.FactureReglement();
+        part2.setId(102L);
+        part2.setMontant(new BigDecimal("20.00")); // total 50 > 40
+
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of(part1, part2));
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest 2", 2, 2, new BigDecimal("20.00"), BigDecimal.ZERO,
+                new BigDecimal("20.00"), "CARTE", "EGAL", List.of()
+        );
+
+        assertThatThrownBy(() -> factureService.encaisserPart(10L, req))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("exceeds invoice total");
+    }
+
+    @Test
     void getReglementsByFactureId_returnsList() {
         when(factureRepository.existsById(10L)).thenReturn(true);
         com.bar.gestioncocktail.model.FactureReglement r = new com.bar.gestioncocktail.model.FactureReglement();
@@ -1397,5 +1573,293 @@ class FactureServiceTest {
         assertThatThrownBy(() -> factureService.encaisserPart(10L, req))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("already closed");
+    }
+
+    @Test
+    void splitFactureEqual_whenRemainingAmountAndAlreadyPaid_calculatesBasedOnRemaining() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        com.bar.gestioncocktail.model.FactureReglement r = new com.bar.gestioncocktail.model.FactureReglement();
+        r.setMontant(new BigDecimal("10.00"));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of(r));
+
+        List<com.bar.gestioncocktail.dto.SplitResultDTO> results = factureService.splitEgal(10L, 2);
+
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).sousTotal()).isEqualByComparingTo(new BigDecimal("7.50"));
+        assertThat(results.get(1).sousTotal()).isEqualByComparingTo(new BigDecimal("7.50"));
+    }
+
+    @Test
+    void splitFactureEqual_whenAlreadyFullyPaid_returnsZeroParts() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        com.bar.gestioncocktail.model.FactureReglement r = new com.bar.gestioncocktail.model.FactureReglement();
+        r.setMontant(new BigDecimal("25.00"));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of(r));
+
+        List<com.bar.gestioncocktail.dto.SplitResultDTO> results = factureService.splitEgal(10L, 2);
+
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).sousTotal()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test
+    void splitFactureMontants_success() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of());
+
+        com.bar.gestioncocktail.dto.SplitMontantsRequest req = new com.bar.gestioncocktail.dto.SplitMontantsRequest(List.of(
+                new com.bar.gestioncocktail.dto.SplitMontantPartRequest("Alice", new BigDecimal("15.00")),
+                new com.bar.gestioncocktail.dto.SplitMontantPartRequest("Bob", new BigDecimal("10.00"))
+        ));
+
+        List<com.bar.gestioncocktail.dto.SplitResultDTO> results = factureService.splitParMontants(10L, req);
+
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).nomConvive()).isEqualTo("Alice");
+        assertThat(results.get(0).sousTotal()).isEqualByComparingTo(new BigDecimal("15.00"));
+        assertThat(results.get(1).nomConvive()).isEqualTo("Bob");
+        assertThat(results.get(1).sousTotal()).isEqualByComparingTo(new BigDecimal("10.00"));
+    }
+
+    @Test
+    void splitFactureMontants_whenSumMismatch_throwsBusinessException() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of());
+
+        com.bar.gestioncocktail.dto.SplitMontantsRequest req = new com.bar.gestioncocktail.dto.SplitMontantsRequest(List.of(
+                new com.bar.gestioncocktail.dto.SplitMontantPartRequest("Alice", new BigDecimal("10.00")),
+                new com.bar.gestioncocktail.dto.SplitMontantPartRequest("Bob", new BigDecimal("10.00"))
+        ));
+
+        assertThatThrownBy(() -> factureService.splitParMontants(10L, req))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("does not match remaining balance");
+    }
+
+    @Test
+    void splitFactureMontants_whenPartZeroOrNegative_throwsBusinessException() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of());
+
+        com.bar.gestioncocktail.dto.SplitMontantsRequest req = new com.bar.gestioncocktail.dto.SplitMontantsRequest(List.of(
+                new com.bar.gestioncocktail.dto.SplitMontantPartRequest("Alice", BigDecimal.ZERO),
+                new com.bar.gestioncocktail.dto.SplitMontantPartRequest("Bob", new BigDecimal("25.00"))
+        ));
+
+        assertThatThrownBy(() -> factureService.splitParMontants(10L, req))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("must be strictly positive");
+    }
+
+    @Test
+    void splitFactureMontants_whenInvoiceAlreadyFullyPaid_throwsBusinessException() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        com.bar.gestioncocktail.model.FactureReglement r = new com.bar.gestioncocktail.model.FactureReglement();
+        r.setMontant(new BigDecimal("25.00"));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of(r));
+
+        com.bar.gestioncocktail.dto.SplitMontantsRequest req = new com.bar.gestioncocktail.dto.SplitMontantsRequest(List.of(
+                new com.bar.gestioncocktail.dto.SplitMontantPartRequest("Alice", new BigDecimal("12.50")),
+                new com.bar.gestioncocktail.dto.SplitMontantPartRequest("Bob", new BigDecimal("12.50"))
+        ));
+
+        assertThatThrownBy(() -> factureService.splitParMontants(10L, req))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("already fully paid");
+    }
+
+    @Test
+    void splitFacturePourcentages_success() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of());
+
+        com.bar.gestioncocktail.dto.SplitPourcentagesRequest req = new com.bar.gestioncocktail.dto.SplitPourcentagesRequest(List.of(
+                new com.bar.gestioncocktail.dto.SplitPourcentagePartRequest("Alice", new BigDecimal("60.00")),
+                new com.bar.gestioncocktail.dto.SplitPourcentagePartRequest("Bob", new BigDecimal("40.00"))
+        ));
+
+        List<com.bar.gestioncocktail.dto.SplitResultDTO> results = factureService.splitParPourcentages(10L, req);
+
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).sousTotal()).isEqualByComparingTo(new BigDecimal("15.00"));
+        assertThat(results.get(1).sousTotal()).isEqualByComparingTo(new BigDecimal("10.00"));
+    }
+
+    @Test
+    void splitFacturePourcentages_whenSumNot100_throwsBusinessException() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of());
+
+        com.bar.gestioncocktail.dto.SplitPourcentagesRequest req = new com.bar.gestioncocktail.dto.SplitPourcentagesRequest(List.of(
+                new com.bar.gestioncocktail.dto.SplitPourcentagePartRequest("Alice", new BigDecimal("50.00")),
+                new com.bar.gestioncocktail.dto.SplitPourcentagePartRequest("Bob", new BigDecimal("40.00"))
+        ));
+
+        assertThatThrownBy(() -> factureService.splitParPourcentages(10L, req))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("must equal 100%");
+    }
+
+    @Test
+    void splitFacturePourcentages_whenPartZeroOrNegative_throwsBusinessException() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of());
+
+        com.bar.gestioncocktail.dto.SplitPourcentagesRequest req = new com.bar.gestioncocktail.dto.SplitPourcentagesRequest(List.of(
+                new com.bar.gestioncocktail.dto.SplitPourcentagePartRequest("Alice", BigDecimal.ZERO),
+                new com.bar.gestioncocktail.dto.SplitPourcentagePartRequest("Bob", new BigDecimal("100.00"))
+        ));
+
+        assertThatThrownBy(() -> factureService.splitParPourcentages(10L, req))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("must be strictly positive");
+    }
+
+    @Test
+    void splitFacturePourcentages_whenInvoiceAlreadyFullyPaid_throwsBusinessException() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        com.bar.gestioncocktail.model.FactureReglement r = new com.bar.gestioncocktail.model.FactureReglement();
+        r.setMontant(new BigDecimal("25.00"));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of(r));
+
+        com.bar.gestioncocktail.dto.SplitPourcentagesRequest req = new com.bar.gestioncocktail.dto.SplitPourcentagesRequest(List.of(
+                new com.bar.gestioncocktail.dto.SplitPourcentagePartRequest("Alice", new BigDecimal("50.00")),
+                new com.bar.gestioncocktail.dto.SplitPourcentagePartRequest("Bob", new BigDecimal("50.00"))
+        ));
+
+        assertThatThrownBy(() -> factureService.splitParPourcentages(10L, req))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("already fully paid");
+    }
+
+    @Test
+    void encaisserPart_whenInvoiceAlreadyReglee_throwsBusinessException() {
+        facture.setReglee(true);
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest", 1, 2, new BigDecimal("12.50"), BigDecimal.ZERO, new BigDecimal("12.50"), "CARTE", "EGAL", List.of()
+        );
+
+        assertThatThrownBy(() -> factureService.encaisserPart(10L, req))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("already fully settled");
+    }
+
+    @Test
+    void encaisserPart_whenTotalExceedsInvoiceTotal_throwsBusinessException() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureReglementRepository.save(any())).thenAnswer(i -> {
+            com.bar.gestioncocktail.model.FactureReglement reg = i.getArgument(0);
+            reg.setId(101L);
+            return reg;
+        });
+        com.bar.gestioncocktail.model.FactureReglement r1 = new com.bar.gestioncocktail.model.FactureReglement();
+        r1.setMontant(new BigDecimal("20.00"));
+        com.bar.gestioncocktail.model.FactureReglement r2 = new com.bar.gestioncocktail.model.FactureReglement();
+        r2.setMontant(new BigDecimal("10.00"));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of(r1, r2));
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest", 2, 2, new BigDecimal("10.00"), BigDecimal.ZERO, new BigDecimal("10.00"), "CARTE", "EGAL", List.of()
+        );
+
+        assertThatThrownBy(() -> factureService.encaisserPart(10L, req))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("exceeds invoice total");
+    }
+
+    @Test
+    void encaisserPart_successFinalPayment_marksInvoiceReglee() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureReglementRepository.save(any())).thenAnswer(i -> {
+            com.bar.gestioncocktail.model.FactureReglement reg = i.getArgument(0);
+            reg.setId(102L);
+            return reg;
+        });
+        com.bar.gestioncocktail.model.FactureReglement r1 = new com.bar.gestioncocktail.model.FactureReglement();
+        r1.setMontant(new BigDecimal("25.00"));
+        r1.setPourboire(new BigDecimal("2.00"));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of(r1));
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest 1", 1, 1, new BigDecimal("25.00"), new BigDecimal("2.00"), new BigDecimal("27.00"), "CARTE", "EGAL", List.of()
+        );
+
+        com.bar.gestioncocktail.dto.FactureReglementDTO result = factureService.encaisserPart(10L, req);
+
+        assertThat(result).isNotNull();
+        assertThat(result.nomConvive()).isEqualTo("Guest 1");
+        assertThat(facture.isReglee()).isTrue();
+        assertThat(facture.getModePaiement()).isEqualTo("MIXTE_SPLIT");
+    }
+
+    @Test
+    void reglerFacture_withPriorSplitSettlements_recordsSoldeReglement() {
+        facture.setReglements(new ArrayList<>());
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureRepository.save(any(Facture.class))).thenAnswer(i -> i.getArgument(0));
+
+        com.bar.gestioncocktail.model.FactureReglement prior = new com.bar.gestioncocktail.model.FactureReglement();
+        prior.setId(101L);
+        prior.setMontant(new BigDecimal("10.00"));
+        prior.setTotalRegle(new BigDecimal("10.00"));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of(prior));
+        when(factureReglementRepository.save(any(com.bar.gestioncocktail.model.FactureReglement.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
+        Facture settled = factureService.reglerFacture(10L, "CARTE", new BigDecimal("2.00"));
+
+        assertThat(settled.isReglee()).isTrue();
+        assertThat(settled.getModePaiement()).isEqualTo("CARTE");
+        verify(factureReglementRepository).save(org.mockito.ArgumentMatchers.argThat(r ->
+                "Solde restant".equals(r.getNomConvive()) &&
+                "SOLDE".equals(r.getTypeSplit()) &&
+                new BigDecimal("15.00").compareTo(r.getMontant()) == 0 &&
+                new BigDecimal("17.00").compareTo(r.getTotalRegle()) == 0
+        ));
+    }
+
+    @Test
+    void splitParMontants_withMinorRoundingDifference_adjustsLastPart() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of());
+
+        SplitMontantsRequest request = new SplitMontantsRequest(List.of(
+                new SplitMontantPartRequest("Alice", new BigDecimal("10.00")),
+                new SplitMontantPartRequest("Bob", new BigDecimal("14.98"))
+        ));
+
+        List<SplitResultDTO> results = factureService.splitParMontants(10L, request);
+
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).sousTotal()).isEqualByComparingTo("10.00");
+        assertThat(results.get(1).sousTotal()).isEqualByComparingTo("15.00");
+    }
+
+    @Test
+    void encaisserPart_withMinorRoundingExcess_adjustsMontantToExactTarget() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureReglementRepository.save(any())).thenAnswer(i -> {
+            com.bar.gestioncocktail.model.FactureReglement reg = i.getArgument(0);
+            reg.setId(201L);
+            return reg;
+        });
+
+        com.bar.gestioncocktail.model.FactureReglement r1 = new com.bar.gestioncocktail.model.FactureReglement();
+        r1.setMontant(new BigDecimal("15.00"));
+        com.bar.gestioncocktail.model.FactureReglement r2 = new com.bar.gestioncocktail.model.FactureReglement();
+        r2.setMontant(new BigDecimal("10.02"));
+        r2.setPourboire(BigDecimal.ZERO);
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of(r1, r2));
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest 2", 2, 2, new BigDecimal("10.02"), BigDecimal.ZERO, new BigDecimal("10.02"), "CARTE", "EGAL", List.of()
+        );
+
+        com.bar.gestioncocktail.dto.FactureReglementDTO result = factureService.encaisserPart(10L, req);
+
+        assertThat(result).isNotNull();
+        assertThat(facture.isReglee()).isTrue();
     }
 }

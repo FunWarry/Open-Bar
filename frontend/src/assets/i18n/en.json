@@ -36,7 +36,12 @@
     "FINISH": "Finish",
     "ITEM": "item",
     "ITEMS": "items",
-    "ALL_RIGHTS_RESERVED": "All rights reserved."
+    "ALL_RIGHTS_RESERVED": "All rights reserved.",
+    "DECREASE": "Decrease",
+    "INCREASE": "Increase",
+    "RETRY": "Retry",
+    "REQUIRED": "Required field",
+    "NO_RESULTS": "No results found"
   },
   "TABLE_CARD": {
     "STATUS_FREE": "Free",
@@ -169,7 +174,25 @@
     "SUBTOTAL_GUEST": "Guest total:",
     "REMOVE_ITEM_FROM_GUEST": "Remove this item from guest",
     "EQUAL_MODE": "Equal share",
-    "ITEMIZED_MODE": "Itemized"
+    "ITEMIZED_MODE": "Itemized",
+    "CUSTOM_AMOUNT": "Custom amount",
+    "CUSTOM_PERCENTAGE": "Percentage",
+    "CUSTOM_AMOUNT_MODE": "Custom amount",
+    "CUSTOM_PCT_MODE": "Percentage",
+    "INVOICE_ALREADY_SETTLED_BANNER": "This invoice is already fully settled. View-only mode: you can inspect shares and reprint receipts.",
+    "ALREADY_SETTLED_PARTS_TITLE": "Already settled parts",
+    "REMAINING_TO_SPLIT": "Remaining to split:",
+    "CUSTOM_AMOUNT_HINT": "Enter the amount covered by each guest.",
+    "CUSTOM_PCT_HINT": "Enter the percentage covered by each guest (total 100%).",
+    "ASSIGN_REMAINDER": "Assign remainder",
+    "DISTRIBUTE_EQUALLY": "Distribute equally",
+    "TOTAL_ALLOCATED": "Total allocated:",
+    "REMAINDER_LABEL": "Difference:",
+    "BALANCED": "Balanced distribution",
+    "PCT_TOTAL": "Total allocated:",
+    "ALLOCATION_MISMATCH": "The sum of allocated amounts ({{allocated}}) does not match the remaining balance ({{remaining}}).",
+    "PCT_MISMATCH": "The sum of percentages must equal 100% (currently {{total}}%).",
+    "GUEST_AMOUNT_PLACEHOLDER": "Amount"
   },
   "THEME": {
     "LIGHT": "Light Mode",
@@ -275,6 +298,49 @@
     "SHARED_CART_ITEM_REMOVED": "Item removed from cart.",
     "SHARED_CART_CONVIVES_COUNT": "{{ count }} guest(s)",
     "SHARED_CART_OTHER_SUBMITTED": "{{ name }} submitted the table order to the bar!",
+    "INVITE_FRIENDS_BTN": "Invite Friends",
+    "INVITE_MODAL_TITLE": "Invite to Table {{ table }}",
+    "INVITE_MODAL_DESC": "Have your friends scan this QR code or share the direct link with them to order together in real time.",
+    "INVITE_QR_HINT": "Point your camera at this QR code to join the table",
+    "INVITE_COPY": "Copy link",
+    "INVITE_COPIED": "Copied!",
+    "INVITE_LINK_COPIED_TOAST": "Table link copied to clipboard!",
+    "INVITE_SHARE_NATIVE_BTN": "Share link",
+    "INVITE_SHARE_TITLE": "Join our order — Table {{ table }}",
+    "INVITE_SHARE_TEXT": "Join our table on OpenBar to order drinks together with us:",
+    "RECAP_INVITE_BANNER_TEXT": "Dining with friends? Invite them to add their drinks to this order.",
+    "INGREDIENTS_SECTION_TITLE": "Ingredients",
+    "INGREDIENTS_SECTION_SUBTITLE": "Discover what makes up this cocktail",
+    "INGREDIENTS_HINT": "View ingredients",
+    "NO_INGREDIENTS_LISTED": "Detailed ingredients available upon request from your server.",
+    "CLOSE_DETAILS_BTN": "Close",
+    "DETAILS_MODAL_TITLE": "Cocktail Details",
+    "TABLE_HOST_BADGE": "Host",
+    "TABLE_GUEST_BADGE": "Guest",
+    "JOIN_REQUEST_TITLE": "Join Table {{ table }}",
+    "JOIN_REQUEST_DESC": "This table is occupied by {{ owner }}. Please enter your name to request access from the host.",
+    "JOIN_REQUEST_NAME_LABEL": "Your name or nickname",
+    "JOIN_REQUEST_SUBMIT_BTN": "Request to join table",
+    "JOIN_REQUEST_PENDING_TITLE": "Request pending",
+    "JOIN_REQUEST_PENDING_DESC": "Your request has been sent to the host ({{ owner }}). Please wait for approval...",
+    "JOIN_REQUEST_REJECTED_TITLE": "Request declined",
+    "JOIN_REQUEST_REJECTED_DESC": "The host declined your request to join this table.",
+    "JOIN_REQUEST_RETRY_BTN": "Try again",
+    "JOIN_APPROVAL_MODAL_TITLE": "Request to join your table",
+    "JOIN_APPROVAL_MODAL_DESC": "{{ name }} would like to join your table and order with you.",
+    "JOIN_APPROVAL_ACCEPT_BTN": "Accept",
+    "JOIN_APPROVAL_REJECT_BTN": "Decline",
+    "GRACE_BANNER_TITLE": "Group round open ({{ seconds }}s left)",
+    "GRACE_BANNER_DESC": "An order was just placed! All seated companions have 2 minutes to add drinks to this same order.",
+    "GRACE_BANNER_ADD_ITEMS": "Add more drinks",
+    "GRACE_BANNER_DISPATCH_NOW": "Send now",
+    "TABLE_ORDERS_BTN": "Bill & Orders",
+    "TABLE_ORDERS_MODAL_TITLE": "Orders & Bill — Table {{ table }}",
+    "TABLE_ORDERS_CUMULATIVE_TOTAL": "Table cumulative total",
+    "TABLE_ORDERS_TOTAL_DRINKS": "Drinks ordered",
+    "TABLE_ORDERS_ROUND_LABEL": "Round #{{ id }}",
+    "TABLE_ORDERS_EMPTY": "No orders placed for this table yet.",
+    "TABLE_ORDERS_CLOSE_BTN": "Close",
     "ALERTS": {
       "CALL_WAITER_BTN": "Call Waiter",
       "REQUEST_BILL_BTN": "Request Bill",
@@ -499,7 +565,8 @@
       "ROLE_PLACEHOLDER": "Select a role",
       "ROLE_REQUIRED": "Role is required",
       "USERNAME_PLACEHOLDER": "Login username"
-    }
+    },
+    "LOGOUT": "Log out"
   },
   "PROFILE": {
     "TITLE": "My Profile",
@@ -788,7 +855,8 @@
       "TEMPLATE_ACTION_TYPE": "Gesture Category",
       "TEMPLATE_DURATION": "Default Duration (seconds)",
       "TEMPLATE_ICON": "Icon",
-      "TEMPLATE_SAVED_SUCCESS": "Action template saved successfully!"
+      "TEMPLATE_SAVED_SUCCESS": "Action template saved successfully!",
+      "INGREDIENTS_LIST": "Ingredients list"
     },
     "GLASSWARE": {
       "LABEL": "Service Glassware",
@@ -1278,6 +1346,8 @@
     "TICKET_NUM": "Ticket No.",
     "DOWNLOAD_PDF": "Download PDF",
     "SPLIT": "Split Bill",
+    "VIEW_SPLIT": "View split breakdown",
+    "SETTLE_REMAINING": "Settle balance ({{ amount }})",
     "THANK_YOU": "Thank you for your visit!",
     "BACK_TO_LIST": "Back to Invoices",
     "ITEMS_CONSUMED": "Consumption Items",
@@ -1323,7 +1393,9 @@
       "CHEQUE": "Check"
     },
     "CONDITIONS_REGLEMENT_PLACEHOLDER": "Immediate payment upon receipt",
-    "ESCOMPTE_PLACEHOLDER": "No discount for early payment"
+    "ESCOMPTE_PLACEHOLDER": "No discount for early payment",
+    "STATUS_REGLEE": "Invoice Settled",
+    "POURBOIRE": "Tip"
   },
   "SERVEUR": {
     "TITLE": "Server View",
@@ -2019,9 +2091,9 @@
     "SHIFT_TYPES": {
       "MATIN": "Morning",
       "SOIR": "Evening",
-      "COUPURE": "Split",
+      "COUPURE": "Split shift",
       "NUIT": "Night",
-      "CONGE": "Time Off"
+      "CONGE": "Time off"
     },
     "POSTE_TYPES": {
       "SERVEUR": "Waiter",
@@ -2366,7 +2438,8 @@
     "STATUS_EN_ATTENTE": "Pending",
     "STATUS_EN_PREPARATION": "Preparing",
     "STATUS_PRET": "Ready",
-    "STATUS_LIVREE": "Delivered"
+    "STATUS_LIVREE": "Delivered",
+    "TOGGLE_SOUND": "Toggle sound alerts"
   },
   "MANAGER_DASHBOARD": {
     "TITLE": "Manager Dashboard",
@@ -2792,7 +2865,8 @@
     "NOT_VEGAN_LABEL": "Not vegan",
     "CONTAINS_GLUTEN_LABEL": "Contains gluten",
     "CALCULATION_DETAILS": "{{ pureAlcohol }} cl pure alcohol / {{ totalLiquid }} cl",
-    "GLASS_CAPACITY_NOTE": "Glassware: {{ capacity }} cl"
+    "GLASS_CAPACITY_NOTE": "Glassware: {{ capacity }} cl",
+    "COST_RECIPE_HINT": "Cost based on recipe"
   },
   "ANALYTICS": {
     "MARGIN_TITLE": "Financial Health & Profitability",
@@ -2975,5 +3049,11 @@
     "OFFER_HW_F3": "Onboarding assistance and remote setup support",
     "CONTACT_TITLE": "Contact the Author for Licensing",
     "CONTACT_DESC": "For commercial license quotes, custom integrations, or partnerships:"
+  },
+  "SCHEDULE": {
+    "TITLE": "Weekly Schedule"
+  },
+  "MESSAGES": {
+    "ORDER_CREATED": "Order created successfully"
   }
 }

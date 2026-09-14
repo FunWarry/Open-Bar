@@ -48,6 +48,9 @@ public class FactureItem {
 
     private String notes;
 
+    @Column(name = "guest_name", length = 100)
+    private String guestName;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

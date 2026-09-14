@@ -7,6 +7,8 @@ import com.bar.gestioncocktail.dto.FactureResponseDTO;
 import com.bar.gestioncocktail.dto.MergeFacturesRequestDTO;
 import com.bar.gestioncocktail.dto.SplitAdditionRequest;
 import com.bar.gestioncocktail.dto.SplitEgalRequest;
+import com.bar.gestioncocktail.dto.SplitMontantsRequest;
+import com.bar.gestioncocktail.dto.SplitPourcentagesRequest;
 import com.bar.gestioncocktail.dto.SplitResultDTO;
 import com.bar.gestioncocktail.dto.TableAdditionResponseDTO;
 import com.bar.gestioncocktail.model.Facture;
@@ -326,6 +328,40 @@ public class FactureController {
             @PathVariable Long id,
             @RequestBody SplitAdditionRequest request) {
         return ResponseEntity.ok(factureService.splitParSelection(id, request));
+    }
+
+    /**
+     * Splits an invoice based on custom monetary amounts per guest.
+     *
+     * @param id      Invoice identifier
+     * @param request DTO describing amount assignments per guest
+     * @return Detailed split results
+     */
+    @PostMapping("/{id}/split/montants")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @Operation(summary = "Split bill by custom amounts", description = "Allocates custom monetary amounts per guest.")
+    @ApiResponse(responseCode = "200", description = "Custom amount split calculated")
+    public ResponseEntity<List<SplitResultDTO>> splitParMontants(
+            @PathVariable Long id,
+            @Valid @RequestBody SplitMontantsRequest request) {
+        return ResponseEntity.ok(factureService.splitParMontants(id, request));
+    }
+
+    /**
+     * Splits an invoice based on custom percentages per guest.
+     *
+     * @param id      Invoice identifier
+     * @param request DTO describing percentage assignments per guest
+     * @return Detailed split results
+     */
+    @PostMapping("/{id}/split/pourcentages")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @Operation(summary = "Split bill by percentage", description = "Allocates percentages per guest that sum to 100%.")
+    @ApiResponse(responseCode = "200", description = "Percentage split calculated")
+    public ResponseEntity<List<SplitResultDTO>> splitParPourcentages(
+            @PathVariable Long id,
+            @Valid @RequestBody SplitPourcentagesRequest request) {
+        return ResponseEntity.ok(factureService.splitParPourcentages(id, request));
     }
 
     /**

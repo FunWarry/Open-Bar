@@ -31,12 +31,20 @@
     </div>
   </ion-toolbar>
 
-  <!-- Segment Switcher: Equal Split vs Itemized -->
+  <!-- 4-Mode Segment Switcher -->
   <div class="segment-container">
     <ion-segment [(ngModel)]="mode" (ionChange)="onModeChange()" data-testid="split-mode-segment">
       <ion-segment-button value="equal" data-testid="split-mode-egal">
         <ion-icon name="people-outline"></ion-icon>
         <ion-label>{{ 'SPLIT.EQUAL_SHARE' | transloco }}</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="custom_amount" data-testid="split-mode-custom-amount">
+        <ion-icon name="cash-outline"></ion-icon>
+        <ion-label>{{ 'SPLIT.CUSTOM_AMOUNT' | transloco }}</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="custom_percentage" data-testid="split-mode-custom-pct">
+        <ion-icon name="calculator-outline"></ion-icon>
+        <ion-label>{{ 'SPLIT.CUSTOM_PERCENTAGE' | transloco }}</ion-label>
       </ion-segment-button>
       <ion-segment-button value="itemized" data-testid="split-mode-selection">
         <ion-icon name="list-outline"></ion-icon>
@@ -48,6 +56,19 @@
 
 <ion-content class="split-modal-content">
   <div class="modal-body-container">
+
+    <!-- ── View-Only Consultation Banner (when already settled) ───── -->
+    @if (isAlreadySettled) {
+      <div class="settled-consultation-banner" data-testid="settled-consultation-banner">
+        <div class="banner-icon-box">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+        </div>
+        <div class="banner-text-wrap">
+          <strong class="banner-title">{{ 'FACTURES.STATUS_REGLEE' | transloco }}</strong>
+          <p class="banner-desc">{{ 'SPLIT.INVOICE_ALREADY_SETTLED_BANNER' | transloco }}</p>
+        </div>
+      </div>
+    }
 
     <!-- ── Live Balance & Progression Tracking ────────────────────── -->
     <div class="balance-card" data-testid="split-balance-card">
@@ -80,9 +101,57 @@
       </div>
     </div>
 
+    <!-- ── Already Settled Parts Section (Multi-session persistence) ── -->
+    @if (previousReglements.length > 0) {
+      <div class="section-card already-settled-section" data-testid="previous-settlements-section">
+        <div class="section-title-wrap">
+          <ion-icon name="checkmark-circle-outline" class="title-icon success"></ion-icon>
+          <h3>{{ 'SPLIT.ALREADY_SETTLED_PARTS_TITLE' | transloco }}</h3>
+          <span class="badge-count success">{{ previousReglements.length }}</span>
+        </div>
+        <div class="previous-reglements-list">
+          @for (reg of previousReglements; track reg.id ?? $index; let idx = $index) {
+            <div class="previous-reglement-card" [attr.data-testid]="'previous-reglement-' + idx">
+              <div class="reglement-info-col">
+                <div class="reglement-header-row">
+                  <span class="reglement-guest-avatar">{{ idx + 1 }}</span>
+                  <strong class="reglement-guest-name">{{ reg.nomConvive }}</strong>
+                  <span class="reglement-mode-badge">{{ reg.modePaiement }}</span>
+                  <span class="reglement-type-badge">{{ reg.typeSplit }}</span>
+                </div>
+                <div class="reglement-meta-row">
+                  <span class="reglement-amount">{{ reg.montant | appCurrency }}</span>
+                  @if (reg.pourboire && reg.pourboire > 0) {
+                    <span class="reglement-tip">+ {{ reg.pourboire | appCurrency }} {{ 'FACTURES.POURBOIRE' | transloco }}</span>
+                  }
+                </div>
+                @if (reg.items && reg.items.length > 0) {
+                  <div class="reglement-items-chips">
+                    @for (item of reg.items; track item.itemId) {
+                      <span class="reg-item-chip">
+                        {{ item.quantite }}x {{ item.description }} ({{ item.total | appCurrency }})
+                      </span>
+                    }
+                  </div>
+                }
+              </div>
+              <button
+                type="button"
+                class="btn-print-part-receipt"
+                (click)="printExistingReglementReceipt(reg)"
+                [attr.data-testid]="'print-previous-receipt-btn-' + idx">
+                <ion-icon name="print-outline"></ion-icon>
+                <span>{{ 'FACTURES.PRINT_TICKET' | transloco }}</span>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
     <!-- ── Mode 1 : Parts Égales (Equal Split) ────────────────────── -->
     @if (mode === 'equal') {
-      <div class="section-card">
+      <div class="section-card" data-testid="equal-split-section">
         <div class="section-title-wrap">
           <ion-icon name="people-outline" class="title-icon"></ion-icon>
           <h3>{{ 'SPLIT.GUEST_COUNT' | transloco }}</h3>
@@ -124,9 +193,14 @@
           }
         </div>
         <div class="share-preview-banner">
-          <span class="preview-label">{{ 'SPLIT.AMOUNT_PER_PERSON' | transloco }}</span>
+          <div class="preview-text-col">
+            <span class="preview-label">{{ 'SPLIT.AMOUNT_PER_PERSON' | transloco }}</span>
+            @if (alreadyPaidFromDb > 0) {
+              <span class="preview-subnotice">{{ 'SPLIT.REMAINING_TO_SPLIT' | transloco }} {{ balanceToSplit | appCurrency }}</span>
+            }
+          </div>
           <strong class="preview-val">
-            {{ (totalBillAmount / guestCount) | appCurrency }}
+            {{ (balanceToSplit / guestCount) | appCurrency }}
           </strong>
         </div>
         <ion-button
@@ -134,7 +208,7 @@
           class="btn-action-primary"
           (click)="calculateEqualSplit()"
           (keydown.enter)="calculateEqualSplit()"
-          [disabled]="loading"
+          [disabled]="loading || isAlreadySettled"
           data-testid="calculate-split-btn">
           @if (loading) {
             <ion-spinner name="crescent" slot="start"></ion-spinner>
@@ -150,8 +224,237 @@
       </div>
     }
 
-    <!-- ── Mode 2 : Par Article (Itemized Split) ──────────────────── -->
-    <!-- ── Mode 2 : Par Article (Guest-First Item Assignment) ──────── -->
+    <!-- ── Mode 2 : Prix libre (Custom Amount Split) ──────────────── -->
+    @if (mode === 'custom_amount') {
+      <div class="section-card" data-testid="custom-amount-section">
+        <div class="section-title-wrap">
+          <ion-icon name="cash-outline" class="title-icon"></ion-icon>
+          <h3>{{ 'SPLIT.CUSTOM_AMOUNT_MODE' | transloco }}</h3>
+          <span class="badge-count">{{ customAmountGuests.length }}</span>
+        </div>
+        <p class="section-hint-text">{{ 'SPLIT.CUSTOM_AMOUNT_HINT' | transloco }}</p>
+
+        <!-- Balance Info Banner -->
+        <div class="allocation-summary-bar">
+          <div class="summary-col">
+            <span class="summary-label">{{ 'SPLIT.REMAINING_TO_SPLIT' | transloco }}</span>
+            <strong class="summary-val">{{ balanceToSplit | appCurrency }}</strong>
+          </div>
+          <div class="summary-col">
+            <span class="summary-label">{{ 'SPLIT.TOTAL_ALLOCATED' | transloco }}</span>
+            <strong class="summary-val" [class.danger]="!isCustomAmountValid">{{ totalCustomAmountAllocated | appCurrency }}</strong>
+          </div>
+          <div class="summary-col">
+            <span class="summary-label">{{ 'SPLIT.REMAINDER_LABEL' | transloco }}</span>
+            <strong class="summary-val" [class.success]="isCustomAmountValid" [class.danger]="!isCustomAmountValid">
+              {{ customAmountRemainder | appCurrency }}
+            </strong>
+          </div>
+        </div>
+
+        <div class="custom-split-guests-list">
+          @for (g of customAmountGuests; track g; let i = $index) {
+            <div class="custom-split-guest-row" [attr.data-testid]="'custom-amount-row-' + i">
+              <span class="guest-avatar-small">{{ i + 1 }}</span>
+              <label [for]="'custom-amount-name-input-' + i" class="sr-only">{{ 'SPLIT.GUEST_PLACEHOLDER' | transloco:{ number: i + 1 } }}</label>
+              <input
+                type="text"
+                [id]="'custom-amount-name-input-' + i"
+                [(ngModel)]="g.name"
+                [placeholder]="'SPLIT.GUEST_PLACEHOLDER' | transloco:{ number: i + 1 }"
+                class="guest-name-field"
+                [attr.data-testid]="'custom-amount-name-' + i" />
+              <div class="amount-input-wrap">
+                <label [for]="'custom-amount-num-input-' + i" class="sr-only">{{ 'SPLIT.GUEST_AMOUNT_PLACEHOLDER' | transloco }}</label>
+                <input
+                  type="number"
+                  [id]="'custom-amount-num-input-' + i"
+                  step="0.05"
+                  min="0"
+                  [(ngModel)]="g.amount"
+                  [placeholder]="'SPLIT.GUEST_AMOUNT_PLACEHOLDER' | transloco"
+                  class="guest-numeric-field"
+                  [attr.data-testid]="'custom-amount-input-' + i" />
+                <button
+                  type="button"
+                  class="btn-assign-remainder"
+                  (click)="assignRemainingToGuest(i)"
+                  [title]="'SPLIT.ASSIGN_REMAINDER' | transloco"
+                  [attr.data-testid]="'assign-remainder-btn-' + i">
+                  {{ 'SPLIT.ASSIGN_REMAINDER' | transloco }}
+                </button>
+              </div>
+              @if (customAmountGuests.length > 2) {
+                <button
+                  type="button"
+                  class="btn-remove-guest"
+                  (click)="removeCustomAmountGuest(i)"
+                  [attr.aria-label]="'SPLIT.DELETE_GUEST' | transloco"
+                  [attr.data-testid]="'remove-custom-amount-btn-' + i">
+                  <ion-icon name="close-outline"></ion-icon>
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <button
+          type="button"
+          class="btn-add-guest"
+          (click)="addCustomAmountGuest()"
+          [disabled]="customAmountGuests.length >= 20"
+          data-testid="add-custom-amount-btn">
+          <ion-icon name="add-outline"></ion-icon>
+          <span>{{ 'SPLIT.ADD_GUEST' | transloco }}</span>
+        </button>
+
+        @if (!isCustomAmountValid && totalCustomAmountAllocated > 0) {
+          <div class="unassigned-warning">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <span>{{ 'SPLIT.ALLOCATION_MISMATCH' | transloco:{ allocated: (totalCustomAmountAllocated | appCurrency), remaining: (balanceToSplit | appCurrency) } }}</span>
+          </div>
+        }
+
+        <ion-button
+          expand="block"
+          class="btn-action-primary"
+          (click)="calculateCustomAmountSplit()"
+          (keydown.enter)="calculateCustomAmountSplit()"
+          [disabled]="loading || !isCustomAmountValid || isAlreadySettled"
+          data-testid="calculate-custom-amount-btn">
+          @if (loading) {
+            <ion-spinner name="crescent" slot="start"></ion-spinner>
+          }
+          @if (!loading) {
+            <ion-icon name="calculator-outline" slot="start"></ion-icon>
+          }
+          <span>{{ 'SPLIT.CALCULATE_PARTS' | transloco }}</span>
+        </ion-button>
+        @if (errorMessage) {
+          <p class="error-message-text">{{ errorMessage }}</p>
+        }
+      </div>
+    }
+
+    <!-- ── Mode 3 : Pourcentage (Custom Percentage Split) ────────── -->
+    @if (mode === 'custom_percentage') {
+      <div class="section-card" data-testid="custom-percentage-section">
+        <div class="section-title-wrap">
+          <ion-icon name="calculator-outline" class="title-icon"></ion-icon>
+          <h3>{{ 'SPLIT.CUSTOM_PCT_MODE' | transloco }}</h3>
+          <span class="badge-count">{{ customPercentageGuests.length }}</span>
+        </div>
+        <p class="section-hint-text">{{ 'SPLIT.CUSTOM_PCT_HINT' | transloco }}</p>
+
+        <!-- Percentage Summary Bar -->
+        <div class="allocation-summary-bar">
+          <div class="summary-col">
+            <span class="summary-label">{{ 'SPLIT.REMAINING_TO_SPLIT' | transloco }}</span>
+            <strong class="summary-val">{{ balanceToSplit | appCurrency }}</strong>
+          </div>
+          <div class="summary-col">
+            <span class="summary-label">{{ 'SPLIT.PCT_TOTAL' | transloco }}</span>
+            <strong class="summary-val" [class.success]="isCustomPercentageValid" [class.danger]="!isCustomPercentageValid">
+              {{ totalCustomPercentage }}% / 100%
+            </strong>
+          </div>
+          <div class="summary-col">
+            <button
+              type="button"
+              class="btn-distribute-equal"
+              (click)="distributePercentagesEqually()"
+              data-testid="distribute-percentages-btn">
+              {{ 'SPLIT.DISTRIBUTE_EQUALLY' | transloco }}
+            </button>
+          </div>
+        </div>
+
+        <div class="custom-split-guests-list">
+          @for (g of customPercentageGuests; track g; let i = $index) {
+            <div class="custom-split-guest-row percentage-row" [attr.data-testid]="'custom-pct-row-' + i">
+              <span class="guest-avatar-small">{{ i + 1 }}</span>
+              <label [for]="'custom-pct-name-input-' + i" class="sr-only">{{ 'SPLIT.GUEST_PLACEHOLDER' | transloco:{ number: i + 1 } }}</label>
+              <input
+                type="text"
+                [id]="'custom-pct-name-input-' + i"
+                [(ngModel)]="g.name"
+                [placeholder]="'SPLIT.GUEST_PLACEHOLDER' | transloco:{ number: i + 1 }"
+                class="guest-name-field"
+                [attr.data-testid]="'custom-pct-name-' + i" />
+              <div class="amount-input-wrap">
+                <label [for]="'custom-pct-num-input-' + i" class="sr-only">{{ 'SPLIT.CUSTOM_PCT_MODE' | transloco }}</label>
+                <input
+                  type="number"
+                  [id]="'custom-pct-num-input-' + i"
+                  step="1"
+                  min="0"
+                  max="100"
+                  [(ngModel)]="g.percentage"
+                  placeholder="%"
+                  class="guest-numeric-field"
+                  [attr.data-testid]="'custom-pct-input-' + i" />
+                <button
+                  type="button"
+                  class="btn-assign-remainder"
+                  (click)="assignRemainingPercentageToGuest(i)"
+                  [title]="'SPLIT.ASSIGN_REMAINDER' | transloco"
+                  [attr.data-testid]="'assign-pct-remainder-btn-' + i">
+                  {{ 'SPLIT.ASSIGN_REMAINDER' | transloco }}
+                </button>
+              </div>
+              @if (customPercentageGuests.length > 2) {
+                <button
+                  type="button"
+                  class="btn-remove-guest"
+                  (click)="removeCustomPercentageGuest(i)"
+                  [attr.aria-label]="'SPLIT.DELETE_GUEST' | transloco"
+                  [attr.data-testid]="'remove-custom-pct-btn-' + i">
+                  <ion-icon name="close-outline"></ion-icon>
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <button
+          type="button"
+          class="btn-add-guest"
+          (click)="addCustomPercentageGuest()"
+          [disabled]="customPercentageGuests.length >= 20"
+          data-testid="add-custom-pct-btn">
+          <ion-icon name="add-outline"></ion-icon>
+          <span>{{ 'SPLIT.ADD_GUEST' | transloco }}</span>
+        </button>
+
+        @if (!isCustomPercentageValid && totalCustomPercentage > 0) {
+          <div class="unassigned-warning">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <span>{{ 'SPLIT.PCT_MISMATCH' | transloco:{ total: totalCustomPercentage } }}</span>
+          </div>
+        }
+
+        <ion-button
+          expand="block"
+          class="btn-action-primary"
+          (click)="calculateCustomPercentageSplit()"
+          (keydown.enter)="calculateCustomPercentageSplit()"
+          [disabled]="loading || !isCustomPercentageValid || isAlreadySettled"
+          data-testid="calculate-custom-pct-btn">
+          @if (loading) {
+            <ion-spinner name="crescent" slot="start"></ion-spinner>
+          }
+          @if (!loading) {
+            <ion-icon name="calculator-outline" slot="start"></ion-icon>
+          }
+          <span>{{ 'SPLIT.CALCULATE_PARTS' | transloco }}</span>
+        </ion-button>
+        @if (errorMessage) {
+          <p class="error-message-text">{{ errorMessage }}</p>
+        }
+      </div>
+    }
+
+    <!-- ── Mode 4 : Par Article (Itemized Split) ──────────────────── -->
     @if (mode === 'itemized') {
       <!-- 1. Pool Summary: Bill Items & Remaining Counters -->
       @if (facture) {
@@ -169,7 +472,7 @@
           <p class="section-hint-text">{{ 'SPLIT.POOL_HINT' | transloco }}</p>
           <!-- Pool Items Chips Grid -->
           <div class="pool-items-grid">
-            @for (item of factureItems; track item) {
+            @for (item of factureItems; track item.id) {
               <div
                 class="pool-item-chip"
                 [class.completed]="getUnassignedCount(item.id) === 0"
@@ -242,7 +545,7 @@
               </div>
               <!-- List of items currently assigned to this guest -->
               <div class="guest-assigned-items-list">
-                @for (item of getAssignedItemsForGuest(i); track item) {
+                @for (item of getAssignedItemsForGuest(i); track item.itemId) {
                   <div
                     class="assigned-item-row"
                     [attr.data-testid]="'guest-' + i + '-item-' + item.itemId">
@@ -292,12 +595,12 @@
                   </div>
                 }
               </div>
-              <!-- Quick Add Item Action for this Guest (Clear, distinct clickable action buttons) -->
+              <!-- Quick Add Item Action for this Guest -->
               @if (availableInvoiceItems.length > 0) {
                 <div class="guest-add-item-action">
                   <span class="quick-add-title">{{ 'SPLIT.ASSIGN_PLACEHOLDER' | transloco }}</span>
                   <div class="quick-add-chips-wrap">
-                    @for (opt of availableInvoiceItems; track opt) {
+                    @for (opt of availableInvoiceItems; track opt.id) {
                       <button
                         type="button"
                         class="btn-quick-add-chip"
@@ -339,7 +642,7 @@
           class="btn-action-primary"
           (click)="calculateItemizedSplit()"
           (keydown.enter)="calculateItemizedSplit()"
-          [disabled]="loading || !allItemsAssigned"
+          [disabled]="loading || !allItemsAssigned || isAlreadySettled"
           data-testid="calculate-split-selection-btn">
           @if (loading) {
             <ion-spinner name="crescent" slot="start"></ion-spinner>
@@ -355,7 +658,7 @@
       </div>
     }
 
-    <!-- ── 3. Results & Individual Settlement Cards ────────────────── -->
+    <!-- ── 5. Results & Individual Settlement Cards ────────────────── -->
     @if (results.length > 0) {
       <div class="split-results-section" data-testid="split-results-container">
         <div class="results-header">
@@ -363,7 +666,7 @@
           <span class="results-badge">{{ 'SPLIT.PARTS_BADGE' | transloco:{ count: results.length } }}</span>
         </div>
         <div class="guest-settlement-cards-grid">
-          @for (part of results; track part; let i = $index) {
+          @for (part of results; track part.nomConvive + i; let i = $index) {
             <div
               class="guest-part-card"
               [class.settled]="partStates[i]?.settled"
@@ -421,7 +724,7 @@
                     </button>
                   </div>
                 }
-                @if (!partStates[i]?.settled) {
+                @if (!partStates[i]?.settled && !isAlreadySettled) {
                   <div class="part-action-row">
                     <button
                       type="button"
@@ -460,4 +763,3 @@
 
   </div>
 </ion-content>
-

@@ -99,6 +99,15 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
     return this.displayedAmount;
   }
 
+  get alreadyPaid(): number {
+    if (!this.facture?.reglements?.length) return 0;
+    return Math.round(this.facture.reglements.reduce((sum, r) => sum + (r.montant || 0), 0) * 100) / 100;
+  }
+
+  get remainingBalance(): number {
+    return Math.max(0, Math.round((this.displayedAmount - this.alreadyPaid) * 100) / 100);
+  }
+
   get totalHT(): number {
     return this.facture?.totalHT ?? (this.displayedAmount / 1.2);
   }
@@ -225,7 +234,7 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
     const modal = await this.modalCtrl.create({
       component: ReglementModalComponent,
       componentProps: {
-        totalInitial: this.displayedAmount,
+        totalInitial: this.remainingBalance,
         invoiceNumber: this.facture.numero,
         tableNumber: this.facture.tableNumero
       }

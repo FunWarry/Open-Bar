@@ -36,7 +36,12 @@
     "FINISH": "Terminer",
     "ITEM": "article",
     "ITEMS": "articles",
-    "ALL_RIGHTS_RESERVED": "Tous droits réservés."
+    "ALL_RIGHTS_RESERVED": "Tous droits réservés.",
+    "DECREASE": "Diminuer",
+    "INCREASE": "Augmenter",
+    "RETRY": "Réessayer",
+    "REQUIRED": "Champ requis",
+    "NO_RESULTS": "Aucun résultat trouvé"
   },
   "TABLE_CARD": {
     "STATUS_FREE": "Libre",
@@ -169,7 +174,25 @@
     "SUBTOTAL_GUEST": "Total convive :",
     "REMOVE_ITEM_FROM_GUEST": "Retirer cet article du convive",
     "EQUAL_MODE": "Part égale",
-    "ITEMIZED_MODE": "Par article"
+    "ITEMIZED_MODE": "Par article",
+    "CUSTOM_AMOUNT": "Prix libre",
+    "CUSTOM_PERCENTAGE": "Pourcentage",
+    "CUSTOM_AMOUNT_MODE": "Prix libre",
+    "CUSTOM_PCT_MODE": "Pourcentage",
+    "INVOICE_ALREADY_SETTLED_BANNER": "Cette facture est déjà entièrement réglée. Mode consultation : vous pouvez consulter les parts et réimprimer les tickets de caisse.",
+    "ALREADY_SETTLED_PARTS_TITLE": "Parts déjà réglées",
+    "REMAINING_TO_SPLIT": "Reste à répartir :",
+    "CUSTOM_AMOUNT_HINT": "Indiquez le montant pris en charge par chaque convive.",
+    "CUSTOM_PCT_HINT": "Indiquez le pourcentage pris en charge par chaque convive (total 100%).",
+    "ASSIGN_REMAINDER": "Attribuer le reste",
+    "DISTRIBUTE_EQUALLY": "Répartir équitablement",
+    "TOTAL_ALLOCATED": "Total alloué :",
+    "REMAINDER_LABEL": "Différence :",
+    "BALANCED": "Répartition équilibrée",
+    "PCT_TOTAL": "Total alloué :",
+    "ALLOCATION_MISMATCH": "La somme des montants ({{allocated}}) ne correspond pas au reste à payer ({{remaining}}).",
+    "PCT_MISMATCH": "Le total des pourcentages doit être égal à 100% (actuel : {{total}}%).",
+    "GUEST_AMOUNT_PLACEHOLDER": "Montant"
   },
   "THEME": {
     "LIGHT": "Mode clair",
@@ -275,6 +298,49 @@
     "SHARED_CART_ITEM_REMOVED": "Article retiré du panier.",
     "SHARED_CART_CONVIVES_COUNT": "{{ count }} convive(s)",
     "SHARED_CART_OTHER_SUBMITTED": "{{ name }} a validé et envoyé la commande au bar !",
+    "INVITE_FRIENDS_BTN": "Inviter des amis",
+    "INVITE_MODAL_TITLE": "Inviter à la Table {{ table }}",
+    "INVITE_MODAL_DESC": "Faites scanner ce QR code à vos amis ou partagez-leur le lien direct pour commander ensemble en temps réel.",
+    "INVITE_QR_HINT": "Pointez l'appareil photo vers ce QR code pour rejoindre la table",
+    "INVITE_COPY": "Copier le lien",
+    "INVITE_COPIED": "Copié !",
+    "INVITE_LINK_COPIED_TOAST": "Lien de la table copié dans le presse-papier !",
+    "INVITE_SHARE_NATIVE_BTN": "Partager le lien",
+    "INVITE_SHARE_TITLE": "Rejoins la commande — Table {{ table }}",
+    "INVITE_SHARE_TEXT": "Rejoins notre table sur OpenBar pour commander tes cocktails directement avec nous :",
+    "RECAP_INVITE_BANNER_TEXT": "Vous êtes à plusieurs ? Invitez vos amis à ajouter leurs cocktails à cette commande.",
+    "INGREDIENTS_SECTION_TITLE": "Ingrédients",
+    "INGREDIENTS_SECTION_SUBTITLE": "Découvrez la composition de ce cocktail",
+    "INGREDIENTS_HINT": "Voir les ingrédients",
+    "NO_INGREDIENTS_LISTED": "Composition détaillée disponible auprès de votre serveur.",
+    "CLOSE_DETAILS_BTN": "Fermer",
+    "DETAILS_MODAL_TITLE": "Fiche Cocktail",
+    "TABLE_HOST_BADGE": "Hôte",
+    "TABLE_GUEST_BADGE": "Convive",
+    "JOIN_REQUEST_TITLE": "Rejoindre la Table {{ table }}",
+    "JOIN_REQUEST_DESC": "Cette table est occupée par {{ owner }}. Indiquez votre prénom pour demander l'accès à l'hôte.",
+    "JOIN_REQUEST_NAME_LABEL": "Votre prénom ou pseudo",
+    "JOIN_REQUEST_SUBMIT_BTN": "Demander à rejoindre la table",
+    "JOIN_REQUEST_PENDING_TITLE": "Demande en attente",
+    "JOIN_REQUEST_PENDING_DESC": "Votre demande a été transmise à l'hôte ({{ owner }}). Veuillez patienter pendant sa validation...",
+    "JOIN_REQUEST_REJECTED_TITLE": "Demande refusée",
+    "JOIN_REQUEST_REJECTED_DESC": "L'hôte a décliné votre demande d'accès à cette table.",
+    "JOIN_REQUEST_RETRY_BTN": "Réessayer",
+    "JOIN_APPROVAL_MODAL_TITLE": "Demande d'accès à votre table",
+    "JOIN_APPROVAL_MODAL_DESC": "{{ name }} souhaite rejoindre votre table et commander avec vous.",
+    "JOIN_APPROVAL_ACCEPT_BTN": "Accepter",
+    "JOIN_APPROVAL_REJECT_BTN": "Refuser",
+    "GRACE_BANNER_TITLE": "Tournée groupée ({{ seconds }}s restantes)",
+    "GRACE_BANNER_DESC": "Une commande vient d'être lancée ! Tous les convives ont 2 minutes pour ajouter des verres à cette même commande.",
+    "GRACE_BANNER_ADD_ITEMS": "Ajouter des verres",
+    "GRACE_BANNER_DISPATCH_NOW": "Envoyer immédiatement",
+    "TABLE_ORDERS_BTN": "Addition & Suivi",
+    "TABLE_ORDERS_MODAL_TITLE": "Commandes & Addition — Table {{ table }}",
+    "TABLE_ORDERS_CUMULATIVE_TOTAL": "Total cumulé de la table",
+    "TABLE_ORDERS_TOTAL_DRINKS": "Boissons commandées",
+    "TABLE_ORDERS_ROUND_LABEL": "Tournée #{{ id }}",
+    "TABLE_ORDERS_EMPTY": "Aucune commande enregistrée pour cette table.",
+    "TABLE_ORDERS_CLOSE_BTN": "Fermer",
     "ALERTS": {
       "CALL_WAITER_BTN": "Appel Serveur",
       "REQUEST_BILL_BTN": "Demander l'addition",
@@ -499,7 +565,8 @@
       "ROLE_PLACEHOLDER": "Sélectionnez un rôle",
       "ROLE_REQUIRED": "Le rôle est requis",
       "USERNAME_PLACEHOLDER": "Identifiant de connexion"
-    }
+    },
+    "LOGOUT": "Se déconnecter"
   },
   "PROFILE": {
     "TITLE": "Mon Profil",
@@ -788,7 +855,8 @@
       "TEMPLATE_ACTION_TYPE": "Catégorie de geste",
       "TEMPLATE_DURATION": "Durée par défaut (secondes)",
       "TEMPLATE_ICON": "Icône",
-      "TEMPLATE_SAVED_SUCCESS": "Modèle d'action enregistré avec succès !"
+      "TEMPLATE_SAVED_SUCCESS": "Modèle d'action enregistré avec succès !",
+      "INGREDIENTS_LIST": "Liste des ingrédients"
     },
     "GLASSWARE": {
       "LABEL": "Verre de service",
@@ -1278,6 +1346,8 @@
     "TICKET_NUM": "N° Ticket",
     "DOWNLOAD_PDF": "Télécharger PDF",
     "SPLIT": "Diviser l'addition",
+    "VIEW_SPLIT": "Consulter le split",
+    "SETTLE_REMAINING": "Régler le solde ({{ amount }})",
     "THANK_YOU": "Merci de votre visite !",
     "BACK_TO_LIST": "Retour aux factures",
     "ITEMS_CONSUMED": "Détail des consommations",
@@ -1323,7 +1393,9 @@
       "CHEQUE": "Chèque"
     },
     "CONDITIONS_REGLEMENT_PLACEHOLDER": "Paiement immédiat à réception",
-    "ESCOMPTE_PLACEHOLDER": "Aucun escompte pour paiement anticipé"
+    "ESCOMPTE_PLACEHOLDER": "Aucun escompte pour paiement anticipé",
+    "STATUS_REGLEE": "Facture Réglée",
+    "POURBOIRE": "Pourboire"
   },
   "SERVEUR": {
     "TITLE": "Espace Serveur",
@@ -2366,7 +2438,8 @@
     "STATUS_EN_ATTENTE": "En attente",
     "STATUS_EN_PREPARATION": "En préparation",
     "STATUS_PRET": "Prêt",
-    "STATUS_LIVREE": "Livré"
+    "STATUS_LIVREE": "Livré",
+    "TOGGLE_SOUND": "Activer ou couper le son"
   },
   "MANAGER_DASHBOARD": {
     "TITLE": "Tableau de Bord Manager",
@@ -2792,7 +2865,8 @@
     "NOT_VEGAN_LABEL": "Non végane",
     "CONTAINS_GLUTEN_LABEL": "Contient du gluten",
     "CALCULATION_DETAILS": "{{ pureAlcohol }} cl d'alcool pur / {{ totalLiquid }} cl",
-    "GLASS_CAPACITY_NOTE": "Verre : {{ capacity }} cl"
+    "GLASS_CAPACITY_NOTE": "Verre : {{ capacity }} cl",
+    "COST_RECIPE_HINT": "Coût basé sur la recette"
   },
   "ANALYTICS": {
     "MARGIN_TITLE": "Santé Financière & Rentabilité",
@@ -2975,5 +3049,11 @@
     "OFFER_HW_F3": "Assistance au paramétrage et démarrage sur site",
     "CONTACT_TITLE": "Contacter l'Auteur pour une Licence",
     "CONTACT_DESC": "Pour toute demande de licence commerciale, devis sur-mesure ou partenariat :"
+  },
+  "SCHEDULE": {
+    "TITLE": "Planning Semaine"
+  },
+  "MESSAGES": {
+    "ORDER_CREATED": "Commande créée avec succès"
   }
 }
