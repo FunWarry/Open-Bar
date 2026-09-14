@@ -111,7 +111,7 @@
   z-index: 10;
   width: 100%;
   max-width: 520px;
-  padding-bottom: 110px;
+  padding-bottom: calc(130px + env(safe-area-inset-bottom, 0px));
 }
 
 .menu-header {
@@ -132,24 +132,33 @@
   margin: 0 0 8px 0;
 }
 
+.header-badges-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2, 8px);
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
 .guest-badge-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--background-surface-2, rgba(255, 255, 255, 0.08));
-  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
   border-radius: var(--radius-full, 9999px);
   padding: 4px 12px;
   cursor: pointer;
-  color: var(--text-primary, #ffffff);
+  color: var(--text-primary);
   font-size: 13px;
   font-weight: 600;
   transition: all 0.2s ease;
 }
 
 .guest-badge-btn:hover {
-  border-color: var(--primary, #9b8af2);
-  background: var(--background-surface-3, rgba(255, 255, 255, 0.12));
+  border-color: var(--primary);
+  background: var(--background-surface-3);
 }
 
 .guest-badge-edit {
@@ -157,12 +166,162 @@
   opacity: 0.7;
 }
 
-.filter-chips {
+.invite-badge-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-full, 9999px);
+  padding: 4px 12px;
+  cursor: pointer;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.invite-badge-btn:hover {
+  border-color: var(--primary);
+  background: var(--background-surface-3);
+}
+
+.invite-badge-btn ion-icon {
+  font-size: 15px;
+}
+
+/* Search & Filter Controls */
+.search-bar-wrapper {
+  margin-bottom: var(--space-3, 12px);
+}
+
+.category-pills-row {
   display: flex;
-  gap: var(--space-2, 8px);
+  align-items: center;
+  gap: 8px;
   overflow-x: auto;
-  padding-bottom: var(--space-2, 8px);
-  margin-bottom: var(--space-4, 16px);
+  padding: 4px 2px 10px 2px;
+  margin-bottom: var(--space-2, 8px);
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+}
+
+.figma-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--background-surface-2, #21263f);
+  color: var(--text-primary, #eceefb);
+  border: 1px solid var(--border-medium, #2e3450);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: var(--background-surface-3, rgba(255, 255, 255, 0.1));
+    color: var(--text-primary, #ffffff);
+  }
+
+  &.active {
+    background: var(--primary);
+    color: var(--text-on-accent);
+    border-color: var(--primary);
+    box-shadow: 0 2px 10px rgba(108, 127, 232, 0.35);
+  }
+}
+
+.dot-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* Allergen Exclusion Pills */
+.allergen-pills-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 8px 2px;
+  margin-bottom: var(--space-3, 12px);
+  flex-wrap: wrap;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+}
+
+.allergen-filter-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted, #7e87a8);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 4px;
+}
+
+.figma-allergen-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--background-surface-2, #21263f);
+  color: var(--text-secondary, #9aa0a6);
+  border: 1px dashed var(--border-medium, #2e3450);
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 0.775rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(229, 96, 79, 0.15);
+    color: var(--semantic-danger, #ef4444);
+    border-color: var(--semantic-danger, #ef4444);
+  }
+
+  &.excluded {
+    background: rgba(229, 96, 79, 0.15);
+    color: var(--semantic-danger, #ef4444);
+    border: 1px solid var(--semantic-danger, #ef4444);
+    box-shadow: 0 2px 8px rgba(229, 96, 79, 0.2);
+  }
+}
+
+.allergen-close-icon {
+  font-size: 0.75rem;
+  margin-left: 2px;
+  font-weight: bold;
+}
+
+.figma-clear-allergens-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(229, 96, 79, 0.15);
+  color: var(--semantic-danger, #ef4444);
+  border: 1px solid var(--semantic-danger, #ef4444);
+  border-radius: 16px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--semantic-danger);
+    color: var(--text-on-accent);
+  }
 }
 
 .cocktails-grid {
@@ -197,19 +356,21 @@
 /* Floating Cart Bar */
 .floating-cart-bar {
   position: fixed;
-  bottom: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 32px);
   max-width: 500px;
-  background: var(--background-surface-2, #1b1e2e);
-  border: 1px solid var(--primary, #9b8af2);
+  background: var(--background-surface-2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--primary);
   border-radius: var(--radius-xl, 16px);
   padding: 12px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-floating, 0 12px 32px rgba(0, 0, 0, 0.5));
   z-index: 100;
 }
 
@@ -217,19 +378,19 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-primary, #ffffff);
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 14px;
 }
 
 .convives-pill {
-  background: var(--primary-faded, rgba(155, 138, 242, 0.18));
-  color: var(--primary, #9b8af2);
+  background: var(--primary-faded);
+  color: var(--primary);
   font-size: 11px;
   font-weight: 700;
   padding: 2px 8px;
   border-radius: var(--radius-full, 9999px);
-  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  border: 1px solid var(--border-subtle);
 }
 
 .cart-action {
@@ -241,18 +402,23 @@
 .cart-total {
   font-size: 16px;
   font-weight: 700;
-  color: var(--primary, #9b8af2);
+  color: var(--primary);
 }
 
 .recap-btn {
-  background: var(--primary, #9b8af2);
-  color: var(--text-on-primary, #0c0d12);
+  background: var(--primary);
+  color: var(--text-on-primary);
   border: none;
   padding: 8px 14px;
   border-radius: var(--radius-md, 8px);
   font-weight: 700;
   font-size: 13px;
   cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+
+  &:active {
+    transform: scale(0.97);
+  }
 }
 
 /* Recap View & Collaborative Groups */
@@ -529,6 +695,748 @@
 .contact-server-text {
   font-size: 15px;
   color: var(--text-secondary, #9aa0a6);
-  margin-bottom: var(--space-6, 24px);
+  margin-bottom: var(--space-4, 16px);
   line-height: 1.5;
 }
+
+.session-expired-actions {
+  margin: var(--space-4, 16px) 0;
+}
+
+/* Invite Friends Modal & Recap Banner */
+dialog.invite-dialog-modal {
+  border: none;
+  background: rgba(0, 0, 0, 0.75);
+  padding: var(--space-4, 16px);
+  margin: 0;
+  max-width: none;
+  max-height: none;
+  width: 100vw;
+  height: 100vh;
+}
+
+.invite-card {
+  margin-top: 0;
+  animation: fadeInModal 0.25s ease-out;
+  position: relative;
+  max-width: 440px;
+  width: 100%;
+}
+
+.modal-close-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: -10px;
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full, 9999px);
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  color: var(--text-primary);
+  background-color: var(--background-surface-2);
+}
+
+.invite-qr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: var(--space-4, 16px) 0;
+}
+
+.invite-qr-frame {
+  background: var(--text-on-accent);
+  padding: 12px;
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.invite-qr-image {
+  width: 200px;
+  height: 200px;
+  display: block;
+  image-rendering: pixelated;
+}
+
+.qr-scan-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+.invite-link-section {
+  margin-bottom: var(--space-3, 12px);
+  width: 100%;
+}
+
+.invite-link-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.invite-link-box {
+  display: flex;
+  align-items: center;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 8px);
+  padding: 4px 6px 4px 12px;
+  gap: 8px;
+}
+
+.invite-link-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 12px;
+  outline: none;
+  font-family: inherit;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.invite-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--background-surface-3);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm, 6px);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.invite-copy-btn:hover {
+  background: var(--primary);
+  color: var(--text-on-primary, var(--background-bg-0));
+  border-color: var(--primary);
+}
+
+.invite-copy-btn.copied {
+  background: var(--semantic-success);
+  border-color: var(--semantic-success);
+  color: var(--background-bg-0);
+}
+
+.invite-share-section {
+  width: 100%;
+  margin-top: var(--space-2, 8px);
+}
+
+/* Recap invite banner */
+.recap-invite-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--background-surface-2);
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 14px;
+  margin-bottom: var(--space-4, 16px);
+}
+
+.recap-invite-banner .banner-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.recap-invite-banner .banner-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.banner-invite-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius-full, 9999px);
+  color: var(--text-on-primary, var(--background-bg-0));
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.banner-invite-btn:hover {
+  opacity: 0.9;
+}
+
+/* Cocktail Details & Ingredients Modal */
+dialog.cocktail-details-dialog {
+  border: none;
+  background: rgba(0, 0, 0, 0.75);
+  padding: var(--space-4, 16px);
+  margin: 0;
+  max-width: none;
+  max-height: none;
+  width: 100vw;
+  height: 100vh;
+}
+
+.cocktail-details-card {
+  margin-top: 0;
+  animation: fadeInModal 0.25s ease-out;
+  position: relative;
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--space-4, 16px);
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg, 16px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+}
+
+.cocktail-details-image-wrapper {
+  width: 100%;
+  height: 180px;
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+  background: var(--background-surface-2);
+}
+
+.cocktail-details-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cocktail-details-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cocktail-details-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cocktail-details-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.cocktail-details-price-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cocktail-details-price {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.cocktail-details-desc {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.cocktail-details-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+/* Ingredients Section */
+.cocktail-ingredients-section {
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 8px);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ingredients-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ingredients-section-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.ingredients-section-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ingredients-section-subtitle {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.ingredients-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.ingredient-item-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--background-surface-3);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-full, 9999px);
+  padding: 5px 12px;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.ingredient-bullet {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  flex-shrink: 0;
+}
+
+.ingredient-name {
+  white-space: nowrap;
+}
+
+.ingredient-allergen-badge {
+  font-size: 10px;
+  background: var(--semantic-warning);
+  color: var(--background-bg-0);
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--radius-full, 9999px);
+}
+
+.empty-ingredients-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 4px 0;
+}
+
+/* Modal Footer & Actions */
+.cocktail-details-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-medium);
+}
+
+.details-close-btn {
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 8px);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.details-close-btn:hover {
+  background: var(--background-surface-3);
+  border-color: var(--primary);
+}
+
+/* Host Pill Badge */
+.host-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--primary);
+  color: var(--background-bg-0);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-full, 9999px);
+  letter-spacing: 0.02em;
+}
+
+/* Table Orders / Bill Badge Button */
+.table-orders-badge-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  color: var(--text-primary);
+  border-radius: var(--radius-full, 9999px);
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.table-orders-badge-btn:hover {
+  background: var(--background-surface-3);
+  border-color: var(--primary);
+}
+
+.orders-count-badge {
+  background: var(--primary);
+  color: var(--background-bg-0);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: var(--radius-full, 9999px);
+}
+
+/* Grace Period Grouping Banner */
+.grace-period-banner {
+  background: var(--background-surface-2);
+  border: 1.5px solid var(--semantic-warning);
+  border-radius: var(--radius-lg, 16px);
+  padding: 14px 18px;
+  margin: 12px 0 18px;
+  box-shadow: 0 4px 18px var(--shadow-sm, rgba(0, 0, 0, 0.25));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    border-color: var(--semantic-warning);
+  }
+  50% {
+    border-color: var(--primary);
+  }
+}
+
+.grace-banner-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.grace-timer-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-surface-3);
+  border: 1px solid var(--semantic-warning);
+  border-radius: var(--radius-md, 8px);
+  padding: 6px 10px;
+  min-width: 56px;
+}
+
+.grace-timer-icon {
+  font-size: 20px;
+  color: var(--semantic-warning);
+}
+
+.grace-countdown {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--semantic-warning);
+  letter-spacing: 0.03em;
+}
+
+.grace-banner-text {
+  flex: 1;
+}
+
+.grace-banner-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.grace-banner-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.grace-banner-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.grace-action-btn.finalize-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--semantic-success);
+  color: var(--background-bg-0);
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.grace-action-btn.finalize-btn:hover {
+  opacity: 0.9;
+}
+
+/* Join Approval Dialog for Host */
+.join-approval-dialog {
+  z-index: 1200;
+}
+
+.join-approval-card {
+  max-width: 420px;
+  border: 1px solid var(--primary);
+}
+
+.join-approval-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* Table Orders & Cumulative Bill Modal */
+.table-orders-dialog {
+  z-index: 1100;
+}
+
+.table-orders-card {
+  max-width: 540px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.cumulative-bill-card {
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 8px);
+  padding: 12px 16px;
+  margin: 12px 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bill-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bill-stat-row .bill-stat-label {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.bill-stat-row .bill-stat-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.bill-stat-row.secondary .bill-stat-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.bill-stat-row.secondary .bill-stat-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.table-rounds-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  max-height: 48vh;
+  padding-right: 4px;
+}
+
+.table-round-item {
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 14px;
+}
+
+.round-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.round-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.round-id {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.round-time {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.round-status-price {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.round-status-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 9999px);
+  text-transform: uppercase;
+  background: var(--background-surface-3);
+  color: var(--text-secondary);
+}
+
+.round-status-pill[data-status='EN_ATTENTE'] {
+  background: var(--background-surface-3);
+  color: var(--semantic-warning);
+}
+
+.round-status-pill[data-status='EN_PREPARATION'] {
+  background: var(--background-surface-3);
+  color: var(--semantic-info);
+}
+
+.round-status-pill[data-status='PRETE'] {
+  background: var(--background-surface-3);
+  color: var(--semantic-success);
+}
+
+.round-status-pill[data-status='SERVIE'] {
+  background: var(--background-surface-3);
+  color: var(--text-muted);
+}
+
+.round-total {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.round-drinks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.round-drink-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.round-drink-item .drink-qty {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.round-drink-item .drink-name {
+  flex: 1;
+  color: var(--text-primary);
+}
+
+.round-drink-item .drink-variant {
+  font-style: italic;
+  font-size: 11px;
+}
+
+.round-drink-item .drink-price {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-medium);
+}
+

@@ -106,4 +106,30 @@ describe('TableSessionService', () => {
     const req = httpMock.expectOne(`${baseUrl}/4/session?token=expired-session-token`);
     req.flush(mockExpiredSessionResponse);
   });
+
+  it('getSessionQrCodeUrl should build valid URL with token, size and custom origin', () => {
+    const url = service.getSessionQrCodeUrl(7, 'my-token', 'PNG', 350, 'http://192.168.1.50:4200');
+    expect(url).toContain(`${baseUrl}/7/session/qrcode?format=PNG&size=350`);
+    expect(url).toContain('token=my-token');
+    expect(url).toContain('baseUrl=http%3A%2F%2F192.168.1.50%3A4200');
+  });
+
+  it('downloadSessionQrCode should perform GET request with blob responseType', () => {
+    const mockBlob = new Blob(['fake-qr'], { type: 'image/png' });
+
+    service.downloadSessionQrCode(5, 'tok-abc', 'PNG', 300, 'http://localhost:4200').subscribe((blob) => {
+      expect(blob).toEqual(mockBlob);
+    });
+
+    const req = httpMock.expectOne((r) =>
+      r.url === `${baseUrl}/5/session/qrcode` &&
+      r.params.get('format') === 'PNG' &&
+      r.params.get('size') === '300' &&
+      r.params.get('token') === 'tok-abc' &&
+      r.params.get('baseUrl') === 'http://localhost:4200'
+    );
+    expect(req.request.method).toBe('GET');
+    expect(req.request.responseType).toBe('blob');
+    req.flush(mockBlob);
+  });
 });

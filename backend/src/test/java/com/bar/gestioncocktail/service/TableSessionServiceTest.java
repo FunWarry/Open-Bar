@@ -6,6 +6,7 @@ import com.bar.gestioncocktail.model.AppSettings;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.TableSession;
 import com.bar.gestioncocktail.model.TableSessionStatus;
+import com.bar.gestioncocktail.repository.TableRepository;
 import com.bar.gestioncocktail.repository.TableSessionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,6 +33,12 @@ class TableSessionServiceTest {
 
     @Mock
     private AppSettingsService appSettingsService;
+
+    @Mock
+    private QrCodeService qrCodeService;
+
+    @Mock
+    private TableRepository tableRepository;
 
     @Spy
     private TimeService timeService = new TimeService(null);
@@ -142,9 +149,6 @@ class TableSessionServiceTest {
     @Test
     @DisplayName("validateSession: returns active and valid for matching valid token")
     void validateSession_withValidToken() {
-        appSettings.setTableSessionValidationEnabled(true);
-        when(appSettingsService.getSettings()).thenReturn(appSettings);
-
         TableSession session = new TableSession();
         session.setId(20L);
         session.setTableId(5L);
@@ -154,7 +158,8 @@ class TableSessionServiceTest {
         session.setLastActivityAt(fixedNow.minusMinutes(5));
         session.setExpiresAt(fixedNow.plusMinutes(110));
 
-        when(tableSessionRepository.findBySessionToken("valid-token-xyz")).thenReturn(Optional.of(session));
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.of(session));
         when(tableSessionRepository.save(any(TableSession.class))).thenAnswer(inv -> inv.getArgument(0));
 
         TableSessionResponseDTO response = tableSessionService.validateSession(5L, "valid-token-xyz");
@@ -167,16 +172,14 @@ class TableSessionServiceTest {
     @Test
     @DisplayName("validateSession: returns invalid when token belongs to different table")
     void validateSession_withMismatchedTable() {
-        appSettings.setTableSessionValidationEnabled(true);
-        when(appSettingsService.getSettings()).thenReturn(appSettings);
-
         TableSession session = new TableSession();
-        session.setTableId(8L);
-        session.setSessionToken("token-for-table-8");
+        session.setTableId(5L);
+        session.setSessionToken("token-for-table-5");
         session.setStatus(TableSessionStatus.ACTIVE);
         session.setExpiresAt(fixedNow.plusMinutes(60));
 
-        when(tableSessionRepository.findBySessionToken("token-for-table-8")).thenReturn(Optional.of(session));
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.of(session));
 
         TableSessionResponseDTO response = tableSessionService.validateSession(5L, "token-for-table-8");
 
@@ -186,16 +189,14 @@ class TableSessionServiceTest {
     @Test
     @DisplayName("validateSession: returns invalid and marks EXPIRED when expired")
     void validateSession_whenExpired() {
-        appSettings.setTableSessionValidationEnabled(true);
-        when(appSettingsService.getSettings()).thenReturn(appSettings);
-
         TableSession session = new TableSession();
         session.setTableId(5L);
         session.setSessionToken("old-token");
         session.setStatus(TableSessionStatus.ACTIVE);
         session.setExpiresAt(fixedNow.minusMinutes(5));
 
-        when(tableSessionRepository.findBySessionToken("old-token")).thenReturn(Optional.of(session));
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.of(session));
         when(tableSessionRepository.save(any(TableSession.class))).thenAnswer(inv -> inv.getArgument(0));
 
         TableSessionResponseDTO response = tableSessionService.validateSession(5L, "old-token");
@@ -283,5 +284,99 @@ class TableSessionServiceTest {
         boolean allowed = tableSessionService.isSessionValidForOrder(5L, "secret-token");
 
         assertThat(allowed).isTrue();
+    }
+
+    @Test
+    @DisplayName("generateSessionQrCode: generates PNG QR code with session token and settings base URL")
+    void generateSessionQrCode_png_success() {
+        appSettings.setClientBaseUrl("https://bar.example.com");
+        when(appSettingsService.getSettings()).thenReturn(appSettings);
+
+        TableEntity table = new TableEntity();
+        table.setId(5L);
+        table.setNumero(12);
+        when(tableRepository.findById(5L)).thenReturn(Optional.of(table));
+
+        when(qrCodeService.buildTableOrderUrl("https://bar.example.com", 12, "my-token"))
+                .thenReturn("https://bar.example.com/client/commande?table=12&token=my-token");
+        byte[] expectedBytes = new byte[]{1, 2, 3};
+        when(qrCodeService.generatePng("https://bar.example.com/client/commande?table=12&token=my-token", 300, 300))
+                .thenReturn(expectedBytes);
+
+        byte[] result = tableSessionService.generateSessionQrCode(5L, "my-token", "PNG", 300, null);
+
+        assertThat(result).isEqualTo(expectedBytes);
+    }
+
+    @Test
+    @DisplayName("generateSessionQrCode: generates SVG QR code with custom base URL")
+    void generateSessionQrCode_svg_customBaseUrl() {
+        when(tableRepository.findById(7L)).thenReturn(Optional.empty());
+        when(tableRepository.findByNumero(7)).thenReturn(Optional.empty());
+
+        when(qrCodeService.buildTableOrderUrl("http://192.168.1.50:4200", 7, "token-abc"))
+                .thenReturn("http://192.168.1.50:4200/client/commande?table=7&token=token-abc");
+        when(qrCodeService.generateSvg("http://192.168.1.50:4200/client/commande?table=7&token=token-abc", 250))
+                .thenReturn("<svg>test</svg>");
+
+        byte[] result = tableSessionService.generateSessionQrCode(7L, "token-abc", "SVG", 250, "http://192.168.1.50:4200");
+
+        assertThat(new String(result)).isEqualTo("<svg>test</svg>");
+    }
+
+    @Test
+    @DisplayName("validateSession: returns valid fresh session for free table even in strict mode without token")
+    void validateSession_whenTableIsFree_generatesActiveSessionEvenInStrictModeWithoutToken() {
+        appSettings.setTableSessionValidationEnabled(true);
+        lenient().when(appSettingsService.getSettings()).thenReturn(appSettings);
+
+        TableEntity freeTable = new TableEntity();
+        freeTable.setId(10L);
+        freeTable.setNumero(4);
+        freeTable.setOccupee(false);
+
+        when(tableRepository.findByNumero(4)).thenReturn(Optional.of(freeTable));
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(10L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.empty());
+        when(tableSessionRepository.save(any(TableSession.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TableSessionResponseDTO response = tableSessionService.validateSession(4L, null);
+
+        assertThat(response.valid()).isTrue();
+        assertThat(response.status()).isEqualTo(TableSessionStatus.ACTIVE);
+        assertThat(response.sessionToken()).isNotBlank();
+        assertThat(response.tableId()).isEqualTo(10L);
+    }
+
+    @Test
+    @DisplayName("validateSession: resolves table by numero and matches existing active session with canonical ID")
+    void validateSession_whenTableNumeroDiffersFromId_resolvesCanonicalTableId() {
+        TableEntity occupiedTable = new TableEntity();
+        occupiedTable.setId(25L);
+        occupiedTable.setNumero(3);
+        occupiedTable.setOccupee(true);
+
+        when(tableRepository.findByNumero(3)).thenReturn(Optional.of(occupiedTable));
+
+        TableSession session = new TableSession();
+        session.setId(99L);
+        session.setTableId(25L);
+        session.setSessionToken("session-token-table-3");
+        session.setStatus(TableSessionStatus.ACTIVE);
+        session.setOpenedAt(fixedNow.minusMinutes(10));
+        session.setLastActivityAt(fixedNow.minusMinutes(5));
+        session.setExpiresAt(fixedNow.plusMinutes(90));
+
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(25L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.of(session));
+        when(tableSessionRepository.save(any(TableSession.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // Patron scanned ?table=3 with token from dining companion
+        TableSessionResponseDTO response = tableSessionService.validateSession(3L, "session-token-table-3");
+
+        assertThat(response.valid()).isTrue();
+        assertThat(response.status()).isEqualTo(TableSessionStatus.ACTIVE);
+        assertThat(response.sessionToken()).isEqualTo("session-token-table-3");
+        assertThat(response.tableId()).isEqualTo(25L);
     }
 }

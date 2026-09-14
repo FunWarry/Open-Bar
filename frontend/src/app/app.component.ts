@@ -46,20 +46,31 @@ export class AppComponent implements OnInit {
   ) {
     addIcons(allIcons);
     const isAuth$ = this.store.select(selectIsAuthenticated);
-    const initialUrl = this.router.url || '';
-    const isInitialAuthRoute = initialUrl.includes('/login') || initialUrl.includes('/register') || initialUrl.includes('/setup') || initialUrl.includes('/qr-client');
+    const isStandaloneRoute = (url: string): boolean => {
+      return (
+        url.includes('/login') ||
+        url.includes('/register') ||
+        url.includes('/setup') ||
+        url.includes('/client') ||
+        url.includes('/qr-client') ||
+        url.includes('/404')
+      );
+    };
 
-    const isAuthRoute$ = this.router.events.pipe(
+    const initialUrl = this.router.url || '';
+    const isInitialStandaloneRoute = isStandaloneRoute(initialUrl);
+
+    const isStandaloneRoute$ = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd),
       map((event: any) => {
         const url = event.urlAfterRedirects || event.url;
-        return url.includes('/login') || url.includes('/register') || url.includes('/setup') || url.includes('/qr-client');
+        return isStandaloneRoute(url);
       }),
-      startWith(isInitialAuthRoute)
+      startWith(isInitialStandaloneRoute)
     );
 
-    this.showNavbar$ = combineLatest([isAuth$, isAuthRoute$]).pipe(
-      map(([isAuth, isAuthRoute]) => isAuth && !isAuthRoute)
+    this.showNavbar$ = combineLatest([isAuth$, isStandaloneRoute$]).pipe(
+      map(([isAuth, isStandalone]) => isAuth && !isStandalone)
     );
   }
 

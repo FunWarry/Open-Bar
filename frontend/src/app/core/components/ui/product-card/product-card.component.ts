@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { TranslocoModule } from '@jsverse/transloco';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { addOutline, removeOutline } from 'ionicons/icons';
+import { addOutline, removeOutline, informationCircleOutline } from 'ionicons/icons';
 import { environment } from '../../../../../environments/environment';
 
 /**
@@ -68,16 +68,30 @@ export class ProductCardComponent {
   /** Event emitted when the remove/decrement button is clicked. */
   @Output() removeClick = new EventEmitter<void>();
 
+  /** Event emitted when the card is clicked to inspect cocktail details / ingredients. */
+  @Output() cardClick = new EventEmitter<void>();
+
   constructor() {
-    addIcons({ addOutline, removeOutline });
+    addIcons({ addOutline, removeOutline, informationCircleOutline });
   }
 
-  onAdd(): void {
+  onAdd(event?: Event): void {
+    event?.stopPropagation();
     this.addClick.emit();
   }
 
-  onRemove(): void {
+  onRemove(event?: Event): void {
+    event?.stopPropagation();
     this.removeClick.emit();
+  }
+
+  /**
+   * Handles click or keyboard activation on the card container to view cocktail ingredients.
+   *
+   * @param event Optional triggering event
+   */
+  onCardClick(event?: Event): void {
+    this.cardClick.emit();
   }
 
   /**
@@ -93,5 +107,37 @@ export class ProductCardComponent {
       return `${baseUrl}${url}`;
     }
     return url;
+  }
+
+  /**
+   * Resolves category badge dot indicator color for Figma-style pill badges.
+   *
+   * @param category Category identifier
+   * @returns Hex color string for the indicator dot
+   */
+  getCategoryDotColor(category: string): string {
+    switch (category) {
+      case 'ALCOOLISE': return 'var(--types-alcoholic)';
+      case 'SANS_ALCOOL': return 'var(--types-nonalcoholic)';
+      case 'SHOT': return 'var(--types-shot)';
+      case 'APERITIF': return 'var(--semantic-warning)';
+      case 'DIGESTIF': return 'var(--semantic-danger)';
+      case 'SPECIAL': return 'var(--types-cocktail)';
+      default: return 'var(--primary)';
+    }
+  }
+
+  /**
+   * Resolves dynamic background, border, and text styles for category badge.
+   *
+   * @param category Category identifier
+   * @returns Style object with CSS variable bindings
+   */
+  getCategoryPillStyle(category: string): Record<string, string> {
+    return {
+      'background-color': 'var(--background-surface-2)',
+      'border': '1px solid var(--border-medium)',
+      'color': 'var(--text-primary)'
+    };
   }
 }

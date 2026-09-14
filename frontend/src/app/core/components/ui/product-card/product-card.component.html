@@ -1,4 +1,9 @@
-<div class="product-card-container" [attr.data-testid]="testId">
+<div
+  class="product-card-container"
+  [attr.data-testid]="testId"
+  [attr.aria-label]="title + ' - ' + ('CLIENT.INGREDIENTS_HINT' | transloco)"
+  (click)="onCardClick($event)"
+  (keydown)="onCardClick($event)">
   @if (imageUrl) {
     <div class="product-image-wrapper">
       <img
@@ -10,9 +15,23 @@
   }
   <div class="product-details">
     <div class="product-header">
-      <h3 class="product-title">{{ title }}</h3>
+      <div class="product-title-group">
+        <h3 class="product-title">{{ title }}</h3>
+        <button
+          type="button"
+          class="info-pill-hint"
+          [title]="'CLIENT.INGREDIENTS_HINT' | transloco"
+          [attr.aria-label]="'CLIENT.INGREDIENTS_HINT' | transloco"
+          (click)="onCardClick($event)"
+          data-testid="product-card-info-btn">
+          <ion-icon name="information-circle-outline"></ion-icon>
+        </button>
+      </div>
       @if (category) {
-        <span class="product-category-chip">{{ category }}</span>
+        <span class="product-category-pill" [ngStyle]="getCategoryPillStyle(category)" data-testid="product-category-badge">
+          <span class="dot-indicator" [style.background-color]="getCategoryDotColor(category)"></span>
+          {{ ('COCKTAILS.CATEGORIES.' + category) | transloco }}
+        </span>
       }
     </div>
     @if (description) {
@@ -64,12 +83,12 @@
           {{ price | currency:'EUR' }}
         </span>
       </div>
-      <div class="quantity-stepper-mini">
+      <div class="quantity-stepper-mini" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
         @if (quantity > 0) {
           <button
             type="button"
             class="stepper-btn btn-minus"
-            (click)="onRemove()"
+            (click)="onRemove($event)"
             aria-label="Decrease quantity"
             data-testid="product-card-minus">
             <ion-icon name="remove-outline"></ion-icon>
@@ -79,7 +98,7 @@
         <button
           type="button"
           class="stepper-btn btn-plus"
-          (click)="onAdd()"
+          (click)="onAdd($event)"
           aria-label="Increase quantity"
           data-testid="product-card-plus">
           <ion-icon name="add-outline"></ion-icon>

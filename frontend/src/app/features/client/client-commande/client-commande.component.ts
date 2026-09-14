@@ -1,21 +1,49 @@
 import { Component, OnInit, OnDestroy, inject, signal, effect } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController, IonIcon } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  funnelOutline,
+  closeCircleOutline,
+  nutritionOutline,
+  leafOutline,
+  eggOutline,
+  wineOutline,
+  restaurantOutline,
+  personOutline,
+  shareSocialOutline,
+  copyOutline,
+  checkmarkOutline,
+  qrCodeOutline,
+  closeOutline,
+  informationCircleOutline,
+  addOutline,
+  removeOutline,
+  receiptOutline,
+  timerOutline,
+  peopleOutline,
+  shieldCheckmarkOutline,
+  hourglassOutline,
+  checkmarkCircleOutline,
+  alertCircleOutline
+} from 'ionicons/icons';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { CocktailService } from '../../../core/services/cocktail.service';
 import { HappyHourService } from '../../../core/services/happy-hour.service';
 import { TableSessionService } from '../../../core/services/table-session.service';
-import { TableSessionStatus } from '../../../core/models/table-session.model';
+import { TableJoinRequest, TableSessionStatus } from '../../../core/models/table-session.model';
 import { Cocktail, CocktailFacets, FlavorProfile } from '../../../core/models/cocktail.model';
 import { TableCartService } from '../../../core/services/table-cart.service';
 import { TableCartItem } from '../../../core/models/table-cart.model';
+import { WebSocketService } from '../../../core/services/websocket.service';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
-import { FilterChipComponent } from '../../../core/components/ui/filter-chip/filter-chip.component';
+import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { ProductCardComponent } from '../../../core/components/ui/product-card/product-card.component';
 import { CocktailMatcherBarComponent, CocktailMatcherFilters } from '../../../core/components/ui/cocktail-matcher-bar/cocktail-matcher-bar.component';
 import { TableAssistanceBarComponent } from '../components/table-assistance-bar/table-assistance-bar.component';
@@ -32,13 +60,15 @@ import { TableAssistanceBarComponent } from '../components/table-assistance-bar/
   styleUrls: ['./client-commande.component.css'],
   standalone: true,
   imports: [
+    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     AppCurrencyPipe,
     TranslocoModule,
+    IonIcon,
     InputFieldComponent,
     ActionButtonComponent,
-    FilterChipComponent,
+    SearchBarComponent,
     ProductCardComponent,
     CocktailMatcherBarComponent,
     TableAssistanceBarComponent
@@ -52,6 +82,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   private readonly happyHourService = inject(HappyHourService, { optional: true });
   private readonly tableSessionService = inject(TableSessionService);
   readonly tableCartService = inject(TableCartService);
+  private readonly webSocketService = inject(WebSocketService, { optional: true });
   private readonly toastCtrl = inject(ToastController);
   private readonly translocoService = inject(TranslocoService);
   private readonly destroy$ = new Subject<void>();
@@ -68,7 +99,19 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
 
   cocktails: Cocktail[] = [];
   filteredCocktails: Cocktail[] = [];
-  selectedCategory = 'TOUS';
+  searchQuery = '';
+  selectedCategory = 'ALL';
+  readonly categories = ['ALL', 'ALCOOLISE', 'SANS_ALCOOL', 'SHOT', 'APERITIF', 'DIGESTIF', 'SPECIAL'] as const;
+  selectedAllergens: string[] = [];
+  readonly availableAllergens = [
+    { key: 'LAIT', labelKey: 'COCKTAILS.ALLERGENS.LAIT', icon: 'nutrition-outline' },
+    { key: 'GLUTEN', labelKey: 'COCKTAILS.ALLERGENS.GLUTEN', icon: 'leaf-outline' },
+    { key: 'OEUF', labelKey: 'COCKTAILS.ALLERGENS.OEUF', icon: 'egg-outline' },
+    { key: 'FRUITS_A_COQUE', labelKey: 'COCKTAILS.ALLERGENS.FRUITS_A_COQUE', icon: 'nutrition-outline' },
+    { key: 'ARACHIDE', labelKey: 'COCKTAILS.ALLERGENS.ARACHIDE', icon: 'nutrition-outline' },
+    { key: 'SULFITES', labelKey: 'COCKTAILS.ALLERGENS.SULFITES', icon: 'wine-outline' },
+    { key: 'SOJA', labelKey: 'COCKTAILS.ALLERGENS.SOJA', icon: 'leaf-outline' },
+  ];
   catalogFacets: CocktailFacets | null = null;
   selectedFlavors: FlavorProfile[] = [];
   filterMocktail = false;
@@ -79,11 +122,45 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   isSubmitting = false;
 
   readonly showNicknamePrompt = signal<boolean>(false);
+  readonly showInviteModal = signal<boolean>(false);
+  readonly copiedLinkSuccess = signal<boolean>(false);
+  readonly selectedCocktailForDetails = signal<Cocktail | null>(null);
+  readonly isJoinPending = signal<boolean>(false);
+  readonly isJoinRejected = signal<boolean>(false);
+  readonly tableOwnerName = signal<string | null>(null);
+  readonly showTableOrdersModal = signal<boolean>(false);
+  joinRequestNameForm!: FormGroup;
   orderNotes = '';
 
   private previousSubmittedOrderId: number | null = null;
 
   constructor() {
+    addIcons({
+      funnelOutline,
+      closeCircleOutline,
+      nutritionOutline,
+      leafOutline,
+      eggOutline,
+      wineOutline,
+      restaurantOutline,
+      personOutline,
+      shareSocialOutline,
+      copyOutline,
+      checkmarkOutline,
+      qrCodeOutline,
+      closeOutline,
+      informationCircleOutline,
+      addOutline,
+      removeOutline,
+      receiptOutline,
+      timerOutline,
+      peopleOutline,
+      shieldCheckmarkOutline,
+      hourglassOutline,
+      checkmarkCircleOutline,
+      alertCircleOutline
+    });
+
     effect(() => {
       const cart = this.tableCartService.cart();
       if (
@@ -107,6 +184,10 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
       nickname: [this.tableCartService.getGuestName() || '', [Validators.required, Validators.minLength(2)]]
     });
 
+    this.joinRequestNameForm = this.fb.group({
+      applicantName: [this.tableCartService.getGuestName() || '', [Validators.required, Validators.minLength(2)]]
+    });
+
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       if (params['token']) {
         this.sessionToken = String(params['token']).trim();
@@ -126,6 +207,8 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
     if (this.happyHourService) {
       this.happyHourService.loadRules().pipe(takeUntil(this.destroy$)).subscribe();
     }
+
+    this.initWebSocketSubscription();
   }
 
   /**
@@ -188,24 +271,330 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
     this.showNicknamePrompt.set(true);
   }
 
+  /**
+   * Opens the invite friends modal dialog.
+   */
+  openInviteModal(): void {
+    this.copiedLinkSuccess.set(false);
+    this.showInviteModal.set(true);
+  }
+
+  /**
+   * Closes the invite friends modal dialog.
+   */
+  closeInviteModal(): void {
+    this.showInviteModal.set(false);
+  }
+
+  /**
+   * Opens the cocktail details modal displaying its ingredients (excluding quantities).
+   *
+   * @param cocktail The selected cocktail
+   */
+  openCocktailDetails(cocktail: Cocktail): void {
+    this.selectedCocktailForDetails.set(cocktail);
+  }
+
+  /**
+   * Closes the cocktail details modal.
+   */
+  closeCocktailDetails(): void {
+    this.selectedCocktailForDetails.set(null);
+  }
+
+  /**
+   * Handles click on modal backdrop to dismiss dialog.
+   *
+   * @param event Mouse click event
+   */
+  onDetailsBackdropClick(event: MouseEvent): void {
+    if ((event.target as HTMLElement).classList.contains('cocktail-details-dialog')) {
+      this.closeCocktailDetails();
+    }
+  }
+
+  /**
+   * Generates the direct URL allowing friends to join this table session.
+   *
+   * @returns Complete ordering URL with table and session token.
+   */
+  getInviteUrl(): string {
+    if (!this.tableNumero) return '';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://openbar.lan';
+    let url = `${origin}/client/commande?table=${this.tableNumero}`;
+    if (this.sessionToken) {
+      url += `&token=${encodeURIComponent(this.sessionToken)}`;
+    }
+    return url;
+  }
+
+  /**
+   * Returns the API endpoint URL for the on-screen table session QR code.
+   *
+   * @returns QR code image URL.
+   */
+  getInviteQrCodeUrl(): string {
+    if (!this.tableNumero) return '';
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    return this.tableSessionService.getSessionQrCodeUrl(this.tableNumero, this.sessionToken, 'PNG', 300, origin);
+  }
+
+  /**
+   * Closes the invite modal when user clicks on backdrop.
+   *
+   * @param event Mouse click event.
+   */
+  onInviteBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.closeInviteModal();
+    }
+  }
+
+  /**
+   * Copies the direct invite URL to the system clipboard and notifies user via toast.
+   */
+  async copyInviteLink(): Promise<void> {
+    const url = this.getInviteUrl();
+    if (!url) return;
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      }
+      this.copiedLinkSuccess.set(true);
+      const toast = await this.toastCtrl.create({
+        message: this.translocoService.translate('CLIENT.INVITE_LINK_COPIED_TOAST'),
+        duration: 3000,
+        color: 'success'
+      });
+      await toast.present();
+      setTimeout(() => this.copiedLinkSuccess.set(false), 4000);
+    } catch (e) {
+      console.warn('Failed to copy invite link', e);
+    }
+  }
+
+  /**
+   * Triggers native Web Share API if supported, or falls back to copying link.
+   */
+  async shareInviteNative(): Promise<void> {
+    const url = this.getInviteUrl();
+    if (!url) return;
+    if (typeof navigator !== 'undefined' && 'share' in navigator) {
+      try {
+        await navigator.share({
+          title: this.translocoService.translate('CLIENT.INVITE_SHARE_TITLE', { table: this.tableNumero }),
+          text: this.translocoService.translate('CLIENT.INVITE_SHARE_TEXT', { table: this.tableNumero }),
+          url
+        });
+      } catch (err: unknown) {
+        if (err && typeof err === 'object' && 'name' in err && (err as { name: string }).name !== 'AbortError') {
+          await this.copyInviteLink();
+        }
+      }
+    } else {
+      await this.copyInviteLink();
+    }
+  }
+
+  /**
+   * Checks whether the current browser environment supports the Web Share API.
+   */
+  canShareNative(): boolean {
+    return typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+  }
+
   checkSession(tableId: number, token: string | null): void {
     this.isSessionChecking = true;
+    const guestSessionId = this.tableCartService.getOrCreateGuestSessionId();
+    const guestName = this.tableCartService.getGuestName();
+
     this.tableSessionService
-      .validateSession(tableId, token)
+      .validateSession(tableId, token, guestSessionId, guestName)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
           this.isSessionChecking = false;
           this.isSessionValid = res.valid;
           this.sessionStatus = res.status ?? null;
+          this.tableOwnerName.set(res.ownerGuestName || null);
+          this.tableCartService.setOwnership(!!res.isOwner, res.ownerGuestName);
+
+          if (res.isOwner) {
+            this.tableSessionService
+              .getPendingJoinRequests(tableId, guestSessionId)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe({
+                next: (reqs) => this.tableCartService.setPendingJoinRequests(reqs),
+                error: (err) => console.warn('Failed to load pending join requests', err)
+              });
+          }
+
           if (res.sessionToken) {
+            const tokenChanged = this.sessionToken !== res.sessionToken;
             this.sessionToken = res.sessionToken;
+            if (tokenChanged && this.tableNumero) {
+              this.tableCartService.initCart(this.tableNumero, this.sessionToken).pipe(takeUntil(this.destroy$)).subscribe();
+            }
           }
         },
         error: () => {
           this.isSessionChecking = false;
         }
       });
+  }
+
+  /**
+   * Submits a request to the table host to join an occupied table.
+   */
+  submitJoinRequest(): void {
+    if (!this.tableNumero || this.joinRequestNameForm.invalid) return;
+    const applicantName = String(this.joinRequestNameForm.value.applicantName).trim();
+    if (!applicantName) return;
+
+    this.tableCartService.setGuestName(applicantName);
+    const guestSessionId = this.tableCartService.getOrCreateGuestSessionId();
+
+    this.isJoinPending.set(true);
+    this.isJoinRejected.set(false);
+
+    // Watch for host's live response via WebSocket
+    if (this.webSocketService) {
+      this.webSocketService
+        .watch(`/topic/tables/${this.tableNumero}/join-requests/${guestSessionId}`)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (msg) => {
+            try {
+              const res = JSON.parse(msg.body);
+              if (res.status === 'APPROVED' && res.sessionToken) {
+                this.sessionToken = res.sessionToken;
+                this.isSessionValid = true;
+                this.isJoinPending.set(false);
+                this.isJoinRejected.set(false);
+                this.initTableCart();
+                this.loadCocktails();
+                this.toastCtrl.create({
+                  message: this.translocoService.translate('CLIENT.JOIN_APPROVAL_ACCEPT_BTN'),
+                  duration: 3000,
+                  color: 'success'
+                }).then(t => t.present());
+              } else if (res.status === 'REJECTED') {
+                this.isJoinPending.set(false);
+                this.isJoinRejected.set(true);
+              }
+            } catch (e) {
+              console.warn('Error parsing join request response', e);
+            }
+          }
+        });
+    }
+
+    this.tableSessionService
+      .submitJoinRequest(this.tableNumero, guestSessionId, applicantName)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        error: (err) => {
+          console.warn('Failed to submit join request', err);
+          this.isJoinPending.set(false);
+        }
+      });
+  }
+
+  /**
+   * Resets the join request state so patron can try again.
+   */
+  retryJoinRequest(): void {
+    this.isJoinPending.set(false);
+    this.isJoinRejected.set(false);
+  }
+
+  /**
+   * Approves an applicant's join request to this table.
+   *
+   * @param request Join request to approve
+   */
+  acceptApplicant(request: TableJoinRequest): void {
+    if (!this.tableNumero || !request.id) return;
+    const ownerSessionId = this.tableCartService.getOrCreateGuestSessionId();
+    this.tableSessionService
+      .respondToJoinRequest(this.tableNumero, request.id, ownerSessionId, true)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          const current = this.tableCartService.pendingJoinRequests();
+          this.tableCartService.setPendingJoinRequests(current.filter(r => r.id !== request.id));
+        },
+        error: (err) => console.warn('Failed to accept join request', err)
+      });
+  }
+
+  /**
+   * Declines an applicant's join request.
+   *
+   * @param request Join request to decline
+   */
+  declineApplicant(request: TableJoinRequest): void {
+    if (!this.tableNumero || !request.id) return;
+    const ownerSessionId = this.tableCartService.getOrCreateGuestSessionId();
+    this.tableSessionService
+      .respondToJoinRequest(this.tableNumero, request.id, ownerSessionId, false)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          const current = this.tableCartService.pendingJoinRequests();
+          this.tableCartService.setPendingJoinRequests(current.filter(r => r.id !== request.id));
+        },
+        error: (err) => console.warn('Failed to decline join request', err)
+      });
+  }
+
+  /**
+   * Finalizes the 2-minute grouping grace period immediately.
+   */
+  finalizeGracePeriod(): void {
+    if (!this.tableNumero) return;
+    this.tableCartService
+      .finalizeGrace(this.tableNumero)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: async () => {
+          const toast = await this.toastCtrl.create({
+            message: this.translocoService.translate('CLIENT.SHARED_CART_SUBMIT_SUCCESS'),
+            duration: 3000,
+            color: 'success'
+          });
+          await toast.present();
+        },
+        error: (err) => console.warn('Failed to finalize grace period', err)
+      });
+  }
+
+  /**
+   * Opens the table orders and running bill tracking modal.
+   */
+  openTableOrdersModal(): void {
+    if (this.tableNumero) {
+      this.tableCartService.fetchTableOrdersSummary(this.tableNumero).subscribe();
+    }
+    this.showTableOrdersModal.set(true);
+  }
+
+  /**
+   * Closes the table orders modal.
+   */
+  closeTableOrdersModal(): void {
+    this.showTableOrdersModal.set(false);
+  }
+
+  /**
+   * Dismiss modal on backdrop click.
+   *
+   * @param event Mouse click event
+   */
+  onTableOrdersBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.closeTableOrdersModal();
+    }
   }
 
   refreshSession(): void {
@@ -221,6 +610,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
           this.sessionStatus = res.status ?? null;
           if (res.sessionToken) {
             this.sessionToken = res.sessionToken;
+            this.tableCartService.initCart(this.tableNumero!, this.sessionToken).pipe(takeUntil(this.destroy$)).subscribe();
           }
           const toast = await this.toastCtrl.create({
             message: this.translocoService.translate('CLIENT.SESSION_REFRESH_SUCCESS'),
@@ -290,30 +680,198 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
     this.applyCombinedFilters();
   }
 
+  /**
+   * Retrieves allergen keys present in a cocktail based strictly on its ingredients' declared allergens.
+   *
+   * @param cocktail Target cocktail model
+   * @returns List of matching allergen keys
+   */
+  getCocktailAllergens(cocktail: Cocktail): string[] {
+    if (!cocktail) return [];
+    const allergens = new Set<string>();
+
+    if (cocktail.ingredients) {
+      for (const item of cocktail.ingredients) {
+        if (item.allergens && Array.isArray(item.allergens)) {
+          for (const a of item.allergens) {
+            allergens.add(a);
+          }
+        }
+      }
+    }
+
+    if (cocktail.isGlutenFree) {
+      allergens.delete('GLUTEN');
+    }
+    if (cocktail.isVegan) {
+      allergens.delete('LAIT');
+      allergens.delete('OEUF');
+    }
+
+    return Array.from(allergens);
+  }
+
+  /**
+   * Toggles allergen exclusion filter state.
+   *
+   * @param allergenKey Allergen key to toggle
+   */
+  toggleAllergenFilter(allergenKey: string): void {
+    const idx = this.selectedAllergens.indexOf(allergenKey);
+    if (idx >= 0) {
+      this.selectedAllergens.splice(idx, 1);
+    } else {
+      this.selectedAllergens.push(allergenKey);
+    }
+    this.applyCombinedFilters();
+  }
+
+  /**
+   * Clears all active allergen exclusion filters.
+   */
+  clearAllergenFilters(): void {
+    this.selectedAllergens = [];
+    this.applyCombinedFilters();
+  }
+
+  /**
+   * Resolves category badge dot indicator color for Figma-style pill badges.
+   *
+   * @param category Category name
+   * @returns Color hex string
+   */
+  getCategoryDotColor(category: string): string {
+    switch (category) {
+      case 'ALCOOLISE': return 'var(--types-alcoholic)';
+      case 'SANS_ALCOOL': return 'var(--types-nonalcoholic)';
+      case 'SHOT': return 'var(--types-shot)';
+      case 'APERITIF': return 'var(--semantic-warning)';
+      case 'DIGESTIF': return 'var(--semantic-danger)';
+      case 'SPECIAL': return 'var(--types-cocktail)';
+      default: return 'var(--primary)';
+    }
+  }
+
+  /**
+   * Resolves dynamic background, border, and text styles with transparency levels for category badges.
+   *
+   * @param category Category name
+   * @param isActive Active state flag
+   * @returns Style object with CSS variables
+   */
+  getCategoryPillStyle(category: string, isActive = false): Record<string, string> {
+    const color = this.getCategoryDotColor(category);
+    if (isActive) {
+      return {
+        'background-color': color,
+        'border-color': color,
+        'color': 'var(--text-on-accent, var(--text-primary))',
+        'box-shadow': '0 2px 10px var(--shadow-color, rgba(0, 0, 0, 0.25))'
+      };
+    }
+    return {
+      'background-color': 'var(--background-surface-2)',
+      'border-color': 'var(--border-medium)',
+      'color': 'var(--text-primary)'
+    };
+  }
+
+  /**
+   * Subscribes to live WebSocket topics for real-time synchronization
+   * of cocktail availability and catalog modifications.
+   */
+  private initWebSocketSubscription(): void {
+    if (!this.webSocketService) return;
+
+    // 1. Live cocktail updates & availability changes
+    this.webSocketService.watch('/topic/cocktails')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (msg) => {
+          try {
+            const updatedCocktail: Cocktail = JSON.parse(msg.body);
+            if (updatedCocktail?.id) {
+              const idx = this.cocktails.findIndex(c => c.id === updatedCocktail.id);
+              if (updatedCocktail.disponible) {
+                if (idx !== -1) {
+                  this.cocktails[idx] = updatedCocktail;
+                  this.cocktails = [...this.cocktails];
+                } else {
+                  this.cocktails = [updatedCocktail, ...this.cocktails];
+                }
+              } else if (idx !== -1) {
+                // If it became unavailable, clients must NOT see it
+                this.cocktails = this.cocktails.filter(c => c.id !== updatedCocktail.id);
+              }
+              this.applyCombinedFilters();
+            }
+          } catch {
+            // Ignore malformed payload
+          }
+        },
+      });
+
+    // 2. Live cocktail deletions
+    this.webSocketService.watch('/topic/cocktails/supprime')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (msg) => {
+          try {
+            const payload = JSON.parse(msg.body);
+            if (payload?.id) {
+              this.cocktails = this.cocktails.filter(c => c.id !== payload.id);
+              this.applyCombinedFilters();
+            }
+          } catch {
+            // Ignore malformed payload
+          }
+        },
+      });
+  }
+
+  private matchesSearchQuery(c: Cocktail, query: string): boolean {
+    if (!query) return true;
+    return (
+      c.nom.toLowerCase().includes(query) ||
+      (c.description?.toLowerCase()?.includes(query) ?? false) ||
+      (c.ingredients?.some(i => i.ingredientNom?.toLowerCase()?.includes(query)) ?? false)
+    );
+  }
+
+  private matchesDietaryPreferences(c: Cocktail): boolean {
+    if (this.filterMocktail && !c.isMocktail && c.categorie !== 'SANS_ALCOOL') return false;
+    if (this.filterVegan && !c.isVegan) return false;
+    if (this.filterGlutenFree && !c.isGlutenFree) return false;
+    if (this.filterLowAbv && ((c.alcoholLevel ?? 0) <= 0 || (c.alcoholLevel ?? 0) > 10.0)) return false;
+    return true;
+  }
+
+  private matchesFlavors(c: Cocktail): boolean {
+    if (this.selectedFlavors.length === 0) return true;
+    return !!c.flavorProfiles && this.selectedFlavors.some(f => c.flavorProfiles!.includes(f));
+  }
+
+  private matchesAllergens(c: Cocktail): boolean {
+    if (this.selectedAllergens.length === 0) return true;
+    const cocktailAllergens = this.getCocktailAllergens(c);
+    return !this.selectedAllergens.some(a => cocktailAllergens.includes(a));
+  }
+
+  /**
+   * Applies combined filtering: search query, category, allergen exclusions,
+   * dietary preferences, and flavor profiles to cocktails list.
+   */
   applyCombinedFilters(): void {
-    let result = this.selectedCategory === 'TOUS'
-      ? [...this.cocktails]
-      : this.cocktails.filter((c: Cocktail) => c.categorie === this.selectedCategory);
+    const query = this.searchQuery?.trim().toLowerCase() || '';
 
-    if (this.filterMocktail) {
-      result = result.filter((c) => c.isMocktail || c.categorie === 'SANS_ALCOOL');
-    }
-    if (this.filterVegan) {
-      result = result.filter((c) => c.isVegan);
-    }
-    if (this.filterGlutenFree) {
-      result = result.filter((c) => c.isGlutenFree);
-    }
-    if (this.filterLowAbv) {
-      result = result.filter((c) => (c.alcoholLevel ?? 0) > 0 && (c.alcoholLevel ?? 0) <= 10.0);
-    }
-    if (this.selectedFlavors.length > 0) {
-      result = result.filter((c) =>
-        c.flavorProfiles && this.selectedFlavors.some((f) => c.flavorProfiles!.includes(f))
-      );
-    }
-
-    this.filteredCocktails = result;
+    this.filteredCocktails = this.cocktails.filter((c: Cocktail) => {
+      if (!c.disponible) return false;
+      if (!this.matchesSearchQuery(c, query)) return false;
+      if (this.selectedCategory !== 'ALL' && c.categorie !== this.selectedCategory) return false;
+      if (!this.matchesAllergens(c)) return false;
+      if (!this.matchesDietaryPreferences(c)) return false;
+      return this.matchesFlavors(c);
+    });
   }
 
   addToCart(cocktail: Cocktail): void {

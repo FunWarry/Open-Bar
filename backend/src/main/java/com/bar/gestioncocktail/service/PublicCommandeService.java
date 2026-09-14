@@ -200,4 +200,46 @@ public class PublicCommandeService {
 
         return PublicCommandeResponseDTO.from(commande, tempsEstime);
     }
+
+    /**
+     * Appends additional ordered cocktail items to an existing pending order during grouping grace windows.
+     *
+     * @param commandeId Existing order identifier
+     * @param itemsDto Additional items to append
+     * @return Updated order response DTO
+     */
+    public PublicCommandeResponseDTO ajouterArticlesACommande(Long commandeId, List<PublicCommandeItemRequestDTO> itemsDto) {
+        Commande commande = commandeRepository.findById(commandeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + commandeId));
+
+        if (commande.getStatut() != CommandeStatut.EN_ATTENTE) {
+            throw new com.bar.gestioncocktail.exception.BusinessException("Cannot append items: Order is already " + commande.getStatut());
+        }
+
+        List<CommandeItem> currentItems = commande.getItems();
+        if (currentItems == null) {
+            currentItems = new ArrayList<>();
+        }
+
+        BigDecimal additionalTotal = BigDecimal.ZERO;
+        for (PublicCommandeItemRequestDTO itemDto : itemsDto) {
+            CommandeItem item = construireCommandeItem(itemDto, commande);
+            currentItems.add(item);
+            BigDecimal sousTotal = item.getPrixUnitaire().multiply(BigDecimal.valueOf(item.getQuantite()));
+            additionalTotal = additionalTotal.add(sousTotal);
+        }
+
+        commande.setItems(currentItems);
+        commande.setTotal(commande.getTotal() != null ? commande.getTotal().add(additionalTotal) : additionalTotal);
+
+        Commande savedCommande = commandeRepository.save(commande);
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new com.bar.gestioncocktail.event.OrderUpdatedEvent(savedCommande));
+        }
+
+        long pendingCount = commandeRepository.countByStatut(CommandeStatut.EN_ATTENTE);
+        int tempsEstime = (int) (5 + (pendingCount * 3));
+
+        return PublicCommandeResponseDTO.from(savedCommande, tempsEstime);
+    }
 }

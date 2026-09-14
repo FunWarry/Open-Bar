@@ -67,7 +67,8 @@ describe('AppComponent', () => {
         getTranslocoTestingModule(),
         RouterTestingModule.withRoutes([
           { path: 'auth/login', component: DummyComponent },
-          { path: 'app-home', component: DummyComponent }
+          { path: 'app-home', component: DummyComponent },
+          { path: 'client/commande', component: DummyComponent }
         ])
       ],
       providers: [
@@ -133,6 +134,19 @@ describe('AppComponent', () => {
     app.showNavbar$.subscribe(val => showNav = val);
 
     router.navigate(['/auth/login']);
+    tick();
+
+    expect(showNav).toBeFalse();
+  }));
+
+  it('showNavbar$ is false on client ordering routes (/client/commande)', fakeAsync(() => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+
+    let showNav = true;
+    app.showNavbar$.subscribe(val => showNav = val);
+
+    router.navigate(['/client/commande']);
     tick();
 
     expect(showNav).toBeFalse();

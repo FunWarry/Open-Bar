@@ -4,7 +4,7 @@ import { of, Subject } from 'rxjs';
 import { IMessage } from '@stomp/stompjs';
 import { TableCartService } from '../../../app/core/services/table-cart.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
-import { TableCart, TableCartItem } from '../../../app/core/models/table-cart.model';
+import { TableCart, TableCartItem, TableOrdersSummary } from '../../../app/core/models/table-cart.model';
 import { environment } from '../../../environments/environment';
 
 describe('TableCartService', () => {
@@ -46,6 +46,16 @@ describe('TableCartService', () => {
     totalItems: 3,
     totalPrice: 30.0,
     updatedAt: '2026-09-05T19:00:00'
+  };
+
+  const sampleOrdersSummary: TableOrdersSummary = {
+    tableId: 5,
+    tableNumero: 5,
+    orders: [],
+    cumulativeTotal: 0,
+    totalDrinksOrdered: 0,
+    hasUnpaidOrders: false,
+    billRequested: false
   };
 
   beforeEach(() => {
@@ -114,6 +124,7 @@ describe('TableCartService', () => {
     const req = httpMock.expectOne(`${baseUrl}/5/cart`);
     expect(req.request.method).toBe('GET');
     req.flush(sampleCart);
+    httpMock.expectOne(`${baseUrl}/5/cart/orders`).flush(sampleOrdersSummary);
 
     // Verify computed signals
     expect(service.totalItems()).toBe(3);
@@ -162,59 +173,80 @@ describe('TableCartService', () => {
       prixUnitaire: 9.0,
       totalLigne: 9.0
     };
+    const updatedCart: TableCart = {
+      ...sampleCart,
+      items: [...sampleCart.items, newItem],
+      totalItems: sampleCart.totalItems + 1,
+      totalPrice: (sampleCart.totalPrice || 0) + 9.0
+    };
 
     service.addItem(5, itemReq).subscribe((res) => {
-      expect(res).toEqual(newItem);
+      expect(res).toEqual(updatedCart);
       expect(service.cart()?.items).toContain(newItem);
     });
 
     const req = httpMock.expectOne(`${baseUrl}/5/cart/items`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(itemReq);
-    req.flush(newItem);
+    req.flush(updatedCart);
   });
 
   it('updateItem should send PUT request and update cart signal', () => {
     (service as any).cart.set(sampleCart);
     const updateReq = { quantite: 3, notes: 'Extra lime' };
-    const updatedItem: TableCartItem = {
-      ...sampleCart.items[0],
-      quantite: 3,
-      totalLigne: 30.0,
-      notes: 'Extra lime'
+    const updatedCart: TableCart = {
+      ...sampleCart,
+      items: sampleCart.items.map(it => it.id === 1 ? { ...it, quantite: 3, totalLigne: 30.0, notes: 'Extra lime' } : it),
+      totalItems: 4,
+      totalPrice: 41.0
     };
 
     service.updateItem(5, 1, updateReq).subscribe((res) => {
-      expect(res).toEqual(updatedItem);
+      expect(res).toEqual(updatedCart);
       expect(service.cart()?.items[0].quantite).toBe(3);
     });
 
     const req = httpMock.expectOne(`${baseUrl}/5/cart/items/1`);
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual(updateReq);
-    req.flush(updatedItem);
+    req.flush(updatedCart);
   });
 
   it('removeItem should send DELETE request with guestSessionId param', () => {
     (service as any).cart.set(sampleCart);
-    service.removeItem(5, 1).subscribe(() => {
+    const updatedCart: TableCart = {
+      ...sampleCart,
+      items: sampleCart.items.filter(it => it.id !== 1),
+      totalItems: 2,
+      totalPrice: 20.0
+    };
+    service.removeItem(5, 1).subscribe((res) => {
+      expect(res).toEqual(updatedCart);
       expect(service.cart()?.items.find((i: TableCartItem) => i.id === 1)).toBeUndefined();
     });
 
     const req = httpMock.expectOne((r) => r.url === `${baseUrl}/5/cart/items/1` && r.params.get('guestSessionId') === 'guest-me');
     expect(req.request.method).toBe('DELETE');
-    req.flush(null);
+    req.flush(updatedCart);
   });
 
   it('clearCart should send DELETE request to clear table cart', () => {
     (service as any).cart.set(sampleCart);
-    service.clearCart(5).subscribe(() => {
+    const emptyCart: TableCart = {
+      tableId: 5,
+      status: 'OPEN',
+      items: [],
+      totalItems: 0,
+      totalPrice: 0
+    };
+    service.clearCart(5).subscribe((res) => {
+      expect(res).toEqual(emptyCart);
       expect(service.cart()?.items.length).toBe(0);
     });
 
     const req = httpMock.expectOne(`${baseUrl}/5/cart`);
     expect(req.request.method).toBe('DELETE');
-    req.flush(null);
+    req.flush(emptyCart);
   });
 
 
@@ -267,6 +299,7 @@ describe('TableCartService', () => {
   it('initCart should handle invalid JSON payload from STOMP gracefully', () => {
     service.initCart(5).subscribe();
     httpMock.expectOne(`${baseUrl}/5/cart`).flush(sampleCart);
+    httpMock.expectOne(`${baseUrl}/5/cart/orders`).flush(sampleOrdersSummary);
 
     // Send malformed message
     stompMessages$.next({ body: 'invalid-json' } as IMessage);
@@ -284,6 +317,7 @@ describe('TableCartService', () => {
     expect(service.loading()).toBeTrue();
     const req = httpMock.expectOne(`${baseUrl}/5/cart`);
     req.flush('Error', { status: 404, statusText: 'Not Found' });
+    httpMock.expectOne(`${baseUrl}/5/cart/orders`).flush(sampleOrdersSummary);
   });
 
   it('addItem should initialize cart if current cart is null', () => {
@@ -298,6 +332,13 @@ describe('TableCartService', () => {
       prixUnitaire: 10.0,
       totalLigne: 10.0
     };
+    const updatedCart: TableCart = {
+      tableId: 5,
+      status: 'OPEN',
+      items: [newItem],
+      totalItems: 1,
+      totalPrice: 10.0
+    };
 
     service.addItem(5, {
       guestSessionId: 'guest-me',
@@ -305,31 +346,32 @@ describe('TableCartService', () => {
       cocktailId: 12,
       quantite: 1
     }).subscribe((res) => {
-      expect(res).toEqual(newItem);
+      expect(res).toEqual(updatedCart);
       expect(service.cart()?.items.length).toBe(1);
       expect(service.totalPrice()).toBe(10.0);
     });
 
     const req = httpMock.expectOne(`${baseUrl}/5/cart/items`);
-    req.flush(newItem);
+    req.flush(updatedCart);
   });
 
   it('updateItem and removeItem should handle null cart safely', () => {
     (service as any).cart.set(null);
+    const mockCart: TableCart = { tableId: 5, status: 'OPEN', items: [], totalItems: 0, totalPrice: 0 };
     service.updateItem(5, 99, { guestSessionId: 'guest-me', quantite: 2 }).subscribe();
     const reqUpdate = httpMock.expectOne(`${baseUrl}/5/cart/items/99`);
-    reqUpdate.flush({ id: 99, quantite: 2 });
-    expect(service.cart()).toBeNull();
+    reqUpdate.flush(mockCart);
+    expect(service.cart()).toEqual(mockCart);
 
     service.removeItem(5, 99).subscribe();
     const reqRemove = httpMock.expectOne((r) => r.url === `${baseUrl}/5/cart/items/99`);
-    reqRemove.flush(null);
-    expect(service.cart()).toBeNull();
+    reqRemove.flush(mockCart);
+    expect(service.cart()).toEqual(mockCart);
 
     service.clearCart(5).subscribe();
     const reqClear = httpMock.expectOne(`${baseUrl}/5/cart`);
-    reqClear.flush(null);
-    expect(service.cart()).toBeNull();
+    reqClear.flush(mockCart);
+    expect(service.cart()).toEqual(mockCart);
   });
 
   it('guestGroups should sort current guest first, then other guests alphabetically', () => {
@@ -384,6 +426,7 @@ describe('TableCartService', () => {
   it('reset should clear state and tear down subscriptions', () => {
     service.initCart(5).subscribe();
     httpMock.expectOne(`${baseUrl}/5/cart`).flush(sampleCart);
+    httpMock.expectOne(`${baseUrl}/5/cart/orders`).flush(sampleOrdersSummary);
 
     expect(service.cart()).not.toBeNull();
     service.reset();

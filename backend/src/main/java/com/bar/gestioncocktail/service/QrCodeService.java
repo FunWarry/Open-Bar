@@ -142,6 +142,18 @@ public class QrCodeService {
      * @return Complete customer ordering URL (e.g. https://openbar.lan/client/commande?table=5)
      */
     public String buildTableOrderUrl(String clientBaseUrl, Integer tableNumero) {
+        return buildTableOrderUrl(clientBaseUrl, tableNumero, null);
+    }
+
+    /**
+     * Builds a customer digital ordering URL for a specific table including an ephemeral session token.
+     *
+     * @param clientBaseUrl Base establishment URL (e.g. https://openbar.lan)
+     * @param tableNumero   Table number
+     * @param sessionToken  Ephemeral session token (optional)
+     * @return Complete customer ordering URL with table and session token
+     */
+    public String buildTableOrderUrl(String clientBaseUrl, Integer tableNumero, String sessionToken) {
         String base = (clientBaseUrl != null && !clientBaseUrl.isBlank())
             ? clientBaseUrl.trim()
             : "https://openbar.lan";
@@ -151,7 +163,11 @@ public class QrCodeService {
         }
 
         int num = (tableNumero != null && tableNumero > 0) ? tableNumero : 1;
-        return base + "/client/commande?table=" + num;
+        String url = base + "/client/commande?table=" + num;
+        if (sessionToken != null && !sessionToken.isBlank()) {
+            url += "&token=" + sessionToken.trim();
+        }
+        return url;
     }
 
     private BitMatrix encodeBitMatrix(String content, int width, int height) throws WriterException {

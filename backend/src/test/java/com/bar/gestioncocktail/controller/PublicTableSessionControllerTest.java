@@ -36,7 +36,7 @@ class PublicTableSessionControllerTest {
                 true, "Session valid"
         );
 
-        when(tableSessionService.validateSession(5L, "tok-123")).thenReturn(expected);
+        when(tableSessionService.validateSession(5L, "tok-123", null, null)).thenReturn(expected);
 
         ResponseEntity<TableSessionResponseDTO> response = controller.getSession(5L, "tok-123");
 
@@ -82,5 +82,33 @@ class PublicTableSessionControllerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().sessionToken()).isEqualTo("tok-fresh");
         verify(tableSessionService).refreshSession(5L);
+    }
+
+    @Test
+    @DisplayName("getSessionQrCode: returns 200 with PNG bytes and image/png content type")
+    void getSessionQrCode_png_returnsImageBytes() {
+        byte[] qrBytes = new byte[]{10, 20, 30};
+        when(tableSessionService.generateSessionQrCode(5L, "tok-123", "PNG", 300, "http://localhost:4200"))
+                .thenReturn(qrBytes);
+
+        ResponseEntity<byte[]> response = controller.getSessionQrCode(5L, "tok-123", "PNG", 300, "http://localhost:4200");
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getHeaders().getContentType()).hasToString("image/png");
+        assertThat(response.getBody()).isEqualTo(qrBytes);
+    }
+
+    @Test
+    @DisplayName("getSessionQrCode: returns 200 with SVG bytes and image/svg+xml content type")
+    void getSessionQrCode_svg_returnsSvgContentType() {
+        byte[] svgBytes = "<svg></svg>".getBytes();
+        when(tableSessionService.generateSessionQrCode(5L, null, "SVG", 250, null))
+                .thenReturn(svgBytes);
+
+        ResponseEntity<byte[]> response = controller.getSessionQrCode(5L, null, "SVG", 250, null);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getHeaders().getContentType()).hasToString("image/svg+xml");
+        assertThat(response.getBody()).isEqualTo(svgBytes);
     }
 }
