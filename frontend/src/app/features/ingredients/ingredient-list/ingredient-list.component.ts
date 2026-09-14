@@ -34,7 +34,6 @@ import { SearchableSelectComponent, SearchableOption } from '../../../core/compo
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { CsvExportService, CsvColumn } from '../../../core/services/csv-export.service';
 import { StockWasteService } from '../../../core/services/stock-waste.service';
-import { StockMovement } from '../../../core/models/stock-waste.model';
 /**
  * Sorting options for inventory ingredient list.
  */

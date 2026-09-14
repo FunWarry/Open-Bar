@@ -153,7 +153,7 @@ describe('StockWasteService', () => {
   describe('getWasteMovementCsvColumns', () => {
     it('should return 9 columns with appropriate keys and headers', () => {
       const columns = service.getWasteMovementCsvColumns();
-      expect(columns.length).toBe(9);
+      expect(columns).toHaveSize(9);
       expect(columns.map(c => c.key)).toEqual([
         'id',
         'recordedAt',

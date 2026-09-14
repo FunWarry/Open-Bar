@@ -31,9 +31,9 @@ import { SearchableSelectComponent, SearchableOption } from '../../../core/compo
 import { Ingredient } from '../../../core/models/ingredient.model';
 import { IngredientService } from '../../../core/services/ingredient.service';
 import { StockWasteService } from '../../../core/services/stock-waste.service';
-import { StockWasteReason, StockMovement } from '../../../core/models/stock-waste.model';
+import { StockWasteReason } from '../../../core/models/stock-waste.model';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
-import { CsvExportService, CsvColumn } from '../../../core/services/csv-export.service';
+import { CsvExportService } from '../../../core/services/csv-export.service';
 
 /**
  * Metadata definition for stock waste reasons with visual icons and theme badges.
