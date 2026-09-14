@@ -80,6 +80,18 @@
   --semantic-danger: #e5604f;
   --semantic-info: #2ba8e8;
 
+  /* Thermal Paper Simulation Tokens (Receipts & Tickets) */
+  --thermal-paper-bg: #ffffff;
+  --thermal-paper-text: #111111;
+  --thermal-paper-text-dark: #000000;
+  --thermal-paper-text-muted: #666666;
+  --thermal-paper-text-subtle: #444444;
+  --thermal-paper-text-light: #777777;
+  --thermal-paper-border: #333333;
+  --thermal-paper-divider: #222222;
+  --thermal-paper-warning: #d97706;
+  --thermal-paper-success: #059669;
+
   /* OpenBar DS — Types boissons/plats */
   --types-snacks: #0051ff;
   --types-food: #b300ff;
@@ -433,5 +445,18 @@ body.light-theme,
   --ion-toolbar-background: var(--background-surface-1);
   --ion-card-background: var(--background-surface-1);
   --ion-border-color: var(--border-medium);
+}
+
+/* ── Screen-reader only utility (WCAG) ────────────────────────────────────── */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
