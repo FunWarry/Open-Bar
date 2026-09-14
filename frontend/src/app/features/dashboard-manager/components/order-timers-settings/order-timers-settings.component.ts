@@ -335,6 +335,7 @@ export class OrderTimersSettingsComponent implements OnInit, OnDestroy {
       currencyCode: formValue.currencyCode,
       currencySymbol: formValue.currencySymbol,
       currencyPosition: formValue.currencyPosition,
+      cashDenominationsJson: this.currentSettings.cashDenominationsJson,
       tempsAlerteWarningMinutes: Number(formValue.tempsAlerteWarningMinutes),
       tempsAlerteCommandeMinutes: Number(formValue.tempsAlerteCommandeMinutes),
       tempsAlerteCritiqueCommandeMinutes: Number(formValue.tempsAlerteCritiqueCommandeMinutes),

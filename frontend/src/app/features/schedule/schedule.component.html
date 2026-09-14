@@ -15,6 +15,14 @@
         <div class="tools-btn-group">
           <app-action-button
             variant="secondary"
+            icon="download-outline"
+            (btnClick)="exportScheduleCsv()"
+            testId="btn-export-schedule-csv"
+            data-testid="btn-export-schedule-csv">
+            {{ 'SHIFTS.SCHEDULE.EXPORT_CSV' | transloco }}
+          </app-action-button>
+          <app-action-button
+            variant="secondary"
             icon="time-outline"
             (btnClick)="openScheduleHistoryModal()"
             testId="btn-schedule-history"

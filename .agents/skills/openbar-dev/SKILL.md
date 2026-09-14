@@ -22,7 +22,8 @@ Génère du code pour le projet OpenBar en respectant les conventions existantes
 - **INTERDICTION d'utiliser `@SuppressWarnings`** : toujours corriger les vrais problèmes sous-jacents (DTOs, types, configuration).
 - **Mise à jour Onboarding & Configuration OBLIGATOIRE** : Pour chaque mise à jour ou ajout de feature, si nécessaire, mettre systématiquement à jour le processus d'onboarding (`/setup`, `OnboardingComponent`, `SetupComponent`, setup wizard) et les écrans de configuration (`AppSettingsPageComponent`, establishment settings, seeders) pour gérer et configurer la nouvelle feature.
 - **Seeding Données de Test & Démonstration Plateforme OBLIGATOIRE** : Systématiquement ajouter/mettre à jour les jeux de données de démonstration (`data/demo_dataset.json`, `SampleDataSeederService.java`, seeders) pour toute nouvelle entité ou feature, afin de permettre le test et la validation immédiate sur la plateforme en mode dev/test avec des données réalistes.
-- **Réutilisabilité & Factorisation des Composants OBLIGATOIRE** : Toujours inspecter `app/core/components/ui/` avant de coder une nouvelle UI pour vérifier si un composant partagé existe déjà (`app-search-bar`, `app-empty-state`, `app-searchable-select`, `app-toggle-switch`, `app-checkbox-field`). Si un élément d'interface ou un pattern récurrent (barre de recherche, filtres, badges, alertes, modals) se répète sur 2 vues ou plus, évaluer systématiquement l'intérêt de le factoriser dans `core/components/ui/` et migrer les usages existants pour garantir une uniformité totale du design et du code.
+- **ZÉRO ERREUR / WARNING DANS LA FENÊTRE PROBLEMS DE L'IDE (OBLIGATOIRE AVANT PUSH)** : Ne JAMAIS committer ou pousser avec des erreurs ou warnings non résolus dans la fenêtre "Problems" de l'IDE ou signalés par `@[current_problems]`. L'agent doit impérativement exécuter `npx tsc --noEmit` et `mvn test-compile` pour garantir 0 erreur et 0 avertissement.
+- **Architecture Modulaire Plug & Play OBLIGATOIRE pour chaque nouvelle feature** : Toute nouvelle fonctionnalité métier DOIT être conçue comme un module/plugin activable et désactivable (`EstablishmentModule` backend, `FeatureFlagService` / `ModuleGuard` frontend, configuration dans `/setup` et `AppSettingsPageComponent` onglet "Capacités & Modules"). Si le module est désactivé, ses interfaces sont masquées et ses routes/endpoints sont protégés.
 - Backend : JavaDoc sur chaque service, controller, DTO (record), security, exception + annotations OpenAPI (`@Tag`, `@Operation`, `@ApiResponse`).
 - Frontend : TSDoc sur chaque service Angular, guard, interceptor et store NgRx.
 
@@ -341,10 +342,14 @@ Topics existants : `/topic/commandes`, `/topic/commandes/{id}`, `/topic/tables`,
 - Localisation : `frontend/e2e/<domaine>/<feature>.spec.ts`
 - Exécution : `npm run test:e2e`
 
+> 💡 **Génération de Tests & Seeding :** Déclencher le skill `openbar-test-gen` pour générer automatiquement la pyramide de tests requise et le jeu de démo associé.
+
 ---
 
 ## Checklist avant de livrer le code
 
+- [ ] **Validation Pré-Push (`openbar-pre-push`) validée à 100%** (`node scripts/pre-push-check.js`)
+- [ ] **Zéro problème dans la fenêtre Problems de l'IDE** (`@[current_problems]` 100% vide, 0 warning, 0 error)
 - [ ] Modèle JPA avec `@PrePersist`/`@PreUpdate`
 - [ ] Table dans `schema.sql`
 - [ ] Repository extends `JpaRepository`
@@ -362,4 +367,5 @@ Topics existants : `/topic/commandes`, `/topic/commandes/{id}`, `/topic/tables`,
 - [ ] **Tests d'intégration backend (Testcontainers)** si nouvelle logique d'API ou flux complexe
 - [ ] **Tests E2E Playwright** pour toute nouvelle vue ou flow utilisateur
 - [ ] **Données de démo et test plateforme ajoutées/mises à jour** (`demo_dataset.json`, `SampleDataSeederService.java`)
+- [ ] **Modularité Plug & Play respectée** : activation/désactivation dans `/setup` et `AppSettingsPageComponent`
 - [ ] Lien navbar si pertinent

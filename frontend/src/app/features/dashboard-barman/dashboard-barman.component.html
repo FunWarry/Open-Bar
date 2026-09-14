@@ -137,6 +137,40 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  @if (activeCriticalStockAlert) {
+    <div class="critical-stock-banner" data-testid="critical-stock-banner">
+      <div class="banner-content">
+        <ion-icon name="warning-outline" class="banner-warning-icon"></ion-icon>
+        <span class="banner-text">
+          {{ 'BARMAN_DASHBOARD.CRITICAL_STOCK_ALERT_BANNER' | transloco: { name: activeCriticalStockAlert.nom } }}
+        </span>
+      </div>
+      <div class="banner-actions">
+        <ion-button
+          size="small"
+          color="warning"
+          fill="solid"
+          (click)="openCriticalStockImpactModal()"
+          (keyup.enter)="openCriticalStockImpactModal()"
+          data-testid="critical-stock-verify-btn"
+        >
+          <ion-icon slot="start" name="eye-outline"></ion-icon>
+          {{ 'BARMAN_DASHBOARD.VERIFY_STOCK_ALERT' | transloco }}
+        </ion-button>
+        <ion-button
+          size="small"
+          color="medium"
+          fill="clear"
+          (click)="dismissCriticalStockAlert()"
+          (keyup.enter)="dismissCriticalStockAlert()"
+          data-testid="critical-stock-dismiss-btn"
+        >
+          {{ 'BARMAN_DASHBOARD.DISMISS_STOCK_ALERT' | transloco }}
+        </ion-button>
+      </div>
+    </div>
+  }
+
   @if (activeViewMode === 'tickets') {
     <ion-grid class="kanban-grid" data-testid="kanban-grid-tickets">
       <ion-row class="kanban-row">

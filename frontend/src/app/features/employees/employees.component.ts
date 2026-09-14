@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import {
   IonCard,
   IonCardHeader,
@@ -25,8 +25,10 @@ import { UserService } from '../../core/services/user.service';
 import { ShiftService } from '../../core/services/shift.service';
 import { EmployeeShiftModalComponent } from './employee-shift-modal/employee-shift-modal.component';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
+import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
+import { CsvExportService, CsvColumn } from '../../core/services/csv-export.service';
 
-interface EmployeeSummary {
+export interface EmployeeSummary {
   user: User;
   shiftsCount: number;
   totalHours: number;
@@ -46,6 +48,7 @@ interface EmployeeSummary {
     RouterModule,
     TranslocoModule,
     SearchBarComponent,
+    ActionButtonComponent,
     IonCard,
     IonCardHeader,
     IonCardTitle,
@@ -65,6 +68,15 @@ export class EmployeesComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly shiftService = inject(ShiftService);
   private readonly modalCtrl = inject(ModalController);
+  private readonly router = inject(Router);
+  private readonly csvExportService = inject(CsvExportService);
+
+  /**
+   * Navigates to the shift presets management page.
+   */
+  goToShiftPresets(): void {
+    this.router.navigate(['/manager/shift-presets']);
+  }
 
   loading = true;
   users: User[] = [];
@@ -205,6 +217,43 @@ export class EmployeesComponent implements OnInit {
       case 'ADMIN': return 'tertiary';
       default: return 'primary';
     }
+  }
+
+  /**
+   * Exports employee summaries and worked hours to CSV.
+   */
+  exportEmployeeHoursCsv(): void {
+    const list = this.filteredSummaries;
+    if (!list || list.length === 0) {
+      return;
+    }
+
+    const columns: CsvColumn<EmployeeSummary>[] = [
+      { key: 'user', header: 'ID', formatter: (_, item) => item.user.id },
+      {
+        key: 'user',
+        header: 'Nom_Complet',
+        formatter: (_, item) => {
+          const fullName = `${item.user.nom || ''} ${item.user.prenom || ''}`.trim();
+          return fullName || item.user.username;
+        }
+      },
+      { key: 'user', header: 'Identifiant', formatter: (_, item) => item.user.username },
+      { key: 'user', header: 'Email', formatter: (_, item) => item.user.email },
+      {
+        key: 'user',
+        header: 'Roles',
+        formatter: (_, item) => (item.user.roles || []).join(', ')
+      },
+      { key: 'shiftsCount', header: 'Nombre_Shifts' },
+      {
+        key: 'totalHours',
+        header: 'Heures_Travaillees',
+        formatter: (val) => (val != null ? Number(val).toFixed(2) : '0.00')
+      }
+    ];
+
+    this.csvExportService.exportTable(list, columns, 'heures_employes');
   }
 
   trackById(_index: number, item: EmployeeSummary): number {

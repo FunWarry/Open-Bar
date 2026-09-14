@@ -5,7 +5,7 @@
   z-index: 1;
 
   &.dropdown-is-open {
-    z-index: 50 !important;
+    z-index: 100 !important;
   }
 }
 
@@ -17,7 +17,7 @@
   width: 100%;
 
   &.is-open {
-    z-index: 50;
+    z-index: 100;
   }
 }
 
@@ -198,7 +198,7 @@
   top: calc(100% + 6px);
   left: 0;
   right: 0;
-  z-index: 50;
+  z-index: 1000;
   background: var(--background-surface-1);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);

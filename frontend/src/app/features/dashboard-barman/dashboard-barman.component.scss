@@ -24,6 +24,50 @@ ion-header {
   height: 100%;
 }
 
+.critical-stock-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--stock-critical-15);
+  border: 1px solid var(--semantic-danger);
+  border-left: 4px solid var(--semantic-danger);
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin: 12px 16px 4px 16px;
+
+  .banner-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .banner-warning-icon {
+      font-size: 1.4rem;
+      color: var(--semantic-danger);
+      flex-shrink: 0;
+    }
+
+    .banner-text {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
+
+  .banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    ion-button {
+      --border-radius: 8px;
+      margin: 0;
+      font-weight: 600;
+    }
+  }
+}
+
 .barman-toolbar {
   --background: var(--background-surface-1);
   --color: var(--text-primary);

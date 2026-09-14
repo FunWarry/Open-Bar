@@ -29,6 +29,7 @@
 | Canvas | Konva.js | — | Interactive 2D floor plan |
 | PDF | OpenPDF | 2.0.3 | Legal invoices, receipts, and table stand sheets |
 | QR Codes | ZXing | 3.5.4 | High-contrast QR matrix generation (PNG, SVG, Wi-Fi standard schema) |
+| CSV Exports | RFC 4180 + BOM UTF-8 | — | Backend `CsvUtils` (formula injection defense) + frontend `CsvExportService` |
 | Backend tests | JUnit 5 + Mockito + Testcontainers | 1.21.4 | Unit + Spring Boot integration tests with isolated PostgreSQL |
 | Frontend tests | Karma + Jasmine | — | Headless browser unit tests |
 | E2E tests | Playwright | 1.50+ | End-to-end browser tests (Chromium headless) |

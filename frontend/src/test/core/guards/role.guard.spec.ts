@@ -1,5 +1,5 @@
 import {TestBed} from '@angular/core/testing';
-import {Router} from '@angular/router';
+import {Router, UrlTree} from '@angular/router';
 import {provideMockStore, MockStore} from '@ngrx/store/testing';
 import {ActivatedRouteSnapshot} from '@angular/router';
 import {RoleGuard} from '../../../app/core/guards/role.guard';
@@ -15,7 +15,8 @@ describe('RoleGuard', () => {
   let router: jasmine.SpyObj<Router>;
 
   beforeEach(() => {
-    router = jasmine.createSpyObj('Router', ['navigate']);
+    router = jasmine.createSpyObj('Router', ['navigate', 'createUrlTree']);
+    router.createUrlTree.and.callFake((commands: unknown[]) => ({commands} as unknown as UrlTree));
     TestBed.configureTestingModule({
       providers: [
         RoleGuard,
@@ -29,11 +30,11 @@ describe('RoleGuard', () => {
 
   afterEach(() => store.resetSelectors());
 
-  it('redirects and returns false when data.roles is absent', (done) => {
+  it('redirects to /404 when data.roles is absent', (done) => {
     store.overrideSelector(selectCurrentUser, {id: 1, email: '', username: '', roles: ['MANAGER'], enabled: true, createdAt: '', updatedAt: ''});
     guard.canActivate(makeRoute()).subscribe(result => {
-      expect(result).toBeFalse();
-      expect(router.navigate).toHaveBeenCalledWith(['/']);
+      expect(result).not.toBeTrue();
+      expect(router.createUrlTree).toHaveBeenCalledWith(['/404']);
       done();
     });
   });
@@ -46,20 +47,20 @@ describe('RoleGuard', () => {
     });
   });
 
-  it('redirects when user does not have the required role', (done) => {
+  it('redirects to /404 when user does not have the required role', (done) => {
     store.overrideSelector(selectCurrentUser, {id: 1, email: '', username: '', roles: ['SERVEUR'], enabled: true, createdAt: '', updatedAt: ''});
     guard.canActivate(makeRoute(['ADMIN'])).subscribe(result => {
-      expect(result).toBeFalse();
-      expect(router.navigate).toHaveBeenCalledWith(['/']);
+      expect(result).not.toBeTrue();
+      expect(router.createUrlTree).toHaveBeenCalledWith(['/404']);
       done();
     });
   });
 
-  it('redirects when user is null', (done) => {
+  it('redirects to /404 when user is null', (done) => {
     store.overrideSelector(selectCurrentUser, null);
     guard.canActivate(makeRoute(['MANAGER'])).subscribe(result => {
-      expect(result).toBeFalse();
-      expect(router.navigate).toHaveBeenCalledWith(['/']);
+      expect(result).not.toBeTrue();
+      expect(router.createUrlTree).toHaveBeenCalledWith(['/404']);
       done();
     });
   });

@@ -146,6 +146,10 @@ export class IngredientFormComponent implements OnInit {
     if (id) {
       this.isEditMode = true;
       this.ingredientId = +id;
+      if (Number.isNaN(this.ingredientId)) {
+        this.router.navigate(['/404']);
+        return;
+      }
       this.ingredientService.getById(this.ingredientId).subscribe({
         next: (ingredient) => {
           this.ingredientForm.patchValue({
@@ -162,13 +166,8 @@ export class IngredientFormComponent implements OnInit {
             this.ingredientForm.disable();
           }
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('COMMON.ERROR'),
-            duration: 3000,
-            color: 'danger'
-          });
-          toast.present();
+        error: () => {
+          this.router.navigate(['/404']);
         }
       });
     }

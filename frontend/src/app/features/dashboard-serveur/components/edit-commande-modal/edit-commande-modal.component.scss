@@ -461,15 +461,28 @@ ion-footer.modal-footer {
       flex: 1;
       margin: 0;
       --border-color: var(--border-medium, #2a2e4d);
-      --color: var(--text-secondary, #a4add0);
+      --border-width: 1px;
+      --border-style: solid;
+      --border-radius: var(--radius-md, 10px);
+      --color: var(--text-primary, #eceefb);
+      --background: var(--background-surface-2, #21263f);
+      --background-hover: var(--background-surface-3, #2b3252);
+      --color-hover: var(--text-primary, #eceefb);
+      --border-color-hover: var(--border-light, #3d4575);
+      font-weight: 600;
+      min-height: 44px;
+      transition: all 0.2s ease;
     }
 
     .btn-save {
       flex: 2;
       margin: 0;
       --background: var(--primary, #6c7fe8);
+      --background-hover: var(--primary-hover, #5b6edb);
       --color: #ffffff;
+      --border-radius: var(--radius-md, 10px);
       font-weight: 700;
+      min-height: 44px;
     }
   }
 }

@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -154,20 +155,28 @@ class FactureControllerTest {
     }
 
     @Test
-    @DisplayName("splitEgal and splitParSelection - bill splits")
+    @DisplayName("splitEgal, splitParSelection, splitParMontants, and splitParPourcentages - bill splits")
     void splitEndpoints() {
         SplitResultDTO splitDto = new SplitResultDTO(10L, "Guest 1", List.of(), new BigDecimal("25.00"), new BigDecimal("25.00"));
         SplitEgalRequest egalReq = new SplitEgalRequest(2);
         SplitAdditionRequest itemReq = new SplitAdditionRequest(List.of());
+        SplitMontantsRequest montantsReq = new SplitMontantsRequest(List.of());
+        SplitPourcentagesRequest pourcentagesReq = new SplitPourcentagesRequest(List.of());
 
         when(factureService.splitEgal(10L, 2)).thenReturn(List.of(splitDto));
         when(factureService.splitParSelection(eq(10L), any())).thenReturn(List.of(splitDto));
+        when(factureService.splitParMontants(eq(10L), any())).thenReturn(List.of(splitDto));
+        when(factureService.splitParPourcentages(eq(10L), any())).thenReturn(List.of(splitDto));
 
         ResponseEntity<List<SplitResultDTO>> resp1 = factureController.splitEgal(10L, egalReq);
         ResponseEntity<List<SplitResultDTO>> resp2 = factureController.splitParSelection(10L, itemReq);
+        ResponseEntity<List<SplitResultDTO>> resp3 = factureController.splitParMontants(10L, montantsReq);
+        ResponseEntity<List<SplitResultDTO>> resp4 = factureController.splitParPourcentages(10L, pourcentagesReq);
 
         assertThat(resp1.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(resp2.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(resp3.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(resp4.getStatusCode().is2xxSuccessful()).isTrue();
     }
 
     @Test
@@ -240,7 +249,7 @@ class FactureControllerTest {
     @Test
     @DisplayName("cloturerCaisse, getClotures, getClotureById, getClotureByDate, downloadZReportPdf, exportFec, printZReportTicket")
     void dailyCashClosureEndpoints() {
-        LocalDate date = LocalDate.of(2026, 9, 6);
+        LocalDate date = LocalDate.of(2026, Month.SEPTEMBER, 6);
         com.bar.gestioncocktail.model.DailyCashClosure closure = new com.bar.gestioncocktail.model.DailyCashClosure();
         closure.setId(1L);
         closure.setClosureNumber("Z-2026-00001");

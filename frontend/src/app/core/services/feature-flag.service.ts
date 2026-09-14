@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, OnDestroy, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, Observable, of, Subject, takeUntil, tap } from 'rxjs';
+import { catchError, finalize, Observable, of, shareReplay, Subject, takeUntil, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   ESTABLISHMENT_PRESETS,
@@ -30,6 +30,7 @@ export class FeatureFlagService implements OnDestroy {
   private readonly http = inject(HttpClient, { optional: true });
   private readonly ws = inject(WebSocketService, { optional: true });
   private readonly destroy$ = new Subject<void>();
+  private loadRequest$: Observable<EstablishmentModules> | null = null;
 
   /** Current state of all modular capabilities. */
   readonly modules = signal<EstablishmentModules>(DEFAULT_MODULES);
@@ -93,6 +94,7 @@ export class FeatureFlagService implements OnDestroy {
 
   /**
    * Fetches latest modular feature configuration from the backend API.
+   * Reuses an in-flight HTTP request if one is already pending to avoid redundant calls.
    *
    * @returns Observable emitting loaded {@link EstablishmentModules}
    */
@@ -102,7 +104,11 @@ export class FeatureFlagService implements OnDestroy {
       return of(this.modules());
     }
 
-    return this.http.get<EstablishmentModules>(this.api).pipe(
+    if (this.loadRequest$) {
+      return this.loadRequest$;
+    }
+
+    this.loadRequest$ = this.http.get<EstablishmentModules>(this.api).pipe(
       tap(mods => {
         if (mods) {
           this.modules.set(mods);
@@ -113,8 +119,14 @@ export class FeatureFlagService implements OnDestroy {
         console.warn('[FeatureFlagService] Failed to load modules, keeping defaults', err);
         this.isLoaded.set(true);
         return of(this.modules());
-      })
+      }),
+      finalize(() => {
+        this.loadRequest$ = null;
+      }),
+      shareReplay({ bufferSize: 1, refCount: false })
     );
+
+    return this.loadRequest$;
   }
 
   /**
@@ -124,8 +136,10 @@ export class FeatureFlagService implements OnDestroy {
    * @returns Observable emitting confirmed {@link EstablishmentModules}
    */
   updateModules(updated: EstablishmentModules): Observable<EstablishmentModules> {
+    this.loadRequest$ = null;
     if (!this.http) {
       this.modules.set(updated);
+      this.isLoaded.set(true);
       return of(updated);
     }
 
@@ -133,6 +147,7 @@ export class FeatureFlagService implements OnDestroy {
       tap(confirmed => {
         if (confirmed) {
           this.modules.set(confirmed);
+          this.isLoaded.set(true);
         }
       })
     );

@@ -8,17 +8,18 @@ import { addIcons } from 'ionicons';
 import {
   closeOutline, printOutline, checkmarkCircle,
   ellipseOutline, layersOutline, wifiOutline,
-  optionsOutline, documentTextOutline, gridOutline, copyOutline
+  optionsOutline, documentTextOutline, gridOutline, copyOutline,
+  downloadOutline, peopleOutline, searchOutline, locationOutline
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { TableBar } from '../../../../core/models/table.model';
 import { TableService } from '../../../../core/services/table.service';
 import { AppSettingsService } from '../../../../core/services/app-settings.service';
 import { AppSettings } from '../../../../core/models/app-settings.model';
+
 /**
  * Layout configuration for batch table QR code printing.
  */
-
 export type TableQrLayout = 'STAND' | 'CARD' | 'STICKER';
 
 /**
@@ -35,7 +36,7 @@ export type TableQrLayout = 'STAND' | 'CARD' | 'STICKER';
     IonIcon,
     IonSpinner,
     TranslocoPipe
-]
+  ]
 })
 export class TableQrBatchPrintModalComponent implements OnInit {
   @Input() tables: TableBar[] = [];
@@ -54,6 +55,9 @@ export class TableQrBatchPrintModalComponent implements OnInit {
   isGenerating = false;
   settings: AppSettings | null = null;
 
+  searchQuery = '';
+  selectedZoneFilter = 'ALL';
+
   constructor() {
     addIcons({
       closeOutline,
@@ -65,7 +69,11 @@ export class TableQrBatchPrintModalComponent implements OnInit {
       optionsOutline,
       documentTextOutline,
       gridOutline,
-      copyOutline
+      copyOutline,
+      downloadOutline,
+      peopleOutline,
+      searchOutline,
+      locationOutline
     });
   }
 
@@ -123,6 +131,36 @@ export class TableQrBatchPrintModalComponent implements OnInit {
 
   isTableSelected(tableId: number): boolean {
     return this.selectedIdsSet.has(tableId);
+  }
+
+  get uniqueZones(): string[] {
+    const zones = new Set<string>();
+    for (const t of this.tables) {
+      if (t.zone?.trim()) {
+        zones.add(t.zone.trim());
+      }
+    }
+    return Array.from(zones);
+  }
+
+  get filteredTables(): TableBar[] {
+    const q = this.searchQuery.trim().toLowerCase();
+    return this.tables.filter((t) => {
+      const matchesSearch =
+        !q ||
+        `table ${t.numero}`.toLowerCase().includes(q) ||
+        `t${t.numero}`.toLowerCase().includes(q) ||
+        Boolean(t.zone?.toLowerCase().includes(q));
+
+      const matchesZone =
+        this.selectedZoneFilter === 'ALL' || t.zone === this.selectedZoneFilter;
+
+      return matchesSearch && matchesZone;
+    });
+  }
+
+  setZoneFilter(zone: string): void {
+    this.selectedZoneFilter = zone;
   }
 
   setLayout(layout: TableQrLayout): void {

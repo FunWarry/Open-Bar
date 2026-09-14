@@ -44,7 +44,7 @@ import {
 } from 'ionicons/icons';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
 import { CommandeCardComponent } from './components/commande-card/commande-card.component';
-import { NotificationService } from '../../core/services/notification.service';
+import { NotificationService, AppNotification } from '../../core/services/notification.service';
 import { DashboardBarmanService } from './services/dashboard-barman.service';
 import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
 import { CommandeView, CommandeItemView } from './models/commande-view.model';
@@ -53,9 +53,11 @@ import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-
 import { AppSettingsService } from '../../core/services/app-settings.service';
 import { SoundService } from '../../core/services/sound.service';
 import { RupturesModalComponent } from './components/ruptures-modal/ruptures-modal.component';
+import { RuptureImpactModalComponent } from './components/rupture-impact-modal/rupture-impact-modal.component';
 import { BarTicketPrintComponent } from './components/bar-ticket-print/bar-ticket-print.component';
 import { RecipeSidePanelComponent } from './components/recipe-side-panel/recipe-side-panel.component';
 import { Cocktail } from '../../core/models/cocktail.model';
+import { Ingredient } from '../../core/models/ingredient.model';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { FeatureFlagService } from '../../core/services/feature-flag.service';
 
@@ -112,6 +114,13 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   activeRecipeCocktail: Cocktail | null = null;
   isRecipeLoading = false;
   private readonly cachedCocktails: Map<string, Cocktail> = new Map();
+
+  activeCriticalStockAlert: {
+    ingredientId: number;
+    nom: string;
+    uniteMesure?: string;
+    quantiteStock: number;
+  } | null = null;
 
   private readonly destroy$ = new Subject<void>();
   private readonly dashboardService = inject(DashboardBarmanService);
@@ -328,6 +337,27 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
           this.chargerCommandes();
         }
       });
+
+    this.notificationService.onStockAlert()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((alert: AppNotification) => {
+        const data = alert?.data;
+        const qty = data?.quantiteRestante ?? data?.quantiteActuelle ?? data?.stock ?? 0;
+        if (Number(qty) <= 0) {
+          const ingredientId = data?.ingredientId ?? data?.id;
+          const nom = data?.nomIngredient ?? data?.nom ?? 'Ingredient';
+          const uniteMesure = data?.uniteMesure ?? data?.unite ?? '';
+          if (ingredientId) {
+            this.activeCriticalStockAlert = {
+              ingredientId: Number(ingredientId),
+              nom,
+              uniteMesure,
+              quantiteStock: Number(qty)
+            };
+            this.cdr.detectChanges();
+          }
+        }
+      });
   }
 
   ngOnDestroy(): void {
@@ -440,6 +470,45 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       cssClass: 'ruptures-modal-container'
     });
     await modal.present();
+  }
+
+  /**
+   * Opens the rupture impact verification modal from an active critical stock alert.
+   */
+  async openCriticalStockImpactModal(): Promise<void> {
+    if (!this.activeCriticalStockAlert) return;
+    const alertData = this.activeCriticalStockAlert;
+    const ingredient: Ingredient = {
+      id: alertData.ingredientId,
+      nom: alertData.nom,
+      uniteMesure: alertData.uniteMesure || '',
+      quantiteStock: alertData.quantiteStock,
+      seuilAlerte: 0,
+      prixUnitaire: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const modal = await this.modalCtrl.create({
+      component: RuptureImpactModalComponent,
+      componentProps: {
+        ingredient,
+        source: 'automatic'
+      },
+      cssClass: 'rupture-impact-modal-container'
+    });
+
+    await modal.present();
+    await modal.onDidDismiss();
+    this.dismissCriticalStockAlert();
+  }
+
+  /**
+   * Dismisses the active critical stock alert banner.
+   */
+  dismissCriticalStockAlert(): void {
+    this.activeCriticalStockAlert = null;
+    this.cdr.detectChanges();
   }
 
   /**

@@ -44,6 +44,9 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
 2. **Documentation is MANDATORY for all new or modified code** (JavaDoc on backend, TSDoc on frontend, OpenAPI annotations on controllers).
 3. **NEVER use `@SuppressWarnings` annotations to bypass quality/security issues** — always refactor and resolve underlying code issues directly.
 
+4. **NEVER push with unresolved IDE Problems (Zero Problems Mandatory)** — NEVER commit or push code while there are unresolved errors or warnings in the IDE "Problems" panel (or reported via `@[current_problems]`). Always run `npx tsc --noEmit` (frontend) and `mvn test-compile` (backend) to ensure 0 errors and 0 warnings before committing or pushing.
+5. **Mandatory Plug-and-Play Modular Architecture (Toggleable Plugins)** — ALL new features and business capabilities MUST be designed as "plug-and-play" modules that can be dynamically enabled or disabled per establishment. They must integrate with `EstablishmentModule` on the backend and `FeatureFlagService` (`ModuleGuard`) on the frontend, with toggle switches in App Settings (`AppSettingsPageComponent` Tab "Capacités & Modules") and onboarding (`/setup`). When a module is disabled, its UI elements/routes are hidden and its endpoints reject operations cleanly.
+
 ### Backend
 1. **Never `@Autowired` on a field** — always constructor injection
 2. **Never return JPA entities** from controllers — always a DTO (`Java record` with `static from(Entity e)`)
@@ -111,6 +114,10 @@ Skills in `.agents/skills/` define reusable workflows for this project:
 | `openbar-install` | "setup project" / after ❌ in check | Install/repair the full dev environment |
 | `openbar-dev` | "add feature X" / "generate component" | Generate code following OpenBar conventions |
 | `openbar-ticket` | "implement issue #N" / "treat ticket #N" | Full ticket pipeline (branch → impl → tests → PR → merge) |
+| `openbar-fast-ticket` | "fast ticket #N" / "traite le bugfix #N" | Express automated pipeline for minor tickets & bugfixes |
+| `openbar-test-gen` | "génère les tests pour X" / "test pyramid" | Full test pyramid generator (Karma, JUnit 5, seeder, Playwright) |
+| `openbar-pre-push` | "pre-push" / "valide avant push" | Fast local pre-push validation suite (i18n, zero problems, CSS, compilation) |
+| `openbar-ci-watch` | "watch CI" / "surveille la CI" | Autonomous CI & SonarCloud watcher with log diagnosis and auto-patching |
 | `openbar-post-merge` | "post-merge" / "after merge PR #X" | Post-merge cleanup, issue/board closure & KI sync |
 | `openbar-ki-update` | "update KIs" / after PR merged | Sync knowledge base with project state |
 

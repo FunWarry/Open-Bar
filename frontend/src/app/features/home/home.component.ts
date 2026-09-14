@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { selectCurrentUser, selectIsAdmin, selectIsBarman, selectIsManager, selectIsServeur } from '../../core/store/auth.selectors';
@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
 import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
+import { FeatureFlagService } from '../../core/services/feature-flag.service';
 
 /**
  * Application home launcher component directing users to role workspaces.
@@ -19,11 +20,15 @@ import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-bad
   imports: [CommonModule, RouterLink, ActionButtonComponent, RoleBadgeComponent, TranslocoPipe]
 })
 export class HomeComponent {
-  currentUser$: Observable<any>;
-  isAdmin$: Observable<boolean>;
-  isManager$: Observable<boolean>;
-  isBarman$: Observable<boolean>;
-  isServeur$: Observable<boolean>;
+  private readonly featureFlagService = inject(FeatureFlagService);
+
+  readonly currentUser$: Observable<any>;
+  readonly isAdmin$: Observable<boolean>;
+  readonly isManager$: Observable<boolean>;
+  readonly isBarman$: Observable<boolean>;
+  readonly isServeur$: Observable<boolean>;
+
+  readonly floorPlanEnabled = this.featureFlagService.floorPlanEnabled;
 
   constructor(
     private readonly store: Store,
@@ -40,3 +45,4 @@ export class HomeComponent {
     this.router.navigate([path]);
   }
 }
+

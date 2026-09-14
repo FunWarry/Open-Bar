@@ -17,6 +17,27 @@
         </div>
 
         <div class="header-buttons">
+          <app-action-button
+            variant="secondary"
+            size="medium"
+            icon="download-outline"
+            (btnClick)="exportInventoryCsv()"
+            [disabled]="ingredients.length === 0"
+            testId="ingredient-btn-export-inventory"
+            data-testid="ingredient-btn-export-inventory">
+            {{ 'STOCK.EXPORT_INVENTORY_CSV' | transloco }}
+          </app-action-button>
+
+          <app-action-button
+            variant="secondary"
+            size="medium"
+            icon="trash-outline"
+            (btnClick)="exportWasteMovementsCsv()"
+            testId="ingredient-btn-export-waste"
+            data-testid="ingredient-btn-export-waste">
+            {{ 'STOCK.EXPORT_WASTE_CSV' | transloco }}
+          </app-action-button>
+
           <ion-button fill="outline" color="warning" class="header-action-btn" (click)="openWasteModal()" (keyup.enter)="openWasteModal()"
             data-testid="ingredient-btn-record-waste">
             <ion-icon slot="start" name="alert-circle-outline"></ion-icon>

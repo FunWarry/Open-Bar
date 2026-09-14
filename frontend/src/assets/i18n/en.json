@@ -31,9 +31,17 @@
     "RESET": "Reset",
     "PREV": "Prev.",
     "NEXT": "Next",
+    "NEXT_SHORT": "Next",
+    "PREVIOUS": "Previous",
+    "FINISH": "Finish",
     "ITEM": "item",
     "ITEMS": "items",
-    "ALL_RIGHTS_RESERVED": "All rights reserved."
+    "ALL_RIGHTS_RESERVED": "All rights reserved.",
+    "DECREASE": "Decrease",
+    "INCREASE": "Increase",
+    "RETRY": "Retry",
+    "REQUIRED": "Required field",
+    "NO_RESULTS": "No results found"
   },
   "TABLE_CARD": {
     "STATUS_FREE": "Free",
@@ -47,6 +55,12 @@
     "READY_PLURAL": "🍹 {{count}} ready!",
     "VIEW_ORDERS": "View orders",
     "FREE_TABLE": "Release"
+  },
+  "CSV_EXPORT": {
+    "SUCCESS": "CSV export successful",
+    "ERROR": "Error exporting CSV",
+    "NO_DATA": "No data to export",
+    "DOWNLOADING": "Generating CSV file..."
   },
   "TABLE_MODAL": {
     "TITLE": "{{ nom }}",
@@ -166,7 +180,25 @@
     "SUBTOTAL_GUEST": "Guest total:",
     "REMOVE_ITEM_FROM_GUEST": "Remove this item from guest",
     "EQUAL_MODE": "Equal share",
-    "ITEMIZED_MODE": "Itemized"
+    "ITEMIZED_MODE": "Itemized",
+    "CUSTOM_AMOUNT": "Custom amount",
+    "CUSTOM_PERCENTAGE": "Percentage",
+    "CUSTOM_AMOUNT_MODE": "Custom amount",
+    "CUSTOM_PCT_MODE": "Percentage",
+    "INVOICE_ALREADY_SETTLED_BANNER": "This invoice is already fully settled. View-only mode: you can inspect shares and reprint receipts.",
+    "ALREADY_SETTLED_PARTS_TITLE": "Already settled parts",
+    "REMAINING_TO_SPLIT": "Remaining to split:",
+    "CUSTOM_AMOUNT_HINT": "Enter the amount covered by each guest.",
+    "CUSTOM_PCT_HINT": "Enter the percentage covered by each guest (total 100%).",
+    "ASSIGN_REMAINDER": "Assign remainder",
+    "DISTRIBUTE_EQUALLY": "Distribute equally",
+    "TOTAL_ALLOCATED": "Total allocated:",
+    "REMAINDER_LABEL": "Difference:",
+    "BALANCED": "Balanced distribution",
+    "PCT_TOTAL": "Total allocated:",
+    "ALLOCATION_MISMATCH": "The sum of allocated amounts ({{allocated}}) does not match the remaining balance ({{remaining}}).",
+    "PCT_MISMATCH": "The sum of percentages must equal 100% (currently {{total}}%).",
+    "GUEST_AMOUNT_PLACEHOLDER": "Amount"
   },
   "THEME": {
     "LIGHT": "Light Mode",
@@ -272,6 +304,49 @@
     "SHARED_CART_ITEM_REMOVED": "Item removed from cart.",
     "SHARED_CART_CONVIVES_COUNT": "{{ count }} guest(s)",
     "SHARED_CART_OTHER_SUBMITTED": "{{ name }} submitted the table order to the bar!",
+    "INVITE_FRIENDS_BTN": "Invite Friends",
+    "INVITE_MODAL_TITLE": "Invite to Table {{ table }}",
+    "INVITE_MODAL_DESC": "Have your friends scan this QR code or share the direct link with them to order together in real time.",
+    "INVITE_QR_HINT": "Point your camera at this QR code to join the table",
+    "INVITE_COPY": "Copy link",
+    "INVITE_COPIED": "Copied!",
+    "INVITE_LINK_COPIED_TOAST": "Table link copied to clipboard!",
+    "INVITE_SHARE_NATIVE_BTN": "Share link",
+    "INVITE_SHARE_TITLE": "Join our order — Table {{ table }}",
+    "INVITE_SHARE_TEXT": "Join our table on OpenBar to order drinks together with us:",
+    "RECAP_INVITE_BANNER_TEXT": "Dining with friends? Invite them to add their drinks to this order.",
+    "INGREDIENTS_SECTION_TITLE": "Ingredients",
+    "INGREDIENTS_SECTION_SUBTITLE": "Discover what makes up this cocktail",
+    "INGREDIENTS_HINT": "View ingredients",
+    "NO_INGREDIENTS_LISTED": "Detailed ingredients available upon request from your server.",
+    "CLOSE_DETAILS_BTN": "Close",
+    "DETAILS_MODAL_TITLE": "Cocktail Details",
+    "TABLE_HOST_BADGE": "Host",
+    "TABLE_GUEST_BADGE": "Guest",
+    "JOIN_REQUEST_TITLE": "Join Table {{ table }}",
+    "JOIN_REQUEST_DESC": "This table is occupied by {{ owner }}. Please enter your name to request access from the host.",
+    "JOIN_REQUEST_NAME_LABEL": "Your name or nickname",
+    "JOIN_REQUEST_SUBMIT_BTN": "Request to join table",
+    "JOIN_REQUEST_PENDING_TITLE": "Request pending",
+    "JOIN_REQUEST_PENDING_DESC": "Your request has been sent to the host ({{ owner }}). Please wait for approval...",
+    "JOIN_REQUEST_REJECTED_TITLE": "Request declined",
+    "JOIN_REQUEST_REJECTED_DESC": "The host declined your request to join this table.",
+    "JOIN_REQUEST_RETRY_BTN": "Try again",
+    "JOIN_APPROVAL_MODAL_TITLE": "Request to join your table",
+    "JOIN_APPROVAL_MODAL_DESC": "{{ name }} would like to join your table and order with you.",
+    "JOIN_APPROVAL_ACCEPT_BTN": "Accept",
+    "JOIN_APPROVAL_REJECT_BTN": "Decline",
+    "GRACE_BANNER_TITLE": "Group round open ({{ seconds }}s left)",
+    "GRACE_BANNER_DESC": "An order was just placed! All seated companions have 2 minutes to add drinks to this same order.",
+    "GRACE_BANNER_ADD_ITEMS": "Add more drinks",
+    "GRACE_BANNER_DISPATCH_NOW": "Send now",
+    "TABLE_ORDERS_BTN": "Bill & Orders",
+    "TABLE_ORDERS_MODAL_TITLE": "Orders & Bill — Table {{ table }}",
+    "TABLE_ORDERS_CUMULATIVE_TOTAL": "Table cumulative total",
+    "TABLE_ORDERS_TOTAL_DRINKS": "Drinks ordered",
+    "TABLE_ORDERS_ROUND_LABEL": "Round #{{ id }}",
+    "TABLE_ORDERS_EMPTY": "No orders placed for this table yet.",
+    "TABLE_ORDERS_CLOSE_BTN": "Close",
     "ALERTS": {
       "CALL_WAITER_BTN": "Call Waiter",
       "REQUEST_BILL_BTN": "Request Bill",
@@ -496,7 +571,8 @@
       "ROLE_PLACEHOLDER": "Select a role",
       "ROLE_REQUIRED": "Role is required",
       "USERNAME_PLACEHOLDER": "Login username"
-    }
+    },
+    "LOGOUT": "Log out"
   },
   "PROFILE": {
     "TITLE": "My Profile",
@@ -740,6 +816,7 @@
     "ALL": "All",
     "DISPONIBLES": "Available",
     "INDISPONIBLES": "Unavailable",
+    "AVAILABLE_ONLY": "Available only",
     "EMPTY": "No cocktails found",
     "PHOTO_UPDATED_SUCCESS": "Cocktail photo updated successfully",
     "WIZARD": {
@@ -784,7 +861,8 @@
       "TEMPLATE_ACTION_TYPE": "Gesture Category",
       "TEMPLATE_DURATION": "Default Duration (seconds)",
       "TEMPLATE_ICON": "Icon",
-      "TEMPLATE_SAVED_SUCCESS": "Action template saved successfully!"
+      "TEMPLATE_SAVED_SUCCESS": "Action template saved successfully!",
+      "INGREDIENTS_LIST": "Ingredients list"
     },
     "GLASSWARE": {
       "LABEL": "Service Glassware",
@@ -1238,7 +1316,8 @@
       "PDF": "PDF",
       "COPY_NUM": "Copy number",
       "COPIED": "Number copied!",
-      "REFRESH": "Refresh"
+      "REFRESH": "Refresh",
+      "EXPORT_CSV": "Export (CSV)"
     },
     "UNASSIGNED": "Unassigned",
     "TABLE_LABEL": "Table {{num}}",
@@ -1274,6 +1353,8 @@
     "TICKET_NUM": "Ticket No.",
     "DOWNLOAD_PDF": "Download PDF",
     "SPLIT": "Split Bill",
+    "VIEW_SPLIT": "View split breakdown",
+    "SETTLE_REMAINING": "Settle balance ({{ amount }})",
     "THANK_YOU": "Thank you for your visit!",
     "BACK_TO_LIST": "Back to Invoices",
     "ITEMS_CONSUMED": "Consumption Items",
@@ -1319,7 +1400,9 @@
       "CHEQUE": "Check"
     },
     "CONDITIONS_REGLEMENT_PLACEHOLDER": "Immediate payment upon receipt",
-    "ESCOMPTE_PLACEHOLDER": "No discount for early payment"
+    "ESCOMPTE_PLACEHOLDER": "No discount for early payment",
+    "STATUS_REGLEE": "Invoice Settled",
+    "POURBOIRE": "Tip"
   },
   "SERVEUR": {
     "TITLE": "Server View",
@@ -1672,6 +1755,9 @@
   },
   "STOCK": {
     "GLOBAL_TITLE": "Global Stock View",
+    "EXPORT_INVENTORY_CSV": "Export inventory (CSV)",
+    "EXPORT_WASTE_CSV": "Export waste log (CSV)",
+    "WASTE_HISTORY_EXPORT": "Waste history (CSV)",
     "SEARCH_PLACEHOLDER": "Search ingredient, unit...",
     "ALL": "All",
     "STATUS_ALL": "All",
@@ -1744,7 +1830,13 @@
     "WASTE_AUDIT_REPORTED_BY": "Reported By",
     "WASTE_AUDIT_RECENT": "Recent Loss Declarations",
     "WASTE_AUDIT_FILTER_ALL": "All reasons",
-    "WASTE_AUDIT_BREAKDOWN": "Financial Breakdown by Reason"
+    "WASTE_AUDIT_BREAKDOWN": "Financial Breakdown by Reason",
+    "WASTE_AUDIT_TOTAL_LOSS_SUBTEXT": "Cumulative purchase cost excl. VAT",
+    "WASTE_AUDIT_TOTAL_COUNT_SUBTEXT": "Logged declarations",
+    "WASTE_AUDIT_TOTAL_QTY_SUBTEXT": "Items / volumes written off",
+    "WASTE_AUDIT_BY_REASON": "By reason",
+    "WASTE_AUDIT_RECENT_COUNT": "{{count}} recent",
+    "WASTE_AUDIT_EMPTY_TITLE": "No waste recorded"
   },
   "RECAP": {
     "TITLE": "Daily Closing Sales Summary",
@@ -1780,6 +1872,8 @@
     "STEP_COUNT": "Counting",
     "STEP_DISCREPANCY": "Discrepancy",
     "STEP_CONFIRM": "Sealing",
+    "PREV_STEP": "Previous",
+    "NEXT_STEP": "Next",
     "FLOAT_TITLE": "Initial Opening Float",
     "FLOAT_DESC": "Specify or confirm the physical cash float present in the drawer at opening.",
     "FLOAT_LABEL": "Opening cash float amount",
@@ -1912,7 +2006,8 @@
     "NO_EMPLOYEES": "No employees found",
     "EMPTY_SUBTEXT": "Try adjusting your search criteria.",
     "PRESETS_BTN": "Templates & Presets",
-    "FILTER_BY_ROLE": "Filter by role"
+    "FILTER_BY_ROLE": "Filter by role",
+    "EXPORT_HOURS_CSV": "Export hours (CSV)"
   },
   "SHIFTS": {
     "TITLE": "Work Shifts",
@@ -2007,9 +2102,9 @@
     "SHIFT_TYPES": {
       "MATIN": "Morning",
       "SOIR": "Evening",
-      "COUPURE": "Split",
+      "COUPURE": "Split shift",
       "NUIT": "Night",
-      "CONGE": "Time Off"
+      "CONGE": "Time off"
     },
     "POSTE_TYPES": {
       "SERVEUR": "Waiter",
@@ -2061,6 +2156,7 @@
     },
     "SCHEDULE": {
       "THIS_WEEK": "This week",
+      "EXPORT_CSV": "Export schedule (CSV)",
       "PUBLISH": "Publish schedule",
       "REPUBLISH": "Publish changes",
       "ALREADY_PUBLISHED": "Already published",
@@ -2252,6 +2348,8 @@
     "SEARCH_INGREDIENT_PLACEHOLDER": "Search ingredient...",
     "STATUS_AVAILABLE": "Available",
     "STATUS_OUT_OF_STOCK": "Out of stock",
+    "STOCK_OUT_TAG": "OUT OF STOCK",
+    "STOCK_LOW_TAG": "LOW",
     "COCKTAIL_AVAILABLE": "{{name}} is now available!",
     "COCKTAIL_OUT_OF_STOCK": "{{name}} is now marked out of stock!",
     "STOCK_UPDATED": "Stock for {{name}} updated ({{stock}} {{unit}})",
@@ -2259,8 +2357,30 @@
     "ALERT_THRESHOLD": "Alert threshold",
     "NO_COCKTAILS_FOUND": "No matching cocktails",
     "NO_INGREDIENTS_FOUND": "No matching ingredients",
+    "CRITICAL_STOCK_ALERT_BANNER": "⚠️ Out of stock detected: {{name}} (Depleted) — Verify availability",
+    "VERIFY_STOCK_ALERT": "Verify & Resolve",
+    "DISMISS_STOCK_ALERT": "Dismiss",
+    "RUPTURE_IMPACT": {
+      "TITLE": "Out of Stock Impact",
+      "AUTO_MSG": "Stock for this ingredient was depleted following order preparation. Confirm physical out-of-stock or replenish inventory.",
+      "MANUAL_MSG": "This ingredient is used in the cocktails below. Choose which cocktails to mark as out of stock.",
+      "RESTOCK_TITLE": "Physical stock available in storage?",
+      "RESTOCK_DESC": "If you have unrecorded physical stock, enter the quantity to cancel the out-of-stock state.",
+      "RESTOCK_PLACEHOLDER": "E.g., 50, 100...",
+      "RESTOCK_ACTION": "Restock inventory",
+      "RESTOCK_SUCCESS": "Stock for {{name}} successfully replenished (+{{qty}} {{unit}}).",
+      "AFFECTED_COCKTAILS": "Associated Cocktails",
+      "SELECT_ALL": "Select all",
+      "DESELECT_ALL": "Deselect all",
+      "NO_COCKTAILS": "No cocktails use this ingredient.",
+      "ALREADY_OUT": "Already out",
+      "KEEP_COCKTAILS": "Keep cocktails available",
+      "CONFIRM_CASCADE": "Mark {{count}} cocktail(s) as out of stock",
+      "CASCADE_SUCCESS": "{{count}} cocktail(s) marked out of stock following depletion of {{name}}."
+    },
     "BAR_TICKET_PREVIEW": "Preparation Ticket Preview",
     "PRINT_TICKET": "Print Ticket (80mm)",
+    "PRINT_BUTTON": "Print Ticket (80mm)",
     "DIRECT_ESCPOS_PRINT": "Direct ESC/POS Print",
     "DIRECT_PRINT_SUCCESS": "Order #{{id}} sent successfully to thermal printer",
     "DIRECT_PRINT_FAILED": "Direct print error: {{error}}",
@@ -2330,7 +2450,8 @@
     "STATUS_EN_ATTENTE": "Pending",
     "STATUS_EN_PREPARATION": "Preparing",
     "STATUS_PRET": "Ready",
-    "STATUS_LIVREE": "Delivered"
+    "STATUS_LIVREE": "Delivered",
+    "TOGGLE_SOUND": "Toggle sound alerts"
   },
   "MANAGER_DASHBOARD": {
     "TITLE": "Manager Dashboard",
@@ -2380,7 +2501,11 @@
     "LOADING_STATS": "Loading metrics...",
     "ERROR_STATS": "Unable to load manager dashboard statistics",
     "RETRY": "Retry",
-    "TIMERS_ACTIVE_THRESHOLDS": "Configured Active Thresholds"
+    "TIMERS_ACTIVE_THRESHOLDS": "Configured Active Thresholds",
+    "DELIVERED_COUNT": "{{count}} delivered",
+    "TOTAL_ORDERS_COUNT": "{{count}} total",
+    "COCKTAILS_COUNT": "{{count}} cocktail(s)",
+    "ACTIVE_ORDERS_COUNT": "{{count}} active"
   },
   "FACTURE": {
     "MODE_CARTE": "Credit card",
@@ -2408,6 +2533,8 @@
     "CASH_CALCULATOR_TITLE": "Cash & Change Calculator",
     "CASH_RECEIVED_LABEL": "Cash Received",
     "EXACT_AMOUNT": "Exact Amount",
+    "NEXT_BILL": "Next bill",
+    "SUGGEST_AMOUNT": "Suggested amount",
     "CHANGE_TO_RETURN": "Change to return",
     "INSUFFICIENT_CASH_WARNING": "Cash received is insufficient",
     "TIP_SELECTION": "Server Tip",
@@ -2514,29 +2641,42 @@
     "MODULES_PRESETS_TITLE": "Recommended Establishment Profiles",
     "MODULES_PRESETS_SUBTITLE": "Apply a preconfigured feature set suited to your business model in one click.",
     "MODULES_PRESET_BAR": "Standard Bar",
-    "MODULES_PRESET_BAR_DESC": "Counter, beverages, happy hours, floor plan, and stock tracking.",
+    "MODULES_PRESET_BAR_DESC": "Bar counter, beverages, happy hours, floor plan, and stock tracking.",
     "MODULES_PRESET_RESTAURANT": "Brasserie / Restaurant",
-    "MODULES_PRESET_RESTAURANT_DESC": "Full service with kitchen (KDS), floor plan, shifts, and table QR.",
+    "MODULES_PRESET_RESTAURANT_DESC": "Full service with kitchen display, floor plan, staff management, and table ordering.",
     "MODULES_PRESET_FOOD_TRUCK": "Food Truck / Takeaway",
-    "MODULES_PRESET_FOOD_TRUCK_DESC": "Kitchen display and fast mobile ordering, without floor plan or shifts.",
+    "MODULES_PRESET_FOOD_TRUCK_DESC": "Kitchen display and fast mobile ordering, without floor plan or staff management.",
     "MODULES_PRESET_NIGHTCLUB": "Club / Nightclub",
-    "MODULES_PRESET_NIGHTCLUB_DESC": "Multiple bar counters, fast checkout, without 2D floor plan or table QR.",
+    "MODULES_PRESET_NIGHTCLUB_DESC": "Multiple bar counters, fast checkout, without floor plan or table ordering.",
     "MODULES_SAVE_BTN": "Save Modules",
     "MODULES_RESET_BTN": "Reset Modules",
     "MODULES_SAVE_SUCCESS": "Modular configuration updated and broadcast in real time!",
     "MODULES_SAVE_ERROR": "Error updating modular capabilities",
-    "MODULE_CUISINE_KDS_TITLE": "Kitchen KDS Display (CUISINE_KDS)",
-    "MODULE_CUISINE_KDS_DESC": "Enables the kitchen production display (/kitchen) and routes items to bar or kitchen workstations.",
-    "MODULE_HAPPY_HOUR_TITLE": "Happy Hour & Promotional Engine (HAPPY_HOUR)",
-    "MODULE_HAPPY_HOUR_DESC": "Automatically calculates scheduled promotional discounts and enables the pricing management tab.",
-    "MODULE_EMPLOYEE_MANAGEMENT_TITLE": "Employee Management & Shifts (EMPLOYEE_MANAGEMENT)",
-    "MODULE_EMPLOYEE_MANAGEMENT_DESC": "Enables staff scheduling, shift assignment, and weekly rotation presets.",
-    "MODULE_FLOOR_PLAN_TITLE": "Interactive 2D Floor Plan (FLOOR_PLAN)",
-    "MODULE_FLOOR_PLAN_DESC": "Konva.js graphical floor plan editor and interactive 2D table layout in the server dashboard.",
-    "MODULE_QR_CLIENT_ORDERING_TITLE": "Customer Table QR Ordering (QR_CLIENT_ORDERING)",
-    "MODULE_QR_CLIENT_ORDERING_DESC": "Allows guests to scan table QR codes to browse the menu and order directly from smartphones.",
-    "MODULE_STOCK_TRACKING_TITLE": "Automatic Stock Deduction (STOCK_TRACKING)",
-    "MODULE_STOCK_TRACKING_DESC": "Automatically deducts ingredient quantities upon preparation and alerts on low stock levels.",
+    "MODULES_ECOSYSTEM_TITLE": "Active Ecosystem Live Preview",
+    "MODULES_ECOSYSTEM_SUBTITLE": "Real-time mapping of connected workstations and workflows according to your active modules.",
+    "MODULES_ACTIVE_COUNT": "{{active}} / {{total}} active capabilities",
+    "MODULES_STATION_CORE_BAR": "Bar & Cocktails (Core)",
+    "MODULES_STATION_CORE_BAR_DESC": "Order intake, cashiering & service",
+    "MODULES_STATUS_ACTIVE": "Active",
+    "MODULES_STATUS_INACTIVE": "Disabled",
+    "MODULES_ROUTE_KITCHEN": "Kitchen Display (/kitchen)",
+    "MODULES_ROUTE_FLOOR_PLAN": "2D Floor Plan (/plan-salle)",
+    "MODULES_ROUTE_QR": "Guest Ordering (/client)",
+    "MODULES_ROUTE_EMPLOYEES": "Staff Scheduling (/employees)",
+    "MODULES_ROUTE_HAPPY_HOUR": "Dynamic Pricing Engine",
+    "MODULES_ROUTE_STOCK": "Auto-depletion & Alerts",
+    "MODULE_CUISINE_KDS_TITLE": "Kitchen Production Display (KDS)",
+    "MODULE_CUISINE_KDS_DESC": "Displays the kitchen preparation screen and automatically routes orders to dedicated workstations (bar or kitchen).",
+    "MODULE_HAPPY_HOUR_TITLE": "Happy Hour & Promotional Pricing",
+    "MODULE_HAPPY_HOUR_DESC": "Automatically applies scheduled promotional discounts and enables the pricing management tab.",
+    "MODULE_EMPLOYEE_MANAGEMENT_TITLE": "Staff Management & Shift Scheduling",
+    "MODULE_EMPLOYEE_MANAGEMENT_DESC": "Enables work schedule planning, staff assignment, and weekly rotation templates.",
+    "MODULE_FLOOR_PLAN_TITLE": "Interactive 2D Floor Plan",
+    "MODULE_FLOOR_PLAN_DESC": "Visual table layout editor and real-time interactive 2D table view in the server dashboard.",
+    "MODULE_QR_CLIENT_ORDERING_TITLE": "Customer Table QR Code Ordering",
+    "MODULE_QR_CLIENT_ORDERING_DESC": "Allows guests to scan table QR codes to browse the menu and order independently from their smartphones.",
+    "MODULE_STOCK_TRACKING_TITLE": "Automatic Stock Deduction & Tracking",
+    "MODULE_STOCK_TRACKING_DESC": "Automatically decrements ingredient quantities upon drink preparation and alerts on low stock levels.",
     "STATUS_CLEAN": "All settings are up to date",
     "STATUS_DIRTY": "Unsaved modifications",
     "RESET_BTN": "Discard changes",
@@ -2588,6 +2728,19 @@
     "SAMPLE_EXCELLENT_MARGIN": "Optimal Margin Cocktail",
     "SAMPLE_WARNING_MARGIN": "Average Margin Cocktail",
     "SAMPLE_CRITICAL_MARGIN": "Low Margin Cocktail",
+    "DENOMINATIONS_TITLE": "Cash Denominations & Breakdown (Closure Counting)",
+    "DENOMINATIONS_SUBTITLE": "Configure available banknotes and coins for cash register counting and daily closure for this currency.",
+    "DENOMINATIONS_BILLS": "Configured Banknotes",
+    "DENOMINATIONS_COINS": "Configured Coins",
+    "NO_BILLS_CONFIGURED": "No banknotes configured for this currency.",
+    "NO_COINS_CONFIGURED": "No coins configured for this currency.",
+    "ADD_DENOMINATION": "Add custom denomination",
+    "RESET_DENOMINATIONS": "Reset to official defaults",
+    "DENOMINATIONS_RESET_SUCCESS": "Banknotes and coins reset to official defaults for this currency.",
+    "DENOMINATION_EXISTS": "This denomination is already present in the list.",
+    "ENTER_AMOUNT": "Amount (e.g. 200 or 0.50)",
+    "BILL": "Bill",
+    "COIN": "Coin",
     "TAB_QR": "QR Codes & Wi-Fi",
     "QR_SECTION_TITLE": "Customer Ordering QR Codes & Wi-Fi Network",
     "QR_SECTION_DESC": "Configure root client ordering URL and Wi-Fi access point credentials printed on table stands.",
@@ -2724,7 +2877,8 @@
     "NOT_VEGAN_LABEL": "Not vegan",
     "CONTAINS_GLUTEN_LABEL": "Contains gluten",
     "CALCULATION_DETAILS": "{{ pureAlcohol }} cl pure alcohol / {{ totalLiquid }} cl",
-    "GLASS_CAPACITY_NOTE": "Glassware: {{ capacity }} cl"
+    "GLASS_CAPACITY_NOTE": "Glassware: {{ capacity }} cl",
+    "COST_RECIPE_HINT": "Cost based on recipe"
   },
   "ANALYTICS": {
     "MARGIN_TITLE": "Financial Health & Profitability",
@@ -2742,7 +2896,18 @@
     "MARGIN_EMPTY_PROFITABLE": "No sales recorded yet today",
     "MARGIN_PRICE": "Price:",
     "MARGIN_COST": "Cost:",
-    "MARGIN_MARGIN": "Margin:"
+    "MARGIN_MARGIN": "Margin:",
+    "MARGIN_FINANCIAL_HEALTH": "Financial Health & Profitability",
+    "MARGIN_FINANCIAL_HEALTH_HINT": "Live tracking of recipe cost and gross margin",
+    "MARGIN_RATE": "Margin rate",
+    "MARGIN_GROSS_MARGIN": "Gross margin",
+    "MARGIN_COGS_TODAY": "Today's Cost of Goods (COGS)",
+    "MARGIN_COGS_HINT": "Total cost of ingredients consumed",
+    "MARGIN_GROSS_MARGIN_TODAY": "Today's Gross Margin",
+    "MARGIN_AVERAGE_MARGIN_RATE": "Average Margin Rate",
+    "MARGIN_STATUS_OPTIMAL": "Optimal (≥ {{rate}}%)",
+    "MARGIN_STATUS_MEDIUM": "Moderate",
+    "MARGIN_STATUS_CRITICAL": "Critical"
   },
   "PRICING": {
     "HAPPY_HOUR_BADGE": "Happy Hour",
@@ -2896,5 +3061,11 @@
     "OFFER_HW_F3": "Onboarding assistance and remote setup support",
     "CONTACT_TITLE": "Contact the Author for Licensing",
     "CONTACT_DESC": "For commercial license quotes, custom integrations, or partnerships:"
+  },
+  "SCHEDULE": {
+    "TITLE": "Weekly Schedule"
+  },
+  "MESSAGES": {
+    "ORDER_CREATED": "Order created successfully"
   }
 }

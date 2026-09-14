@@ -54,7 +54,7 @@ describe('CocktailListComponent', () => {
     wsCocktailDeleteSubject = new Subject<any>();
 
     serviceSpy = jasmine.createSpyObj('CocktailService', ['getAll', 'toggleDisponibilite', 'delete', 'getFacets']);
-    serviceSpy.getAll.and.returnValue(of(mockCocktails));
+    serviceSpy.getAll.and.callFake(() => of(mockCocktails.map(c => ({ ...c }))));
     serviceSpy.toggleDisponibilite.and.returnValue(of({ ...mockCocktails[0], disponible: false } as any));
     serviceSpy.delete.and.returnValue(of(undefined as any));
     serviceSpy.getFacets.and.returnValue(of(null as any));
@@ -468,5 +468,65 @@ describe('CocktailListComponent', () => {
     expect(allergens).not.toContain('LAIT');
     expect(allergens).not.toContain('OEUF');
   });
+
+  // --- Unavailable badge and card state ---
+
+  it('renders critical unavailable badge only on unavailable cocktails', fakeAsync(() => {
+    component.charger();
+    tick();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const unavailableCard = compiled.querySelector('[data-testid="cocktail-card-2"]');
+    const availableCard = compiled.querySelector('[data-testid="cocktail-card-1"]');
+
+    expect(unavailableCard).toBeTruthy();
+    expect(unavailableCard?.classList.contains('unavailable')).toBeTrue();
+
+    const unavailableBadge = unavailableCard?.querySelector('[data-testid="badge-cocktail-unavailable"]');
+    expect(unavailableBadge).toBeTruthy();
+    expect(unavailableBadge?.classList.contains('critical')).toBeTrue();
+
+    expect(availableCard).toBeTruthy();
+    expect(availableCard?.classList.contains('unavailable')).toBeFalse();
+    expect(availableCard?.querySelector('[data-testid="badge-cocktail-unavailable"]')).toBeNull();
+  }));
+
+  // --- Available only button toggle ---
+
+  it('toggleAvailableOnly() toggles filtre between disponibles and tous', () => {
+    expect(component.filtre).toBe('tous');
+    component.toggleAvailableOnly();
+    expect(component.filtre).toBe('disponibles');
+    component.toggleAvailableOnly();
+    expect(component.filtre).toBe('tous');
+  });
+
+  it('renders available-only button and toggles filter on click', fakeAsync(() => {
+    component.charger();
+    tick();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const toggleBtn = compiled.querySelector('[data-testid="available-only-toggle"]') as HTMLButtonElement;
+    expect(toggleBtn).toBeTruthy();
+    expect(toggleBtn.classList.contains('active')).toBeFalse();
+    expect(toggleBtn.querySelector('ion-icon')).toBeTruthy();
+
+    toggleBtn.click();
+    fixture.detectChanges();
+
+    expect(component.filtre).toBe('disponibles');
+    expect(toggleBtn.classList.contains('active')).toBeTrue();
+    expect(toggleBtn.querySelector('ion-icon')).toBeTruthy();
+    expect(component.filteredCocktails.every(c => c.disponible)).toBeTrue();
+
+    toggleBtn.click();
+    fixture.detectChanges();
+
+    expect(component.filtre).toBe('tous');
+    expect(toggleBtn.classList.contains('active')).toBeFalse();
+    expect(component.filteredCocktails).toHaveSize(2);
+  }));
 });
 

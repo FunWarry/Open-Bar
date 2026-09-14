@@ -40,6 +40,16 @@
         </app-action-button>
 
         <app-action-button
+          variant="secondary"
+          icon="download-outline"
+          (btnClick)="exportFacturesCsv()"
+          [title]="t('FACTURES.ACTIONS.EXPORT_CSV')"
+          testId="factures-export-csv-btn"
+          data-testid="factures-export-csv-btn">
+          {{ t('FACTURES.ACTIONS.EXPORT_CSV') }}
+        </app-action-button>
+
+        <app-action-button
           variant="primary"
           icon="stats-chart-outline"
           (btnClick)="goToRecap()"

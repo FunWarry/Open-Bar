@@ -36,7 +36,8 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
           if (
             error instanceof HttpErrorResponse &&
             error.status === 401 &&
-            !req.url.includes('/api/auth/')
+            !req.url.includes('/api/auth/') &&
+            token
           ) {
             return handleRefresh(req, next, store, authService, http);
           }

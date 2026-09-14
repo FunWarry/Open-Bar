@@ -233,6 +233,8 @@ CREATE TABLE IF NOT EXISTS table_sessions (
     table_id BIGINT NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
     session_token VARCHAR(64) NOT NULL UNIQUE,
     status VARCHAR(20) NOT NULL,
+    owner_guest_session_id VARCHAR(64),
+    owner_guest_name VARCHAR(100),
     opened_at TIMESTAMP NOT NULL,
     last_activity_at TIMESTAMP NOT NULL,
     expires_at TIMESTAMP NOT NULL,
@@ -242,6 +244,19 @@ CREATE TABLE IF NOT EXISTS table_sessions (
 
 CREATE INDEX IF NOT EXISTS idx_table_sessions_token ON table_sessions(session_token);
 CREATE INDEX IF NOT EXISTS idx_table_sessions_table_status ON table_sessions(table_id, status);
+
+CREATE TABLE IF NOT EXISTS table_join_requests (
+    id BIGSERIAL PRIMARY KEY,
+    table_id BIGINT NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+    applicant_session_id VARCHAR(64) NOT NULL,
+    applicant_name VARCHAR(100) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_table_join_requests_table_status ON table_join_requests(table_id, status);
+CREATE INDEX IF NOT EXISTS idx_table_join_requests_applicant ON table_join_requests(table_id, applicant_session_id);
 
 CREATE TABLE IF NOT EXISTS table_cart_items (
     id BIGSERIAL PRIMARY KEY,
@@ -344,12 +359,16 @@ CREATE TABLE IF NOT EXISTS facture_items (
     price_ht DECIMAL(10,2),
     vat_rate VARCHAR(20) DEFAULT 'TWENTY',
     vat_amount DECIMAL(10,2),
+    notes TEXT,
+    guest_name VARCHAR(100),
     commande_item_id BIGINT REFERENCES commande_items(id) ON DELETE SET NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_facture_items_facture_id ON facture_items(facture_id);
+ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS guest_name VARCHAR(100);
 
 CREATE TABLE IF NOT EXISTS facture_reglements (
     id BIGSERIAL PRIMARY KEY,
@@ -422,6 +441,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
     cash_desk_printer_ip VARCHAR(100),
     printer_port INTEGER DEFAULT 9100,
     direct_printing_enabled BOOLEAN DEFAULT false,
+    cash_denominations_json TEXT,
     updated_at TIMESTAMP
 );
 

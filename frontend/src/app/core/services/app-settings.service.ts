@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AppSettings, AppSettingsUpdateRequest } from '../models/app-settings.model';
+import { CashDenomination, getDefaultDenominationsForCurrency } from '../models/cash-denomination.model';
 import { WebSocketService } from './websocket.service';
 
 /**
@@ -53,6 +54,28 @@ export class AppSettingsService {
   /** Current warning gross profit margin threshold percentage (default: 50.0). */
   get warningGrossMarginPercentage(): number {
     return this.currentSettings?.warningGrossMarginPercentage ?? 50.0;
+  }
+
+  /**
+   * Retrieves the physical cash drawer denominations configured for the establishment.
+   * If a custom JSON configuration is stored in settings, parses and returns it.
+   * Otherwise, generates the standard default denominations for the configured currency.
+   *
+   * @returns Array of cash denominations sorted by descending value
+   */
+  getCashDenominations(): CashDenomination[] {
+    const json = this.currentSettings?.cashDenominationsJson;
+    if (json && typeof json === 'string' && json.trim().length > 0) {
+      try {
+        const parsed = JSON.parse(json);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch (err) {
+        console.warn('Failed to parse cashDenominationsJson, falling back to defaults:', err);
+      }
+    }
+    return getDefaultDenominationsForCurrency(this.currencyCode, this.currencySymbol, this.currencyPosition);
   }
 
   /**

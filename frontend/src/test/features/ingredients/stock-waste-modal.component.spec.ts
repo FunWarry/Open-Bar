@@ -7,6 +7,8 @@ import { StockWasteModalComponent } from '../../../app/features/ingredients/stoc
 import { StockWasteService } from '../../../app/core/services/stock-waste.service';
 import { IngredientService } from '../../../app/core/services/ingredient.service';
 import { Ingredient } from '../../../app/core/models/ingredient.model';
+import { CsvExportService } from '../../../app/core/services/csv-export.service';
+import { StockMovement } from '../../../app/core/models/stock-waste.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('StockWasteModalComponent', () => {
@@ -16,6 +18,7 @@ describe('StockWasteModalComponent', () => {
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let stockWasteServiceSpy: jasmine.SpyObj<StockWasteService>;
   let ingredientServiceSpy: jasmine.SpyObj<IngredientService>;
+  let csvExportServiceSpy: jasmine.SpyObj<CsvExportService>;
 
   const mockIngredient: Ingredient = {
     id: 10,
@@ -51,9 +54,12 @@ describe('StockWasteModalComponent', () => {
     toastElementSpy.present.and.returnValue(Promise.resolve());
     toastCtrlSpy.create.and.returnValue(Promise.resolve(toastElementSpy));
 
-    stockWasteServiceSpy = jasmine.createSpyObj('StockWasteService', ['recordWaste']);
+    stockWasteServiceSpy = jasmine.createSpyObj('StockWasteService', ['recordWaste', 'getMovements', 'getWasteMovementCsvColumns']);
+    stockWasteServiceSpy.getWasteMovementCsvColumns.and.returnValue([]);
+    stockWasteServiceSpy.getMovements.and.returnValue(of([]));
     ingredientServiceSpy = jasmine.createSpyObj('IngredientService', ['getAll']);
     ingredientServiceSpy.getAll.and.returnValue(of(mockIngredientList));
+    csvExportServiceSpy = jasmine.createSpyObj('CsvExportService', ['exportTable']);
 
     await TestBed.configureTestingModule({
       imports: [
@@ -66,7 +72,8 @@ describe('StockWasteModalComponent', () => {
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: StockWasteService, useValue: stockWasteServiceSpy },
-        { provide: IngredientService, useValue: ingredientServiceSpy }
+        { provide: IngredientService, useValue: ingredientServiceSpy },
+        { provide: CsvExportService, useValue: csvExportServiceSpy }
       ]
     }).compileComponents();
   });
@@ -280,6 +287,65 @@ describe('StockWasteModalComponent', () => {
       component.onIngredientChange(20);
       expect(component.selectedIngredientId).toBe(20);
       expect(component.selectedIngredient?.nom).toBe('Menthe Fraîche');
+    });
+
+    it('exportWasteHistoryCsv should export movements when data is available', () => {
+      setupComponent({ ingredient: mockIngredient });
+      const mockMovements: StockMovement[] = [
+        {
+          id: 1,
+          ingredientId: 10,
+          ingredientNom: 'Rhum Blanc',
+          quantity: 2,
+          unit: 'cl',
+          reason: 'CASSE',
+          notes: 'Bottle broke',
+          cost: 12.5,
+          recordedAt: '2026-09-14T12:00:00Z',
+          reportedById: 1,
+          reportedByUsername: 'Manager'
+        }
+      ];
+      stockWasteServiceSpy.getMovements.and.returnValue(of(mockMovements));
+
+      component.exportWasteHistoryCsv();
+
+      expect(stockWasteServiceSpy.getMovements).toHaveBeenCalledWith(10);
+      expect(csvExportServiceSpy.exportTable).toHaveBeenCalledWith(
+        mockMovements,
+        jasmine.any(Array),
+        'pertes_stock_historique'
+      );
+    });
+
+    it('exportWasteHistoryCsv should present warning toast when no movements are found', () => {
+      setupComponent({ ingredient: mockIngredient });
+      stockWasteServiceSpy.getMovements.and.returnValue(of([]));
+
+      component.exportWasteHistoryCsv();
+
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(
+        jasmine.objectContaining({ color: 'warning' })
+      );
+      expect(csvExportServiceSpy.exportTable).not.toHaveBeenCalled();
+    });
+
+    it('exportWasteHistoryCsv should fallback to preselectedIngredientId or selectedIngredientId when ingredient is not set', () => {
+      setupComponent();
+      component.preselectedIngredientId = 42;
+      stockWasteServiceSpy.getMovements.and.returnValue(of([]));
+
+      component.exportWasteHistoryCsv();
+      expect(stockWasteServiceSpy.getMovements).toHaveBeenCalledWith(42);
+
+      component.preselectedIngredientId = undefined as any;
+      component.selectedIngredientId = 99;
+      component.exportWasteHistoryCsv();
+      expect(stockWasteServiceSpy.getMovements).toHaveBeenCalledWith(99);
+
+      component.selectedIngredientId = undefined as any;
+      component.exportWasteHistoryCsv();
+      expect(stockWasteServiceSpy.getMovements).toHaveBeenCalledWith(undefined);
     });
   });
 });

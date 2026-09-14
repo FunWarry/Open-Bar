@@ -19,6 +19,8 @@ public class FactureReglement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "facture_id", nullable = false)
     private Facture facture;

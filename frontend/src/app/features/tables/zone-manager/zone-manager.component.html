@@ -1,54 +1,57 @@
 <ion-header class="ion-no-border modal-custom-header">
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button class="modal-close-icon-btn" (click)="onClose()" (onKeyUp)="onClose()" (keydown.enter)="onClose()" data-testid="zone-close-btn">
-        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-
-    <div class="modal-header-titles">
-      <h2 class="modal-main-title">{{ 'ZONE_MANAGER.TITLE' | transloco }}</h2>
-      <p class="modal-sub-title">{{ 'ZONE_MANAGER.SUBTITLE' | transloco }}</p>
+    <div class="header-main-group" slot="start">
+      <div class="modal-avatar-badge">
+        <ion-icon name="layers-outline"></ion-icon>
+      </div>
+      <div class="modal-header-titles">
+        <h2 class="modal-main-title">{{ 'ZONE_MANAGER.TITLE' | transloco }}</h2>
+        <p class="modal-sub-title">{{ 'ZONE_MANAGER.SUBTITLE' | transloco }}</p>
+      </div>
     </div>
 
-    <ion-buttons slot="end">
+    <ion-buttons slot="end" class="header-actions">
       @if (activeTab === 'zones') {
-        <ion-button
-          class="modal-action-cta-btn"
-          [class.is-active]="showAddForm"
-          fill="solid"
-          (click)="toggleAddForm()"
-          (onKeyUp)="toggleAddForm()"
-          (keydown.enter)="toggleAddForm()"
-          data-testid="zone-add-btn">
-          <ion-icon slot="start" [name]="showAddForm ? 'close' : 'add'"></ion-icon>
-          <span>{{ showAddForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ZONE' | transloco) }}</span>
-        </ion-button>
+        <app-action-button
+          [variant]="showAddForm ? 'secondary' : 'primary'"
+          [icon]="showAddForm ? 'close' : 'add'"
+          size="small"
+          testId="zone-add-btn"
+          (btnClick)="toggleAddForm()">
+          {{ showAddForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ZONE' | transloco) }}
+        </app-action-button>
       } @else {
-        <ion-button
-          class="modal-action-cta-btn"
-          [class.is-active]="showAddEtageForm"
-          fill="solid"
-          (click)="toggleAddEtageForm()"
-          (onKeyUp)="toggleAddEtageForm()"
-          (keydown.enter)="toggleAddEtageForm()"
-          data-testid="etage-add-btn">
-          <ion-icon slot="start" [name]="showAddEtageForm ? 'close' : 'add'"></ion-icon>
-          <span>{{ showAddEtageForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ETAGE' | transloco) }}</span>
-        </ion-button>
+        <app-action-button
+          [variant]="showAddEtageForm ? 'secondary' : 'primary'"
+          [icon]="showAddEtageForm ? 'close' : 'add'"
+          size="small"
+          testId="etage-add-btn"
+          (btnClick)="toggleAddEtageForm()">
+          {{ showAddEtageForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ETAGE' | transloco) }}
+        </app-action-button>
       }
+
+      <button
+        type="button"
+        class="modal-close-btn"
+        (click)="onClose()"
+        (keyup.enter)="onClose()"
+        data-testid="zone-close-btn"
+        [attr.aria-label]="'COMMON.CLOSE' | transloco">
+        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      </button>
     </ion-buttons>
   </ion-toolbar>
 
   <!-- Segment Tab Navigation -->
   <div class="modal-segment-nav">
     <ion-segment [value]="activeTab" (ionChange)="onTabChange($event)" data-testid="zone-manager-segment">
-      <ion-segment-button value="zones" data-testid="tab-zones">
+      <ion-segment-button value="zones" layout="icon-start" data-testid="tab-zones">
         <ion-icon name="location-outline"></ion-icon>
         <ion-label>{{ 'ZONE_MANAGER.TABS.ZONES' | transloco }}</ion-label>
         <span class="tab-count-pill">{{ zones.length }}</span>
       </ion-segment-button>
-      <ion-segment-button value="etages" data-testid="tab-etages">
+      <ion-segment-button value="etages" layout="icon-start" data-testid="tab-etages">
         <ion-icon name="business-outline"></ion-icon>
         <ion-label>{{ 'ZONE_MANAGER.TABS.ETAGES' | transloco }}</ion-label>
         <span class="tab-count-pill">{{ etages.length }}</span>
@@ -133,13 +136,12 @@
             </div>
 
             <div class="form-drawer-actions">
-              <ion-button fill="outline" class="btn-cancel" type="button" (click)="resetForm()" (onKeyUp)="resetForm()" (keydown.enter)="resetForm()">
+              <app-action-button variant="secondary" type="button" (btnClick)="resetForm()">
                 {{ 'ZONE_MANAGER.CANCEL' | transloco }}
-              </ion-button>
-              <ion-button class="btn-submit" type="submit" [disabled]="zoneForm.invalid" data-testid="zone-submit-btn">
-                <ion-icon slot="start" name="checkmark-circle"></ion-icon>
+              </app-action-button>
+              <app-action-button variant="primary" type="submit" [disabled]="zoneForm.invalid" testId="zone-submit-btn" icon="checkmark-circle">
                 {{ editingZoneId !== null ? ('ZONE_MANAGER.SAVE' | transloco) : ('ZONE_MANAGER.CREATE' | transloco) }}
-              </ion-button>
+              </app-action-button>
             </div>
           </form>
         </div>
@@ -157,10 +159,9 @@
               <ion-icon name="location-outline"></ion-icon>
             </div>
             <h4 class="empty-state-title">{{ 'ZONE_MANAGER.NO_ZONES' | transloco }}</h4>
-            <ion-button class="empty-cta-btn" fill="solid" (click)="toggleAddForm()" (onKeyUp)="toggleAddForm()" (keydown.enter)="toggleAddForm()">
-              <ion-icon slot="start" name="add"></ion-icon>
+            <app-action-button variant="primary" icon="add" (btnClick)="toggleAddForm()">
               {{ 'ZONE_MANAGER.NEW_ZONE' | transloco }}
-            </ion-button>
+            </app-action-button>
           </div>
         } @else {
           <div class="cards-grid">
@@ -255,13 +256,12 @@
             </div>
 
             <div class="form-drawer-actions">
-              <ion-button fill="outline" class="btn-cancel" type="button" (click)="resetEtageForm()" (onKeyUp)="resetEtageForm()" (keydown.enter)="resetEtageForm()">
+              <app-action-button variant="secondary" type="button" (btnClick)="resetEtageForm()">
                 {{ 'ZONE_MANAGER.CANCEL' | transloco }}
-              </ion-button>
-              <ion-button class="btn-submit" type="submit" [disabled]="etageForm.invalid" data-testid="etage-submit-btn">
-                <ion-icon slot="start" name="checkmark-circle"></ion-icon>
+              </app-action-button>
+              <app-action-button variant="primary" type="submit" [disabled]="etageForm.invalid" testId="etage-submit-btn" icon="checkmark-circle">
                 {{ editingEtageId !== null ? ('ZONE_MANAGER.SAVE' | transloco) : ('ZONE_MANAGER.CREATE' | transloco) }}
-              </ion-button>
+              </app-action-button>
             </div>
           </form>
         </div>
@@ -279,10 +279,9 @@
               <ion-icon name="business-outline"></ion-icon>
             </div>
             <h4 class="empty-state-title">{{ 'ZONE_MANAGER.NO_ETAGES' | transloco }}</h4>
-            <ion-button class="empty-cta-btn" fill="solid" (click)="toggleAddEtageForm()" (onKeyUp)="toggleAddEtageForm()" (keydown.enter)="toggleAddEtageForm()">
-              <ion-icon slot="start" name="add"></ion-icon>
+            <app-action-button variant="primary" icon="add" (btnClick)="toggleAddEtageForm()">
               {{ 'ZONE_MANAGER.NEW_ETAGE' | transloco }}
-            </ion-button>
+            </app-action-button>
           </div>
         } @else {
           <div class="cards-grid">

@@ -47,6 +47,10 @@ describe('Shared UI Components (Figma Design System)', () => {
       component.variant = 'secondary';
       expect(component.fillAttr).toBe('outline');
 
+      component.variant = 'warning';
+      expect(component.colorAttr).toBe('warning');
+      expect(component.fillAttr).toBe('outline');
+
       component.variant = 'edit';
       expect(component.fillAttr).toBe('outline');
     });
@@ -515,6 +519,20 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.removeClick.emit).toHaveBeenCalled();
     });
 
+    it('should emit cardClick when card is activated and stop propagation on quantity stepper', () => {
+      spyOn(component.cardClick, 'emit');
+      const fakeEvent = jasmine.createSpyObj('Event', ['stopPropagation']);
+
+      component.onCardClick();
+      expect(component.cardClick.emit).toHaveBeenCalled();
+
+      component.onAdd(fakeEvent);
+      expect(fakeEvent.stopPropagation).toHaveBeenCalled();
+
+      component.onRemove(fakeEvent);
+      expect(fakeEvent.stopPropagation).toHaveBeenCalled();
+    });
+
     it('should resolve relative /uploads/ URLs properly and keep absolute URLs untouched', () => {
       expect(component.resolveImageUrl('')).toBe('');
       expect(component.resolveImageUrl(undefined)).toBe('');
@@ -534,6 +552,26 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.isVegan).toBeTrue();
       expect(component.isGlutenFree).toBeTrue();
       expect(component.alcoholLevel).toBe(12);
+    });
+
+    it('should render category badge with dot indicator and correct colors', () => {
+      component.category = 'SANS_ALCOOL';
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const badge = compiled.querySelector('[data-testid="product-category-badge"]');
+      expect(badge).toBeTruthy();
+
+      expect(component.getCategoryDotColor('SANS_ALCOOL')).toBe('var(--types-nonalcoholic)');
+      expect(component.getCategoryDotColor('ALCOOLISE')).toBe('var(--types-alcoholic)');
+      expect(component.getCategoryDotColor('SHOT')).toBe('var(--types-shot)');
+      expect(component.getCategoryDotColor('APERITIF')).toBe('var(--semantic-warning)');
+      expect(component.getCategoryDotColor('DIGESTIF')).toBe('var(--semantic-danger)');
+      expect(component.getCategoryDotColor('SPECIAL')).toBe('var(--types-cocktail)');
+      expect(component.getCategoryDotColor('OTHER')).toBe('var(--primary)');
+
+      const style = component.getCategoryPillStyle('SANS_ALCOOL');
+      expect(style['background-color']).toContain('var(--background-surface-2');
     });
   });
 });

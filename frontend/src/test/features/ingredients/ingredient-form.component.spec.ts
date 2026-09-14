@@ -4,7 +4,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController, ModalController } from '@ionic/angular/standalone';
 import { IonicModule } from '@ionic/angular';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { IngredientFormComponent } from '../../../app/features/ingredients/ingredient-form/ingredient-form.component';
 import { IngredientService } from '../../../app/core/services/ingredient.service';
 
@@ -185,6 +185,42 @@ describe('IngredientFormComponent', () => {
     it('onCancel() calls dismiss on modalCtrl in edit mode', async () => {
       await component.onCancel();
       expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null, 'cancel');
+    });
+  });
+
+  describe('redirects to /404 on invalid or not found id', () => {
+    it('redirects to /404 when id in route is not a number', () => {
+      createComponent({ snapshot: { params: { id: 'invalid-id' } } });
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+
+    it('redirects to /404 when getById returns an error', () => {
+      routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+      toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+      modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
+      ingredientServiceSpy = jasmine.createSpyObj('IngredientService', ['getById', 'create', 'update']);
+      ingredientServiceSpy.getById.and.returnValue(throwError(() => new Error('Not found')));
+
+      TestBed.configureTestingModule({
+        imports: [
+          IngredientFormComponent,
+          ReactiveFormsModule,
+          RouterTestingModule,
+          getTranslocoTestingModule(),
+          IonicModule.forRoot()
+        ],
+        providers: [
+          { provide: Router, useValue: routerSpy },
+          { provide: ActivatedRoute, useValue: activatedRouteStubWithId },
+          { provide: IngredientService, useValue: ingredientServiceSpy },
+          { provide: ToastController, useValue: toastCtrlSpy },
+          { provide: ModalController, useValue: modalCtrlSpy },
+        ]
+      });
+
+      const fixture = TestBed.createComponent(IngredientFormComponent);
+      fixture.detectChanges();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
     });
   });
 

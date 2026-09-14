@@ -154,4 +154,34 @@ public class PublicTableCartController {
         PublicCommandeResponseDTO order = tableCartService.submitCart(tableId, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(order);
     }
+
+    /**
+     * Retrieves all active unpaid orders and cumulative bill summary for a table.
+     *
+     * @param tableId Table identifier
+     * @return Table orders and bill summary
+     */
+    @GetMapping("/orders")
+    @Operation(summary = "Get table orders history and running bill", description = "Retrieves all active orders placed for this table session along with cumulative total.")
+    @ApiResponse(responseCode = "200", description = "Table orders summary returned")
+    public ResponseEntity<TableOrdersSummaryResponseDTO> getTableOrders(
+            @Parameter(description = "Table identifier", example = "5") @PathVariable Long tableId) {
+        TableOrdersSummaryResponseDTO summary = tableCartService.getTableOrdersSummary(tableId);
+        return ResponseEntity.ok(summary);
+    }
+
+    /**
+     * Finalizes the 2-minute grouping grace window immediately without waiting for the timer to expire.
+     *
+     * @param tableId Table identifier
+     * @return Fresh open table cart state
+     */
+    @PostMapping("/finalize-grace")
+    @Operation(summary = "Finalize 2-minute grouping window immediately", description = "Closes grouping timer immediately and dispatches round.")
+    @ApiResponse(responseCode = "200", description = "Grace period finalized")
+    public ResponseEntity<TableCartResponseDTO> finalizeGrace(
+            @Parameter(description = "Table identifier", example = "5") @PathVariable Long tableId) {
+        TableCartResponseDTO cart = tableCartService.finalizeGracePeriod(tableId);
+        return ResponseEntity.ok(cart);
+    }
 }

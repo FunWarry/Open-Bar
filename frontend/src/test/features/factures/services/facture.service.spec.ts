@@ -223,4 +223,26 @@ describe('FactureService', () => {
     expect(req.request.method).toBe('GET');
     req.flush(mockReglements);
   });
+
+  it('splitParMontants() calls POST /api/factures/:id/split/montants', () => {
+    const parts = [{ nomConvive: 'Alice', montant: 25.0 }];
+    service.splitParMontants(1, parts).subscribe((res: SplitResultDTO[]) => {
+      expect(res).toEqual([mockSplitResult]);
+    });
+    const req = httpMock.expectOne(`${baseUrl}/1/split/montants`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ parts });
+    req.flush([mockSplitResult]);
+  });
+
+  it('splitParPourcentages() calls POST /api/factures/:id/split/pourcentages', () => {
+    const parts = [{ nomConvive: 'Alice', pourcentage: 100.0 }];
+    service.splitParPourcentages(1, parts).subscribe((res: SplitResultDTO[]) => {
+      expect(res).toEqual([mockSplitResult]);
+    });
+    const req = httpMock.expectOne(`${baseUrl}/1/split/pourcentages`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ parts });
+    req.flush([mockSplitResult]);
+  });
 });

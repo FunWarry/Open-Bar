@@ -4,21 +4,23 @@ import com.bar.gestioncocktail.dto.*;
 import com.bar.gestioncocktail.event.TableLiberatedEvent;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
-import com.bar.gestioncocktail.model.Cocktail;
-import com.bar.gestioncocktail.model.CocktailVariante;
-import com.bar.gestioncocktail.model.TableCartItem;
+import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.CocktailRepository;
 import com.bar.gestioncocktail.repository.CocktailVarianteRepository;
+import com.bar.gestioncocktail.repository.CommandeRepository;
+import com.bar.gestioncocktail.repository.TableAppelRepository;
 import com.bar.gestioncocktail.repository.TableCartItemRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +46,8 @@ public class TableCartService {
     private final PublicCommandeService publicCommandeService;
     private final SimpMessagingTemplate messagingTemplate;
     private final TimeService timeService;
+    private final CommandeRepository commandeRepository;
+    private final TableAppelRepository tableAppelRepository;
 
     /**
      * Constructs the table cart service with all required dependencies.
@@ -55,7 +59,10 @@ public class TableCartService {
      * @param publicCommandeService Public order service for consolidated submission
      * @param messagingTemplate STOMP messaging template for real-time broadcasts
      * @param timeService Application time service
+     * @param commandeRepository Repository for order queries and updates
+     * @param tableAppelRepository Repository for waiter and bill alerts
      */
+    @Autowired
     public TableCartService(
             TableCartItemRepository tableCartItemRepository,
             TableRepository tableRepository,
@@ -63,7 +70,9 @@ public class TableCartService {
             CocktailVarianteRepository varianteRepository,
             PublicCommandeService publicCommandeService,
             SimpMessagingTemplate messagingTemplate,
-            TimeService timeService) {
+            TimeService timeService,
+            CommandeRepository commandeRepository,
+            TableAppelRepository tableAppelRepository) {
         this.tableCartItemRepository = tableCartItemRepository;
         this.tableRepository = tableRepository;
         this.cocktailRepository = cocktailRepository;
@@ -71,6 +80,8 @@ public class TableCartService {
         this.publicCommandeService = publicCommandeService;
         this.messagingTemplate = messagingTemplate;
         this.timeService = timeService;
+        this.commandeRepository = commandeRepository;
+        this.tableAppelRepository = tableAppelRepository;
     }
 
     /**
@@ -219,16 +230,17 @@ public class TableCartService {
     }
 
     /**
-     * Consolidates all items in the collaborative table cart into an official order dispatched to the bar.
+     * Consolidates all items in the collaborative table cart into an official order dispatched to the bar,
+     * grouping with an existing order if placed within the 2-minute grace window.
      *
      * @param tableId Table identifier
      * @param dto Submission request payload
-     * @return Created public order response DTO
+     * @return Created or merged public order response DTO
      */
     public PublicCommandeResponseDTO submitCart(Long tableId, TableCartSubmitRequestDTO dto) {
-        validateTableExists(tableId);
+        TableEntity table = resolveTable(tableId);
 
-        List<TableCartItem> items = tableCartItemRepository.findByTableIdOrderByCreatedAtAsc(tableId);
+        List<TableCartItem> items = tableCartItemRepository.findByTableIdOrderByCreatedAtAsc(table.getId());
         if (items.isEmpty()) {
             throw new BusinessException("Cannot submit order: table cart is empty");
         }
@@ -247,34 +259,194 @@ public class TableCartService {
             orderItems.add(orderItem);
         }
 
-        PublicCommandeRequestDTO orderRequest = new PublicCommandeRequestDTO();
-        orderRequest.setTableId(tableId);
-        orderRequest.setItems(orderItems);
-        orderRequest.setNotes(dto.getNotes());
-        orderRequest.setSessionToken(dto.getSessionToken());
+        LocalDateTime now = timeService.now();
+        PublicCommandeResponseDTO orderResult;
+        LocalDateTime dispatchAt;
 
-        PublicCommandeResponseDTO createdOrder = publicCommandeService.creerCommandePublique(orderRequest);
+        // Check if there is an existing pending order on this table created within the 2-minute grouping grace window
+        Optional<Commande> optExistingOrder = findActiveGracePeriodOrder(table, now);
 
-        tableCartItemRepository.deleteByTableId(tableId);
+        if (optExistingOrder.isPresent() && publicCommandeService != null) {
+            Commande existing = optExistingOrder.get();
+            orderResult = publicCommandeService.ajouterArticlesACommande(existing.getId(), orderItems);
+            dispatchAt = existing.getDateCommande().plusSeconds(120);
+            log.info("Merged {} items into existing pending order #{} for table {} within 2-min grace period",
+                    orderItems.size(), existing.getId(), table.getId());
+        } else {
+            PublicCommandeRequestDTO orderRequest = new PublicCommandeRequestDTO();
+            orderRequest.setTableId(table.getId());
+            orderRequest.setItems(orderItems);
+            orderRequest.setNotes(dto.getNotes());
+            orderRequest.setSessionToken(dto.getSessionToken());
+
+            orderResult = publicCommandeService.creerCommandePublique(orderRequest);
+            dispatchAt = now.plusSeconds(120);
+            log.info("Created new collaborative order #{} for table {} with 2-min grouping timer",
+                    orderResult.getCommandeId(), table.getId());
+        }
+
+        tableCartItemRepository.deleteByTableId(table.getId());
+
+        java.time.ZoneId zone = java.time.ZoneId.systemDefault();
+        long diffSeconds = dispatchAt.atZone(zone).toEpochSecond() - now.atZone(zone).toEpochSecond();
+        int remainingSeconds = (int) Math.max(0, diffSeconds);
 
         TableCartResponseDTO submittedNotification = new TableCartResponseDTO(
-                tableId,
+                table.getId(),
                 "SUBMITTED",
                 List.of(),
                 0,
                 BigDecimal.ZERO,
-                createdOrder.getCommandeId(),
-                createdOrder.getTrackingToken(),
+                orderResult.getCommandeId(),
+                orderResult.getTrackingToken(),
                 dto.getGuestName(),
-                timeService.now()
+                now,
+                dispatchAt,
+                remainingSeconds
         );
-        broadcastCart(tableId, submittedNotification);
+        broadcastCart(table.getId(), submittedNotification);
+        broadcastTableOrders(table.getId());
 
-        log.info("Successfully submitted collaborative order #{} for table {}",
-                createdOrder.getCommandeId(), tableId);
+        return orderResult;
+    }
 
+    /**
+     * Finalizes the 2-minute grouping grace period immediately upon guest or host request.
+     *
+     * @param tableId Table identifier
+     * @return Fresh open table cart state
+     */
+    public TableCartResponseDTO finalizeGracePeriod(Long tableId) {
+        TableEntity table = resolveTable(tableId);
+        LocalDateTime now = timeService.now();
+        TableCartResponseDTO cart = new TableCartResponseDTO(
+                table.getId(),
+                "OPEN",
+                List.of(),
+                0,
+                BigDecimal.ZERO,
+                null,
+                null,
+                null,
+                now,
+                null,
+                0
+        );
+        broadcastCart(table.getId(), cart);
+        broadcastTableOrders(table.getId());
+        log.info("Finalized 2-minute grouping grace period immediately for table {}", table.getId());
+        return cart;
+    }
 
-        return createdOrder;
+    /**
+     * Summarizes all active and past orders placed on a table and computes running cumulative total
+     * until the table's final invoice settlement.
+     *
+     * @param tableId Table identifier or table number
+     * @return Table orders summary DTO
+     */
+    @Transactional(readOnly = true)
+    public TableOrdersSummaryResponseDTO getTableOrdersSummary(Long tableId) {
+        TableEntity table = resolveTable(tableId);
+        return doGetTableOrdersSummary(table);
+    }
+
+    /**
+     * Broadcasts updated table orders summary to connected patrons.
+     *
+     * @param tableId Table identifier
+     */
+    public void broadcastTableOrders(Long tableId) {
+        if (messagingTemplate != null && tableId != null) {
+            try {
+                TableEntity table = resolveTable(tableId);
+                TableOrdersSummaryResponseDTO summary = doGetTableOrdersSummary(table);
+                messagingTemplate.convertAndSend("/topic/tables/" + table.getId() + "/orders", summary);
+            } catch (Exception e) {
+                log.warn("Failed to broadcast table orders summary for table {}: {}", tableId, e.getMessage());
+            }
+        }
+    }
+
+    private TableOrdersSummaryResponseDTO doGetTableOrdersSummary(TableEntity table) {
+        if (commandeRepository == null || table == null) {
+            return new TableOrdersSummaryResponseDTO(table != null ? table.getId() : null,
+                    table != null ? table.getNumero() : null, List.of(), BigDecimal.ZERO, 0, false, false);
+        }
+
+        List<Commande> unpaidOrders = commandeRepository.findByTable(table).stream()
+                .filter(c -> c.getStatut() != CommandeStatut.REGLEE && c.getStatut() != CommandeStatut.ANNULEE)
+                .sorted((c1, c2) -> {
+                    if (c1.getDateCommande() == null || c2.getDateCommande() == null) {
+                        return 0;
+                    }
+                    return c1.getDateCommande().compareTo(c2.getDateCommande());
+                })
+                .toList();
+
+        List<PublicCommandeResponseDTO> orderDtos = unpaidOrders.stream()
+                .map(cmd -> PublicCommandeResponseDTO.from(cmd, 10))
+                .toList();
+
+        BigDecimal cumulativeTotal = calculateCumulativeTotal(unpaidOrders);
+        int totalDrinks = calculateTotalDrinks(unpaidOrders);
+
+        boolean billRequested = tableAppelRepository != null
+                && tableAppelRepository.existsByTableIdAndTypeAndStatut(table.getId(), TableAppelType.ADDITION, TableAppelStatut.EN_ATTENTE);
+
+        return new TableOrdersSummaryResponseDTO(
+                table.getId(),
+                table.getNumero(),
+                orderDtos,
+                cumulativeTotal,
+                totalDrinks,
+                !unpaidOrders.isEmpty(),
+                billRequested
+        );
+    }
+
+    private BigDecimal calculateCumulativeTotal(List<Commande> orders) {
+        BigDecimal total = BigDecimal.ZERO;
+        for (Commande cmd : orders) {
+            if (cmd.getTotal() != null) {
+                total = total.add(cmd.getTotal());
+            }
+        }
+        return total;
+    }
+
+    private int calculateTotalDrinks(List<Commande> orders) {
+        int count = 0;
+        for (Commande cmd : orders) {
+            if (cmd.getItems() != null) {
+                for (var item : cmd.getItems()) {
+                    count += item.getQuantite();
+                }
+            }
+        }
+        return count;
+    }
+
+    private Optional<Commande> findActiveGracePeriodOrder(TableEntity table, LocalDateTime now) {
+        if (commandeRepository == null || table == null) {
+            return Optional.empty();
+        }
+        List<Commande> pending = commandeRepository.findByTableAndStatut(table, CommandeStatut.EN_ATTENTE);
+        if (pending.isEmpty()) {
+            return Optional.empty();
+        }
+        return pending.stream()
+                .filter(c -> c.getDateCommande() != null && c.getDateCommande().isAfter(now.minusSeconds(120)))
+                .max((c1, c2) -> c1.getDateCommande().compareTo(c2.getDateCommande()));
+    }
+
+    private TableEntity resolveTable(Long tableId) {
+        if (tableId == null) {
+            throw new BusinessException("Table ID cannot be null");
+        }
+        return tableRepository.findById(tableId)
+                .or(() -> tableRepository.findByNumero(tableId.intValue()))
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + tableId));
     }
 
     /**

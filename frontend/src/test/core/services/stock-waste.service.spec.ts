@@ -149,4 +149,68 @@ describe('StockWasteService', () => {
       req.flush(mockSummary);
     });
   });
+
+  describe('getWasteMovementCsvColumns', () => {
+    it('should return 9 columns with appropriate keys and headers', () => {
+      const columns = service.getWasteMovementCsvColumns();
+      expect(columns).toHaveSize(9);
+      expect(columns.map(c => c.key)).toEqual([
+        'id',
+        'recordedAt',
+        'ingredientNom',
+        'quantity',
+        'unit',
+        'reason',
+        'reportedByUsername',
+        'cost',
+        'notes'
+      ]);
+    });
+
+    it('should correctly format reportedByUsername with valid name or fallback to SYSTEM', () => {
+      const columns = service.getWasteMovementCsvColumns();
+      const userCol = columns.find(c => c.key === 'reportedByUsername');
+      expect(userCol?.formatter).toBeDefined();
+
+      const dummyMovement: StockMovement = {
+        id: 1,
+        ingredientId: 10,
+        ingredientNom: 'Vodka',
+        quantity: 2,
+        unit: 'cl',
+        reason: 'CASSE',
+        reportedByUsername: 'barman1',
+        cost: 1.5,
+        recordedAt: '2026-09-06T14:30:00Z'
+      };
+
+      expect(userCol!.formatter!('barman1', dummyMovement)).toBe('barman1');
+      expect(userCol!.formatter!('', dummyMovement)).toBe('SYSTEM');
+      expect(userCol!.formatter!(null, dummyMovement)).toBe('SYSTEM');
+      expect(userCol!.formatter!(undefined, dummyMovement)).toBe('SYSTEM');
+    });
+
+    it('should correctly format cost with two decimals or fallback to 0.00', () => {
+      const columns = service.getWasteMovementCsvColumns();
+      const costCol = columns.find(c => c.key === 'cost');
+      expect(costCol?.formatter).toBeDefined();
+
+      const dummyMovement: StockMovement = {
+        id: 1,
+        ingredientId: 10,
+        ingredientNom: 'Vodka',
+        quantity: 2,
+        unit: 'cl',
+        reason: 'CASSE',
+        reportedByUsername: 'barman1',
+        cost: 1.5,
+        recordedAt: '2026-09-06T14:30:00Z'
+      };
+
+      expect(costCol!.formatter!(12.5, dummyMovement)).toBe('12.50');
+      expect(costCol!.formatter!(0, dummyMovement)).toBe('0.00');
+      expect(costCol!.formatter!(null, dummyMovement)).toBe('0.00');
+      expect(costCol!.formatter!(undefined, dummyMovement)).toBe('0.00');
+    });
+  });
 });

@@ -155,7 +155,7 @@
 
     .large-amount-input {
       width: 100%;
-      padding: var(--space-3) var(--space-6) var(--space-3) var(--space-3);
+      padding: var(--space-3) 3.5rem var(--space-3) var(--space-3);
       font-size: 1.5rem;
       font-weight: 700;
       color: var(--text-primary);
@@ -176,6 +176,20 @@
       font-size: 1.3rem;
       font-weight: 600;
       color: var(--text-muted);
+    }
+
+    &.prefix-mode {
+      .large-amount-input {
+        padding: var(--space-3) var(--space-3) var(--space-3) 3.5rem;
+      }
+
+      .currency-prefix {
+        position: absolute;
+        left: var(--space-3);
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
     }
   }
 
@@ -648,16 +662,87 @@
 
 .modal-footer {
   --background: var(--background-surface-1);
+  background: var(--background-surface-1);
   border-top: 1px solid var(--border-medium);
-  padding: var(--space-3) var(--space-4);
+  padding: 16px 24px;
+  position: relative;
+  z-index: 10;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.25);
 
   .footer-actions {
     display: flex;
     align-items: center;
     width: 100%;
+    gap: 12px;
 
     .spacer {
       flex: 1;
+    }
+  }
+
+  .footer-btn {
+    --border-radius: var(--radius-md, 10px);
+    font-weight: 600;
+    font-size: 0.95rem;
+    height: 42px;
+    min-height: 42px;
+    margin: 0;
+    text-transform: none;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+    ion-icon {
+      font-size: 1.15rem;
+    }
+
+    &.prev-btn,
+    &.cancel-btn {
+      --background: var(--background-surface-2, #21263f);
+      --color: var(--text-primary, #eceefb);
+      --border-color: var(--border-medium, #2e3450);
+      --border-style: solid;
+      --border-width: 1px;
+      --box-shadow: none;
+
+      &:hover {
+        --background: var(--background-surface-3, #2a3050);
+        --border-color: var(--primary, #6c7fe8);
+        --color: #ffffff;
+      }
+    }
+
+    &.next-btn {
+      --background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong, #5a68d6) 100%);
+      --color: #ffffff;
+      --box-shadow: 0 4px 14px rgba(108, 127, 232, 0.35);
+
+      &:hover {
+        --box-shadow: 0 6px 18px rgba(108, 127, 232, 0.5);
+        filter: brightness(1.06);
+      }
+    }
+
+    &.confirm-btn {
+      --background: linear-gradient(135deg, var(--semantic-danger) 0%, #c53030 100%);
+      --color: #ffffff;
+      --box-shadow: 0 4px 14px rgba(229, 96, 79, 0.4);
+
+      &:hover {
+        filter: brightness(1.08);
+      }
+    }
+
+    &.finish-btn {
+      width: 100%;
+      --background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong, #5a68d6) 100%);
+      --color: #ffffff;
+      --box-shadow: 0 4px 14px rgba(108, 127, 232, 0.4);
+
+      &:hover {
+        --box-shadow: 0 6px 18px rgba(108, 127, 232, 0.5);
+        filter: brightness(1.06);
+      }
     }
   }
 }

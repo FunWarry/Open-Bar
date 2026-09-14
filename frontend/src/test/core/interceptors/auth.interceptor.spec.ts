@@ -97,6 +97,24 @@ describe('authInterceptor', () => {
     httpMock.expectNone(authApiUrl);
   });
 
+  it('passes through 401 errors for anonymous requests without token without attempting refresh or logout', () => {
+    setup(null, null);
+    spyOn(store, 'dispatch');
+
+    let errorCaught: HttpErrorResponse | undefined;
+    httpClient.get(apiUrl).subscribe({
+      error: (err: HttpErrorResponse) => { errorCaught = err; }
+    });
+
+    const req = httpMock.expectOne(apiUrl);
+    req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+
+    expect(errorCaught).toBeDefined();
+    expect(errorCaught!.status).toBe(401);
+    expect(store.dispatch).not.toHaveBeenCalled();
+    httpMock.expectNone(authApiUrl);
+  });
+
   // ─── Refresh token: nominal flow ────────────────────────────────────────────
 
   it('refreshes token and replays original request on 401 when refresh token is available', () => {

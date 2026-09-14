@@ -110,6 +110,32 @@ export async function setupMockApi(page: Page): Promise<void> {
       return;
     }
 
+    if (url.includes('/join-request') || url.includes('/join')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 101,
+          requestId: 101,
+          tableId: 1,
+          applicantSessionId: 'mock-applicant-session',
+          applicantName: 'Guest',
+          status: 'PENDING',
+          createdAt: new Date().toISOString(),
+        }),
+      });
+      return;
+    }
+
+    if (url.includes('/requests')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([]),
+      });
+      return;
+    }
+
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -312,6 +338,14 @@ export async function setupMockApi(page: Page): Promise<void> {
       });
       return;
     }
+    if (route.request().method() === 'PUT') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: 'Updated', count: 1 }),
+      });
+      return;
+    }
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -371,6 +405,14 @@ export async function setupMockApi(page: Page): Promise<void> {
   });
 
   await page.route('**/api/ingredients**', async (route) => {
+    if (route.request().method() === 'PUT' || route.request().method() === 'PATCH') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ id: 1, nom: 'Rhum Blanc', quantiteStock: 0, seuilAlerte: 20, uniteMesure: 'cl' }),
+      });
+      return;
+    }
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -570,7 +612,72 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
+  await page.route('**/api/factures/table/*/addition', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        tableId: 1,
+        tableNumero: 1,
+        zone: 'TERRASSE',
+        serveurId: 2,
+        serveurNom: 'Jean Dupont',
+        dateOccupation: new Date().toISOString(),
+        items: [
+          {
+            itemId: 1,
+            commandeId: 10,
+            cocktailNom: 'Mojito',
+            quantite: 2,
+            prixUnitaire: 9.0,
+            total: 18.0,
+            priceHT: 15.0,
+            vatAmount: 3.0,
+            vatRate: '20%'
+          },
+          {
+            itemId: 2,
+            commandeId: 10,
+            cocktailNom: 'Piña Colada',
+            quantite: 1,
+            prixUnitaire: 10.0,
+            total: 10.0,
+            priceHT: 8.33,
+            vatAmount: 1.67,
+            vatRate: '20%'
+          }
+        ],
+        commandeIds: [10],
+        totalHT: 23.33,
+        totalVAT: 4.67,
+        totalTTC: 28.0,
+        nombreArticles: 3,
+        hasUnpaidFacture: false
+      }),
+    });
+  });
+
+  await page.route('**/api/factures/table/*/encaisser', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 50,
+        numero: 'FAC-2026-00050',
+        tableNumero: 1,
+        totalTTC: 28.0,
+        reglee: true,
+        dateFacture: new Date().toISOString()
+      }),
+    });
+  });
+
   await page.route('**/api/factures**', async (route) => {
+    const url = route.request().url();
+    if (url.includes('/table/')) {
+      await route.fallback();
+      return;
+    }
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -786,25 +893,50 @@ export async function setupMockApi(page: Page): Promise<void> {
       return;
     }
 
-    if (url.includes('/items') && method === 'POST') {
-      const data = route.request().postDataJSON() || {};
+    if (url.includes('/orders')) {
       await route.fulfill({
-        status: 201,
+        status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          id: 101,
           tableId: 1,
-          guestSessionId: data.guestSessionId || 'guest-1',
-          guestName: data.guestName || 'Guest',
-          cocktailId: data.cocktailId || 1,
-          cocktailNom: 'Mojito',
-          cocktailPhotoUrl: null,
-          varianteNom: null,
-          quantite: data.quantite || 1,
-          notes: data.notes || null,
-          prixUnitaire: 8.5,
-          totalLigne: (data.quantite || 1) * 8.5,
-          createdAt: new Date().toISOString(),
+          tableNumero: 1,
+          orders: [],
+          totalCumulativeAmount: 0.0,
+          unsettledAmount: 0.0,
+          activeOrdersCount: 0,
+        }),
+      });
+      return;
+    }
+
+    if (url.includes('/items') && method === 'POST') {
+      const data = route.request().postDataJSON() || {};
+      const item = {
+        id: 101,
+        tableId: 1,
+        guestSessionId: data.guestSessionId || 'guest-1',
+        guestName: data.guestName || 'Alex',
+        cocktailId: data.cocktailId || 1,
+        cocktailNom: 'Mojito',
+        cocktailPhotoUrl: null,
+        varianteNom: null,
+        quantite: data.quantite || 1,
+        notes: data.notes || null,
+        prixUnitaire: 8.5,
+        totalLigne: (data.quantite || 1) * 8.5,
+        createdAt: new Date().toISOString(),
+      };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          tableId: 1,
+          status: 'OPEN',
+          items: [item],
+          totalItems: item.quantite,
+          totalPrice: item.totalLigne,
+          tableTotal: item.totalLigne,
+          updatedAt: new Date().toISOString(),
         }),
       });
       return;
@@ -812,30 +944,51 @@ export async function setupMockApi(page: Page): Promise<void> {
 
     if (url.includes('/items/') && method === 'PUT') {
       const data = route.request().postDataJSON() || {};
+      const item = {
+        id: 101,
+        tableId: 1,
+        guestSessionId: data.guestSessionId || 'guest-1',
+        guestName: 'Alex',
+        cocktailId: 1,
+        cocktailNom: 'Mojito',
+        cocktailPhotoUrl: null,
+        varianteNom: null,
+        quantite: data.quantite || 2,
+        notes: data.notes || null,
+        prixUnitaire: 8.5,
+        totalLigne: (data.quantite || 2) * 8.5,
+        createdAt: new Date().toISOString(),
+      };
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          id: 101,
           tableId: 1,
-          guestSessionId: data.guestSessionId || 'guest-1',
-          guestName: 'Guest',
-          cocktailId: 1,
-          cocktailNom: 'Mojito',
-          cocktailPhotoUrl: null,
-          varianteNom: null,
-          quantite: data.quantite || 2,
-          notes: data.notes || null,
-          prixUnitaire: 8.5,
-          totalLigne: (data.quantite || 2) * 8.5,
-          createdAt: new Date().toISOString(),
+          status: 'OPEN',
+          items: [item],
+          totalItems: item.quantite,
+          totalPrice: item.totalLigne,
+          tableTotal: item.totalLigne,
+          updatedAt: new Date().toISOString(),
         }),
       });
       return;
     }
 
     if ((url.includes('/items/') && method === 'DELETE') || method === 'DELETE') {
-      await route.fulfill({ status: 204 });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          tableId: 1,
+          status: 'OPEN',
+          items: [],
+          totalItems: 0,
+          totalPrice: 0.0,
+          tableTotal: 0.0,
+          updatedAt: new Date().toISOString(),
+        }),
+      });
       return;
     }
 
@@ -845,9 +998,12 @@ export async function setupMockApi(page: Page): Promise<void> {
       contentType: 'application/json',
       body: JSON.stringify({
         tableId: 1,
+        status: 'OPEN',
         items: [],
+        totalPrice: 0.0,
         tableTotal: 0.0,
         totalItems: 0,
+        updatedAt: new Date().toISOString(),
       }),
     });
   });

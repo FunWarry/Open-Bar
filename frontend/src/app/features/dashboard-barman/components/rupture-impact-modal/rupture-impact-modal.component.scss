@@ -1,0 +1,337 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--background-surface-1);
+}
+
+.modal-header {
+  ion-toolbar {
+    --background: var(--background-surface-1);
+    --border-color: var(--border-medium);
+    --color: var(--text-primary);
+  }
+
+  .header-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+
+    .warning-icon {
+      font-size: 1.3rem;
+      color: var(--semantic-warning);
+    }
+  }
+}
+
+.rupture-impact-content {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  --background: var(--background-bg-0);
+  --color: var(--text-primary);
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ingredient-summary-card {
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+
+  .summary-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .ingredient-badge-info {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+
+    .ingredient-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .ingredient-unit {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+  }
+
+  .stock-badge {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 6px 10px;
+    border-radius: 8px;
+  }
+
+  .summary-description {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    color: var(--text-secondary);
+  }
+}
+
+.quick-restock-box {
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-left: 4px solid var(--semantic-success);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+
+  .restock-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+
+    .restock-icon {
+      font-size: 1.5rem;
+      color: var(--semantic-success);
+      margin-top: 2px;
+    }
+
+    .restock-title {
+      margin: 0 0 4px 0;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .restock-subtitle {
+      margin: 0;
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+    }
+  }
+
+  .restock-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .restock-input {
+      flex: 1;
+      height: 38px;
+      padding: 0 12px;
+      background: var(--background-surface-2);
+      border: 1px solid var(--border-medium);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+
+      &:focus {
+        border-color: var(--primary);
+      }
+    }
+
+    .restock-btn {
+      --border-radius: 8px;
+      margin: 0;
+      font-weight: 600;
+      height: 38px;
+    }
+  }
+}
+
+.cocktails-section {
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 12px;
+  padding: 14px 16px;
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      ion-icon {
+        font-size: 1.2rem;
+        color: var(--primary);
+      }
+
+      h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+    }
+
+    .selection-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .text-action-btn {
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--primary);
+        cursor: pointer;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      .action-separator {
+        color: var(--text-muted);
+        font-weight: 700;
+      }
+    }
+  }
+
+  .loading-state,
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    gap: 8px;
+  }
+
+  .cocktails-list {
+    background: transparent;
+    padding: 0;
+
+    .cocktail-item {
+      --background: var(--background-surface-2);
+      --border-color: var(--border-medium);
+      --color: var(--text-primary);
+      border-radius: 8px;
+      margin-bottom: 6px;
+      transition: background 0.15s ease;
+
+      &.is-selected {
+        --background: var(--stock-critical-15);
+        border: 1px solid var(--semantic-danger);
+      }
+
+      ion-checkbox {
+        --size: 20px;
+        --checkbox-background-checked: var(--semantic-danger);
+        --border-color-checked: var(--semantic-danger);
+        margin-right: 12px;
+      }
+
+      .cocktail-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .cocktail-name {
+          font-weight: 600;
+          font-size: 0.95rem;
+          color: var(--text-primary);
+        }
+
+        .cocktail-category {
+          font-size: 0.75rem;
+          color: var(--text-muted);
+          text-transform: uppercase;
+        }
+      }
+
+      .cocktail-status {
+        ion-badge {
+          font-size: 0.75rem;
+          font-weight: 600;
+          padding: 4px 8px;
+          border-radius: 6px;
+        }
+      }
+    }
+  }
+}
+
+.modal-footer {
+  background: var(--background-surface-1);
+  border-top: 1px solid var(--border-medium);
+  padding: 12px 16px;
+
+  .footer-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+
+    .action-btn {
+      --border-radius: 10px;
+      margin: 0;
+      font-weight: 600;
+      height: 42px;
+    }
+
+    .primary-action {
+      --box-shadow: 0 2px 8px rgba(229, 96, 79, 0.35);
+      --border-radius: 10px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+
+      ion-icon {
+        font-size: 1.15rem;
+        margin-right: 4px;
+      }
+    }
+
+    .secondary-action {
+      --background: var(--background-surface-2);
+      --background-hover: var(--background-surface-3);
+      --background-activated: var(--surface-3);
+      --background-focused: var(--background-surface-3);
+      --border-color: var(--border-light);
+      --border-style: solid;
+      --border-width: 1.5px;
+      --border-radius: 10px;
+      --color: var(--text-primary);
+      --color-hover: #ffffff;
+      --box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      --padding-start: 16px;
+      --padding-end: 16px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      transition: all 0.2s ease;
+
+      &:hover {
+        --background: var(--background-surface-3);
+        --border-color: var(--primary-light);
+        --color: #ffffff;
+      }
+
+      ion-icon {
+        font-size: 1.15rem;
+        margin-right: 6px;
+        color: var(--text-secondary);
+      }
+    }
+  }
+}

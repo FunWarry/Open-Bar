@@ -99,56 +99,6 @@
       }
     }
 
-    .btn-manager-refresh {
-      --border-radius: var(--radius-md);
-      --border-color: var(--border-medium);
-      --color: var(--text-primary);
-      --background-hover: var(--background-surface-2);
-      height: 36px;
-      width: 36px;
-      margin: 0;
-      transition: transform 0.2s ease;
-
-      ion-icon {
-        font-size: 18px;
-        transition: transform 0.35s ease;
-      }
-
-      &:hover ion-icon {
-        transform: rotate(180deg);
-      }
-
-      &:active {
-        transform: scale(0.95);
-      }
-    }
-
-    .btn-manager-export {
-      --border-radius: var(--radius-md);
-      --background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong, #4f46e5) 100%);
-      --color: var(--text-on-accent, #ffffff);
-      font-weight: 600;
-      font-size: 0.85rem;
-      height: 36px;
-      margin: 0;
-      box-shadow: var(--shadow-sm);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-      ion-icon {
-        font-size: 16px;
-        margin-right: 4px;
-      }
-
-      &:hover {
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-      }
-
-      &:active {
-        transform: translateY(0);
-        box-shadow: var(--shadow-sm);
-      }
-    }
   }
 }
 
@@ -895,14 +845,6 @@
     font-size: 0.95rem;
     margin: 0;
   }
-
-  .btn-retry-modern {
-    --border-radius: var(--radius-md);
-    --background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong, #4f46e5) 100%);
-    --color: var(--text-on-accent, #ffffff);
-    font-weight: 600;
-    box-shadow: var(--shadow-sm);
-  }
 }
 
 .empty-substate {
@@ -990,26 +932,6 @@
     margin: 3px 0 0;
     font-size: 0.82rem;
     color: var(--text-muted);
-  }
-
-  .btn-declare-waste-hero {
-    --background: var(--semantic-warning);
-    --background-hover: var(--role-manager);
-    --border-radius: 10px;
-    font-weight: 700;
-    font-size: 0.86rem;
-    color: var(--background-bg-0);
-    box-shadow: 0 4px 14px rgba(244, 165, 42, 0.35);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-
-    ion-icon {
-      font-size: 1.1rem;
-    }
-
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.45);
-    }
   }
 
   /* ----------------------------------------------------------------------- */

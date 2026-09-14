@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.CocktailBatchDisponibiliteRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailFacetsDTO;
 import com.bar.gestioncocktail.dto.CocktailMarginDTO;
 import com.bar.gestioncocktail.dto.CocktailRequestDTO;
@@ -264,6 +265,46 @@ public class CocktailController {
                     .orElseGet(() -> ResponseEntity.notFound().build());
             })
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Retrieves all cocktails that utilize a specific ingredient in their recipe or variants.
+     *
+     * @param ingredientId Identifier of the ingredient
+     * @return List of associated cocktail response DTOs
+     */
+    @GetMapping("/by-ingredient/{ingredientId}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get cocktails by ingredient ID")
+    @ApiResponse(responseCode = "200", description = "Cocktails retrieved")
+    @ApiResponse(responseCode = "404", description = "Ingredient not found")
+    public ResponseEntity<List<CocktailResponseDTO>> getCocktailsByIngredient(
+            @Parameter(description = "Ingredient ID") @PathVariable Long ingredientId) {
+        return ResponseEntity.ok(
+                cocktailService.getCocktailsByIngredientId(ingredientId).stream()
+                        .map(CocktailResponseDTO::from)
+                        .toList()
+        );
+    }
+
+    /**
+     * Batch updates the availability status for a collection of cocktails.
+     *
+     * @param request Batch availability request payload
+     * @return List of updated cocktail response DTOs
+     */
+    @PutMapping("/disponibilite-batch")
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN') or hasRole('MANAGER')")
+    @Operation(summary = "Batch update cocktail availability (BARMAN/MANAGER/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Cocktails availability updated")
+    public ResponseEntity<List<CocktailResponseDTO>> updateDisponibiliteBatch(
+            @Valid @RequestBody CocktailBatchDisponibiliteRequestDTO request) {
+        return ResponseEntity.ok(
+                cocktailService.setDisponibiliteBatch(request.cocktailIds(), request.disponible()).stream()
+                        .map(CocktailResponseDTO::from)
+                        .toList()
+        );
     }
 
     /**

@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonContent, IonHeader, IonToolbar, IonButtons,
   IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel,
@@ -36,16 +36,20 @@ export interface PartSettlementState {
 
 /**
  * Facture Split & Post-Split Individual Settlement Component.
- * Supports equal split, split by item selection, and individual guest payment tracking
- * with real-time remaining balance calculations and automatic main invoice settlement.
+ * Supports:
+ * - Equal split (divided across N guests)
+ * - Custom amount split ("Prix libre", user-defined amount per guest)
+ * - Custom percentage split ("Pourcentage", user-defined % per guest summing to 100%)
+ * - Itemized split (per consumable item unit assigned to guests)
  *
- * Aligned with Figma Common System Split Settlement layout (`630:1264`).
+ * Includes view-only consultation mode when the invoice is already fully settled,
+ * multi-session persistence of partial payments, and individual receipt printing.
  */
 @Component({
   selector: 'app-facture-split',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, AppCurrencyPipe, TranslocoModule,
+    CommonModule, FormsModule, TranslocoModule, AppCurrencyPipe,
     IonContent, IonHeader, IonToolbar, IonButtons,
     IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel,
     IonSpinner, IonProgressBar
@@ -59,8 +63,26 @@ export class FactureSplitComponent implements OnInit {
   /** Optional Input for Modal usage. */
   @Input() factureId!: number;
 
+  private _facture: Facture | null = null;
+  /** Historical reglements present when opening or refreshing the split session. */
+  initialReglements: FactureReglement[] = [];
+
   /** Optional Input for Modal usage. */
-  @Input() facture: Facture | null = null;
+  @Input()
+  get facture(): Facture | null {
+    return this._facture;
+  }
+  set facture(val: Facture | null) {
+    this._facture = val;
+    this.initFactureState();
+  }
+
+  /**
+   * Initializes or synchronizes the snapshot of historical reglements from the invoice.
+   */
+  initFactureState(): void {
+    this.initialReglements = this._facture?.reglements ? [...this._facture.reglements] : [];
+  }
 
   get factureNumero(): string | undefined {
     return this.facture?.numero;
@@ -74,9 +96,9 @@ export class FactureSplitComponent implements OnInit {
     return this.facture?.items ?? [];
   }
 
-  mode: 'equal' | 'itemized' | 'selection' | 'egal' = 'equal';
+  mode: 'equal' | 'itemized' | 'selection' | 'egal' | 'custom_amount' | 'custom_percentage' = 'equal';
 
-  // Equal split mode
+  // ─── Equal split mode ──────────────────────────────────────────────────────
   guestCount = 2;
   readonly guestPresets = [2, 3, 4, 5, 6];
 
@@ -91,7 +113,19 @@ export class FactureSplitComponent implements OnInit {
     this.adjustGuestCount(delta);
   }
 
-  // Itemized split mode
+  // ─── Custom amount mode ────────────────────────────────────────────────────
+  customAmountGuests: { name: string; amount: number | null }[] = [
+    { name: '', amount: null },
+    { name: '', amount: null }
+  ];
+
+  // ─── Custom percentage mode ────────────────────────────────────────────────
+  customPercentageGuests: { name: string; percentage: number | null }[] = [
+    { name: '', percentage: null },
+    { name: '', percentage: null }
+  ];
+
+  // ─── Itemized split mode ───────────────────────────────────────────────────
   guests: { name: string }[] = [{ name: '' }, { name: '' }];
   /** Map storing guest index assigned to each unit key (e.g. "101_0", "101_1"). */
   unitAssignments: { [unitKey: string]: number } = {};
@@ -122,13 +156,28 @@ export class FactureSplitComponent implements OnInit {
     }
   }
 
-  /** Explodes line items into individual unit consumable items for granular split. */
+  /** Counts how many units of each item were already settled in previous payments. */
+  get settledItemCounts(): { [itemId: number]: number } {
+    const counts: { [itemId: number]: number } = {};
+    if (!this.initialReglements?.length) return counts;
+    for (const reg of this.initialReglements) {
+      if (reg.items) {
+        for (const item of reg.items) {
+          counts[item.itemId] = (counts[item.itemId] || 0) + (item.quantite || 1);
+        }
+      }
+    }
+    return counts;
+  }
+
+  /** Explodes line items into individual unit consumable items for granular split, excluding already settled units. */
   get splitUnits(): { key: string; itemId: number; description: string; unitIndex: number; totalUnits: number; unitLabel: string; prixUnitaire: number }[] {
     if (!this.facture?.items) return [];
     const units: { key: string; itemId: number; description: string; unitIndex: number; totalUnits: number; unitLabel: string; prixUnitaire: number }[] = [];
     for (const item of this.facture.items) {
       const qte = item.quantite || 1;
-      for (let u = 0; u < qte; u++) {
+      const settledCount = this.settledItemCounts[item.id] || 0;
+      for (let u = settledCount; u < qte; u++) {
         units.push({
           key: `${item.id}_${u}`,
           itemId: item.id,
@@ -151,6 +200,7 @@ export class FactureSplitComponent implements OnInit {
   partStates: { [index: number]: PartSettlementState } = {};
 
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly factureService = inject(FactureService);
   private readonly modalCtrl = inject(ModalController);
   private readonly toastCtrl = inject(ToastController);
@@ -168,10 +218,16 @@ export class FactureSplitComponent implements OnInit {
       const routeId = this.route.snapshot?.paramMap?.get('id');
       if (routeId) {
         this.factureId = +routeId;
+        if (Number.isNaN(this.factureId)) {
+          this.router.navigate(['/404']);
+          return;
+        }
       }
     }
 
-    if (!this.facture && this.factureId) {
+    if (this.facture) {
+      this.autoAssignGuestsFromOrder();
+    } else if (this.factureId) {
       this.loadFacture();
     }
   }
@@ -182,6 +238,9 @@ export class FactureSplitComponent implements OnInit {
   }
 
   onModeChange() {
+    if (this.newlyPaidInModal > 0 && this.factureId) {
+      this.loadFacture();
+    }
     this.results = [];
     this.partStates = {};
     this.errorMessage = null;
@@ -192,9 +251,74 @@ export class FactureSplitComponent implements OnInit {
 
   private loadFacture() {
     this.factureService.getFactureById(this.factureId).subscribe({
-      next: f => { this.facture = f; },
-      error: () => { this.errorMessage = String(this.transloco.translate('SPLIT.LOAD_ITEMS_ERROR')); },
+      next: f => {
+        this.facture = f;
+        this.autoAssignGuestsFromOrder();
+      },
+      error: () => {
+        this.errorMessage = String(this.transloco.translate('SPLIT.LOAD_ITEMS_ERROR'));
+        if (this.route.snapshot?.paramMap?.get('id')) {
+          this.router.navigate(['/404']);
+        }
+      },
     });
+  }
+
+  /**
+   * Automatically pre-configures guests and their item assignments from collaborative table orders.
+   */
+  autoAssignGuestsFromOrder(): void {
+    if (!this.facture?.items?.length) return;
+
+    const guestOrderMap = new Map<string, number>();
+    const guestNames: string[] = [];
+
+    for (const item of this.facture.items) {
+      const g = this.resolveItemGuest(item);
+      if (g && !guestOrderMap.has(g)) {
+        guestOrderMap.set(g, guestNames.length);
+        guestNames.push(g);
+      }
+    }
+
+    if (guestNames.length === 0) return;
+
+    this.guests = guestNames.map(name => ({ name }));
+    this.unitAssignments = {};
+    this.populateCollaborativeAssignments(guestOrderMap);
+
+    this.mode = 'itemized';
+    if (this.allItemsAssigned) {
+      this.calculateItemizedSplit();
+    }
+  }
+
+  private populateCollaborativeAssignments(guestOrderMap: Map<string, number>): void {
+    if (!this.facture?.items) return;
+    for (const item of this.facture.items) {
+      const g = this.resolveItemGuest(item);
+      const guestIndex = g ? guestOrderMap.get(g) : undefined;
+      if (guestIndex !== undefined) {
+        const qte = item.quantite || 1;
+        const settledCount = this.settledItemCounts[item.id] || 0;
+        for (let u = settledCount; u < qte; u++) {
+          this.unitAssignments[`${item.id}_${u}`] = guestIndex;
+        }
+      }
+    }
+  }
+
+  private extractGuestFromBracketedText(text?: string): string | null {
+    if (!text?.startsWith('[')) return null;
+    const end = text.indexOf(']');
+    return end > 1 ? text.substring(1, end).trim() : null;
+  }
+
+  private resolveItemGuest(item: FactureItem): string | null {
+    if (item.guestName?.trim()) {
+      return item.guestName.trim();
+    }
+    return this.extractGuestFromBracketedText(item.notes) ?? this.extractGuestFromBracketedText(item.description);
   }
 
   // ─── Equal Split Mode ────────────────────────────────────────────────────────
@@ -213,6 +337,133 @@ export class FactureSplitComponent implements OnInit {
         this.errorMessage = err?.error?.message ?? String(this.transloco.translate('SPLIT.CALCULATION_ERROR'));
         this.loading = false;
       },
+    });
+  }
+
+  // ─── Custom Amount Split Mode (Prix libre) ──────────────────────────────────
+
+  addCustomAmountGuest() {
+    if (this.customAmountGuests.length < 20) {
+      this.customAmountGuests.push({ name: '', amount: null });
+    }
+  }
+
+  removeCustomAmountGuest(index: number) {
+    if (this.customAmountGuests.length > 2) {
+      this.customAmountGuests.splice(index, 1);
+    }
+  }
+
+  getCustomAmountGuestName(index: number): string {
+    return this.customAmountGuests[index]?.name?.trim() || `${this.transloco.translate('SPLIT.GUEST_PLACEHOLDER', { number: index + 1 })}`;
+  }
+
+  get totalCustomAmountAllocated(): number {
+    return Math.round(this.customAmountGuests.reduce((sum, g) => sum + (Number(g.amount) || 0), 0) * 100) / 100;
+  }
+
+  get customAmountRemainder(): number {
+    return Math.round((this.balanceToSplit - this.totalCustomAmountAllocated) * 100) / 100;
+  }
+
+  get isCustomAmountValid(): boolean {
+    return Math.abs(this.customAmountRemainder) <= 0.05 &&
+      this.customAmountGuests.length >= 2 &&
+      this.customAmountGuests.every(g => (Number(g.amount) || 0) > 0);
+  }
+
+  assignRemainingToGuest(index: number) {
+    const otherSum = this.customAmountGuests.reduce((sum, g, i) => i === index ? sum : sum + (Number(g.amount) || 0), 0);
+    const remainder = Math.max(0, Math.round((this.balanceToSplit - otherSum) * 100) / 100);
+    this.customAmountGuests[index].amount = remainder;
+  }
+
+  calculateCustomAmountSplit() {
+    if (!this.isCustomAmountValid) return;
+    this.loading = true;
+    this.errorMessage = null;
+    this.partStates = {};
+
+    const parts = this.customAmountGuests.map((g, i) => ({
+      nomConvive: this.getCustomAmountGuestName(i),
+      montant: Number(g.amount) || 0
+    }));
+
+    this.factureService.splitParMontants(this.factureId, parts).subscribe({
+      next: r => { this.results = r; this.loading = false; },
+      error: err => {
+        this.errorMessage = err?.error?.message ?? String(this.transloco.translate('SPLIT.CALCULATION_ERROR'));
+        this.loading = false;
+      }
+    });
+  }
+
+  // ─── Custom Percentage Split Mode (Pourcentage) ─────────────────────────────
+
+  addCustomPercentageGuest() {
+    if (this.customPercentageGuests.length < 20) {
+      this.customPercentageGuests.push({ name: '', percentage: null });
+    }
+  }
+
+  removeCustomPercentageGuest(index: number) {
+    if (this.customPercentageGuests.length > 2) {
+      this.customPercentageGuests.splice(index, 1);
+    }
+  }
+
+  getCustomPercentageGuestName(index: number): string {
+    return this.customPercentageGuests[index]?.name?.trim() || `${this.transloco.translate('SPLIT.GUEST_PLACEHOLDER', { number: index + 1 })}`;
+  }
+
+  get totalCustomPercentage(): number {
+    return Math.round(this.customPercentageGuests.reduce((sum, g) => sum + (Number(g.percentage) || 0), 0) * 100) / 100;
+  }
+
+  get customPercentageRemainder(): number {
+    return Math.round((100 - this.totalCustomPercentage) * 100) / 100;
+  }
+
+  get isCustomPercentageValid(): boolean {
+    return Math.abs(this.customPercentageRemainder) <= 0.05 &&
+      this.customPercentageGuests.length >= 2 &&
+      this.customPercentageGuests.every(g => (Number(g.percentage) || 0) > 0);
+  }
+
+  distributePercentagesEqually() {
+    const count = this.customPercentageGuests.length;
+    if (count === 0) return;
+    const basePct = Math.floor((100 / count) * 100) / 100;
+    let sum = 0;
+    for (let i = 0; i < count - 1; i++) {
+      this.customPercentageGuests[i].percentage = basePct;
+      sum += basePct;
+    }
+    this.customPercentageGuests[count - 1].percentage = Math.round((100 - sum) * 100) / 100;
+  }
+
+  assignRemainingPercentageToGuest(index: number) {
+    const otherSum = this.customPercentageGuests.reduce((sum, g, i) => i === index ? sum : sum + (Number(g.percentage) || 0), 0);
+    this.customPercentageGuests[index].percentage = Math.max(0, Math.round((100 - otherSum) * 100) / 100);
+  }
+
+  calculateCustomPercentageSplit() {
+    if (!this.isCustomPercentageValid) return;
+    this.loading = true;
+    this.errorMessage = null;
+    this.partStates = {};
+
+    const parts = this.customPercentageGuests.map((g, i) => ({
+      nomConvive: this.getCustomPercentageGuestName(i),
+      pourcentage: Number(g.percentage) || 0
+    }));
+
+    this.factureService.splitParPourcentages(this.factureId, parts).subscribe({
+      next: r => { this.results = r; this.loading = false; },
+      error: err => {
+        this.errorMessage = err?.error?.message ?? String(this.transloco.translate('SPLIT.CALCULATION_ERROR'));
+        this.loading = false;
+      }
     });
   }
 
@@ -252,7 +503,8 @@ export class FactureSplitComponent implements OnInit {
     for (const item of this.facture.items) {
       let count = 0;
       const qte = item.quantite || 1;
-      for (let u = 0; u < qte; u++) {
+      const settledCount = this.settledItemCounts[item.id] || 0;
+      for (let u = settledCount; u < qte; u++) {
         if (this.unitAssignments[`${item.id}_${u}`] === guestIndex) {
           count++;
         }
@@ -277,16 +529,14 @@ export class FactureSplitComponent implements OnInit {
 
   /** Computes how many unassigned units remain for a specific bill item. */
   getUnassignedCount(itemId: number): number {
-    const item = this.facture?.items?.find(i => i.id === itemId);
-    if (!item) return 0;
-    const qte = item.quantite || 1;
+    const units = this.splitUnits.filter(u => u.itemId === itemId);
     let assigned = 0;
-    for (let u = 0; u < qte; u++) {
-      if (this.unitAssignments[`${itemId}_${u}`] !== undefined) {
+    for (const u of units) {
+      if (this.unitAssignments[u.key] !== undefined) {
         assigned++;
       }
     }
-    return Math.max(0, qte - assigned);
+    return Math.max(0, units.length - assigned);
   }
 
   /** Returns total count of all unassigned items across the invoice. */
@@ -308,7 +558,8 @@ export class FactureSplitComponent implements OnInit {
     const item = this.facture?.items?.find(i => i.id === itemId);
     if (!item) return;
     const qte = item.quantite || 1;
-    for (let u = 0; u < qte; u++) {
+    const settledCount = this.settledItemCounts[itemId] || 0;
+    for (let u = settledCount; u < qte; u++) {
       const key = `${itemId}_${u}`;
       if (this.unitAssignments[key] === undefined) {
         this.unitAssignments[key] = guestIndex;
@@ -349,7 +600,6 @@ export class FactureSplitComponent implements OnInit {
     const selectedItemId = event.detail.value;
     if (selectedItemId !== undefined && selectedItemId !== null) {
       this.assignOneUnitToGuest(guestIndex, +selectedItemId);
-      // Reset select value so the same item can be picked again if more units remain
       const target = event.target as HTMLIonSelectElement;
       if (target) {
         target.value = null;
@@ -362,7 +612,8 @@ export class FactureSplitComponent implements OnInit {
     const item = this.facture?.items?.find(i => i.id === itemId);
     if (!item) return;
     const qte = item.quantite || 1;
-    for (let u = 0; u < qte; u++) {
+    const settledCount = this.settledItemCounts[itemId] || 0;
+    for (let u = settledCount; u < qte; u++) {
       this.unitAssignments[`${itemId}_${u}`] = guestIndex;
     }
   }
@@ -420,15 +671,50 @@ export class FactureSplitComponent implements OnInit {
     return this.facture?.totalTTC ?? this.facture?.total ?? this.totalSplit;
   }
 
-  get paidAmount(): number {
+  /** Total amount already settled from previous transactions (persisted in DB). */
+  get alreadyPaidFromDb(): number {
+    if (!this.initialReglements?.length) return 0;
+    return this.initialReglements.reduce((sum, r) => sum + (r.montant || 0), 0);
+  }
+
+  /** Amount paid in the current modal session. */
+  get newlyPaidInModal(): number {
     return this.results.reduce((acc, r, i) => {
       const state = this.partStates[i];
       return state?.settled ? acc + r.sousTotal : acc;
     }, 0);
   }
 
+  /** Total paid amount across DB history and current modal session. */
+  get paidAmount(): number {
+    return Math.round((this.alreadyPaidFromDb + this.newlyPaidInModal) * 100) / 100;
+  }
+
+  /** Remaining balance to be paid on the invoice. */
   get remainingBalance(): number {
     return Math.max(0, Math.round((this.totalBillAmount - this.paidAmount) * 100) / 100);
+  }
+
+  /** Balance available for new split calculations. */
+  get balanceToSplit(): number {
+    return this.remainingBalance;
+  }
+
+  /** Whether the invoice was already settled before opening this split view. */
+  get isInitialInvoiceSettled(): boolean {
+    if (this._facture?.reglee) return true;
+    const initialPaid = this.alreadyPaidFromDb;
+    return this.totalBillAmount > 0 && initialPaid >= this.totalBillAmount - 0.01;
+  }
+
+  /** Whether the invoice is already fully settled prior to the current session (view-only mode). */
+  get isAlreadySettled(): boolean {
+    return this.isInitialInvoiceSettled;
+  }
+
+  /** List of past settlements persisted in database for consultation/receipt reprint. */
+  get previousReglements(): FactureReglement[] {
+    return this.initialReglements;
   }
 
   get paidRatio(): number {
@@ -440,6 +726,20 @@ export class FactureSplitComponent implements OnInit {
     return this.results.length > 0 && this.results.every((_, i) => !!this.partStates[i]?.settled);
   }
 
+  private resolveTypeSplit(): 'EGAL' | 'SELECTION' | 'MONTANT_LIBRE' | 'POURCENTAGE' {
+    if (this.mode === 'custom_amount') return 'MONTANT_LIBRE';
+    if (this.mode === 'custom_percentage') return 'POURCENTAGE';
+    if (this.mode === 'itemized' || this.mode === 'selection') return 'SELECTION';
+    return 'EGAL';
+  }
+
+  private resolveTotalParts(): number {
+    if (this.mode === 'equal') return this.guestCount;
+    if (this.mode === 'custom_amount') return this.customAmountGuests.length;
+    if (this.mode === 'custom_percentage') return this.customPercentageGuests.length;
+    return this.results.length;
+  }
+
   /**
    * Opens the payment modal for an individual guest part.
    * On confirmation, saves the settlement in backend database, updates part settlement state,
@@ -449,7 +749,7 @@ export class FactureSplitComponent implements OnInit {
    * @param part The guest's split result DTO
    */
   async settleGuestPart(index: number, part: SplitResultDTO) {
-    if (this.partStates[index]?.settled) return;
+    if (this.isAlreadySettled || this.partStates[index]?.settled) return;
 
     const modal = await this.modalCtrl.create({
       component: ReglementModalComponent,
@@ -464,15 +764,18 @@ export class FactureSplitComponent implements OnInit {
 
     if (!data) return;
 
+    const typeSplit = this.resolveTypeSplit();
+    const totalParts = this.resolveTotalParts();
+
     const request: EncaisserPartRequest = {
       nomConvive: part.nomConvive,
       partIndex: index + 1,
-      totalParts: this.mode === 'equal' ? this.guestCount : this.results.length,
+      totalParts,
       montant: part.sousTotal,
       pourboire: data.pourboire || 0,
       totalRegle: data.totalTotal,
       modePaiement: data.modePaiement,
-      typeSplit: this.mode === 'equal' ? 'EGAL' : 'SELECTION',
+      typeSplit,
       items: part.items,
     };
 
@@ -513,22 +816,40 @@ export class FactureSplitComponent implements OnInit {
   }
 
   /**
+   * Opens the thermal receipt preview modal for an already persisted reglement.
+   *
+   * @param reglement Historical reglement to reprint
+   */
+  async printExistingReglementReceipt(reglement: FactureReglement) {
+    const modal = await this.modalCtrl.create({
+      component: TicketReceiptComponent,
+      componentProps: {
+        facture: this.facture || { id: this.factureId, numero: `FAC-${this.factureId}`, items: [] },
+        reglement,
+      },
+      cssClass: 'ticket-modal',
+    });
+    await modal.present();
+  }
+
+  /**
    * Opens the thermal receipt preview modal for a specific settled split share.
    *
    * @param index Index of the guest share
    * @param part The guest's split result DTO
    */
   async printPartReceipt(index: number, part: SplitResultDTO) {
+    const typeSplit = this.resolveTypeSplit();
     const reglement: FactureReglement = this.partStates[index]?.reglement || {
       factureId: this.factureId,
       nomConvive: part.nomConvive,
       partIndex: index + 1,
-      totalParts: this.mode === 'equal' ? this.guestCount : this.results.length,
+      totalParts: this.results.length,
       montant: part.sousTotal,
       pourboire: this.partStates[index]?.tip || 0,
       totalRegle: this.partStates[index]?.totalPaid || part.sousTotal,
       modePaiement: this.partStates[index]?.paymentMethod || 'CARTE',
-      typeSplit: this.mode === 'equal' ? 'EGAL' : 'SELECTION',
+      typeSplit,
       items: part.items,
       dateReglement: new Date().toISOString(),
     };
@@ -606,6 +927,9 @@ export class FactureSplitComponent implements OnInit {
     const totalTips = Object.values(this.partStates).reduce((acc, s) => acc + (s.tip || 0), 0);
     this.factureService.reglerFacture(this.factureId, 'MIXTE_SPLIT', totalTips).subscribe({
       next: async () => {
+        if (this.facture) {
+          this.facture.reglee = true;
+        }
         const toast = await this.toastCtrl.create({
           message: String(this.transloco.translate('SPLIT.ALL_PARTS_PAID')),
           duration: 3000,

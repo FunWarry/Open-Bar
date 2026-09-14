@@ -1,8 +1,9 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ToastController } from '@ionic/angular/standalone';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { signal, computed } from '@angular/core';
 import { ClientCommandeComponent } from '../../../app/features/client/client-commande/client-commande.component';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
@@ -11,6 +12,7 @@ import { TableSessionService } from '../../../app/core/services/table-session.se
 import { TableCartService } from '../../../app/core/services/table-cart.service';
 import { TableSessionResponse } from '../../../app/core/models/table-session.model';
 import { TableCart, TableCartItem } from '../../../app/core/models/table-cart.model';
+import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { Cocktail } from '../../../app/core/models/cocktail.model';
 import { Router } from '@angular/router';
@@ -22,8 +24,11 @@ describe('ClientCommandeComponent', () => {
   let cocktailServiceSpy: jasmine.SpyObj<CocktailService>;
   let happyHourServiceSpy: jasmine.SpyObj<HappyHourService>;
   let tableSessionServiceSpy: jasmine.SpyObj<TableSessionService>;
+  let websocketServiceSpy: jasmine.SpyObj<WebSocketService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let tableCartServiceMock: any;
+  let cocktailWsSubject: Subject<any>;
+  let cocktailSupprimeWsSubject: Subject<any>;
 
   const mockActiveSessionResponse: TableSessionResponse = {
     id: 1,
@@ -74,15 +79,37 @@ describe('ClientCommandeComponent', () => {
     cocktailServiceSpy = jasmine.createSpyObj('CocktailService', ['getAll', 'getFacets', 'matchCocktails']);
     tableSessionServiceSpy = jasmine.createSpyObj('TableSessionService', [
       'validateSession',
-      'refreshSession'
+      'refreshSession',
+      'getSessionQrCodeUrl',
+      'submitJoinRequest',
+      'getJoinRequestStatus',
+      'respondToJoinRequest',
+      'getPendingJoinRequests'
     ]);
+    tableSessionServiceSpy.getSessionQrCodeUrl.and.returnValue('http://localhost:8080/api/public/tables/4/session/qrcode?format=PNG&size=300');
+    tableSessionServiceSpy.submitJoinRequest.and.returnValue(of({ id: 1, tableId: 4, applicantSessionId: 'guest-me', applicantName: 'Alex', status: 'PENDING' }));
+    tableSessionServiceSpy.getJoinRequestStatus.and.returnValue(of({ id: 1, tableId: 4, applicantSessionId: 'guest-me', applicantName: 'Alex', status: 'APPROVED', sessionToken: 'tok-approved' }));
+    tableSessionServiceSpy.respondToJoinRequest.and.returnValue(of({ id: 1, tableId: 4, applicantSessionId: 'guest-peer', applicantName: 'Peer', status: 'APPROVED', sessionToken: 'tok-peer' }));
+    tableSessionServiceSpy.getPendingJoinRequests.and.returnValue(of([]));
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+    websocketServiceSpy = jasmine.createSpyObj('WebSocketService', ['watch']);
+    cocktailWsSubject = new Subject<any>();
+    cocktailSupprimeWsSubject = new Subject<any>();
+    websocketServiceSpy.watch.and.callFake((topic: string) => {
+      if (topic === '/topic/cocktails/supprime') return cocktailSupprimeWsSubject.asObservable();
+      return cocktailWsSubject.asObservable();
+    });
 
     const cartSignal = signal<TableCart | null>(mockCart);
     const guestNameSignal = signal<string>('Alex');
 
     tableCartServiceMock = {
       cart: cartSignal,
+      tableOrdersSummary: signal(null),
+      graceRemainingSeconds: signal(0),
+      isOwner: signal(true),
+      ownerGuestName: signal('Alex'),
+      pendingJoinRequests: signal([]),
       currentGuestName: guestNameSignal,
       guestGroups: signal([
         {
@@ -103,10 +130,15 @@ describe('ClientCommandeComponent', () => {
       }),
       getOrCreateGuestSessionId: jasmine.createSpy('getOrCreateGuestSessionId').and.returnValue('guest-me'),
       initCart: jasmine.createSpy('initCart').and.returnValue(of(mockCart)),
+      loadTableOrdersSummary: jasmine.createSpy('loadTableOrdersSummary').and.returnValue(of(null)),
+      fetchTableOrdersSummary: jasmine.createSpy('fetchTableOrdersSummary').and.returnValue(of(null)),
+      finalizeGrace: jasmine.createSpy('finalizeGrace').and.returnValue(of({ success: true, message: 'Grace finalized', commandeId: 99 })),
       addItem: jasmine.createSpy('addItem').and.returnValue(of(mockCart)),
       updateItem: jasmine.createSpy('updateItem').and.returnValue(of(mockCart)),
       removeItem: jasmine.createSpy('removeItem').and.returnValue(of(mockCart)),
       submitCart: jasmine.createSpy('submitCart').and.returnValue(of({ commandeId: 99, trackingToken: 'trk-99' })),
+      setOwnership: jasmine.createSpy('setOwnership'),
+      setPendingJoinRequests: jasmine.createSpy('setPendingJoinRequests'),
       reset: jasmine.createSpy('reset')
     };
 
@@ -140,6 +172,7 @@ describe('ClientCommandeComponent', () => {
         ClientCommandeComponent,
         ReactiveFormsModule,
         RouterTestingModule,
+        HttpClientTestingModule,
         getTranslocoTestingModule()
       ],
       providers: [
@@ -147,6 +180,7 @@ describe('ClientCommandeComponent', () => {
         { provide: HappyHourService, useValue: happyHourServiceSpy },
         { provide: TableSessionService, useValue: tableSessionServiceSpy },
         { provide: TableCartService, useValue: tableCartServiceMock },
+        { provide: WebSocketService, useValue: websocketServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy }
       ]
     }).compileComponents();
@@ -234,7 +268,7 @@ describe('ClientCommandeComponent', () => {
 
   it('should validate table session on checkSession', () => {
     component.checkSession(4, 'valid-token-123');
-    expect(tableSessionServiceSpy.validateSession).toHaveBeenCalledWith(4, 'valid-token-123');
+    expect(tableSessionServiceSpy.validateSession).toHaveBeenCalledWith(4, 'valid-token-123', 'guest-me', 'Alex');
     expect(component.isSessionValid).toBeTrue();
     expect(component.sessionStatus).toBe('ACTIVE');
     expect(component.sessionToken).toBe('valid-token-123');
@@ -428,7 +462,7 @@ describe('ClientCommandeComponent', () => {
       { id: 1, nom: 'Virgin Mojito', categorie: 'SANS_ALCOOL', prix: 6, disponible: true, isMocktail: true, isVegan: true, isGlutenFree: true, alcoholLevel: 0, flavorProfiles: ['FRUITY'] } as any,
       { id: 2, nom: 'Smoky Mezcal', categorie: 'ALCOOLISE', prix: 12, disponible: true, isMocktail: false, isVegan: false, isGlutenFree: true, alcoholLevel: 25, flavorProfiles: ['SMOKY'] } as any
     ];
-    component.selectedCategory = 'TOUS';
+    component.selectedCategory = 'ALL';
     component.onMatcherFiltersChange({
       flavors: ['SMOKY'],
       mocktail: false,
@@ -443,5 +477,591 @@ describe('ClientCommandeComponent', () => {
     expect(component.selectedFlavors).toEqual([]);
     expect(component.filterMocktail).toBeFalse();
     expect(component.filteredCocktails).toHaveSize(2);
+  });
+
+  describe('Search and Category Filtering', () => {
+    beforeEach(() => {
+      component.cocktails = [
+        { id: 1, nom: 'Mojito Classique', categorie: 'ALCOOLISE', description: 'Rhum et menthe fraîche', disponible: true, ingredients: [{ ingredientNom: 'Menthe' }, { ingredientNom: 'Rhum' }] } as any,
+        { id: 2, nom: 'Virgin Colada', categorie: 'SANS_ALCOOL', description: 'Ananas et coco', disponible: true, ingredients: [{ ingredientNom: 'Lait de coco' }] } as any,
+        { id: 3, nom: 'Tequila Bumbum', categorie: 'SHOT', description: 'Tequila festive', disponible: true, ingredients: [{ ingredientNom: 'Tequila' }] } as any,
+        { id: 4, nom: 'Spritz Italien', categorie: 'APERITIF', description: 'Apéritif amer pétillant', disponible: true, ingredients: [{ ingredientNom: 'Prosecco' }] } as any,
+        { id: 5, nom: 'Limoncello Frappé', categorie: 'DIGESTIF', description: 'Liqueur de citron', disponible: true, ingredients: [{ ingredientNom: 'Citron' }] } as any,
+        { id: 6, nom: 'Création Signature', categorie: 'SPECIAL', description: 'Cocktail mystère du chef', disponible: true, ingredients: [{ ingredientNom: 'Sirop maison' }] } as any,
+        { id: 7, nom: 'Invisible Item', categorie: 'ALCOOLISE', description: 'Rupture', disponible: false, ingredients: [] } as any
+      ];
+    });
+
+    it('should filter cocktails by search query on name, description, and ingredients', () => {
+      component.selectedCategory = 'ALL';
+
+      // 1. Match by name
+      component.searchQuery = 'mojito';
+      component.applyCombinedFilters();
+      expect(component.filteredCocktails).toHaveSize(1);
+      expect(component.filteredCocktails[0].nom).toBe('Mojito Classique');
+
+      // 2. Match by description
+      component.searchQuery = 'ananas';
+      component.applyCombinedFilters();
+      expect(component.filteredCocktails).toHaveSize(1);
+      expect(component.filteredCocktails[0].nom).toBe('Virgin Colada');
+
+      // 3. Match by ingredient
+      component.searchQuery = 'prosecco';
+      component.applyCombinedFilters();
+      expect(component.filteredCocktails).toHaveSize(1);
+      expect(component.filteredCocktails[0].nom).toBe('Spritz Italien');
+
+      // 4. Empty query restores all available items (excludes unavailable id: 7)
+      component.searchQuery = '';
+      component.applyCombinedFilters();
+      expect(component.filteredCocktails).toHaveSize(6);
+      expect(component.filteredCocktails.some(c => c.id === 7)).toBeFalse();
+    });
+
+    it('should filter cocktails by category pills correctly', () => {
+      component.filterCategory('SHOT');
+      expect(component.selectedCategory).toBe('SHOT');
+      expect(component.filteredCocktails).toHaveSize(1);
+      expect(component.filteredCocktails[0].nom).toBe('Tequila Bumbum');
+
+      component.filterCategory('APERITIF');
+      expect(component.selectedCategory).toBe('APERITIF');
+      expect(component.filteredCocktails).toHaveSize(1);
+      expect(component.filteredCocktails[0].nom).toBe('Spritz Italien');
+
+      component.filterCategory('DIGESTIF');
+      expect(component.selectedCategory).toBe('DIGESTIF');
+      expect(component.filteredCocktails).toHaveSize(1);
+      expect(component.filteredCocktails[0].nom).toBe('Limoncello Frappé');
+
+      component.filterCategory('SPECIAL');
+      expect(component.selectedCategory).toBe('SPECIAL');
+      expect(component.filteredCocktails).toHaveSize(1);
+      expect(component.filteredCocktails[0].nom).toBe('Création Signature');
+
+      component.filterCategory('ALL');
+      expect(component.selectedCategory).toBe('ALL');
+      expect(component.filteredCocktails).toHaveSize(6);
+    });
+
+    it('should return correct dot colors and pill styles for all categories', () => {
+      expect(component.getCategoryDotColor('ALCOOLISE')).toBe('var(--types-alcoholic)');
+      expect(component.getCategoryDotColor('SANS_ALCOOL')).toBe('var(--types-nonalcoholic)');
+      expect(component.getCategoryDotColor('SHOT')).toBe('var(--types-shot)');
+      expect(component.getCategoryDotColor('APERITIF')).toBe('var(--semantic-warning)');
+      expect(component.getCategoryDotColor('DIGESTIF')).toBe('var(--semantic-danger)');
+      expect(component.getCategoryDotColor('SPECIAL')).toBe('var(--types-cocktail)');
+      expect(component.getCategoryDotColor('ALL')).toBe('var(--primary)');
+
+      const inactiveStyle = component.getCategoryPillStyle('SHOT', false);
+      expect(inactiveStyle['background-color']).toContain('var(--background-surface-2');
+
+      const activeStyle = component.getCategoryPillStyle('SHOT', true);
+      expect(activeStyle['background-color']).toBe('var(--types-shot)');
+      expect(activeStyle['color']).toBe('var(--text-on-accent, var(--text-primary))');
+    });
+  });
+
+  describe('Allergen Exclusion Filtering', () => {
+    it('should extract allergens correctly and respect vegan and gluten-free exemptions', () => {
+      const regularCocktail: any = {
+        ingredients: [
+          { ingredientNom: 'Bière', allergens: ['GLUTEN'] },
+          { ingredientNom: 'Lait', allergens: ['LAIT'] }
+        ],
+        isGlutenFree: false,
+        isVegan: false
+      };
+      expect(component.getCocktailAllergens(regularCocktail)).toEqual(jasmine.arrayContaining(['GLUTEN', 'LAIT']));
+
+      const glutenFreeCocktail: any = {
+        ingredients: [{ ingredientNom: 'Mix', allergens: ['GLUTEN'] }],
+        isGlutenFree: true,
+        isVegan: false
+      };
+      expect(component.getCocktailAllergens(glutenFreeCocktail)).toEqual([]);
+
+      const veganCocktail: any = {
+        ingredients: [
+          { ingredientNom: 'Crème', allergens: ['LAIT', 'OEUF'] },
+          { ingredientNom: 'Noix', allergens: ['FRUITS_A_COQUE'] }
+        ],
+        isGlutenFree: false,
+        isVegan: true
+      };
+      expect(component.getCocktailAllergens(veganCocktail)).toEqual(['FRUITS_A_COQUE']);
+      expect(component.getCocktailAllergens(null as any)).toEqual([]);
+    });
+
+    it('should toggle and clear allergen exclusion filters', () => {
+      component.cocktails = [
+        {
+          id: 1,
+          nom: 'Piña Colada',
+          categorie: 'ALCOOLISE',
+          disponible: true,
+          ingredients: [{ ingredientNom: 'Crème', allergens: ['LAIT'] }]
+        } as any,
+        {
+          id: 2,
+          nom: 'Margarita',
+          categorie: 'ALCOOLISE',
+          disponible: true,
+          ingredients: [{ ingredientNom: 'Tequila', allergens: [] }]
+        } as any
+      ];
+      component.selectedCategory = 'ALL';
+      component.applyCombinedFilters();
+      expect(component.filteredCocktails).toHaveSize(2);
+
+      // Exclude LAIT
+      component.toggleAllergenFilter('LAIT');
+      expect(component.selectedAllergens).toEqual(['LAIT']);
+      expect(component.filteredCocktails).toHaveSize(1);
+      expect(component.filteredCocktails[0].nom).toBe('Margarita');
+
+      // Untoggle LAIT
+      component.toggleAllergenFilter('LAIT');
+      expect(component.selectedAllergens).toEqual([]);
+      expect(component.filteredCocktails).toHaveSize(2);
+
+      // Add allergen and clear
+      component.toggleAllergenFilter('LAIT');
+      component.clearAllergenFilters();
+      expect(component.selectedAllergens).toEqual([]);
+      expect(component.filteredCocktails).toHaveSize(2);
+    });
+  });
+
+  describe('Real-time Availability Synchronization via WebSocket', () => {
+    beforeEach(() => {
+      component.cocktails = [
+        { id: 10, nom: 'Mojito', categorie: 'ALCOOLISE', disponible: true, ingredients: [] } as any,
+        { id: 20, nom: 'Cosmo', categorie: 'ALCOOLISE', disponible: true, ingredients: [] } as any
+      ];
+      component.selectedCategory = 'ALL';
+      component.applyCombinedFilters();
+    });
+
+    it('should immediately remove cocktail when its availability is toggled to false', () => {
+      expect(component.filteredCocktails).toHaveSize(2);
+
+      cocktailWsSubject.next({
+        body: JSON.stringify({ id: 10, nom: 'Mojito', categorie: 'ALCOOLISE', disponible: false, ingredients: [] })
+      });
+
+      expect(component.cocktails.some(c => c.id === 10)).toBeFalse();
+      expect(component.filteredCocktails.some(c => c.id === 10)).toBeFalse();
+      expect(component.filteredCocktails).toHaveSize(1);
+      expect(component.filteredCocktails[0].id).toBe(20);
+    });
+
+    it('should add newly available cocktail when pushed via WebSocket', () => {
+      expect(component.filteredCocktails).toHaveSize(2);
+
+      cocktailWsSubject.next({
+        body: JSON.stringify({ id: 30, nom: 'Negroni', categorie: 'APERITIF', disponible: true, ingredients: [] })
+      });
+
+      expect(component.cocktails.some(c => c.id === 30)).toBeTrue();
+      expect(component.filteredCocktails.some(c => c.id === 30)).toBeTrue();
+      expect(component.filteredCocktails).toHaveSize(3);
+    });
+
+    it('should remove deleted cocktail when message arrives on /topic/cocktails/supprime', () => {
+      expect(component.filteredCocktails).toHaveSize(2);
+
+      cocktailSupprimeWsSubject.next({
+        body: JSON.stringify({ id: 20 })
+      });
+
+      expect(component.cocktails.some(c => c.id === 20)).toBeFalse();
+      expect(component.filteredCocktails.some(c => c.id === 20)).toBeFalse();
+      expect(component.filteredCocktails).toHaveSize(1);
+    });
+
+    it('should handle malformed WebSocket messages gracefully', () => {
+      expect(() => {
+        cocktailWsSubject.next({ body: 'invalid-json' });
+        cocktailSupprimeWsSubject.next({ body: '{malformed' });
+      }).not.toThrow();
+    });
+  });
+
+  describe('Invite Friends via Link & QR Code', () => {
+    beforeEach(() => {
+      component.tableNumero = 4;
+      component.sessionToken = 'test-token-xyz';
+      component.step = 'menu';
+      component.isSessionValid = true;
+      fixture.detectChanges();
+    });
+
+    it('should open and close the invite modal', () => {
+      expect(component.showInviteModal()).toBeFalse();
+
+      component.openInviteModal();
+      expect(component.showInviteModal()).toBeTrue();
+      expect(component.copiedLinkSuccess()).toBeFalse();
+
+      component.closeInviteModal();
+      expect(component.showInviteModal()).toBeFalse();
+    });
+
+    it('getInviteUrl should generate complete URL with table and session token', () => {
+      const url = component.getInviteUrl();
+      expect(url).toContain('/client/commande?table=4');
+      expect(url).toContain('token=test-token-xyz');
+    });
+
+    it('getInviteUrl should return empty string when tableNumero is not set', () => {
+      component.tableNumero = null;
+      expect(component.getInviteUrl()).toBe('');
+    });
+
+    it('getInviteQrCodeUrl should delegate to tableSessionService with origin', () => {
+      const qrUrl = component.getInviteQrCodeUrl();
+      expect(tableSessionServiceSpy.getSessionQrCodeUrl).toHaveBeenCalledWith(
+        4,
+        'test-token-xyz',
+        'PNG',
+        300,
+        jasmine.any(String)
+      );
+      expect(qrUrl).toBe('http://localhost:8080/api/public/tables/4/session/qrcode?format=PNG&size=300');
+    });
+
+    it('copyInviteLink should write to clipboard and present toast', fakeAsync(() => {
+      const writeTextSpy = spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
+      const toastMock = jasmine.createSpyObj('HTMLIonToastElement', ['present']);
+      toastCtrlSpy.create.and.returnValue(Promise.resolve(toastMock));
+
+      component.copyInviteLink();
+      tick();
+
+      expect(writeTextSpy).toHaveBeenCalledWith(component.getInviteUrl());
+      expect(component.copiedLinkSuccess()).toBeTrue();
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+      expect(toastMock.present).toHaveBeenCalled();
+
+      tick(4000);
+      expect(component.copiedLinkSuccess()).toBeFalse();
+    }));
+
+    it('shareInviteNative should call navigator.share when available', fakeAsync(() => {
+      const shareSpy = jasmine.createSpy('share').and.returnValue(Promise.resolve());
+      (navigator as any).share = shareSpy;
+
+      component.shareInviteNative();
+      tick();
+
+      expect(shareSpy).toHaveBeenCalledWith(jasmine.objectContaining({
+        url: component.getInviteUrl()
+      }));
+    }));
+
+    it('canShareNative should return true when navigator.share is a function', () => {
+      const originalShare = (navigator as any).share;
+      try {
+        Object.defineProperty(navigator, 'share', { value: () => Promise.resolve(), configurable: true });
+        expect(component.canShareNative()).toBeTrue();
+
+        Object.defineProperty(navigator, 'share', { value: undefined, configurable: true });
+        expect(component.canShareNative()).toBeFalse();
+      } finally {
+        Object.defineProperty(navigator, 'share', { value: originalShare, configurable: true });
+      }
+    });
+
+    it('should render invite button in menu header and open modal on click', () => {
+      const inviteBtn = fixture.nativeElement.querySelector('[data-testid="btn-open-invite-modal"]');
+      expect(inviteBtn).toBeTruthy();
+
+      inviteBtn.click();
+      fixture.detectChanges();
+
+      expect(component.showInviteModal()).toBeTrue();
+      const modal = fixture.nativeElement.querySelector('[data-testid="invite-friends-modal"]');
+      expect(modal).toBeTruthy();
+      const qrImg = fixture.nativeElement.querySelector('[data-testid="invite-qr-image"]');
+      expect(qrImg).toBeTruthy();
+      const copyBtn = fixture.nativeElement.querySelector('[data-testid="btn-copy-invite-link"]');
+      expect(copyBtn).toBeTruthy();
+    });
+
+    it('should render invite banner in recap step', () => {
+      component.step = 'recap';
+      fixture.detectChanges();
+
+      const banner = fixture.nativeElement.querySelector('[data-testid="recap-invite-banner"]');
+      expect(banner).toBeTruthy();
+
+      const recapInviteBtn = fixture.nativeElement.querySelector('[data-testid="btn-recap-invite-friends"]');
+      expect(recapInviteBtn).toBeTruthy();
+
+      recapInviteBtn.click();
+      fixture.detectChanges();
+
+      expect(component.showInviteModal()).toBeTrue();
+    });
+  });
+
+  describe('Cocktail Details & Ingredients Modal', () => {
+    const cocktailWithIngredients: Cocktail = {
+      id: 99,
+      nom: 'Signature Mojito',
+      description: 'Rafraîchissant et secret',
+      prix: 9.0,
+      categorie: 'ALCOOLISE',
+      disponible: true,
+      saisonnier: false,
+      ingredients: [
+        { id: 1, ingredientId: 10, ingredientNom: 'Rhum blanc agricole', quantite: 50, uniteMesure: 'ml' },
+        { id: 2, ingredientId: 11, ingredientNom: 'Menthe fraîche', quantite: 10, uniteMesure: 'feuilles' },
+        { id: 3, ingredientId: 12, ingredientNom: 'Sirop de canne artisanal', quantite: 20, uniteMesure: 'ml', allergens: ['SULFITES'] }
+      ],
+      variantes: [],
+      createdAt: '2026-01-01',
+      updatedAt: '2026-01-01'
+    };
+
+    it('should open cocktail details modal and display ingredient names without recipe quantities or units', () => {
+      component.openCocktailDetails(cocktailWithIngredients);
+      fixture.detectChanges();
+
+      expect(component.selectedCocktailForDetails()).toBe(cocktailWithIngredients);
+
+      const modal = fixture.nativeElement.querySelector('[data-testid="cocktail-details-modal"]');
+      expect(modal).toBeTruthy();
+
+      const title = fixture.nativeElement.querySelector('[data-testid="cocktail-details-title"]');
+      expect(title?.textContent).toContain('Signature Mojito');
+
+      const ingredientItems = fixture.nativeElement.querySelectorAll('[data-testid="cocktail-ingredient-item"]');
+      expect(ingredientItems).toHaveSize(3);
+
+      const ingredientNames = Array.from(ingredientItems).map((el: any) => el.textContent);
+      expect(ingredientNames.some(t => t.includes('Rhum blanc agricole'))).toBeTrue();
+      expect(ingredientNames.some(t => t.includes('Menthe fraîche'))).toBeTrue();
+      expect(ingredientNames.some(t => t.includes('Sirop de canne artisanal'))).toBeTrue();
+
+      // Allergen tag should be displayed
+      const allergenTag = fixture.nativeElement.querySelector('[data-testid="ingredient-allergen-badge"]');
+      expect(allergenTag?.textContent).toContain('SULFITES');
+
+      // Crucial requirement: quantities (50, 10, 20) and measurement units (ml, feuilles) MUST NOT appear in the ingredients list
+      const ingredientsSectionText = fixture.nativeElement.querySelector('[data-testid="cocktail-ingredients-section"]')?.textContent || '';
+      expect(ingredientsSectionText).not.toContain('50 ml');
+      expect(ingredientsSectionText).not.toContain('10 feuilles');
+      expect(ingredientsSectionText).not.toContain('20 ml');
+    });
+
+    it('should display empty ingredients notice if cocktail has no listed ingredients', () => {
+      const emptyIngCocktail: Cocktail = {
+        ...cocktailWithIngredients,
+        id: 100,
+        ingredients: []
+      };
+      component.openCocktailDetails(emptyIngCocktail);
+      fixture.detectChanges();
+
+      const emptyText = fixture.nativeElement.querySelector('[data-testid="empty-ingredients-text"]');
+      expect(emptyText).toBeTruthy();
+    });
+
+    it('should close details modal via closeCocktailDetails, close button, and backdrop click', () => {
+      component.openCocktailDetails(cocktailWithIngredients);
+      fixture.detectChanges();
+      expect(component.selectedCocktailForDetails()).not.toBeNull();
+
+      // Close via header button
+      const closeBtn = fixture.nativeElement.querySelector('[data-testid="btn-close-cocktail-details"]');
+      expect(closeBtn).toBeTruthy();
+      closeBtn.click();
+      fixture.detectChanges();
+      expect(component.selectedCocktailForDetails()).toBeNull();
+
+      // Re-open and close via footer button
+      component.openCocktailDetails(cocktailWithIngredients);
+      fixture.detectChanges();
+      const footerCloseBtn = fixture.nativeElement.querySelector('[data-testid="btn-close-details-footer"]');
+      footerCloseBtn.click();
+      fixture.detectChanges();
+      expect(component.selectedCocktailForDetails()).toBeNull();
+
+      // Re-open and test backdrop click
+      component.openCocktailDetails(cocktailWithIngredients);
+      const fakeBackdropEvent = { target: { classList: { contains: (cls: string) => cls === 'cocktail-details-dialog' } } } as any;
+      component.onDetailsBackdropClick(fakeBackdropEvent);
+      expect(component.selectedCocktailForDetails()).toBeNull();
+    });
+
+    it('should allow adding cocktail to cart from the details modal', () => {
+      spyOn(component, 'addToCart');
+      component.openCocktailDetails(cocktailWithIngredients);
+      fixture.detectChanges();
+
+      const plusBtn = fixture.nativeElement.querySelector('[data-testid="modal-cocktail-plus"]');
+      expect(plusBtn).toBeTruthy();
+      plusBtn.click();
+
+      expect(component.addToCart).toHaveBeenCalledWith(cocktailWithIngredients);
+    });
+  });
+
+  describe('Table Join Approval, Grace Period, and Orders Modal', () => {
+    beforeEach(() => {
+      component.tableNumero = 4;
+      fixture.detectChanges();
+    });
+
+    it('submitJoinRequest should submit join request, set pending and listen on websocket', () => {
+      component.joinRequestNameForm.setValue({ applicantName: 'Charlie' });
+      component.submitJoinRequest();
+
+      expect(component.isJoinPending()).toBeTrue();
+      expect(tableCartServiceMock.setGuestName).toHaveBeenCalledWith('Charlie');
+      expect(tableSessionServiceSpy.submitJoinRequest).toHaveBeenCalledWith(4, 'guest-me', 'Charlie');
+    });
+
+    it('retryJoinRequest should reset join pending and rejected flags', () => {
+      component.isJoinPending.set(true);
+      component.isJoinRejected.set(true);
+
+      component.retryJoinRequest();
+
+      expect(component.isJoinPending()).toBeFalse();
+      expect(component.isJoinRejected()).toBeFalse();
+    });
+
+    it('acceptApplicant should call respondToJoinRequest with approved true and update pending list', () => {
+      const mockReq = { id: 77, tableId: 4, applicantSessionId: 'guest-peer', applicantName: 'Peer', status: 'PENDING' as const };
+      tableCartServiceMock.pendingJoinRequests.set([mockReq]);
+
+      component.acceptApplicant(mockReq);
+
+      expect(tableSessionServiceSpy.respondToJoinRequest).toHaveBeenCalledWith(4, 77, 'guest-me', true);
+      expect(tableCartServiceMock.setPendingJoinRequests).toHaveBeenCalledWith([]);
+    });
+
+    it('declineApplicant should call respondToJoinRequest with approved false and update pending list', () => {
+      const mockReq = { id: 77, tableId: 4, applicantSessionId: 'guest-peer', applicantName: 'Peer', status: 'PENDING' as const };
+      tableCartServiceMock.pendingJoinRequests.set([mockReq]);
+
+      component.declineApplicant(mockReq);
+
+      expect(tableSessionServiceSpy.respondToJoinRequest).toHaveBeenCalledWith(4, 77, 'guest-me', false);
+      expect(tableCartServiceMock.setPendingJoinRequests).toHaveBeenCalledWith([]);
+    });
+
+    it('finalizeGracePeriod should call tableCartService.finalizeGrace and present toast', fakeAsync(() => {
+      component.finalizeGracePeriod();
+      tick();
+
+      expect(tableCartServiceMock.finalizeGrace).toHaveBeenCalledWith(4);
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    }));
+
+    it('openTableOrdersModal, closeTableOrdersModal, and onTableOrdersBackdropClick should toggle signal', () => {
+      component.openTableOrdersModal();
+      expect(component.showTableOrdersModal()).toBeTrue();
+      expect(tableCartServiceMock.fetchTableOrdersSummary).toHaveBeenCalledWith(4);
+
+      component.closeTableOrdersModal();
+      expect(component.showTableOrdersModal()).toBeFalse();
+
+      component.openTableOrdersModal();
+      const fakeBackdropEvent = { target: 'backdrop', currentTarget: 'backdrop' } as any;
+      component.onTableOrdersBackdropClick(fakeBackdropEvent);
+      expect(component.showTableOrdersModal()).toBeFalse();
+    });
+
+    it('onInviteBackdropClick should close invite modal when target matches currentTarget', () => {
+      component.openInviteModal();
+      expect(component.showInviteModal()).toBeTrue();
+
+      const fakeBackdropEvent = { target: 'backdrop', currentTarget: 'backdrop' } as any;
+      component.onInviteBackdropClick(fakeBackdropEvent);
+      expect(component.showInviteModal()).toBeFalse();
+    });
+
+    it('isHappyHour and getEffectivePrice should delegate to happyHourService', () => {
+      expect(component.isHappyHour(mockCocktail)).toBeFalse();
+      expect(component.getEffectivePrice(mockCocktail)).toBe(8.5);
+    });
+
+    it('copyInviteLink handles success and failure branches', fakeAsync(async () => {
+      component.tableNumero = 4;
+      component.sessionToken = 'token-123';
+      spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
+
+      await component.copyInviteLink();
+      expect(component.copiedLinkSuccess()).toBeTrue();
+      tick(4000);
+      expect(component.copiedLinkSuccess()).toBeFalse();
+
+      spyOn(console, 'warn');
+      (navigator.clipboard.writeText as jasmine.Spy).and.returnValue(Promise.reject(new Error('denied')));
+      await component.copyInviteLink();
+      expect(console.warn).toHaveBeenCalledWith('Failed to copy invite link', jasmine.anything());
+    }));
+
+    it('shareInviteNative falls back to copyInviteLink when navigator.share is absent or throws', async () => {
+      component.tableNumero = 4;
+      component.sessionToken = 'tok-1';
+      spyOn(component, 'copyInviteLink').and.returnValue(Promise.resolve());
+
+      const originalShare = (navigator as any).share;
+      try {
+        delete (navigator as any).share;
+        await component.shareInviteNative();
+        expect(component.copyInviteLink).toHaveBeenCalled();
+
+        (navigator as any).share = jasmine.createSpy('share').and.returnValue(Promise.reject(new Error('Share failure')));
+        await component.shareInviteNative();
+        expect(component.copyInviteLink).toHaveBeenCalledTimes(2);
+      } finally {
+        if (originalShare) {
+          (navigator as any).share = originalShare;
+        } else {
+          delete (navigator as any).share;
+        }
+      }
+    });
+
+    it('submitJoinRequest sets up websocket watch and handles APPROVED and REJECTED messages', fakeAsync(() => {
+      const joinResponseSubject = new Subject<any>();
+      websocketServiceSpy.watch.and.callFake((topic: string) => {
+        if (topic.includes('join-requests')) {
+          return joinResponseSubject.asObservable();
+        }
+        return of({});
+      });
+
+      component.tableNumero = 4;
+      component.joinRequestNameForm.setValue({ applicantName: 'Camille' });
+      component.submitJoinRequest();
+      expect(component.isJoinPending()).toBeTrue();
+
+      // Emit APPROVED message
+      joinResponseSubject.next({
+        body: JSON.stringify({ status: 'APPROVED', sessionToken: 'new-tok-123' })
+      });
+      tick();
+
+      expect(component.sessionToken).toBe('new-tok-123');
+      expect(component.isSessionValid).toBeTrue();
+      expect(component.isJoinPending()).toBeFalse();
+      expect(component.isJoinRejected()).toBeFalse();
+
+      // Emit REJECTED message
+      joinResponseSubject.next({
+        body: JSON.stringify({ status: 'REJECTED' })
+      });
+      tick();
+      expect(component.isJoinRejected()).toBeTrue();
+    }));
   });
 });

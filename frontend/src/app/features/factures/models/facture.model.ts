@@ -13,6 +13,7 @@ export interface FactureItem {
   priceHT?: number;
   vatAmount?: number;
   notes?: string;
+  guestName?: string;
 }
 
 export interface SplitItem {
@@ -33,7 +34,7 @@ export interface FactureReglement {
   pourboire?: number;
   totalRegle: number;
   modePaiement: string;
-  typeSplit: 'EGAL' | 'SELECTION';
+  typeSplit: 'EGAL' | 'SELECTION' | 'MONTANT_LIBRE' | 'POURCENTAGE';
   items?: SplitItem[];
   dateReglement?: string;
 }
@@ -46,7 +47,7 @@ export interface EncaisserPartRequest {
   pourboire?: number;
   totalRegle: number;
   modePaiement: string;
-  typeSplit: 'EGAL' | 'SELECTION';
+  typeSplit: 'EGAL' | 'SELECTION' | 'MONTANT_LIBRE' | 'POURCENTAGE';
   items?: SplitItem[];
 }
 

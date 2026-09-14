@@ -120,11 +120,11 @@
   background-size: 16px 12px;
 
   &.paper-tear-top {
-    background-image: radial-gradient(circle at 8px 12px, transparent 6px, #ffffff 7px);
+    background-image: radial-gradient(circle at 8px 12px, transparent 6px, var(--thermal-paper-bg) 7px);
   }
 
   &.paper-tear-bottom {
-    background-image: radial-gradient(circle at 8px 0px, transparent 6px, #ffffff 7px);
+    background-image: radial-gradient(circle at 8px 0px, transparent 6px, var(--thermal-paper-bg) 7px);
   }
 }
 
@@ -132,8 +132,8 @@
 // 3. Thermal Receipt Paper (80mm & 58mm)
 // ----------------------------------------------------------------------------
 .thermal-receipt {
-  background: #ffffff;
-  color: #111111;
+  background: var(--thermal-paper-bg);
+  color: var(--thermal-paper-text);
   font-family: 'Consolas', 'Courier New', 'Inconsolata', 'Liberation Mono', monospace;
   font-size: 12.5px;
   line-height: 1.4;
@@ -169,17 +169,23 @@
       .item-entry {
         .item-name {
           font-size: 11px;
+          line-height: 1.25;
         }
         .item-count {
           width: 34px;
+          flex-shrink: 0;
           font-size: 10.5px;
+          line-height: 1.25;
         }
         .item-price {
           width: 65px;
+          flex-shrink: 0;
           font-size: 11px;
+          line-height: 1.25;
         }
         .entry-secondary {
           font-size: 9.5px;
+          line-height: 1.2;
         }
       }
     }
@@ -212,14 +218,14 @@
       font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      color: #000000;
+      color: var(--thermal-paper-text-dark);
     }
   }
 
   p {
     margin: 1.5px 0;
     font-size: 11px;
-    color: #333333;
+    color: var(--thermal-paper-border);
   }
 
   .legal-tax-row {
@@ -227,14 +233,14 @@
     justify-content: center;
     gap: 8px;
     font-size: 10px;
-    color: #444444;
+    color: var(--thermal-paper-text-subtle);
     flex-wrap: wrap;
     margin-top: 2px;
   }
 }
 
 .receipt-dashed-divider {
-  border-top: 1px dashed #333333;
+  border-top: 1px dashed var(--thermal-paper-border);
   margin: 10px 0;
   width: 100%;
 }
@@ -253,13 +259,13 @@
     line-height: 1.4;
 
     .meta-label {
-      color: #333333;
+      color: var(--thermal-paper-border);
       font-weight: 500;
     }
 
     .meta-value {
       font-weight: 700;
-      color: #000000;
+      color: var(--thermal-paper-text-dark);
       text-align: right;
     }
   }
@@ -277,10 +283,10 @@
     font-weight: 900;
     font-size: 11px;
     letter-spacing: 0.5px;
-    border-bottom: 1.5px solid #111111;
+    border-bottom: 1.5px solid var(--thermal-paper-text);
     padding-bottom: 4px;
     margin-bottom: 6px;
-    color: #000000;
+    color: var(--thermal-paper-text-dark);
 
     .col-item {
       flex: 1;
@@ -311,43 +317,55 @@
     .entry-primary {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
+      align-items: flex-start;
     }
 
     .item-name {
       flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      min-width: 0;
+      white-space: normal;
+      word-break: normal;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+      hyphens: auto;
       text-align: left;
       font-weight: 600;
       font-size: 12px;
-      color: #111111;
+      line-height: 1.25;
+      color: var(--thermal-paper-text);
       padding-right: 6px;
     }
 
     .item-count {
       width: 44px;
+      flex-shrink: 0;
       text-align: center;
       font-weight: 700;
       font-size: 11.5px;
-      color: #333333;
+      line-height: 1.25;
+      color: var(--thermal-paper-border);
     }
 
     .item-price {
       width: 80px;
+      flex-shrink: 0;
       text-align: right;
       font-weight: 700;
       font-size: 12.5px;
-      color: #000000;
+      line-height: 1.25;
+      color: var(--thermal-paper-text-dark);
     }
 
     .entry-secondary {
       font-size: 10px;
-      color: #666666;
+      color: var(--thermal-paper-text-muted);
       padding-left: 2px;
-      margin-top: 1px;
+      margin-top: 2px;
       text-align: left;
+      line-height: 1.2;
+      white-space: normal;
+      word-break: normal;
+      overflow-wrap: break-word;
     }
   }
 }
@@ -363,7 +381,7 @@
     justify-content: space-between;
     align-items: baseline;
     font-size: 12px;
-    color: #222222;
+    color: var(--thermal-paper-divider);
 
     .amount-val {
       font-weight: 600;
@@ -373,11 +391,11 @@
     &.grand-total-line {
       font-size: 14px;
       font-weight: 900;
-      border-top: 1.5px solid #000000;
-      border-bottom: 1.5px solid #000000;
+      border-top: 1.5px solid var(--thermal-paper-text-dark);
+      border-bottom: 1.5px solid var(--thermal-paper-text-dark);
       padding: 6px 0;
       margin-top: 4px;
-      color: #000000;
+      color: var(--thermal-paper-text-dark);
 
       .grand-total-amount {
         font-size: 16px;
@@ -402,10 +420,10 @@
     font-weight: 900;
     font-size: 12px;
     letter-spacing: 0.8px;
-    color: #d97706;
+    color: var(--thermal-paper-warning);
 
     &.settled {
-      color: #059669;
+      color: var(--thermal-paper-success);
     }
   }
 
@@ -413,7 +431,7 @@
     font-style: italic;
     font-size: 11.5px;
     margin: 2px 0 4px;
-    color: #333333;
+    color: var(--thermal-paper-border);
   }
 
   .simulated-barcode {
@@ -428,31 +446,31 @@
       height: 28px;
       background: repeating-linear-gradient(
         90deg,
-        #111111 0px,
-        #111111 2px,
-        #ffffff 2px,
-        #ffffff 4px,
-        #111111 4px,
-        #111111 7px,
-        #ffffff 7px,
-        #ffffff 9px,
-        #111111 9px,
-        #111111 10px,
-        #ffffff 10px,
-        #ffffff 13px
+        var(--thermal-paper-text) 0px,
+        var(--thermal-paper-text) 2px,
+        var(--thermal-paper-bg) 2px,
+        var(--thermal-paper-bg) 4px,
+        var(--thermal-paper-text) 4px,
+        var(--thermal-paper-text) 7px,
+        var(--thermal-paper-bg) 7px,
+        var(--thermal-paper-bg) 9px,
+        var(--thermal-paper-text) 9px,
+        var(--thermal-paper-text) 10px,
+        var(--thermal-paper-bg) 10px,
+        var(--thermal-paper-bg) 13px
       );
     }
 
     .barcode-number {
       font-size: 9px;
       letter-spacing: 1px;
-      color: #444444;
+      color: var(--thermal-paper-text-subtle);
     }
   }
 
   .footer-subtext {
     font-size: 9px;
-    color: #777777;
+    color: var(--thermal-paper-text-light);
     margin: 0;
   }
 }

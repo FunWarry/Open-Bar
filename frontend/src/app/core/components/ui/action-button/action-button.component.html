@@ -2,6 +2,7 @@
   [type]="type"
   [disabled]="disabled || loading"
   [class.btn-block]="expand === 'block' || expand === 'full'"
+  [attr.title]="title"
   [ngClass]="[
     'btn',
     'btn--' + variant,

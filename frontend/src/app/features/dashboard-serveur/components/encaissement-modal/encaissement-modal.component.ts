@@ -202,15 +202,127 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
     return this.montantRecu >= this.totalNetAPayer;
   }
 
-  // --- Fast Cash Buttons ---
+  // --- Fast Cash Denominations & Smart Shortcuts ---
 
+  /**
+   * Primary banknote cash increment amounts dynamically queried from establishment cash denominations.
+   * Filters common physical bill values (e.g. 5, 10, 20, 50, 100 € for EUR; 1, 5, 10, 20, 50, 100 $ for USD).
+   */
+  get primaryCashIncrements(): number[] {
+    const allBills = this.appSettingsService.getCashDenominations()
+      .filter(d => d.type === 'bill')
+      .map(d => d.value)
+      .sort((a, b) => a - b);
+
+    if (allBills.length === 0) {
+      return [5, 10, 20, 50];
+    }
+
+    const currency = this.appSettingsService.currencyCode;
+    switch (currency) {
+      case 'EUR':
+      case 'CHF':
+        return allBills.filter(v => v <= 100);
+      case 'USD':
+        return allBills.filter(v => v !== 2 && v <= 100);
+      case 'JPY':
+        return allBills;
+      default:
+        return allBills.some(v => v <= 100)
+          ? allBills.filter(v => v <= 100)
+          : allBills.slice(0, 5);
+    }
+  }
+
+  /**
+   * Generates intelligent smart cash suggestions (e.g. next round amount and next higher banknotes)
+   * based on current total due and establishment currency denominations.
+   *
+   * @returns Array of sorted suggested amounts strictly greater than totalNetAPayer
+   */
+  get smartCashSuggestions(): number[] {
+    const total = this.totalNetAPayer;
+    if (!total || total <= 0) {
+      return [];
+    }
+
+    const bills = this.appSettingsService.getCashDenominations()
+      .filter(d => d.type === 'bill')
+      .map(d => d.value)
+      .sort((a, b) => a - b);
+
+    const raw = this.appSettingsService.currencyCode === 'JPY'
+      ? this.computeJpySuggestions(total, bills)
+      : this.computeStandardSuggestions(total, bills);
+
+    return Array.from(new Set(raw))
+      .filter(v => v > total)
+      .sort((a, b) => a - b)
+      .slice(0, 2);
+  }
+
+  private computeJpySuggestions(total: number, bills: number[]): number[] {
+    const suggestions: number[] = [];
+    const step1000 = Math.ceil(total / 1000) * 1000;
+    if (step1000 > total) {
+      suggestions.push(step1000);
+    }
+    const nextBill = bills.find(b => b > total);
+    if (nextBill) {
+      suggestions.push(nextBill);
+      if (nextBill === step1000) {
+        const nextBill2 = bills.find(b => b > nextBill);
+        if (nextBill2) {
+          suggestions.push(nextBill2);
+        }
+      }
+    }
+    return suggestions;
+  }
+
+  private computeStandardSuggestions(total: number, bills: number[]): number[] {
+    const suggestions: number[] = [];
+    const next10 = Math.ceil(total / 10) * 10;
+    if (next10 > total) {
+      suggestions.push(next10);
+    }
+    const nextBill = bills.find(b => b > total);
+    if (nextBill) {
+      suggestions.push(nextBill);
+      if (nextBill === next10) {
+        const nextBill2 = bills.find(b => b > nextBill);
+        if (nextBill2 && nextBill2 <= 200) {
+          suggestions.push(nextBill2);
+        }
+      }
+    }
+    return suggestions;
+  }
+
+  /**
+   * Increments the received cash amount by the given denomination value.
+   *
+   * @param montant Denomination amount to add
+   */
   ajouterEspeces(montant: number): void {
     const current = this.montantRecu || 0;
     this.montantRecu = Math.round((current + montant) * 100) / 100;
   }
 
+  /**
+   * Sets the received cash amount directly from a shortcut (e.g. exact amount or smart suggestion).
+   *
+   * @param montant Target cash amount received
+   */
+  definirMontantRecu(montant: number): void {
+    this.montantRecu = Math.round(montant * 100) / 100;
+  }
+
+  /**
+   * Sets received cash amount to the exact total due.
+   */
   definirMontantExact(): void {
-    this.montantRecu = this.totalNetAPayer;
+    this.definirMontantRecu(this.totalNetAPayer);
   }
 
   setTipMode(mode: 'none' | '5pct' | '10pct' | 'custom'): void {

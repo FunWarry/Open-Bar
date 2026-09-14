@@ -1,3 +1,11 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
 .ruptures-toolbar {
   --background: var(--background-surface-1);
   --color: var(--text-primary);
@@ -30,6 +38,9 @@
 
 .ruptures-content {
   --background: var(--background-bg-0);
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
 }
 
 .loading-state {
@@ -58,13 +69,13 @@
 
   &.item-unavailable {
     opacity: 0.75;
-    border-color: rgba(229, 96, 79, 0.4);
-    --background: rgba(229, 96, 79, 0.05);
+    border-color: var(--stock-critical-15);
+    --background: var(--stock-critical-15);
   }
 
   &.item-low-stock {
-    border-color: rgba(244, 165, 42, 0.4);
-    --background: rgba(244, 165, 42, 0.05);
+    border-color: var(--stock-low-15);
+    --background: var(--stock-low-15);
   }
 }
 
@@ -72,7 +83,7 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm, 6px);
-  background: rgba(108, 127, 232, 0.15);
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
   color: var(--primary);
   display: flex;
   align-items: center;
@@ -82,12 +93,12 @@
   flex-shrink: 0;
 
   &.icon-unavailable {
-    background: rgba(229, 96, 79, 0.15);
+    background: var(--stock-critical-15);
     color: var(--semantic-danger);
   }
 
   &.icon-low-stock {
-    background: rgba(244, 165, 42, 0.15);
+    background: var(--stock-low-15);
     color: var(--semantic-warning);
   }
 }
@@ -156,17 +167,17 @@
   border-radius: 4px;
 
   &.normal {
-    background: rgba(47, 191, 107, 0.15);
+    background: var(--stock-normal-15);
     color: var(--semantic-success);
   }
 
   &.low {
-    background: rgba(244, 165, 42, 0.15);
+    background: var(--stock-low-15);
     color: var(--semantic-warning);
   }
 
   &.zero {
-    background: rgba(229, 96, 79, 0.2);
+    background: var(--stock-critical-15);
     color: var(--semantic-danger);
   }
 }
@@ -175,6 +186,7 @@
   display: flex;
   align-items: center;
   gap: 2px;
+  flex-shrink: 0;
 
   ion-button {
     --padding-start: 4px;

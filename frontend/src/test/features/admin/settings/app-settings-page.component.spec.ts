@@ -16,7 +16,7 @@ import { AppUpdateService } from '../../../../app/core/services/app-update.servi
 import { AuthService } from '../../../../app/core/services/auth.service';
 import { OnboardingService } from '../../../../app/core/services/onboarding.service';
 import { FeatureFlagService } from '../../../../app/core/services/feature-flag.service';
-import { ESTABLISHMENT_PRESETS } from '../../../../app/core/models/establishment-module.model';
+import { ESTABLISHMENT_PRESETS, EstablishmentPresetType } from '../../../../app/core/models/establishment-module.model';
 
 describe('AppSettingsPageComponent', () => {
   let component: AppSettingsPageComponent;
@@ -782,6 +782,86 @@ describe('AppSettingsPageComponent', () => {
       expect(component.modulesForm.get('cuisineKds')?.value).toBeTrue();
       expect(component.modulesForm.pristine).toBeTrue();
     });
+
+    it('should compute activeModulesCount correctly', () => {
+      component.modulesForm.patchValue({
+        cuisineKds: true,
+        happyHour: true,
+        employeeManagement: false,
+        floorPlan: false,
+        qrClientOrdering: true,
+        stockTracking: true,
+      });
+      expect(component.activeModulesCount).toBe(4);
+
+      component.modulesForm.patchValue({
+        cuisineKds: false,
+        happyHour: false,
+        employeeManagement: false,
+        floorPlan: false,
+        qrClientOrdering: false,
+        stockTracking: false,
+      });
+      expect(component.activeModulesCount).toBe(0);
+    });
+
+    it('should determine isModuleControlActive accurately', () => {
+      component.modulesForm.patchValue({ cuisineKds: true, floorPlan: false });
+      expect(component.isModuleControlActive('cuisineKds')).toBeTrue();
+      expect(component.isModuleControlActive('floorPlan')).toBeFalse();
+      expect(component.isModuleControlActive('nonExistentKey')).toBeFalse();
+    });
+
+    it('should identify matching preset with isModulePresetActive()', () => {
+      component.applyModulesPreset('BAR');
+      expect(component.isModulePresetActive('BAR')).toBeTrue();
+      expect(component.isModulePresetActive('RESTAURANT')).toBeFalse();
+      expect(component.isModulePresetActive('FOOD_TRUCK')).toBeFalse();
+      expect(component.isModulePresetActive('NIGHTCLUB')).toBeFalse();
+
+      component.applyModulesPreset('FOOD_TRUCK');
+      expect(component.isModulePresetActive('FOOD_TRUCK')).toBeTrue();
+      expect(component.isModulePresetActive('BAR')).toBeFalse();
+
+      component.applyModulesPreset('RESTAURANT');
+      expect(component.isModulePresetActive('RESTAURANT')).toBeTrue();
+
+      component.applyModulesPreset('NIGHTCLUB');
+      expect(component.isModulePresetActive('NIGHTCLUB')).toBeTrue();
+
+      // Custom configuration does not match any known preset
+      component.modulesForm.patchValue({ cuisineKds: true, stockTracking: false });
+      expect(component.isModulePresetActive('BAR')).toBeFalse();
+      expect(component.isModulePresetActive('NIGHTCLUB')).toBeFalse();
+    });
+
+    it('should reset modules form with resetModules()', () => {
+      component.initialModulesValue = {
+        cuisineKds: false,
+        happyHour: false,
+        employeeManagement: false,
+        floorPlan: false,
+        qrClientOrdering: false,
+        stockTracking: false,
+      };
+      component.applyModulesPreset('RESTAURANT');
+      expect(component.modulesForm.dirty).toBeTrue();
+
+      component.resetModules();
+      expect(component.modulesForm.get('cuisineKds')?.value).toBeFalse();
+      expect(component.modulesForm.pristine).toBeTrue();
+    });
+
+    it('should handle edge cases when modulesForm is null or preset is invalid', () => {
+      const originalForm = component.modulesForm;
+      (component as { modulesForm: unknown }).modulesForm = null;
+
+      expect(component.activeModulesCount).toBe(0);
+      expect(component.isModulePresetActive('BAR')).toBeFalse();
+
+      (component as { modulesForm: unknown }).modulesForm = originalForm;
+      expect(component.isModulePresetActive('CUSTOM' as unknown as Exclude<EstablishmentPresetType, 'CUSTOM'>)).toBeFalse();
+    });
   });
 
   describe('Legal & Licensing', () => {
@@ -805,6 +885,197 @@ describe('AppSettingsPageComponent', () => {
           isModal: true,
         },
       });
+    });
+  });
+
+  describe('Cash Register Denominations', () => {
+    it('should initialize with default EUR denominations when none configured', () => {
+      expect(component.configuredDenominations().length).toBeGreaterThan(10);
+      expect(component.bills()).toHaveSize(7); // 500, 200, 100, 50, 20, 10, 5
+      expect(component.coins()).toHaveSize(8); // 2, 1, 0.50, 0.20, 0.10, 0.05, 0.02, 0.01
+      expect(component.billsCount).toBe(7);
+      expect(component.coinsCount).toBe(8);
+    });
+
+    it('should update denominations when currency preset is applied', () => {
+      const usdPreset = { code: 'USD', symbol: '$', position: 'BEFORE' as const };
+      component.applyCurrencyPreset(usdPreset);
+
+      expect(component.appSettingsForm.get('currencyCode')?.value).toBe('USD');
+      expect(component.appSettingsForm.get('currencySymbol')?.value).toBe('$');
+      expect(component.configuredDenominations().some(d => d.key === '100usd')).toBeTrue();
+      expect(component.configuredDenominations().some(d => d.label === '$ 100')).toBeTrue();
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+
+    it('should remove a denomination correctly', () => {
+      const initialCount = component.configuredDenominations().length;
+      component.removeDenomination('500e');
+
+      expect(component.configuredDenominations()).toHaveSize(initialCount - 1);
+      expect(component.configuredDenominations().some(d => d.key === '500e')).toBeFalse();
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+
+    it('should add a custom denomination and keep list sorted by value descending', () => {
+      component.newDenomType = 'bill';
+      component.newDenomValue = 250;
+      component.addCustomDenomination();
+
+      const denoms = component.configuredDenominations();
+      const added = denoms.find(d => d.value === 250);
+      expect(added).toBeTruthy();
+      expect(added?.type).toBe('bill');
+      expect(component.newDenomValue).toBeNull();
+      expect(component.appSettingsForm.dirty).toBeTrue();
+
+      // Verify descending order
+      for (let i = 0; i < denoms.length - 1; i++) {
+        expect(denoms[i].value).toBeGreaterThanOrEqual(denoms[i + 1].value);
+      }
+    });
+
+    it('should prevent adding duplicate denomination', () => {
+      component.newDenomType = 'bill';
+      component.newDenomValue = 50; // Already in EUR denominations
+      const countBefore = component.configuredDenominations().length;
+
+      component.addCustomDenomination();
+      expect(component.configuredDenominations()).toHaveSize(countBefore);
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'warning' }));
+    });
+
+    it('should reset denominations to defaults for current currency', () => {
+      component.removeDenomination('500e');
+      component.removeDenomination('200e');
+      expect(component.configuredDenominations().some(d => d.key === '500e')).toBeFalse();
+
+      component.resetDenominationsToDefault();
+      expect(component.configuredDenominations().some(d => d.key === '500e')).toBeTrue();
+      expect(component.configuredDenominations().some(d => d.key === '200e')).toBeTrue();
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'info' }));
+    });
+
+    it('should ignore adding custom denomination when value is null, zero or negative', () => {
+      const initialCount = component.configuredDenominations().length;
+
+      component.newDenomValue = null;
+      component.addCustomDenomination();
+      expect(component.configuredDenominations()).toHaveSize(initialCount);
+
+      component.newDenomValue = 0;
+      component.addCustomDenomination();
+      expect(component.configuredDenominations()).toHaveSize(initialCount);
+
+      component.newDenomValue = -10;
+      component.addCustomDenomination();
+      expect(component.configuredDenominations()).toHaveSize(initialCount);
+    });
+
+    it('should correctly resolve and parse existing cashDenominationsJson from settings', () => {
+      const customDenoms = [
+        { key: 'custom_bill', label: '15 €', value: 15, type: 'bill' as const }
+      ];
+      const resolved = (component as any).resolveDenominations({
+        currencyCode: 'EUR',
+        currencySymbol: '€',
+        currencyPosition: 'AFTER',
+        cashDenominationsJson: JSON.stringify(customDenoms)
+      });
+      expect(resolved).toEqual(customDenoms);
+    });
+
+    it('should fall back to defaults when cashDenominationsJson is invalid JSON in resolveDenominations', () => {
+      const resolved = (component as any).resolveDenominations({
+        currencyCode: 'EUR',
+        currencySymbol: '€',
+        currencyPosition: 'AFTER',
+        cashDenominationsJson: 'INVALID_JSON'
+      });
+      expect(resolved.length).toBeGreaterThan(10);
+      expect(resolved[0].key).toBe('500e');
+    });
+
+    it('should reset denominations to initial value when discardChanges is called', () => {
+      component.removeDenomination('500e');
+      expect(component.configuredDenominations().some(d => d.key === '500e')).toBeFalse();
+
+      component.discardChanges();
+      expect(component.configuredDenominations().some(d => d.key === '500e')).toBeTrue();
+    });
+
+    it('should serialize cashDenominationsJson into payload when saveAll is called', () => {
+      component.saveAll();
+
+      expect(appSettingsServiceSpy.updateSettings).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          cashDenominationsJson: jasmine.any(String),
+        })
+      );
+      const callArg = appSettingsServiceSpy.updateSettings.calls.mostRecent().args[0];
+      const parsed = JSON.parse(callArg.cashDenominationsJson!);
+      expect(Array.isArray(parsed)).toBeTrue();
+      expect(parsed.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Tab validation and 404 routing', () => {
+    it('should redirect to /404 when unknown tab is passed in queryParams', () => {
+      (component as any).route = { queryParams: of({ tab: 'unknown-tab' }), data: of({}) };
+      component.ngOnInit();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+
+    it('should redirect to /404 when pricing tab is requested but happy hour module is disabled', () => {
+      spyOn(component, 'happyHourEnabled').and.returnValue(false);
+      (component as any).route = { queryParams: of({ tab: 'pricing' }), data: of({}) };
+      component.ngOnInit();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+
+    it('should redirect to /404 when qr tab is requested but qr ordering module is disabled', () => {
+      spyOn(component, 'qrClientOrderingEnabled').and.returnValue(false);
+      (component as any).route = { queryParams: of({ tab: 'qr' }), data: of({}) };
+      component.ngOnInit();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+
+    it('should redirect to /404 when defaultTab in route.data is invalid', () => {
+      (component as any).route = { queryParams: of({}), data: of({ defaultTab: 'invalid-tab' }) };
+      component.ngOnInit();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+
+    it('should redirect to /404 when defaultTab is pricing but happy hour is disabled', () => {
+      spyOn(component, 'happyHourEnabled').and.returnValue(false);
+      (component as any).route = { queryParams: of({}), data: of({ defaultTab: 'pricing' }) };
+      component.ngOnInit();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+
+    it('should redirect to /404 when defaultTab is qr but qr client ordering is disabled', () => {
+      spyOn(component, 'qrClientOrderingEnabled').and.returnValue(false);
+      (component as any).route = { queryParams: of({}), data: of({ defaultTab: 'qr' }) };
+      component.ngOnInit();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+
+    it('should set activeTab when defaultTab in route.data is valid', () => {
+      (component as any).route = { queryParams: of({}), data: of({ defaultTab: 'theme' }) };
+      component.ngOnInit();
+      expect(component.activeTab).toBe('theme');
+    });
+
+    it('should redirect to /404 in selectTab when selecting pricing while happyHour is disabled', () => {
+      spyOn(component, 'happyHourEnabled').and.returnValue(false);
+      component.selectTab('pricing');
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+
+    it('should redirect to /404 in selectTab when selecting qr while qrClientOrdering is disabled', () => {
+      spyOn(component, 'qrClientOrderingEnabled').and.returnValue(false);
+      component.selectTab('qr');
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
     });
   });
 });

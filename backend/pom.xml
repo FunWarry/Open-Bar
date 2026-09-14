@@ -133,7 +133,7 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>3.1.0</version>
+            <version>3.1.1</version>
         </dependency>
 
         <!-- HTML & XSS Sanitization -->
@@ -228,7 +228,7 @@
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
-                <version>5.7.0.6970</version>
+                <version>5.8.0.7211</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

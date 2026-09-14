@@ -4,6 +4,8 @@ import { of, throwError } from 'rxjs';
 import { ClotureCaisseModalComponent } from '../../../app/features/factures/cloture-caisse-modal/cloture-caisse-modal.component';
 import { FactureService } from '../../../app/core/services/facture.service';
 import { PrinterService } from '../../../app/core/services/printer.service';
+import { AppSettingsService } from '../../../app/core/services/app-settings.service';
+import { DEFAULT_EUR_DENOMINATIONS } from '../../../app/core/models/cash-denomination.model';
 import { DailyRecap } from '../../../app/core/models/daily-recap.model';
 import { DailyCashClosure } from '../../../app/core/models/daily-cash-closure.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
@@ -47,6 +49,7 @@ describe('ClotureCaisseModalComponent', () => {
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let factureServiceSpy: jasmine.SpyObj<FactureService>;
   let printerServiceSpy: jasmine.SpyObj<PrinterService>;
+  let appSettingsServiceSpy: jasmine.SpyObj<AppSettingsService>;
 
   const mockToast = { present: jasmine.createSpy('present') };
 
@@ -74,13 +77,24 @@ describe('ClotureCaisseModalComponent', () => {
       durationMs: 120
     }));
 
+    appSettingsServiceSpy = jasmine.createSpyObj('AppSettingsService', ['getCashDenominations', 'getSettings']);
+    appSettingsServiceSpy.getCashDenominations.and.returnValue([...DEFAULT_EUR_DENOMINATIONS]);
+    appSettingsServiceSpy.getSettings.and.returnValue(of({
+      currencySymbol: '€',
+      currencyPosition: 'AFTER',
+      currencyCode: 'EUR'
+    } as any));
+    Object.defineProperty(appSettingsServiceSpy, 'currencySymbol', { get: () => '€', configurable: true });
+    Object.defineProperty(appSettingsServiceSpy, 'currencyPosition', { get: () => 'AFTER', configurable: true });
+
     await TestBed.configureTestingModule({
       imports: [ClotureCaisseModalComponent, getTranslocoTestingModule()],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: FactureService, useValue: factureServiceSpy },
-        { provide: PrinterService, useValue: printerServiceSpy }
+        { provide: PrinterService, useValue: printerServiceSpy },
+        { provide: AppSettingsService, useValue: appSettingsServiceSpy }
       ]
     }).compileComponents();
 
@@ -261,5 +275,98 @@ describe('ClotureCaisseModalComponent', () => {
     component.createdClosure = mockClosureResponse;
     component.dismiss(true);
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ closed: true, closure: mockClosureResponse });
+  });
+
+  it('should include 500e, 200e, and 100e banknotes in default denominations and calculate total correctly', () => {
+    const keys = component.denominations.map(d => d.key);
+    expect(keys).toContain('500e');
+    expect(keys).toContain('200e');
+    expect(keys).toContain('100e');
+
+    component.currentStep = 2;
+    component.adjustCount('500e', 1); // 500 €
+    component.adjustCount('200e', 2); // 400 €
+    component.adjustCount('100e', 3); // 300 €
+    expect(component.countedCash).toBe(1200.0);
+  });
+
+  it('should load custom configured denominations from AppSettingsService', () => {
+    appSettingsServiceSpy.getCashDenominations.and.returnValue([
+      { key: 'bill_1000', label: '1000 CHF', value: 1000.0, type: 'bill' },
+      { key: 'coin_5', label: '5 CHF', value: 5.0, type: 'coin' },
+    ]);
+    component.ngOnInit();
+    expect(component.denominations).toHaveSize(2);
+    expect(component.denominations[0].key).toBe('bill_1000');
+    expect(component.counting['bill_1000']).toBe(0);
+  });
+
+  it('should display currency symbol after amount in Step 1 when currencyPosition is AFTER', () => {
+    component.currentStep = 1;
+    fixture.detectChanges();
+    const suffixEl = fixture.nativeElement.querySelector('.currency-suffix');
+    const prefixEl = fixture.nativeElement.querySelector('.currency-prefix');
+    expect(suffixEl).toBeTruthy();
+    expect(prefixEl).toBeNull();
+    expect(suffixEl.textContent.trim()).toBe('€');
+  });
+
+  it('should display currency symbol before amount in Step 1 when currencyPosition is BEFORE', () => {
+    Object.defineProperty(appSettingsServiceSpy, 'currencySymbol', { get: () => '$', configurable: true });
+    Object.defineProperty(appSettingsServiceSpy, 'currencyPosition', { get: () => 'BEFORE', configurable: true });
+    component.currentStep = 1;
+    fixture.detectChanges();
+    const suffixEl = fixture.nativeElement.querySelector('.currency-suffix');
+    const prefixEl = fixture.nativeElement.querySelector('.currency-prefix');
+    expect(prefixEl).toBeTruthy();
+    expect(suffixEl).toBeNull();
+    expect(prefixEl.textContent.trim()).toBe('$');
+  });
+
+  it('should display CHF as suffix when currency is CHF', () => {
+    Object.defineProperty(appSettingsServiceSpy, 'currencySymbol', { get: () => 'CHF', configurable: true });
+    Object.defineProperty(appSettingsServiceSpy, 'currencyPosition', { get: () => 'AFTER', configurable: true });
+    component.currentStep = 1;
+    fixture.detectChanges();
+    const suffixEl = fixture.nativeElement.querySelector('.currency-suffix');
+    expect(suffixEl).toBeTruthy();
+    expect(suffixEl.textContent.trim()).toBe('CHF');
+  });
+
+  describe('Edge cases and fallbacks', () => {
+    it('should fall back to EURO_DENOMINATIONS when getCashDenominations returns empty', () => {
+      appSettingsServiceSpy.getCashDenominations.and.returnValue([]);
+      (component as any).refreshDenominations();
+      expect(component.denominations).toEqual(jasmine.any(Array));
+      expect(component.denominations.length).toBeGreaterThan(10);
+      expect(component.denominations[0].key).toBe('500e');
+    });
+
+    it('should set date to current date ISO string if not initially provided', () => {
+      component.date = '';
+      component.ngOnInit();
+      expect(component.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+
+    it('should safely return 0 cashRevenue when recap has no ventilationModePaiement', () => {
+      component.recap = {} as any;
+      expect(component.cashRevenue).toBe(0);
+    });
+
+    it('should safely handle onCountChange with invalid non-numeric or negative string', () => {
+      component.onCountChange('50e', 'not-a-number');
+      expect(component.counting['50e']).toBe(0);
+
+      component.onCountChange('50e', '-5');
+      expect(component.counting['50e']).toBe(0);
+
+      component.onCountChange('50e', '12');
+      expect(component.counting['50e']).toBe(12);
+    });
+
+    it('should call modalCtrl.dismiss with closed false by default', () => {
+      component.dismiss();
+      expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ closed: false, closure: null });
+    });
   });
 });

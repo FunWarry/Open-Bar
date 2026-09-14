@@ -5,6 +5,7 @@ import { of, throwError } from 'rxjs';
 import { AuditLogsComponent } from '../../../../app/features/admin/audit-logs/audit-logs.component';
 import { AuditLogService } from '../../../../app/core/services/audit-log.service';
 import { AuditLog } from '../../../../app/core/models/audit-log.model';
+import { CsvExportService } from '../../../../app/core/services/csv-export.service';
 import { getTranslocoTestingModule } from '../../../transloco-testing.module';
 
 describe('AuditLogsComponent', () => {
@@ -218,6 +219,18 @@ describe('AuditLogsComponent', () => {
 
     expect(() => component.exportToCsv()).not.toThrow();
     expect(() => component.exportToJson()).not.toThrow();
+  });
+
+  it('should call CsvExportService.exportTable with filtered logs and audit_logs dataset', () => {
+    const csvService = TestBed.inject(CsvExportService);
+    const exportSpy = spyOn(csvService, 'exportTable').and.stub();
+
+    component.exportToCsv();
+
+    expect(exportSpy).toHaveBeenCalled();
+    const args = exportSpy.calls.mostRecent().args;
+    expect(args[2]).toBe('audit_logs');
+    expect(args[0]).toEqual(component.filteredLogs());
   });
 
   it('should return correct badge colors and action icons', () => {

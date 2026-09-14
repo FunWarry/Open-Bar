@@ -154,5 +154,18 @@ class QrCodeServiceTest {
 
             assertThat(url).isEqualTo("https://openbar.lan/client/commande?table=1");
         }
+
+        @Test
+        @DisplayName("Should append token parameter when sessionToken is provided")
+        void buildTableOrderUrl_withSessionToken_appendsToken() {
+            String url = qrCodeService.buildTableOrderUrl("https://openbar.lan", 7, "token-session-123");
+            assertThat(url).isEqualTo("https://openbar.lan/client/commande?table=7&token=token-session-123");
+
+            String urlNullToken = qrCodeService.buildTableOrderUrl("https://openbar.lan", 7, null);
+            assertThat(urlNullToken).isEqualTo("https://openbar.lan/client/commande?table=7");
+
+            String urlBlankToken = qrCodeService.buildTableOrderUrl("https://openbar.lan", 7, "   ");
+            assertThat(urlBlankToken).isEqualTo("https://openbar.lan/client/commande?table=7");
+        }
     }
 }

@@ -73,6 +73,14 @@ export class FactureService {
     return this.http.post<SplitResultDTO[]>(`${this.apiUrl}/${id}/split/selection`, { parts });
   }
 
+  splitParMontants(id: number, parts: { nomConvive: string; montant: number }[]): Observable<SplitResultDTO[]> {
+    return this.http.post<SplitResultDTO[]>(`${this.apiUrl}/${id}/split/montants`, { parts });
+  }
+
+  splitParPourcentages(id: number, parts: { nomConvive: string; pourcentage: number }[]): Observable<SplitResultDTO[]> {
+    return this.http.post<SplitResultDTO[]>(`${this.apiUrl}/${id}/split/pourcentages`, { parts });
+  }
+
   /**
    * Persists an individual split share settlement to the backend database.
    *

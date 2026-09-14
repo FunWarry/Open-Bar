@@ -2,19 +2,16 @@
   <!-- Header -->
   <div class="modal-header">
     <div class="header-main-group">
-      <div class="table-avatar-badge batch">
+      <div class="modal-avatar-badge">
         <ion-icon name="print-outline"></ion-icon>
       </div>
-      <div class="header-text">
-        <h2 class="modal-title" data-testid="batch-modal-title">
+      <div class="modal-header-titles">
+        <h2 class="modal-main-title" data-testid="batch-modal-title">
           {{ 'TABLES.QR_BATCH_TITLE' | transloco }}
         </h2>
-        <div class="modal-meta-tags">
-          <span class="meta-tag">
-            <ion-icon name="layers-outline"></ion-icon>
-            <span>{{ 'TABLES.QR_BATCH_SUBTITLE' | transloco }}</span>
-          </span>
-        </div>
+        <p class="modal-sub-title">
+          {{ 'TABLES.QR_BATCH_SUBTITLE' | transloco }}
+        </p>
       </div>
     </div>
 
@@ -33,10 +30,13 @@
   <div class="modal-body">
     <!-- Step 1: Layout Selection -->
     <section class="section-card">
-      <h3 class="section-title">
-        <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
-        <span>{{ 'TABLES.QR_LAYOUT_LABEL' | transloco }}</span>
-      </h3>
+      <div class="section-header-row">
+        <h3 class="section-title">
+          <div class="step-pill">1</div>
+          <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
+          <span>{{ 'TABLES.QR_LAYOUT_LABEL' | transloco }}</span>
+        </h3>
+      </div>
       <div class="layout-grid">
         <!-- STAND Layout -->
         <button
@@ -45,15 +45,17 @@
           [class.selected]="selectedLayout === 'STAND'"
           data-testid="layout-stand-btn"
           (click)="setLayout('STAND')">
-          <div class="layout-icon">
-            <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+          <div class="layout-card-top">
+            <div class="layout-icon">
+              <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <div class="layout-radio">
+              <ion-icon [name]="selectedLayout === 'STAND' ? 'checkmark-circle' : 'ellipse-outline'" aria-hidden="true"></ion-icon>
+            </div>
           </div>
           <div class="layout-info">
             <h4 class="layout-name">{{ 'TABLES.QR_LAYOUT_STAND_TITLE' | transloco }}</h4>
             <p class="layout-desc">{{ 'TABLES.QR_LAYOUT_STAND_DESC' | transloco }}</p>
-          </div>
-          <div class="layout-radio">
-            <ion-icon [name]="selectedLayout === 'STAND' ? 'checkmark-circle' : 'ellipse-outline'" aria-hidden="true"></ion-icon>
           </div>
         </button>
 
@@ -64,15 +66,17 @@
           [class.selected]="selectedLayout === 'CARD'"
           data-testid="layout-card-btn"
           (click)="setLayout('CARD')">
-          <div class="layout-icon">
-            <ion-icon name="grid-outline" aria-hidden="true"></ion-icon>
+          <div class="layout-card-top">
+            <div class="layout-icon">
+              <ion-icon name="grid-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <div class="layout-radio">
+              <ion-icon [name]="selectedLayout === 'CARD' ? 'checkmark-circle' : 'ellipse-outline'" aria-hidden="true"></ion-icon>
+            </div>
           </div>
           <div class="layout-info">
             <h4 class="layout-name">{{ 'TABLES.QR_LAYOUT_CARD_TITLE' | transloco }}</h4>
             <p class="layout-desc">{{ 'TABLES.QR_LAYOUT_CARD_DESC' | transloco }}</p>
-          </div>
-          <div class="layout-radio">
-            <ion-icon [name]="selectedLayout === 'CARD' ? 'checkmark-circle' : 'ellipse-outline'" aria-hidden="true"></ion-icon>
           </div>
         </button>
 
@@ -83,15 +87,17 @@
           [class.selected]="selectedLayout === 'STICKER'"
           data-testid="layout-sticker-btn"
           (click)="setLayout('STICKER')">
-          <div class="layout-icon">
-            <ion-icon name="copy-outline" aria-hidden="true"></ion-icon>
+          <div class="layout-card-top">
+            <div class="layout-icon">
+              <ion-icon name="copy-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <div class="layout-radio">
+              <ion-icon [name]="selectedLayout === 'STICKER' ? 'checkmark-circle' : 'ellipse-outline'" aria-hidden="true"></ion-icon>
+            </div>
           </div>
           <div class="layout-info">
             <h4 class="layout-name">{{ 'TABLES.QR_LAYOUT_STICKER_TITLE' | transloco }}</h4>
             <p class="layout-desc">{{ 'TABLES.QR_LAYOUT_STICKER_DESC' | transloco }}</p>
-          </div>
-          <div class="layout-radio">
-            <ion-icon [name]="selectedLayout === 'STICKER' ? 'checkmark-circle' : 'ellipse-outline'" aria-hidden="true"></ion-icon>
           </div>
         </button>
       </div>
@@ -119,9 +125,10 @@
     }
 
     <!-- Step 3: Table Selection -->
-    <section class="section-card">
+    <section class="section-card tables-section">
       <div class="section-header-row">
         <h3 class="section-title">
+          <div class="step-pill">2</div>
           <ion-icon name="options-outline" aria-hidden="true"></ion-icon>
           <span>{{ 'TABLES.QR_TABLES_SELECTION' | transloco: { count: selectedIdsSet.size, total: tables.length } }}</span>
         </h3>
@@ -134,19 +141,83 @@
         </button>
       </div>
 
-      <div class="tables-chips-grid">
-        @for (table of tables; track table.id) {
+      <!-- Quick Filter & Search Bar -->
+      <div class="table-filter-bar">
+        <div class="search-input-wrapper">
+          <label for="batch-search-tables-input" class="visually-hidden">{{ 'COMMON.SEARCH' | transloco }}</label>
+          <ion-icon name="search-outline" class="search-icon"></ion-icon>
+          <input
+            id="batch-search-tables-input"
+            type="text"
+            class="filter-search-input"
+            [(ngModel)]="searchQuery"
+            placeholder="{{ 'COMMON.SEARCH' | transloco }}..." />
+          @if (searchQuery) {
+            <button type="button" class="clear-search-btn" (click)="searchQuery = ''">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          }
+        </div>
+
+        @if (uniqueZones.length > 0) {
+          <div class="zone-filter-chips">
+            <button
+              type="button"
+              class="zone-chip"
+              [class.active]="selectedZoneFilter === 'ALL'"
+              (click)="setZoneFilter('ALL')">
+              {{ 'ZONE_MANAGER.ALL_FLOORS' | transloco }}
+            </button>
+            @for (zone of uniqueZones; track zone) {
+              <button
+                type="button"
+                class="zone-chip"
+                [class.active]="selectedZoneFilter === zone"
+                (click)="setZoneFilter(zone)">
+                <ion-icon name="location-outline"></ion-icon>
+                <span>{{ zone }}</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Tables Grid -->
+      <div class="table-chips-grid">
+        @for (table of filteredTables; track table.id) {
           <button
             type="button"
             class="table-chip"
             [class.active]="isTableSelected(table.id)"
             [attr.data-testid]="'select-table-chip-' + table.id"
             (click)="toggleTableSelection(table.id)">
-            <span class="table-num">T{{ table.numero }}</span>
-            @if (table.zone) {
-              <span class="chip-zone">{{ table.zone }}</span>
-            }
+            <div class="chip-main">
+              <div class="chip-title-row">
+                <span class="table-num">Table {{ table.numero }}</span>
+                @if (table.capacite) {
+                  <span class="chip-capa">
+                    <ion-icon name="people-outline"></ion-icon>
+                    <span>{{ table.capacite }}</span>
+                  </span>
+                }
+              </div>
+              @if (table.zone) {
+                <span class="chip-zone">
+                  <ion-icon name="location-outline"></ion-icon>
+                  <span>{{ table.zone }}</span>
+                </span>
+              }
+            </div>
+            <div class="chip-check">
+              <ion-icon [name]="isTableSelected(table.id) ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+            </div>
           </button>
+        }
+        @if (filteredTables.length === 0) {
+          <div class="no-tables-match">
+            <ion-icon name="search-outline"></ion-icon>
+            <span>{{ 'COMMON.NO_RESULTS' | transloco }}</span>
+          </div>
         }
       </div>
     </section>
@@ -154,7 +225,11 @@
 
   <!-- Footer Actions -->
   <div class="modal-footer">
-    <div class="footer-left"></div>
+    <div class="footer-left">
+      <span class="selection-summary">
+        <span class="highlight-count">{{ selectedIdsSet.size }}</span> / {{ tables.length }} {{ 'TABLES.TITLE' | transloco }}
+      </span>
+    </div>
     <div class="footer-right">
       <button
         type="button"

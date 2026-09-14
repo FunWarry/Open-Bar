@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { StockMovement, StockWasteRequest, StockWasteSummary } from '../models/stock-waste.model';
+import { CsvColumn } from './csv-export.service';
 
 /**
  * Service managing HTTP REST interactions for stock shrinkage, breakage declarations,
@@ -44,5 +45,32 @@ export class StockWasteService {
    */
   getWasteSummary(): Observable<StockWasteSummary> {
     return this.http.get<StockWasteSummary>(`${this.apiUrl}/waste/summary`);
+  }
+
+  /**
+   * Returns standardized CSV column definitions for exporting stock waste and shrinkage movements.
+   *
+   * @returns Array of column definitions for CsvExportService
+   */
+  getWasteMovementCsvColumns(): CsvColumn<StockMovement>[] {
+    return [
+      { key: 'id', header: 'ID' },
+      { key: 'recordedAt', header: 'Date_Heure' },
+      { key: 'ingredientNom', header: 'Ingredient' },
+      { key: 'quantity', header: 'Quantite' },
+      { key: 'unit', header: 'Unite' },
+      { key: 'reason', header: 'Motif' },
+      {
+        key: 'reportedByUsername',
+        header: 'Declarant',
+        formatter: (val) => (typeof val === 'string' && val.length > 0 ? val : 'SYSTEM')
+      },
+      {
+        key: 'cost',
+        header: 'Cout_EUR',
+        formatter: (val) => (val != null ? Number(val).toFixed(2) : '0.00')
+      },
+      { key: 'notes', header: 'Notes' }
+    ];
   }
 }

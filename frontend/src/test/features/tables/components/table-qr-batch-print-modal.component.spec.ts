@@ -163,4 +163,36 @@ describe('TableQrBatchPrintModalComponent', () => {
     component.dismiss();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalled();
   });
+
+  describe('Zone filtering and Table search', () => {
+    it('should compute unique non-empty zones from tables', () => {
+      component.tables = [
+        { id: 1, numero: 1, capacite: 4, zone: 'INTERIEUR', occupee: false, createdAt: '', updatedAt: '' },
+        { id: 2, numero: 2, capacite: 2, zone: 'TERRASSE', occupee: false, createdAt: '', updatedAt: '' },
+        { id: 3, numero: 3, capacite: 4, zone: 'INTERIEUR', occupee: false, createdAt: '', updatedAt: '' },
+        { id: 4, numero: 4, capacite: 4, zone: '   ', occupee: false, createdAt: '', updatedAt: '' },
+      ];
+      expect(component.uniqueZones).toEqual(['INTERIEUR', 'TERRASSE']);
+    });
+
+    it('should filter tables by search query on table number and zone', () => {
+      component.searchQuery = 'table 1';
+      expect(component.filteredTables.map(t => t.id)).toEqual([1]);
+
+      component.searchQuery = 'terrasse';
+      expect(component.filteredTables.map(t => t.id)).toEqual([2]);
+
+      component.searchQuery = 't3';
+      expect(component.filteredTables.map(t => t.id)).toEqual([3]);
+    });
+
+    it('should filter tables by zone filter and update through setZoneFilter', () => {
+      component.setZoneFilter('TERRASSE');
+      expect(component.selectedZoneFilter).toBe('TERRASSE');
+      expect(component.filteredTables.map(t => t.id)).toEqual([2]);
+
+      component.setZoneFilter('ALL');
+      expect(component.filteredTables).toHaveSize(3);
+    });
+  });
 });

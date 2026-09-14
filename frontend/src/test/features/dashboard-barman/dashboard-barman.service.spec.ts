@@ -302,5 +302,26 @@ describe('DashboardBarmanService', () => {
     expect(searchBatches).toHaveSize(1);
     expect(searchBatches[0].cocktailNom).toBe('Frites');
   });
+
+  it('getCocktailsByIngredient() calls GET /api/cocktails/by-ingredient/:id', () => {
+    service.getCocktailsByIngredient(10).subscribe(data => {
+      expect(data).toHaveSize(1);
+    });
+
+    const req = httpMock.expectOne(`${apiUrl}/cocktails/by-ingredient/10`);
+    expect(req.request.method).toBe('GET');
+    req.flush([{ id: 1, nom: 'Mojito' }]);
+  });
+
+  it('setCocktailsDisponibiliteBatch() calls PUT /api/cocktails/disponibilite-batch', () => {
+    service.setCocktailsDisponibiliteBatch([1, 2], false).subscribe(data => {
+      expect(data).toHaveSize(2);
+    });
+
+    const req = httpMock.expectOne(`${apiUrl}/cocktails/disponibilite-batch`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ cocktailIds: [1, 2], disponible: false });
+    req.flush([{ id: 1, disponible: false }, { id: 2, disponible: false }]);
+  });
 });
 

@@ -20,9 +20,10 @@
   max-width: 540px;
   width: 100%;
   margin: 0 auto;
-  overflow: hidden;
+  overflow: visible;
   color: var(--modal-text);
   font-family: var(--font, 'Inter', sans-serif);
+  position: relative;
 }
 
 /* ========================================================================= */
@@ -34,8 +35,12 @@
   justify-content: space-between;
   padding: 22px 24px 18px 24px;
   border-bottom: 1px solid var(--modal-border);
+  border-top-left-radius: var(--radius-xl, 20px);
+  border-top-right-radius: var(--radius-xl, 20px);
   background: linear-gradient(180deg, rgba(108, 127, 232, 0.08) 0%, transparent 100%);
   gap: 16px;
+  position: relative;
+  z-index: 2;
 }
 
 .header-main-group {
@@ -135,20 +140,29 @@
 /* ========================================================================= */
 .modal-body {
   padding: 24px;
-  overflow-y: auto;
-  max-height: 65vh;
+  overflow: visible;
+  position: relative;
+  z-index: 20;
 }
 
 .table-form-container {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  position: relative;
+  overflow: visible;
 }
 
 .form-field-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  position: relative;
+
+  &:has(.dropdown-is-open),
+  &:has(.is-open) {
+    z-index: 50;
+  }
 }
 
 .field-label {
@@ -209,8 +223,12 @@
   justify-content: space-between;
   padding: 16px 24px;
   border-top: 1px solid var(--modal-border);
+  border-bottom-left-radius: var(--radius-xl, 20px);
+  border-bottom-right-radius: var(--radius-xl, 20px);
   background: var(--modal-surface);
   gap: 12px;
+  position: relative;
+  z-index: 1;
 
   .footer-left,
   .footer-right {

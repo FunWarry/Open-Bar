@@ -183,15 +183,39 @@
                     <ion-input type="number" step="0.5" [(ngModel)]="montantRecu" placeholder="0.00" data-testid="input-montant-recu"></ion-input>
                   </ion-item>
                 </div>
-                <!-- Quick Cash Chips -->
-                <div class="quick-cash-chips">
-                  <button type="button" class="cash-chip exact-chip" (click)="definirMontantExact()" data-testid="chip-cash-exact">
-                    {{ 'ENCAISSEMENT.EXACT_AMOUNT' | transloco }}
+                <!-- Quick Cash Chips & Shortcuts -->
+                <div class="quick-cash-chips" data-testid="quick-cash-chips">
+                  <!-- Exact Amount Shortcut -->
+                  <button type="button" class="cash-chip exact-chip" (click)="definirMontantExact()" data-testid="chip-cash-exact" [attr.aria-label]="'ENCAISSEMENT.EXACT_AMOUNT' | transloco">
+                    <ion-icon name="checkmark-circle-outline" class="chip-icon"></ion-icon>
+                    <span>{{ 'ENCAISSEMENT.EXACT_AMOUNT' | transloco }}</span>
                   </button>
-                  <button type="button" class="cash-chip" (click)="ajouterEspeces(5)" data-testid="chip-cash-5">+{{ 5 | appCurrency:0:0 }}</button>
-                  <button type="button" class="cash-chip" (click)="ajouterEspeces(10)" data-testid="chip-cash-10">+{{ 10 | appCurrency:0:0 }}</button>
-                  <button type="button" class="cash-chip" (click)="ajouterEspeces(20)" data-testid="chip-cash-20">+{{ 20 | appCurrency:0:0 }}</button>
-                  <button type="button" class="cash-chip" (click)="ajouterEspeces(50)" data-testid="chip-cash-50">+{{ 50 | appCurrency:0:0 }}</button>
+
+                  <!-- Smart Suggestions / Next Highest Bills -->
+                  @for (suggestion of smartCashSuggestions; track suggestion; let first = $first) {
+                    <button
+                      type="button"
+                      class="cash-chip suggestion-chip"
+                      [class.active]="montantRecu === suggestion"
+                      (click)="definirMontantRecu(suggestion)"
+                      [attr.data-testid]="first ? 'chip-cash-next-bill' : ('chip-cash-suggest-' + suggestion)"
+                      [attr.aria-label]="(first ? ('ENCAISSEMENT.NEXT_BILL' | transloco) : ('ENCAISSEMENT.SUGGEST_AMOUNT' | transloco)) + ' ' + (suggestion | appCurrency:0:0)">
+                      <ion-icon name="cash-outline" class="chip-icon"></ion-icon>
+                      <span>{{ suggestion | appCurrency:0:0 }}</span>
+                    </button>
+                  }
+
+                  <!-- Dynamic Banknote Increments -->
+                  @for (note of primaryCashIncrements; track note) {
+                    <button
+                      type="button"
+                      class="cash-chip increment-chip"
+                      (click)="ajouterEspeces(note)"
+                      [attr.data-testid]="'chip-cash-' + note"
+                      [attr.aria-label]="'+' + (note | appCurrency:0:0)">
+                      +{{ note | appCurrency:0:0 }}
+                    </button>
+                  }
                 </div>
                 <!-- Change calculation display -->
                 <div class="change-display-box" [class.insufficient]="!isMontantRecuSuffisant">

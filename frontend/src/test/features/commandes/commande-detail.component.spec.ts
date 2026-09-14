@@ -68,12 +68,18 @@ describe('CommandeDetailComponent', () => {
     expect(component.getItemLineTotal(component.groupedItems[0])).toBe(16);
   }));
 
-  it('ngOnInit() navigates to /commandes if getById fails', fakeAsync(() => {
+  it('ngOnInit() navigates to /404 if getById fails', fakeAsync(() => {
     serviceSpy.getById.and.returnValue(throwError(() => new Error('err')));
     component.ngOnInit(); tick();
     flushMicrotasks();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/commandes']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
   }));
+
+  it('ngOnInit() navigates to /404 if commandeId is NaN', () => {
+    (component as any).commandeId = NaN;
+    component.ngOnInit();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+  });
 
   it('getStatutColor() mappe EN_ATTENTE → warning', () => {
     expect(component.getStatutColor('EN_ATTENTE')).toBe('warning');

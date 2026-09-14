@@ -25,14 +25,17 @@ export class WebSocketService {
   private readonly store = inject(Store);
   private readonly rxStomp = inject(RX_STOMP);
 
+  private isGuestMode = false;
+
   /**
    * Initializes automatic subscriptions to connect/disconnect WebSocket based on user authentication state.
    */
   constructor() {
     this.store.select(selectIsAuthenticated).subscribe(isAuth => {
       if (isAuth && !this.rxStomp.active) {
+        this.isGuestMode = false;
         this.connect();
-      } else if (!isAuth && this.rxStomp.active) {
+      } else if (!isAuth && this.rxStomp.active && !this.isGuestMode) {
         this.rxStomp.deactivate();
       }
     });
@@ -44,6 +47,7 @@ export class WebSocketService {
    */
   connect(): void {
     if (this.rxStomp.active) return;
+    this.isGuestMode = false;
 
     const token = this.authService.getToken();
     this.rxStomp.configure({
@@ -69,7 +73,7 @@ export class WebSocketService {
    * @param sessionToken Optional table session token for QR fraud validation
    */
   connectAsGuest(guestSessionId: string, sessionToken?: string): void {
-    if (this.rxStomp.active) return;
+    this.isGuestMode = true;
 
     const headers: Record<string, string> = {
       'X-Guest-Session': guestSessionId,
@@ -78,13 +82,18 @@ export class WebSocketService {
       headers['X-Session-Token'] = sessionToken;
     }
 
+    if (this.rxStomp.active) {
+      this.rxStomp.stompClient.connectHeaders = headers;
+      return;
+    }
+
     this.rxStomp.configure({
       brokerURL: environment.wsUrl,
       connectHeaders: headers,
       beforeConnect: () => {
         this.rxStomp.stompClient.connectHeaders = headers;
       },
-      reconnectDelay: 5000,
+      reconnectDelay: 3000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
     });
@@ -95,6 +104,7 @@ export class WebSocketService {
    * Disconnects the STOMP WebSocket connection.
    */
   disconnect(): void {
+    this.isGuestMode = false;
     this.rxStomp.deactivate();
   }
 

@@ -54,9 +54,11 @@
           <app-action-button variant="primary" (btnClick)="navigateTo('/manager')">
             {{ 'HOME.DASHBOARD_MANAGER' | transloco }}
           </app-action-button>
-          <app-action-button variant="secondary" (btnClick)="navigateTo('/plan-salle')">
-            {{ 'HOME.FLOOR_PLAN' | transloco }}
-          </app-action-button>
+          @if (floorPlanEnabled()) {
+            <app-action-button variant="secondary" (btnClick)="navigateTo('/plan-salle')">
+              {{ 'HOME.FLOOR_PLAN' | transloco }}
+            </app-action-button>
+          }
         </div>
       </div>
     }

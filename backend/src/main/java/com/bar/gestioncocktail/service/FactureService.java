@@ -16,6 +16,7 @@ import com.bar.gestioncocktail.event.InvoiceSettledEvent;
 import com.bar.gestioncocktail.event.OrderStatusChangedEvent;
 import com.bar.gestioncocktail.event.TableLiberatedEvent;
 import jakarta.persistence.EntityManager;
+import com.bar.gestioncocktail.util.CsvUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import com.bar.gestioncocktail.dto.SplitMontantsRequest;
+import com.bar.gestioncocktail.dto.SplitPourcentagesRequest;
 
 import com.bar.gestioncocktail.model.AvoirCredit;
 import com.bar.gestioncocktail.model.VatRate;
@@ -61,6 +64,7 @@ public class FactureService {
     private static final String NOT_FOUND_ID_PREFIX = "Invoice not found with id: ";
     private static final String NOT_FOUND_PREFIX = "Invoice not found: ";
     private static final String ENTITY_FACTURE = "Invoice";
+    private static final String DEFAULT_GUEST_PREFIX = "Guest ";
 
     private final FactureRepository factureRepository;
     private final TableRepository tableRepository;
@@ -307,16 +311,56 @@ public class FactureService {
         }
         checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
 
-        if (pourboire != null && pourboire.compareTo(BigDecimal.ZERO) > 0) {
-            facture.setPourboire(pourboire);
-            BigDecimal currentTotal = facture.getTotal() != null ? facture.getTotal() : BigDecimal.ZERO;
-            facture.setTotalTTC(currentTotal.add(pourboire));
-        }
+        applyPourboire(facture, pourboire);
 
         facture.setReglee(true);
         facture.setModePaiement(modePaiement);
         facture.setDateReglement(LocalDateTime.now(timeService.getZoneId()));
 
+        recordSoldeReglementIfPartial(facture, id, modePaiement, pourboire);
+        liberateTableOnSettlement(facture);
+
+        Facture saved = factureRepository.save(facture);
+        auditLogService.logAction(null, "REGLEMENT_FACTURE", ENTITY_FACTURE, saved.getId(),
+                "Payment settlement of invoice " + saved.getNumero() + " (" + modePaiement + ")", null);
+        return saved;
+    }
+
+    private void applyPourboire(Facture facture, BigDecimal pourboire) {
+        if (pourboire != null && pourboire.compareTo(BigDecimal.ZERO) > 0) {
+            facture.setPourboire(pourboire);
+            BigDecimal currentTotal = facture.getTotal() != null ? facture.getTotal() : BigDecimal.ZERO;
+            facture.setTotalTTC(currentTotal.add(pourboire));
+        }
+    }
+
+    private void recordSoldeReglementIfPartial(Facture facture, Long id, String modePaiement, BigDecimal pourboire) {
+        List<com.bar.gestioncocktail.model.FactureReglement> existingReglements =
+                factureReglementRepository.findByFactureIdOrderByIdAsc(id);
+        BigDecimal invoiceBaseTotal = facture.getTotal() != null ? facture.getTotal() : resolveInvoiceTarget(facture);
+        BigDecimal alreadyPaid = computeTotalPaid(existingReglements);
+        BigDecimal remaining = invoiceBaseTotal.subtract(alreadyPaid);
+
+        if (!existingReglements.isEmpty() && remaining.compareTo(BigDecimal.ZERO) > 0 && !"MIXTE_SPLIT".equals(modePaiement)) {
+            com.bar.gestioncocktail.model.FactureReglement soldeReglement = new com.bar.gestioncocktail.model.FactureReglement();
+            soldeReglement.setFacture(facture);
+            soldeReglement.setNomConvive("Solde restant");
+            soldeReglement.setPartIndex(existingReglements.size() + 1);
+            soldeReglement.setTotalParts(existingReglements.size() + 1);
+            soldeReglement.setMontant(remaining);
+            soldeReglement.setTotalRegle(remaining.add(pourboire != null ? pourboire : BigDecimal.ZERO));
+            soldeReglement.setPourboire(pourboire != null ? pourboire : BigDecimal.ZERO);
+            soldeReglement.setModePaiement(modePaiement);
+            soldeReglement.setTypeSplit("SOLDE");
+            soldeReglement.setDateReglement(LocalDateTime.now(timeService.getZoneId()));
+            com.bar.gestioncocktail.model.FactureReglement savedSolde = factureReglementRepository.save(soldeReglement);
+            if (facture.getReglements() != null) {
+                facture.getReglements().add(savedSolde);
+            }
+        }
+    }
+
+    private void liberateTableOnSettlement(Facture facture) {
         if (facture.getTable() != null) {
             TableEntity table = facture.getTable();
             table.setOccupee(false);
@@ -327,11 +371,6 @@ public class FactureService {
                 eventPublisher.publishEvent(new TableLiberatedEvent(table));
             }
         }
-
-        Facture saved = factureRepository.save(facture);
-        auditLogService.logAction(null, "REGLEMENT_FACTURE", ENTITY_FACTURE, saved.getId(),
-                "Payment settlement of invoice " + saved.getNumero() + " (" + modePaiement + ")", null);
-        return saved;
     }
 
     /**
@@ -594,7 +633,20 @@ public class FactureService {
         BigDecimal lineHT = lineTTC.divide(BigDecimal.valueOf(1.20), 2, RoundingMode.HALF_UP);
         fi.setPriceHT(lineHT);
         fi.setVatAmount(lineTTC.subtract(lineHT));
+        fi.setNotes(item.getNotes());
+        fi.setGuestName(extractGuestName(item.getNotes()));
         return fi;
+    }
+
+    private String extractGuestName(String notes) {
+        if (notes == null || !notes.startsWith("[")) {
+            return null;
+        }
+        int endIdx = notes.indexOf(']');
+        if (endIdx > 1) {
+            return notes.substring(1, endIdx).trim();
+        }
+        return null;
     }
 
     private TableAdditionItemDTO buildAdditionItemDTO(CommandeItem item, Long commandeId) {
@@ -722,7 +774,12 @@ public class FactureService {
 
     /**
      * Equal split: divides the total TTC (or total without tip) into N equal parts.
+     * Deducts any previously recorded split settlements to split only the remaining balance.
      * Does not persist child invoices — returns calculated portions.
+     *
+     * @param factureId      ID of the invoice
+     * @param nombreConvives Number of guests (2-20)
+     * @return List of calculated equal parts
      */
     public List<SplitResultDTO> splitEgal(Long factureId, int nombreConvives) {
         if (nombreConvives < 2 || nombreConvives > 20) {
@@ -731,22 +788,209 @@ public class FactureService {
         Facture facture = factureRepository.findById(factureId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_PREFIX + factureId));
 
-        BigDecimal base = facture.getTotalTTC();
-        if (base == null) {
-            base = facture.getTotal() != null ? facture.getTotal() : BigDecimal.ZERO;
+        BigDecimal base = resolveInvoiceTarget(facture);
+        List<com.bar.gestioncocktail.model.FactureReglement> existingReglements =
+                factureReglementRepository.findByFactureIdOrderByIdAsc(factureId);
+        BigDecimal alreadyPaid = computeTotalPaid(existingReglements);
+
+        BigDecimal balanceToSplit = base.subtract(alreadyPaid);
+        if (balanceToSplit.compareTo(BigDecimal.ZERO) < 0) {
+            balanceToSplit = BigDecimal.ZERO;
         }
-        BigDecimal partParPersonne = base.divide(BigDecimal.valueOf(nombreConvives), 2, RoundingMode.HALF_UP);
+        long totalCents = balanceToSplit.movePointRight(2).setScale(0, RoundingMode.HALF_UP).longValue();
+        long baseCents = totalCents / nombreConvives;
+        long remainderCents = totalCents % nombreConvives;
 
         List<SplitResultDTO> result = new ArrayList<>();
         for (int i = 1; i <= nombreConvives; i++) {
+            long guestCents = baseCents + (i <= remainderCents ? 1 : 0);
+            BigDecimal partAmount = BigDecimal.valueOf(guestCents).movePointLeft(2);
             result.add(new SplitResultDTO(
                     factureId,
-                    "Guest " + i,
+                    DEFAULT_GUEST_PREFIX + i,
                     List.of(),
-                    partParPersonne,
-                    partParPersonne));
+                    partAmount,
+                    partAmount));
         }
         return result;
+    }
+
+    /**
+     * Custom amount split: divides the remaining balance according to explicit amounts per guest.
+     * Validates that the sum of amounts matches the invoice balance (within 0.05 rounding tolerance).
+     *
+     * @param factureId Target invoice identifier
+     * @param request   List of guest shares with allocated amounts
+     * @return List of calculated SplitResultDTO
+     */
+    public List<SplitResultDTO> splitParMontants(Long factureId, SplitMontantsRequest request) {
+        if (request == null || request.parts() == null || request.parts().size() < 2 || request.parts().size() > 20) {
+            throw new BusinessException("Number of guests must be between 2 and 20");
+        }
+        Facture facture = factureRepository.findById(factureId)
+                .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_PREFIX + factureId));
+
+        BigDecimal base = resolveInvoiceTarget(facture);
+        List<com.bar.gestioncocktail.model.FactureReglement> existingReglements =
+                factureReglementRepository.findByFactureIdOrderByIdAsc(factureId);
+        BigDecimal alreadyPaid = computeTotalPaid(existingReglements);
+
+        BigDecimal remaining = base.subtract(alreadyPaid);
+        if (remaining.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Invoice " + facture.getNumero() + " is already fully paid");
+        }
+
+        BigDecimal sumAllocated = BigDecimal.ZERO;
+        List<SplitResultDTO> result = new ArrayList<>();
+        for (com.bar.gestioncocktail.dto.SplitMontantPartRequest part : request.parts()) {
+            if (part.montant() == null || part.montant().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new BusinessException("Allocated amount for " + part.nomConvive() + " must be strictly positive");
+            }
+            sumAllocated = sumAllocated.add(part.montant());
+            result.add(new SplitResultDTO(
+                    factureId,
+                    resolveGuestName(part.nomConvive(), result.size() + 1),
+                    List.of(),
+                    part.montant(),
+                    part.montant()
+            ));
+        }
+
+        validateMontantsSum(sumAllocated, remaining);
+        return adjustMontantsToExactSum(result, remaining);
+    }
+
+    private List<SplitResultDTO> adjustMontantsToExactSum(List<SplitResultDTO> parts, BigDecimal remaining) {
+        if (parts.isEmpty()) {
+            return parts;
+        }
+        BigDecimal sum = BigDecimal.ZERO;
+        for (SplitResultDTO p : parts) {
+            sum = sum.add(p.sousTotal());
+        }
+        BigDecimal diff = remaining.subtract(sum);
+        if (diff.compareTo(BigDecimal.ZERO) != 0 && diff.abs().compareTo(new BigDecimal("0.05")) <= 0) {
+            SplitResultDTO last = parts.get(parts.size() - 1);
+            BigDecimal adjusted = last.sousTotal().add(diff);
+            if (adjusted.compareTo(BigDecimal.ZERO) > 0) {
+                parts.set(parts.size() - 1, new SplitResultDTO(
+                        last.factureId(),
+                        last.nomConvive(),
+                        last.items(),
+                        adjusted,
+                        adjusted
+                ));
+            }
+        }
+        return parts;
+    }
+
+    /**
+     * Custom percentage split: divides the remaining balance according to percentage per guest.
+     * Validates that percentages sum to 100% (within 0.05 tolerance) and calculates amounts in currency.
+     *
+     * @param factureId Target invoice identifier
+     * @param request   List of guest shares with allocated percentages
+     * @return List of calculated SplitResultDTO
+     */
+    public List<SplitResultDTO> splitParPourcentages(Long factureId, SplitPourcentagesRequest request) {
+        if (request == null || request.parts() == null || request.parts().size() < 2 || request.parts().size() > 20) {
+            throw new BusinessException("Number of guests must be between 2 and 20");
+        }
+        Facture facture = factureRepository.findById(factureId)
+                .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_PREFIX + factureId));
+
+        BigDecimal base = resolveInvoiceTarget(facture);
+        List<com.bar.gestioncocktail.model.FactureReglement> existingReglements =
+                factureReglementRepository.findByFactureIdOrderByIdAsc(factureId);
+        BigDecimal alreadyPaid = computeTotalPaid(existingReglements);
+
+        BigDecimal remaining = base.subtract(alreadyPaid);
+        if (remaining.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Invoice " + facture.getNumero() + " is already fully paid");
+        }
+
+        validatePercentages(request.parts());
+        return calculatePercentageShares(factureId, remaining, request.parts());
+    }
+
+    private List<SplitResultDTO> calculatePercentageShares(
+            Long factureId,
+            BigDecimal remaining,
+            List<com.bar.gestioncocktail.dto.SplitPourcentagePartRequest> parts) {
+        List<SplitResultDTO> result = new ArrayList<>();
+        BigDecimal sumCalculated = BigDecimal.ZERO;
+        int count = parts.size();
+        for (int i = 0; i < count; i++) {
+            com.bar.gestioncocktail.dto.SplitPourcentagePartRequest part = parts.get(i);
+            BigDecimal partAmount;
+            if (i == count - 1) {
+                partAmount = remaining.subtract(sumCalculated);
+            } else {
+                partAmount = remaining.multiply(part.pourcentage())
+                        .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+                sumCalculated = sumCalculated.add(partAmount);
+            }
+            result.add(new SplitResultDTO(
+                    factureId,
+                    resolveGuestName(part.nomConvive(), i + 1),
+                    List.of(),
+                    partAmount,
+                    partAmount
+            ));
+        }
+        return result;
+    }
+
+    private void validateMontantsSum(BigDecimal sumAllocated, BigDecimal remaining) {
+        BigDecimal diff = sumAllocated.subtract(remaining).abs();
+        if (diff.compareTo(new BigDecimal("0.05")) > 0) {
+            throw new BusinessException("Sum of allocated amounts (" + sumAllocated + ") does not match remaining balance (" + remaining + ")");
+        }
+    }
+
+    private void validatePercentages(List<com.bar.gestioncocktail.dto.SplitPourcentagePartRequest> parts) {
+        BigDecimal sumPct = BigDecimal.ZERO;
+        for (com.bar.gestioncocktail.dto.SplitPourcentagePartRequest part : parts) {
+            if (part.pourcentage() == null || part.pourcentage().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new BusinessException("Percentage for " + part.nomConvive() + " must be strictly positive");
+            }
+            sumPct = sumPct.add(part.pourcentage());
+        }
+        BigDecimal pctDiff = sumPct.subtract(new BigDecimal("100.00")).abs();
+        if (pctDiff.compareTo(new BigDecimal("0.05")) > 0) {
+            throw new BusinessException("Sum of percentages (" + sumPct + "%) must equal 100%");
+        }
+    }
+
+    private String resolveGuestName(String candidateName, int defaultIndex) {
+        if (candidateName != null && !candidateName.isBlank()) {
+            return candidateName.trim();
+        }
+        return DEFAULT_GUEST_PREFIX + defaultIndex;
+    }
+
+    private BigDecimal resolveInvoiceTarget(Facture facture) {
+        if (facture.getTotalTTC() != null) {
+            return facture.getTotalTTC();
+        }
+        if (facture.getTotal() != null) {
+            return facture.getTotal();
+        }
+        return BigDecimal.ZERO;
+    }
+
+    private BigDecimal computeTotalPaid(List<com.bar.gestioncocktail.model.FactureReglement> reglements) {
+        if (reglements == null || reglements.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal sum = BigDecimal.ZERO;
+        for (com.bar.gestioncocktail.model.FactureReglement r : reglements) {
+            if (r != null && r.getMontant() != null) {
+                sum = sum.add(r.getMontant());
+            }
+        }
+        return sum;
     }
 
     /**
@@ -875,14 +1119,21 @@ public class FactureService {
         }
         checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
 
+        if (facture.isReglee()) {
+            throw new BusinessException("Invoice " + facture.getNumero() + " is already fully settled");
+        }
+        BigDecimal invoiceTarget = resolveInvoiceTarget(facture);
+        BigDecimal amountToRecord = request.montant();
+
         com.bar.gestioncocktail.model.FactureReglement reglement = new com.bar.gestioncocktail.model.FactureReglement();
         reglement.setFacture(facture);
         reglement.setNomConvive(request.nomConvive());
         reglement.setPartIndex(request.partIndex());
         reglement.setTotalParts(request.totalParts());
-        reglement.setMontant(request.montant());
-        reglement.setPourboire(request.pourboire() != null ? request.pourboire() : BigDecimal.ZERO);
-        reglement.setTotalRegle(request.totalRegle());
+        reglement.setMontant(amountToRecord);
+        BigDecimal tip = request.pourboire() != null ? request.pourboire() : BigDecimal.ZERO;
+        reglement.setPourboire(tip);
+        reglement.setTotalRegle(request.totalRegle() != null ? request.totalRegle() : amountToRecord.add(tip));
         reglement.setModePaiement(request.modePaiement());
         reglement.setTypeSplit(request.typeSplit());
         reglement.setDateReglement(timeService.now());
@@ -905,12 +1156,27 @@ public class FactureService {
         facture.getReglements().add(saved);
 
         List<com.bar.gestioncocktail.model.FactureReglement> allReglements = factureReglementRepository.findByFactureIdOrderByIdAsc(factureId);
-        checkAndFinalizeSplitSettlement(facture, factureId, allReglements);
+        BigDecimal totalPaidSoFar = computeTotalPaid(allReglements);
+        if (totalPaidSoFar.compareTo(invoiceTarget.add(new BigDecimal("0.05"))) > 0) {
+            throw new BusinessException("Total settled amount (" + totalPaidSoFar + ") exceeds invoice total (" + invoiceTarget + ")");
+        }
+
+        BigDecimal excess = totalPaidSoFar.subtract(invoiceTarget);
+        if (excess.compareTo(BigDecimal.ZERO) > 0 && excess.compareTo(new BigDecimal("0.05")) <= 0) {
+            BigDecimal adjustedMontant = saved.getMontant().subtract(excess);
+            if (adjustedMontant.compareTo(BigDecimal.ZERO) > 0) {
+                saved.setMontant(adjustedMontant);
+                saved.setTotalRegle(adjustedMontant.add(saved.getPourboire()));
+                saved = factureReglementRepository.save(saved);
+            }
+        }
+
+        checkAndFinalizeSplitSettlement(facture, factureId, allReglements, invoiceTarget);
 
         return com.bar.gestioncocktail.dto.FactureReglementDTO.from(saved);
     }
 
-    private void checkAndFinalizeSplitSettlement(Facture facture, Long factureId, List<com.bar.gestioncocktail.model.FactureReglement> allReglements) {
+    private void checkAndFinalizeSplitSettlement(Facture facture, Long factureId, List<com.bar.gestioncocktail.model.FactureReglement> allReglements, BigDecimal invoiceTarget) {
         BigDecimal totalPaid = BigDecimal.ZERO;
         BigDecimal totalTips = BigDecimal.ZERO;
         for (com.bar.gestioncocktail.model.FactureReglement r : allReglements) {
@@ -920,11 +1186,6 @@ public class FactureService {
             if (r.getPourboire() != null) {
                 totalTips = totalTips.add(r.getPourboire());
             }
-        }
-
-        BigDecimal invoiceTarget = facture.getTotalTTC();
-        if (invoiceTarget == null) {
-            invoiceTarget = facture.getTotal() != null ? facture.getTotal() : BigDecimal.ZERO;
         }
 
         if (totalPaid.compareTo(invoiceTarget.subtract(new BigDecimal("0.05"))) >= 0) {
@@ -1181,9 +1442,11 @@ public class FactureService {
                 : "";
         String tableNum = f.getTable() != null ? String.valueOf(f.getTable().getNumero()) : "N/A";
         String statut = f.isReglee() ? "REGLEE" : "EN_ATTENTE";
+        BigDecimal totalTtc = f.getTotalTTC() != null ? f.getTotalTTC() : f.getTotal();
+        String totalTtcStr = totalTtc != null ? totalTtc.toString() : "0.00";
 
-        return String.format("%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s%n",
-                f.getNumero(),
+        List<Object> values = List.of(
+                f.getNumero() != null ? f.getNumero() : "",
                 dateStr,
                 tableNum,
                 f.getTotalHT() != null ? f.getTotalHT().toString() : "0.00",
@@ -1191,9 +1454,12 @@ public class FactureService {
                 vats[1].toString(),
                 vats[2].toString(),
                 f.getTotalVAT() != null ? f.getTotalVAT().toString() : "0.00",
-                f.getTotalTTC() != null ? f.getTotalTTC().toString() : f.getTotal().toString(),
+                totalTtcStr,
                 f.getModePaiement() != null ? f.getModePaiement() : "",
-                statut);
+                statut
+        );
+
+        return CsvUtils.formatRow(values);
     }
 
     /**

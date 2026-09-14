@@ -169,4 +169,25 @@ export class CocktailService {
   getCatalogMarginAnalytics(): Observable<CocktailMargin[]> {
     return this.http.get<CocktailMargin[]>(`${this.api}/margin-analytics`);
   }
+
+  /**
+   * Retrieves cocktails using a specific ingredient in their recipe or variants.
+   *
+   * @param ingredientId Ingredient identifier
+   * @returns Observable emitting list of matching cocktails
+   */
+  getByIngredient(ingredientId: number): Observable<Cocktail[]> {
+    return this.http.get<Cocktail[]>(`${this.api}/by-ingredient/${ingredientId}`);
+  }
+
+  /**
+   * Batch updates availability status across multiple cocktails.
+   *
+   * @param cocktailIds Array of cocktail identifiers
+   * @param disponible Target availability boolean
+   * @returns Observable emitting list of updated cocktails
+   */
+  setDisponibiliteBatch(cocktailIds: number[], disponible: boolean): Observable<Cocktail[]> {
+    return this.http.put<Cocktail[]>(`${this.api}/disponibilite-batch`, { cocktailIds, disponible });
+  }
 }

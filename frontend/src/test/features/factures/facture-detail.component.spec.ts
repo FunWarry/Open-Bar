@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { ActivatedRoute, convertToParamMap, ParamMap, Router } from '@angular/router';
+import { BehaviorSubject, of, throwError } from 'rxjs';
 import { IonicModule } from '@ionic/angular';
 
 import { ModalController } from '@ionic/angular/standalone';
@@ -40,8 +40,12 @@ describe('FactureDetailComponent', () => {
   let component: FactureDetailComponent;
   let factureServiceSpy: jasmine.SpyObj<FactureService>;
   let etablissementServiceSpy: jasmine.SpyObj<EtablissementService>;
+  let router: Router;
+  let paramMapSubject: BehaviorSubject<ParamMap>;
 
   beforeEach(async () => {
+    paramMapSubject = new BehaviorSubject(convertToParamMap({ id: '1' }));
+
     factureServiceSpy = jasmine.createSpyObj('FactureService', ['getFactureById', 'reglerFacture']);
     factureServiceSpy.getFactureById.and.returnValue(of(mockFacture));
     factureServiceSpy.reglerFacture.and.returnValue(of({ ...mockFacture, reglee: true }));
@@ -64,7 +68,7 @@ describe('FactureDetailComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            paramMap: of(convertToParamMap({ id: '1' }))
+            paramMap: paramMapSubject.asObservable()
           }
         },
         { provide: FactureService, useValue: factureServiceSpy },
@@ -75,6 +79,9 @@ describe('FactureDetailComponent', () => {
         }
       ]
     }).compileComponents();
+
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
 
     const fixture = TestBed.createComponent(FactureDetailComponent);
     component = fixture.componentInstance;
@@ -310,5 +317,16 @@ describe('FactureDetailComponent', () => {
     expect(modalCtrl.create).toHaveBeenCalled();
     expect(modalSpy.present).toHaveBeenCalled();
     expect(factureServiceSpy.getFactureById).toHaveBeenCalled();
+  });
+
+  it('redirects to /404 when route id is NaN', () => {
+    paramMapSubject.next(convertToParamMap({ id: 'invalid-id' }));
+    expect(router.navigate).toHaveBeenCalledWith(['/404']);
+  });
+
+  it('redirects to /404 when getFactureById fails with error', () => {
+    factureServiceSpy.getFactureById.and.returnValue(throwError(() => new Error('Not found')));
+    paramMapSubject.next(convertToParamMap({ id: '999' }));
+    expect(router.navigate).toHaveBeenCalledWith(['/404']);
   });
 });

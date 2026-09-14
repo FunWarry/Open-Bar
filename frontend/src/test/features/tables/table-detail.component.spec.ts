@@ -62,6 +62,7 @@ describe('TableDetailComponent', () => {
     }).compileComponents();
 
     router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
     const fixture = TestBed.createComponent(TableDetailComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -70,6 +71,22 @@ describe('TableDetailComponent', () => {
   afterEach(() => component.ngOnDestroy());
 
   it('should create', () => expect(component).toBeTruthy());
+
+  it('ngOnInit() redirects to /404 when route id is NaN', () => {
+    (component as any).route = { snapshot: { paramMap: { get: () => 'invalid' } } };
+    component.ngOnInit();
+    expect(router.navigate).toHaveBeenCalledWith(['/404']);
+  });
+
+  it('ngOnInit() redirects to /404 when routed and getById fails', fakeAsync(() => {
+    modalCtrlSpy.getTop.and.returnValue(Promise.resolve(null as any));
+    tableServiceSpy.getById.and.returnValue(throwError(() => new Error('Not found')));
+    component.table = null;
+    component.ngOnInit();
+    tick();
+    flushMicrotasks();
+    expect(router.navigate).toHaveBeenCalledWith(['/404']);
+  }));
 
   it('ngOnInit() charge la table et les commandes', fakeAsync(() => {
     component.ngOnInit(); tick();
@@ -127,7 +144,6 @@ describe('TableDetailComponent', () => {
   }));
 
   it('onViewCommande() ferme la modal et navigue vers /commandes/:id', fakeAsync(() => {
-    spyOn(router, 'navigate');
     component.onViewCommande(mockCommande);
     tick();
     expect(router.navigate).toHaveBeenCalledWith(['/commandes', 1]);
