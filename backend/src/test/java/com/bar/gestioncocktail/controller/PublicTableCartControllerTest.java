@@ -160,4 +160,37 @@ class PublicTableCartControllerTest {
         assertThat(response.getBody().getTrackingToken()).isEqualTo("trk-42");
         verify(tableCartService).submitCart(1L, request);
     }
+
+    @Test
+    @DisplayName("getTableOrders: returns 200 with table orders and cumulative bill summary")
+    void getTableOrders_returnsSummary() {
+        TableOrdersSummaryResponseDTO summary = new TableOrdersSummaryResponseDTO(
+                1L, 1, List.of(), BigDecimal.valueOf(35.0), 2, true, false
+        );
+        when(tableCartService.getTableOrdersSummary(1L)).thenReturn(summary);
+
+        ResponseEntity<TableOrdersSummaryResponseDTO> response = controller.getTableOrders(1L);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().tableId()).isEqualTo(1L);
+        assertThat(response.getBody().cumulativeTotal()).isEqualTo(BigDecimal.valueOf(35.0));
+        verify(tableCartService).getTableOrdersSummary(1L);
+    }
+
+    @Test
+    @DisplayName("finalizeGrace: returns 200 with refreshed open cart")
+    void finalizeGrace_returnsCart() {
+        TableCartResponseDTO cart = new TableCartResponseDTO(
+                1L, "OPEN", List.of(), 0, BigDecimal.ZERO, null, null, null, fixedNow
+        );
+        when(tableCartService.finalizeGracePeriod(1L)).thenReturn(cart);
+
+        ResponseEntity<TableCartResponseDTO> response = controller.finalizeGrace(1L);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().status()).isEqualTo("OPEN");
+        verify(tableCartService).finalizeGracePeriod(1L);
+    }
 }

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TableSessionService } from '../../../app/core/services/table-session.service';
-import { TableSessionResponse } from '../../../app/core/models/table-session.model';
+import { TableSessionResponse, TableJoinRequest } from '../../../app/core/models/table-session.model';
 import { environment } from '../../../environments/environment';
 
 describe('TableSessionService', () => {
@@ -131,5 +131,87 @@ describe('TableSessionService', () => {
     expect(req.request.method).toBe('GET');
     expect(req.request.responseType).toBe('blob');
     req.flush(mockBlob);
+  });
+
+  it('submitJoinRequest should send POST to join-request endpoint', () => {
+    const mockJoinReq: TableJoinRequest = {
+      id: 77,
+      tableId: 5,
+      applicantSessionId: 'guest-sam',
+      applicantName: 'Sam',
+      status: 'PENDING',
+      createdAt: '2026-09-05T19:00:00'
+    };
+
+    service.submitJoinRequest(5, 'guest-sam', 'Sam').subscribe((res: TableJoinRequest) => {
+      expect(res).toEqual(mockJoinReq);
+    });
+
+    const req = httpMock.expectOne(`${baseUrl}/5/session/join-request`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ tableId: 5, applicantSessionId: 'guest-sam', applicantName: 'Sam' });
+    req.flush(mockJoinReq);
+  });
+
+  it('respondToJoinRequest should send POST to respond endpoint', () => {
+    const mockApprovedReq: TableJoinRequest = {
+      id: 77,
+      tableId: 5,
+      applicantSessionId: 'guest-sam',
+      applicantName: 'Sam',
+      status: 'APPROVED',
+      sessionToken: 'tok-abc',
+      createdAt: '2026-09-05T19:00:00'
+    };
+
+    service.respondToJoinRequest(5, 77, 'owner-alex', true).subscribe((res: TableJoinRequest) => {
+      expect(res.status).toBe('APPROVED');
+      expect(res.sessionToken).toBe('tok-abc');
+    });
+
+    const req = httpMock.expectOne(`${baseUrl}/5/session/join-requests/77/respond`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ ownerSessionId: 'owner-alex', approved: true });
+    req.flush(mockApprovedReq);
+  });
+
+  it('getJoinRequestStatus should send GET to status endpoint', () => {
+    const mockReq: TableJoinRequest = {
+      id: 77,
+      tableId: 5,
+      applicantSessionId: 'guest-sam',
+      applicantName: 'Sam',
+      status: 'APPROVED',
+      sessionToken: 'tok-abc'
+    };
+
+    service.getJoinRequestStatus(5, 'guest-sam').subscribe((res: TableJoinRequest) => {
+      expect(res.sessionToken).toBe('tok-abc');
+    });
+
+    const req = httpMock.expectOne(`${baseUrl}/5/session/join-requests/status?applicantSessionId=guest-sam`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockReq);
+  });
+
+  it('getPendingJoinRequests should send GET to pending endpoint', () => {
+    const mockReqs: TableJoinRequest[] = [
+      {
+        id: 77,
+        tableId: 5,
+        applicantSessionId: 'guest-sam',
+        applicantName: 'Sam',
+        status: 'PENDING'
+      }
+    ];
+
+    service.getPendingJoinRequests(5, 'owner-alex').subscribe((res: TableJoinRequest[]) => {
+      expect(res).toHaveSize(1);
+      expect(res[0].applicantName).toBe('Sam');
+    });
+
+    const req = httpMock.expectOne(`${baseUrl}/5/session/join-requests/pending?ownerSessionId=owner-alex`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockReqs);
   });
 });

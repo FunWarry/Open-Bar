@@ -64,7 +64,6 @@ public class TableSessionService {
      * @param tableJoinRequestRepository Repository for table join requests
      * @param messagingTemplate STOMP messaging template for real-time notifications
      */
-    @org.springframework.beans.factory.annotation.Autowired
     public TableSessionService(
             TableSessionRepository tableSessionRepository,
             AppSettingsService appSettingsService,
@@ -170,7 +169,7 @@ public class TableSessionService {
             activeSession.setOwnerGuestSessionId(guestSessionId);
             activeSession.setOwnerGuestName(guestName != null && !guestName.isBlank() ? guestName.trim() : "Hôte");
             activeSession = tableSessionRepository.save(activeSession);
-            log.info("Assigned guest {} ({}) as owner of free table {}", guestName, guestSessionId, canonicalTableId);
+            log.info("Assigned guest owner of free table {}", canonicalTableId);
         }
         return TableSessionResponseDTO.from(activeSession, true, "Active table session initialized for free table", guestSessionId);
     }
@@ -206,7 +205,7 @@ public class TableSessionService {
             session.setOwnerGuestName(guestName != null && !guestName.isBlank() ? guestName.trim() : "Hôte");
             session = tableSessionRepository.save(session);
             isOwner = true;
-            log.info("Claimed table {} ownership by guest {} ({})", canonicalTableId, guestName, guestSessionId);
+            log.info("Claimed table {} ownership by guest", canonicalTableId);
         }
 
         if (isOwner) {
@@ -279,7 +278,7 @@ public class TableSessionService {
             TableJoinRequest saved = tableJoinRequestRepository.save(req);
 
             broadcastOwnerJoinRequest(canonicalTableId, saved);
-            log.info("Created join request #{} for table {} from guest {}", saved.getId(), canonicalTableId, dto.applicantName());
+            log.info("Created join request #{} for table {}", saved.getId(), canonicalTableId);
             return TableJoinRequestDTO.from(saved, null);
         }
         return dto;

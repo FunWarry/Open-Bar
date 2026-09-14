@@ -61,7 +61,6 @@ public class TableCartService {
      * @param commandeRepository Repository for order queries and updates
      * @param tableAppelRepository Repository for waiter and bill alerts
      */
-    @org.springframework.beans.factory.annotation.Autowired
     public TableCartService(
             TableCartItemRepository tableCartItemRepository,
             TableRepository tableRepository,

@@ -1,11 +1,12 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.TableJoinApprovalRequestDTO;
+import com.bar.gestioncocktail.dto.TableJoinRequestDTO;
 import com.bar.gestioncocktail.dto.TableSessionResponseDTO;
 import com.bar.gestioncocktail.event.TableLiberatedEvent;
-import com.bar.gestioncocktail.model.AppSettings;
-import com.bar.gestioncocktail.model.TableEntity;
-import com.bar.gestioncocktail.model.TableSession;
-import com.bar.gestioncocktail.model.TableSessionStatus;
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
+import com.bar.gestioncocktail.model.*;
+import com.bar.gestioncocktail.repository.TableJoinRequestRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
 import com.bar.gestioncocktail.repository.TableSessionRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,13 +17,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,6 +43,12 @@ class TableSessionServiceTest {
 
     @Mock
     private TableRepository tableRepository;
+
+    @Mock
+    private TableJoinRequestRepository tableJoinRequestRepository;
+
+    @Mock
+    private SimpMessagingTemplate messagingTemplate;
 
     @Spy
     private TimeService timeService = new TimeService(null);
@@ -378,5 +388,152 @@ class TableSessionServiceTest {
         assertThat(response.status()).isEqualTo(TableSessionStatus.ACTIVE);
         assertThat(response.sessionToken()).isEqualTo("session-token-table-3");
         assertThat(response.tableId()).isEqualTo(25L);
+    }
+
+    @Test
+    @DisplayName("createJoinRequest: saves pending join request and broadcasts to table owner")
+    void createJoinRequest_savesAndBroadcasts() {
+        when(tableRepository.findById(5L)).thenReturn(Optional.empty());
+        when(tableRepository.findByNumero(5)).thenReturn(Optional.empty());
+
+        TableSession session = new TableSession();
+        session.setTableId(5L);
+        session.setStatus(TableSessionStatus.ACTIVE);
+
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.of(session));
+        when(tableJoinRequestRepository.findFirstByTableIdAndApplicantSessionIdOrderByCreatedAtDesc(5L, "guest-sam"))
+                .thenReturn(Optional.empty());
+
+        when(tableJoinRequestRepository.save(any(TableJoinRequest.class))).thenAnswer(inv -> {
+            TableJoinRequest r = inv.getArgument(0);
+            r.setId(77L);
+            return r;
+        });
+
+        TableJoinRequestDTO requestDto = new TableJoinRequestDTO(
+                null, 5L, "guest-sam", "Sam", "PENDING", null, null
+        );
+
+        TableJoinRequestDTO result = tableSessionService.createJoinRequest(5L, requestDto);
+
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(77L);
+        assertThat(result.applicantName()).isEqualTo("Sam");
+        verify(tableJoinRequestRepository).save(any(TableJoinRequest.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/tables/5/owner"), any(TableJoinRequestDTO.class));
+    }
+
+    @Test
+    @DisplayName("createJoinRequest: throws ResourceNotFoundException when no active session exists")
+    void createJoinRequest_whenNoActiveSession_throwsException() {
+        when(tableRepository.findById(5L)).thenReturn(Optional.empty());
+        when(tableRepository.findByNumero(5)).thenReturn(Optional.empty());
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.empty());
+
+        TableJoinRequestDTO requestDto = new TableJoinRequestDTO(
+                null, 5L, "guest-sam", "Sam", "PENDING", null, null
+        );
+
+        assertThatThrownBy(() -> tableSessionService.createJoinRequest(5L, requestDto))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("No active session for table 5");
+    }
+
+    @Test
+    @DisplayName("respondToJoinRequest: approves request, attaches session token and broadcasts to applicant")
+    void respondToJoinRequest_whenApproved_attachesTokenAndBroadcasts() {
+        when(tableRepository.findById(5L)).thenReturn(Optional.empty());
+        when(tableRepository.findByNumero(5)).thenReturn(Optional.empty());
+
+        TableSession activeSession = new TableSession();
+        activeSession.setTableId(5L);
+        activeSession.setSessionToken("secret-token-table-5");
+        activeSession.setStatus(TableSessionStatus.ACTIVE);
+
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.of(activeSession));
+
+        TableJoinRequest req = new TableJoinRequest();
+        req.setId(77L);
+        req.setTableId(5L);
+        req.setApplicantSessionId("guest-sam");
+        req.setApplicantName("Sam");
+        req.setStatus(TableJoinRequestStatus.PENDING);
+
+        when(tableJoinRequestRepository.findById(77L)).thenReturn(Optional.of(req));
+        when(tableJoinRequestRepository.save(any(TableJoinRequest.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TableJoinApprovalRequestDTO approvalDto = new TableJoinApprovalRequestDTO("owner-alex", true);
+        TableJoinRequestDTO result = tableSessionService.respondToJoinRequest(5L, 77L, approvalDto);
+
+        assertThat(result).isNotNull();
+        assertThat(result.status()).isEqualTo("APPROVED");
+        assertThat(result.sessionToken()).isEqualTo("secret-token-table-5");
+        verify(messagingTemplate).convertAndSend(eq("/topic/tables/5/join-requests/guest-sam"), any(TableJoinRequestDTO.class));
+    }
+
+    @Test
+    @DisplayName("respondToJoinRequest: rejects request and broadcasts rejection to applicant")
+    void respondToJoinRequest_whenRejected_broadcastsRejection() {
+        when(tableRepository.findById(5L)).thenReturn(Optional.empty());
+        when(tableRepository.findByNumero(5)).thenReturn(Optional.empty());
+
+        TableSession activeSession = new TableSession();
+        activeSession.setTableId(5L);
+        activeSession.setSessionToken("secret-token-table-5");
+        activeSession.setStatus(TableSessionStatus.ACTIVE);
+
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.of(activeSession));
+
+        TableJoinRequest req = new TableJoinRequest();
+        req.setId(77L);
+        req.setTableId(5L);
+        req.setApplicantSessionId("guest-intruder");
+        req.setApplicantName("Intruder");
+        req.setStatus(TableJoinRequestStatus.PENDING);
+
+        when(tableJoinRequestRepository.findById(77L)).thenReturn(Optional.of(req));
+        when(tableJoinRequestRepository.save(any(TableJoinRequest.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TableJoinApprovalRequestDTO approvalDto = new TableJoinApprovalRequestDTO("owner-alex", false);
+        TableJoinRequestDTO result = tableSessionService.respondToJoinRequest(5L, 77L, approvalDto);
+
+        assertThat(result).isNotNull();
+        assertThat(result.status()).isEqualTo("REJECTED");
+        assertThat(result.sessionToken()).isNull();
+        verify(messagingTemplate).convertAndSend(eq("/topic/tables/5/join-requests/guest-intruder"), any(TableJoinRequestDTO.class));
+    }
+
+    @Test
+    @DisplayName("getPendingJoinRequests: returns pending requests when caller is table owner")
+    void getPendingJoinRequests_whenOwner_returnsList() {
+        when(tableRepository.findById(5L)).thenReturn(Optional.empty());
+        when(tableRepository.findByNumero(5)).thenReturn(Optional.empty());
+
+        TableSession activeSession = new TableSession();
+        activeSession.setTableId(5L);
+        activeSession.setOwnerGuestSessionId("owner-alex");
+        activeSession.setStatus(TableSessionStatus.ACTIVE);
+
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.of(activeSession));
+
+        TableJoinRequest req = new TableJoinRequest();
+        req.setId(77L);
+        req.setTableId(5L);
+        req.setApplicantSessionId("guest-sam");
+        req.setApplicantName("Sam");
+        req.setStatus(TableJoinRequestStatus.PENDING);
+
+        when(tableJoinRequestRepository.findByTableIdAndStatus(5L, TableJoinRequestStatus.PENDING))
+                .thenReturn(List.of(req));
+
+        List<TableJoinRequestDTO> result = tableSessionService.getPendingJoinRequests(5L, "owner-alex");
+
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().applicantName()).isEqualTo("Sam");
     }
 }

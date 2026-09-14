@@ -5,6 +5,7 @@ import { IMessage } from '@stomp/stompjs';
 import { TableCartService } from '../../../app/core/services/table-cart.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { TableCart, TableCartItem, TableOrdersSummary } from '../../../app/core/models/table-cart.model';
+import { TableJoinRequest } from '../../../app/core/models/table-session.model';
 import { environment } from '../../../environments/environment';
 
 describe('TableCartService', () => {
@@ -432,5 +433,69 @@ describe('TableCartService', () => {
     service.reset();
     expect(service.cart()).toBeNull();
     expect(service.activeTableId()).toBeNull();
+  });
+
+  it('submitCart should post payload, track submitting state and return order id and tracking token', () => {
+    service.submitCart(5, { guestName: 'Alex', guestSessionId: 'guest-me' }).subscribe((res) => {
+      expect(res.commandeId).toBe(105);
+      expect(res.trackingToken).toBe('trk-105');
+    });
+
+    expect(service.submitting()).toBeTrue();
+
+    const req = httpMock.expectOne(`${baseUrl}/5/cart/submit`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ guestName: 'Alex', guestSessionId: 'guest-me' });
+    req.flush({ commandeId: 105, trackingToken: 'trk-105' });
+
+    expect(service.submitting()).toBeFalse();
+  });
+
+  it('finalizeGrace should post to finalize-grace endpoint and trigger refresh', () => {
+    service.finalizeGrace(5).subscribe((res: { success: boolean; message: string; commandeId: number }) => {
+      expect(res.success).toBeTrue();
+    });
+
+    const req = httpMock.expectOne(`${baseUrl}/5/cart/finalize-grace`);
+    expect(req.request.method).toBe('POST');
+    req.flush({ success: true, message: 'Grace period finalized', commandeId: 99 });
+
+    const reqCart = httpMock.expectOne(`${baseUrl}/5/cart`);
+    reqCart.flush(sampleCart);
+    const reqOrders = httpMock.expectOne(`${baseUrl}/5/cart/orders`);
+    reqOrders.flush(sampleOrdersSummary);
+  });
+
+  it('refreshCartAndOrders should fetch cart and orders and update signals', () => {
+    service.refreshCartAndOrders(5);
+
+    const reqCart = httpMock.expectOne(`${baseUrl}/5/cart`);
+    reqCart.flush(sampleCart);
+    const reqOrders = httpMock.expectOne(`${baseUrl}/5/cart/orders`);
+    reqOrders.flush(sampleOrdersSummary);
+
+    expect(service.cart()).toEqual(sampleCart);
+    expect(service.tableOrdersSummary()).toEqual(sampleOrdersSummary);
+  });
+
+  it('setOwnership and setPendingJoinRequests should update corresponding signals', () => {
+    service.setOwnership(true, 'Host Alex');
+    expect(service.isOwner()).toBeTrue();
+    expect(service.ownerGuestName()).toBe('Host Alex');
+
+    const mockJoinRequests: TableJoinRequest[] = [
+      { id: 9, tableId: 5, applicantSessionId: 'guest-x', applicantName: 'Xavier', status: 'PENDING' }
+    ];
+    service.setPendingJoinRequests(mockJoinRequests);
+    expect(service.pendingJoinRequests()).toEqual(mockJoinRequests);
+  });
+
+  it('guestGroups should return groups with items and subtotals', () => {
+    (service as any).cart.set(sampleCart);
+    const groups = service.guestGroups();
+    const me = groups.find(g => g.guestSessionId === 'guest-me');
+    expect(me).toBeDefined();
+    expect(me?.items.length).toBe(1);
+    expect(me?.totalPrice).toBe(19.0);
   });
 });

@@ -35,7 +35,6 @@ public class PublicCommandeService {
     private final TableSessionService tableSessionService;
     private final HappyHourService happyHourService;
 
-    @org.springframework.beans.factory.annotation.Autowired
     public PublicCommandeService(
             CommandeRepository commandeRepository,
             TableRepository tableRepository,
