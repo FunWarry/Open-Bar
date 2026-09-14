@@ -338,18 +338,14 @@ export class StockWasteModalComponent implements OnInit {
           {
             key: 'reportedByUsername',
             header: 'Declarant',
-            formatter: (val) => String(val ?? 'SYSTEM')
+            formatter: (val) => (typeof val === 'string' && val.length > 0 ? val : 'SYSTEM')
           },
           {
             key: 'cost',
             header: 'Cout_EUR',
             formatter: (val) => (val != null ? Number(val).toFixed(2) : '0.00')
           },
-          {
-            key: 'notes',
-            header: 'Notes',
-            formatter: (val) => String(val ?? '')
-          }
+          { key: 'notes', header: 'Notes' }
         ];
 
         this.csvExportService.exportTable(movements, columns, 'pertes_stock_historique');

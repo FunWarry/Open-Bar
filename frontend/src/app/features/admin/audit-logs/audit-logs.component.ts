@@ -569,12 +569,12 @@ export class AuditLogsComponent implements OnInit {
       {
         key: 'userUsername',
         header: 'Acteur',
-        formatter: (val) => (val ? String(val) : 'SYSTEM')
+        formatter: (val) => (typeof val === 'string' && val.length > 0 ? val : 'SYSTEM')
       },
-      { key: 'action', header: 'Action', formatter: (val) => String(val ?? '') },
-      { key: 'entityType', header: 'Type_Entite', formatter: (val) => String(val ?? '') },
-      { key: 'entityId', header: 'ID_Entite', formatter: (val) => (val != null ? String(val) : '') },
-      { key: 'details', header: 'Details', formatter: (val) => String(val ?? '') }
+      { key: 'action', header: 'Action' },
+      { key: 'entityType', header: 'Type_Entite' },
+      { key: 'entityId', header: 'ID_Entite' },
+      { key: 'details', header: 'Details' }
     ];
 
     this.csvExportService.exportTable(list, columns, 'audit_logs');

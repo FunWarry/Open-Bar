@@ -74,7 +74,18 @@ export class CsvExportService {
       return '';
     }
 
-    let str = String(value);
+    let str: string;
+    if (typeof value === 'string') {
+      str = value;
+    } else if (typeof value === 'number' || typeof value === 'boolean') {
+      str = value.toString();
+    } else if (value instanceof Date) {
+      str = value.toISOString();
+    } else if (typeof value === 'object') {
+      str = JSON.stringify(value);
+    } else {
+      str = (value as object).toString();
+    }
 
     if (sanitizeFormulas) {
       str = this.sanitizeFormula(str);

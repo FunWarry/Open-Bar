@@ -554,21 +554,9 @@ export class IngredientListComponent implements OnInit, OnDestroy {
           return cost != null ? Number(cost).toFixed(2) : '0.00';
         }
       },
-      {
-        key: 'fournisseur',
-        header: 'Fournisseur',
-        formatter: (val) => String(val ?? '')
-      },
-      {
-        key: 'numeroLot',
-        header: 'Numero_Lot',
-        formatter: (val) => String(val ?? '')
-      },
-      {
-        key: 'datePeremption',
-        header: 'Date_Peremption',
-        formatter: (val) => String(val ?? '')
-      },
+      { key: 'fournisseur', header: 'Fournisseur' },
+      { key: 'numeroLot', header: 'Numero_Lot' },
+      { key: 'datePeremption', header: 'Date_Peremption' },
       {
         header: 'Statut',
         formatter: (_, item) => {
@@ -607,18 +595,14 @@ export class IngredientListComponent implements OnInit, OnDestroy {
           {
             key: 'reportedByUsername',
             header: 'Declarant',
-            formatter: (val) => String(val ?? 'SYSTEM')
+            formatter: (val) => (typeof val === 'string' && val.length > 0 ? val : 'SYSTEM')
           },
           {
             key: 'cost',
             header: 'Cout_EUR',
             formatter: (val) => (val != null ? Number(val).toFixed(2) : '0.00')
           },
-          {
-            key: 'notes',
-            header: 'Notes',
-            formatter: (val) => String(val ?? '')
-          }
+          { key: 'notes', header: 'Notes' }
         ];
 
         this.csvExportService.exportTable(movements, columns, 'pertes_stock');

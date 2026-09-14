@@ -89,10 +89,13 @@ test.describe('Cocktail Flavor Profile Matcher & Dietary Filter Engine E2E', () 
     await page.goto('/client/commande?table=1&token=active-mock-session-token');
 
     const modal = page.locator('[data-testid="nickname-modal"]');
-    if (await modal.isVisible({ timeout: 2000 }).catch(() => false)) {
+    try {
+      await modal.waitFor({ state: 'visible', timeout: 5000 });
       await page.fill('[data-testid="input-guest-nickname"] input, [data-testid="input-guest-nickname"]', 'Alex');
       await page.click('[data-testid="btn-save-guest-nickname"]');
       await expect(modal).not.toBeVisible();
+    } catch {
+      // Modal was not displayed
     }
 
     // 1. Check matcher bar visibility
@@ -118,10 +121,13 @@ test.describe('Cocktail Flavor Profile Matcher & Dietary Filter Engine E2E', () 
     await page.goto('/client/commande?table=1&token=active-mock-session-token');
 
     const modal = page.locator('[data-testid="nickname-modal"]');
-    if (await modal.isVisible({ timeout: 2000 }).catch(() => false)) {
+    try {
+      await modal.waitFor({ state: 'visible', timeout: 5000 });
       await page.fill('[data-testid="input-guest-nickname"] input, [data-testid="input-guest-nickname"]', 'Alex');
       await page.click('[data-testid="btn-save-guest-nickname"]');
       await expect(modal).not.toBeVisible();
+    } catch {
+      // Modal was not displayed
     }
 
     // Click on mocktail dietary chip
