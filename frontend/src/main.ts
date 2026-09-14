@@ -4,7 +4,7 @@ import {provideStore} from '@ngrx/store';
 import {provideEffects} from '@ngrx/effects';
 import {provideStoreDevtools} from '@ngrx/store-devtools';
 import {provideRouter} from '@angular/router';
-import {isDevMode} from '@angular/core';
+import {isDevMode, provideZoneChangeDetection} from '@angular/core';
 import {provideTransloco} from '@jsverse/transloco';
 import {registerLocaleData} from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
@@ -23,7 +23,7 @@ import {TranslocoHttpLoader} from './app/core/transloco-loader';
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideIonicAngular(),
+    provideZoneChangeDetection(),provideIonicAngular(),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor, offlineSyncInterceptor, errorInterceptor])),
     provideStore({auth: authReducer}),
     provideEffects([AuthEffects]),

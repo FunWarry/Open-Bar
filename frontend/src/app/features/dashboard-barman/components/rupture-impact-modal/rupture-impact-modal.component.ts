@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader,
@@ -49,7 +49,6 @@ import { DashboardBarmanService } from '../../services/dashboard-barman.service'
   selector: 'app-rupture-impact-modal',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslocoPipe,
     IonHeader,
@@ -66,7 +65,7 @@ import { DashboardBarmanService } from '../../services/dashboard-barman.service'
     IonCheckbox,
     IonFooter,
     IonSpinner
-  ],
+],
   templateUrl: './rupture-impact-modal.component.html',
   styleUrls: ['./rupture-impact-modal.component.scss']
 })
