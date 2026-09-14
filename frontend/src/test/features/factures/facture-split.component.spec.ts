@@ -37,12 +37,15 @@ describe('FactureSplitComponent', () => {
 
   beforeEach(async () => {
     factureServiceSpy = jasmine.createSpyObj<FactureService>('FactureService', [
-      'splitEgal', 'splitParSelection', 'getFactureById', 'reglerFacture', 'encaisserPart', 'getReglements'
+      'splitEgal', 'splitParSelection', 'splitParMontants', 'splitParPourcentages',
+      'getFactureById', 'reglerFacture', 'encaisserPart', 'getReglements'
     ]);
     factureServiceSpy.splitEgal.and.returnValue(of(mockSplitResults));
     factureServiceSpy.splitParSelection.and.returnValue(of(mockSplitResults));
-    factureServiceSpy.getFactureById.and.returnValue(of(mockFacture));
-    factureServiceSpy.reglerFacture.and.returnValue(of(mockFacture));
+    factureServiceSpy.splitParMontants.and.returnValue(of(mockSplitResults));
+    factureServiceSpy.splitParPourcentages.and.returnValue(of(mockSplitResults));
+    factureServiceSpy.getFactureById.and.callFake(() => of(JSON.parse(JSON.stringify(mockFacture))));
+    factureServiceSpy.reglerFacture.and.callFake(() => of(JSON.parse(JSON.stringify(mockFacture))));
     factureServiceSpy.encaisserPart.and.returnValue(of({
       factureId: 42, nomConvive: 'Convive 1', partIndex: 1, montant: 10.5, totalRegle: 10.5, modePaiement: 'CARTE', typeSplit: 'EGAL'
     }));
@@ -348,8 +351,8 @@ describe('FactureSplitComponent', () => {
 
   describe('reglerPart() and balance getters', () => {
     beforeEach(() => {
-      component.results = mockSplitResults;
-      component.facture = mockFacture;
+      component.results = [...mockSplitResults];
+      component.facture = JSON.parse(JSON.stringify(mockFacture));
     });
 
     it('calculates balance metrics correctly when no parts are paid', () => {
@@ -361,6 +364,7 @@ describe('FactureSplitComponent', () => {
     });
 
     it('reglerPart() updates partStates and balance metrics when paid', async () => {
+      component.results = [...mockSplitResults];
       const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onWillDismiss']);
       modalSpy.present.and.returnValue(Promise.resolve());
       modalSpy.onWillDismiss.and.returnValue(Promise.resolve({
@@ -378,6 +382,7 @@ describe('FactureSplitComponent', () => {
     });
 
     it('finalizes main invoice automatically when all parts are paid', async () => {
+      component.results = [...mockSplitResults];
       const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onWillDismiss']);
       modalSpy.present.and.returnValue(Promise.resolve());
       modalSpy.onWillDismiss.and.returnValue(Promise.resolve({
@@ -401,6 +406,7 @@ describe('FactureSplitComponent', () => {
     });
 
     it('settleGuestPart() calls service.encaisserPart and updates partStates', async () => {
+      component.results = [...mockSplitResults];
       const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onWillDismiss']);
       modalSpy.present.and.returnValue(Promise.resolve());
       modalSpy.onWillDismiss.and.returnValue(Promise.resolve({
@@ -455,6 +461,7 @@ describe('FactureSplitComponent', () => {
     });
 
     it('computes totalSplit, totalBillAmount, paidAmount, remainingBalance, and paidRatio', () => {
+      component.facture = { ...mockFacture, reglements: [] };
       component.results = mockSplitResults;
       component.partStates = {
         0: { settled: true, totalPaid: 10.5 },
@@ -467,6 +474,122 @@ describe('FactureSplitComponent', () => {
       expect(component.remainingBalance).toBe(10.5);
       expect(component.paidRatio).toBe(0.5);
       expect(component.allPartsSettled).toBeFalse();
+    });
+
+    it('handles custom amount split mode', () => {
+      component.facture = { ...mockFacture, reglements: [] };
+      component.mode = 'custom_amount';
+      component.customAmountGuests = [
+        { name: 'Alice', amount: 10 },
+        { name: 'Bob', amount: 11 }
+      ];
+
+      expect(component.totalCustomAmountAllocated).toBe(21);
+      expect(component.customAmountRemainder).toBe(0);
+      expect(component.isCustomAmountValid).toBeTrue();
+
+      component.calculateCustomAmountSplit();
+      expect(factureServiceSpy.splitParMontants).toHaveBeenCalledWith(42, [
+        { nomConvive: 'Alice', montant: 10 },
+        { nomConvive: 'Bob', montant: 11 }
+      ]);
+    });
+
+    it('handles assignRemainingToGuest in custom amount mode', () => {
+      component.facture = { ...mockFacture, reglements: [] };
+      component.customAmountGuests = [
+        { name: 'Alice', amount: 5 },
+        { name: 'Bob', amount: null }
+      ];
+
+      component.assignRemainingToGuest(1);
+      expect(component.customAmountGuests[1].amount).toBe(16);
+      expect(component.isCustomAmountValid).toBeTrue();
+    });
+
+    it('handles custom percentage split mode and distributePercentagesEqually', () => {
+      component.facture = { ...mockFacture, reglements: [] };
+      component.mode = 'custom_percentage';
+      component.customPercentageGuests = [
+        { name: 'Alice', percentage: null },
+        { name: 'Bob', percentage: null }
+      ];
+
+      component.distributePercentagesEqually();
+      expect(component.customPercentageGuests[0].percentage).toBe(50);
+      expect(component.customPercentageGuests[1].percentage).toBe(50);
+      expect(component.isCustomPercentageValid).toBeTrue();
+
+      component.calculateCustomPercentageSplit();
+      expect(factureServiceSpy.splitParPourcentages).toHaveBeenCalledWith(42, [
+        { nomConvive: 'Alice', pourcentage: 50 },
+        { nomConvive: 'Bob', pourcentage: 50 }
+      ]);
+    });
+
+    it('correctly tracks alreadyPaidFromDb and balanceToSplit from past reglements', () => {
+      component.facture = {
+        ...mockFacture,
+        reglements: [
+          {
+            id: 1,
+            factureId: 42,
+            nomConvive: 'Early Bird',
+            partIndex: 1,
+            montant: 11,
+            totalRegle: 11,
+            modePaiement: 'CARTE',
+            typeSplit: 'SELECTION'
+          }
+        ]
+      };
+
+      expect(component.alreadyPaidFromDb).toBe(11);
+      expect(component.remainingBalance).toBe(10);
+      expect(component.balanceToSplit).toBe(10);
+      expect(component.isAlreadySettled).toBeFalse();
+    });
+
+    it('activates view-only consultation mode when invoice is already settled', () => {
+      component.facture = {
+        ...mockFacture,
+        reglee: true,
+        reglements: [
+          {
+            id: 1,
+            factureId: 42,
+            nomConvive: 'Payer',
+            partIndex: 1,
+            montant: 21,
+            totalRegle: 21,
+            modePaiement: 'CARTE',
+            typeSplit: 'EGAL'
+          }
+        ]
+      };
+
+      expect(component.isAlreadySettled).toBeTrue();
+    });
+
+    it('printExistingReglementReceipt opens TicketReceiptComponent modal for historical payment', async () => {
+      const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present']);
+      modalSpy.present.and.returnValue(Promise.resolve());
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(modalSpy));
+
+      const histReglement = {
+        id: 99,
+        factureId: 42,
+        nomConvive: 'Past Guest',
+        partIndex: 1,
+        montant: 10,
+        totalRegle: 10,
+        modePaiement: 'ESPECES',
+        typeSplit: 'EGAL' as const
+      };
+
+      await component.printExistingReglementReceipt(histReglement);
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
+      expect(modalSpy.present).toHaveBeenCalled();
     });
 
     it('handles error in calculateEqualSplit and calculateItemizedSplit', () => {
@@ -490,6 +613,28 @@ describe('FactureSplitComponent', () => {
 
       component.ajusterConvives(1);
       expect(component.nombreConvives).toBe(3);
+    });
+
+    it('automatically pre-configures guests and their item assignments from collaborative orders', () => {
+      component.facture = {
+        ...mockFacture,
+        items: [
+          { id: 201, factureId: 42, commandeItemId: 1, description: 'Mojito', quantite: 2, prixUnitaire: 8, total: 16, guestName: 'Alex' },
+          { id: 202, factureId: 42, commandeItemId: 2, description: 'Spritz', quantite: 1, prixUnitaire: 9, total: 9, notes: '[Camille] extra orange' },
+          { id: 203, factureId: 42, commandeItemId: 3, description: 'Bière', quantite: 1, prixUnitaire: 5, total: 5, notes: '[Sam]' }
+        ]
+      };
+
+      component.autoAssignGuestsFromOrder();
+
+      expect(component.guests).toHaveSize(3);
+      expect(component.guests.map(g => g.name)).toEqual(['Alex', 'Camille', 'Sam']);
+      expect(component.unitAssignments['201_0']).toBe(0);
+      expect(component.unitAssignments['201_1']).toBe(0);
+      expect(component.unitAssignments['202_0']).toBe(1);
+      expect(component.unitAssignments['203_0']).toBe(2);
+      expect(component.mode).toBe('itemized');
+      expect(factureServiceSpy.splitParSelection).toHaveBeenCalled();
     });
   });
 });

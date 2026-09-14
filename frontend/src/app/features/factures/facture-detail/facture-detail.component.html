@@ -60,7 +60,7 @@
               class="btn-cta btn-split"
               data-testid="split-bill-btn">
               <ion-icon name="people-outline"></ion-icon>
-              <span>{{ t('FACTURES.SPLIT') }}</span>
+              <span>{{ t(facture.reglee ? 'FACTURES.VIEW_SPLIT' : 'FACTURES.SPLIT') }}</span>
             </button>
           }
         </div>
@@ -322,6 +322,18 @@
                 </div>
                 <span class="gt-amount">{{ montantAffiche | appCurrency }}</span>
               </div>
+              @if (alreadyPaid > 0) {
+                <div class="breakdown-row paid-row" data-testid="facture-already-paid-row">
+                  <span class="b-label">{{ 'SPLIT.PAID_TOTAL' | transloco }}</span>
+                  <span class="b-val paid-text">-{{ alreadyPaid | appCurrency }}</span>
+                </div>
+                <div class="breakdown-row remaining-row" data-testid="facture-remaining-balance-row">
+                  <div class="grand-label-group">
+                    <span class="gt-main remaining-label">{{ 'SPLIT.REMAINING_BALANCE' | transloco }}</span>
+                  </div>
+                  <strong class="gt-amount remaining-amount">{{ remainingBalance | appCurrency }}</strong>
+                </div>
+              }
             </div>
           </section>
 
@@ -343,7 +355,17 @@
                         <span class="part-index-badge">#{{ reg.partIndex }}</span>
                         <strong class="part-guest-name">{{ reg.nomConvive }}</strong>
                         <span class="part-mode-badge">{{ reg.modePaiement }}</span>
-                        <span class="part-type-pill">{{ reg.typeSplit === 'EGAL' ? t('SPLIT.EQUAL_MODE') : t('SPLIT.ITEMIZED_MODE') }}</span>
+                        <span class="part-type-pill">
+                          @if (reg.typeSplit === 'EGAL') {
+                            {{ t('SPLIT.EQUAL_MODE') }}
+                          } @else if (reg.typeSplit === 'MONTANT_LIBRE') {
+                            {{ t('SPLIT.CUSTOM_AMOUNT_MODE') }}
+                          } @else if (reg.typeSplit === 'POURCENTAGE') {
+                            {{ t('SPLIT.CUSTOM_PCT_MODE') }}
+                          } @else {
+                            {{ t('SPLIT.ITEMIZED_MODE') }}
+                          }
+                        </span>
                       </div>
                       <div class="part-date-line">
                         <span>{{ (reg.dateReglement || facture.dateFacture) | date:'dd/MM/yyyy HH:mm' }}</span>
@@ -395,7 +417,7 @@
                   (keydown.enter)="reglerFacture()"
                   data-testid="mark-settled-btn-footer">
                   <ion-icon name="checkmark-circle-outline"></ion-icon>
-                  <span>{{ t('FACTURES.SETTLE') }}</span>
+                  <span>{{ alreadyPaid > 0 ? ('FACTURES.SETTLE_REMAINING' | transloco:{ amount: (remainingBalance | appCurrency) }) : t('FACTURES.SETTLE') }}</span>
                 </button>
               }
 
@@ -416,7 +438,7 @@
                   class="btn-footer btn-outline-split"
                   data-testid="split-bill-btn-footer">
                   <ion-icon name="people-outline"></ion-icon>
-                  <span>{{ t('FACTURES.SPLIT') }}</span>
+                  <span>{{ t(facture.reglee ? 'FACTURES.VIEW_SPLIT' : 'FACTURES.SPLIT') }}</span>
                 </button>
               }
 
