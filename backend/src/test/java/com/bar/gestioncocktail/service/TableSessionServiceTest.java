@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,7 +58,7 @@ class TableSessionServiceTest {
     private TableSessionService tableSessionService;
 
     private AppSettings appSettings;
-    private final LocalDateTime fixedNow = LocalDateTime.of(2026, 9, 5, 18, 0, 0);
+    private final LocalDateTime fixedNow = LocalDateTime.of(2026, Month.SEPTEMBER, 5, 18, 0, 0);
 
     @BeforeEach
     void setUp() {
