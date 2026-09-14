@@ -48,6 +48,12 @@ class PublicCommandeServiceTest {
     @Spy
     private TimeService timeService = new TimeService(null);
 
+    @Mock
+    private TableSessionService tableSessionService;
+
+    @Mock
+    private HappyHourService happyHourService;
+
     @InjectMocks
     private PublicCommandeService publicCommandeService;
 
@@ -78,6 +84,8 @@ class PublicCommandeServiceTest {
         cocktail.setNom("Mojito");
         cocktail.setPrix(BigDecimal.valueOf(8.50));
         cocktail.setIngredients(List.of(cocktailIngredient));
+
+        org.mockito.Mockito.lenient().when(tableSessionService.isSessionValidForOrder(any(), any())).thenReturn(true);
     }
 
     @Test

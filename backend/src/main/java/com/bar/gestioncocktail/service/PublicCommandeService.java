@@ -10,6 +10,7 @@ import com.bar.gestioncocktail.repository.CocktailVarianteRepository;
 import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
 import com.bar.gestioncocktail.event.OrderCreatedEvent;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,7 @@ public class PublicCommandeService {
     private final TableSessionService tableSessionService;
     private final HappyHourService happyHourService;
 
+    @Autowired
     public PublicCommandeService(
             CommandeRepository commandeRepository,
             TableRepository tableRepository,
@@ -139,7 +141,10 @@ public class PublicCommandeService {
         }
 
         if (happyHourService != null) {
-            prixUnitaire = happyHourService.resolveEffectivePrice(cocktail, variante, timeService.now());
+            BigDecimal effectivePrice = happyHourService.resolveEffectivePrice(cocktail, variante, timeService.now());
+            if (effectivePrice != null) {
+                prixUnitaire = effectivePrice;
+            }
         }
 
         verifierDisponibiliteIngredients(cocktail, itemDto.getQuantite());

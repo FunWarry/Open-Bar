@@ -27,6 +27,7 @@ import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.TableJoinRequest;
 import com.bar.gestioncocktail.model.TableJoinRequestStatus;
 import com.bar.gestioncocktail.repository.TableJoinRequestRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 /**
@@ -64,6 +65,7 @@ public class TableSessionService {
      * @param tableJoinRequestRepository Repository for table join requests
      * @param messagingTemplate STOMP messaging template for real-time notifications
      */
+    @Autowired
     public TableSessionService(
             TableSessionRepository tableSessionRepository,
             AppSettingsService appSettingsService,

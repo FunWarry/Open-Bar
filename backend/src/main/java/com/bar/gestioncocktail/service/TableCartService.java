@@ -14,6 +14,7 @@ import com.bar.gestioncocktail.repository.TableRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,6 +62,7 @@ public class TableCartService {
      * @param commandeRepository Repository for order queries and updates
      * @param tableAppelRepository Repository for waiter and bill alerts
      */
+    @Autowired
     public TableCartService(
             TableCartItemRepository tableCartItemRepository,
             TableRepository tableRepository,
