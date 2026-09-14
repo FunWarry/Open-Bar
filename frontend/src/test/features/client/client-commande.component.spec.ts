@@ -991,5 +991,77 @@ describe('ClientCommandeComponent', () => {
       expect(component.isHappyHour(mockCocktail)).toBeFalse();
       expect(component.getEffectivePrice(mockCocktail)).toBe(8.5);
     });
+
+    it('copyInviteLink handles success and failure branches', fakeAsync(async () => {
+      component.tableNumero = 4;
+      component.sessionToken = 'token-123';
+      spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
+
+      await component.copyInviteLink();
+      expect(component.copiedLinkSuccess()).toBeTrue();
+      tick(4000);
+      expect(component.copiedLinkSuccess()).toBeFalse();
+
+      spyOn(console, 'warn');
+      (navigator.clipboard.writeText as jasmine.Spy).and.returnValue(Promise.reject(new Error('denied')));
+      await component.copyInviteLink();
+      expect(console.warn).toHaveBeenCalledWith('Failed to copy invite link', jasmine.anything());
+    }));
+
+    it('shareInviteNative falls back to copyInviteLink when navigator.share is absent or throws', async () => {
+      component.tableNumero = 4;
+      component.sessionToken = 'tok-1';
+      spyOn(component, 'copyInviteLink').and.returnValue(Promise.resolve());
+
+      const originalShare = (navigator as any).share;
+      try {
+        delete (navigator as any).share;
+        await component.shareInviteNative();
+        expect(component.copyInviteLink).toHaveBeenCalled();
+
+        (navigator as any).share = jasmine.createSpy('share').and.returnValue(Promise.reject(new Error('Share failure')));
+        await component.shareInviteNative();
+        expect(component.copyInviteLink).toHaveBeenCalledTimes(2);
+      } finally {
+        if (originalShare) {
+          (navigator as any).share = originalShare;
+        } else {
+          delete (navigator as any).share;
+        }
+      }
+    });
+
+    it('submitJoinRequest sets up websocket watch and handles APPROVED and REJECTED messages', fakeAsync(() => {
+      const joinResponseSubject = new Subject<any>();
+      websocketServiceSpy.watch.and.callFake((topic: string) => {
+        if (topic.includes('join-requests')) {
+          return joinResponseSubject.asObservable();
+        }
+        return of({});
+      });
+
+      component.tableNumero = 4;
+      component.joinRequestNameForm.setValue({ applicantName: 'Camille' });
+      component.submitJoinRequest();
+      expect(component.isJoinPending()).toBeTrue();
+
+      // Emit APPROVED message
+      joinResponseSubject.next({
+        body: JSON.stringify({ status: 'APPROVED', sessionToken: 'new-tok-123' })
+      });
+      tick();
+
+      expect(component.sessionToken).toBe('new-tok-123');
+      expect(component.isSessionValid).toBeTrue();
+      expect(component.isJoinPending()).toBeFalse();
+      expect(component.isJoinRejected()).toBeFalse();
+
+      // Emit REJECTED message
+      joinResponseSubject.next({
+        body: JSON.stringify({ status: 'REJECTED' })
+      });
+      tick();
+      expect(component.isJoinRejected()).toBeTrue();
+    }));
   });
 });

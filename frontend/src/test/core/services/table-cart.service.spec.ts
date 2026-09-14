@@ -559,4 +559,60 @@ describe('TableCartService', () => {
     service.startGraceCountdown(60);
     expect(() => service.ngOnDestroy()).not.toThrow();
   });
+
+  it('totalItems and totalPrice computed signals calculate correctly when items are present', () => {
+    service.cart.set(sampleCart);
+    expect(service.totalItems()).toBe(3);
+    expect(service.totalPrice()).toBe(30.0);
+
+    const fallbackCart: TableCart = {
+      ...sampleCart,
+      totalItems: undefined as unknown as number,
+      totalPrice: undefined,
+      tableTotal: undefined,
+      items: [
+        { ...sampleItems[0], totalLigne: 0, quantite: 3, prixUnitaire: 10 }
+      ]
+    };
+    service.cart.set(fallbackCart);
+    expect(service.totalItems()).toBe(3);
+    expect(service.totalPrice()).toBe(30);
+  });
+
+  it('handleCartGracePeriod stops countdown when remaining seconds <= 0 and starts when > 0', () => {
+    (service as any).handleCartGracePeriod(null);
+    expect(service.graceRemainingSeconds()).toBe(0);
+
+    (service as any).handleCartGracePeriod({ ...sampleCart, gracePeriodRemainingSeconds: 45 });
+    expect(service.graceRemainingSeconds()).toBe(45);
+    service.stopGraceCountdown();
+  });
+
+  it('polling timer and visibilitychange listener trigger refreshCartAndOrders', fakeAsync(() => {
+    spyOn(service, 'refreshCartAndOrders');
+    service.initCart(5).subscribe();
+    httpMock.expectOne(`${baseUrl}/5/cart`).flush(sampleCart);
+    httpMock.expectOne(`${baseUrl}/5/cart/orders`).flush(sampleOrdersSummary);
+
+    tick(5000);
+    expect(service.refreshCartAndOrders).toHaveBeenCalledWith(5);
+
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(service.refreshCartAndOrders).toHaveBeenCalledTimes(2);
+
+    service.reset();
+  }));
+
+  it('handles errors gracefully in silent cart and orders refreshes', () => {
+    spyOn(console, 'warn');
+    service.refreshCartAndOrders(5);
+
+    const reqCart = httpMock.expectOne(`${baseUrl}/5/cart`);
+    reqCart.error(new ProgressEvent('error'));
+    const reqOrders = httpMock.expectOne(`${baseUrl}/5/cart/orders`);
+    reqOrders.error(new ProgressEvent('error'));
+
+    expect(console.warn).toHaveBeenCalledWith('Silent cart refresh error', jasmine.anything());
+    expect(console.warn).toHaveBeenCalledWith('Silent orders refresh error', jasmine.anything());
+  });
 });

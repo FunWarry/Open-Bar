@@ -752,4 +752,56 @@ class TableSessionServiceTest {
         when(tableSessionRepository.findBySessionToken("tok-closed")).thenReturn(Optional.of(closedSession));
         assertThat(tableSessionService.isSessionValidForOrder(5L, "tok-closed")).isFalse();
     }
+
+    @Test
+    @DisplayName("resolveTable: returns empty when tableId is null")
+    void resolveTable_whenNull_returnsEmpty() {
+        assertThat(tableSessionService.resolveTable(null)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("getPendingJoinRequests: returns empty list when no active session exists")
+    void getPendingJoinRequests_whenNoSession_returnsEmptyList() {
+        when(tableRepository.findById(99L)).thenReturn(Optional.empty());
+        when(tableRepository.findByNumero(99)).thenReturn(Optional.empty());
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(99L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.empty());
+
+        List<TableJoinRequestDTO> pending = tableSessionService.getPendingJoinRequests(99L, "guest-sam");
+        assertThat(pending).isEmpty();
+    }
+
+    @Test
+    @DisplayName("respondToJoinRequest: throws ResourceNotFoundException when no active session exists")
+    void respondToJoinRequest_whenNoSession_throwsNotFound() {
+        when(tableRepository.findById(5L)).thenReturn(Optional.empty());
+        when(tableRepository.findByNumero(5)).thenReturn(Optional.empty());
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.empty());
+
+        TableJoinApprovalRequestDTO approval = new TableJoinApprovalRequestDTO("owner-sam", true);
+        assertThatThrownBy(() -> tableSessionService.respondToJoinRequest(5L, 10L, approval))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("No active session for table 5");
+    }
+
+    @Test
+    @DisplayName("generateSessionQrCode: falls back cleanly when QrCodeService is absent and tableId is null")
+    void generateSessionQrCode_whenQrCodeServiceNull_fallsBack() {
+        TableSessionService serviceWithoutQr = new TableSessionService(
+                tableSessionRepository,
+                appSettingsService,
+                timeService,
+                null,
+                tableRepository,
+                tableJoinRequestRepository,
+                messagingTemplate
+        );
+
+        byte[] svgBytes = serviceWithoutQr.generateSessionQrCode(null, "tok-abc", "SVG", 250, "https://bar.test");
+        assertThat(svgBytes).isEqualTo("<svg></svg>".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        byte[] pngBytes = serviceWithoutQr.generateSessionQrCode(null, null, "PNG", 250, null);
+        assertThat(pngBytes).isEmpty();
+    }
 }

@@ -4,7 +4,6 @@ import com.bar.gestioncocktail.dto.TableJoinApprovalRequestDTO;
 import com.bar.gestioncocktail.dto.TableJoinRequestDTO;
 import com.bar.gestioncocktail.dto.TableSessionResponseDTO;
 import com.bar.gestioncocktail.dto.TableSessionValidateRequestDTO;
-import com.bar.gestioncocktail.model.TableJoinRequestStatus;
 import com.bar.gestioncocktail.model.TableSessionStatus;
 import com.bar.gestioncocktail.service.TableSessionService;
 import org.junit.jupiter.api.DisplayName;

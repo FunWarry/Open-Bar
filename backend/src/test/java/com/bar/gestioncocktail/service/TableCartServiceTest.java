@@ -549,6 +549,81 @@ class TableCartServiceTest {
     @DisplayName("validateTableExists and resolveTable: throws BusinessException when tableId is null")
     void tableIdNull_throwsBusinessException() {
         assertThatThrownBy(() -> tableCartService.getCart(null))
-                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class);
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .hasMessageContaining("Table ID cannot be null");
+
+        assertThatThrownBy(() -> tableCartService.getTableOrdersSummary(null))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .hasMessageContaining("Table ID cannot be null");
+    }
+
+    @Test
+    @DisplayName("getTableOrdersSummary: handles null commandeRepository or null table gracefully")
+    void getTableOrdersSummary_whenRepositoryNull_returnsEmptySummary() {
+        TableCartService serviceWithoutRepo = new TableCartService(
+                tableCartItemRepository,
+                tableRepository,
+                cocktailRepository,
+                varianteRepository,
+                publicCommandeService,
+                messagingTemplate,
+                timeService,
+                null,
+                tableAppelRepository
+        );
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+
+        TableOrdersSummaryResponseDTO summary = serviceWithoutRepo.getTableOrdersSummary(1L);
+        assertThat(summary).isNotNull();
+        assertThat(summary.tableId()).isEqualTo(1L);
+        assertThat(summary.orders()).isEmpty();
+        assertThat(summary.cumulativeTotal()).isEqualTo(BigDecimal.ZERO);
+        assertThat(summary.totalDrinksOrdered()).isZero();
+    }
+
+    @Test
+    @DisplayName("getTableOrdersSummary: sorts orders handling null dates correctly")
+    void getTableOrdersSummary_sortsWithNullDates() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+
+        Commande cmdWithNullDate1 = new Commande();
+        cmdWithNullDate1.setId(201L);
+        cmdWithNullDate1.setTable(mockTable);
+        cmdWithNullDate1.setStatut(CommandeStatut.EN_ATTENTE);
+        cmdWithNullDate1.setDateCommande(null);
+
+        Commande cmdWithNullDate2 = new Commande();
+        cmdWithNullDate2.setId(202L);
+        cmdWithNullDate2.setTable(mockTable);
+        cmdWithNullDate2.setStatut(CommandeStatut.EN_ATTENTE);
+        cmdWithNullDate2.setDateCommande(null);
+
+        Commande cmdWithDate = new Commande();
+        cmdWithDate.setId(203L);
+        cmdWithDate.setTable(mockTable);
+        cmdWithDate.setStatut(CommandeStatut.EN_ATTENTE);
+        cmdWithDate.setDateCommande(fixedNow);
+
+        when(commandeRepository.findByTable(mockTable))
+                .thenReturn(List.of(cmdWithNullDate1, cmdWithNullDate2, cmdWithDate));
+
+        TableOrdersSummaryResponseDTO summary = tableCartService.getTableOrdersSummary(1L);
+        assertThat(summary).isNotNull();
+        assertThat(summary.orders()).hasSize(3);
+    }
+
+    @Test
+    @DisplayName("broadcastTableOrdersSummary: catches exceptions during messaging template broadcast")
+    void broadcastTableOrdersSummary_catchesExceptionGracefully() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+        when(commandeRepository.findByTable(mockTable)).thenReturn(List.of());
+        doThrow(new RuntimeException("STOMP connection lost"))
+                .when(messagingTemplate).convertAndSend(eq("/topic/tables/1/orders"), any(TableOrdersSummaryResponseDTO.class));
+
+        // Must not throw BusinessException or RuntimeException
+        tableCartService.broadcastTableOrders(1L);
+        verify(messagingTemplate).convertAndSend(eq("/topic/tables/1/orders"), any(TableOrdersSummaryResponseDTO.class));
     }
 }
+
