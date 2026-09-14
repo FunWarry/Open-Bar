@@ -336,9 +336,9 @@ public class FactureService {
     private void recordSoldeReglementIfPartial(Facture facture, Long id, String modePaiement, BigDecimal pourboire) {
         List<com.bar.gestioncocktail.model.FactureReglement> existingReglements =
                 factureReglementRepository.findByFactureIdOrderByIdAsc(id);
-        BigDecimal invoiceTarget = resolveInvoiceTarget(facture);
+        BigDecimal invoiceBaseTotal = facture.getTotal() != null ? facture.getTotal() : resolveInvoiceTarget(facture);
         BigDecimal alreadyPaid = computeTotalPaid(existingReglements);
-        BigDecimal remaining = invoiceTarget.subtract(alreadyPaid);
+        BigDecimal remaining = invoiceBaseTotal.subtract(alreadyPaid);
 
         if (!existingReglements.isEmpty() && remaining.compareTo(BigDecimal.ZERO) > 0 && !"MIXTE_SPLIT".equals(modePaiement)) {
             com.bar.gestioncocktail.model.FactureReglement soldeReglement = new com.bar.gestioncocktail.model.FactureReglement();

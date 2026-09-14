@@ -1793,4 +1793,73 @@ class FactureServiceTest {
         assertThat(facture.isReglee()).isTrue();
         assertThat(facture.getModePaiement()).isEqualTo("MIXTE_SPLIT");
     }
+
+    @Test
+    void reglerFacture_withPriorSplitSettlements_recordsSoldeReglement() {
+        facture.setReglements(new ArrayList<>());
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureRepository.save(any(Facture.class))).thenAnswer(i -> i.getArgument(0));
+
+        com.bar.gestioncocktail.model.FactureReglement prior = new com.bar.gestioncocktail.model.FactureReglement();
+        prior.setId(101L);
+        prior.setMontant(new BigDecimal("10.00"));
+        prior.setTotalRegle(new BigDecimal("10.00"));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of(prior));
+        when(factureReglementRepository.save(any(com.bar.gestioncocktail.model.FactureReglement.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
+        Facture settled = factureService.reglerFacture(10L, "CARTE", new BigDecimal("2.00"));
+
+        assertThat(settled.isReglee()).isTrue();
+        assertThat(settled.getModePaiement()).isEqualTo("CARTE");
+        verify(factureReglementRepository).save(org.mockito.ArgumentMatchers.argThat(r ->
+                "Solde restant".equals(r.getNomConvive()) &&
+                "SOLDE".equals(r.getTypeSplit()) &&
+                new BigDecimal("15.00").compareTo(r.getMontant()) == 0 &&
+                new BigDecimal("17.00").compareTo(r.getTotalRegle()) == 0
+        ));
+    }
+
+    @Test
+    void splitParMontants_withMinorRoundingDifference_adjustsLastPart() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of());
+
+        SplitMontantsRequest request = new SplitMontantsRequest(List.of(
+                new SplitMontantPartRequest("Alice", new BigDecimal("10.00")),
+                new SplitMontantPartRequest("Bob", new BigDecimal("14.98"))
+        ));
+
+        List<SplitResultDTO> results = factureService.splitParMontants(10L, request);
+
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).sousTotal()).isEqualByComparingTo("10.00");
+        assertThat(results.get(1).sousTotal()).isEqualByComparingTo("15.00");
+    }
+
+    @Test
+    void encaisserPart_withMinorRoundingExcess_adjustsMontantToExactTarget() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureReglementRepository.save(any())).thenAnswer(i -> {
+            com.bar.gestioncocktail.model.FactureReglement reg = i.getArgument(0);
+            reg.setId(201L);
+            return reg;
+        });
+
+        com.bar.gestioncocktail.model.FactureReglement r1 = new com.bar.gestioncocktail.model.FactureReglement();
+        r1.setMontant(new BigDecimal("15.00"));
+        com.bar.gestioncocktail.model.FactureReglement r2 = new com.bar.gestioncocktail.model.FactureReglement();
+        r2.setMontant(new BigDecimal("10.02"));
+        r2.setPourboire(BigDecimal.ZERO);
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of(r1, r2));
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest 2", 2, 2, new BigDecimal("10.02"), BigDecimal.ZERO, new BigDecimal("10.02"), "CARTE", "EGAL", List.of()
+        );
+
+        com.bar.gestioncocktail.dto.FactureReglementDTO result = factureService.encaisserPart(10L, req);
+
+        assertThat(result).isNotNull();
+        assertThat(facture.isReglee()).isTrue();
+    }
 }
