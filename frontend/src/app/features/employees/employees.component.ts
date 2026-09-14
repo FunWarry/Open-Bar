@@ -28,7 +28,7 @@ import { SearchBarComponent } from '../../core/components/ui/search-bar/search-b
 import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
 import { CsvExportService, CsvColumn } from '../../core/services/csv-export.service';
 
-interface EmployeeSummary {
+export interface EmployeeSummary {
   user: User;
   shiftsCount: number;
   totalHours: number;

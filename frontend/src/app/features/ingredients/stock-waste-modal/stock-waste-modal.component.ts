@@ -328,26 +328,7 @@ export class StockWasteModalComponent implements OnInit {
           return;
         }
 
-        const columns: CsvColumn<StockMovement>[] = [
-          { key: 'id', header: 'ID' },
-          { key: 'recordedAt', header: 'Date_Heure' },
-          { key: 'ingredientNom', header: 'Ingredient' },
-          { key: 'quantity', header: 'Quantite' },
-          { key: 'unit', header: 'Unite' },
-          { key: 'reason', header: 'Motif' },
-          {
-            key: 'reportedByUsername',
-            header: 'Declarant',
-            formatter: (val) => (typeof val === 'string' && val.length > 0 ? val : 'SYSTEM')
-          },
-          {
-            key: 'cost',
-            header: 'Cout_EUR',
-            formatter: (val) => (val != null ? Number(val).toFixed(2) : '0.00')
-          },
-          { key: 'notes', header: 'Notes' }
-        ];
-
+        const columns = this.stockWasteService.getWasteMovementCsvColumns();
         this.csvExportService.exportTable(movements, columns, 'pertes_stock_historique');
       }
     });

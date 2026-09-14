@@ -54,7 +54,8 @@ describe('StockWasteModalComponent', () => {
     toastElementSpy.present.and.returnValue(Promise.resolve());
     toastCtrlSpy.create.and.returnValue(Promise.resolve(toastElementSpy));
 
-    stockWasteServiceSpy = jasmine.createSpyObj('StockWasteService', ['recordWaste', 'getMovements']);
+    stockWasteServiceSpy = jasmine.createSpyObj('StockWasteService', ['recordWaste', 'getMovements', 'getWasteMovementCsvColumns']);
+    stockWasteServiceSpy.getWasteMovementCsvColumns.and.returnValue([]);
     stockWasteServiceSpy.getMovements.and.returnValue(of([]));
     ingredientServiceSpy = jasmine.createSpyObj('IngredientService', ['getAll']);
     ingredientServiceSpy.getAll.and.returnValue(of(mockIngredientList));
@@ -327,6 +328,24 @@ describe('StockWasteModalComponent', () => {
         jasmine.objectContaining({ color: 'warning' })
       );
       expect(csvExportServiceSpy.exportTable).not.toHaveBeenCalled();
+    });
+
+    it('exportWasteHistoryCsv should fallback to preselectedIngredientId or selectedIngredientId when ingredient is not set', () => {
+      setupComponent();
+      component.preselectedIngredientId = 42;
+      stockWasteServiceSpy.getMovements.and.returnValue(of([]));
+
+      component.exportWasteHistoryCsv();
+      expect(stockWasteServiceSpy.getMovements).toHaveBeenCalledWith(42);
+
+      component.preselectedIngredientId = undefined as any;
+      component.selectedIngredientId = 99;
+      component.exportWasteHistoryCsv();
+      expect(stockWasteServiceSpy.getMovements).toHaveBeenCalledWith(99);
+
+      component.selectedIngredientId = undefined as any;
+      component.exportWasteHistoryCsv();
+      expect(stockWasteServiceSpy.getMovements).toHaveBeenCalledWith(undefined);
     });
   });
 });

@@ -1170,7 +1170,7 @@ describe('ScheduleComponent', () => {
       );
     });
 
-    it('should show toast when no shifts exist to export', fakeAsync(() => {
+    it('should show toast when employees list is empty', fakeAsync(() => {
       component.schedule = {
         weekStart: '2026-08-10',
         weekEnd: '2026-08-16',
@@ -1188,6 +1188,98 @@ describe('ScheduleComponent', () => {
       );
       expect(mockCsvExportService.exportTable).not.toHaveBeenCalled();
     }));
+
+    it('should show toast when all employee shifts are EMPTY or CLOSED', fakeAsync(() => {
+      component.schedule = {
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        totalHours: 0,
+        totalEmployees: 1,
+        activeEmployees: 1,
+        employees: [
+          {
+            employeeId: 1,
+            name: 'John Doe',
+            role: 'BARMAN',
+            shifts: [
+              {
+                userId: 1,
+                date: '2026-08-10',
+                day: 'Lundi',
+                isClosed: false,
+                type: 'EMPTY',
+                startTime: '',
+                endTime: '',
+                rawShift: null as any
+              },
+              {
+                userId: 1,
+                date: '2026-08-11',
+                day: 'Mardi',
+                isClosed: true,
+                type: 'CLOSED',
+                startTime: '',
+                endTime: '',
+                rawShift: null as any
+              }
+            ]
+          }
+        ]
+      };
+
+      component.exportScheduleCsv();
+      tick();
+
+      expect(mockToastCtrl.create).toHaveBeenCalledWith(
+        jasmine.objectContaining({ color: 'warning' })
+      );
+      expect(mockCsvExportService.exportTable).not.toHaveBeenCalled();
+    }));
+
+    it('should fallback shift fields when optional properties are missing', () => {
+      component.schedule = {
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        totalHours: 8,
+        totalEmployees: 1,
+        activeEmployees: 1,
+        employees: [
+          {
+            employeeId: 2,
+            name: 'Jane Roe',
+            role: 'SERVEUR',
+            shifts: [
+              {
+                userId: 2,
+                date: '2026-08-12',
+                day: 'Mercredi',
+                isClosed: false,
+                type: 'WAITER',
+                startTime: undefined as any,
+                endTime: undefined as any,
+                rawShift: undefined as any
+              }
+            ]
+          }
+        ]
+      };
+
+      component.exportScheduleCsv();
+
+      expect(mockCsvExportService.exportTable).toHaveBeenCalledWith(
+        jasmine.arrayContaining([
+          jasmine.objectContaining({
+            employeeName: 'Jane Roe',
+            shiftType: 'WAITER',
+            startTime: '',
+            endTime: '',
+            hours: ''
+          })
+        ]),
+        jasmine.any(Array),
+        'planning_shifts_2026-08-10'
+      );
+    });
   });
 });
 

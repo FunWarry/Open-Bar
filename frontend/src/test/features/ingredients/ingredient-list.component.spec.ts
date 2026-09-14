@@ -10,7 +10,7 @@ import { IngredientListComponent } from '../../../app/features/ingredients/ingre
 import { IngredientService } from '../../../app/core/services/ingredient.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { Ingredient } from '../../../app/core/models/ingredient.model';
-import { CsvExportService } from '../../../app/core/services/csv-export.service';
+import { CsvExportService, CsvColumn } from '../../../app/core/services/csv-export.service';
 import { StockWasteService } from '../../../app/core/services/stock-waste.service';
 import { StockMovement } from '../../../app/core/models/stock-waste.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
@@ -58,7 +58,8 @@ describe('IngredientListComponent', () => {
     storeSpy.select.and.returnValue(of(false));
 
     csvExportSpy = jasmine.createSpyObj('CsvExportService', ['exportTable']);
-    stockWasteSpy = jasmine.createSpyObj('StockWasteService', ['getMovements']);
+    stockWasteSpy = jasmine.createSpyObj('StockWasteService', ['getMovements', 'getWasteMovementCsvColumns']);
+    stockWasteSpy.getWasteMovementCsvColumns.and.returnValue([]);
     stockWasteSpy.getMovements.and.returnValue(of([]));
 
     const modalSpy = {
@@ -314,15 +315,62 @@ describe('IngredientListComponent', () => {
     expect(component.charger).toHaveBeenCalled();
   });
 
-  it('exportInventoryCsv delegates to csvExportService.exportTable with filtered ingredients', () => {
-    component.ingredients = mockIngredients;
+  it('exportInventoryCsv delegates to csvExportService.exportTable with filtered ingredients and formats columns', () => {
+    const customIngredients: Ingredient[] = [
+      {
+        ...makeI(1, 'Rhum', 0, 5),
+        prixUnitaire: 25.5
+      },
+      {
+        ...makeI(2, 'Menthe', 3, 5),
+        prixUnitaire: 2.0
+      },
+      {
+        ...makeI(3, 'Sucre', 15, 5),
+        prixUnitaire: 1.2
+      },
+      {
+        ...makeI(4, 'Eau', 50, 5),
+        prixUnitaire: undefined
+      }
+    ];
+    component.ingredients = customIngredients;
     component.searchQuery = '';
     component.exportInventoryCsv();
+
     expect(csvExportSpy.exportTable).toHaveBeenCalledWith(
       jasmine.any(Array),
       jasmine.any(Array),
       'inventaire_ingredients'
     );
+
+    const callArgs = csvExportSpy.exportTable.calls.mostRecent().args;
+    const columns = callArgs[1] as CsvColumn<Ingredient>[];
+
+    const unitCostCol = columns.find(c => c.header === 'Cout_Unitaire_EUR');
+    const statusCol = columns.find(c => c.header === 'Statut');
+
+    // Test unitCost formatter
+    expect(unitCostCol?.formatter?.(12.34, customIngredients[0])).toBe('12.34');
+    expect(unitCostCol?.formatter?.(null, customIngredients[0])).toBe('25.50');
+    expect(unitCostCol?.formatter?.(null, customIngredients[3])).toBe('0.00');
+
+    // Test Statut formatter: RUPTURE (stock <= 0)
+    expect(statusCol?.formatter?.(null, customIngredients[0])).toBe('RUPTURE');
+    // Test Statut formatter: ALERTE (stock <= seuilAlerte)
+    expect(statusCol?.formatter?.(null, customIngredients[1])).toBe('ALERTE');
+    // Test Statut formatter: NORMAL (stock > seuilAlerte)
+    expect(statusCol?.formatter?.(null, customIngredients[2])).toBe('NORMAL');
+  });
+
+  it('exportInventoryCsv returns early when filteredIngredients is empty', () => {
+    component.ingredients = [];
+    component.searchQuery = '';
+    csvExportSpy.exportTable.calls.reset();
+
+    component.exportInventoryCsv();
+
+    expect(csvExportSpy.exportTable).not.toHaveBeenCalled();
   });
 
   it('exportWasteMovementsCsv calls stockWasteService.getMovements and exports table', fakeAsync(() => {
