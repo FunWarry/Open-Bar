@@ -382,10 +382,11 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 29 août 2026 — PR #347 (#336) : Configuration GitHub Dependabot (.github/dependabot.yml) pour les mises à jour automatisées des dépendances Maven, npm et GitHub Actions ciblant dev avec validation CI SonarCloud, 100% tests au vert
+> Dernière mise à jour : 15 septembre 2026 — PR #486 (#444) : Standardisation et sécurisation complète de tous les exports CSV (CsvUtils backend RFC 4180, neutralisation injection de formules, CsvExportService frontend avec BOM UTF-8, exports pertes de stock, shifts, inventaire, comptabilité), 100% tests au vert
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
+| Standardisation et Sécurisation des Exports CSV (RFC 4180, Injections, BOM UTF-8) (#444 / #486) | ✅ | ✅ | ✅ |
 | Configuration Dependabot (Maven, npm, GitHub Actions) (#336) | ✅ | ✅ | ✅ |
 | Auth JWT | ✅ | ✅ | ✅ |
 | Configuration initiale (/setup admin) | ✅ | ✅ | ✅ |
