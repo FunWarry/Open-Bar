@@ -34,6 +34,12 @@ ion-content {
   padding: 16px 16px 8px;
 }
 
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .section-title {
   font-size: 13px;
   font-weight: 700;

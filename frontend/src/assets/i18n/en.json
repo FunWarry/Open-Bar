@@ -56,6 +56,12 @@
     "VIEW_ORDERS": "View orders",
     "FREE_TABLE": "Release"
   },
+  "CSV_EXPORT": {
+    "SUCCESS": "CSV export successful",
+    "ERROR": "Error exporting CSV",
+    "NO_DATA": "No data to export",
+    "DOWNLOADING": "Generating CSV file..."
+  },
   "TABLE_MODAL": {
     "TITLE": "{{ nom }}",
     "STATUS_OCCUPIED": "Occupied",
@@ -1310,7 +1316,8 @@
       "PDF": "PDF",
       "COPY_NUM": "Copy number",
       "COPIED": "Number copied!",
-      "REFRESH": "Refresh"
+      "REFRESH": "Refresh",
+      "EXPORT_CSV": "Export (CSV)"
     },
     "UNASSIGNED": "Unassigned",
     "TABLE_LABEL": "Table {{num}}",
@@ -1748,6 +1755,9 @@
   },
   "STOCK": {
     "GLOBAL_TITLE": "Global Stock View",
+    "EXPORT_INVENTORY_CSV": "Export inventory (CSV)",
+    "EXPORT_WASTE_CSV": "Export waste log (CSV)",
+    "WASTE_HISTORY_EXPORT": "Waste history (CSV)",
     "SEARCH_PLACEHOLDER": "Search ingredient, unit...",
     "ALL": "All",
     "STATUS_ALL": "All",
@@ -1996,7 +2006,8 @@
     "NO_EMPLOYEES": "No employees found",
     "EMPTY_SUBTEXT": "Try adjusting your search criteria.",
     "PRESETS_BTN": "Templates & Presets",
-    "FILTER_BY_ROLE": "Filter by role"
+    "FILTER_BY_ROLE": "Filter by role",
+    "EXPORT_HOURS_CSV": "Export hours (CSV)"
   },
   "SHIFTS": {
     "TITLE": "Work Shifts",
@@ -2145,6 +2156,7 @@
     },
     "SCHEDULE": {
       "THIS_WEEK": "This week",
+      "EXPORT_CSV": "Export schedule (CSV)",
       "PUBLISH": "Publish schedule",
       "REPUBLISH": "Publish changes",
       "ALREADY_PUBLISHED": "Already published",

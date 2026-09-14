@@ -18,7 +18,7 @@ import {
   gridOutline, listOutline, pulseOutline, search, swapVerticalOutline,
   scaleOutline, layersOutline, checkmarkCircleOutline, closeCircleOutline,
   alertCircleOutline, wineOutline, waterOutline, colorFillOutline,
-  nutritionOutline, cubeOutline
+  nutritionOutline, cubeOutline, downloadOutline
 } from 'ionicons/icons';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -31,6 +31,10 @@ import { IngredientFormComponent } from '../ingredient-form/ingredient-form.comp
 import { StockWasteModalComponent } from '../stock-waste-modal/stock-waste-modal.component';
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
+import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+import { CsvExportService, CsvColumn } from '../../../core/services/csv-export.service';
+import { StockWasteService } from '../../../core/services/stock-waste.service';
+import { StockMovement } from '../../../core/models/stock-waste.model';
 /**
  * Sorting options for inventory ingredient list.
  */
@@ -71,7 +75,7 @@ export interface IngredientCategoryGroup {
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSpinner, SearchBarComponent,
     IonGrid, IonRow, IonCol, IonProgressBar,
-    SearchableSelectComponent,
+    SearchableSelectComponent, ActionButtonComponent,
   ],
 })
 export class IngredientListComponent implements OnInit, OnDestroy {
@@ -130,6 +134,8 @@ export class IngredientListComponent implements OnInit, OnDestroy {
     private readonly toastCtrl: ToastController,
     private readonly modalCtrl: ModalController,
     private readonly transloco: TranslocoService,
+    private readonly csvExportService: CsvExportService,
+    private readonly stockWasteService: StockWasteService,
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
     this.canEdit$ = this.store.select(selectCanEditIngredient);
@@ -139,7 +145,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
       gridOutline, listOutline, pulseOutline, search, swapVerticalOutline,
       scaleOutline, layersOutline, checkmarkCircleOutline, closeCircleOutline,
       alertCircleOutline, wineOutline, waterOutline, colorFillOutline,
-      nutritionOutline, cubeOutline
+      nutritionOutline, cubeOutline, downloadOutline
     });
   }
 
@@ -523,6 +529,101 @@ export class IngredientListComponent implements OnInit, OnDestroy {
 
   onRefresh(event: any): void {
     this.charger(event);
+  }
+
+  /**
+   * Exports the currently displayed ingredients inventory to CSV.
+   */
+  exportInventoryCsv(): void {
+    const list = this.filteredIngredients;
+    if (!list || list.length === 0) {
+      return;
+    }
+
+    const columns: CsvColumn<Ingredient>[] = [
+      { key: 'id', header: 'ID' },
+      { key: 'nom', header: 'Nom' },
+      { key: 'quantiteStock', header: 'Stock_Actuel' },
+      { key: 'seuilAlerte', header: 'Seuil_Alerte' },
+      { key: 'uniteMesure', header: 'Unite' },
+      {
+        key: 'unitCost',
+        header: 'Cout_Unitaire_EUR',
+        formatter: (val, item) => {
+          const cost = val ?? item.prixUnitaire;
+          return cost != null ? Number(cost).toFixed(2) : '0.00';
+        }
+      },
+      {
+        key: 'fournisseur',
+        header: 'Fournisseur',
+        formatter: (val) => String(val ?? '')
+      },
+      {
+        key: 'numeroLot',
+        header: 'Numero_Lot',
+        formatter: (val) => String(val ?? '')
+      },
+      {
+        key: 'datePeremption',
+        header: 'Date_Peremption',
+        formatter: (val) => String(val ?? '')
+      },
+      {
+        header: 'Statut',
+        formatter: (_, item) => {
+          if (item.quantiteStock <= 0) return 'RUPTURE';
+          if (item.quantiteStock <= item.seuilAlerte) return 'ALERTE';
+          return 'NORMAL';
+        }
+      }
+    ];
+
+    this.csvExportService.exportTable(list, columns, 'inventaire_ingredients');
+  }
+
+  /**
+   * Fetches shrinkage and breakage movements and exports them to CSV.
+   */
+  exportWasteMovementsCsv(): void {
+    this.stockWasteService.getMovements().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (movements) => {
+        if (!movements || movements.length === 0) {
+          this.toastCtrl.create({
+            message: this.transloco.translate('CSV_EXPORT.NO_DATA'),
+            duration: 2500,
+            color: 'warning'
+          }).then(t => t.present());
+          return;
+        }
+
+        const columns: CsvColumn<StockMovement>[] = [
+          { key: 'id', header: 'ID' },
+          { key: 'recordedAt', header: 'Date_Heure' },
+          { key: 'ingredientNom', header: 'Ingredient' },
+          { key: 'quantity', header: 'Quantite' },
+          { key: 'unit', header: 'Unite' },
+          { key: 'reason', header: 'Motif' },
+          {
+            key: 'reportedByUsername',
+            header: 'Declarant',
+            formatter: (val) => String(val ?? 'SYSTEM')
+          },
+          {
+            key: 'cost',
+            header: 'Cout_EUR',
+            formatter: (val) => (val != null ? Number(val).toFixed(2) : '0.00')
+          },
+          {
+            key: 'notes',
+            header: 'Notes',
+            formatter: (val) => String(val ?? '')
+          }
+        ];
+
+        this.csvExportService.exportTable(movements, columns, 'pertes_stock');
+      }
+    });
   }
 
   trackById(_: number, item: Ingredient): number {

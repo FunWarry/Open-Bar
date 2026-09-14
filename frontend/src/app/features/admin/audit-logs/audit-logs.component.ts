@@ -51,6 +51,8 @@ import {
   SearchableOption
 } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
+import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+import { CsvExportService, CsvColumn } from '../../../core/services/csv-export.service';
 
 /**
  * Quick category filter type.
@@ -78,6 +80,7 @@ export type AuditDateFilter = 'ALL' | 'TODAY' | 'WEEK' | 'MONTH';
     TranslocoPipe,
     SearchableSelectComponent,
     SearchBarComponent,
+    ActionButtonComponent,
     IonIcon,
     IonSpinner,
   ]
@@ -253,7 +256,8 @@ export class AuditLogsComponent implements OnInit {
 
   constructor(
     private readonly auditLogService: AuditLogService,
-    private readonly translocoService: TranslocoService
+    private readonly translocoService: TranslocoService,
+    private readonly csvExportService: CsvExportService
   ) {
     addIcons({
       shieldCheckmarkOutline,
@@ -559,27 +563,21 @@ export class AuditLogsComponent implements OnInit {
     const list = this.filteredLogs();
     if (!list || list.length === 0) return;
 
-    const headers = ['ID', 'Date_Heure', 'Acteur', 'Action', 'Type_Entite', 'ID_Entite', 'Details'];
-    const rows = list.map((log) => [
-      log.id,
-      `"${log.timestamp}"`,
-      `"${log.userUsername || 'SYSTEM'}"`,
-      `"${log.action || ''}"`,
-      `"${log.entityType || ''}"`,
-      log.entityId ?? '',
-      `"${(log.details || '').replaceAll('"', '""')}"`
-    ]);
+    const columns: CsvColumn<AuditLog>[] = [
+      { key: 'id', header: 'ID' },
+      { key: 'timestamp', header: 'Date_Heure' },
+      {
+        key: 'userUsername',
+        header: 'Acteur',
+        formatter: (val) => (val ? String(val) : 'SYSTEM')
+      },
+      { key: 'action', header: 'Action', formatter: (val) => String(val ?? '') },
+      { key: 'entityType', header: 'Type_Entite', formatter: (val) => String(val ?? '') },
+      { key: 'entityId', header: 'ID_Entite', formatter: (val) => (val != null ? String(val) : '') },
+      { key: 'details', header: 'Details', formatter: (val) => String(val ?? '') }
+    ];
 
-    const csvContent = [headers.join(';'), ...rows.map((r) => r.join(';'))].join('\r\n');
-    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `openbar_audit_logs_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    this.csvExportService.exportTable(list, columns, 'audit_logs');
   }
 
   /**

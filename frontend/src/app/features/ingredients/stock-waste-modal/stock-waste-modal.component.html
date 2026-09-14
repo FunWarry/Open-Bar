@@ -10,6 +10,16 @@
       </div>
     </div>
     <ion-buttons slot="end">
+      <app-action-button
+        variant="ghost"
+        size="small"
+        icon="download-outline"
+        (btnClick)="exportWasteHistoryCsv()"
+        [title]="'STOCK.WASTE_HISTORY_EXPORT' | transloco"
+        testId="waste-modal-btn-export"
+        data-testid="waste-modal-btn-export">
+        {{ 'STOCK.WASTE_HISTORY_EXPORT' | transloco }}
+      </app-action-button>
       <ion-button
         fill="clear"
         class="btn-close-modal"

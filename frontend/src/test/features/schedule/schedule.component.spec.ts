@@ -10,6 +10,7 @@ import { PublicationService, WeekSchedulePublicationDTO } from '../../../app/cor
 import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { ModalController, ActionSheetController, ToastController, AlertController } from '@ionic/angular/standalone';
 import { of, Subject, throwError } from 'rxjs';
+import { CsvExportService } from '../../../app/core/services/csv-export.service';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('ScheduleComponent', () => {
@@ -25,6 +26,7 @@ describe('ScheduleComponent', () => {
   let mockActionSheetCtrl: jasmine.SpyObj<ActionSheetController>;
   let mockToastCtrl: jasmine.SpyObj<ToastController>;
   let mockAlertCtrl: jasmine.SpyObj<AlertController>;
+  let mockCsvExportService: jasmine.SpyObj<CsvExportService>;
   let wsSubject: Subject<any>;
 
   beforeEach(async () => {
@@ -39,6 +41,7 @@ describe('ScheduleComponent', () => {
     mockActionSheetCtrl = jasmine.createSpyObj('ActionSheetController', ['create']);
     mockToastCtrl = jasmine.createSpyObj('ToastController', ['create']);
     mockAlertCtrl = jasmine.createSpyObj('AlertController', ['create']);
+    mockCsvExportService = jasmine.createSpyObj('CsvExportService', ['exportTable']);
 
     const mockMonday = new Date('2026-08-10');
     mockScheduleService.getMonday.and.returnValue(mockMonday);
@@ -66,7 +69,7 @@ describe('ScheduleComponent', () => {
     mockPublicationService.getPublication.and.returnValue(of(null));
     mockWebSocketService.watch.and.returnValue(wsSubject.asObservable());
 
-    const dummyToast = { present: jasmine.createSpy('present').and.returnValue(Promise.resolve()) };
+    const dummyToast = { present: () => Promise.resolve(), dismiss: () => Promise.resolve(true) };
     mockToastCtrl.create.and.returnValue(Promise.resolve(dummyToast as any));
 
     await TestBed.configureTestingModule({
@@ -81,7 +84,8 @@ describe('ScheduleComponent', () => {
         { provide: ModalController, useValue: mockModalCtrl },
         { provide: ActionSheetController, useValue: mockActionSheetCtrl },
         { provide: ToastController, useValue: mockToastCtrl },
-        { provide: AlertController, useValue: mockAlertCtrl }
+        { provide: AlertController, useValue: mockAlertCtrl },
+        { provide: CsvExportService, useValue: mockCsvExportService }
       ]
     }).compileComponents();
 
@@ -1118,6 +1122,72 @@ describe('ScheduleComponent', () => {
 
       expect(mockToastCtrl.create).toHaveBeenCalled();
     });
+  });
+
+  describe('exportScheduleCsv', () => {
+    it('should export schedule when shifts exist', () => {
+      component.schedule = {
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        totalHours: 16,
+        totalEmployees: 1,
+        activeEmployees: 1,
+        employees: [
+          {
+            employeeId: 1,
+            name: 'John Doe',
+            role: 'BARMAN',
+            shifts: [
+              {
+                userId: 1,
+                date: '2026-08-10',
+                day: 'Lundi',
+                isClosed: false,
+                type: 'BARTENDER',
+                typeShift: 'MATIN',
+                startTime: '08:00',
+                endTime: '16:00',
+                rawShift: { id: 101, heuresEffectuees: 8 } as any
+              }
+            ]
+          }
+        ]
+      };
+
+      component.exportScheduleCsv();
+
+      expect(mockCsvExportService.exportTable).toHaveBeenCalledWith(
+        jasmine.arrayContaining([
+          jasmine.objectContaining({
+            employeeName: 'John Doe',
+            shiftType: 'MATIN',
+            startTime: '08:00',
+            endTime: '16:00'
+          })
+        ]),
+        jasmine.any(Array),
+        'planning_shifts_2026-08-10'
+      );
+    });
+
+    it('should show toast when no shifts exist to export', fakeAsync(() => {
+      component.schedule = {
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        totalHours: 0,
+        totalEmployees: 0,
+        activeEmployees: 0,
+        employees: []
+      };
+
+      component.exportScheduleCsv();
+      tick();
+
+      expect(mockToastCtrl.create).toHaveBeenCalledWith(
+        jasmine.objectContaining({ color: 'warning' })
+      );
+      expect(mockCsvExportService.exportTable).not.toHaveBeenCalled();
+    }));
   });
 });
 

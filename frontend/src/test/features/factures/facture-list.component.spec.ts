@@ -390,5 +390,25 @@ describe('FactureListComponent', () => {
     component.goToRecap();
     expect(router.navigate).toHaveBeenCalledWith(['/factures/recap']);
   });
+
+  it('exportFacturesCsv() opens export URL in a new window', () => {
+    spyOn(window, 'open');
+    component.periodMode = 'ALL_TIME';
+    component.exportFacturesCsv();
+    expect(window.open).toHaveBeenCalledWith(jasmine.stringMatching('/factures/export/csv'), '_blank');
+  });
+
+  it('exportFacturesCsv() includes date parameters when operational day or month is selected', () => {
+    spyOn(window, 'open');
+    component.periodMode = 'OPERATIONAL_DAY';
+    component.selectedDay = '2026-09-14';
+    component.exportFacturesCsv();
+    expect(window.open).toHaveBeenCalledWith(jasmine.stringMatching('dateFrom=2026-09-14&dateTo=2026-09-14'), '_blank');
+
+    component.periodMode = 'MONTH';
+    component.selectedMonth = '2026-09';
+    component.exportFacturesCsv();
+    expect(window.open).toHaveBeenCalledWith(jasmine.stringMatching('dateFrom=2026-09-01&dateTo=2026-09-30'), '_blank');
+  });
 });
 

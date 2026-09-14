@@ -25,15 +25,16 @@
           <span>{{ (isRefreshing() ? 'AUDIT_LOGS.REFRESHING' : 'AUDIT_LOGS.REFRESH') | transloco }}</span>
         </button>
 
-        <button
-          type="button"
-          class="action-btn export-btn"
-          (click)="exportToCsv()"
+        <app-action-button
+          variant="secondary"
+          size="medium"
+          icon="download-outline"
+          (btnClick)="exportToCsv()"
           [disabled]="filteredLogs().length === 0"
+          testId="audit-export-csv-btn"
           data-testid="audit-export-csv-btn">
-          <ion-icon name="download-outline"></ion-icon>
-          <span>{{ 'AUDIT_LOGS.EXPORT_CSV' | transloco }}</span>
-        </button>
+          {{ 'AUDIT_LOGS.EXPORT_CSV' | transloco }}
+        </app-action-button>
 
         <button
           type="button"

@@ -8,6 +8,7 @@ import { provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { User } from '../../../app/core/models/user.model';
 import { EmployeeShift } from '../../../app/core/models/shift.model';
+import { CsvExportService } from '../../../app/core/services/csv-export.service';
 
 describe('EmployeesComponent', () => {
   let component: EmployeesComponent;
@@ -15,6 +16,7 @@ describe('EmployeesComponent', () => {
   let mockUserService: jasmine.SpyObj<UserService>;
   let mockShiftService: jasmine.SpyObj<ShiftService>;
   let mockModalCtrl: jasmine.SpyObj<ModalController>;
+  let mockCsvExportService: jasmine.SpyObj<CsvExportService>;
 
   const sampleUsers: User[] = [
     { id: 1, username: 'serveur1', email: 'serveur1@openbar.fr', nom: 'Bernard', prenom: 'Lucas', roles: ['SERVEUR'], enabled: true, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
@@ -49,6 +51,7 @@ describe('EmployeesComponent', () => {
     mockUserService = jasmine.createSpyObj('UserService', ['getUsers']);
     mockShiftService = jasmine.createSpyObj('ShiftService', ['getShiftsForWeek']);
     mockModalCtrl = jasmine.createSpyObj('ModalController', ['create']);
+    mockCsvExportService = jasmine.createSpyObj('CsvExportService', ['exportTable']);
 
     mockUserService.getUsers.and.returnValue(of(sampleUsers));
     mockShiftService.getShiftsForWeek.and.returnValue(of(sampleShifts));
@@ -83,7 +86,8 @@ describe('EmployeesComponent', () => {
         provideRouter([]),
         { provide: UserService, useValue: mockUserService },
         { provide: ShiftService, useValue: mockShiftService },
-        { provide: ModalController, useValue: mockModalCtrl }
+        { provide: ModalController, useValue: mockModalCtrl },
+        { provide: CsvExportService, useValue: mockCsvExportService }
       ]
     }).compileComponents();
 
@@ -149,6 +153,15 @@ describe('EmployeesComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const presetsBtn = compiled.querySelector('[data-testid="employees-btn-presets"]');
     expect(presetsBtn).toBeTruthy();
+  });
+
+  it('exportEmployeeHoursCsv should export table when employee summaries exist', () => {
+    component.exportEmployeeHoursCsv();
+    expect(mockCsvExportService.exportTable).toHaveBeenCalledWith(
+      jasmine.any(Array),
+      jasmine.any(Array),
+      'heures_employes'
+    );
   });
 });
 

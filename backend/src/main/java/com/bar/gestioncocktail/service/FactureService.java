@@ -16,6 +16,7 @@ import com.bar.gestioncocktail.event.InvoiceSettledEvent;
 import com.bar.gestioncocktail.event.OrderStatusChangedEvent;
 import com.bar.gestioncocktail.event.TableLiberatedEvent;
 import jakarta.persistence.EntityManager;
+import com.bar.gestioncocktail.util.CsvUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -1441,9 +1442,11 @@ public class FactureService {
                 : "";
         String tableNum = f.getTable() != null ? String.valueOf(f.getTable().getNumero()) : "N/A";
         String statut = f.isReglee() ? "REGLEE" : "EN_ATTENTE";
+        BigDecimal totalTtc = f.getTotalTTC() != null ? f.getTotalTTC() : f.getTotal();
+        String totalTtcStr = totalTtc != null ? totalTtc.toString() : "0.00";
 
-        return String.format("%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s%n",
-                f.getNumero(),
+        List<Object> values = List.of(
+                f.getNumero() != null ? f.getNumero() : "",
                 dateStr,
                 tableNum,
                 f.getTotalHT() != null ? f.getTotalHT().toString() : "0.00",
@@ -1451,9 +1454,12 @@ public class FactureService {
                 vats[1].toString(),
                 vats[2].toString(),
                 f.getTotalVAT() != null ? f.getTotalVAT().toString() : "0.00",
-                f.getTotalTTC() != null ? f.getTotalTTC().toString() : f.getTotal().toString(),
+                totalTtcStr,
                 f.getModePaiement() != null ? f.getModePaiement() : "",
-                statut);
+                statut
+        );
+
+        return CsvUtils.formatRow(values);
     }
 
     /**

@@ -10,6 +10,9 @@ import { IngredientListComponent } from '../../../app/features/ingredients/ingre
 import { IngredientService } from '../../../app/core/services/ingredient.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { Ingredient } from '../../../app/core/models/ingredient.model';
+import { CsvExportService } from '../../../app/core/services/csv-export.service';
+import { StockWasteService } from '../../../app/core/services/stock-waste.service';
+import { StockMovement } from '../../../app/core/models/stock-waste.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 const makeI = (id: number, nom: string, stock = 20, seuil = 5): Ingredient => ({
@@ -30,6 +33,8 @@ describe('IngredientListComponent', () => {
   let wsSpy: jasmine.SpyObj<WebSocketService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let storeSpy: jasmine.SpyObj<Store>;
+  let csvExportSpy: jasmine.SpyObj<CsvExportService>;
+  let stockWasteSpy: jasmine.SpyObj<StockWasteService>;
   let router: Router;
   let wsSubject: Subject<any>;
 
@@ -52,6 +57,10 @@ describe('IngredientListComponent', () => {
     storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
     storeSpy.select.and.returnValue(of(false));
 
+    csvExportSpy = jasmine.createSpyObj('CsvExportService', ['exportTable']);
+    stockWasteSpy = jasmine.createSpyObj('StockWasteService', ['getMovements']);
+    stockWasteSpy.getMovements.and.returnValue(of([]));
+
     const modalSpy = {
       present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
       onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ role: 'saved', data: {} })),
@@ -67,6 +76,8 @@ describe('IngredientListComponent', () => {
         { provide: WebSocketService, useValue: wsSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
+        { provide: CsvExportService, useValue: csvExportSpy },
+        { provide: StockWasteService, useValue: stockWasteSpy },
       ],
     }).compileComponents();
 
@@ -302,5 +313,53 @@ describe('IngredientListComponent', () => {
     await component.openWasteModal(targetIng);
     expect(component.charger).toHaveBeenCalled();
   });
+
+  it('exportInventoryCsv delegates to csvExportService.exportTable with filtered ingredients', () => {
+    component.ingredients = mockIngredients;
+    component.searchQuery = '';
+    component.exportInventoryCsv();
+    expect(csvExportSpy.exportTable).toHaveBeenCalledWith(
+      jasmine.any(Array),
+      jasmine.any(Array),
+      'inventaire_ingredients'
+    );
+  });
+
+  it('exportWasteMovementsCsv calls stockWasteService.getMovements and exports table', fakeAsync(() => {
+    const mockMovements: StockMovement[] = [
+      {
+        id: 1,
+        ingredientId: 10,
+        ingredientNom: 'Rhum',
+        quantity: 2,
+        unit: 'bouteille',
+        reason: 'CASSE',
+        notes: 'Broken during service',
+        cost: 30,
+        recordedAt: '2026-09-14T10:00:00Z',
+        reportedById: 1,
+        reportedByUsername: 'John'
+      }
+    ];
+    stockWasteSpy.getMovements.and.returnValue(of(mockMovements));
+    component.exportWasteMovementsCsv();
+    tick();
+
+    expect(csvExportSpy.exportTable).toHaveBeenCalledWith(
+      mockMovements,
+      jasmine.any(Array),
+      'pertes_stock'
+    );
+  }));
+
+  it('exportWasteMovementsCsv presents warning toast when no movements exist', fakeAsync(() => {
+    stockWasteSpy.getMovements.and.returnValue(of([]));
+    component.exportWasteMovementsCsv();
+    tick();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(
+      jasmine.objectContaining({ color: 'warning' })
+    );
+  }));
 });
 
