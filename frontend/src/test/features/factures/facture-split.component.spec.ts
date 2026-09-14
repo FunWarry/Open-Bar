@@ -636,5 +636,65 @@ describe('FactureSplitComponent', () => {
       expect(component.mode).toBe('itemized');
       expect(factureServiceSpy.splitParSelection).toHaveBeenCalled();
     });
+
+    it('handles custom amount mode: add, remove, assign remainder and calculate', () => {
+      component.mode = 'custom_amount';
+      component.facture = { ...mockFacture, totalTTC: 30 };
+      expect(component.balanceToSplit).toBe(30);
+
+      component.addCustomAmountGuest();
+      expect(component.customAmountGuests).toHaveSize(3);
+
+      component.customAmountGuests[0].amount = 10;
+      component.customAmountGuests[1].amount = 10;
+      component.customAmountGuests[2].amount = 10;
+      expect(component.isCustomAmountValid).toBeTrue();
+
+      component.removeCustomAmountGuest(2);
+      expect(component.customAmountGuests).toHaveSize(2);
+      expect(component.isCustomAmountValid).toBeFalse();
+
+      component.assignRemainingToGuest(1);
+      expect(component.customAmountGuests[1].amount).toBe(20);
+      expect(component.isCustomAmountValid).toBeTrue();
+
+      factureServiceSpy.splitParMontants.and.returnValue(of(mockSplitResults));
+      component.calculateCustomAmountSplit();
+      expect(component.results).toEqual(mockSplitResults);
+
+      factureServiceSpy.splitParMontants.and.returnValue(throwError(() => ({ error: { message: 'Montant error' } })));
+      component.calculateCustomAmountSplit();
+      expect(component.errorMessage).toBe('Montant error');
+    });
+
+    it('handles custom percentage mode: add, remove, distribute equally, assign remainder and calculate', () => {
+      component.mode = 'custom_percentage';
+      component.facture = { ...mockFacture, totalTTC: 30 };
+
+      component.addCustomPercentageGuest();
+      expect(component.customPercentageGuests).toHaveSize(3);
+
+      component.distributePercentagesEqually();
+      expect(component.isCustomPercentageValid).toBeTrue();
+
+      component.removeCustomPercentageGuest(2);
+      expect(component.customPercentageGuests).toHaveSize(2);
+
+      component.customPercentageGuests[0].percentage = 40;
+      component.customPercentageGuests[1].percentage = 40;
+      expect(component.isCustomPercentageValid).toBeFalse();
+
+      component.assignRemainingPercentageToGuest(1);
+      expect(component.customPercentageGuests[1].percentage).toBe(60);
+      expect(component.isCustomPercentageValid).toBeTrue();
+
+      factureServiceSpy.splitParPourcentages.and.returnValue(of(mockSplitResults));
+      component.calculateCustomPercentageSplit();
+      expect(component.results).toEqual(mockSplitResults);
+
+      factureServiceSpy.splitParPourcentages.and.returnValue(throwError(() => ({ error: { message: 'Pct error' } })));
+      component.calculateCustomPercentageSplit();
+      expect(component.errorMessage).toBe('Pct error');
+    });
   });
 });
