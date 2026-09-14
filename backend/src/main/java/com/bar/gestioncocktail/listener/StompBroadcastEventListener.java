@@ -229,6 +229,9 @@ public class StompBroadcastEventListener {
                     CommandeResponseDTO dto = CommandeResponseDTO.from(cmd);
                     messagingTemplate.convertAndSend(TOPIC_COMMANDES_STATUT, dto);
                     messagingTemplate.convertAndSend(TOPIC_COMMANDES_PREFIX + cmd.getId(), dto);
+                    if (cmd.getTable() != null && cmd.getTable().getId() != null) {
+                        messagingTemplate.convertAndSend("/topic/tables/" + cmd.getTable().getId() + "/orders", dto);
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -241,6 +244,10 @@ public class StompBroadcastEventListener {
         messagingTemplate.convertAndSend(TOPIC_COMMANDES, dto);
         messagingTemplate.convertAndSend(TOPIC_COMMANDES_STATUT, dto);
         messagingTemplate.convertAndSend(TOPIC_BARMAN_COMMANDES, dto);
+
+        if (commande.getTable() != null && commande.getTable().getId() != null) {
+            messagingTemplate.convertAndSend("/topic/tables/" + commande.getTable().getId() + "/orders", dto);
+        }
 
         boolean hasBar = false;
         boolean hasKitchen = false;

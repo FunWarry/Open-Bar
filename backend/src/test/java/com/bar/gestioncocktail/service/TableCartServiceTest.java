@@ -6,10 +6,16 @@ import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailVariante;
+import com.bar.gestioncocktail.model.Commande;
+import com.bar.gestioncocktail.model.CommandeStatut;
+import com.bar.gestioncocktail.model.TableAppelStatut;
+import com.bar.gestioncocktail.model.TableAppelType;
 import com.bar.gestioncocktail.model.TableCartItem;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.repository.CocktailRepository;
 import com.bar.gestioncocktail.repository.CocktailVarianteRepository;
+import com.bar.gestioncocktail.repository.CommandeRepository;
+import com.bar.gestioncocktail.repository.TableAppelRepository;
 import com.bar.gestioncocktail.repository.TableCartItemRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,6 +64,12 @@ class TableCartServiceTest {
 
     @Mock
     private SimpMessagingTemplate messagingTemplate;
+
+    @Mock
+    private CommandeRepository commandeRepository;
+
+    @Mock
+    private TableAppelRepository tableAppelRepository;
 
     @Spy
     private TimeService timeService = new TimeService(null);
@@ -416,4 +428,202 @@ class TableCartServiceTest {
         verify(tableCartItemRepository).deleteByTableId(7L);
         verify(messagingTemplate).convertAndSend(eq("/topic/tables/7/cart"), any(TableCartResponseDTO.class));
     }
+
+    @Test
+    @DisplayName("getTableOrdersSummary: computes cumulative bill and drink count for unpaid orders")
+    void getTableOrdersSummary_returnsSummary() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+
+        Commande cmd1 = new Commande();
+        cmd1.setId(101L);
+        cmd1.setTable(mockTable);
+        cmd1.setStatut(CommandeStatut.EN_ATTENTE);
+        cmd1.setTotal(BigDecimal.valueOf(18.0));
+        cmd1.setDateCommande(fixedNow.minusMinutes(10));
+        com.bar.gestioncocktail.model.CommandeItem item1 = new com.bar.gestioncocktail.model.CommandeItem();
+        item1.setQuantite(2);
+        cmd1.setItems(List.of(item1));
+
+        Commande cmd2 = new Commande();
+        cmd2.setId(102L);
+        cmd2.setTable(mockTable);
+        cmd2.setStatut(CommandeStatut.REGLEE); // Settled order should be excluded from running bill
+        cmd2.setTotal(BigDecimal.valueOf(25.0));
+
+        when(commandeRepository.findByTable(mockTable)).thenReturn(List.of(cmd1, cmd2));
+        when(tableAppelRepository.existsByTableIdAndTypeAndStatut(1L, TableAppelType.ADDITION, TableAppelStatut.EN_ATTENTE))
+                .thenReturn(true);
+
+        TableOrdersSummaryResponseDTO summary = tableCartService.getTableOrdersSummary(1L);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.tableId()).isEqualTo(1L);
+        assertThat(summary.tableNumero()).isEqualTo(1);
+        assertThat(summary.orders()).hasSize(1);
+        assertThat(summary.cumulativeTotal()).isEqualByComparingTo(BigDecimal.valueOf(18.0));
+        assertThat(summary.totalDrinksOrdered()).isEqualTo(2);
+        assertThat(summary.hasUnpaidOrders()).isTrue();
+        assertThat(summary.billRequested()).isTrue();
+    }
+
+    @Test
+    @DisplayName("finalizeGracePeriod: resets grace period and broadcasts updated cart")
+    void finalizeGracePeriod_resetsGraceAndBroadcasts() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+        when(commandeRepository.findByTable(mockTable)).thenReturn(List.of());
+
+        TableCartResponseDTO result = tableCartService.finalizeGracePeriod(1L);
+
+        assertThat(result).isNotNull();
+        assertThat(result.status()).isEqualTo("OPEN");
+        verify(messagingTemplate).convertAndSend(eq("/topic/tables/1/cart"), any(TableCartResponseDTO.class));
+    }
+
+    @Test
+    @DisplayName("removeItem: throws BusinessException when item belongs to different table")
+    void removeItem_tableMismatch_throwsBusinessException() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+
+        TableCartItem item = new TableCartItem();
+        item.setId(99L);
+        item.setTableId(2L); // Different table!
+        when(tableCartItemRepository.findById(99L)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> tableCartService.removeItem(1L, 99L, "guest-me"))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .hasMessageContaining("does not belong to table");
+    }
+
+    @Test
+    @DisplayName("submitCart: merges into existing pending order when within 2-min grace period")
+    void submitCart_whenActiveGraceOrderExists_mergesIntoExisting() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+
+        TableCartItem cartItem = new TableCartItem();
+        cartItem.setId(10L);
+        cartItem.setTableId(1L);
+        cartItem.setCocktailId(10L);
+        cartItem.setGuestSessionId("guest-sam");
+        cartItem.setGuestName("Sam");
+        cartItem.setQuantite(2);
+        when(tableCartItemRepository.findByTableIdOrderByCreatedAtAsc(1L)).thenReturn(List.of(cartItem));
+
+        Commande pendingOrder = new Commande();
+        pendingOrder.setId(500L);
+        pendingOrder.setTable(mockTable);
+        pendingOrder.setStatut(CommandeStatut.EN_ATTENTE);
+        pendingOrder.setDateCommande(fixedNow.minusSeconds(30)); // 30s ago, well within 120s grace!
+
+        when(commandeRepository.findByTableAndStatut(mockTable, CommandeStatut.EN_ATTENTE))
+                .thenReturn(List.of(pendingOrder));
+
+        Commande mergedCmd = new Commande();
+        mergedCmd.setId(500L);
+        mergedCmd.setTrackingToken("trk-500");
+        mergedCmd.setStatut(CommandeStatut.EN_ATTENTE);
+        mergedCmd.setTable(mockTable);
+        mergedCmd.setTotal(BigDecimal.valueOf(35.0));
+        mergedCmd.setDateCommande(fixedNow.minusSeconds(30));
+
+        PublicCommandeResponseDTO mergedResponse = PublicCommandeResponseDTO.from(mergedCmd, 10);
+        when(publicCommandeService.ajouterArticlesACommande(eq(500L), anyList())).thenReturn(mergedResponse);
+
+        TableCartSubmitRequestDTO submitDto = new TableCartSubmitRequestDTO("Sam", "guest-sam", "Add mint", "tok-123");
+        PublicCommandeResponseDTO result = tableCartService.submitCart(1L, submitDto);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getCommandeId()).isEqualTo(500L);
+        verify(publicCommandeService).ajouterArticlesACommande(eq(500L), anyList());
+        verify(tableCartItemRepository).deleteByTableId(1L);
+    }
+
+    @Test
+    @DisplayName("handleTableLiberated: handles null event or null table gracefully")
+    void handleTableLiberated_nullSafety() {
+        tableCartService.handleTableLiberated(null);
+        tableCartService.handleTableLiberated(new com.bar.gestioncocktail.event.TableLiberatedEvent(null));
+        verify(tableCartItemRepository, never()).deleteByTableId(anyLong());
+    }
+
+    @Test
+    @DisplayName("validateTableExists and resolveTable: throws BusinessException when tableId is null")
+    void tableIdNull_throwsBusinessException() {
+        assertThatThrownBy(() -> tableCartService.getCart(null))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .hasMessageContaining("Table ID cannot be null");
+
+        assertThatThrownBy(() -> tableCartService.getTableOrdersSummary(null))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .hasMessageContaining("Table ID cannot be null");
+    }
+
+    @Test
+    @DisplayName("getTableOrdersSummary: handles null commandeRepository or null table gracefully")
+    void getTableOrdersSummary_whenRepositoryNull_returnsEmptySummary() {
+        TableCartService serviceWithoutRepo = new TableCartService(
+                tableCartItemRepository,
+                tableRepository,
+                cocktailRepository,
+                varianteRepository,
+                publicCommandeService,
+                messagingTemplate,
+                timeService,
+                null,
+                tableAppelRepository
+        );
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+
+        TableOrdersSummaryResponseDTO summary = serviceWithoutRepo.getTableOrdersSummary(1L);
+        assertThat(summary).isNotNull();
+        assertThat(summary.tableId()).isEqualTo(1L);
+        assertThat(summary.orders()).isEmpty();
+        assertThat(summary.cumulativeTotal()).isEqualTo(BigDecimal.ZERO);
+        assertThat(summary.totalDrinksOrdered()).isZero();
+    }
+
+    @Test
+    @DisplayName("getTableOrdersSummary: sorts orders handling null dates correctly")
+    void getTableOrdersSummary_sortsWithNullDates() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+
+        Commande cmdWithNullDate1 = new Commande();
+        cmdWithNullDate1.setId(201L);
+        cmdWithNullDate1.setTable(mockTable);
+        cmdWithNullDate1.setStatut(CommandeStatut.EN_ATTENTE);
+        cmdWithNullDate1.setDateCommande(null);
+
+        Commande cmdWithNullDate2 = new Commande();
+        cmdWithNullDate2.setId(202L);
+        cmdWithNullDate2.setTable(mockTable);
+        cmdWithNullDate2.setStatut(CommandeStatut.EN_ATTENTE);
+        cmdWithNullDate2.setDateCommande(null);
+
+        Commande cmdWithDate = new Commande();
+        cmdWithDate.setId(203L);
+        cmdWithDate.setTable(mockTable);
+        cmdWithDate.setStatut(CommandeStatut.EN_ATTENTE);
+        cmdWithDate.setDateCommande(fixedNow);
+
+        when(commandeRepository.findByTable(mockTable))
+                .thenReturn(List.of(cmdWithNullDate1, cmdWithNullDate2, cmdWithDate));
+
+        TableOrdersSummaryResponseDTO summary = tableCartService.getTableOrdersSummary(1L);
+        assertThat(summary).isNotNull();
+        assertThat(summary.orders()).hasSize(3);
+    }
+
+    @Test
+    @DisplayName("broadcastTableOrdersSummary: catches exceptions during messaging template broadcast")
+    void broadcastTableOrdersSummary_catchesExceptionGracefully() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+        when(commandeRepository.findByTable(mockTable)).thenReturn(List.of());
+        doThrow(new RuntimeException("STOMP connection lost"))
+                .when(messagingTemplate).convertAndSend(eq("/topic/tables/1/orders"), any(TableOrdersSummaryResponseDTO.class));
+
+        // Must not throw BusinessException or RuntimeException
+        tableCartService.broadcastTableOrders(1L);
+        verify(messagingTemplate).convertAndSend(eq("/topic/tables/1/orders"), any(TableOrdersSummaryResponseDTO.class));
+    }
 }
+

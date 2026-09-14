@@ -71,32 +71,350 @@
     </div>
   }
 
-  <!-- Écran Session Expirée / Invalide -->
+  <!-- Modale Inviter des amis à la table -->
+  @if (isSessionValid && showInviteModal() && step !== 'table') {
+    <dialog
+      class="nickname-modal-backdrop invite-dialog-modal"
+      open
+      (keydown.escape)="closeInviteModal()"
+      (click)="onInviteBackdropClick($event)"
+      data-testid="invite-modal-backdrop">
+      <div class="step-card invite-card" data-testid="invite-friends-modal">
+        <div class="modal-close-bar">
+          <button type="button" class="modal-close-btn" (click)="closeInviteModal()" aria-label="Fermer" data-testid="btn-close-invite-modal">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="card-header-section">
+          <span class="brand-emoji">📲</span>
+          <h2 class="card-title">{{ 'CLIENT.INVITE_MODAL_TITLE' | transloco: { table: tableNumero } }}</h2>
+          <p class="card-subtitle">{{ 'CLIENT.INVITE_MODAL_DESC' | transloco }}</p>
+        </div>
+
+        <!-- Section QR code de la table -->
+        <div class="invite-qr-section" data-testid="invite-qr-section">
+          <div class="invite-qr-frame">
+            <img
+              [src]="getInviteQrCodeUrl()"
+              [alt]="'CLIENT.INVITE_MODAL_TITLE' | transloco: { table: tableNumero }"
+              class="invite-qr-image"
+              data-testid="invite-qr-image" />
+          </div>
+          <p class="qr-scan-hint">{{ 'CLIENT.INVITE_QR_HINT' | transloco }}</p>
+        </div>
+
+        <!-- Section Copier le lien -->
+        <div class="invite-link-section">
+          <label for="invite-link-field" class="invite-link-label">{{ 'CLIENT.INVITE_COPY' | transloco }}</label>
+          <div class="invite-link-box">
+            <input
+              id="invite-link-field"
+              type="text"
+              readonly
+              [value]="getInviteUrl()"
+              class="invite-link-input"
+              data-testid="input-invite-link"
+              (click)="copyInviteLink()" />
+            <button
+              type="button"
+              class="invite-copy-btn"
+              [class.copied]="copiedLinkSuccess()"
+              (click)="copyInviteLink()"
+              data-testid="btn-copy-invite-link">
+              <ion-icon [name]="copiedLinkSuccess() ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+              <span>{{ (copiedLinkSuccess() ? 'CLIENT.INVITE_COPIED' : 'CLIENT.INVITE_COPY') | transloco }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bouton Partager Mobile (Web Share API) -->
+        @if (canShareNative()) {
+          <div class="invite-share-section">
+            <app-action-button
+              type="button"
+              variant="primary"
+              size="large"
+              expand="block"
+              (btnClick)="shareInviteNative()"
+              testId="btn-share-invite-native">
+              <ion-icon name="share-social-outline" slot="start"></ion-icon>
+              {{ 'CLIENT.INVITE_SHARE_NATIVE_BTN' | transloco }}
+            </app-action-button>
+          </div>
+        }
+      </div>
+    </dialog>
+  }
+
+  <!-- Modale Détails du Cocktail & Ingrédients (sans quantités) -->
+  @if (selectedCocktailForDetails(); as cocktail) {
+    <dialog
+      class="nickname-modal-backdrop cocktail-details-dialog"
+      open
+      (keydown.escape)="closeCocktailDetails()"
+      (click)="onDetailsBackdropClick($event)"
+      data-testid="cocktail-details-modal">
+      <div class="step-card cocktail-details-card" data-testid="cocktail-details-card" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+        <div class="modal-close-bar">
+          <button type="button" class="modal-close-btn" (click)="closeCocktailDetails()" aria-label="Fermer" data-testid="btn-close-cocktail-details">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        @if (cocktail.imageUrl) {
+          <div class="cocktail-details-image-wrapper">
+            <img
+              [src]="cocktail.imageUrl"
+              [alt]="cocktail.nom"
+              class="cocktail-details-img"
+              (error)="$any($event.target).src = 'assets/images/verres/verre_tumbler.png'"
+              data-testid="cocktail-details-image" />
+          </div>
+        }
+
+        <div class="cocktail-details-header">
+          <div class="cocktail-details-title-row">
+            <h2 class="cocktail-details-title" data-testid="cocktail-details-title">{{ cocktail.nom }}</h2>
+            <span class="product-category-pill" [ngStyle]="getCategoryPillStyle(cocktail.categorie)" data-testid="cocktail-details-category">
+              <span class="dot-indicator" [style.background-color]="getCategoryDotColor(cocktail.categorie)"></span>
+              {{ ('COCKTAILS.CATEGORIES.' + cocktail.categorie) | transloco }}
+            </span>
+          </div>
+
+          <div class="cocktail-details-price-row">
+            @if (isHappyHour(cocktail) && cocktail.prix > getEffectivePrice(cocktail)) {
+              <span class="original-price-struck" data-testid="cocktail-details-original-price">
+                {{ cocktail.prix | appCurrency }}
+              </span>
+              <span class="happy-hour-badge" data-testid="cocktail-details-hh-badge">
+                {{ 'PRICING.HAPPY_HOUR_BADGE' | transloco }}
+              </span>
+            }
+            <span class="cocktail-details-price" [class.discounted]="isHappyHour(cocktail)" data-testid="cocktail-details-price">
+              {{ getEffectivePrice(cocktail) | appCurrency }}
+            </span>
+          </div>
+
+          @if (cocktail.description) {
+            <p class="cocktail-details-desc" data-testid="cocktail-details-desc">{{ cocktail.description }}</p>
+          }
+
+          <!-- Profils aromatiques et diététiques -->
+          <div class="cocktail-details-tags">
+            @if (cocktail.isMocktail || cocktail.categorie === 'SANS_ALCOOL') {
+              <span class="product-dietary-tag mocktail-tag">🍹 {{ 'COCKTAILS.MOCKTAIL' | transloco }}</span>
+            } @else if (cocktail.alcoholLevel != null && cocktail.alcoholLevel > 0) {
+              <span class="product-dietary-tag abv-tag">🍸 {{ cocktail.alcoholLevel }}% ABV</span>
+            }
+            @if (cocktail.isVegan) {
+              <span class="product-dietary-tag vegan-tag">🌱 {{ 'COCKTAILS.VEGAN' | transloco }}</span>
+            }
+            @if (cocktail.isGlutenFree) {
+              <span class="product-dietary-tag gluten-free-tag">🌾 {{ 'COCKTAILS.GLUTEN_FREE' | transloco }}</span>
+            }
+            @for (flavor of cocktail.flavorProfiles || []; track flavor) {
+              <span class="product-flavor-tag">{{ ('COCKTAIL.FLAVOR_' + flavor) | transloco }}</span>
+            }
+          </div>
+        </div>
+
+        <!-- Section Ingrédients (strictement SANS quantités) -->
+        <div class="cocktail-ingredients-section" data-testid="cocktail-ingredients-section">
+          <div class="ingredients-section-header">
+            <span class="ingredients-section-icon">🌿</span>
+            <div>
+              <h3 class="ingredients-section-title">{{ 'CLIENT.INGREDIENTS_SECTION_TITLE' | transloco }}</h3>
+              <p class="ingredients-section-subtitle">{{ 'CLIENT.INGREDIENTS_SECTION_SUBTITLE' | transloco }}</p>
+            </div>
+          </div>
+
+          <div class="ingredients-list" data-testid="cocktail-ingredients-list">
+            @for (ing of cocktail.ingredients; track ing.id || ing.ingredientId || ing.ingredientNom) {
+              <div class="ingredient-item-chip" data-testid="cocktail-ingredient-item">
+                <span class="ingredient-bullet"></span>
+                <span class="ingredient-name" data-testid="ingredient-name">{{ ing.ingredientNom }}</span>
+                @if (ing.allergens && ing.allergens.length > 0) {
+                  <span class="ingredient-allergen-badge" data-testid="ingredient-allergen-badge">
+                    ⚠️ {{ ing.allergens.join(', ') }}
+                  </span>
+                }
+              </div>
+            } @empty {
+              <p class="empty-ingredients-text" data-testid="empty-ingredients-text">
+                {{ 'CLIENT.NO_INGREDIENTS_LISTED' | transloco }}
+              </p>
+            }
+          </div>
+        </div>
+
+        <!-- Actions de la modale (quantité & fermeture) -->
+        <div class="cocktail-details-footer">
+          <div class="details-cart-controls">
+            <div class="quantity-stepper-mini modal-stepper">
+              @if (getItemQuantity(cocktail.id) > 0) {
+                <button
+                  type="button"
+                  class="stepper-btn btn-minus"
+                  (click)="removeFromCart(cocktail.id)"
+                  aria-label="Decrease quantity"
+                  data-testid="modal-cocktail-minus">
+                  <ion-icon name="remove-outline"></ion-icon>
+                </button>
+                <span class="quantity-badge" data-testid="modal-cocktail-qty">{{ getItemQuantity(cocktail.id) }}</span>
+              }
+              <button
+                type="button"
+                class="stepper-btn btn-plus"
+                (click)="addToCart(cocktail)"
+                aria-label="Increase quantity"
+                data-testid="modal-cocktail-plus">
+                <ion-icon name="add-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="details-close-btn"
+            (click)="closeCocktailDetails()"
+            data-testid="btn-close-details-footer">
+            {{ 'CLIENT.CLOSE_DETAILS_BTN' | transloco }}
+          </button>
+        </div>
+      </div>
+    </dialog>
+  }
+
+  <!-- Modale Hôte : Validation des demandes pour rejoindre la table -->
+  @if (isSessionValid && tableCartService.isOwner() && tableCartService.pendingJoinRequests().length > 0) {
+    <dialog
+      class="nickname-modal-backdrop join-approval-dialog"
+      open
+      data-testid="join-approval-modal">
+      @for (req of tableCartService.pendingJoinRequests(); track req.id) {
+        <div class="step-card join-approval-card" data-testid="join-approval-card">
+          <div class="card-header-section">
+            <span class="brand-emoji">👋</span>
+            <h2 class="card-title">{{ 'CLIENT.JOIN_APPROVAL_MODAL_TITLE' | transloco }}</h2>
+            <p class="card-subtitle">{{ 'CLIENT.JOIN_APPROVAL_MODAL_DESC' | transloco: { name: req.applicantName, table: tableNumero } }}</p>
+          </div>
+
+          <div class="join-approval-actions">
+            <app-action-button
+              type="button"
+              variant="primary"
+              size="medium"
+              expand="block"
+              (btnClick)="acceptApplicant(req)"
+              testId="btn-accept-applicant">
+              <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+              {{ 'CLIENT.JOIN_APPROVAL_ACCEPT_BTN' | transloco }}
+            </app-action-button>
+            <app-action-button
+              type="button"
+              variant="secondary"
+              size="medium"
+              expand="block"
+              (btnClick)="declineApplicant(req)"
+              testId="btn-decline-applicant">
+              <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+              {{ 'CLIENT.JOIN_APPROVAL_REJECT_BTN' | transloco }}
+            </app-action-button>
+          </div>
+        </div>
+      }
+    </dialog>
+  }
+
+  <!-- Écran Session Expirée / Invalide ou Demande d'accès pour rejoindre -->
   @if (!isSessionValid && step !== 'table') {
-    <div class="step-card session-expired-card" data-testid="session-expired-card">
-      <div class="card-header-section">
-        <span class="brand-emoji">⚠️</span>
-        <h2 class="card-title">{{ 'CLIENT.SESSION_EXPIRED_TITLE' | transloco }}</h2>
-        <p class="card-subtitle">{{ 'CLIENT.SESSION_EXPIRED_DESC' | transloco }}</p>
-      </div>
+    @if (tableOwnerName()) {
+      <!-- La table est occupée par un hôte -> Workflow de demande d'accès -->
+      @if (isJoinRejected()) {
+        <div class="step-card session-expired-card" data-testid="join-rejected-card">
+          <div class="card-header-section">
+            <span class="brand-emoji">🚫</span>
+            <h2 class="card-title">{{ 'CLIENT.JOIN_REQUEST_REJECTED_TITLE' | transloco }}</h2>
+            <p class="card-subtitle">{{ 'CLIENT.JOIN_REQUEST_REJECTED_DESC' | transloco }}</p>
+          </div>
+          <div class="session-expired-actions">
+            <app-action-button
+              type="button"
+              variant="secondary"
+              size="medium"
+              expand="block"
+              (btnClick)="retryJoinRequest()"
+              testId="btn-retry-join-request">
+              {{ 'CLIENT.JOIN_REQUEST_RETRY_BTN' | transloco }}
+            </app-action-button>
+          </div>
+        </div>
+      } @else if (isJoinPending()) {
+        <div class="step-card session-expired-card" data-testid="join-pending-card">
+          <div class="card-header-section">
+            <span class="brand-emoji">⏳</span>
+            <h2 class="card-title">{{ 'CLIENT.JOIN_REQUEST_PENDING_TITLE' | transloco }}</h2>
+            <p class="card-subtitle">{{ 'CLIENT.JOIN_REQUEST_PENDING_DESC' | transloco: { owner: tableOwnerName() } }}</p>
+          </div>
+        </div>
+      } @else {
+        <div class="step-card" data-testid="join-request-card">
+          <div class="card-header-section">
+            <span class="brand-emoji">🔐</span>
+            <h2 class="card-title">{{ 'CLIENT.JOIN_REQUEST_TITLE' | transloco: { table: tableNumero } }}</h2>
+            <p class="card-subtitle">{{ 'CLIENT.JOIN_REQUEST_DESC' | transloco: { owner: tableOwnerName() } }}</p>
+          </div>
 
-      <p class="contact-server-text" data-testid="session-expired-contact-server">
-        {{ 'CLIENT.SESSION_CONTACT_SERVER' | transloco }}
-      </p>
+          <form [formGroup]="joinRequestNameForm" (ngSubmit)="submitJoinRequest()" class="table-form">
+            <app-input-field
+              formControlName="applicantName"
+              type="text"
+              [label]="'CLIENT.JOIN_REQUEST_NAME_LABEL' | transloco"
+              [placeholder]="'CLIENT.GUEST_NAME_PLACEHOLDER' | transloco"
+              icon="person-outline"
+              [required]="true"
+              testId="input-join-applicant-name">
+            </app-input-field>
 
-      <div class="actions-row">
-        <app-action-button
-          variant="primary"
-          size="large"
-          expand="block"
-          [loading]="isSessionChecking"
-          [disabled]="isSessionChecking"
-          (btnClick)="refreshSession()"
-          testId="btn-refresh-session">
-          {{ 'CLIENT.SESSION_REFRESH_BTN' | transloco }}
-        </app-action-button>
+            <app-action-button
+              type="submit"
+              variant="primary"
+              size="large"
+              expand="block"
+              [disabled]="joinRequestNameForm.invalid"
+              testId="btn-submit-join-request">
+              {{ 'CLIENT.JOIN_REQUEST_SUBMIT_BTN' | transloco }}
+            </app-action-button>
+          </form>
+        </div>
+      }
+    } @else {
+      <!-- Session véritablement expirée sans hôte -->
+      <div class="step-card session-expired-card" data-testid="session-expired-card">
+        <div class="card-header-section">
+          <span class="brand-emoji">⚠️</span>
+          <h2 class="card-title">{{ 'CLIENT.SESSION_EXPIRED_TITLE' | transloco }}</h2>
+          <p class="card-subtitle">{{ 'CLIENT.SESSION_EXPIRED_DESC' | transloco }}</p>
+        </div>
+
+        <div class="session-expired-actions">
+          <app-action-button
+            type="button"
+            variant="secondary"
+            size="medium"
+            expand="block"
+            (btnClick)="refreshSession()"
+            testId="btn-refresh-session">
+            {{ 'CLIENT.SESSION_REFRESH_BTN' | transloco }}
+          </app-action-button>
+        </div>
+
+        <p class="contact-server-text" data-testid="session-expired-contact-server">
+          {{ 'CLIENT.SESSION_CONTACT_SERVER' | transloco }}
+        </p>
       </div>
-    </div>
+    }
   }
 
   <!-- Étape 2 : Menu & Sélection de cocktails -->
@@ -107,38 +425,117 @@
           <h1 class="menu-title">{{ 'CLIENT.MENU_TITLE' | transloco: { table: tableNumero } }}</h1>
           <p class="menu-subtitle">{{ 'CLIENT.SELECT_ITEMS' | transloco }}</p>
           
-          @if (tableCartService.currentGuestName()) {
-            <button class="guest-badge-btn" (click)="openNicknamePrompt()" data-testid="badge-guest-name">
-              <span class="guest-badge-icon">👤</span>
-              <span class="guest-badge-name">{{ tableCartService.currentGuestName() }}</span>
-              <span class="guest-badge-edit">✏️</span>
+          <div class="header-badges-row">
+            @if (tableCartService.isOwner()) {
+              <span class="host-pill" data-testid="badge-table-host">
+                <ion-icon name="shield-checkmark-outline"></ion-icon>
+                {{ 'CLIENT.TABLE_HOST_BADGE' | transloco }}
+              </span>
+            }
+            @if (tableCartService.currentGuestName()) {
+              <button type="button" class="guest-badge-btn" (click)="openNicknamePrompt()" data-testid="badge-guest-name">
+                <span class="guest-badge-icon">👤</span>
+                <span class="guest-badge-name">{{ tableCartService.currentGuestName() }}</span>
+                <span class="guest-badge-edit">✏️</span>
+              </button>
+            }
+            <button type="button" class="invite-badge-btn" (click)="openInviteModal()" data-testid="btn-open-invite-modal">
+              <ion-icon name="share-social-outline"></ion-icon>
+              <span>{{ 'CLIENT.INVITE_FRIENDS_BTN' | transloco }}</span>
             </button>
-          }
+            <button type="button" class="table-orders-badge-btn" (click)="openTableOrdersModal()" data-testid="btn-open-table-orders">
+              <ion-icon name="receipt-outline"></ion-icon>
+              <span>{{ 'CLIENT.TABLE_ORDERS_BTN' | transloco }}</span>
+              @if (tableCartService.tableOrdersSummary()?.totalDrinksOrdered) {
+                <span class="orders-count-badge">{{ tableCartService.tableOrdersSummary()?.totalDrinksOrdered }}</span>
+              }
+            </button>
+          </div>
         </div>
 
         <!-- Quick Table Service & Bill Actions Bar -->
         <app-table-assistance-bar [tableNumero]="tableNumero!"></app-table-assistance-bar>
       </header>
 
-      <div class="filter-chips">
-        <app-filter-chip
-          [label]="'COMMON.ALL' | transloco"
-          [active]="selectedCategory === 'TOUS'"
-          (chipClick)="filterCategory('TOUS')"
-          testId="filter-tous">
-        </app-filter-chip>
-        <app-filter-chip
-          [label]="'COCKTAILS.CATEGORIES.ALCOOLISE' | transloco"
-          [active]="selectedCategory === 'ALCOOLISE'"
-          (chipClick)="filterCategory('ALCOOLISE')"
-          testId="filter-alcoolise">
-        </app-filter-chip>
-        <app-filter-chip
-          [label]="'COCKTAILS.CATEGORIES.SANS_ALCOOL' | transloco"
-          [active]="selectedCategory === 'SANS_ALCOOL'"
-          (chipClick)="filterCategory('SANS_ALCOOL')"
-          testId="filter-sans-alcool">
-        </app-filter-chip>
+      <!-- Bannière Tournée Groupée / Période de grâce de 2 minutes -->
+      @if (tableCartService.graceRemainingSeconds() > 0) {
+        <div class="grace-period-banner" data-testid="grace-period-banner">
+          <div class="grace-banner-header">
+            <div class="grace-timer-indicator">
+              <ion-icon name="timer-outline" class="grace-timer-icon"></ion-icon>
+              <span class="grace-countdown">{{ tableCartService.graceRemainingSeconds() }}s</span>
+            </div>
+            <div class="grace-banner-text">
+              <strong class="grace-banner-title">{{ 'CLIENT.GRACE_BANNER_TITLE' | transloco: { seconds: tableCartService.graceRemainingSeconds() } }}</strong>
+              <p class="grace-banner-desc">{{ 'CLIENT.GRACE_BANNER_DESC' | transloco }}</p>
+            </div>
+          </div>
+          <div class="grace-banner-actions">
+            <button type="button" class="grace-action-btn finalize-btn" (click)="finalizeGracePeriod()" data-testid="btn-finalize-grace">
+              <ion-icon name="checkmark-outline"></ion-icon>
+              <span>{{ 'CLIENT.GRACE_BANNER_DISPATCH_NOW' | transloco }}</span>
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Search Bar -->
+      <div class="search-bar-wrapper">
+        <app-search-bar
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="applyCombinedFilters()"
+          [placeholder]="'COCKTAILS.SEARCH_PLACEHOLDER' | transloco"
+          [debounce]="0"
+          testId="client-cocktail-search-input">
+        </app-search-bar>
+      </div>
+
+      <!-- Figma Category Dot Filter Pills -->
+      <div class="category-pills-row" role="tablist">
+        @for (cat of categories; track cat) {
+          <button
+            type="button"
+            class="figma-filter-pill"
+            [class.active]="selectedCategory === cat"
+            [ngStyle]="getCategoryPillStyle(cat, selectedCategory === cat)"
+            (click)="filterCategory(cat)"
+            [attr.data-testid]="'category-' + (cat === 'ALL' ? 'all' : cat.toLowerCase().replace('_', '-')) + '-btn'">
+            <span class="dot-indicator" [style.background-color]="getCategoryDotColor(cat)"></span>
+            {{ ('COCKTAILS.CATEGORIES.' + cat) | transloco }}
+          </button>
+        }
+      </div>
+
+      <!-- Allergen Filter Pills Row -->
+      <div class="allergen-pills-row" data-testid="allergen-filter-section">
+        <span class="allergen-filter-label">
+          <ion-icon name="funnel-outline"></ion-icon>
+          {{ 'COCKTAILS.ALLERGENS.EXCLUDE_LABEL' | transloco }}
+        </span>
+        @for (allergen of availableAllergens; track allergen.key) {
+          <button
+            type="button"
+            class="figma-allergen-pill"
+            [class.excluded]="selectedAllergens.includes(allergen.key)"
+            (click)="toggleAllergenFilter(allergen.key)"
+            [attr.data-testid]="'allergen-filter-' + allergen.key.toLowerCase()">
+            <ion-icon [name]="allergen.icon"></ion-icon>
+            {{ 'COCKTAILS.ALLERGENS.SANS_PREFIX' | transloco }} {{ allergen.labelKey | transloco }}
+            @if (selectedAllergens.includes(allergen.key)) {
+              <span class="allergen-close-icon">✕</span>
+            }
+          </button>
+        }
+        @if (selectedAllergens.length > 0) {
+          <button
+            type="button"
+            class="figma-clear-allergens-btn"
+            (click)="clearAllergenFilters()"
+            data-testid="clear-allergen-filters-btn">
+            <ion-icon name="close-circle-outline"></ion-icon>
+            {{ 'COCKTAILS.ALLERGENS.CLEAR_ALL' | transloco }}
+          </button>
+        }
       </div>
 
       <!-- Interactive Cocktail Matcher Filter Bar -->
@@ -175,6 +572,7 @@
               [isVegan]="cocktail.isVegan ?? true"
               [isGlutenFree]="cocktail.isGlutenFree ?? true"
               [quantity]="getItemQuantity(cocktail.id)"
+              (cardClick)="openCocktailDetails(cocktail)"
               (addClick)="addToCart(cocktail)"
               (removeClick)="removeFromCart(cocktail.id)"
               [testId]="'product-card-' + cocktail.id">
@@ -215,6 +613,17 @@
         <button class="back-btn" (click)="backToMenu()" data-testid="btn-back-to-menu">{{ 'CLIENT.BACK_TO_MENU' | transloco }}</button>
         <h1 class="card-title">{{ 'CLIENT.SHARED_CART_TITLE' | transloco: { table: tableNumero } }}</h1>
         <p class="card-subtitle">{{ 'CLIENT.SHARED_CART_SUBTITLE' | transloco }}</p>
+      </div>
+
+      <div class="recap-invite-banner" data-testid="recap-invite-banner">
+        <div class="banner-text">
+          <span class="banner-icon">👥</span>
+          <span>{{ 'CLIENT.RECAP_INVITE_BANNER_TEXT' | transloco }}</span>
+        </div>
+        <button type="button" class="banner-invite-btn" (click)="openInviteModal()" data-testid="btn-recap-invite-friends">
+          <ion-icon name="share-social-outline"></ion-icon>
+          <span>{{ 'CLIENT.INVITE_FRIENDS_BTN' | transloco }}</span>
+        </button>
       </div>
 
       @if (tableCartService.guestGroups().length === 0) {
@@ -312,5 +721,87 @@
         </app-action-button>
       </div>
     </div>
+  }
+
+  <!-- Modale Addition & Suivi des Commandes de la table -->
+  @if (showTableOrdersModal()) {
+    <dialog
+      class="nickname-modal-backdrop table-orders-dialog"
+      open
+      (keydown.escape)="closeTableOrdersModal()"
+      (click)="onTableOrdersBackdropClick($event)"
+      data-testid="table-orders-modal">
+      <div class="step-card table-orders-card" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+        <div class="modal-close-bar">
+          <button type="button" class="modal-close-btn" (click)="closeTableOrdersModal()" aria-label="Fermer" data-testid="btn-close-table-orders">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="card-header-section">
+          <span class="brand-emoji">🧾</span>
+          <h2 class="card-title">{{ 'CLIENT.TABLE_ORDERS_MODAL_TITLE' | transloco: { table: tableNumero } }}</h2>
+        </div>
+
+        <!-- Récapitulatif cumulé de la table -->
+        <div class="cumulative-bill-card" data-testid="cumulative-bill-card">
+          <div class="bill-stat-row">
+            <span class="bill-stat-label">{{ 'CLIENT.TABLE_ORDERS_CUMULATIVE_TOTAL' | transloco }}</span>
+            <span class="bill-stat-value" data-testid="cumulative-total-value">
+              {{ (tableCartService.tableOrdersSummary()?.cumulativeTotal || 0) | appCurrency }}
+            </span>
+          </div>
+          <div class="bill-stat-row secondary">
+            <span class="bill-stat-label">{{ 'CLIENT.TABLE_ORDERS_TOTAL_DRINKS' | transloco }}</span>
+            <span class="bill-stat-value" data-testid="cumulative-drinks-count">
+              {{ tableCartService.tableOrdersSummary()?.totalDrinksOrdered || 0 }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Liste des tournées successives -->
+        <div class="table-rounds-list" data-testid="table-rounds-list">
+          @for (round of (tableCartService.tableOrdersSummary()?.orders || []); track round.commandeId) {
+            <div class="table-round-item" [attr.data-testid]="'table-round-' + round.commandeId">
+              <div class="round-header">
+                <div class="round-title-group">
+                  <span class="round-id">{{ 'CLIENT.TABLE_ORDERS_ROUND_LABEL' | transloco: { id: round.commandeId } }}</span>
+                  <span class="round-time">{{ round.dateCreation | date:'HH:mm' }}</span>
+                </div>
+                <div class="round-status-price">
+                  <span class="round-status-pill" [attr.data-status]="round.statut">
+                    {{ round.statut }}
+                  </span>
+                  <span class="round-total">{{ round.total | appCurrency }}</span>
+                </div>
+              </div>
+
+              <div class="round-drinks-list">
+                @for (drink of round.items; track drink.cocktailId) {
+                  <div class="round-drink-item">
+                    <span class="drink-qty">{{ drink.quantite }}×</span>
+                    <span class="drink-name">{{ drink.cocktailNom }}</span>
+                    @if (drink.varianteNom) {
+                      <span class="drink-variant">({{ drink.varianteNom }})</span>
+                    }
+                    <span class="drink-price">{{ (drink.quantite * drink.prixUnitaire) | appCurrency }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-box">
+              <p>{{ 'CLIENT.TABLE_ORDERS_EMPTY' | transloco }}</p>
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer-actions">
+          <button type="button" class="details-close-btn" (click)="closeTableOrdersModal()" data-testid="btn-close-table-orders-footer">
+            {{ 'CLIENT.TABLE_ORDERS_CLOSE_BTN' | transloco }}
+          </button>
+        </div>
+      </div>
+    </dialog>
   }
 </div>

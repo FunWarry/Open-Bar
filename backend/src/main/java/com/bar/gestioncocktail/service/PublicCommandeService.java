@@ -10,6 +10,7 @@ import com.bar.gestioncocktail.repository.CocktailVarianteRepository;
 import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
 import com.bar.gestioncocktail.event.OrderCreatedEvent;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +36,7 @@ public class PublicCommandeService {
     private final TableSessionService tableSessionService;
     private final HappyHourService happyHourService;
 
-    @org.springframework.beans.factory.annotation.Autowired
+    @Autowired
     public PublicCommandeService(
             CommandeRepository commandeRepository,
             TableRepository tableRepository,
@@ -55,29 +56,7 @@ public class PublicCommandeService {
         this.happyHourService = happyHourService;
     }
 
-    public PublicCommandeService(
-            CommandeRepository commandeRepository,
-            TableRepository tableRepository,
-            CocktailRepository cocktailRepository,
-            CocktailVarianteRepository varianteRepository,
-            ApplicationEventPublisher eventPublisher,
-            TimeService timeService,
-            TableSessionService tableSessionService) {
-        this(commandeRepository, tableRepository, cocktailRepository, varianteRepository,
-                eventPublisher, timeService, tableSessionService, null);
-    }
-
-    public PublicCommandeService(
-            CommandeRepository commandeRepository,
-            TableRepository tableRepository,
-            CocktailRepository cocktailRepository,
-            CocktailVarianteRepository varianteRepository,
-            ApplicationEventPublisher eventPublisher,
-            TimeService timeService) {
-        this(commandeRepository, tableRepository, cocktailRepository, varianteRepository,
-                eventPublisher, timeService, null, null);
-    }
-/**
+    /**
      * Validates and processes a patron self-order submitted via QR code scan.
      *
      * @param dto Public order request payload
@@ -140,7 +119,10 @@ public class PublicCommandeService {
         }
 
         if (happyHourService != null) {
-            prixUnitaire = happyHourService.resolveEffectivePrice(cocktail, variante, timeService.now());
+            BigDecimal effectivePrice = happyHourService.resolveEffectivePrice(cocktail, variante, timeService.now());
+            if (effectivePrice != null) {
+                prixUnitaire = effectivePrice;
+            }
         }
 
         verifierDisponibiliteIngredients(cocktail, itemDto.getQuantite());
@@ -199,5 +181,47 @@ public class PublicCommandeService {
         }
 
         return PublicCommandeResponseDTO.from(commande, tempsEstime);
+    }
+
+    /**
+     * Appends additional ordered cocktail items to an existing pending order during grouping grace windows.
+     *
+     * @param commandeId Existing order identifier
+     * @param itemsDto Additional items to append
+     * @return Updated order response DTO
+     */
+    public PublicCommandeResponseDTO ajouterArticlesACommande(Long commandeId, List<PublicCommandeItemRequestDTO> itemsDto) {
+        Commande commande = commandeRepository.findById(commandeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + commandeId));
+
+        if (commande.getStatut() != CommandeStatut.EN_ATTENTE) {
+            throw new com.bar.gestioncocktail.exception.BusinessException("Cannot append items: Order is already " + commande.getStatut());
+        }
+
+        List<CommandeItem> currentItems = commande.getItems();
+        if (currentItems == null) {
+            currentItems = new ArrayList<>();
+        }
+
+        BigDecimal additionalTotal = BigDecimal.ZERO;
+        for (PublicCommandeItemRequestDTO itemDto : itemsDto) {
+            CommandeItem item = construireCommandeItem(itemDto, commande);
+            currentItems.add(item);
+            BigDecimal sousTotal = item.getPrixUnitaire().multiply(BigDecimal.valueOf(item.getQuantite()));
+            additionalTotal = additionalTotal.add(sousTotal);
+        }
+
+        commande.setItems(currentItems);
+        commande.setTotal(commande.getTotal() != null ? commande.getTotal().add(additionalTotal) : additionalTotal);
+
+        Commande savedCommande = commandeRepository.save(commande);
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new com.bar.gestioncocktail.event.OrderUpdatedEvent(savedCommande));
+        }
+
+        long pendingCount = commandeRepository.countByStatut(CommandeStatut.EN_ATTENTE);
+        int tempsEstime = (int) (5 + (pendingCount * 3));
+
+        return PublicCommandeResponseDTO.from(savedCommande, tempsEstime);
     }
 }

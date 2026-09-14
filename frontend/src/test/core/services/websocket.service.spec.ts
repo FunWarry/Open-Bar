@@ -259,4 +259,20 @@ describe('WebSocketService', () => {
       'X-Session-Token': 'table-session-abc',
     });
   });
+
+  it('connectAsGuest updates connectHeaders and returns early if rxStomp is already active', () => {
+    (mockRxStomp as any).active = true;
+    (mockRxStomp as any).stompClient = { connectHeaders: {} };
+    mockRxStomp.activate.calls.reset();
+    mockRxStomp.configure.calls.reset();
+
+    service.connectAsGuest('guest-active-1', 'session-active-tok');
+
+    expect((mockRxStomp as any).stompClient.connectHeaders).toEqual({
+      'X-Guest-Session': 'guest-active-1',
+      'X-Session-Token': 'session-active-tok',
+    });
+    expect(mockRxStomp.configure).not.toHaveBeenCalled();
+    expect(mockRxStomp.activate).not.toHaveBeenCalled();
+  });
 });

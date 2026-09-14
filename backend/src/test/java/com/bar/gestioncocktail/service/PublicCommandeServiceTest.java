@@ -48,6 +48,12 @@ class PublicCommandeServiceTest {
     @Spy
     private TimeService timeService = new TimeService(null);
 
+    @Mock
+    private TableSessionService tableSessionService;
+
+    @Mock
+    private HappyHourService happyHourService;
+
     @InjectMocks
     private PublicCommandeService publicCommandeService;
 
@@ -78,6 +84,8 @@ class PublicCommandeServiceTest {
         cocktail.setNom("Mojito");
         cocktail.setPrix(BigDecimal.valueOf(8.50));
         cocktail.setIngredients(List.of(cocktailIngredient));
+
+        org.mockito.Mockito.lenient().when(tableSessionService.isSessionValidForOrder(any(), any())).thenReturn(true);
     }
 
     @Test
@@ -162,5 +170,51 @@ class PublicCommandeServiceTest {
 
         assertNotNull(response);
         verify(eventPublisher).publishEvent(any(OrderCreatedEvent.class));
+    }
+
+    @Test
+    void ajouterArticlesACommande_succes() {
+        Commande existing = new Commande();
+        existing.setId(50L);
+        existing.setStatut(CommandeStatut.EN_ATTENTE);
+        existing.setTable(table);
+        existing.setTotal(BigDecimal.valueOf(10.0));
+        existing.setItems(new java.util.ArrayList<>());
+
+        PublicCommandeItemRequestDTO newItemDTO = new PublicCommandeItemRequestDTO(100L, null, 2, "Extra mint");
+
+        when(commandeRepository.findById(50L)).thenReturn(Optional.of(existing));
+        when(cocktailRepository.findById(100L)).thenReturn(Optional.of(cocktail));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(commandeRepository.countByStatut(CommandeStatut.EN_ATTENTE)).thenReturn(1L);
+
+        PublicCommandeResponseDTO response = publicCommandeService.ajouterArticlesACommande(50L, List.of(newItemDTO));
+
+        assertNotNull(response);
+        assertEquals(0, BigDecimal.valueOf(27.0).compareTo(existing.getTotal())); // 10.0 + (2 * 8.50)
+        verify(eventPublisher).publishEvent(any(com.bar.gestioncocktail.event.OrderUpdatedEvent.class));
+        assertEquals(8, response.getTempsEstimeMinutes()); // 5 + (1 * 3)
+    }
+
+    @Test
+    void ajouterArticlesACommande_whenNotFound_throwsResourceNotFoundException() {
+        when(commandeRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () ->
+                publicCommandeService.ajouterArticlesACommande(999L, List.of())
+        );
+    }
+
+    @Test
+    void ajouterArticlesACommande_whenNotEnAttente_throwsBusinessException() {
+        Commande existing = new Commande();
+        existing.setId(50L);
+        existing.setStatut(CommandeStatut.PRET);
+
+        when(commandeRepository.findById(50L)).thenReturn(Optional.of(existing));
+
+        assertThrows(com.bar.gestioncocktail.exception.BusinessException.class, () ->
+                publicCommandeService.ajouterArticlesACommande(50L, List.of())
+        );
     }
 }

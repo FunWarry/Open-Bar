@@ -36,8 +36,31 @@ public record TableCartResponseDTO(
         String submittedBy,
 
         @Schema(description = "Last update timestamp")
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+
+        @Schema(description = "Timestamp when the 2-minute grouping grace period ends and order is dispatched")
+        LocalDateTime dispatchAt,
+
+        @Schema(description = "Remaining seconds in the 2-minute grouping grace period", example = "85")
+        Integer gracePeriodRemainingSeconds
 ) {
+    /**
+     * Backward-compatible 9-parameter constructor.
+     */
+    public TableCartResponseDTO(
+            Long tableId,
+            String status,
+            List<TableCartItemResponseDTO> items,
+            int totalItems,
+            BigDecimal totalPrice,
+            Long submittedOrderId,
+            String trackingToken,
+            String submittedBy,
+            LocalDateTime updatedAt
+    ) {
+        this(tableId, status, items, totalItems, totalPrice, submittedOrderId, trackingToken, submittedBy, updatedAt, null, null);
+    }
+
     /**
      * Creates an empty OPEN table cart.
      *
@@ -55,7 +78,9 @@ public record TableCartResponseDTO(
                 null,
                 null,
                 null,
-                now
+                now,
+                null,
+                null
         );
     }
 }

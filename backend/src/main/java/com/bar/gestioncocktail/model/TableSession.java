@@ -44,6 +44,14 @@ public class TableSession {
     @Column(name = "status", nullable = false, length = 20)
     private TableSessionStatus status = TableSessionStatus.ACTIVE;
 
+    @Size(max = 64, message = "Owner guest session ID cannot exceed 64 characters")
+    @Column(name = "owner_guest_session_id", length = 64)
+    private String ownerGuestSessionId;
+
+    @Size(max = 100, message = "Owner guest name cannot exceed 100 characters")
+    @Column(name = "owner_guest_name", length = 100)
+    private String ownerGuestName;
+
     @NotNull(message = "Opened timestamp is required")
     @Column(name = "opened_at", nullable = false)
     private LocalDateTime openedAt;

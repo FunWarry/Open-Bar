@@ -127,6 +127,58 @@ export interface TableCart {
    * Timestamp of latest cart mutation or submission.
    */
   updatedAt?: string | null;
+
+  /**
+   * Timestamp when the 2-minute grouping grace period ends and round is dispatched.
+   */
+  dispatchAt?: string | null;
+
+  /**
+   * Remaining seconds in the 2-minute grouping grace period.
+   */
+  gracePeriodRemainingSeconds?: number | null;
+}
+
+/**
+ * Ordered beverage line in a table order round.
+ */
+export interface TableOrderDrinkItem {
+  cocktailId: number;
+  cocktailNom: string;
+  varianteId?: number | null;
+  varianteNom?: string | null;
+  quantite: number;
+  prixUnitaire: number;
+  notes?: string | null;
+}
+
+/**
+ * Public table order round placed by guests.
+ */
+export interface TableOrderRound {
+  commandeId: number;
+  trackingToken: string;
+  tableId: number;
+  tableNumero: string | number;
+  total: number;
+  statut: string;
+  dateCreation: string;
+  tempsEstimeMinutes?: number;
+  notes?: string | null;
+  items: TableOrderDrinkItem[];
+}
+
+/**
+ * Summary of all orders placed on a table with cumulative bill tracking.
+ */
+export interface TableOrdersSummary {
+  tableId: number;
+  tableNumero: number;
+  orders: TableOrderRound[];
+  cumulativeTotal: number;
+  totalDrinksOrdered: number;
+  hasUnpaidOrders: boolean;
+  billRequested: boolean;
 }
 
 /**
