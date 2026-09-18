@@ -1,7 +1,7 @@
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { UserDialogComponent } from '../../../app/features/admin/users/user-dialog/user-dialog.component';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { User } from '../../../app/core/models/user.model';
 
 describe('UserDialogComponent', () => {

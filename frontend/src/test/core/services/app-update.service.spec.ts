@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
-import { ModalController, ToastController } from '@ionic/angular/standalone';
+import { ModalController, ToastController } from '@ionic/angular';
 import { TranslocoService } from '@jsverse/transloco';
 import {
   AppUpdateService,

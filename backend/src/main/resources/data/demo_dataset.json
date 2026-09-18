@@ -2629,5 +2629,66 @@
         "1e": 10
       }
     }
+  ],
+  "cash_drawer_sessions": [
+    {
+      "daysAgo": 1,
+      "openingFloat": 150.00,
+      "status": "CLOSED",
+      "countedFloatAtClose": 530.00,
+      "theoreticalCashAtClose": 530.00,
+      "cashDiscrepancy": 0.00,
+      "openedByUsername": "manager",
+      "closedByUsername": "manager",
+      "notes": "Clôture conforme sans écart",
+      "openingDenominations": {
+        "50e": 1,
+        "20e": 3,
+        "10e": 3,
+        "5e": 2
+      },
+      "movements": [
+        {
+          "type": "CASH_DROP",
+          "amount": 100.00,
+          "reason": "Écrémage coffre milieu de shift",
+          "receiptReference": "DROP-2026-001",
+          "minutesAgo": 1200,
+          "performedByUsername": "manager"
+        }
+      ]
+    },
+    {
+      "daysAgo": 0,
+      "openingFloat": 150.00,
+      "status": "OPEN",
+      "openedByUsername": "manager",
+      "notes": "Ouverture de caisse matinale",
+      "openingDenominations": {
+        "50e": 1,
+        "20e": 3,
+        "10e": 3,
+        "5e": 2
+      },
+      "movements": [
+        {
+          "type": "CASH_IN",
+          "amount": 50.00,
+          "reason": "Apport de monnaie rouleaux pièces",
+          "receiptReference": "DEP-001",
+          "minutesAgo": 120,
+          "performedByUsername": "manager"
+        },
+        {
+          "type": "CASH_DROP",
+          "amount": 50.00,
+          "reason": "Écrémage billets coffre",
+          "receiptReference": "ECR-001",
+          "minutesAgo": 60,
+          "performedByUsername": "manager"
+        }
+      ]
+    }
   ]
 }
+

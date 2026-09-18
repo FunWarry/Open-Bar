@@ -7,7 +7,7 @@ import {
   IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel,
   IonSpinner, IonProgressBar,
   ModalController, ToastController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   peopleOutline, listOutline, calculatorOutline,

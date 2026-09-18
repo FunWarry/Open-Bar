@@ -29,6 +29,7 @@ describe('ModuleGuard', () => {
     floorPlan: false,
     qrClientOrdering: true,
     stockTracking: true,
+    cashDrawer: true,
   };
 
   beforeEach(() => {

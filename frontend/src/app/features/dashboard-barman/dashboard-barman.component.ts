@@ -22,7 +22,7 @@ import {
   IonSegmentButton,
   ModalController,
   ToastController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   wineOutline,

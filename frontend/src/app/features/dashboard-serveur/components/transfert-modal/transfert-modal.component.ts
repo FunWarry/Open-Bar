@@ -4,7 +4,7 @@ import {
   ModalController,
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
   IonContent, IonList, IonItem, IonLabel, IonBadge, IonIcon, IonSpinner,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { closeOutline, swapHorizontalOutline, gridOutline } from 'ionicons/icons';
 import { TableBar } from '../../../../core/models/table.model';

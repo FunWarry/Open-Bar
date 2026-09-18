@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { restaurantOutline } from 'ionicons/icons';
 import { getTranslocoTestingModule } from '../../../transloco-testing.module';
@@ -48,9 +48,9 @@ describe('ConfirmModalComponent', () => {
   });
 
   it('should display provided title and message', () => {
-    component.title = 'Custom Title';
-    component.message = 'Custom message content';
-    component.tone = 'danger';
+    fixture.componentRef.setInput('title', 'Custom Title');
+    fixture.componentRef.setInput('message', 'Custom message content');
+    fixture.componentRef.setInput('tone', 'danger');
     fixture.detectChanges();
 
     const titleEl = fixture.nativeElement.querySelector('[data-testid="confirm-modal-title"]');
@@ -91,10 +91,10 @@ describe('ConfirmModalComponent', () => {
   });
 
   it('should render metaTags when provided', () => {
-    component.metaTags = [
+    fixture.componentRef.setInput('metaTags', [
       { text: 'Table 4', icon: 'restaurant-outline' },
       { text: 'Terrasse' }
-    ];
+    ]);
     fixture.detectChanges();
 
     const tags = fixture.nativeElement.querySelectorAll('.meta-tag');

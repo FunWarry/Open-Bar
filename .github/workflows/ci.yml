@@ -5,6 +5,7 @@ on:
     branches: [dev, master]
   pull_request:
     branches: [dev, master]
+  workflow_dispatch:
 
 # Annule les runs précédents sur la même branche/PR pour économiser les minutes CI
 concurrency:

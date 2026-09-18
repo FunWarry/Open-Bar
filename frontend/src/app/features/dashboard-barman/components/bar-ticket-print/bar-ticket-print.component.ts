@@ -12,7 +12,7 @@ import {
   IonSpinner,
   ModalController,
   ToastController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { printOutline, closeOutline, closeCircleOutline, hardwareChipOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';

@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Store } from '@ngrx/store';
 import { TranslocoModule } from '@jsverse/transloco';
 import * as AuthActions from '../../../core/store/auth.actions';
-import { IonItem, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+import { IonItem, IonSelect, IonSelectOption } from '@ionic/angular';
 
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import { PasswordInputComponent } from '../../../core/components/ui/password-input/password-input.component';

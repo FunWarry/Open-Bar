@@ -1,6 +1,6 @@
 import { TestBed, ComponentFixture, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
-import { ModalController, AlertController, ToastController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { ModalController, AlertController, ToastController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { CommandeDetailModalComponent } from '../../../app/features/commandes/commande-detail-modal/commande-detail-modal.component';
 import { CommandeService } from '../../../app/core/services/commande.service';
@@ -53,10 +53,10 @@ describe('CommandeDetailModalComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         CommandeDetailModalComponent,
-        IonicModule.forRoot(),
         getTranslocoTestingModule(),
       ],
       providers: [
+        provideIonicAngular(),
         { provide: CommandeService, useValue: commandeServiceSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: AlertController, useValue: alertCtrlSpy },

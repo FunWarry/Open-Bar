@@ -10,6 +10,7 @@ package com.bar.gestioncocktail.dto;
  * @param floorPlan           Optional new status for Floor Plan module
  * @param qrClientOrdering    Optional new status for QR Client Ordering module
  * @param stockTracking       Optional new status for Stock Tracking module
+ * @param cashDrawer          Optional new status for Cash Drawer module
  */
 public record EstablishmentModulesUpdateRequest(
         Boolean cuisineKds,
@@ -17,6 +18,21 @@ public record EstablishmentModulesUpdateRequest(
         Boolean employeeManagement,
         Boolean floorPlan,
         Boolean qrClientOrdering,
-        Boolean stockTracking
+        Boolean stockTracking,
+        Boolean cashDrawer
 ) {
+    /**
+     * Backward-compatible constructor for 6 core modules before cashDrawer was introduced.
+     */
+    public EstablishmentModulesUpdateRequest(
+            Boolean cuisineKds,
+            Boolean happyHour,
+            Boolean employeeManagement,
+            Boolean floorPlan,
+            Boolean qrClientOrdering,
+            Boolean stockTracking
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, null);
+    }
 }
+

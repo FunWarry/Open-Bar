@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { ReactiveFormsModule } from '@angular/forms';
 import { of } from 'rxjs';
 import { signal } from '@angular/core';
-import { ToastController, AlertController } from '@ionic/angular/standalone';
+import { ToastController, AlertController } from '@ionic/angular';
 import { HappyHourConfigComponent } from '../../../../app/features/admin/settings/components/happy-hour-config/happy-hour-config.component';
 import { HappyHourService } from '../../../../app/core/services/happy-hour.service';
 import { CocktailService } from '../../../../app/core/services/cocktail.service';

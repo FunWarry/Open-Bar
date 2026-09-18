@@ -1,7 +1,7 @@
 import { inject, Injectable, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
-import { ModalController, ToastController } from '@ionic/angular/standalone';
+import { ModalController, ToastController } from '@ionic/angular';
 import { TranslocoService } from '@jsverse/transloco';
 import { environment } from '../../../environments/environment';
 import { selectCurrentUser } from '../store/auth.selectors';

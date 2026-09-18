@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { NgClass } from '@angular/common';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   trendingUpOutline,

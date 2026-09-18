@@ -2,7 +2,7 @@ import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
 import { RouterTestingModule } from '@angular/router/testing';
-import { IonicModule } from '@ionic/angular';
+import { provideIonicAngular } from '@ionic/angular';
 import { TableCardComponent } from '../../../app/features/dashboard-serveur/components/table-card/table-card.component';
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 
@@ -50,8 +50,9 @@ describe('TableCardComponent', () => {
         TableCardComponent,
         CommonModule,
         RouterTestingModule,
-        IonicModule.forRoot()
-      , getTranslocoTestingModule()]
+        getTranslocoTestingModule()
+      ],
+      providers: [provideIonicAngular()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TableCardComponent);

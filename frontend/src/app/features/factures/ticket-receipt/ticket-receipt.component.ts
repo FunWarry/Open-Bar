@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonIcon, ToastController } from '@ionic/angular/standalone';
+import { IonIcon, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { printOutline, receiptOutline, hardwareChipOutline } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';

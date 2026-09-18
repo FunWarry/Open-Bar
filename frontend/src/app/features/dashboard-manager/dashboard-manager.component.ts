@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, timer } from 'rxjs';
 import { switchMap, takeUntil } from 'rxjs/operators';
@@ -9,7 +9,7 @@ import {
   IonGrid, IonRow, IonCol,
   IonCard, IonCardContent, IonCardHeader, IonCardTitle,
   IonButton, IonIcon, IonSpinner, ToastController, ModalController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { StatCardComponent } from '../../core/components/ui/stat-card/stat-card.component';
 import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
@@ -136,6 +136,7 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
     private readonly appSettingsService: AppSettingsService,
     private readonly stockWasteService: StockWasteService,
     private readonly modalController: ModalController,
+    private readonly cdr: ChangeDetectorRef,
   ) {
     addIcons({
       peopleOutline,
@@ -268,10 +269,12 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
           this.stats = stats;
           this.lastUpdated = new Date();
           this.loading = false;
+          this.cdr.markForCheck();
         },
         error: () => {
           this.loading = false;
           this.stats = null;
+          this.cdr.markForCheck();
         },
       });
   }
@@ -286,6 +289,7 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
         next: stats => {
           this.stats = stats;
           this.lastUpdated = new Date();
+          this.cdr.markForCheck();
         },
         error: () => {}
       });
@@ -298,8 +302,14 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
     this.dashboardService.getOngoingOrders()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: orders => { this.ongoingOrders = orders; },
-        error: () => { this.ongoingOrders = []; },
+        next: orders => {
+          this.ongoingOrders = orders;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.ongoingOrders = [];
+          this.cdr.markForCheck();
+        },
       });
   }
 
@@ -450,9 +460,11 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
         next: summary => {
           this.wasteSummary = summary;
           this.loadingWaste = false;
+          this.cdr.markForCheck();
         },
         error: () => {
           this.loadingWaste = false;
+          this.cdr.markForCheck();
         }
       });
 
@@ -461,6 +473,7 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
       .subscribe({
         next: movements => {
           this.recentWasteMovements = movements.slice(0, 8);
+          this.cdr.markForCheck();
         },
         error: () => {
           this.recentWasteMovements = [];

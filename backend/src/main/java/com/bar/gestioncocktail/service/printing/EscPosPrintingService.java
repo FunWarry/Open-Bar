@@ -10,6 +10,7 @@ import com.bar.gestioncocktail.service.AppSettingsService;
 import com.bar.gestioncocktail.service.EstablishmentConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +34,9 @@ public class EscPosPrintingService {
     private final CommandeRepository commandeRepository;
     private final FactureRepository factureRepository;
     private final com.bar.gestioncocktail.repository.DailyCashClosureRepository dailyCashClosureRepository;
+    private final com.bar.gestioncocktail.repository.CashDrawerSessionRepository cashDrawerSessionRepository;
+    private final com.bar.gestioncocktail.repository.CashMovementRepository cashMovementRepository;
+    private final org.springframework.beans.factory.ObjectProvider<com.bar.gestioncocktail.service.CashDrawerService> cashDrawerServiceProvider;
     private final EscPosFormatter escPosFormatter;
     private final EscPosSocketClient socketClient;
 
@@ -44,15 +48,22 @@ public class EscPosPrintingService {
      * @param commandeRepository Order repository
      * @param factureRepository Invoice repository
      * @param dailyCashClosureRepository Daily cash register closure repository
+     * @param cashDrawerSessionRepository Cash drawer session repository
+     * @param cashMovementRepository Cash movement repository
+     * @param cashDrawerServiceProvider Optional cash drawer service provider
      * @param escPosFormatter ESC/POS binary command stream formatter
      * @param socketClient TCP raw socket client
      */
+    @Autowired
     public EscPosPrintingService(
             AppSettingsService appSettingsService,
             EstablishmentConfigService establishmentConfigService,
             CommandeRepository commandeRepository,
             FactureRepository factureRepository,
             com.bar.gestioncocktail.repository.DailyCashClosureRepository dailyCashClosureRepository,
+            com.bar.gestioncocktail.repository.CashDrawerSessionRepository cashDrawerSessionRepository,
+            com.bar.gestioncocktail.repository.CashMovementRepository cashMovementRepository,
+            org.springframework.beans.factory.ObjectProvider<com.bar.gestioncocktail.service.CashDrawerService> cashDrawerServiceProvider,
             EscPosFormatter escPosFormatter,
             EscPosSocketClient socketClient) {
         this.appSettingsService = appSettingsService;
@@ -60,6 +71,9 @@ public class EscPosPrintingService {
         this.commandeRepository = commandeRepository;
         this.factureRepository = factureRepository;
         this.dailyCashClosureRepository = dailyCashClosureRepository;
+        this.cashDrawerSessionRepository = cashDrawerSessionRepository;
+        this.cashMovementRepository = cashMovementRepository;
+        this.cashDrawerServiceProvider = cashDrawerServiceProvider;
         this.escPosFormatter = escPosFormatter;
         this.socketClient = socketClient;
     }
@@ -249,6 +263,85 @@ public class EscPosPrintingService {
         }
 
         byte[] data = escPosFormatter.formatCashDrawerKick();
+        return sendSafely(cashDeskIp, port, data, PrinterRole.CASH_DESK);
+    }
+
+    /**
+     * Prints an official cash drawer opening audit slip on the cash desk printer.
+     *
+     * @param sessionId Cash drawer session ID
+     * @return Execution result report
+     */
+    public PrintResultDTO printTillOpeningSlip(Long sessionId) {
+        CashDrawerSession session = cashDrawerSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cash drawer session not found with ID: " + sessionId));
+
+        AppSettings settings = appSettingsService.getSettings();
+        int port = settings.getPrinterPort() != null ? settings.getPrinterPort() : 9100;
+        String cashDeskIp = settings.getCashDeskPrinterIp();
+
+        if (cashDeskIp == null || cashDeskIp.isBlank()) {
+            return new PrintResultDTO(false, PrinterRole.CASH_DESK.name(), null, port, CASH_DESK_IP_NOT_CONFIGURED, 0);
+        }
+
+        EstablishmentConfig legalConfig = establishmentConfigService.getConfig();
+        byte[] data = escPosFormatter.formatTillOpeningSlip(session, legalConfig, settings);
+        return sendSafely(cashDeskIp, port, data, PrinterRole.CASH_DESK);
+    }
+
+    /**
+     * Prints a cash movement audit slip on the cash desk printer.
+     *
+     * @param movementId Cash movement ID
+     * @return Execution result report
+     */
+    public PrintResultDTO printCashMovementSlip(Long movementId) {
+        CashMovement movement = cashMovementRepository.findById(movementId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cash movement not found with ID: " + movementId));
+
+        AppSettings settings = appSettingsService.getSettings();
+        int port = settings.getPrinterPort() != null ? settings.getPrinterPort() : 9100;
+        String cashDeskIp = settings.getCashDeskPrinterIp();
+
+        if (cashDeskIp == null || cashDeskIp.isBlank()) {
+            return new PrintResultDTO(false, PrinterRole.CASH_DESK.name(), null, port, CASH_DESK_IP_NOT_CONFIGURED, 0);
+        }
+
+        EstablishmentConfig legalConfig = establishmentConfigService.getConfig();
+        java.math.BigDecimal currentCash = null;
+        com.bar.gestioncocktail.service.CashDrawerService drawerService = cashDrawerServiceProvider.getIfAvailable();
+        if (drawerService != null) {
+            currentCash = drawerService.getStatus(movement.getMovementDate()).currentTheoreticalCash();
+        }
+
+        byte[] data = escPosFormatter.formatCashMovementSlip(movement, currentCash, legalConfig, settings);
+        return sendSafely(cashDeskIp, port, data, PrinterRole.CASH_DESK);
+    }
+
+    /**
+     * Prints an intermediate X-Report on the cash desk printer.
+     *
+     * @param reportDate Target date
+     * @param operatorUsername Requesting user
+     * @return Execution result report
+     */
+    public PrintResultDTO printXReportTicket(java.time.LocalDate reportDate, String operatorUsername) {
+        AppSettings settings = appSettingsService.getSettings();
+        int port = settings.getPrinterPort() != null ? settings.getPrinterPort() : 9100;
+        String cashDeskIp = settings.getCashDeskPrinterIp();
+
+        if (cashDeskIp == null || cashDeskIp.isBlank()) {
+            return new PrintResultDTO(false, PrinterRole.CASH_DESK.name(), null, port, CASH_DESK_IP_NOT_CONFIGURED, 0);
+        }
+
+        com.bar.gestioncocktail.service.CashDrawerService drawerService = cashDrawerServiceProvider.getIfAvailable();
+        if (drawerService == null) {
+            return new PrintResultDTO(false, PrinterRole.CASH_DESK.name(), null, port, "Cash drawer service unavailable", 0);
+        }
+
+        com.bar.gestioncocktail.dto.XReportDTO xReport = drawerService.getXReport(reportDate, operatorUsername);
+        EstablishmentConfig legalConfig = establishmentConfigService.getConfig();
+        byte[] data = escPosFormatter.formatXReportTicket(xReport, legalConfig, settings);
         return sendSafely(cashDeskIp, port, data, PrinterRole.CASH_DESK);
     }
 

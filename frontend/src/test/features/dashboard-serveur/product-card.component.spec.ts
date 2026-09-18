@@ -1,7 +1,7 @@
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProductCardComponent, ProductItem } from '../../../app/features/dashboard-serveur/components/product-card/product-card.component';
-import { provideIonicAngular } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
 
 const mockProduct: ProductItem = {
   id: 1,

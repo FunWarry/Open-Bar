@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EmployeeShiftModalComponent } from '../../../app/features/employees/employee-shift-modal/employee-shift-modal.component';
 import { ShiftService } from '../../../app/core/services/shift.service';
-import { ModalController, AlertController, ToastController } from '@ionic/angular/standalone';
+import { ModalController, AlertController, ToastController } from '@ionic/angular';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { provideMockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';

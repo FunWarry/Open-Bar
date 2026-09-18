@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { of, EMPTY, throwError } from 'rxjs';
 import { ClientSuiviComponent } from '../../../app/features/client/client-suivi/client-suivi.component';
 import { CommandeService } from '../../../app/core/services/commande.service';

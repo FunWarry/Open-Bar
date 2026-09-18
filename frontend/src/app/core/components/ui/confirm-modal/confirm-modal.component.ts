@@ -1,6 +1,6 @@
 import { Component, Input, inject } from '@angular/core';
 
-import { IonIcon, ModalController } from '@ionic/angular/standalone';
+import { IonIcon, ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   alertOutline,

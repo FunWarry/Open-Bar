@@ -20,8 +20,8 @@ describe('SearchBarComponent', () => {
   });
 
   it('should render input with correct placeholder and testId', () => {
-    component.placeholder = 'Search table...';
-    component.testId = 'custom-search';
+    fixture.componentRef.setInput('placeholder', 'Search table...');
+    fixture.componentRef.setInput('testId', 'custom-search');
     fixture.detectChanges();
 
     const input: HTMLInputElement = fixture.nativeElement.querySelector('input');
@@ -60,7 +60,7 @@ describe('SearchBarComponent', () => {
   }));
 
   it('should clear value and emit cleared event when clear button is clicked', () => {
-    component.value = 'Cosmopolitan';
+    fixture.componentRef.setInput('value', 'Cosmopolitan');
     fixture.detectChanges();
 
     spyOn(component.valueChange, 'emit');
@@ -88,8 +88,8 @@ describe('SearchBarComponent', () => {
   });
 
   it('should respect disabled state', () => {
-    component.value = 'Existing Query';
-    component.setDisabledState(true);
+    fixture.componentRef.setInput('value', 'Existing Query');
+    fixture.componentRef.setInput('disabled', true);
     fixture.detectChanges();
 
     const input: HTMLInputElement = fixture.nativeElement.querySelector('input');

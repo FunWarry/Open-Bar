@@ -1,8 +1,8 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, ModalController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { closeOutline, optionsOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { ProductItem, ProductVariant } from '../product-card/product-card.component';
@@ -16,7 +16,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 @Component({
   selector: 'app-variant-selection-modal',
   standalone: true,
-  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, TranslocoPipe, AppCurrencyPipe],
+  imports: [IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, TranslocoPipe, AppCurrencyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ion-header class="ion-no-border">

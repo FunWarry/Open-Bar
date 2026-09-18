@@ -1,8 +1,8 @@
 import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
-import { ToastController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { ToastController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { CommandeDetailComponent } from '../../../app/features/commandes/commande-detail/commande-detail.component';
 import { CommandeService } from '../../../app/core/services/commande.service';
@@ -38,8 +38,9 @@ describe('CommandeDetailComponent', () => {
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      imports: [CommandeDetailComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
+      imports: [CommandeDetailComponent, RouterTestingModule, getTranslocoTestingModule()],
       providers: [
+        provideIonicAngular(),
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '42' } } } },
         { provide: Router, useValue: routerSpy },
         { provide: CommandeService, useValue: serviceSpy },

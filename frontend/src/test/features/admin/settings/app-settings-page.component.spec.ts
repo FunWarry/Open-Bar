@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
-import { ToastController, AlertController, ModalController } from '@ionic/angular/standalone';
+import { ToastController, AlertController, ModalController } from '@ionic/angular';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { AppSettingsPageComponent } from '../../../../app/features/admin/settings/app-settings-page.component';
 import { LegalComponent } from '../../../../app/features/legal/legal.component';
@@ -161,9 +161,11 @@ describe('AppSettingsPageComponent', () => {
         floorPlan: true,
         qrClientOrdering: true,
         stockTracking: true,
+        cashDrawer: true,
       }),
       happyHourEnabled: () => true,
       qrClientOrderingEnabled: () => true,
+      cashDrawerEnabled: () => true,
     });
     featureFlagServiceSpy.loadModules.and.returnValue(of({
       cuisineKds: true,
@@ -172,6 +174,7 @@ describe('AppSettingsPageComponent', () => {
       floorPlan: true,
       qrClientOrdering: true,
       stockTracking: true,
+      cashDrawer: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
 
@@ -774,6 +777,7 @@ describe('AppSettingsPageComponent', () => {
         floorPlan: true,
         qrClientOrdering: true,
         stockTracking: true,
+        cashDrawer: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -791,6 +795,7 @@ describe('AppSettingsPageComponent', () => {
         floorPlan: false,
         qrClientOrdering: true,
         stockTracking: true,
+        cashDrawer: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -801,6 +806,7 @@ describe('AppSettingsPageComponent', () => {
         floorPlan: false,
         qrClientOrdering: false,
         stockTracking: false,
+        cashDrawer: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });
@@ -843,6 +849,7 @@ describe('AppSettingsPageComponent', () => {
         floorPlan: false,
         qrClientOrdering: false,
         stockTracking: false,
+        cashDrawer: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();

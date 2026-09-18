@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { of, throwError, Subject } from 'rxjs';
 import { signal, computed } from '@angular/core';
 import { ClientCommandeComponent } from '../../../app/features/client/client-commande/client-commande.component';
@@ -692,6 +692,7 @@ describe('ClientCommandeComponent', () => {
 
   describe('Invite Friends via Link & QR Code', () => {
     beforeEach(() => {
+      tableCartServiceMock.cart.set(mockCart);
       component.tableNumero = 4;
       component.sessionToken = 'test-token-xyz';
       component.step = 'menu';
@@ -793,6 +794,7 @@ describe('ClientCommandeComponent', () => {
 
     it('should render invite banner in recap step', () => {
       component.step = 'recap';
+      fixture.componentRef.changeDetectorRef.markForCheck();
       fixture.detectChanges();
 
       const banner = fixture.nativeElement.querySelector('[data-testid="recap-invite-banner"]');

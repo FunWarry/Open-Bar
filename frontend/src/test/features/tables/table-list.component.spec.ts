@@ -2,8 +2,8 @@ import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
-import { ToastController, ModalController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { ToastController, ModalController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { of, throwError } from 'rxjs';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -73,12 +73,12 @@ describe('TableListComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         TableListComponent,
-        IonicModule.forRoot(),
         RouterTestingModule,
         HttpClientTestingModule,
         getTranslocoTestingModule()
       ],
       providers: [
+        provideIonicAngular(),
         { provide: TableService, useValue: serviceSpy },
         { provide: ZoneService, useValue: zoneServiceSpy },
         { provide: EtageService, useValue: etageServiceSpy },

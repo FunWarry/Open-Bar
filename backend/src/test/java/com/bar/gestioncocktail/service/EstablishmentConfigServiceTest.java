@@ -131,13 +131,14 @@ class EstablishmentConfigServiceTest {
         when(repository.save(any(EstablishmentConfig.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         var updateReq = new com.bar.gestioncocktail.dto.EstablishmentModulesUpdateRequest(
-            false, true, false, true, false, true
+            false, true, false, true, false, true, true
         );
 
         var updated = service.updateModules(updateReq);
 
         assertThat(updated.cuisineKds()).isFalse();
         assertThat(updated.happyHour()).isTrue();
+        assertThat(updated.cashDrawer()).isTrue();
         verify(notificationService).notifierModulesMisAJour(any());
     }
 

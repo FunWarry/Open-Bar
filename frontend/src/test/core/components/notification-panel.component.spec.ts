@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NotificationPanelComponent } from '../../../app/core/components/notification-panel/notification-panel.component';
 import { NotificationService, AppNotification } from '../../../app/core/services/notification.service';
-import { PopoverController } from '@ionic/angular/standalone';
+import { PopoverController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 
 import { getTranslocoTestingModule } from '../../transloco-testing.module';

@@ -8,6 +8,7 @@ export enum EstablishmentModule {
   FLOOR_PLAN = 'FLOOR_PLAN',
   QR_CLIENT_ORDERING = 'QR_CLIENT_ORDERING',
   STOCK_TRACKING = 'STOCK_TRACKING',
+  CASH_DRAWER = 'CASH_DRAWER',
 }
 
 /**
@@ -20,6 +21,7 @@ export interface EstablishmentModules {
   floorPlan: boolean;
   qrClientOrdering: boolean;
   stockTracking: boolean;
+  cashDrawer: boolean;
 }
 
 /**
@@ -38,6 +40,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     floorPlan: true,
     qrClientOrdering: true,
     stockTracking: true,
+    cashDrawer: true,
   },
   RESTAURANT: {
     cuisineKds: true,
@@ -46,6 +49,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     floorPlan: true,
     qrClientOrdering: true,
     stockTracking: true,
+    cashDrawer: true,
   },
   FOOD_TRUCK: {
     cuisineKds: true,
@@ -54,6 +58,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     floorPlan: false,
     qrClientOrdering: true,
     stockTracking: true,
+    cashDrawer: true,
   },
   NIGHTCLUB: {
     cuisineKds: false,
@@ -62,5 +67,6 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     floorPlan: false,
     qrClientOrdering: false,
     stockTracking: true,
+    cashDrawer: true,
   },
 };

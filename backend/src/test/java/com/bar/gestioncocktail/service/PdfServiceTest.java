@@ -1,9 +1,11 @@
 package com.bar.gestioncocktail.service;
 
-import com.bar.gestioncocktail.model.EstablishmentConfig;
-import com.bar.gestioncocktail.model.Facture;
-import com.bar.gestioncocktail.model.FactureItem;
-import com.bar.gestioncocktail.model.TableEntity;
+import com.bar.gestioncocktail.dto.CashMovementDTO;
+import com.bar.gestioncocktail.dto.PaymentModeSummaryDTO;
+import com.bar.gestioncocktail.dto.UserResponseDTO;
+import com.bar.gestioncocktail.dto.VatSummaryDTO;
+import com.bar.gestioncocktail.dto.XReportDTO;
+import com.bar.gestioncocktail.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,10 +14,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -582,4 +586,93 @@ class PdfServiceTest {
         assertThatThrownBy(() -> pdfService.generateTableQrCodesPdf(null, "STAND", false))
             .isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void generateXReportPdf_withCompleteReport_generatesValidPdf() {
+        CashMovementDTO m1 = new CashMovementDTO(
+                1L, 1L, LocalDate.of(2026, Month.SEPTEMBER, 18),
+                CashMovementType.CASH_IN, new BigDecimal("50.00"), "Fond appoint",
+                "REF-001", new UserResponseDTO(1L, "barman", "barman@test.com", "Bar", "Man", Set.of(UserRole.SERVEUR), LocalDateTime.now(), LocalDateTime.now()),
+                LocalDateTime.of(2026, Month.SEPTEMBER, 18, 10, 30, 0),
+                LocalDateTime.now(), LocalDateTime.now()
+        );
+        CashMovementDTO m2 = new CashMovementDTO(
+                2L, 1L, LocalDate.of(2026, Month.SEPTEMBER, 18),
+                CashMovementType.CASH_DROP, new BigDecimal("100.00"), "Coffre",
+                null, null,
+                LocalDateTime.of(2026, Month.SEPTEMBER, 18, 14, 0, 0),
+                LocalDateTime.now(), LocalDateTime.now()
+        );
+        CashMovementDTO m3 = new CashMovementDTO(
+                3L, 1L, LocalDate.of(2026, Month.SEPTEMBER, 18),
+                CashMovementType.PAID_OUT, new BigDecimal("20.00"), "Achat menthe",
+                "TICKET-EPICERIE", null,
+                LocalDateTime.of(2026, Month.SEPTEMBER, 18, 15, 15, 0),
+                LocalDateTime.now(), LocalDateTime.now()
+        );
+
+        PaymentModeSummaryDTO pm1 = new PaymentModeSummaryDTO("CARTE", 10, new BigDecimal("350.00"));
+        PaymentModeSummaryDTO pm2 = new PaymentModeSummaryDTO("ESPECES", 5, new BigDecimal("150.00"));
+
+        VatSummaryDTO vat1 = new VatSummaryDTO(VatRate.TWENTY, "20.0%", new BigDecimal("416.67"), new BigDecimal("83.33"), new BigDecimal("500.00"));
+
+        XReportDTO report = new XReportDTO(
+                LocalDate.of(2026, Month.SEPTEMBER, 18),
+                LocalDateTime.of(2026, Month.SEPTEMBER, 18, 16, 45, 0),
+                "manager",
+                null,
+                new BigDecimal("416.67"),
+                new BigDecimal("500.00"),
+                List.of(pm1, pm2),
+                List.of(vat1),
+                new BigDecimal("150.00"),
+                new BigDecimal("150.00"),
+                new BigDecimal("50.00"),
+                new BigDecimal("100.00"),
+                new BigDecimal("20.00"),
+                new BigDecimal("230.00"),
+                List.of(m1, m2, m3)
+        );
+
+        byte[] pdf = pdfService.generateXReportPdf(report);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generateXReportPdf_withNullAndEmptyBreakdowns_generatesValidPdf() {
+        XReportDTO report = new XReportDTO(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                List.of(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                List.of()
+        );
+
+        byte[] pdf = pdfService.generateXReportPdf(report);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generateXReportPdf_nullReport_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> pdfService.generateXReportPdf(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("cannot be null");
+    }
 }
+

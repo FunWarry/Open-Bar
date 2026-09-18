@@ -9,7 +9,7 @@ import {
   IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
   IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
   IonSpinner, IonToggle, IonChip, ToastController, ModalController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   eye, banOutline, gridOutline, listOutline, checkmarkDoneOutline,

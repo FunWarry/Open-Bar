@@ -11,7 +11,7 @@ import {
   IonSegment, IonSegmentButton, IonLabel,
   IonButtons, IonButton, IonIcon,
   ToastController, ModalController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { DashboardServeurComponent } from '../../../app/features/dashboard-serveur/dashboard-serveur.component';
 import { DashboardServeurService } from '../../../app/features/dashboard-serveur/services/dashboard-serveur.service';
 import { NotificationService, AppNotification } from '../../../app/core/services/notification.service';
@@ -24,7 +24,7 @@ import { PlanSalleService } from '../../../app/features/plan-salle/services/plan
 import { HappyHourService } from '../../../app/core/services/happy-hour.service';
 import { provideMockStore } from '@ngrx/store/testing';
 
-import { provideIonicAngular } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
 import { Commande } from '../../../app/core/models/commande.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 

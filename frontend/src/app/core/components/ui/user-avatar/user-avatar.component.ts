@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { IonAvatar, IonIcon } from '@ionic/angular/standalone';
+import { IonAvatar, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { shieldCheckmark, briefcase, wine, restaurant, person } from 'ionicons/icons';
 import { UserRoleType } from '../role-badge/role-badge.component';

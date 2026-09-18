@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 
-import { IonCard, IonCardContent } from '@ionic/angular/standalone';
+import { IonCard, IonCardContent } from '@ionic/angular';
 
 /**
  * Metric display card presenting KPI statistics and trends.

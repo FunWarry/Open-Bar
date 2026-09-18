@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -19,7 +19,7 @@ import {
   IonButtons,
   ToastController,
   AlertController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   arrowBackOutline,
@@ -76,6 +76,7 @@ export class ShiftPresetsConfigComponent implements OnInit {
   private readonly toastCtrl = inject(ToastController);
   private readonly alertCtrl = inject(AlertController);
   private readonly translocoService = inject(TranslocoService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   loading = true;
   savingMap: { [key: string]: boolean } = {};
@@ -115,9 +116,11 @@ export class ShiftPresetsConfigComponent implements OnInit {
       next: (data) => {
         this.presets = data;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }

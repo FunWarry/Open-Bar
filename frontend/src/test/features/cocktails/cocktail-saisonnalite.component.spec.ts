@@ -2,7 +2,7 @@ import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { IonicModule } from '@ionic/angular';
+import { provideIonicAngular } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 
 import { CocktailSaisonnaliteComponent } from '../../../app/features/cocktails/cocktail-saisonnalite/cocktail-saisonnalite.component';
@@ -29,10 +29,11 @@ describe('CocktailSaisonnaliteComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         CocktailSaisonnaliteComponent,
-        IonicModule.forRoot(),
-        RouterTestingModule
-      , getTranslocoTestingModule()],
+        RouterTestingModule,
+        getTranslocoTestingModule()
+      ],
       providers: [
+        provideIonicAngular(),
         { provide: CocktailService, useValue: cocktailServiceSpy }
       ]
     }).compileComponents();

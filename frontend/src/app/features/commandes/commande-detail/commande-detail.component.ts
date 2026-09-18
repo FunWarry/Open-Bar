@@ -5,7 +5,7 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import {
   ToastController, IonContent, IonBadge, IonButton,
   IonIcon, IonSpinner,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   arrowBack, banOutline, timeOutline, personOutline,

@@ -8,7 +8,7 @@ import {
   IonContent, IonSpinner, IonBadge, IonSegment, IonSegmentButton,
   IonItem, IonLabel, IonInput, IonCheckbox, IonProgressBar,
   ModalController, ToastController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   closeOutline, cardOutline, cashOutline, walletOutline, printOutline,

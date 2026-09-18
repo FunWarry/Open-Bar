@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 
-import { IonBadge } from '@ionic/angular/standalone';
+import { IonBadge } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { KanbanColumn, OngoingOrder } from '../../models/ongoing-order.model';
 import { MiniCommandeCardComponent } from '../mini-commande-card/mini-commande-card.component';

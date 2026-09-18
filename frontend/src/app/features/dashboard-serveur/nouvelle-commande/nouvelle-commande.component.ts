@@ -12,7 +12,7 @@ import {
   IonFooter, IonToolbar as IonFooterToolbar,
   IonSelect, IonSelectOption,
   ToastController, ModalController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import {

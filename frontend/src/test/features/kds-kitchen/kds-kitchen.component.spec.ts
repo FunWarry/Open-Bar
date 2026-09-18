@@ -1,5 +1,5 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { of, Subject, throwError } from 'rxjs';
 import { KdsKitchenComponent } from '../../../app/features/kds-kitchen/kds-kitchen.component';
 import { DashboardBarmanService } from '../../../app/features/dashboard-barman/services/dashboard-barman.service';

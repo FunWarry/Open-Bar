@@ -2,8 +2,8 @@ import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
-import { ToastController, ModalController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { ToastController, ModalController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { of, throwError, Subject } from 'rxjs';
 import { IngredientListComponent } from '../../../app/features/ingredients/ingredient-list/ingredient-list.component';
@@ -70,8 +70,9 @@ describe('IngredientListComponent', () => {
     modalCtrlSpy.create.and.returnValue(Promise.resolve(modalSpy as any));
 
     await TestBed.configureTestingModule({
-      imports: [IngredientListComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
+      imports: [IngredientListComponent, RouterTestingModule, getTranslocoTestingModule()],
       providers: [
+        provideIonicAngular(),
         { provide: Store, useValue: storeSpy },
         { provide: IngredientService, useValue: serviceSpy },
         { provide: WebSocketService, useValue: wsSpy },

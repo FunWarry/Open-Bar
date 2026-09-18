@@ -13,7 +13,7 @@ import {
   IonSegment,
   IonSegmentButton,
   IonLabel
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   closeOutline,

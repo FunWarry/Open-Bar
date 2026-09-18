@@ -1,7 +1,7 @@
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { DeleteUserDialogComponent } from '../../../app/features/admin/users/delete-user-dialog/delete-user-dialog.component';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 
 describe('DeleteUserDialogComponent', () => {
   let component: DeleteUserDialogComponent;

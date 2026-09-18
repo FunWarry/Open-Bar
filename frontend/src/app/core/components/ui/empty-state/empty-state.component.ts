@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { IonIcon, IonButton } from '@ionic/angular/standalone';
+import { IonIcon, IonButton } from '@ionic/angular';
 
 /**
  * Reusable empty state component displaying an illustration, message, and call to action.

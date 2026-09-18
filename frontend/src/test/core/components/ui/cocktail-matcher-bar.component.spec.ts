@@ -117,7 +117,7 @@ describe('CocktailMatcherBarComponent', () => {
 
   it('should support toggling showMocktail input visibility', () => {
     expect(component.showMocktail).toBeTrue();
-    component.showMocktail = false;
+    fixture.componentRef.setInput('showMocktail', false);
     fixture.detectChanges();
     const mocktailBtn = fixture.nativeElement.querySelector('[data-testid="matcher-dietary-mocktail"]');
     expect(mocktailBtn).toBeNull();

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { of } from 'rxjs';
 import { CommandeCardComponent } from '../../../app/features/dashboard-barman/components/commande-card/commande-card.component';
 import { CommandeView } from '../../../app/features/dashboard-barman/models/commande-view.model';
@@ -227,7 +227,7 @@ describe('CommandeCardComponent', () => {
   }));
 
   it('renders priority chip when commande is prioritaire', () => {
-    component.commande = makeCommande({ prioritaire: true });
+    fixture.componentRef.setInput('commande', makeCommande({ prioritaire: true }));
     fixture.detectChanges();
 
     const chipEl = fixture.nativeElement.querySelector('[data-testid="priority-chip"]');
@@ -236,7 +236,7 @@ describe('CommandeCardComponent', () => {
   });
 
   it('renders server name and print button in card header without collision', () => {
-    component.commande = makeCommande({ serveurNom: 'Benoit Chef Barman', tableNom: 'Terrasse 14' });
+    fixture.componentRef.setInput('commande', makeCommande({ serveurNom: 'Benoit Chef Barman', tableNom: 'Terrasse 14' }));
     fixture.detectChanges();
 
     const serverEl = fixture.nativeElement.querySelector('.server-name');

@@ -10,7 +10,7 @@ import Konva from 'konva';
 import {
   IonContent, IonHeader, IonToolbar, IonIcon,
   IonSpinner, ToastController, ModalController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   pencilOutline, saveOutline, closeOutline, refreshOutline, alertCircleOutline,

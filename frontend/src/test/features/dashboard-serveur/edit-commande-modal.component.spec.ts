@@ -1,6 +1,6 @@
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { ModalController, ToastController, AlertController } from '@ionic/angular/standalone';
+import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { EditCommandeModalComponent } from '../../../app/features/dashboard-serveur/components/edit-commande-modal/edit-commande-modal.component';
 import { DashboardServeurService } from '../../../app/features/dashboard-serveur/services/dashboard-serveur.service';

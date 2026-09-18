@@ -1,6 +1,6 @@
 import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonCard, IonCardContent, IonIcon } from '@ionic/angular/standalone';
+import { IonCard, IonCardContent, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { timeOutline, timerOutline, personOutline, documentTextOutline } from 'ionicons/icons';
 import { OngoingOrder } from '../../models/ongoing-order.model';

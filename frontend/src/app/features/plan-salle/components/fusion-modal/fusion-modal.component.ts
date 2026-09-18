@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 
-import { ModalController, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon } from '@ionic/angular/standalone';
+import { ModalController, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { gitMergeOutline, closeOutline } from 'ionicons/icons';

@@ -1,7 +1,7 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { ToastController, ModalController } from '@ionic/angular/standalone';
-import { IonicModule } from '@ionic/angular';
+import { ToastController, ModalController } from '@ionic/angular';
+import { provideIonicAngular } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { StockWasteModalComponent } from '../../../app/features/ingredients/stock-waste-modal/stock-waste-modal.component';
 import { StockWasteService } from '../../../app/core/services/stock-waste.service';
@@ -66,9 +66,9 @@ describe('StockWasteModalComponent', () => {
         StockWasteModalComponent,
         FormsModule,
         getTranslocoTestingModule(),
-        IonicModule.forRoot()
-      ],
+        ],
       providers: [
+        provideIonicAngular(),
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: StockWasteService, useValue: stockWasteServiceSpy },

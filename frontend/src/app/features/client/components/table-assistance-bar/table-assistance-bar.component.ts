@@ -1,7 +1,7 @@
-import { Component, Input, OnDestroy, inject } from '@angular/core';
+import { Component, Input, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { TableAppelService } from '../../../../core/services/table-appel.service';
 import { TableAppelType } from '../../../../core/models/table-appel.model';
 
@@ -27,6 +27,7 @@ export class TableAssistanceBarComponent implements OnDestroy {
   private readonly tableAppelService = inject(TableAppelService);
   private readonly toastCtrl = inject(ToastController);
   private readonly translocoService = inject(TranslocoService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   ngOnDestroy(): void {
     if (this.cooldownTimer) {
@@ -50,6 +51,7 @@ export class TableAssistanceBarComponent implements OnDestroy {
         this.isCallingServer = false;
         this.activeCallType = type;
         this.startCooldown(60);
+        this.cdr.markForCheck();
         this.afficherToast(
           type === 'ADDITION'
             ? 'CLIENT.ALERTS.BILL_SENT_SUCCESS'
@@ -59,6 +61,7 @@ export class TableAssistanceBarComponent implements OnDestroy {
       },
       error: (err: { status?: number }) => {
         this.isCallingServer = false;
+        this.cdr.markForCheck();
         const msgKey = err?.status === 400
           ? 'CLIENT.ALERTS.COOLDOWN_ACTIVE'
           : 'CLIENT.ALERTS.SEND_ERROR';
@@ -69,6 +72,7 @@ export class TableAssistanceBarComponent implements OnDestroy {
 
   private startCooldown(seconds: number): void {
     this.cooldownSeconds = seconds;
+    this.cdr.markForCheck();
     if (this.cooldownTimer) {
       clearInterval(this.cooldownTimer);
     }
@@ -79,6 +83,7 @@ export class TableAssistanceBarComponent implements OnDestroy {
         this.cooldownTimer = null;
         this.activeCallType = null;
       }
+      this.cdr.markForCheck();
     }, 1000);
   }
 

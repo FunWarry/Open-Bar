@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { IonBadge } from '@ionic/angular/standalone';
+import { IonBadge } from '@ionic/angular';
 /**
  * Supported order status codes for status badge display.
  */

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, forkJoin } from 'rxjs';
@@ -8,7 +8,7 @@ import {
   IonContent, IonIcon, IonButton,
   IonRefresher, IonRefresherContent, IonSpinner,
   ToastController, ModalController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   add, eye, create, people, checkmarkCircle, closeCircle, layersOutline,
@@ -98,7 +98,8 @@ export class TableListComponent implements OnInit, OnDestroy {
     private readonly etageService: EtageService,
     private readonly toastCtrl: ToastController,
     private readonly modalCtrl: ModalController,
-    private readonly transloco: TranslocoService
+    private readonly transloco: TranslocoService,
+    private readonly cdr: ChangeDetectorRef
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
     addIcons({
@@ -134,6 +135,7 @@ export class TableListComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         finalize(() => {
           this.isLoading = false;
+          this.cdr.markForCheck();
           if (refreshEvent) safeCompleteRefresher(refreshEvent);
         })
       )
@@ -142,6 +144,7 @@ export class TableListComponent implements OnInit, OnDestroy {
           this.tables = tables;
           this.zones = zones;
           this.etages = etages;
+          this.cdr.markForCheck();
         },
         error: async () => {
           const toast = await this.toastCtrl.create({

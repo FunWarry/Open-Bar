@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { AppUpdateModalComponent } from '../../../app/core/components/app-update-modal/app-update-modal.component';
 import { AppUpdateService } from '../../../app/core/services/app-update.service';

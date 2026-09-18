@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { CanDeactivate } from '@angular/router';
 import { Observable, firstValueFrom, isObservable } from 'rxjs';
-import { ModalController, AlertController } from '@ionic/angular/standalone';
+import { ModalController, AlertController } from '@ionic/angular';
 import { TranslocoService } from '@jsverse/transloco';
 import { ConfirmModalComponent, ConfirmModalResult } from '../components/ui/confirm-modal/confirm-modal.component';
 

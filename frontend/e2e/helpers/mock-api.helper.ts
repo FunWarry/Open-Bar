@@ -70,6 +70,62 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
+  // Establishment modules feature flags
+  await page.route('**/api/establishment/modules*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        cuisineKds: true,
+        happyHour: true,
+        employeeManagement: true,
+        floorPlan: true,
+        qrClientOrdering: true,
+        stockTracking: true,
+        cashDrawer: true,
+      }),
+    });
+  });
+
+  // Daily cash closures
+  await page.route('**/api/factures/clotures*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(null),
+    });
+  });
+
+  // Daily recap
+  await page.route('**/api/factures/recap**', async (route) => {
+    if (route.request().url().includes('/cloturer')) {
+      return route.fallback();
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        date: '2026-09-18',
+        totalRevenueHT: 150.0,
+        totalRevenueTTC: 180.0,
+        totalVAT: 30.0,
+        totalTips: 5.0,
+        ordersCount: 10,
+        invoicesCount: 8,
+        totalDiscounts: 0,
+        netRevenueHT: 150.0,
+        paymentMethods: [
+          { modePaiement: 'ESPECES', totalTtc: 80.0, count: 3 },
+          { modePaiement: 'CARTE', totalTtc: 100.0, count: 5 }
+        ],
+        vatBreakdown: [
+          { tauxLabel: '20%', baseHt: 150.0, montantTva: 30.0, totalTtc: 180.0 }
+        ],
+        topProducts: []
+      }),
+    });
+  });
+
   await page.route('**/api/public/tables/*/session**', async (route) => {
     const url = route.request().url();
     if (url.includes('/refresh')) {

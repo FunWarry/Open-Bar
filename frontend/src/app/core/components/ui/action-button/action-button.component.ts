@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { NgClass } from '@angular/common';
-import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
+import { IonIcon, IonSpinner } from '@ionic/angular';
 /**
  * Supported styling variants for action buttons.
  */

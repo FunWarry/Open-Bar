@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { of } from 'rxjs';
 import { ClosureConfigModalComponent } from '../../../app/features/schedule/closure-config-modal/closure-config-modal.component';
 import { ClosureService } from '../../../app/core/services/closure.service';

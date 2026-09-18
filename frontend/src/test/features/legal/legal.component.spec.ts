@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { LegalComponent } from '../../../app/features/legal/legal.component';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 

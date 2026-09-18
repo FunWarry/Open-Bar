@@ -3,7 +3,7 @@ import { signal, WritableSignal } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
 import { MemoizedSelector } from '@ngrx/store';
-import { IonicModule } from '@ionic/angular';
+import { provideIonicAngular } from '@ionic/angular';
 import { SidebarComponent } from '../../../app/core/components/sidebar/sidebar.component';
 import { selectCurrentUser } from '../../../app/core/store/auth.selectors';
 import * as AuthActions from '../../../app/core/store/auth.actions';
@@ -73,11 +73,11 @@ describe('SidebarComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         SidebarComponent,
-        IonicModule.forRoot(),
         RouterTestingModule,
         getTranslocoTestingModule(),
       ],
       providers: [
+        provideIonicAngular(),
         provideMockStore({ initialState }),
         { provide: NavigationService, useValue: mockNavigationService },
         { provide: FeatureFlagService, useValue: mockFeatureFlagService },

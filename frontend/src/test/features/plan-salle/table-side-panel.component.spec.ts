@@ -2,7 +2,7 @@ import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { TableSidePanelComponent } from '../../../app/features/plan-salle/components/table-side-panel/table-side-panel.component';
 import { TableBar } from '../../../app/core/models/table.model';
 import { ZoneArea } from '../../../app/features/plan-salle/models/table-position.model';

@@ -1,4 +1,4 @@
-import { Animation, createAnimation } from '@ionic/angular/standalone';
+import { Animation, createAnimation } from '@ionic/angular';
 
 /**
  * Ultra-fast, hardware-accelerated 60 FPS modal entrance animation.

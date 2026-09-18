@@ -11,6 +11,7 @@ import com.bar.gestioncocktail.model.EstablishmentConfig;
  * @param floorPlan           Whether the 2D interactive Konva floor plan is enabled
  * @param qrClientOrdering    Whether customer self-ordering via table QR code is enabled
  * @param stockTracking       Whether automatic stock deduction and shrinkage tracking are enabled
+ * @param cashDrawer          Whether daily cash register drawer lifecycle and intermediate X-reports are enabled
  */
 public record EstablishmentModulesDTO(
         boolean cuisineKds,
@@ -18,7 +19,8 @@ public record EstablishmentModulesDTO(
         boolean employeeManagement,
         boolean floorPlan,
         boolean qrClientOrdering,
-        boolean stockTracking
+        boolean stockTracking,
+        boolean cashDrawer
 ) {
 
     /**
@@ -37,7 +39,8 @@ public record EstablishmentModulesDTO(
                 config.getModuleEmployeeManagementEnabled() == null || config.getModuleEmployeeManagementEnabled(),
                 config.getModuleFloorPlanEnabled() == null || config.getModuleFloorPlanEnabled(),
                 config.getModuleQrClientOrderingEnabled() == null || config.getModuleQrClientOrderingEnabled(),
-                config.getModuleStockTrackingEnabled() == null || config.getModuleStockTrackingEnabled()
+                config.getModuleStockTrackingEnabled() == null || config.getModuleStockTrackingEnabled(),
+                config.getModuleCashDrawerEnabled() == null || config.getModuleCashDrawerEnabled()
         );
     }
 
@@ -47,6 +50,6 @@ public record EstablishmentModulesDTO(
      * @return New instance with all flags set to true
      */
     public static EstablishmentModulesDTO defaultEnabled() {
-        return new EstablishmentModulesDTO(true, true, true, true, true, true);
+        return new EstablishmentModulesDTO(true, true, true, true, true, true, true);
     }
 }
