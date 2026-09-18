@@ -670,10 +670,9 @@ class PdfServiceTest {
 
     @Test
     void generateXReportPdf_nullReport_throwsIllegalArgumentException() {
-        assertThatThrownBy(() -> {
-            pdfService.generateXReportPdf(null);
-        }).isInstanceOf(IllegalArgumentException.class)
-          .hasMessageContaining("cannot be null");
+        assertThatThrownBy(() -> pdfService.generateXReportPdf(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("cannot be null");
     }
 }
 

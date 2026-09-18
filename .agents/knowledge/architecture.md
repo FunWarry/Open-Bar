@@ -143,10 +143,12 @@ flowchart TD
         TABLE_CART_ITEMS -.->|"variant"| COCKTAIL_VARIANTES
     end
 
-    subgraph FacturationDomain ["💳 Billing & Settlement"]
+    subgraph FacturationDomain ["💳 Billing, Cash Drawer & Settlement"]
         TABLES -->|"1:N"| FACTURES["factures"]
         FACTURES -->|"1:N"| FACTURE_ITEMS["facture_items"]
         FACTURES -->|"1:N"| FACTURE_REGLEMENTS["facture_reglements (Splits)"]
+        CASH_DRAWER_SESSIONS["cash_drawer_sessions (Till Sessions)"] -->|"1:N"| CASH_MOVEMENTS["cash_movements (Cash in / drop / paid out)"]
+        CASH_DRAWER_SESSIONS -.->|"closing"| DAILY_CASH_CLOSURES["daily_cash_closures (Rapports Z)"]
     end
 
     subgraph StockDomain ["📦 Stock & Waste Tracking"]
@@ -156,6 +158,9 @@ flowchart TD
 ```
 
 *Standalone configuration & logging tables*:
+- `cash_drawer_sessions` : Daily till opening sessions per operational date (`session_date`, `opened_at`, `closed_at`, `opened_by`, `closed_by`, `opening_float`, `status: OPEN|CLOSED`, `opening_denominations_json`, `notes`)
+- `cash_movements` : Intra-day cash movements (`session_id`, `type: CASH_IN|CASH_DROP|PAID_OUT`, `amount`, `reason`, `receipt_reference`, `user_id`, `created_at`)
+- `daily_cash_closures` : End-of-day certified Z-reports with SHA-256 seal (`date_cloture`, `numero_cloture`, `ca_total_ttc`, `fec_export`, `reconciliation`)
 - `establishment_closures` : Exceptional closures and recurring holidays
 - `shift_presets` : Predefined shift templates (duration, breaks)
 - `week_schedule_publications` : Publication log of employee schedules
