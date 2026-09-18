@@ -24,6 +24,7 @@ describe('FeatureFlagService', () => {
     floorPlan: false,
     qrClientOrdering: true,
     stockTracking: true,
+    cashDrawer: true,
   };
 
   beforeEach(() => {
@@ -123,6 +124,7 @@ describe('FeatureFlagService', () => {
       floorPlan: true,
       qrClientOrdering: false,
       stockTracking: false,
+      cashDrawer: false,
     };
 
     wsSubject.next({ body: JSON.stringify(wsUpdate) });

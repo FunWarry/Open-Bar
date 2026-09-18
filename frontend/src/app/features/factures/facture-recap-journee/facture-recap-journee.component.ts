@@ -12,7 +12,8 @@ import { addIcons } from 'ionicons';
 import {
   downloadOutline, printOutline, calendarOutline, cashOutline,
   cardOutline, receiptOutline, peopleOutline, trendingUpOutline, refreshOutline,
-  lockClosedOutline, shieldCheckmarkOutline, documentTextOutline, copyOutline
+  lockClosedOutline, shieldCheckmarkOutline, documentTextOutline, copyOutline,
+  lockOpenOutline, swapVerticalOutline, arrowDownCircleOutline, arrowUpCircleOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
@@ -22,6 +23,11 @@ import { DailyRecap, PaymentModeSummary } from '../../../core/models/daily-recap
 import { DailyCashClosure } from '../../../core/models/daily-cash-closure.model';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { ClotureCaisseModalComponent } from '../cloture-caisse-modal/cloture-caisse-modal.component';
+import { CashOpeningModalComponent } from '../cash-opening-modal/cash-opening-modal.component';
+import { CashMovementModalComponent } from '../cash-movement-modal/cash-movement-modal.component';
+import { XReportModalComponent } from '../x-report-modal/x-report-modal.component';
+import { CashDrawerService } from '../../../core/services/cash-drawer.service';
+import { FeatureFlagService } from '../../../core/services/feature-flag.service';
 
 /**
  * Daily Sales Closing Summary component (Z-Report) for Managers in OpenBar (Figma 628:1096).
@@ -52,6 +58,8 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly factureService = inject(FactureService);
   private readonly printerService = inject(PrinterService);
+  readonly cashDrawerService = inject(CashDrawerService);
+  readonly featureFlagService = inject(FeatureFlagService);
   private readonly toastCtrl = inject(ToastController);
   private readonly modalCtrl = inject(ModalController);
   private readonly transloco = inject(TranslocoService);
@@ -61,12 +69,16 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
     addIcons({
       downloadOutline, printOutline, calendarOutline, cashOutline,
       cardOutline, receiptOutline, peopleOutline, trendingUpOutline, refreshOutline,
-      lockClosedOutline, shieldCheckmarkOutline, documentTextOutline, copyOutline
+      lockClosedOutline, shieldCheckmarkOutline, documentTextOutline, copyOutline,
+      lockOpenOutline, swapVerticalOutline, arrowDownCircleOutline, arrowUpCircleOutline
     });
   }
 
   ngOnInit(): void {
     this.charger();
+    if (this.featureFlagService.cashDrawerEnabled()) {
+      this.cashDrawerService.refreshStatus();
+    }
   }
 
   ngOnDestroy(): void {
@@ -81,6 +93,10 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
   charger(refreshEvent?: any): void {
     this.isLoading = true;
     this.cdr.markForCheck();
+
+    if (this.featureFlagService.cashDrawerEnabled()) {
+      this.cashDrawerService.refreshStatus();
+    }
 
     // 1. Fetch daily financial recap
     this.factureService.getDailyRecap(this.selectedDate)
@@ -143,7 +159,62 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
     const { data } = await modal.onDidDismiss();
     if (data?.closed) {
       this.charger();
+      if (this.featureFlagService.cashDrawerEnabled()) {
+        this.cashDrawerService.refreshStatus();
+      }
     }
+  }
+
+  /**
+   * Opens morning cash drawer opening modal.
+   */
+  async openCashOpeningModal(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: CashOpeningModalComponent,
+      cssClass: 'cash-modal-dialog',
+      backdropDismiss: false
+    });
+
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.opened) {
+      this.charger();
+      this.cashDrawerService.refreshStatus();
+    }
+  }
+
+  /**
+   * Opens intra-day cash movement modal (CASH_IN, CASH_DROP, PAID_OUT).
+   */
+  async openCashMovementModal(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: CashMovementModalComponent,
+      cssClass: 'cash-modal-dialog',
+      backdropDismiss: false
+    });
+
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.movement) {
+      this.charger();
+      this.cashDrawerService.refreshStatus();
+    }
+  }
+
+  /**
+   * Opens intermediate non-destructive X-Report modal for mid-shift audit.
+   */
+  async openXReportModal(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: XReportModalComponent,
+      componentProps: {
+        date: this.selectedDate
+      },
+      cssClass: 'cash-modal-dialog',
+      backdropDismiss: true
+    });
+
+    await modal.present();
   }
 
   /**

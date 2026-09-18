@@ -44,6 +44,15 @@ class EscPosPrintingServiceTest {
     private com.bar.gestioncocktail.repository.DailyCashClosureRepository dailyCashClosureRepository;
 
     @Mock
+    private com.bar.gestioncocktail.repository.CashDrawerSessionRepository cashDrawerSessionRepository;
+
+    @Mock
+    private com.bar.gestioncocktail.repository.CashMovementRepository cashMovementRepository;
+
+    @Mock
+    private org.springframework.beans.factory.ObjectProvider<com.bar.gestioncocktail.service.CashDrawerService> cashDrawerServiceProvider;
+
+    @Mock
     private EscPosSocketClient socketClient;
 
     private EscPosFormatter formatter;
@@ -61,6 +70,9 @@ class EscPosPrintingServiceTest {
                 commandeRepository,
                 factureRepository,
                 dailyCashClosureRepository,
+                cashDrawerSessionRepository,
+                cashMovementRepository,
+                cashDrawerServiceProvider,
                 formatter,
                 socketClient
         );

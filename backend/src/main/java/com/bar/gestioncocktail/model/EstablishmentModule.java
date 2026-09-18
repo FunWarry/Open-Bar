@@ -35,5 +35,11 @@ public enum EstablishmentModule {
     /**
      * Real-time automated ingredient stock deduction on order preparation and inventory waste/breakage tracking.
      */
-    STOCK_TRACKING
+    STOCK_TRACKING,
+
+    /**
+     * Physical cash drawer management lifecycle: daily opening float, cash movements (in/drop/paid out),
+     * and intermediate X-reports.
+     */
+    CASH_DRAWER
 }

@@ -1,0 +1,198 @@
+<ion-header class="ion-no-border cash-modal-header">
+  <ion-toolbar class="cash-toolbar">
+    <div class="toolbar-content-wrapper">
+      <div class="modal-title-group">
+        <div class="icon-avatar movement-avatar">
+          <ion-icon name="cash-outline"></ion-icon>
+        </div>
+        <div class="title-text-wrap">
+          <h1 class="modal-main-title" data-testid="cash-movement-modal-title">
+            {{ 'CASH_DRAWER.MOVEMENT_TITLE' | transloco }}
+          </h1>
+          <span class="modal-subtitle">
+            {{ 'CASH_DRAWER.MOVEMENT_SUBTITLE' | transloco }}
+          </span>
+        </div>
+      </div>
+      <ion-buttons slot="end">
+        <ion-button
+          class="btn-close-modal"
+          (click)="cancel()"
+          (keydown)="$event.key === 'Enter' && cancel()"
+          data-testid="cash-movement-close-btn"
+          [attr.aria-label]="'COMMON.CLOSE' | transloco">
+          <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="cash-modal-content">
+  <div class="modal-body-container">
+
+    <!-- Drawer Cash Available Banner -->
+    <div class="cash-position-banner" data-testid="cash-position-banner">
+      <span class="position-label">{{ 'CASH_DRAWER.CURRENT_THEORETICAL_CASH' | transloco }}</span>
+      <span class="position-amount" data-testid="cash-current-amount">
+        {{ currentTheoreticalCash | appCurrency }}
+      </span>
+    </div>
+
+    <!-- Movement Type Selector -->
+    <div class="type-selector-grid" data-testid="cash-movement-type-selector">
+      <!-- CASH_DROP (Écrémage) -->
+      <button
+        type="button"
+        class="type-tile drop-tile"
+        [class.active]="type === 'CASH_DROP'"
+        (click)="type = 'CASH_DROP'"
+        data-testid="cash-type-drop">
+        <ion-icon name="shield-outline"></ion-icon>
+        <div class="type-info">
+          <span class="type-title">{{ 'CASH_DRAWER.TYPE_CASH_DROP' | transloco }}</span>
+          <span class="type-desc">{{ 'CASH_DRAWER.DESC_CASH_DROP' | transloco }}</span>
+        </div>
+      </button>
+
+      <!-- PAID_OUT (Dépense caisse) -->
+      <button
+        type="button"
+        class="type-tile paidout-tile"
+        [class.active]="type === 'PAID_OUT'"
+        (click)="type = 'PAID_OUT'"
+        data-testid="cash-type-paidout">
+        <ion-icon name="arrow-up-circle-outline"></ion-icon>
+        <div class="type-info">
+          <span class="type-title">{{ 'CASH_DRAWER.TYPE_PAID_OUT' | transloco }}</span>
+          <span class="type-desc">{{ 'CASH_DRAWER.DESC_PAID_OUT' | transloco }}</span>
+        </div>
+      </button>
+
+      <!-- CASH_IN (Apport / Dépôt) -->
+      <button
+        type="button"
+        class="type-tile cashin-tile"
+        [class.active]="type === 'CASH_IN'"
+        (click)="type = 'CASH_IN'"
+        data-testid="cash-type-cashin">
+        <ion-icon name="arrow-down-circle-outline"></ion-icon>
+        <div class="type-info">
+          <span class="type-title">{{ 'CASH_DRAWER.TYPE_CASH_IN' | transloco }}</span>
+          <span class="type-desc">{{ 'CASH_DRAWER.DESC_CASH_IN' | transloco }}</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- Overdraw warning if amount > available cash -->
+    @if (isOverdraw) {
+      <div class="alert-overdraw" data-testid="cash-overdraw-alert">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <div class="alert-text">
+          <strong>{{ 'CASH_DRAWER.OVERDRAW_TITLE' | transloco }}</strong>
+          <span>{{ 'CASH_DRAWER.OVERDRAW_DESC' | transloco }}</span>
+        </div>
+      </div>
+    }
+
+    <!-- Amount Input Card -->
+    <div class="section-card amount-card">
+      <label for="movement-amount" class="field-label">{{ 'CASH_DRAWER.AMOUNT_LABEL' | transloco }}</label>
+      <div class="amount-input-wrapper">
+        <input
+          id="movement-amount"
+          type="number"
+          step="0.01"
+          min="0.01"
+          [(ngModel)]="amount"
+          class="app-text-input amount-field"
+          data-testid="cash-movement-amount-input" />
+      </div>
+
+      <!-- Quick Amount Presets -->
+      <div class="presets-row">
+        @for (p of quickPresets; track p) {
+          <button
+            type="button"
+            class="preset-chip"
+            [class.active]="amount === p"
+            (click)="setAmount(p)"
+            [attr.data-testid]="'cash-preset-' + p">
+            {{ p }} €
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Reason / Motif Input Card -->
+    <div class="section-card reason-card">
+      <label for="movement-reason" class="field-label">{{ 'CASH_DRAWER.REASON_LABEL' | transloco }}</label>
+      <input
+        id="movement-reason"
+        type="text"
+        [(ngModel)]="reason"
+        placeholder="{{ 'CASH_DRAWER.REASON_PLACEHOLDER' | transloco }}"
+        class="app-text-input"
+        data-testid="cash-movement-reason-input" />
+
+      <!-- Quick Suggestion Pills based on Type -->
+      <div class="suggestions-row">
+        @if (type === 'CASH_DROP') {
+          <button type="button" class="pill-btn" (click)="selectReason('Transfert coffre fort')">Transfert coffre</button>
+          <button type="button" class="pill-btn" (click)="selectReason('Écrémage de sécurité')">Écrémage sécurité</button>
+          <button type="button" class="pill-btn" (click)="selectReason('Dépôt banque')">Dépôt banque</button>
+        }
+        @if (type === 'PAID_OUT') {
+          <button type="button" class="pill-btn" (click)="selectReason('Achat glaçons')">Achat glaçons</button>
+          <button type="button" class="pill-btn" (click)="selectReason('Achat citrons / menthe')">Achat citrons/menthe</button>
+          <button type="button" class="pill-btn" (click)="selectReason('Paiement coursier / livreur')">Livreur</button>
+          <button type="button" class="pill-btn" (click)="selectReason('Frais postaux / timbres')">Poste</button>
+        }
+        @if (type === 'CASH_IN') {
+          <button type="button" class="pill-btn" (click)="selectReason('Apport monnaie de réserve')">Apport monnaie</button>
+          <button type="button" class="pill-btn" (click)="selectReason('Remboursement avance caisse')">Remboursement avance</button>
+          <button type="button" class="pill-btn" (click)="selectReason('Retrait coffre')">Retrait coffre</button>
+        }
+      </div>
+    </div>
+
+    <!-- Reference / Receipt Reference (optional) -->
+    <div class="section-card ref-card">
+      <label for="movement-ref" class="field-label">{{ 'CASH_DRAWER.REF_LABEL' | transloco }}</label>
+      <input
+        id="movement-ref"
+        type="text"
+        [(ngModel)]="receiptReference"
+        placeholder="{{ 'CASH_DRAWER.REF_PLACEHOLDER' | transloco }}"
+        class="app-text-input"
+        data-testid="cash-movement-ref-input" />
+    </div>
+
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border cash-modal-footer">
+  <div class="footer-actions">
+    <ion-button
+      fill="clear"
+      class="btn-cancel"
+      (click)="cancel()"
+      (keydown)="$event.key === 'Enter' && cancel()"
+      data-testid="cash-movement-cancel-btn">
+      {{ 'COMMON.CANCEL' | transloco }}
+    </ion-button>
+    <ion-button
+      class="btn-submit"
+      (click)="submitMovement()"
+      (keydown)="$event.key === 'Enter' && submitMovement()"
+      [disabled]="!isValid"
+      data-testid="cash-movement-confirm-btn">
+      @if (isSubmitting) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+        {{ 'CASH_DRAWER.CONFIRM_MOVEMENT' | transloco }}
+      }
+    </ion-button>
+  </div>
+</ion-footer>

@@ -5,9 +5,9 @@
 }
 
 .recap-header-card {
-  --background: var(--surface-1, #1e2438);
-  background: var(--surface-1, #1e2438);
-  border: 1px solid var(--border-medium, #2e3450);
+  --background: var(--background-surface-1);
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
   border-radius: 12px;
   margin-bottom: 16px;
 }
@@ -32,18 +32,18 @@
   gap: 10px;
   font-size: 1.25rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .title-icon {
   font-size: 1.5rem;
-  color: var(--color-primary, #6366f1);
+  color: var(--primary);
 }
 
 .recap-subtitle {
   margin: 0;
   font-size: 0.875rem;
-  color: var(--text-muted, #8f9bba);
+  color: var(--text-muted);
 }
 
 .header-actions {
@@ -56,20 +56,19 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--surface-2, #262d45);
-  border: 1px solid var(--border-medium, #2e3450);
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
   border-radius: 8px;
   padding: 6px 12px;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .recap-date-input {
   background: transparent;
   border: none;
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 0.9rem;
   outline: none;
-  color-scheme: dark;
 }
 
 .kpi-grid {
@@ -78,9 +77,9 @@
 }
 
 .kpi-card {
-  --background: var(--surface-1, #1e2438);
-  background: var(--surface-1, #1e2438);
-  border: 1px solid var(--border-medium, #2e3450);
+  --background: var(--background-surface-1);
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
   border-radius: 12px;
   margin: 0;
   height: 100%;
@@ -89,7 +88,7 @@
 
 .kpi-card:hover {
   transform: translateY(-2px);
-  border-color: var(--color-primary, #6366f1);
+  border-color: var(--primary);
 }
 
 .kpi-header {
@@ -104,7 +103,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--text-muted, #8f9bba);
+  color: var(--text-muted);
 }
 
 .kpi-icon-box {
@@ -117,31 +116,31 @@
   font-size: 1.25rem;
 }
 
-.ca-icon { background: #047857; color: #ffffff; }
-.vat-icon { background: #b45309; color: #ffffff; }
-.avg-icon { background: #4338ca; color: #ffffff; }
-.guests-icon { background: #be185d; color: #ffffff; }
+.ca-icon { background: var(--background-surface-2); color: var(--semantic-success); border: 1px solid var(--border-medium); }
+.vat-icon { background: var(--background-surface-2); color: var(--semantic-warning); border: 1px solid var(--border-medium); }
+.avg-icon { background: var(--background-surface-2); color: var(--primary); border: 1px solid var(--border-medium); }
+.guests-icon { background: var(--background-surface-2); color: var(--semantic-info); border: 1px solid var(--border-medium); }
 
 .kpi-value {
   margin: 0 0 8px 0;
   font-size: 1.5rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .primary-value {
-  color: #34d399;
+  color: var(--semantic-success);
 }
 
 .kpi-subtext {
   font-size: 0.775rem;
-  color: var(--text-muted, #8f9bba);
+  color: var(--text-muted);
 }
 
 .section-card {
-  --background: var(--surface-1, #1e2438);
-  background: var(--surface-1, #1e2438);
-  border: 1px solid var(--border-medium, #2e3450);
+  --background: var(--background-surface-1);
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
   border-radius: 12px;
   margin-bottom: 16px;
 }
@@ -152,7 +151,7 @@
   gap: 8px;
   font-size: 1.05rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .table-responsive {
@@ -162,28 +161,28 @@
 .recap-table {
   width: 100%;
   border-collapse: collapse;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .recap-table th {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--background-surface-2);
   padding: 10px 14px;
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--text-muted, #8f9bba);
-  border-bottom: 1px solid var(--border-medium, #2e3450);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-medium);
 }
 
 .recap-table td {
   padding: 12px 14px;
   font-size: 0.9rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .total-row td {
-  border-top: 2px solid var(--border-medium, #2e3450);
+  border-top: 2px solid var(--border-medium);
   border-bottom: none;
   font-size: 0.95rem;
 }
@@ -192,9 +191,9 @@
 .text-center { text-align: center; }
 .text-right { text-align: right; }
 .font-bold { font-weight: 700; }
-.text-success { color: #34d399; }
-.text-warning { color: #fbbf24; }
-.text-muted { color: var(--text-muted, #8f9bba); }
+.text-success { color: var(--semantic-success); }
+.text-warning { color: var(--semantic-warning); }
+.text-muted { color: var(--text-muted); }
 
 .mode-badge {
   padding: 4px 10px;
@@ -370,3 +369,84 @@
     }
   }
 }
+
+/* Cash Drawer Lifecycle Banner Card */
+.cash-drawer-banner-card {
+  --background: var(--background-surface-1);
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.drawer-banner-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.drawer-info-block {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.drawer-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md, 10px);
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: var(--semantic-warning);
+}
+
+.drawer-icon-wrap.drawer-is-open {
+  color: var(--semantic-success);
+}
+
+.drawer-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.drawer-headline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.drawer-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.drawer-subtext {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.drawer-subtext .highlight-cash {
+  color: var(--semantic-success);
+}
+
+.drawer-closed-hint {
+  color: var(--semantic-warning);
+}
+
+.drawer-actions-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+

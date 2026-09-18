@@ -18,6 +18,7 @@ const DEFAULT_MODULES: EstablishmentModules = {
   floorPlan: true,
   qrClientOrdering: true,
   stockTracking: true,
+  cashDrawer: true,
 };
 
 /**
@@ -56,6 +57,9 @@ export class FeatureFlagService implements OnDestroy {
   /** Computed signal for STOCK_TRACKING capability status. */
   readonly stockTrackingEnabled = computed(() => this.modules().stockTracking);
 
+  /** Computed signal for CASH_DRAWER capability status. */
+  readonly cashDrawerEnabled = computed(() => this.modules().cashDrawer);
+
   constructor() {
     this.initWebSocketSubscription();
     this.loadModules().subscribe();
@@ -87,6 +91,8 @@ export class FeatureFlagService implements OnDestroy {
         return current.qrClientOrdering;
       case EstablishmentModule.STOCK_TRACKING:
         return current.stockTracking;
+      case EstablishmentModule.CASH_DRAWER:
+        return current.cashDrawer;
       default:
         return true;
     }
@@ -180,6 +186,9 @@ export class FeatureFlagService implements OnDestroy {
         break;
       case EstablishmentModule.STOCK_TRACKING:
         current.stockTracking = enabled;
+        break;
+      case EstablishmentModule.CASH_DRAWER:
+        current.cashDrawer = enabled;
         break;
     }
     return this.updateModules(current);

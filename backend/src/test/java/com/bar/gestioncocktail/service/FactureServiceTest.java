@@ -92,6 +92,12 @@ class FactureServiceTest {
     @Mock
     com.bar.gestioncocktail.repository.DailyCashClosureRepository dailyCashClosureRepository;
 
+    @Mock
+    com.bar.gestioncocktail.repository.CashDrawerSessionRepository cashDrawerSessionRepository;
+
+    @Mock
+    com.bar.gestioncocktail.service.EstablishmentConfigService establishmentConfigService;
+
     @Spy
     TimeService timeService = new TimeService(null);
 

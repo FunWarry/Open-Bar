@@ -78,6 +78,8 @@ public class FactureService {
     private final FactureReglementRepository factureReglementRepository;
     private final HappyHourService happyHourService;
     private final DailyCashClosureRepository dailyCashClosureRepository;
+    private final com.bar.gestioncocktail.repository.CashDrawerSessionRepository cashDrawerSessionRepository;
+    private final EstablishmentConfigService establishmentConfigService;
 
     @org.springframework.beans.factory.annotation.Autowired
     public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
@@ -86,7 +88,9 @@ public class FactureService {
             AvoirCreditRepository avoirCreditRepository, TimeService timeService,
             FactureReglementRepository factureReglementRepository,
             HappyHourService happyHourService,
-            DailyCashClosureRepository dailyCashClosureRepository) {
+            DailyCashClosureRepository dailyCashClosureRepository,
+            com.bar.gestioncocktail.repository.CashDrawerSessionRepository cashDrawerSessionRepository,
+            EstablishmentConfigService establishmentConfigService) {
         this.factureRepository = factureRepository;
         this.tableRepository = tableRepository;
         this.commandeRepository = commandeRepository;
@@ -99,6 +103,28 @@ public class FactureService {
         this.factureReglementRepository = factureReglementRepository;
         this.happyHourService = happyHourService;
         this.dailyCashClosureRepository = dailyCashClosureRepository;
+        this.cashDrawerSessionRepository = cashDrawerSessionRepository;
+        this.establishmentConfigService = establishmentConfigService;
+    }
+
+    private void checkTillOpenedIfCashPayment(String modePaiement, java.time.LocalDate date) {
+        if (isCashPaymentMode(modePaiement) && establishmentConfigService != null
+                && establishmentConfigService.isModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.CASH_DRAWER)) {
+            java.time.LocalDate d = date != null ? date : java.time.LocalDate.now(timeService.getZoneId());
+            boolean isOpened = cashDrawerSessionRepository != null
+                    && cashDrawerSessionRepository.existsBySessionDateAndStatus(d, com.bar.gestioncocktail.model.CashDrawerSessionStatus.OPEN);
+            if (!isOpened) {
+                throw new BusinessException("Cash register till is not opened for today. Please perform morning till opening before settling cash payments.");
+            }
+        }
+    }
+
+    private boolean isCashPaymentMode(String modePaiement) {
+        if (modePaiement == null) {
+            return false;
+        }
+        String trimmed = modePaiement.trim().toUpperCase();
+        return "ESPECES".equals(trimmed) || "CASH".equals(trimmed);
     }
 /**
      * Retrieves all customer invoices in the system.
@@ -310,6 +336,7 @@ public class FactureService {
             checkDateNotClosed(facture.getDateFacture().toLocalDate());
         }
         checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
+        checkTillOpenedIfCashPayment(modePaiement, java.time.LocalDate.now(timeService.getZoneId()));
 
         applyPourboire(facture, pourboire);
 
@@ -447,6 +474,7 @@ public class FactureService {
     @Transactional
     public FactureResponseDTO encaisserTable(Long tableId, EncaissementRequestDTO request) {
         checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
+        checkTillOpenedIfCashPayment(request.modePaiement(), java.time.LocalDate.now(timeService.getZoneId()));
         TableEntity table = tableRepository.findById(tableId)
                 .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + tableId));
 
@@ -1118,6 +1146,7 @@ public class FactureService {
             checkDateNotClosed(facture.getDateFacture().toLocalDate());
         }
         checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
+        checkTillOpenedIfCashPayment(request.modePaiement(), java.time.LocalDate.now(timeService.getZoneId()));
 
         if (facture.isReglee()) {
             throw new BusinessException("Invoice " + facture.getNumero() + " is already fully settled");

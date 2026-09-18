@@ -54,6 +54,15 @@ public class DailyCashClosure {
     @Column(name = "counting_breakdown_json", columnDefinition = "TEXT")
     private String countingBreakdownJson;
 
+    @Column(name = "total_cash_in", nullable = false, precision = 10, scale = 2)
+    private BigDecimal totalCashIn = BigDecimal.ZERO;
+
+    @Column(name = "total_cash_out", nullable = false, precision = 10, scale = 2)
+    private BigDecimal totalCashOut = BigDecimal.ZERO;
+
+    @Column(name = "cash_movements_json", columnDefinition = "TEXT")
+    private String cashMovementsJson;
+
     @Column(name = "discrepancy_reason", columnDefinition = "TEXT")
     private String discrepancyReason;
 

@@ -93,6 +93,8 @@ public class SampleDataSeederService {
     private final HappyHourRuleRepository happyHourRuleRepository;
     private final StockMovementRepository stockMovementRepository;
     private final DailyCashClosureRepository dailyCashClosureRepository;
+    private final CashDrawerSessionRepository cashDrawerSessionRepository;
+    private final CashMovementRepository cashMovementRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -127,7 +129,9 @@ public class SampleDataSeederService {
             org.springframework.core.env.Environment environment,
             HappyHourRuleRepository happyHourRuleRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) StockMovementRepository stockMovementRepository,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) DailyCashClosureRepository dailyCashClosureRepository) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) DailyCashClosureRepository dailyCashClosureRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) CashDrawerSessionRepository cashDrawerSessionRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) CashMovementRepository cashMovementRepository) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -156,6 +160,8 @@ public class SampleDataSeederService {
         this.happyHourRuleRepository = happyHourRuleRepository;
         this.stockMovementRepository = stockMovementRepository;
         this.dailyCashClosureRepository = dailyCashClosureRepository;
+        this.cashDrawerSessionRepository = cashDrawerSessionRepository;
+        this.cashMovementRepository = cashMovementRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -378,6 +384,7 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedAvoirsCreditFromJson(root.get("avoirs_credit")), "seedAvoirsCredit");
             safelyInTransaction(() -> seedStockMovementsFromJson(root.get("stock_movements"), usersMap), "seedStockMovements");
             safelyInTransaction(() -> seedDailyCashClosuresFromJson(root.get("daily_cash_closures"), usersMap), "seedDailyCashClosures");
+            safelyInTransaction(() -> seedCashDrawerSessionsFromJson(root.get("cash_drawer_sessions"), usersMap), "seedCashDrawerSessions");
 
         } catch (Exception e) {
             log.error("Failed to seed demo dataset from JSON file '{}'", DATASET_PATH, e);
@@ -1467,5 +1474,77 @@ public class SampleDataSeederService {
         } catch (Exception _) {
             return "DEFAULT_SEAL_HASH";
         }
+    }
+
+    private void seedCashDrawerSessionsFromJson(JsonNode sessionsNode, Map<String, User> usersMap) {
+        if (sessionsNode == null || !sessionsNode.isArray() || cashDrawerSessionRepository == null || cashDrawerSessionRepository.count() > 0) {
+            return;
+        }
+
+        for (JsonNode sNode : sessionsNode) {
+            int daysAgo = sNode.has("daysAgo") ? sNode.get("daysAgo").asInt() : 0;
+            LocalDate sessionDate = LocalDate.now(timeService.getZoneId()).minusDays(daysAgo);
+            BigDecimal openingFloat = new BigDecimal(sNode.get("openingFloat").asText());
+            CashDrawerSessionStatus status = CashDrawerSessionStatus.valueOf(sNode.get("status").asText());
+
+            String openedByUsername = sNode.has("openedByUsername") ? sNode.get("openedByUsername").asText() : "manager";
+            User openedBy = usersMap.get(openedByUsername);
+
+            CashDrawerSession session = new CashDrawerSession();
+            session.setSessionDate(sessionDate);
+            session.setOpeningFloat(openingFloat);
+            session.setStatus(status);
+            session.setOpenedBy(openedBy);
+            session.setOpenedAt(sessionDate.atTime(9, 0));
+
+            if (sNode.has("notes")) {
+                session.setNotes(sNode.get("notes").asText());
+            }
+            if (sNode.has("openingDenominations")) {
+                session.setOpeningDenominationsJson(sNode.get("openingDenominations").toString());
+            }
+
+            if (status == CashDrawerSessionStatus.CLOSED) {
+                session.setClosedAt(sessionDate.atTime(23, 30));
+                if (sNode.has("closedByUsername")) {
+                    session.setClosedBy(usersMap.get(sNode.get("closedByUsername").asText()));
+                }
+                if (sNode.has("countedFloatAtClose")) {
+                    session.setCountedFloatAtClose(new BigDecimal(sNode.get("countedFloatAtClose").asText()));
+                }
+                if (sNode.has("theoreticalCashAtClose")) {
+                    session.setTheoreticalCashAtClose(new BigDecimal(sNode.get("theoreticalCashAtClose").asText()));
+                }
+                if (sNode.has("cashDiscrepancy")) {
+                    session.setCashDiscrepancy(new BigDecimal(sNode.get("cashDiscrepancy").asText()));
+                }
+            }
+
+            CashDrawerSession savedSession = cashDrawerSessionRepository.save(session);
+
+            if (sNode.has("movements") && sNode.get("movements").isArray() && cashMovementRepository != null) {
+                for (JsonNode mNode : sNode.get("movements")) {
+                    CashMovementType mType = CashMovementType.valueOf(mNode.get("type").asText());
+                    BigDecimal amount = new BigDecimal(mNode.get("amount").asText());
+                    String reason = mNode.get("reason").asText();
+                    String ref = mNode.has("receiptReference") ? mNode.get("receiptReference").asText() : null;
+                    String perfUsername = mNode.has("performedByUsername") ? mNode.get("performedByUsername").asText() : "manager";
+                    User performedBy = usersMap.get(perfUsername);
+                    long minutesAgo = mNode.has("minutesAgo") ? mNode.get("minutesAgo").asLong() : 30;
+                    LocalDateTime timestamp = timeService.now().minusMinutes(minutesAgo);
+
+                    CashMovement m = new CashMovement();
+                    m.setSession(savedSession);
+                    m.setType(mType);
+                    m.setAmount(amount);
+                    m.setReason(reason);
+                    m.setReceiptReference(ref);
+                    m.setPerformedBy(performedBy);
+                    m.setTimestamp(timestamp);
+                    cashMovementRepository.save(m);
+                }
+            }
+        }
+        log.info("Seeded cash drawer sessions and movements from demo dataset.");
     }
 }

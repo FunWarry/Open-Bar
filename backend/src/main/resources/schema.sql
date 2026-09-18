@@ -471,6 +471,7 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     module_floor_plan_enabled BOOLEAN DEFAULT true,
     module_qr_client_ordering_enabled BOOLEAN DEFAULT true,
     module_stock_tracking_enabled BOOLEAN DEFAULT true,
+    module_cash_drawer_enabled BOOLEAN DEFAULT true,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -600,6 +601,9 @@ CREATE TABLE IF NOT EXISTS daily_cash_closures (
     vat_breakdown_json TEXT,
     payment_methods_json TEXT,
     counting_breakdown_json TEXT,
+    total_cash_in DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    total_cash_out DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    cash_movements_json TEXT,
     discrepancy_reason TEXT,
     closed_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
     sha256_hash VARCHAR(64) NOT NULL,
@@ -610,6 +614,47 @@ CREATE TABLE IF NOT EXISTS daily_cash_closures (
 CREATE INDEX IF NOT EXISTS idx_daily_cash_closures_date ON daily_cash_closures(closure_date);
 CREATE INDEX IF NOT EXISTS idx_daily_cash_closures_number ON daily_cash_closures(closure_number);
 
--- Idempotent column migrations for ingredients
+-- 13. Physical Cash Drawer Sessions & Intra-Day Movements
+CREATE TABLE IF NOT EXISTS cash_drawer_sessions (
+    id BIGSERIAL PRIMARY KEY,
+    session_date DATE NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'CLOSED')),
+    opened_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    closed_at TIMESTAMP,
+    opened_by_id BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    closed_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    opening_float DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    opening_float_breakdown_json TEXT,
+    notes TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_cash_drawer_sessions_date ON cash_drawer_sessions(session_date);
+CREATE INDEX IF NOT EXISTS idx_cash_drawer_sessions_status ON cash_drawer_sessions(status);
+
+CREATE TABLE IF NOT EXISTS cash_movements (
+    id BIGSERIAL PRIMARY KEY,
+    session_id BIGINT NOT NULL REFERENCES cash_drawer_sessions(id) ON DELETE CASCADE,
+    movement_date DATE NOT NULL,
+    type VARCHAR(20) NOT NULL CHECK (type IN ('CASH_IN', 'CASH_DROP', 'PAID_OUT')),
+    amount DECIMAL(10,2) NOT NULL,
+    reason VARCHAR(255) NOT NULL,
+    receipt_reference VARCHAR(100),
+    performed_by_id BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_cash_movements_session ON cash_movements(session_id);
+CREATE INDEX IF NOT EXISTS idx_cash_movements_date ON cash_movements(movement_date);
+CREATE INDEX IF NOT EXISTS idx_cash_movements_type ON cash_movements(type);
+
+-- Idempotent column migrations
 ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS degre_alcool DECIMAL(5,2) DEFAULT 0.0;
 ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS is_vegan BOOLEAN DEFAULT true;
+ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_cash_drawer_enabled BOOLEAN DEFAULT true;
+ALTER TABLE daily_cash_closures ADD COLUMN IF NOT EXISTS total_cash_in DECIMAL(10,2) DEFAULT 0.00;
+ALTER TABLE daily_cash_closures ADD COLUMN IF NOT EXISTS total_cash_out DECIMAL(10,2) DEFAULT 0.00;
+ALTER TABLE daily_cash_closures ADD COLUMN IF NOT EXISTS cash_movements_json TEXT;
