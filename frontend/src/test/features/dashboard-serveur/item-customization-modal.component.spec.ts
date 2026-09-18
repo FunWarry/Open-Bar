@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ItemCustomizationModalComponent } from '../../../app/features/dashboard-serveur/components/item-customization-modal/item-customization-modal.component';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { ProductItem } from '../../../app/features/dashboard-serveur/components/product-card/product-card.component';
 
 import { getTranslocoTestingModule } from '../../transloco-testing.module';

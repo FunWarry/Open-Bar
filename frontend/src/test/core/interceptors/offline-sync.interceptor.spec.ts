@@ -8,7 +8,7 @@ import {
   HttpTestingController,
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { TranslocoService } from '@jsverse/transloco';
 import { offlineSyncInterceptor } from '../../../app/core/interceptors/offline-sync.interceptor';
 import { OfflineOrderService } from '../../../app/core/services/offline-order.service';

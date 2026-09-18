@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { getTranslocoTestingModule } from '../../../transloco-testing.module';
 import { ConfirmDeleteModalComponent } from '../../../../app/core/components/ui/confirm-delete-modal/confirm-delete-modal.component';
 

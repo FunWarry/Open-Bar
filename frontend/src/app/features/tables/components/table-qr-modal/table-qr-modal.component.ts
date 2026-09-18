@@ -2,7 +2,7 @@ import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
 
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { IonIcon, IonSpinner, ModalController, ToastController } from '@ionic/angular/standalone';
+import { IonIcon, IonSpinner, ModalController, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   closeOutline, copyOutline, downloadOutline, printOutline,

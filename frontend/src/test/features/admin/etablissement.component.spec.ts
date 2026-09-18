@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
-import { ToastController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { ToastController } from '@ionic/angular';
 import { of } from 'rxjs';
 import { EtablissementComponent, siretLuhnValidator } from '../../../app/features/admin/etablissement/etablissement.component';
 import { EtablissementService } from '../../../app/core/services/etablissement.service';
@@ -45,8 +45,9 @@ describe('EtablissementComponent', () => {
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
     await TestBed.configureTestingModule({
-      imports: [EtablissementComponent, IonicModule.forRoot(), getTranslocoTestingModule()],
+      imports: [EtablissementComponent, getTranslocoTestingModule()],
       providers: [
+        provideIonicAngular(),
         { provide: EtablissementService, useValue: etablissementServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
       ],

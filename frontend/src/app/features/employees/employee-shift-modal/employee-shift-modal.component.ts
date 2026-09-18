@@ -19,7 +19,7 @@ import {
   ModalController,
   AlertController,
   ToastController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   closeOutline,

@@ -3,8 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { IonicModule } from '@ionic/angular';
-import { ModalController, ToastController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { FactureSplitComponent } from '../../../app/features/factures/facture-split/facture-split.component';
 import { FactureService, SplitResultDTO } from '../../../app/features/factures/services/facture.service';
@@ -60,8 +60,9 @@ describe('FactureSplitComponent', () => {
     modalCtrlSpy.dismiss.and.returnValue(Promise.resolve(true));
 
     await TestBed.configureTestingModule({
-      imports: [FactureSplitComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
+      imports: [FactureSplitComponent, RouterTestingModule, getTranslocoTestingModule()],
       providers: [
+        provideIonicAngular(),
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { paramMap: { get: (_: string) => '42' } } },

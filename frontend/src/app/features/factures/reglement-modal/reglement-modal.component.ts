@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonButtons, IonButton, IonIcon,
   IonContent, IonFooter, ModalController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   cardOutline, cashOutline, walletOutline, closeOutline,

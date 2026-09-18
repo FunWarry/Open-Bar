@@ -2,8 +2,8 @@ import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
-import { ToastController, ModalController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { ToastController, ModalController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { of, throwError, Subject } from 'rxjs';
 import { CommandeListComponent } from '../../../app/features/commandes/commande-list/commande-list.component';
@@ -77,11 +77,11 @@ describe('CommandeListComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         CommandeListComponent,
-        IonicModule.forRoot(),
         RouterTestingModule,
         getTranslocoTestingModule(),
       ],
       providers: [
+        provideIonicAngular(),
         { provide: Store, useValue: storeSpy },
         { provide: CommandeService, useValue: serviceSpy },
         { provide: NotificationService, useValue: notificationServiceSpy },

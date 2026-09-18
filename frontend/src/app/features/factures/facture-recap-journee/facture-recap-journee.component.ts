@@ -7,7 +7,7 @@ import {
   IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonGrid, IonRow, IonCol, IonBadge, IonIcon, IonButton, IonSpinner,
   IonRefresher, IonRefresherContent, ToastController, ModalController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   downloadOutline, printOutline, calendarOutline, cashOutline,

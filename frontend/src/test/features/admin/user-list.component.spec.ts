@@ -1,7 +1,7 @@
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { UserListComponent } from '../../../app/features/admin/users/user-list/user-list.component';
-import { ModalController, ToastController } from '@ionic/angular/standalone';
+import { ModalController, ToastController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { User } from '../../../app/core/models/user.model';
 import { UserService, PageResponse } from '../../../app/core/services/user.service';

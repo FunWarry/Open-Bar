@@ -1,5 +1,5 @@
 import { TestBed, ComponentFixture, fakeAsync, tick } from '@angular/core/testing';
-import { ModalController, ToastController } from '@ionic/angular/standalone';
+import { ModalController, ToastController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { EncaissementModalComponent } from '../../../app/features/dashboard-serveur/components/encaissement-modal/encaissement-modal.component';
 import {

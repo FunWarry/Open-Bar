@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ToastController, ModalController } from '@ionic/angular/standalone';
+import { ToastController, ModalController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { SetupComponent } from '../../../app/features/setup/setup.component';
 import { SetupService } from '../../../app/core/services/setup.service';

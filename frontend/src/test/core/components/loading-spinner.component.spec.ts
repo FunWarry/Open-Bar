@@ -1,6 +1,6 @@
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
+import { provideIonicAngular } from '@ionic/angular';
 import { LoadingSpinnerComponent } from '../../../app/core/components/loading-spinner/loading-spinner.component';
 
 describe('LoadingSpinnerComponent', () => {
@@ -8,7 +8,8 @@ describe('LoadingSpinnerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [LoadingSpinnerComponent, IonicModule.forRoot(), getTranslocoTestingModule()]
+      imports: [LoadingSpinnerComponent, getTranslocoTestingModule()],
+      providers: [provideIonicAngular()]
     }).compileComponents();
 
     const fixture = TestBed.createComponent(LoadingSpinnerComponent);

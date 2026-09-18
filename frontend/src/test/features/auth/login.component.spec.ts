@@ -2,7 +2,7 @@ import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { IonicModule } from '@ionic/angular';
+import { provideIonicAngular } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { of, BehaviorSubject, throwError } from 'rxjs';
 import { LoginComponent } from '../../../app/features/auth/login/login.component';
@@ -49,13 +49,13 @@ describe('LoginComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         LoginComponent,
-        IonicModule.forRoot(),
         RouterTestingModule,
         ReactiveFormsModule,
         HttpClientTestingModule,
         getTranslocoTestingModule(),
       ],
       providers: [
+        provideIonicAngular(),
         { provide: Store, useValue: mockStore },
         { provide: Router, useValue: mockRouter },
         { provide: SetupService, useValue: mockSetupService },

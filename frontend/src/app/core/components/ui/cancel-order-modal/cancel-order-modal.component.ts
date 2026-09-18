@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import {
   IonIcon,
   ModalController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   alertCircleOutline,

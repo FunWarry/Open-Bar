@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslocoModule } from '@jsverse/transloco';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   leafOutline,

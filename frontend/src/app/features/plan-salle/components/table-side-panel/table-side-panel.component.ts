@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, inject, ChangeDetectorRef } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-import { IonIcon, ModalController } from '@ionic/angular/standalone';
+import { IonIcon, ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   closeOutline, saveOutline, gitMergeOutline, trashOutline,

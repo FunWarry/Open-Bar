@@ -7,7 +7,7 @@ import { selectIsAdmin } from '../../../core/store/auth.selectors';
 import {
   IonBadge, IonIcon, IonSpinner,
   ToastController, ModalController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   arrowBack, create, eye, trashOutline, closeOutline,

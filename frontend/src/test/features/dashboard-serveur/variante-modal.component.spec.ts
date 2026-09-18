@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
-import { ModalController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { VarianteModalComponent, VarianteSelectionResult } from '../../../app/features/dashboard-serveur/variante-modal/variante-modal.component';
 import { Cocktail } from '../../../app/core/models/cocktail.model';
@@ -51,11 +51,11 @@ describe('VarianteModalComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         VarianteModalComponent,
-        IonicModule.forRoot(),
         FormsModule,
         getTranslocoTestingModule(),
       ],
       providers: [
+        provideIonicAngular(),
         { provide: ModalController, useValue: modalCtrlSpy },
       ],
     }).compileComponents();

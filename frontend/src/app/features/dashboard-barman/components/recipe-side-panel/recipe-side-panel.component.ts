@@ -9,7 +9,7 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonIcon, IonButton, IonSpinner } from '@ionic/angular/standalone';
+import { IonIcon, IonButton, IonSpinner } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   closeOutline,

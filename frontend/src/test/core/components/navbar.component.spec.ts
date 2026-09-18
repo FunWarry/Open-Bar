@@ -11,8 +11,8 @@ import {
 import * as AuthActions from '../../../app/core/store/auth.actions';
 import { NavigationService } from '../../../app/core/services/navigation.service';
 import { NotificationService } from '../../../app/core/services/notification.service';
-import { IonicModule } from '@ionic/angular';
-import { PopoverController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { PopoverController } from '@ionic/angular';
 import { EMPTY, of } from 'rxjs';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TranslocoService } from '@jsverse/transloco';
@@ -73,11 +73,11 @@ describe('NavbarComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         NavbarComponent,
-        IonicModule.forRoot(),
         RouterTestingModule,
         getTranslocoTestingModule(),
       ],
       providers: [
+        provideIonicAngular(),
         provideMockStore({ initialState }),
         { provide: NavigationService, useValue: mockNavigationService },
         { provide: NotificationService, useValue: mockNotifService },

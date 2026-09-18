@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { IonicModule } from '@ionic/angular';
+import { provideIonicAngular } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
 import { AdminComponent } from '../../../app/features/admin/admin.component';
@@ -57,11 +57,11 @@ describe('AdminComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         AdminComponent,
-        IonicModule.forRoot(),
         RouterTestingModule,
         getTranslocoTestingModule()
       ],
       providers: [
+        provideIonicAngular(),
         { provide: Store, useValue: storeSpy },
         { provide: NavigationService, useValue: navigationServiceSpy },
         { provide: UserService, useValue: userServiceSpy },

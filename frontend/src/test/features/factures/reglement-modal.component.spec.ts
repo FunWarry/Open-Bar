@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { ReglementModalComponent } from '../../../app/features/factures/reglement-modal/reglement-modal.component';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 

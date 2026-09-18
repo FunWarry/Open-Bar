@@ -7,7 +7,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   IonIcon,
   IonSpinner
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   shieldCheckmarkOutline,

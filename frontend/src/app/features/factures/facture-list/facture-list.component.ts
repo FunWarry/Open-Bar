@@ -9,7 +9,7 @@ import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import {
   IonContent, IonButton,
   IonRefresher, IonRefresherContent, IonIcon, IonSpinner, IonProgressBar, ToastController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   receiptOutline, documentTextOutline, cashOutline, analyticsOutline,

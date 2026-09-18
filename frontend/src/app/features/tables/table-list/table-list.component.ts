@@ -8,7 +8,7 @@ import {
   IonContent, IonIcon, IonButton,
   IonRefresher, IonRefresherContent, IonSpinner,
   ToastController, ModalController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   add, eye, create, people, checkmarkCircle, closeCircle, layersOutline,

@@ -1,7 +1,7 @@
 import { Component, Input, OnDestroy, inject } from '@angular/core';
 
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { TableAppelService } from '../../../../core/services/table-appel.service';
 import { TableAppelType } from '../../../../core/models/table-appel.model';
 

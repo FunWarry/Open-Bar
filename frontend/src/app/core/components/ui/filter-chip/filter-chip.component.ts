@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { IonChip, IonIcon, IonLabel } from '@ionic/angular/standalone';
+import { IonChip, IonIcon, IonLabel } from '@ionic/angular';
 
 /**
  * Filter Chip component conforming to Figma Design System FilterChip (ID 132:86).

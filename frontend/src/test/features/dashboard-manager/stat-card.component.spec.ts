@@ -1,7 +1,7 @@
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
-import { IonCard, IonCardContent } from '@ionic/angular/standalone';
+import { IonCard, IonCardContent } from '@ionic/angular';
 import { StatCardComponent } from '../../../app/features/dashboard-manager/components/stat-card/stat-card.component';
 
 describe('StatCardComponent', () => {

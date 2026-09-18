@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { IonBadge, IonIcon } from '@ionic/angular/standalone';
+import { IonBadge, IonIcon } from '@ionic/angular';
 /**
  * User role type representation for styling badges.
  */

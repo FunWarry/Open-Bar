@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, NgZone, signal } from '@angular/core';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { TranslocoService } from '@jsverse/transloco';
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import { firstValueFrom } from 'rxjs';

@@ -9,7 +9,7 @@ import {
   IonGrid, IonRow, IonCol,
   IonCard, IonCardContent, IonCardHeader, IonCardTitle,
   IonButton, IonIcon, IonSpinner, ToastController, ModalController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { StatCardComponent } from '../../core/components/ui/stat-card/stat-card.component';
 import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';

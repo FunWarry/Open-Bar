@@ -1,6 +1,6 @@
 import { Component, Input, forwardRef } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 
 /**

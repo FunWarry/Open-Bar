@@ -8,7 +8,7 @@ import { UserService } from '../../../app/core/services/user.service';
 import { ClosureService } from '../../../app/core/services/closure.service';
 import { PublicationService, WeekSchedulePublicationDTO } from '../../../app/core/services/publication.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
-import { ModalController, ActionSheetController, ToastController, AlertController } from '@ionic/angular/standalone';
+import { ModalController, ActionSheetController, ToastController, AlertController } from '@ionic/angular';
 import { of, Subject, throwError } from 'rxjs';
 import { CsvExportService } from '../../../app/core/services/csv-export.service';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';

@@ -1,7 +1,7 @@
-import { Component, Input, Output, EventEmitter, forwardRef, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, forwardRef, OnDestroy, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 
 import { FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { searchOutline, search, closeCircle, closeCircleOutline } from 'ionicons/icons';
 import { Subject, Subscription } from 'rxjs';
@@ -32,9 +32,13 @@ import { BaseControlValueAccessor } from '../base-control-value-accessor';
 })
 export class SearchBarComponent extends BaseControlValueAccessor<string> implements OnInit, OnDestroy {
   private static nextId = 0;
+  private readonly cdr = inject(ChangeDetectorRef);
 
   /** Unique ID for input accessibility. */
   readonly inputId: string;
+
+  /** Value binding. */
+  @Input() override value: string = '';
 
   /** Placeholder text. */
   @Input() placeholder = '';
@@ -63,8 +67,6 @@ export class SearchBarComponent extends BaseControlValueAccessor<string> impleme
   /** Emitted when clear button is clicked. */
   @Output() cleared = new EventEmitter<void>();
 
-  override value: string = '';
-
   private readonly searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
 
@@ -89,6 +91,12 @@ export class SearchBarComponent extends BaseControlValueAccessor<string> impleme
 
   override writeValue(val: string): void {
     this.value = val || '';
+    this.cdr.markForCheck();
+  }
+
+  override setDisabledState(isDisabled: boolean): void {
+    super.setDisabledState(isDisabled);
+    this.cdr.markForCheck();
   }
 
   onInputChange(event: Event): void {

@@ -6,7 +6,7 @@ import {
   IonChip,
   IonToggle,
   IonLabel,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { calendarOutline, checkmarkCircleOutline, closeCircleOutline, saveOutline } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';

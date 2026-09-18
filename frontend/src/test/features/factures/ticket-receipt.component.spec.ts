@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { IonicModule } from '@ionic/angular';
-import { ToastController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { ToastController } from '@ionic/angular';
 
 import { TicketReceiptComponent } from '../../../app/features/factures/ticket-receipt/ticket-receipt.component';
 import { EtablissementService } from '../../../app/core/services/etablissement.service';
@@ -106,10 +106,10 @@ describe('TicketReceiptComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         TicketReceiptComponent,
-        IonicModule.forRoot(),
         getTranslocoTestingModule()
       ],
       providers: [
+        provideIonicAngular(),
         { provide: EtablissementService, useValue: etablissementServiceSpy },
         { provide: AppSettingsService, useValue: appSettingsServiceSpy },
         { provide: PrinterService, useValue: printerServiceSpy },

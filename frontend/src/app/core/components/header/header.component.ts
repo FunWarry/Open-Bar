@@ -7,7 +7,7 @@ import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonMenu, IonMenuButton, IonContent, IonList, IonItem, IonLabel,
   IonPopover
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import {addIcons} from 'ionicons';
 import {
   menu, beerOutline, receipt, restaurant, nutrition, shieldCheckmark,

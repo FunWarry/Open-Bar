@@ -10,7 +10,7 @@ import {
   IonRefresher, IonRefresherContent,
   IonSpinner, ToastController, IonThumbnail,
   IonGrid, IonRow, IonCol
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   add, create, trash, leafOutline, toggle, toggleOutline, gridOutline, listOutline,

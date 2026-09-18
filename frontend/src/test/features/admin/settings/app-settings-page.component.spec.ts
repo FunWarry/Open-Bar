@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
-import { ToastController, AlertController, ModalController } from '@ionic/angular/standalone';
+import { ToastController, AlertController, ModalController } from '@ionic/angular';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { AppSettingsPageComponent } from '../../../../app/features/admin/settings/app-settings-page.component';
 import { LegalComponent } from '../../../../app/features/legal/legal.component';

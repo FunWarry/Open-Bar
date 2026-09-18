@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { ToastController, IonIcon } from '@ionic/angular/standalone';
+import { ToastController, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   colorPaletteOutline,

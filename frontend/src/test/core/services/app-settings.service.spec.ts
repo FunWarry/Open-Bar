@@ -1,5 +1,6 @@
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
+import { HttpClient } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { AppSettingsService } from '../../../app/core/services/app-settings.service';
 import { AppSettings, AppSettingsUpdateRequest } from '../../../app/core/models/app-settings.model';
@@ -303,9 +304,12 @@ describe('AppSettingsService', () => {
     beforeEach(() => {
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
-        providers: [AppSettingsService]
+        providers: [
+          { provide: HttpClient, useValue: null },
+          { provide: WebSocketService, useValue: null }
+        ]
       });
-      unprovidedService = TestBed.inject(AppSettingsService);
+      unprovidedService = TestBed.runInInjectionContext(() => new AppSettingsService());
     });
 
     it('should return fallback settings on getSettings() when HttpClient is missing', (done) => {

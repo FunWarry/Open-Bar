@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {IonSpinner} from '@ionic/angular/standalone';
+import {IonSpinner} from '@ionic/angular';
 
 
 /**

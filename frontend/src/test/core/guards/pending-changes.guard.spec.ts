@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ModalController, AlertController } from '@ionic/angular/standalone';
+import { ModalController, AlertController } from '@ionic/angular';
 import { TranslocoService } from '@jsverse/transloco';
 import { of } from 'rxjs';
 import { PendingChangesGuard, HasPendingChanges } from '../../../app/core/guards/pending-changes.guard';

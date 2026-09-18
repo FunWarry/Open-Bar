@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { VariantRecipeModalComponent } from '../../../app/features/cocktails/components/variant-recipe-modal/variant-recipe-modal.component';
 import {
   CocktailVariante,

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -13,7 +13,7 @@ import {
   IonCard,
   IonCardContent,
   ModalController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import {
@@ -69,6 +69,7 @@ export class LegalComponent implements OnInit {
   private readonly route = inject(ActivatedRoute, { optional: true });
   private readonly location = inject(Location);
   private readonly modalCtrl = inject(ModalController, { optional: true });
+  private readonly cdr = inject(ChangeDetectorRef);
 
   constructor() {
     addIcons({
@@ -108,6 +109,7 @@ export class LegalComponent implements OnInit {
    */
   selectTab(tab: LegalTab): void {
     this.activeTab = tab;
+    this.cdr.markForCheck();
   }
 
   /**

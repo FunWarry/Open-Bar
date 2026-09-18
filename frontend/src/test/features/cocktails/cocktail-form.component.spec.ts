@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController, ModalController } from '@ionic/angular/standalone';
+import { ToastController, ModalController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { CocktailFormComponent } from '../../../app/features/cocktails/cocktail-form/cocktail-form.component';
 import { CocktailService } from '../../../app/core/services/cocktail.service';

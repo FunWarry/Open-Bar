@@ -1,6 +1,6 @@
 import { TestBed, ComponentFixture, fakeAsync, tick } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
-import { ModalController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { CommandeCardComponent } from '../../../app/features/commandes/commande-card/commande-card.component';
 import { Commande } from '../../../app/core/models/commande.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
@@ -28,10 +28,10 @@ describe('CommandeCardComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         CommandeCardComponent,
-        IonicModule.forRoot(),
         getTranslocoTestingModule(),
       ],
       providers: [
+        provideIonicAngular(),
         ModalController,
       ],
     }).compileComponents();

@@ -10,7 +10,7 @@
 1. [Principes d'Ingénierie & Contraintes](#1-principes-dingénierie--contraintes)
 2. [Stack Technique Détaillée & Versions](#2-stack-technique-détaillée--versions)
 3. [Architecture Backend (Spring Boot 4.1.1)](#3-architecture-backend-spring-boot-411)
-4. [Architecture Frontend (Angular 20 + Ionic 8)](#4-architecture-frontend-angular-20--ionic-8)
+4. [Architecture Frontend (Angular 22 + Ionic 9)](#4-architecture-frontend-angular-22--ionic-9)
 5. [Modèle de Données Relationnel](#5-modèle-de-données-relationnel)
 6. [Communication Temps Réel (WebSocket STOMP)](#6-communication-temps-réel-websocket-stomp)
 7. [Impression Réseau Directe ESC/POS (TCP 9100)](#7-impression-réseau-directe-escpos-tcp-9100)
@@ -53,8 +53,8 @@ OpenBar est conçu selon 4 axiomes fondamentaux :
 | **Génération PDF** | **OpenPDF** | **2.0.3** | Factures A4, Z-Reports certifiés et chevalets de table pliables. |
 | **Génération QR** | **ZXing** | **3.5.4** | Rendu matriciel PNG et vectoriel SVG pour QR tables et Wi-Fi invité. |
 | **Assainissement HTML** | **Jsoup** | **1.23.2** | Nettoyage XSS global sur tous les DTOs textuels Jackson. |
-| **Framework Frontend** | **Angular** | **20** | Composants standalone, signaux réactifs, lazy-loading strict. |
-| **Composants UI** | **Ionic** | **8.8.11** | Composants tactiles/mobiles pour tablettes comptoir et smartphones. |
+| **Framework Frontend** | **Angular** | **22** | Composants standalone, signaux réactifs, lazy-loading strict. |
+| **Composants UI** | **Ionic** | **9.0.3** | Composants tactiles/mobiles pour tablettes comptoir et smartphones. |
 | **Internationalisation**| **Transloco** | **8.4.0** | Parité stricte 1-pour-1 FR/EN sur plus de 2 500 clés. |
 | **Canvas 2D** | **Konva.js** | **10.3.2** | Plan de salle vectoriel réactif avec grille magnétique 50cm. |
 | **Base Hors-Ligne** | **IndexedDB (`idb`)** | **8.0.3** | File d'attente locale et cache d'ordres hors connexion. |
@@ -88,9 +88,9 @@ Pour garantir la maintenabilité et des démarrages ultra-rapides, l'option `spr
 
 ---
 
-## 4. Architecture Frontend (Angular 20 + Ionic 8)
+## 4. Architecture Frontend (Angular 22 + Ionic 9)
 
-L'application frontend est construite autour du paradigme moderne d'Angular 20 :
+L'application frontend est construite autour du paradigme moderne d'Angular 22 :
 - **Composants Standalone** : Zéro `NgModule` obsolète.
 - **Routage Lazy-Loaded** : 100% des routes déclarées via `loadComponent` pour un temps de chargement initial minimal.
 - **Signaux & State Management** : NgRx est réservé à l'authentification et au profil utilisateur. Toute la réactivité métier s'appuie sur des services Angular injectables et les `Signals` (`computed`, `signal`, `effect`).

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MobileTableCardComponent } from '../../../app/features/dashboard-serveur/components/mobile-table-card/mobile-table-card.component';
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
-import { provideIonicAngular } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 const mockTable: TableView = {

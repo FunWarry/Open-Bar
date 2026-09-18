@@ -6,7 +6,7 @@ import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonContent, IonFooter, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonBadge, IonSpinner, ModalController, ToastController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   closeOutline, checkmarkCircleOutline, alertCircleOutline, calculatorOutline,

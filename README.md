@@ -15,8 +15,8 @@
   <a href="https://github.com/FunWarry/Open-Bar/releases"><img src="https://img.shields.io/github/v/release/FunWarry/Open-Bar?color=blue&label=version" alt="Version" /></a>
   <a href="https://openjdk.org/projects/jdk/22/"><img src="https://img.shields.io/badge/Java-22%20(pinned)-ED8B00?logo=openjdk&logoColor=white" alt="Java 22" /></a>
   <a href="https://spring.io/projects/spring-boot"><img src="https://img.shields.io/badge/Spring%20Boot-4.1.1-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot 4.1.1" /></a>
-  <a href="https://angular.dev"><img src="https://img.shields.io/badge/Angular-20-DD0031?logo=angular&logoColor=white" alt="Angular 20" /></a>
-  <a href="https://ionicframework.com"><img src="https://img.shields.io/badge/Ionic-8.8.11-3880FF?logo=ionic&logoColor=white" alt="Ionic 8" /></a>
+  <a href="https://angular.dev"><img src="https://img.shields.io/badge/Angular-22-DD0031?logo=angular&logoColor=white" alt="Angular 22" /></a>
+  <a href="https://ionicframework.com"><img src="https://img.shields.io/badge/Ionic-9.0.3-3880FF?logo=ionic&logoColor=white" alt="Ionic 9" /></a>
   <a href="https://jsverse.github.io/transloco/"><img src="https://img.shields.io/badge/i18n-Transloco-007ACC" alt="Transloco" /></a>
   <a href="#-licence--conditions-dexploitation"><img src="https://img.shields.io/badge/License-Source--Available-amber.svg" alt="License" /></a>
 </p>
@@ -236,7 +236,7 @@ flowchart LR
 
     subgraph ServeurLocal ["Serveur Embarqué Local (Raspberry Pi 5 / Mini-PC)"]
         Nginx["🌐 Reverse Proxy Nginx\n(HTTPS :443 + HTTP :80 ➔ 301)"]
-        PWA["📦 Application Angular 20 PWA\n(Mise en cache Service Worker)"]
+        PWA["📦 Application Angular 22 PWA\n(Mise en cache Service Worker)"]
         Backend["☕ API Spring Boot 4.1.1\n(WebSocket STOMP + Événements)"]
         Postgres[("🐘 Base de Données PostgreSQL\n(Volume persistant sécurisé)")]
         Backup["💾 Sauvegardes Quotidiennes\n(Cron 03h00 + Rétention 6 mois)"]

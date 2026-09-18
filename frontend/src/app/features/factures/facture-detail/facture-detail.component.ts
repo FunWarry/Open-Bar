@@ -6,7 +6,7 @@ import { takeUntil, switchMap } from 'rxjs/operators';
 import {
   IonContent, IonIcon, ToastController,
   ModalController, IonSpinner
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   downloadOutline, peopleOutline, checkmarkCircleOutline, printOutline,

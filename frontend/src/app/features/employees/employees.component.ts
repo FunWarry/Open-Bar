@@ -17,7 +17,7 @@ import {
   IonBadge,
   IonSpinner,
   ModalController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { TranslocoModule } from '@jsverse/transloco';
 import { User } from '../../core/models/user.model';
 import { EmployeeShift } from '../../core/models/shift.model';

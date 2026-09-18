@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, Optional } from '@angular/core'
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import {
   IonIcon, IonButton, ModalController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   eye, banOutline, playOutline, checkmarkCircleOutline,

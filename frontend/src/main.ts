@@ -8,7 +8,7 @@ import {isDevMode, provideZoneChangeDetection} from '@angular/core';
 import {provideTransloco} from '@jsverse/transloco';
 import {registerLocaleData} from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
-import {provideIonicAngular} from '@ionic/angular/standalone';
+import {provideIonicAngular} from '@ionic/angular';
 
 registerLocaleData(localeFr, 'fr');
 

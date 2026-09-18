@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EmployeesComponent, EmployeeSummary } from '../../../app/features/employees/employees.component';
 import { UserService } from '../../../app/core/services/user.service';
 import { ShiftService } from '../../../app/core/services/shift.service';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';

@@ -1,6 +1,6 @@
 import {Component, Input} from '@angular/core';
 import {User} from '../../../../core/models/user.model';
-import { ModalController, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, IonIcon } from '@ionic/angular/standalone';
+import { ModalController, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, IonIcon } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 import {addIcons} from 'ionicons';

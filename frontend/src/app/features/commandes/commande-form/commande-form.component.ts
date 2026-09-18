@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonButton, IonNote, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+import { ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonButton, IonNote, IonSelect, IonSelectOption } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import { CommandeService } from '../../../core/services/commande.service';

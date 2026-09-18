@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 
 import { PersonnalisationComponent } from '../../../../app/features/admin/personnalisation/personnalisation.component';

@@ -555,7 +555,7 @@ describe('Shared UI Components (Figma Design System)', () => {
     });
 
     it('should render category badge with dot indicator and correct colors', () => {
-      component.category = 'SANS_ALCOOL';
+      fixture.componentRef.setInput('category', 'SANS_ALCOOL');
       fixture.detectChanges();
 
       const compiled = fixture.nativeElement as HTMLElement;

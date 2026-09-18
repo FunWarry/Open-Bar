@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { of } from 'rxjs';
 import { CommandeFormComponent } from '../../../app/features/commandes/commande-form/commande-form.component';
 import { CommandeService } from '../../../app/core/services/commande.service';
@@ -31,8 +31,9 @@ describe('CommandeFormComponent', () => {
       imports: [
         CommandeFormComponent,
         ReactiveFormsModule,
-        RouterTestingModule
-      , getTranslocoTestingModule()],
+        RouterTestingModule,
+        getTranslocoTestingModule()
+      ],
       providers: [
         { provide: Router, useValue: routerSpy },
         { provide: ToastController, useValue: toastCtrlSpy },

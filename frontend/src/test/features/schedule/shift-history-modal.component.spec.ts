@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { ShiftHistoryModalComponent } from '../../../app/features/schedule/shift-history-modal/shift-history-modal.component';
 import { ShiftService } from '../../../app/core/services/shift.service';

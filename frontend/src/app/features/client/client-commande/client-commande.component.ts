@@ -1,11 +1,11 @@
-import { Component, OnInit, OnDestroy, inject, signal, effect } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, effect, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { ToastController, IonIcon } from '@ionic/angular/standalone';
+import { ToastController, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   funnelOutline,
@@ -49,6 +49,11 @@ import { CocktailMatcherBarComponent, CocktailMatcherFilters } from '../../../co
 import { TableAssistanceBarComponent } from '../components/table-assistance-bar/table-assistance-bar.component';
 
 /**
+ * Navigation steps for the customer QR order lifecycle.
+ */
+export type ClientCommandeStep = 'table' | 'menu' | 'recap';
+
+/**
  * Client Commande Component allowing public customers to select a table, browse the menu,
  * select cocktails in a real-time collaborative table cart shared with table companions,
  * call the waiter, request the bill, and submit consolidated orders via QR code.
@@ -85,15 +90,31 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   private readonly webSocketService = inject(WebSocketService, { optional: true });
   private readonly toastCtrl = inject(ToastController);
   private readonly translocoService = inject(TranslocoService);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
   tableNumero: number | null = null;
-  step: 'table' | 'menu' | 'recap' = 'table';
+  private _step: ClientCommandeStep = 'table';
+  get step(): ClientCommandeStep {
+    return this._step;
+  }
+  set step(val: ClientCommandeStep) {
+    this._step = val;
+    this.cdr.markForCheck();
+  }
+
   tableForm!: FormGroup;
   nicknameForm!: FormGroup;
 
   sessionToken: string | null = null;
-  isSessionValid = true;
+  private _isSessionValid = true;
+  get isSessionValid(): boolean {
+    return this._isSessionValid;
+  }
+  set isSessionValid(val: boolean) {
+    this._isSessionValid = val;
+    this.cdr.markForCheck();
+  }
   isSessionChecking = false;
   sessionStatus: TableSessionStatus | null = null;
 

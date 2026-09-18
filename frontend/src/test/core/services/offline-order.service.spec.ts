@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { TranslocoService } from '@jsverse/transloco';
 import { OfflineOrderService } from '../../../app/core/services/offline-order.service';
 import { OfflineQueuedOrder } from '../../../app/core/models/commande.model';

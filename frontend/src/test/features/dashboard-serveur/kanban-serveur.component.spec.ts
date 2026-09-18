@@ -1,8 +1,8 @@
 import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { IonicModule } from '@ionic/angular';
-import { ModalController, ToastController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular';
 import { EMPTY, of, Subject, throwError } from 'rxjs';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { KanbanServeurComponent } from '../../../app/features/dashboard-serveur/kanban-serveur/kanban-serveur.component';
@@ -73,8 +73,9 @@ describe('KanbanServeurComponent', () => {
     } as any));
 
     await TestBed.configureTestingModule({
-      imports: [KanbanServeurComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
+      imports: [KanbanServeurComponent, RouterTestingModule, getTranslocoTestingModule()],
       providers: [
+        provideIonicAngular(),
         { provide: DashboardServeurService, useValue: serviceSpy },
         { provide: NotificationService, useValue: notificationSpy },
         { provide: WebSocketService, useValue: wsServiceSpy },

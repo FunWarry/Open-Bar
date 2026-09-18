@@ -1,7 +1,6 @@
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CartDrawerComponent } from '../../../app/features/dashboard-serveur/components/cart-drawer/cart-drawer.component';
-import { IonicModule } from '@ionic/angular';
 import { CartModel } from '../../../app/features/dashboard-serveur/models/cart.model';
 
 const mockCart: CartModel = {
@@ -11,7 +10,7 @@ const mockCart: CartModel = {
   ],
 };
 
-import { provideIonicAngular } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
 
 describe('CartDrawerComponent', () => {
   let component: CartDrawerComponent;

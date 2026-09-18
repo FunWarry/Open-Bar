@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 import { TableView } from '../../models/table-view.model';

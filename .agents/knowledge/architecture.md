@@ -21,9 +21,9 @@
 | ORM | JPA/Hibernate + Lombok `@Data` | via Spring | |
 | Security | Spring Security + custom JWT | JJWT 0.13.0 | Requires `JWT_SECRET` (≥ 32 characters) |
 | Real-time | WebSocket STOMP | via Spring | 5 active topics |
-| Frontend | Angular | 20 | |
-| UI | Ionic | 8.8.11 | Angular Material abandoned |
-| State | NgRx (store + effects) | 20 | **Auth only** — domain state uses services + signals |
+| Frontend | Angular | 22 | |
+| UI | Ionic | 9.0.3 | Angular Material abandoned |
+| State | NgRx (store + effects) | 22 | **Auth only** — domain state uses services + signals |
 | HTTP | RxJS / HttpClient | 7.8 | |
 | i18n | Transloco (`@jsverse/transloco`) | — | All user-visible text must use `{{ 'KEY' | transloco }}` |
 | Canvas | Konva.js | — | Interactive 2D floor plan |

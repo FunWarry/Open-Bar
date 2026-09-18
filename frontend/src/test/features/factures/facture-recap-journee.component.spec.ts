@@ -1,7 +1,7 @@
 import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
-import { ToastController, ModalController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { ToastController, ModalController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { FactureRecapJourneeComponent } from '../../../app/features/factures/facture-recap-journee/facture-recap-journee.component';
 import { FactureService } from '../../../app/core/services/facture.service';
@@ -87,8 +87,9 @@ describe('FactureRecapJourneeComponent', () => {
     modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
 
     await TestBed.configureTestingModule({
-      imports: [FactureRecapJourneeComponent, IonicModule.forRoot(), getTranslocoTestingModule()],
+      imports: [FactureRecapJourneeComponent, getTranslocoTestingModule()],
       providers: [
+        provideIonicAngular(),
         { provide: FactureService, useValue: factureServiceSpy },
         { provide: PrinterService, useValue: printerServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
