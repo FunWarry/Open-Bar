@@ -207,6 +207,7 @@ export class ClotureCaisseModalComponent implements OnInit, OnDestroy {
   onCountChange(key: string, value: any): void {
     const parsed = Number.parseInt(value, 10);
     this.counting[key] = Number.isNaN(parsed) || parsed < 0 ? 0 : parsed;
+    this.cdr.markForCheck();
   }
 
   /**
@@ -216,6 +217,7 @@ export class ClotureCaisseModalComponent implements OnInit, OnDestroy {
     const current = this.counting[key] || 0;
     const next = Math.max(0, current + delta);
     this.counting[key] = next;
+    this.cdr.markForCheck();
   }
 
   /**
@@ -233,6 +235,7 @@ export class ClotureCaisseModalComponent implements OnInit, OnDestroy {
       }
       this.currentStep = 4;
     }
+    this.cdr.markForCheck();
   }
 
   /**
@@ -242,6 +245,7 @@ export class ClotureCaisseModalComponent implements OnInit, OnDestroy {
     if (this.currentStep > 1 && this.currentStep <= 4) {
       this.currentStep = (this.currentStep - 1) as any;
     }
+    this.cdr.markForCheck();
   }
 
   /**
@@ -249,6 +253,7 @@ export class ClotureCaisseModalComponent implements OnInit, OnDestroy {
    */
   confirmClosure(): void {
     this.isSubmitting = true;
+    this.cdr.markForCheck();
     const request: ClotureCaisseRequest = {
       date: this.date,
       openingFloat: this.openingFloat,
@@ -262,10 +267,12 @@ export class ClotureCaisseModalComponent implements OnInit, OnDestroy {
         this.isSubmitting = false;
         this.createdClosure = closure;
         this.currentStep = 5;
+        this.cdr.markForCheck();
         this.showToast(this.transloco.translate('CLOTURE.SUCCESS_MESSAGE'), 'success');
       },
       error: (err: any) => {
         this.isSubmitting = false;
+        this.cdr.markForCheck();
         const msg = err.error?.message || this.transloco.translate('CLOTURE.ERROR_SUBMIT');
         this.showToast(msg, 'danger');
       }

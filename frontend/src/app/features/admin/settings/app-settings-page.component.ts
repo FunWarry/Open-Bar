@@ -900,11 +900,13 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     const defaults = getDefaultDenominationsForCurrency(preset.code, preset.symbol, preset.position);
     this.configuredDenominations.set(defaults);
     this.appSettingsForm.markAsDirty();
+    this.cdr.markForCheck();
   }
 
   setCurrencyPosition(position: CurrencyPosition): void {
     this.appSettingsForm.patchValue({ currencyPosition: position });
     this.appSettingsForm.markAsDirty();
+    this.cdr.markForCheck();
   }
 
   formatSamplePrice(amount: number): string {
@@ -972,6 +974,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     const position = this.appSettingsForm.get('currencyPosition')?.value || 'AFTER';
     this.configuredDenominations.set(getDefaultDenominationsForCurrency(code, symbol, position));
     this.appSettingsForm.markAsDirty();
+    this.cdr.markForCheck();
     this.showToast(this.translocoService.translate('SETTINGS.DENOMINATIONS_RESET_SUCCESS'), 'info');
   }
 
@@ -979,6 +982,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   applyVatPreset(rate: number): void {
     this.appSettingsForm.patchValue({ defaultVatRate: rate });
     this.appSettingsForm.markAsDirty();
+    this.cdr.markForCheck();
   }
 
   get effectiveVatRate(): number {

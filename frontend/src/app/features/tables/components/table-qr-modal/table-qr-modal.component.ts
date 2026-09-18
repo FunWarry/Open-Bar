@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -44,6 +44,7 @@ export class TableQrModalComponent implements OnInit, OnDestroy {
   private readonly modalCtrl = inject(ModalController);
   private readonly toastCtrl = inject(ToastController);
   private readonly transloco = inject(TranslocoService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   activeMode: QrModalMode = 'ORDER';
   qrFormat: 'PNG' | 'SVG' = 'PNG';
@@ -84,6 +85,7 @@ export class TableQrModalComponent implements OnInit, OnDestroy {
         this.settings = settings;
         this.updateOrderUrl();
         this.loadQrPreview();
+        this.cdr.markForCheck();
       });
   }
 
@@ -114,6 +116,7 @@ export class TableQrModalComponent implements OnInit, OnDestroy {
 
   loadQrPreview(): void {
     this.isLoadingPreview = true;
+    this.cdr.markForCheck();
 
     if (this.activeMode === 'WIFI') {
       this.appSettingsService.downloadWifiQrCode(this.qrFormat, this.qrSize)
@@ -125,11 +128,13 @@ export class TableQrModalComponent implements OnInit, OnDestroy {
           error: () => {
             this.isLoadingPreview = false;
             this.previewUrl = this.appSettingsService.getWifiQrCodeUrl(this.qrFormat, this.qrSize);
+            this.cdr.markForCheck();
           }
         });
     } else {
       if (!this.table?.id) {
         this.isLoadingPreview = false;
+        this.cdr.markForCheck();
         return;
       }
       this.tableService.downloadTableQrCode(this.table.id, this.qrFormat, this.qrSize)
@@ -141,6 +146,7 @@ export class TableQrModalComponent implements OnInit, OnDestroy {
           error: () => {
             this.isLoadingPreview = false;
             this.previewUrl = this.tableService.getTableQrCodeUrl(this.table.id, this.qrFormat, this.qrSize);
+            this.cdr.markForCheck();
           }
         });
     }
@@ -153,6 +159,7 @@ export class TableQrModalComponent implements OnInit, OnDestroy {
     this.currentRawBlobUrl = URL.createObjectURL(blob);
     this.previewUrl = this.currentRawBlobUrl;
     this.isLoadingPreview = false;
+    this.cdr.markForCheck();
   }
 
   setFormat(format: 'PNG' | 'SVG'): void {

@@ -1,4 +1,4 @@
-import { Directive, Input, Output, EventEmitter } from '@angular/core';
+import { Directive, Input, Output, EventEmitter, ChangeDetectorRef, inject } from '@angular/core';
 import { ControlValueAccessor } from '@angular/forms';
 
 /**
@@ -6,6 +6,8 @@ import { ControlValueAccessor } from '@angular/forms';
  */
 @Directive()
 export abstract class BaseControlValueAccessor<T = any> implements ControlValueAccessor {
+  protected readonly baseCdr = inject(ChangeDetectorRef, { optional: true });
+
   @Input() disabled = false;
   value!: T;
 
@@ -14,6 +16,7 @@ export abstract class BaseControlValueAccessor<T = any> implements ControlValueA
 
   writeValue(val: T): void {
     this.value = val;
+    this.baseCdr?.markForCheck();
   }
 
   registerOnChange(fn: (val: T) => void): void {
@@ -26,6 +29,7 @@ export abstract class BaseControlValueAccessor<T = any> implements ControlValueA
 
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
+    this.baseCdr?.markForCheck();
   }
 
   onBlur(): void {

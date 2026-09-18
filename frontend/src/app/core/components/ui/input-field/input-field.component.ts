@@ -1,4 +1,4 @@
-import { Component, Input, forwardRef } from '@angular/core';
+import { Component, Input, forwardRef, ViewChild, ElementRef } from '@angular/core';
 import { NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { IonIcon } from '@ionic/angular';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
@@ -25,6 +25,9 @@ import { BaseControlValueAccessor } from '../base-control-value-accessor';
 export class InputFieldComponent extends BaseControlValueAccessor {
   /** Counter used to generate unique IDs across all instances of this component. */
   private static nextId = 0;
+
+  /** Native input element reference for direct DOM synchronization. */
+  @ViewChild('nativeInput', { static: false }) nativeInput?: ElementRef<HTMLInputElement>;
 
   /** Unique ID linking the label to its input for accessibility. */
   readonly inputId: string;
@@ -61,6 +64,14 @@ export class InputFieldComponent extends BaseControlValueAccessor {
 
   /** Custom data-testid attribute for End-to-End testing. */
   @Input() testId = 'input-field';
+
+  /** Writes value to both component state and native input element. */
+  override writeValue(val: any): void {
+    super.writeValue(val);
+    if (this.nativeInput?.nativeElement) {
+      this.nativeInput.nativeElement.value = val ?? '';
+    }
+  }
 
   /** Input change handler. */
   onInput(event: Event): void {
