@@ -64,6 +64,12 @@ public class SampleDataSeederService {
     private static final String KEY_TEST = "Test";
     private static final String KEY_STATUT = "statut";
     private static final String KEY_DISCREPANCY_REASON = "discrepancyReason";
+    private static final String KEY_DAYS_AGO = "daysAgo";
+    private static final String KEY_CLOSED_BY_USERNAME = "closedByUsername";
+    private static final String KEY_OPENED_BY_USERNAME = "openedByUsername";
+    private static final String KEY_OPENING_FLOAT = "openingFloat";
+    private static final String KEY_OPENING_DENOMINATIONS = "openingDenominations";
+    private static final String KEY_MOVEMENTS = "movements";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -1410,17 +1416,17 @@ public class SampleDataSeederService {
 
     private Optional<DailyCashClosure> buildDailyCashClosureFromNode(JsonNode cNode, Map<String, User> usersMap) {
         String closureNumber = cNode.get("closureNumber").asText();
-        int daysAgo = cNode.has("daysAgo") ? cNode.get("daysAgo").asInt() : 1;
+        int daysAgo = cNode.has(KEY_DAYS_AGO) ? cNode.get(KEY_DAYS_AGO).asInt() : 1;
         LocalDate closureDate = LocalDate.now(timeService.getZoneId()).minusDays(daysAgo);
 
-        BigDecimal openingFloat = new BigDecimal(cNode.get("openingFloat").asText());
+        BigDecimal openingFloat = new BigDecimal(cNode.get(KEY_OPENING_FLOAT).asText());
         BigDecimal theoreticalCash = new BigDecimal(cNode.get("theoreticalCash").asText());
         BigDecimal countedCash = new BigDecimal(cNode.get("countedCash").asText());
         BigDecimal cashDiscrepancy = new BigDecimal(cNode.get("cashDiscrepancy").asText());
         BigDecimal totalRevenueHT = new BigDecimal(cNode.get("totalRevenueHT").asText());
         BigDecimal totalRevenueTTC = new BigDecimal(cNode.get("totalRevenueTTC").asText());
 
-        String closedByUsername = cNode.has("closedByUsername") ? cNode.get("closedByUsername").asText() : null;
+        String closedByUsername = cNode.has(KEY_CLOSED_BY_USERNAME) ? cNode.get(KEY_CLOSED_BY_USERNAME).asText() : null;
         User closedBy = closedByUsername != null ? usersMap.get(closedByUsername) : null;
         String discrepancyReason = cNode.has(KEY_DISCREPANCY_REASON) && !cNode.get(KEY_DISCREPANCY_REASON).isNull()
                 ? cNode.get(KEY_DISCREPANCY_REASON).asText() : null;
@@ -1482,60 +1488,68 @@ public class SampleDataSeederService {
         }
 
         for (JsonNode sNode : sessionsNode) {
-            int daysAgo = sNode.has("daysAgo") ? sNode.get("daysAgo").asInt() : 0;
-            LocalDate sessionDate = LocalDate.now(timeService.getZoneId()).minusDays(daysAgo);
-            BigDecimal openingFloat = new BigDecimal(sNode.get("openingFloat").asText());
-            CashDrawerSessionStatus status = CashDrawerSessionStatus.valueOf(sNode.get("status").asText());
-
-            String openedByUsername = sNode.has("openedByUsername") ? sNode.get("openedByUsername").asText() : "manager";
-            User openedBy = usersMap.get(openedByUsername);
-
-            CashDrawerSession session = new CashDrawerSession();
-            session.setSessionDate(sessionDate);
-            session.setOpeningFloat(openingFloat);
-            session.setStatus(status);
-            session.setOpenedBy(openedBy);
-            session.setOpenedAt(sessionDate.atTime(9, 0));
-
-            if (sNode.has("notes")) {
-                session.setNotes(sNode.get("notes").asText());
-            }
-            if (sNode.has("openingDenominations")) {
-                session.setOpeningFloatBreakdownJson(sNode.get("openingDenominations").toString());
-            }
-
-            if (status == CashDrawerSessionStatus.CLOSED) {
-                session.setClosedAt(sessionDate.atTime(23, 30));
-                if (sNode.has("closedByUsername")) {
-                    session.setClosedBy(usersMap.get(sNode.get("closedByUsername").asText()));
-                }
-            }
-
-            CashDrawerSession savedSession = cashDrawerSessionRepository.save(session);
-
-            if (sNode.has("movements") && sNode.get("movements").isArray() && cashMovementRepository != null) {
-                for (JsonNode mNode : sNode.get("movements")) {
-                    CashMovementType mType = CashMovementType.valueOf(mNode.get("type").asText());
-                    BigDecimal amount = new BigDecimal(mNode.get("amount").asText());
-                    String reason = mNode.get("reason").asText();
-                    String ref = mNode.has("receiptReference") ? mNode.get("receiptReference").asText() : null;
-                    String perfUsername = mNode.has("performedByUsername") ? mNode.get("performedByUsername").asText() : "manager";
-                    User performedBy = usersMap.get(perfUsername);
-                    long minutesAgo = mNode.has("minutesAgo") ? mNode.get("minutesAgo").asLong() : 30;
-                    LocalDateTime timestamp = timeService.now().minusMinutes(minutesAgo);
-
-                    CashMovement m = new CashMovement();
-                    m.setSession(savedSession);
-                    m.setType(mType);
-                    m.setAmount(amount);
-                    m.setReason(reason);
-                    m.setReceiptReference(ref);
-                    m.setPerformedBy(performedBy);
-                    m.setTimestamp(timestamp);
-                    cashMovementRepository.save(m);
-                }
-            }
+            seedCashDrawerSession(sNode, usersMap);
         }
         log.info("Seeded cash drawer sessions and movements from demo dataset.");
+    }
+
+    private void seedCashDrawerSession(JsonNode sNode, Map<String, User> usersMap) {
+        int daysAgo = sNode.has(KEY_DAYS_AGO) ? sNode.get(KEY_DAYS_AGO).asInt() : 0;
+        LocalDate sessionDate = LocalDate.now(timeService.getZoneId()).minusDays(daysAgo);
+        BigDecimal openingFloat = new BigDecimal(sNode.get(KEY_OPENING_FLOAT).asText());
+        CashDrawerSessionStatus status = CashDrawerSessionStatus.valueOf(sNode.get("status").asText());
+
+        String openedByUsername = sNode.has(KEY_OPENED_BY_USERNAME) ? sNode.get(KEY_OPENED_BY_USERNAME).asText() : "manager";
+        User openedBy = usersMap.get(openedByUsername);
+
+        CashDrawerSession session = new CashDrawerSession();
+        session.setSessionDate(sessionDate);
+        session.setOpeningFloat(openingFloat);
+        session.setStatus(status);
+        session.setOpenedBy(openedBy);
+        session.setOpenedAt(sessionDate.atTime(9, 0));
+
+        if (sNode.has(KEY_NOTES)) {
+            session.setNotes(sNode.get(KEY_NOTES).asText());
+        }
+        if (sNode.has(KEY_OPENING_DENOMINATIONS)) {
+            session.setOpeningFloatBreakdownJson(sNode.get(KEY_OPENING_DENOMINATIONS).toString());
+        }
+
+        if (status == CashDrawerSessionStatus.CLOSED) {
+            session.setClosedAt(sessionDate.atTime(23, 30));
+            if (sNode.has(KEY_CLOSED_BY_USERNAME)) {
+                session.setClosedBy(usersMap.get(sNode.get(KEY_CLOSED_BY_USERNAME).asText()));
+            }
+        }
+
+        CashDrawerSession savedSession = cashDrawerSessionRepository.save(session);
+        seedMovementsForSession(savedSession, sNode, usersMap);
+    }
+
+    private void seedMovementsForSession(CashDrawerSession savedSession, JsonNode sNode, Map<String, User> usersMap) {
+        if (!sNode.has(KEY_MOVEMENTS) || !sNode.get(KEY_MOVEMENTS).isArray() || cashMovementRepository == null) {
+            return;
+        }
+        for (JsonNode mNode : sNode.get(KEY_MOVEMENTS)) {
+            CashMovementType mType = CashMovementType.valueOf(mNode.get("type").asText());
+            BigDecimal amount = new BigDecimal(mNode.get("amount").asText());
+            String reason = mNode.get(KEY_REASON).asText();
+            String ref = mNode.has("receiptReference") ? mNode.get("receiptReference").asText() : null;
+            String perfUsername = mNode.has("performedByUsername") ? mNode.get("performedByUsername").asText() : "manager";
+            User performedBy = usersMap.get(perfUsername);
+            long minutesAgo = mNode.has(KEY_MINUTES_AGO) ? mNode.get(KEY_MINUTES_AGO).asLong() : 30;
+            LocalDateTime timestamp = timeService.now().minusMinutes(minutesAgo);
+
+            CashMovement m = new CashMovement();
+            m.setSession(savedSession);
+            m.setType(mType);
+            m.setAmount(amount);
+            m.setReason(reason);
+            m.setReceiptReference(ref);
+            m.setPerformedBy(performedBy);
+            m.setTimestamp(timestamp);
+            cashMovementRepository.save(m);
+        }
     }
 }

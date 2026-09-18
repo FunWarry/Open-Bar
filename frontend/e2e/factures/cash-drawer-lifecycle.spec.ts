@@ -8,6 +8,30 @@ test.describe('Cash Drawer Lifecycle & Mid-Shift X-Report E2E Flow (#450)', () =
 
     let isDrawerOpened = false;
 
+    await page.route('**/api/establishment/modules*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          cuisineKds: true,
+          happyHour: true,
+          employeeManagement: true,
+          floorPlan: true,
+          qrClientOrdering: true,
+          stockTracking: true,
+          cashDrawer: true,
+        }),
+      });
+    });
+
+    await page.route('**/api/factures/clotures*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(null),
+      });
+    });
+
     // Mock Cash Drawer Endpoints
     await page.route('**/api/cash-drawer/status*', async (route) => {
       await route.fulfill({

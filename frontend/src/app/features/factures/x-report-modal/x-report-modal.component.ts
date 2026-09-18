@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader, IonToolbar, IonButtons, IonButton, IonIcon,
@@ -46,6 +46,7 @@ export class XReportModalComponent implements OnInit {
   private readonly toastCtrl = inject(ToastController);
   private readonly transloco = inject(TranslocoService);
   private readonly cashDrawerService = inject(CashDrawerService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   xReport: XReport | null = null;
   isLoading = true;
@@ -69,13 +70,18 @@ export class XReportModalComponent implements OnInit {
    */
   loadXReport(): void {
     this.isLoading = true;
+    this.cdr.markForCheck();
     this.cashDrawerService.getXReport(this.date).subscribe({
       next: report => {
         this.xReport = report;
         this.isLoading = false;
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
       error: err => {
         this.isLoading = false;
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
         const msg = err?.error?.message || this.transloco.translate('CASH_DRAWER.X_REPORT_LOAD_ERROR');
         this.showToast(msg, 'danger');
       }
@@ -88,9 +94,11 @@ export class XReportModalComponent implements OnInit {
   printTicket(): void {
     if (this.isPrinting) return;
     this.isPrinting = true;
+    this.cdr.markForCheck();
     this.cashDrawerService.printXReport(this.date).subscribe({
       next: res => {
         this.isPrinting = false;
+        this.cdr.markForCheck();
         if (res.success) {
           this.showToast(this.transloco.translate('CASH_DRAWER.PRINT_SUCCESS'));
         } else {
@@ -99,6 +107,7 @@ export class XReportModalComponent implements OnInit {
       },
       error: () => {
         this.isPrinting = false;
+        this.cdr.markForCheck();
         this.showToast(this.transloco.translate('CASH_DRAWER.PRINT_ERROR'), 'danger');
       }
     });
@@ -110,9 +119,11 @@ export class XReportModalComponent implements OnInit {
   downloadPdf(): void {
     if (this.isDownloadingPdf) return;
     this.isDownloadingPdf = true;
+    this.cdr.markForCheck();
     this.cashDrawerService.downloadXReportPdf(this.date).subscribe({
       next: blob => {
         this.isDownloadingPdf = false;
+        this.cdr.markForCheck();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -126,6 +137,7 @@ export class XReportModalComponent implements OnInit {
       },
       error: () => {
         this.isDownloadingPdf = false;
+        this.cdr.markForCheck();
         this.showToast(this.transloco.translate('CASH_DRAWER.PDF_DOWNLOAD_ERROR'), 'danger');
       }
     });

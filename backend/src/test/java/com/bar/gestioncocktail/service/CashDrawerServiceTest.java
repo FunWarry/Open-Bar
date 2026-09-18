@@ -19,6 +19,7 @@ import org.springframework.beans.factory.ObjectProvider;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
@@ -70,7 +71,7 @@ class CashDrawerServiceTest {
 
     @BeforeEach
     void setUp() {
-        testDate = LocalDate.of(2026, 9, 18);
+        testDate = LocalDate.of(2026, Month.SEPTEMBER, 18);
         lenient().when(timeService.getZoneId()).thenReturn(ZoneId.of("Europe/Paris"));
         lenient().when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CASH_DRAWER)).thenReturn(true);
 

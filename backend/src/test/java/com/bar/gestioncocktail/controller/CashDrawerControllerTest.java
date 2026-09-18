@@ -19,6 +19,7 @@ import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,7 +51,7 @@ class CashDrawerControllerTest {
 
     @BeforeEach
     void setUp() {
-        testDate = LocalDate.of(2026, 9, 18);
+        testDate = LocalDate.of(2026, Month.SEPTEMBER, 18);
         lenient().when(authentication.getName()).thenReturn("testuser");
     }
 
