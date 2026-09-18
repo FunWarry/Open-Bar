@@ -1501,22 +1501,13 @@ public class SampleDataSeederService {
                 session.setNotes(sNode.get("notes").asText());
             }
             if (sNode.has("openingDenominations")) {
-                session.setOpeningDenominationsJson(sNode.get("openingDenominations").toString());
+                session.setOpeningFloatBreakdownJson(sNode.get("openingDenominations").toString());
             }
 
             if (status == CashDrawerSessionStatus.CLOSED) {
                 session.setClosedAt(sessionDate.atTime(23, 30));
                 if (sNode.has("closedByUsername")) {
                     session.setClosedBy(usersMap.get(sNode.get("closedByUsername").asText()));
-                }
-                if (sNode.has("countedFloatAtClose")) {
-                    session.setCountedFloatAtClose(new BigDecimal(sNode.get("countedFloatAtClose").asText()));
-                }
-                if (sNode.has("theoreticalCashAtClose")) {
-                    session.setTheoreticalCashAtClose(new BigDecimal(sNode.get("theoreticalCashAtClose").asText()));
-                }
-                if (sNode.has("cashDiscrepancy")) {
-                    session.setCashDiscrepancy(new BigDecimal(sNode.get("cashDiscrepancy").asText()));
                 }
             }
 

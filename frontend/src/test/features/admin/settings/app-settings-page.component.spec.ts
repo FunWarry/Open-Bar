@@ -795,6 +795,7 @@ describe('AppSettingsPageComponent', () => {
         floorPlan: false,
         qrClientOrdering: true,
         stockTracking: true,
+        cashDrawer: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -805,6 +806,7 @@ describe('AppSettingsPageComponent', () => {
         floorPlan: false,
         qrClientOrdering: false,
         stockTracking: false,
+        cashDrawer: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });

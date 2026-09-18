@@ -19,12 +19,9 @@ import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -100,7 +97,7 @@ class CashDrawerControllerTest {
                 testDate.atTime(9, 0)
         );
 
-        when(cashDrawerService.openDrawer(eq(req), eq("testuser"))).thenReturn(sessionDTO);
+        when(cashDrawerService.openDrawer(req, "testuser")).thenReturn(sessionDTO);
 
         ResponseEntity<CashDrawerSessionDTO> response = controller.openDrawer(req, authentication);
 
@@ -127,7 +124,7 @@ class CashDrawerControllerTest {
                 testDate.atTime(15, 0)
         );
 
-        when(cashDrawerService.recordMovement(eq(req), eq("testuser"))).thenReturn(movementDTO);
+        when(cashDrawerService.recordMovement(req, "testuser")).thenReturn(movementDTO);
 
         ResponseEntity<CashMovementDTO> response = controller.recordMovement(req, authentication);
 
@@ -183,7 +180,7 @@ class CashDrawerControllerTest {
                 List.of()
         );
 
-        when(cashDrawerService.getXReport(eq(testDate), eq("testuser"))).thenReturn(report);
+        when(cashDrawerService.getXReport(testDate, "testuser")).thenReturn(report);
 
         ResponseEntity<XReportDTO> response = controller.getXReport(testDate, authentication);
 
@@ -214,14 +211,14 @@ class CashDrawerControllerTest {
         );
 
         byte[] pdfBytes = "DUMMY-PDF-CONTENT".getBytes();
-        when(cashDrawerService.getXReport(eq(testDate), eq("testuser"))).thenReturn(report);
+        when(cashDrawerService.getXReport(testDate, "testuser")).thenReturn(report);
         when(pdfService.generateXReportPdf(report)).thenReturn(pdfBytes);
 
         ResponseEntity<byte[]> response = controller.getXReportPdf(testDate, authentication);
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getBody()).isEqualTo(pdfBytes);
-        assertThat(response.getHeaders().getContentType().toString()).isEqualTo("application/pdf");
+        assertThat(response.getHeaders().getContentType()).hasToString("application/pdf");
     }
 
     @Test
@@ -229,7 +226,7 @@ class CashDrawerControllerTest {
     void testPrintXReport() {
         PrintResultDTO printResult = PrintResultDTO.success(PrinterRole.CASH_DESK, "192.168.1.103", 9100, "80mm slip printed");
         when(cashDrawerService.resolveDate(testDate)).thenReturn(testDate);
-        when(printingService.printXReportTicket(eq(testDate), eq("testuser"))).thenReturn(printResult);
+        when(printingService.printXReportTicket(testDate, "testuser")).thenReturn(printResult);
 
         ResponseEntity<PrintResultDTO> response = controller.printXReport(testDate, authentication);
 
