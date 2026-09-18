@@ -1,0 +1,238 @@
+<ion-header class="ion-no-border cash-modal-header">
+  <ion-toolbar class="cash-toolbar">
+    <div class="toolbar-content-wrapper">
+      <div class="modal-title-group">
+        <div class="icon-avatar xreport-avatar">
+          <ion-icon name="receipt-outline"></ion-icon>
+        </div>
+        <div class="title-text-wrap">
+          <h1 class="modal-main-title" data-testid="x-report-modal-title">
+            {{ 'CASH_DRAWER.X_REPORT_TITLE' | transloco }}
+          </h1>
+          <span class="modal-subtitle">
+            {{ 'CASH_DRAWER.X_REPORT_SUBTITLE' | transloco }}
+          </span>
+        </div>
+      </div>
+      <ion-buttons slot="end">
+        <ion-button
+          class="btn-close-modal"
+          (click)="cancel()"
+          (keydown)="$event.key === 'Enter' && cancel()"
+          data-testid="x-report-close-btn"
+          [attr.aria-label]="'COMMON.CLOSE' | transloco">
+          <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="cash-modal-content">
+  @if (isLoading) {
+    <div class="loading-container" data-testid="x-report-loading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>{{ 'COMMON.LOADING' | transloco }}</span>
+    </div>
+  } @else if (xReport) {
+    <div class="modal-body-container">
+
+      <!-- Non-destructive banner -->
+      <div class="non-destructive-banner" data-testid="x-report-banner">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <div class="banner-text">
+          <strong>{{ 'CASH_DRAWER.X_PROVISIONAL_BADGE' | transloco }}</strong>
+          <span>{{ 'CASH_DRAWER.X_PROVISIONAL_DESC' | transloco }}</span>
+        </div>
+      </div>
+
+      <!-- Header Info meta -->
+      <div class="meta-strip" data-testid="x-report-meta">
+        <div class="meta-item">
+          <span class="label">{{ 'CASH_DRAWER.REPORT_DATE' | transloco }} :</span>
+          <strong class="val">{{ xReport.reportDate }}</strong>
+        </div>
+        <div class="meta-item">
+          <span class="label">{{ 'CASH_DRAWER.GENERATED_BY' | transloco }} :</span>
+          <strong class="val">{{ xReport.generatedBy }}</strong>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards Grid -->
+      <div class="kpis-grid" data-testid="x-report-kpis">
+        <div class="kpi-card">
+          <span class="kpi-title">{{ 'CASH_DRAWER.TOTAL_CA_TTC' | transloco }}</span>
+          <span class="kpi-value" data-testid="x-report-ca-ttc">{{ xReport.totalRevenueTTC | appCurrency }}</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">{{ 'CASH_DRAWER.TOTAL_CA_HT' | transloco }}</span>
+          <span class="kpi-value">{{ xReport.totalRevenueHT | appCurrency }}</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">{{ 'CASH_DRAWER.OPENING_FLOAT' | transloco }}</span>
+          <span class="kpi-value">{{ xReport.openingFloat | appCurrency }}</span>
+        </div>
+        <div class="kpi-card highlight">
+          <span class="kpi-title">{{ 'CASH_DRAWER.THEORETICAL_CASH' | transloco }}</span>
+          <span class="kpi-value" data-testid="x-report-theoretical-cash">{{ xReport.theoreticalCashInDrawer | appCurrency }}</span>
+        </div>
+      </div>
+
+      <!-- Cash Position & Reconciliation Table -->
+      <div class="section-card reconciliation-card" data-testid="x-report-reconciliation">
+        <h2 class="card-section-title">{{ 'CASH_DRAWER.POSITION_TITLE' | transloco }}</h2>
+        <div class="recon-table">
+          <div class="recon-row">
+            <span>{{ 'CASH_DRAWER.RECON_FLOAT' | transloco }}</span>
+            <strong>{{ xReport.openingFloat | appCurrency }}</strong>
+          </div>
+          <div class="recon-row">
+            <span>+ {{ 'CASH_DRAWER.RECON_SALES' | transloco }}</span>
+            <span class="amount-pos">+{{ xReport.totalCashRevenue | appCurrency }}</span>
+          </div>
+          <div class="recon-row">
+            <span>+ {{ 'CASH_DRAWER.RECON_CASH_IN' | transloco }}</span>
+            <span class="amount-pos">+{{ xReport.totalCashIn | appCurrency }}</span>
+          </div>
+          <div class="recon-row">
+            <span>- {{ 'CASH_DRAWER.RECON_CASH_DROP' | transloco }}</span>
+            <span class="amount-neg">-{{ xReport.totalCashDrop | appCurrency }}</span>
+          </div>
+          <div class="recon-row">
+            <span>- {{ 'CASH_DRAWER.RECON_PAID_OUT' | transloco }}</span>
+            <span class="amount-neg">-{{ xReport.totalPaidOut | appCurrency }}</span>
+          </div>
+          <div class="recon-row total-row">
+            <strong>{{ 'CASH_DRAWER.RECON_THEORETICAL_TOTAL' | transloco }}</strong>
+            <strong class="total-amount">{{ xReport.theoreticalCashInDrawer | appCurrency }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Intra-Day Cash Movements Section -->
+      @if (xReport.movements && xReport.movements.length > 0) {
+        <div class="section-card movements-card" data-testid="x-report-movements-section">
+          <h2 class="card-section-title">
+            {{ 'CASH_DRAWER.MOVEMENTS_LIST_TITLE' | transloco }} ({{ xReport.movements.length }})
+          </h2>
+          <div class="movements-list">
+            @for (m of xReport.movements; track m.id) {
+              <div class="movement-row" [attr.data-testid]="'movement-row-' + m.id">
+                <div class="movement-meta">
+                  <ion-badge [color]="getMovementColor(m.type)">
+                    {{ ('CASH_DRAWER.TYPE_' + m.type) | transloco }}
+                  </ion-badge>
+                  <span class="movement-reason">{{ m.reason }}</span>
+                  @if (m.receiptReference) {
+                    <span class="movement-ref">[{{ m.receiptReference }}]</span>
+                  }
+                </div>
+                <div class="movement-values">
+                  <strong class="movement-amount" [class.negative]="m.type !== 'CASH_IN'">
+                    {{ m.type === 'CASH_IN' ? '+' : '-' }}{{ m.amount | appCurrency }}
+                  </strong>
+                  <span class="movement-time">
+                    {{ m.timestamp | date:'shortTime' }}
+                  </span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Payment Method Breakdown -->
+      @if (xReport.ventilationModePaiement && xReport.ventilationModePaiement.length > 0) {
+        <div class="section-card pm-card" data-testid="x-report-payment-modes">
+          <h2 class="card-section-title">{{ 'CASH_DRAWER.PAYMENT_MODES_TITLE' | transloco }}</h2>
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>{{ 'CASH_DRAWER.COL_MODE' | transloco }}</th>
+                <th>{{ 'CASH_DRAWER.COL_COUNT' | transloco }}</th>
+                <th class="text-right">{{ 'CASH_DRAWER.COL_TOTAL_TTC' | transloco }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (pm of xReport.ventilationModePaiement; track pm.modePaiement) {
+                <tr>
+                  <td>{{ pm.modePaiement }}</td>
+                  <td>{{ pm.count }}</td>
+                  <td class="text-right font-bold">{{ pm.totalTtc | appCurrency }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- VAT Breakdown -->
+      @if (xReport.ventilationTva && xReport.ventilationTva.length > 0) {
+        <div class="section-card vat-card" data-testid="x-report-vat-breakdown">
+          <h2 class="card-section-title">{{ 'CASH_DRAWER.VAT_TITLE' | transloco }}</h2>
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>{{ 'CASH_DRAWER.COL_RATE' | transloco }}</th>
+                <th class="text-right">{{ 'CASH_DRAWER.COL_BASE_HT' | transloco }}</th>
+                <th class="text-right">{{ 'CASH_DRAWER.COL_VAT_AMOUNT' | transloco }}</th>
+                <th class="text-right">{{ 'CASH_DRAWER.COL_TOTAL_TTC' | transloco }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (v of xReport.ventilationTva; track v.taux) {
+                <tr>
+                  <td>{{ v.tauxLabel }}</td>
+                  <td class="text-right">{{ v.baseHt | appCurrency }}</td>
+                  <td class="text-right">{{ v.montantTva | appCurrency }}</td>
+                  <td class="text-right font-bold">{{ v.totalTtc | appCurrency }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+    </div>
+  }
+</ion-content>
+
+<ion-footer class="ion-no-border cash-modal-footer">
+  <div class="footer-actions">
+    <ion-button
+      fill="clear"
+      class="btn-cancel"
+      (click)="cancel()"
+      (keydown)="$event.key === 'Enter' && cancel()"
+      data-testid="x-report-close-bottom-btn">
+      {{ 'COMMON.CLOSE' | transloco }}
+    </ion-button>
+    <ion-button
+      fill="outline"
+      class="btn-print"
+      (click)="printTicket()"
+      (keydown)="$event.key === 'Enter' && printTicket()"
+      [disabled]="isPrinting || isLoading"
+      data-testid="x-report-print-btn">
+      @if (isPrinting) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        <ion-icon name="print-outline" slot="start"></ion-icon>
+        {{ 'CASH_DRAWER.PRINT_TICKET_80MM' | transloco }}
+      }
+    </ion-button>
+    <ion-button
+      class="btn-pdf"
+      (click)="downloadPdf()"
+      (keydown)="$event.key === 'Enter' && downloadPdf()"
+      [disabled]="isDownloadingPdf || isLoading"
+      data-testid="x-report-pdf-btn">
+      @if (isDownloadingPdf) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        <ion-icon name="download-outline" slot="start"></ion-icon>
+        {{ 'CASH_DRAWER.DOWNLOAD_PDF' | transloco }}
+      }
+    </ion-button>
+  </div>
+</ion-footer>

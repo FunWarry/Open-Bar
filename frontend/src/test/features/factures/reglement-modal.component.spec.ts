@@ -1,15 +1,29 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ModalController } from '@ionic/angular';
 import { ReglementModalComponent } from '../../../app/features/factures/reglement-modal/reglement-modal.component';
+import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
+import { CashDrawerService } from '../../../app/core/services/cash-drawer.service';
+import { AppSettingsService } from '../../../app/core/services/app-settings.service';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('ReglementModalComponent', () => {
   let component: ReglementModalComponent;
   let fixture: ComponentFixture<ReglementModalComponent>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
+  let featureFlagSpy: jasmine.SpyObj<FeatureFlagService>;
+  let cashDrawerSpy: jasmine.SpyObj<CashDrawerService>;
+  let appSettingsSpy: jasmine.SpyObj<AppSettingsService>;
 
   beforeEach(async () => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
+    featureFlagSpy = jasmine.createSpyObj('FeatureFlagService', ['cashDrawerEnabled']);
+    featureFlagSpy.cashDrawerEnabled.and.returnValue(false);
+    cashDrawerSpy = jasmine.createSpyObj('CashDrawerService', ['isOpened']);
+    cashDrawerSpy.isOpened.and.returnValue(true);
+    appSettingsSpy = jasmine.createSpyObj('AppSettingsService', ['formatCurrency'], {
+      currencySymbol: '€'
+    });
+    appSettingsSpy.formatCurrency.and.callFake((val: number) => `${val?.toFixed(2)} €`);
 
     await TestBed.configureTestingModule({
       imports: [
@@ -17,7 +31,10 @@ describe('ReglementModalComponent', () => {
         getTranslocoTestingModule()
       ],
       providers: [
-        { provide: ModalController, useValue: modalCtrlSpy }
+        { provide: ModalController, useValue: modalCtrlSpy },
+        { provide: FeatureFlagService, useValue: featureFlagSpy },
+        { provide: CashDrawerService, useValue: cashDrawerSpy },
+        { provide: AppSettingsService, useValue: appSettingsSpy }
       ]
     }).compileComponents();
 

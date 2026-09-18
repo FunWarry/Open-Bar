@@ -13,8 +13,10 @@ import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
+import com.bar.gestioncocktail.dto.CashMovementDTO;
 import com.bar.gestioncocktail.dto.PaymentModeSummaryDTO;
 import com.bar.gestioncocktail.dto.VatSummaryDTO;
+import com.bar.gestioncocktail.dto.XReportDTO;
 import com.bar.gestioncocktail.model.AppSettings;
 import com.bar.gestioncocktail.model.CurrencyPosition;
 import com.bar.gestioncocktail.model.DailyCashClosure;
@@ -56,6 +58,15 @@ public class PdfService {
     private static final String TOTAL_TTC_HEADER = "Total TTC";
     private static final String BASE_HT_HEADER = "Base HT";
     private static final String TAUX_TVA_HEADER = "Taux TVA";
+    private static final DateTimeFormatter DATE_ONLY_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final String ETABLISSEMENT_LABEL = "Établissement : ";
+    private static final String SIRET_LABEL = " — SIRET : ";
+    private static final String CA_TOTAL_TTC_HEADER = "CA Total TTC\n";
+    private static final String CA_TOTAL_HT_HEADER = "CA Total HT\n";
+    private static final String VENTILATION_REGLEMENT_TITLE = "VENTILATION PAR MODE DE RÈGLEMENT";
+    private static final String MODE_REGLEMENT_HEADER = "Mode de Règlement";
+    private static final String NOMBRE_HEADER = "Nombre";
+    private static final String MONTANT_TVA_HEADER = "Montant TVA";
     private static final String DEFAULT_TABLE_URL_PREFIX = "https://openbar.lan/client/commande?table=";
     private static final String TABLE_PREFIX = "TABLE ";
 
@@ -491,27 +502,27 @@ public class PdfService {
             Font mutedFont  = new Font(Font.HELVETICA, 8, Font.NORMAL, MUTED);
             Font kpiFont    = new Font(Font.HELVETICA, 11, Font.BOLD, PRIMARY);
 
-            String formattedDate = recap.date().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            String formattedDate = recap.date().format(DATE_ONLY_FMT);
             Paragraph title = new Paragraph("RÉCAPITULATIF DE CAISSE DU " + formattedDate, titleFont);
             title.setAlignment(Element.ALIGN_CENTER);
             doc.add(title);
-            doc.add(new Paragraph("Établissement : " + config.getLegalName() + " — SIRET : " + config.getSiret(), mutedFont));
+            doc.add(new Paragraph(ETABLISSEMENT_LABEL + config.getLegalName() + SIRET_LABEL + config.getSiret(), mutedFont));
             doc.add(Chunk.NEWLINE);
 
             PdfPTable kpiTable = new PdfPTable(4);
             kpiTable.setWidthPercentage(100);
-            addCell(kpiTable, "CA Total TTC\n" + formatPrix(recap.totalCaTtc().doubleValue(), settings), kpiFont, Element.ALIGN_CENTER);
-            addCell(kpiTable, "CA Total HT\n" + formatPrix(recap.totalCaHt().doubleValue(), settings), kpiFont, Element.ALIGN_CENTER);
+            addCell(kpiTable, CA_TOTAL_TTC_HEADER + formatPrix(recap.totalCaTtc().doubleValue(), settings), kpiFont, Element.ALIGN_CENTER);
+            addCell(kpiTable, CA_TOTAL_HT_HEADER + formatPrix(recap.totalCaHt().doubleValue(), settings), kpiFont, Element.ALIGN_CENTER);
             addCell(kpiTable, "Factures Réglées\n" + recap.nombreFacturesReglees(), kpiFont, Element.ALIGN_CENTER);
             addCell(kpiTable, "Panier Moyen\n" + formatPrix(recap.panierMoyen().doubleValue(), settings), kpiFont, Element.ALIGN_CENTER);
             doc.add(kpiTable);
             doc.add(Chunk.NEWLINE);
 
-            doc.add(new Paragraph("VENTILATION PAR MODE DE RÈGLEMENT", boldFont));
+            doc.add(new Paragraph(VENTILATION_REGLEMENT_TITLE, boldFont));
             PdfPTable pmTable = new PdfPTable(3);
             pmTable.setWidthPercentage(100);
             applyTableWidths(pmTable, new float[]{2f, 1f, 1.5f});
-            for (String h : new String[]{"Mode de Règlement", "Nombre", TOTAL_TTC_HEADER}) {
+            for (String h : new String[]{MODE_REGLEMENT_HEADER, NOMBRE_HEADER, TOTAL_TTC_HEADER}) {
                 PdfPCell c = new PdfPCell(new Phrase(h, headerFont));
                 c.setBackgroundColor(SURFACE);
                 c.setPadding(4);
@@ -531,7 +542,7 @@ public class PdfService {
             PdfPTable vatTable = new PdfPTable(4);
             vatTable.setWidthPercentage(100);
             applyTableWidths(vatTable, new float[]{1.2f, 1.5f, 1.5f, 1.5f});
-            for (String h : new String[]{TAUX_TVA_HEADER, BASE_HT_HEADER, "Montant TVA", TOTAL_TTC_HEADER}) {
+            for (String h : new String[]{TAUX_TVA_HEADER, BASE_HT_HEADER, MONTANT_TVA_HEADER, TOTAL_TTC_HEADER}) {
                 PdfPCell c = new PdfPCell(new Phrase(h, headerFont));
                 c.setBackgroundColor(SURFACE);
                 c.setPadding(4);
@@ -555,6 +566,208 @@ public class PdfService {
         } catch (DocumentException | IOException e) {
             throw new IllegalStateException("Error generating daily recap PDF for " + recap.date(), e);
         }
+    }
+
+    /**
+     * Generates an intermediate A4 PDF X-Report (Rapport X) showing mid-shift sales and cash drawer position.
+     *
+     * @param xReport Intermediate X-report financial snapshot
+     * @return PDF byte array
+     */
+    public byte[] generateXReportPdf(XReportDTO xReport) {
+        if (xReport == null) {
+            throw new IllegalArgumentException("X-Report snapshot cannot be null");
+        }
+
+        EstablishmentConfig config = (establishmentConfigService != null)
+                ? establishmentConfigService.getConfig()
+                : new EstablishmentConfig();
+        if (config == null) config = new EstablishmentConfig();
+
+        AppSettings settings = (appSettingsService != null)
+                ? appSettingsService.getSettings()
+                : new AppSettings();
+        if (settings == null) settings = new AppSettings();
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Document doc = new Document(PageSize.A4, 36, 36, 40, 40);
+            PdfWriter writer = PdfWriter.getInstance(doc, out);
+            writer.setPdfVersion(PdfWriter.PDF_VERSION_1_7);
+            doc.open();
+
+            Font titleFont  = new Font(Font.HELVETICA, 18, Font.BOLD, PRIMARY);
+            Font headerFont = new Font(Font.HELVETICA, 10, Font.BOLD, TEXT);
+            Font normalFont = new Font(Font.HELVETICA, 9, Font.NORMAL, DARK_TEXT);
+            Font boldFont   = new Font(Font.HELVETICA, 9, Font.BOLD, DARK_TEXT);
+            Font mutedFont  = new Font(Font.HELVETICA, 8, Font.NORMAL, MUTED);
+            Font kpiFont    = new Font(Font.HELVETICA, 11, Font.BOLD, PRIMARY);
+
+            addXReportHeaderToDoc(doc, xReport, config, titleFont, mutedFont);
+            addXReportKpiTableToDoc(doc, xReport, kpiFont, settings);
+            addXReportDrawerTableToDoc(doc, xReport, boldFont, normalFont, kpiFont, settings);
+            addXReportMovementsTableToDoc(doc, xReport, boldFont, headerFont, normalFont, settings);
+            addXReportPaymentModesTableToDoc(doc, xReport, boldFont, headerFont, normalFont, settings);
+            addXReportVatTableToDoc(doc, xReport, boldFont, headerFont, normalFont, settings);
+
+            addLegalFooterSection(doc, config, mutedFont);
+            doc.close();
+            return out.toByteArray();
+        } catch (DocumentException | IOException e) {
+            throw new IllegalStateException("Error generating X-report PDF for " + xReport.reportDate(), e);
+        }
+    }
+
+    private void addXReportHeaderToDoc(Document doc, XReportDTO xReport, EstablishmentConfig config,
+                                       Font titleFont, Font mutedFont) throws DocumentException {
+        String formattedDate = xReport.reportDate() != null ? xReport.reportDate().format(DATE_ONLY_FMT) : "";
+        String formattedTime = xReport.generatedAt() != null ? xReport.generatedAt().format(DateTimeFormatter.ofPattern("HH:mm")) : "";
+
+        Paragraph title = new Paragraph("RAPPORT X — SITUATION INTERMÉDIAIRE", titleFont);
+        title.setAlignment(Element.ALIGN_CENTER);
+        doc.add(title);
+
+        Paragraph subtitle = new Paragraph("Date : " + formattedDate + " à " + formattedTime + " — Opérateur : " + xReport.generatedBy() + " (Document provisoire non clôturant)", mutedFont);
+        subtitle.setAlignment(Element.ALIGN_CENTER);
+        doc.add(subtitle);
+        doc.add(new Paragraph(ETABLISSEMENT_LABEL + config.getLegalName() + SIRET_LABEL + config.getSiret(), mutedFont));
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private void addXReportKpiTableToDoc(Document doc, XReportDTO xReport, Font kpiFont, AppSettings settings) throws DocumentException {
+        PdfPTable kpiTable = new PdfPTable(4);
+        kpiTable.setWidthPercentage(100);
+        double caTtc = xReport.totalRevenueTTC() != null ? xReport.totalRevenueTTC().doubleValue() : 0.0;
+        double caHt = xReport.totalRevenueHT() != null ? xReport.totalRevenueHT().doubleValue() : 0.0;
+        double fond = xReport.openingFloat() != null ? xReport.openingFloat().doubleValue() : 0.0;
+        double espTheo = xReport.theoreticalCashInDrawer() != null ? xReport.theoreticalCashInDrawer().doubleValue() : 0.0;
+
+        addCell(kpiTable, CA_TOTAL_TTC_HEADER + formatPrix(caTtc, settings), kpiFont, Element.ALIGN_CENTER);
+        addCell(kpiTable, CA_TOTAL_HT_HEADER + formatPrix(caHt, settings), kpiFont, Element.ALIGN_CENTER);
+        addCell(kpiTable, "Fond Initial\n" + formatPrix(fond, settings), kpiFont, Element.ALIGN_CENTER);
+        addCell(kpiTable, "Espèces Théoriques\n" + formatPrix(espTheo, settings), kpiFont, Element.ALIGN_CENTER);
+        doc.add(kpiTable);
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private void addXReportDrawerTableToDoc(Document doc, XReportDTO xReport, Font boldFont,
+                                           Font normalFont, Font kpiFont, AppSettings settings) throws DocumentException {
+        doc.add(new Paragraph("POSITION ET RÉCONCILIATION DU TIROIR CAISSE", boldFont));
+        PdfPTable drawerTable = new PdfPTable(2);
+        drawerTable.setWidthPercentage(100);
+        applyTableWidths(drawerTable, new float[]{3f, 2f});
+
+        double fond = xReport.openingFloat() != null ? xReport.openingFloat().doubleValue() : 0.0;
+        double espTheo = xReport.theoreticalCashInDrawer() != null ? xReport.theoreticalCashInDrawer().doubleValue() : 0.0;
+        double vEsp = xReport.totalCashRevenue() != null ? xReport.totalCashRevenue().doubleValue() : 0.0;
+        double cIn = xReport.totalCashIn() != null ? xReport.totalCashIn().doubleValue() : 0.0;
+        double cDrop = xReport.totalCashDrop() != null ? xReport.totalCashDrop().doubleValue() : 0.0;
+        double cPaidOut = xReport.totalPaidOut() != null ? xReport.totalPaidOut().doubleValue() : 0.0;
+
+        addCell(drawerTable, "Fond de caisse initial", normalFont, Element.ALIGN_LEFT);
+        addCell(drawerTable, formatPrix(fond, settings), boldFont, Element.ALIGN_RIGHT);
+
+        addCell(drawerTable, "Encaissements d'espèces (ventes)", normalFont, Element.ALIGN_LEFT);
+        addCell(drawerTable, formatPrix(vEsp, settings), normalFont, Element.ALIGN_RIGHT);
+
+        addCell(drawerTable, "Entrées d'espèces (Cash In / Dépôts coffre)", normalFont, Element.ALIGN_LEFT);
+        addCell(drawerTable, "+ " + formatPrix(cIn, settings), normalFont, Element.ALIGN_RIGHT);
+
+        addCell(drawerTable, "Écrémages vers coffre (Cash Drop)", normalFont, Element.ALIGN_LEFT);
+        addCell(drawerTable, "- " + formatPrix(cDrop, settings), normalFont, Element.ALIGN_RIGHT);
+
+        addCell(drawerTable, "Dépenses sur caisse (Paid Out)", normalFont, Element.ALIGN_LEFT);
+        addCell(drawerTable, "- " + formatPrix(cPaidOut, settings), normalFont, Element.ALIGN_RIGHT);
+
+        addCell(drawerTable, "TOTAL ESPÈCES THÉORIQUES EN CAISSE", boldFont, Element.ALIGN_LEFT);
+        addCell(drawerTable, formatPrix(espTheo, settings), kpiFont, Element.ALIGN_RIGHT);
+        doc.add(drawerTable);
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private void addXReportMovementsTableToDoc(Document doc, XReportDTO xReport, Font boldFont,
+                                              Font headerFont, Font normalFont, AppSettings settings) throws DocumentException {
+        if (xReport.movements() == null || xReport.movements().isEmpty()) {
+            return;
+        }
+        doc.add(new Paragraph("MOUVEMENTS D'ESPÈCES DE LA JOURNÉE (" + xReport.movements().size() + ")", boldFont));
+        PdfPTable movTable = new PdfPTable(5);
+        movTable.setWidthPercentage(100);
+        applyTableWidths(movTable, new float[]{1.2f, 1.5f, 1.5f, 2.5f, 1.5f});
+        for (String h : new String[]{"Heure", "Type", "Montant", "Motif / Réf", "Opérateur"}) {
+            PdfPCell c = new PdfPCell(new Phrase(h, headerFont));
+            c.setBackgroundColor(SURFACE);
+            c.setPadding(4);
+            movTable.addCell(c);
+        }
+        for (CashMovementDTO m : xReport.movements()) {
+            String time = m.timestamp() != null ? m.timestamp().format(DateTimeFormatter.ofPattern("HH:mm:ss")) : "";
+            String typeLabel = switch (m.type()) {
+                case CASH_IN -> "Entrée (Cash In)";
+                case CASH_DROP -> "Écrémage (Drop)";
+                case PAID_OUT -> "Dépense (Paid Out)";
+            };
+            String refSuffix = (m.receiptReference() != null && !m.receiptReference().isBlank())
+                    ? " [" + m.receiptReference() + "]"
+                    : "";
+            String op = m.performedBy() != null ? m.performedBy().username() : "-";
+
+            addCell(movTable, time, normalFont, Element.ALIGN_CENTER);
+            addCell(movTable, typeLabel, normalFont, Element.ALIGN_LEFT);
+            addCell(movTable, formatPrix(m.amount() != null ? m.amount().doubleValue() : 0.0, settings), boldFont, Element.ALIGN_RIGHT);
+            addCell(movTable, m.reason() + refSuffix, normalFont, Element.ALIGN_LEFT);
+            addCell(movTable, op, normalFont, Element.ALIGN_CENTER);
+        }
+        doc.add(movTable);
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private void addXReportPaymentModesTableToDoc(Document doc, XReportDTO xReport, Font boldFont,
+                                                 Font headerFont, Font normalFont, AppSettings settings) throws DocumentException {
+        if (xReport.ventilationModePaiement() == null || xReport.ventilationModePaiement().isEmpty()) {
+            return;
+        }
+        doc.add(new Paragraph(VENTILATION_REGLEMENT_TITLE, boldFont));
+        PdfPTable pmTable = new PdfPTable(3);
+        pmTable.setWidthPercentage(100);
+        applyTableWidths(pmTable, new float[]{2f, 1f, 1.5f});
+        for (String h : new String[]{MODE_REGLEMENT_HEADER, NOMBRE_HEADER, TOTAL_TTC_HEADER}) {
+            PdfPCell c = new PdfPCell(new Phrase(h, headerFont));
+            c.setBackgroundColor(SURFACE);
+            c.setPadding(4);
+            pmTable.addCell(c);
+        }
+        for (PaymentModeSummaryDTO pm : xReport.ventilationModePaiement()) {
+            addCell(pmTable, pm.modePaiement(), normalFont, Element.ALIGN_LEFT);
+            addCell(pmTable, String.valueOf(pm.count()), normalFont, Element.ALIGN_CENTER);
+            addCell(pmTable, formatPrix(pm.totalTtc().doubleValue(), settings), boldFont, Element.ALIGN_RIGHT);
+        }
+        doc.add(pmTable);
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private void addXReportVatTableToDoc(Document doc, XReportDTO xReport, Font boldFont,
+                                        Font headerFont, Font normalFont, AppSettings settings) throws DocumentException {
+        if (xReport.ventilationTva() == null || xReport.ventilationTva().isEmpty()) {
+            return;
+        }
+        doc.add(new Paragraph("VENTILATION DE LA TVA", boldFont));
+        PdfPTable vatTable = new PdfPTable(4);
+        vatTable.setWidthPercentage(100);
+        applyTableWidths(vatTable, new float[]{1.2f, 1.5f, 1.5f, 1.5f});
+        for (String h : new String[]{TAUX_TVA_HEADER, BASE_HT_HEADER, MONTANT_TVA_HEADER, TOTAL_TTC_HEADER}) {
+            PdfPCell c = new PdfPCell(new Phrase(h, headerFont));
+            c.setBackgroundColor(SURFACE);
+            c.setPadding(4);
+            vatTable.addCell(c);
+        }
+        for (VatSummaryDTO vat : xReport.ventilationTva()) {
+            addCell(vatTable, vat.tauxLabel(), normalFont, Element.ALIGN_LEFT);
+            addCell(vatTable, formatPrix(vat.baseHt().doubleValue(), settings), normalFont, Element.ALIGN_RIGHT);
+            addCell(vatTable, formatPrix(vat.montantTva().doubleValue(), settings), normalFont, Element.ALIGN_RIGHT);
+            addCell(vatTable, formatPrix(vat.totalTtc().doubleValue(), settings), boldFont, Element.ALIGN_RIGHT);
+        }
+        doc.add(vatTable);
+        doc.add(Chunk.NEWLINE);
     }
 
     /**
@@ -609,7 +822,7 @@ public class PdfService {
 
     private void addZReportHeaderToDoc(Document doc, DailyCashClosure closure, EstablishmentConfig config,
                                        Font titleFont, Font boldFont, Font mutedFont) throws DocumentException {
-        String formattedDate = closure.getClosureDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        String formattedDate = closure.getClosureDate().format(DATE_ONLY_FMT);
         Paragraph title = new Paragraph("TICKET Z — CLÔTURE DE CAISSE JOURNALIÈRE", titleFont);
         title.setAlignment(Element.ALIGN_CENTER);
         doc.add(title);
@@ -623,7 +836,7 @@ public class PdfService {
                 ? closure.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy à HH:mm:ss"))
                 : "N/A";
 
-        doc.add(new Paragraph("Établissement : " + config.getLegalName() + " — SIRET : " + config.getSiret() + " — Opérateur : " + operator + " — Clôturé le : " + closedAt, mutedFont));
+        doc.add(new Paragraph(ETABLISSEMENT_LABEL + config.getLegalName() + SIRET_LABEL + config.getSiret() + " — Opérateur : " + operator + " — Clôturé le : " + closedAt, mutedFont));
         doc.add(Chunk.NEWLINE);
     }
 
@@ -639,8 +852,8 @@ public class PdfService {
     private void addKpiTableToDoc(Document doc, DailyCashClosure closure, Font kpiFont, AppSettings settings) throws DocumentException {
         PdfPTable kpiTable = new PdfPTable(4);
         kpiTable.setWidthPercentage(100);
-        addCell(kpiTable, "CA Total TTC\n" + formatPrix(closure.getTotalRevenueTTC().doubleValue(), settings), kpiFont, Element.ALIGN_CENTER);
-        addCell(kpiTable, "CA Total HT\n" + formatPrix(closure.getTotalRevenueHT().doubleValue(), settings), kpiFont, Element.ALIGN_CENTER);
+        addCell(kpiTable, CA_TOTAL_TTC_HEADER + formatPrix(closure.getTotalRevenueTTC().doubleValue(), settings), kpiFont, Element.ALIGN_CENTER);
+        addCell(kpiTable, CA_TOTAL_HT_HEADER + formatPrix(closure.getTotalRevenueHT().doubleValue(), settings), kpiFont, Element.ALIGN_CENTER);
         BigDecimal totalTva = closure.getTotalRevenueTTC().subtract(closure.getTotalRevenueHT());
         addCell(kpiTable, "Total TVA\n" + formatPrix(totalTva.doubleValue(), settings), kpiFont, Element.ALIGN_CENTER);
         addCell(kpiTable, "Écart de Caisse\n" + formatPrix(closure.getCashDiscrepancy().doubleValue(), settings), kpiFont, Element.ALIGN_CENTER);
@@ -684,11 +897,11 @@ public class PdfService {
         if (closure.getPaymentMethodsJson() == null || closure.getPaymentMethodsJson().isBlank()) {
             return;
         }
-        doc.add(new Paragraph("VENTILATION PAR MODE DE RÈGLEMENT", boldFont));
+        doc.add(new Paragraph(VENTILATION_REGLEMENT_TITLE, boldFont));
         PdfPTable pmTable = new PdfPTable(3);
         pmTable.setWidthPercentage(100);
         applyTableWidths(pmTable, new float[]{2f, 1f, 1.5f});
-        for (String h : new String[]{"Mode de Règlement", "Nombre", TOTAL_TTC_HEADER}) {
+        for (String h : new String[]{MODE_REGLEMENT_HEADER, NOMBRE_HEADER, TOTAL_TTC_HEADER}) {
             PdfPCell c = new PdfPCell(new Phrase(h, headerFont));
             c.setBackgroundColor(SURFACE);
             c.setPadding(4);
@@ -722,7 +935,7 @@ public class PdfService {
         PdfPTable vatTable = new PdfPTable(4);
         vatTable.setWidthPercentage(100);
         applyTableWidths(vatTable, new float[]{1.2f, 1.5f, 1.5f, 1.5f});
-        for (String h : new String[]{TAUX_TVA_HEADER, BASE_HT_HEADER, "Montant TVA", TOTAL_TTC_HEADER}) {
+        for (String h : new String[]{TAUX_TVA_HEADER, BASE_HT_HEADER, MONTANT_TVA_HEADER, TOTAL_TTC_HEADER}) {
             PdfPCell c = new PdfPCell(new Phrase(h, headerFont));
             c.setBackgroundColor(SURFACE);
             c.setPadding(4);

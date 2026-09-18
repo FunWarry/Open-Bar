@@ -14,6 +14,8 @@ import {
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
+import { FeatureFlagService } from '../../../core/services/feature-flag.service';
+import { CashDrawerService } from '../../../core/services/cash-drawer.service';
 
 /** Result emitted when a payment is confirmed via {@link ReglementModalComponent}. */
 export interface ReglementModalResult {
@@ -55,9 +57,21 @@ export interface ReglementModalResult {
 })
 export class ReglementModalComponent implements OnInit {
   private readonly appSettingsService = inject(AppSettingsService);
+  private readonly featureFlagService = inject(FeatureFlagService, { optional: true });
+  private readonly cashDrawerService = inject(CashDrawerService, { optional: true });
 
   get currencySymbol(): string {
     return this.appSettingsService.currencySymbol;
+  }
+
+  /**
+   * Indicates whether cash drawer module is enabled and the till is currently closed.
+   */
+  get isCashDrawerClosed(): boolean {
+    if (!this.featureFlagService?.cashDrawerEnabled()) {
+      return false;
+    }
+    return !this.cashDrawerService?.isOpened();
   }
   /** Base amount to pay in EUR. */
   @Input() initialTotal = 0;
@@ -143,6 +157,9 @@ export class ReglementModalComponent implements OnInit {
     if (!this.initialTotal || this.initialTotal < 0) {
       this.initialTotal = 0;
     }
+    if (this.featureFlagService?.cashDrawerEnabled()) {
+      this.cashDrawerService?.getStatus().subscribe();
+    }
   }
 
   /**
@@ -168,7 +185,6 @@ export class ReglementModalComponent implements OnInit {
         return this.getTipAmount(15);
       case 'custom':
         return Math.max(0, Number(this.customTip) || 0);
-      case 'none':
       default:
         return 0;
     }
@@ -180,10 +196,15 @@ export class ReglementModalComponent implements OnInit {
   }
 
   /**
-   * Returns total amount due including tip.
+   * Calculates grand total amount (initial amount + tip).
    */
   get totalWithTip(): number {
-    return Math.round((this.initialTotal + this.tip) * 100) / 100;
+    return Math.round(((Number(this.initialTotal) || 0) + this.tip) * 100) / 100;
+  }
+
+  /** Alias for backward-compatibility. */
+  get totalFinal(): number {
+    return this.totalWithTip;
   }
 
   /** Alias for backward-compatibility. */
@@ -192,10 +213,10 @@ export class ReglementModalComponent implements OnInit {
   }
 
   /**
-   * Calculates change to return for cash payments.
+   * Change amount to return to customer.
    */
   get changeToReturn(): number {
-    if (this.paymentMethod !== 'ESPECES' || this.receivedAmount === null || this.receivedAmount === undefined) {
+    if (this.paymentMethod !== 'ESPECES' || !this.receivedAmount || this.receivedAmount <= this.totalWithTip) {
       return 0;
     }
     return Math.max(0, Math.round((this.receivedAmount - this.totalWithTip) * 100) / 100);
@@ -212,6 +233,9 @@ export class ReglementModalComponent implements OnInit {
   get isReceivedAmountSufficient(): boolean {
     if (this.paymentMethod !== 'ESPECES') {
       return true;
+    }
+    if (this.isCashDrawerClosed) {
+      return false;
     }
     if (this.receivedAmount === null || this.receivedAmount === undefined) {
       return true;

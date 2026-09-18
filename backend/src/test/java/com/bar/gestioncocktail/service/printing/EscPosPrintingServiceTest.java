@@ -1,7 +1,9 @@
 package com.bar.gestioncocktail.service.printing;
 
+import com.bar.gestioncocktail.dto.CashDrawerStatusDTO;
 import com.bar.gestioncocktail.dto.PrintResultDTO;
 import com.bar.gestioncocktail.dto.PrinterStatusDTO;
+import com.bar.gestioncocktail.dto.XReportDTO;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.CommandeRepository;
@@ -17,6 +19,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,6 +49,18 @@ class EscPosPrintingServiceTest {
     private com.bar.gestioncocktail.repository.DailyCashClosureRepository dailyCashClosureRepository;
 
     @Mock
+    private com.bar.gestioncocktail.repository.CashDrawerSessionRepository cashDrawerSessionRepository;
+
+    @Mock
+    private com.bar.gestioncocktail.repository.CashMovementRepository cashMovementRepository;
+
+    @Mock
+    private org.springframework.beans.factory.ObjectProvider<com.bar.gestioncocktail.service.CashDrawerService> cashDrawerServiceProvider;
+
+    @Mock
+    private com.bar.gestioncocktail.service.CashDrawerService cashDrawerService;
+
+    @Mock
     private EscPosSocketClient socketClient;
 
     private EscPosFormatter formatter;
@@ -61,6 +78,9 @@ class EscPosPrintingServiceTest {
                 commandeRepository,
                 factureRepository,
                 dailyCashClosureRepository,
+                cashDrawerSessionRepository,
+                cashMovementRepository,
+                cashDrawerServiceProvider,
                 formatter,
                 socketClient
         );
@@ -332,5 +352,171 @@ class EscPosPrintingServiceTest {
 
         assertThat(result.success()).isFalse();
         assertThat(result.message()).contains("not configured");
+    }
+
+    @Test
+    @DisplayName("printTillOpeningSlip dispatches successfully when session exists and printer configured")
+    void printTillOpeningSlip_success() throws IOException {
+        when(appSettingsService.getSettings()).thenReturn(settings);
+        when(establishmentConfigService.getConfig()).thenReturn(legalConfig);
+
+        CashDrawerSession session = new CashDrawerSession();
+        session.setId(1L);
+        session.setSessionDate(LocalDate.of(2026, Month.SEPTEMBER, 18));
+        session.setOpeningFloat(new BigDecimal("150.00"));
+        when(cashDrawerSessionRepository.findById(1L)).thenReturn(Optional.of(session));
+
+        PrintResultDTO result = printingService.printTillOpeningSlip(1L);
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.role()).isEqualTo(PrinterRole.CASH_DESK.name());
+        verify(socketClient).send(eq("192.168.1.103"), eq(9100), any(byte[].class), anyInt());
+    }
+
+    @Test
+    @DisplayName("printTillOpeningSlip throws ResourceNotFoundException when session does not exist")
+    void printTillOpeningSlip_sessionNotFound_throwsException() {
+        when(cashDrawerSessionRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> printingService.printTillOpeningSlip(999L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Cash drawer session not found");
+    }
+
+    @Test
+    @DisplayName("printTillOpeningSlip returns error when cash desk printer IP is not configured")
+    void printTillOpeningSlip_unconfiguredIp_returnsError() {
+        CashDrawerSession session = new CashDrawerSession();
+        session.setId(1L);
+        when(cashDrawerSessionRepository.findById(1L)).thenReturn(Optional.of(session));
+
+        settings.setCashDeskPrinterIp(null);
+        when(appSettingsService.getSettings()).thenReturn(settings);
+
+        PrintResultDTO result = printingService.printTillOpeningSlip(1L);
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.message()).contains("not configured");
+    }
+
+    @Test
+    @DisplayName("printCashMovementSlip dispatches successfully when movement exists and printer configured")
+    void printCashMovementSlip_success() throws IOException {
+        when(appSettingsService.getSettings()).thenReturn(settings);
+        when(establishmentConfigService.getConfig()).thenReturn(legalConfig);
+        when(cashDrawerServiceProvider.getIfAvailable()).thenReturn(cashDrawerService);
+
+        CashMovement movement = new CashMovement();
+        movement.setId(10L);
+        movement.setType(CashMovementType.CASH_DROP);
+        movement.setAmount(new BigDecimal("100.00"));
+        movement.setReason("Coffre");
+        movement.setMovementDate(LocalDate.of(2026, Month.SEPTEMBER, 18));
+        when(cashMovementRepository.findById(10L)).thenReturn(Optional.of(movement));
+
+        CashDrawerStatusDTO status = new CashDrawerStatusDTO(
+                true,
+                null,
+                new BigDecimal("150.00"),
+                new BigDecimal("250.00"),
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                new BigDecimal("400.00"),
+                0
+        );
+        when(cashDrawerService.getStatus(movement.getMovementDate())).thenReturn(status);
+
+        PrintResultDTO result = printingService.printCashMovementSlip(10L);
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.role()).isEqualTo(PrinterRole.CASH_DESK.name());
+        verify(socketClient).send(eq("192.168.1.103"), eq(9100), any(byte[].class), anyInt());
+    }
+
+    @Test
+    @DisplayName("printCashMovementSlip throws ResourceNotFoundException when movement does not exist")
+    void printCashMovementSlip_notFound_throwsException() {
+        when(cashMovementRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> printingService.printCashMovementSlip(999L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Cash movement not found");
+    }
+
+    @Test
+    @DisplayName("printCashMovementSlip returns error when cash desk printer IP is not configured")
+    void printCashMovementSlip_unconfiguredIp_returnsError() {
+        CashMovement movement = new CashMovement();
+        movement.setId(10L);
+        when(cashMovementRepository.findById(10L)).thenReturn(Optional.of(movement));
+
+        settings.setCashDeskPrinterIp(null);
+        when(appSettingsService.getSettings()).thenReturn(settings);
+
+        PrintResultDTO result = printingService.printCashMovementSlip(10L);
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.message()).contains("not configured");
+    }
+
+    @Test
+    @DisplayName("printXReportTicket dispatches successfully when drawer service and printer configured")
+    void printXReportTicket_success() throws IOException {
+        LocalDate testDate = LocalDate.of(2026, Month.SEPTEMBER, 18);
+        when(appSettingsService.getSettings()).thenReturn(settings);
+        when(establishmentConfigService.getConfig()).thenReturn(legalConfig);
+        when(cashDrawerServiceProvider.getIfAvailable()).thenReturn(cashDrawerService);
+
+        XReportDTO xReport = new XReportDTO(
+                testDate,
+                LocalDateTime.of(2026, Month.SEPTEMBER, 18, 16, 0),
+                "manager",
+                null,
+                new BigDecimal("500.00"),
+                new BigDecimal("600.00"),
+                List.of(),
+                List.of(),
+                new BigDecimal("150.00"),
+                new BigDecimal("200.00"),
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                new BigDecimal("350.00"),
+                List.of()
+        );
+        when(cashDrawerService.getXReport(testDate, "manager")).thenReturn(xReport);
+
+        PrintResultDTO result = printingService.printXReportTicket(testDate, "manager");
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.role()).isEqualTo(PrinterRole.CASH_DESK.name());
+        verify(socketClient).send(eq("192.168.1.103"), eq(9100), any(byte[].class), anyInt());
+    }
+
+    @Test
+    @DisplayName("printXReportTicket returns error when cash desk printer IP is not configured")
+    void printXReportTicket_unconfiguredIp_returnsError() {
+        LocalDate testDate = LocalDate.of(2026, Month.SEPTEMBER, 18);
+        settings.setCashDeskPrinterIp(null);
+        when(appSettingsService.getSettings()).thenReturn(settings);
+
+        PrintResultDTO result = printingService.printXReportTicket(testDate, "manager");
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.message()).contains("not configured");
+    }
+
+    @Test
+    @DisplayName("printXReportTicket returns error when cash drawer service is unavailable")
+    void printXReportTicket_serviceUnavailable_returnsError() {
+        LocalDate testDate = LocalDate.of(2026, Month.SEPTEMBER, 18);
+        when(appSettingsService.getSettings()).thenReturn(settings);
+        when(cashDrawerServiceProvider.getIfAvailable()).thenReturn(null);
+
+        PrintResultDTO result = printingService.printXReportTicket(testDate, "manager");
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.message()).contains("unavailable");
     }
 }

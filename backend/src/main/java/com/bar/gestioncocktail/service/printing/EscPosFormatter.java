@@ -2,6 +2,7 @@ package com.bar.gestioncocktail.service.printing;
 
 import com.bar.gestioncocktail.dto.PaymentModeSummaryDTO;
 import com.bar.gestioncocktail.dto.VatSummaryDTO;
+import com.bar.gestioncocktail.dto.XReportDTO;
 import com.bar.gestioncocktail.model.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,6 +70,8 @@ public class EscPosFormatter {
     protected static final byte LF = 0x0A;
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final DateTimeFormatter DATE_DAY_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final String DEFAULT_OPERATOR = "SYSTEM";
     private static final Charset CP850 = Charset.forName("Cp850");
 
     /**
@@ -317,7 +320,7 @@ public class EscPosFormatter {
         writeText(out, "TICKET Z");
         out.write(LF);
         out.write(CMD_DOUBLE_SIZE_OFF);
-        writeText(out, "CLOTURE DE CAISSE DU " + closure.getClosureDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        writeText(out, "CLOTURE DE CAISSE DU " + closure.getClosureDate().format(DATE_DAY_FMT));
         out.write(LF);
         out.write(CMD_BOLD_OFF);
     }
@@ -332,7 +335,7 @@ public class EscPosFormatter {
         out.write(LF);
         String operator = (closure.getClosedBy() != null && closure.getClosedBy().getUsername() != null)
                 ? closure.getClosedBy().getUsername()
-                : "SYSTEM";
+                : DEFAULT_OPERATOR;
         writeText(out, "Opérateur  : " + operator);
         out.write(LF);
     }
@@ -364,6 +367,14 @@ public class EscPosFormatter {
 
         writeText(out, formatTwoColumns("Fond initial", formatAmount(closure.getOpeningFloat(), currencySymbol), LINE_WIDTH));
         out.write(LF);
+        if (closure.getTotalCashIn() != null && closure.getTotalCashIn().compareTo(BigDecimal.ZERO) > 0) {
+            writeText(out, formatTwoColumns("Entrees especes (+)", formatAmount(closure.getTotalCashIn(), currencySymbol), LINE_WIDTH));
+            out.write(LF);
+        }
+        if (closure.getTotalCashOut() != null && closure.getTotalCashOut().compareTo(BigDecimal.ZERO) > 0) {
+            writeText(out, formatTwoColumns("Sorties especes (-)", formatAmount(closure.getTotalCashOut(), currencySymbol), LINE_WIDTH));
+            out.write(LF);
+        }
         writeText(out, formatTwoColumns("Espèces attendues", formatAmount(closure.getTheoreticalCash(), currencySymbol), LINE_WIDTH));
         out.write(LF);
         writeText(out, formatTwoColumns("Espèces comptées", formatAmount(closure.getCountedCash(), currencySymbol), LINE_WIDTH));
@@ -767,10 +778,233 @@ public class EscPosFormatter {
 
     private String formatAmount(BigDecimal amount, String currencySymbol) {
         BigDecimal val = amount != null ? amount : BigDecimal.ZERO;
-        return String.format("%.2f %s", val, currencySymbol);
+        return String.format(java.util.Locale.FRANCE, "%.2f %s", val, currencySymbol);
     }
 
     private String repeat(String s, int count) {
         return count > 0 ? s.repeat(count) : "";
+    }
+
+    /**
+     * Formats an official 80mm cash till opening audit slip.
+     *
+     * @param session Target cash drawer session
+     * @param legalConfig Legal establishment details
+     * @param appSettings Visual and currency configuration
+     * @return ESC/POS raw binary byte stream
+     */
+    public byte[] formatTillOpeningSlip(CashDrawerSession session, EstablishmentConfig legalConfig, AppSettings appSettings) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            out.write(CMD_INIT);
+            out.write(CMD_CODEPAGE_CP850);
+            out.write(CMD_ALIGN_CENTER);
+            out.write(CMD_BOLD_ON);
+            writeText(out, resolveTradeName(legalConfig, appSettings));
+            out.write(LF);
+            out.write(CMD_BOLD_OFF);
+            writeText(out, "OUVERTURE DU TIROIR CAISSE");
+            out.write(LF);
+            writeText(out, repeat("=", LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_ALIGN_LEFT);
+
+            String currencySymbol = resolveCurrencySymbol(appSettings);
+            String opDate = session.getSessionDate() != null ? session.getSessionDate().format(DATE_DAY_FMT) : "";
+            String opTime = session.getOpenedAt() != null ? session.getOpenedAt().format(DateTimeFormatter.ofPattern("HH:mm:ss")) : "";
+            String opUser = session.getOpenedBy() != null ? session.getOpenedBy().getUsername() : DEFAULT_OPERATOR;
+
+            writeText(out, formatTwoColumns("Date : " + opDate, "Heure : " + opTime, LINE_WIDTH));
+            out.write(LF);
+            writeText(out, "Operateur : " + opUser);
+            out.write(LF);
+            writeText(out, repeat("-", LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_BOLD_ON);
+            writeText(out, formatTwoColumns("FOND INITIAL COMPTE :", formatAmount(session.getOpeningFloat(), currencySymbol), LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_BOLD_OFF);
+
+            if (session.getNotes() != null && !session.getNotes().isBlank()) {
+                writeText(out, "Notes : " + session.getNotes());
+                out.write(LF);
+            }
+            writeText(out, repeat("-", LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_ALIGN_CENTER);
+            writeText(out, "Caisse ouverte - Bon de controle");
+            out.write(LF);
+            feedAndCut(out, 4);
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to format till opening slip", e);
+        }
+        return out.toByteArray();
+    }
+
+    /**
+     * Formats an ESC/POS audit slip for an intra-day cash movement (in, drop, or paid out).
+     *
+     * @param movement Cash movement entity
+     * @param theoreticalCashAfter Expected drawer balance after movement
+     * @param legalConfig Legal establishment details
+     * @param appSettings Visual and currency configuration
+     * @return ESC/POS raw binary byte stream
+     */
+    public byte[] formatCashMovementSlip(CashMovement movement, BigDecimal theoreticalCashAfter, EstablishmentConfig legalConfig, AppSettings appSettings) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            out.write(CMD_INIT);
+            out.write(CMD_CODEPAGE_CP850);
+            out.write(CMD_ALIGN_CENTER);
+            out.write(CMD_BOLD_ON);
+            writeText(out, resolveTradeName(legalConfig, appSettings));
+            out.write(LF);
+            out.write(CMD_BOLD_OFF);
+
+            String title = switch (movement.getType()) {
+                case CASH_IN -> "ENTREE D'ESPECES (CASH IN)";
+                case CASH_DROP -> "ECREMAGE / DEPOT COFFRE (CASH DROP)";
+                case PAID_OUT -> "DEPENSE SUR CAISSE (PAID OUT)";
+            };
+            writeText(out, title);
+            out.write(LF);
+            writeText(out, repeat("=", LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_ALIGN_LEFT);
+
+            String currencySymbol = resolveCurrencySymbol(appSettings);
+            String timeStr = movement.getTimestamp() != null ? movement.getTimestamp().format(DATE_FMT) : "";
+            String userStr = movement.getPerformedBy() != null ? movement.getPerformedBy().getUsername() : DEFAULT_OPERATOR;
+
+            writeText(out, formatTwoColumns("Date/Heure :", timeStr, LINE_WIDTH));
+            out.write(LF);
+            writeText(out, formatTwoColumns("Operateur :", userStr, LINE_WIDTH));
+            out.write(LF);
+            if (movement.getReceiptReference() != null && !movement.getReceiptReference().isBlank()) {
+                writeText(out, formatTwoColumns("Reference :", movement.getReceiptReference(), LINE_WIDTH));
+                out.write(LF);
+            }
+            writeText(out, repeat("-", LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_BOLD_ON);
+            writeText(out, formatTwoColumns("MONTANT :", formatAmount(movement.getAmount(), currencySymbol), LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_BOLD_OFF);
+            writeText(out, "Motif : " + movement.getReason());
+            out.write(LF);
+            writeText(out, repeat("-", LINE_WIDTH));
+            out.write(LF);
+            if (theoreticalCashAfter != null) {
+                writeText(out, formatTwoColumns("Nouveau solde tiroir :", formatAmount(theoreticalCashAfter, currencySymbol), LINE_WIDTH));
+                out.write(LF);
+            }
+            out.write(CMD_ALIGN_CENTER);
+            writeText(out, "Justificatif de mouvement de caisse");
+            out.write(LF);
+            feedAndCut(out, 4);
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to format cash movement slip", e);
+        }
+        return out.toByteArray();
+    }
+
+    /**
+     * Formats an intermediate X-Report (Rapport X) for mid-shift auditing on 80mm thermal paper.
+     *
+     * @param xReport Intermediate X-report financial snapshot
+     * @param legalConfig Legal establishment details
+     * @param appSettings Visual and currency configuration
+     * @return ESC/POS raw binary byte stream
+     */
+    public byte[] formatXReportTicket(XReportDTO xReport, EstablishmentConfig legalConfig, AppSettings appSettings) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            out.write(CMD_INIT);
+            out.write(CMD_CODEPAGE_CP850);
+            out.write(CMD_ALIGN_CENTER);
+            out.write(CMD_BOLD_ON);
+            writeText(out, resolveTradeName(legalConfig, appSettings));
+            out.write(LF);
+            out.write(CMD_BOLD_OFF);
+            writeText(out, "*** RAPPORT X (INTERMEDIAIRE) ***");
+            out.write(LF);
+            writeText(out, "(Situation provisoire non cloturante)");
+            out.write(LF);
+            writeText(out, repeat("=", LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_ALIGN_LEFT);
+
+            String currencySymbol = resolveCurrencySymbol(appSettings);
+            String dateStr = xReport.reportDate() != null ? xReport.reportDate().format(DATE_DAY_FMT) : "";
+            String timeStr = xReport.generatedAt() != null ? xReport.generatedAt().format(DateTimeFormatter.ofPattern("HH:mm:ss")) : "";
+
+            writeText(out, formatTwoColumns("Date : " + dateStr, "Heure : " + timeStr, LINE_WIDTH));
+            out.write(LF);
+            writeText(out, "Operateur : " + (xReport.generatedBy() != null ? xReport.generatedBy() : DEFAULT_OPERATOR));
+            out.write(LF);
+
+            writeText(out, repeat("-", LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_BOLD_ON);
+            writeText(out, "CHIFFRE D'AFFAIRES PROVISOIRE");
+            out.write(LF);
+            out.write(CMD_BOLD_OFF);
+            writeText(out, formatTwoColumns("TOTAL VENTES TTC", formatAmount(xReport.totalRevenueTTC(), currencySymbol), LINE_WIDTH));
+            out.write(LF);
+            writeText(out, formatTwoColumns("TOTAL VENTES HT", formatAmount(xReport.totalRevenueHT(), currencySymbol), LINE_WIDTH));
+            out.write(LF);
+
+            // Drawer reconciliation
+            writeText(out, repeat("-", LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_BOLD_ON);
+            writeText(out, "POSITION TIROIR CAISSE");
+            out.write(LF);
+            out.write(CMD_BOLD_OFF);
+            writeText(out, formatTwoColumns("Fond initial", formatAmount(xReport.openingFloat(), currencySymbol), LINE_WIDTH));
+            out.write(LF);
+            writeText(out, formatTwoColumns("Ventes especes", formatAmount(xReport.totalCashRevenue(), currencySymbol), LINE_WIDTH));
+            out.write(LF);
+            writeText(out, formatTwoColumns("Entrees caisse (+)", formatAmount(xReport.totalCashIn(), currencySymbol), LINE_WIDTH));
+            out.write(LF);
+            BigDecimal totalSorties = (xReport.totalCashDrop() != null ? xReport.totalCashDrop() : BigDecimal.ZERO)
+                    .add(xReport.totalPaidOut() != null ? xReport.totalPaidOut() : BigDecimal.ZERO);
+            writeText(out, formatTwoColumns("Sorties caisse (-)", formatAmount(totalSorties, currencySymbol), LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_BOLD_ON);
+            writeText(out, formatTwoColumns("ESPECES THEORIQUES", formatAmount(xReport.theoreticalCashInDrawer(), currencySymbol), LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_BOLD_OFF);
+
+            // Payment modes breakdown
+            if (xReport.ventilationModePaiement() != null && !xReport.ventilationModePaiement().isEmpty()) {
+                writeText(out, repeat("-", LINE_WIDTH));
+                out.write(LF);
+                out.write(CMD_BOLD_ON);
+                writeText(out, "MODES DE PAIEMENT");
+                out.write(LF);
+                out.write(CMD_BOLD_OFF);
+                for (PaymentModeSummaryDTO pm : xReport.ventilationModePaiement()) {
+                    writeText(out, formatTwoColumns(pm.modePaiement() + " (" + pm.count() + ")", formatAmount(pm.totalTtc(), currencySymbol), LINE_WIDTH));
+                    out.write(LF);
+                }
+            }
+
+            writeText(out, repeat("=", LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_ALIGN_CENTER);
+            writeText(out, "FIN DU RAPPORT X");
+            out.write(LF);
+            feedAndCut(out, 4);
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to format X-report ticket", e);
+        }
+        return out.toByteArray();
+    }
+
+    private String resolveCurrencySymbol(AppSettings appSettings) {
+        return (appSettings != null && appSettings.getCurrencySymbol() != null)
+                ? appSettings.getCurrencySymbol()
+                : "€";
     }
 }

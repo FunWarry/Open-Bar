@@ -567,6 +567,18 @@
                           </div>
                           <p class="threshold-desc">{{ 'SETTINGS.MODULE_STOCK_TRACKING_DESC' | transloco }}</p>
                         </div>
+
+                        <!-- Module 7: CASH_DRAWER -->
+                        <div class="threshold-row" data-testid="module-row-cash-drawer">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="cash-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_CASH_DRAWER_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="cashDrawer" data-testid="toggle-module-cash-drawer"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_CASH_DRAWER_DESC' | transloco }}</p>
+                        </div>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -736,6 +748,26 @@
                                 </span>
                               </div>
                               <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_STOCK' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 7. Tiroir Caisse & Mouvements -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('cashDrawer')"
+                            [class.node-inactive]="!isModuleControlActive('cashDrawer')"
+                            data-testid="preview-node-cash-drawer">
+                            <div class="node-icon-box">
+                              <ion-icon name="cash-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_CASH_DRAWER_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('cashDrawer')">
+                                  {{ (isModuleControlActive('cashDrawer') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_CASH_DRAWER' | transloco }}</span>
                             </div>
                           </div>
                         </div>

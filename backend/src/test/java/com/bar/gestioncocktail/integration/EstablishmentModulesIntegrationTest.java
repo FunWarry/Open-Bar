@@ -66,7 +66,7 @@ class EstablishmentModulesIntegrationTest extends BaseIntegrationTest {
     void updateModules_asAdmin_updatesAndEnforcesFeatureGuard() throws Exception {
         // 1. Disable QR_CLIENT_ORDERING as ADMIN
         EstablishmentModulesUpdateRequest disableQr = new EstablishmentModulesUpdateRequest(
-                true, true, true, true, false, true
+                true, true, true, true, false, true, true
         );
 
         mockMvc.perform(put("/api/establishment/modules")
@@ -75,12 +75,14 @@ class EstablishmentModulesIntegrationTest extends BaseIntegrationTest {
                         .content(objectMapper.writeValueAsString(disableQr)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.qrClientOrdering").value(false))
-                .andExpect(jsonPath("$.cuisineKds").value(true));
+                .andExpect(jsonPath("$.cuisineKds").value(true))
+                .andExpect(jsonPath("$.cashDrawer").value(true));
 
         // 2. Verify public GET returns qrClientOrdering = false
         mockMvc.perform(get("/api/establishment/modules"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.qrClientOrdering").value(false));
+                .andExpect(jsonPath("$.qrClientOrdering").value(false))
+                .andExpect(jsonPath("$.cashDrawer").value(true));
 
         // 3. Attempt to place public QR order when disabled -> 400 BusinessException
         PublicCommandeItemRequestDTO item = new PublicCommandeItemRequestDTO(1L, null, 1, "No sugar");
@@ -94,7 +96,7 @@ class EstablishmentModulesIntegrationTest extends BaseIntegrationTest {
 
         // 4. Re-enable all modules
         EstablishmentModulesUpdateRequest enableAll = new EstablishmentModulesUpdateRequest(
-                true, true, true, true, true, true
+                true, true, true, true, true, true, true
         );
 
         mockMvc.perform(put("/api/establishment/modules")
@@ -102,6 +104,7 @@ class EstablishmentModulesIntegrationTest extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(enableAll)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.qrClientOrdering").value(true));
+                .andExpect(jsonPath("$.qrClientOrdering").value(true))
+                .andExpect(jsonPath("$.cashDrawer").value(true));
     }
 }

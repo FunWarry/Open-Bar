@@ -176,6 +176,7 @@ public class EstablishmentConfigService {
         if (request.floorPlan() != null) config.setModuleFloorPlanEnabled(request.floorPlan());
         if (request.qrClientOrdering() != null) config.setModuleQrClientOrderingEnabled(request.qrClientOrdering());
         if (request.stockTracking() != null) config.setModuleStockTrackingEnabled(request.stockTracking());
+        if (request.cashDrawer() != null) config.setModuleCashDrawerEnabled(request.cashDrawer());
     }
 
     private void applyLegalInfoUpdates(EstablishmentConfig config, EstablishmentConfigUpdateRequest request) {

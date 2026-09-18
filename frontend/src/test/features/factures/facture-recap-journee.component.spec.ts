@@ -10,6 +10,11 @@ import { DailyRecap } from '../../../app/core/models/daily-recap.model';
 import { DailyCashClosure } from '../../../app/core/models/daily-cash-closure.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
+import { signal } from '@angular/core';
+import { CashDrawerService } from '../../../app/core/services/cash-drawer.service';
+import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
+import { CashDrawerStatus } from '../../../app/core/models/cash-drawer.model';
+
 const mockDailyRecap: DailyRecap = {
   date: '2026-08-02',
   totalCaTtc: 100,
@@ -42,6 +47,21 @@ const mockClosure: DailyCashClosure = {
   updatedAt: '2026-08-02T23:30:00Z'
 };
 
+const mockDrawerStatus: CashDrawerStatus = {
+  isModuleEnabled: true,
+  date: '2026-08-02',
+  hasSession: true,
+  isOpened: true,
+  isClosed: false,
+  startingFloat: 150.0,
+  totalCashSales: 25.0,
+  totalCashIn: 0,
+  totalCashDrop: 0,
+  totalPaidOut: 0,
+  currentTheoreticalCash: 175.0,
+  totalMovementsCount: 0
+};
+
 describe('FactureRecapJourneeComponent', () => {
   let component: FactureRecapJourneeComponent;
   let fixture: ComponentFixture<FactureRecapJourneeComponent>;
@@ -49,11 +69,24 @@ describe('FactureRecapJourneeComponent', () => {
   let printerServiceSpy: jasmine.SpyObj<PrinterService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
+  let cashDrawerSpy: {
+    status: ReturnType<typeof signal<CashDrawerStatus | null>>;
+    isOpened: ReturnType<typeof signal<boolean>>;
+    isClosed: ReturnType<typeof signal<boolean>>;
+    startingFloat: ReturnType<typeof signal<number>>;
+    currentTheoreticalCash: ReturnType<typeof signal<number>>;
+    totalMovementsCount: ReturnType<typeof signal<number>>;
+    getStatus: jasmine.Spy;
+    refreshStatus: jasmine.Spy;
+  };
+  let featureFlagSpy: {
+    cashDrawerEnabled: ReturnType<typeof signal<boolean>>;
+  };
 
   const mockToast = { present: jasmine.createSpy('present') };
   const mockModal = {
     present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
-    onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { closed: true } }))
+    onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { closed: true, opened: true, movement: true } }))
   };
 
   beforeEach(async () => {
@@ -81,10 +114,25 @@ describe('FactureRecapJourneeComponent', () => {
     }));
 
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
-    toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
+    toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as unknown as ReturnType<ToastController['create']> extends Promise<infer U> ? U : never));
 
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
-    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as unknown as ReturnType<ModalController['create']> extends Promise<infer U> ? U : never));
+
+    cashDrawerSpy = {
+      status: signal<CashDrawerStatus | null>(mockDrawerStatus),
+      isOpened: signal(true),
+      isClosed: signal(false),
+      startingFloat: signal(150.0),
+      currentTheoreticalCash: signal(175.0),
+      totalMovementsCount: signal(0),
+      getStatus: jasmine.createSpy('getStatus').and.returnValue(of(mockDrawerStatus)),
+      refreshStatus: jasmine.createSpy('refreshStatus')
+    };
+
+    featureFlagSpy = {
+      cashDrawerEnabled: signal(true)
+    };
 
     await TestBed.configureTestingModule({
       imports: [FactureRecapJourneeComponent, getTranslocoTestingModule()],
@@ -94,6 +142,8 @@ describe('FactureRecapJourneeComponent', () => {
         { provide: PrinterService, useValue: printerServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
+        { provide: CashDrawerService, useValue: cashDrawerSpy },
+        { provide: FeatureFlagService, useValue: featureFlagSpy }
       ],
     }).compileComponents();
 
@@ -232,4 +282,35 @@ describe('FactureRecapJourneeComponent', () => {
     const pm = mockDailyRecap.ventilationModePaiement[0]; // 75 sur 100
     expect(component.getPaymentModePercentage(pm)).toBe(75);
   });
+
+  it('openCashOpeningModal() should present modal and refresh status on close', fakeAsync(() => {
+    component.openCashOpeningModal();
+    tick();
+    flushMicrotasks();
+
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(mockModal.present).toHaveBeenCalled();
+    expect(cashDrawerSpy.refreshStatus).toHaveBeenCalled();
+  }));
+
+  it('openCashMovementModal() should present modal and refresh status on close', fakeAsync(() => {
+    component.openCashMovementModal();
+    tick();
+    flushMicrotasks();
+
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(mockModal.present).toHaveBeenCalled();
+    expect(cashDrawerSpy.refreshStatus).toHaveBeenCalled();
+  }));
+
+  it('openXReportModal() should present XReportModal with selectedDate', fakeAsync(() => {
+    component.openXReportModal();
+    tick();
+    flushMicrotasks();
+
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      componentProps: { date: component.selectedDate }
+    }));
+    expect(mockModal.present).toHaveBeenCalled();
+  }));
 });

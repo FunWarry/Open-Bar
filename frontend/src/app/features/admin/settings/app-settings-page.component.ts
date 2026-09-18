@@ -324,6 +324,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     floorPlan: true,
     qrClientOrdering: true,
     stockTracking: true,
+    cashDrawer: true,
   };
   initialThemeMode: AppTheme = 'dark';
   initialColors: CustomThemeColors = { ...DEFAULT_FIGMA_PALETTE };
@@ -599,6 +600,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       floorPlan: [true],
       qrClientOrdering: [true],
       stockTracking: [true],
+      cashDrawer: [true],
     });
 
     this.etabForm = this.fb.group({
@@ -1270,14 +1272,15 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       !!current.employeeManagement === target.employeeManagement &&
       !!current.floorPlan === target.floorPlan &&
       !!current.qrClientOrdering === target.qrClientOrdering &&
-      !!current.stockTracking === target.stockTracking
+      !!current.stockTracking === target.stockTracking &&
+      !!current.cashDrawer === target.cashDrawer
     );
   }
 
   /**
    * Total count of available modular capabilities.
    */
-  readonly totalModulesCount = 6;
+  readonly totalModulesCount = 7;
 
   /**
    * Computes the number of currently active modules in modulesForm.

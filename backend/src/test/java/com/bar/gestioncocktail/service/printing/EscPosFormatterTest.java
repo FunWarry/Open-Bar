@@ -1,5 +1,8 @@
 package com.bar.gestioncocktail.service.printing;
 
+import com.bar.gestioncocktail.dto.PaymentModeSummaryDTO;
+import com.bar.gestioncocktail.dto.VatSummaryDTO;
+import com.bar.gestioncocktail.dto.XReportDTO;
 import com.bar.gestioncocktail.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -7,7 +10,9 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,7 +32,7 @@ class EscPosFormatterTest {
     void formatOrderTicket_withValidData_generatesExpectedBytes() {
         Commande commande = new Commande();
         commande.setId(42L);
-        commande.setDateCommande(LocalDateTime.of(2026, 9, 6, 20, 15));
+        commande.setDateCommande(LocalDateTime.of(2026, Month.SEPTEMBER, 6, 20, 15));
         commande.setNotes("Sans paille svp");
 
         TableEntity table = new TableEntity();
@@ -105,7 +110,7 @@ class EscPosFormatterTest {
         Facture facture = new Facture();
         facture.setId(101L);
         facture.setNumero("FAC-2026-001");
-        facture.setDateFacture(LocalDateTime.of(2026, 9, 6, 21, 30));
+        facture.setDateFacture(LocalDateTime.of(2026, Month.SEPTEMBER, 6, 21, 30));
         facture.setModePaiement("CB");
         facture.setTotalHT(new BigDecimal("20.00"));
         facture.setTotalVAT(new BigDecimal("4.00"));
@@ -204,8 +209,8 @@ class EscPosFormatterTest {
     void formatZReportTicket_withCompleteData_generatesAllSectionsAndSeal() {
         DailyCashClosure closure = new DailyCashClosure();
         closure.setClosureNumber("Z-2026-00001");
-        closure.setClosureDate(java.time.LocalDate.of(2026, 9, 6));
-        closure.setCreatedAt(LocalDateTime.of(2026, 9, 6, 23, 45, 0));
+        closure.setClosureDate(LocalDate.of(2026, Month.SEPTEMBER, 6));
+        closure.setCreatedAt(LocalDateTime.of(2026, Month.SEPTEMBER, 6, 23, 45, 0));
 
         User operator = new User();
         operator.setUsername("alice");
@@ -269,7 +274,7 @@ class EscPosFormatterTest {
     void formatZReportTicket_withMinimalDataAndNullFields_formatsGracefully() {
         DailyCashClosure closure = new DailyCashClosure();
         closure.setClosureNumber("Z-2026-00002");
-        closure.setClosureDate(java.time.LocalDate.of(2026, 9, 6));
+        closure.setClosureDate(LocalDate.of(2026, Month.SEPTEMBER, 6));
         closure.setCreatedAt(null);
         closure.setClosedBy(null);
         closure.setOpeningFloat(BigDecimal.ZERO);
@@ -298,6 +303,142 @@ class EscPosFormatterTest {
                 "SCEAU NUMERIQUE DE SECURITE",
                 "short-hash",
                 "Inalterabilite certifiee - CGI art. 286"
+        );
+    }
+
+    @Test
+    @DisplayName("formatTillOpeningSlip generates valid byte stream with float and notes")
+    void formatTillOpeningSlip_withValidSession_generatesExpectedBytes() {
+        CashDrawerSession session = new CashDrawerSession();
+        session.setId(1L);
+        session.setSessionDate(LocalDate.of(2026, Month.SEPTEMBER, 18));
+        session.setOpenedAt(LocalDateTime.of(2026, Month.SEPTEMBER, 18, 9, 0, 0));
+        session.setOpeningFloat(new BigDecimal("150.00"));
+        session.setNotes("Morning opening verified");
+
+        User user = new User();
+        user.setUsername("manager");
+        session.setOpenedBy(user);
+
+        EstablishmentConfig legalConfig = new EstablishmentConfig();
+        legalConfig.setLegalName("OpenBar Live");
+
+        AppSettings appSettings = new AppSettings();
+        appSettings.setEstablishmentName("OpenBar Live");
+        appSettings.setCurrencySymbol("€");
+
+        byte[] output = formatter.formatTillOpeningSlip(session, legalConfig, appSettings);
+
+        assertThat(output).isNotEmpty();
+        String text = new String(output, CP850);
+        assertThat(text).contains(
+                "OUVERTURE DU TIROIR CAISSE",
+                "OpenBar Live",
+                "Date : 18/09/2026",
+                "Heure : 09:00:00",
+                "Operateur : manager",
+                "FOND INITIAL COMPTE :",
+                "150,00",
+                "Notes : Morning opening verified",
+                "Caisse ouverte - Bon de controle"
+        );
+    }
+
+    @Test
+    @DisplayName("formatCashMovementSlip generates valid byte stream for all movement types")
+    void formatCashMovementSlip_forAllMovementTypes_generatesExpectedBytes() {
+        User user = new User();
+        user.setUsername("barman");
+
+        CashMovement movement = new CashMovement();
+        movement.setId(10L);
+        movement.setType(CashMovementType.CASH_DROP);
+        movement.setAmount(new BigDecimal("100.00"));
+        movement.setReason("Depot coffre fort");
+        movement.setReceiptReference("REF-DEPOT-12");
+        movement.setTimestamp(LocalDateTime.of(2026, Month.SEPTEMBER, 18, 15, 30, 0));
+        movement.setPerformedBy(user);
+
+        byte[] output = formatter.formatCashMovementSlip(movement, new BigDecimal("250.00"), null, null);
+
+        assertThat(output).isNotEmpty();
+        String text = new String(output, CP850);
+        assertThat(text).contains(
+                "ECREMAGE / DEPOT COFFRE (CASH DROP)",
+                "Operateur :",
+                "barman",
+                "Reference :",
+                "REF-DEPOT-12",
+                "MONTANT :",
+                "100,00",
+                "Motif : Depot coffre fort",
+                "Nouveau solde tiroir :",
+                "250,00",
+                "Justificatif de mouvement de caisse"
+        );
+
+        // Test CASH_IN and PAID_OUT titles
+        movement.setType(CashMovementType.CASH_IN);
+        String textIn = new String(formatter.formatCashMovementSlip(movement, null, null, null), CP850);
+        assertThat(textIn).contains("ENTREE D'ESPECES (CASH IN)");
+
+        movement.setType(CashMovementType.PAID_OUT);
+        String textOut = new String(formatter.formatCashMovementSlip(movement, null, null, null), CP850);
+        assertThat(textOut).contains("DEPENSE SUR CAISSE (PAID OUT)");
+    }
+
+    @Test
+    @DisplayName("formatXReportTicket generates valid mid-shift audit ticket with revenue and breakdown")
+    void formatXReportTicket_withFullMetrics_generatesExpectedBytes() {
+        XReportDTO report = new XReportDTO(
+                LocalDate.of(2026, Month.SEPTEMBER, 18),
+                LocalDateTime.of(2026, Month.SEPTEMBER, 18, 16, 45, 0),
+                "supervisor",
+                null,
+                new BigDecimal("500.00"),
+                new BigDecimal("600.00"),
+                List.of(new PaymentModeSummaryDTO("CARTE", 10, new BigDecimal("400.00")),
+                        new PaymentModeSummaryDTO("ESPECES", 5, new BigDecimal("200.00"))),
+                List.of(new VatSummaryDTO(VatRate.TWENTY, "20.0%", new BigDecimal("500.00"), new BigDecimal("100.00"), new BigDecimal("600.00"))),
+                new BigDecimal("150.00"),
+                new BigDecimal("200.00"),
+                new BigDecimal("50.00"),
+                new BigDecimal("40.00"),
+                new BigDecimal("10.00"),
+                new BigDecimal("350.00"),
+                List.of()
+        );
+
+        byte[] output = formatter.formatXReportTicket(report, null, null);
+
+        assertThat(output).isNotEmpty();
+        String text = new String(output, CP850);
+        assertThat(text).contains(
+                "RAPPORT X (INTERMEDIAIRE)",
+                "Situation provisoire non cloturante",
+                "Date : 18/09/2026",
+                "Heure : 16:45:00",
+                "Operateur : supervisor",
+                "CHIFFRE D'AFFAIRES PROVISOIRE",
+                "TOTAL VENTES TTC",
+                "600,00",
+                "TOTAL VENTES HT",
+                "500,00",
+                "POSITION TIROIR CAISSE",
+                "Fond initial",
+                "150,00",
+                "Ventes especes",
+                "200,00",
+                "Entrees caisse (+)",
+                "50,00",
+                "Sorties caisse (-)",
+                "50,00",
+                "ESPECES THEORIQUES",
+                "350,00",
+                "MODES DE PAIEMENT",
+                "CARTE (10)",
+                "ESPECES (5)",
+                "FIN DU RAPPORT X"
         );
     }
 }

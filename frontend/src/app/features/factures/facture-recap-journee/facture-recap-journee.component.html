@@ -58,6 +58,85 @@
       </ion-card-header>
     </ion-card>
 
+    <!-- Cash Drawer Lifecycle Status Banner (when CASH_DRAWER module is enabled) -->
+    @if (featureFlagService.cashDrawerEnabled()) {
+      <ion-card class="cash-drawer-banner-card" data-testid="cash-drawer-status-card">
+        <ion-card-content>
+          <div class="drawer-banner-wrapper">
+            <div class="drawer-info-block">
+              <div class="drawer-icon-wrap" [class.drawer-is-open]="cashDrawerService.isOpened()">
+                <ion-icon [name]="cashDrawerService.isOpened() ? 'lock-open-outline' : 'lock-closed-outline'"></ion-icon>
+              </div>
+              <div class="drawer-details">
+                <div class="drawer-headline">
+                  <h3 class="drawer-title">{{ 'CASH_DRAWER.DRAWER_LABEL' | transloco }}</h3>
+                  @if (cashDrawerService.isOpened()) {
+                    <ion-badge color="success" data-testid="drawer-status-open-badge">
+                      {{ 'CASH_DRAWER.STATUS_OPEN' | transloco }}
+                    </ion-badge>
+                  } @else {
+                    <ion-badge color="warning" data-testid="drawer-status-closed-badge">
+                      {{ 'CASH_DRAWER.STATUS_CLOSED' | transloco }}
+                    </ion-badge>
+                  }
+                </div>
+
+                @if (cashDrawerService.isOpened()) {
+                  <p class="drawer-subtext">
+                    {{ 'CASH_DRAWER.STARTING_FLOAT' | transloco }}:
+                    <strong>{{ cashDrawerService.startingFloat() | appCurrency }}</strong>
+                    &bull;
+                    {{ 'CASH_DRAWER.THEORETICAL_CASH' | transloco }}:
+                    <strong class="highlight-cash">{{ cashDrawerService.currentTheoreticalCash() | appCurrency }}</strong>
+                  </p>
+                } @else {
+                  <p class="drawer-subtext drawer-closed-hint">
+                    {{ 'CASH_DRAWER.CLOSED_HELPER' | transloco }}
+                  </p>
+                }
+              </div>
+            </div>
+
+            <div class="drawer-actions-block">
+              @if (cashDrawerService.isOpened()) {
+                <ion-button
+                  color="warning"
+                  fill="outline"
+                  size="small"
+                  (click)="openCashMovementModal()"
+                  (keydown)="$event.key === 'Enter' && openCashMovementModal()"
+                  data-testid="btn-open-cash-movement">
+                  <ion-icon name="swap-vertical-outline" slot="start"></ion-icon>
+                  {{ 'CASH_DRAWER.BTN_MOVEMENT' | transloco }}
+                </ion-button>
+              } @else {
+                <ion-button
+                  color="primary"
+                  size="small"
+                  (click)="openCashOpeningModal()"
+                  (keydown)="$event.key === 'Enter' && openCashOpeningModal()"
+                  data-testid="btn-open-cash-drawer">
+                  <ion-icon name="lock-open-outline" slot="start"></ion-icon>
+                  {{ 'CASH_DRAWER.BTN_OPEN_DRAWER' | transloco }}
+                </ion-button>
+              }
+
+              <ion-button
+                color="tertiary"
+                fill="outline"
+                size="small"
+                (click)="openXReportModal()"
+                (keydown)="$event.key === 'Enter' && openXReportModal()"
+                data-testid="btn-open-x-report">
+                <ion-icon name="document-text-outline" slot="start"></ion-icon>
+                {{ 'CASH_DRAWER.BTN_X_REPORT' | transloco }}
+              </ion-button>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    }
+
     <!-- Certified Official Status Banner if Closed -->
     @if (currentClosure) {
       <ion-card class="certified-closure-card" data-testid="certified-closure-card">
