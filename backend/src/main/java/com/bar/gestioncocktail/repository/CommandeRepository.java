@@ -22,10 +22,14 @@ import java.util.Optional;
 @Repository
 public interface CommandeRepository extends JpaRepository<Commande, Long> {
     List<Commande> findByTable(TableEntity table);
+    List<Commande> findByBarTab(com.bar.gestioncocktail.model.BarTab barTab);
+    List<Commande> findByBarTabId(Long barTabId);
+    List<Commande> findByBarTabAndStatut(com.bar.gestioncocktail.model.BarTab barTab, CommandeStatut statut);
     List<Commande> findByServeur(User serveur);
     List<Commande> findByStatut(CommandeStatut statut);
     List<Commande> findByTableAndStatut(TableEntity table, CommandeStatut statut);
     boolean existsByTableAndStatutIn(TableEntity table, List<CommandeStatut> statuts);
+    boolean existsByBarTabAndStatutIn(com.bar.gestioncocktail.model.BarTab barTab, List<CommandeStatut> statuts);
     List<Commande> findByDateCommandeBetween(LocalDateTime debut, LocalDateTime fin);
     List<Commande> findByDateCommandeAfter(LocalDateTime date);
     List<Commande> findByStatutInAndDateCommandeAfter(List<CommandeStatut> statuts, LocalDateTime date);

@@ -579,6 +579,18 @@
                           </div>
                           <p class="threshold-desc">{{ 'SETTINGS.MODULE_CASH_DRAWER_DESC' | transloco }}</p>
                         </div>
+
+                        <!-- Module 8: BAR_TABS -->
+                        <div class="threshold-row" data-testid="module-row-bar-tabs">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="receipt-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_BAR_TABS_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="barTabs" data-testid="toggle-module-bar-tabs"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_BAR_TABS_DESC' | transloco }}</p>
+                        </div>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -768,6 +780,26 @@
                                 </span>
                               </div>
                               <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_CASH_DRAWER' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 8. Ardoises & Comptes Clients -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('barTabs')"
+                            [class.node-inactive]="!isModuleControlActive('barTabs')"
+                            data-testid="preview-node-bar-tabs">
+                            <div class="node-icon-box">
+                              <ion-icon name="receipt-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_BAR_TABS_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('barTabs')">
+                                  {{ (isModuleControlActive('barTabs') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_BAR_TABS' | transloco }}</span>
                             </div>
                           </div>
                         </div>

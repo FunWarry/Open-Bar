@@ -175,6 +175,7 @@ describe('AppSettingsPageComponent', () => {
       qrClientOrdering: true,
       stockTracking: true,
       cashDrawer: true,
+      barTabs: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
 
@@ -778,6 +779,7 @@ describe('AppSettingsPageComponent', () => {
         qrClientOrdering: true,
         stockTracking: true,
         cashDrawer: true,
+        barTabs: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -796,6 +798,7 @@ describe('AppSettingsPageComponent', () => {
         qrClientOrdering: true,
         stockTracking: true,
         cashDrawer: false,
+        barTabs: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -807,6 +810,7 @@ describe('AppSettingsPageComponent', () => {
         qrClientOrdering: false,
         stockTracking: false,
         cashDrawer: false,
+        barTabs: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });
@@ -850,6 +854,7 @@ describe('AppSettingsPageComponent', () => {
         qrClientOrdering: false,
         stockTracking: false,
         cashDrawer: false,
+        barTabs: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();

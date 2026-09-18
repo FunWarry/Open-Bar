@@ -1360,6 +1360,111 @@ export async function setupMockApi(page: Page): Promise<void> {
       }),
     });
   });
+
+  await page.route('**/api/bar-tabs**', async (route) => {
+    const method = route.request().method();
+    const url = route.request().url();
+
+    if (url.includes('/addition')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          tabId: 1,
+          tabNom: 'Client VIP - Dupont',
+          referenceClient: 'CB-9921',
+          totalHT: 15.0,
+          totalVAT: 3.0,
+          totalTTC: 18.0,
+          totalArticles: 2,
+          hasUnpaidFacture: false,
+          commandeIds: [101],
+          items: [
+            {
+              cocktailNom: 'Mojito Passion',
+              quantite: 2,
+              prixUnitaire: 9.0,
+              total: 18.0,
+              vatRate: 20.0,
+              vatAmount: 3.0,
+              priceHT: 15.0,
+            },
+          ],
+        }),
+      });
+      return;
+    }
+
+    if (url.includes('/encaisser')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 501,
+          numero: 'FAC-2026-00042',
+          total: 18.0,
+          totalHT: 15.0,
+          totalVAT: 3.0,
+          totalTTC: 18.0,
+          pourboire: 0,
+          dateFacture: new Date().toISOString(),
+          dateReglement: new Date().toISOString(),
+          reglee: true,
+          modePaiement: 'CARTE',
+          barTabId: 1,
+          barTabNom: 'Client VIP - Dupont',
+          items: [],
+          reglements: [],
+        }),
+      });
+      return;
+    }
+
+    if (method === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 99,
+          nom: body.nom || 'Nouvelle Ardoise',
+          clientReference: body.clientReference || null,
+          notes: body.notes || null,
+          cautionMontant: body.cautionMontant || 0,
+          statut: 'ACTIVE',
+          serveurId: 1,
+          serveurNom: 'Admin',
+          openedAt: new Date().toISOString(),
+          total: 0,
+          activeOrdersCount: 0,
+          itemsCount: 0,
+        }),
+      });
+      return;
+    }
+
+    // Default GET: list active tabs
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          nom: 'Client VIP - Dupont',
+          clientReference: 'CB-9921',
+          notes: 'Client habituel au comptoir',
+          cautionMontant: 50.0,
+          statut: 'ACTIVE',
+          serveurId: 1,
+          serveurNom: 'Admin',
+          openedAt: new Date(Date.now() - 3600000).toISOString(),
+          total: 18.0,
+          activeOrdersCount: 1,
+          itemsCount: 2,
+        },
+      ]),
+    });
+  });
 }
 
 

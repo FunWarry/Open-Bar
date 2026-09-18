@@ -12,6 +12,7 @@ import com.bar.gestioncocktail.model.EstablishmentConfig;
  * @param qrClientOrdering    Whether customer self-ordering via table QR code is enabled
  * @param stockTracking       Whether automatic stock deduction and shrinkage tracking are enabled
  * @param cashDrawer          Whether daily cash register drawer lifecycle and intermediate X-reports are enabled
+ * @param barTabs             Whether customer bar tabs and running ledgers without mandatory physical table assignment are enabled
  */
 public record EstablishmentModulesDTO(
         boolean cuisineKds,
@@ -20,8 +21,20 @@ public record EstablishmentModulesDTO(
         boolean floorPlan,
         boolean qrClientOrdering,
         boolean stockTracking,
-        boolean cashDrawer
+        boolean cashDrawer,
+        boolean barTabs
 ) {
+    public EstablishmentModulesDTO(
+            boolean cuisineKds,
+            boolean happyHour,
+            boolean employeeManagement,
+            boolean floorPlan,
+            boolean qrClientOrdering,
+            boolean stockTracking,
+            boolean cashDrawer
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, true);
+    }
 
     /**
      * Constructs a DTO from an {@link EstablishmentConfig} entity.
@@ -40,7 +53,8 @@ public record EstablishmentModulesDTO(
                 config.getModuleFloorPlanEnabled() == null || config.getModuleFloorPlanEnabled(),
                 config.getModuleQrClientOrderingEnabled() == null || config.getModuleQrClientOrderingEnabled(),
                 config.getModuleStockTrackingEnabled() == null || config.getModuleStockTrackingEnabled(),
-                config.getModuleCashDrawerEnabled() == null || config.getModuleCashDrawerEnabled()
+                config.getModuleCashDrawerEnabled() == null || config.getModuleCashDrawerEnabled(),
+                config.getModuleBarTabsEnabled() == null || config.getModuleBarTabsEnabled()
         );
     }
 
@@ -50,6 +64,6 @@ public record EstablishmentModulesDTO(
      * @return New instance with all flags set to true
      */
     public static EstablishmentModulesDTO defaultEnabled() {
-        return new EstablishmentModulesDTO(true, true, true, true, true, true, true);
+        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true);
     }
 }

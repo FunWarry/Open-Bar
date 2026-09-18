@@ -4,16 +4,16 @@ import { IonIcon } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 import { addIcons } from 'ionicons';
-import { restaurantOutline, cartOutline, listOutline } from 'ionicons/icons';
+import { restaurantOutline, cartOutline, listOutline, receiptOutline } from 'ionicons/icons';
 
 /**
  * Identifier for active tab in Waiter mobile view.
  */
-export type ServeurTab = 'tables' | 'commande' | 'suivi';
+export type ServeurTab = 'tables' | 'tabs' | 'commande' | 'suivi';
 
 /**
  * Bottom navigation bar component for waiter mobile view (< 768px).
- * Provides quick access to tables, fast order entry, and active order tracking.
+ * Provides quick access to tables, running tabs, fast order entry, and active order tracking.
  */
 @Component({
   selector: 'app-bottom-navigation',
@@ -26,6 +26,10 @@ export type ServeurTab = 'tables' | 'commande' | 'suivi';
 export class BottomNavigationComponent {
   /** Currently active navigation tab */
   @Input() activeTab: ServeurTab = 'tables';
+  /** Whether the BAR_TABS module is enabled */
+  @Input() barTabsEnabled = false;
+  /** Badge count for active bar tabs */
+  @Input() tabsBadgeCount = 0;
   /** Badge count for items currently in cart */
   @Input() cartBadgeCount = 0;
   /** Badge count for pending/active orders */
@@ -35,7 +39,7 @@ export class BottomNavigationComponent {
   @Output() tabSelect = new EventEmitter<ServeurTab>();
 
   constructor() {
-    addIcons({ restaurantOutline, cartOutline, listOutline });
+    addIcons({ restaurantOutline, receiptOutline, cartOutline, listOutline });
   }
 
   /**

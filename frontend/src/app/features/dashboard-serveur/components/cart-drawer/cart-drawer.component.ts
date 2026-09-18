@@ -11,7 +11,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 
 import { addIcons } from 'ionicons';
-import { cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutline, createOutline } from 'ionicons/icons';
+import { cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutline, createOutline, receiptOutline } from 'ionicons/icons';
 
 /**
  * Drawer modal presenting current order cart lines during server order taking.
@@ -47,7 +47,7 @@ export class CartDrawerComponent {
   @Output() editCustomization = new EventEmitter<CartItemModel>();
 
   constructor() {
-    addIcons({ cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutline, createOutline });
+    addIcons({ cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutline, createOutline, receiptOutline });
   }
 
   onEditItem(item: CartItemModel) {

@@ -3,9 +3,11 @@
     <ion-title>
       <div class="toolbar-title-wrap">
         <ion-icon name="receipt-outline" class="title-icon"></ion-icon>
-        <span>{{ 'ENCAISSEMENT.MODAL_TITLE' | transloco }} - {{ table.nom }}</span>
-        @if (table.zone) {
-          <ion-badge color="secondary" class="zone-badge">{{ table.zone }}</ion-badge>
+        <span>{{ 'ENCAISSEMENT.MODAL_TITLE' | transloco }} - {{ tab ? tab.nom : (table?.nom || '') }}</span>
+        @if (table?.zone) {
+          <ion-badge color="secondary" class="zone-badge">{{ table?.zone }}</ion-badge>
+        } @else if (tab?.referenceClient) {
+          <ion-badge color="secondary" class="zone-badge">{{ tab?.referenceClient }}</ion-badge>
         }
       </div>
     </ion-title>

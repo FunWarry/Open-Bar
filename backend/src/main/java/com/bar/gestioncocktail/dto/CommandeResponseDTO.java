@@ -37,6 +37,8 @@ public record CommandeResponseDTO(
     Long id,
     Long tableId,
     Integer tableNumero,
+    Long barTabId,
+    String barTabNom,
     Long serveurId,
     String serveurUsername,
     List<CommandeItemResponseDTO> items,
@@ -55,6 +57,34 @@ public record CommandeResponseDTO(
     LocalDateTime updatedAt
 ) {
     /**
+     * Backward-compatible constructor without barTab fields.
+     */
+    public CommandeResponseDTO(
+        Long id,
+        Long tableId,
+        Integer tableNumero,
+        Long serveurId,
+        String serveurUsername,
+        List<CommandeItemResponseDTO> items,
+        CommandeStatut statut,
+        String notes,
+        BigDecimal total,
+        BigDecimal pourboire,
+        boolean prioritaire,
+        String clientRequestId,
+        LocalDateTime dateCommande,
+        LocalDateTime datePreparation,
+        LocalDateTime datePret,
+        LocalDateTime dateLivraison,
+        LocalDateTime dateReglement,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        this(id, tableId, tableNumero, null, null, serveurId, serveurUsername, items, statut, notes, total, pourboire,
+             prioritaire, clientRequestId, dateCommande, datePreparation, datePret, dateLivraison, dateReglement, createdAt, updatedAt);
+    }
+
+    /**
      * Converts a {@link Commande} entity into a response DTO.
      *
      * @param c Order entity
@@ -69,6 +99,17 @@ public record CommandeResponseDTO(
             if (c.getTable() != null) {
                 tableId = c.getTable().getId();
                 tableNumero = c.getTable().getNumero();
+            }
+        } catch (Exception _) {
+            // Lazy load fallback
+        }
+
+        Long barTabId = null;
+        String barTabNom = null;
+        try {
+            if (c.getBarTab() != null) {
+                barTabId = c.getBarTab().getId();
+                barTabNom = c.getBarTab().getNom();
             }
         } catch (Exception _) {
             // Lazy load fallback
@@ -92,6 +133,8 @@ public record CommandeResponseDTO(
             c.getId(),
             tableId,
             tableNumero,
+            barTabId,
+            barTabNom,
             serveurId,
             serveurUsername,
             items,

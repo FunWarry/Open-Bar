@@ -11,24 +11,34 @@
     }
   </div>
 
-  <!-- Table Selector -->
-  <div class="table-selector-wrap">
-    <label for="table-select-cart">{{ 'SERVEUR.ASSIGNED_TABLE' | transloco }} :</label>
-    <ion-select
-      id="table-select-cart"
-      [attr.aria-label]="'SERVEUR.ASSIGNED_TABLE' | transloco"
-      [value]="cart.tableId"
-      [placeholder]="'SERVEUR.SELECT_TABLE' | transloco"
-      interface="popover"
-      data-testid="select-cart-table"
-      (ionChange)="onTableChanged($event)">
-      @for (t of tables; track t) {
-        <ion-select-option [value]="t.id">
-          {{ t.nom || 'Table #' + t.id }} ({{ t.zone }})
-        </ion-select-option>
-      }
-    </ion-select>
-  </div>
+  <!-- Table / Tab Selector -->
+  @if (cart.barTabId) {
+    <div class="table-selector-wrap" data-testid="cart-bar-tab-indicator">
+      <label>{{ 'TABS.TITLE' | transloco }} :</label>
+      <div class="tab-assigned-badge" style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--primary);">
+        <ion-icon name="receipt-outline"></ion-icon>
+        <span>{{ cart.barTabNom }}</span>
+      </div>
+    </div>
+  } @else {
+    <div class="table-selector-wrap">
+      <label for="table-select-cart">{{ 'SERVEUR.ASSIGNED_TABLE' | transloco }} :</label>
+      <ion-select
+        id="table-select-cart"
+        [attr.aria-label]="'SERVEUR.ASSIGNED_TABLE' | transloco"
+        [value]="cart.tableId"
+        [placeholder]="'SERVEUR.SELECT_TABLE' | transloco"
+        interface="popover"
+        data-testid="select-cart-table"
+        (ionChange)="onTableChanged($event)">
+        @for (t of tables; track t) {
+          <ion-select-option [value]="t.id">
+            Table #{{ t.numero }} ({{ t.zone || 'Salle' }})
+          </ion-select-option>
+        }
+      </ion-select>
+    </div>
+  }
 
   <!-- Cart Items List -->
   <div class="cart-body">
@@ -90,7 +100,7 @@
         size="medium"
         iconLeft="paper-plane-outline"
         testId="btn-submit-cart"
-        [disabled]="!cart.tableId || isSubmitting"
+        [disabled]="(!cart.tableId && !cart.barTabId) || isSubmitting"
         (click)="onSubmit()"
         (keyup.enter)="onSubmit()">
         {{ 'SERVEUR.SEND_PREPARATION' | transloco }}

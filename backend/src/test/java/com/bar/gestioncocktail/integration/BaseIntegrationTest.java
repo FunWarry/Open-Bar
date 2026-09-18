@@ -44,8 +44,8 @@ public abstract class BaseIntegrationTest {
     static {
         try {
             postgres.start();
-        } catch (Exception _) {
-            // Optional start if DB is pre-provisioned in test environment
+        } catch (Exception ex) {
+            org.slf4j.LoggerFactory.getLogger(BaseIntegrationTest.class).debug("Postgres container start skipped or deferred: {}", ex.getMessage());
         }
     }
 

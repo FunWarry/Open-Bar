@@ -8,6 +8,22 @@
     <span>{{ 'SERVEUR_MOBILE.NAV.TABLES' | transloco }}</span>
   </button>
 
+  @if (barTabsEnabled) {
+    <button
+      class="nav-tab"
+      [class.active]="activeTab === 'tabs'"
+      [attr.data-testid]="'bottom-nav-tab-tabs'"
+      (click)="onSelect('tabs')">
+      <div class="icon-wrap">
+        <ion-icon name="receipt-outline"></ion-icon>
+        @if (tabsBadgeCount > 0) {
+          <span class="badge" [attr.data-testid]="'tabs-badge-count'">{{ tabsBadgeCount }}</span>
+        }
+      </div>
+      <span>{{ 'SERVEUR_MOBILE.NAV.TABS' | transloco }}</span>
+    </button>
+  }
+
   <button
     class="nav-tab"
     [class.active]="activeTab === 'commande'"

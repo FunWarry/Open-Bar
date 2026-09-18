@@ -101,6 +101,7 @@ public class SampleDataSeederService {
     private final DailyCashClosureRepository dailyCashClosureRepository;
     private final CashDrawerSessionRepository cashDrawerSessionRepository;
     private final CashMovementRepository cashMovementRepository;
+    private final BarTabRepository barTabRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -137,7 +138,8 @@ public class SampleDataSeederService {
             @org.springframework.beans.factory.annotation.Autowired(required = false) StockMovementRepository stockMovementRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) DailyCashClosureRepository dailyCashClosureRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) CashDrawerSessionRepository cashDrawerSessionRepository,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) CashMovementRepository cashMovementRepository) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) CashMovementRepository cashMovementRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) BarTabRepository barTabRepository) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -168,6 +170,7 @@ public class SampleDataSeederService {
         this.dailyCashClosureRepository = dailyCashClosureRepository;
         this.cashDrawerSessionRepository = cashDrawerSessionRepository;
         this.cashMovementRepository = cashMovementRepository;
+        this.barTabRepository = barTabRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -391,6 +394,7 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedStockMovementsFromJson(root.get("stock_movements"), usersMap), "seedStockMovements");
             safelyInTransaction(() -> seedDailyCashClosuresFromJson(root.get("daily_cash_closures"), usersMap), "seedDailyCashClosures");
             safelyInTransaction(() -> seedCashDrawerSessionsFromJson(root.get("cash_drawer_sessions"), usersMap), "seedCashDrawerSessions");
+            safelyInTransaction(() -> seedBarTabsFromJson(root.get("bar_tabs"), usersMap), "seedBarTabs");
 
         } catch (Exception e) {
             log.error("Failed to seed demo dataset from JSON file '{}'", DATASET_PATH, e);
@@ -1550,6 +1554,42 @@ public class SampleDataSeederService {
             m.setPerformedBy(performedBy);
             m.setTimestamp(timestamp);
             cashMovementRepository.save(m);
+        }
+    }
+
+    private void seedBarTabsFromJson(JsonNode tabsNode, Map<String, User> usersMap) {
+        if (tabsNode == null || !tabsNode.isArray() || barTabRepository == null) {
+            return;
+        }
+        if (barTabRepository.count() > 0) {
+            log.info("Bar tabs already seeded ({} records). Skipping.", barTabRepository.count());
+            return;
+        }
+        log.info("Seeding {} bar tabs from demo dataset...", tabsNode.size());
+        for (JsonNode tNode : tabsNode) {
+            String nom = tNode.get("nom").asText();
+            String ref = tNode.has("clientReference") && !tNode.get("clientReference").isNull() ? tNode.get("clientReference").asText() : null;
+            String notes = tNode.has(KEY_NOTES) && !tNode.get(KEY_NOTES).isNull() ? tNode.get(KEY_NOTES).asText() : null;
+            BigDecimal caution = tNode.has("cautionMontant") && !tNode.get("cautionMontant").isNull() ? new BigDecimal(tNode.get("cautionMontant").asText()) : null;
+            BarTabStatus status = BarTabStatus.valueOf(tNode.get("statut").asText());
+            long minutesAgo = tNode.has(KEY_MINUTES_AGO) ? tNode.get(KEY_MINUTES_AGO).asLong() : 45;
+            LocalDateTime openedAt = timeService.now().minusMinutes(minutesAgo);
+
+            String serveurUsername = tNode.has(KEY_SERVEUR_USERNAME) ? tNode.get(KEY_SERVEUR_USERNAME).asText() : "serveur1";
+            User serveur = usersMap.get(serveurUsername);
+
+            BarTab tab = new BarTab();
+            tab.setNom(nom);
+            tab.setClientReference(ref);
+            tab.setNotes(notes);
+            tab.setCautionMontant(caution);
+            tab.setStatut(status);
+            tab.setServeur(serveur);
+            tab.setOpenedAt(openedAt);
+            if (status == BarTabStatus.SETTLED) {
+                tab.setSettledAt(timeService.now().minusMinutes(10));
+            }
+            barTabRepository.save(tab);
         }
     }
 }

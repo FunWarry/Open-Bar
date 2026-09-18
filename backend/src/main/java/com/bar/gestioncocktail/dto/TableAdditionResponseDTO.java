@@ -39,6 +39,26 @@ public record TableAdditionResponseDTO(
     BigDecimal totalTTC,
     int nombreArticles,
     boolean hasUnpaidFacture,
-    Long existingFactureId
+    Long existingFactureId,
+    Long tabId,
+    String tabNom
 ) {
+    public TableAdditionResponseDTO(
+        Long tableId,
+        Integer tableNumero,
+        String zone,
+        Long serveurId,
+        String serveurNom,
+        LocalDateTime dateOccupation,
+        List<TableAdditionItemDTO> items,
+        List<Long> commandeIds,
+        BigDecimal totalHT,
+        BigDecimal totalVAT,
+        BigDecimal totalTTC,
+        int nombreArticles,
+        boolean hasUnpaidFacture,
+        Long existingFactureId
+    ) {
+        this(tableId, tableNumero, zone, serveurId, serveurNom, dateOccupation, items, commandeIds, totalHT, totalVAT, totalTTC, nombreArticles, hasUnpaidFacture, existingFactureId, null, null);
+    }
 }

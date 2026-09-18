@@ -30,6 +30,7 @@ describe('ModuleGuard', () => {
     qrClientOrdering: true,
     stockTracking: true,
     cashDrawer: true,
+    barTabs: true,
   };
 
   beforeEach(() => {

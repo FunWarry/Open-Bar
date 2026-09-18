@@ -1,0 +1,87 @@
+<div class="bar-tabs-container" data-testid="bar-tabs-container">
+  <!-- Controls row: Summary stats + Search bar + New Tab CTA -->
+  <div class="tabs-header-card">
+    <div class="stats-and-actions">
+      <div class="tabs-stats-group">
+        <div class="stat-pill active-tabs" data-testid="pill-active-tabs-count">
+          <ion-icon name="receipt-outline"></ion-icon>
+          <span class="stat-label">
+            {{ (barTabService.activeCount() > 1 ? 'TABS.ACTIVE_COUNT_PLURAL' : 'TABS.ACTIVE_COUNT') | transloco: { count: barTabService.activeCount() } }}
+          </span>
+        </div>
+
+        <div class="stat-pill total-balance" data-testid="pill-total-balance">
+          <ion-icon name="wallet-outline"></ion-icon>
+          <span class="stat-label">
+            {{ 'TABS.TOTAL_BALANCE' | transloco }}: <strong>{{ barTabService.activeTotalAmount() | appCurrency }}</strong>
+          </span>
+        </div>
+      </div>
+
+      <div class="actions-group">
+        <ion-button
+          fill="clear"
+          size="small"
+          class="refresh-btn"
+          data-testid="btn-refresh-tabs"
+          (click)="refreshTabs()"
+          [disabled]="barTabService.loading()">
+          <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+
+        <ion-button
+          fill="solid"
+          color="primary"
+          class="new-tab-btn"
+          data-testid="btn-open-new-tab"
+          (click)="openCreateModal()">
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+          {{ 'TABS.NEW_TAB' | transloco }}
+        </ion-button>
+      </div>
+    </div>
+
+    <div class="search-bar-row">
+      <app-search-bar
+        [ngModel]="searchTerm()"
+        (searchChange)="onSearchChange($event)"
+        (cleared)="clearSearch()"
+        [placeholder]="'TABS.SEARCH_PLACEHOLDER' | transloco"
+        testId="bar-tabs-search-bar">
+      </app-search-bar>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  @if (barTabService.loading() && barTabService.activeTabs().length === 0) {
+    <div class="loading-container">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+  } @else if (filteredTabs().length === 0) {
+    <!-- Empty state -->
+    <div class="empty-state-wrapper">
+      <app-empty-state
+        icon="receipt-outline"
+        [title]="'TABS.EMPTY_TITLE' | transloco"
+        [subtitle]="'TABS.EMPTY_DESC' | transloco"
+        [actionLabel]="'TABS.BTN_OPEN' | transloco"
+        (actionClick)="openCreateModal()"
+        data-testid="tabs-empty-state">
+      </app-empty-state>
+    </div>
+  } @else {
+    <!-- Tabs Cards Grid -->
+    <div class="tabs-grid" data-testid="grid-bar-tabs">
+      @for (tab of filteredTabs(); track tab.id) {
+        <app-bar-tab-card
+          [tab]="tab"
+          (addOrder)="onAddOrder($event)"
+          (viewDetails)="openEditModal($event)"
+          (transfer)="openTransferModal($event)"
+          (settle)="onSettle($event)"
+          (cancel)="onCancelTab($event)">
+        </app-bar-tab-card>
+      }
+    </div>
+  }
+</div>

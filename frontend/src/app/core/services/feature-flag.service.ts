@@ -19,6 +19,7 @@ const DEFAULT_MODULES: EstablishmentModules = {
   qrClientOrdering: true,
   stockTracking: true,
   cashDrawer: true,
+  barTabs: true,
 };
 
 /**
@@ -60,6 +61,9 @@ export class FeatureFlagService implements OnDestroy {
   /** Computed signal for CASH_DRAWER capability status. */
   readonly cashDrawerEnabled = computed(() => this.modules().cashDrawer);
 
+  /** Computed signal for BAR_TABS capability status. */
+  readonly barTabsEnabled = computed(() => this.modules().barTabs);
+
   constructor() {
     this.initWebSocketSubscription();
     this.loadModules().subscribe();
@@ -93,6 +97,8 @@ export class FeatureFlagService implements OnDestroy {
         return current.stockTracking;
       case EstablishmentModule.CASH_DRAWER:
         return current.cashDrawer;
+      case EstablishmentModule.BAR_TABS:
+        return current.barTabs;
       default:
         return true;
     }

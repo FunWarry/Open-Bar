@@ -2689,6 +2689,35 @@
         }
       ]
     }
+  ],
+  "bar_tabs": [
+    {
+      "nom": "Client VIP - Dupont",
+      "clientReference": "CB-VISA-8821",
+      "cautionMontant": 50.00,
+      "statut": "ACTIVE",
+      "serveurUsername": "serveur1",
+      "notes": "Préfère les cocktails sans paille",
+      "minutesAgo": 90
+    },
+    {
+      "nom": "Comptoir Marc",
+      "clientReference": null,
+      "cautionMontant": null,
+      "statut": "ACTIVE",
+      "serveurUsername": "serveur2",
+      "notes": "Habitué du jeudi soir",
+      "minutesAgo": 40
+    },
+    {
+      "nom": "Groupe Afterwork Tech",
+      "clientReference": "BADGE-99",
+      "cautionMontant": 100.00,
+      "statut": "SETTLED",
+      "serveurUsername": "serveur1",
+      "notes": "Réglé par carte",
+      "minutesAgo": 180
+    }
   ]
 }
 
