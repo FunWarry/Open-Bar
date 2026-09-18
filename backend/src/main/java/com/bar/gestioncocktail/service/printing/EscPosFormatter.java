@@ -778,7 +778,7 @@ public class EscPosFormatter {
 
     private String formatAmount(BigDecimal amount, String currencySymbol) {
         BigDecimal val = amount != null ? amount : BigDecimal.ZERO;
-        return String.format("%.2f %s", val, currencySymbol);
+        return String.format(java.util.Locale.FRANCE, "%.2f %s", val, currencySymbol);
     }
 
     private String repeat(String s, int count) {
