@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ModalController, ToastController, provideIonicAngular } from '@ionic/angular';
@@ -81,7 +81,7 @@ describe('BarTabModalComponent', () => {
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null, 'cancel');
   });
 
-  it('should create new tab and dismiss on submit in creation mode', async () => {
+  it('should create new tab and dismiss on submit in creation mode', fakeAsync(() => {
     fixture.detectChanges();
     component.form.patchValue({
       nom: 'VIP Dupont',
@@ -90,22 +90,24 @@ describe('BarTabModalComponent', () => {
       notes: 'Table habituelle',
     });
 
-    await component.onSubmit();
+    component.onSubmit();
+    tick();
 
     expect(barTabServiceSpy.createTab).toHaveBeenCalled();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(mockTab, 'confirm');
-  });
+  }));
 
-  it('should update tab and dismiss on submit in edit mode', async () => {
+  it('should update tab and dismiss on submit in edit mode', fakeAsync(() => {
     component.tab = mockTab;
     fixture.detectChanges();
     component.form.patchValue({
       nom: 'VIP Dupont Modified',
     });
 
-    await component.onSubmit();
+    component.onSubmit();
+    tick();
 
     expect(barTabServiceSpy.updateTab).toHaveBeenCalled();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(mockTab, 'confirm');
-  });
+  }));
 });

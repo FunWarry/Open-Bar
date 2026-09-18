@@ -98,7 +98,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
 
   private readonly dashboardService = inject(DashboardServeurService);
   private readonly factureService = inject(FactureService);
-  private readonly barTabService = inject(BarTabService);
+  private readonly barTabService = inject(BarTabService, { optional: true });
   private readonly modalCtrl = inject(ModalController);
   private readonly toastCtrl = inject(ToastController);
   private readonly transloco = inject(TranslocoService);
@@ -129,7 +129,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = null;
 
-    const addition$ = this.tab
+    const addition$ = (this.tab && this.barTabService)
       ? this.barTabService.getTabAddition(this.tab.id)
       : (this.table ? this.dashboardService.getTableAddition(this.table.id) : null);
 
@@ -380,7 +380,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
       commandeIds: this.addition.commandeIds
     };
 
-    const settlement$ = this.tab
+    const settlement$ = (this.tab && this.barTabService)
       ? this.barTabService.encaisserTab(this.tab.id, req)
       : (this.table ? this.dashboardService.encaisserTable(this.table.id, req) : null);
 
@@ -577,7 +577,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
       commandeIds: this.addition?.commandeIds
     };
 
-    const settlement$ = this.tab
+    const settlement$ = (this.tab && this.barTabService)
       ? this.barTabService.encaisserTab(this.tab.id, req)
       : (this.table ? this.dashboardService.encaisserTable(this.table.id, req) : null);
 

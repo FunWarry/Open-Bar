@@ -22,7 +22,7 @@ import { Facture } from '../../features/factures/models/facture.model';
 @Injectable({ providedIn: 'root' })
 export class BarTabService implements OnDestroy {
   private readonly http = inject(HttpClient);
-  private readonly wsService = inject(WebSocketService);
+  private readonly wsService = inject(WebSocketService, { optional: true });
   private readonly baseUrl = `${environment.apiUrl}/bar-tabs`;
   private readonly destroy$ = new Subject<void>();
 
@@ -31,6 +31,9 @@ export class BarTabService implements OnDestroy {
 
   /** Loading indicator signal. */
   readonly isLoading = signal<boolean>(false);
+
+  /** Alias for isLoading for template compatibility. */
+  readonly loading = this.isLoading;
 
   /** Computed signal returning only active customer bar tabs. */
   readonly activeTabs = computed(() => this.tabs().filter(t => t.statut === 'ACTIVE'));
@@ -57,6 +60,9 @@ export class BarTabService implements OnDestroy {
    * Initializes real-time WebSocket subscription on `/topic/bar-tabs`.
    */
   private initWebSocket(): void {
+    if (!this.wsService) {
+      return;
+    }
     this.wsService.watch('/topic/bar-tabs')
       .pipe(takeUntil(this.destroy$))
       .subscribe({

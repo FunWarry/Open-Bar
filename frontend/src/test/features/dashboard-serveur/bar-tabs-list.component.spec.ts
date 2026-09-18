@@ -52,6 +52,7 @@ describe('BarTabsListComponent', () => {
     activeCount: activeCountSignal,
     activeTotalAmount: activeTotalAmountSignal,
     isLoading: isLoadingSignal,
+    loading: isLoadingSignal,
     loadTabs: jasmine.createSpy('loadTabs').and.returnValue(of(mockTabs)),
     cancelTab: jasmine.createSpy('cancelTab').and.returnValue(of(mockTabs[0])),
   };
