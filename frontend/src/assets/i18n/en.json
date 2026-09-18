@@ -355,6 +355,10 @@
       "STATUS_BILL_REQUESTED": "Bill request sent",
       "WAITER_CALLED": "Your waiter has been notified and will arrive shortly.",
       "BILL_REQUEST_SENT": "Your bill request has been sent to the waiter.",
+      "CALL_SENT_SUCCESS": "Your waiter has been notified and will arrive shortly.",
+      "BILL_SENT_SUCCESS": "Your bill request has been sent to the waiter.",
+      "COOLDOWN_ACTIVE": "Please wait before requesting assistance again.",
+      "SEND_ERROR": "Unable to send request. Please try again.",
       "CALL_FAILED": "Unable to send request. Please try again."
     }
   },

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
@@ -37,6 +37,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   private readonly setupService = inject(SetupService);
   private readonly authService = inject(AuthService);
   private readonly onboardingService = inject(OnboardingService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   constructor(
     private readonly fb: FormBuilder,
@@ -117,6 +118,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         )
         .subscribe(() => {
           this.errorMessage = this.translocoService.translate('AUTH.INVALID_CREDENTIALS');
+          this.cdr.markForCheck();
         });
 
       this.subscriptions.push(errorSub);

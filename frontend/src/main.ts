@@ -1,10 +1,10 @@
 import {bootstrapApplication} from '@angular/platform-browser';
-import {provideHttpClient, withFetch, withInterceptors} from '@angular/common/http';
+import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {provideStore} from '@ngrx/store';
 import {provideEffects} from '@ngrx/effects';
 import {provideStoreDevtools} from '@ngrx/store-devtools';
 import {provideRouter} from '@angular/router';
-import {isDevMode, provideZoneChangeDetection} from '@angular/core';
+import {isDevMode} from '@angular/core';
 import {provideTransloco} from '@jsverse/transloco';
 import {registerLocaleData} from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
@@ -23,8 +23,8 @@ import {TranslocoHttpLoader} from './app/core/transloco-loader';
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideZoneChangeDetection(),provideIonicAngular(),
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor, offlineSyncInterceptor, errorInterceptor])),
+    provideIonicAngular(),
+    provideHttpClient(withInterceptors([authInterceptor, offlineSyncInterceptor, errorInterceptor])),
     provideStore({auth: authReducer}),
     provideEffects([AuthEffects]),
     ...(isDevMode() ? [provideStoreDevtools({ maxAge: 25, logOnly: false })] : []),

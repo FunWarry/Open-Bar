@@ -6,6 +6,7 @@ import {
   inject,
   signal,
   computed,
+  ChangeDetectorRef,
 } from '@angular/core';
 
 import {
@@ -244,6 +245,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   private readonly translocoService = inject(TranslocoService);
   private readonly printerService = inject(PrinterService);
   private readonly appUpdateService = inject(AppUpdateService);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
   readonly happyHourEnabled = this.featureFlagService.happyHourEnabled;
@@ -518,6 +520,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
             return;
           }
           this.activeTab = defTab;
+          this.cdr.markForCheck();
         }
       });
     }
@@ -533,6 +536,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
             return;
           }
           this.activeTab = tab;
+          this.cdr.markForCheck();
         }
       });
     }
@@ -579,6 +583,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       return;
     }
     this.activeTab = tab;
+    this.cdr.markForCheck();
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { tab },
@@ -721,9 +726,11 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
           this.initialColors = { ...this.themeService.currentCustomColors };
           this.colorForm.markAsPristine();
           this.isLoading = false;
+          this.cdr.markForCheck();
         },
         error: () => {
           this.isLoading = false;
+          this.cdr.markForCheck();
         },
       });
   }
