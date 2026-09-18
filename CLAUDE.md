@@ -62,7 +62,7 @@ flowchart LR
 
 | Couche               | Techno cible                          |
 |----------------------|---------------------------------------|
-| UI composants        | Ionic 8+ (ou Tailwind CSS si redesign)|
+| UI composants        | Ionic 9+ (Angular Material abandonné) |
 | Offline/résilience   | Angular PWA (`@angular/service-worker`)|
 | Build natif          | ~~Capacitor~~ — **abandonné**         |
 | Canvas plan de salle | Konva.js                              |
