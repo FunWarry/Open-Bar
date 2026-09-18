@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TableQrBatchPrintModalComponent } from '../../../../app/features/tables/components/table-qr-batch-print-modal/table-qr-batch-print-modal.component';
 import { TableService } from '../../../../app/core/services/table.service';
 import { AppSettingsService } from '../../../../app/core/services/app-settings.service';
-import { ModalController, ToastController } from '@ionic/angular/standalone';
+import { ModalController, ToastController } from '@ionic/angular';
 import { getTranslocoTestingModule } from '../../../transloco-testing.module';
 import { of, throwError, BehaviorSubject } from 'rxjs';
 import { TableBar } from '../../../../app/core/models/table.model';

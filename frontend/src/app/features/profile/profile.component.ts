@@ -4,7 +4,7 @@ import { AbstractControl, AbstractControlOptions, FormBuilder, FormGroup, Reacti
 import { Store } from '@ngrx/store';
 import { Subject, takeUntil } from 'rxjs';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, ToastController, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, ToastController, IonSelect, IonSelectOption } from '@ionic/angular';
 import { DatePipe } from '@angular/common';
 import { selectCurrentUser } from '../../core/store/auth.selectors';
 import { setCurrentUser } from '../../core/store/auth.actions';

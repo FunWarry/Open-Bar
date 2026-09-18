@@ -3,8 +3,8 @@ import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { IonicModule } from '@ionic/angular';
-import { ToastController, ModalController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { ToastController, ModalController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { TableDetailComponent } from '../../../app/features/tables/table-detail/table-detail.component';
 import { TableService } from '../../../app/core/services/table.service';
@@ -50,8 +50,9 @@ describe('TableDetailComponent', () => {
     storeSpy.select.and.returnValue(of(false));
 
     await TestBed.configureTestingModule({
-      imports: [TableDetailComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
+      imports: [TableDetailComponent, RouterTestingModule, getTranslocoTestingModule()],
       providers: [
+        provideIonicAngular(),
         { provide: Store, useValue: storeSpy },
         { provide: TableService, useValue: tableServiceSpy },
         { provide: CommandeService, useValue: commandeServiceSpy },

@@ -1,7 +1,7 @@
 import { TestBed, ComponentFixture, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { IonicModule } from '@ionic/angular';
-import { ToastController, ModalController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { ToastController, ModalController } from '@ionic/angular';
 import { EMPTY, of, Subject, throwError } from 'rxjs';
 import { DashboardBarmanComponent } from '../../../app/features/dashboard-barman/dashboard-barman.component';
 import { DashboardBarmanService } from '../../../app/features/dashboard-barman/services/dashboard-barman.service';
@@ -135,11 +135,11 @@ describe('DashboardBarmanComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         DashboardBarmanComponent,
-        IonicModule.forRoot(),
         RouterTestingModule,
         getTranslocoTestingModule()
       ],
       providers: [
+        provideIonicAngular(),
         { provide: DashboardBarmanService, useValue: dashboardServiceSpy },
         { provide: NotificationService, useValue: notificationServiceSpy },
         { provide: WebSocketService, useValue: wsServiceSpy },

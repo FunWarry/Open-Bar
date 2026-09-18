@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { DayClosureModalComponent } from '../../../app/features/schedule/day-closure-modal/day-closure-modal.component';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 

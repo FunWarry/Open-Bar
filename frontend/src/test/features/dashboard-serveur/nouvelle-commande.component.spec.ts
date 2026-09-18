@@ -2,8 +2,8 @@ import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing
 import { ComponentFixture } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { IonicModule } from '@ionic/angular';
-import { ToastController, ModalController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { ToastController, ModalController } from '@ionic/angular';
 import { EMPTY } from 'rxjs';
 import { of, throwError } from 'rxjs';
 import { NouvelleCommandeComponent, CartItem } from '../../../app/features/dashboard-serveur/nouvelle-commande/nouvelle-commande.component';
@@ -98,11 +98,11 @@ describe('NouvelleCommandeComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         NouvelleCommandeComponent,
-        IonicModule.forRoot(),
         RouterTestingModule,
         getTranslocoTestingModule(),
       ],
       providers: [
+        provideIonicAngular(),
         { provide: DashboardServeurService, useValue: serviceSpy },
         { provide: CocktailService, useValue: cocktailSpy },
         { provide: ToastController, useValue: toastCtrlSpy },

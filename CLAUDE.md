@@ -17,9 +17,9 @@ Application de gestion de bar en temps réel : prise de commandes (serveurs), pr
 | Sanitisation| Jsoup (HTML / XSS clean)     | 1.23.2      |
 | Temps réel | WebSocket STOMP              | via Spring  |
 | PDF        | OpenPDF                      | 2.0.3       |
-| Frontend   | Angular                      | 20          |
-| UI         | Ionic                        | 8.8.11      |
-| State      | NgRx (store + effects)       | 20          |
+| Frontend   | Angular                      | 22          |
+| UI         | Ionic                        | 9.0.3       |
+| State      | NgRx (store + effects)       | 22          |
 | HTTP       | RxJS / HttpClient            | 7.8         |
 
 ### Stack cible (décisions actées)

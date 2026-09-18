@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { OrderTimersSettingsComponent } from '../../../../app/features/dashboard-manager/components/order-timers-settings/order-timers-settings.component';
 import { AppSettingsService } from '../../../../app/core/services/app-settings.service';
 import { SoundService } from '../../../../app/core/services/sound.service';

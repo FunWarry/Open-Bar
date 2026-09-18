@@ -5,7 +5,7 @@ import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
   IonContent, IonBadge, IonIcon, IonSpinner, IonFooter,
   ModalController, ToastController, AlertController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   closeOutline, addOutline, removeOutline, trashOutline,

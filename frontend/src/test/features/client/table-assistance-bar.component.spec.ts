@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { TableAssistanceBarComponent } from '../../../app/features/client/components/table-assistance-bar/table-assistance-bar.component';
 import { TableAppelService } from '../../../app/core/services/table-appel.service';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { of, throwError } from 'rxjs';
 import { TableAppel } from '../../../app/core/models/table-appel.model';

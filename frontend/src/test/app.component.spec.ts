@@ -8,7 +8,7 @@ import { NotificationService } from '../app/core/services/notification.service';
 import { WebSocketService } from '../app/core/services/websocket.service';
 import { AppSettingsService } from '../app/core/services/app-settings.service';
 import { AppUpdateService } from '../app/core/services/app-update.service';
-import { PopoverController } from '@ionic/angular/standalone';
+import { PopoverController } from '@ionic/angular';
 import { EMPTY, of, throwError } from 'rxjs';
 import { selectIsAuthenticated } from '../app/core/store/auth.selectors';
 import { Router } from '@angular/router';

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ErrorDialogComponent } from '../../../app/core/components/error-dialog/error-dialog.component';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 
 describe('ErrorDialogComponent', () => {

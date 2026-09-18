@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { ModalController, ToastController } from '@ionic/angular/standalone';
-import { IonicModule } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular';
+import { provideIonicAngular } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { ZoneManagerComponent } from '../../../app/features/tables/zone-manager/zone-manager.component';
 import { ZoneService, ZoneBar } from '../../../app/core/services/zone.service';
@@ -53,8 +53,9 @@ describe('ZoneManagerComponent', () => {
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
     await TestBed.configureTestingModule({
-      imports: [ZoneManagerComponent, IonicModule.forRoot(), ReactiveFormsModule, FormsModule, getTranslocoTestingModule()],
+      imports: [ZoneManagerComponent, ReactiveFormsModule, FormsModule, getTranslocoTestingModule()],
       providers: [
+        provideIonicAngular(),
         { provide: ZoneService, useValue: zoneServiceSpy },
         { provide: EtageService, useValue: etageServiceSpy },
         { provide: ModalController, useValue: modalCtrlSpy },

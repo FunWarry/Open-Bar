@@ -355,6 +355,10 @@
       "STATUS_BILL_REQUESTED": "Demande d'addition envoyée",
       "WAITER_CALLED": "Votre serveur a été prévenu et arrive bientôt.",
       "BILL_REQUEST_SENT": "Votre demande d'addition a été transmise au serveur.",
+      "CALL_SENT_SUCCESS": "Votre serveur a été prévenu et arrive bientôt.",
+      "BILL_SENT_SUCCESS": "Votre demande d'addition a été transmise au serveur.",
+      "COOLDOWN_ACTIVE": "Veuillez patienter avant de relancer un appel.",
+      "SEND_ERROR": "Impossible d'envoyer la demande. Veuillez réessayer.",
       "CALL_FAILED": "Impossible d'envoyer la demande. Veuillez réessayer."
     }
   },

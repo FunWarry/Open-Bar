@@ -2,8 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController, ModalController } from '@ionic/angular/standalone';
-import { IonicModule } from '@ionic/angular';
+import { ToastController, ModalController } from '@ionic/angular';
+import { provideIonicAngular } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { IngredientFormComponent } from '../../../app/features/ingredients/ingredient-form/ingredient-form.component';
 import { IngredientService } from '../../../app/core/services/ingredient.service';
@@ -50,9 +50,9 @@ describe('IngredientFormComponent', () => {
         ReactiveFormsModule,
         RouterTestingModule,
         getTranslocoTestingModule(),
-        IonicModule.forRoot()
-      ],
+        ],
       providers: [
+        provideIonicAngular(),
         { provide: Router, useValue: routerSpy },
         { provide: ActivatedRoute, useValue: activatedRouteStub },
         { provide: IngredientService, useValue: ingredientServiceSpy },
@@ -207,8 +207,7 @@ describe('IngredientFormComponent', () => {
           ReactiveFormsModule,
           RouterTestingModule,
           getTranslocoTestingModule(),
-          IonicModule.forRoot()
-        ],
+          ],
         providers: [
           { provide: Router, useValue: routerSpy },
           { provide: ActivatedRoute, useValue: activatedRouteStubWithId },

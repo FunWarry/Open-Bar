@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ShiftPresetsConfigComponent } from '../../../app/features/shift-presets/shift-presets-config.component';
 import { ShiftService } from '../../../app/core/services/shift.service';
-import { ToastController, AlertController } from '@ionic/angular/standalone';
+import { ToastController, AlertController } from '@ionic/angular';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';

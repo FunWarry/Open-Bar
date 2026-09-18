@@ -6,7 +6,7 @@ import {
   IonContent, IonItem, IonLabel, IonRadioGroup,
   IonRadio, IonTextarea, IonFooter, IonIcon,
   ModalController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { TranslocoModule } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { closeOutline, addCircleOutline } from 'ionicons/icons';

@@ -13,7 +13,7 @@ import {
   IonBadge,
   IonButtons,
   ModalController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { closeOutline, calendarOutline, lockClosedOutline, lockOpenOutline, checkmarkCircleOutline, alertCircleOutline } from 'ionicons/icons';
 import { TranslocoModule } from '@jsverse/transloco';

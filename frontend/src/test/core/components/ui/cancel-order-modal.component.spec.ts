@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { CancelOrderModalComponent } from '../../../../app/core/components/ui/cancel-order-modal/cancel-order-modal.component';
 import { Commande } from '../../../../app/core/models/commande.model';

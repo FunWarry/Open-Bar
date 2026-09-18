@@ -1,6 +1,6 @@
 import { HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest, HttpResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { TranslocoService } from '@jsverse/transloco';
 import { catchError, from, Observable, of, switchMap, throwError } from 'rxjs';
 import { Commande, CreateCommandeRequest, OfflineQueuedOrderItem } from '../models/commande.model';

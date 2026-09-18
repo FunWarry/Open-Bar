@@ -3,7 +3,7 @@ import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
 import { of, throwError, Subject } from 'rxjs';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { provideIonicAngular, ToastController } from '@ionic/angular';
 import { FactureListComponent } from '../../../app/features/factures/facture-list/facture-list.component';
 import { FactureService } from '../../../app/features/factures/services/facture.service';
 import { Facture } from '../../../app/features/factures/models/facture.model';
@@ -71,11 +71,11 @@ describe('FactureListComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         FactureListComponent,
-        IonicModule.forRoot(),
         RouterTestingModule,
         getTranslocoTestingModule()
       ],
       providers: [
+        provideIonicAngular(),
         { provide: FactureService, useValue: factureServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy }
       ],

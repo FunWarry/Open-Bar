@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BottomNavigationComponent } from '../../../app/features/dashboard-serveur/components/bottom-navigation/bottom-navigation.component';
-import { IonicModule } from '@ionic/angular';
+import { provideIonicAngular } from '@ionic/angular';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('BottomNavigationComponent', () => {
@@ -11,9 +11,9 @@ describe('BottomNavigationComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         BottomNavigationComponent,
-        IonicModule.forRoot(),
         getTranslocoTestingModule(),
       ],
+      providers: [provideIonicAngular()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(BottomNavigationComponent);

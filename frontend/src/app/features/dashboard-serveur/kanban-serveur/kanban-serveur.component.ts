@@ -5,7 +5,7 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import {
   IonIcon, IonSpinner,
   ToastController, ModalController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { checkmarkOutline, banOutline, timeOutline, flameOutline, funnelOutline, checkmarkCircleOutline, cardOutline } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';

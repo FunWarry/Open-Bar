@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Subject, takeUntil } from 'rxjs';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { IonContent, IonCard, IonCardContent } from '@ionic/angular/standalone';
+import { IonContent, IonCard, IonCardContent } from '@ionic/angular';
 import { selectCurrentUser } from '../../core/store/auth.selectors';
 import { User } from '../../core/models/user.model';
 import { OnboardingStep } from '../../core/models/onboarding-step.model';

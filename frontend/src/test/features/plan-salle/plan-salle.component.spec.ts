@@ -1,8 +1,8 @@
 import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { IonicModule } from '@ionic/angular';
-import { ModalController, ToastController } from '@ionic/angular/standalone';
+import { provideIonicAngular } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { EMPTY, of, Subject, throwError } from 'rxjs';
 import { NgZone, ChangeDetectorRef } from '@angular/core';
@@ -85,8 +85,9 @@ describe('PlanSalleComponent', () => {
     storeSpy.select.and.returnValue(of(false));
 
     await TestBed.configureTestingModule({
-      imports: [PlanSalleComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
+      imports: [PlanSalleComponent, RouterTestingModule, getTranslocoTestingModule()],
       providers: [
+        provideIonicAngular(),
         { provide: TableService,        useValue: tableServiceSpy },
         { provide: PlanSalleService,    useValue: planSalleServiceSpy },
         { provide: EtageService,        useValue: etageServiceSpy },

@@ -1,7 +1,7 @@
 import {TestBed} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
-import {IonBadge} from '@ionic/angular/standalone';
+import {IonBadge} from '@ionic/angular';
 import {
   KanbanBoardComponent
 } from '../../../app/features/dashboard-manager/components/kanban-board/kanban-board.component';

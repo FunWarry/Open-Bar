@@ -8,7 +8,7 @@ import {
   IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
   IonIcon, IonSpinner, IonRange,
   ToastController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   timerOutline, timeOutline, alertCircleOutline, flashOutline,

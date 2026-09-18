@@ -5,7 +5,7 @@ import { takeUntil } from 'rxjs/operators';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
   IonButton, IonIcon, PopoverController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   checkmarkDoneOutline,

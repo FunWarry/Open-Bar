@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { ToastController, ModalController, IonCheckbox } from '@ionic/angular/standalone';
+import { ToastController, ModalController, IonCheckbox } from '@ionic/angular';
 import { SetupService } from '../../core/services/setup.service';
 import { InputFieldComponent } from '../../core/components/ui/input-field/input-field.component';
 import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';

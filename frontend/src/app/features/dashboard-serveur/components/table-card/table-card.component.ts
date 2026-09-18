@@ -6,7 +6,7 @@ import { TableView } from '../../models/table-view.model';
 import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonButton, IonIcon
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { peopleOutline, restaurantOutline, checkmarkOutline, timeOutline } from 'ionicons/icons';
 

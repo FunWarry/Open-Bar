@@ -1,6 +1,6 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Subject } from 'rxjs';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { NotificationService, AppNotification } from '../../../app/core/services/notification.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
 

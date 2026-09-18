@@ -8,7 +8,7 @@ import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonInput, IonSelect, IonSelectOption, IonButton, IonIcon,
   IonSpinner, IonGrid, IonRow, IonCol, ToastController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { save, business, documentText, checkmarkCircle, time } from 'ionicons/icons';
 import { EtablissementService } from '../../../core/services/etablissement.service';

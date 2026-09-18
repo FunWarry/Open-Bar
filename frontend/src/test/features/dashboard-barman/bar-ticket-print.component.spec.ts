@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { ModalController, ToastController } from '@ionic/angular/standalone';
+import { ModalController, ToastController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { BarTicketPrintComponent } from '../../../app/features/dashboard-barman/components/bar-ticket-print/bar-ticket-print.component';
 import { CommandeView } from '../../../app/features/dashboard-barman/models/commande-view.model';

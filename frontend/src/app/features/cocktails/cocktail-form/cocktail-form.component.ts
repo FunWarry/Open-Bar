@@ -17,7 +17,7 @@ import {
   IonCardTitle,
   IonCardContent,
   IonIcon,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { VariantRecipeModalComponent } from '../components/variant-recipe-modal/variant-recipe-modal.component';
 import { addIcons } from 'ionicons';
 import {

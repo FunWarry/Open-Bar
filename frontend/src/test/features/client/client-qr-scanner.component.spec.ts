@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { ClientQrScannerComponent } from '../../../app/features/client/client-qr-scanner/client-qr-scanner.component';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 

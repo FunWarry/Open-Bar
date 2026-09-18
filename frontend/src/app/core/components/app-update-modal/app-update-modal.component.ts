@@ -11,7 +11,7 @@ import {
   IonBadge,
   IonFooter,
   ModalController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   cloudDownloadOutline,

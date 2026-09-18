@@ -9,9 +9,10 @@
       <ion-icon [name]="icon" class="field-icon"></ion-icon>
     }
     <input
+      #nativeInput
       [id]="inputId"
       [type]="type"
-      [value]="value"
+      [value]="value ?? ''"
       [placeholder]="placeholder"
       [disabled]="disabled"
       [required]="required"

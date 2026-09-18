@@ -13,7 +13,7 @@ import {
   IonRefresher, IonRefresherContent,
   IonIcon,
   ToastController, ModalController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   listOutline, gridOutline, mapOutline, funnelOutline, layersOutline,

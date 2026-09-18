@@ -3,7 +3,7 @@ import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, ModalController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { closeOutline, chatbubbleEllipsesOutline, checkmarkCircleOutline, removeCircleOutline, createOutline } from 'ionicons/icons';
 import { ProductItem } from '../product-card/product-card.component';

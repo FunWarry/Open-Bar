@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { ModalController, ToastController } from '@ionic/angular/standalone';
+import { ModalController, ToastController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { RuptureImpactModalComponent } from '../../../app/features/dashboard-barman/components/rupture-impact-modal/rupture-impact-modal.component';
 import { DashboardBarmanService } from '../../../app/features/dashboard-barman/services/dashboard-barman.service';

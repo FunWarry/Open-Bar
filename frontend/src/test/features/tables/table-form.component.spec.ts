@@ -2,7 +2,7 @@ import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { ToastController, ModalController } from '@ionic/angular/standalone';
+import { ToastController, ModalController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';

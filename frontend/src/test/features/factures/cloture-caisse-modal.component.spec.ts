@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
-import { ModalController, ToastController } from '@ionic/angular/standalone';
+import { ModalController, ToastController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { ClotureCaisseModalComponent } from '../../../app/features/factures/cloture-caisse-modal/cloture-caisse-modal.component';
 import { FactureService } from '../../../app/core/services/facture.service';

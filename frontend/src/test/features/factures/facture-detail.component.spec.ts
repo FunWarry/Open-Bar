@@ -2,9 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, convertToParamMap, ParamMap, Router } from '@angular/router';
 import { BehaviorSubject, of, throwError } from 'rxjs';
-import { IonicModule } from '@ionic/angular';
+import { provideIonicAngular } from '@ionic/angular';
 
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 
 import { FactureDetailComponent } from '../../../app/features/factures/facture-detail/facture-detail.component';
 import { FactureService } from '../../../app/features/factures/services/facture.service';
@@ -60,11 +60,11 @@ describe('FactureDetailComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         FactureDetailComponent,
-        IonicModule.forRoot(),
         RouterTestingModule,
         getTranslocoTestingModule()
       ],
       providers: [
+        provideIonicAngular(),
         {
           provide: ActivatedRoute,
           useValue: {
@@ -165,7 +165,6 @@ describe('FactureDetailComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         FactureDetailComponent,
-        IonicModule.forRoot(),
         RouterTestingModule,
         getTranslocoTestingModule()
       ],

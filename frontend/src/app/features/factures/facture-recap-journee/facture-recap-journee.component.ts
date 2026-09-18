@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
@@ -7,7 +7,7 @@ import {
   IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonGrid, IonRow, IonCol, IonBadge, IonIcon, IonButton, IonSpinner,
   IonRefresher, IonRefresherContent, ToastController, ModalController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   downloadOutline, printOutline, calendarOutline, cashOutline,
@@ -55,6 +55,7 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
   private readonly toastCtrl = inject(ToastController);
   private readonly modalCtrl = inject(ModalController);
   private readonly transloco = inject(TranslocoService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   constructor() {
     addIcons({
@@ -79,6 +80,7 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
    */
   charger(refreshEvent?: any): void {
     this.isLoading = true;
+    this.cdr.markForCheck();
 
     // 1. Fetch daily financial recap
     this.factureService.getDailyRecap(this.selectedDate)
@@ -86,12 +88,17 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         finalize(() => {
           this.isLoading = false;
+          this.cdr.markForCheck();
           if (refreshEvent) safeCompleteRefresher(refreshEvent);
         })
       )
       .subscribe({
-        next: data => (this.recap = data),
+        next: data => {
+          this.recap = data;
+          this.cdr.markForCheck();
+        },
         error: async () => {
+          this.cdr.markForCheck();
           const toast = await this.toastCtrl.create({
             message: this.transloco.translate('RECAP.ERROR_FETCH'),
             duration: 3000,
@@ -105,8 +112,14 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
     this.factureService.getClotureByDate(this.selectedDate)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: closure => (this.currentClosure = closure),
-        error: () => (this.currentClosure = null)
+        next: closure => {
+          this.currentClosure = closure;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.currentClosure = null;
+          this.cdr.markForCheck();
+        }
       });
   }
 

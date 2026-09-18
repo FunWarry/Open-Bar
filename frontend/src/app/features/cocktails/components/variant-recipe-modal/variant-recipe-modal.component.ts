@@ -12,7 +12,7 @@ import {
   IonIcon,
   IonFooter,
   ModalController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 import { AppSettingsService } from '../../../../core/services/app-settings.service';

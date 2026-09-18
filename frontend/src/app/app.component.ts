@@ -13,7 +13,7 @@ import { Store } from '@ngrx/store';
 import { selectIsAuthenticated } from './core/store/auth.selectors';
 import { AsyncPipe, UpperCasePipe } from '@angular/common';
 import { TranslocoModule } from '@jsverse/transloco';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import * as allIcons from 'ionicons/icons';
 

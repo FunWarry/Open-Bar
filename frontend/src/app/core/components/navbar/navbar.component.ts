@@ -13,7 +13,7 @@ import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonPopover, IonList, IonItem, IonLabel, IonBadge,
   PopoverController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   home, settings, personCircle, person, logOut, chevronDown,

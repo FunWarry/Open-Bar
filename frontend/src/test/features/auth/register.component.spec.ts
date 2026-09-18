@@ -15,7 +15,7 @@ import {
   IonNote,
   IonSelect,
   IonSelectOption
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
