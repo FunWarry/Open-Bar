@@ -75,7 +75,7 @@
                 <ion-icon name="receipt-outline" slot="start"></ion-icon>
                 <ion-label>
                   <h2>{{ tab.nom }}</h2>
-                  <p>{{ tab.referenceClient ? ('[' + tab.referenceClient + '] • ') : '' }}{{ tab.total || 0 }} €</p>
+                  <p>{{ tab.clientReference ? ('[' + tab.clientReference + '] • ') : '' }}{{ tab.total || 0 }} €</p>
                 </ion-label>
                 @if (selectedTabId === tab.id) {
                   <ion-icon name="checkmark-circle-outline" slot="end" color="primary"></ion-icon>

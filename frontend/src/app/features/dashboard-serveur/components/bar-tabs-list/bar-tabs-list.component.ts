@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import {
   IonButton,
   IonIcon,
-  IonBadge,
   IonSpinner,
   ModalController,
   AlertController,
@@ -40,7 +39,6 @@ import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../co
     FormsModule,
     IonButton,
     IonIcon,
-    IonBadge,
     IonSpinner,
     TranslocoPipe,
     AppCurrencyPipe,

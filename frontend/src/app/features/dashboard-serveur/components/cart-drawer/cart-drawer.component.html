@@ -33,7 +33,7 @@
         (ionChange)="onTableChanged($event)">
         @for (t of tables; track t) {
           <ion-select-option [value]="t.id">
-            Table #{{ t.numero }} ({{ t.zone || 'Salle' }})
+            {{ t.nom }} ({{ t.zone || 'Salle' }})
           </ion-select-option>
         }
       </ion-select>
