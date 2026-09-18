@@ -27,7 +27,7 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
 | PDF | OpenPDF | 2.0.3 | |
 | WebSocket | STOMP | via Spring | 4 active topics |
 | Frontend | Angular | **22** | |
-| UI | **Ionic** | **9.0.3** | Angular Material is ABANDONED — never use it |
+| UI | **Ionic** | **9.0.4** | Angular Material is ABANDONED — never use it |
 | State | NgRx | 22 | Auth store only — business state = services + signals |
 | i18n | Transloco | — | All text must use `{{ 'KEY' | transloco }}` — no hardcoded FR |
 | Deployment | PWA + Service Worker | — | Capacitor is ABANDONED |

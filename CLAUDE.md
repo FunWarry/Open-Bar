@@ -18,7 +18,7 @@ Application de gestion de bar en temps réel : prise de commandes (serveurs), pr
 | Temps réel | WebSocket STOMP              | via Spring  |
 | PDF        | OpenPDF                      | 2.0.3       |
 | Frontend   | Angular                      | 22          |
-| UI         | Ionic                        | 9.0.3       |
+| UI         | Ionic                        | 9.0.4       |
 | State      | NgRx (store + effects)       | 22          |
 | HTTP       | RxJS / HttpClient            | 7.8         |
 
