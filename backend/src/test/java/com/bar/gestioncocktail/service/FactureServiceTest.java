@@ -98,6 +98,12 @@ class FactureServiceTest {
     @Mock
     com.bar.gestioncocktail.service.EstablishmentConfigService establishmentConfigService;
 
+    @Mock
+    com.bar.gestioncocktail.repository.BarTabRepository barTabRepository;
+
+    @Mock
+    com.bar.gestioncocktail.service.NotificationService notificationService;
+
     @Spy
     TimeService timeService = new TimeService(null);
 
@@ -1886,5 +1892,175 @@ class FactureServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(facture.isReglee()).isTrue();
+    }
+
+    @Test
+    void genererFactureTable_success_createsPendingInvoiceWithItems() {
+        TableEntity table = new TableEntity();
+        table.setId(15L);
+        table.setNumero(7);
+        table.setOccupee(true);
+
+        Cocktail cocktail = new Cocktail();
+        cocktail.setId(101L);
+        cocktail.setNom("Cosmopolitan");
+
+        CommandeItem item = new CommandeItem();
+        item.setId(21L);
+        item.setCocktail(cocktail);
+        item.setQuantite(2);
+        item.setPrixUnitaire(new BigDecimal("12.00"));
+
+        Commande cmd = new Commande();
+        cmd.setId(301L);
+        cmd.setTable(table);
+        cmd.setStatut(CommandeStatut.LIVREE);
+        cmd.setItems(List.of(item));
+
+        when(tableRepository.findById(15L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of(cmd));
+        when(factureRepository.findByTable(table)).thenReturn(List.of());
+        when(factureRepository.count()).thenReturn(5L);
+        when(factureRepository.save(any(Facture.class))).thenAnswer(i -> {
+            Facture f = i.getArgument(0);
+            f.setId(88L);
+            return f;
+        });
+
+        com.bar.gestioncocktail.dto.FactureResponseDTO result = factureService.genererFactureTable(15L);
+
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(88L);
+        assertThat(result.reglee()).isFalse();
+        assertThat(result.totalTTC()).isEqualByComparingTo(new BigDecimal("24.00"));
+        assertThat(result.tableNumero()).isEqualTo(7);
+    }
+
+    @Test
+    void genererFactureTable_noActiveOrders_throwsBusinessException() {
+        TableEntity table = new TableEntity();
+        table.setId(15L);
+        table.setNumero(7);
+
+        when(tableRepository.findById(15L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of());
+        when(factureRepository.findByTable(table)).thenReturn(List.of());
+
+        assertThatThrownBy(() -> factureService.genererFactureTable(15L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("No active orders to bill for table 7");
+    }
+
+    @Test
+    void genererFactureTable_tableNotFound_throwsResourceNotFoundException() {
+        when(tableRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> factureService.genererFactureTable(999L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Table not found with id: 999");
+    }
+
+    @Test
+    void genererFactureTab_success_createsPendingInvoice() {
+        com.bar.gestioncocktail.model.BarTab tab = new com.bar.gestioncocktail.model.BarTab();
+        tab.setId(22L);
+        tab.setNom("VIP Lounge");
+        tab.setStatut(com.bar.gestioncocktail.model.BarTabStatus.ACTIVE);
+
+        Cocktail cocktail = new Cocktail();
+        cocktail.setId(102L);
+        cocktail.setNom("Gin Tonic");
+
+        CommandeItem item = new CommandeItem();
+        item.setId(31L);
+        item.setCocktail(cocktail);
+        item.setQuantite(3);
+        item.setPrixUnitaire(new BigDecimal("10.00"));
+
+        Commande cmd = new Commande();
+        cmd.setId(401L);
+        cmd.setBarTab(tab);
+        cmd.setStatut(CommandeStatut.LIVREE);
+        cmd.setItems(List.of(item));
+
+        when(barTabRepository.findById(22L)).thenReturn(Optional.of(tab));
+        when(commandeRepository.findByBarTab(tab)).thenReturn(List.of(cmd));
+        when(factureRepository.findByBarTab(tab)).thenReturn(List.of());
+        when(factureRepository.count()).thenReturn(6L);
+        when(factureRepository.save(any(Facture.class))).thenAnswer(i -> {
+            Facture f = i.getArgument(0);
+            f.setId(92L);
+            return f;
+        });
+
+        com.bar.gestioncocktail.dto.FactureResponseDTO result = factureService.genererFactureTab(22L);
+
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(92L);
+        assertThat(result.reglee()).isFalse();
+        assertThat(result.totalTTC()).isEqualByComparingTo(new BigDecimal("30.00"));
+    }
+
+    @Test
+    void genererFactureTab_noActiveOrders_throwsBusinessException() {
+        com.bar.gestioncocktail.model.BarTab tab = new com.bar.gestioncocktail.model.BarTab();
+        tab.setId(22L);
+        tab.setNom("VIP Lounge");
+
+        when(barTabRepository.findById(22L)).thenReturn(Optional.of(tab));
+        when(commandeRepository.findByBarTab(tab)).thenReturn(List.of());
+        when(factureRepository.findByBarTab(tab)).thenReturn(List.of());
+
+        assertThatThrownBy(() -> factureService.genererFactureTab(22L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("No active orders to bill for bar tab VIP Lounge");
+    }
+
+    @Test
+    void genererFactureTab_notFound_throwsResourceNotFoundException() {
+        when(barTabRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> factureService.genererFactureTab(999L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Bar tab not found with id: 999");
+    }
+
+    @Test
+    void checkAndFinalizeSplitSettlement_withBarTab_settlesTabAndOrders() {
+        com.bar.gestioncocktail.model.BarTab tab = new com.bar.gestioncocktail.model.BarTab();
+        tab.setId(33L);
+        tab.setNom("Terrace Tab");
+        tab.setStatut(com.bar.gestioncocktail.model.BarTabStatus.ACTIVE);
+
+        facture.setBarTab(tab);
+        facture.setTotal(new BigDecimal("25.00"));
+
+        Commande cmd = new Commande();
+        cmd.setId(501L);
+        cmd.setBarTab(tab);
+        cmd.setStatut(CommandeStatut.LIVREE);
+
+        com.bar.gestioncocktail.model.FactureReglement r1 = new com.bar.gestioncocktail.model.FactureReglement();
+        r1.setMontant(new BigDecimal("15.00"));
+        com.bar.gestioncocktail.model.FactureReglement r2 = new com.bar.gestioncocktail.model.FactureReglement();
+        r2.setMontant(new BigDecimal("10.00"));
+        r2.setPourboire(BigDecimal.ZERO);
+
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureReglementRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of(r1, r2));
+        when(commandeRepository.findByBarTab(tab)).thenReturn(List.of(cmd));
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest 2", 2, 2, new BigDecimal("10.00"), BigDecimal.ZERO, new BigDecimal("10.00"), "CARTE", "EGAL", List.of()
+        );
+
+        factureService.encaisserPart(10L, req);
+
+        assertThat(facture.isReglee()).isTrue();
+        assertThat(tab.getStatut()).isEqualTo(com.bar.gestioncocktail.model.BarTabStatus.SETTLED);
+        assertThat(tab.getSettledAt()).isNotNull();
+        assertThat(cmd.getStatut()).isEqualTo(CommandeStatut.REGLEE);
+        verify(barTabRepository).save(tab);
     }
 }

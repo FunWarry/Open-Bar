@@ -245,4 +245,32 @@ describe('FactureService', () => {
     expect(req.request.body).toEqual({ parts });
     req.flush([mockSplitResult]);
   });
+
+  it('genererFactureTable() calls POST /api/factures/table/:tableId/generer', () => {
+    service.genererFactureTable(10).subscribe(res => {
+      expect(res).toEqual(mockFacture);
+    });
+    const req = httpMock.expectOne(`${baseUrl}/table/10/generer`);
+    expect(req.request.method).toBe('POST');
+    req.flush(mockFacture);
+  });
+
+  it('genererFactureTab() calls POST /api/factures/tab/:tabId/generer', () => {
+    service.genererFactureTab(20).subscribe(res => {
+      expect(res).toEqual(mockFacture);
+    });
+    const req = httpMock.expectOne(`${baseUrl}/tab/20/generer`);
+    expect(req.request.method).toBe('POST');
+    req.flush(mockFacture);
+  });
+
+  it('getTableAddition() calls GET /api/factures/table/:tableId/addition', () => {
+    const mockAddition: any = { tableId: 10, totalTTC: 25.0 };
+    service.getTableAddition(10).subscribe(res => {
+      expect(res).toEqual(mockAddition);
+    });
+    const req = httpMock.expectOne(`${baseUrl}/table/10/addition`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockAddition);
+  });
 });

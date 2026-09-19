@@ -5,6 +5,16 @@ export type DefaultTheme = 'DARK' | 'LIGHT';
 export type CurrencyPosition = 'BEFORE' | 'AFTER';
 export type WifiSecurityType = 'WPA' | 'WEP' | 'nopass';
 
+/**
+ * Commercial discount tier preset for fast register settlement (e.g. staff, VIP, complimentary).
+ */
+export interface DiscountTier {
+  id: string;
+  label: string;
+  type: 'percent' | 'fixed';
+  value: number;
+}
+
 export interface AppSettings {
   id: number;
   primaryColor: string;
@@ -33,6 +43,7 @@ export interface AppSettings {
   printerPort?: number;
   directPrintingEnabled?: boolean;
   cashDenominationsJson?: string;
+  discountTiersJson?: string;
   updatedAt: string | null;
 }
 

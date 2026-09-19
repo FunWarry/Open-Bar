@@ -29,6 +29,9 @@ import { HappyHourService } from '../../core/services/happy-hour.service';
 import { ZoneService, ZoneBar } from '../../core/services/zone.service';
 import { TableDetailModalComponent } from './components/table-detail-modal/table-detail-modal.component';
 import { EncaissementModalComponent } from './components/encaissement-modal/encaissement-modal.component';
+import { Facture } from '../factures/models/facture.model';
+import { FactureService } from '../factures/services/facture.service';
+import { FactureSplitComponent } from '../factures/facture-split/facture-split.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { DashboardServeurService, EtageItem, ZoneItem } from './services/dashboard-serveur.service';
@@ -199,6 +202,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   readonly floorPlanEnabled = this.featureFlagService.floorPlanEnabled;
   readonly barTabService = inject(BarTabService);
   readonly barTabsEnabled = this.featureFlagService.barTabsEnabled;
+  private readonly factureService = inject(FactureService);
 
   constructor(
     private readonly service: DashboardServeurService,
@@ -1459,6 +1463,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       this.onLiberer(data.tableId);
     } else if (data?.action === 'encaisser') {
       this.ouvrirEncaissement(data.table || table);
+    } else if (data?.action === 'split') {
+      this.ouvrirSplitTable(data.table || table);
     }
   }
 
@@ -1466,11 +1472,12 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
    * Opens the full table encaissement and payment modal.
    *
    * @param table Target table to settle.
+   * @param initialTab Starting payment tab ('single' | 'split').
    */
-  async ouvrirEncaissement(table: TableView) {
+  async ouvrirEncaissement(table: TableView, initialTab: 'single' | 'split' = 'single') {
     const modal = await this.modalCtrl.create({
       component: EncaissementModalComponent,
-      componentProps: { table },
+      componentProps: { table, initialTab },
       cssClass: 'encaissement-modal-container',
       enterAnimation: fastModalEnterAnimation,
       leaveAnimation: fastModalLeaveAnimation,
@@ -1479,7 +1486,38 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     const { data } = await modal.onWillDismiss();
     if (data?.action === 'settled') {
       this.chargerTables();
+    } else if (data?.action === 'open_split' && data?.facture) {
+      await this.ouvrirSplitFacture(data.facture);
     }
+  }
+
+  /**
+   * Opens the unified split settlement modal for an invoice.
+   *
+   * @param facture Invoice to split and settle.
+   */
+  async ouvrirSplitFacture(facture: Facture): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: FactureSplitComponent,
+      componentProps: { facture, factureId: facture.id },
+      cssClass: 'facture-split-modal-container',
+      enterAnimation: fastModalEnterAnimation,
+      leaveAnimation: fastModalLeaveAnimation,
+    });
+    await modal.present();
+    const { data } = await modal.onWillDismiss();
+    if (data?.settled) {
+      this.chargerTables();
+    }
+  }
+
+  /**
+   * Directly opens in-place table bill split without intermediate popups.
+   *
+   * @param table Target table
+   */
+  async ouvrirSplitTable(table: TableView): Promise<void> {
+    await this.ouvrirEncaissement(table, 'split');
   }
 
   naviguerKanban() {
@@ -1947,8 +1985,11 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       enterAnimation: fastModalEnterAnimation,
       leaveAnimation: fastModalLeaveAnimation,
     });
-    modal.onDidDismiss().then((result) => {
+    modal.onDidDismiss().then(async (result) => {
       if (result.data?.action === 'settled') {
+        this.barTabService.loadTabs().subscribe();
+      } else if (result.data?.action === 'open_split' && result.data?.facture) {
+        await this.ouvrirSplitFacture(result.data.facture);
         this.barTabService.loadTabs().subscribe();
       }
     });

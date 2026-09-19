@@ -204,6 +204,40 @@ public class FactureController {
     }
 
     /**
+     * Generates or retrieves an unpaid pending invoice for an active table.
+     *
+     * @param tableId Table identifier
+     * @return Generated or existing pending invoice DTO
+     */
+    @PostMapping("/table/{tableId}/generer")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @Operation(summary = "Generate or retrieve pending invoice for table", description = "Creates or returns an unpaid invoice with tax breakdown from active orders.")
+    @ApiResponse(responseCode = "200", description = "Invoice generated or retrieved successfully")
+    @ApiResponse(responseCode = "400", description = "No active orders on table")
+    @ApiResponse(responseCode = "404", description = "Table not found")
+    public ResponseEntity<FactureResponseDTO> genererFactureTable(
+            @Parameter(description = "Table ID") @PathVariable Long tableId) {
+        return ResponseEntity.ok(factureService.genererFactureTable(tableId));
+    }
+
+    /**
+     * Generates or retrieves an unpaid pending invoice for an active bar tab.
+     *
+     * @param tabId Bar tab identifier
+     * @return Generated or existing pending invoice DTO
+     */
+    @PostMapping("/tab/{tabId}/generer")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @Operation(summary = "Generate or retrieve pending invoice for bar tab", description = "Creates or returns an unpaid invoice with tax breakdown from active bar tab orders.")
+    @ApiResponse(responseCode = "200", description = "Invoice generated or retrieved successfully")
+    @ApiResponse(responseCode = "400", description = "No active orders on bar tab")
+    @ApiResponse(responseCode = "404", description = "Bar tab not found")
+    public ResponseEntity<FactureResponseDTO> genererFactureTab(
+            @Parameter(description = "Bar tab ID") @PathVariable Long tabId) {
+        return ResponseEntity.ok(factureService.genererFactureTab(tabId));
+    }
+
+    /**
      * Filters invoices within a date range.
      *
      * @param debut Start date and time

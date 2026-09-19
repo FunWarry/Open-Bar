@@ -243,6 +243,18 @@
       <ion-icon name="card-outline" slot="start"></ion-icon>
       {{ 'TABLE_MODAL.PAY_BILL' | transloco }}
     </ion-button>
+
+    <ion-button
+      expand="block"
+      fill="outline"
+      color="primary"
+      (click)="diviserAddition()"
+      (keydown.enter)="diviserAddition()"
+      class="btn-footer btn-split"
+      data-testid="btn-split-modal">
+      <ion-icon name="people-outline" slot="start"></ion-icon>
+      {{ 'TABLE_MODAL.SPLIT_BILL' | transloco }}
+    </ion-button>
   }
 
   <ion-button

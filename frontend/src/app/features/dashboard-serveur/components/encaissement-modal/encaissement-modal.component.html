@@ -19,7 +19,7 @@
   </ion-toolbar>
 
   <ion-toolbar class="segment-toolbar">
-    <ion-segment [(ngModel)]="paymentTab" data-testid="segment-payment-tab">
+    <ion-segment [value]="paymentTab" (ionChange)="onPaymentTabChange($any($event.detail.value))" data-testid="segment-payment-tab">
       <ion-segment-button value="single" data-testid="tab-single-payment">
         <ion-icon name="card-outline"></ion-icon>
         <ion-label>{{ 'ENCAISSEMENT.TAB_SINGLE_PAYMENT' | transloco }}</ion-label>
@@ -122,8 +122,15 @@
               <span class="discount-label">
                 <ion-icon name="pricetag-outline"></ion-icon>
                 {{ 'ENCAISSEMENT.DISCOUNT' | transloco }}
+                @if (discountLabel) {
+                  <span class="detail-badge">({{ discountLabel }})</span>
+                }
               </span>
               <span class="discount-value">-{{ discountAmount | appCurrency }}</span>
+            </div>
+            <div class="total-row sub-row">
+              <span>{{ 'ENCAISSEMENT.NET_BEFORE_TIP' | transloco }}</span>
+              <span>{{ netTotalBeforeTip | appCurrency }}</span>
             </div>
           }
           @if (pourboire > 0) {
@@ -131,6 +138,9 @@
               <span class="tip-label">
                 <ion-icon name="heart-outline"></ion-icon>
                 {{ 'ENCAISSEMENT.TIP' | transloco }}
+                @if (tipLabel) {
+                  <span class="detail-badge">({{ tipLabel }})</span>
+                }
               </span>
               <span class="tip-value">+{{ pourboire | appCurrency }}</span>
             </div>
@@ -237,22 +247,54 @@
               </div>
             }
             <!-- Tip / Pourboire Selection -->
+            <!-- Tip / Pourboire Selection -->
             <div class="section-block">
               <h4 class="section-title">{{ 'ENCAISSEMENT.TIP_SELECTION' | transloco }}</h4>
               <div class="chips-row">
                 <button type="button" class="option-chip" [class.active]="tipMode === 'none'" (click)="setTipMode('none')" data-testid="chip-tip-none">0%</button>
                 <button type="button" class="option-chip" [class.active]="tipMode === '5pct'" (click)="setTipMode('5pct')" data-testid="chip-tip-5pct">+5%</button>
                 <button type="button" class="option-chip" [class.active]="tipMode === '10pct'" (click)="setTipMode('10pct')" data-testid="chip-tip-10pct">+10%</button>
+                <button type="button" class="option-chip" [class.active]="tipMode === '15pct'" (click)="setTipMode('15pct')" data-testid="chip-tip-15pct">+15%</button>
                 <button type="button" class="option-chip" [class.active]="tipMode === 'custom'" (click)="setTipMode('custom')" data-testid="chip-tip-custom">
-                  {{ 'ENCAISSEMENT.CUSTOM_TIP' | transloco }}
+                  {{ 'ENCAISSEMENT.CUSTOM_TIP_FIXED' | transloco }} ({{ currencySymbol }})
+                </button>
+                <button type="button" class="option-chip" [class.active]="tipMode === 'custom_percent'" (click)="setTipMode('custom_percent')" data-testid="chip-tip-custom-pct">
+                  {{ 'ENCAISSEMENT.CUSTOM_TIP_PERCENT' | transloco }} (%)
                 </button>
               </div>
               @if (tipMode === 'custom') {
-                <div class="custom-input-box">
-                  <ion-item lines="none" class="custom-field">
-                    <ion-label position="stacked">{{ 'ENCAISSEMENT.CUSTOM_TIP_AMOUNT' | transloco }} ({{ currencySymbol }})</ion-label>
-                    <ion-input type="number" step="0.5" [(ngModel)]="customTip" placeholder="0.00" data-testid="input-custom-tip"></ion-input>
-                  </ion-item>
+                <div class="custom-input-box" data-testid="box-custom-tip-amount">
+                  <div class="app-input-currency-group">
+                    <label for="input-custom-tip" class="sr-only">{{ 'ENCAISSEMENT.CUSTOM_TIP_AMOUNT' | transloco }}</label>
+                    <input
+                      id="input-custom-tip"
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      [(ngModel)]="customTip"
+                      placeholder="0.00"
+                      class="app-styled-input"
+                      data-testid="input-custom-tip" />
+                    <span class="currency-affix">{{ currencySymbol }}</span>
+                  </div>
+                </div>
+              }
+              @if (tipMode === 'custom_percent') {
+                <div class="custom-input-box" data-testid="box-custom-tip-percent">
+                  <div class="app-input-currency-group">
+                    <label for="input-custom-tip-pct" class="sr-only">{{ 'ENCAISSEMENT.CUSTOM_TIP_PERCENT_LABEL' | transloco }}</label>
+                    <input
+                      id="input-custom-tip-pct"
+                      type="number"
+                      step="1"
+                      min="0"
+                      max="100"
+                      [(ngModel)]="customTipPercent"
+                      placeholder="12"
+                      class="app-styled-input"
+                      data-testid="input-custom-tip-percent" />
+                    <span class="currency-affix">%</span>
+                  </div>
                 </div>
               }
             </div>
@@ -263,35 +305,68 @@
                 <button type="button" class="option-chip" [class.active]="discountMode === 'none'" (click)="setDiscountMode('none')" data-testid="chip-discount-none">
                   {{ 'ENCAISSEMENT.NO_DISCOUNT' | transloco }}
                 </button>
-                <button type="button" class="option-chip" [class.active]="discountMode === 'percent'" (click)="setDiscountMode('percent')" data-testid="chip-discount-percent">
+
+                <!-- Configured Tiers from Manager Settings -->
+                @for (tier of discountTiers; track tier.id) {
+                  <button
+                    type="button"
+                    class="option-chip tier-chip"
+                    [class.active]="selectedTierId === tier.id"
+                    (click)="applyDiscountTier(tier)"
+                    [attr.data-testid]="'chip-discount-tier-' + tier.id">
+                    {{ tier.label }} (-{{ tier.value }}{{ tier.type === 'percent' ? '%' : currencySymbol }})
+                  </button>
+                }
+
+                <button type="button" class="option-chip" [class.active]="selectedTierId === null && discountMode === 'percent'" (click)="setDiscountMode('percent')" data-testid="chip-discount-percent">
                   {{ 'ENCAISSEMENT.DISCOUNT_PERCENT' | transloco }} (%)
                 </button>
-                <button type="button" class="option-chip" [class.active]="discountMode === 'fixed'" (click)="setDiscountMode('fixed')" data-testid="chip-discount-fixed">
+                <button type="button" class="option-chip" [class.active]="selectedTierId === null && discountMode === 'fixed'" (click)="setDiscountMode('fixed')" data-testid="chip-discount-fixed">
                   {{ 'ENCAISSEMENT.DISCOUNT_FIXED' | transloco }} ({{ currencySymbol }})
                 </button>
               </div>
-              @if (discountMode === 'percent') {
-                <div class="custom-input-box">
-                  <ion-item lines="none" class="custom-field">
-                    <ion-label position="stacked">{{ 'ENCAISSEMENT.DISCOUNT_PERCENT_LABEL' | transloco }} (%)</ion-label>
-                    <ion-input type="number" min="0" max="100" [(ngModel)]="discountPercent" placeholder="10" data-testid="input-discount-percent"></ion-input>
-                  </ion-item>
+              @if (discountMode === 'percent' && selectedTierId === null) {
+                <div class="custom-input-box" data-testid="box-discount-percent">
+                  <div class="app-input-currency-group">
+                    <label for="input-discount-percent" class="sr-only">{{ 'ENCAISSEMENT.DISCOUNT_PERCENT_LABEL' | transloco }}</label>
+                    <input
+                      id="input-discount-percent"
+                      type="number"
+                      min="0"
+                      max="100"
+                      [(ngModel)]="discountPercent"
+                      placeholder="10"
+                      class="app-styled-input"
+                      data-testid="input-discount-percent" />
+                    <span class="currency-affix">%</span>
+                  </div>
                 </div>
               }
-              @if (discountMode === 'fixed') {
-                <div class="custom-input-box">
-                  <ion-item lines="none" class="custom-field">
-                    <ion-label position="stacked">{{ 'ENCAISSEMENT.DISCOUNT_FIXED_LABEL' | transloco }} ({{ currencySymbol }})</ion-label>
-                    <ion-input type="number" min="0" [(ngModel)]="discountFixed" placeholder="5.00" data-testid="input-discount-fixed"></ion-input>
-                  </ion-item>
+              @if (discountMode === 'fixed' && selectedTierId === null) {
+                <div class="custom-input-box" data-testid="box-discount-fixed">
+                  <div class="app-input-currency-group">
+                    <label for="input-discount-fixed" class="sr-only">{{ 'ENCAISSEMENT.DISCOUNT_FIXED_LABEL' | transloco }}</label>
+                    <input
+                      id="input-discount-fixed"
+                      type="number"
+                      min="0"
+                      step="0.50"
+                      [(ngModel)]="discountFixed"
+                      placeholder="5.00"
+                      class="app-styled-input"
+                      data-testid="input-discount-fixed" />
+                    <span class="currency-affix">{{ currencySymbol }}</span>
+                  </div>
                 </div>
               }
             </div>
             <!-- Table Release Checkbox -->
             <div class="checkbox-row">
-              <ion-checkbox [(ngModel)]="libererTable" data-testid="cb-liberer-table">
-                <span class="cb-label">{{ 'ENCAISSEMENT.RELEASE_TABLE_LABEL' | transloco }}</span>
-              </ion-checkbox>
+              <app-checkbox-field
+                [(ngModel)]="libererTable"
+                [label]="'ENCAISSEMENT.RELEASE_TABLE_LABEL' | transloco"
+                testId="cb-liberer-table">
+              </app-checkbox-field>
             </div>
             <!-- Main Action CTA -->
             <div class="actions-group">
@@ -321,132 +396,767 @@
         <!-- ================= MODE 2: DIVISER L'ADDITION (SPLIT) ================= -->
         @if (paymentTab === 'split') {
           <div class="split-payment-flow">
-            <div class="split-mode-selector">
-              <ion-segment [(ngModel)]="splitMode" data-testid="segment-split-submode">
-                <ion-segment-button value="egal" data-testid="btn-split-submode-egal">
-                  <ion-label>{{ 'ENCAISSEMENT.SPLIT_EQUAL' | transloco }}</ion-label>
-                </ion-segment-button>
-                <ion-segment-button value="selection" data-testid="btn-split-submode-selection">
-                  <ion-label>{{ 'ENCAISSEMENT.SPLIT_BY_ITEM' | transloco }}</ion-label>
-                </ion-segment-button>
-              </ion-segment>
-            </div>
-            <!-- SPLIT EGAL -->
-            @if (splitMode === 'egal') {
-              <div class="split-egal-section">
-                <div class="guests-stepper-box">
-                  <span class="guests-label" id="label-num-guests">{{ 'ENCAISSEMENT.NUMBER_OF_GUESTS' | transloco }}</span>
-                  <div class="stepper-controls" aria-labelledby="label-num-guests">
-                    <button type="button" class="stepper-btn" (click)="ajusterConvives(-1)" [disabled]="nombreConvives <= 2" data-testid="btn-decrease-guests">
-                      <ion-icon name="remove-outline"></ion-icon>
-                    </button>
-                    <span class="guests-count" data-testid="guests-count-display">{{ nombreConvives }}</span>
-                    <button type="button" class="stepper-btn" (click)="ajusterConvives(1)" [disabled]="nombreConvives >= 20" data-testid="btn-increase-guests">
-                      <ion-icon name="add-outline"></ion-icon>
-                    </button>
+            <!-- ================= IN-MODAL PART PAYMENT VIEW ================= -->
+            @if (settlingPart) {
+              <div class="part-settlement-flow" data-testid="part-settlement-flow">
+                <!-- Header with Back Button -->
+                <div class="part-flow-header">
+                  <button type="button" class="btn-back-flow" (click)="annulerReglementPart()" data-testid="btn-back-to-parts">
+                    <ion-icon name="arrow-back-outline"></ion-icon>
+                    <span>{{ 'SPLIT.BACK_TO_PARTS' | transloco }}</span>
+                  </button>
+                  <div class="part-flow-title">
+                    <span class="part-flow-sub">{{ 'SPLIT.SETTLING_PART_FOR' | transloco }}</span>
+                    <h4 class="part-flow-name">{{ settlingPart.nomConvive }}</h4>
                   </div>
-                  <span class="part-preview">
-                    ≈ {{ (subTotalTTC / nombreConvives) | appCurrency }} / {{ 'ENCAISSEMENT.PERSON' | transloco }}
-                  </span>
+                  <div class="part-flow-initial">
+                    <span>{{ 'ENCAISSEMENT.PART_AMOUNT' | transloco }}</span>
+                    <strong>{{ settlingPart.sousTotal | appCurrency }}</strong>
+                  </div>
                 </div>
-                <ion-button expand="block" fill="outline" color="primary" (click)="calculerSplitEgal()" (keydown.enter)="calculerSplitEgal()" (keyup.enter)="calculerSplitEgal()" data-testid="btn-calculate-split-egal">
-                  <ion-icon name="refresh-outline" slot="start"></ion-icon>
-                  {{ 'ENCAISSEMENT.GENERATE_PARTS' | transloco }}
-                </ion-button>
-              </div>
-            }
-            <!-- SPLIT SELECTION -->
-            @if (splitMode === 'selection') {
-              <div class="split-selection-section">
-                <div class="convives-manager">
-                  <div class="convives-header">
-                    <h5>{{ 'ENCAISSEMENT.GUESTS_LIST' | transloco }}</h5>
-                    <button type="button" class="add-guest-btn" (click)="addConvive()" data-testid="btn-add-guest">
-                      <ion-icon name="add-outline"></ion-icon>
-                      {{ 'ENCAISSEMENT.ADD_GUEST' | transloco }}
+
+                <!-- Payment Methods Tiles -->
+                <div class="section-block">
+                  <h4 class="section-title">{{ 'ENCAISSEMENT.PAYMENT_METHOD' | transloco }}</h4>
+                  <div class="methods-grid">
+                    <button type="button" class="method-card" [class.active]="partPaymentMode === 'CARTE'" (click)="partPaymentMode = 'CARTE'" data-testid="part-method-carte">
+                      <ion-icon name="card-outline"></ion-icon>
+                      <span>{{ 'ENCAISSEMENT.METHOD_CARD' | transloco }}</span>
+                    </button>
+                    <button type="button" class="method-card" [class.active]="partPaymentMode === 'ESPECES'" (click)="partPaymentMode = 'ESPECES'" data-testid="part-method-especes">
+                      <ion-icon name="cash-outline"></ion-icon>
+                      <span>{{ 'ENCAISSEMENT.METHOD_CASH' | transloco }}</span>
+                    </button>
+                    <button type="button" class="method-card" [class.active]="partPaymentMode === 'SANS_CONTACT'" (click)="partPaymentMode = 'SANS_CONTACT'" data-testid="part-method-contactless">
+                      <ion-icon name="wallet-outline"></ion-icon>
+                      <span>{{ 'ENCAISSEMENT.METHOD_CONTACTLESS' | transloco }}</span>
+                    </button>
+                    <button type="button" class="method-card" [class.active]="partPaymentMode === 'AUTRE'" (click)="partPaymentMode = 'AUTRE'" data-testid="part-method-autre">
+                      <ion-icon name="receipt-outline"></ion-icon>
+                      <span>{{ 'ENCAISSEMENT.METHOD_OTHER' | transloco }}</span>
                     </button>
                   </div>
-                  @for (c of convives; track c; let idx = $index) {
-                    <div class="convive-input-row">
-                      <ion-input [(ngModel)]="c.nom" [placeholder]="'Convive ' + (idx + 1)" class="convive-name-input"></ion-input>
-                      @if (convives.length > 2) {
-                        <button type="button" class="del-guest-btn" (click)="removeConvive(idx)">
-                          <ion-icon name="close-outline"></ion-icon>
+                </div>
+
+                <!-- Cash Calculator (if ESPECES) -->
+                @if (partPaymentMode === 'ESPECES') {
+                  <div class="section-block cash-calculator-box">
+                    <h4 class="section-title">{{ 'ENCAISSEMENT.CASH_RECEIVED' | transloco }}</h4>
+                    <div class="cash-input-row">
+                      <div class="app-input-currency-group">
+                        <label for="input-part-montant-recu" class="sr-only">{{ 'ENCAISSEMENT.CASH_RECEIVED' | transloco }}</label>
+                        <input
+                          id="input-part-montant-recu"
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          [(ngModel)]="partMontantRecu"
+                          [placeholder]="partTotalNetAPayer.toFixed(2)"
+                          class="app-styled-input cash-amount-input"
+                          data-testid="input-part-montant-recu" />
+                        <span class="currency-affix">{{ currencySymbol }}</span>
+                      </div>
+                      <button type="button" class="exact-btn" (click)="definirPartMontantExact()" data-testid="btn-part-exact-amount">
+                        {{ 'ENCAISSEMENT.EXACT_AMOUNT' | transloco }}
+                      </button>
+                    </div>
+                    <div class="cash-shortcuts-row">
+                      @for (sug of partBilletSuggestions; track sug) {
+                        <button type="button" class="cash-chip suggestion-chip" (click)="definirPartMontantRecu(sug)">
+                          {{ sug | appCurrency:0:0 }}
+                        </button>
+                      }
+                      @for (note of primaryCashIncrements; track note) {
+                        <button type="button" class="cash-chip increment-chip" (click)="ajouterPartEspeces(note)">
+                          +{{ note | appCurrency:0:0 }}
                         </button>
                       }
                     </div>
-                  }
-                </div>
-                <!-- Items Assignment -->
-                <div class="items-assign-list">
-                  <h5>{{ 'ENCAISSEMENT.ASSIGN_ITEMS' | transloco }}</h5>
-                  @for (item of addition.items; track trackByItemId($index, item)) {
-                    <div class="assign-item-card">
-                      <div class="assign-item-info">
-                        <span>{{ item.quantite }}x {{ item.cocktailNom }}</span>
-                        <strong>{{ item.total | appCurrency }}</strong>
+                    <div class="change-display-box" [class.insufficient]="!isPartMontantRecuSuffisant">
+                      @if (isPartMontantRecuSuffisant) {
+                        <div class="change-row">
+                          <span>{{ 'ENCAISSEMENT.CHANGE_TO_RETURN' | transloco }}:</span>
+                          <strong class="change-amount">{{ partMonnaieARendre | appCurrency }}</strong>
+                        </div>
+                      }
+                      @if (!isPartMontantRecuSuffisant) {
+                        <div class="insufficient-row">
+                          <ion-icon name="alert-circle-outline" color="danger"></ion-icon>
+                          <span>{{ 'ENCAISSEMENT.INSUFFICIENT_CASH_WARNING' | transloco }}</span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <!-- Part Tip Selection -->
+                <div class="section-block">
+                  <h4 class="section-title">{{ 'ENCAISSEMENT.TIP_SELECTION' | transloco }}</h4>
+                  <div class="chips-row">
+                    <button type="button" class="option-chip" [class.active]="partTipMode === 'none'" (click)="setPartTipMode('none')">0%</button>
+                    <button type="button" class="option-chip" [class.active]="partTipMode === '5pct'" (click)="setPartTipMode('5pct')">+5%</button>
+                    <button type="button" class="option-chip" [class.active]="partTipMode === '10pct'" (click)="setPartTipMode('10pct')">+10%</button>
+                    <button type="button" class="option-chip" [class.active]="partTipMode === '15pct'" (click)="setPartTipMode('15pct')">+15%</button>
+                    <button type="button" class="option-chip" [class.active]="partTipMode === 'custom'" (click)="setPartTipMode('custom')">
+                      {{ 'ENCAISSEMENT.CUSTOM_TIP_FIXED' | transloco }} ({{ currencySymbol }})
+                    </button>
+                    <button type="button" class="option-chip" [class.active]="partTipMode === 'custom_percent'" (click)="setPartTipMode('custom_percent')">
+                      {{ 'ENCAISSEMENT.CUSTOM_TIP_PERCENT' | transloco }} (%)
+                    </button>
+                  </div>
+                  @if (partTipMode === 'custom') {
+                    <div class="custom-input-box">
+                      <div class="app-input-currency-group">
+                        <label for="input-part-custom-tip" class="sr-only">{{ 'ENCAISSEMENT.CUSTOM_TIP_AMOUNT' | transloco }}</label>
+                        <input
+                          id="input-part-custom-tip"
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          [(ngModel)]="partCustomTip"
+                          placeholder="0.00"
+                          class="app-styled-input"
+                          data-testid="input-part-custom-tip" />
+                        <span class="currency-affix">{{ currencySymbol }}</span>
                       </div>
-                      <select id="select-guest-{{item.itemId}}" [attr.aria-label]="'Attribuer ' + item.cocktailNom" [(ngModel)]="itemAssignments[item.itemId]" class="guest-select" [attr.data-testid]="'select-guest-item-' + item.itemId">
-                        <option [ngValue]="undefined">{{ 'ENCAISSEMENT.UNASSIGNED' | transloco }}</option>
-                        @for (c of convives; track c; let i = $index) {
-                          <option [ngValue]="i">{{ conviveNom(i) }}</option>
-                        }
-                      </select>
+                    </div>
+                  }
+                  @if (partTipMode === 'custom_percent') {
+                    <div class="custom-input-box">
+                      <div class="app-input-currency-group">
+                        <label for="input-part-custom-tip-pct" class="sr-only">{{ 'ENCAISSEMENT.CUSTOM_TIP_PERCENT_LABEL' | transloco }}</label>
+                        <input
+                          id="input-part-custom-tip-pct"
+                          type="number"
+                          step="1"
+                          min="0"
+                          max="100"
+                          [(ngModel)]="partCustomTipPercent"
+                          placeholder="12"
+                          class="app-styled-input"
+                          data-testid="input-part-custom-tip-percent" />
+                        <span class="currency-affix">%</span>
+                      </div>
                     </div>
                   }
                 </div>
-                <ion-button expand="block" fill="outline" color="primary" (click)="calculerSplitSelection()" (keydown.enter)="calculerSplitSelection()" (keyup.enter)="calculerSplitSelection()" data-testid="btn-calculate-split-selection">
-                  <ion-icon name="refresh-outline" slot="start"></ion-icon>
-                  {{ 'ENCAISSEMENT.CALCULATE_SPLIT' | transloco }}
-                </ion-button>
-              </div>
-            }
-            <!-- Split Progress & Results -->
-            @if (splitResults.length > 0) {
-              <div class="split-results-container" data-testid="split-results-list">
-                <div class="split-summary-bar">
-                  <div class="summary-stat">
-                    <span>{{ 'ENCAISSEMENT.SETTLED_AMOUNT' | transloco }}</span>
-                    <strong class="stat-paid">{{ montantRegleSplit | appCurrency }}</strong>
+
+                <!-- Part Discount Selection (Tiers & Free) -->
+                <div class="section-block">
+                  <h4 class="section-title">{{ 'ENCAISSEMENT.DISCOUNT_SELECTION' | transloco }}</h4>
+                  <div class="chips-row">
+                    <button type="button" class="option-chip" [class.active]="partDiscountMode === 'none'" (click)="setPartDiscountMode('none')">
+                      {{ 'ENCAISSEMENT.NO_DISCOUNT' | transloco }}
+                    </button>
+                    @for (tier of discountTiers; track tier.id) {
+                      <button
+                        type="button"
+                        class="option-chip tier-chip"
+                        [class.active]="partSelectedTierId === tier.id"
+                        (click)="applyPartDiscountTier(tier)">
+                        {{ tier.label }} (-{{ tier.value }}{{ tier.type === 'percent' ? '%' : currencySymbol }})
+                      </button>
+                    }
+                    <button type="button" class="option-chip" [class.active]="partSelectedTierId === null && partDiscountMode === 'percent'" (click)="setPartDiscountMode('percent')">
+                      {{ 'ENCAISSEMENT.DISCOUNT_PERCENT' | transloco }} (%)
+                    </button>
+                    <button type="button" class="option-chip" [class.active]="partSelectedTierId === null && partDiscountMode === 'fixed'" (click)="setPartDiscountMode('fixed')">
+                      {{ 'ENCAISSEMENT.DISCOUNT_FIXED' | transloco }} ({{ currencySymbol }})
+                    </button>
                   </div>
-                  <div class="summary-stat">
-                    <span>{{ 'ENCAISSEMENT.REMAINING_BALANCE' | transloco }}</span>
-                    <strong class="stat-remaining">{{ soldeRestantSplit | appCurrency }}</strong>
+                  @if (partDiscountMode === 'percent' && partSelectedTierId === null) {
+                    <div class="custom-input-box">
+                      <div class="app-input-currency-group">
+                        <label for="input-part-discount-percent" class="sr-only">{{ 'ENCAISSEMENT.DISCOUNT_PERCENT_LABEL' | transloco }}</label>
+                        <input
+                          id="input-part-discount-percent"
+                          type="number"
+                          min="0"
+                          max="100"
+                          [(ngModel)]="partDiscountPercent"
+                          placeholder="10"
+                          class="app-styled-input"
+                          data-testid="input-part-discount-percent" />
+                        <span class="currency-affix">%</span>
+                      </div>
+                    </div>
+                  }
+                  @if (partDiscountMode === 'fixed' && partSelectedTierId === null) {
+                    <div class="custom-input-box">
+                      <div class="app-input-currency-group">
+                        <label for="input-part-discount-fixed" class="sr-only">{{ 'ENCAISSEMENT.DISCOUNT_FIXED_LABEL' | transloco }}</label>
+                        <input
+                          id="input-part-discount-fixed"
+                          type="number"
+                          min="0"
+                          step="0.50"
+                          [(ngModel)]="partDiscountFixed"
+                          placeholder="5.00"
+                          class="app-styled-input"
+                          data-testid="input-part-discount-fixed" />
+                        <span class="currency-affix">{{ currencySymbol }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <!-- Detailed Financial Breakdown Card for Part Settlement -->
+                <div class="part-breakdown-card" data-testid="part-breakdown-card">
+                  <div class="breakdown-title">
+                    <ion-icon name="receipt-outline"></ion-icon>
+                    <span>{{ 'ENCAISSEMENT.PAYMENT_BREAKDOWN_TITLE' | transloco }}</span>
+                  </div>
+
+                  <div class="breakdown-row" data-testid="part-breakdown-base">
+                    <span class="breakdown-label">{{ 'ENCAISSEMENT.BASE_AMOUNT' | transloco }}</span>
+                    <span class="breakdown-value">{{ partSubTotal | appCurrency }}</span>
+                  </div>
+
+                  @if (partDiscountAmount > 0) {
+                    <div class="breakdown-row discount-row" data-testid="part-breakdown-discount">
+                      <span class="breakdown-label">
+                        <ion-icon name="pricetag-outline"></ion-icon>
+                        {{ 'ENCAISSEMENT.DISCOUNT' | transloco }}
+                        @if (partDiscountLabel) {
+                          <span class="detail-badge">({{ partDiscountLabel }})</span>
+                        }
+                      </span>
+                      <span class="breakdown-value discount-value">-{{ partDiscountAmount | appCurrency }}</span>
+                    </div>
+
+                    <div class="breakdown-row subtotal-row" data-testid="part-breakdown-net-before-tip">
+                      <span class="breakdown-label">{{ 'ENCAISSEMENT.NET_BEFORE_TIP' | transloco }}</span>
+                      <span class="breakdown-value">{{ partNetBeforeTip | appCurrency }}</span>
+                    </div>
+                  }
+
+                  @if (partPourboire > 0) {
+                    <div class="breakdown-row tip-row" data-testid="part-breakdown-tip">
+                      <span class="breakdown-label">
+                        <ion-icon name="heart-outline"></ion-icon>
+                        {{ 'ENCAISSEMENT.TIP' | transloco }}
+                        @if (partTipLabel) {
+                          <span class="detail-badge">({{ partTipLabel }})</span>
+                        }
+                      </span>
+                      <span class="breakdown-value tip-value">+{{ partPourboire | appCurrency }}</span>
+                    </div>
+                  }
+
+                  <div class="breakdown-row total-row" data-testid="part-breakdown-total">
+                    <span class="breakdown-label">{{ 'ENCAISSEMENT.TOTAL_NET_TO_PAY' | transloco }}</span>
+                    <strong class="breakdown-value total-value" data-testid="part-total-net-display">{{ partTotalNetAPayer | appCurrency }}</strong>
                   </div>
                 </div>
-                <ion-progress-bar [value]="ratioRegleSplit" [color]="toutesPartsReglees ? 'success' : 'primary'" class="split-progress"></ion-progress-bar>
-                <!-- Individual Parts List -->
-                <div class="parts-cards-list">
-                  @for (part of splitResults; track part; let idx = $index) {
-                    <div class="part-card" [class.settled]="partStates[idx]?.reglee" [attr.data-testid]="'split-part-card-' + idx">
-                      <div class="part-header">
-                        <h6>{{ part.nomConvive }}</h6>
-                        <ion-badge [color]="partStates[idx]?.reglee ? 'success' : 'warning'">
-                          {{ (partStates[idx]?.reglee ? 'ENCAISSEMENT.SETTLED' : 'ENCAISSEMENT.PENDING') | transloco }}
-                        </ion-badge>
+
+                <!-- Action Button: Valider le règlement de la part -->
+                <div class="actions-group">
+                  <ion-button
+                    expand="block"
+                    color="success"
+                    size="large"
+                    (click)="validerReglementPart()"
+                    (keydown.enter)="validerReglementPart()"
+                    (keyup.enter)="validerReglementPart()"
+                    [disabled]="!isPartMontantRecuSuffisant"
+                    data-testid="btn-submit-part-settlement"
+                    class="btn-encaisser">
+                    <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+                    <span>{{ 'ENCAISSEMENT.VALIDATE_PART_SETTLEMENT' | transloco }} ({{ partTotalNetAPayer | appCurrency }})</span>
+                  </ion-button>
+                </div>
+              </div>
+            }
+
+            <!-- ================= SPLIT CONFIGURATION VIEW ================= -->
+            @if (!settlingPart) {
+              <!-- Split Mode Selector (Clean Pills without truncation) -->
+              <div class="split-mode-nav" data-testid="segment-split-submode">
+                <button
+                  type="button"
+                  class="submode-pill"
+                  [class.active]="splitMode === 'egal'"
+                  (click)="splitMode = 'egal'"
+                  data-testid="btn-split-submode-egal">
+                  <ion-icon name="pie-chart-outline"></ion-icon>
+                  <span>{{ 'ENCAISSEMENT.SPLIT_EQUAL' | transloco }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="submode-pill"
+                  [class.active]="splitMode === 'libre'"
+                  (click)="splitMode = 'libre'"
+                  data-testid="btn-split-submode-libre">
+                  <ion-icon name="cash-outline"></ion-icon>
+                  <span>{{ 'ENCAISSEMENT.SPLIT_CUSTOM_AMOUNT' | transloco }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="submode-pill"
+                  [class.active]="splitMode === 'pourcentage'"
+                  (click)="splitMode = 'pourcentage'"
+                  data-testid="btn-split-submode-pourcentage">
+                  <ion-icon name="calculator-outline"></ion-icon>
+                  <span>{{ 'ENCAISSEMENT.SPLIT_PERCENTAGE' | transloco }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="submode-pill"
+                  [class.active]="splitMode === 'selection'"
+                  (click)="splitMode = 'selection'"
+                  data-testid="btn-split-submode-selection">
+                  <ion-icon name="receipt-outline"></ion-icon>
+                  <span>{{ 'ENCAISSEMENT.SPLIT_BY_ITEM' | transloco }}</span>
+                </button>
+              </div>
+
+              <!-- SPLIT EGAL -->
+              @if (splitMode === 'egal') {
+                <div class="split-egal-section">
+                  <div class="guests-stepper-box">
+                    <span class="guests-label" id="label-num-guests">{{ 'ENCAISSEMENT.NUMBER_OF_GUESTS' | transloco }}</span>
+                    <div class="presets-row">
+                      @for (preset of guestPresets; track preset) {
+                        <button
+                          type="button"
+                          class="preset-chip"
+                          [class.active]="nombreConvives === preset"
+                          (click)="definirNombreConvives(preset)"
+                          [attr.data-testid]="'chip-preset-' + preset">
+                          {{ preset }} {{ 'ENCAISSEMENT.PERSON' | transloco }}
+                        </button>
+                      }
+                    </div>
+                    <div class="stepper-controls" aria-labelledby="label-num-guests">
+                      <button type="button" class="stepper-btn" (click)="ajusterConvives(-1)" [disabled]="nombreConvives <= 2" data-testid="btn-decrease-guests">
+                        <ion-icon name="remove-outline"></ion-icon>
+                      </button>
+                      <span class="guests-count" data-testid="guests-count-display">{{ nombreConvives }}</span>
+                      <button type="button" class="stepper-btn" (click)="ajusterConvives(1)" [disabled]="nombreConvives >= 20" data-testid="btn-increase-guests">
+                        <ion-icon name="add-outline"></ion-icon>
+                      </button>
+                    </div>
+                    <span class="part-preview">
+                      ≈ {{ (subTotalTTC / nombreConvives) | appCurrency }} / {{ 'ENCAISSEMENT.PERSON' | transloco }}
+                    </span>
+                  </div>
+                  <ion-button expand="block" fill="outline" color="primary" (click)="calculerSplitEgal()" (keydown.enter)="calculerSplitEgal()" (keyup.enter)="calculerSplitEgal()" data-testid="btn-calculate-split-egal">
+                    <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                    {{ 'ENCAISSEMENT.GENERATE_PARTS' | transloco }}
+                  </ion-button>
+                </div>
+              }
+
+              <!-- SPLIT PRIX LIBRE -->
+              @if (splitMode === 'libre') {
+                <div class="split-custom-section" data-testid="split-libre-section">
+                  <div class="convives-manager">
+                    <div class="convives-header">
+                      <h5>{{ 'ENCAISSEMENT.GUESTS_LIST' | transloco }}</h5>
+                      <button type="button" class="add-guest-btn" (click)="addCustomAmountGuest()" data-testid="btn-add-libre-guest">
+                        <ion-icon name="add-outline"></ion-icon>
+                        {{ 'ENCAISSEMENT.ADD_GUEST' | transloco }}
+                      </button>
+                    </div>
+                    <div class="custom-guests-list">
+                      @for (g of customAmountGuests; track g; let idx = $index) {
+                        <div class="custom-guest-card">
+                          <div class="guest-card-left">
+                            <div class="guest-avatar-badge">{{ idx + 1 }}</div>
+                            <div class="guest-input-wrap">
+                              <label [for]="'input-libre-name-' + idx" class="sr-only">Nom du convive {{ idx + 1 }}</label>
+                              <input
+                                [id]="'input-libre-name-' + idx"
+                                type="text"
+                                [(ngModel)]="g.nom"
+                                [placeholder]="('ENCAISSEMENT.GUEST' | transloco) + ' ' + (idx + 1)"
+                                class="app-styled-input guest-name-input"
+                                [attr.data-testid]="'input-libre-name-' + idx"
+                              />
+                            </div>
+                          </div>
+                          <div class="guest-card-right">
+                            <div class="app-input-currency-group">
+                              <label [for]="'input-libre-val-' + idx" class="sr-only">Montant convive {{ idx + 1 }}</label>
+                              <input
+                                [id]="'input-libre-val-' + idx"
+                                type="number"
+                                step="0.5"
+                                min="0"
+                                [(ngModel)]="g.montant"
+                                placeholder="0.00"
+                                class="app-styled-input guest-val-input"
+                                [attr.data-testid]="'input-libre-amount-' + idx"
+                              />
+                              <span class="currency-affix">{{ currencySymbol }}</span>
+                            </div>
+                            <button
+                              type="button"
+                              class="btn-remainder-pill"
+                              (click)="assignRemainingToGuest(idx)"
+                              [attr.title]="'SPLIT.ASSIGN_REMAINDER' | transloco">
+                              <ion-icon name="arrow-down-circle-outline"></ion-icon>
+                              <span>{{ 'SPLIT.REMAINING_SHORT' | transloco }}</span>
+                            </button>
+                            @if (customAmountGuests.length > 2) {
+                              <button
+                                type="button"
+                                class="btn-delete-guest"
+                                (click)="removeCustomAmountGuest(idx)"
+                                [attr.aria-label]="'COMMON.DELETE' | transloco">
+                                <ion-icon name="trash-outline"></ion-icon>
+                              </button>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                  <div class="remainder-status-box" [class.is-valid]="isCustomAmountValid">
+                    <span>{{ 'SPLIT.REMAINING_TO_SPLIT' | transloco }} <strong>{{ customAmountRemainder | appCurrency }}</strong></span>
+                    @if (isCustomAmountValid) {
+                      <span class="valid-badge"><ion-icon name="checkmark-circle-outline"></ion-icon> {{ 'SPLIT.BALANCED' | transloco }}</span>
+                    }
+                  </div>
+                  <ion-button expand="block" fill="outline" color="primary" [disabled]="!isCustomAmountValid" (click)="calculerSplitLibre()" (keydown.enter)="calculerSplitLibre()" (keyup.enter)="calculerSplitLibre()" data-testid="btn-calculate-split-libre">
+                    <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                    {{ 'ENCAISSEMENT.CALCULATE_SPLIT' | transloco }}
+                  </ion-button>
+                </div>
+              }
+
+              <!-- SPLIT POURCENTAGE -->
+              @if (splitMode === 'pourcentage') {
+                <div class="split-custom-section" data-testid="split-pct-section">
+                  <div class="convives-manager">
+                    <div class="convives-header">
+                      <h5>{{ 'ENCAISSEMENT.GUESTS_LIST' | transloco }}</h5>
+                      <div class="header-actions">
+                        <button type="button" class="action-shortcut-btn" (click)="distributePercentagesEqually()" data-testid="btn-distribute-pct-equal">
+                          {{ 'SPLIT.DISTRIBUTE_EQUALLY' | transloco }}
+                        </button>
+                        <button type="button" class="add-guest-btn" (click)="addCustomPercentageGuest()" data-testid="btn-add-pct-guest">
+                          <ion-icon name="add-outline"></ion-icon>
+                          {{ 'ENCAISSEMENT.ADD_GUEST' | transloco }}
+                        </button>
                       </div>
-                      <div class="part-amount-row">
-                        <span>{{ 'ENCAISSEMENT.PART_AMOUNT' | transloco }}:</span>
-                        <strong>{{ part.sousTotal | appCurrency }}</strong>
+                    </div>
+                    <div class="custom-guests-list">
+                      @for (g of customPercentageGuests; track g; let idx = $index) {
+                        <div class="custom-guest-card">
+                          <div class="guest-card-left">
+                            <div class="guest-avatar-badge">{{ idx + 1 }}</div>
+                            <div class="guest-input-wrap">
+                              <label [for]="'input-pct-name-' + idx" class="sr-only">Nom du convive {{ idx + 1 }}</label>
+                              <input
+                                [id]="'input-pct-name-' + idx"
+                                type="text"
+                                [(ngModel)]="g.nom"
+                                [placeholder]="('ENCAISSEMENT.GUEST' | transloco) + ' ' + (idx + 1)"
+                                class="app-styled-input guest-name-input"
+                                [attr.data-testid]="'input-pct-name-' + idx"
+                              />
+                            </div>
+                          </div>
+                          <div class="guest-card-right">
+                            <div class="app-input-currency-group">
+                              <label [for]="'input-pct-val-' + idx" class="sr-only">Pourcentage convive {{ idx + 1 }}</label>
+                              <input
+                                [id]="'input-pct-val-' + idx"
+                                type="number"
+                                min="0"
+                                max="100"
+                                [(ngModel)]="g.pourcentage"
+                                placeholder="50"
+                                class="app-styled-input guest-val-input"
+                                [attr.data-testid]="'input-pct-val-' + idx"
+                              />
+                              <span class="currency-affix">%</span>
+                            </div>
+                            <button
+                              type="button"
+                              class="btn-remainder-pill"
+                              (click)="assignRemainingPercentageToGuest(idx)"
+                              [attr.title]="'SPLIT.ASSIGN_REMAINDER' | transloco">
+                              <ion-icon name="arrow-down-circle-outline"></ion-icon>
+                              <span>{{ 'SPLIT.REMAINING_SHORT' | transloco }}</span>
+                            </button>
+                            @if (customPercentageGuests.length > 2) {
+                              <button
+                                type="button"
+                                class="btn-delete-guest"
+                                (click)="removeCustomPercentageGuest(idx)"
+                                [attr.aria-label]="'COMMON.DELETE' | transloco">
+                                <ion-icon name="trash-outline"></ion-icon>
+                              </button>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                  <div class="remainder-status-box" [class.is-valid]="isCustomPercentageValid">
+                    <span>{{ 'SPLIT.PCT_TOTAL' | transloco }} <strong>{{ totalCustomPercentage }}%</strong> ({{ 'SPLIT.REMAINDER_LABEL' | transloco }} {{ customPercentageRemainder }}%)</span>
+                    @if (isCustomPercentageValid) {
+                      <span class="valid-badge"><ion-icon name="checkmark-circle-outline"></ion-icon> {{ 'SPLIT.BALANCED' | transloco }}</span>
+                    }
+                  </div>
+                  <ion-button expand="block" fill="outline" color="primary" [disabled]="!isCustomPercentageValid" (click)="calculerSplitPourcentage()" (keydown.enter)="calculerSplitPourcentage()" (keyup.enter)="calculerSplitPourcentage()" data-testid="btn-calculate-split-pct">
+                    <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                    {{ 'ENCAISSEMENT.CALCULATE_SPLIT' | transloco }}
+                  </ion-button>
+                </div>
+              }
+
+              <!-- SPLIT SELECTION (PAR ARTICLE) -->
+              @if (splitMode === 'selection') {
+                <div class="split-selection-section" data-testid="split-selection-section">
+                  <!-- 1. Pool Summary: Bill Items & Remaining Counters -->
+                  @if (addition) {
+                    <div class="pool-summary-card">
+                      <div class="pool-title-wrap">
+                        <div class="pool-header-left">
+                          <ion-icon name="list-outline" class="pool-icon"></ion-icon>
+                          <h5>{{ 'SPLIT.POOL_TITLE' | transloco }}</h5>
+                        </div>
+                        <span class="badge-count" [class.success]="allItemsAssigned" data-testid="pool-status-badge">
+                          @if (allItemsAssigned) {
+                            <ion-icon name="checkmark-circle-outline"></ion-icon>
+                          }
+                          {{ allItemsAssigned ? ('SPLIT.ALL_ASSIGNED_SUCCESS' | transloco) : ('SPLIT.UNASSIGNED_REMAINING' | transloco:{ count: totalUnassignedCount }) }}
+                        </span>
                       </div>
-                      @if (partStates[idx]?.reglee) {
-                        <div class="settlement-info">
-                          <span>{{ 'ENCAISSEMENT.MODE_USED' | transloco }}: <strong>{{ partStates[idx].modePaiement }}</strong></span>
-                          @if (partStates[idx].pourboire) {
-                            <span>+{{ partStates[idx].pourboire | appCurrency }} pourboire</span>
+                      <p class="section-hint-text">{{ 'SPLIT.POOL_HINT' | transloco }}</p>
+
+                      <!-- Pool Items Chips Grid -->
+                      <div class="pool-items-grid">
+                        @for (item of addition.items; track trackByItemId($index, item)) {
+                          <div
+                            class="pool-item-chip"
+                            [class.completed]="getUnassignedCount(item.itemId) === 0"
+                            [attr.data-testid]="'pool-item-' + item.itemId">
+                            <div class="pool-item-info">
+                              <span class="pool-item-name">{{ item.cocktailNom }}{{ item.varianteNom ? ' (' + item.varianteNom + ')' : '' }}</span>
+                              <span class="pool-item-price">{{ item.prixUnitaire | appCurrency }}</span>
+                            </div>
+                            <div class="pool-item-count">
+                              <span class="count-pill" [class.done]="getUnassignedCount(item.itemId) === 0">
+                                {{ getUnassignedCount(item.itemId) }}/{{ item.quantite || 1 }}
+                              </span>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  <!-- 2. Convives & Assigned Items per Guest -->
+                  <div class="guests-manager-section">
+                    <div class="convives-header">
+                      <div class="convives-header-left">
+                        <ion-icon name="people-outline" class="title-icon"></ion-icon>
+                        <h5>{{ 'SPLIT.GUESTS' | transloco }}</h5>
+                        <span class="badge-count">{{ 'SPLIT.GUESTS_COUNT_BADGE' | transloco:{ count: convives.length } }}</span>
+                      </div>
+                      <button type="button" class="add-guest-btn" (click)="addConvive()" [disabled]="convives.length >= 20" data-testid="btn-add-guest">
+                        <ion-icon name="add-outline"></ion-icon>
+                        {{ 'SPLIT.ADD_GUEST' | transloco }}
+                      </button>
+                    </div>
+
+                    <div class="guests-cards-container">
+                      @for (c of convives; track c; let i = $index) {
+                        <div class="guest-assignment-card" [attr.data-testid]="'guest-card-' + i">
+                          <!-- Guest Card Header: Avatar, Name Input, Subtotal, Delete -->
+                          <div class="guest-card-header">
+                            <div class="guest-identity-group">
+                              <span class="guest-avatar-small">{{ i + 1 }}</span>
+                              <input
+                                type="text"
+                                [id]="'input-guest-name-' + i"
+                                [(ngModel)]="c.nom"
+                                [placeholder]="'SPLIT.GUEST_PLACEHOLDER' | transloco:{ number: i + 1 }"
+                                [attr.aria-label]="'SPLIT.GUEST_PLACEHOLDER' | transloco:{ number: i + 1 }"
+                                class="guest-name-field"
+                                [attr.data-testid]="'convive-input-' + i" />
+                            </div>
+                            <div class="guest-header-actions">
+                              <div class="guest-subtotal-badge" [attr.data-testid]="'guest-subtotal-' + i">
+                                <span class="subtotal-label">{{ 'SPLIT.SUBTOTAL_GUEST' | transloco }}</span>
+                                <strong class="subtotal-amount">{{ getGuestTotal(i) | appCurrency }}</strong>
+                              </div>
+                              @if (convives.length > 2) {
+                                <button
+                                  type="button"
+                                  class="btn-remove-guest"
+                                  (click)="removeConvive(i)"
+                                  [attr.aria-label]="'SPLIT.DELETE_GUEST' | transloco"
+                                  [attr.data-testid]="'remove-convive-btn-' + i">
+                                  <ion-icon name="close-outline"></ion-icon>
+                                </button>
+                              }
+                            </div>
+                          </div>
+
+                          <!-- List of items currently assigned to this guest -->
+                          <div class="guest-assigned-items-list">
+                            @for (item of getAssignedItemsForGuest(i); track item.itemId) {
+                              <div
+                                class="assigned-item-row"
+                                [attr.data-testid]="'guest-' + i + '-item-' + item.itemId">
+                                <div class="assigned-item-details">
+                                  <span class="assigned-item-name">{{ item.description }}</span>
+                                  <span class="assigned-item-unit-price">{{ item.unitPrice | appCurrency }} / u</span>
+                                </div>
+                                <div class="assigned-item-controls">
+                                  <!-- Stepper -->
+                                  <div class="stepper-mini">
+                                    <button
+                                      type="button"
+                                      class="stepper-mini-btn"
+                                      (click)="unassignOneUnitFromGuest(i, item.itemId)"
+                                      [attr.aria-label]="'COMMON.DECREASE' | transloco"
+                                      [attr.data-testid]="'guest-' + i + '-item-' + item.itemId + '-minus'">
+                                      <ion-icon name="remove-outline"></ion-icon>
+                                    </button>
+                                    <span class="stepper-mini-val">{{ item.count }}x</span>
+                                    <button
+                                      type="button"
+                                      class="stepper-mini-btn"
+                                      (click)="assignOneUnitToGuest(i, item.itemId)"
+                                      [disabled]="getUnassignedCount(item.itemId) <= 0"
+                                      [attr.aria-label]="'COMMON.INCREASE' | transloco"
+                                      [attr.data-testid]="'guest-' + i + '-item-' + item.itemId + '-plus'">
+                                      <ion-icon name="add-outline"></ion-icon>
+                                    </button>
+                                  </div>
+                                  <!-- Line Total -->
+                                  <span class="assigned-item-total">{{ item.total | appCurrency }}</span>
+                                  <!-- Remove all button -->
+                                  <button
+                                    type="button"
+                                    class="btn-trash-item"
+                                    (click)="removeAllUnitsOfItemFromGuest(i, item.itemId)"
+                                    [attr.aria-label]="'SPLIT.REMOVE_ITEM_FROM_GUEST' | transloco"
+                                    [attr.data-testid]="'guest-' + i + '-item-' + item.itemId + '-remove'">
+                                    <ion-icon name="trash-outline"></ion-icon>
+                                  </button>
+                                </div>
+                              </div>
+                            }
+                            @if (getAssignedItemsForGuest(i).length === 0) {
+                              <div class="empty-guest-items">
+                                <span>{{ 'SPLIT.NO_ITEMS_ASSIGNED_YET' | transloco }}</span>
+                              </div>
+                            }
+                          </div>
+
+                          <!-- Quick Add Item Action for this Guest -->
+                          @if (availableAdditionItems.length > 0) {
+                            <div class="guest-add-item-action">
+                              <span class="quick-add-title">{{ 'SPLIT.ASSIGN_PLACEHOLDER' | transloco }}</span>
+                              <div class="quick-add-chips-wrap">
+                                @for (opt of availableAdditionItems; track opt.itemId) {
+                                  <button
+                                    type="button"
+                                    class="btn-quick-add-chip"
+                                    (click)="assignOneUnitToGuest(i, opt.itemId)"
+                                    [attr.aria-label]="opt.description"
+                                    [attr.data-testid]="'guest-add-item-btn-' + i + '-' + opt.itemId">
+                                    <span class="chip-plus-badge">+ 1x</span>
+                                    <span class="chip-item-title">{{ opt.description }}</span>
+                                    <span class="chip-item-remaining">({{ opt.remaining }} {{ 'SPLIT.REMAINING_SHORT' | transloco }})</span>
+                                    <span class="chip-item-price">{{ opt.prixUnitaire | appCurrency }}</span>
+                                  </button>
+                                }
+                              </div>
+                            </div>
                           }
                         </div>
                       }
-                      @if (!partStates[idx]?.reglee) {
-                        <ion-button size="small" color="primary" expand="block" (click)="reglerPart(idx, part)" (keydown.enter)="reglerPart(idx, part)" (keyup.enter)="reglerPart(idx, part)" [attr.data-testid]="'btn-settle-part-' + idx">
-                          <ion-icon name="card-outline" slot="start"></ion-icon>
-                          {{ 'ENCAISSEMENT.PAY_THIS_PART' | transloco }}
-                        </ion-button>
-                      }
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn-add-guest"
+                      (click)="addConvive()"
+                      [disabled]="convives.length >= 20"
+                      data-testid="add-convive-btn">
+                      <ion-icon name="add-outline"></ion-icon>
+                      <span>{{ 'SPLIT.ADD_GUEST' | transloco }}</span>
+                    </button>
+                  </div>
+
+                  <!-- Validation Warning Banner -->
+                  @if (!allItemsAssigned && totalUnassignedCount > 0) {
+                    <div class="unassigned-warning" data-testid="split-unassigned-warning">
+                      <ion-icon name="alert-circle-outline"></ion-icon>
+                      <span>{{ 'SPLIT.ALL_ITEMS_MUST_BE_ASSIGNED' | transloco }} ({{ 'SPLIT.UNASSIGNED_REMAINING' | transloco:{ count: totalUnassignedCount } }})</span>
                     </div>
                   }
+
+                  <ion-button
+                    expand="block"
+                    fill="outline"
+                    color="primary"
+                    [disabled]="!allItemsAssigned"
+                    (click)="calculerSplitSelection()"
+                    (keydown.enter)="calculerSplitSelection()"
+                    (keyup.enter)="calculerSplitSelection()"
+                    data-testid="btn-calculate-split-selection">
+                    <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                    {{ 'ENCAISSEMENT.CALCULATE_SPLIT' | transloco }}
+                  </ion-button>
                 </div>
-              </div>
+              }
+
+              <!-- Split Progress & Individual Parts List -->
+              @if (splitResults.length > 0) {
+                <div class="split-results-container" data-testid="split-results-list">
+                  <div class="split-summary-bar">
+                    <div class="summary-stat">
+                      <span>{{ 'ENCAISSEMENT.SETTLED_AMOUNT' | transloco }}</span>
+                      <strong class="stat-paid">{{ montantRegleSplit | appCurrency }}</strong>
+                    </div>
+                    <div class="summary-stat">
+                      <span>{{ 'ENCAISSEMENT.REMAINING_BALANCE' | transloco }}</span>
+                      <strong class="stat-remaining">{{ soldeRestantSplit | appCurrency }}</strong>
+                    </div>
+                  </div>
+                  <ion-progress-bar [value]="ratioRegleSplit" [color]="toutesPartsReglees ? 'success' : 'primary'" class="split-progress"></ion-progress-bar>
+                  <!-- Individual Parts List -->
+                  <div class="parts-cards-list">
+                    @for (part of splitResults; track part; let idx = $index) {
+                      <div class="part-card" [class.settled]="partStates[idx]?.reglee" [attr.data-testid]="'split-part-card-' + idx">
+                        <div class="part-header">
+                          <h6>{{ part.nomConvive }}</h6>
+                          <ion-badge [color]="partStates[idx]?.reglee ? 'success' : 'warning'">
+                            {{ (partStates[idx]?.reglee ? 'ENCAISSEMENT.SETTLED' : 'ENCAISSEMENT.PENDING') | transloco }}
+                          </ion-badge>
+                        </div>
+                        <div class="part-amount-row">
+                          <span>{{ 'ENCAISSEMENT.PART_AMOUNT' | transloco }}:</span>
+                          <strong>{{ part.sousTotal | appCurrency }}</strong>
+                        </div>
+                        @if (partStates[idx]?.reglee) {
+                          <div class="settlement-info">
+                            <span>{{ 'ENCAISSEMENT.MODE_USED' | transloco }}: <strong>{{ partStates[idx].modePaiement }}</strong></span>
+                            @if (partStates[idx].pourboire) {
+                              <span>+{{ partStates[idx].pourboire | appCurrency }} pourboire</span>
+                            }
+                          </div>
+                        }
+                        @if (!partStates[idx]?.reglee) {
+                          <ion-button size="small" color="primary" expand="block" (click)="reglerPart(idx, part)" (keydown.enter)="reglerPart(idx, part)" (keyup.enter)="reglerPart(idx, part)" [attr.data-testid]="'btn-settle-part-' + idx">
+                            <ion-icon name="card-outline" slot="start"></ion-icon>
+                            {{ 'ENCAISSEMENT.PAY_THIS_PART' | transloco }}
+                          </ion-button>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
             }
           </div>
         }

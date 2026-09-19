@@ -686,7 +686,7 @@ ion-button.ion-color-secondary[fill="outline"]:hover::part(native) {
   border-radius: var(--radius-md);
   font-size: var(--fs-body);
   font-weight: 700;
-  color: #fff;
+  color: var(--text-on-accent);
   flex: none;
 }
 
@@ -867,13 +867,18 @@ ion-modal.zone-manager-modal-class {
 
 ion-modal.modal-lg,
 ion-modal.openbar-modal-lg,
-ion-modal.openbar-modal-split,
 ion-modal.openbar-modal-payment,
-ion-modal.commande-detail-modal-container,
-ion-modal.encaissement-modal-container {
+ion-modal.commande-detail-modal-container {
   --width: min(840px, 95vw);
   --height: min(720px, 80vh);
   --max-height: 80vh;
+}
+
+ion-modal.openbar-modal-split,
+ion-modal.encaissement-modal-container {
+  --width: min(1180px, 96vw);
+  --height: min(880px, 92vh);
+  --max-height: 92vh;
 }
 
 ion-modal::part(backdrop) {
@@ -1344,7 +1349,7 @@ ion-action-sheet .action-sheet-button {
 ion-action-sheet .action-sheet-button:hover,
 ion-action-sheet .action-sheet-button.activated {
   background: var(--background-surface-3, #2a3050) !important;
-  color: #ffffff !important;
+  color: var(--text-on-accent) !important;
 }
 
 ion-action-sheet .action-sheet-button.action-sheet-destructive {
@@ -1461,20 +1466,20 @@ ion-alert button.alert-button.alert-button-destructive,
 ion-alert button.alert-button[aria-label="Supprimer"] {
   background: var(--semantic-danger, #e5604f) !important;
   background-color: var(--semantic-danger, #e5604f) !important;
-  color: #ffffff !important;
+  color: var(--text-on-accent) !important;
   border: 1px solid transparent !important;
 
   .alert-button-inner {
-    color: #ffffff !important;
+    color: var(--text-on-accent) !important;
   }
 
   &:hover {
-    background: #d44d3c !important;
-    background-color: #d44d3c !important;
+    background: var(--semantic-danger-hover, var(--semantic-danger)) !important;
+    background-color: var(--semantic-danger-hover, var(--semantic-danger)) !important;
     box-shadow: var(--shadow-btn-danger) !important;
 
     .alert-button-inner {
-      color: #ffffff !important;
+      color: var(--text-on-accent) !important;
     }
   }
 }

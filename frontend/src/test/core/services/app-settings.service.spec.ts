@@ -348,4 +348,31 @@ describe('AppSettingsService', () => {
       });
     });
   });
+
+  describe('Discount Tiers management', () => {
+    afterEach(() => {
+      localStorage.removeItem('openbar_discount_tiers');
+    });
+
+    it('returns default discount tiers when no settings or localStorage', () => {
+      const tiers = service.getDiscountTiers();
+      expect(tiers.length).toBeGreaterThan(0);
+      expect(tiers[0].label).toBe('Équipier');
+    });
+
+    it('saves discount tiers to localStorage via saveDiscountTiersLocally()', () => {
+      const customTiers = [{ id: 'test', label: 'Test Tier', type: 'percent' as const, value: 30 }];
+      service.saveDiscountTiersLocally(customTiers);
+
+      const loaded = service.getDiscountTiers();
+      expect(loaded).toEqual(customTiers);
+    });
+
+    it('falls back to default tiers if localStorage has invalid JSON', () => {
+      localStorage.setItem('openbar_discount_tiers', 'not-valid-json');
+      const tiers = service.getDiscountTiers();
+      expect(tiers.length).toBeGreaterThan(0);
+      expect(tiers[0].label).toBe('Équipier');
+    });
+  });
 });

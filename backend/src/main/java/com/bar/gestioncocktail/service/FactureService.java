@@ -70,6 +70,8 @@ public class FactureService {
     private static final String ENTITY_FACTURE = "Invoice";
     private static final String DEFAULT_GUEST_PREFIX = "Guest ";
     private static final String INVOICE_NUMBER_FORMAT = "FAC-%d-%05d";
+    private static final String TABLE_NOT_FOUND_PREFIX = "Table not found with id: ";
+    private static final String BAR_TAB_NOT_FOUND_PREFIX = "Bar tab not found with id: ";
 
     private final FactureRepository factureRepository;
     private final TableRepository tableRepository;
@@ -420,7 +422,7 @@ public class FactureService {
     @Transactional(readOnly = true)
     public TableAdditionResponseDTO getTableAddition(Long tableId) {
         TableEntity table = tableRepository.findById(tableId)
-                .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + tableId));
+                .orElseThrow(() -> new ResourceNotFoundException(TABLE_NOT_FOUND_PREFIX + tableId));
 
         List<Commande> allCommandes = commandeRepository.findByTable(table);
         List<Commande> activeCommandes = filterActiveOrders(allCommandes, null);
@@ -487,7 +489,7 @@ public class FactureService {
         checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
         checkTillOpenedIfCashPayment(request.modePaiement(), java.time.LocalDate.now(timeService.getZoneId()));
         TableEntity table = tableRepository.findById(tableId)
-                .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + tableId));
+                .orElseThrow(() -> new ResourceNotFoundException(TABLE_NOT_FOUND_PREFIX + tableId));
 
         List<Commande> allCommandes = commandeRepository.findByTable(table);
         List<Commande> activeCommandes = filterActiveOrders(allCommandes, request.commandeIds());
@@ -526,6 +528,74 @@ public class FactureService {
     }
 
     /**
+     * Generates or retrieves an unpaid pending invoice for an occupied table based on its active orders.
+     * If an unpaid invoice already exists, it is synchronized with any new active order items.
+     *
+     * @param tableId Table identifier
+     * @return FactureResponseDTO representing the pending invoice
+     */
+    @Transactional
+    public FactureResponseDTO genererFactureTable(Long tableId) {
+        TableEntity table = tableRepository.findById(tableId)
+                .orElseThrow(() -> new ResourceNotFoundException(TABLE_NOT_FOUND_PREFIX + tableId));
+
+        List<Commande> allCommandes = commandeRepository.findByTable(table);
+        List<Commande> activeCommandes = filterActiveOrders(allCommandes, null);
+
+        List<Facture> facturesTable = factureRepository.findByTable(table);
+        Optional<Facture> unpaidFacture = findUnpaidFacture(facturesTable);
+
+        if (activeCommandes.isEmpty() && unpaidFacture.isEmpty()) {
+            throw new BusinessException("No active orders to bill for table " + table.getNumero());
+        }
+
+        Facture facture = unpaidFacture.orElseGet(() -> createNewFactureForTable(table, activeCommandes));
+        computeAndSetInvoiceTaxTotals(facture);
+        facture.setTotalTTC(facture.getTotal());
+        Facture savedFacture = factureRepository.save(facture);
+
+        auditLogService.logAction(null, "GENERATE_INVOICE_TABLE", ENTITY_FACTURE, savedFacture.getId(),
+                "Generated pending invoice " + savedFacture.getNumero() + " for table " + table.getNumero(), null);
+
+        return FactureResponseDTO.from(savedFacture);
+    }
+
+    /**
+     * Generates or retrieves an unpaid pending invoice for an active bar tab based on its active orders.
+     *
+     * @param tabId Bar tab identifier
+     * @return FactureResponseDTO representing the pending invoice
+     */
+    @Transactional
+    public FactureResponseDTO genererFactureTab(Long tabId) {
+        if (establishmentConfigService != null) {
+            establishmentConfigService.checkModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.BAR_TABS);
+        }
+        BarTab tab = barTabRepository.findById(tabId)
+                .orElseThrow(() -> new ResourceNotFoundException(BAR_TAB_NOT_FOUND_PREFIX + tabId));
+
+        List<Commande> allCommandes = commandeRepository.findByBarTab(tab);
+        List<Commande> activeCommandes = filterActiveOrders(allCommandes, null);
+
+        List<Facture> facturesTab = factureRepository.findByBarTab(tab);
+        Optional<Facture> unpaidFacture = findUnpaidFacture(facturesTab);
+
+        if (activeCommandes.isEmpty() && unpaidFacture.isEmpty()) {
+            throw new BusinessException("No active orders to bill for bar tab " + tab.getNom());
+        }
+
+        Facture facture = unpaidFacture.orElseGet(() -> createNewFactureForTab(tab, activeCommandes));
+        computeAndSetInvoiceTaxTotals(facture);
+        facture.setTotalTTC(facture.getTotal());
+        Facture savedFacture = factureRepository.save(facture);
+
+        auditLogService.logAction(null, "GENERATE_INVOICE_TAB", ENTITY_FACTURE, savedFacture.getId(),
+                "Generated pending invoice " + savedFacture.getNumero() + " for bar tab " + tab.getNom(), null);
+
+        return FactureResponseDTO.from(savedFacture);
+    }
+
+    /**
      * Computes the detailed bill summary for a given bar tab based on its active orders.
      *
      * @param tabId Bar tab identifier
@@ -537,7 +607,7 @@ public class FactureService {
             establishmentConfigService.checkModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.BAR_TABS);
         }
         BarTab tab = barTabRepository.findById(tabId)
-                .orElseThrow(() -> new ResourceNotFoundException("Bar tab not found with id: " + tabId));
+                .orElseThrow(() -> new ResourceNotFoundException(BAR_TAB_NOT_FOUND_PREFIX + tabId));
 
         List<Commande> allCommandes = commandeRepository.findByBarTab(tab);
         List<Commande> activeCommandes = filterActiveOrders(allCommandes, null);
@@ -609,7 +679,7 @@ public class FactureService {
         checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
         checkTillOpenedIfCashPayment(request.modePaiement(), java.time.LocalDate.now(timeService.getZoneId()));
         BarTab tab = barTabRepository.findById(tabId)
-                .orElseThrow(() -> new ResourceNotFoundException("Bar tab not found with id: " + tabId));
+                .orElseThrow(() -> new ResourceNotFoundException(BAR_TAB_NOT_FOUND_PREFIX + tabId));
 
         if (tab.getStatut() != BarTabStatus.ACTIVE) {
             throw new BusinessException("Bar tab is not active (current status: " + tab.getStatut() + ")");
@@ -1393,13 +1463,27 @@ public class FactureService {
 
             if (facture.getTable() != null) {
                 TableEntity table = facture.getTable();
+                List<Commande> allCommandes = commandeRepository.findByTable(table);
+                List<Commande> activeCommandes = filterActiveOrders(allCommandes, null);
+                markOrdersAsSettled(activeCommandes);
+
                 table.setOccupee(false);
                 table.setServeurId(null);
                 table.setDateLiberation(LocalDateTime.now(timeService.getZoneId()));
                 tableRepository.save(table);
                 if (eventPublisher != null) {
                     eventPublisher.publishEvent(new TableLiberatedEvent(table));
+                    eventPublisher.publishEvent(new InvoiceSettledEvent(facture, table, activeCommandes, true));
                 }
+            } else if (facture.getBarTab() != null) {
+                BarTab tab = facture.getBarTab();
+                List<Commande> allCommandes = commandeRepository.findByBarTab(tab);
+                List<Commande> activeCommandes = filterActiveOrders(allCommandes, null);
+                markOrdersAsSettled(activeCommandes);
+
+                tab.setStatut(BarTabStatus.SETTLED);
+                tab.setSettledAt(LocalDateTime.now(timeService.getZoneId()));
+                barTabRepository.save(tab);
             }
             auditLogService.logAction(null, "FACTURE_SETTLED_SPLIT", ENTITY_FACTURE, factureId,
                     "Invoice " + facture.getNumero() + " settled via split parts (" + allReglements.size() + " parts)", null);
