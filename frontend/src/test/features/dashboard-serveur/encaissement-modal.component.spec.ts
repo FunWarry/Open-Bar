@@ -746,21 +746,21 @@ describe('EncaissementModalComponent', () => {
       component.addition = mockAddition; // 28.0
       // Libre
       component.addCustomAmountGuest();
-      expect(component.customAmountGuests.length).toBe(3);
+      expect(component.customAmountGuests).toHaveSize(3);
       component.customAmountGuests[0].montant = 10;
       component.assignRemainingToGuest(1);
       expect(component.customAmountGuests[1].montant).toBe(18);
       component.removeCustomAmountGuest(2);
-      expect(component.customAmountGuests.length).toBe(2);
+      expect(component.customAmountGuests).toHaveSize(2);
 
       // Pourcentage
       component.addCustomPercentageGuest();
-      expect(component.customPercentageGuests.length).toBe(3);
+      expect(component.customPercentageGuests).toHaveSize(3);
       component.customPercentageGuests[0].pourcentage = 40;
       component.assignRemainingPercentageToGuest(1);
       expect(component.customPercentageGuests[1].pourcentage).toBe(60);
       component.removeCustomPercentageGuest(2);
-      expect(component.customPercentageGuests.length).toBe(2);
+      expect(component.customPercentageGuests).toHaveSize(2);
     });
 
     it('exercises item split edge cases and removal', () => {
@@ -770,7 +770,7 @@ describe('EncaissementModalComponent', () => {
 
       // Removing guest at index 1 shifts assignments for guest 2 down to 1
       component.removeConvive(1);
-      expect(component.convives.length).toBe(2);
+      expect(component.convives).toHaveSize(2);
       expect(component.unitAssignments['101_0']).toBeUndefined();
       expect(component.unitAssignments['102_0']).toBe(1);
 
