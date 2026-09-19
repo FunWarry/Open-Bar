@@ -99,6 +99,9 @@ public record CommandeResponseDTO(
             if (c.getTable() != null) {
                 tableId = c.getTable().getId();
                 tableNumero = c.getTable().getNumero();
+            } else if (c.getBarTab() != null && c.getBarTab().getTableOriginale() != null) {
+                tableId = c.getBarTab().getTableOriginale().getId();
+                tableNumero = c.getBarTab().getTableOriginale().getNumero();
             }
         } catch (Exception _) {
             // Lazy load fallback

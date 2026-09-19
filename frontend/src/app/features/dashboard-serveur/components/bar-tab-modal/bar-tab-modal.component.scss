@@ -181,6 +181,66 @@
   }
 }
 
+.location-toggle-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.location-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--border-medium);
+  background: var(--background-surface-2);
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  ion-icon {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    transition: color 0.18s ease;
+  }
+
+  &:hover {
+    background: var(--background-surface-3, var(--background-surface-2));
+    border-color: var(--border-light);
+    color: var(--text-primary);
+  }
+
+  &.active {
+    background: rgba(108, 127, 232, 0.16);
+    border-color: var(--primary);
+    color: var(--primary);
+
+    ion-icon {
+      color: var(--primary);
+    }
+  }
+}
+
+.location-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  legend {
+    padding: 0;
+    margin-bottom: 8px;
+    float: left;
+    width: 100%;
+  }
+}
+
 /* Footer */
 .modal-footer {
   display: flex;

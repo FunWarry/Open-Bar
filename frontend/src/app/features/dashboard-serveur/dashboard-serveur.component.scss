@@ -215,7 +215,7 @@ ion-content.dashboard-serveur-content {
       .ack-call-btn {
         padding: 3px 8px;
         background: var(--semantic-success, #2dd36f);
-        color: #000000;
+        color: var(--text-on-accent, #ffffff);
         border: none;
         border-radius: 6px;
         font-size: 0.78rem;
@@ -372,21 +372,21 @@ ion-content.dashboard-serveur-content {
       }
 
       &.active {
-        background: #4f46e5;
-        color: #ffffff;
-        border-color: #4f46e5;
-        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        background: var(--primary);
+        color: var(--text-on-accent);
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px var(--primary-tint-weak, rgba(79, 70, 229, 0.3));
 
         &.free {
-          background: #15803d;
-          color: #ffffff;
-          border-color: #15803d;
+          background: var(--semantic-success);
+          color: var(--text-on-accent);
+          border-color: var(--semantic-success);
         }
 
         &.occupied {
-          background: #b45309;
-          color: #ffffff;
-          border-color: #b45309;
+          background: var(--semantic-warning);
+          color: var(--text-on-accent);
+          border-color: var(--semantic-warning);
         }
       }
 
@@ -459,12 +459,12 @@ ion-content.dashboard-serveur-content {
     }
 
     &.active {
-      background: #4f46e5;
-      color: #ffffff;
-      box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+      background: var(--primary);
+      color: var(--text-on-accent);
+      box-shadow: 0 2px 6px var(--primary-tint-weak, rgba(79, 70, 229, 0.3));
 
       ion-icon {
-        color: #ffffff;
+        color: var(--text-on-accent);
       }
     }
   }
@@ -738,6 +738,8 @@ ion-content.dashboard-serveur-content {
   height: 100%;
   max-height: 100%;
   overflow: hidden;
+  margin: 0;
+  padding: 0;
 
   @media (max-width: 960px) {
     grid-template-columns: 1fr;
@@ -752,6 +754,8 @@ ion-content.dashboard-serveur-content {
     height: 100%;
     overflow: hidden;
     gap: var(--space-3, 12px);
+    margin: 0;
+    padding: 0;
 
     // ── Cocktails Filter Card & Pills (Fixe en haut de la colonne sans superposition) ──
     .cocktail-filters-card {
@@ -759,76 +763,12 @@ ion-content.dashboard-serveur-content {
       background: var(--background-surface-1, #16192b);
       border: 1px solid var(--border-medium, #2a2e4d);
       border-radius: var(--radius-lg, 14px);
-      padding: 14px 16px;
+      padding: 12px 16px;
       display: flex;
       flex-direction: column;
       gap: 12px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-
-      .search-input-box {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        background: var(--input-bg, var(--background-surface-2));
-        border: 1px solid var(--input-border, var(--border-medium));
-        border-radius: var(--radius-md, 12px);
-        padding: 8px 14px;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-
-        &:focus-within {
-          border-color: var(--primary);
-          box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 79, 70, 229), 0.15);
-          background: var(--background-surface-1);
-
-          .search-icon {
-            color: var(--primary);
-          }
-        }
-
-        .search-icon {
-          font-size: 1.15rem;
-          color: var(--text-muted);
-          flex-shrink: 0;
-          transition: color 0.15s ease;
-        }
-
-        .custom-search-field {
-          flex: 1;
-          background: transparent;
-          border: none;
-          outline: none;
-          color: var(--text-primary);
-          font-size: 0.9rem;
-          font-weight: 500;
-          min-width: 0;
-          width: 100%;
-
-          &::placeholder {
-            color: var(--text-muted);
-            font-weight: 400;
-          }
-        }
-
-        .clear-search-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: transparent;
-          border: none;
-          color: var(--text-muted);
-          font-size: 1.15rem;
-          padding: 0;
-          cursor: pointer;
-          border-radius: 50%;
-          transition: color 0.15s ease, transform 0.15s ease;
-
-          &:hover {
-            color: var(--semantic-danger);
-            transform: scale(1.1);
-          }
-        }
-      }
+      box-shadow: none;
+      margin: 0;
     }
 
     .category-pills-row {
@@ -836,9 +776,13 @@ ion-content.dashboard-serveur-content {
       align-items: center;
       gap: 8px;
       overflow-x: auto;
-      padding-bottom: 4px;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
 
-      &::-webkit-scrollbar { height: 4px; }
+      &::-webkit-scrollbar {
+        display: none;
+      }
     }
 
     .figma-filter-pill {
@@ -862,11 +806,11 @@ ion-content.dashboard-serveur-content {
       }
 
       &.active {
-        background: var(--primary-strong, #4f46e5);
-        color: #ffffff;
+        background: var(--primary-strong);
+        color: var(--text-on-accent);
         font-weight: 700;
-        border-color: var(--primary-strong, #4f46e5);
-        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        border-color: var(--primary-strong);
+        box-shadow: none;
       }
     }
 
@@ -951,8 +895,8 @@ ion-content.dashboard-serveur-content {
       cursor: pointer;
 
       &:hover {
-        background: #dc2626;
-        color: #ffffff;
+        background: var(--semantic-danger);
+        color: var(--text-on-accent);
         font-weight: 700;
       }
     }
@@ -987,162 +931,6 @@ ion-content.dashboard-serveur-content {
   }
 }
 
-// Light Theme Adaptations (body.light-theme)
-:host-context(body.light-theme),
-body.light-theme {
-  .controls-card {
-    background: #ffffff;
-    border-color: #e2e8f0;
-
-    .controls-row-top {
-
-
-      .status-segment-wrapper {
-        .count-pill {
-          background: #e0e7ff;
-          color: #4338ca;
-          border-color: #c7d2fe;
-        }
-
-        .filter-pill-btn {
-          background: #f1f5f9;
-          color: #475569;
-          border-color: #cbd5e1;
-
-          &:hover {
-            background: #e2e8f0;
-            color: #0f172a;
-          }
-
-          &.active {
-            background: #4f46e5;
-            color: #ffffff;
-
-            &.free {
-              background: #15803d;
-              color: #ffffff;
-            }
-
-            &.occupied {
-              background: #b45309;
-              color: #ffffff;
-            }
-          }
-        }
-      }
-    }
-
-    .controls-row-bottom {
-      border-color: var(--border-medium);
-
-      .filter-dropdowns .filter-select-box {
-        background: transparent;
-        border: none;
-        padding: 0;
-      }
-
-      .view-mode-group {
-        background: #f1f5f9;
-        border-color: #cbd5e1;
-
-        .view-toggle-btn {
-          color: #475569;
-
-          &:hover {
-            background: #e2e8f0;
-            color: #0f172a;
-          }
-
-          &.active {
-            background: #4f46e5;
-            color: #ffffff;
-          }
-        }
-      }
-    }
-  }
-
-  .zone-section-group {
-    .zone-section-header {
-      background: #ffffff;
-      border-color: #e2e8f0;
-
-      .section-title-group {
-        .section-title {
-          color: #0f172a;
-        }
-
-        .floor-chip {
-          background: #f1f5f9;
-          color: #475569;
-          border-color: #cbd5e1;
-        }
-      }
-
-      .section-metrics .metric-chip {
-        background: #f1f5f9;
-        color: #475569;
-        border-color: #cbd5e1;
-
-        &.free {
-          background: #dcfce7;
-          color: #15803d;
-          border-color: #86efac;
-        }
-
-        &.occupied {
-          background: #fef3c7;
-          color: #b45309;
-          border-color: #fde68a;
-        }
-      }
-    }
-  }
-
-  .plan-salle-interactive-wrapper {
-    background: #ffffff;
-    border-color: #e2e8f0;
-
-    .plan-legend-bar {
-      background: #f8fafc;
-      border-color: #e2e8f0;
-      color: #475569;
-    }
-
-    .plan-filter-bar {
-      background: #f1f5f9;
-      border-color: #e2e8f0;
-
-      .plan-filter-section {
-        border-color: #e2e8f0;
-      }
-
-      .plan-filter-label {
-        color: #64748b;
-      }
-
-      .plan-native-select {
-        background: #ffffff;
-        color: #0f172a;
-        border-color: #cbd5e1;
-
-        &:focus {
-          border-color: #4f46e5;
-          box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
-        }
-
-        option {
-          background: #ffffff;
-          color: #0f172a;
-        }
-      }
-    }
-
-    .konva-floor-plan-container {
-      background: #f8fafc;
-    }
-  }
-}
 
 .suivi-tab-wrapper {
   display: flex;

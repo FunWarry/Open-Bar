@@ -7,10 +7,11 @@ import java.math.BigDecimal;
 /**
  * Request payload for updating details of an active bar tab.
  *
- * @param nom             Updated name or title
- * @param clientReference Updated contact or corporate reference
- * @param notes           Updated operational notes
- * @param cautionMontant  Updated deposit or pre-authorization amount
+ * @param nom              Updated name or title
+ * @param clientReference  Updated contact or corporate reference
+ * @param notes            Updated operational notes
+ * @param cautionMontant   Updated deposit or pre-authorization amount
+ * @param tableOriginaleId Optional ID of the floor plan table if tab originates from/relocates to a physical table
  */
 public record BarTabUpdateRequest(
         @NotBlank(message = "Tab name is required")
@@ -22,6 +23,19 @@ public record BarTabUpdateRequest(
 
         String notes,
 
-        BigDecimal cautionMontant
+        BigDecimal cautionMontant,
+
+        Long tableOriginaleId
 ) {
+    /**
+     * Backward-compatible constructor without tableOriginaleId.
+     *
+     * @param nom             Updated name or title
+     * @param clientReference Updated contact or corporate reference
+     * @param notes           Updated operational notes
+     * @param cautionMontant  Updated deposit or pre-authorization amount
+     */
+    public BarTabUpdateRequest(String nom, String clientReference, String notes, BigDecimal cautionMontant) {
+        this(nom, clientReference, notes, cautionMontant, null);
+    }
 }

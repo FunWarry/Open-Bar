@@ -10,6 +10,8 @@ export interface CommandeView {
   tableId?: number;
   tableNumero?: number;
   tableNom: string;
+  barTabId?: number;
+  barTabNom?: string;
   serveurId?: number;
   serveurNom: string;
   serveurUsername?: string;

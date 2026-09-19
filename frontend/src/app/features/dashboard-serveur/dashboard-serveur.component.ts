@@ -1970,7 +1970,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
   onOrderForTab(tab: BarTab) {
     this.cart = {
-      tableId: null,
+      tableId: tab.tableOriginaleId ?? null,
+      tableNumero: tab.tableOriginaleNumero ?? undefined,
       barTabId: tab.id,
       barTabNom: tab.nom,
       items: [],

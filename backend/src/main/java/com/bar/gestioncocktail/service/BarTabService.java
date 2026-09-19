@@ -310,6 +310,15 @@ public class BarTabService {
         if (request.cautionMontant() != null) {
             tab.setCautionMontant(request.cautionMontant());
         }
+        if (request.tableOriginaleId() != null) {
+            if (request.tableOriginaleId() <= 0) {
+                tab.setTableOriginale(null);
+            } else {
+                TableEntity table = tableRepository.findById(request.tableOriginaleId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + request.tableOriginaleId()));
+                tab.setTableOriginale(table);
+            }
+        }
 
         BarTab saved = barTabRepository.save(tab);
         List<Commande> activeOrders = filterActiveOrders(commandeRepository.findByBarTab(saved));
@@ -355,7 +364,7 @@ public class BarTabService {
             throw new BusinessException("Cannot add orders to non-active bar tab: " + tab.getNom());
         }
 
-        commande.setTable(null);
+        commande.setTable(tab.getTableOriginale());
         commande.setBarTab(tab);
         if (commande.getServeur() == null) {
             commande.setServeur(user != null ? user : tab.getServeur());

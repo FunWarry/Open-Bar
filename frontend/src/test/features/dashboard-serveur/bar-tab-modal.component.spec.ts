@@ -8,12 +8,15 @@ import { BarTabModalComponent } from '../../../app/features/dashboard-serveur/co
 import { BarTabService } from '../../../app/core/services/bar-tab.service';
 import { BarTab } from '../../../app/core/models/bar-tab.model';
 
+import { TableService } from '../../../app/core/services/table.service';
+
 describe('BarTabModalComponent', () => {
   let component: BarTabModalComponent;
   let fixture: ComponentFixture<BarTabModalComponent>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let barTabServiceSpy: jasmine.SpyObj<BarTabService>;
+  let tableServiceSpy: jasmine.SpyObj<TableService>;
 
   const mockTab: BarTab = {
     id: 42,
@@ -38,6 +41,9 @@ describe('BarTabModalComponent', () => {
     barTabServiceSpy.createTab.and.returnValue(of(mockTab));
     barTabServiceSpy.updateTab.and.returnValue(of(mockTab));
 
+    tableServiceSpy = jasmine.createSpyObj('TableService', ['getAll']);
+    tableServiceSpy.getAll.and.returnValue(of([]));
+
     await TestBed.configureTestingModule({
       imports: [
         BarTabModalComponent,
@@ -50,6 +56,7 @@ describe('BarTabModalComponent', () => {
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: BarTabService, useValue: barTabServiceSpy },
+        { provide: TableService, useValue: tableServiceSpy },
       ],
     }).compileComponents();
 

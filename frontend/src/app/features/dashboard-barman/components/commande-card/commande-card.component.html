@@ -16,7 +16,19 @@
     <div class="card-header">
       <div class="card-header-text">
         <div class="table-row">
-          <span class="table-name">{{ commande.tableNom || ('Table ' + commande.tableNumero) }}</span>
+          <span class="table-name">
+            @if (commande.tableNom) {
+              {{ commande.tableNom }}
+            } @else if (commande.tableNumero && commande.barTabNom) {
+              Table {{ commande.tableNumero }} • {{ commande.barTabNom }}
+            } @else if (commande.tableNumero) {
+              Table {{ commande.tableNumero }}
+            } @else if (commande.barTabNom) {
+              {{ commande.barTabNom }} (Bar)
+            } @else {
+              Bar
+            }
+          </span>
           <span class="order-id">#{{ commande.id }}</span>
           @if (commande.prioritaire) {
             <span class="priority-chip" data-testid="priority-chip">⚡ URGENT</span>

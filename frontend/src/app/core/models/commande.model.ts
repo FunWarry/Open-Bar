@@ -30,6 +30,8 @@ export interface Commande {
   id: number;
   tableId: number;
   tableNumero: number;
+  barTabId?: number;
+  barTabNom?: string;
   serveurId: number;
   serveurUsername: string;
   items: CommandeItem[];

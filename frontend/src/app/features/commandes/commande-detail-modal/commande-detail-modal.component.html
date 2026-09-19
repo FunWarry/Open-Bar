@@ -35,7 +35,17 @@
       <div class="card-header-banner">
         <div class="header-title-group">
           <div class="title-with-badge">
-            <h2>Table {{ commande.tableNumero }}</h2>
+            <h2>
+              @if (commande.tableNumero && commande.barTabNom) {
+                Table {{ commande.tableNumero }} • {{ commande.barTabNom }}
+              } @else if (commande.tableNumero) {
+                Table {{ commande.tableNumero }}
+              } @else if (commande.barTabNom) {
+                {{ commande.barTabNom }} (Bar)
+              } @else {
+                Bar / Comptoir
+              }
+            </h2>
             <ion-badge [color]="getStatutColor(commande.statut)" class="status-badge">
               {{ ('COMMANDES.STATUTS.' + commande.statut) | transloco }}
             </ion-badge>
@@ -59,8 +69,18 @@
             <ion-icon name="grid-outline"></ion-icon>
           </div>
           <div class="metric-info">
-            <span class="metric-label">{{ 'COMMANDES.DETAILS.TABLE' | transloco }}</span>
-            <span class="metric-value">Table {{ commande.tableNumero }}</span>
+            <span class="metric-label">{{ (commande.barTabNom && !commande.tableNumero ? 'BAR_TABS.CARD.TAB_LABEL' : 'COMMANDES.DETAILS.TABLE') | transloco }}</span>
+            <span class="metric-value">
+              @if (commande.tableNumero && commande.barTabNom) {
+                Table {{ commande.tableNumero }} ({{ commande.barTabNom }})
+              } @else if (commande.tableNumero) {
+                Table {{ commande.tableNumero }}
+              } @else if (commande.barTabNom) {
+                {{ commande.barTabNom }}
+              } @else {
+                Bar / Comptoir
+              }
+            </span>
           </div>
         </div>
 

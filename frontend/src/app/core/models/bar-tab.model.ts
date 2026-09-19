@@ -70,6 +70,7 @@ export interface BarTabUpdateRequest {
   clientReference?: string;
   notes?: string;
   cautionMontant?: number;
+  tableOriginaleId?: number | null;
 }
 
 /**

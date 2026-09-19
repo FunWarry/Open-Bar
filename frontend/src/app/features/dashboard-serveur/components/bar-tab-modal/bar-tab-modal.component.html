@@ -70,6 +70,49 @@
         testId="input-tab-caution">
       </app-input-field>
 
+      <!-- Location Attachment Selector (Bar vs Table) -->
+      <fieldset class="form-field-group location-fieldset">
+        <legend class="field-label">
+          <ion-icon name="restaurant-outline"></ion-icon>
+          <span>{{ 'TABS.FIELD_LOCATION' | transloco }} *</span>
+        </legend>
+        <div class="location-toggle-group">
+          <button
+            type="button"
+            class="location-toggle-btn"
+            [class.active]="form.get('locationType')?.value === 'BAR'"
+            (click)="setLocationType('BAR')"
+            data-testid="btn-location-bar">
+            <ion-icon name="wine-outline"></ion-icon>
+            <span>{{ 'TABS.LOCATION_BAR' | transloco }}</span>
+          </button>
+          <button
+            type="button"
+            class="location-toggle-btn"
+            [class.active]="form.get('locationType')?.value === 'TABLE'"
+            (click)="setLocationType('TABLE')"
+            data-testid="btn-location-table">
+            <ion-icon name="restaurant-outline"></ion-icon>
+            <span>{{ 'TABS.LOCATION_TABLE' | transloco }}</span>
+          </button>
+        </div>
+      </fieldset>
+
+      <!-- Physical Table Dropdown (Shown when Table selected) -->
+      @if (form.get('locationType')?.value === 'TABLE') {
+        <div class="form-field-group table-select-group">
+          <app-searchable-select
+            formControlName="tableOriginaleId"
+            [label]="'TABS.SELECT_TABLE' | transloco"
+            [placeholder]="'TABS.SELECT_TABLE_PLACEHOLDER' | transloco"
+            [options]="tableOptions"
+            [enableSearch]="true"
+            icon="restaurant-outline"
+            testId="select-tab-table">
+          </app-searchable-select>
+        </div>
+      }
+
       <!-- Notes / Instructions -->
       <div class="form-field-group">
         <label class="field-label" for="input-tab-notes">
