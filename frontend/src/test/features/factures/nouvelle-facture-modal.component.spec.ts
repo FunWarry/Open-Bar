@@ -125,7 +125,7 @@ describe('NouvelleFactureModalComponent', () => {
     tick();
 
     expect(tableServiceSpy.getAll).toHaveBeenCalled();
-    expect(component.occupiedTables.length).toBe(1);
+    expect(component.occupiedTables).toHaveSize(1);
     expect(component.occupiedTables[0].numero).toBe(4);
     expect(component.isLoadingTables).toBeFalse();
   }));
