@@ -708,6 +708,101 @@ describe('EncaissementModalComponent', () => {
       component.discountPercent = 15;
       expect(component.discountLabel).toBe('-15%');
       expect(component.netTotalBeforeTip).toBe(23.8);
+
+      component.discountMode = 'fixed';
+      component.discountFixed = 3;
+      expect(component.discountLabel).toContain('-3');
+
+      component.discountMode = 'none';
+      expect(component.discountLabel).toBe('');
+
+      component.tipMode = '5pct';
+      expect(component.tipLabel).toBe('+5%');
+
+      component.tipMode = '15pct';
+      expect(component.tipLabel).toBe('+15%');
+
+      component.tipMode = 'custom';
+      component.customTip = 4;
+      expect(component.tipLabel).toContain('+4');
+    });
+
+    it('exercises itemAssignments and guests getters and setters', () => {
+      component.addition = mockAddition;
+      component.convives = [{ nom: 'Guest A' }, { nom: 'Guest B' }];
+      expect(component.guests).toEqual([{ name: 'Guest A' }, { name: 'Guest B' }]);
+
+      component.guests = [{ name: 'Guest X' }, { name: 'Guest Y' }];
+      expect(component.convives).toEqual([{ nom: 'Guest X' }, { nom: 'Guest Y' }]);
+
+      component.unitAssignments = { '101_0': 0, '102_0': 1 };
+      expect(component.itemAssignments).toEqual({ 101: 0, 102: 1 });
+
+      component.itemAssignments = { 101: 1 };
+      expect(component.unitAssignments['101_0']).toBe(1);
+    });
+
+    it('exercises split modes free amount and percentages', () => {
+      component.addition = mockAddition; // 28.0
+      // Libre
+      component.addCustomAmountGuest();
+      expect(component.customAmountGuests.length).toBe(3);
+      component.customAmountGuests[0].montant = 10;
+      component.assignRemainingToGuest(1);
+      expect(component.customAmountGuests[1].montant).toBe(18);
+      component.removeCustomAmountGuest(2);
+      expect(component.customAmountGuests.length).toBe(2);
+
+      // Pourcentage
+      component.addCustomPercentageGuest();
+      expect(component.customPercentageGuests.length).toBe(3);
+      component.customPercentageGuests[0].pourcentage = 40;
+      component.assignRemainingPercentageToGuest(1);
+      expect(component.customPercentageGuests[1].pourcentage).toBe(60);
+      component.removeCustomPercentageGuest(2);
+      expect(component.customPercentageGuests.length).toBe(2);
+    });
+
+    it('exercises item split edge cases and removal', () => {
+      component.addition = mockAddition;
+      component.convives = [{ nom: 'A' }, { nom: 'B' }, { nom: 'C' }];
+      component.unitAssignments = { '101_0': 1, '102_0': 2 };
+
+      // Removing guest at index 1 shifts assignments for guest 2 down to 1
+      component.removeConvive(1);
+      expect(component.convives.length).toBe(2);
+      expect(component.unitAssignments['101_0']).toBeUndefined();
+      expect(component.unitAssignments['102_0']).toBe(1);
+
+      expect(component.getGuestName(0)).toBe('A');
+      expect(component.totalUnassignedCount).toBeGreaterThan(0);
+      expect(component.availableAdditionItems.length).toBeGreaterThan(0);
+      expect(component.allItemsAssigned).toBeFalse();
+    });
+
+    it('exercises cash operations and exact amount in part settlement', () => {
+      component.reglerPart(0, mockPart);
+      component.partPaymentMode = 'ESPECES';
+      component.definirPartMontantExact();
+      expect(component.partMontantRecu).toBe(component.partTotalNetAPayer);
+
+      component.ajouterPartEspeces(5);
+      expect(component.partMontantRecu).toBe(component.partTotalNetAPayer + 5);
+
+      const suggestions = component.partBilletSuggestions;
+      expect(suggestions).toBeDefined();
+
+      component.setPartDiscountMode('fixed');
+      component.partDiscountFixed = 2;
+      expect(component.partDiscountAmount).toBe(2);
+
+      component.setPartDiscountMode('none');
+      expect(component.partDiscountAmount).toBe(0);
+
+      const fixedTier = { id: 'promo', label: 'Promo 5€', type: 'fixed' as const, value: 5 };
+      component.applyPartDiscountTier(fixedTier);
+      expect(component.partDiscountMode).toBe('fixed');
+      expect(component.partDiscountAmount).toBe(5);
     });
   });
 });
