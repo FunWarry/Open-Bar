@@ -1,0 +1,120 @@
+<ion-header class="modal-header">
+  <ion-toolbar color="primary">
+    <ion-title data-testid="modal-transfer-title">
+      {{ 'TABS.TRANSFER_TITLE' | transloco }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()" (keyup.enter)="dismiss()" data-testid="btn-close-transfer-modal" aria-label="Close">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- Segment switch only if both source options are possible or if not locked -->
+  @if (sourceTab && sourceTableId) {
+    <ion-toolbar class="segment-toolbar">
+      <ion-segment [value]="transferMode" (ionChange)="onModeChange($any($event).detail.value)">
+        <ion-segment-button value="TAB_TO_TABLE" data-testid="segment-tab-to-table">
+          <ion-label>{{ 'TABS.TRANSFER_TYPE_TAB_TO_TABLE' | transloco }}</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="TABLE_TO_TAB" data-testid="segment-table-to-tab">
+          <ion-label>{{ 'TABS.TRANSFER_TYPE_TABLE_TO_TAB' | transloco }}</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </ion-toolbar>
+  }
+</ion-header>
+
+<ion-content class="ion-padding modal-content">
+  <div class="transfer-container">
+    @if (transferMode === 'TAB_TO_TABLE') {
+      <div class="selection-section">
+        <h3 class="section-title">{{ 'TABS.SELECT_DESTINATION_TABLE' | transloco }}</h3>
+        @if (isLoading) {
+          <div class="loading-state">
+            <ion-spinner name="crescent"></ion-spinner>
+          </div>
+        } @else {
+          <ion-list class="options-list" data-testid="list-destination-tables">
+            @for (table of tables; track table.id) {
+              <ion-item
+                button
+                detail="false"
+                class="option-item"
+                [class.selected]="selectedTableId === table.id"
+                [attr.data-testid]="'option-table-' + table.id"
+                (click)="selectedTableId = table.id"
+                (keyup.enter)="selectedTableId = table.id">
+                <ion-icon name="restaurant-outline" slot="start"></ion-icon>
+                <ion-label>
+                  <h2>Table #{{ table.numero }}</h2>
+                  <p>{{ table.zone || 'Salle' }} • {{ table.capacite }} couverts</p>
+                </ion-label>
+                @if (selectedTableId === table.id) {
+                  <ion-icon name="checkmark-circle-outline" slot="end" color="primary"></ion-icon>
+                }
+              </ion-item>
+            }
+          </ion-list>
+        }
+      </div>
+    } @else {
+      <div class="selection-section">
+        <h3 class="section-title">{{ 'TABS.SELECT_DESTINATION_TAB' | transloco }}</h3>
+        @if (tabs.length === 0) {
+          <p class="empty-hint">{{ 'TABS.EMPTY_TITLE' | transloco }}</p>
+        } @else {
+          <ion-list class="options-list" data-testid="list-destination-tabs">
+            @for (tab of tabs; track tab.id) {
+              <ion-item
+                button
+                detail="false"
+                class="option-item"
+                [class.selected]="selectedTabId === tab.id"
+                [attr.data-testid]="'option-tab-' + tab.id"
+                (click)="selectedTabId = tab.id"
+                (keyup.enter)="selectedTabId = tab.id">
+                <ion-icon name="receipt-outline" slot="start"></ion-icon>
+                <ion-label>
+                  <h2>{{ tab.nom }}</h2>
+                  <p>{{ tab.clientReference ? ('[' + tab.clientReference + '] • ') : '' }}{{ tab.total || 0 }} €</p>
+                </ion-label>
+                @if (selectedTabId === tab.id) {
+                  <ion-icon name="checkmark-circle-outline" slot="end" color="primary"></ion-icon>
+                }
+              </ion-item>
+            }
+          </ion-list>
+        }
+      </div>
+    }
+
+    <div class="form-actions">
+      <ion-button
+        type="button"
+        fill="outline"
+        color="medium"
+        (click)="dismiss()"
+        (keyup.enter)="dismiss()"
+        data-testid="btn-cancel-transfer-modal">
+        {{ 'TABS.BTN_CANCEL' | transloco }}
+      </ion-button>
+
+      <ion-button
+        type="button"
+        fill="solid"
+        color="primary"
+        [disabled]="!canSubmit() || isSubmitting"
+        (click)="onConfirmTransfer()"
+        (keyup.enter)="onConfirmTransfer()"
+        data-testid="btn-confirm-transfer-modal">
+        @if (isSubmitting) {
+          <ion-spinner name="crescent" slot="start"></ion-spinner>
+        } @else {
+          <ion-icon name="swap-horizontal-outline" slot="start"></ion-icon>
+        }
+        {{ 'TABS.BTN_CONFIRM_TRANSFER' | transloco }}
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

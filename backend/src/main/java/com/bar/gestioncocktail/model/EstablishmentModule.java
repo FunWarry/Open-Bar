@@ -41,5 +41,12 @@ public enum EstablishmentModule {
      * Physical cash drawer management lifecycle: daily opening float, cash movements (in/drop/paid out),
      * and intermediate X-reports.
      */
-    CASH_DRAWER
+    CASH_DRAWER,
+
+    /**
+     * Customer bar tabs and running ledgers without mandatory physical table assignment,
+     * supporting drink accumulation across the evening, table-tab transfers, and unified settlement.
+     */
+    BAR_TABS
 }
+

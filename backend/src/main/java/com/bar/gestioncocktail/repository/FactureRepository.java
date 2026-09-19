@@ -18,6 +18,8 @@ import java.util.Optional;
 @Repository
 public interface FactureRepository extends JpaRepository<Facture, Long> {
     List<Facture> findByTable(TableEntity table);
+    List<Facture> findByBarTab(com.bar.gestioncocktail.model.BarTab barTab);
+    List<Facture> findByBarTabAndReglee(com.bar.gestioncocktail.model.BarTab barTab, boolean reglee);
     List<Facture> findByReglee(boolean reglee);
     List<Facture> findByDateReglementBetween(LocalDateTime debut, LocalDateTime fin);
     List<Facture> findByModePaiement(String modePaiement);

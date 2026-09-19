@@ -60,6 +60,9 @@ import { BottomNavigationComponent, ServeurTab } from './components/bottom-navig
 import { ProductCardComponent, ProductItem } from './components/product-card/product-card.component';
 import { CartDrawerComponent } from './components/cart-drawer/cart-drawer.component';
 import { CartModel, CartItemModel } from './models/cart.model';
+import { BarTabsListComponent } from './components/bar-tabs-list/bar-tabs-list.component';
+import { BarTabService } from '../../core/services/bar-tab.service';
+import { BarTab } from '../../core/models/bar-tab.model';
 /**
  * View mode for the server dashboard (grid, list, kanban).
  */
@@ -104,6 +107,7 @@ import { SearchBarComponent } from '../../core/components/ui/search-bar/search-b
     CommandeListComponent,
     SearchableSelectComponent,
     SearchBarComponent,
+    BarTabsListComponent,
   ],
   templateUrl: './dashboard-serveur.component.html',
   styleUrls: ['./dashboard-serveur.component.scss'],
@@ -191,6 +195,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   readonly offlineService = inject(OfflineOrderService);
   private readonly featureFlagService = inject(FeatureFlagService);
   readonly floorPlanEnabled = this.featureFlagService.floorPlanEnabled;
+  readonly barTabService = inject(BarTabService);
+  readonly barTabsEnabled = this.featureFlagService.barTabsEnabled;
 
   constructor(
     private readonly service: DashboardServeurService,
@@ -249,6 +255,9 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         }
         if (params['tab'] === 'suivi' || params['tab'] === 'kanban') {
           this.activeTab = 'suivi';
+          this.cdr.detectChanges();
+        } else if (params['tab'] === 'tabs' || params['tab'] === 'ardoises') {
+          this.activeTab = 'tabs';
           this.cdr.detectChanges();
         }
       });
@@ -1828,13 +1837,15 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   async onSubmitCart() {
-    if (!this.cart.tableId || this.cart.items.length === 0 || this.isSubmitting) return;
+    if ((!this.cart.tableId && !this.cart.barTabId) || this.cart.items.length === 0 || this.isSubmitting) return;
 
     this.isSubmitting = true;
     this.cdr.detectChanges();
 
-    const targetTableId = this.cart.tableId;
+    const targetTableId = this.cart.tableId ?? undefined;
     const targetTableNumero = this.cart.tableNumero ?? targetTableId;
+    const targetBarTabId = this.cart.barTabId ?? undefined;
+    const targetBarTabNom = this.cart.barTabNom;
     const itemsToSubmit = [...this.cart.items];
     const generalNote = this.cart.noteGenerale;
 
@@ -1864,6 +1875,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
     this.service.createCommande({
       tableId: targetTableId,
+      barTabId: targetBarTabId,
       notes: generalNote,
       items: mappedItems,
       clientRequestId,
@@ -1877,9 +1889,10 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       )
       .subscribe({
         next: async () => {
+          const targetDisplay = targetBarTabNom || `la Table #${targetTableNumero}`;
           const message = this.translocoService.translate('SERVEUR.ORDER_SENT_SUCCESS', {
-            table: targetTableNumero,
-          }) || `Commande envoyée pour la Table #${targetTableNumero}`;
+            table: targetDisplay,
+          }) || `Commande envoyée pour ${targetDisplay}`;
 
           const toast = await this.toastCtrl.create({
             message,
@@ -1890,6 +1903,9 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
           this.cart = { tableId: null, items: [] };
           this.chargerTables();
+          if (targetBarTabId) {
+            this.barTabService.loadTabs().subscribe();
+          }
         },
         error: async (err) => {
           console.error('[DashboardServeur] Error submitting cart order:', err);
@@ -1909,6 +1925,32 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
   onClearCart() {
     this.cart = { tableId: null, items: [] };
+  }
+
+  onOrderForTab(tab: BarTab) {
+    this.cart = {
+      tableId: null,
+      barTabId: tab.id,
+      barTabNom: tab.nom,
+      items: [],
+    };
+    this.activeTab = 'commande';
+    this.cdr.detectChanges();
+  }
+
+  async onSettleTab(tab: BarTab): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: EncaissementModalComponent,
+      componentProps: { tab },
+      enterAnimation: fastModalEnterAnimation,
+      leaveAnimation: fastModalLeaveAnimation,
+    });
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.action === 'settled') {
+        this.barTabService.loadTabs().subscribe();
+      }
+    });
+    await modal.present();
   }
 
   onRefresh(event: { target?: { complete: () => void } }) {

@@ -1,0 +1,134 @@
+.bar-tab-card {
+  margin: 0;
+  border-radius: 12px;
+  background: var(--background-surface-1, #1e2024);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.08));
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary, #3880ff);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.card-header {
+  padding: 14px 16px 8px;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tab-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tab-icon {
+  font-size: 1.25rem;
+  color: var(--primary, #3880ff);
+  flex-shrink: 0;
+}
+
+.tab-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.ref-badge,
+.caution-badge {
+  font-size: 0.72rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.card-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #9ba3af);
+
+  .elapsed-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+.card-content {
+  padding: 8px 16px 14px;
+}
+
+.balance-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--background-surface-2, #2a2d34);
+  margin-bottom: 10px;
+
+  .balance-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary, #9ba3af);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .balance-value {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-primary, #ffffff);
+  }
+}
+
+.tab-notes {
+  margin: 0 0 12px 0;
+  font-size: 0.82rem;
+  color: var(--text-muted, #717886);
+  font-style: italic;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.action-buttons-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+
+  .action-btn {
+    --border-radius: 8px;
+    margin: 0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    height: 36px;
+  }
+}

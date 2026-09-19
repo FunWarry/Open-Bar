@@ -22,6 +22,10 @@ public class Facture {
     @JoinColumn(name = "table_id", nullable = true)
     private TableEntity table;
 
+    @ManyToOne
+    @JoinColumn(name = "bar_tab_id", nullable = true)
+    private BarTab barTab;
+
     @OneToMany(mappedBy = "facture", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<FactureItem> items = new ArrayList<>();
 

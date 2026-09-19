@@ -121,6 +121,9 @@ public class EstablishmentConfig {
     @Column(name = "module_cash_drawer_enabled")
     private Boolean moduleCashDrawerEnabled = true;
 
+    @Column(name = "module_bar_tabs_enabled")
+    private Boolean moduleBarTabsEnabled = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -145,6 +148,7 @@ public class EstablishmentConfig {
             case QR_CLIENT_ORDERING -> Boolean.TRUE.equals(this.moduleQrClientOrderingEnabled);
             case STOCK_TRACKING -> Boolean.TRUE.equals(this.moduleStockTrackingEnabled);
             case CASH_DRAWER -> Boolean.TRUE.equals(this.moduleCashDrawerEnabled);
+            case BAR_TABS -> Boolean.TRUE.equals(this.moduleBarTabsEnabled);
         };
     }
 
@@ -166,6 +170,7 @@ public class EstablishmentConfig {
             case QR_CLIENT_ORDERING -> this.moduleQrClientOrderingEnabled = enabled;
             case STOCK_TRACKING -> this.moduleStockTrackingEnabled = enabled;
             case CASH_DRAWER -> this.moduleCashDrawerEnabled = enabled;
+            case BAR_TABS -> this.moduleBarTabsEnabled = enabled;
         }
     }
 

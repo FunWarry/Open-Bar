@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
@@ -30,6 +30,8 @@ import { FactureService, SplitResultDTO } from '../../../factures/services/factu
 import { ReglementModalComponent, ReglementModalResult } from '../../../factures/reglement-modal/reglement-modal.component';
 import { Facture } from '../../../factures/models/facture.model';
 import { environment } from '../../../../../environments/environment';
+import { BarTab } from '../../../../core/models/bar-tab.model';
+import { BarTabService } from '../../../../core/services/bar-tab.service';
 
 /**
  * Encaissement and table payment modal component for server and manager dashboards.
@@ -55,8 +57,11 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
     return this.appSettingsService.currencySymbol;
   }
 
-  /** The target table to settle */
-  @Input({ required: true }) table!: TableView;
+  /** The target table to settle (if settling a table) */
+  @Input() table?: TableView;
+
+  /** The target bar tab to settle (if settling a bar tab) */
+  @Input() tab?: BarTab;
 
   /** Active addition data loaded from backend */
   addition: TableAdditionResponse | null = null;
@@ -93,6 +98,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
 
   private readonly dashboardService = inject(DashboardServeurService);
   private readonly factureService = inject(FactureService);
+  private readonly barTabService = inject(BarTabService, { optional: true });
   private readonly modalCtrl = inject(ModalController);
   private readonly toastCtrl = inject(ToastController);
   private readonly transloco = inject(TranslocoService);
@@ -122,13 +128,26 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   chargerAddition(): void {
     this.isLoading = true;
     this.errorMessage = null;
-    this.dashboardService.getTableAddition(this.table.id)
+
+    let addition$: Observable<TableAdditionResponse> | null = null;
+    if (this.tab && this.barTabService) {
+      addition$ = this.barTabService.getTabAddition(this.tab.id);
+    } else if (this.table) {
+      addition$ = this.dashboardService.getTableAddition(this.table.id);
+    }
+
+    if (!addition$) {
+      this.isLoading = false;
+      return;
+    }
+
+    addition$
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => (this.isLoading = false))
       )
       .subscribe({
-        next: data => {
+        next: (data: TableAdditionResponse) => {
           this.addition = data;
           this.montantRecu = null;
         },
@@ -364,18 +383,31 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
       commandeIds: this.addition.commandeIds
     };
 
-    this.dashboardService.encaisserTable(this.table.id, req)
+    let settlement$: Observable<Facture> | null = null;
+    if (this.tab && this.barTabService) {
+      settlement$ = this.barTabService.encaisserTab(this.tab.id, req);
+    } else if (this.table) {
+      settlement$ = this.dashboardService.encaisserTable(this.table.id, req);
+    }
+
+    if (!settlement$) {
+      this.isSubmitting = false;
+      return;
+    }
+
+    settlement$
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => (this.isSubmitting = false))
       )
       .subscribe({
-        next: async (facture) => {
+        next: async (facture: Facture) => {
           this.settledFacture = facture;
+          const targetName = this.tab ? this.tab.nom : (this.table?.nom || `Table ${this.table?.id}`);
           const toast = await this.toastCtrl.create({
             message: this.transloco.translate('ENCAISSEMENT.SUCCESS_TOAST', {
               numero: facture.numero,
-              table: this.table.nom || this.table.id
+              table: targetName
             }),
             duration: 3000,
             color: 'success'
@@ -383,7 +415,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
           await toast.present();
           this.modalCtrl.dismiss({ action: 'settled', facture });
         },
-        error: async (err) => {
+        error: async (err: { error?: { message?: string } }) => {
           const msg = err?.error?.message || this.transloco.translate('ENCAISSEMENT.ERROR_SETTLEMENT');
           const toast = await this.toastCtrl.create({
             message: msg,
@@ -551,8 +583,17 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
       commandeIds: this.addition?.commandeIds
     };
 
-    this.dashboardService.encaisserTable(this.table.id, req).subscribe({
-      next: async (facture) => {
+    let settlement$: Observable<Facture> | null = null;
+    if (this.tab && this.barTabService) {
+      settlement$ = this.barTabService.encaisserTab(this.tab.id, req);
+    } else if (this.table) {
+      settlement$ = this.dashboardService.encaisserTable(this.table.id, req);
+    }
+
+    if (!settlement$) return;
+
+    settlement$.subscribe({
+      next: async (facture: Facture) => {
         this.settledFacture = facture;
         const toast = await this.toastCtrl.create({
           message: this.transloco.translate('ENCAISSEMENT.ALL_PARTS_SETTLED_SUCCESS'),

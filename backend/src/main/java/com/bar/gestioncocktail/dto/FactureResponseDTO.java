@@ -30,8 +30,33 @@ public record FactureResponseDTO(
     List<FactureItemResponseDTO> items,
     List<FactureReglementDTO> reglements,
     LocalDateTime createdAt,
-    LocalDateTime updatedAt
+    LocalDateTime updatedAt,
+    Long barTabId,
+    String barTabNom
 ) {
+    public FactureResponseDTO(
+        Long id,
+        Long tableId,
+        Integer tableNumero,
+        String numero,
+        BigDecimal total,
+        BigDecimal totalHT,
+        BigDecimal totalVAT,
+        BigDecimal pourboire,
+        BigDecimal totalTTC,
+        LocalDateTime dateFacture,
+        LocalDateTime dateReglement,
+        boolean reglee,
+        String modePaiement,
+        String notes,
+        List<FactureItemResponseDTO> items,
+        List<FactureReglementDTO> reglements,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        this(id, tableId, tableNumero, numero, total, totalHT, totalVAT, pourboire, totalTTC, dateFacture, dateReglement, reglee, modePaiement, notes, items, reglements, createdAt, updatedAt, null, null);
+    }
+
     /**
      * Converts a {@link Facture} entity into a response DTO.
      *
@@ -63,7 +88,9 @@ public record FactureResponseDTO(
             items,
             reglements,
             f.getCreatedAt(),
-            f.getUpdatedAt()
+            f.getUpdatedAt(),
+            f.getBarTab() != null ? f.getBarTab().getId() : null,
+            f.getBarTab() != null ? f.getBarTab().getNom() : null
         );
     }
 }

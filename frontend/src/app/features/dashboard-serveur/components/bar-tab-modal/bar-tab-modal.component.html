@@ -1,0 +1,84 @@
+<ion-header class="modal-header">
+  <ion-toolbar color="primary">
+    <ion-title data-testid="modal-tab-title">
+      {{ (tab ? 'TABS.MODAL_EDIT_TITLE' : 'TABS.MODAL_CREATE_TITLE') | transloco }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()" (keyup.enter)="dismiss()" data-testid="btn-close-tab-modal" aria-label="Close">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding modal-content">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="tab-form" data-testid="form-bar-tab">
+    <ion-item class="form-item">
+      <ion-label position="stacked">{{ 'TABS.FIELD_NAME' | transloco }}</ion-label>
+      <ion-input
+        formControlName="nom"
+        type="text"
+        [placeholder]="'TABS.FIELD_NAME_PLACEHOLDER' | transloco"
+        data-testid="input-tab-name">
+      </ion-input>
+    </ion-item>
+
+    <ion-item class="form-item">
+      <ion-label position="stacked">{{ 'TABS.FIELD_REF' | transloco }}</ion-label>
+      <ion-input
+        formControlName="clientReference"
+        type="text"
+        [placeholder]="'TABS.FIELD_REF_PLACEHOLDER' | transloco"
+        data-testid="input-tab-ref">
+      </ion-input>
+    </ion-item>
+
+    <ion-item class="form-item">
+      <ion-label position="stacked">{{ 'TABS.FIELD_CAUTION' | transloco }}</ion-label>
+      <ion-input
+        formControlName="cautionMontant"
+        type="number"
+        step="0.5"
+        min="0"
+        placeholder="0.00"
+        data-testid="input-tab-caution">
+      </ion-input>
+    </ion-item>
+
+    <ion-item class="form-item">
+      <ion-label position="stacked">{{ 'TABS.FIELD_NOTES' | transloco }}</ion-label>
+      <ion-textarea
+        formControlName="notes"
+        rows="3"
+        [placeholder]="'TABS.FIELD_NOTES_PLACEHOLDER' | transloco"
+        data-testid="input-tab-notes">
+      </ion-textarea>
+    </ion-item>
+
+    <div class="form-actions">
+      <ion-button
+        type="button"
+        fill="outline"
+        color="medium"
+        (click)="dismiss()"
+        (keyup.enter)="dismiss()"
+        data-testid="btn-cancel-tab-modal">
+        {{ 'TABS.BTN_CANCEL' | transloco }}
+      </ion-button>
+
+      <ion-button
+        type="submit"
+        fill="solid"
+        color="primary"
+        [disabled]="form.invalid || isSubmitting"
+        data-testid="btn-submit-tab-modal">
+        @if (isSubmitting) {
+          <ion-spinner name="crescent" slot="start"></ion-spinner>
+        } @else {
+          <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+        }
+        {{ (tab ? 'TABS.BTN_SAVE' : 'TABS.BTN_CREATE') | transloco }}
+      </ion-button>
+    </div>
+  </form>
+</ion-content>

@@ -472,6 +472,7 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     module_qr_client_ordering_enabled BOOLEAN DEFAULT true,
     module_stock_tracking_enabled BOOLEAN DEFAULT true,
     module_cash_drawer_enabled BOOLEAN DEFAULT true,
+    module_bar_tabs_enabled BOOLEAN DEFAULT true,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -651,10 +652,35 @@ CREATE INDEX IF NOT EXISTS idx_cash_movements_session ON cash_movements(session_
 CREATE INDEX IF NOT EXISTS idx_cash_movements_date ON cash_movements(movement_date);
 CREATE INDEX IF NOT EXISTS idx_cash_movements_type ON cash_movements(type);
 
+-- 14. Customer Bar Tabs & Running Ledgers
+CREATE TABLE IF NOT EXISTS bar_tabs (
+    id BIGSERIAL PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    client_reference VARCHAR(100),
+    notes TEXT,
+    caution_montant DECIMAL(10,2) DEFAULT 0.00,
+    statut VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
+    serveur_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    table_originale_id BIGINT REFERENCES tables(id) ON DELETE SET NULL,
+    opened_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    settled_at TIMESTAMP,
+    total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_bar_tabs_statut ON bar_tabs(statut);
+CREATE INDEX IF NOT EXISTS idx_bar_tabs_serveur ON bar_tabs(serveur_id);
+
 -- Idempotent column migrations
 ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS degre_alcool DECIMAL(5,2) DEFAULT 0.0;
 ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS is_vegan BOOLEAN DEFAULT true;
 ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_cash_drawer_enabled BOOLEAN DEFAULT true;
+ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_bar_tabs_enabled BOOLEAN DEFAULT true;
 ALTER TABLE daily_cash_closures ADD COLUMN IF NOT EXISTS total_cash_in DECIMAL(10,2) DEFAULT 0.00;
 ALTER TABLE daily_cash_closures ADD COLUMN IF NOT EXISTS total_cash_out DECIMAL(10,2) DEFAULT 0.00;
 ALTER TABLE daily_cash_closures ADD COLUMN IF NOT EXISTS cash_movements_json TEXT;
+ALTER TABLE commandes ADD COLUMN IF NOT EXISTS bar_tab_id BIGINT REFERENCES bar_tabs(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_commandes_bar_tab ON commandes(bar_tab_id);
+ALTER TABLE factures ADD COLUMN IF NOT EXISTS bar_tab_id BIGINT REFERENCES bar_tabs(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_factures_bar_tab ON factures(bar_tab_id);

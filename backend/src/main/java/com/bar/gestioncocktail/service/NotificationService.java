@@ -26,6 +26,7 @@ public class NotificationService {
     private static final String TOPIC_SERVEUR_APPELS = "/topic/serveur/appels";
     private static final String TOPIC_SERVEUR_APPELS_ACQUITTE = "/topic/serveur/appels/acquitte";
     private static final String TOPIC_ESTABLISHMENT_MODULES = "/topic/establishment/modules";
+    private static final String TOPIC_BAR_TABS = "/topic/bar-tabs";
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -133,6 +134,15 @@ public class NotificationService {
      */
     public void notifierChangementTable(TableEntity table) {
         messagingTemplate.convertAndSend(TOPIC_TABLES, table);
+    }
+
+    /**
+     * Broadcasts customer bar tab lifecycle mutations over /topic/bar-tabs.
+     *
+     * @param payload Bar tab event or DTO payload
+     */
+    public void notifierBarTabMisAJour(Object payload) {
+        messagingTemplate.convertAndSend(TOPIC_BAR_TABS, payload);
     }
 
     /**

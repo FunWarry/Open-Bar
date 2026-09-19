@@ -8,6 +8,7 @@ import {
   TableAdditionItem
 } from '../../../app/features/dashboard-serveur/services/dashboard-serveur.service';
 import { FactureService } from '../../../app/features/factures/services/facture.service';
+import { BarTabService } from '../../../app/core/services/bar-tab.service';
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { AppSettingsService } from '../../../app/core/services/app-settings.service';
@@ -27,6 +28,7 @@ describe('EncaissementModalComponent', () => {
   let toastSpy: { present: jasmine.Spy };
   let dashboardServiceSpy: jasmine.SpyObj<DashboardServeurService>;
   let factureServiceSpy: jasmine.SpyObj<FactureService>;
+  let barTabServiceSpy: jasmine.SpyObj<BarTabService>;
 
   const mockTable: TableView = {
     id: 1,
@@ -100,6 +102,7 @@ describe('EncaissementModalComponent', () => {
     } as any));
 
     factureServiceSpy = jasmine.createSpyObj('FactureService', ['getFacturesByTable']);
+    barTabServiceSpy = jasmine.createSpyObj('BarTabService', ['getTabAddition', 'encaisserTab']);
 
     TestBed.configureTestingModule({
       imports: [
@@ -113,7 +116,8 @@ describe('EncaissementModalComponent', () => {
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: DashboardServeurService, useValue: dashboardServiceSpy },
-        { provide: FactureService, useValue: factureServiceSpy }
+        { provide: FactureService, useValue: factureServiceSpy },
+        { provide: BarTabService, useValue: barTabServiceSpy }
       ]
     }).compileComponents();
 

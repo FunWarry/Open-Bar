@@ -106,6 +106,16 @@
               <span class="status-dot occupied"></span>
               {{ 'SERVEUR.OCCUPIED_TABLES' | transloco }} ({{ countOccupees }})
             </button>
+            @if (barTabsEnabled()) {
+              <button
+                type="button"
+                class="filter-pill-btn tabs-link-btn"
+                data-testid="btn-desktop-tabs-pill"
+                (click)="onTabSelected('tabs')">
+                <ion-icon name="receipt-outline" style="margin-right: 4px; vertical-align: middle;"></ion-icon>
+                {{ 'SERVEUR_MOBILE.NAV.TABS' | transloco }} ({{ barTabService.activeCount() }})
+              </button>
+            }
           </div>
         </div>
         <!-- LIGNE INFERIEURE : DROPDOWNS SELECTION & BOUTONS MODE D'AFFICHAGE -->
@@ -379,6 +389,26 @@
       }
     }
 
+    <!-- ONGLET ARDOISES / BAR TABS -->
+    @if (activeTab === 'tabs') {
+      <div class="tabs-tab-wrapper" data-testid="wrapper-bar-tabs">
+        <div class="tabs-nav-bar" style="margin-bottom: 12px;">
+          <button
+            type="button"
+            class="filter-pill-btn"
+            data-testid="btn-back-to-tables"
+            (click)="onTabSelected('tables')">
+            <ion-icon name="restaurant-outline" style="margin-right: 4px; vertical-align: middle;"></ion-icon>
+            {{ 'SERVEUR_MOBILE.NAV.TABLES' | transloco }}
+          </button>
+        </div>
+        <app-bar-tabs-list
+          (orderForTab)="onOrderForTab($event)"
+          (settleTab)="onSettleTab($event)">
+        </app-bar-tabs-list>
+      </div>
+    }
+
     <!-- ONGLET 2 : PRISE DE COMMANDE RAPIDE & MENU PRODUITS -->
     @if (activeTab === 'commande') {
       <div class="order-taking-layout">
@@ -532,6 +562,8 @@
 <!-- BOTTOM NAVIGATION MOBILE / TABLETTE -->
 <app-bottom-navigation
   [activeTab]="activeTab"
+  [barTabsEnabled]="barTabsEnabled()"
+  [tabsBadgeCount]="barTabService.activeCount()"
   [cartBadgeCount]="cartTotalCount"
   (tabSelect)="onTabSelected($event)">
 </app-bottom-navigation>

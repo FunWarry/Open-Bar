@@ -1,0 +1,50 @@
+.modal-header {
+  border-bottom: 1px solid var(--border-medium, rgba(255, 255, 255, 0.1));
+}
+
+.modal-content {
+  --background: var(--background-bg-0, #121316);
+}
+
+.tab-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.form-item {
+  --background: var(--background-surface-1, #1e2024);
+  --border-radius: 8px;
+  --border-color: var(--border-medium, rgba(255, 255, 255, 0.1));
+  --color: var(--text-primary, #ffffff);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.1));
+  border-radius: 8px;
+
+  ion-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary, #9ba3af);
+    margin-bottom: 6px;
+  }
+
+  ion-input,
+  ion-textarea {
+    --color: var(--text-primary, #ffffff);
+    --placeholder-color: var(--text-muted, #717886);
+    font-size: 1rem;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+
+  ion-button {
+    --border-radius: 8px;
+    font-weight: 600;
+  }
+}

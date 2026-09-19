@@ -17,6 +17,8 @@ export interface CartItemModel {
 export interface CartModel {
   tableId: number | null;
   tableNumero?: number;
+  barTabId?: number | null;
+  barTabNom?: string;
   items: CartItemModel[];
   noteGenerale?: string;
 }
