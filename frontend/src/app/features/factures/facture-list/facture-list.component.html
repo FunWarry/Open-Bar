@@ -50,12 +50,22 @@
         </app-action-button>
 
         <app-action-button
-          variant="primary"
+          variant="secondary"
           icon="stats-chart-outline"
           (btnClick)="goToRecap()"
           testId="hero-zreport-btn"
           data-testid="hero-zreport-btn">
           {{ t('FACTURES.STATS.RECAP_BTN') }}
+        </app-action-button>
+
+        <app-action-button
+          variant="primary"
+          icon="add-circle-outline"
+          (btnClick)="ouvrirModalNouvelleFacture()"
+          [title]="t('FACTURES.ACTIONS.NEW_INVOICE')"
+          testId="factures-new-invoice-btn"
+          data-testid="factures-new-invoice-btn">
+          {{ t('FACTURES.ACTIONS.NEW_INVOICE') }}
         </app-action-button>
       </div>
     </header>

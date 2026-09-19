@@ -1887,4 +1887,70 @@ class FactureServiceTest {
         assertThat(result).isNotNull();
         assertThat(facture.isReglee()).isTrue();
     }
+
+    @Test
+    void genererFactureTable_success_createsPendingInvoiceWithItems() {
+        TableEntity table = new TableEntity();
+        table.setId(15L);
+        table.setNumero(7);
+        table.setOccupee(true);
+
+        Cocktail cocktail = new Cocktail();
+        cocktail.setId(101L);
+        cocktail.setNom("Cosmopolitan");
+
+        CommandeItem item = new CommandeItem();
+        item.setId(21L);
+        item.setCocktail(cocktail);
+        item.setQuantite(2);
+        item.setPrixUnitaire(new BigDecimal("12.00"));
+
+        Commande cmd = new Commande();
+        cmd.setId(301L);
+        cmd.setTable(table);
+        cmd.setStatut(CommandeStatut.LIVREE);
+        cmd.setItems(List.of(item));
+
+        when(tableRepository.findById(15L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of(cmd));
+        when(factureRepository.findByTable(table)).thenReturn(List.of());
+        when(factureRepository.count()).thenReturn(5L);
+        when(factureRepository.save(any(Facture.class))).thenAnswer(i -> {
+            Facture f = i.getArgument(0);
+            f.setId(88L);
+            return f;
+        });
+
+        com.bar.gestioncocktail.dto.FactureResponseDTO result = factureService.genererFactureTable(15L);
+
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(88L);
+        assertThat(result.reglee()).isFalse();
+        assertThat(result.totalTTC()).isEqualByComparingTo(new BigDecimal("24.00"));
+        assertThat(result.tableNumero()).isEqualTo(7);
+    }
+
+    @Test
+    void genererFactureTable_noActiveOrders_throwsBusinessException() {
+        TableEntity table = new TableEntity();
+        table.setId(15L);
+        table.setNumero(7);
+
+        when(tableRepository.findById(15L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of());
+        when(factureRepository.findByTable(table)).thenReturn(List.of());
+
+        assertThatThrownBy(() -> factureService.genererFactureTable(15L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("No active orders to bill for table 7");
+    }
+
+    @Test
+    void genererFactureTable_tableNotFound_throwsResourceNotFoundException() {
+        when(tableRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> factureService.genererFactureTable(999L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Table not found with id: 999");
+    }
 }

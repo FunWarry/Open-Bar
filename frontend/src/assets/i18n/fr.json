@@ -94,6 +94,7 @@
     "TRANSFER_ERROR": "Erreur lors du transfert de la commande",
     "LOAD_ERROR": "Erreur lors du chargement des commandes",
     "PAY_BILL": "Encaisser l'addition",
+    "SPLIT_BILL": "Diviser l'addition",
     "NEW_ORDER": "Nouvelle commande",
     "FREE_TABLE": "Libérer la table"
   },
@@ -1334,7 +1335,20 @@
       "COPY_NUM": "Copier le numéro",
       "COPIED": "Numéro copié !",
       "REFRESH": "Actualiser",
-      "EXPORT_CSV": "Exporter (CSV)"
+      "EXPORT_CSV": "Exporter (CSV)",
+      "NEW_INVOICE": "Nouvelle Facture"
+    },
+    "NEW_INVOICE_MODAL": {
+      "TITLE": "Émettre une nouvelle facture de table",
+      "LOADING_TABLES": "Recherche des tables occupées...",
+      "NO_OCCUPIED_TABLES": "Aucune table occupée",
+      "NO_OCCUPIED_TABLES_DESC": "Toutes les tables sont actuellement libres ou leurs commandes ont déjà été facturées.",
+      "SELECT_TABLE": "Sélectionnez une table à facturer",
+      "BILL_PREVIEW": "Aperçu de l'addition",
+      "CHOOSE_A_TABLE_HINT": "Sélectionnez une table dans la liste pour prévisualiser ses consommations et son montant.",
+      "CALCULATING_PREVIEW": "Calcul de l'addition en cours...",
+      "GENERATE_BTN": "Générer la facture",
+      "GENERATE_AND_SPLIT_BTN": "Générer et diviser l'addition"
     },
     "UNASSIGNED": "Non assigné",
     "TABLE_LABEL": "Table {{num}}",

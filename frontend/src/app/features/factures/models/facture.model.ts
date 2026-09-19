@@ -24,6 +24,39 @@ export interface SplitItem {
   total: number;
 }
 
+export interface TableAdditionItem {
+  itemId: number;
+  commandeId: number;
+  cocktailId?: number;
+  cocktailNom: string;
+  varianteNom?: string;
+  quantite: number;
+  prixUnitaire: number;
+  total: number;
+  priceHT: number;
+  vatAmount: number;
+  vatRate: string;
+  isHappyHour?: boolean;
+  basePrice?: number;
+}
+
+export interface TableAdditionResponse {
+  tableId: number;
+  tableNumero: number;
+  zone: string;
+  serveurId?: number;
+  serveurNom?: string;
+  dateOccupation?: string;
+  items: TableAdditionItem[];
+  commandeIds: number[];
+  totalHT: number;
+  totalVAT: number;
+  totalTTC: number;
+  nombreArticles: number;
+  hasUnpaidFacture: boolean;
+  existingFactureId?: number;
+}
+
 /**
  * Invoice split calculation & settlement strategies.
  */

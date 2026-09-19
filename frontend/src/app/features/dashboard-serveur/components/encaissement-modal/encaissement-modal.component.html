@@ -19,7 +19,7 @@
   </ion-toolbar>
 
   <ion-toolbar class="segment-toolbar">
-    <ion-segment [(ngModel)]="paymentTab" data-testid="segment-payment-tab">
+    <ion-segment [value]="paymentTab" (ionChange)="onPaymentTabChange($any($event.detail.value))" data-testid="segment-payment-tab">
       <ion-segment-button value="single" data-testid="tab-single-payment">
         <ion-icon name="card-outline"></ion-icon>
         <ion-label>{{ 'ENCAISSEMENT.TAB_SINGLE_PAYMENT' | transloco }}</ion-label>

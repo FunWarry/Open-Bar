@@ -1,0 +1,185 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="modal-toolbar">
+    <ion-title>
+      <div class="toolbar-title-wrap">
+        <ion-icon name="receipt-outline" class="title-icon"></ion-icon>
+        <span>{{ 'FACTURES.NEW_INVOICE_MODAL.TITLE' | transloco }}</span>
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        (click)="close()"
+        (keydown.enter)="close()"
+        data-testid="btn-close-nouvelle-facture"
+        [attr.aria-label]="'COMMON.CLOSE' | transloco">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="nouvelle-facture-content ion-padding">
+  <!-- Loading State -->
+  @if (isLoadingTables) {
+    <div class="state-container" data-testid="loading-tables-state">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>{{ 'FACTURES.NEW_INVOICE_MODAL.LOADING_TABLES' | transloco }}</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (errorMessage && !isLoadingTables) {
+    <div class="state-container error" data-testid="error-tables-state">
+      <ion-icon name="alert-circle-outline" class="state-icon error"></ion-icon>
+      <p>{{ errorMessage }}</p>
+      <button type="button" class="btn-retry" (click)="loadOccupiedTables()" data-testid="btn-retry-tables">
+        {{ 'COMMON.RETRY' | transloco }}
+      </button>
+    </div>
+  }
+
+  <!-- Empty State (No occupied tables) -->
+  @if (!isLoadingTables && !errorMessage && occupiedTables.length === 0) {
+    <div class="state-container empty" data-testid="empty-tables-state">
+      <ion-icon name="restaurant-outline" class="state-icon"></ion-icon>
+      <h3>{{ 'FACTURES.NEW_INVOICE_MODAL.NO_OCCUPIED_TABLES' | transloco }}</h3>
+      <p>{{ 'FACTURES.NEW_INVOICE_MODAL.NO_OCCUPIED_TABLES_DESC' | transloco }}</p>
+      <button type="button" class="btn-cancel" (click)="close()" data-testid="btn-empty-close">
+        {{ 'COMMON.CLOSE' | transloco }}
+      </button>
+    </div>
+  }
+
+  <!-- Content: Table Selection + Preview Split Layout -->
+  @if (!isLoadingTables && !errorMessage && occupiedTables.length > 0) {
+    <div class="modal-body-layout">
+      <!-- Left Column: Occupied Tables List -->
+      <div class="tables-column">
+        <h4 class="column-title">
+          <ion-icon name="restaurant-outline"></ion-icon>
+          <span>{{ 'FACTURES.NEW_INVOICE_MODAL.SELECT_TABLE' | transloco }}</span>
+          <ion-badge color="primary" class="count-badge">{{ occupiedTables.length }}</ion-badge>
+        </h4>
+
+        <div class="tables-grid">
+          @for (table of occupiedTables; track table.id) {
+            <button
+              type="button"
+              class="table-card"
+              [class.active]="selectedTable?.id === table.id"
+              (click)="selectTable(table)"
+              [attr.data-testid]="'select-table-btn-' + table.numero">
+              <div class="table-card-header">
+                <span class="table-number-label">{{ 'TABLES.TABLE' | transloco }} {{ table.numero }}</span>
+                @if (selectedTable?.id === table.id) {
+                  <ion-icon name="checkmark-circle-outline" class="selected-icon"></ion-icon>
+                }
+              </div>
+              <div class="table-card-meta">
+                <span class="zone-pill">{{ table.zone }}</span>
+                <span class="capacity-info">{{ table.capacite }} {{ 'TABLES.PLACES' | transloco }}</span>
+              </div>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Right Column: Addition Preview & Actions -->
+      <div class="preview-column">
+        <h4 class="column-title">
+          <ion-icon name="receipt-outline"></ion-icon>
+          <span>{{ 'FACTURES.NEW_INVOICE_MODAL.BILL_PREVIEW' | transloco }}</span>
+        </h4>
+
+        @if (!selectedTable) {
+          <div class="preview-placeholder" data-testid="preview-placeholder">
+            <p>{{ 'FACTURES.NEW_INVOICE_MODAL.CHOOSE_A_TABLE_HINT' | transloco }}</p>
+          </div>
+        }
+
+        @if (isLoadingPreview) {
+          <div class="preview-loading" data-testid="preview-loading">
+            <ion-spinner name="crescent" color="primary"></ion-spinner>
+            <p>{{ 'FACTURES.NEW_INVOICE_MODAL.CALCULATING_PREVIEW' | transloco }}</p>
+          </div>
+        }
+
+        @if (selectedTable && !isLoadingPreview && additionPreview) {
+          <div class="preview-content-card" data-testid="addition-preview-card">
+            <div class="preview-header">
+              <div class="table-title">
+                <h3>{{ 'TABLES.TABLE' | transloco }} {{ additionPreview.tableNumero }}</h3>
+                <span class="zone-tag">{{ additionPreview.zone }}</span>
+              </div>
+              @if (additionPreview.serveurNom) {
+                <div class="server-info">
+                  <span class="server-label">{{ 'ENCAISSEMENT.SERVER_LABEL' | transloco }}:</span>
+                  <span class="server-name">{{ additionPreview.serveurNom }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Items List -->
+            <div class="preview-items-list">
+              @for (item of additionPreview.items; track item.itemId) {
+                <div class="item-line">
+                  <span class="item-qty">{{ item.quantite }}×</span>
+                  <div class="item-desc-wrap">
+                    <span class="item-name">{{ item.cocktailNom }}</span>
+                    @if (item.varianteNom) {
+                      <span class="item-sub">{{ item.varianteNom }}</span>
+                    }
+                  </div>
+                  <span class="item-price">{{ item.total | appCurrency }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Totals Breakdown -->
+            <div class="preview-totals-box">
+              <div class="total-row sub">
+                <span>{{ 'ENCAISSEMENT.SUBTOTAL_HT' | transloco }}</span>
+                <span>{{ additionPreview.totalHT | appCurrency }}</span>
+              </div>
+              <div class="total-row sub">
+                <span>{{ 'ENCAISSEMENT.TOTAL_VAT' | transloco }}</span>
+                <span>{{ additionPreview.totalVAT | appCurrency }}</span>
+              </div>
+              <div class="total-row grand">
+                <span>{{ 'ENCAISSEMENT.TOTAL_TTC' | transloco }}</span>
+                <span class="grand-amount" data-testid="preview-total-ttc">{{ additionPreview.totalTTC | appCurrency }}</span>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="preview-actions-footer">
+              <button
+                type="button"
+                class="btn-action-primary"
+                [disabled]="isSubmitting"
+                (click)="generateInvoice(false)"
+                data-testid="btn-confirm-generate-invoice">
+                @if (isSubmitting) {
+                  <ion-spinner name="crescent"></ion-spinner>
+                } @else {
+                  <ion-icon name="card-outline"></ion-icon>
+                  <span>{{ 'FACTURES.NEW_INVOICE_MODAL.GENERATE_BTN' | transloco }}</span>
+                }
+              </button>
+
+              <button
+                type="button"
+                class="btn-action-split"
+                [disabled]="isSubmitting"
+                (click)="generateInvoice(true)"
+                data-testid="btn-confirm-generate-and-split">
+                <ion-icon name="people-outline"></ion-icon>
+                <span>{{ 'FACTURES.NEW_INVOICE_MODAL.GENERATE_AND_SPLIT_BTN' | transloco }}</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</ion-content>

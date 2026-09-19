@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, firstValueFrom } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
@@ -426,6 +426,47 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
           await toast.present();
         }
       });
+  }
+
+  /**
+   * Handles payment tab switching: transitions to FactureSplitComponent when split is selected.
+   *
+   * @param tab Target payment mode tab ('single' | 'split')
+   */
+  async onPaymentTabChange(tab: 'single' | 'split'): Promise<void> {
+    if (tab === 'split') {
+      await this.basculerVersSplit();
+    } else {
+      this.paymentTab = 'single';
+    }
+  }
+
+  /**
+   * Generates or fetches the pending invoice for the table/tab and transitions to FactureSplitComponent.
+   */
+  async basculerVersSplit(): Promise<void> {
+    this.isLoading = true;
+    try {
+      let facture: Facture;
+      if (this.table) {
+        facture = await firstValueFrom(this.factureService.genererFactureTable(this.table.id));
+      } else if (this.tab) {
+        facture = await firstValueFrom(this.factureService.genererFactureTab(this.tab.id));
+      } else {
+        return;
+      }
+      await this.modalCtrl.dismiss({
+        action: 'open_split',
+        facture,
+        table: this.table,
+        tab: this.tab
+      });
+    } catch {
+      this.errorMessage = this.transloco.translate('ENCAISSEMENT.ERROR_LOADING_BILL');
+      this.paymentTab = 'single';
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   // --- Split Addition Mode ---

@@ -248,6 +248,13 @@ export class TableDetailModalComponent implements OnInit {
     this.modalCtrl.dismiss({ action: 'encaisser', table: this.table });
   }
 
+  /**
+   * Dismisses the modal requesting split payment for this table.
+   */
+  diviserAddition(): void {
+    this.modalCtrl.dismiss({ action: 'split', table: this.table });
+  }
+
   liberer(): void {
     this.modalCtrl.dismiss({ action: 'liberer', tableId: this.table.id });
   }

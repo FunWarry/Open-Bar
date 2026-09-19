@@ -94,6 +94,7 @@
     "TRANSFER_ERROR": "Error transferring order",
     "LOAD_ERROR": "Error loading orders",
     "PAY_BILL": "Pay bill",
+    "SPLIT_BILL": "Split bill",
     "NEW_ORDER": "New order",
     "FREE_TABLE": "Free table"
   },
@@ -1334,7 +1335,20 @@
       "COPY_NUM": "Copy number",
       "COPIED": "Number copied!",
       "REFRESH": "Refresh",
-      "EXPORT_CSV": "Export (CSV)"
+      "EXPORT_CSV": "Export (CSV)",
+      "NEW_INVOICE": "New Invoice"
+    },
+    "NEW_INVOICE_MODAL": {
+      "TITLE": "Issue a new table invoice",
+      "LOADING_TABLES": "Finding occupied tables...",
+      "NO_OCCUPIED_TABLES": "No occupied tables",
+      "NO_OCCUPIED_TABLES_DESC": "All tables are currently free or their orders have already been billed.",
+      "SELECT_TABLE": "Select a table to invoice",
+      "BILL_PREVIEW": "Bill preview",
+      "CHOOSE_A_TABLE_HINT": "Select a table from the list to preview its items and total amount.",
+      "CALCULATING_PREVIEW": "Calculating bill summary...",
+      "GENERATE_BTN": "Generate invoice",
+      "GENERATE_AND_SPLIT_BTN": "Generate & split bill"
     },
     "UNASSIGNED": "Unassigned",
     "TABLE_LABEL": "Table {{num}}",
