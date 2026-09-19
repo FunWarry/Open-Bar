@@ -289,9 +289,11 @@
             </div>
             <!-- Table Release Checkbox -->
             <div class="checkbox-row">
-              <ion-checkbox [(ngModel)]="libererTable" data-testid="cb-liberer-table">
-                <span class="cb-label">{{ 'ENCAISSEMENT.RELEASE_TABLE_LABEL' | transloco }}</span>
-              </ion-checkbox>
+              <app-checkbox-field
+                [(ngModel)]="libererTable"
+                [label]="'ENCAISSEMENT.RELEASE_TABLE_LABEL' | transloco"
+                testId="cb-liberer-table">
+              </app-checkbox-field>
             </div>
             <!-- Main Action CTA -->
             <div class="actions-group">
@@ -326,6 +328,12 @@
                 <ion-segment-button value="egal" data-testid="btn-split-submode-egal">
                   <ion-label>{{ 'ENCAISSEMENT.SPLIT_EQUAL' | transloco }}</ion-label>
                 </ion-segment-button>
+                <ion-segment-button value="libre" data-testid="btn-split-submode-libre">
+                  <ion-label>{{ 'ENCAISSEMENT.SPLIT_CUSTOM_AMOUNT' | transloco }}</ion-label>
+                </ion-segment-button>
+                <ion-segment-button value="pourcentage" data-testid="btn-split-submode-pourcentage">
+                  <ion-label>{{ 'ENCAISSEMENT.SPLIT_PERCENTAGE' | transloco }}</ion-label>
+                </ion-segment-button>
                 <ion-segment-button value="selection" data-testid="btn-split-submode-selection">
                   <ion-label>{{ 'ENCAISSEMENT.SPLIT_BY_ITEM' | transloco }}</ion-label>
                 </ion-segment-button>
@@ -336,6 +344,18 @@
               <div class="split-egal-section">
                 <div class="guests-stepper-box">
                   <span class="guests-label" id="label-num-guests">{{ 'ENCAISSEMENT.NUMBER_OF_GUESTS' | transloco }}</span>
+                  <div class="presets-row">
+                    @for (preset of guestPresets; track preset) {
+                      <button
+                        type="button"
+                        class="preset-chip"
+                        [class.active]="nombreConvives === preset"
+                        (click)="definirNombreConvives(preset)"
+                        [attr.data-testid]="'chip-preset-' + preset">
+                        {{ preset }} {{ 'ENCAISSEMENT.PERSON' | transloco }}
+                      </button>
+                    }
+                  </div>
                   <div class="stepper-controls" aria-labelledby="label-num-guests">
                     <button type="button" class="stepper-btn" (click)="ajusterConvives(-1)" [disabled]="nombreConvives <= 2" data-testid="btn-decrease-guests">
                       <ion-icon name="remove-outline"></ion-icon>
@@ -352,6 +372,90 @@
                 <ion-button expand="block" fill="outline" color="primary" (click)="calculerSplitEgal()" (keydown.enter)="calculerSplitEgal()" (keyup.enter)="calculerSplitEgal()" data-testid="btn-calculate-split-egal">
                   <ion-icon name="refresh-outline" slot="start"></ion-icon>
                   {{ 'ENCAISSEMENT.GENERATE_PARTS' | transloco }}
+                </ion-button>
+              </div>
+            }
+            <!-- SPLIT PRIX LIBRE -->
+            @if (splitMode === 'libre') {
+              <div class="split-custom-section" data-testid="split-libre-section">
+                <div class="convives-manager">
+                  <div class="convives-header">
+                    <h5>{{ 'ENCAISSEMENT.GUESTS_LIST' | transloco }}</h5>
+                    <button type="button" class="add-guest-btn" (click)="addCustomAmountGuest()" data-testid="btn-add-libre-guest">
+                      <ion-icon name="add-outline"></ion-icon>
+                      {{ 'ENCAISSEMENT.ADD_GUEST' | transloco }}
+                    </button>
+                  </div>
+                  @for (g of customAmountGuests; track g; let idx = $index) {
+                    <div class="custom-guest-row">
+                      <ion-input [(ngModel)]="g.nom" [placeholder]="'Convive ' + (idx + 1)" class="convive-name-input"></ion-input>
+                      <ion-input type="number" step="0.5" min="0" [(ngModel)]="g.montant" placeholder="0.00" class="convive-val-input" [attr.data-testid]="'input-libre-amount-' + idx"></ion-input>
+                      <button type="button" class="assign-remainder-btn" (click)="assignRemainingToGuest(idx)" [attr.title]="'SPLIT.ASSIGN_REMAINDER' | transloco">
+                        {{ 'SPLIT.REMAINING_SHORT' | transloco }}
+                      </button>
+                      @if (customAmountGuests.length > 2) {
+                        <button type="button" class="del-guest-btn" (click)="removeCustomAmountGuest(idx)">
+                          <ion-icon name="close-outline"></ion-icon>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+                <div class="remainder-status-box" [class.is-valid]="isCustomAmountValid">
+                  <span>{{ 'SPLIT.REMAINING_TO_SPLIT' | transloco }} <strong>{{ customAmountRemainder | appCurrency }}</strong></span>
+                  @if (isCustomAmountValid) {
+                    <span class="valid-badge"><ion-icon name="checkmark-circle-outline"></ion-icon> {{ 'SPLIT.BALANCED' | transloco }}</span>
+                  }
+                </div>
+                <ion-button expand="block" fill="outline" color="primary" [disabled]="!isCustomAmountValid" (click)="calculerSplitLibre()" (keydown.enter)="calculerSplitLibre()" (keyup.enter)="calculerSplitLibre()" data-testid="btn-calculate-split-libre">
+                  <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                  {{ 'ENCAISSEMENT.CALCULATE_SPLIT' | transloco }}
+                </ion-button>
+              </div>
+            }
+            <!-- SPLIT POURCENTAGE -->
+            @if (splitMode === 'pourcentage') {
+              <div class="split-custom-section" data-testid="split-pct-section">
+                <div class="convives-manager">
+                  <div class="convives-header">
+                    <h5>{{ 'ENCAISSEMENT.GUESTS_LIST' | transloco }}</h5>
+                    <div class="header-actions">
+                      <button type="button" class="action-shortcut-btn" (click)="distributePercentagesEqually()" data-testid="btn-distribute-pct-equal">
+                        {{ 'SPLIT.DISTRIBUTE_EQUALLY' | transloco }}
+                      </button>
+                      <button type="button" class="add-guest-btn" (click)="addCustomPercentageGuest()" data-testid="btn-add-pct-guest">
+                        <ion-icon name="add-outline"></ion-icon>
+                        {{ 'ENCAISSEMENT.ADD_GUEST' | transloco }}
+                      </button>
+                    </div>
+                  </div>
+                  @for (g of customPercentageGuests; track g; let idx = $index) {
+                    <div class="custom-guest-row">
+                      <ion-input [(ngModel)]="g.nom" [placeholder]="'Convive ' + (idx + 1)" class="convive-name-input"></ion-input>
+                      <div class="pct-input-wrap">
+                        <ion-input type="number" min="0" max="100" [(ngModel)]="g.pourcentage" placeholder="50" class="convive-val-input" [attr.data-testid]="'input-pct-val-' + idx"></ion-input>
+                        <span class="pct-unit">%</span>
+                      </div>
+                      <button type="button" class="assign-remainder-btn" (click)="assignRemainingPercentageToGuest(idx)" [attr.title]="'SPLIT.ASSIGN_REMAINDER' | transloco">
+                        {{ 'SPLIT.REMAINING_SHORT' | transloco }}
+                      </button>
+                      @if (customPercentageGuests.length > 2) {
+                        <button type="button" class="del-guest-btn" (click)="removeCustomPercentageGuest(idx)">
+                          <ion-icon name="close-outline"></ion-icon>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+                <div class="remainder-status-box" [class.is-valid]="isCustomPercentageValid">
+                  <span>{{ 'SPLIT.PCT_TOTAL' | transloco }} <strong>{{ totalCustomPercentage }}%</strong> ({{ 'SPLIT.REMAINDER_LABEL' | transloco }} {{ customPercentageRemainder }}%)</span>
+                  @if (isCustomPercentageValid) {
+                    <span class="valid-badge"><ion-icon name="checkmark-circle-outline"></ion-icon> {{ 'SPLIT.BALANCED' | transloco }}</span>
+                  }
+                </div>
+                <ion-button expand="block" fill="outline" color="primary" [disabled]="!isCustomPercentageValid" (click)="calculerSplitPourcentage()" (keydown.enter)="calculerSplitPourcentage()" (keyup.enter)="calculerSplitPourcentage()" data-testid="btn-calculate-split-pct">
+                  <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                  {{ 'ENCAISSEMENT.CALCULATE_SPLIT' | transloco }}
                 </ion-button>
               </div>
             }

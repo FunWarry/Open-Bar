@@ -1,12 +1,12 @@
 import { Component, Input, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Observable, Subject, firstValueFrom } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonContent, IonSpinner, IonBadge, IonSegment, IonSegmentButton,
-  IonItem, IonLabel, IonInput, IonCheckbox, IonProgressBar,
+  IonItem, IonLabel, IonInput, IonProgressBar,
   ModalController, ToastController
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -19,6 +19,7 @@ import {
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 import { AppSettingsService } from '../../../../core/services/app-settings.service';
+import { CheckboxFieldComponent } from '../../../../core/components/ui/checkbox-field/checkbox-field.component';
 import { TableView } from '../../models/table-view.model';
 import {
   DashboardServeurService,
@@ -36,7 +37,8 @@ import { BarTabService } from '../../../../core/services/bar-tab.service';
 /**
  * Encaissement and table payment modal component for server and manager dashboards.
  * Supports complete bill breakdown, single payment with cash calculator and tip/discount,
- * equal and item-based split payment workflows, thermal receipt printing, and PDF download.
+ * equal, custom amount, custom percentage, and item-based split payment workflows,
+ * thermal receipt printing, and PDF download.
  */
 @Component({
   selector: 'app-encaissement-modal',
@@ -45,7 +47,7 @@ import { BarTabService } from '../../../../core/services/bar-tab.service';
     CommonModule, FormsModule, AppCurrencyPipe, TranslocoModule,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonContent, IonSpinner, IonBadge, IonSegment, IonSegmentButton,
-    IonItem, IonLabel, IonInput, IonCheckbox, IonProgressBar
+    IonItem, IonLabel, IonInput, IonProgressBar, CheckboxFieldComponent
   ],
   templateUrl: './encaissement-modal.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -63,6 +65,9 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
 
   /** The target bar tab to settle (if settling a bar tab) */
   @Input() tab?: BarTab;
+
+  /** Starting payment tab ('single' | 'split') */
+  @Input() initialTab: 'single' | 'split' = 'single';
 
   /** Active addition data loaded from backend */
   addition: TableAdditionResponse | null = null;
@@ -85,7 +90,8 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   notes = '';
 
   // --- Mode Division / Split ---
-  splitMode: 'egal' | 'selection' = 'egal';
+  splitMode: 'egal' | 'libre' | 'pourcentage' | 'selection' = 'egal';
+  readonly guestPresets = [2, 3, 4, 5, 6];
   nombreConvives = 2;
   convives: { nom: string }[] = [{ nom: '' }, { nom: '' }];
   itemAssignments: { [itemId: number]: number } = {};
@@ -93,6 +99,18 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   isLoadingSplit = false;
   splitError: string | null = null;
   partStates: { [guestIndex: number]: { reglee: boolean; modePaiement: string; pourboire?: number; totalPaid: number } } = {};
+
+  // Prix libre
+  customAmountGuests: { nom: string; montant: number | null }[] = [
+    { nom: '', montant: null },
+    { nom: '', montant: null }
+  ];
+
+  // Pourcentage
+  customPercentageGuests: { nom: string; pourcentage: number | null }[] = [
+    { nom: '', pourcentage: null },
+    { nom: '', pourcentage: null }
+  ];
 
   /** Generated invoice once settled */
   settledFacture: Facture | null = null;
@@ -115,6 +133,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.paymentTab = this.initialTab || 'single';
     this.chargerAddition();
   }
 
@@ -151,6 +170,9 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
         next: (data: TableAdditionResponse) => {
           this.addition = data;
           this.montantRecu = null;
+          if (this.paymentTab === 'split' && this.splitResults.length === 0) {
+            this.calculerSplitEgal();
+          }
         },
         error: () => {
           this.errorMessage = this.transloco.translate('ENCAISSEMENT.ERROR_LOADING_BILL');
@@ -429,50 +451,27 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Handles payment tab switching: transitions to FactureSplitComponent when split is selected.
+   * Handles payment tab switching: stays within modal and calculates split if needed.
    *
    * @param tab Target payment mode tab ('single' | 'split')
    */
-  async onPaymentTabChange(tab: 'single' | 'split'): Promise<void> {
-    if (tab === 'split') {
-      await this.basculerVersSplit();
-    } else {
-      this.paymentTab = 'single';
-    }
-  }
-
-  /**
-   * Generates or fetches the pending invoice for the table/tab and transitions to FactureSplitComponent.
-   */
-  async basculerVersSplit(): Promise<void> {
-    this.isLoading = true;
-    try {
-      let facture: Facture;
-      if (this.table) {
-        facture = await firstValueFrom(this.factureService.genererFactureTable(this.table.id));
-      } else if (this.tab) {
-        facture = await firstValueFrom(this.factureService.genererFactureTab(this.tab.id));
-      } else {
-        return;
-      }
-      await this.modalCtrl.dismiss({
-        action: 'open_split',
-        facture,
-        table: this.table,
-        tab: this.tab
-      });
-    } catch {
-      this.errorMessage = this.transloco.translate('ENCAISSEMENT.ERROR_LOADING_BILL');
-      this.paymentTab = 'single';
-    } finally {
-      this.isLoading = false;
+  onPaymentTabChange(tab: 'single' | 'split'): void {
+    this.paymentTab = tab;
+    if (tab === 'split' && this.splitResults.length === 0 && this.addition) {
+      this.calculerSplitEgal();
     }
   }
 
   // --- Split Addition Mode ---
 
+  definirNombreConvives(count: number): void {
+    this.nombreConvives = count;
+    this.calculerSplitEgal();
+  }
+
   ajusterConvives(delta: number): void {
     this.nombreConvives = Math.max(2, Math.min(20, this.nombreConvives + delta));
+    this.calculerSplitEgal();
   }
 
   addConvive(): void {
@@ -518,6 +517,127 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
     }
 
     this.splitResults = results;
+    this.isLoadingSplit = false;
+  }
+
+  // ─── Mode Prix Libre ────────────────────────────────────────────────────────
+  addCustomAmountGuest(): void {
+    if (this.customAmountGuests.length < 20) {
+      this.customAmountGuests.push({ nom: '', montant: null });
+    }
+  }
+
+  removeCustomAmountGuest(index: number): void {
+    if (this.customAmountGuests.length > 2) {
+      this.customAmountGuests.splice(index, 1);
+    }
+  }
+
+  getCustomAmountGuestNom(index: number): string {
+    return this.customAmountGuests[index]?.nom?.trim() || `Convive ${index + 1}`;
+  }
+
+  get totalCustomAmountAllocated(): number {
+    return Math.round(this.customAmountGuests.reduce((sum, g) => sum + (Number(g.montant) || 0), 0) * 100) / 100;
+  }
+
+  get customAmountRemainder(): number {
+    return Math.round((this.subTotalTTC - this.totalCustomAmountAllocated) * 100) / 100;
+  }
+
+  get isCustomAmountValid(): boolean {
+    return Math.abs(this.customAmountRemainder) <= 0.05 &&
+      this.customAmountGuests.length >= 2 &&
+      this.customAmountGuests.every(g => (Number(g.montant) || 0) > 0);
+  }
+
+  assignRemainingToGuest(index: number): void {
+    const otherSum = this.customAmountGuests.reduce((sum, g, i) => i === index ? sum : sum + (Number(g.montant) || 0), 0);
+    const remainder = Math.max(0, Math.round((this.subTotalTTC - otherSum) * 100) / 100);
+    this.customAmountGuests[index].montant = remainder;
+  }
+
+  calculerSplitLibre(): void {
+    if (!this.isCustomAmountValid) return;
+    this.isLoadingSplit = true;
+    this.splitError = null;
+    this.partStates = {};
+
+    this.splitResults = this.customAmountGuests.map((g, i) => ({
+      factureId: this.addition?.existingFactureId || 0,
+      nomConvive: this.getCustomAmountGuestNom(i),
+      items: [],
+      sousTotal: Number(g.montant) || 0,
+      totalAvecPourboire: Number(g.montant) || 0
+    }));
+    this.isLoadingSplit = false;
+  }
+
+  // ─── Mode Pourcentage ────────────────────────────────────────────────────────
+  addCustomPercentageGuest(): void {
+    if (this.customPercentageGuests.length < 20) {
+      this.customPercentageGuests.push({ nom: '', pourcentage: null });
+    }
+  }
+
+  removeCustomPercentageGuest(index: number): void {
+    if (this.customPercentageGuests.length > 2) {
+      this.customPercentageGuests.splice(index, 1);
+    }
+  }
+
+  getCustomPercentageGuestNom(index: number): string {
+    return this.customPercentageGuests[index]?.nom?.trim() || `Convive ${index + 1}`;
+  }
+
+  get totalCustomPercentage(): number {
+    return Math.round(this.customPercentageGuests.reduce((sum, g) => sum + (Number(g.pourcentage) || 0), 0) * 100) / 100;
+  }
+
+  get customPercentageRemainder(): number {
+    return Math.round((100 - this.totalCustomPercentage) * 100) / 100;
+  }
+
+  get isCustomPercentageValid(): boolean {
+    return Math.abs(this.customPercentageRemainder) <= 0.05 &&
+      this.customPercentageGuests.length >= 2 &&
+      this.customPercentageGuests.every(g => (Number(g.pourcentage) || 0) > 0);
+  }
+
+  distributePercentagesEqually(): void {
+    const count = this.customPercentageGuests.length;
+    if (count === 0) return;
+    const basePct = Math.floor((100 / count) * 100) / 100;
+    let sum = 0;
+    for (let i = 0; i < count - 1; i++) {
+      this.customPercentageGuests[i].pourcentage = basePct;
+      sum += basePct;
+    }
+    this.customPercentageGuests[count - 1].pourcentage = Math.round((100 - sum) * 100) / 100;
+  }
+
+  assignRemainingPercentageToGuest(index: number): void {
+    const otherSum = this.customPercentageGuests.reduce((sum, g, i) => i === index ? sum : sum + (Number(g.pourcentage) || 0), 0);
+    this.customPercentageGuests[index].pourcentage = Math.max(0, Math.round((100 - otherSum) * 100) / 100);
+  }
+
+  calculerSplitPourcentage(): void {
+    if (!this.isCustomPercentageValid) return;
+    this.isLoadingSplit = true;
+    this.splitError = null;
+    this.partStates = {};
+
+    this.splitResults = this.customPercentageGuests.map((g, i) => {
+      const pct = Number(g.pourcentage) || 0;
+      const part = Math.round((this.subTotalTTC * pct / 100) * 100) / 100;
+      return {
+        factureId: this.addition?.existingFactureId || 0,
+        nomConvive: `${this.getCustomPercentageGuestNom(i)} (${pct}%)`,
+        items: [],
+        sousTotal: part,
+        totalAvecPourboire: part
+      };
+    });
     this.isLoadingSplit = false;
   }
 

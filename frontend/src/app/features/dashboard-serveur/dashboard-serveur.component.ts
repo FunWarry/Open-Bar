@@ -6,7 +6,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Subject, forkJoin, of, firstValueFrom } from 'rxjs';
+import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, finalize, takeUntil } from 'rxjs/operators';
 import Konva from 'konva';
 import {
@@ -1472,11 +1472,12 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
    * Opens the full table encaissement and payment modal.
    *
    * @param table Target table to settle.
+   * @param initialTab Starting payment tab ('single' | 'split').
    */
-  async ouvrirEncaissement(table: TableView) {
+  async ouvrirEncaissement(table: TableView, initialTab: 'single' | 'split' = 'single') {
     const modal = await this.modalCtrl.create({
       component: EncaissementModalComponent,
-      componentProps: { table },
+      componentProps: { table, initialTab },
       cssClass: 'encaissement-modal-container',
       enterAnimation: fastModalEnterAnimation,
       leaveAnimation: fastModalLeaveAnimation,
@@ -1511,22 +1512,12 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   /**
-   * Generates or fetches the pending invoice for a table and opens the split modal.
+   * Directly opens in-place table bill split without intermediate popups.
    *
    * @param table Target table
    */
   async ouvrirSplitTable(table: TableView): Promise<void> {
-    try {
-      const facture = await firstValueFrom(this.factureService.genererFactureTable(table.id));
-      await this.ouvrirSplitFacture(facture);
-    } catch {
-      const toast = await this.toastCtrl.create({
-        message: this.translocoService.translate('ENCAISSEMENT.ERROR_LOADING_BILL'),
-        duration: 3000,
-        color: 'danger',
-      });
-      await toast.present();
-    }
+    await this.ouvrirEncaissement(table, 'split');
   }
 
   naviguerKanban() {

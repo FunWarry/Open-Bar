@@ -1174,11 +1174,11 @@ describe('DashboardServeurComponent', () => {
       expect(component.displayMode).toBe('PLAN');
     });
 
-    it('ouvrirSplitTable() generates table invoice and opens split modal', fakeAsync(() => {
+    it('ouvrirSplitTable() opens encaissement modal with initialTab "split"', fakeAsync(() => {
+      spyOn(component, 'ouvrirEncaissement');
       component.ouvrirSplitTable(mockTables[0]);
       tick();
-      expect(factureServiceSpy.genererFactureTable).toHaveBeenCalledWith(mockTables[0].id);
-      expect(modalCtrlSpy.create).toHaveBeenCalled();
+      expect(component.ouvrirEncaissement).toHaveBeenCalledWith(mockTables[0], 'split');
     }));
 
     it('ouvrirSplitFacture() opens split modal and reloads tables if settled', fakeAsync(() => {
@@ -1193,13 +1193,6 @@ describe('DashboardServeurComponent', () => {
 
       expect(modalCtrlSpy.create).toHaveBeenCalled();
       expect(dashboardServiceSpy.getAllTables).toHaveBeenCalled();
-    }));
-
-    it('ouvrirSplitTable() handles error and displays toast', fakeAsync(() => {
-      factureServiceSpy.genererFactureTable.and.returnValue(throwError(() => new Error('Failed to generate')));
-      component.ouvrirSplitTable(mockTables[0]);
-      tick();
-      expect(toastCtrlSpy.create).toHaveBeenCalled();
     }));
 
     it('onSelectionner() handles action "split" and calls ouvrirSplitTable', fakeAsync(() => {

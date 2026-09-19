@@ -411,69 +411,74 @@ describe('EncaissementModalComponent', () => {
     expect(component.currencySymbol).toBe('€');
   });
 
-  it('onPaymentTabChange("split") generates table invoice and dismisses with open_split', fakeAsync(() => {
-    const mockGeneratedFacture = { id: 77, numero: 'FAC-77' } as any;
-    factureServiceSpy.genererFactureTable.and.returnValue(of(mockGeneratedFacture));
-    component.table = mockTable;
-
+  it('onPaymentTabChange("split") switches paymentTab to split and calculates equal split without dismissing modal', () => {
+    component.addition = mockAddition;
     component.onPaymentTabChange('split');
-    tick();
 
-    expect(factureServiceSpy.genererFactureTable).toHaveBeenCalledWith(mockTable.id);
-    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({
-      action: 'open_split',
-      facture: mockGeneratedFacture,
-      table: mockTable,
-      tab: undefined
-    });
-  }));
-
-  it('onPaymentTabChange("split") with bar tab generates tab invoice and dismisses with open_split', fakeAsync(() => {
-    const mockGeneratedFacture = { id: 88, numero: 'FAC-TAB-88' } as any;
-    const mockBarTab = { id: 12, nomClient: 'Alice', tableNumero: undefined } as any;
-    factureServiceSpy.genererFactureTab.and.returnValue(of(mockGeneratedFacture));
-    component.table = null as any;
-    component.tab = mockBarTab;
-
-    component.onPaymentTabChange('split');
-    tick();
-
-    expect(factureServiceSpy.genererFactureTab).toHaveBeenCalledWith(12);
-    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({
-      action: 'open_split',
-      facture: mockGeneratedFacture,
-      table: null as any,
-      tab: mockBarTab
-    });
-  }));
-
-  it('basculerVersSplit() returns early when neither table nor tab is defined', fakeAsync(() => {
-    component.table = null as any;
-    component.tab = undefined;
-
-    component.basculerVersSplit();
-    tick();
-
-    expect(factureServiceSpy.genererFactureTable).not.toHaveBeenCalled();
-    expect(factureServiceSpy.genererFactureTab).not.toHaveBeenCalled();
+    expect(component.paymentTab).toBe('split');
+    expect(component.splitResults).toHaveSize(2);
     expect(modalCtrlSpy.dismiss).not.toHaveBeenCalled();
-  }));
+  });
 
-  it('basculerVersSplit() handles error, sets errorMessage and resets paymentTab to single', fakeAsync(() => {
-    factureServiceSpy.genererFactureTable.and.returnValue(throwError(() => new Error('Bill generation error')));
-    component.table = mockTable;
+  it('definirNombreConvives() updates guest count and recalculates equal split', () => {
+    component.addition = mockAddition;
+    component.definirNombreConvives(4);
+
+    expect(component.nombreConvives).toBe(4);
+    expect(component.splitResults).toHaveSize(4);
+    expect(component.splitResults[0].sousTotal).toBe(7.0); // 28 / 4
+  });
+
+  it('calculerSplitLibre() correctly calculates custom amounts for guests', () => {
+    component.addition = mockAddition;
+    component.customAmountGuests = [
+      { nom: 'Alice', montant: 13 },
+      { nom: 'Bob', montant: 15 }
+    ];
+
+    expect(component.isCustomAmountValid).toBeTrue();
+    component.calculerSplitLibre();
+
+    expect(component.splitResults).toHaveSize(2);
+    expect(component.splitResults[0].nomConvive).toBe('Alice');
+    expect(component.splitResults[0].sousTotal).toBe(13);
+    expect(component.splitResults[1].nomConvive).toBe('Bob');
+    expect(component.splitResults[1].sousTotal).toBe(15);
+  });
+
+  it('calculerSplitPourcentage() correctly calculates percentage splits', () => {
+    component.addition = mockAddition;
+    component.customPercentageGuests = [
+      { nom: 'Alice', pourcentage: 60 },
+      { nom: 'Bob', pourcentage: 40 }
+    ];
+
+    expect(component.isCustomPercentageValid).toBeTrue();
+    component.calculerSplitPourcentage();
+
+    expect(component.splitResults).toHaveSize(2);
+    expect(component.splitResults[0].sousTotal).toBe(16.8); // 28 * 0.60
+    expect(component.splitResults[1].sousTotal).toBe(11.2); // 28 * 0.40
+  });
+
+  it('distributePercentagesEqually() divides 100% equally among guests', () => {
+    component.customPercentageGuests = [
+      { nom: 'A', pourcentage: null },
+      { nom: 'B', pourcentage: null },
+      { nom: 'C', pourcentage: null }
+    ];
+
+    component.distributePercentagesEqually();
+
+    expect(component.customPercentageGuests[0].pourcentage).toBe(33.33);
+    expect(component.customPercentageGuests[1].pourcentage).toBe(33.33);
+    expect(component.customPercentageGuests[2].pourcentage).toBe(33.34);
+    expect(component.isCustomPercentageValid).toBeTrue();
+  });
+
+  it('onPaymentTabChange("single") switches paymentTab to single', () => {
     component.paymentTab = 'split';
-
-    component.basculerVersSplit();
-    tick();
-
-    expect(component.errorMessage).toBeTruthy();
-    expect(component.paymentTab).toBe('single');
-    expect(component.isLoading).toBeFalse();
-  }));
-
-  it('onPaymentTabChange("single") switches paymentTab to single', async () => {
-    await component.onPaymentTabChange('single');
+    component.onPaymentTabChange('single');
     expect(component.paymentTab).toBe('single');
   });
 });

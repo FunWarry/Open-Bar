@@ -498,18 +498,6 @@
 
 .checkbox-row {
   padding: 4px 0;
-
-  ion-checkbox {
-    --size: 18px;
-    font-size: 0.88rem;
-    --color: var(--text-primary);
-    --border-color: var(--border-medium);
-  }
-
-  .cb-label {
-    color: var(--text-primary);
-    margin-left: 6px;
-  }
 }
 
 .actions-group {
@@ -554,9 +542,40 @@
   border: 1px solid var(--border-medium);
   margin-bottom: 12px;
 
-  label {
+  label, .guests-label {
     font-size: 0.9rem;
     color: var(--text-secondary);
+  }
+
+  .presets-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 4px;
+
+    .preset-chip {
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      background: var(--background-surface-1);
+      border: 1px solid var(--border-medium);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+
+      &.active {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: var(--text-on-accent);
+      }
+    }
   }
 
   .stepper-controls {
@@ -598,6 +617,39 @@
   }
 }
 
+.remainder-status-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--background-surface-2);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+
+  strong {
+    color: var(--text-primary);
+  }
+
+  &.is-valid {
+    border: 1px solid var(--semantic-success);
+
+    strong {
+      color: var(--semantic-success);
+    }
+  }
+
+  .valid-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--semantic-success);
+    font-weight: 600;
+    font-size: 0.8rem;
+  }
+}
+
 .convives-manager {
   background: var(--background-surface-2);
   padding: 10px;
@@ -627,19 +679,79 @@
       font-weight: 600;
       cursor: pointer;
     }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .action-shortcut-btn {
+        background: transparent;
+        border: none;
+        color: var(--primary);
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: underline;
+      }
+    }
   }
 
-  .convive-input-row {
+  .convive-input-row, .custom-guest-row {
     display: flex;
     align-items: center;
     gap: 6px;
     margin-bottom: 6px;
 
     .convive-name-input {
+      flex: 1.2;
       --background: var(--background-surface-1);
       --color: var(--text-primary);
       border-radius: 6px;
       font-size: 0.85rem;
+    }
+
+    .convive-val-input {
+      flex: 1;
+      --background: var(--background-surface-1);
+      --color: var(--text-primary);
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
+    .pct-input-wrap {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      .convive-val-input {
+        width: 100%;
+      }
+
+      .pct-unit {
+        position: absolute;
+        right: 8px;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        pointer-events: none;
+      }
+    }
+
+    .assign-remainder-btn {
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 4px;
+      border: 1px solid var(--border-medium);
+      background: var(--background-surface-1);
+      color: var(--text-secondary);
+      cursor: pointer;
+
+      &:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
     }
 
     .del-guest-btn {
