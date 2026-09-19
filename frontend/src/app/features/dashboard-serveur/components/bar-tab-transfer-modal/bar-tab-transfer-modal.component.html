@@ -4,7 +4,7 @@
       {{ 'TABS.TRANSFER_TITLE' | transloco }}
     </ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="dismiss()" data-testid="btn-close-transfer-modal" aria-label="Close">
+      <ion-button (click)="dismiss()" (keyup.enter)="dismiss()" data-testid="btn-close-transfer-modal" aria-label="Close">
         <ion-icon name="close-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -43,7 +43,8 @@
                 class="option-item"
                 [class.selected]="selectedTableId === table.id"
                 [attr.data-testid]="'option-table-' + table.id"
-                (click)="selectedTableId = table.id">
+                (click)="selectedTableId = table.id"
+                (keyup.enter)="selectedTableId = table.id">
                 <ion-icon name="restaurant-outline" slot="start"></ion-icon>
                 <ion-label>
                   <h2>Table #{{ table.numero }}</h2>
@@ -71,7 +72,8 @@
                 class="option-item"
                 [class.selected]="selectedTabId === tab.id"
                 [attr.data-testid]="'option-tab-' + tab.id"
-                (click)="selectedTabId = tab.id">
+                (click)="selectedTabId = tab.id"
+                (keyup.enter)="selectedTabId = tab.id">
                 <ion-icon name="receipt-outline" slot="start"></ion-icon>
                 <ion-label>
                   <h2>{{ tab.nom }}</h2>
@@ -93,6 +95,7 @@
         fill="outline"
         color="medium"
         (click)="dismiss()"
+        (keyup.enter)="dismiss()"
         data-testid="btn-cancel-transfer-modal">
         {{ 'TABS.BTN_CANCEL' | transloco }}
       </ion-button>
@@ -103,6 +106,7 @@
         color="primary"
         [disabled]="!canSubmit() || isSubmitting"
         (click)="onConfirmTransfer()"
+        (keyup.enter)="onConfirmTransfer()"
         data-testid="btn-confirm-transfer-modal">
         @if (isSubmitting) {
           <ion-spinner name="crescent" slot="start"></ion-spinner>

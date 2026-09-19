@@ -56,7 +56,8 @@
         color="primary"
         class="action-btn add-btn"
         [attr.data-testid]="'btn-tab-add-order-' + tab.id"
-        (click)="addOrder.emit(tab)">
+        (click)="addOrder.emit(tab)"
+        (keyup.enter)="addOrder.emit(tab)">
         <ion-icon name="add-outline" slot="start"></ion-icon>
         {{ 'TABS.CARD_BTN_ADD_ORDER' | transloco }}
       </ion-button>
@@ -67,7 +68,8 @@
         color="medium"
         class="action-btn details-btn"
         [attr.data-testid]="'btn-tab-details-' + tab.id"
-        (click)="viewDetails.emit(tab)">
+        (click)="viewDetails.emit(tab)"
+        (keyup.enter)="viewDetails.emit(tab)">
         <ion-icon name="eye-outline" slot="start"></ion-icon>
         {{ 'TABS.CARD_BTN_DETAILS' | transloco }}
       </ion-button>
@@ -78,7 +80,8 @@
         color="secondary"
         class="action-btn transfer-btn"
         [attr.data-testid]="'btn-tab-transfer-' + tab.id"
-        (click)="transfer.emit(tab)">
+        (click)="transfer.emit(tab)"
+        (keyup.enter)="transfer.emit(tab)">
         <ion-icon name="swap-horizontal-outline" slot="start"></ion-icon>
         {{ 'TABS.CARD_BTN_TRANSFER' | transloco }}
       </ion-button>
@@ -89,7 +92,8 @@
         color="success"
         class="action-btn settle-btn"
         [attr.data-testid]="'btn-tab-settle-' + tab.id"
-        (click)="settle.emit(tab)">
+        (click)="settle.emit(tab)"
+        (keyup.enter)="settle.emit(tab)">
         <ion-icon name="cash-outline" slot="start"></ion-icon>
         {{ 'TABS.CARD_BTN_SETTLE' | transloco }}
       </ion-button>

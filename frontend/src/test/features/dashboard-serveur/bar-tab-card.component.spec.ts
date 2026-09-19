@@ -85,10 +85,10 @@ describe('BarTabCardComponent', () => {
     expect(component.settle.emit).toHaveBeenCalledWith(mockTab);
   });
 
-  it('should emit cancel event when cancel action is triggered', () => {
-    spyOn(component.cancel, 'emit');
-    component.cancel.emit(mockTab);
-    expect(component.cancel.emit).toHaveBeenCalledWith(mockTab);
+  it('should emit cancelTab event when cancel action is triggered', () => {
+    spyOn(component.cancelTab, 'emit');
+    component.cancelTab.emit(mockTab);
+    expect(component.cancelTab.emit).toHaveBeenCalledWith(mockTab);
   });
 
   it('should format duration nicely', () => {

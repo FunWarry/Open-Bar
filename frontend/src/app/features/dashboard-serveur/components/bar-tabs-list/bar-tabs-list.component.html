@@ -25,6 +25,7 @@
           class="refresh-btn"
           data-testid="btn-refresh-tabs"
           (click)="refreshTabs()"
+          (keyup.enter)="refreshTabs()"
           [disabled]="barTabService.loading()">
           <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
         </ion-button>
@@ -34,7 +35,8 @@
           color="primary"
           class="new-tab-btn"
           data-testid="btn-open-new-tab"
-          (click)="openCreateModal()">
+          (click)="openCreateModal()"
+          (keyup.enter)="openCreateModal()">
           <ion-icon name="add-outline" slot="start"></ion-icon>
           {{ 'TABS.NEW_TAB' | transloco }}
         </ion-button>
@@ -79,7 +81,7 @@
           (viewDetails)="openEditModal($event)"
           (transfer)="openTransferModal($event)"
           (settle)="onSettle($event)"
-          (cancel)="onCancelTab($event)">
+          (cancelTab)="onCancelTab($event)">
         </app-bar-tab-card>
       }
     </div>

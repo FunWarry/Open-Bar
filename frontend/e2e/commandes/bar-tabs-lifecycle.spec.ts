@@ -30,7 +30,7 @@ test.describe('Bar Tabs & Running Customer Ledger E2E Flow', () => {
     await openBtn.click();
 
     // Modal should appear
-    await expect(page.locator('app-bar-tab-modal, ion-modal')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('app-bar-tab-modal').first()).toBeVisible({ timeout: 5000 });
 
     // Fill tab form
     await page.fill('input[data-testid="tab-input-nom"], ion-input[data-testid="tab-input-nom"] input', 'Afterwork Google Team');
@@ -65,6 +65,6 @@ test.describe('Bar Tabs & Running Customer Ledger E2E Flow', () => {
     await settleBtn.click();
 
     // Settle modal should appear
-    await expect(page.locator('app-encaissement-modal, ion-modal').first()).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('app-encaissement-modal').first()).toBeVisible({ timeout: 8000 });
   });
 });

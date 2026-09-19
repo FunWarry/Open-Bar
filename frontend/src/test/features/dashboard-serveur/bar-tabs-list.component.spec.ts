@@ -88,20 +88,20 @@ describe('BarTabsListComponent', () => {
   });
 
   it('should list all active tabs initially', () => {
-    expect(component.filteredTabs().length).toBe(2);
+    expect(component.filteredTabs()).toHaveSize(2);
   });
 
   it('should filter tabs by name or reference', () => {
     component.searchTerm.set('dupont');
-    expect(component.filteredTabs().length).toBe(1);
+    expect(component.filteredTabs()).toHaveSize(1);
     expect(component.filteredTabs()[0].nom).toBe('VIP Dupont');
 
     component.searchTerm.set('TAB-88');
-    expect(component.filteredTabs().length).toBe(1);
+    expect(component.filteredTabs()).toHaveSize(1);
     expect(component.filteredTabs()[0].nom).toBe('Comptoir Martin');
 
     component.searchTerm.set('nonexistent');
-    expect(component.filteredTabs().length).toBe(0);
+    expect(component.filteredTabs()).toHaveSize(0);
   });
 
   it('should emit orderForTab when onAddOrder is called', () => {
@@ -114,5 +114,62 @@ describe('BarTabsListComponent', () => {
     spyOn(component.settleTab, 'emit');
     component.onSettle(mockTabs[0]);
     expect(component.settleTab.emit).toHaveBeenCalledWith(mockTabs[0]);
+  });
+
+  it('should update and clear search term', () => {
+    component.onSearchChange('mart');
+    expect(component.searchTerm()).toBe('mart');
+
+    component.clearSearch();
+    expect(component.searchTerm()).toBe('');
+  });
+
+  it('should open create modal', async () => {
+    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present']);
+    modalCtrlSpy.create.and.resolveTo(modalSpy);
+
+    await component.openCreateModal();
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(modalSpy.present).toHaveBeenCalled();
+  });
+
+  it('should open edit modal with tab componentProps', async () => {
+    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present']);
+    modalCtrlSpy.create.and.resolveTo(modalSpy);
+
+    await component.openEditModal(mockTabs[0]);
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        componentProps: { tab: mockTabs[0] },
+      })
+    );
+    expect(modalSpy.present).toHaveBeenCalled();
+  });
+
+  it('should open transfer modal with sourceTab componentProps', async () => {
+    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present']);
+    modalCtrlSpy.create.and.resolveTo(modalSpy);
+
+    await component.openTransferModal(mockTabs[0]);
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        componentProps: { sourceTab: mockTabs[0] },
+      })
+    );
+    expect(modalSpy.present).toHaveBeenCalled();
+  });
+
+  it('should refresh tabs via service', () => {
+    component.refreshTabs();
+    expect(fakeBarTabService.loadTabs).toHaveBeenCalled();
+  });
+
+  it('should present confirmation alert on cancel tab', async () => {
+    const alertSpy = jasmine.createSpyObj('HTMLIonAlertElement', ['present']);
+    alertCtrlSpy.create.and.resolveTo(alertSpy);
+
+    await component.onCancelTab(mockTabs[0]);
+    expect(alertCtrlSpy.create).toHaveBeenCalled();
+    expect(alertSpy.present).toHaveBeenCalled();
   });
 });

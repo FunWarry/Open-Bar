@@ -2,7 +2,7 @@ package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.*;
 import com.bar.gestioncocktail.model.BarTabStatus;
-import com.bar.gestioncocktail.model.Facture;
+import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.service.BarTabService;
 import com.bar.gestioncocktail.service.FactureService;
 import org.junit.jupiter.api.DisplayName;
@@ -19,8 +19,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -176,5 +174,71 @@ class BarTabControllerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().numero()).isEqualTo("FAC-2026-00001");
         verify(factureService).encaisserTab(1L, req);
+    }
+
+    @Test
+    @DisplayName("getAllTabs - with null status defaults to getActiveTabs")
+    void getAllTabs_withNullStatus_callsGetActiveTabs() {
+        when(barTabService.getActiveTabs()).thenReturn(List.of(sampleDTO));
+
+        List<BarTabResponseDTO> response = barTabController.getAllTabs(null);
+
+        assertThat(response).containsExactly(sampleDTO);
+        verify(barTabService).getActiveTabs();
+    }
+
+    @Test
+    @DisplayName("addOrderToTab - adds order to bar tab")
+    void addOrderToTab_success() {
+        CommandeRequestDTO req = new CommandeRequestDTO(null, 1L, null, "Notes", null, null, List.of());
+        Commande cmd = new Commande();
+        cmd.setId(100L);
+        CommandeResponseDTO orderDTO = CommandeResponseDTO.from(cmd);
+        when(barTabService.addOrderToTab(1L, req)).thenReturn(orderDTO);
+
+        ResponseEntity<CommandeResponseDTO> response = barTabController.addOrderToTab(1L, req);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).isEqualTo(orderDTO);
+        verify(barTabService).addOrderToTab(1L, req);
+    }
+
+    @Test
+    @DisplayName("transferFromTable - transfers orders from table to tab")
+    void transferFromTable_success() {
+        BarTabTransferRequest req = new BarTabTransferRequest(3L, null, true);
+        when(barTabService.transferOrdersFromTable(1L, req)).thenReturn(sampleDTO);
+
+        ResponseEntity<BarTabResponseDTO> response = barTabController.transferFromTable(1L, req);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(sampleDTO);
+        verify(barTabService).transferOrdersFromTable(1L, req);
+    }
+
+    @Test
+    @DisplayName("transferToTable - transfers orders from tab to table")
+    void transferToTable_success() {
+        BarTabTransferRequest req = new BarTabTransferRequest(4L, null, false);
+        when(barTabService.transferTabToTable(1L, req)).thenReturn(sampleDTO);
+
+        ResponseEntity<BarTabResponseDTO> response = barTabController.transferToTable(1L, req);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(sampleDTO);
+        verify(barTabService).transferTabToTable(1L, req);
+    }
+
+    @Test
+    @DisplayName("transferSingleOrder - transfers single order")
+    void transferSingleOrder_success() {
+        BarTabOrderTransferRequest req = new BarTabOrderTransferRequest(List.of(100L), null, 5L, false);
+        when(barTabService.transferSingleOrder(1L, req)).thenReturn(sampleDTO);
+
+        ResponseEntity<BarTabResponseDTO> response = barTabController.transferSingleOrder(1L, req);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(sampleDTO);
+        verify(barTabService).transferSingleOrder(1L, req);
     }
 }

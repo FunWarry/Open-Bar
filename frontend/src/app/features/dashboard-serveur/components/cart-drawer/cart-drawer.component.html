@@ -14,7 +14,7 @@
   <!-- Table / Tab Selector -->
   @if (cart.barTabId) {
     <div class="table-selector-wrap" data-testid="cart-bar-tab-indicator">
-      <label>{{ 'TABS.TITLE' | transloco }} :</label>
+      <span class="selector-label">{{ 'TABS.TITLE' | transloco }} :</span>
       <div class="tab-assigned-badge" style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--primary);">
         <ion-icon name="receipt-outline"></ion-icon>
         <span>{{ cart.barTabNom }}</span>
@@ -52,7 +52,7 @@
 
     @for (item of cart.items; track item; let i = $index) {
       <div class="cart-item-row" [attr.data-testid]="'cart-item-' + i">
-        <button type="button" class="item-info-btn" (click)="onEditItem(item)">
+        <button type="button" class="item-info-btn" (click)="onEditItem(item)" (keyup.enter)="onEditItem(item)">
           <div class="item-name-row">
             <span class="item-name">{{ item.nom }}</span>
             @if (item.varianteNom) {

@@ -1889,7 +1889,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       )
       .subscribe({
         next: async () => {
-          const targetDisplay = targetBarTabNom ? targetBarTabNom : `la Table #${targetTableNumero}`;
+          const targetDisplay = targetBarTabNom || `la Table #${targetTableNumero}`;
           const message = this.translocoService.translate('SERVEUR.ORDER_SENT_SUCCESS', {
             table: targetDisplay,
           }) || `Commande envoyée pour ${targetDisplay}`;

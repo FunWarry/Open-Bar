@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, computed } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonCard,
@@ -67,7 +67,7 @@ export class BarTabCardComponent {
   @Output() settle = new EventEmitter<BarTab>();
 
   /** Event emitted to cancel or close this tab */
-  @Output() cancel = new EventEmitter<BarTab>();
+  @Output() cancelTab = new EventEmitter<BarTab>();
 
   constructor() {
     addIcons({

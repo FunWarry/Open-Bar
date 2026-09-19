@@ -63,6 +63,8 @@ public class SampleDataSeederService {
     private static final String SCRIPT_TAG = "<script>";
     private static final String KEY_TEST = "Test";
     private static final String KEY_STATUT = "statut";
+    private static final String KEY_CLIENT_REFERENCE = "clientReference";
+    private static final String KEY_CAUTION_MONTANT = "cautionMontant";
     private static final String KEY_DISCREPANCY_REASON = "discrepancyReason";
     private static final String KEY_DAYS_AGO = "daysAgo";
     private static final String KEY_CLOSED_BY_USERNAME = "closedByUsername";
@@ -1567,29 +1569,37 @@ public class SampleDataSeederService {
         }
         log.info("Seeding {} bar tabs from demo dataset...", tabsNode.size());
         for (JsonNode tNode : tabsNode) {
-            String nom = tNode.get("nom").asText();
-            String ref = tNode.has("clientReference") && !tNode.get("clientReference").isNull() ? tNode.get("clientReference").asText() : null;
-            String notes = tNode.has(KEY_NOTES) && !tNode.get(KEY_NOTES).isNull() ? tNode.get(KEY_NOTES).asText() : null;
-            BigDecimal caution = tNode.has("cautionMontant") && !tNode.get("cautionMontant").isNull() ? new BigDecimal(tNode.get("cautionMontant").asText()) : null;
-            BarTabStatus status = BarTabStatus.valueOf(tNode.get("statut").asText());
-            long minutesAgo = tNode.has(KEY_MINUTES_AGO) ? tNode.get(KEY_MINUTES_AGO).asLong() : 45;
-            LocalDateTime openedAt = timeService.now().minusMinutes(minutesAgo);
-
-            String serveurUsername = tNode.has(KEY_SERVEUR_USERNAME) ? tNode.get(KEY_SERVEUR_USERNAME).asText() : "serveur1";
-            User serveur = usersMap.get(serveurUsername);
-
-            BarTab tab = new BarTab();
-            tab.setNom(nom);
-            tab.setClientReference(ref);
-            tab.setNotes(notes);
-            tab.setCautionMontant(caution);
-            tab.setStatut(status);
-            tab.setServeur(serveur);
-            tab.setOpenedAt(openedAt);
-            if (status == BarTabStatus.SETTLED) {
-                tab.setSettledAt(timeService.now().minusMinutes(10));
-            }
+            BarTab tab = createBarTabFromJson(tNode, usersMap);
             barTabRepository.save(tab);
         }
+    }
+
+    private BarTab createBarTabFromJson(JsonNode tNode, Map<String, User> usersMap) {
+        String nom = tNode.get("nom").asText();
+        String ref = tNode.has(KEY_CLIENT_REFERENCE) && !tNode.get(KEY_CLIENT_REFERENCE).isNull()
+                ? tNode.get(KEY_CLIENT_REFERENCE).asText() : null;
+        String notes = tNode.has(KEY_NOTES) && !tNode.get(KEY_NOTES).isNull()
+                ? tNode.get(KEY_NOTES).asText() : null;
+        BigDecimal caution = tNode.has(KEY_CAUTION_MONTANT) && !tNode.get(KEY_CAUTION_MONTANT).isNull()
+                ? new BigDecimal(tNode.get(KEY_CAUTION_MONTANT).asText()) : null;
+        BarTabStatus status = BarTabStatus.valueOf(tNode.get(KEY_STATUT).asText());
+        long minutesAgo = tNode.has(KEY_MINUTES_AGO) ? tNode.get(KEY_MINUTES_AGO).asLong() : 45;
+        LocalDateTime openedAt = timeService.now().minusMinutes(minutesAgo);
+
+        String serveurUsername = tNode.has(KEY_SERVEUR_USERNAME) ? tNode.get(KEY_SERVEUR_USERNAME).asText() : "serveur1";
+        User serveur = usersMap.get(serveurUsername);
+
+        BarTab tab = new BarTab();
+        tab.setNom(nom);
+        tab.setClientReference(ref);
+        tab.setNotes(notes);
+        tab.setCautionMontant(caution);
+        tab.setStatut(status);
+        tab.setServeur(serveur);
+        tab.setOpenedAt(openedAt);
+        if (status == BarTabStatus.SETTLED) {
+            tab.setSettledAt(timeService.now().minusMinutes(10));
+        }
+        return tab;
     }
 }

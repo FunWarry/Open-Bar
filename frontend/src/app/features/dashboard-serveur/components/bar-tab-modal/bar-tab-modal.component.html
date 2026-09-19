@@ -4,7 +4,7 @@
       {{ (tab ? 'TABS.MODAL_EDIT_TITLE' : 'TABS.MODAL_CREATE_TITLE') | transloco }}
     </ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="dismiss()" data-testid="btn-close-tab-modal" aria-label="Close">
+      <ion-button (click)="dismiss()" (keyup.enter)="dismiss()" data-testid="btn-close-tab-modal" aria-label="Close">
         <ion-icon name="close-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -61,6 +61,7 @@
         fill="outline"
         color="medium"
         (click)="dismiss()"
+        (keyup.enter)="dismiss()"
         data-testid="btn-cancel-tab-modal">
         {{ 'TABS.BTN_CANCEL' | transloco }}
       </ion-button>
