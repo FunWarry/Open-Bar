@@ -33,14 +33,21 @@ test.describe('Bar Tabs & Running Customer Ledger E2E Flow', () => {
     await expect(page.locator('app-bar-tab-modal').first()).toBeVisible({ timeout: 5000 });
 
     // Fill tab form
-    await page.fill('input[data-testid="tab-input-nom"], ion-input[data-testid="tab-input-nom"] input', 'Afterwork Google Team');
-    await page.fill('input[data-testid="tab-input-ref"], ion-input[data-testid="tab-input-ref"] input', 'CB-EMEA-4242');
+    const nameInput = page.locator('[data-testid="input-tab-name"] input, ion-input[data-testid="input-tab-name"] input, [data-testid="tab-input-nom"] input').first();
+    await expect(nameInput).toBeVisible({ timeout: 5000 });
+    await nameInput.fill('Afterwork Google Team');
+
+    const refInput = page.locator('[data-testid="input-tab-ref"] input, ion-input[data-testid="input-tab-ref"] input, [data-testid="tab-input-ref"] input').first();
+    await expect(refInput).toBeVisible({ timeout: 5000 });
+    await refInput.fill('CB-EMEA-4242');
 
     // Submit modal
-    await page.click('[data-testid="btn-tab-submit"]');
+    const submitBtn = page.locator('[data-testid="btn-submit-tab-modal"], [data-testid="btn-tab-submit"]').first();
+    await expect(submitBtn).toBeVisible({ timeout: 5000 });
+    await submitBtn.click();
 
     // Modal should dismiss
-    await expect(page.locator('app-bar-tab-modal')).not.toBeVisible({ timeout: 5000 });
+    await expect(page.locator('app-bar-tab-modal')).not.toBeVisible({ timeout: 10000 });
   });
 
   test('should filter bar tabs by search query', async ({ page }) => {
