@@ -854,6 +854,20 @@ ion-modal.rupture-impact-modal-container {
   --max-height: 85vh;
 }
 
+ion-modal.bar-tab-modal-container {
+  --width: min(540px, 94vw);
+  --height: auto;
+  --max-height: 90vh;
+  --border-radius: var(--radius-xl, 20px);
+}
+
+ion-modal.bar-tab-transfer-modal-container {
+  --width: min(580px, 94vw);
+  --height: min(620px, 86vh);
+  --max-height: 88vh;
+  --border-radius: var(--radius-xl, 20px);
+}
+
 ion-modal.modal-md,
 ion-modal.openbar-modal-md,
 ion-modal.table-detail-modal-container,

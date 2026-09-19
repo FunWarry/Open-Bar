@@ -28,7 +28,6 @@
       type="button"
       class="close-icon-btn"
       (click)="dismiss()"
-      (keyup.enter)="dismiss()"
       [attr.aria-label]="'COMMON.CLOSE' | transloco"
       data-testid="btn-close-tab-modal">
       <ion-icon name="close-outline"></ion-icon>
@@ -41,8 +40,9 @@
       
       <!-- Customer / Tab Name -->
       <app-input-field
+        [attr.data-testid]="'input-tab-name'"
         formControlName="nom"
-        [label]="('TABS.FIELD_NAME' | transloco) + ' *'"
+        [label]="'TABS.FIELD_NAME' | transloco"
         [placeholder]="'TABS.FIELD_NAME_PLACEHOLDER' | transloco"
         icon="person-outline"
         [required]="true"
@@ -51,6 +51,7 @@
 
       <!-- Customer Reference / Card -->
       <app-input-field
+        [attr.data-testid]="'input-tab-ref'"
         formControlName="clientReference"
         [label]="'TABS.FIELD_REF' | transloco"
         [placeholder]="'TABS.FIELD_REF_PLACEHOLDER' | transloco"
@@ -60,6 +61,7 @@
 
       <!-- Deposit / Caution Amount -->
       <app-input-field
+        [attr.data-testid]="'input-tab-caution'"
         formControlName="cautionMontant"
         type="number"
         [label]="'TABS.FIELD_CAUTION' | transloco"
@@ -91,7 +93,6 @@
           type="button"
           class="btn-action btn-secondary"
           (click)="dismiss()"
-          (keyup.enter)="dismiss()"
           data-testid="btn-cancel-tab-modal">
           {{ 'TABS.BTN_CANCEL' | transloco }}
         </button>

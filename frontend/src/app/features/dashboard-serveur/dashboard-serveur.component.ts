@@ -45,6 +45,7 @@ import { PlanSalleService } from '../plan-salle/services/plan-salle.service';
 import { Commande } from '../../core/models/commande.model';
 import { OfflineOrderService } from '../../core/services/offline-order.service';
 import { FeatureFlagService } from '../../core/services/feature-flag.service';
+import { generateSafeUUID } from '../../core/utils/uuid.util';
 
 import { Store } from '@ngrx/store';
 import { selectCurrentUser } from '../../core/store/auth.selectors';
@@ -1911,7 +1912,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       };
     });
 
-    const clientRequestId = crypto.randomUUID();
+    const clientRequestId = generateSafeUUID();
 
     this.service.createCommande({
       tableId: targetTableId,

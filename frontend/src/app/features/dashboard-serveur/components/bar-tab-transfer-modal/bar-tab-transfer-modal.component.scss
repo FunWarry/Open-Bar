@@ -1,21 +1,21 @@
 :host {
   display: block;
   width: 100%;
+  background: var(--background-surface-1);
+  color: var(--text-primary);
+  font-family: var(--font, 'Inter', sans-serif);
 }
 
 .transfer-modal-wrapper {
-  background: var(--background-surface-1);
-  border-radius: var(--radius-xl, 20px);
-  border: 1px solid var(--border-medium);
-  box-shadow: var(--shadow-modal);
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
-  max-width: 580px;
   width: 100%;
-  margin: 0 auto;
+  margin: 0;
   overflow: visible;
-  color: var(--text-primary);
-  font-family: var(--font, 'Inter', sans-serif);
   position: relative;
 }
 

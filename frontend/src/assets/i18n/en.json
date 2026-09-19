@@ -3248,7 +3248,7 @@
     "CARD_BTN_CANCEL": "Cancel",
     "MODAL_CREATE_TITLE": "Open New Bar Tab",
     "MODAL_EDIT_TITLE": "Edit Bar Tab",
-    "FIELD_NAME": "Customer / Tab Name *",
+    "FIELD_NAME": "Customer / Tab Name",
     "FIELD_NAME_PLACEHOLDER": "e.g. Dupont, VIP 3, Regular Mark...",
     "FIELD_REF": "Customer Reference / Card",
     "FIELD_REF_PLACEHOLDER": "e.g. Pre-authorized card, Badge #42...",

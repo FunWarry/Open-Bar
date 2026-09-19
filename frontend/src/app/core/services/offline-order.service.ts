@@ -5,6 +5,7 @@ import { TranslocoService } from '@jsverse/transloco';
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import { firstValueFrom } from 'rxjs';
 import { Commande, CreateCommandeRequest, OfflineQueuedOrder } from '../models/commande.model';
+import { generateSafeUUID } from '../utils/uuid.util';
 
 interface OfflineDB extends DBSchema {
   pending_orders: {
@@ -130,7 +131,7 @@ export class OfflineOrderService {
   ): Promise<OfflineQueuedOrder> {
     const queued: OfflineQueuedOrder = {
       ...order,
-      clientRequestId: order.clientRequestId || crypto.randomUUID(),
+      clientRequestId: order.clientRequestId || generateSafeUUID(),
       createdAt: new Date().toISOString(),
       status: 'PENDING',
       retryCount: 0,

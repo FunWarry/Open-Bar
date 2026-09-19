@@ -58,7 +58,8 @@ describe('BarTabsListComponent', () => {
   };
 
   beforeEach(async () => {
-    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create', 'getTop']);
+    modalCtrlSpy.getTop.and.resolveTo(undefined);
     alertCtrlSpy = jasmine.createSpyObj('AlertController', ['create']);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
 
@@ -125,7 +126,8 @@ describe('BarTabsListComponent', () => {
   });
 
   it('should open create modal', async () => {
-    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present']);
+    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onDidDismiss']);
+    modalSpy.onDidDismiss.and.resolveTo({ role: 'backdrop' });
     modalCtrlSpy.create.and.resolveTo(modalSpy);
 
     await component.openCreateModal();
@@ -134,7 +136,8 @@ describe('BarTabsListComponent', () => {
   });
 
   it('should open edit modal with tab componentProps', async () => {
-    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present']);
+    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onDidDismiss']);
+    modalSpy.onDidDismiss.and.resolveTo({ role: 'backdrop' });
     modalCtrlSpy.create.and.resolveTo(modalSpy);
 
     await component.openEditModal(mockTabs[0]);
@@ -147,7 +150,8 @@ describe('BarTabsListComponent', () => {
   });
 
   it('should open transfer modal with sourceTab componentProps', async () => {
-    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present']);
+    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onDidDismiss']);
+    modalSpy.onDidDismiss.and.resolveTo({ role: 'backdrop' });
     modalCtrlSpy.create.and.resolveTo(modalSpy);
 
     await component.openTransferModal(mockTabs[0]);

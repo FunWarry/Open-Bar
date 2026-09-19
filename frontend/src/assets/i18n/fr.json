@@ -3248,7 +3248,7 @@
     "CARD_BTN_CANCEL": "Annuler",
     "MODAL_CREATE_TITLE": "Ouvrir une nouvelle ardoise",
     "MODAL_EDIT_TITLE": "Modifier l'ardoise",
-    "FIELD_NAME": "Nom du client / Intitulé *",
+    "FIELD_NAME": "Nom du client / Intitulé",
     "FIELD_NAME_PLACEHOLDER": "Ex: Dupont, VIP 3, Habitué Marc...",
     "FIELD_REF": "Référence client / Carte",
     "FIELD_REF_PLACEHOLDER": "Ex: CB pré-autorisée, Badge #42...",

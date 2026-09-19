@@ -82,8 +82,7 @@
                   class="option-card"
                   [class.selected]="selectedTableId === table.id"
                   [attr.data-testid]="'option-table-' + table.id"
-                  (click)="selectedTableId = table.id"
-                  (keyup.enter)="selectedTableId = table.id">
+                  (click)="selectedTableId = table.id">
                   <div class="card-left">
                     <div class="table-icon-box">
                       <ion-icon name="restaurant-outline"></ion-icon>
@@ -129,8 +128,7 @@
                   class="option-card"
                   [class.selected]="selectedTabId === tab.id"
                   [attr.data-testid]="'option-tab-' + tab.id"
-                  (click)="selectedTabId = tab.id"
-                  (keyup.enter)="selectedTabId = tab.id">
+                  (click)="selectedTabId = tab.id">
                   <div class="card-left">
                     <div class="table-icon-box tab-mode">
                       <ion-icon name="receipt-outline"></ion-icon>
@@ -169,7 +167,6 @@
       type="button"
       class="btn-action btn-secondary"
       (click)="dismiss()"
-      (keyup.enter)="dismiss()"
       data-testid="btn-cancel-transfer-modal">
       {{ 'TABS.BTN_CANCEL' | transloco }}
     </button>
@@ -179,7 +176,6 @@
       class="btn-action btn-primary"
       [disabled]="!canSubmit() || isSubmitting"
       (click)="onConfirmTransfer()"
-      (keyup.enter)="onConfirmTransfer()"
       data-testid="btn-confirm-transfer-modal">
       @if (isSubmitting) {
         <ion-spinner name="crescent"></ion-spinner>

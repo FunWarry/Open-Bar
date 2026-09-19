@@ -1,44 +1,45 @@
 <div class="bar-tab-card" [attr.data-testid]="'bar-tab-card-' + tab.id">
   <!-- Card Header -->
   <div class="card-header">
-    <div class="header-top-row">
+    <!-- Row 1: Icon, Title & Caution Badge -->
+    <div class="header-title-row">
       <div class="tab-identity">
         <div class="tab-icon-box">
           <ion-icon name="receipt-outline" class="tab-icon" aria-hidden="true"></ion-icon>
         </div>
-        <div class="tab-title-block">
-          <h3 class="tab-name" [attr.data-testid]="'tab-name-' + tab.id" [title]="tab.nom">
-            {{ tab.nom }}
-          </h3>
-          <div class="tab-meta-strip">
-            <span class="elapsed-time" [attr.data-testid]="'tab-elapsed-' + tab.id">
-              <ion-icon name="time-outline"></ion-icon>
-              <span>{{ 'TABS.LABEL_SINCE' | transloco: { duration: elapsedFormatted } }}</span>
-            </span>
-            <span class="meta-separator">•</span>
-            <span class="orders-count">
-              <ion-icon name="restaurant-outline"></ion-icon>
-              <span>{{ (tab.activeOrdersCount > 1 ? 'TABS.CARD_ORDER_COUNT_PLURAL' : 'TABS.CARD_ORDER_COUNT') | transloco: { count: tab.activeOrdersCount || 0 } }}</span>
-            </span>
-          </div>
-        </div>
+        <h3 class="tab-name" [attr.data-testid]="'tab-name-' + tab.id" [title]="tab.nom">
+          {{ tab.nom }}
+        </h3>
       </div>
 
-      <!-- Badges / Status Chips -->
-      <div class="header-badges">
-        @if (tab.clientReference) {
-          <span class="meta-chip ref-chip" [attr.data-testid]="'tab-ref-' + tab.id">
-            <ion-icon name="card-outline"></ion-icon>
-            <span>{{ tab.clientReference }}</span>
-          </span>
-        }
-        @if (tab.cautionMontant && tab.cautionMontant > 0) {
-          <span class="meta-chip caution-chip" [attr.data-testid]="'tab-caution-' + tab.id">
-            <ion-icon name="shield-checkmark-outline"></ion-icon>
-            <span>{{ tab.cautionMontant | appCurrency }}</span>
-          </span>
-        }
+      @if (tab.cautionMontant && tab.cautionMontant > 0) {
+        <span class="meta-chip caution-chip" [attr.data-testid]="'tab-caution-' + tab.id" [title]="'TABS.CAUTION_TITLE' | transloco">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+          <span>{{ tab.cautionMontant | appCurrency }}</span>
+        </span>
+      }
+    </div>
+
+    <!-- Row 2: Metadata strip (elapsed time, active orders) & Client Reference -->
+    <div class="header-meta-row">
+      <div class="tab-meta-strip">
+        <span class="elapsed-time" [attr.data-testid]="'tab-elapsed-' + tab.id">
+          <ion-icon name="time-outline"></ion-icon>
+          <span>{{ 'TABS.LABEL_SINCE' | transloco: { duration: elapsedFormatted } }}</span>
+        </span>
+        <span class="meta-separator">•</span>
+        <span class="orders-count">
+          <ion-icon name="restaurant-outline"></ion-icon>
+          <span>{{ (tab.activeOrdersCount > 1 ? 'TABS.CARD_ORDER_COUNT_PLURAL' : 'TABS.CARD_ORDER_COUNT') | transloco: { count: tab.activeOrdersCount || 0 } }}</span>
+        </span>
       </div>
+
+      @if (tab.clientReference) {
+        <span class="meta-chip ref-chip" [attr.data-testid]="'tab-ref-' + tab.id" [title]="tab.clientReference">
+          <ion-icon name="card-outline"></ion-icon>
+          <span>{{ tab.clientReference }}</span>
+        </span>
+      }
     </div>
   </div>
 
@@ -70,8 +71,7 @@
           type="button"
           class="action-btn btn-order"
           [attr.data-testid]="'btn-tab-add-order-' + tab.id"
-          (click)="addOrder.emit(tab)"
-          (keyup.enter)="addOrder.emit(tab)">
+          (click)="addOrder.emit(tab)">
           <ion-icon name="add-outline"></ion-icon>
           <span>{{ 'TABS.CARD_BTN_ADD_ORDER' | transloco }}</span>
         </button>
@@ -80,8 +80,7 @@
           type="button"
           class="action-btn btn-settle"
           [attr.data-testid]="'btn-tab-settle-' + tab.id"
-          (click)="settle.emit(tab)"
-          (keyup.enter)="settle.emit(tab)">
+          (click)="settle.emit(tab)">
           <ion-icon name="cash-outline"></ion-icon>
           <span>{{ 'TABS.CARD_BTN_SETTLE' | transloco }}</span>
         </button>
@@ -92,8 +91,7 @@
           type="button"
           class="action-btn btn-transfer"
           [attr.data-testid]="'btn-tab-transfer-' + tab.id"
-          (click)="transfer.emit(tab)"
-          (keyup.enter)="transfer.emit(tab)">
+          (click)="transfer.emit(tab)">
           <ion-icon name="swap-horizontal-outline"></ion-icon>
           <span>{{ 'TABS.CARD_BTN_TRANSFER' | transloco }}</span>
         </button>
@@ -102,8 +100,7 @@
           type="button"
           class="action-btn btn-details"
           [attr.data-testid]="'btn-tab-details-' + tab.id"
-          (click)="viewDetails.emit(tab)"
-          (keyup.enter)="viewDetails.emit(tab)">
+          (click)="viewDetails.emit(tab)">
           <ion-icon name="eye-outline"></ion-icon>
           <span>{{ 'TABS.CARD_BTN_DETAILS' | transloco }}</span>
         </button>
