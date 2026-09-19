@@ -1194,5 +1194,60 @@ describe('DashboardServeurComponent', () => {
       expect(modalCtrlSpy.create).toHaveBeenCalled();
       expect(dashboardServiceSpy.getAllTables).toHaveBeenCalled();
     }));
+
+    it('ouvrirSplitTable() handles error and displays toast', fakeAsync(() => {
+      factureServiceSpy.genererFactureTable.and.returnValue(throwError(() => new Error('Failed to generate')));
+      component.ouvrirSplitTable(mockTables[0]);
+      tick();
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    }));
+
+    it('onSelectionner() handles action "split" and calls ouvrirSplitTable', fakeAsync(() => {
+      (modalCtrlSpy.create as jasmine.Spy).and.returnValue(Promise.resolve({
+        present: jasmine.createSpy('present'),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+          data: { action: 'split', table: mockTables[0] }
+        }))
+      } as any));
+      spyOn(component, 'ouvrirSplitTable');
+
+      component.onSelectionner(mockTables[0]);
+      tick();
+
+      expect(component.ouvrirSplitTable).toHaveBeenCalledWith(mockTables[0]);
+    }));
+
+    it('ouvrirEncaissement() opens split modal when dismissed with action open_split', fakeAsync(() => {
+      const mockFacture = { id: 77, numero: 'FAC-77' } as any;
+      (modalCtrlSpy.create as jasmine.Spy).and.returnValue(Promise.resolve({
+        present: jasmine.createSpy('present'),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+          data: { action: 'open_split', facture: mockFacture }
+        }))
+      } as any));
+      spyOn(component, 'ouvrirSplitFacture');
+
+      component.ouvrirEncaissement(mockTables[0]);
+      tick();
+
+      expect(component.ouvrirSplitFacture).toHaveBeenCalledWith(mockFacture);
+    }));
+
+    it('onSettleTab() opens split modal when dismissed with action open_split', fakeAsync(() => {
+      const mockFacture = { id: 88, numero: 'FAC-88' } as any;
+      const mockTab = { id: 10, nom: 'Tab 10' } as any;
+      (modalCtrlSpy.create as jasmine.Spy).and.returnValue(Promise.resolve({
+        present: jasmine.createSpy('present'),
+        onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({
+          data: { action: 'open_split', facture: mockFacture }
+        }))
+      } as any));
+      spyOn(component, 'ouvrirSplitFacture').and.returnValue(Promise.resolve());
+
+      component.onSettleTab(mockTab);
+      tick();
+
+      expect(component.ouvrirSplitFacture).toHaveBeenCalledWith(mockFacture);
+    }));
   });
 });

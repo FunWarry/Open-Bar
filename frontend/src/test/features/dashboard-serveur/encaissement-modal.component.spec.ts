@@ -428,6 +428,50 @@ describe('EncaissementModalComponent', () => {
     });
   }));
 
+  it('onPaymentTabChange("split") with bar tab generates tab invoice and dismisses with open_split', fakeAsync(() => {
+    const mockGeneratedFacture = { id: 88, numero: 'FAC-TAB-88' } as any;
+    const mockBarTab = { id: 12, nomClient: 'Alice', tableNumero: undefined } as any;
+    factureServiceSpy.genererFactureTab.and.returnValue(of(mockGeneratedFacture));
+    component.table = null as any;
+    component.tab = mockBarTab;
+
+    component.onPaymentTabChange('split');
+    tick();
+
+    expect(factureServiceSpy.genererFactureTab).toHaveBeenCalledWith(12);
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({
+      action: 'open_split',
+      facture: mockGeneratedFacture,
+      table: null as any,
+      tab: mockBarTab
+    });
+  }));
+
+  it('basculerVersSplit() returns early when neither table nor tab is defined', fakeAsync(() => {
+    component.table = null as any;
+    component.tab = undefined;
+
+    component.basculerVersSplit();
+    tick();
+
+    expect(factureServiceSpy.genererFactureTable).not.toHaveBeenCalled();
+    expect(factureServiceSpy.genererFactureTab).not.toHaveBeenCalled();
+    expect(modalCtrlSpy.dismiss).not.toHaveBeenCalled();
+  }));
+
+  it('basculerVersSplit() handles error, sets errorMessage and resets paymentTab to single', fakeAsync(() => {
+    factureServiceSpy.genererFactureTable.and.returnValue(throwError(() => new Error('Bill generation error')));
+    component.table = mockTable;
+    component.paymentTab = 'split';
+
+    component.basculerVersSplit();
+    tick();
+
+    expect(component.errorMessage).toBeTruthy();
+    expect(component.paymentTab).toBe('single');
+    expect(component.isLoading).toBeFalse();
+  }));
+
   it('onPaymentTabChange("single") switches paymentTab to single', async () => {
     await component.onPaymentTabChange('single');
     expect(component.paymentTab).toBe('single');

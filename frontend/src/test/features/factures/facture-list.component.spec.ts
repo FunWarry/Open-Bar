@@ -426,5 +426,47 @@ describe('FactureListComponent', () => {
     expect(modalCtrlSpy.create).toHaveBeenCalled();
     expect(factureServiceSpy.getAllFactures).toHaveBeenCalled();
   }));
+
+  it('ouvrirModalNouvelleFacture() opens split modal and reloads invoices when openSplit is true', fakeAsync(() => {
+    const splitModalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: { settled: true } }))
+    };
+    const mainModalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+        data: { action: 'created', facture: mockFactures[0], openSplit: true }
+      }))
+    };
+
+    let callCount = 0;
+    (modalCtrlSpy.create as jasmine.Spy).and.callFake(() => {
+      callCount++;
+      return Promise.resolve(callCount === 1 ? mainModalMock : splitModalMock) as any;
+    });
+
+    component.ouvrirModalNouvelleFacture();
+    tick();
+
+    expect(modalCtrlSpy.create).toHaveBeenCalledTimes(2);
+    expect(splitModalMock.present).toHaveBeenCalled();
+    expect(splitModalMock.onWillDismiss).toHaveBeenCalled();
+  }));
+
+  it('ouvrirModalNouvelleFacture() does not reload when cancelled', fakeAsync(() => {
+    const cancelModalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+        data: { action: 'cancelled' }
+      }))
+    };
+    (modalCtrlSpy.create as jasmine.Spy).and.returnValue(Promise.resolve(cancelModalMock as any));
+    (factureServiceSpy.getAllFactures as jasmine.Spy).calls.reset();
+
+    component.ouvrirModalNouvelleFacture();
+    tick();
+
+    expect(factureServiceSpy.getAllFactures).not.toHaveBeenCalled();
+  }));
 });
 

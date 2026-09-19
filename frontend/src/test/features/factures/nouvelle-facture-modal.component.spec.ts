@@ -192,6 +192,73 @@ describe('NouvelleFactureModalComponent', () => {
     });
   }));
 
+  it('should not auto-select if multiple tables are occupied', fakeAsync(() => {
+    const multiOccupied: TableBar[] = [
+      { ...mockTables[0], id: 10, numero: 10, occupee: true },
+      { ...mockTables[0], id: 11, numero: 11, occupee: true }
+    ];
+    tableServiceSpy.getAll.and.returnValue(of(multiOccupied));
+    component.loadOccupiedTables();
+    tick();
+
+    expect(component.occupiedTables).toHaveSize(2);
+    expect(component.selectedTable).toBeNull();
+  }));
+
+  it('should return early when re-selecting the same table with preview already present', fakeAsync(() => {
+    fixture.detectChanges();
+    tick();
+
+    component.selectTable(component.occupiedTables[0]);
+    tick();
+    expect(factureServiceSpy.getTableAddition).toHaveBeenCalledTimes(1);
+
+    component.selectTable(component.occupiedTables[0]);
+    tick();
+    expect(factureServiceSpy.getTableAddition).toHaveBeenCalledTimes(1);
+  }));
+
+  it('should handle preview loading error in selectTable', fakeAsync(() => {
+    factureServiceSpy.getTableAddition.and.returnValue(throwError(() => new Error('Preview error')));
+    fixture.detectChanges();
+    tick();
+
+    expect(component.isLoadingPreview).toBeFalse();
+    expect(component.additionPreview).toBeNull();
+  }));
+
+  it('should not generate invoice if no table is selected or isSubmitting is true', fakeAsync(() => {
+    component.selectedTable = null;
+    component.generateInvoice();
+    tick();
+    expect(factureServiceSpy.genererFactureTable).not.toHaveBeenCalled();
+
+    component.selectedTable = mockTables[0];
+    component.isSubmitting = true;
+    component.generateInvoice();
+    tick();
+    expect(factureServiceSpy.genererFactureTable).not.toHaveBeenCalled();
+  }));
+
+  it('should handle error when generating invoice and show error toast', fakeAsync(() => {
+    fixture.detectChanges();
+    tick();
+
+    factureServiceSpy.genererFactureTable.and.returnValue(throwError(() => ({
+      error: { message: 'Table has no items' }
+    })));
+
+    component.selectTable(component.occupiedTables[0]);
+    tick();
+
+    component.generateInvoice(false);
+    tick();
+    flushMicrotasks();
+
+    expect(component.isSubmitting).toBeFalse();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
+
   it('should dismiss modal on close', () => {
     component.close();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ action: 'cancelled' });
