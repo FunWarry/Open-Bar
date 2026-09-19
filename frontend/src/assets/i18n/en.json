@@ -545,8 +545,20 @@
     "PREVIEW_TITLE": "Receipt Live Preview",
     "SAVE_BTN": "Save Legal Information",
     "SAVE_SUCCESS": "Establishment information saved successfully!",
-    "SAVE_ERROR": "Failed to save establishment information",
-    "DEMO_RECEIPT_TITLE": "DEMO SALES RECEIPT"
+    "DEMO_RECEIPT_TITLE": "DEMO SALES RECEIPT",
+    "SIRET_HINT": "14 digits",
+    "SIRET_LABEL": "SIRET",
+    "VAT_LABEL": "VAT",
+    "APE_LABEL": "APE",
+    "DEMO_ITEM_1": "1x Mojito (VAT 20%) — 9.50 €",
+    "DEMO_ITEM_2": "1x Tapas Board (VAT 10%) — 14.00 €",
+    "DEMO_TOTAL_HT_VALUE": "20.08 €",
+    "DEMO_VAT_DETAILS": "VAT (10%): 1.27 € | VAT (20%): 1.58 €",
+    "DEMO_TOTAL_TTC_VALUE": "23.50 €",
+    "DEFAULT_PAYMENT_TERMS": "Immediate payment upon receipt",
+    "DEFAULT_DISCOUNT_POLICY": "No discount for early payment",
+    "LOAD_ERROR": "Failed to load legal establishment information",
+    "SAVE_ERROR_GENERIC": "Failed to save establishment settings"
   },
   "AUTH": {
     "LOGIN_TITLE": "Sign in to your workspace",

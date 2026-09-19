@@ -545,8 +545,20 @@
     "PREVIEW_TITLE": "Aperçu du ticket de caisse",
     "SAVE_BTN": "Enregistrer les informations légales",
     "SAVE_SUCCESS": "Informations de l'établissement enregistrées avec succès !",
-    "SAVE_ERROR": "Erreur lors de l'enregistrement des informations de l'établissement",
-    "DEMO_RECEIPT_TITLE": "TICKET DE CAISSE DE DÉMONSTRATION"
+    "DEMO_RECEIPT_TITLE": "TICKET DE CAISSE DE DÉMONSTRATION",
+    "SIRET_HINT": "14 chiffres",
+    "SIRET_LABEL": "SIRET",
+    "VAT_LABEL": "TVA",
+    "APE_LABEL": "APE",
+    "DEMO_ITEM_1": "1x Mojito (TVA 20%) — 9,50 €",
+    "DEMO_ITEM_2": "1x Planche Tapas (TVA 10%) — 14,00 €",
+    "DEMO_TOTAL_HT_VALUE": "20,08 €",
+    "DEMO_VAT_DETAILS": "TVA (10%) : 1,27 € | TVA (20%) : 1,58 €",
+    "DEMO_TOTAL_TTC_VALUE": "23,50 €",
+    "DEFAULT_PAYMENT_TERMS": "Paiement immédiat à réception",
+    "DEFAULT_DISCOUNT_POLICY": "Aucun escompte pour paiement anticipé",
+    "LOAD_ERROR": "Erreur lors du chargement des données légales",
+    "SAVE_ERROR_GENERIC": "Échec de l'enregistrement des paramètres"
   },
   "AUTH": {
     "LOGIN_TITLE": "Connexion à votre espace bar",

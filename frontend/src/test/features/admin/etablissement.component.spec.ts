@@ -76,7 +76,7 @@ describe('EtablissementComponent', () => {
     expect(siretLuhnValidator(shortControl)).toEqual({ invalidSiretFormat: true });
   });
 
-  it('onSave() should call updateConfig() si le formulaire est valide', () => {
+  it('onSave() should call updateConfig() when form is valid', () => {
     component.configForm.patchValue({
       legalName: 'OpenBar SARL',
       siret: '73282932000074',
@@ -92,7 +92,7 @@ describe('EtablissementComponent', () => {
     }));
   });
 
-  it('onSave() ne should pas soumettre si le formulaire est invalide', () => {
+  it('onSave() should not submit when form is invalid', () => {
     component.configForm.patchValue({
       siret: 'invalid_siret',
     });
