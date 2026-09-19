@@ -17,6 +17,15 @@ export function createMockJwt(roles: string[] = ['ADMIN']): string {
  * @param page Playwright page instance
  */
 export async function setupMockApi(page: Page): Promise<void> {
+  // Mock WebSocket connection to provide clean STOMP handshake and prevent dev server proxy ECONNREFUSED
+  await page.routeWebSocket(/(?:\/api)?\/ws/, (ws) => {
+    ws.onMessage((message) => {
+      if (typeof message === 'string' && message.startsWith('CONNECT')) {
+        ws.send('CONNECTED\nversion:1.2\nheart-beat:0,0\n\n\0');
+      }
+    });
+  });
+
   await page.route('**/api/settings**', async (route) => {
     if (route.request().method() === 'PUT') {
       const body = route.request().postDataJSON() || {};
