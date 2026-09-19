@@ -149,6 +149,8 @@ flowchart TD
         FACTURES -->|"1:N"| FACTURE_REGLEMENTS["facture_reglements (Splits)"]
         CASH_DRAWER_SESSIONS["cash_drawer_sessions (Till Sessions)"] -->|"1:N"| CASH_MOVEMENTS["cash_movements (Cash in / drop / paid out)"]
         CASH_DRAWER_SESSIONS -.->|"closing"| DAILY_CASH_CLOSURES["daily_cash_closures (Rapports Z)"]
+        BAR_TABS["bar_tabs (Customer Running Ledgers)"] -->|"1:N"| COMMANDES
+        BAR_TABS -->|"1:1"| FACTURES
     end
 
     subgraph StockDomain ["📦 Stock & Waste Tracking"]
@@ -158,6 +160,7 @@ flowchart TD
 ```
 
 *Standalone configuration & logging tables*:
+- `bar_tabs` : Customer running ledgers and bar tabs (`nom`, `client_reference`, `caution_montant`, `notes`, `statut: ACTIVE|SETTLED|TRANSFERRED|CANCELLED`, `serveur_id`, `date_ouverture`, `date_cloture`)
 - `cash_drawer_sessions` : Daily till opening sessions per operational date (`session_date`, `opened_at`, `closed_at`, `opened_by`, `closed_by`, `opening_float`, `status: OPEN|CLOSED`, `opening_denominations_json`, `notes`)
 - `cash_movements` : Intra-day cash movements (`session_id`, `type: CASH_IN|CASH_DROP|PAID_OUT`, `amount`, `reason`, `receipt_reference`, `user_id`, `created_at`)
 - `daily_cash_closures` : End-of-day certified Z-reports with SHA-256 seal (`date_cloture`, `numero_cloture`, `ca_total_ttc`, `fec_export`, `reconciliation`)
@@ -176,7 +179,7 @@ flowchart TD
 |------|-------------|-----------------|
 | `ADMIN` | Technical maintenance & setup | User CRUD, full system access, app settings |
 | `MANAGER` | Bar supervision (primary business role) | Analytics, order cancellation, stock toggle, shift & schedule management |
-| `SERVEUR` | Order intake & table service | Create/cancel orders, table tracking, personal shift view, table billing/encaissement, table call acknowledgement |
+| `SERVEUR` | Order intake & table service | Create/cancel orders, table tracking, personal shift view, table billing/encaissement, table call acknowledgement, bar tabs management |
 | `BARMAN` | Drink preparation & stock | Order status progression, cocktail/ingredient recipe view, stock outage toggles |
 
 **NgRx Selectors**: `selectIsAdmin`, `selectIsManager`, `selectIsBarman`, `selectIsAuthenticated`, `selectCurrentUser`
@@ -207,6 +210,7 @@ flowchart LR
 | `/topic/commandes` | New order created / order updated |
 | `/topic/commandes/{id}` | Order status changed |
 | `/topic/tables` | Table occupied / liberated / updated |
+| `/topic/bar-tabs` | Bar tab opened / updated / transferred / settled |
 | `/topic/stock/alerte` | Low stock alert triggered |
 | `/topic/schedule-publications` | Team schedule published |
 | `/topic/serveur/appels` | Table assistance / bill request alert triggered |
