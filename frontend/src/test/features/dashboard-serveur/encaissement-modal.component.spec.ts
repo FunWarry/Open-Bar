@@ -7,7 +7,7 @@ import {
   TableAdditionResponse,
   TableAdditionItem
 } from '../../../app/features/dashboard-serveur/services/dashboard-serveur.service';
-import { FactureService } from '../../../app/features/factures/services/facture.service';
+import { FactureService, SplitResultDTO } from '../../../app/features/factures/services/facture.service';
 import { BarTabService } from '../../../app/core/services/bar-tab.service';
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 import { TranslocoTestingModule } from '@jsverse/transloco';
@@ -356,27 +356,20 @@ describe('EncaissementModalComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 
-  it('should settle an individual split part via ReglementModalComponent and finalize if all paid', fakeAsync(() => {
+  it('should settle an individual split part in-modal and finalize if all paid', fakeAsync(() => {
     component.addition = mockAddition;
     component.splitMode = 'egal';
     component.nombreConvives = 2;
     component.calculerSplitEgal();
 
-    const mockModal = {
-      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
-      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
-        data: {
-          modePaiement: 'CARTE',
-          pourboire: 1.0,
-          montantRecu: 15.0,
-          monnaieRendue: 0,
-          totalTotal: 15.0
-        }
-      }))
-    };
-    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
-
     component.reglerPart(0, component.splitResults[0]);
+    expect(component.settlingPartIndex).toBe(0);
+    expect(component.settlingPart).toBe(component.splitResults[0]);
+
+    component.partPaymentMode = 'CARTE';
+    component.setPartTipMode('custom');
+    component.partCustomTip = 1.0;
+    component.validerReglementPart();
     tick();
 
     expect(component.partStates[0].reglee).toBeTrue();
@@ -480,5 +473,167 @@ describe('EncaissementModalComponent', () => {
     component.paymentTab = 'split';
     component.onPaymentTabChange('single');
     expect(component.paymentTab).toBe('single');
+  });
+
+  describe('Custom Tip and Discount Tiers', () => {
+    beforeEach(() => {
+      component.addition = mockAddition; // totalTTC: 28.0
+    });
+
+    it('calculates custom percentage tip correctly', () => {
+      component.setTipMode('custom_percent');
+      component.customTipPercent = 10;
+      // 10% of 28.0 = 2.80
+      expect(component.pourboire).toBe(2.8);
+      expect(component.totalNetAPayer).toBe(30.8);
+    });
+
+    it('applies percentage discount tier correctly', () => {
+      const tier = { id: 'staff', label: 'Équipier', type: 'percent' as const, value: 50 };
+      component.applyDiscountTier(tier);
+
+      expect(component.selectedTierId).toBe('staff');
+      expect(component.discountMode).toBe('percent');
+      expect(component.discountAmount).toBe(14.0); // 50% of 28.0
+      expect(component.totalNetAPayer).toBe(14.0);
+    });
+
+    it('applies fixed discount tier correctly', () => {
+      const tier = { id: 'vip', label: 'VIP', type: 'fixed' as const, value: 10 };
+      component.applyDiscountTier(tier);
+
+      expect(component.selectedTierId).toBe('vip');
+      expect(component.discountMode).toBe('fixed');
+      expect(component.discountAmount).toBe(10.0);
+      expect(component.totalNetAPayer).toBe(18.0);
+    });
+  });
+
+  describe('Item Assignment (Par article)', () => {
+    beforeEach(() => {
+      component.addition = mockAddition; // item 101: 18.0, item 102: 10.0
+      component.convives = [{ nom: 'Alice' }, { nom: 'Bob' }];
+    });
+
+    it('assigns item to a guest and computes assigned total and count', () => {
+      component.assignItemToGuest(101, 0); // Alice gets Mojito (18€)
+      component.assignItemToGuest(102, 1); // Bob gets Piña Colada (10€)
+
+      expect(component.getGuestAssignedTotal(0)).toBe(18.0);
+      expect(component.getGuestAssignedCount(0)).toBe(1);
+      expect(component.getGuestAssignedTotal(1)).toBe(10.0);
+      expect(component.getGuestAssignedCount(1)).toBe(1);
+      expect(component.totalAssignedItemsAmount).toBe(28.0);
+      expect(component.unassignedItemsRemainder).toBe(0);
+    });
+
+    it('allows unassigning an item', () => {
+      component.assignItemToGuest(101, 0);
+      expect(component.getGuestAssignedCount(0)).toBe(1);
+
+      component.assignItemToGuest(101, undefined);
+      expect(component.getGuestAssignedCount(0)).toBe(0);
+      expect(component.unassignedItemsRemainder).toBe(28.0);
+    });
+
+    it('assigns and unassigns individual units between guests', () => {
+      // Mojito has 2 units (9€ each). Assign 1 unit to Alice (0) and 1 unit to Bob (1)
+      component.assignOneUnitToGuest(0, 101);
+      expect(component.getGuestTotal(0)).toBe(9.0);
+      expect(component.getUnassignedCount(101)).toBe(1);
+
+      component.assignOneUnitToGuest(1, 101);
+      expect(component.getGuestTotal(1)).toBe(9.0);
+      expect(component.getUnassignedCount(101)).toBe(0);
+
+      // Unassign 1 unit from Alice
+      component.unassignOneUnitFromGuest(0, 101);
+      expect(component.getGuestTotal(0)).toBe(0);
+      expect(component.getUnassignedCount(101)).toBe(1);
+    });
+
+    it('removes all units of an item from a guest', () => {
+      component.assignOneUnitToGuest(0, 101);
+      component.assignOneUnitToGuest(0, 101);
+      expect(component.getGuestTotal(0)).toBe(18.0);
+
+      component.removeAllUnitsOfItemFromGuest(0, 101);
+      expect(component.getGuestTotal(0)).toBe(0);
+      expect(component.getUnassignedCount(101)).toBe(2);
+    });
+
+    it('validates allItemsAssigned and calculates split selection', () => {
+      expect(component.allItemsAssigned).toBeFalse();
+
+      // Assign all units: 2x Mojito to Alice, 1x Piña Colada to Bob
+      component.assignOneUnitToGuest(0, 101);
+      component.assignOneUnitToGuest(0, 101);
+      component.assignOneUnitToGuest(1, 102);
+
+      expect(component.allItemsAssigned).toBeTrue();
+      expect(component.availableAdditionItems).toHaveSize(0);
+
+      component.calculerSplitSelection();
+      expect(component.splitResults).toHaveSize(2);
+      expect(component.splitResults[0].nomConvive).toBe('Alice');
+      expect(component.splitResults[0].sousTotal).toBe(18.0);
+      expect(component.splitResults[1].nomConvive).toBe('Bob');
+      expect(component.splitResults[1].sousTotal).toBe(10.0);
+    });
+  });
+
+  describe('In-modal Part Settlement Flow', () => {
+    const mockPart: SplitResultDTO = {
+      factureId: 50,
+      nomConvive: 'Alice',
+      items: [],
+      sousTotal: 14.0,
+      totalAvecPourboire: 14.0
+    };
+
+    beforeEach(() => {
+      component.addition = mockAddition;
+      component.splitResults = [mockPart];
+    });
+
+    it('reglerPart() initiates part settlement mode', () => {
+      component.reglerPart(0, mockPart);
+
+      expect(component.settlingPartIndex).toBe(0);
+      expect(component.settlingPart).toBe(mockPart);
+      expect(component.partPaymentMode).toBe('CARTE');
+      expect(component.partTotalNetAPayer).toBe(14.0);
+    });
+
+    it('annulerReglementPart() exits part settlement mode without settling', () => {
+      component.reglerPart(0, mockPart);
+      component.annulerReglementPart();
+
+      expect(component.settlingPartIndex).toBeNull();
+      expect(component.settlingPart).toBeNull();
+    });
+
+    it('validerReglementPart() settles the part and updates partStates', () => {
+      component.reglerPart(0, mockPart);
+      component.partPaymentMode = 'CARTE';
+      component.setPartTipMode('10pct'); // 10% of 14 = 1.40
+      expect(component.partTotalNetAPayer).toBe(15.4);
+
+      component.validerReglementPart();
+
+      expect(component.partStates[0].reglee).toBeTrue();
+      expect(component.partStates[0].modePaiement).toBe('CARTE');
+      expect(component.partStates[0].pourboire).toBe(1.4);
+      expect(component.settlingPart).toBeNull();
+    });
+
+    it('computes cash suggestions and change for part settlement', () => {
+      component.reglerPart(0, mockPart);
+      component.partPaymentMode = 'ESPECES';
+      component.definirPartMontantRecu(20);
+
+      expect(component.isPartMontantRecuSuffisant).toBeTrue();
+      expect(component.partMonnaieARendre).toBe(6.0); // 20 - 14
+    });
   });
 });

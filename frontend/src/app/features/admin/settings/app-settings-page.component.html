@@ -1418,6 +1418,122 @@
                   </ion-card>
                 </ion-col>
               </ion-row>
+
+              <!-- Row 4: Paliers de Remise Commerciale & Gestes -->
+              <ion-row>
+                <ion-col size="12">
+                  <ion-card class="settings-card" data-testid="card-discount-tiers">
+                    <ion-card-header>
+                      <div class="card-header-flex">
+                        <ion-card-title class="card-title">
+                          <ion-icon name="pricetag-outline" class="title-icon"></ion-icon>
+                          {{ 'SETTINGS.DISCOUNT_TIERS_TITLE' | transloco }}
+                        </ion-card-title>
+                        <button
+                          type="button"
+                          class="reset-denoms-btn"
+                          (click)="resetDiscountTiersToDefault()"
+                          data-testid="btn-reset-discount-tiers">
+                          <ion-icon name="refresh-outline"></ion-icon>
+                          <span>{{ 'SETTINGS.RESET_DISCOUNT_TIERS' | transloco }}</span>
+                        </button>
+                      </div>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="block-desc">{{ 'SETTINGS.DISCOUNT_TIERS_SUBTITLE' | transloco }}</p>
+
+                      <!-- Configured Tiers List -->
+                      <div class="denominations-chips-grid" data-testid="discount-tiers-list">
+                        @for (tier of configuredDiscountTiers(); track tier.id) {
+                          <div class="denom-tag bill-tag" [attr.data-testid]="'discount-tier-' + tier.id">
+                            <span class="denom-type-badge">{{ tier.type === 'percent' ? '%' : (appSettingsForm.get('currencySymbol')?.value || '€') }}</span>
+                            <span class="denom-label">{{ tier.label }} (-{{ tier.value }}{{ tier.type === 'percent' ? '%' : (appSettingsForm.get('currencySymbol')?.value || '€') }})</span>
+                            <button
+                              type="button"
+                              class="delete-denom-btn"
+                              (click)="removeDiscountTier(tier.id)"
+                              [attr.title]="'COMMON.DELETE' | transloco"
+                              [attr.data-testid]="'delete-tier-' + tier.id">
+                              <ion-icon name="close-outline"></ion-icon>
+                            </button>
+                          </div>
+                        }
+                        @if (configuredDiscountTiers().length === 0) {
+                          <div class="empty-denoms-note">{{ 'SETTINGS.NO_DISCOUNT_TIERS_CONFIGURED' | transloco }}</div>
+                        }
+                      </div>
+
+                      <!-- Add Custom Tier Form -->
+                      <div class="add-denom-box" data-testid="add-discount-tier-box">
+                        <h4 class="add-denom-heading">
+                          <ion-icon name="add-circle-outline"></ion-icon>
+                          {{ 'SETTINGS.ADD_DISCOUNT_TIER' | transloco }}
+                        </h4>
+                        <div class="add-denom-fields">
+                          <div class="denom-type-toggle">
+                            <button
+                              type="button"
+                              class="type-btn"
+                              [class.active]="newDiscountTierType === 'percent'"
+                              (click)="newDiscountTierType = 'percent'"
+                              data-testid="select-tier-type-percent">
+                              % {{ 'FACTURES.DISCOUNT_PERCENT' | transloco }}
+                            </button>
+                            <button
+                              type="button"
+                              class="type-btn"
+                              [class.active]="newDiscountTierType === 'fixed'"
+                              (click)="newDiscountTierType = 'fixed'"
+                              data-testid="select-tier-type-fixed">
+                              {{ appSettingsForm.get('currencySymbol')?.value || '€' }} {{ 'FACTURES.DISCOUNT_FIXED' | transloco }}
+                            </button>
+                          </div>
+
+                          <div class="denom-value-input-wrapper">
+                            <label for="input-new-tier-label" class="sr-only">{{ 'SETTINGS.TIER_LABEL' | transloco }}</label>
+                            <input
+                              id="input-new-tier-label"
+                              type="text"
+                              [(ngModel)]="newDiscountTierLabel"
+                              [ngModelOptions]="{standalone: true}"
+                              [placeholder]="'SETTINGS.TIER_LABEL_PLACEHOLDER' | transloco"
+                              class="custom-denom-input"
+                              data-testid="input-new-tier-label"
+                            />
+                          </div>
+
+                          <div class="denom-value-input-wrapper">
+                            <label for="input-new-tier-val" class="sr-only">{{ 'SETTINGS.TIER_VALUE' | transloco }}</label>
+                            <input
+                              id="input-new-tier-val"
+                              type="number"
+                              step="1"
+                              min="1"
+                              [(ngModel)]="newDiscountTierValue"
+                              [ngModelOptions]="{standalone: true}"
+                              [placeholder]="'50'"
+                              class="custom-denom-input"
+                              data-testid="input-new-tier-value"
+                              (keyup.enter)="addDiscountTier()"
+                            />
+                            <span class="denom-currency-affix">{{ newDiscountTierType === 'percent' ? '%' : (appSettingsForm.get('currencySymbol')?.value || '€') }}</span>
+                          </div>
+
+                          <button
+                            type="button"
+                            class="add-denom-btn"
+                            (click)="addDiscountTier()"
+                            [disabled]="!newDiscountTierLabel.trim() || !newDiscountTierValue || newDiscountTierValue <= 0"
+                            data-testid="btn-add-discount-tier">
+                            <ion-icon name="add-circle-outline"></ion-icon>
+                            <span>{{ 'COMMON.ADD' | transloco }}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
             </ion-grid>
           </form>
         </section>

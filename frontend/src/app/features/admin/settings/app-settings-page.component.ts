@@ -84,8 +84,8 @@ import { Subject, forkJoin, of } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
 import { EtablissementService } from '../../../core/services/etablissement.service';
 import { EstablishmentConfig } from '../../../core/models/establishment-config.model';
-import { AppSettingsService } from '../../../core/services/app-settings.service';
-import { AppSettings, CurrencyPosition } from '../../../core/models/app-settings.model';
+import { AppSettingsService, DEFAULT_DISCOUNT_TIERS } from '../../../core/services/app-settings.service';
+import { AppSettings, CurrencyPosition, DiscountTier } from '../../../core/models/app-settings.model';
 import {
   CashDenomination,
   DEFAULT_EUR_DENOMINATIONS,
@@ -345,6 +345,12 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
   newDenomType: 'bill' | 'coin' = 'bill';
   newDenomValue: number | null = null;
+
+  // Configured commercial discount tiers (paliers de remise)
+  configuredDiscountTiers = signal<DiscountTier[]>([...DEFAULT_DISCOUNT_TIERS]);
+  newDiscountTierLabel = '';
+  newDiscountTierType: 'percent' | 'fixed' = 'percent';
+  newDiscountTierValue: number | null = null;
 
   readonly modulePresets: { type: Exclude<EstablishmentPresetType, 'CUSTOM'>; labelKey: string; icon: string; descKey: string }[] = [
     { type: 'BAR', labelKey: 'SETTINGS.MODULES_PRESET_BAR', icon: 'beer-outline', descKey: 'SETTINGS.MODULES_PRESET_BAR_DESC' },
@@ -637,6 +643,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       currencySymbol: ['€', [Validators.required]],
       currencyPosition: ['AFTER', [Validators.required]],
       cashDenominationsJson: [''],
+      discountTiersJson: [''],
       defaultVatRate: [20.0, [Validators.required, Validators.min(0), Validators.max(100)]],
       targetGrossMarginPercentage: [70.0, [Validators.required, Validators.min(0), Validators.max(100)]],
       warningGrossMarginPercentage: [50.0, [Validators.required, Validators.min(0), Validators.max(100)]],
@@ -719,8 +726,10 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
             }
 
             this.configuredDenominations.set(this.resolveDenominations(appSettings));
+            this.configuredDiscountTiers.set(this.resolveDiscountTiers(appSettings));
           } else {
             this.configuredDenominations.set([...DEFAULT_EUR_DENOMINATIONS]);
+            this.configuredDiscountTiers.set(this.appSettingsService.getDiscountTiers());
           }
 
           if (modules) {
@@ -777,6 +786,23 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       settings?.currencySymbol || '€',
       settings?.currencyPosition || 'AFTER'
     );
+  }
+
+  /**
+   * Resolves configured commercial discount tiers from serialized JSON or service defaults.
+   */
+  private resolveDiscountTiers(settings?: Partial<AppSettings> | null): DiscountTier[] {
+    if (settings?.discountTiersJson) {
+      try {
+        const parsed = JSON.parse(settings.discountTiersJson);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch {
+        // Fallback to defaults on invalid JSON
+      }
+    }
+    return this.appSettingsService.getDiscountTiers();
   }
 
   // --- Cadence Presets ---
@@ -984,6 +1010,45 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     this.showToast(this.translocoService.translate('SETTINGS.DENOMINATIONS_RESET_SUCCESS'), 'info');
   }
 
+  /**
+   * Adds a user-defined commercial discount tier (e.g. staff, VIP, complimentary).
+   */
+  addDiscountTier(): void {
+    if (!this.newDiscountTierLabel?.trim() || !this.newDiscountTierValue || this.newDiscountTierValue <= 0) {
+      return;
+    }
+    const newTier: DiscountTier = {
+      id: `tier_${Date.now()}`,
+      label: this.newDiscountTierLabel.trim(),
+      type: this.newDiscountTierType,
+      value: Number(Number(this.newDiscountTierValue).toFixed(2))
+    };
+    this.configuredDiscountTiers.update(tiers => [...tiers, newTier]);
+    this.newDiscountTierLabel = '';
+    this.newDiscountTierValue = null;
+    this.appSettingsForm.markAsDirty();
+  }
+
+  /**
+   * Removes a discount tier from the configured list.
+   *
+   * @param id Unique identifier of the tier to remove
+   */
+  removeDiscountTier(id: string): void {
+    this.configuredDiscountTiers.update(tiers => tiers.filter(t => t.id !== id));
+    this.appSettingsForm.markAsDirty();
+  }
+
+  /**
+   * Resets the discount tier list to the standard default commercial presets.
+   */
+  resetDiscountTiersToDefault(): void {
+    this.configuredDiscountTiers.set([...DEFAULT_DISCOUNT_TIERS]);
+    this.appSettingsForm.markAsDirty();
+    this.cdr.markForCheck();
+    this.showToast(this.translocoService.translate('SETTINGS.DISCOUNT_TIERS_RESET_SUCCESS'), 'info');
+  }
+
   // --- VAT & Margin Helpers ---
   applyVatPreset(rate: number): void {
     this.appSettingsForm.patchValue({ defaultVatRate: rate });
@@ -1126,6 +1191,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       this.appSettingsForm.patchValue(this.initialAppSettingsValue);
       this.appSettingsForm.markAsPristine();
       this.configuredDenominations.set(this.resolveDenominations(this.initialAppSettingsValue));
+      this.configuredDiscountTiers.set(this.resolveDiscountTiers(this.initialAppSettingsValue));
     }
     if (this.initialColors) {
       this.colorForm.patchValue(this.initialColors);
@@ -1163,6 +1229,9 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     const colors = this.colorForm.value as CustomThemeColors;
     this.themeService.setCustomColors(colors);
 
+    // Save discount tiers locally
+    this.appSettingsService.saveDiscountTiersLocally(this.configuredDiscountTiers());
+
     const etabPayload = this.etabForm.value;
     const appSettingsPayload = {
       ...this.appSettingsForm.value,
@@ -1170,6 +1239,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       primaryColorStrong: this.darkenHex(colors.primary, 15),
       establishmentName: etabPayload.legalName || this.appSettingsForm.value.establishmentName || 'OpenBar',
       cashDenominationsJson: JSON.stringify(this.configuredDenominations()),
+      discountTiersJson: JSON.stringify(this.configuredDiscountTiers()),
     };
 
     const updatePayload: Record<string, any> = {
