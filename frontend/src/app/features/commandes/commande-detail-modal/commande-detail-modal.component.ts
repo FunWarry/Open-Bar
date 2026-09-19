@@ -12,9 +12,11 @@ import {
   checkmarkDoneOutline, timeOutline, personOutline,
   statsChartOutline, receiptOutline, gridOutline,
   cashOutline, chatbubbleEllipsesOutline, flashOutline,
+  restaurantOutline, wineOutline, cardOutline, beerOutline,
 } from 'ionicons/icons';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { CommandeService } from '../../../core/services/commande.service';
 import { Commande, CommandeItem, CommandeStatut } from '../../../core/models/commande.model';
 import { CancelOrderModalComponent } from '../../../core/components/ui/cancel-order-modal/cancel-order-modal.component';
@@ -33,7 +35,7 @@ import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
     IonIcon, IonBadge, IonSpinner, IonFooter,
-    CurrencyPipe, DatePipe, TranslocoPipe,
+    DatePipe, TranslocoPipe, AppCurrencyPipe,
   ],
 })
 export class CommandeDetailModalComponent implements OnInit, OnDestroy {
@@ -56,7 +58,7 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
       closeOutline, banOutline, playOutline, checkmarkCircleOutline,
       checkmarkDoneOutline, timeOutline, personOutline, gridOutline,
       statsChartOutline, receiptOutline, cashOutline, chatbubbleEllipsesOutline,
-      flashOutline,
+      flashOutline, restaurantOutline, wineOutline, cardOutline, beerOutline,
     });
   }
 

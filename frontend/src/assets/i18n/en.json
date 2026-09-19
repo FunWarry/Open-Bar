@@ -1219,10 +1219,14 @@
     "DETAILS": {
       "TITLE": "Order Details #{{id}}",
       "TABLE": "Table",
+      "TAB": "Tab",
+      "LOCATION": "Location",
       "SERVER": "Server",
       "STATUS": "Status",
       "TOTAL": "Total",
       "ITEMS_HEADER": "Order Items",
+      "ITEMS_COUNT": "{{count}} item",
+      "ITEMS_COUNT_PLURAL": "{{count}} items",
       "ITEM_NAME": "Name",
       "UNIT_PRICE": "Unit Price",
       "QUANTITY": "Quantity",
@@ -3228,6 +3232,7 @@
     "DRAWER_CLOSED_BANNER": "Cash drawer closed: opening required before cash payment"
   },
   "TABS": {
+    "TAB_LABEL": "Tab",
     "TITLE": "Customer Bar Tabs",
     "SUBTITLE": "Running ledgers and deferred customer settlements",
     "NEW_TAB": "New Bar Tab",

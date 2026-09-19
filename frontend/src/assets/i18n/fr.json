@@ -1219,10 +1219,14 @@
     "DETAILS": {
       "TITLE": "Détails de la Commande #{{id}}",
       "TABLE": "Table",
+      "TAB": "Ardoise",
+      "LOCATION": "Emplacement",
       "SERVER": "Serveur",
       "STATUS": "Statut",
       "TOTAL": "Total",
       "ITEMS_HEADER": "Articles de la commande",
+      "ITEMS_COUNT": "{{count}} article",
+      "ITEMS_COUNT_PLURAL": "{{count}} articles",
       "ITEM_NAME": "Nom",
       "UNIT_PRICE": "Prix Unitaire",
       "QUANTITY": "Quantité",
@@ -3228,6 +3232,7 @@
     "DRAWER_CLOSED_BANNER": "Tiroir-caisse fermé : ouverture obligatoire avant encaissement espèces"
   },
   "TABS": {
+    "TAB_LABEL": "Ardoise",
     "TITLE": "Ardoises & Comptes Clients",
     "SUBTITLE": "Gestion des comptes volants et encaissements différés",
     "NEW_TAB": "Nouvelle ardoise",
