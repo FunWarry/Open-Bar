@@ -35,7 +35,9 @@ import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
     IonIcon, IonBadge, IonSpinner, IonFooter,
-    DatePipe, TranslocoPipe, AppCurrencyPipe,
+    DatePipe,
+    TranslocoPipe,
+    AppCurrencyPipe,
   ],
 })
 export class CommandeDetailModalComponent implements OnInit, OnDestroy {
