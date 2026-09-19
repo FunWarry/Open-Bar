@@ -802,7 +802,10 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
         // Fallback to defaults on invalid JSON
       }
     }
-    return this.appSettingsService.getDiscountTiers();
+    if (this.appSettingsService && typeof this.appSettingsService.getDiscountTiers === 'function') {
+      return this.appSettingsService.getDiscountTiers();
+    }
+    return [...DEFAULT_DISCOUNT_TIERS];
   }
 
   // --- Cadence Presets ---
@@ -1230,7 +1233,9 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     this.themeService.setCustomColors(colors);
 
     // Save discount tiers locally
-    this.appSettingsService.saveDiscountTiersLocally(this.configuredDiscountTiers());
+    if (this.appSettingsService && typeof this.appSettingsService.saveDiscountTiersLocally === 'function') {
+      this.appSettingsService.saveDiscountTiersLocally(this.configuredDiscountTiers());
+    }
 
     const etabPayload = this.etabForm.value;
     const appSettingsPayload = {
