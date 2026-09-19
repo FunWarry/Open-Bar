@@ -635,5 +635,79 @@ describe('EncaissementModalComponent', () => {
       expect(component.isPartMontantRecuSuffisant).toBeTrue();
       expect(component.partMonnaieARendre).toBe(6.0); // 20 - 14
     });
+
+    it('computes financial breakdown with discounts and tips for part settlement', () => {
+      const part20: SplitResultDTO = {
+        factureId: 50,
+        nomConvive: 'Bob',
+        items: [],
+        sousTotal: 20.0,
+        totalAvecPourboire: 20.0
+      };
+      component.reglerPart(0, part20);
+
+      // Initial subtotal
+      expect(component.partSubTotal).toBe(20.0);
+      expect(component.partDiscountAmount).toBe(0);
+      expect(component.partDiscountLabel).toBe('');
+      expect(component.partNetBeforeTip).toBe(20.0);
+      expect(component.partPourboire).toBe(0);
+      expect(component.partTipLabel).toBe('');
+      expect(component.partTotalNetAPayer).toBe(20.0);
+
+      // Apply 10% commercial discount
+      component.partDiscountMode = 'percent';
+      component.partDiscountPercent = 10;
+      expect(component.partDiscountAmount).toBe(2.0);
+      expect(component.partDiscountLabel).toBe('-10%');
+      expect(component.partNetBeforeTip).toBe(18.0);
+
+      // Apply 10% tip on net before tip (18.0 * 0.10 = 1.80)
+      component.setPartTipMode('10pct');
+      expect(component.partPourboire).toBe(1.80);
+      expect(component.partTipLabel).toBe('+10%');
+      expect(component.partTotalNetAPayer).toBe(19.80);
+    });
+
+    it('formats partTipLabel and partDiscountLabel correctly for various modes', () => {
+      component.reglerPart(0, mockPart);
+
+      // Tip labels
+      component.setPartTipMode('5pct');
+      expect(component.partTipLabel).toBe('+5%');
+      component.setPartTipMode('15pct');
+      expect(component.partTipLabel).toBe('+15%');
+      component.setPartTipMode('custom_percent');
+      component.partCustomTipPercent = 12;
+      expect(component.partTipLabel).toBe('+12%');
+      component.setPartTipMode('custom');
+      component.partCustomTip = 3;
+      expect(component.partTipLabel).toContain('+3');
+
+      // Discount labels
+      component.partDiscountMode = 'fixed';
+      component.partDiscountFixed = 5;
+      expect(component.partDiscountLabel).toContain('-5');
+
+      component.discountTiers = [{ id: 'staff', label: 'Équipier', type: 'percent' as const, value: 50 }];
+      component.applyPartDiscountTier(component.discountTiers[0]);
+      expect(component.partDiscountLabel).toContain('Équipier');
+      expect(component.partDiscountLabel).toContain('-50%');
+    });
+
+    it('formats single payment discountLabel and tipLabel correctly', () => {
+      component.addition = mockAddition;
+      component.tipMode = '10pct';
+      expect(component.tipLabel).toBe('+10%');
+
+      component.tipMode = 'custom_percent';
+      component.customTipPercent = 8;
+      expect(component.tipLabel).toBe('+8%');
+
+      component.discountMode = 'percent';
+      component.discountPercent = 15;
+      expect(component.discountLabel).toBe('-15%');
+      expect(component.netTotalBeforeTip).toBe(23.8);
+    });
   });
 });

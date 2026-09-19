@@ -2631,7 +2631,10 @@
     "METHOD_CASH": "Espèces",
     "METHOD_CONTACTLESS": "Sans contact",
     "METHOD_OTHER": "Autre",
-    "CASH_RECEIVED": "Espèces reçues"
+    "CASH_RECEIVED": "Espèces reçues",
+    "PAYMENT_BREAKDOWN_TITLE": "Détail du règlement",
+    "NET_BEFORE_TIP": "Net après remise",
+    "TOTAL_NET_TO_PAY": "Total net à régler"
   },
   "ORDER_TIMERS": {
     "TITLE": "Configuration des Délais & Alertes",

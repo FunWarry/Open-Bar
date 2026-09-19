@@ -2631,7 +2631,10 @@
     "METHOD_CASH": "Cash",
     "METHOD_CONTACTLESS": "Contactless",
     "METHOD_OTHER": "Other",
-    "CASH_RECEIVED": "Cash received"
+    "CASH_RECEIVED": "Cash received",
+    "PAYMENT_BREAKDOWN_TITLE": "Payment breakdown",
+    "NET_BEFORE_TIP": "Net after discount",
+    "TOTAL_NET_TO_PAY": "Total net to pay"
   },
   "ORDER_TIMERS": {
     "TITLE": "Order Timers & Alert Thresholds",

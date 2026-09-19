@@ -122,8 +122,15 @@
               <span class="discount-label">
                 <ion-icon name="pricetag-outline"></ion-icon>
                 {{ 'ENCAISSEMENT.DISCOUNT' | transloco }}
+                @if (discountLabel) {
+                  <span class="detail-badge">({{ discountLabel }})</span>
+                }
               </span>
               <span class="discount-value">-{{ discountAmount | appCurrency }}</span>
+            </div>
+            <div class="total-row sub-row">
+              <span>{{ 'ENCAISSEMENT.NET_BEFORE_TIP' | transloco }}</span>
+              <span>{{ netTotalBeforeTip | appCurrency }}</span>
             </div>
           }
           @if (pourboire > 0) {
@@ -131,6 +138,9 @@
               <span class="tip-label">
                 <ion-icon name="heart-outline"></ion-icon>
                 {{ 'ENCAISSEMENT.TIP' | transloco }}
+                @if (tipLabel) {
+                  <span class="detail-badge">({{ tipLabel }})</span>
+                }
               </span>
               <span class="tip-value">+{{ pourboire | appCurrency }}</span>
             </div>
@@ -588,6 +598,55 @@
                       </div>
                     </div>
                   }
+                </div>
+
+                <!-- Detailed Financial Breakdown Card for Part Settlement -->
+                <div class="part-breakdown-card" data-testid="part-breakdown-card">
+                  <div class="breakdown-title">
+                    <ion-icon name="receipt-outline"></ion-icon>
+                    <span>{{ 'ENCAISSEMENT.PAYMENT_BREAKDOWN_TITLE' | transloco }}</span>
+                  </div>
+
+                  <div class="breakdown-row" data-testid="part-breakdown-base">
+                    <span class="breakdown-label">{{ 'ENCAISSEMENT.BASE_AMOUNT' | transloco }}</span>
+                    <span class="breakdown-value">{{ partSubTotal | appCurrency }}</span>
+                  </div>
+
+                  @if (partDiscountAmount > 0) {
+                    <div class="breakdown-row discount-row" data-testid="part-breakdown-discount">
+                      <span class="breakdown-label">
+                        <ion-icon name="pricetag-outline"></ion-icon>
+                        {{ 'ENCAISSEMENT.DISCOUNT' | transloco }}
+                        @if (partDiscountLabel) {
+                          <span class="detail-badge">({{ partDiscountLabel }})</span>
+                        }
+                      </span>
+                      <span class="breakdown-value discount-value">-{{ partDiscountAmount | appCurrency }}</span>
+                    </div>
+
+                    <div class="breakdown-row subtotal-row" data-testid="part-breakdown-net-before-tip">
+                      <span class="breakdown-label">{{ 'ENCAISSEMENT.NET_BEFORE_TIP' | transloco }}</span>
+                      <span class="breakdown-value">{{ partNetBeforeTip | appCurrency }}</span>
+                    </div>
+                  }
+
+                  @if (partPourboire > 0) {
+                    <div class="breakdown-row tip-row" data-testid="part-breakdown-tip">
+                      <span class="breakdown-label">
+                        <ion-icon name="heart-outline"></ion-icon>
+                        {{ 'ENCAISSEMENT.TIP' | transloco }}
+                        @if (partTipLabel) {
+                          <span class="detail-badge">({{ partTipLabel }})</span>
+                        }
+                      </span>
+                      <span class="breakdown-value tip-value">+{{ partPourboire | appCurrency }}</span>
+                    </div>
+                  }
+
+                  <div class="breakdown-row total-row" data-testid="part-breakdown-total">
+                    <span class="breakdown-label">{{ 'ENCAISSEMENT.TOTAL_NET_TO_PAY' | transloco }}</span>
+                    <strong class="breakdown-value total-value" data-testid="part-total-net-display">{{ partTotalNetAPayer | appCurrency }}</strong>
+                  </div>
                 </div>
 
                 <!-- Action Button: Valider le règlement de la part -->

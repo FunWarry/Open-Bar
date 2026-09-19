@@ -222,6 +222,15 @@
           align-items: center;
           gap: 4px;
         }
+
+        .detail-badge {
+          font-size: 0.76rem;
+          font-weight: 600;
+          padding: 1px 6px;
+          border-radius: var(--radius-pill, 10px);
+          background: var(--background-surface-3);
+          margin-left: 4px;
+        }
       }
 
       &.main-total-row {
@@ -1585,6 +1594,110 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
+    }
+  }
+
+  .part-breakdown-card {
+    background: var(--background-surface-2);
+    border: 1px solid var(--border-medium);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .breakdown-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border-subtle, var(--border-medium));
+
+      ion-icon {
+        font-size: 0.95rem;
+        color: var(--primary);
+      }
+    }
+
+    .breakdown-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+
+      .breakdown-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .detail-badge {
+        font-size: 0.76rem;
+        font-weight: 600;
+        padding: 1px 6px;
+        border-radius: var(--radius-pill, 10px);
+        background: var(--background-surface-3);
+      }
+
+      &.discount-row {
+        color: var(--semantic-success);
+
+        ion-icon {
+          font-size: 0.95rem;
+        }
+
+        .detail-badge {
+          background: color-mix(in srgb, var(--semantic-success) 15%, transparent);
+          color: var(--semantic-success);
+        }
+
+        .discount-value {
+          font-weight: 700;
+        }
+      }
+
+      &.tip-row {
+        color: var(--semantic-info);
+
+        ion-icon {
+          font-size: 0.95rem;
+        }
+
+        .detail-badge {
+          background: color-mix(in srgb, var(--semantic-info) 15%, transparent);
+          color: var(--semantic-info);
+        }
+
+        .tip-value {
+          font-weight: 700;
+        }
+      }
+
+      &.subtotal-row {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        border-top: 1px dashed var(--border-subtle, var(--border-medium));
+        padding-top: 4px;
+      }
+
+      &.total-row {
+        font-size: 1.02rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        padding-top: 8px;
+        border-top: 1px solid var(--border-medium);
+
+        .total-value {
+          font-size: 1.15rem;
+          color: var(--semantic-success);
+        }
+      }
     }
   }
 }

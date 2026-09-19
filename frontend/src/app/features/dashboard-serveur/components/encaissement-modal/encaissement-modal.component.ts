@@ -192,6 +192,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   constructor() {
+    this.discountTiers = this.appSettingsService.getDiscountTiers();
     addIcons({
       closeOutline, cardOutline, cashOutline, walletOutline, printOutline,
       downloadOutline, peopleOutline, restaurantOutline, checkmarkCircleOutline,
@@ -302,6 +303,39 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
     return Math.round((this.netTotalBeforeTip + this.pourboire) * 100) / 100;
   }
 
+  get discountLabel(): string {
+    if (this.selectedTierId) {
+      const tier = this.discountTiers.find(t => t.id === this.selectedTierId);
+      if (tier) {
+        return `${tier.label} (-${tier.value}${tier.type === 'percent' ? '%' : this.currencySymbol})`;
+      }
+    }
+    if (this.discountMode === 'percent' && this.discountPercent > 0) {
+      return `-${this.discountPercent}%`;
+    }
+    if (this.discountMode === 'fixed' && this.discountFixed > 0) {
+      return `-${this.discountFixed} ${this.currencySymbol}`;
+    }
+    return '';
+  }
+
+  get tipLabel(): string {
+    switch (this.tipMode) {
+      case '5pct':
+        return '+5%';
+      case '10pct':
+        return '+10%';
+      case '15pct':
+        return '+15%';
+      case 'custom_percent':
+        return `+${this.customTipPercent || 0}%`;
+      case 'custom':
+        return `+${this.customTip || 0} ${this.currencySymbol}`;
+      default:
+        return '';
+    }
+  }
+
   // --- Financial Calculations (Part Settlement) ---
 
   get partSubTotal(): number {
@@ -317,6 +351,22 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
       return Math.min(this.partSubTotal, Math.max(0, this.partDiscountFixed || 0));
     }
     return 0;
+  }
+
+  get partDiscountLabel(): string {
+    if (this.partSelectedTierId) {
+      const tier = this.discountTiers.find(t => t.id === this.partSelectedTierId);
+      if (tier) {
+        return `${tier.label} (-${tier.value}${tier.type === 'percent' ? '%' : this.currencySymbol})`;
+      }
+    }
+    if (this.partDiscountMode === 'percent' && this.partDiscountPercent > 0) {
+      return `-${this.partDiscountPercent}%`;
+    }
+    if (this.partDiscountMode === 'fixed' && this.partDiscountFixed > 0) {
+      return `-${this.partDiscountFixed} ${this.currencySymbol}`;
+    }
+    return '';
   }
 
   get partNetBeforeTip(): number {
@@ -337,6 +387,23 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
         return Math.max(0, this.partCustomTip || 0);
       default:
         return 0;
+    }
+  }
+
+  get partTipLabel(): string {
+    switch (this.partTipMode) {
+      case '5pct':
+        return '+5%';
+      case '10pct':
+        return '+10%';
+      case '15pct':
+        return '+15%';
+      case 'custom_percent':
+        return `+${this.partCustomTipPercent || 0}%`;
+      case 'custom':
+        return `+${this.partCustomTip || 0} ${this.currencySymbol}`;
+      default:
+        return '';
     }
   }
 
