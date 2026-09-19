@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpBackend} from '@angular/common/http';
 import {Observable, throwError} from 'rxjs';
 import {environment} from '../../../environments/environment';
 import {AuthResponse} from '../models/auth-response.model';
@@ -16,14 +16,20 @@ export class AuthService {
   private readonly REFRESH_TOKEN_KEY = 'refresh_token';
   private readonly USER_KEY = 'auth_user';
   private readonly API_URL = `${environment.apiUrl}/auth`;
+  private readonly rawHttp: HttpClient;
   private inProgress = false;
 
   /**
-   * Constructs the service injecting HttpClient.
+   * Constructs the service injecting HttpClient and HttpBackend.
    *
    * @param http Angular HttpClient
+   * @param httpBackend Direct HTTP backend avoiding interceptor loops
    */
-  constructor(private readonly http: HttpClient) {
+  constructor(
+    private readonly http: HttpClient,
+    httpBackend: HttpBackend
+  ) {
+    this.rawHttp = new HttpClient(httpBackend);
   }
 
   /**
@@ -57,21 +63,13 @@ export class AuthService {
    * Logs out user by clearing stored tokens and user profile from LocalStorage and session.
    */
   logout(): void {
-    if (this.inProgress) {
-      return;
-    }
-
-    this.inProgress = true;
+    if (this.inProgress) return;
 
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
 
     sessionStorage.removeItem('store_hydrated');
-
-    setTimeout(() => {
-      this.inProgress = false;
-    }, 1000);
   }
 
   /**
@@ -101,6 +99,34 @@ export class AuthService {
   storeTokens(accessToken: string, refreshToken: string): void {
     localStorage.setItem(this.TOKEN_KEY, accessToken);
     localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
+  }
+
+  /**
+   * Refreshes JWT access token using the stored refresh token.
+   * Uses rawHttp to bypass interceptors and avoid recursive authentication calls.
+   *
+   * @returns Observable emitting fresh access and refresh tokens
+   */
+  refreshToken(): Observable<{ accessToken: string; refreshToken: string }> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      this.logout();
+      return throwError(() => new Error('No refresh token available'));
+    }
+
+    return this.rawHttp.post<{ accessToken: string; refreshToken: string }>(
+      `${this.API_URL}/refresh`,
+      { refreshToken }
+    ).pipe(
+      tap({
+        next: (tokens) => {
+          this.storeTokens(tokens.accessToken, tokens.refreshToken);
+        },
+        error: () => {
+          this.logout();
+        }
+      })
+    );
   }
 
   /**

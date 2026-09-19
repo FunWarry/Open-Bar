@@ -91,7 +91,17 @@ export class NavigationService {
    * Navigates to the authentication login view.
    */
   navigateToLogin(): void {
-    this.router.navigate(['/auth/login']).then();
+    this.ngZone.run(() => {
+      this.router.navigate(['/auth/login']).then(navigated => {
+        if (!navigated && typeof window !== 'undefined' && !window.location.pathname.includes('/auth/login')) {
+          window.location.href = '/auth/login';
+        }
+      }).catch(() => {
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/auth/login')) {
+          window.location.href = '/auth/login';
+        }
+      });
+    });
   }
 
   /**

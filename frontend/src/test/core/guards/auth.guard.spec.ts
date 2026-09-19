@@ -14,6 +14,13 @@ describe('AuthGuard', () => {
   let setupServiceSpy: jasmine.SpyObj<SetupService>;
   let authServiceSpy: jasmine.SpyObj<AuthService>;
 
+  function createValidJwt(): string {
+    const futureExp = Math.floor(Date.now() / 1000) + 3600;
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+    const payload = btoa(JSON.stringify({ sub: 'test', exp: futureExp }));
+    return `${header}.${payload}.signature`;
+  }
+
   beforeEach(() => {
     router = jasmine.createSpyObj('Router', ['createUrlTree', 'navigate']);
     router.createUrlTree.and.callFake((commands: unknown[]) => ({} as UrlTree));
@@ -21,7 +28,11 @@ describe('AuthGuard', () => {
     setupServiceSpy = jasmine.createSpyObj('SetupService', ['getStatus']);
     setupServiceSpy.getStatus.and.returnValue(of({ initialized: true, userCount: 1 }));
 
-    authServiceSpy = jasmine.createSpyObj('AuthService', ['logout']);
+    authServiceSpy = jasmine.createSpyObj('AuthService', ['logout', 'getToken', 'getRefreshToken', 'refreshToken', 'getStoredUser']);
+    authServiceSpy.getToken.and.returnValue(createValidJwt());
+    authServiceSpy.getRefreshToken.and.returnValue(null);
+    authServiceSpy.refreshToken.and.returnValue(of({ accessToken: createValidJwt(), refreshToken: 'fresh-refresh' }));
+    authServiceSpy.getStoredUser.and.returnValue({ id: 1, username: 'test', roles: ['ADMIN'] } as any);
 
     TestBed.configureTestingModule({
       providers: [
@@ -34,6 +45,7 @@ describe('AuthGuard', () => {
     });
     guard = TestBed.inject(AuthGuard);
     store = TestBed.inject(MockStore);
+    spyOn(store, 'dispatch');
   });
 
   afterEach(() => store.resetSelectors());
@@ -50,6 +62,7 @@ describe('AuthGuard', () => {
   });
 
   it('returns a UrlTree redirecting to /auth/login when user is not authenticated', (done) => {
+    authServiceSpy.getToken.and.returnValue(null);
     store.overrideSelector(selectIsAuthenticated, false);
     store.refreshState();
 
@@ -75,6 +88,7 @@ describe('AuthGuard', () => {
   });
 
   it('returns UrlTree (not boolean false) when unauthenticated', (done) => {
+    authServiceSpy.getToken.and.returnValue(null);
     const fakeUrlTree = {toString: () => '/auth/login'} as unknown as UrlTree;
     router.createUrlTree.and.returnValue(fakeUrlTree);
     store.overrideSelector(selectIsAuthenticated, false);
@@ -126,6 +140,7 @@ describe('AuthGuard', () => {
 
   it('falls back to auth check and redirects to login when setup check fails and user is unauthenticated', (done) => {
     setupServiceSpy.getStatus.and.returnValue(throwError(() => new Error('Network error')));
+    authServiceSpy.getToken.and.returnValue(null);
     store.overrideSelector(selectIsAuthenticated, false);
     store.refreshState();
 
@@ -138,6 +153,77 @@ describe('AuthGuard', () => {
     });
 
     guard.canActivate().subscribe(result => {
+      expect(result).toBe(loginUrlTree);
+      done();
+    });
+  });
+
+  it('redirects to /auth/login and cleans session when token is expired and no refresh token exists', (done) => {
+    const expiredExp = Math.floor(Date.now() / 1000) - 3600;
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+    const payload = btoa(JSON.stringify({ sub: 'test', exp: expiredExp }));
+    const expiredToken = `${header}.${payload}.mockSignature`;
+
+    authServiceSpy.getToken.and.returnValue(expiredToken);
+    authServiceSpy.getRefreshToken.and.returnValue(null);
+    store.overrideSelector(selectIsAuthenticated, true);
+    store.refreshState();
+
+    const loginUrlTree = { toString: () => '/auth/login' } as unknown as UrlTree;
+    router.createUrlTree.and.callFake((commands: unknown[]) => {
+      if (Array.isArray(commands) && commands[0] === '/auth/login') {
+        return loginUrlTree;
+      }
+      return {} as UrlTree;
+    });
+
+    guard.canActivate().subscribe(result => {
+      expect(authServiceSpy.logout).toHaveBeenCalled();
+      expect(store.dispatch).toHaveBeenCalled();
+      expect(result).toBe(loginUrlTree);
+      done();
+    });
+  });
+
+  it('proactively refreshes token and returns true when token is expired and refresh token is valid', (done) => {
+    const expiredExp = Math.floor(Date.now() / 1000) - 3600;
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+    const payload = btoa(JSON.stringify({ sub: 'test', exp: expiredExp }));
+    const expiredToken = `${header}.${payload}.mockSignature`;
+
+    authServiceSpy.getToken.and.returnValue(expiredToken);
+    authServiceSpy.getRefreshToken.and.returnValue('valid-refresh-token');
+    authServiceSpy.refreshToken.and.returnValue(of({ accessToken: createValidJwt(), refreshToken: 'new-refresh' }));
+
+    guard.canActivate().subscribe(result => {
+      expect(authServiceSpy.refreshToken).toHaveBeenCalled();
+      expect(store.dispatch).toHaveBeenCalled();
+      expect(result).toBeTrue();
+      done();
+    });
+  });
+
+  it('redirects to login when token is expired and proactive refresh fails', (done) => {
+    const expiredExp = Math.floor(Date.now() / 1000) - 3600;
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+    const payload = btoa(JSON.stringify({ sub: 'test', exp: expiredExp }));
+    const expiredToken = `${header}.${payload}.mockSignature`;
+
+    authServiceSpy.getToken.and.returnValue(expiredToken);
+    authServiceSpy.getRefreshToken.and.returnValue('bad-refresh-token');
+    authServiceSpy.refreshToken.and.returnValue(throwError(() => new Error('Refresh failed')));
+
+    const loginUrlTree = { toString: () => '/auth/login' } as unknown as UrlTree;
+    router.createUrlTree.and.callFake((commands: unknown[]) => {
+      if (Array.isArray(commands) && commands[0] === '/auth/login') {
+        return loginUrlTree;
+      }
+      return {} as UrlTree;
+    });
+
+    guard.canActivate().subscribe(result => {
+      expect(authServiceSpy.logout).toHaveBeenCalled();
+      expect(store.dispatch).toHaveBeenCalled();
       expect(result).toBe(loginUrlTree);
       done();
     });

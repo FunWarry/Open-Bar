@@ -1,6 +1,7 @@
 import {createReducer, on} from '@ngrx/store';
 import {User} from '../models/user.model';
 import * as AuthActions from './auth.actions';
+import {isJwtExpired} from '../utils/jwt.util';
 
 /**
  * Interface representing the state of the NgRx authentication store.
@@ -24,12 +25,28 @@ export function getInitialAuthState(): AuthState {
     if (typeof localStorage !== 'undefined') {
       const token = localStorage.getItem('auth_token');
       const userJson = localStorage.getItem('auth_user');
+      const refreshToken = localStorage.getItem('refresh_token');
+
+      // Purge dead sessions where access token is expired and no refresh token is stored
+      if (token && isJwtExpired(token) && !refreshToken) {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+        localStorage.removeItem('refresh_token');
+        return {
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          error: null
+        };
+      }
+
       if (token && userJson) {
         const user = JSON.parse(userJson);
+        const valid = !isJwtExpired(token);
         return {
-          user,
-          token,
-          isAuthenticated: true,
+          user: valid ? user : null,
+          token: valid ? token : null,
+          isAuthenticated: valid,
           error: null
         };
       }
