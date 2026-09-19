@@ -171,6 +171,7 @@ public class EstablishmentConfig {
             case STOCK_TRACKING -> this.moduleStockTrackingEnabled = enabled;
             case CASH_DRAWER -> this.moduleCashDrawerEnabled = enabled;
             case BAR_TABS -> this.moduleBarTabsEnabled = enabled;
+            default -> { /* No-op for unexpected module */ }
         }
     }
 

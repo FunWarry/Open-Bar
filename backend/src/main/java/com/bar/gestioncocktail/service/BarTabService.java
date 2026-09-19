@@ -1,9 +1,24 @@
 package com.bar.gestioncocktail.service;
 
-import com.bar.gestioncocktail.dto.*;
+import com.bar.gestioncocktail.dto.BarTabCreateRequest;
+import com.bar.gestioncocktail.dto.BarTabDetailResponseDTO;
+import com.bar.gestioncocktail.dto.BarTabItemDTO;
+import com.bar.gestioncocktail.dto.BarTabOrderTransferRequest;
+import com.bar.gestioncocktail.dto.BarTabResponseDTO;
+import com.bar.gestioncocktail.dto.BarTabTransferRequest;
+import com.bar.gestioncocktail.dto.BarTabUpdateRequest;
+import com.bar.gestioncocktail.dto.CommandeRequestDTO;
+import com.bar.gestioncocktail.dto.CommandeResponseDTO;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
-import com.bar.gestioncocktail.model.*;
+import com.bar.gestioncocktail.model.BarTab;
+import com.bar.gestioncocktail.model.BarTabStatus;
+import com.bar.gestioncocktail.model.Commande;
+import com.bar.gestioncocktail.model.CommandeItem;
+import com.bar.gestioncocktail.model.CommandeStatut;
+import com.bar.gestioncocktail.model.EstablishmentModule;
+import com.bar.gestioncocktail.model.TableEntity;
+import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.repository.BarTabRepository;
 import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
@@ -15,7 +30,11 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Service managing customer bar tabs and running ledgers without mandatory physical table binding.

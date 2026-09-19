@@ -75,7 +75,7 @@ export class BarTabsListComponent {
     return active.filter(
       (tab) =>
         tab.nom.toLowerCase().includes(term) ||
-        (tab.clientReference?.toLowerCase().includes(term) ?? false)
+        (tab.clientReference?.toLowerCase()?.includes(term) ?? false)
     );
   });
 

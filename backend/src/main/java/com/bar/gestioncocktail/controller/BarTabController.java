@@ -1,6 +1,16 @@
 package com.bar.gestioncocktail.controller;
 
-import com.bar.gestioncocktail.dto.*;
+import com.bar.gestioncocktail.dto.BarTabCreateRequest;
+import com.bar.gestioncocktail.dto.BarTabDetailResponseDTO;
+import com.bar.gestioncocktail.dto.BarTabOrderTransferRequest;
+import com.bar.gestioncocktail.dto.BarTabResponseDTO;
+import com.bar.gestioncocktail.dto.BarTabTransferRequest;
+import com.bar.gestioncocktail.dto.BarTabUpdateRequest;
+import com.bar.gestioncocktail.dto.CommandeRequestDTO;
+import com.bar.gestioncocktail.dto.CommandeResponseDTO;
+import com.bar.gestioncocktail.dto.EncaissementRequestDTO;
+import com.bar.gestioncocktail.dto.FactureResponseDTO;
+import com.bar.gestioncocktail.dto.TableAdditionResponseDTO;
 import com.bar.gestioncocktail.model.BarTabStatus;
 import com.bar.gestioncocktail.service.BarTabService;
 import com.bar.gestioncocktail.service.FactureService;
@@ -12,7 +22,16 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 

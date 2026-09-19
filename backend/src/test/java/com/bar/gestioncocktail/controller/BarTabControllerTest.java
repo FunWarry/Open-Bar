@@ -1,6 +1,16 @@
 package com.bar.gestioncocktail.controller;
 
-import com.bar.gestioncocktail.dto.*;
+import com.bar.gestioncocktail.dto.BarTabCreateRequest;
+import com.bar.gestioncocktail.dto.BarTabDetailResponseDTO;
+import com.bar.gestioncocktail.dto.BarTabOrderTransferRequest;
+import com.bar.gestioncocktail.dto.BarTabResponseDTO;
+import com.bar.gestioncocktail.dto.BarTabTransferRequest;
+import com.bar.gestioncocktail.dto.BarTabUpdateRequest;
+import com.bar.gestioncocktail.dto.CommandeRequestDTO;
+import com.bar.gestioncocktail.dto.CommandeResponseDTO;
+import com.bar.gestioncocktail.dto.EncaissementRequestDTO;
+import com.bar.gestioncocktail.dto.FactureResponseDTO;
+import com.bar.gestioncocktail.dto.TableAdditionResponseDTO;
 import com.bar.gestioncocktail.model.BarTabStatus;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.service.BarTabService;
@@ -46,10 +56,10 @@ class BarTabControllerTest {
             BarTabStatus.ACTIVE,
             10L,
             "serveur1",
-            null,
-            null,
+            (Long) null,
+            (Integer) null,
             LocalDateTime.now(),
-            null,
+            (LocalDateTime) null,
             new BigDecimal("16.00"),
             1,
             2
