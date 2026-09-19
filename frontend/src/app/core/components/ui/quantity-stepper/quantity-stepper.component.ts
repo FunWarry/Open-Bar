@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { IonButton, IonIcon } from '@ionic/angular';
 
 /**
@@ -9,6 +9,7 @@ import { IonButton, IonIcon } from '@ionic/angular';
   standalone: true,
   imports: [IonButton, IonIcon],
   templateUrl: './quantity-stepper.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./quantity-stepper.component.css']
 })
 export class QuantityStepperComponent {

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { EtablissementService } from '../../../app/core/services/etablissement.service';
 import { EstablishmentConfig } from '../../../app/core/models/establishment-config.model';
 import { environment } from '../../../environments/environment';
@@ -34,7 +34,7 @@ describe('EtablissementService', () => {
     TestBed.configureTestingModule({
       providers: [
         EtablissementService,
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
       ],
     });

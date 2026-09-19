@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin } from 'rxjs';
@@ -71,6 +71,7 @@ import { SearchBarComponent } from '../../../../core/components/ui/search-bar/se
     IonBadge
 ],
   templateUrl: './ruptures-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./ruptures-modal.component.scss']
 })
 export class RupturesModalComponent implements OnInit, OnDestroy {

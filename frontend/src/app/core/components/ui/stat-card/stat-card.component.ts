@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -31,6 +31,7 @@ export type TrendDirection = 'up' | 'down' | 'neutral';
   standalone: true,
   imports: [IonIcon, NgClass],
   templateUrl: './stat-card.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./stat-card.component.css']
 })
 export class StatCardComponent {

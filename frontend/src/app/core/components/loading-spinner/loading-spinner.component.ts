@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {IonSpinner} from '@ionic/angular';
 
 
@@ -10,6 +10,7 @@ import {IonSpinner} from '@ionic/angular';
   templateUrl: './loading-spinner.component.html',
   styleUrls: ['./loading-spinner.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonSpinner]
 })
 export class LoadingSpinnerComponent {

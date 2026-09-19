@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, forkJoin, of } from 'rxjs';
@@ -35,6 +35,7 @@ import { TableQrModalComponent } from '../components/table-qr-modal/table-qr-mod
   templateUrl: './table-detail.component.html',
   styleUrls: ['./table-detail.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     IonBadge, IonIcon, IonSpinner,

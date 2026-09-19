@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
@@ -39,6 +39,7 @@ import { FeatureFlagService } from '../../../core/services/feature-flag.service'
   templateUrl: './facture-recap-journee.component.html',
   styleUrls: ['./facture-recap-journee.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule, FormsModule, TranslocoModule, AppCurrencyPipe,
     IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,

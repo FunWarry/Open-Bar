@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, forkJoin } from 'rxjs';
@@ -65,6 +65,7 @@ export interface GroupedTables {
   templateUrl: './table-list.component.html',
   styleUrls: ['./table-list.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule, FormsModule,
     IonContent, IonIcon, IonButton,

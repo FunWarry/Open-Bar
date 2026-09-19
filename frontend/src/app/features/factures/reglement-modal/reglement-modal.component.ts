@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -53,6 +53,7 @@ export interface ReglementModalResult {
     IonFooter
 ],
   templateUrl: './reglement-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./reglement-modal.component.scss']
 })
 export class ReglementModalComponent implements OnInit {

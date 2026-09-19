@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, Optional } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, Optional, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, UpperCasePipe } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -34,6 +34,7 @@ import { NotificationService, AppNotification } from '../../services/notificatio
     IonIcon,
   ],
   templateUrl: './notification-panel.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./notification-panel.component.scss'],
 })
 export class NotificationPanelComponent implements OnInit, OnDestroy {

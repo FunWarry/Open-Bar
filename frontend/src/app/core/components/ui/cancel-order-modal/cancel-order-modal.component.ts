@@ -1,4 +1,4 @@
-import { Component, Input, inject, signal, computed } from '@angular/core';
+import { Component, Input, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -41,6 +41,7 @@ export interface CancelOrderModalResult {
   templateUrl: './cancel-order-modal.component.html',
   styleUrl: './cancel-order-modal.component.scss',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     TranslocoPipe,

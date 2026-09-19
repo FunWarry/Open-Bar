@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -22,6 +22,7 @@ import { peopleOutline, restaurantOutline, checkmarkOutline, timeOutline } from 
     IonButton, IonIcon
   ],
   templateUrl: './table-card.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./table-card.component.scss'],
 })
 export class TableCardComponent {

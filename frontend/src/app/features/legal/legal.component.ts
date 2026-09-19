@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -58,6 +58,7 @@ export type LegalTab = 'terms' | 'license' | 'compliance' | 'commercial';
     TranslocoPipe
 ],
   templateUrl: './legal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./legal.component.scss'],
 })
 export class LegalComponent implements OnInit {

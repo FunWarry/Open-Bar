@@ -425,7 +425,7 @@
                       <app-ticket-receipt
                         [facture]="demoFacture"
                         [establishmentConfig]="currentEtabConfig"
-                        [ticketFormat]="etabForm.get('ticketFormat')?.value">
+                        [ticketFormat]="$safeNavigationMigration(etabForm.get('ticketFormat')?.value)">
                       </app-ticket-receipt>
                     </ion-card-content>
                   </ion-card>
@@ -898,9 +898,9 @@
                               type="range"
                               min="1"
                               max="30"
-                              [value]="appSettingsForm.get('tempsAlerteWarningMinutes')?.value"
+                              [value]="$safeNavigationMigration(appSettingsForm.get('tempsAlerteWarningMinutes')?.value)"
                               (input)="onThresholdChange('warning', $any($event.target).value)"
-                              [style.background]="getSliderTrackBackground('warning', appSettingsForm.get('tempsAlerteWarningMinutes')?.value, 1, 30)"
+                              [style.background]="getSliderTrackBackground('warning', $safeNavigationMigration(appSettingsForm.get('tempsAlerteWarningMinutes')?.value), 1, 30)"
                               class="range-slider warning-slider"
                               data-testid="slider-warning" />
                           </div>
@@ -924,9 +924,9 @@
                               type="range"
                               min="2"
                               max="45"
-                              [value]="appSettingsForm.get('tempsAlerteCommandeMinutes')?.value"
+                              [value]="$safeNavigationMigration(appSettingsForm.get('tempsAlerteCommandeMinutes')?.value)"
                               (input)="onThresholdChange('urgent', $any($event.target).value)"
-                              [style.background]="getSliderTrackBackground('urgent', appSettingsForm.get('tempsAlerteCommandeMinutes')?.value, 2, 45)"
+                              [style.background]="getSliderTrackBackground('urgent', $safeNavigationMigration(appSettingsForm.get('tempsAlerteCommandeMinutes')?.value), 2, 45)"
                               class="range-slider urgent-slider"
                               data-testid="slider-urgent" />
                           </div>
@@ -950,9 +950,9 @@
                               type="range"
                               min="3"
                               max="60"
-                              [value]="appSettingsForm.get('tempsAlerteCritiqueCommandeMinutes')?.value"
+                              [value]="$safeNavigationMigration(appSettingsForm.get('tempsAlerteCritiqueCommandeMinutes')?.value)"
                               (input)="onThresholdChange('critical', $any($event.target).value)"
-                              [style.background]="getSliderTrackBackground('critical', appSettingsForm.get('tempsAlerteCritiqueCommandeMinutes')?.value, 3, 60)"
+                              [style.background]="getSliderTrackBackground('critical', $safeNavigationMigration(appSettingsForm.get('tempsAlerteCritiqueCommandeMinutes')?.value), 3, 60)"
                               class="range-slider critical-slider"
                               data-testid="slider-critical" />
                           </div>

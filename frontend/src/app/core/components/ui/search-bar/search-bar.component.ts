@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, forwardRef, OnDestroy, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, forwardRef, OnDestroy, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { IonIcon } from '@ionic/angular';
@@ -22,6 +22,7 @@ import { BaseControlValueAccessor } from '../base-control-value-accessor';
   imports: [FormsModule, IonIcon],
   templateUrl: './search-bar.component.html',
   styleUrls: ['./search-bar.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

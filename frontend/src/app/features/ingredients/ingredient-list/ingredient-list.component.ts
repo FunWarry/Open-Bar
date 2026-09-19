@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, firstValueFrom } from 'rxjs';
@@ -68,6 +68,7 @@ export interface IngredientCategoryGroup {
   templateUrl: './ingredient-list.component.html',
   styleUrls: ['./ingredient-list.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule, FormsModule, AsyncPipe, TranslocoModule,
     IonContent, IonCard, IonCardHeader, IonCardContent,
@@ -184,7 +185,9 @@ export class IngredientListComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe({
-        next: ingredients => (this.ingredients = ingredients),
+        next: ingredients => {
+          this.ingredients = ingredients;
+        },
         error: async () => {
           const toast = await this.toastCtrl.create({
             message: this.transloco.translate('COMMON.ERROR'),

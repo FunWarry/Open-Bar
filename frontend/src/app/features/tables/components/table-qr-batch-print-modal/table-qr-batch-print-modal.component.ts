@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -31,6 +31,7 @@ export type TableQrLayout = 'STAND' | 'CARD' | 'STICKER';
   templateUrl: './table-qr-batch-print-modal.component.html',
   styleUrls: ['./table-qr-batch-print-modal.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     IonIcon,

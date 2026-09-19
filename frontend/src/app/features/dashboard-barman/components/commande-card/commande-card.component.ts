@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, Optional, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, Optional, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon, ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -40,6 +40,7 @@ import { CommandeService } from '../../../../core/services/commande.service';
     ActionButtonComponent
   ],
   templateUrl: './commande-card.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./commande-card.component.scss']
 })
 export class CommandeCardComponent implements OnInit, OnDestroy {

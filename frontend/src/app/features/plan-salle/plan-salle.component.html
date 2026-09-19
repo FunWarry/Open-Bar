@@ -125,7 +125,7 @@
     @if (isFusionMode) {
       <div class="fusion-banner-floating" data-testid="fusion-banner">
         <ion-icon name="git-merge-outline"></ion-icon>
-        <span>{{ 'PLAN_SALLE_PAGE.FUSION_MODE_BANNER' | transloco: { num: fusionSourceTable?.numero } }}</span>
+        <span>{{ 'PLAN_SALLE_PAGE.FUSION_MODE_BANNER' | transloco: { num: $safeNavigationMigration(fusionSourceTable?.numero) } }}</span>
         <button type="button" class="btn-cancel-fusion" (click)="annulerFusion()">{{ 'PLAN_SALLE_PAGE.CANCEL' | transloco }}</button>
       </div>
     }

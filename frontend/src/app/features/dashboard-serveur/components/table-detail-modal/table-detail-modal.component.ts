@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
@@ -40,6 +40,7 @@ import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../co
     TranslocoPipe,
   ],
   templateUrl: './table-detail-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./table-detail-modal.component.scss'],
 })
 export class TableDetailModalComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, Input } from '@angular/core';
+import { Component, OnInit, inject, Input, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -70,6 +70,7 @@ export interface WasteReasonOption {
     IonSpinner
 ],
   templateUrl: './stock-waste-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./stock-waste-modal.component.scss']
 })
 export class StockWasteModalComponent implements OnInit {

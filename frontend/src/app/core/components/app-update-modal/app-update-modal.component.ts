@@ -1,4 +1,4 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, Input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader,
@@ -49,6 +49,7 @@ import { AppUpdateService } from '../../services/app-update.service';
     IonFooter
   ],
   templateUrl: './app-update-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./app-update-modal.component.scss']
 })
 export class AppUpdateModalComponent {

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
@@ -61,6 +61,7 @@ export const EURO_DENOMINATIONS: CashDenomination[] = DEFAULT_EUR_DENOMINATIONS;
     IonSpinner
 ],
   templateUrl: './cloture-caisse-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./cloture-caisse-modal.component.scss']
 })
 export class ClotureCaisseModalComponent implements OnInit, OnDestroy {

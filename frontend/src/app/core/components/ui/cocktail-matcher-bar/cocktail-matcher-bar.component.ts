@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslocoModule } from '@jsverse/transloco';
 import { IonIcon } from '@ionic/angular';
@@ -47,6 +47,7 @@ export interface FlavorItemConfig {
   standalone: true,
   imports: [CommonModule, TranslocoModule, IonIcon],
   templateUrl: './cocktail-matcher-bar.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./cocktail-matcher-bar.component.css']
 })
 export class CocktailMatcherBarComponent {

@@ -1,4 +1,4 @@
-import { Component, Input, forwardRef } from '@angular/core';
+import { Component, Input, forwardRef, ChangeDetectionStrategy } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
 
 import { BaseToggleControl } from '../base-control-value-accessor';
@@ -14,6 +14,7 @@ import { BaseToggleControl } from '../base-control-value-accessor';
   imports: [],
   templateUrl: './checkbox-field.component.html',
   styleUrls: ['./checkbox-field.component.css'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

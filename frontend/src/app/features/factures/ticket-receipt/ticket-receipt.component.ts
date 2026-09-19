@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -19,6 +19,7 @@ import { PrinterService } from '../../../core/services/printer.service';
   standalone: true,
   imports: [CommonModule, IonIcon, TranslocoModule, AppCurrencyPipe],
   templateUrl: './ticket-receipt.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./ticket-receipt.component.scss'],
 })
 export class TicketReceiptComponent implements OnInit {

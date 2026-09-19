@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
 import { ModalController, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -25,6 +25,7 @@ import { ActionButtonComponent } from '../../../../core/components/ui/action-but
     TranslocoPipe
 ],
   templateUrl: './fusion-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./fusion-modal.component.scss'],
 })
 export class FusionModalComponent {

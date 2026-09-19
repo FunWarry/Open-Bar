@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IonBadge, IonIcon } from '@ionic/angular';
 /**
  * User role type representation for styling badges.
@@ -16,6 +16,7 @@ export type UserRoleType = 'ADMIN' | 'MANAGER' | 'SERVEUR' | 'BARMAN' | 'WAITER'
   standalone: true,
   imports: [IonBadge, IonIcon],
   templateUrl: './role-badge.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./role-badge.component.css']
 })
 export class RoleBadgeComponent {

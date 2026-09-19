@@ -706,11 +706,11 @@
                   <div class="part-settled-info">
                     <div class="settled-details-wrap">
                       <span class="settled-detail">
-                        {{ 'SPLIT.MODE' | transloco:{ mode: partStates[i]?.paymentMethod } }}
+                        {{ 'SPLIT.MODE' | transloco:{ mode: $safeNavigationMigration(partStates[i]?.paymentMethod) } }}
                       </span>
                       @if (partStates[i]?.tip) {
                         <span class="tip-detail">
-                          {{ 'SPLIT.TIP_LABEL' | transloco:{ amount: (partStates[i]?.tip | appCurrency) } }}
+                          {{ 'SPLIT.TIP_LABEL' | transloco:{ amount: ($safeNavigationMigration(partStates[i]?.tip) | appCurrency) } }}
                         </span>
                       }
                     </div>

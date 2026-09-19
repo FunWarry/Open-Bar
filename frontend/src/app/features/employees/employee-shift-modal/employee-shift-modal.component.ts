@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -59,6 +59,7 @@ import { SearchableSelectComponent, SearchableOption } from '../../../core/compo
   templateUrl: './employee-shift-modal.component.html',
   styleUrls: ['./employee-shift-modal.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     TranslocoModule,

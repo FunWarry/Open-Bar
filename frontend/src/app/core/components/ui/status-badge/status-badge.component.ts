@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IonBadge } from '@ionic/angular';
 /**
  * Supported order status codes for status badge display.
@@ -16,6 +16,7 @@ export type CommandeStatus = 'EN_ATTENTE' | 'EN_PREPARATION' | 'PRET' | 'LIVREE'
   standalone: true,
   imports: [IonBadge],
   templateUrl: './status-badge.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./status-badge.component.css']
 })
 export class StatusBadgeComponent {

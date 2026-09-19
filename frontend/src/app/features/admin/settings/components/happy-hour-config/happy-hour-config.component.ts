@@ -5,6 +5,7 @@ import {
   inject,
   signal,
   computed,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule, SlicePipe } from '@angular/common';
 import {
@@ -68,6 +69,7 @@ import {
   templateUrl: './happy-hour-config.component.html',
   styleUrls: ['./happy-hour-config.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     ReactiveFormsModule,

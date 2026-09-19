@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -43,6 +43,7 @@ export interface VarianteSelectionResult {
     TranslocoModule,
   ],
   templateUrl: './variante-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./variante-modal.component.scss'],
 })
 export class VarianteModalComponent implements OnInit {

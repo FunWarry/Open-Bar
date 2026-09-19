@@ -1,4 +1,4 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, Input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonCard, IonCardContent, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -15,6 +15,7 @@ import { AppSettingsService } from '../../../../core/services/app-settings.servi
   standalone: true,
   imports: [CommonModule, IonCard, IonCardContent, IonIcon],
   templateUrl: './mini-commande-card.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./mini-commande-card.component.scss'],
 })
 export class MiniCommandeCardComponent {

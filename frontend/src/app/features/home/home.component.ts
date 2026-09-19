@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { selectCurrentUser, selectIsAdmin, selectIsBarman, selectIsManager, selectIsServeur } from '../../core/store/auth.selectors';
@@ -17,6 +17,7 @@ import { FeatureFlagService } from '../../core/services/feature-flag.service';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, RouterLink, ActionButtonComponent, RoleBadgeComponent, TranslocoPipe]
 })
 export class HomeComponent {

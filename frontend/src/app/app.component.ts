@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './core/components/navbar/navbar.component';
 import { SidebarComponent } from './core/components/sidebar/sidebar.component';
@@ -30,6 +30,7 @@ import * as allIcons from 'ionicons/icons';
     RouterOutlet, NavbarComponent, SidebarComponent, NotificationPanelComponent,
     AsyncPipe, UpperCasePipe, TranslocoModule, IonIcon
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class AppComponent implements OnInit {

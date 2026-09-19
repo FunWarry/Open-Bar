@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
@@ -43,6 +43,7 @@ interface Colonne {
     IonIcon, IonSpinner,
   ],
   templateUrl: './kanban-serveur.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./kanban-serveur.component.scss'],
 })
 export class KanbanServeurComponent implements OnInit, OnDestroy {

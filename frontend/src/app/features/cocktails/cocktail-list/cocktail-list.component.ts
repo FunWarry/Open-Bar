@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
@@ -51,6 +51,7 @@ export interface AllergenOption {
   templateUrl: './cocktail-list.component.html',
   styleUrls: ['./cocktail-list.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule, FormsModule, AsyncPipe, CurrencyPipe, TranslocoModule,
     IonContent, IonCard, IonCardContent,
@@ -224,7 +225,9 @@ export class CocktailListComponent implements OnInit, OnDestroy {
         next: cocktails => {
           this.cocktails = cocktails;
         },
-        error: () => this.showToast('COMMON.ERROR', 'danger'),
+        error: () => {
+          this.showToast('COMMON.ERROR', 'danger');
+        },
       });
 
     this.cocktailService.getFacets()

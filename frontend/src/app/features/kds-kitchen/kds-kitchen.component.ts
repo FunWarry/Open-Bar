@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin, interval, Subscription } from 'rxjs';
@@ -75,6 +75,7 @@ import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
     ActionButtonComponent
 ],
   templateUrl: './kds-kitchen.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./kds-kitchen.component.scss']
 })
 export class KdsKitchenComponent implements OnInit, OnDestroy {

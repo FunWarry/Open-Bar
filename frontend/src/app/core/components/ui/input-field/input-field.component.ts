@@ -1,4 +1,4 @@
-import { Component, Input, forwardRef, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, forwardRef, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { IonIcon } from '@ionic/angular';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
@@ -14,6 +14,7 @@ import { BaseControlValueAccessor } from '../base-control-value-accessor';
   imports: [IonIcon, ReactiveFormsModule],
   templateUrl: './input-field.component.html',
   styleUrls: ['./input-field.component.css'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

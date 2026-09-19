@@ -12,6 +12,7 @@ import {
   signal,
   OnChanges,
   SimpleChanges,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
@@ -52,6 +53,7 @@ export interface SearchableOption<T = any> {
   imports: [CommonModule, FormsModule, IonIcon],
   templateUrl: './searchable-select.component.html',
   styleUrls: ['./searchable-select.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -55,6 +55,7 @@ interface WeeklyDayOption {
     IonBadge
 ],
   templateUrl: './closure-config-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./closure-config-modal.component.css']
 })
 export class ClosureConfigModalComponent implements OnInit {

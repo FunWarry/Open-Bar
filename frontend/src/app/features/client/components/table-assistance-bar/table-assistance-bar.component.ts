@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ToastController } from '@ionic/angular';
@@ -14,6 +14,7 @@ import { TableAppelType } from '../../../../core/models/table-appel.model';
   standalone: true,
   imports: [TranslocoPipe],
   templateUrl: './table-assistance-bar.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./table-assistance-bar.component.scss']
 })
 export class TableAssistanceBarComponent implements OnDestroy {

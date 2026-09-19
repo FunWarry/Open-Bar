@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, computed, inject } from '@angular/core';
+import { Component, Input, OnInit, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -83,6 +83,7 @@ import {
     SearchableSelectComponent,
   ],
   templateUrl: './variant-recipe-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./variant-recipe-modal.component.scss'],
 })
 export class VariantRecipeModalComponent implements OnInit {

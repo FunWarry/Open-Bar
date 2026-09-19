@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ClosureService, EstablishmentClosure, EstablishmentClosureRequest } from '../../../app/core/services/closure.service';
 import { environment } from '../../../environments/environment';
@@ -13,7 +13,7 @@ describe('ClosureService', () => {
     TestBed.configureTestingModule({
       providers: [
         ClosureService,
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting()
       ]
     });

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { Subject } from 'rxjs';
@@ -32,6 +32,7 @@ const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
   templateUrl: './personnalisation.component.html',
   styleUrls: ['./personnalisation.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ReactiveFormsModule,
     TranslocoModule,

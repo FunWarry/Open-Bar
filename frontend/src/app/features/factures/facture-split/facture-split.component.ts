@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, inject } from '@angular/core';
+import { Component, OnInit, Input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -55,6 +55,7 @@ export interface PartSettlementState {
     IonSpinner, IonProgressBar
   ],
   templateUrl: './facture-split.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./facture-split.component.scss'],
 })
 export class FactureSplitComponent implements OnInit {

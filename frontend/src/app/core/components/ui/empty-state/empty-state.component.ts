@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 
 import { IonIcon, IonButton } from '@ionic/angular';
 
@@ -10,6 +10,7 @@ import { IonIcon, IonButton } from '@ionic/angular';
   standalone: true,
   imports: [IonIcon, IonButton],
   templateUrl: './empty-state.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./empty-state.component.css']
 })
 export class EmptyStateComponent {

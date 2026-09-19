@@ -7,6 +7,7 @@ import {
   signal,
   computed,
   ChangeDetectorRef,
+  ChangeDetectionStrategy
 } from '@angular/core';
 
 import {
@@ -204,6 +205,7 @@ export interface VatPreset {
   templateUrl: './app-settings-page.component.html',
   styleUrls: ['./app-settings-page.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ReactiveFormsModule,
     FormsModule,

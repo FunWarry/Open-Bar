@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -48,6 +48,7 @@ export interface EditableOrderItem {
     SearchableSelectComponent,
   ],
   templateUrl: './edit-commande-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./edit-commande-modal.component.scss'],
 })
 export class EditCommandeModalComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader, IonToolbar, IonButtons, IonButton, IonIcon,
@@ -37,6 +37,7 @@ import { XReport } from '../../../core/models/cash-drawer.model';
     IonBadge
   ],
   templateUrl: './x-report-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./x-report-modal.component.scss']
 })
 export class XReportModalComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { IonIcon, ModalController } from '@ionic/angular';
@@ -34,6 +34,7 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
     IonIcon
 ],
   templateUrl: './table-side-panel.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./table-side-panel.component.scss'],
 })
 export class TableSidePanelComponent {

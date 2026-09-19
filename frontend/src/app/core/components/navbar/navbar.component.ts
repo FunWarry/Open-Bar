@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Optional, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, Optional, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, combineLatest, of, interval } from 'rxjs';
@@ -71,6 +71,7 @@ const ROLE_COLORS: Record<string, string> = {
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonPopover, IonList, IonItem, IonLabel, IonBadge,

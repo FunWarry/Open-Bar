@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -67,6 +67,7 @@ import { DashboardBarmanService } from '../../services/dashboard-barman.service'
     IonSpinner
 ],
   templateUrl: './rupture-impact-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./rupture-impact-modal.component.scss']
 })
 export class RuptureImpactModalComponent implements OnInit, OnDestroy {

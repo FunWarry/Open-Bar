@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { IonChip, IonIcon, IonLabel } from '@ionic/angular';
 
 /**
@@ -11,6 +11,7 @@ import { IonChip, IonIcon, IonLabel } from '@ionic/angular';
   standalone: true,
   imports: [IonChip, IonIcon, IonLabel],
   templateUrl: './filter-chip.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./filter-chip.component.css']
 })
 export class FilterChipComponent {

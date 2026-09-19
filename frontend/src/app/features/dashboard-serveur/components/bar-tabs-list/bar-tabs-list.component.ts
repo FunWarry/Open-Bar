@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, inject, signal, computed } from '@angular/core';
+import { Component, Output, EventEmitter, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -47,6 +47,7 @@ import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../co
     BarTabCardComponent,
   ],
   templateUrl: './bar-tabs-list.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./bar-tabs-list.component.scss'],
 })
 export class BarTabsListComponent {

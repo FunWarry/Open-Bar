@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslocoModule } from '@jsverse/transloco';
 import { IonIcon } from '@ionic/angular';
@@ -17,6 +17,7 @@ import { environment } from '../../../../../environments/environment';
   standalone: true,
   imports: [CommonModule, TranslocoModule, IonIcon],
   templateUrl: './product-card.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./product-card.component.css']
 })
 export class ProductCardComponent {

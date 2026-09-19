@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal, effect, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, effect, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -64,6 +64,7 @@ export type ClientCommandeStep = 'table' | 'menu' | 'recap';
   templateUrl: './client-commande.component.html',
   styleUrls: ['./client-commande.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     FormsModule,

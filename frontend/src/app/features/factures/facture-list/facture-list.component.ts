@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -98,6 +98,7 @@ export const getOperationalMonthString = getMonthString;
     SearchableSelectComponent, ActionButtonComponent
   ],
   templateUrl: './facture-list.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./facture-list.component.scss'],
 })
 export class FactureListComponent implements OnInit, OnDestroy {

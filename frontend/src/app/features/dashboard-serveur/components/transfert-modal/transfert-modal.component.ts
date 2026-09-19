@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
 import {
   ModalController,
@@ -33,6 +33,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
     TranslocoPipe
 ],
   templateUrl: './transfert-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./transfert-modal.component.scss'],
 })
 export class TransfertModalComponent implements OnInit {

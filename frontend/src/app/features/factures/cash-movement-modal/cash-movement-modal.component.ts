@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -40,6 +40,7 @@ import { CashMovementRequest, CashMovementType } from '../../../core/models/cash
     IonSpinner
   ],
   templateUrl: './cash-movement-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./cash-movement-modal.component.scss']
 })
 export class CashMovementModalComponent implements OnInit {

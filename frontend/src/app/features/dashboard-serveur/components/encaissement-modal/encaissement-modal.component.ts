@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Observable, Subject } from 'rxjs';
@@ -48,6 +48,7 @@ import { BarTabService } from '../../../../core/services/bar-tab.service';
     IonItem, IonLabel, IonInput, IonCheckbox, IonProgressBar
   ],
   templateUrl: './encaissement-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./encaissement-modal.component.scss']
 })
 export class EncaissementModalComponent implements OnInit, OnDestroy {

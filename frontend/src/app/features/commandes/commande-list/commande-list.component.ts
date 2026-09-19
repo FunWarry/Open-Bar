@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
@@ -41,6 +41,7 @@ import { SearchBarComponent } from '../../../core/components/ui/search-bar/searc
   templateUrl: './commande-list.component.html',
   styleUrls: ['./commande-list.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonContent, IonCard, IonCardHeader, IonCardContent,
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,

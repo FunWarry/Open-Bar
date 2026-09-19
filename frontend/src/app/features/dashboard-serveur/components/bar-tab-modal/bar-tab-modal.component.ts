@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
@@ -47,6 +47,7 @@ import { BarTabService } from '../../../../core/services/bar-tab.service';
     TranslocoPipe,
   ],
   templateUrl: './bar-tab-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./bar-tab-modal.component.scss'],
 })
 export class BarTabModalComponent implements OnInit {

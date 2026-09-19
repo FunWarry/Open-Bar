@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 import {User} from '../../../../core/models/user.model';
 import { ModalController, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, IonIcon } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -14,6 +14,7 @@ import {trash} from 'ionicons/icons';
   templateUrl: './delete-user-dialog.component.html',
   styleUrls: ['./delete-user-dialog.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
     IonContent, IonIcon, TranslocoPipe

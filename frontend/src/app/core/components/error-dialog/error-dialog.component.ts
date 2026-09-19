@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 import { ModalController, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
 
@@ -10,6 +10,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   templateUrl: './error-dialog.component.html',
   styleUrls: ['./error-dialog.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, TranslocoPipe],
 })
 export class ErrorDialogComponent {

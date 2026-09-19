@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IonAvatar, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { shieldCheckmark, briefcase, wine, restaurant, person } from 'ionicons/icons';
@@ -14,6 +14,7 @@ import { UserRoleType } from '../role-badge/role-badge.component';
   standalone: true,
   imports: [IonAvatar, IonIcon],
   templateUrl: './user-avatar.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./user-avatar.component.css']
 })
 export class UserAvatarComponent {

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader,
@@ -46,6 +46,7 @@ import { EmployeeShift, ShiftAuditAction, ShiftAuditLog } from '../../../core/mo
     IonSpinner
   ],
   templateUrl: './shift-history-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./shift-history-modal.component.scss']
 })
 export class ShiftHistoryModalComponent implements OnInit {

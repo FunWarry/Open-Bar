@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
 import { IonCard, IonCardContent } from '@ionic/angular';
 
@@ -10,6 +10,7 @@ import { IonCard, IonCardContent } from '@ionic/angular';
   standalone: true,
   imports: [IonCard, IonCardContent],
   templateUrl: './stat-card.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./stat-card.component.scss'],
 })
 export class StatCardComponent {

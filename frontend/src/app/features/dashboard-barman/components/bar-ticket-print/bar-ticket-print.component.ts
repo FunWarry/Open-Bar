@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import {
   IonHeader,
@@ -41,6 +41,7 @@ import { PrinterService } from '../../../../core/services/printer.service';
     IonSpinner
   ],
   templateUrl: './bar-ticket-print.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./bar-ticket-print.component.scss']
 })
 export class BarTicketPrintComponent implements OnInit {

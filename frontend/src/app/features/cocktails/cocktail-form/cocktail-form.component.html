@@ -375,7 +375,7 @@
               @for (stepGroup of recipeStepsArray.controls; track $index; let i = $index) {
                 <div
                   class="recipe-block-card"
-                  [ngClass]="'block-' + stepGroup.get('stepType')?.value?.toLowerCase()"
+                  [ngClass]="'block-' + $safeNavigationMigration(stepGroup.get('stepType')?.value?.toLowerCase())"
                   [formGroupName]="i"
                   [attr.data-testid]="'recipe-block-' + i">
 
@@ -383,7 +383,7 @@
                   <div class="block-card-header">
                     <div class="block-header-left">
                       <span class="step-num-pill">{{ i + 1 }}</span>
-                      <ion-icon [name]="getActionIcon(stepGroup.get('actionType')?.value)"></ion-icon>
+                      <ion-icon [name]="getActionIcon($safeNavigationMigration(stepGroup.get('actionType')?.value))"></ion-icon>
                       <strong class="block-type-label">
                         @switch (stepGroup.get('stepType')?.value) {
                           @case ('INGREDIENT') { {{ 'COCKTAILS.BUILDER.BLOCK_TYPE_INGREDIENT' | transloco }} }
@@ -436,7 +436,7 @@
                             [placeholder]="'COCKTAILS.BUILDER.SELECT_INGREDIENT' | transloco"
                             [searchPlaceholder]="'Rechercher un ingrédient...'"
                             [options]="ingredientOptions()"
-                            [value]="stepGroup.get('ingredientId')?.value"
+                            [value]="$safeNavigationMigration(stepGroup.get('ingredientId')?.value)"
                             [testId]="'select-ingredient-' + i"
                             (selectionChange)="onIngredientOptionSelected(i, $event)">
                           </app-searchable-select>
@@ -488,7 +488,7 @@
                             [placeholder]="'COCKTAILS.BUILDER.SELECT_TEMPLATE' | transloco"
                             [searchPlaceholder]="'Rechercher une action ou modèle...'"
                             [options]="templateOptions()"
-                            [value]="stepGroup.get('templateId')?.value"
+                            [value]="$safeNavigationMigration(stepGroup.get('templateId')?.value)"
                             [testId]="'select-template-' + i"
                             actionButtonIcon="add-outline"
                             [actionButtonLabel]="'+ ' + ('COCKTAILS.BUILDER.SAVE_AS_NEW_TEMPLATE' | transloco)"
@@ -625,7 +625,7 @@
 
                         <span class="badge-price">
                           @if ((vGroup.get('prixSupplement')?.value || 0) > 0) {
-                            +{{ vGroup.get('prixSupplement')?.value | appCurrency }}
+                            +{{ $safeNavigationMigration(vGroup.get('prixSupplement')?.value) | appCurrency }}
                           } @else {
                             {{ 0 | appCurrency }}
                           }
@@ -853,7 +853,7 @@
                               </div>
                               @if (stepGroup.get('quantite')?.value != null) {
                                 <div class="dosage-pill" data-testid="ing-dosage-badge">
-                                  <strong class="dosage-value">{{ getScaledQuantity(stepGroup.get('quantite')?.value) }} {{ stepGroup.get('unite')?.value }}</strong>
+                                  <strong class="dosage-value">{{ getScaledQuantity($safeNavigationMigration(stepGroup.get('quantite')?.value)) }} {{ stepGroup.get('unite')?.value }}</strong>
                                   @if (previewPortions() > 1) {
                                     <small class="unit-ref">({{ stepGroup.get('quantite')?.value }} {{ stepGroup.get('unite')?.value }} / verre)</small>
                                   }
@@ -871,7 +871,7 @@
                           <div class="timeline-block-body">
                             <div class="step-header-line">
                               <div class="step-title-with-icon">
-                                <ion-icon [name]="getActionIcon(stepGroup.get('actionType')?.value)" class="step-type-icon icon-action"></ion-icon>
+                                <ion-icon [name]="getActionIcon($safeNavigationMigration(stepGroup.get('actionType')?.value))" class="step-type-icon icon-action"></ion-icon>
                                 <span class="step-main-title">{{ stepGroup.get('templateName')?.value || 'Action Mixologie' }}</span>
                               </div>
                               @if (stepGroup.get('durationSeconds')?.value) {

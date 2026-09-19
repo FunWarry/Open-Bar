@@ -7,6 +7,7 @@ import {
   OnInit,
   OnChanges,
   SimpleChanges,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon, IonButton, IonSpinner } from '@ionic/angular';
@@ -89,6 +90,7 @@ export interface DeduplicatedIngredient {
     TranslocoPipe,
   ],
   templateUrl: './recipe-side-panel.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./recipe-side-panel.component.scss'],
 })
 export class RecipeSidePanelComponent implements OnInit, OnChanges {

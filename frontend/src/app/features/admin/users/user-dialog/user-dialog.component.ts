@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { User } from '../../../../core/models/user.model';
 import {
@@ -34,6 +34,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   templateUrl: './user-dialog.component.html',
   styleUrls: ['./user-dialog.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader,
     IonToolbar,

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -38,6 +38,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.css',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     SearchBarComponent,

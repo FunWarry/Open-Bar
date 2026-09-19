@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -77,6 +77,7 @@ export interface CartItem {
     SearchBarComponent, IonSelect, IonSelectOption,
   ],
   templateUrl: './nouvelle-commande.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./nouvelle-commande.component.scss'],
 })
 export class NouvelleCommandeComponent implements OnInit, OnDestroy {

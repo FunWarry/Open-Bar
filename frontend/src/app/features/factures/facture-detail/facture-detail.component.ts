@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, EMPTY } from 'rxjs';
@@ -35,6 +35,7 @@ import { environment } from '../../../../environments/environment';
     IonContent, IonIcon, IonSpinner, AppCurrencyPipe
   ],
   templateUrl: './facture-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./facture-detail.component.scss'],
 })
 export class FactureDetailComponent implements OnInit, OnDestroy {

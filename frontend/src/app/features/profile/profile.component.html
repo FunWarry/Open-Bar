@@ -3,8 +3,8 @@
     <ion-card-header class="profile-header">
       <div class="avatar-wrapper">
         <app-user-avatar
-          [name]="currentUser?.username"
-          [role]="$any(currentUser?.roles?.[0])"
+          [name]="$safeNavigationMigration(currentUser?.username)"
+          [role]="$any($safeNavigationMigration(currentUser?.roles?.[0]))"
           size="large">
         </app-user-avatar>
       </div>
@@ -190,11 +190,11 @@
       </div>
       <div class="info-item">
         <span class="label">{{ 'PROFILE.CREATED_AT' | transloco }}</span>
-        <span class="value">{{ currentUser?.createdAt | date:'dd/MM/yyyy' }}</span>
+        <span class="value">{{ $safeNavigationMigration(currentUser?.createdAt) | date:'dd/MM/yyyy' }}</span>
       </div>
       <div class="info-item">
         <span class="label">{{ 'PROFILE.UPDATED_AT' | transloco }}</span>
-        <span class="value">{{ currentUser?.updatedAt | date:'dd/MM/yyyy' }}</span>
+        <span class="value">{{ $safeNavigationMigration(currentUser?.updatedAt) | date:'dd/MM/yyyy' }}</span>
       </div>
     </ion-card-content>
   </ion-card>

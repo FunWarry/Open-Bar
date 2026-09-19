@@ -1,6 +1,7 @@
 import {
   Component, OnInit, OnDestroy, AfterViewInit,
   ElementRef, ViewChild, NgZone, ChangeDetectorRef, inject,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -110,6 +111,7 @@ import { SearchBarComponent } from '../../core/components/ui/search-bar/search-b
     BarTabsListComponent,
   ],
   templateUrl: './dashboard-serveur.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./dashboard-serveur.component.scss'],
 })
 export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestroy {

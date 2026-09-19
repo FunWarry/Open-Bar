@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -57,6 +57,7 @@ import { SearchBarComponent } from '../../../core/components/ui/search-bar/searc
     IonSpinner,
   ],
   templateUrl: './schedule-history-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./schedule-history-modal.component.scss']
 })
 export class ScheduleHistoryModalComponent implements OnInit {

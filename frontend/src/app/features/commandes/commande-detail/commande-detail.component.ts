@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
@@ -27,6 +27,7 @@ import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
   templateUrl: './commande-detail.component.html',
   styleUrls: ['./commande-detail.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonContent, IonBadge, IonButton, IonIcon, IonSpinner,
     CurrencyPipe, DatePipe, TranslocoPipe,

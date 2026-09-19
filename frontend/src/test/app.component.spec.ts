@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from '../app/app.component';
@@ -15,7 +15,8 @@ import { Router } from '@angular/router';
 
 import { getTranslocoTestingModule } from './transloco-testing.module';
 
-@Component({ standalone: true, template: '' })
+@Component({ standalone: true, changeDetection: ChangeDetectionStrategy.Eager,
+ template: '' })
 class DummyComponent {}
 
 describe('AppComponent', () => {

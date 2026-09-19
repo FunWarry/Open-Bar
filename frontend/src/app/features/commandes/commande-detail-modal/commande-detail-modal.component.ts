@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import {
@@ -29,6 +29,7 @@ import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
   templateUrl: './commande-detail-modal.component.html',
   styleUrls: ['./commande-detail-modal.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
     IonIcon, IonBadge, IonSpinner, IonFooter,

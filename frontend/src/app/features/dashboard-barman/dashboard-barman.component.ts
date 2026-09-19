@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin } from 'rxjs';
@@ -94,6 +94,7 @@ import { FeatureFlagService } from '../../core/services/feature-flag.service';
     RecipeSidePanelComponent
 ],
   templateUrl: './dashboard-barman.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./dashboard-barman.component.scss']
 })
 export class DashboardBarmanComponent implements OnInit, OnDestroy {

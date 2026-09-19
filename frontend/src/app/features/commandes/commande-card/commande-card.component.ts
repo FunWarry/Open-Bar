@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, Optional } from '@angular/core';
+import { Component, Input, Output, EventEmitter, Optional, ChangeDetectionStrategy } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import {
   IonIcon, IonButton, ModalController,
@@ -36,6 +36,7 @@ export interface GroupedCommandeItem {
   templateUrl: './commande-card.component.html',
   styleUrls: ['./commande-card.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonIcon, IonButton,
     CurrencyPipe, DatePipe, TranslocoPipe,

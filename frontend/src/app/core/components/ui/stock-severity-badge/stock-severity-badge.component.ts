@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IonBadge } from '@ionic/angular';
 /**
  * Severity rating for inventory stock alerts (critical, warning, nominal).
@@ -16,6 +16,7 @@ export type StockSeverity = 'CRITIQUE' | 'FAIBLE' | 'NORMAL' | 'critique' | 'fai
   standalone: true,
   imports: [IonBadge],
   templateUrl: './stock-severity-badge.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./stock-severity-badge.component.css']
 })
 export class StockSeverityBadgeComponent {

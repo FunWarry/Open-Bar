@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -39,6 +39,7 @@ import { TranslocoModule } from '@jsverse/transloco';
     IonButtons
 ],
   templateUrl: './day-closure-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./day-closure-modal.component.css']
 })
 export class DayClosureModalComponent implements OnInit {
