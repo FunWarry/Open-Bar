@@ -1,84 +1,114 @@
-<ion-header class="modal-header">
-  <ion-toolbar color="primary">
-    <ion-title data-testid="modal-tab-title">
-      {{ (tab ? 'TABS.MODAL_EDIT_TITLE' : 'TABS.MODAL_CREATE_TITLE') | transloco }}
-    </ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="dismiss()" (keyup.enter)="dismiss()" data-testid="btn-close-tab-modal" aria-label="Close">
-        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<div class="tab-modal-wrapper" data-testid="bar-tab-modal">
+  <!-- Modal Header -->
+  <div class="modal-header">
+    <div class="header-main-group">
+      <div class="tab-avatar-badge" [class.edit]="!!tab">
+        <ion-icon name="receipt-outline"></ion-icon>
+      </div>
+      <div class="header-text">
+        <h2 class="modal-title" data-testid="modal-tab-title">
+          {{ (tab ? 'TABS.MODAL_EDIT_TITLE' : 'TABS.MODAL_CREATE_TITLE') | transloco }}
+        </h2>
+        <div class="modal-meta-tags">
+          <span class="meta-tag">
+            <ion-icon [name]="tab ? 'create-outline' : 'add-circle-outline'"></ion-icon>
+            <span>{{ (tab ? 'COMMON.EDIT' : 'COMMON.ADD') | transloco }}</span>
+          </span>
+          @if (tab?.openedAt) {
+            <span class="meta-tag">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>{{ tab.openedAt | date:'shortTime' }}</span>
+            </span>
+          }
+        </div>
+      </div>
+    </div>
 
-<ion-content class="ion-padding modal-content">
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="tab-form" data-testid="form-bar-tab">
-    <ion-item class="form-item">
-      <ion-label position="stacked">{{ 'TABS.FIELD_NAME' | transloco }}</ion-label>
-      <ion-input
+    <button
+      type="button"
+      class="close-icon-btn"
+      (click)="dismiss()"
+      (keyup.enter)="dismiss()"
+      [attr.aria-label]="'COMMON.CLOSE' | transloco"
+      data-testid="btn-close-tab-modal">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+
+  <!-- Modal Body -->
+  <div class="modal-body">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="tab-form-container" data-testid="form-bar-tab">
+      
+      <!-- Customer / Tab Name -->
+      <app-input-field
         formControlName="nom"
-        type="text"
+        [label]="('TABS.FIELD_NAME' | transloco) + ' *'"
         [placeholder]="'TABS.FIELD_NAME_PLACEHOLDER' | transloco"
-        data-testid="input-tab-name">
-      </ion-input>
-    </ion-item>
+        icon="person-outline"
+        [required]="true"
+        testId="input-tab-name">
+      </app-input-field>
 
-    <ion-item class="form-item">
-      <ion-label position="stacked">{{ 'TABS.FIELD_REF' | transloco }}</ion-label>
-      <ion-input
+      <!-- Customer Reference / Card -->
+      <app-input-field
         formControlName="clientReference"
-        type="text"
+        [label]="'TABS.FIELD_REF' | transloco"
         [placeholder]="'TABS.FIELD_REF_PLACEHOLDER' | transloco"
-        data-testid="input-tab-ref">
-      </ion-input>
-    </ion-item>
+        icon="card-outline"
+        testId="input-tab-ref">
+      </app-input-field>
 
-    <ion-item class="form-item">
-      <ion-label position="stacked">{{ 'TABS.FIELD_CAUTION' | transloco }}</ion-label>
-      <ion-input
+      <!-- Deposit / Caution Amount -->
+      <app-input-field
         formControlName="cautionMontant"
         type="number"
-        step="0.5"
-        min="0"
+        [label]="'TABS.FIELD_CAUTION' | transloco"
         placeholder="0.00"
-        data-testid="input-tab-caution">
-      </ion-input>
-    </ion-item>
+        icon="shield-checkmark-outline"
+        testId="input-tab-caution">
+      </app-input-field>
 
-    <ion-item class="form-item">
-      <ion-label position="stacked">{{ 'TABS.FIELD_NOTES' | transloco }}</ion-label>
-      <ion-textarea
-        formControlName="notes"
-        rows="3"
-        [placeholder]="'TABS.FIELD_NOTES_PLACEHOLDER' | transloco"
-        data-testid="input-tab-notes">
-      </ion-textarea>
-    </ion-item>
+      <!-- Notes / Instructions -->
+      <div class="form-field-group">
+        <label class="field-label" for="input-tab-notes">
+          <ion-icon name="chatbox-ellipses-outline"></ion-icon>
+          <span>{{ 'TABS.FIELD_NOTES' | transloco }}</span>
+        </label>
+        <div class="textarea-wrapper">
+          <textarea
+            id="input-tab-notes"
+            formControlName="notes"
+            rows="3"
+            class="styled-textarea"
+            [placeholder]="'TABS.FIELD_NOTES_PLACEHOLDER' | transloco"
+            data-testid="input-tab-notes"></textarea>
+        </div>
+      </div>
 
-    <div class="form-actions">
-      <ion-button
-        type="button"
-        fill="outline"
-        color="medium"
-        (click)="dismiss()"
-        (keyup.enter)="dismiss()"
-        data-testid="btn-cancel-tab-modal">
-        {{ 'TABS.BTN_CANCEL' | transloco }}
-      </ion-button>
+      <!-- Modal Footer Actions -->
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn-action btn-secondary"
+          (click)="dismiss()"
+          (keyup.enter)="dismiss()"
+          data-testid="btn-cancel-tab-modal">
+          {{ 'TABS.BTN_CANCEL' | transloco }}
+        </button>
 
-      <ion-button
-        type="submit"
-        fill="solid"
-        color="primary"
-        [disabled]="form.invalid || isSubmitting"
-        data-testid="btn-submit-tab-modal">
-        @if (isSubmitting) {
-          <ion-spinner name="crescent" slot="start"></ion-spinner>
-        } @else {
-          <ion-icon name="checkmark-outline" slot="start"></ion-icon>
-        }
-        {{ (tab ? 'TABS.BTN_SAVE' : 'TABS.BTN_CREATE') | transloco }}
-      </ion-button>
-    </div>
-  </form>
-</ion-content>
+        <button
+          type="submit"
+          class="btn-action btn-primary"
+          [disabled]="form.invalid || isSubmitting"
+          data-testid="btn-submit-tab-modal">
+          @if (isSubmitting) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            <ion-icon name="checkmark-outline"></ion-icon>
+          }
+          <span>{{ (tab ? 'TABS.BTN_SAVE' : 'TABS.BTN_CREATE') | transloco }}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

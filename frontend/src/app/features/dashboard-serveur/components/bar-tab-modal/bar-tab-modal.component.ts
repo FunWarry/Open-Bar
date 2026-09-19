@@ -1,27 +1,29 @@
 import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   ModalController,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
-  IonButton,
-  IonContent,
-  IonItem,
-  IonLabel,
-  IonInput,
-  IonTextarea,
   IonIcon,
   IonSpinner,
   ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { closeOutline, receiptOutline, checkmarkOutline } from 'ionicons/icons';
+import {
+  closeOutline,
+  receiptOutline,
+  checkmarkOutline,
+  personOutline,
+  cardOutline,
+  shieldCheckmarkOutline,
+  chatboxEllipsesOutline,
+  createOutline,
+  addCircleOutline,
+  timeOutline,
+} from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { BarTab } from '../../../../core/models/bar-tab.model';
 import { BarTabService } from '../../../../core/services/bar-tab.service';
+import { InputFieldComponent } from '../../../../core/components/ui/input-field/input-field.component';
 
 /**
  * Modal form component for creating a new bar tab or modifying an existing running tab.
@@ -31,20 +33,12 @@ import { BarTabService } from '../../../../core/services/bar-tab.service';
   standalone: true,
   imports: [
     CommonModule,
+    DatePipe,
     ReactiveFormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
-    IonButton,
-    IonContent,
-    IonItem,
-    IonLabel,
-    IonInput,
-    IonTextarea,
     IonIcon,
     IonSpinner,
     TranslocoPipe,
+    InputFieldComponent,
   ],
   templateUrl: './bar-tab-modal.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -64,7 +58,18 @@ export class BarTabModalComponent implements OnInit {
   private readonly transloco = inject(TranslocoService);
 
   constructor() {
-    addIcons({ closeOutline, receiptOutline, checkmarkOutline });
+    addIcons({
+      closeOutline,
+      receiptOutline,
+      checkmarkOutline,
+      personOutline,
+      cardOutline,
+      shieldCheckmarkOutline,
+      chatboxEllipsesOutline,
+      createOutline,
+      addCircleOutline,
+      timeOutline,
+    });
   }
 
   ngOnInit(): void {

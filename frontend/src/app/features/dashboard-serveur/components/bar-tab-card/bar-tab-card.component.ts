@@ -1,15 +1,6 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardSubtitle,
-  IonCardContent,
-  IonBadge,
-  IonButton,
-  IonIcon,
-} from '@ionic/angular';
+import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   receiptOutline,
@@ -21,6 +12,8 @@ import {
   addOutline,
   eyeOutline,
   shieldCheckmarkOutline,
+  restaurantOutline,
+  chatbubbleEllipsesOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { BarTab } from '../../../../core/models/bar-tab.model';
@@ -35,13 +28,6 @@ import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
   standalone: true,
   imports: [
     CommonModule,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardSubtitle,
-    IonCardContent,
-    IonBadge,
-    IonButton,
     IonIcon,
     TranslocoPipe,
     AppCurrencyPipe,
@@ -80,6 +66,8 @@ export class BarTabCardComponent {
       addOutline,
       eyeOutline,
       shieldCheckmarkOutline,
+      restaurantOutline,
+      chatbubbleEllipsesOutline,
     });
   }
 

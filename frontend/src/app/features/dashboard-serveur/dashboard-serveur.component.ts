@@ -1982,6 +1982,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     const modal = await this.modalCtrl.create({
       component: EncaissementModalComponent,
       componentProps: { tab },
+      cssClass: 'encaissement-modal-container',
       enterAnimation: fastModalEnterAnimation,
       leaveAnimation: fastModalLeaveAnimation,
     });

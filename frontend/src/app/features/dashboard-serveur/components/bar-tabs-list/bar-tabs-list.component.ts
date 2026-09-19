@@ -103,6 +103,7 @@ export class BarTabsListComponent {
   async openCreateModal(): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: BarTabModalComponent,
+      cssClass: 'openbar-modal-md',
       enterAnimation: fastModalEnterAnimation,
       leaveAnimation: fastModalLeaveAnimation,
     });
@@ -116,6 +117,7 @@ export class BarTabsListComponent {
     const modal = await this.modalCtrl.create({
       component: BarTabModalComponent,
       componentProps: { tab },
+      cssClass: 'openbar-modal-md',
       enterAnimation: fastModalEnterAnimation,
       leaveAnimation: fastModalLeaveAnimation,
     });
@@ -129,6 +131,7 @@ export class BarTabsListComponent {
     const modal = await this.modalCtrl.create({
       component: BarTabTransferModalComponent,
       componentProps: { sourceTab: tab },
+      cssClass: 'openbar-modal-md',
       enterAnimation: fastModalEnterAnimation,
       leaveAnimation: fastModalLeaveAnimation,
     });

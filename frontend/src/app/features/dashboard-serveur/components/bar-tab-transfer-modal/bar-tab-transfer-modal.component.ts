@@ -3,19 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   ModalController,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
-  IonButton,
-  IonContent,
-  IonList,
-  IonItem,
-  IonLabel,
   IonIcon,
   IonSpinner,
   IonSegment,
   IonSegmentButton,
+  IonLabel,
   ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -25,8 +17,10 @@ import {
   restaurantOutline,
   receiptOutline,
   checkmarkCircleOutline,
+  checkmarkCircle,
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 import { BarTab } from '../../../../core/models/bar-tab.model';
 import { BarTabService } from '../../../../core/services/bar-tab.service';
 import { TableBar } from '../../../../core/models/table.model';
@@ -43,20 +37,13 @@ export type TransferMode = 'TAB_TO_TABLE' | 'TABLE_TO_TAB';
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
-    IonButton,
-    IonContent,
-    IonList,
-    IonItem,
-    IonLabel,
     IonIcon,
     IonSpinner,
     IonSegment,
     IonSegmentButton,
+    IonLabel,
     TranslocoPipe,
+    AppCurrencyPipe,
   ],
   templateUrl: './bar-tab-transfer-modal.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -96,6 +83,7 @@ export class BarTabTransferModalComponent implements OnInit {
       restaurantOutline,
       receiptOutline,
       checkmarkCircleOutline,
+      checkmarkCircle,
     });
   }
 
