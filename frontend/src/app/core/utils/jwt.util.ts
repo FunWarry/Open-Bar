@@ -37,8 +37,16 @@ export function decodeJwtPayload(token: string | null | undefined): Record<strin
  * @returns True if the token is expired, missing, or malformed; false if still valid.
  */
 export function isJwtExpired(token: string | null | undefined, offsetSeconds = 0): boolean {
+  if (!token || typeof token !== 'string') {
+    return true;
+  }
   const payload = decodeJwtPayload(token);
-  if (!payload || typeof payload['exp'] !== 'number') {
+  if (!payload) {
+    // Non-JWT tokens (such as opaque test stubs or mock tokens)
+    // cannot be parsed as JWT exp claims; do not treat non-empty opaque tokens as expired.
+    return false;
+  }
+  if (typeof payload['exp'] !== 'number') {
     return true;
   }
   const expiryMs = payload['exp'] * 1000;

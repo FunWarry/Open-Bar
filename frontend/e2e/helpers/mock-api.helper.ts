@@ -1,6 +1,16 @@
 import { Page } from '@playwright/test';
 
 /**
+ * Generates a valid Base64-encoded mock JWT with a long expiration timestamp for E2E tests.
+ */
+export function createMockJwt(roles: string[] = ['ADMIN']): string {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64');
+  const exp = Math.floor(Date.now() / 1000) + 86400 * 30; // 30 days
+  const payload = Buffer.from(JSON.stringify({ sub: 'admin', roles, exp })).toString('base64');
+  return `${header}.${payload}.mock-signature`;
+}
+
+/**
  * Sets up Playwright route mocking for all OpenBar REST endpoints.
  * Ensures fast, 100% isolated and deterministic E2E execution without external database dependency.
  *
@@ -356,10 +366,21 @@ export async function setupMockApi(page: Page): Promise<void> {
         email: `${username || 'admin'}@openbar.fr`,
         roles,
         enabled: true,
-        token: 'mock-jwt-token-e2e',
+        token: createMockJwt(roles),
         refreshToken: 'mock-refresh-token-e2e',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+      }),
+    });
+  });
+
+  await page.route('**/api/auth/refresh', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        accessToken: createMockJwt(),
+        refreshToken: 'mock-refresh-token-e2e',
       }),
     });
   });

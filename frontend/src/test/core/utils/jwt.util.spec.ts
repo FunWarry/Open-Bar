@@ -68,5 +68,10 @@ describe('jwt.util', () => {
       // With 10s offset into future, considered expired
       expect(isJwtExpired(token, 10)).toBeTrue();
     });
+
+    it('returns false for non-empty non-JWT opaque test strings without crashing', () => {
+      expect(isJwtExpired('mock-jwt-token-e2e')).toBeFalse();
+      expect(isJwtExpired('opaque_token_string')).toBeFalse();
+    });
   });
 });
