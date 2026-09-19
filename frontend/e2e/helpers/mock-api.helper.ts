@@ -407,7 +407,36 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
+  await page.route('**/api/cocktails/facets**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        flavorCounts: {
+          FRUITY: 8,
+          SMOKY: 2,
+          SWEET: 6,
+          SOUR: 4,
+          BITTER: 3,
+          SPICY: 2,
+          HERBAL: 5,
+        },
+        mocktailsCount: 4,
+        veganCount: 10,
+        glutenFreeCount: 9,
+        lowAbvCount: 3,
+        minAlcoholLevel: 0,
+        maxAlcoholLevel: 25,
+        totalAvailable: 15,
+      }),
+    });
+  });
+
   await page.route('**/api/cocktails**', async (route) => {
+    if (route.request().url().includes('/facets')) {
+      await route.fallback();
+      return;
+    }
     if (route.request().method() === 'POST') {
       const body = route.request().postDataJSON();
       await route.fulfill({
