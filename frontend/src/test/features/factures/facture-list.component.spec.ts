@@ -3,7 +3,7 @@ import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
 import { of, throwError, Subject } from 'rxjs';
-import { provideIonicAngular, ToastController } from '@ionic/angular';
+import { provideIonicAngular, ToastController, ModalController } from '@ionic/angular';
 import { FactureListComponent } from '../../../app/features/factures/facture-list/facture-list.component';
 import { FactureService } from '../../../app/features/factures/services/facture.service';
 import { Facture } from '../../../app/features/factures/models/facture.model';
@@ -62,11 +62,19 @@ describe('FactureListComponent', () => {
   let fixture: ComponentFixture<FactureListComponent>;
   let factureServiceSpy: jasmine.SpyObj<FactureService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let modalCtrlSpy: jasmine.SpyObj<ModalController>;
 
   beforeEach(async () => {
     factureServiceSpy = jasmine.createSpyObj<FactureService>('FactureService', ['getAllFactures']);
     factureServiceSpy.getAllFactures.and.returnValue(of(mockFactures));
     toastCtrlSpy = jasmine.createSpyObj<ToastController>('ToastController', ['create']);
+
+    const mockModal = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: { action: 'created', facture: mockFactures[0], openSplit: false } }))
+    };
+    modalCtrlSpy = jasmine.createSpyObj<ModalController>('ModalController', ['create']);
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -77,7 +85,8 @@ describe('FactureListComponent', () => {
       providers: [
         provideIonicAngular(),
         { provide: FactureService, useValue: factureServiceSpy },
-        { provide: ToastController, useValue: toastCtrlSpy }
+        { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: ModalController, useValue: modalCtrlSpy }
       ],
     }).compileComponents();
 
@@ -410,5 +419,12 @@ describe('FactureListComponent', () => {
     component.exportFacturesCsv();
     expect(window.open).toHaveBeenCalledWith(jasmine.stringMatching('dateFrom=2026-09-01&dateTo=2026-09-30'), '_blank');
   });
+
+  it('ouvrirModalNouvelleFacture() opens modal and reloads invoices on creation', fakeAsync(() => {
+    component.ouvrirModalNouvelleFacture();
+    tick();
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(factureServiceSpy.getAllFactures).toHaveBeenCalled();
+  }));
 });
 

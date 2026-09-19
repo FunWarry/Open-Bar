@@ -282,4 +282,30 @@ class FactureControllerTest {
         assertThat(factureController.exportFec(1L).getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(factureController.printZReportTicket(1L).getStatusCode().is2xxSuccessful()).isTrue();
     }
+
+    @Test
+    @DisplayName("genererFactureTable calls service and returns 201 Created")
+    void genererFactureTable_returnsCreated() {
+        FactureResponseDTO dto = FactureResponseDTO.from(facture);
+        when(factureService.genererFactureTable(1L)).thenReturn(dto);
+
+        ResponseEntity<FactureResponseDTO> response = factureController.genererFactureTable(1L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isEqualTo(dto);
+        verify(factureService).genererFactureTable(1L);
+    }
+
+    @Test
+    @DisplayName("genererFactureTab calls service and returns 200 OK")
+    void genererFactureTab_returnsCreated() {
+        FactureResponseDTO dto = FactureResponseDTO.from(facture);
+        when(factureService.genererFactureTab(2L)).thenReturn(dto);
+
+        ResponseEntity<FactureResponseDTO> response = factureController.genererFactureTab(2L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isEqualTo(dto);
+        verify(factureService).genererFactureTab(2L);
+    }
 }

@@ -101,7 +101,7 @@ describe('EncaissementModalComponent', () => {
       reglee: true
     } as any));
 
-    factureServiceSpy = jasmine.createSpyObj('FactureService', ['getFacturesByTable']);
+    factureServiceSpy = jasmine.createSpyObj('FactureService', ['getFacturesByTable', 'genererFactureTable', 'genererFactureTab']);
     barTabServiceSpy = jasmine.createSpyObj('BarTabService', ['getTabAddition', 'encaisserTab']);
 
     TestBed.configureTestingModule({
@@ -409,5 +409,27 @@ describe('EncaissementModalComponent', () => {
 
   it('should return currency symbol from appSettingsService', () => {
     expect(component.currencySymbol).toBe('€');
+  });
+
+  it('onPaymentTabChange("split") generates table invoice and dismisses with open_split', fakeAsync(() => {
+    const mockGeneratedFacture = { id: 77, numero: 'FAC-77' } as any;
+    factureServiceSpy.genererFactureTable.and.returnValue(of(mockGeneratedFacture));
+    component.table = mockTable;
+
+    component.onPaymentTabChange('split');
+    tick();
+
+    expect(factureServiceSpy.genererFactureTable).toHaveBeenCalledWith(mockTable.id);
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({
+      action: 'open_split',
+      facture: mockGeneratedFacture,
+      table: mockTable,
+      tab: undefined
+    });
+  }));
+
+  it('onPaymentTabChange("single") switches paymentTab to single', async () => {
+    await component.onPaymentTabChange('single');
+    expect(component.paymentTab).toBe('single');
   });
 });

@@ -398,4 +398,12 @@ describe('TableDetailModalComponent', () => {
     ];
     expect(component.calculerTotalActif()).toBe(22.0);
   });
+
+  it('diviserAddition() dismisses modal with action "split" and table', () => {
+    component.diviserAddition();
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({
+      action: 'split',
+      table: mockTable
+    });
+  });
 });

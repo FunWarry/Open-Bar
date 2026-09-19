@@ -22,6 +22,7 @@ import { ZoneService } from '../../../app/core/services/zone.service';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
 import { PlanSalleService } from '../../../app/features/plan-salle/services/plan-salle.service';
 import { HappyHourService } from '../../../app/core/services/happy-hour.service';
+import { FactureService } from '../../../app/features/factures/services/facture.service';
 import { provideMockStore } from '@ngrx/store/testing';
 
 import { provideIonicAngular } from '@ionic/angular';
@@ -48,6 +49,7 @@ describe('DashboardServeurComponent', () => {
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let happyHourServiceSpy: jasmine.SpyObj<HappyHourService>;
+  let factureServiceSpy: jasmine.SpyObj<FactureService>;
   let notification$: Subject<AppNotification>;
 
   const mockTables: TableView[] = [
@@ -144,6 +146,9 @@ describe('DashboardServeurComponent', () => {
     });
     offlineOrderServiceSpy.syncPendingOrders.and.returnValue(Promise.resolve({ synced: 1, failed: 0 }));
 
+    factureServiceSpy = jasmine.createSpyObj('FactureService', ['genererFactureTable', 'genererFactureTab']);
+    factureServiceSpy.genererFactureTable.and.returnValue(of({ id: 99, tableId: 1, tableNumero: 1, numero: 'FAC-001', total: 20 } as any));
+
     await TestBed.configureTestingModule({
       imports: [
         DashboardServeurComponent,
@@ -171,6 +176,7 @@ describe('DashboardServeurComponent', () => {
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: HappyHourService, useValue: happyHourServiceSpy },
+        { provide: FactureService, useValue: factureServiceSpy },
       ],
     }).compileComponents();
 
@@ -1167,5 +1173,26 @@ describe('DashboardServeurComponent', () => {
       component.setDisplayMode('PLAN');
       expect(component.displayMode).toBe('PLAN');
     });
+
+    it('ouvrirSplitTable() generates table invoice and opens split modal', fakeAsync(() => {
+      component.ouvrirSplitTable(mockTables[0]);
+      tick();
+      expect(factureServiceSpy.genererFactureTable).toHaveBeenCalledWith(mockTables[0].id);
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
+    }));
+
+    it('ouvrirSplitFacture() opens split modal and reloads tables if settled', fakeAsync(() => {
+      const mockFacture = { id: 99, tableId: 1, numero: 'FAC-001' } as any;
+      (modalCtrlSpy.create as jasmine.Spy).and.returnValue(Promise.resolve({
+        present: jasmine.createSpy('present'),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: { settled: true } }))
+      } as any));
+
+      component.ouvrirSplitFacture(mockFacture);
+      tick();
+
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
+      expect(dashboardServiceSpy.getAllTables).toHaveBeenCalled();
+    }));
   });
 });
