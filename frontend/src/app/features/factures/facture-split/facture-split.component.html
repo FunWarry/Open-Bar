@@ -31,27 +31,29 @@
     </div>
   </ion-toolbar>
 
-  <!-- 4-Mode Segment Switcher -->
-  <div class="segment-container">
-    <ion-segment [(ngModel)]="mode" (ionChange)="onModeChange()" data-testid="split-mode-segment">
-      <ion-segment-button value="equal" data-testid="split-mode-egal">
-        <ion-icon name="people-outline"></ion-icon>
-        <ion-label>{{ 'SPLIT.EQUAL_SHARE' | transloco }}</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="custom_amount" data-testid="split-mode-custom-amount">
-        <ion-icon name="cash-outline"></ion-icon>
-        <ion-label>{{ 'SPLIT.CUSTOM_AMOUNT' | transloco }}</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="custom_percentage" data-testid="split-mode-custom-pct">
-        <ion-icon name="calculator-outline"></ion-icon>
-        <ion-label>{{ 'SPLIT.CUSTOM_PERCENTAGE' | transloco }}</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="itemized" data-testid="split-mode-selection">
-        <ion-icon name="list-outline"></ion-icon>
-        <ion-label>{{ 'SPLIT.ITEMIZED' | transloco }}</ion-label>
-      </ion-segment-button>
-    </ion-segment>
-  </div>
+  <!-- 4-Mode Segment Switcher (hidden when invoice is already settled) -->
+  @if (!isAlreadySettled) {
+    <div class="segment-container">
+      <ion-segment [(ngModel)]="mode" (ionChange)="onModeChange()" data-testid="split-mode-segment">
+        <ion-segment-button value="equal" data-testid="split-mode-egal">
+          <ion-icon name="people-outline"></ion-icon>
+          <ion-label>{{ 'SPLIT.EQUAL_SHARE' | transloco }}</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="custom_amount" data-testid="split-mode-custom-amount">
+          <ion-icon name="cash-outline"></ion-icon>
+          <ion-label>{{ 'SPLIT.CUSTOM_AMOUNT' | transloco }}</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="custom_percentage" data-testid="split-mode-custom-pct">
+          <ion-icon name="calculator-outline"></ion-icon>
+          <ion-label>{{ 'SPLIT.CUSTOM_PERCENTAGE' | transloco }}</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="itemized" data-testid="split-mode-selection">
+          <ion-icon name="list-outline"></ion-icon>
+          <ion-label>{{ 'SPLIT.ITEMIZED' | transloco }}</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+  }
 </ion-header>
 
 <ion-content class="split-modal-content">
@@ -149,6 +151,7 @@
       </div>
     }
 
+    @if (!isAlreadySettled) {
     <!-- ── Mode 1 : Parts Égales (Equal Split) ────────────────────── -->
     @if (mode === 'equal') {
       <div class="section-card" data-testid="equal-split-section">
@@ -758,6 +761,17 @@
             </button>
           </div>
         }
+      </div>
+    }
+    } @else {
+      <div class="consultation-footer-card">
+        <button
+          type="button"
+          class="btn-finish-modal"
+          (click)="closeModal()"
+          data-testid="close-consultation-btn">
+          {{ 'SPLIT.FINISH_AND_CLOSE' | transloco }}
+        </button>
       </div>
     }
 

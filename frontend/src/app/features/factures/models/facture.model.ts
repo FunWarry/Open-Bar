@@ -24,6 +24,23 @@ export interface SplitItem {
   total: number;
 }
 
+/**
+ * Invoice split calculation & settlement strategies.
+ */
+export enum TypeSplit {
+  EGAL = 'EGAL',
+  SELECTION = 'SELECTION',
+  MONTANT_LIBRE = 'MONTANT_LIBRE',
+  POURCENTAGE = 'POURCENTAGE',
+  SOLDE = 'SOLDE',
+  GLOBAL = 'GLOBAL',
+}
+
+/**
+ * Type alias accepting either TypeSplit enum members or their string literal values.
+ */
+export type TypeSplitValue = TypeSplit | `${TypeSplit}`;
+
 export interface FactureReglement {
   id?: number;
   factureId: number;
@@ -34,7 +51,7 @@ export interface FactureReglement {
   pourboire?: number;
   totalRegle: number;
   modePaiement: string;
-  typeSplit: 'EGAL' | 'SELECTION' | 'MONTANT_LIBRE' | 'POURCENTAGE';
+  typeSplit: TypeSplitValue;
   items?: SplitItem[];
   dateReglement?: string;
 }
@@ -47,7 +64,7 @@ export interface EncaisserPartRequest {
   pourboire?: number;
   totalRegle: number;
   modePaiement: string;
-  typeSplit: 'EGAL' | 'SELECTION' | 'MONTANT_LIBRE' | 'POURCENTAGE';
+  typeSplit: TypeSplitValue;
   items?: SplitItem[];
 }
 

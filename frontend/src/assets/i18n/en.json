@@ -187,6 +187,7 @@
     "CUSTOM_PCT_MODE": "Percentage",
     "INVOICE_ALREADY_SETTLED_BANNER": "This invoice is already fully settled. View-only mode: you can inspect shares and reprint receipts.",
     "ALREADY_SETTLED_PARTS_TITLE": "Already settled parts",
+    "GLOBAL_SETTLEMENT": "Direct settlement",
     "REMAINING_TO_SPLIT": "Remaining to split:",
     "CUSTOM_AMOUNT_HINT": "Enter the amount covered by each guest.",
     "CUSTOM_PCT_HINT": "Enter the percentage covered by each guest (total 100%).",

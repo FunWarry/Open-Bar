@@ -2396,6 +2396,26 @@
           "quantite": 2,
           "prixUnitaire": "10.50"
         }
+      ],
+      "reglements": [
+        {
+          "nomConvive": "Emma",
+          "partIndex": 1,
+          "totalParts": 2,
+          "montant": "10.50",
+          "pourboire": "1.00",
+          "modePaiement": "APPLE_PAY",
+          "typeSplit": "EGAL"
+        },
+        {
+          "nomConvive": "Thomas",
+          "partIndex": 2,
+          "totalParts": 2,
+          "montant": "10.50",
+          "pourboire": "1.00",
+          "modePaiement": "APPLE_PAY",
+          "typeSplit": "EGAL"
+        }
       ]
     },
     {
@@ -2411,6 +2431,17 @@
           "description": "Mojito",
           "quantite": 2,
           "prixUnitaire": "9.50"
+        }
+      ],
+      "reglements": [
+        {
+          "nomConvive": "Alice",
+          "partIndex": 1,
+          "totalParts": 1,
+          "montant": "19.00",
+          "pourboire": "0.00",
+          "modePaiement": "CB",
+          "typeSplit": "GLOBAL"
         }
       ]
     }

@@ -187,6 +187,7 @@
     "CUSTOM_PCT_MODE": "Pourcentage",
     "INVOICE_ALREADY_SETTLED_BANNER": "Cette facture est déjà entièrement réglée. Mode consultation : vous pouvez consulter les parts et réimprimer les tickets de caisse.",
     "ALREADY_SETTLED_PARTS_TITLE": "Parts déjà réglées",
+    "GLOBAL_SETTLEMENT": "Règlement direct",
     "REMAINING_TO_SPLIT": "Reste à répartir :",
     "CUSTOM_AMOUNT_HINT": "Indiquez le montant pris en charge par chaque convive.",
     "CUSTOM_PCT_HINT": "Indiquez le pourcentage pris en charge par chaque convive (total 100%).",

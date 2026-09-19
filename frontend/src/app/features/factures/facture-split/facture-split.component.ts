@@ -17,7 +17,7 @@ import {
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { FactureService, SplitResultDTO, SplitPartRequest, SplitPartItemRequest } from '../services/facture.service';
-import { Facture, FactureItem, FactureReglement, EncaisserPartRequest } from '../models/facture.model';
+import { Facture, FactureItem, FactureReglement, EncaisserPartRequest, TypeSplit } from '../models/facture.model';
 import { ReglementModalComponent, ReglementModalResult } from '../reglement-modal/reglement-modal.component';
 import { TicketReceiptComponent } from '../ticket-receipt/ticket-receipt.component';
 
@@ -674,8 +674,11 @@ export class FactureSplitComponent implements OnInit {
 
   /** Total amount already settled from previous transactions (persisted in DB). */
   get alreadyPaidFromDb(): number {
-    if (!this.initialReglements?.length) return 0;
-    return this.initialReglements.reduce((sum, r) => sum + (r.montant || 0), 0);
+    const reglementsSum = this.initialReglements?.reduce((sum, r) => sum + (r.montant || 0), 0) || 0;
+    if (this._facture?.reglee) {
+      return Math.max(reglementsSum, this.totalBillAmount);
+    }
+    return reglementsSum;
   }
 
   /** Amount paid in the current modal session. */
@@ -704,7 +707,7 @@ export class FactureSplitComponent implements OnInit {
   /** Whether the invoice was already settled before opening this split view. */
   get isInitialInvoiceSettled(): boolean {
     if (this._facture?.reglee) return true;
-    const initialPaid = this.alreadyPaidFromDb;
+    const initialPaid = this.initialReglements?.reduce((sum, r) => sum + (r.montant || 0), 0) || 0;
     return this.totalBillAmount > 0 && initialPaid >= this.totalBillAmount - 0.01;
   }
 
@@ -715,7 +718,25 @@ export class FactureSplitComponent implements OnInit {
 
   /** List of past settlements persisted in database for consultation/receipt reprint. */
   get previousReglements(): FactureReglement[] {
-    return this.initialReglements;
+    if (this.initialReglements && this.initialReglements.length > 0) {
+      return this.initialReglements;
+    }
+    if (this._facture?.reglee) {
+      return [{
+        id: 0,
+        factureId: this._facture.id,
+        nomConvive: String(this.transloco.translate('SPLIT.GLOBAL_SETTLEMENT')),
+        partIndex: 1,
+        totalParts: 1,
+        montant: this.totalBillAmount,
+        pourboire: this._facture.pourboire || 0,
+        totalRegle: this.totalBillAmount + (this._facture.pourboire || 0),
+        modePaiement: this._facture.modePaiement || 'CB',
+        typeSplit: TypeSplit.GLOBAL,
+        dateReglement: this._facture.dateReglement || this._facture.dateFacture,
+      }];
+    }
+    return [];
   }
 
   get paidRatio(): number {
@@ -727,11 +748,11 @@ export class FactureSplitComponent implements OnInit {
     return this.results.length > 0 && this.results.every((_, i) => !!this.partStates[i]?.settled);
   }
 
-  private resolveTypeSplit(): 'EGAL' | 'SELECTION' | 'MONTANT_LIBRE' | 'POURCENTAGE' {
-    if (this.mode === 'custom_amount') return 'MONTANT_LIBRE';
-    if (this.mode === 'custom_percentage') return 'POURCENTAGE';
-    if (this.mode === 'itemized' || this.mode === 'selection') return 'SELECTION';
-    return 'EGAL';
+  private resolveTypeSplit(): TypeSplit {
+    if (this.mode === 'custom_amount') return TypeSplit.MONTANT_LIBRE;
+    if (this.mode === 'custom_percentage') return TypeSplit.POURCENTAGE;
+    if (this.mode === 'itemized' || this.mode === 'selection') return TypeSplit.SELECTION;
+    return TypeSplit.EGAL;
   }
 
   private resolveTotalParts(): number {

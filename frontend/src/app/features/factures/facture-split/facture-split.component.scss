@@ -1565,12 +1565,32 @@
 
       &:hover {
         border-color: var(--semantic-danger);
-        background: rgba(239, 68, 68, 0.15);
+        background: var(--danger-subtle-bg, rgba(239, 68, 68, 0.15));
       }
     }
   }
 }
 
+.consultation-footer-card {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 16px 0 24px;
 
+  .btn-finish-modal {
+    padding: 12px 32px;
+    border-radius: var(--radius-md, 12px);
+    background: var(--primary);
+    color: var(--text-on-accent);
+    border: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease;
 
-
+    &:hover {
+      transform: scale(1.03);
+      opacity: 0.95;
+    }
+  }
+}

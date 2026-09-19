@@ -914,6 +914,8 @@ public class SampleDataSeederService {
 
         if (invNode.has(KEY_REGLEMENTS) && invNode.get(KEY_REGLEMENTS).isArray() && savedFacture.getReglements().isEmpty()) {
             seedInvoiceReglements(savedFacture, invNode.get(KEY_REGLEMENTS), invoiceTime);
+        } else if (savedFacture.isReglee() && savedFacture.getReglements().isEmpty()) {
+            seedSingleGlobalReglement(savedFacture, invoiceTime);
         }
     }
 
@@ -963,6 +965,31 @@ public class SampleDataSeederService {
             reglementsList.add(fr);
         }
         savedFacture.setReglements(reglementsList);
+    }
+
+    /**
+     * Seeds a single global settlement for a finalized invoice marked as settled without split breakdown.
+     *
+     * @param savedFacture persisted invoice entity
+     * @param invoiceTime  timestamp when the invoice was issued
+     */
+    private void seedSingleGlobalReglement(Facture savedFacture, LocalDateTime invoiceTime) {
+        FactureReglement fr = new FactureReglement();
+        fr.setFacture(savedFacture);
+        fr.setNomConvive("Client");
+        fr.setPartIndex(1);
+        fr.setTotalParts(1);
+        fr.setMontant(savedFacture.getTotal());
+        BigDecimal tip = savedFacture.getPourboire() != null ? savedFacture.getPourboire() : BigDecimal.ZERO;
+        fr.setPourboire(tip);
+        fr.setTotalRegle(savedFacture.getTotal().add(tip));
+        fr.setModePaiement(savedFacture.getModePaiement() != null ? savedFacture.getModePaiement() : "CB");
+        fr.setTypeSplit("GLOBAL");
+        fr.setDateReglement(savedFacture.getDateReglement() != null ? savedFacture.getDateReglement() : invoiceTime.plusMinutes(35));
+        factureReglementRepository.save(fr);
+        List<FactureReglement> list = new ArrayList<>();
+        list.add(fr);
+        savedFacture.setReglements(list);
     }
 
     private void seedAvoirsCreditFromJson(JsonNode avoirsNode) {

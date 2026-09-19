@@ -5,7 +5,7 @@ import { addIcons } from 'ionicons';
 import { printOutline, receiptOutline, hardwareChipOutline } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
-import { Facture, FactureItem, FactureReglement } from '../models/facture.model';
+import { Facture, FactureItem, FactureReglement, TypeSplit } from '../models/facture.model';
 import { EstablishmentConfig } from '../../../core/models/establishment-config.model';
 import { EtablissementService } from '../../../core/services/etablissement.service';
 import { PrinterService } from '../../../core/services/printer.service';
@@ -88,7 +88,7 @@ export class TicketReceiptComponent implements OnInit {
 
   get splitPartItems(): { description: string; quantite: number; prixUnitaire: number; total: number }[] {
     if (!this.reglement) return [];
-    if (this.reglement.typeSplit === 'SELECTION' && this.reglement.items && this.reglement.items.length > 0) {
+    if (this.reglement.typeSplit === TypeSplit.SELECTION && this.reglement.items && this.reglement.items.length > 0) {
       return this.reglement.items;
     }
     return [{
