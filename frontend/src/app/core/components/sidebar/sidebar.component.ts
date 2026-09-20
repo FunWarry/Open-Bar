@@ -12,6 +12,7 @@ import {
   nutritionOutline, settingsOutline, documentTextOutline, chevronBackOutline,
   chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline
 } from 'ionicons/icons';
+import { tableRestaurantOutline } from '../../icons/custom-icons';
 import { selectCurrentUser } from '../../store/auth.selectors';
 import * as AuthActions from '../../store/auth.actions';
 import { User } from '../../models/user.model';
@@ -49,7 +50,7 @@ export const SIDEBAR_NAV_ITEMS: NavItemDef[] = [
   { id: 'nav-schedule', route: '/manager/schedule', icon: 'calendar-outline', labelKey: 'NAV.SCHEDULE', roles: ['MANAGER', 'ADMIN'], requiredModule: EstablishmentModule.EMPLOYEE_MANAGEMENT, section: 'main' },
   { id: 'nav-cocktails', route: '/cocktails', icon: 'wine-outline', labelKey: 'NAV.COCKTAILS', section: 'main' },
   { id: 'nav-commandes', route: '/commandes', icon: 'receipt-outline', labelKey: 'NAV.COMMANDES', section: 'main' },
-  { id: 'nav-tables', route: '/tables', icon: 'restaurant-outline', labelKey: 'NAV.TABLES', section: 'main' },
+  { id: 'nav-tables', route: '/tables', icon: 'table-restaurant-outline', labelKey: 'NAV.TABLES', section: 'main' },
   { id: 'nav-factures', route: '/factures', icon: 'card-outline', labelKey: 'NAV.FACTURES', roles: ['MANAGER', 'ADMIN', 'SERVEUR'], section: 'main' },
   { id: 'nav-ingredients', route: '/ingredients', icon: 'nutrition-outline', labelKey: 'NAV.INGREDIENTS', roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.STOCK_TRACKING, section: 'admin' },
   { id: 'nav-users', route: '/admin/users', icon: 'people-outline', labelKey: 'NAV.USERS', roles: ['ADMIN'], section: 'admin' },
@@ -107,7 +108,8 @@ export class SidebarComponent implements OnDestroy {
       homeOutline, restaurantOutline, gridOutline, beerOutline,
       statsChartOutline, receiptOutline, wineOutline, cardOutline,
       nutritionOutline, settingsOutline, documentTextOutline, chevronBackOutline,
-      chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline
+      chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline,
+      tableRestaurantOutline
     });
 
     this.currentUser$ = this.store.select(selectCurrentUser);

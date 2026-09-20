@@ -24,6 +24,7 @@ import {
   waterOutline, beerOutline, fastFoodOutline, searchOutline,
   addOutline, removeOutline, locateOutline,
 } from 'ionicons/icons';
+import { tableRestaurantOutline } from '../../core/icons/custom-icons';
 import { CocktailService } from '../../core/services/cocktail.service';
 import { Cocktail } from '../../core/models/cocktail.model';
 import { CocktailListComponent } from '../cocktails/cocktail-list/cocktail-list.component';
@@ -231,7 +232,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       checkmarkCircleOutline, closeCircleOutline, peopleOutline, wineOutline,
       nutritionOutline, eggOutline, leafOutline, sparklesOutline, flameOutline,
       waterOutline, beerOutline, fastFoodOutline, searchOutline,
-      addOutline, removeOutline, locateOutline,
+      addOutline, removeOutline, locateOutline, tableRestaurantOutline,
     });
   }
 

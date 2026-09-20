@@ -5,6 +5,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 
 import { addIcons } from 'ionicons';
 import { restaurantOutline, cartOutline, listOutline, receiptOutline } from 'ionicons/icons';
+import { tableRestaurantOutline } from '../../../../core/icons/custom-icons';
 
 /**
  * Identifier for active tab in Waiter mobile view.
@@ -39,7 +40,7 @@ export class BottomNavigationComponent {
   @Output() tabSelect = new EventEmitter<ServeurTab>();
 
   constructor() {
-    addIcons({ restaurantOutline, receiptOutline, cartOutline, listOutline });
+    addIcons({ restaurantOutline, receiptOutline, cartOutline, listOutline, tableRestaurantOutline });
   }
 
   /**
