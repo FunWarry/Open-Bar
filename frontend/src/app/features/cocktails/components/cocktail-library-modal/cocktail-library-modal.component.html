@@ -211,7 +211,7 @@
                   </span>
                   <span class="meta-pill">
                     <ion-icon name="flask-outline"></ion-icon>
-                    {{ (cocktail.ingredients?.length || 0) }} {{ 'COCKTAIL_LIBRARY.ING_COUNT' | transloco }}
+                    {{ cocktail.ingredients.length }} {{ 'COCKTAIL_LIBRARY.ING_COUNT' | transloco }}
                   </span>
                 </div>
               </div>
@@ -342,7 +342,7 @@
         <div class="preview-section">
           <h4 class="section-title">
             <ion-icon name="flask-outline"></ion-icon>
-            {{ 'COCKTAIL_LIBRARY.INGREDIENTS_TITLE' | transloco }} ({{ item.ingredients?.length || 0 }})
+            {{ 'COCKTAIL_LIBRARY.INGREDIENTS_TITLE' | transloco }} ({{ item.ingredients.length }})
           </h4>
           <ul class="ingredients-list">
             @for (ing of item.ingredients || []; track ing.nom) {
