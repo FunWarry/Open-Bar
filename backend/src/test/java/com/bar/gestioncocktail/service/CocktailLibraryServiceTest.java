@@ -229,4 +229,84 @@ class CocktailLibraryServiceTest {
 
         verify(cocktailRepository, never()).save(any(Cocktail.class));
     }
+
+    @Test
+    @DisplayName("Should filter library cocktails by flavor profile")
+    void shouldFilterByFlavor() {
+        List<CocktailLibraryItemDTO> results = cocktailLibraryService.getLibrary(null, null, "HERBAL", null, null);
+        assertThat(results).isNotEmpty().allSatisfy(c ->
+                assertThat(c.flavorProfiles()).contains("HERBAL")
+        );
+    }
+
+    @Test
+    @DisplayName("Should import cocktails by cocktail names instead of ids")
+    void shouldImportCocktailsByName() {
+        when(cocktailRepository.findByNomIgnoreCase(anyString())).thenReturn(Optional.empty());
+        when(ingredientRepository.findByNomIgnoreCase(anyString())).thenReturn(Optional.empty());
+        when(glasswareRepository.findAll()).thenReturn(List.of(defaultGlassware));
+
+        when(ingredientRepository.save(any(Ingredient.class))).thenAnswer(invocation -> {
+            Ingredient ing = invocation.getArgument(0);
+            ing.setId(idGenerator.incrementAndGet());
+            return ing;
+        });
+        when(cocktailIngredientRepository.save(any(CocktailIngredient.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(invocation -> {
+            Cocktail c = invocation.getArgument(0);
+            if (c.getId() == null) {
+                c.setId(20L);
+            }
+            return c;
+        });
+
+        CocktailLibraryImportRequestDTO request = new CocktailLibraryImportRequestDTO(null, List.of("Aulp"));
+        CocktailLibraryImportResultDTO result = cocktailLibraryService.importCocktails(request);
+
+        assertThat(result.importedCount()).isEqualTo(1);
+        assertThat(result.importedCocktails()).contains("Aulp");
+    }
+
+    @Test
+    @DisplayName("Should handle import when glassware repository is empty")
+    void shouldImportWithFallbackGlassware() {
+        when(cocktailRepository.findByNomIgnoreCase(anyString())).thenReturn(Optional.empty());
+        when(ingredientRepository.findByNomIgnoreCase(anyString())).thenReturn(Optional.empty());
+        when(glasswareRepository.findAll()).thenReturn(Collections.emptyList());
+
+        when(ingredientRepository.save(any(Ingredient.class))).thenAnswer(invocation -> {
+            Ingredient ing = invocation.getArgument(0);
+            ing.setId(idGenerator.incrementAndGet());
+            return ing;
+        });
+        when(cocktailIngredientRepository.save(any(CocktailIngredient.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(invocation -> {
+            Cocktail c = invocation.getArgument(0);
+            if (c.getId() == null) {
+                c.setId(21L);
+            }
+            return c;
+        });
+
+        CocktailLibraryImportRequestDTO request = new CocktailLibraryImportRequestDTO(List.of("lib_1"), null);
+        CocktailLibraryImportResultDTO result = cocktailLibraryService.importCocktails(request);
+
+        assertThat(result.importedCount()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("Should safely handle non-existent cocktail IDs or names in import request")
+    void shouldHandleNonExistentItemInImport() {
+        CocktailLibraryImportRequestDTO request = new CocktailLibraryImportRequestDTO(
+                List.of("non_existent_id"),
+                List.of("Non Existent Drink", "")
+        );
+        CocktailLibraryImportResultDTO result = cocktailLibraryService.importCocktails(request);
+
+        assertThat(result.importedCount()).isZero();
+        assertThat(result.skippedCount()).isZero();
+        verify(cocktailRepository, never()).save(any(Cocktail.class));
+    }
 }

@@ -109,6 +109,20 @@ describe('SetupComponent', () => {
     expect(component.currentStep).toBe('catalog');
   });
 
+  it('proceedToCatalog marks form as touched and stays on admin step when form is invalid', () => {
+    component.setupForm.reset();
+    component.proceedToCatalog();
+    expect(component.currentStep).toBe('admin');
+  });
+
+  it('submitSetup returns to admin step and does not call service when form is invalid', () => {
+    component.currentStep = 'catalog';
+    component.setupForm.reset();
+    component.submitSetup(['lib_1']);
+    expect(component.currentStep).toBe('admin');
+    expect(setupServiceSpy.createAdmin).not.toHaveBeenCalled();
+  });
+
   it('allows returning back to admin step', () => {
     component.currentStep = 'catalog';
     component.backToAdmin();
