@@ -42,6 +42,10 @@ test.describe('Cocktail Library Import Wizard E2E', () => {
     const modal = page.locator('[data-testid="cocktail-library-modal"]');
     await expect(modal).toBeVisible();
 
+    // Wait for catalog cards to load
+    const firstCard = page.locator('[data-testid^="library-cocktail-card-"]').first();
+    await expect(firstCard).toBeVisible({ timeout: 10000 });
+
     // Open recipe preview for first cocktail
     const previewBtn = page.locator('[data-testid="library-preview-btn-lib_1"]');
     if (await previewBtn.isVisible()) {
@@ -64,13 +68,17 @@ test.describe('Cocktail Library Import Wizard E2E', () => {
     const modal = page.locator('[data-testid="cocktail-library-modal"]');
     await expect(modal).toBeVisible();
 
+    // Wait for catalog cards to load
+    const firstCard = page.locator('[data-testid^="library-cocktail-card-"]').first();
+    await expect(firstCard).toBeVisible({ timeout: 10000 });
+
     // Batch select all visible
     const selectAllBtn = page.locator('[data-testid="library-select-all-btn"]');
     await selectAllBtn.click();
 
     // Submit import
     const importBtn = page.locator('[data-testid="library-import-btn"]');
-    await expect(importBtn).toBeEnabled();
+    await expect(importBtn).toBeEnabled({ timeout: 5000 });
     await importBtn.click();
 
     // Modal should be dismissed after successful import
