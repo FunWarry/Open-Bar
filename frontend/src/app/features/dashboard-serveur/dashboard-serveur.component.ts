@@ -25,6 +25,8 @@ import {
   addOutline, removeOutline, locateOutline,
 } from 'ionicons/icons';
 import { CocktailService } from '../../core/services/cocktail.service';
+import { Cocktail } from '../../core/models/cocktail.model';
+import { CocktailListComponent } from '../cocktails/cocktail-list/cocktail-list.component';
 import { HappyHourService } from '../../core/services/happy-hour.service';
 import { ZoneService, ZoneBar } from '../../core/services/zone.service';
 import { TableDetailModalComponent } from './components/table-detail-modal/table-detail-modal.component';
@@ -62,7 +64,7 @@ const PLAN_COLS = 5;
 
 import { MobileTableCardComponent } from './components/mobile-table-card/mobile-table-card.component';
 import { BottomNavigationComponent, ServeurTab } from './components/bottom-navigation/bottom-navigation.component';
-import { ProductCardComponent, ProductItem } from './components/product-card/product-card.component';
+import { ProductItem, ProductVariant } from './components/product-card/product-card.component';
 import { CartDrawerComponent } from './components/cart-drawer/cart-drawer.component';
 import { CartModel, CartItemModel } from './models/cart.model';
 import { BarTabsListComponent } from './components/bar-tabs-list/bar-tabs-list.component';
@@ -107,12 +109,12 @@ import { SearchBarComponent } from '../../core/components/ui/search-bar/search-b
     IonIcon,
     MobileTableCardComponent,
     BottomNavigationComponent,
-    ProductCardComponent,
     CartDrawerComponent,
     CommandeListComponent,
     SearchableSelectComponent,
     SearchBarComponent,
     BarTabsListComponent,
+    CocktailListComponent,
   ],
   templateUrl: './dashboard-serveur.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -1743,6 +1745,71 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       return;
     }
     this.pushItemToCart(product, undefined, product.prix);
+  }
+
+  /**
+   * Handles cocktail selection from the embedded cocktail catalog in the order-taking tab.
+   * If the cocktail has variants, prompts the waiter to pick a variant (or the standard recipe)
+   * before adding the item to the order cart.
+   *
+   * @param cocktail - Selected cocktail from the catalog
+   */
+  async onCocktailSelected(cocktail: Cocktail): Promise<void> {
+    const productItem: ProductItem = {
+      id: cocktail.id,
+      nom: cocktail.nom,
+      prix: cocktail.prix,
+      categorie: cocktail.categorie,
+      disponible: cocktail.disponible,
+      description: cocktail.ingredients && cocktail.ingredients.length > 0
+        ? cocktail.ingredients.map(i => i.ingredientNom).join(' · ')
+        : (cocktail.description || ''),
+      image: cocktail.imageUrl,
+    };
+
+    const availableVariants = (cocktail.variantes || []).filter(v => v.disponible !== false);
+
+    if (availableVariants.length > 0) {
+      const standardOption: ProductVariant = {
+        id: undefined,
+        nom: `${cocktail.nom} (${this.translocoService.translate('SERVEUR.NO_VARIANTE') || 'Standard'})`,
+        prix: cocktail.prix,
+      };
+      const variantsForModal: ProductVariant[] = [
+        standardOption,
+        ...availableVariants.map(v => ({
+          id: v.id,
+          nom: v.nom,
+          prix: Number((cocktail.prix + (v.prixSupplement || 0)).toFixed(2)),
+        })),
+      ];
+
+      const modal = await this.modalCtrl.create({
+        component: VariantSelectionModalComponent,
+        componentProps: {
+          product: {
+            ...productItem,
+            variantes: variantsForModal,
+          },
+        },
+      });
+      await modal.present();
+      const { data, role } = await modal.onWillDismiss();
+      if (role === 'confirm' && data?.selectedVariant) {
+        const isStandard = data.selectedVariant.id === undefined;
+        this.pushItemToCart(
+          productItem,
+          isStandard ? undefined : data.selectedVariant.nom,
+          data.selectedVariant.prix,
+          undefined,
+          undefined,
+          data.selectedVariant.id,
+        );
+      }
+      return;
+    }
+
+    this.pushItemToCart(productItem, undefined, cocktail.prix);
   }
 
   async onCustomizeProduct(product: ProductItem) {

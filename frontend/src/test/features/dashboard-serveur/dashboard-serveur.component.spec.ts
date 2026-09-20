@@ -20,6 +20,7 @@ import { TableCardComponent } from '../../../app/features/dashboard-serveur/comp
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 import { ZoneService } from '../../../app/core/services/zone.service';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
+import { Cocktail } from '../../../app/core/models/cocktail.model';
 import { PlanSalleService } from '../../../app/features/plan-salle/services/plan-salle.service';
 import { HappyHourService } from '../../../app/core/services/happy-hour.service';
 import { FactureService } from '../../../app/features/factures/services/facture.service';
@@ -102,8 +103,9 @@ describe('DashboardServeurComponent', () => {
     zoneServiceSpy = jasmine.createSpyObj('ZoneService', ['getAll']);
     zoneServiceSpy.getAll.and.returnValue(of([]));
 
-    cocktailServiceSpy = jasmine.createSpyObj('CocktailService', ['getAll']);
+    cocktailServiceSpy = jasmine.createSpyObj('CocktailService', ['getAll', 'getFacets', 'toggleDisponibilite', 'delete']);
     cocktailServiceSpy.getAll.and.returnValue(of([]));
+    cocktailServiceSpy.getFacets.and.returnValue(of(null as any));
 
     planSalleServiceSpy = jasmine.createSpyObj('PlanSalleService', ['getPositions']);
     planSalleServiceSpy.getPositions.and.returnValue(of([]));
@@ -1274,6 +1276,120 @@ describe('DashboardServeurComponent', () => {
       expect(component.cart.tableNumero).toBeUndefined();
       expect(component.activeTab).toBe('commande');
     });
+  });
+
+  describe('onCocktailSelected() and Variant Selection Flow (#508)', () => {
+    const mockCocktailWithoutVariants: Cocktail = {
+      id: 50,
+      nom: 'Gin Tonic Classic',
+      prix: 9.0,
+      categorie: 'ALCOOLISE',
+      disponible: true,
+      description: 'Gin premium, tonic',
+      saisonnier: false,
+      variantes: [],
+      ingredients: [],
+      createdAt: '',
+      updatedAt: '',
+    };
+
+    const mockCocktailWithVariants: Cocktail = {
+      id: 51,
+      nom: 'Mojito Havana',
+      prix: 8.5,
+      categorie: 'ALCOOLISE',
+      disponible: true,
+      description: 'Rhum, menthe, citron',
+      saisonnier: false,
+      variantes: [
+        { id: 201, nom: 'Virgin Mojito', prixSupplement: -1.5, disponible: true },
+        { id: 202, nom: 'Pitcher 1L', prixSupplement: 15.5, disponible: true },
+      ],
+      ingredients: [],
+      createdAt: '',
+      updatedAt: '',
+    };
+
+    it('adds directly to cart when cocktail has no variants', fakeAsync(() => {
+      component.cart = { tableId: 1, items: [] };
+
+      component.onCocktailSelected(mockCocktailWithoutVariants);
+      tick();
+
+      expect(component.cart.items).toHaveSize(1);
+      expect(component.cart.items[0].boissonId).toBe(50);
+      expect(component.cart.items[0].nom).toBe('Gin Tonic Classic');
+      expect(component.cart.items[0].prix).toBe(9.0);
+      expect(component.cart.items[0].varianteNom).toBeUndefined();
+      expect(modalCtrlSpy.create).not.toHaveBeenCalled();
+    }));
+
+    it('opens VariantSelectionModalComponent when cocktail has available variants', fakeAsync(() => {
+      component.cart = { tableId: 1, items: [] };
+
+      const mockModal = {
+        present: jasmine.createSpy('present'),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+          role: 'confirm',
+          data: {
+            selectedVariant: { id: 201, nom: 'Virgin Mojito', prix: 7.0 },
+          },
+        })),
+      };
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
+
+      component.onCocktailSelected(mockCocktailWithVariants);
+      tick();
+
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
+      expect(component.cart.items).toHaveSize(1);
+      expect(component.cart.items[0].boissonId).toBe(51);
+      expect(component.cart.items[0].varianteId).toBe(201);
+      expect(component.cart.items[0].varianteNom).toBe('Virgin Mojito');
+      expect(component.cart.items[0].prix).toBe(7.0);
+    }));
+
+    it('adds standard recipe when standard variant option is selected in modal', fakeAsync(() => {
+      component.cart = { tableId: 1, items: [] };
+
+      const mockModal = {
+        present: jasmine.createSpy('present'),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+          role: 'confirm',
+          data: {
+            selectedVariant: { id: undefined, nom: 'Mojito Havana (Standard)', prix: 8.5 },
+          },
+        })),
+      };
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
+
+      component.onCocktailSelected(mockCocktailWithVariants);
+      tick();
+
+      expect(component.cart.items).toHaveSize(1);
+      expect(component.cart.items[0].boissonId).toBe(51);
+      expect(component.cart.items[0].varianteId).toBeUndefined();
+      expect(component.cart.items[0].varianteNom).toBeUndefined();
+      expect(component.cart.items[0].prix).toBe(8.5);
+    }));
+
+    it('does not add to cart when variant modal is cancelled', fakeAsync(() => {
+      component.cart = { tableId: 1, items: [] };
+
+      const mockModal = {
+        present: jasmine.createSpy('present'),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+          role: 'cancel',
+          data: null,
+        })),
+      };
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
+
+      component.onCocktailSelected(mockCocktailWithVariants);
+      tick();
+
+      expect(component.cart.items).toHaveSize(0);
+    }));
   });
 });
 

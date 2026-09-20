@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, Input, Output, EventEmitter } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
@@ -16,7 +16,7 @@ import {
   add, create, trash, leafOutline, toggle, toggleOutline, gridOutline, listOutline,
   search, imageOutline, image, wineOutline, nutritionOutline, eggOutline,
   funnelOutline, closeCircleOutline, alertCircleOutline,
-  checkmarkCircle
+  checkmarkCircle, optionsOutline, addCircleOutline
 } from 'ionicons/icons';
 import { AsyncPipe, CurrencyPipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -38,7 +38,7 @@ export type { AllergenOption } from '../../../core/models/ingredient.model';
 /**
  * Global Cocktails Management component in OpenBar (Figma styled).
  * Supports grid & list views, allergen & category filters, real-time WebSocket sync,
- * and bulk batch actions.
+ * and bulk batch actions. Also supports embedded selection mode for waiter ordering.
  */
 @Component({
   selector: 'app-cocktail-list',
@@ -59,6 +59,15 @@ export type { AllergenOption } from '../../../core/models/ingredient.model';
 })
 export class CocktailListComponent implements OnInit, OnDestroy {
   private readonly PICTURES_CACHE_KEY = 'openbar_show_pictures';
+
+  /** Whether the component is embedded in selection/order taking mode. */
+  @Input() selectionMode = false;
+
+  /** Whether to hide the top header title and count badge (useful when embedded). */
+  @Input() hideHeaderTitle = false;
+
+  /** Emitted when a cocktail is selected in selection mode. */
+  @Output() cocktailSelect = new EventEmitter<Cocktail>();
 
   cocktails: Cocktail[] = [];
   filtre: 'tous' | 'disponibles' | 'indisponibles' = 'tous';
@@ -103,7 +112,11 @@ export class CocktailListComponent implements OnInit, OnDestroy {
       funnelOutline, closeCircleOutline, alertCircleOutline,
       checkmarkCircle,
       'checkmark-circle': checkmarkCircle,
-      'image-outline': imageOutline
+      'image-outline': imageOutline,
+      optionsOutline,
+      'options-outline': optionsOutline,
+      addCircleOutline,
+      'add-circle-outline': addCircleOutline
     });
   }
 
@@ -415,6 +428,17 @@ export class CocktailListComponent implements OnInit, OnDestroy {
 
   onAdd(): void { this.router.navigate(['/cocktails/new']); }
   onEdit(c: Cocktail): void { this.router.navigate(['/cocktails', c.id, 'edit']); }
+
+  /**
+   * Handles cocktail selection when embedded in order-taking mode.
+   * Only cocktails that are currently available can be chosen.
+   * @param cocktail The chosen cocktail
+   */
+  onSelectCocktail(cocktail: Cocktail): void {
+    if (!cocktail?.disponible) return;
+    this.cocktailSelect.emit(cocktail);
+  }
+
   onRefresh(event: any): void { this.charger(event); }
   trackById(_: number, item: Cocktail): number { return item.id; }
 

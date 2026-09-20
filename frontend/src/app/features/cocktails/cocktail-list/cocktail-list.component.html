@@ -7,17 +7,27 @@
     <!-- Header Controls Card (Modern Sleek OpenBar Design System) -->
     <div class="cocktail-header-card" data-testid="cocktail-header-card">
       <div class="header-main-row">
-        <div class="title-with-count">
-          <div class="title-icon-badge">
-            <ion-icon name="wine-outline"></ion-icon>
+        @if (!hideHeaderTitle) {
+          <div class="title-with-count">
+            <div class="title-icon-badge">
+              <ion-icon name="wine-outline"></ion-icon>
+            </div>
+            <div class="title-text-group">
+              <h1 class="page-title">{{ 'COCKTAILS.TITLE' | transloco }}</h1>
+              <span class="count-badge" data-testid="cocktails-count-badge">
+                {{ filteredCocktails.length }} {{ filteredCocktails.length > 1 ? ('COCKTAILS.TITLE' | transloco | lowercase) : ('COCKTAILS.TITLE' | transloco | lowercase) }}
+              </span>
+            </div>
           </div>
-          <div class="title-text-group">
-            <h1 class="page-title">{{ 'COCKTAILS.TITLE' | transloco }}</h1>
-            <span class="count-badge" data-testid="cocktails-count-badge">
-              {{ filteredCocktails.length }} {{ filteredCocktails.length > 1 ? ('COCKTAILS.TITLE' | transloco | lowercase) : ('COCKTAILS.TITLE' | transloco | lowercase) }}
-            </span>
+        } @else {
+          <div class="title-with-count embedded-mode">
+            <div class="title-text-group">
+              <span class="count-badge" data-testid="cocktails-count-badge">
+                {{ filteredCocktails.length }} {{ 'COCKTAILS.TITLE' | transloco }}
+              </span>
+            </div>
           </div>
-        </div>
+        }
 
         <div class="header-actions">
           <!-- Pictures Toggle Button (Sleek Pill) -->
@@ -84,7 +94,7 @@
             </button>
           </div>
 
-          @if (isAdmin$ | async) {
+          @if (!selectionMode && (isAdmin$ | async)) {
             <app-action-button
               variant="primary"
               icon="add"
@@ -235,6 +245,12 @@
                   class="figma-cocktail-card"
                   [class.no-picture]="!showPictures"
                   [class.unavailable]="!cocktail.disponible"
+                  [class.selection-mode]="selectionMode"
+                  (click)="selectionMode ? onSelectCocktail(cocktail) : null"
+                  (keydown.enter)="selectionMode ? onSelectCocktail(cocktail) : null"
+                  (keydown.space)="selectionMode ? onSelectCocktail(cocktail) : null"
+                  [attr.tabindex]="selectionMode ? 0 : null"
+                  [attr.role]="selectionMode ? 'button' : null"
                   [attr.data-testid]="'cocktail-card-' + cocktail.id">
                   @if (showPictures) {
                     <div class="figma-card-image-area">
@@ -261,7 +277,7 @@
                         }
                       </div>
 
-                      @if (isAdmin$ | async) {
+                      @if (!selectionMode && (isAdmin$ | async)) {
                         <button class="figma-edit-btn" [attr.data-testid]="'edit-cocktail-btn-' + cocktail.id" (click)="onEdit(cocktail)" (keydown.enter)="onEdit(cocktail)" [attr.aria-label]="'COCKTAILS.EDIT_COCKTAIL_LABEL' | transloco">
                           <ion-icon name="create"></ion-icon>
                         </button>
@@ -313,28 +329,44 @@
 
                     <div class="figma-card-bottom-row">
                       <div class="bottom-actions">
-                        <!-- Modern Interactive Availability Slider Switch -->
-                        <button
-                          type="button"
-                          class="availability-slider-btn"
-                          [class.active]="cocktail.disponible"
-                          [attr.data-testid]="'toggle-dispo-btn-' + cocktail.id"
-                          (click)="onToggleDisponibilite(cocktail)"
-                          (keydown.enter)="onToggleDisponibilite(cocktail)"
-                          [attr.aria-pressed]="cocktail.disponible"
-                          [attr.aria-label]="cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco)">
-                          <span class="slider-track">
-                            <span class="slider-knob"></span>
-                          </span>
-                          <span class="slider-label">
-                            {{ cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco) }}
-                          </span>
-                        </button>
+                        @if (selectionMode) {
+                          <button
+                            type="button"
+                            class="selection-add-btn"
+                            [disabled]="!cocktail.disponible"
+                            [attr.data-testid]="'select-cocktail-btn-' + cocktail.id"
+                            (click)="onSelectCocktail(cocktail); $event.stopPropagation()">
+                            <ion-icon [name]="(cocktail.variantes && cocktail.variantes.length > 0) ? 'options-outline' : 'add-circle-outline'"></ion-icon>
+                            <span>
+                              {{ (cocktail.variantes && cocktail.variantes.length > 0)
+                                ? ('SERVEUR.SELECT_VARIANTE' | transloco)
+                                : ('COMMON.ADD' | transloco) }}
+                            </span>
+                          </button>
+                        } @else {
+                          <!-- Modern Interactive Availability Slider Switch -->
+                          <button
+                            type="button"
+                            class="availability-slider-btn"
+                            [class.active]="cocktail.disponible"
+                            [attr.data-testid]="'toggle-dispo-btn-' + cocktail.id"
+                            (click)="onToggleDisponibilite(cocktail)"
+                            (keydown.enter)="onToggleDisponibilite(cocktail)"
+                            [attr.aria-pressed]="cocktail.disponible"
+                            [attr.aria-label]="cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco)">
+                            <span class="slider-track">
+                              <span class="slider-knob"></span>
+                            </span>
+                            <span class="slider-label">
+                              {{ cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco) }}
+                            </span>
+                          </button>
 
-                        @if (isAdmin$ | async) {
-                          <ion-button fill="clear" color="danger" size="small" [attr.data-testid]="'delete-cocktail-btn-' + cocktail.id" (click)="onDelete(cocktail)" (keydown.enter)="onDelete(cocktail)">
-                            <ion-icon slot="icon-only" name="trash"></ion-icon>
-                          </ion-button>
+                          @if (isAdmin$ | async) {
+                            <ion-button fill="clear" color="danger" size="small" [attr.data-testid]="'delete-cocktail-btn-' + cocktail.id" (click)="onDelete(cocktail)" (keydown.enter)="onDelete(cocktail)">
+                              <ion-icon slot="icon-only" name="trash"></ion-icon>
+                            </ion-button>
+                          }
                         }
                       </div>
                       <div class="price-and-margin-col">
@@ -362,7 +394,11 @@
                 <ion-item
                   [attr.data-testid]="'cocktail-item-' + cocktail.id"
                   class="cocktail-list-item"
-                  [class.unavailable]="!cocktail.disponible">
+                  [class.selection-mode]="selectionMode"
+                  [class.unavailable]="!cocktail.disponible"
+                  (click)="selectionMode ? onSelectCocktail(cocktail) : null"
+                  (keydown.enter)="selectionMode ? onSelectCocktail(cocktail) : null"
+                  (keydown.space)="selectionMode ? onSelectCocktail(cocktail) : null">
                   @if (showPictures) {
                     <ion-thumbnail slot="start">
                       <img [src]="cocktail.imageUrl || 'assets/images/verres/verre_tumbler.png'" [alt]="cocktail.nom" />
@@ -409,31 +445,51 @@
                 @if (isHorsSaison(cocktail)) {
                   <ion-badge slot="end" color="warning">{{ 'COCKTAILS.OFF_SEASON' | transloco }}</ion-badge>
                 }
-                <div slot="end" class="list-availability-wrapper">
-                  <button
-                    type="button"
-                    class="availability-slider-btn list-mode"
-                    [class.active]="cocktail.disponible"
-                    [attr.data-testid]="'toggle-dispo-btn-' + cocktail.id"
-                    (click)="onToggleDisponibilite(cocktail)"
-                    (keydown.enter)="onToggleDisponibilite(cocktail)"
-                    [attr.aria-label]="(cocktail.disponible ? 'COCKTAILS.AVAILABLE' : 'COCKTAILS.UNAVAILABLE') | transloco">
-                    <span class="slider-track"><span class="slider-knob"></span></span>
-                    <span class="slider-label">{{ (cocktail.disponible ? 'COCKTAILS.AVAILABLE' : 'COCKTAILS.UNAVAILABLE') | transloco }}</span>
-                  </button>
-                </div>
 
-                <ion-badge slot="end" color="primary">{{ cocktail.prix | currency:'EUR' }}</ion-badge>
-                <ion-buttons slot="end">
-                  @if (isAdmin$ | async) {
-                    <ion-button fill="clear" color="tertiary" [attr.data-testid]="'edit-cocktail-btn-' + cocktail.id" (click)="onEdit(cocktail)" (keydown.enter)="onEdit(cocktail)">
-                      <ion-icon slot="icon-only" name="create"></ion-icon>
-                    </ion-button>
-                    <ion-button fill="clear" color="danger" [attr.data-testid]="'delete-cocktail-btn-' + cocktail.id" (click)="onDelete(cocktail)" (keydown.enter)="onDelete(cocktail)">
-                      <ion-icon slot="icon-only" name="trash"></ion-icon>
-                    </ion-button>
-                  }
-                </ion-buttons>
+                @if (selectionMode) {
+                  <div slot="end" class="list-selection-wrapper">
+                    <button
+                      type="button"
+                      class="selection-add-btn list-mode"
+                      [disabled]="!cocktail.disponible"
+                      [attr.data-testid]="'select-cocktail-btn-' + cocktail.id"
+                      (click)="onSelectCocktail(cocktail); $event.stopPropagation()">
+                      <ion-icon [name]="(cocktail.variantes && cocktail.variantes.length > 0) ? 'options-outline' : 'add-circle-outline'"></ion-icon>
+                      <span>
+                        {{ (cocktail.variantes && cocktail.variantes.length > 0)
+                          ? ('SERVEUR.SELECT_VARIANTE' | transloco)
+                          : ('COMMON.ADD' | transloco) }}
+                      </span>
+                    </button>
+                  </div>
+                  <ion-badge slot="end" color="primary">{{ cocktail.prix | currency:'EUR' }}</ion-badge>
+                } @else {
+                  <div slot="end" class="list-availability-wrapper">
+                    <button
+                      type="button"
+                      class="availability-slider-btn list-mode"
+                      [class.active]="cocktail.disponible"
+                      [attr.data-testid]="'toggle-dispo-btn-' + cocktail.id"
+                      (click)="onToggleDisponibilite(cocktail)"
+                      (keydown.enter)="onToggleDisponibilite(cocktail)"
+                      [attr.aria-label]="(cocktail.disponible ? 'COCKTAILS.AVAILABLE' : 'COCKTAILS.UNAVAILABLE') | transloco">
+                      <span class="slider-track"><span class="slider-knob"></span></span>
+                      <span class="slider-label">{{ (cocktail.disponible ? 'COCKTAILS.AVAILABLE' : 'COCKTAILS.UNAVAILABLE') | transloco }}</span>
+                    </button>
+                  </div>
+
+                  <ion-badge slot="end" color="primary">{{ cocktail.prix | currency:'EUR' }}</ion-badge>
+                  <ion-buttons slot="end">
+                    @if (isAdmin$ | async) {
+                      <ion-button fill="clear" color="tertiary" [attr.data-testid]="'edit-cocktail-btn-' + cocktail.id" (click)="onEdit(cocktail)" (keydown.enter)="onEdit(cocktail)">
+                        <ion-icon slot="icon-only" name="create"></ion-icon>
+                      </ion-button>
+                      <ion-button fill="clear" color="danger" [attr.data-testid]="'delete-cocktail-btn-' + cocktail.id" (click)="onDelete(cocktail)" (keydown.enter)="onDelete(cocktail)">
+                        <ion-icon slot="icon-only" name="trash"></ion-icon>
+                      </ion-button>
+                    }
+                  </ion-buttons>
+                }
               </ion-item>
               } @empty {
               <ion-item>
