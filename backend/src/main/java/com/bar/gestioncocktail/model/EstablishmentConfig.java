@@ -143,17 +143,28 @@ public class EstablishmentConfig {
         if (module == null) {
             return true;
         }
-        return switch (module) {
-            case CUISINE_KDS -> Boolean.TRUE.equals(this.moduleKitchenKdsEnabled);
-            case HAPPY_HOUR -> Boolean.TRUE.equals(this.moduleHappyHourEnabled);
-            case EMPLOYEE_MANAGEMENT -> Boolean.TRUE.equals(this.moduleEmployeeManagementEnabled);
-            case FLOOR_PLAN -> Boolean.TRUE.equals(this.moduleFloorPlanEnabled);
-            case QR_CLIENT_ORDERING -> Boolean.TRUE.equals(this.moduleQrClientOrderingEnabled);
-            case STOCK_TRACKING -> Boolean.TRUE.equals(this.moduleStockTrackingEnabled);
-            case CASH_DRAWER -> Boolean.TRUE.equals(this.moduleCashDrawerEnabled);
-            case BAR_TABS -> Boolean.TRUE.equals(this.moduleBarTabsEnabled);
-            case COCKTAIL_LIBRARY -> Boolean.TRUE.equals(this.moduleCocktailLibraryEnabled);
-        };
+        switch (module) {
+            case CUISINE_KDS:
+                return Boolean.TRUE.equals(this.moduleKitchenKdsEnabled);
+            case HAPPY_HOUR:
+                return Boolean.TRUE.equals(this.moduleHappyHourEnabled);
+            case EMPLOYEE_MANAGEMENT:
+                return Boolean.TRUE.equals(this.moduleEmployeeManagementEnabled);
+            case FLOOR_PLAN:
+                return Boolean.TRUE.equals(this.moduleFloorPlanEnabled);
+            case QR_CLIENT_ORDERING:
+                return Boolean.TRUE.equals(this.moduleQrClientOrderingEnabled);
+            case STOCK_TRACKING:
+                return Boolean.TRUE.equals(this.moduleStockTrackingEnabled);
+            case CASH_DRAWER:
+                return Boolean.TRUE.equals(this.moduleCashDrawerEnabled);
+            case BAR_TABS:
+                return Boolean.TRUE.equals(this.moduleBarTabsEnabled);
+            case COCKTAIL_LIBRARY:
+                return Boolean.TRUE.equals(this.moduleCocktailLibraryEnabled);
+            default:
+                return true;
+        }
     }
 
     /**
@@ -167,17 +178,44 @@ public class EstablishmentConfig {
             return;
         }
         switch (module) {
-            case CUISINE_KDS -> this.moduleKitchenKdsEnabled = enabled;
-            case HAPPY_HOUR -> this.moduleHappyHourEnabled = enabled;
-            case EMPLOYEE_MANAGEMENT -> this.moduleEmployeeManagementEnabled = enabled;
-            case FLOOR_PLAN -> this.moduleFloorPlanEnabled = enabled;
-            case QR_CLIENT_ORDERING -> this.moduleQrClientOrderingEnabled = enabled;
-            case STOCK_TRACKING -> this.moduleStockTrackingEnabled = enabled;
-            case CASH_DRAWER -> this.moduleCashDrawerEnabled = enabled;
-            case BAR_TABS -> this.moduleBarTabsEnabled = enabled;
-            case COCKTAIL_LIBRARY -> this.moduleCocktailLibraryEnabled = enabled;
-            default -> { /* No-op for unexpected module */ }
+            case CUISINE_KDS:
+                this.moduleKitchenKdsEnabled = enabled;
+                break;
+            case HAPPY_HOUR:
+                this.moduleHappyHourEnabled = enabled;
+                break;
+            case EMPLOYEE_MANAGEMENT:
+                this.moduleEmployeeManagementEnabled = enabled;
+                break;
+            case FLOOR_PLAN:
+                this.moduleFloorPlanEnabled = enabled;
+                break;
+            case QR_CLIENT_ORDERING:
+                this.moduleQrClientOrderingEnabled = enabled;
+                break;
+            case STOCK_TRACKING:
+                this.moduleStockTrackingEnabled = enabled;
+                break;
+            case CASH_DRAWER:
+                this.moduleCashDrawerEnabled = enabled;
+                break;
+            case BAR_TABS:
+                this.moduleBarTabsEnabled = enabled;
+                break;
+            case COCKTAIL_LIBRARY:
+                this.moduleCocktailLibraryEnabled = enabled;
+                break;
+            default:
+                break;
         }
+    }
+
+    public Boolean getModuleCocktailLibraryEnabled() {
+        return this.moduleCocktailLibraryEnabled;
+    }
+
+    public void setModuleCocktailLibraryEnabled(Boolean moduleCocktailLibraryEnabled) {
+        this.moduleCocktailLibraryEnabled = moduleCocktailLibraryEnabled;
     }
 
     @PrePersist

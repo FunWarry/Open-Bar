@@ -171,58 +171,92 @@ public class EstablishmentConfigService {
             return;
         }
         if (request.cuisineKds() != null) {
-            config.setModuleKitchenKdsEnabled(request.cuisineKds());
+            config.setModuleEnabled(EstablishmentModule.CUISINE_KDS, request.cuisineKds());
         }
         if (request.happyHour() != null) {
-            config.setModuleHappyHourEnabled(request.happyHour());
+            config.setModuleEnabled(EstablishmentModule.HAPPY_HOUR, request.happyHour());
         }
         if (request.employeeManagement() != null) {
-            config.setModuleEmployeeManagementEnabled(request.employeeManagement());
+            config.setModuleEnabled(EstablishmentModule.EMPLOYEE_MANAGEMENT, request.employeeManagement());
         }
         if (request.floorPlan() != null) {
-            config.setModuleFloorPlanEnabled(request.floorPlan());
+            config.setModuleEnabled(EstablishmentModule.FLOOR_PLAN, request.floorPlan());
         }
         if (request.qrClientOrdering() != null) {
-            config.setModuleQrClientOrderingEnabled(request.qrClientOrdering());
+            config.setModuleEnabled(EstablishmentModule.QR_CLIENT_ORDERING, request.qrClientOrdering());
         }
         if (request.stockTracking() != null) {
-            config.setModuleStockTrackingEnabled(request.stockTracking());
+            config.setModuleEnabled(EstablishmentModule.STOCK_TRACKING, request.stockTracking());
         }
         if (request.cashDrawer() != null) {
-            config.setModuleCashDrawerEnabled(request.cashDrawer());
+            config.setModuleEnabled(EstablishmentModule.CASH_DRAWER, request.cashDrawer());
         }
         if (request.barTabs() != null) {
-            config.setModuleBarTabsEnabled(request.barTabs());
+            config.setModuleEnabled(EstablishmentModule.BAR_TABS, request.barTabs());
         }
         if (request.cocktailLibrary() != null) {
-            config.setModuleCocktailLibraryEnabled(request.cocktailLibrary());
+            config.setModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY, request.cocktailLibrary());
         }
     }
 
     private void applyLegalInfoUpdates(EstablishmentConfig config, EstablishmentConfigUpdateRequest request) {
-        if (request.legalName() != null) config.setLegalName(request.legalName());
-        if (request.legalForm() != null) config.setLegalForm(request.legalForm());
-        if (request.siret() != null) config.setSiret(request.siret());
-        if (request.rcsCity() != null) config.setRcsCity(request.rcsCity());
-        if (request.rcsNumber() != null) config.setRcsNumber(request.rcsNumber());
-        if (request.tvaNumber() != null) config.setTvaNumber(request.tvaNumber());
-        if (request.codeApe() != null) config.setCodeApe(request.codeApe());
-        if (request.capitalSocial() != null) config.setCapitalSocial(request.capitalSocial());
+        if (request.legalName() != null) {
+            config.setLegalName(request.legalName());
+        }
+        if (request.legalForm() != null) {
+            config.setLegalForm(request.legalForm());
+        }
+        if (request.siret() != null) {
+            config.setSiret(request.siret());
+        }
+        if (request.rcsCity() != null) {
+            config.setRcsCity(request.rcsCity());
+        }
+        if (request.rcsNumber() != null) {
+            config.setRcsNumber(request.rcsNumber());
+        }
+        if (request.tvaNumber() != null) {
+            config.setTvaNumber(request.tvaNumber());
+        }
+        if (request.codeApe() != null) {
+            config.setCodeApe(request.codeApe());
+        }
+        if (request.capitalSocial() != null) {
+            config.setCapitalSocial(request.capitalSocial());
+        }
     }
 
     private void applyContactAndPolicyUpdates(EstablishmentConfig config, EstablishmentConfigUpdateRequest request) {
-        if (request.address() != null) config.setAddress(request.address());
-        if (request.country() != null) config.setCountry(request.country());
-        if (request.language() != null) config.setLanguage(request.language());
-        if (request.phone() != null) config.setPhone(request.phone());
-        if (request.email() != null) config.setEmail(request.email());
-        if (request.paymentTerms() != null) config.setPaymentTerms(request.paymentTerms());
-        if (request.discountPolicy() != null) config.setDiscountPolicy(request.discountPolicy());
-        if (request.latePaymentRate() != null) config.setLatePaymentRate(request.latePaymentRate());
+        if (request.address() != null) {
+            config.setAddress(request.address());
+        }
+        if (request.country() != null) {
+            config.setCountry(request.country());
+        }
+        if (request.language() != null) {
+            config.setLanguage(request.language());
+        }
+        if (request.phone() != null) {
+            config.setPhone(request.phone());
+        }
+        if (request.email() != null) {
+            config.setEmail(request.email());
+        }
+        if (request.paymentTerms() != null) {
+            config.setPaymentTerms(request.paymentTerms());
+        }
+        if (request.discountPolicy() != null) {
+            config.setDiscountPolicy(request.discountPolicy());
+        }
+        if (request.latePaymentRate() != null) {
+            config.setLatePaymentRate(request.latePaymentRate());
+        }
     }
 
     private void applyTicketFormatUpdate(EstablishmentConfig config, String ticketFormat) {
-        if (ticketFormat == null) return;
+        if (ticketFormat == null) {
+            return;
+        }
         String fmt = ticketFormat.trim().toLowerCase();
         if ("80mm".equals(fmt) || "58mm".equals(fmt)) {
             config.setTicketFormat(fmt);
@@ -230,12 +264,14 @@ public class EstablishmentConfigService {
     }
 
     private void applyTimeZoneUpdate(EstablishmentConfig config, String timeZone) {
-        if (timeZone == null) return;
+        if (timeZone == null) {
+            return;
+        }
         String tz = timeZone.trim();
         if (!tz.equalsIgnoreCase("SYSTEM") && !tz.isBlank()) {
             try {
                 java.time.ZoneId.of(tz);
-            } catch (Exception _) {
+            } catch (Exception ignored) {
                 throw new BusinessException("The specified time zone is invalid: " + tz);
             }
         }
