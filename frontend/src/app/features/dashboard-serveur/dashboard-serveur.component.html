@@ -404,13 +404,15 @@
       <div class="order-taking-layout">
         <!-- Zone Produits & Filtres (Gauche) -->
         <div class="products-section">
+          <!-- Barre de recherche Cocktails -->
+          <app-search-bar
+            [(ngModel)]="productSearchQuery"
+            [placeholder]="'SERVEUR.SEARCH_COCKTAIL_PLACEHOLDER' | transloco"
+            testId="product-searchbar">
+          </app-search-bar>
+
           <!-- Barre de filtres Cocktails (style page Cocktail) -->
           <div class="cocktail-filters-card">
-            <app-search-bar
-              [(ngModel)]="productSearchQuery"
-              [placeholder]="'SERVEUR.SEARCH_COCKTAIL_PLACEHOLDER' | transloco"
-              testId="product-searchbar">
-            </app-search-bar>
             <!-- Category Dot Filter Pills -->
             <div class="category-pills-row">
               <button
