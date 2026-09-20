@@ -13,6 +13,7 @@ import {
   statsChartOutline, receiptOutline, gridOutline,
   cashOutline, chatbubbleEllipsesOutline, flashOutline,
   restaurantOutline, wineOutline, cardOutline, beerOutline,
+  pencilOutline,
 } from 'ionicons/icons';
 import { DatePipe } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -21,7 +22,10 @@ import { CommandeService } from '../../../core/services/commande.service';
 import { Commande, CommandeItem, CommandeStatut } from '../../../core/models/commande.model';
 import { CancelOrderModalComponent } from '../../../core/components/ui/cancel-order-modal/cancel-order-modal.component';
 import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
-
+import { EditCommandeModalComponent } from '../../dashboard-serveur/components/edit-commande-modal/edit-commande-modal.component';
+import { TableDetailModalComponent } from '../../dashboard-serveur/components/table-detail-modal/table-detail-modal.component';
+import { TableView } from '../../dashboard-serveur/models/table-view.model';
+import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../core/utils/modal-animation.utils';
 import { StatusBadgeComponent } from '../../../core/components/ui/status-badge/status-badge.component';
 
 /**
@@ -64,6 +68,7 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
       checkmarkDoneOutline, timeOutline, personOutline, gridOutline,
       statsChartOutline, receiptOutline, cashOutline, chatbubbleEllipsesOutline,
       flashOutline, restaurantOutline, wineOutline, cardOutline, beerOutline,
+      pencilOutline,
     });
   }
 
@@ -154,6 +159,67 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
 
   peutAnnuler(): boolean {
     return !!this.commande && !['LIVREE', 'REGLEE', 'ANNULEE'].includes(this.commande.statut);
+  }
+
+  /**
+   * Whether the active order can be edited (only in pending or preparing states).
+   */
+  peutModifier(): boolean {
+    return !!this.commande && (this.commande.statut === 'EN_ATTENTE' || this.commande.statut === 'EN_PREPARATION');
+  }
+
+  /**
+   * Whether the order is linked to a physical table.
+   */
+  get hasTable(): boolean {
+    return !!this.commande && (this.commande.tableId != null || this.commande.tableNumero != null);
+  }
+
+  /**
+   * Opens the order line item editor modal.
+   */
+  async onModifierCommande(): Promise<void> {
+    if (!this.commande) return;
+    const modal = await this.modalCtrl.create({
+      component: EditCommandeModalComponent,
+      componentProps: {
+        commande: this.commande,
+        tableNumero: this.commande.tableNumero ?? this.commande.tableId ?? 0,
+      },
+      cssClass: 'edit-commande-modal-container',
+      enterAnimation: fastModalEnterAnimation,
+      leaveAnimation: fastModalLeaveAnimation,
+    });
+    await modal.present();
+    const { data } = await modal.onWillDismiss();
+    if (data?.updated) {
+      this.charger();
+    }
+  }
+
+  /**
+   * Opens the full table detail modal when an order is tied to a physical table.
+   */
+  async onVoirTable(): Promise<void> {
+    if (!this.commande || !this.hasTable) return;
+    const tableId = this.commande.tableId ?? this.commande.tableNumero ?? 0;
+    const table: TableView = {
+      id: tableId,
+      nom: this.commande.tableNumero ? `Table ${this.commande.tableNumero}` : `Table ${tableId}`,
+      zone: '',
+      capacite: 4,
+      occupee: true,
+      serveurNom: this.commande.serveurUsername,
+      commandesActives: [],
+    };
+    const modal = await this.modalCtrl.create({
+      component: TableDetailModalComponent,
+      componentProps: { table },
+      cssClass: 'table-detail-modal-container',
+      enterAnimation: fastModalEnterAnimation,
+      leaveAnimation: fastModalLeaveAnimation,
+    });
+    await modal.present();
   }
 
   onUpdateStatus(targetStatut: CommandeStatut): void {

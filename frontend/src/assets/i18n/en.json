@@ -1230,7 +1230,8 @@
       "ITEM_NAME": "Name",
       "UNIT_PRICE": "Unit Price",
       "QUANTITY": "Quantity",
-      "PRICE": "Total Price"
+      "PRICE": "Total Price",
+      "VIEW_TABLE": "View Table"
     },
     "ACTIONS": {
       "MARK_URGENT": "Mark Urgent",
@@ -3292,5 +3293,14 @@
     "NO_ITEMS": "No items recorded yet",
     "LABEL_TOTAL": "Tab total",
     "LABEL_SINCE": "Open for {{ duration }}"
+  },
+  "SESSION": {
+    "TIMEOUT_WARNING_TITLE": "Session Expiring Soon",
+    "TIMEOUT_WARNING_DESC": "Your active session will expire in",
+    "TIMEOUT_EXPLANATION": "For security reasons, user sessions are capped at 4 consecutive hours. Would you like to extend your session for an additional 4 hours?",
+    "EXTEND_BTN": "Extend Session",
+    "LOGOUT_BTN": "Log Out",
+    "EXTENDED_SUCCESS": "Your session has been successfully extended for 4 hours.",
+    "EXPIRED_DISCONNECTED": "Your session has expired after 4 hours. Please log in again."
   }
 }

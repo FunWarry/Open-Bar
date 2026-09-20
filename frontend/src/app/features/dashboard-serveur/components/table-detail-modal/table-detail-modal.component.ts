@@ -85,7 +85,21 @@ export class TableDetailModalComponent implements OnInit {
     this.chargerAppels();
   }
 
+  /**
+   * Sanitized table title ensuring no 'Table null' or undefined placeholders are displayed.
+   */
+  get tableNomAffiche(): string {
+    if (!this.table?.nom || this.table.nom === 'Table null' || this.table.nom === 'Table undefined') {
+      return this.table?.id ? `Table ${this.table.id}` : 'Table';
+    }
+    return this.table.nom;
+  }
+
   chargerAppels(): void {
+    if (!this.table?.id) {
+      this.activeAppels = [];
+      return;
+    }
     this.tableAppelService.getAppelsActifsPourTable(this.table.id).subscribe({
       next: (appels) => {
         this.activeAppels = (appels ?? []).filter(a => a.statut === 'EN_ATTENTE');
@@ -94,6 +108,7 @@ export class TableDetailModalComponent implements OnInit {
   }
 
   acquitterAppel(appelId: number): void {
+    if (!this.table?.id) return;
     this.tableAppelService.acquitterAppel(this.table.id, appelId).subscribe({
       next: async () => {
         this.activeAppels = this.activeAppels.filter(a => a.id !== appelId);
@@ -108,6 +123,10 @@ export class TableDetailModalComponent implements OnInit {
   }
 
   chargerCommandes(): void {
+    if (!this.table?.id) {
+      this.commandes = [];
+      return;
+    }
     this.isLoading = true;
     this.service.getCommandesByTable(this.table.id)
       .pipe(finalize(() => (this.isLoading = false)))

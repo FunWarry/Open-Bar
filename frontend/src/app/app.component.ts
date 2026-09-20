@@ -8,6 +8,7 @@ import { NotificationService } from './core/services/notification.service';
 import { LanguageService } from './core/services/language.service';
 import { ThemeService } from './core/services/theme.service';
 import { AppUpdateService } from './core/services/app-update.service';
+import { SessionTimeoutService } from './core/services/session-timeout.service';
 import { filter, map, combineLatest, startWith, Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { selectIsAuthenticated } from './core/store/auth.selectors';
@@ -43,7 +44,8 @@ export class AppComponent implements OnInit {
     public readonly languageService: LanguageService,
     private readonly store: Store,
     private readonly themeService: ThemeService,
-    private readonly appUpdateService: AppUpdateService
+    private readonly appUpdateService: AppUpdateService,
+    private readonly sessionTimeoutService: SessionTimeoutService
   ) {
     addIcons(allIcons);
     const isAuth$ = this.store.select(selectIsAuthenticated);
@@ -76,6 +78,7 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.sessionTimeoutService.init();
     this.appSettingsService.getSettings().subscribe({
       error: () => { /* Preserve default design system settings if the backend API is unreachable */ },
     });

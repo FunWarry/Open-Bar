@@ -1230,7 +1230,8 @@
       "ITEM_NAME": "Nom",
       "UNIT_PRICE": "Prix Unitaire",
       "QUANTITY": "Quantité",
-      "PRICE": "Prix Total"
+      "PRICE": "Prix Total",
+      "VIEW_TABLE": "Voir la table"
     },
     "ACTIONS": {
       "MARK_URGENT": "Marquer Urgent",
@@ -3292,5 +3293,14 @@
     "NO_ITEMS": "Aucune consommation enregistrée pour l'instant",
     "LABEL_TOTAL": "Total ardoise",
     "LABEL_SINCE": "Ouverte depuis {{ duration }}"
+  },
+  "SESSION": {
+    "TIMEOUT_WARNING_TITLE": "Session expirant bientôt",
+    "TIMEOUT_WARNING_DESC": "Votre session de connexion expire dans",
+    "TIMEOUT_EXPLANATION": "Pour des raisons de sécurité, les sessions sont limitées à 4 heures consécutives. Souhaitez-vous prolonger votre session de 4 heures supplémentaires ?",
+    "EXTEND_BTN": "Prolonger la session",
+    "LOGOUT_BTN": "Se déconnecter",
+    "EXTENDED_SUCCESS": "Votre session a été prolongée de 4 heures avec succès.",
+    "EXPIRED_DISCONNECTED": "Votre session a expiré après 4 heures de connexion. Veuillez vous reconnecter."
   }
 }

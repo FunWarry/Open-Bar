@@ -68,6 +68,8 @@ export class AuthService {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
+    localStorage.removeItem('auth_session_start');
+    localStorage.removeItem('auth_session_expiry');
 
     sessionStorage.removeItem('store_hydrated');
   }
@@ -151,6 +153,10 @@ export class AuthService {
     if (response.refreshToken) {
       localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);
     }
+    const now = Date.now();
+    localStorage.setItem('auth_session_start', String(now));
+    localStorage.setItem('auth_session_expiry', String(now + 4 * 60 * 60 * 1000));
+
     localStorage.setItem(this.USER_KEY, JSON.stringify({
       id: response.id,
       email: response.email,
