@@ -65,12 +65,61 @@
   }
 }
 
-.status-badge {
-  font-size: 0.8rem;
+.status-badge,
+.urgent-badge {
+  font-size: 11px;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: var(--radius-md, 8px);
-  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill, 999px);
+  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid transparent;
+  text-transform: none;
+
+  &[color="warning"] {
+    background: var(--status-waiting-15, rgba(244, 165, 42, 0.15)) !important;
+    color: var(--semantic-warning, #f4a52a) !important;
+    border-color: rgba(244, 165, 42, 0.4) !important;
+  }
+
+  &[color="primary"] {
+    background: var(--status-inprogress-15, rgba(43, 168, 232, 0.15)) !important;
+    color: var(--semantic-info, #2ba8e8) !important;
+    border-color: rgba(43, 168, 232, 0.4) !important;
+  }
+
+  &[color="tertiary"] {
+    background: var(--status-inprogress-15, rgba(43, 168, 232, 0.15)) !important;
+    color: var(--semantic-info, #2ba8e8) !important;
+    border-color: rgba(43, 168, 232, 0.4) !important;
+  }
+
+  &[color="success"] {
+    background: var(--status-ready-15, rgba(47, 191, 107, 0.15)) !important;
+    color: var(--semantic-success, #2fbf6b) !important;
+    border-color: rgba(47, 191, 107, 0.4) !important;
+  }
+
+  &[color="medium"] {
+    background: var(--background-surface-3, #2a3050) !important;
+    color: var(--text-secondary, #a4add0) !important;
+    border-color: var(--border-medium, #2a2e4d) !important;
+  }
+
+  &[color="danger"] {
+    background: var(--status-canceled-15, rgba(229, 96, 79, 0.15)) !important;
+    color: var(--semantic-danger, #e5604f) !important;
+    border-color: rgba(229, 96, 79, 0.4) !important;
+  }
+
+  &.urgent-badge {
+    background: var(--status-canceled-15, rgba(229, 96, 79, 0.18)) !important;
+    color: var(--semantic-danger, #e5604f) !important;
+    border: 1px solid var(--semantic-danger, #e5604f) !important;
+    box-shadow: 0 0 8px rgba(229, 96, 79, 0.25);
+  }
 }
 
 .header-subtitle {
