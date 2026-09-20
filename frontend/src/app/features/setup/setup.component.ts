@@ -6,6 +6,7 @@ import { ToastController, ModalController, IonCheckbox } from '@ionic/angular';
 import { SetupService } from '../../core/services/setup.service';
 import { InputFieldComponent } from '../../core/components/ui/input-field/input-field.component';
 import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
+import { CocktailLibraryModalComponent } from '../cocktails/components/cocktail-library-modal/cocktail-library-modal.component';
 import { LegalComponent, LegalTab } from '../legal/legal.component';
 
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
@@ -33,10 +34,12 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
     TranslocoModule,
     IonCheckbox,
     InputFieldComponent,
-    ActionButtonComponent
+    ActionButtonComponent,
+    CocktailLibraryModalComponent
   ]
 })
 export class SetupComponent implements OnInit {
+  currentStep: 'admin' | 'catalog' = 'admin';
   setupForm: FormGroup;
   errorMessage: string | null = null;
   loading = false;
@@ -71,17 +74,57 @@ export class SetupComponent implements OnInit {
     });
   }
 
+  /**
+   * Advances wizard from initial admin credentials to optional cocktail library selection.
+   */
+  proceedToCatalog(): void {
+    this.errorMessage = null;
+    if (this.setupForm.invalid) {
+      this.setupForm.markAllAsTouched();
+      return;
+    }
+    this.currentStep = 'catalog';
+  }
+
+  /**
+   * Returns back to admin account configuration step.
+   */
+  backToAdmin(): void {
+    this.currentStep = 'admin';
+  }
+
+  /**
+   * Handles submission directly from admin form without cocktails.
+   */
   onSubmit(): void {
+    this.proceedToCatalog();
+  }
+
+  /**
+   * Completes onboarding by provisioning admin account and importing selected cocktail library items.
+   *
+   * @param cocktailIds Optional list of cocktail template IDs to import
+   */
+  submitSetup(cocktailIds: string[] = []): void {
     this.errorMessage = null;
 
     if (this.setupForm.invalid) {
+      this.currentStep = 'admin';
+      this.setupForm.markAllAsTouched();
       return;
     }
 
     this.loading = true;
     const { username, email, nom, prenom, password } = this.setupForm.value;
 
-    this.setupService.createAdmin({ username, email, nom, prenom, password }).subscribe({
+    this.setupService.createAdmin({
+      username,
+      email,
+      nom,
+      prenom,
+      password,
+      initialCocktailIds: cocktailIds
+    }).subscribe({
       next: async () => {
         this.loading = false;
         const msg = this.translocoService.translate('SETUP.SUCCESS');

@@ -95,6 +95,15 @@
           </div>
 
           @if (!selectionMode && (isAdmin$ | async)) {
+            @if (isLibraryModuleEnabled) {
+              <app-action-button
+                variant="secondary"
+                icon="library-outline"
+                (btnClick)="openLibraryImportModal()"
+                testId="import-library-btn">
+                {{ 'COCKTAIL_LIBRARY.IMPORT_BUTTON' | transloco }}
+              </app-action-button>
+            }
             <app-action-button
               variant="primary"
               icon="add"
@@ -380,6 +389,17 @@
               <ion-col size="12">
                 <div class="empty-cocktail-message">
                   <ion-label color="medium">{{ 'COCKTAILS.EMPTY' | transloco }}</ion-label>
+                  @if (!selectionMode && (isAdmin$ | async) && isLibraryModuleEnabled) {
+                    <div style="margin-top: 14px;">
+                      <app-action-button
+                        variant="secondary"
+                        icon="library-outline"
+                        (btnClick)="openLibraryImportModal()"
+                        testId="empty-state-library-import-btn">
+                        {{ 'COCKTAIL_LIBRARY.IMPORT_BUTTON' | transloco }}
+                      </app-action-button>
+                    </div>
+                  }
                 </div>
               </ion-col>
             }

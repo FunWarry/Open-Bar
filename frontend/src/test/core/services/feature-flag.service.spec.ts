@@ -26,6 +26,7 @@ describe('FeatureFlagService', () => {
     stockTracking: true,
     cashDrawer: true,
     barTabs: true,
+    cocktailLibrary: true,
   };
 
   beforeEach(() => {
@@ -60,6 +61,7 @@ describe('FeatureFlagService', () => {
     expect(service.modules()).toEqual(customModules);
     expect(service.cuisineKdsEnabled()).toBeTrue();
     expect(service.happyHourEnabled()).toBeFalse();
+    expect(service.cocktailLibraryEnabled()).toBeTrue();
   });
 
   it('should verify individual module capabilities via isModuleEnabled', () => {
@@ -69,6 +71,8 @@ describe('FeatureFlagService', () => {
     expect(service.isModuleEnabled(EstablishmentModule.FLOOR_PLAN)).toBeFalse();
     expect(service.isModuleEnabled(EstablishmentModule.QR_CLIENT_ORDERING)).toBeTrue();
     expect(service.isModuleEnabled(EstablishmentModule.STOCK_TRACKING)).toBeTrue();
+    expect(service.isModuleEnabled(EstablishmentModule.BAR_TABS)).toBeTrue();
+    expect(service.isModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY)).toBeTrue();
   });
 
   it('should update modules via PUT /api/establishment/modules', () => {
@@ -101,6 +105,16 @@ describe('FeatureFlagService', () => {
     expect(req.request.method).toBe('PUT');
     expect(req.request.body.happyHour).toBeTrue();
     req.flush({ ...customModules, happyHour: true });
+
+    service.setModule(EstablishmentModule.COCKTAIL_LIBRARY, false).subscribe(result => {
+      expect(result.cocktailLibrary).toBeFalse();
+      expect(service.cocktailLibraryEnabled()).toBeFalse();
+    });
+
+    const req2 = httpMock.expectOne(apiUrl);
+    expect(req2.request.method).toBe('PUT');
+    expect(req2.request.body.cocktailLibrary).toBeFalse();
+    req2.flush({ ...customModules, cocktailLibrary: false });
   });
 
   it('should apply an establishment preset configuration', () => {
@@ -127,6 +141,7 @@ describe('FeatureFlagService', () => {
       stockTracking: false,
       cashDrawer: false,
       barTabs: true,
+      cocktailLibrary: false,
     };
 
     wsSubject.next({ body: JSON.stringify(wsUpdate) });

@@ -20,6 +20,7 @@ const DEFAULT_MODULES: EstablishmentModules = {
   stockTracking: true,
   cashDrawer: true,
   barTabs: true,
+  cocktailLibrary: true,
 };
 
 /**
@@ -64,6 +65,9 @@ export class FeatureFlagService implements OnDestroy {
   /** Computed signal for BAR_TABS capability status. */
   readonly barTabsEnabled = computed(() => this.modules().barTabs);
 
+  /** Computed signal for COCKTAIL_LIBRARY capability status. */
+  readonly cocktailLibraryEnabled = computed(() => this.modules().cocktailLibrary);
+
   constructor() {
     this.initWebSocketSubscription();
     this.loadModules().subscribe();
@@ -99,6 +103,8 @@ export class FeatureFlagService implements OnDestroy {
         return current.cashDrawer;
       case EstablishmentModule.BAR_TABS:
         return current.barTabs;
+      case EstablishmentModule.COCKTAIL_LIBRARY:
+        return current.cocktailLibrary;
       default:
         return true;
     }
@@ -195,6 +201,12 @@ export class FeatureFlagService implements OnDestroy {
         break;
       case EstablishmentModule.CASH_DRAWER:
         current.cashDrawer = enabled;
+        break;
+      case EstablishmentModule.BAR_TABS:
+        current.barTabs = enabled;
+        break;
+      case EstablishmentModule.COCKTAIL_LIBRARY:
+        current.cocktailLibrary = enabled;
         break;
     }
     return this.updateModules(current);

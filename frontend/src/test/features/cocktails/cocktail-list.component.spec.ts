@@ -2,13 +2,14 @@ import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
-import { provideIonicAngular } from '@ionic/angular';
-import { ToastController } from '@ionic/angular';
+import { provideIonicAngular, ToastController, ModalController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { Subject, of, throwError } from 'rxjs';
 import { CocktailListComponent } from '../../../app/features/cocktails/cocktail-list/cocktail-list.component';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
+import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
+import { EstablishmentModule } from '../../../app/core/models/establishment-module.model';
 import { Cocktail, CocktailCategorie } from '../../../app/core/models/cocktail.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
@@ -608,6 +609,28 @@ describe('CocktailListComponent', () => {
     expect(pageTitle).toBeNull();
     expect(embeddedCount).toBeTruthy();
   }));
+
+  it('isLibraryModuleEnabled returns flag from featureFlagService', () => {
+    const ffService = TestBed.inject(FeatureFlagService);
+    spyOn(ffService, 'isModuleEnabled').and.returnValue(true);
+    expect(component.isLibraryModuleEnabled).toBeTrue();
+  });
+
+  it('openLibraryImportModal opens modal and reloads when imported', async () => {
+    const modalCtrl = TestBed.inject(ModalController);
+    const mockModalElement = {
+      present: jasmine.createSpy('present').and.resolveTo(),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.resolveTo({ role: 'imported' })
+    };
+    spyOn(modalCtrl, 'create').and.resolveTo(mockModalElement as any);
+    spyOn(component, 'charger');
+
+    await component.openLibraryImportModal();
+
+    expect(modalCtrl.create).toHaveBeenCalled();
+    expect(mockModalElement.present).toHaveBeenCalled();
+    expect(component.charger).toHaveBeenCalled();
+  });
 });
 
 

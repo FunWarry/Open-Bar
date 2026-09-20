@@ -1,14 +1,10 @@
 package com.bar.gestioncocktail.controller;
 
-import com.bar.gestioncocktail.dto.CocktailBatchDisponibiliteRequestDTO;
-import com.bar.gestioncocktail.dto.CocktailFacetsDTO;
-import com.bar.gestioncocktail.dto.CocktailMarginDTO;
-import com.bar.gestioncocktail.dto.CocktailRequestDTO;
-import com.bar.gestioncocktail.dto.CocktailResponseDTO;
-import com.bar.gestioncocktail.dto.SaisonnaliteRequest;
+import com.bar.gestioncocktail.dto.*;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailCategorie;
 import com.bar.gestioncocktail.model.FlavorProfile;
+import com.bar.gestioncocktail.service.CocktailLibraryService;
 import com.bar.gestioncocktail.service.CocktailService;
 import com.bar.gestioncocktail.service.MarginCalculationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,16 +37,22 @@ import org.springframework.transaction.annotation.Transactional;
 public class CocktailController {
     private final CocktailService cocktailService;
     private final MarginCalculationService marginCalculationService;
+    private final CocktailLibraryService cocktailLibraryService;
 
     /**
-     * Constructs the controller with cocktail service and margin calculation service dependencies.
+     * Constructs the controller with cocktail, margin calculation, and library service dependencies.
      *
      * @param cocktailService          service managing cocktail business logic
      * @param marginCalculationService service managing recipe cost and margin analytics
+     * @param cocktailLibraryService   service managing base cocktail library catalog and imports
      */
-    public CocktailController(CocktailService cocktailService, MarginCalculationService marginCalculationService) {
+    public CocktailController(
+            CocktailService cocktailService,
+            MarginCalculationService marginCalculationService,
+            CocktailLibraryService cocktailLibraryService) {
         this.cocktailService = cocktailService;
         this.marginCalculationService = marginCalculationService;
+        this.cocktailLibraryService = cocktailLibraryService;
     }
 
     /**
@@ -402,5 +404,44 @@ public class CocktailController {
     @ApiResponse(responseCode = "200", description = "Catalog margin analytics retrieved")
     public ResponseEntity<List<CocktailMarginDTO>> getCatalogMarginAnalytics() {
         return ResponseEntity.ok(marginCalculationService.getCatalogMarginAnalytics());
+    }
+
+    /**
+     * Lists available standard cocktail templates from the base library.
+     *
+     * @param category   Optional category filter (IBA_CLASSICS, TROPICAL, SPIRIT_FORWARD, MOCKTAILS, SHOOTERS, ALCOOLISE, SANS_ALCOOL)
+     * @param baseSpirit Optional spirit filter (GIN, VODKA, RUM, TEQUILA, WHISKEY, NON_ALCOHOLIC)
+     * @param flavor     Optional flavor filter (FRUITY, SOUR, SWEET, BITTER, SPICY, HERBAL, SMOKY)
+     * @param mocktail   Optional mocktail flag
+     * @param search     Optional search term
+     * @return List of library cocktail template DTOs
+     */
+    @GetMapping("/library")
+    @Operation(summary = "Get cocktail library recipes", description = "Retrieves preconfigured recipes from the cocktail library matching filters.")
+    @ApiResponse(responseCode = "200", description = "Library cocktails retrieved successfully")
+    public ResponseEntity<List<CocktailLibraryItemDTO>> getLibraryCocktails(
+            @Parameter(description = "Category filter") @RequestParam(required = false) String category,
+            @Parameter(description = "Base spirit filter") @RequestParam(required = false) String baseSpirit,
+            @Parameter(description = "Flavor profile filter") @RequestParam(required = false) String flavor,
+            @Parameter(description = "Filter for mocktails only") @RequestParam(required = false) Boolean mocktail,
+            @Parameter(description = "Search query for name or ingredients") @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(cocktailLibraryService.getLibrary(category, baseSpirit, flavor, mocktail, search));
+    }
+
+    /**
+     * Batch imports selected cocktail recipes from the library into the active catalog and inventory.
+     *
+     * @param request Request containing cocktail IDs or names to import
+     * @return Import result report
+     */
+    @PostMapping("/library/import")
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Batch import library cocktails", description = "Imports selected library recipes into catalog and automatically creates or reuses inventory ingredients.")
+    @ApiResponse(responseCode = "200", description = "Cocktails imported successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid request or library module disabled")
+    public ResponseEntity<CocktailLibraryImportResultDTO> importLibraryCocktails(
+            @Valid @RequestBody CocktailLibraryImportRequestDTO request) {
+        return ResponseEntity.ok(cocktailLibraryService.importCocktails(request));
     }
 }

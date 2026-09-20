@@ -177,6 +177,7 @@ describe('AppSettingsPageComponent', () => {
       stockTracking: true,
       cashDrawer: true,
       barTabs: true,
+      cocktailLibrary: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
 
@@ -781,6 +782,7 @@ describe('AppSettingsPageComponent', () => {
         stockTracking: true,
         cashDrawer: true,
         barTabs: true,
+        cocktailLibrary: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -800,6 +802,7 @@ describe('AppSettingsPageComponent', () => {
         stockTracking: true,
         cashDrawer: false,
         barTabs: false,
+        cocktailLibrary: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -812,6 +815,7 @@ describe('AppSettingsPageComponent', () => {
         stockTracking: false,
         cashDrawer: false,
         barTabs: false,
+        cocktailLibrary: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });
@@ -856,6 +860,7 @@ describe('AppSettingsPageComponent', () => {
         stockTracking: false,
         cashDrawer: false,
         barTabs: false,
+        cocktailLibrary: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();

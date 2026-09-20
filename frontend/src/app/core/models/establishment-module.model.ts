@@ -10,6 +10,7 @@ export enum EstablishmentModule {
   STOCK_TRACKING = 'STOCK_TRACKING',
   CASH_DRAWER = 'CASH_DRAWER',
   BAR_TABS = 'BAR_TABS',
+  COCKTAIL_LIBRARY = 'COCKTAIL_LIBRARY',
 }
 
 /**
@@ -24,6 +25,7 @@ export interface EstablishmentModules {
   stockTracking: boolean;
   cashDrawer: boolean;
   barTabs: boolean;
+  cocktailLibrary: boolean;
 }
 
 /**
@@ -44,6 +46,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     stockTracking: true,
     cashDrawer: true,
     barTabs: true,
+    cocktailLibrary: true,
   },
   RESTAURANT: {
     cuisineKds: true,
@@ -54,6 +57,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     stockTracking: true,
     cashDrawer: true,
     barTabs: true,
+    cocktailLibrary: true,
   },
   FOOD_TRUCK: {
     cuisineKds: true,
@@ -64,6 +68,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     stockTracking: true,
     cashDrawer: true,
     barTabs: false,
+    cocktailLibrary: true,
   },
   NIGHTCLUB: {
     cuisineKds: false,
@@ -74,5 +79,6 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     stockTracking: true,
     cashDrawer: true,
     barTabs: true,
+    cocktailLibrary: true,
   },
 };

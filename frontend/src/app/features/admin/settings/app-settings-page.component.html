@@ -591,6 +591,18 @@
                           </div>
                           <p class="threshold-desc">{{ 'SETTINGS.MODULE_BAR_TABS_DESC' | transloco }}</p>
                         </div>
+
+                        <!-- Module 9: COCKTAIL_LIBRARY -->
+                        <div class="threshold-row" data-testid="module-row-cocktail-library">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="library-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_COCKTAIL_LIBRARY_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="cocktailLibrary" data-testid="toggle-module-cocktail-library"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_COCKTAIL_LIBRARY_DESC' | transloco }}</p>
+                        </div>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -800,6 +812,26 @@
                                 </span>
                               </div>
                               <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_BAR_TABS' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 9. Bibliothèque de Cocktails & Recettes -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('cocktailLibrary')"
+                            [class.node-inactive]="!isModuleControlActive('cocktailLibrary')"
+                            data-testid="preview-node-cocktail-library">
+                            <div class="node-icon-box">
+                              <ion-icon name="library-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_COCKTAIL_LIBRARY_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('cocktailLibrary')">
+                                  {{ (isModuleControlActive('cocktailLibrary') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_COCKTAIL_LIBRARY' | transloco }}</span>
                             </div>
                           </div>
                         </div>
