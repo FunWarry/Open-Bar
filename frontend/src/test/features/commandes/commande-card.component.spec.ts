@@ -128,5 +128,59 @@ describe('CommandeCardComponent', () => {
     component.commande = null as any;
     expect(component.isPriority()).toBeFalse();
   });
-});
 
+  it('computes delay and urgency thresholds correctly', () => {
+    // Normal / recent
+    component.commande = { ...mockCmd, dateCommande: new Date().toISOString(), prioritaire: false, notes: undefined };
+    expect(component.isCritical).toBeFalse();
+    expect(component.isUrgent).toBeFalse();
+    expect(component.isWarning).toBeFalse();
+
+    // Warning (5 to 10 min)
+    component.commande = { ...mockCmd, dateCommande: new Date(Date.now() - 6 * 60000).toISOString(), prioritaire: false, notes: undefined };
+    expect(component.isWarning).toBeTrue();
+    expect(component.isUrgent).toBeFalse();
+
+    // Urgent (10 to 15 min or priority)
+    component.commande = { ...mockCmd, dateCommande: new Date(Date.now() - 11 * 60000).toISOString(), prioritaire: false, notes: undefined };
+    expect(component.isUrgent).toBeTrue();
+    expect(component.isCritical).toBeFalse();
+
+    // Critical (>= 15 min)
+    component.commande = { ...mockCmd, dateCommande: new Date(Date.now() - 16 * 60000).toISOString(), prioritaire: false, notes: undefined };
+    expect(component.isCritical).toBeTrue();
+
+    // Delivered / Settled / Cancelled orders never show urgency
+    component.commande = { ...mockCmd, statut: 'LIVREE', dateCommande: new Date(Date.now() - 30 * 60000).toISOString() };
+    expect(component.isCritical).toBeFalse();
+    expect(component.isUrgent).toBeFalse();
+    expect(component.isWarning).toBeFalse();
+  });
+
+  it('returns appropriate lisereColor according to status and urgency', () => {
+    component.commande = { ...mockCmd, statut: 'EN_ATTENTE', dateCommande: new Date().toISOString(), prioritaire: false, notes: undefined };
+    expect(component.lisereColor).toBe('var(--semantic-warning)');
+
+    component.commande = { ...mockCmd, statut: 'EN_PREPARATION', dateCommande: new Date().toISOString(), prioritaire: false, notes: undefined };
+    expect(component.lisereColor).toBe('var(--semantic-info)');
+
+    component.commande = { ...mockCmd, statut: 'PRET', dateCommande: new Date().toISOString(), prioritaire: false, notes: undefined };
+    expect(component.lisereColor).toBe('var(--semantic-success)');
+
+    component.commande = { ...mockCmd, statut: 'LIVREE' };
+    expect(component.lisereColor).toBe('var(--text-muted)');
+
+    component.commande = { ...mockCmd, statut: 'REGLEE' };
+    expect(component.lisereColor).toBe('var(--text-muted)');
+
+    component.commande = { ...mockCmd, statut: 'ANNULEE' };
+    expect(component.lisereColor).toBe('var(--text-muted)');
+
+    // Urgent overrides status color
+    component.commande = { ...mockCmd, statut: 'EN_PREPARATION', prioritaire: true };
+    expect(component.lisereColor).toBe('var(--semantic-danger)');
+
+    component.commande = null as any;
+    expect(component.lisereColor).toBe('var(--border-medium)');
+  });
+});
