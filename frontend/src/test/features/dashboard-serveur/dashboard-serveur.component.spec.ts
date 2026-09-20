@@ -1324,19 +1324,22 @@ describe('DashboardServeurComponent', () => {
       expect(modalCtrlSpy.create).not.toHaveBeenCalled();
     }));
 
-    it('opens VariantSelectionModalComponent when cocktail has available variants', fakeAsync(() => {
-      component.cart = { tableId: 1, items: [] };
-
+    const setupVariantModal = (role: string, selectedVariant: any) => {
       const mockModal = {
         present: jasmine.createSpy('present'),
-        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
-          role: 'confirm',
-          data: {
-            selectedVariant: { id: 201, nom: 'Virgin Mojito', prix: 7.0 },
-          },
-        })),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(
+          Promise.resolve({
+            role,
+            data: selectedVariant ? { selectedVariant } : null,
+          })
+        ),
       };
       modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
+    };
+
+    it('opens VariantSelectionModalComponent when cocktail has available variants', fakeAsync(() => {
+      component.cart = { tableId: 1, items: [] };
+      setupVariantModal('confirm', { id: 201, nom: 'Virgin Mojito', prix: 7.0 });
 
       component.onCocktailSelected(mockCocktailWithVariants);
       tick();
@@ -1351,17 +1354,7 @@ describe('DashboardServeurComponent', () => {
 
     it('adds standard recipe when standard variant option is selected in modal', fakeAsync(() => {
       component.cart = { tableId: 1, items: [] };
-
-      const mockModal = {
-        present: jasmine.createSpy('present'),
-        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
-          role: 'confirm',
-          data: {
-            selectedVariant: { id: undefined, nom: 'Mojito Havana (Standard)', prix: 8.5 },
-          },
-        })),
-      };
-      modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
+      setupVariantModal('confirm', { id: undefined, nom: 'Mojito Havana (Standard)', prix: 8.5 });
 
       component.onCocktailSelected(mockCocktailWithVariants);
       tick();
@@ -1375,15 +1368,7 @@ describe('DashboardServeurComponent', () => {
 
     it('does not add to cart when variant modal is cancelled', fakeAsync(() => {
       component.cart = { tableId: 1, items: [] };
-
-      const mockModal = {
-        present: jasmine.createSpy('present'),
-        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
-          role: 'cancel',
-          data: null,
-        })),
-      };
-      modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
+      setupVariantModal('cancel', null);
 
       component.onCocktailSelected(mockCocktailWithVariants);
       tick();

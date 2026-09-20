@@ -52,13 +52,20 @@ public record CocktailRecipeStepResponseDTO(
      */
     public static CocktailRecipeStepResponseDTO from(CocktailRecipeStep s) {
         if (s == null) return null;
+        String resolvedIngredientName = null;
+        if (s.getIngredient() != null && s.getIngredient().getNom() != null && !s.getIngredient().getNom().isBlank()) {
+            resolvedIngredientName = s.getIngredient().getNom();
+        } else if (s.getStepType() == RecipeStepType.INGREDIENT && s.getActionTitle() != null && !s.getActionTitle().isBlank()) {
+            resolvedIngredientName = s.getActionTitle();
+        }
+
         return new CocktailRecipeStepResponseDTO(
             s.getId(),
             s.getCocktail() != null ? s.getCocktail().getId() : null,
             s.getStepOrder(),
             s.getStepType(),
             s.getIngredient() != null ? s.getIngredient().getId() : null,
-            s.getIngredient() != null ? s.getIngredient().getNom() : null,
+            resolvedIngredientName,
             s.getQuantite(),
             s.getUnite(),
             s.getTemplate() != null ? s.getTemplate().getId() : null,
