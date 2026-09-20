@@ -1,6 +1,16 @@
 <div class="bar-tabs-container" data-testid="bar-tabs-container">
   <!-- Controls row: Summary stats + Search bar + New Tab CTA -->
   <div class="tabs-header-card">
+    <div class="search-bar-row">
+      <app-search-bar
+        [ngModel]="searchTerm()"
+        (searchChange)="onSearchChange($event)"
+        (cleared)="clearSearch()"
+        [placeholder]="'TABS.SEARCH_PLACEHOLDER' | transloco"
+        testId="bar-tabs-search-bar">
+      </app-search-bar>
+    </div>
+
     <div class="stats-and-actions">
       <div class="tabs-stats-group">
         <div class="stat-pill active-tabs" data-testid="pill-active-tabs-count">
@@ -41,16 +51,6 @@
           {{ 'TABS.NEW_TAB' | transloco }}
         </ion-button>
       </div>
-    </div>
-
-    <div class="search-bar-row">
-      <app-search-bar
-        [ngModel]="searchTerm()"
-        (searchChange)="onSearchChange($event)"
-        (cleared)="clearSearch()"
-        [placeholder]="'TABS.SEARCH_PLACEHOLDER' | transloco"
-        testId="bar-tabs-search-bar">
-      </app-search-bar>
     </div>
   </div>
 
