@@ -31,15 +31,9 @@ import { ActionButtonComponent } from '../../../core/components/ui/action-button
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { getMarginBadgeClass } from '../../../core/utils/margin-calculation.util';
 import { environment } from '../../../../environments/environment';
+import { DEFAULT_ALLERGEN_OPTIONS } from '../../../core/models/ingredient.model';
 
-/**
- * Interface representing an allergen option for filtering.
- */
-export interface AllergenOption {
-  key: string;
-  labelKey: string;
-  icon: string;
-}
+export type { AllergenOption } from '../../../core/models/ingredient.model';
 
 /**
  * Global Cocktails Management component in OpenBar (Figma styled).
@@ -86,15 +80,7 @@ export class CocktailListComponent implements OnInit, OnDestroy {
     return getMarginBadgeClass(percentage, target, warning);
   }
 
-  readonly availableAllergens: AllergenOption[] = [
-    { key: 'LAIT', labelKey: 'COCKTAILS.ALLERGENS.LAIT', icon: 'nutrition-outline' },
-    { key: 'GLUTEN', labelKey: 'COCKTAILS.ALLERGENS.GLUTEN', icon: 'leaf-outline' },
-    { key: 'OEUF', labelKey: 'COCKTAILS.ALLERGENS.OEUF', icon: 'egg-outline' },
-    { key: 'FRUITS_A_COQUE', labelKey: 'COCKTAILS.ALLERGENS.FRUITS_A_COQUE', icon: 'nutrition-outline' },
-    { key: 'ARACHIDE', labelKey: 'COCKTAILS.ALLERGENS.ARACHIDE', icon: 'nutrition-outline' },
-    { key: 'SULFITES', labelKey: 'COCKTAILS.ALLERGENS.SULFITES', icon: 'wine-outline' },
-    { key: 'SOJA', labelKey: 'COCKTAILS.ALLERGENS.SOJA', icon: 'leaf-outline' },
-  ];
+  readonly availableAllergens = DEFAULT_ALLERGEN_OPTIONS;
 
   isLoading = false;
   isAdmin$: Observable<boolean>;

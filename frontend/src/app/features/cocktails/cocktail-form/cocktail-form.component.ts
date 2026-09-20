@@ -78,6 +78,7 @@ import {
   Cocktail,
   CocktailIngredientItem,
   FlavorProfile,
+  DEFAULT_FLAVOR_CONFIGS,
 } from '../../../core/models/cocktail.model';
 import { Ingredient } from '../../../core/models/ingredient.model';
 import { Glassware } from '../../../core/models/glassware.model';
@@ -282,15 +283,7 @@ export class CocktailFormComponent implements OnInit {
   selectedFlavors = signal<FlavorProfile[]>([]);
 
   /** Available flavor profiles with labels and icons. */
-  readonly availableFlavors: { key: FlavorProfile; labelKey: string; icon: string }[] = [
-    { key: 'FRUITY', labelKey: 'COCKTAIL.FLAVOR_FRUITY', icon: 'water-outline' },
-    { key: 'SMOKY', labelKey: 'COCKTAIL.FLAVOR_SMOKY', icon: 'cloud-outline' },
-    { key: 'SWEET', labelKey: 'COCKTAIL.FLAVOR_SWEET', icon: 'sparkles-outline' },
-    { key: 'SOUR', labelKey: 'COCKTAIL.FLAVOR_SOUR', icon: 'water-outline' },
-    { key: 'BITTER', labelKey: 'COCKTAIL.FLAVOR_BITTER', icon: 'wine-outline' },
-    { key: 'SPICY', labelKey: 'COCKTAIL.FLAVOR_SPICY', icon: 'flame-outline' },
-    { key: 'HERBAL', labelKey: 'COCKTAIL.FLAVOR_HERBAL', icon: 'leaf-outline' },
-  ];
+  readonly availableFlavors = DEFAULT_FLAVOR_CONFIGS;
 
   cocktailForm: FormGroup = this.fb.group({
     name: ['', Validators.required],

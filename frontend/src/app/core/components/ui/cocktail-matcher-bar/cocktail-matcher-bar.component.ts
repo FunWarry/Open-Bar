@@ -15,7 +15,7 @@ import {
   restaurantOutline,
   nutritionOutline
 } from 'ionicons/icons';
-import { CocktailFacets, FlavorProfile } from '../../../models/cocktail.model';
+import { CocktailFacets, FlavorProfile, FlavorProfileConfig, DEFAULT_FLAVOR_CONFIGS } from '../../../models/cocktail.model';
 
 /**
  * Filter state payload emitted whenever matcher tags or dietary preferences change.
@@ -31,12 +31,7 @@ export interface CocktailMatcherFilters {
 /**
  * Definition of a flavor profile display item with icon and metadata.
  */
-export interface FlavorItemConfig {
-  key: FlavorProfile;
-  labelKey: string;
-  icon: string;
-  badgeClass: string;
-}
+export type FlavorItemConfig = FlavorProfileConfig;
 
 /**
  * Interactive cocktail matcher bar providing visual flavor profile chips and dietary preference toggles.
@@ -82,15 +77,7 @@ export class CocktailMatcherBarComponent {
   @Output() resetFilters = new EventEmitter<void>();
 
   /** Available flavor profiles with localized keys and icons. */
-  readonly availableFlavors: FlavorItemConfig[] = [
-    { key: 'FRUITY', labelKey: 'COCKTAIL.FLAVOR_FRUITY', icon: 'water-outline', badgeClass: 'flavor-fruity' },
-    { key: 'SMOKY', labelKey: 'COCKTAIL.FLAVOR_SMOKY', icon: 'cloud-outline', badgeClass: 'flavor-smoky' },
-    { key: 'SWEET', labelKey: 'COCKTAIL.FLAVOR_SWEET', icon: 'sparkles-outline', badgeClass: 'flavor-sweet' },
-    { key: 'SOUR', labelKey: 'COCKTAIL.FLAVOR_SOUR', icon: 'water-outline', badgeClass: 'flavor-sour' },
-    { key: 'BITTER', labelKey: 'COCKTAIL.FLAVOR_BITTER', icon: 'wine-outline', badgeClass: 'flavor-bitter' },
-    { key: 'SPICY', labelKey: 'COCKTAIL.FLAVOR_SPICY', icon: 'flame-outline', badgeClass: 'flavor-spicy' },
-    { key: 'HERBAL', labelKey: 'COCKTAIL.FLAVOR_HERBAL', icon: 'leaf-outline', badgeClass: 'flavor-herbal' },
-  ];
+  readonly availableFlavors = DEFAULT_FLAVOR_CONFIGS;
 
   constructor() {
     addIcons({
