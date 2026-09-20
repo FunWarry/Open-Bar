@@ -1,0 +1,397 @@
+<div class="library-modal-container" data-testid="cocktail-library-modal">
+  <!-- Top Navigation / Header -->
+  <ion-header class="ion-no-border modal-header">
+    <ion-toolbar class="library-toolbar">
+      <div class="header-left">
+        <div class="header-icon-badge">
+          <ion-icon name="library-outline"></ion-icon>
+        </div>
+        <div class="header-titles">
+          <h2 class="modal-title">{{ 'COCKTAIL_LIBRARY.TITLE' | transloco }}</h2>
+          <p class="modal-subtitle">{{ 'COCKTAIL_LIBRARY.SUBTITLE' | transloco }}</p>
+        </div>
+      </div>
+
+      @if (isModal) {
+        <ion-buttons slot="end">
+          <button
+            type="button"
+            class="close-modal-btn"
+            (click)="closeModal()"
+            data-testid="library-close-modal-btn"
+            [title]="'COMMON.CLOSE' | transloco">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </ion-buttons>
+      }
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="library-content">
+    <!-- Filter Controls Card -->
+    <div class="controls-card" data-testid="library-controls-card">
+      <div class="search-row">
+        <app-search-bar
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+          [placeholder]="'COCKTAIL_LIBRARY.SEARCH_PLACEHOLDER' | transloco"
+          testId="library-searchbar">
+        </app-search-bar>
+      </div>
+
+      <!-- Categories Filter Tabs -->
+      <div class="filter-tabs-row" data-testid="library-category-filter">
+        @for (cat of categoryOptions; track cat.value) {
+          <button
+            type="button"
+            class="filter-tab-btn"
+            [class.active]="selectedCategory() === cat.value"
+            (click)="selectedCategory.set(cat.value)">
+            {{ cat.labelKey | transloco }}
+          </button>
+        }
+      </div>
+
+      <!-- Base Spirits Filter Chips -->
+      <div class="spirit-chips-row" data-testid="library-spirit-filter">
+        <span class="chips-label">{{ 'COCKTAIL_LIBRARY.BASE_SPIRIT' | transloco }}:</span>
+        @for (spirit of baseSpiritOptions; track spirit.value) {
+          <button
+            type="button"
+            class="spirit-chip-btn"
+            [class.active]="selectedBaseSpirit() === spirit.value"
+            (click)="selectedBaseSpirit.set(spirit.value)">
+            {{ spirit.labelKey | transloco }}
+          </button>
+        }
+      </div>
+
+      <!-- Batch Selection Helpers Bar -->
+      <div class="batch-helpers-row">
+        <div class="batch-buttons">
+          <button
+            type="button"
+            class="helper-action-btn"
+            (click)="selectAllVisible()"
+            data-testid="library-select-all-btn">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <span>{{ 'COCKTAIL_LIBRARY.SELECT_ALL_VISIBLE' | transloco }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="helper-action-btn highlight"
+            (click)="selectIbaClassics()"
+            data-testid="library-select-iba-btn">
+            <ion-icon name="sparkles-outline"></ion-icon>
+            <span>{{ 'COCKTAIL_LIBRARY.SELECT_IBA' | transloco }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="helper-action-btn highlight-green"
+            (click)="selectMocktails()"
+            data-testid="library-select-mocktails-btn">
+            <ion-icon name="leaf-outline"></ion-icon>
+            <span>{{ 'COCKTAIL_LIBRARY.SELECT_MOCKTAILS' | transloco }}</span>
+          </button>
+
+          @if (selectedCount() > 0) {
+            <button
+              type="button"
+              class="helper-action-btn text-danger"
+              (click)="deselectAll()"
+              data-testid="library-deselect-all-btn">
+              <ion-icon name="close-circle-outline"></ion-icon>
+              <span>{{ 'COCKTAIL_LIBRARY.DESELECT_ALL' | transloco }}</span>
+            </button>
+          }
+        </div>
+
+        <div class="results-stats">
+          <span class="stats-badge">
+            {{ filteredCocktails().length }} {{ 'COCKTAIL_LIBRARY.AVAILABLE_COUNT' | transloco }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Banner -->
+    @if (errorMessage()) {
+      <div class="error-banner">
+        <ion-icon name="close-circle-outline"></ion-icon>
+        <span>{{ errorMessage() }}</span>
+        <button type="button" class="retry-btn" (click)="loadCatalog()">
+          <ion-icon name="refresh-outline"></ion-icon>
+          {{ 'COMMON.RETRY' | transloco }}
+        </button>
+      </div>
+    }
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p>{{ 'COCKTAIL_LIBRARY.LOADING' | transloco }}</p>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading() && filteredCocktails().length === 0) {
+      <app-empty-state
+        icon="wine-outline"
+        [title]="'COCKTAIL_LIBRARY.NO_RESULTS_TITLE' | transloco"
+        [subtitle]="'COCKTAIL_LIBRARY.NO_RESULTS_SUBTITLE' | transloco"
+        [actionLabel]="'COCKTAIL_LIBRARY.RESET_FILTERS' | transloco"
+        (actionClick)="selectedCategory.set('ALL'); selectedBaseSpirit.set('ALL'); searchQuery.set('')">
+      </app-empty-state>
+    }
+
+    <!-- Cocktails Catalog Grid -->
+    @if (!isLoading() && filteredCocktails().length > 0) {
+      <div class="library-grid">
+        @for (cocktail of filteredCocktails(); track cocktail.id) {
+          <div
+            class="cocktail-card"
+            [class.selected]="isSelected(cocktail.id)"
+            [attr.data-testid]="'library-cocktail-card-' + cocktail.id">
+
+            <button
+              type="button"
+              class="card-select-trigger"
+              (click)="toggleSelection(cocktail.id)"
+              [attr.aria-label]="cocktail.nom">
+            </button>
+
+            <div class="card-top-row">
+              <div class="checkbox-container">
+                <ion-checkbox
+                  [checked]="isSelected(cocktail.id)"
+                  (ionChange)="toggleSelection(cocktail.id); $event.stopPropagation()"
+                  [attr.data-testid]="'library-cocktail-checkbox-' + cocktail.id">
+                </ion-checkbox>
+              </div>
+
+              <div class="badges-row">
+                @if (cocktail.ibaOfficial) {
+                  <span class="badge badge-iba" title="IBA Official Cocktail">IBA</span>
+                }
+                @if (cocktail.isMocktail) {
+                  <span class="badge badge-mocktail">{{ 'COCKTAIL_LIBRARY.TAG_MOCKTAIL' | transloco }}</span>
+                }
+                @if (cocktail.alcoholLevel > 0) {
+                  <span class="badge badge-abv">{{ cocktail.alcoholLevel }}% vol</span>
+                }
+              </div>
+            </div>
+
+            <!-- Visual thumbnail & info -->
+            <div class="card-main-body">
+              <div class="thumbnail-wrapper">
+                <img
+                  [src]="cocktail.imageUrl || 'assets/images/verres/verre_tumbler.png'"
+                  [alt]="cocktail.nom"
+                  class="cocktail-thumb"
+                  loading="lazy"
+                  (error)="onThumbError($event)" />
+              </div>
+
+              <div class="cocktail-info">
+                <h3 class="cocktail-name">{{ cocktail.nom }}</h3>
+                <p class="cocktail-desc">{{ cocktail.description }}</p>
+
+                <div class="metadata-pills">
+                  <span class="meta-pill">
+                    <ion-icon name="wine-outline"></ion-icon>
+                    {{ cocktail.glassware }}
+                  </span>
+                  <span class="meta-pill">
+                    <ion-icon name="pricetag-outline"></ion-icon>
+                    {{ cocktail.prix | currency:'EUR':'symbol':'1.2-2' }}
+                  </span>
+                  <span class="meta-pill">
+                    <ion-icon name="flask-outline"></ion-icon>
+                    {{ cocktail.ingredients.length }} {{ 'COCKTAIL_LIBRARY.ING_COUNT' | transloco }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Bottom Bar -->
+            <div class="card-footer-row">
+              <div class="flavor-chips">
+                @for (fl of cocktail.flavorProfiles.slice(0, 3); track fl) {
+                  <span class="flavor-chip">{{ ('COCKTAILS.FLAVOR_PROFILES.' + fl) | transloco }}</span>
+                }
+              </div>
+
+              <button
+                type="button"
+                class="btn-preview"
+                (click)="openPreview(cocktail, $event)"
+                [attr.data-testid]="'library-preview-btn-' + cocktail.id"
+                [title]="'COCKTAIL_LIBRARY.PREVIEW_RECIPE' | transloco">
+                <ion-icon name="eye-outline"></ion-icon>
+                <span>{{ 'COCKTAIL_LIBRARY.PREVIEW' | transloco }}</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </ion-content>
+
+  <!-- Sticky Bottom Footer Actions -->
+  <div class="modal-footer-bar">
+    <div class="footer-summary">
+      <span class="selected-pill">
+        <ion-icon name="checkmark-circle"></ion-icon>
+        <strong>{{ selectedCount() }}</strong> {{ 'COCKTAIL_LIBRARY.SELECTED_COUNT' | transloco }}
+      </span>
+    </div>
+
+    <div class="footer-actions">
+      <app-action-button
+        variant="secondary"
+        size="medium"
+        (btnClick)="closeModal()"
+        testId="library-cancel-btn">
+        {{ (isModal ? 'COMMON.CLOSE' : 'COCKTAIL_LIBRARY.SKIP_STEP') | transloco }}
+      </app-action-button>
+
+      <app-action-button
+        variant="primary"
+        size="medium"
+        [disabled]="selectedCount() === 0 || isImporting()"
+        [loading]="isImporting()"
+        icon="library-outline"
+        (btnClick)="executeImport()"
+        testId="library-import-btn">
+        {{ customSubmitLabel ? customSubmitLabel : ('COCKTAIL_LIBRARY.IMPORT_ACTION' | transloco) }} ({{ selectedCount() }})
+      </app-action-button>
+    </div>
+  </div>
+
+  <!-- Recipe Preview Drawer Overlay -->
+  @if (previewItem(); as item) {
+    <button
+      type="button"
+      class="preview-backdrop"
+      (click)="closePreview()"
+      [attr.aria-label]="'COMMON.CLOSE' | transloco">
+    </button>
+    <aside class="preview-drawer" data-testid="library-recipe-preview-drawer">
+      <div class="drawer-header">
+        <div class="drawer-header-title">
+          <ion-icon name="wine-outline"></ion-icon>
+          <h3>{{ item.nom }}</h3>
+        </div>
+        <button
+          type="button"
+          class="drawer-close-btn"
+          (click)="closePreview()"
+          data-testid="library-close-preview-btn">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <div class="drawer-body">
+        <div class="preview-hero">
+          <img
+            [src]="item.imageUrl || 'assets/images/verres/verre_tumbler.png'"
+            [alt]="item.nom"
+            class="hero-img"
+            (error)="onThumbError($event)" />
+          <div class="hero-details">
+            <div class="hero-badges">
+              @if (item.ibaOfficial) {
+                <span class="badge badge-iba">IBA Official</span>
+              }
+              <span class="badge badge-abv">{{ item.alcoholLevel }}% vol</span>
+              <span class="badge badge-glass">{{ item.glassware }}</span>
+            </div>
+            <p class="hero-desc">{{ item.description }}</p>
+          </div>
+        </div>
+
+        <!-- Allergens & Dietary Attributes -->
+        <div class="preview-section">
+          <h4 class="section-title">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            {{ 'COCKTAIL_LIBRARY.ALLERGENS_TITLE' | transloco }}
+          </h4>
+          <div class="attributes-row">
+            @if (item.allergens && item.allergens.length > 0) {
+              @for (all of item.allergens; track all) {
+                <span class="allergen-tag">{{ ('INGREDIENTS.ALLERGENS.' + all) | transloco }}</span>
+              }
+            } @else {
+              <span class="allergen-none">{{ 'COCKTAIL_LIBRARY.NO_ALLERGENS' | transloco }}</span>
+            }
+
+            @if (item.isVegan) {
+              <span class="diet-tag vegan">{{ 'COCKTAILS.VEGAN' | transloco }}</span>
+            }
+            @if (item.isGlutenFree) {
+              <span class="diet-tag gluten-free">{{ 'COCKTAILS.GLUTEN_FREE' | transloco }}</span>
+            }
+          </div>
+        </div>
+
+        <!-- Itemized Ingredients -->
+        <div class="preview-section">
+          <h4 class="section-title">
+            <ion-icon name="flask-outline"></ion-icon>
+            {{ 'COCKTAIL_LIBRARY.INGREDIENTS_TITLE' | transloco }} ({{ item.ingredients.length }})
+          </h4>
+          <ul class="ingredients-list">
+            @for (ing of item.ingredients; track ing.nom) {
+              <li class="ing-item">
+                <span class="ing-name">{{ ing.nom }}</span>
+                <span class="ing-measure">{{ ing.quantite }} {{ ing.unite }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+
+        <!-- Step by Step Preparation -->
+        <div class="preview-section">
+          <h4 class="section-title">
+            <ion-icon name="sparkles-outline"></ion-icon>
+            {{ 'COCKTAIL_LIBRARY.STEPS_TITLE' | transloco }}
+          </h4>
+          <div class="steps-timeline">
+            @for (step of item.recipeSteps; track step.stepOrder) {
+              <div class="step-card">
+                <div class="step-num">{{ step.stepOrder }}</div>
+                <div class="step-content">
+                  <div class="step-title-row">
+                    <span class="step-action">{{ step.actionTitle }}</span>
+                    @if (step.quantite) {
+                      <span class="step-vol">{{ step.quantite }} {{ step.unite }}</span>
+                    }
+                  </div>
+                  <p class="step-instruction">{{ step.customText }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Drawer Bottom Selection Toggle -->
+      <div class="drawer-footer">
+        <button
+          type="button"
+          class="drawer-toggle-btn"
+          [class.selected]="isSelected(item.id)"
+          (click)="toggleSelection(item.id)">
+          <ion-icon [name]="isSelected(item.id) ? 'checkmark-circle' : 'checkmark-circle-outline'"></ion-icon>
+          <span>
+            {{ (isSelected(item.id) ? 'COCKTAIL_LIBRARY.CARD_SELECTED' : 'COCKTAIL_LIBRARY.CARD_SELECT') | transloco }}
+          </span>
+        </button>
+      </div>
+    </aside>
+  }
+</div>

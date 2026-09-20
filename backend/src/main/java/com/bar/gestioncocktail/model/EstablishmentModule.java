@@ -47,6 +47,12 @@ public enum EstablishmentModule {
      * Customer bar tabs and running ledgers without mandatory physical table assignment,
      * supporting drink accumulation across the evening, table-tab transfers, and unified settlement.
      */
-    BAR_TABS
+    BAR_TABS,
+
+    /**
+     * Standard cocktail & ingredient library import wizard with preconfigured recipes,
+     * IBA classics, glassware, flavor profiles, and automatic inventory deduplication.
+     */
+    COCKTAIL_LIBRARY
 }
 

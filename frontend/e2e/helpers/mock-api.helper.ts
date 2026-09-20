@@ -102,7 +102,109 @@ export async function setupMockApi(page: Page): Promise<void> {
         qrClientOrdering: true,
         stockTracking: true,
         cashDrawer: true,
+        cocktailLibrary: true,
       }),
+    });
+  });
+
+  // Cocktail library routes
+  await page.route('**/api/cocktails/library/import', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        importedCount: 2,
+        skippedCount: 0,
+        newIngredientsCount: 4,
+        reusedIngredientsCount: 1,
+        importedCocktails: ['Mojito', 'Virgin Mojito'],
+        skippedCocktails: [],
+        message: 'Imported 2 cocktails successfully',
+      }),
+    });
+  });
+
+  await page.route('**/api/cocktails/library**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 'lib_1',
+          nom: 'Mojito',
+          description: 'Classic Cuban highball with fresh mint and rum',
+          categorie: 'ALCOOLISE',
+          libraryCategory: 'IBA_CLASSICS',
+          baseSpirit: 'RUM',
+          ibaOfficial: true,
+          prix: 9.5,
+          alcoholLevel: 12.0,
+          isMocktail: false,
+          isVegan: true,
+          isGlutenFree: true,
+          glassware: 'Tumbler',
+          glasswareImage: 'assets/images/verres/verre_tumbler.png',
+          imageUrl: 'assets/images/verres/verre_tumbler.png',
+          flavorProfiles: ['HERBAL', 'SOUR'],
+          allergens: [],
+          preparationTimeSeconds: 60,
+          tags: ['classic', 'rum'],
+          ingredients: [
+            {
+              nom: 'Rhum Blanc',
+              quantite: 5,
+              unite: 'cl',
+              degreAlcool: 40,
+              coutUnitaire: 0.8,
+              allergens: [],
+              isVegan: true,
+            }
+          ],
+          recipeSteps: [
+            {
+              stepOrder: 1,
+              stepType: 'CUSTOM_TEXT',
+              actionTitle: 'Muddle',
+              customText: 'Muddle mint leaves with sugar and lime'
+            }
+          ],
+          instructions: 'Muddle and build in glass',
+        },
+        {
+          id: 'lib_2',
+          nom: 'Virgin Mojito',
+          description: 'Non-alcoholic refreshing mint and lime cooler',
+          categorie: 'SANS_ALCOOL',
+          libraryCategory: 'MOCKTAILS',
+          baseSpirit: 'NON_ALCOHOLIC',
+          ibaOfficial: false,
+          prix: 6.5,
+          alcoholLevel: 0.0,
+          isMocktail: true,
+          isVegan: true,
+          isGlutenFree: true,
+          glassware: 'Tumbler',
+          glasswareImage: 'assets/images/verres/verre_tumbler.png',
+          imageUrl: 'assets/images/verres/verre_tumbler.png',
+          flavorProfiles: ['HERBAL', 'SWEET'],
+          allergens: [],
+          preparationTimeSeconds: 45,
+          tags: ['mocktail', 'virgin'],
+          ingredients: [
+            {
+              nom: 'Menthe Fraiche',
+              quantite: 8,
+              unite: 'feuilles',
+              degreAlcool: 0,
+              coutUnitaire: 0.1,
+              allergens: [],
+              isVegan: true,
+            }
+          ],
+          recipeSteps: [],
+          instructions: 'Muddle and top with soda water',
+        }
+      ]),
     });
   });
 

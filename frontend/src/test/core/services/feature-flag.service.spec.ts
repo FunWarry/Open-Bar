@@ -26,6 +26,7 @@ describe('FeatureFlagService', () => {
     stockTracking: true,
     cashDrawer: true,
     barTabs: true,
+    cocktailLibrary: true,
   };
 
   beforeEach(() => {
@@ -69,6 +70,8 @@ describe('FeatureFlagService', () => {
     expect(service.isModuleEnabled(EstablishmentModule.FLOOR_PLAN)).toBeFalse();
     expect(service.isModuleEnabled(EstablishmentModule.QR_CLIENT_ORDERING)).toBeTrue();
     expect(service.isModuleEnabled(EstablishmentModule.STOCK_TRACKING)).toBeTrue();
+    expect(service.isModuleEnabled(EstablishmentModule.BAR_TABS)).toBeTrue();
+    expect(service.isModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY)).toBeTrue();
   });
 
   it('should update modules via PUT /api/establishment/modules', () => {
@@ -127,6 +130,7 @@ describe('FeatureFlagService', () => {
       stockTracking: false,
       cashDrawer: false,
       barTabs: true,
+      cocktailLibrary: false,
     };
 
     wsSubject.next({ body: JSON.stringify(wsUpdate) });

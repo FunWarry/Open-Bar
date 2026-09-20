@@ -178,6 +178,7 @@ public class EstablishmentConfigService {
         if (request.stockTracking() != null) config.setModuleStockTrackingEnabled(request.stockTracking());
         if (request.cashDrawer() != null) config.setModuleCashDrawerEnabled(request.cashDrawer());
         if (request.barTabs() != null) config.setModuleBarTabsEnabled(request.barTabs());
+        if (request.cocktailLibrary() != null) config.setModuleCocktailLibraryEnabled(request.cocktailLibrary());
     }
 
     private void applyLegalInfoUpdates(EstablishmentConfig config, EstablishmentConfigUpdateRequest request) {

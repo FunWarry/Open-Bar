@@ -32,5 +32,11 @@ public record CreateAdminRequestDTO(
     String nom,
 
     @Size(max = 50, message = "First name cannot exceed 50 characters")
-    String prenom
-) {}
+    String prenom,
+
+    java.util.List<String> initialCocktailIds
+) {
+    public CreateAdminRequestDTO(String username, String email, String password, String nom, String prenom) {
+        this(username, email, password, nom, prenom, java.util.Collections.emptyList());
+    }
+}

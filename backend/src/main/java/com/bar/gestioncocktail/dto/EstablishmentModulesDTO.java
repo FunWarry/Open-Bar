@@ -22,8 +22,22 @@ public record EstablishmentModulesDTO(
         boolean qrClientOrdering,
         boolean stockTracking,
         boolean cashDrawer,
-        boolean barTabs
+        boolean barTabs,
+        boolean cocktailLibrary
 ) {
+    public EstablishmentModulesDTO(
+            boolean cuisineKds,
+            boolean happyHour,
+            boolean employeeManagement,
+            boolean floorPlan,
+            boolean qrClientOrdering,
+            boolean stockTracking,
+            boolean cashDrawer,
+            boolean barTabs
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, true);
+    }
+
     public EstablishmentModulesDTO(
             boolean cuisineKds,
             boolean happyHour,
@@ -33,7 +47,7 @@ public record EstablishmentModulesDTO(
             boolean stockTracking,
             boolean cashDrawer
     ) {
-        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, true);
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, true, true);
     }
 
     /**
@@ -54,7 +68,8 @@ public record EstablishmentModulesDTO(
                 config.getModuleQrClientOrderingEnabled() == null || config.getModuleQrClientOrderingEnabled(),
                 config.getModuleStockTrackingEnabled() == null || config.getModuleStockTrackingEnabled(),
                 config.getModuleCashDrawerEnabled() == null || config.getModuleCashDrawerEnabled(),
-                config.getModuleBarTabsEnabled() == null || config.getModuleBarTabsEnabled()
+                config.getModuleBarTabsEnabled() == null || config.getModuleBarTabsEnabled(),
+                config.getModuleCocktailLibraryEnabled() == null || config.getModuleCocktailLibraryEnabled()
         );
     }
 
@@ -64,6 +79,6 @@ public record EstablishmentModulesDTO(
      * @return New instance with all flags set to true
      */
     public static EstablishmentModulesDTO defaultEnabled() {
-        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true);
+        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true, true);
     }
 }

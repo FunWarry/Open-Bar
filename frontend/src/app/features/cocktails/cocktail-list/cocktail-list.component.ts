@@ -8,7 +8,7 @@ import {
   IonContent, IonCard, IonCardContent,
   IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
   IonRefresher, IonRefresherContent,
-  IonSpinner, ToastController, IonThumbnail,
+  IonSpinner, ToastController, ModalController, IonThumbnail,
   IonGrid, IonRow, IonCol
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -16,7 +16,7 @@ import {
   add, create, trash, leafOutline, toggle, toggleOutline, gridOutline, listOutline,
   search, imageOutline, image, wineOutline, nutritionOutline, eggOutline,
   funnelOutline, closeCircleOutline, alertCircleOutline,
-  checkmarkCircle, optionsOutline, addCircleOutline
+  checkmarkCircle, optionsOutline, addCircleOutline, libraryOutline
 } from 'ionicons/icons';
 import { AsyncPipe, CurrencyPipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,10 +24,13 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { CocktailService } from '../../../core/services/cocktail.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
+import { FeatureFlagService } from '../../../core/services/feature-flag.service';
+import { EstablishmentModule } from '../../../core/models/establishment-module.model';
 import { Cocktail, CocktailFacets, FlavorProfile } from '../../../core/models/cocktail.model';
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { CocktailMatcherBarComponent, CocktailMatcherFilters } from '../../../core/components/ui/cocktail-matcher-bar/cocktail-matcher-bar.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+import { CocktailLibraryModalComponent } from '../components/cocktail-library-modal/cocktail-library-modal.component';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { getMarginBadgeClass } from '../../../core/utils/margin-calculation.util';
 import { environment } from '../../../../environments/environment';
@@ -102,6 +105,8 @@ export class CocktailListComponent implements OnInit, OnDestroy {
     private readonly cocktailService: CocktailService,
     private readonly webSocketService: WebSocketService,
     private readonly toastCtrl: ToastController,
+    private readonly modalCtrl: ModalController,
+    private readonly featureFlagService: FeatureFlagService,
     private readonly transloco: TranslocoService,
     private readonly appSettingsService: AppSettingsService,
   ) {
@@ -116,8 +121,33 @@ export class CocktailListComponent implements OnInit, OnDestroy {
       optionsOutline,
       'options-outline': optionsOutline,
       addCircleOutline,
-      'add-circle-outline': addCircleOutline
+      'add-circle-outline': addCircleOutline,
+      libraryOutline,
+      'library-outline': libraryOutline
     });
+  }
+
+  /**
+   * Whether the cocktail library capability module is enabled for this establishment.
+   */
+  get isLibraryModuleEnabled(): boolean {
+    return this.featureFlagService.isModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
+  }
+
+  /**
+   * Opens the full-screen interactive cocktail and ingredient library browser.
+   */
+  async openLibraryImportModal(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: CocktailLibraryModalComponent,
+      cssClass: 'full-screen-modal'
+    });
+    await modal.present();
+
+    const { role } = await modal.onWillDismiss();
+    if (role === 'imported') {
+      this.charger();
+    }
   }
 
   ngOnInit(): void {

@@ -31,6 +31,7 @@ describe('ModuleGuard', () => {
     stockTracking: true,
     cashDrawer: true,
     barTabs: true,
+    cocktailLibrary: true,
   };
 
   beforeEach(() => {

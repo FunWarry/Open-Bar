@@ -124,6 +124,9 @@ public class EstablishmentConfig {
     @Column(name = "module_bar_tabs_enabled")
     private Boolean moduleBarTabsEnabled = true;
 
+    @Column(name = "module_cocktail_library_enabled")
+    private Boolean moduleCocktailLibraryEnabled = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -149,6 +152,7 @@ public class EstablishmentConfig {
             case STOCK_TRACKING -> Boolean.TRUE.equals(this.moduleStockTrackingEnabled);
             case CASH_DRAWER -> Boolean.TRUE.equals(this.moduleCashDrawerEnabled);
             case BAR_TABS -> Boolean.TRUE.equals(this.moduleBarTabsEnabled);
+            case COCKTAIL_LIBRARY -> Boolean.TRUE.equals(this.moduleCocktailLibraryEnabled);
         };
     }
 
@@ -171,6 +175,7 @@ public class EstablishmentConfig {
             case STOCK_TRACKING -> this.moduleStockTrackingEnabled = enabled;
             case CASH_DRAWER -> this.moduleCashDrawerEnabled = enabled;
             case BAR_TABS -> this.moduleBarTabsEnabled = enabled;
+            case COCKTAIL_LIBRARY -> this.moduleCocktailLibraryEnabled = enabled;
             default -> { /* No-op for unexpected module */ }
         }
     }

@@ -2,122 +2,160 @@
   <div class="ellipse-bg-primary"></div>
   <div class="ellipse-bg-tertiary"></div>
 
-  <div class="setup-card">
-    <div class="card-header-section">
-      <div class="brand-logo">
-        <span class="logo-icon">🍹</span>
-        <span class="logo-text">OpenBar</span>
-      </div>
-      <h1 class="card-title">{{ 'SETUP.TITLE' | transloco }}</h1>
-      <p class="card-subtitle">{{ 'SETUP.SUBTITLE' | transloco }}</p>
-    </div>
-
-    <form [formGroup]="setupForm" (ngSubmit)="onSubmit()" class="setup-form">
-      <app-input-field
-        formControlName="username"
-        [label]="'SETUP.USERNAME' | transloco"
-        placeholder="admin"
-        icon="person-outline"
-        [required]="true"
-        [errorMessage]="
-          setupForm.get('username')?.touched && setupForm.get('username')?.hasError('required')
-            ? ('ERRORS.FORM_INVALID' | transloco)
-            : undefined
-        ">
-      </app-input-field>
-
-      <app-input-field
-        formControlName="email"
-        type="email"
-        [label]="'SETUP.EMAIL' | transloco"
-        placeholder="admin@openbar.local"
-        icon="mail-outline"
-        [required]="true"
-        [errorMessage]="
-          setupForm.get('email')?.touched && setupForm.get('email')?.hasError('email')
-            ? ('ERRORS.FORM_INVALID' | transloco)
-            : undefined
-        ">
-      </app-input-field>
-
-      <div class="form-row">
-        <app-input-field
-          formControlName="nom"
-          [label]="'SETUP.LASTNAME' | transloco"
-          placeholder="Admin">
-        </app-input-field>
-
-        <app-input-field
-          formControlName="prenom"
-          [label]="'SETUP.FIRSTNAME' | transloco"
-          placeholder="Initial">
-        </app-input-field>
-      </div>
-
-      <app-input-field
-        formControlName="password"
-        type="password"
-        [label]="'SETUP.PASSWORD' | transloco"
-        icon="lock-closed-outline"
-        [required]="true">
-      </app-input-field>
-
-      <app-input-field
-        formControlName="confirmPassword"
-        type="password"
-        [label]="'SETUP.CONFIRM_PASSWORD' | transloco"
-        icon="lock-closed-outline"
-        [required]="true"
-        [errorMessage]="
-          setupForm.touched && setupForm.hasError('passwordMismatch')
-            ? ('ERRORS.FORM_INVALID' | transloco)
-            : undefined
-        ">
-      </app-input-field>
-
-      @if (errorMessage) {
-        <div class="error-banner">
-          {{ errorMessage }}
+  <div class="setup-card" [class.wide-card]="currentStep === 'catalog'">
+    @if (currentStep === 'admin') {
+      <div class="card-header-section">
+        <div class="brand-logo">
+          <span class="logo-icon">🍹</span>
+          <span class="logo-text">OpenBar</span>
         </div>
-      }
-
-      <div class="terms-acceptance-box" data-testid="setup-terms-acceptance">
-        <ion-checkbox
-          formControlName="acceptTerms"
-          data-testid="setup-accept-terms-checkbox"
-          class="terms-checkbox">
-          <span class="terms-label">
-            {{ 'SETUP.ACCEPT_TERMS_PREFIX' | transloco }}
-            <a
-              href="javascript:void(0)"
-              (click)="openLegalModal($event, 'terms')"
-              data-testid="setup-view-terms-link"
-              class="legal-link">
-              {{ 'SETUP.TERMS_OF_SERVICE_LINK' | transloco }}
-            </a>
-            {{ 'SETUP.AND' | transloco }}
-            <a
-              href="javascript:void(0)"
-              (click)="openLegalModal($event, 'license')"
-              data-testid="setup-view-license-link"
-              class="legal-link">
-              {{ 'SETUP.LICENSE_LINK' | transloco }}
-            </a>
-          </span>
-        </ion-checkbox>
+        <div class="step-indicator-badge">
+          <span>{{ 'SETUP.STEP_1_OF_2' | transloco }}</span>
+        </div>
+        <h1 class="card-title">{{ 'SETUP.TITLE' | transloco }}</h1>
+        <p class="card-subtitle">{{ 'SETUP.SUBTITLE' | transloco }}</p>
       </div>
 
-      <div class="actions-row">
-        <app-action-button
-          type="submit"
-          variant="primary"
-          size="large"
-          expand="block"
-          [disabled]="setupForm.invalid || loading"
-          [loading]="loading">
-          {{ 'SETUP.SUBMIT' | transloco }}
-        </app-action-button>
+      <form [formGroup]="setupForm" (ngSubmit)="onSubmit()" class="setup-form">
+        <app-input-field
+          formControlName="username"
+          [label]="'SETUP.USERNAME' | transloco"
+          placeholder="admin"
+          icon="person-outline"
+          [required]="true"
+          [errorMessage]="
+            setupForm.get('username')?.touched && setupForm.get('username')?.hasError('required')
+              ? ('ERRORS.FORM_INVALID' | transloco)
+              : undefined
+          ">
+        </app-input-field>
+
+        <app-input-field
+          formControlName="email"
+          type="email"
+          [label]="'SETUP.EMAIL' | transloco"
+          placeholder="admin@openbar.local"
+          icon="mail-outline"
+          [required]="true"
+          [errorMessage]="
+            setupForm.get('email')?.touched && setupForm.get('email')?.hasError('email')
+              ? ('ERRORS.FORM_INVALID' | transloco)
+              : undefined
+          ">
+        </app-input-field>
+
+        <div class="form-row">
+          <app-input-field
+            formControlName="nom"
+            [label]="'SETUP.LASTNAME' | transloco"
+            placeholder="Admin">
+          </app-input-field>
+
+          <app-input-field
+            formControlName="prenom"
+            [label]="'SETUP.FIRSTNAME' | transloco"
+            placeholder="Initial">
+          </app-input-field>
+        </div>
+
+        <app-input-field
+          formControlName="password"
+          type="password"
+          [label]="'SETUP.PASSWORD' | transloco"
+          icon="lock-closed-outline"
+          [required]="true">
+        </app-input-field>
+
+        <app-input-field
+          formControlName="confirmPassword"
+          type="password"
+          [label]="'SETUP.CONFIRM_PASSWORD' | transloco"
+          icon="lock-closed-outline"
+          [required]="true"
+          [errorMessage]="
+            setupForm.touched && setupForm.hasError('passwordMismatch')
+              ? ('ERRORS.FORM_INVALID' | transloco)
+              : undefined
+          ">
+        </app-input-field>
+
+        @if (errorMessage) {
+          <div class="error-banner">
+            {{ errorMessage }}
+          </div>
+        }
+
+        <div class="terms-acceptance-box" data-testid="setup-terms-acceptance">
+          <ion-checkbox
+            formControlName="acceptTerms"
+            data-testid="setup-accept-terms-checkbox"
+            class="terms-checkbox">
+            <span class="terms-label">
+              {{ 'SETUP.ACCEPT_TERMS_PREFIX' | transloco }}
+              <a
+                href="javascript:void(0)"
+                (click)="openLegalModal($event, 'terms')"
+                data-testid="setup-view-terms-link"
+                class="legal-link">
+                {{ 'SETUP.TERMS_OF_SERVICE_LINK' | transloco }}
+              </a>
+              {{ 'SETUP.AND' | transloco }}
+              <a
+                href="javascript:void(0)"
+                (click)="openLegalModal($event, 'license')"
+                data-testid="setup-view-license-link"
+                class="legal-link">
+                {{ 'SETUP.LICENSE_LINK' | transloco }}
+              </a>
+            </span>
+          </ion-checkbox>
+        </div>
+
+        <div class="actions-row">
+          <app-action-button
+            type="submit"
+            variant="primary"
+            size="large"
+            expand="block"
+            [disabled]="setupForm.invalid || loading"
+            [loading]="loading"
+            testId="setup-next-step-btn">
+            {{ 'SETUP.NEXT_TO_CATALOG' | transloco }}
+          </app-action-button>
+
+          <button
+            type="button"
+            class="skip-to-finish-btn"
+            [disabled]="setupForm.invalid || loading"
+            (click)="submitSetup([])"
+            data-testid="setup-skip-catalog-btn">
+            {{ 'SETUP.FINISH_WITHOUT_CATALOG' | transloco }}
+          </button>
+        </div>
+      </form>
+    } @else {
+      <!-- Step 2: Choose your initial cocktail menu -->
+      <div class="catalog-step-header">
+        <button type="button" class="back-link-btn" (click)="backToAdmin()" data-testid="setup-back-to-admin-btn">
+          <span>← {{ 'SETUP.BACK_TO_CREDENTIALS' | transloco }}</span>
+        </button>
+
+        <div class="step-indicator-badge">
+          <span>{{ 'SETUP.STEP_2_OF_2' | transloco }}</span>
+        </div>
+        <h1 class="card-title">{{ 'SETUP.CATALOG_TITLE' | transloco }}</h1>
+        <p class="card-subtitle">{{ 'SETUP.CATALOG_SUBTITLE' | transloco }}</p>
       </div>
-    </form>
+
+      <div class="embedded-library-wrapper">
+        <app-cocktail-library-modal
+          [isModal]="false"
+          [emitSelectionOnly]="true"
+          [customSubmitLabel]="'SETUP.FINISH_AND_IMPORT' | transloco"
+          (selectionConfirmed)="submitSetup($event)"
+          (dismissed)="submitSetup([])">
+        </app-cocktail-library-modal>
+      </div>
+    }
   </div>
 </div>

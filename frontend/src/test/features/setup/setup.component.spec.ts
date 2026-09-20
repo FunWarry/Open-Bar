@@ -93,7 +93,29 @@ describe('SetupComponent', () => {
     expect(component.setupForm.hasError('passwordMismatch')).toBeTrue();
   });
 
-  it('submits data via SetupService and redirects to /auth/login on success', async () => {
+  it('advances to catalog step on valid form submit', () => {
+    component.setupForm.setValue({
+      username: 'admin',
+      email: 'admin@test.com',
+      nom: 'Admin',
+      prenom: 'Initial',
+      password: 'password123',
+      confirmPassword: 'password123',
+      acceptTerms: true
+    });
+
+    component.onSubmit();
+
+    expect(component.currentStep).toBe('catalog');
+  });
+
+  it('allows returning back to admin step', () => {
+    component.currentStep = 'catalog';
+    component.backToAdmin();
+    expect(component.currentStep).toBe('admin');
+  });
+
+  it('submits data via SetupService with initialCocktailIds and redirects to /auth/login on success', async () => {
     setupServiceSpy.createAdmin.and.returnValue(of({ id: 1, username: 'admin', email: 'admin@test.com', roles: ['ADMIN'] }));
 
     component.setupForm.setValue({
@@ -106,21 +128,47 @@ describe('SetupComponent', () => {
       acceptTerms: true
     });
 
-    component.onSubmit();
+    component.submitSetup(['lib_1', 'lib_2']);
 
     expect(setupServiceSpy.createAdmin).toHaveBeenCalledWith({
       username: 'admin',
       email: 'admin@test.com',
       nom: 'Admin',
       prenom: 'Initial',
-      password: 'password123'
+      password: 'password123',
+      initialCocktailIds: ['lib_1', 'lib_2']
     });
 
     await fixture.whenStable();
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/auth/login']);
   });
 
-  it('displays an error message if createAdmin fails', () => {
+  it('submits setup with empty cocktail list when skipped', async () => {
+    setupServiceSpy.createAdmin.and.returnValue(of({ id: 1, username: 'admin', email: 'admin@test.com', roles: ['ADMIN'] }));
+
+    component.setupForm.setValue({
+      username: 'admin',
+      email: 'admin@test.com',
+      nom: 'Admin',
+      prenom: 'Initial',
+      password: 'password123',
+      confirmPassword: 'password123',
+      acceptTerms: true
+    });
+
+    component.submitSetup([]);
+
+    expect(setupServiceSpy.createAdmin).toHaveBeenCalledWith({
+      username: 'admin',
+      email: 'admin@test.com',
+      nom: 'Admin',
+      prenom: 'Initial',
+      password: 'password123',
+      initialCocktailIds: []
+    });
+  });
+
+  it('displays an error message if createAdmin fails during submitSetup', () => {
     setupServiceSpy.createAdmin.and.returnValue(throwError(() => ({ error: { message: 'Username already taken' } })));
 
     component.setupForm.setValue({
@@ -133,9 +181,10 @@ describe('SetupComponent', () => {
       acceptTerms: true
     });
 
-    component.onSubmit();
+    component.submitSetup(['lib_1']);
 
     expect(component.errorMessage).toBe('Username already taken');
+    expect(component.loading).toBeFalse();
   });
 
   it('opens legal modal when openLegalModal is called', async () => {

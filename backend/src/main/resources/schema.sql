@@ -473,6 +473,7 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     module_stock_tracking_enabled BOOLEAN DEFAULT true,
     module_cash_drawer_enabled BOOLEAN DEFAULT true,
     module_bar_tabs_enabled BOOLEAN DEFAULT true,
+    module_cocktail_library_enabled BOOLEAN DEFAULT true,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -677,6 +678,7 @@ ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS degre_alcool DECIMAL(5,2) DEFAU
 ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS is_vegan BOOLEAN DEFAULT true;
 ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_cash_drawer_enabled BOOLEAN DEFAULT true;
 ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_bar_tabs_enabled BOOLEAN DEFAULT true;
+ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_cocktail_library_enabled BOOLEAN DEFAULT true;
 ALTER TABLE daily_cash_closures ADD COLUMN IF NOT EXISTS total_cash_in DECIMAL(10,2) DEFAULT 0.00;
 ALTER TABLE daily_cash_closures ADD COLUMN IF NOT EXISTS total_cash_out DECIMAL(10,2) DEFAULT 0.00;
 ALTER TABLE daily_cash_closures ADD COLUMN IF NOT EXISTS cash_movements_json TEXT;

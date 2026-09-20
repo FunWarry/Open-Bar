@@ -21,8 +21,25 @@ public record EstablishmentModulesUpdateRequest(
         Boolean qrClientOrdering,
         Boolean stockTracking,
         Boolean cashDrawer,
-        Boolean barTabs
+        Boolean barTabs,
+        Boolean cocktailLibrary
 ) {
+    /**
+     * Backward-compatible constructor for 8 modules before cocktailLibrary was introduced.
+     */
+    public EstablishmentModulesUpdateRequest(
+            Boolean cuisineKds,
+            Boolean happyHour,
+            Boolean employeeManagement,
+            Boolean floorPlan,
+            Boolean qrClientOrdering,
+            Boolean stockTracking,
+            Boolean cashDrawer,
+            Boolean barTabs
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, null);
+    }
+
     /**
      * Backward-compatible constructor for 7 modules before barTabs was introduced.
      */
@@ -35,7 +52,7 @@ public record EstablishmentModulesUpdateRequest(
             Boolean stockTracking,
             Boolean cashDrawer
     ) {
-        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, null);
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, null, null);
     }
 
     /**
@@ -49,7 +66,7 @@ public record EstablishmentModulesUpdateRequest(
             Boolean qrClientOrdering,
             Boolean stockTracking
     ) {
-        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, null, null);
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, null, null, null);
     }
 }
 
