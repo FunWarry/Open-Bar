@@ -31,9 +31,9 @@ import { ActionButtonComponent } from '../../../core/components/ui/action-button
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { getMarginBadgeClass } from '../../../core/utils/margin-calculation.util';
 import { environment } from '../../../../environments/environment';
-import { AllergenOption, DEFAULT_ALLERGEN_OPTIONS } from '../../../core/models/ingredient.model';
+import { DEFAULT_ALLERGEN_OPTIONS } from '../../../core/models/ingredient.model';
 
-export type { AllergenOption };
+export type { AllergenOption } from '../../../core/models/ingredient.model';
 
 /**
  * Global Cocktails Management component in OpenBar (Figma styled).
