@@ -535,7 +535,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
     const modal = await this.modalCtrl.create({
       component: BarTicketPrintComponent,
       componentProps: { commande: cmd },
-      cssClass: 'bar-ticket-modal-container'
+      cssClass: 'modal-md bar-ticket-modal-container'
     });
     await modal.present();
   }

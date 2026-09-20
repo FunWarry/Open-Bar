@@ -1222,7 +1222,6 @@ describe('CocktailFormComponent', () => {
     });
 
     it('does not update ingredientsList when modal is cancelled', async () => {
-      const initialCount = component.ingredientsList().length;
       modalMock.onDidDismiss.and.returnValue(
         Promise.resolve({
           data: null,
@@ -1232,7 +1231,7 @@ describe('CocktailFormComponent', () => {
 
       await component.openCreateIngredientModal();
 
-      expect(component.ingredientsList()).toHaveSize(initialCount);
+      expect(component.ingredientsList()).toEqual(mockIngredients);
     });
   });
 });

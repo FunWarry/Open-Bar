@@ -1,15 +1,9 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar class="ticket-modal-toolbar">
-    <ion-title>{{ 'BARMAN_DASHBOARD.BAR_TICKET_PREVIEW' | transloco }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="dismiss()" (keyup.enter)="dismiss()" [attr.aria-label]="'COMMON.CLOSE' | transloco" class="btn-close-header">
-        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="ticket-modal-content">
+<app-modal
+  size="md"
+  [title]="'BARMAN_DASHBOARD.BAR_TICKET_PREVIEW' | transloco"
+  icon="print-outline"
+  (dismiss)="dismiss()"
+>
   <div class="ticket-preview-wrapper">
     <!-- Simulated Thermal Receipt Container with jagged paper tear edges -->
     <div class="paper-receipt-container">
@@ -103,24 +97,25 @@
       <div class="paper-tear paper-tear-bottom"></div>
     </div>
   </div>
-</ion-content>
 
-<ion-footer class="ticket-modal-footer">
-  <div class="footer-actions">
+  <!-- Footer Actions Slot -->
+  <ng-container slot="footer">
     <ion-button
       fill="outline"
-      class="action-btn btn-cancel"
+      color="medium"
+      class="ticket-action-btn btn-cancel"
       (click)="dismiss()"
       (keyup.enter)="dismiss()"
       data-testid="btn-close-ticket-modal"
     >
       <ion-icon slot="start" name="close-circle-outline"></ion-icon>
-      {{ 'COMMON.CANCEL' | transloco }}
+      <span>{{ 'COMMON.CANCEL' | transloco }}</span>
     </ion-button>
 
     <ion-button
       fill="outline"
-      class="action-btn btn-direct-escpos"
+      color="primary"
+      class="ticket-action-btn btn-direct-escpos"
       [disabled]="isDirectPrinting"
       (click)="printDirectEscPos()"
       (keyup.enter)="printDirectEscPos()"
@@ -135,9 +130,8 @@
     </ion-button>
 
     <ion-button
-      fill="solid"
       color="primary"
-      class="action-btn btn-print-primary"
+      class="ticket-action-btn btn-print-primary"
       (click)="printTicket()"
       (keyup.enter)="printTicket()"
       data-testid="confirm-print-btn"
@@ -145,5 +139,5 @@
       <ion-icon slot="start" name="print-outline"></ion-icon>
       <span>{{ 'BARMAN_DASHBOARD.PRINT_TICKET' | transloco }}</span>
     </ion-button>
-  </div>
-</ion-footer>
+  </ng-container>
+</app-modal>

@@ -842,9 +842,9 @@ ion-modal.delete-modal {
 }
 
 ion-modal.bar-ticket-modal-container {
-  --width: min(660px, 95vw);
-  --height: min(760px, 88vh);
-  --max-height: 90vh;
+  --width: min(580px, 95vw);
+  --height: auto;
+  --max-height: 88vh;
 }
 
 ion-modal.ruptures-modal-container,
@@ -1116,7 +1116,8 @@ ion-modal.modal-md,
 ion-modal.modal-lg,
 ion-modal.modal-xl,
 ion-modal.modal-full,
-ion-modal.variant-recipe-modal-container {
+ion-modal.variant-recipe-modal-container,
+ion-modal.bar-ticket-modal-container {
   --border-radius: var(--radius-xl, 18px);
   --box-shadow: var(--shadow-modal);
   --backdrop-opacity: 0.55;
@@ -1128,7 +1129,8 @@ ion-modal.modal-md::part(content),
 ion-modal.modal-lg::part(content),
 ion-modal.modal-xl::part(content),
 ion-modal.modal-full::part(content),
-ion-modal.variant-recipe-modal-container::part(content) {
+ion-modal.variant-recipe-modal-container::part(content),
+ion-modal.bar-ticket-modal-container::part(content) {
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-xl, 18px);
   box-shadow: var(--shadow-modal);

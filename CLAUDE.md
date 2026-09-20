@@ -382,10 +382,10 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 15 septembre 2026 — PR #486 (#444) : Standardisation et sécurisation complète de tous les exports CSV (CsvUtils backend RFC 4180, neutralisation injection de formules, CsvExportService frontend avec BOM UTF-8, exports pertes de stock, shifts, inventaire, comptabilité), 100% tests au vert
-
+> Dernière mise à jour : 20 septembre 2026 — PR #509 (#508) : Intégration du catalogue cocktails dans l'onglet commande serveur avec mode sélection, gestion des recettes variantes, refonte moderne du modal ticket de préparation bar (`ModalComponent`, boxshadows adaptatifs, boutons Ionic unifiés)
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
+| Catalogue Cocktails dans Prise de Commande Serveur, Variantes & Modal Ticket Bar (#508 / #509) | ✅ | ✅ | ✅ |
 | Standardisation et Sécurisation des Exports CSV (RFC 4180, Injections, BOM UTF-8) (#444 / #486) | ✅ | ✅ | ✅ |
 | Configuration Dependabot (Maven, npm, GitHub Actions) (#336) | ✅ | ✅ | ✅ |
 | Auth JWT | ✅ | ✅ | ✅ |

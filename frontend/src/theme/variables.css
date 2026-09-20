@@ -91,6 +91,7 @@
   --thermal-paper-divider: #222222;
   --thermal-paper-warning: #d97706;
   --thermal-paper-success: #059669;
+  --thermal-receipt-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
 
   /* OpenBar DS — Types boissons/plats */
   --types-snacks: #0051ff;
@@ -308,6 +309,7 @@ body.light-theme,
   --card-item-bg: #ffffff;
   --card-item-border: #e2e8f0;
   --card-item-shadow: var(--shadow-sm);
+  --thermal-receipt-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   --card-header-border: #f1f5f9;
   --input-bg: var(--surface-2);
   --input-border: #cbd5e1;

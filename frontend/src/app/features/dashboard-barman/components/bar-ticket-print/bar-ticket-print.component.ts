@@ -1,14 +1,8 @@
 import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
   IonButton,
-  IonContent,
   IonIcon,
-  IonFooter,
   IonSpinner,
   ModalController,
   ToastController
@@ -16,6 +10,7 @@ import {
 import { addIcons } from 'ionicons';
 import { printOutline, closeOutline, closeCircleOutline, hardwareChipOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { ModalComponent } from '../../../../core/components/ui/modal/modal.component';
 import { CommandeView, CommandeItemView } from '../../models/commande-view.model';
 import { groupCommandeItems } from '../../../../core/utils/order-item-grouper';
 import { AppSettingsService } from '../../../../core/services/app-settings.service';
@@ -30,18 +25,13 @@ import { PrinterService } from '../../../../core/services/printer.service';
   imports: [
     DatePipe,
     TranslocoPipe,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
+    ModalComponent,
     IonButton,
-    IonContent,
     IonIcon,
-    IonFooter,
     IonSpinner
   ],
   templateUrl: './bar-ticket-print.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.Default,
   styleUrls: ['./bar-ticket-print.component.scss']
 })
 export class BarTicketPrintComponent implements OnInit {
