@@ -15,7 +15,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service for managing legal establishment configuration parameters and modular capability flags.
+ * Service for managing legal establishment configuration parameters and modular
+ * capability flags.
  */
 @Service
 public class EstablishmentConfigService {
@@ -24,20 +25,24 @@ public class EstablishmentConfigService {
     private final NotificationService notificationService;
 
     /**
-     * Constructs EstablishmentConfigService with repository and real-time notification service.
+     * Constructs EstablishmentConfigService with repository and real-time
+     * notification service.
      *
-     * @param establishmentConfigRepository Repository for establishment config persistence
+     * @param establishmentConfigRepository Repository for establishment config
+     *                                      persistence
      * @param notificationService           Service for STOMP WebSocket broadcasts
      */
     public EstablishmentConfigService(EstablishmentConfigRepository establishmentConfigRepository,
-                                      @Lazy NotificationService notificationService) {
+            @Lazy NotificationService notificationService) {
         this.establishmentConfigRepository = establishmentConfigRepository;
         this.notificationService = notificationService;
     }
 
     /**
-     * Retrieves existing configuration entity or creates standard singleton instance if not found.
-     * Uses REQUIRES_NEW propagation so potential query errors do not abort outer caller transactions.
+     * Retrieves existing configuration entity or creates standard singleton
+     * instance if not found.
+     * Uses REQUIRES_NEW propagation so potential query errors do not abort outer
+     * caller transactions.
      *
      * @return current {@link EstablishmentConfig}
      */
@@ -48,11 +53,11 @@ public class EstablishmentConfigService {
 
     private EstablishmentConfig getConfigInternal() {
         EstablishmentConfig config = establishmentConfigRepository.findById(EstablishmentConfig.SINGLETON_ID)
-            .orElseGet(() -> {
-                EstablishmentConfig newConfig = new EstablishmentConfig();
-                newConfig.setId(EstablishmentConfig.SINGLETON_ID);
-                return establishmentConfigRepository.save(newConfig);
-            });
+                .orElseGet(() -> {
+                    EstablishmentConfig newConfig = new EstablishmentConfig();
+                    newConfig.setId(EstablishmentConfig.SINGLETON_ID);
+                    return establishmentConfigRepository.save(newConfig);
+                });
 
         if (config.getSiret() == null || !SiretLuhnValidator.isValidSiret(config.getSiret())) {
             config.setSiret("73282932000074");
@@ -76,7 +81,8 @@ public class EstablishmentConfigService {
     }
 
     /**
-     * Checks if a given capability module is currently enabled for the establishment.
+     * Checks if a given capability module is currently enabled for the
+     * establishment.
      *
      * @param module Capability module to check
      * @return True if enabled, false otherwise (defaults to true if module is null)
@@ -90,7 +96,8 @@ public class EstablishmentConfigService {
     }
 
     /**
-     * Asserts that a given capability module is enabled, otherwise throwing a {@link BusinessException}.
+     * Asserts that a given capability module is enabled, otherwise throwing a
+     * {@link BusinessException}.
      *
      * @param module Module to verify
      * @throws BusinessException if the capability module is disabled
@@ -103,7 +110,8 @@ public class EstablishmentConfigService {
     }
 
     /**
-     * Retrieves the current configuration status of all modular establishment capabilities.
+     * Retrieves the current configuration status of all modular establishment
+     * capabilities.
      *
      * @return {@link EstablishmentModulesDTO}
      */
@@ -113,7 +121,8 @@ public class EstablishmentConfigService {
     }
 
     /**
-     * Updates modular capabilities configuration and broadcasts the update over WebSocket.
+     * Updates modular capabilities configuration and broadcasts the update over
+     * WebSocket.
      *
      * @param request Update payload with desired module states
      * @return Updated modules DTO
@@ -141,7 +150,8 @@ public class EstablishmentConfigService {
      */
     @Transactional
     public EstablishmentConfigDTO updateConfig(EstablishmentConfigUpdateRequest request) {
-        if (request.siret() != null && !request.siret().isBlank() && !SiretLuhnValidator.isValidSiret(request.siret())) {
+        if (request.siret() != null && !request.siret().isBlank()
+                && !SiretLuhnValidator.isValidSiret(request.siret())) {
             throw new BusinessException("The specified SIRET number is invalid (Luhn checksum failed)");
         }
 
@@ -271,7 +281,7 @@ public class EstablishmentConfigService {
         if (!tz.equalsIgnoreCase("SYSTEM") && !tz.isBlank()) {
             try {
                 java.time.ZoneId.of(tz);
-            } catch (Exception ignored) {
+            } catch (Exception _) {
                 throw new BusinessException("The specified time zone is invalid: " + tz);
             }
         }

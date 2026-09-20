@@ -9,16 +9,15 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Objects;
 
 /**
  * Singleton entity storing legal establishment configuration (SIRET, TVA, RCS, address).
  */
-@Data
 @Entity
 @Table(name = "establishment_config")
 public class EstablishmentConfig {
@@ -133,6 +132,249 @@ public class EstablishmentConfig {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    public EstablishmentConfig() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getLegalName() {
+        return legalName;
+    }
+
+    public void setLegalName(String legalName) {
+        this.legalName = legalName;
+    }
+
+    public String getLegalForm() {
+        return legalForm;
+    }
+
+    public void setLegalForm(String legalForm) {
+        this.legalForm = legalForm;
+    }
+
+    public String getSiret() {
+        return siret;
+    }
+
+    public void setSiret(String siret) {
+        this.siret = siret;
+    }
+
+    public String getRcsCity() {
+        return rcsCity;
+    }
+
+    public void setRcsCity(String rcsCity) {
+        this.rcsCity = rcsCity;
+    }
+
+    public String getRcsNumber() {
+        return rcsNumber;
+    }
+
+    public void setRcsNumber(String rcsNumber) {
+        this.rcsNumber = rcsNumber;
+    }
+
+    public String getTvaNumber() {
+        return tvaNumber;
+    }
+
+    public void setTvaNumber(String tvaNumber) {
+        this.tvaNumber = tvaNumber;
+    }
+
+    public String getCodeApe() {
+        return codeApe;
+    }
+
+    public void setCodeApe(String codeApe) {
+        this.codeApe = codeApe;
+    }
+
+    public BigDecimal getCapitalSocial() {
+        return capitalSocial;
+    }
+
+    public void setCapitalSocial(BigDecimal capitalSocial) {
+        this.capitalSocial = capitalSocial;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPaymentTerms() {
+        return paymentTerms;
+    }
+
+    public void setPaymentTerms(String paymentTerms) {
+        this.paymentTerms = paymentTerms;
+    }
+
+    public String getDiscountPolicy() {
+        return discountPolicy;
+    }
+
+    public void setDiscountPolicy(String discountPolicy) {
+        this.discountPolicy = discountPolicy;
+    }
+
+    public BigDecimal getLatePaymentRate() {
+        return latePaymentRate;
+    }
+
+    public void setLatePaymentRate(BigDecimal latePaymentRate) {
+        this.latePaymentRate = latePaymentRate;
+    }
+
+    public String getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
+    }
+
+    public String getTicketFormat() {
+        return ticketFormat;
+    }
+
+    public void setTicketFormat(String ticketFormat) {
+        this.ticketFormat = ticketFormat;
+    }
+
+    public Boolean getModuleKitchenKdsEnabled() {
+        return moduleKitchenKdsEnabled;
+    }
+
+    public void setModuleKitchenKdsEnabled(Boolean moduleKitchenKdsEnabled) {
+        this.moduleKitchenKdsEnabled = moduleKitchenKdsEnabled;
+    }
+
+    public Boolean getModuleHappyHourEnabled() {
+        return moduleHappyHourEnabled;
+    }
+
+    public void setModuleHappyHourEnabled(Boolean moduleHappyHourEnabled) {
+        this.moduleHappyHourEnabled = moduleHappyHourEnabled;
+    }
+
+    public Boolean getModuleEmployeeManagementEnabled() {
+        return moduleEmployeeManagementEnabled;
+    }
+
+    public void setModuleEmployeeManagementEnabled(Boolean moduleEmployeeManagementEnabled) {
+        this.moduleEmployeeManagementEnabled = moduleEmployeeManagementEnabled;
+    }
+
+    public Boolean getModuleFloorPlanEnabled() {
+        return moduleFloorPlanEnabled;
+    }
+
+    public void setModuleFloorPlanEnabled(Boolean moduleFloorPlanEnabled) {
+        this.moduleFloorPlanEnabled = moduleFloorPlanEnabled;
+    }
+
+    public Boolean getModuleQrClientOrderingEnabled() {
+        return moduleQrClientOrderingEnabled;
+    }
+
+    public void setModuleQrClientOrderingEnabled(Boolean moduleQrClientOrderingEnabled) {
+        this.moduleQrClientOrderingEnabled = moduleQrClientOrderingEnabled;
+    }
+
+    public Boolean getModuleStockTrackingEnabled() {
+        return moduleStockTrackingEnabled;
+    }
+
+    public void setModuleStockTrackingEnabled(Boolean moduleStockTrackingEnabled) {
+        this.moduleStockTrackingEnabled = moduleStockTrackingEnabled;
+    }
+
+    public Boolean getModuleCashDrawerEnabled() {
+        return moduleCashDrawerEnabled;
+    }
+
+    public void setModuleCashDrawerEnabled(Boolean moduleCashDrawerEnabled) {
+        this.moduleCashDrawerEnabled = moduleCashDrawerEnabled;
+    }
+
+    public Boolean getModuleBarTabsEnabled() {
+        return moduleBarTabsEnabled;
+    }
+
+    public void setModuleBarTabsEnabled(Boolean moduleBarTabsEnabled) {
+        this.moduleBarTabsEnabled = moduleBarTabsEnabled;
+    }
+
+    public Boolean getModuleCocktailLibraryEnabled() {
+        return this.moduleCocktailLibraryEnabled;
+    }
+
+    public void setModuleCocktailLibraryEnabled(Boolean moduleCocktailLibraryEnabled) {
+        this.moduleCocktailLibraryEnabled = moduleCocktailLibraryEnabled;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     /**
      * Checks whether a specific establishment module is currently active.
      *
@@ -210,12 +452,53 @@ public class EstablishmentConfig {
         }
     }
 
-    public Boolean getModuleCocktailLibraryEnabled() {
-        return this.moduleCocktailLibraryEnabled;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EstablishmentConfig that = (EstablishmentConfig) o;
+        return Objects.equals(id, that.id);
     }
 
-    public void setModuleCocktailLibraryEnabled(Boolean moduleCocktailLibraryEnabled) {
-        this.moduleCocktailLibraryEnabled = moduleCocktailLibraryEnabled;
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "EstablishmentConfig{" +
+                "id=" + id +
+                ", legalName='" + legalName + '\'' +
+                ", legalForm='" + legalForm + '\'' +
+                ", siret='" + siret + '\'' +
+                ", rcsCity='" + rcsCity + '\'' +
+                ", rcsNumber='" + rcsNumber + '\'' +
+                ", tvaNumber='" + tvaNumber + '\'' +
+                ", codeApe='" + codeApe + '\'' +
+                ", capitalSocial=" + capitalSocial +
+                ", address='" + address + '\'' +
+                ", country='" + country + '\'' +
+                ", language='" + language + '\'' +
+                ", phone='" + phone + '\'' +
+                ", email='" + email + '\'' +
+                ", paymentTerms='" + paymentTerms + '\'' +
+                ", discountPolicy='" + discountPolicy + '\'' +
+                ", latePaymentRate=" + latePaymentRate +
+                ", timeZone='" + timeZone + '\'' +
+                ", ticketFormat='" + ticketFormat + '\'' +
+                ", moduleKitchenKdsEnabled=" + moduleKitchenKdsEnabled +
+                ", moduleHappyHourEnabled=" + moduleHappyHourEnabled +
+                ", moduleEmployeeManagementEnabled=" + moduleEmployeeManagementEnabled +
+                ", moduleFloorPlanEnabled=" + moduleFloorPlanEnabled +
+                ", moduleQrClientOrderingEnabled=" + moduleQrClientOrderingEnabled +
+                ", moduleStockTrackingEnabled=" + moduleStockTrackingEnabled +
+                ", moduleCashDrawerEnabled=" + moduleCashDrawerEnabled +
+                ", moduleBarTabsEnabled=" + moduleBarTabsEnabled +
+                ", moduleCocktailLibraryEnabled=" + moduleCocktailLibraryEnabled +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 
     @PrePersist

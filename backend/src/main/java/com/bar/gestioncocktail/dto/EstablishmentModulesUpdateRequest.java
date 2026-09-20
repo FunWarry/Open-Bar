@@ -12,6 +12,7 @@ package com.bar.gestioncocktail.dto;
  * @param stockTracking       Optional new status for Stock Tracking module
  * @param cashDrawer          Optional new status for Cash Drawer module
  * @param barTabs             Optional new status for Bar Tabs module
+ * @param cocktailLibrary     Optional new status for Cocktail & Ingredient Library module
  */
 public record EstablishmentModulesUpdateRequest(
         Boolean cuisineKds,
