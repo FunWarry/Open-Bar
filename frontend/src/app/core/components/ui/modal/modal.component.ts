@@ -24,7 +24,8 @@ import { closeOutline } from 'ionicons/icons';
  * - 'xl': multi-step builders, complex recipe & table managers (~1120px)
  * - 'full': immersive full-screen modal (~98vw x 96vh)
  */
-export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
+export const MODAL_SIZES = ['sm', 'md', 'lg', 'xl', 'full'] as const;
+export type ModalSize = (typeof MODAL_SIZES)[number];
 
 /**
  * Universal, theme-adaptive modal container component for OpenBar.
@@ -101,7 +102,7 @@ export class ModalComponent implements OnInit, OnChanges {
     if (!ionModal) return;
 
     // Remove any previous size classes
-    ionModal.classList.remove('modal-sm', 'modal-md', 'modal-lg', 'modal-xl', 'modal-full');
+    MODAL_SIZES.forEach((preset) => ionModal.classList.remove(`modal-${preset}`));
     ionModal.classList.add(`modal-${this.size}`, 'app-modal-host');
   }
 }

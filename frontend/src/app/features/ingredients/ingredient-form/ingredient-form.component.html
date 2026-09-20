@@ -91,13 +91,25 @@
       testId="ingredient-alcohol-degree-input">
     </app-input-field>
 
-    <div class="dietary-toggle-field">
-      <label class="dietary-check-item" data-testid="ingredient-is-vegan-label">
-        <input type="checkbox" formControlName="isVegan" [disabled]="!canEdit" data-testid="ingredient-is-vegan-checkbox" />
-        <span>🌱 {{ 'COCKTAIL.VEGAN_LABEL' | transloco }}</span>
-      </label>
+    <!-- Dietary Preference: Vegan -->
+    <div class="dietary-field-group">
+      <span class="field-label">{{ 'CLIENT_QR.MATCHER_DIETARY' | transloco }}</span>
+      <div class="dietary-chips-row">
+        <button
+          type="button"
+          class="dietary-chip-btn"
+          [class.active]="ingredientForm.get('isVegan')?.value"
+          [class.selected]="ingredientForm.get('isVegan')?.value"
+          [disabled]="!canEdit"
+          (click)="toggleVegan()"
+          data-testid="ingredient-is-vegan-btn">
+          <span class="chip-emoji">🌱</span>
+          <span class="chip-label">{{ 'COCKTAIL.VEGAN_LABEL' | transloco }}</span>
+        </button>
+      </div>
     </div>
 
+    <!-- Allergens -->
     <div class="allergens-field-group">
       <span class="field-label">{{ 'INGREDIENTS.ALLERGENS_LABEL' | transloco }}</span>
       <p class="field-hint">{{ 'INGREDIENTS.ALLERGENS_HINT' | transloco }}</p>
@@ -106,15 +118,17 @@
           <button
             type="button"
             class="allergen-chip-btn"
+            [class.active]="isAllergenSelected(allergen.key)"
             [class.selected]="isAllergenSelected(allergen.key)"
             [disabled]="!canEdit"
             (click)="toggleAllergen(allergen.key)"
             [attr.data-testid]="'allergen-chip-' + allergen.key.toLowerCase()">
-            <ion-icon [name]="allergen.icon" class="chip-icon"></ion-icon>
-            <span class="chip-label">{{ allergen.labelKey | transloco }}</span>
-            @if (isAllergenSelected(allergen.key)) {
-              <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
+            @if (allergen.emoji) {
+              <span class="chip-emoji">{{ allergen.emoji }}</span>
+            } @else {
+              <ion-icon [name]="allergen.icon" class="chip-icon"></ion-icon>
             }
+            <span class="chip-label">{{ allergen.labelKey | transloco }}</span>
           </button>
         }
       </div>
