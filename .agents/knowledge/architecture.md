@@ -223,9 +223,9 @@ flowchart LR
 
 ---
 
-## Modular Capability Flags & Feature Switches (#405)
+## Modular Capability Flags & Feature Switches (#405 / #450 / #452 / #449)
 
-Establishment features are decoupled into 6 switchable capabilities:
+Establishment features are decoupled into 9 switchable capabilities:
 
 | Capability | Module Enum | Controlled Areas & Endpoints |
 |---|---|---|
@@ -235,12 +235,15 @@ Establishment features are decoupled into 6 switchable capabilities:
 | **2D Floor Plan** | `FLOOR_PLAN` | `/plan-salle`, Konva 2D interactive plan editor, server plan display mode |
 | **Patron QR Ordering** | `QR_CLIENT_ORDERING` | `/client/commande`, `/client/table/:token`, collaborative table cart, QR endpoints |
 | **Stock Tracking** | `STOCK_TRACKING` | `/ingredients`, stock decrement on prep, shrinkage/waste logging, ruptures modal |
+| **Cash Drawer (Caisse)** | `CASH_DRAWER` | `/factures/caisse`, till sessions, cash-in/drop/paid-out, X/Z reports |
+| **Bar Tabs (Ardoises)** | `BAR_TABS` | `/serveur/ardoises`, running customer tabs without table requirement, tab settlement |
+| **Cocktail Library Import** | `COCKTAIL_LIBRARY` | `/cocktails` (import button & catalog wizard), `/setup` (menu population step), `/api/cocktails/library` |
 
 ### Establishment Presets
-- **BAR**: CUISINE_KDS ❌, HAPPY_HOUR ✅, EMPLOYEE_MANAGEMENT ✅, FLOOR_PLAN ✅, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅
-- **RESTAURANT**: All 6 capabilities enabled ✅
-- **FOOD_TRUCK**: CUISINE_KDS ❌, HAPPY_HOUR ❌, EMPLOYEE_MANAGEMENT ❌, FLOOR_PLAN ❌, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅
-- **NIGHTCLUB**: CUISINE_KDS ❌, HAPPY_HOUR ✅, EMPLOYEE_MANAGEMENT ✅, FLOOR_PLAN ❌, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅
+- **BAR**: CUISINE_KDS ❌, HAPPY_HOUR ✅, EMPLOYEE_MANAGEMENT ✅, FLOOR_PLAN ✅, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅, CASH_DRAWER ✅, BAR_TABS ✅, COCKTAIL_LIBRARY ✅
+- **RESTAURANT**: All 9 capabilities enabled ✅
+- **FOOD_TRUCK**: CUISINE_KDS ❌, HAPPY_HOUR ❌, EMPLOYEE_MANAGEMENT ❌, FLOOR_PLAN ❌, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅, CASH_DRAWER ✅, BAR_TABS ❌, COCKTAIL_LIBRARY ✅
+- **NIGHTCLUB**: CUISINE_KDS ❌, HAPPY_HOUR ✅, EMPLOYEE_MANAGEMENT ✅, FLOOR_PLAN ❌, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅, CASH_DRAWER ✅, BAR_TABS ✅, COCKTAIL_LIBRARY ✅
 
 ### Enforcing Mechanisms
 - **Backend Service Guards**: Explicit `BusinessException` thrown if disabled module endpoint is invoked.
