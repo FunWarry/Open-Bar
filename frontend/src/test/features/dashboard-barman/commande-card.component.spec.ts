@@ -226,13 +226,16 @@ describe('CommandeCardComponent', () => {
     component.ngOnDestroy();
   }));
 
-  it('renders priority chip when commande is prioritaire', () => {
+  it('renders priority chip when commande is prioritaire without duplicating urgent status badge', () => {
     fixture.componentRef.setInput('commande', makeCommande({ prioritaire: true }));
     fixture.detectChanges();
 
     const chipEl = fixture.nativeElement.querySelector('[data-testid="priority-chip"]');
     expect(chipEl).toBeTruthy();
     expect(chipEl.textContent).toContain('URGENT');
+
+    const duplicateUrgentBadge = fixture.nativeElement.querySelector('[data-testid="status-badge-urgent"]');
+    expect(duplicateUrgentBadge).toBeNull();
   });
 
   it('renders server name and print button in card header without collision', () => {
