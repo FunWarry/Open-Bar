@@ -8,6 +8,7 @@ import { NotificationService } from '../app/core/services/notification.service';
 import { WebSocketService } from '../app/core/services/websocket.service';
 import { AppSettingsService } from '../app/core/services/app-settings.service';
 import { AppUpdateService } from '../app/core/services/app-update.service';
+import { SessionTimeoutService } from '../app/core/services/session-timeout.service';
 import { PopoverController } from '@ionic/angular';
 import { EMPTY, of, throwError } from 'rxjs';
 import { selectIsAuthenticated } from '../app/core/store/auth.selectors';
@@ -23,6 +24,7 @@ describe('AppComponent', () => {
   const initialState = { auth: { token: 'valid-jwt', user: { username: 'admin' }, error: null } };
   let mockAppSettingsService: jasmine.SpyObj<AppSettingsService>;
   let mockAppUpdateService: jasmine.SpyObj<AppUpdateService>;
+  let mockSessionTimeoutService: jasmine.SpyObj<SessionTimeoutService>;
   let router: Router;
 
   beforeEach(async () => {
@@ -60,6 +62,7 @@ describe('AppComponent', () => {
     }));
 
     mockAppUpdateService = jasmine.createSpyObj('AppUpdateService', ['initStartupCheck']);
+    mockSessionTimeoutService = jasmine.createSpyObj('SessionTimeoutService', ['init', 'destroy', 'extendSession', 'expireSession']);
 
     await TestBed.configureTestingModule({
       imports: [
@@ -85,6 +88,7 @@ describe('AppComponent', () => {
         { provide: PopoverController, useValue: mockPopoverCtrl },
         { provide: AppSettingsService, useValue: mockAppSettingsService },
         { provide: AppUpdateService, useValue: mockAppUpdateService },
+        { provide: SessionTimeoutService, useValue: mockSessionTimeoutService },
       ],
     }).compileComponents();
 
@@ -97,13 +101,14 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it('ngOnInit calls getSettings() and initStartupCheck()', () => {
+  it('ngOnInit calls getSettings(), initStartupCheck(), and sessionTimeoutService.init()', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
 
     app.ngOnInit();
     expect(mockAppSettingsService.getSettings).toHaveBeenCalled();
     expect(mockAppUpdateService.initStartupCheck).toHaveBeenCalled();
+    expect(mockSessionTimeoutService.init).toHaveBeenCalled();
   });
 
   it('ngOnInit handles getSettings() error gracefully', () => {
@@ -127,7 +132,7 @@ describe('AppComponent', () => {
     expect(showNav).toBeTrue();
   }));
 
-  it('showNavbar$ est faux sur la page de login', fakeAsync(() => {
+  it('showNavbar$ is false on login page', fakeAsync(() => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
 
