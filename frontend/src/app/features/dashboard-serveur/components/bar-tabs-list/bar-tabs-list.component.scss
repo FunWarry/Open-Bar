@@ -61,11 +61,15 @@
 
   .refresh-btn {
     --color: var(--text-secondary);
+    margin: 0;
+    height: 36px;
   }
 
   .new-tab-btn {
     --border-radius: 8px;
     font-weight: 600;
+    margin: 0;
+    height: 36px;
   }
 }
 

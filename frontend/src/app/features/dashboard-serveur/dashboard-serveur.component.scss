@@ -763,10 +763,10 @@ ion-content.dashboard-serveur-content {
       background: var(--background-surface-1, #16192b);
       border: 1px solid var(--border-medium, #2a2e4d);
       border-radius: var(--radius-lg, 14px);
-      padding: 8px 12px;
+      padding: 12px 14px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
       box-shadow: var(--shadow-card);
       margin: 0;
     }
