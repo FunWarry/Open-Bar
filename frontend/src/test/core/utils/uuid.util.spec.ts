@@ -26,4 +26,21 @@ describe('generateSafeUUID', () => {
       (crypto as unknown as { randomUUID?: unknown }).randomUUID = originalRandomUUID;
     }
   });
+
+  it('should fallback to timestamp entropy when both randomUUID and getRandomValues are unavailable', () => {
+    const originalRandomUUID = crypto.randomUUID;
+    const originalGetRandomValues = crypto.getRandomValues;
+    try {
+      (crypto as unknown as { randomUUID?: unknown; getRandomValues?: unknown }).randomUUID = undefined;
+      (crypto as unknown as { randomUUID?: unknown; getRandomValues?: unknown }).getRandomValues = undefined;
+      const uuid = generateSafeUUID();
+      expect(uuid).toBeDefined();
+      expect(typeof uuid).toBe('string');
+      expect(uuid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+    } finally {
+      (crypto as unknown as { randomUUID?: unknown; getRandomValues?: unknown }).randomUUID = originalRandomUUID;
+      (crypto as unknown as { randomUUID?: unknown; getRandomValues?: unknown }).getRandomValues = originalGetRandomValues;
+    }
+  });
 });
+

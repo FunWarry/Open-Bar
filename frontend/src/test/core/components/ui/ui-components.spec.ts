@@ -201,6 +201,23 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.badgeColor).toBe('');
       expect(component.statusBadgeColor).toBe('');
     });
+
+    it('handles REGLEE, PRIORITAIRE status and unknown fallback gracefully', () => {
+      component.status = 'REGLEE';
+      expect(component.statusBadgeColor).toBe('success');
+      expect(component.statusLabel).toBe('Réglée');
+
+      component.status = 'PRIORITAIRE';
+      expect(component.statusBadgeColor).toBe('tertiary');
+      expect(component.statusLabel).toBe('⚡ Prioritaire');
+
+      component.status = 'UNKNOWN_STATUS' as any;
+      expect(component.statusBadgeColor).toBe('medium');
+      expect(component.statusLabel).toBe('UNKNOWN_STATUS');
+
+      const badgeWithoutTransloco = new StatusBadgeComponent();
+      expect(badgeWithoutTransloco.priorityLabel).toBe('Priorité');
+    });
   });
 
   describe('StockSeverityBadgeComponent', () => {
