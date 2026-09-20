@@ -508,7 +508,7 @@
       },
       "ingredients": [
         {
-          "nom": "Aperole",
+          "nom": "Aperol",
           "quantite": 6,
           "unite": "cl",
           "cout_eur": 0.35,
@@ -524,7 +524,7 @@
           "allergens": []
         },
         {
-          "nom": "Prosceco",
+          "nom": "Prosecco",
           "quantite": 2,
           "unite": "pincée",
           "cout_eur": 0.35,
@@ -540,11 +540,11 @@
         {
           "etape": 1,
           "action": "AJOUTER_INGREDIENT",
-          "ingredient": "Aperole",
+          "ingredient": "Aperol",
           "quantite": 6,
           "unite": "cl",
           "cible": "le verre (Ballon)",
-          "description": "Ajouter Aperole (6.0 cl) dans le verre (Ballon)."
+          "description": "Ajouter Aperol (6.0 cl) dans le verre (Ballon)."
         },
         {
           "etape": 2,
@@ -558,11 +558,11 @@
         {
           "etape": 3,
           "action": "AJOUTER_INGREDIENT",
-          "ingredient": "Prosceco",
+          "ingredient": "Prosecco",
           "quantite": 0,
           "unite": "pincée",
           "cible": "le verre (Ballon)",
-          "description": "Ajouter Prosceco (selon goût) dans le verre (Ballon)."
+          "description": "Ajouter Prosecco (selon goût) dans le verre (Ballon)."
         },
         {
           "etape": 4,
@@ -5028,7 +5028,7 @@
           ]
         },
         {
-          "nom": "Aperole",
+          "nom": "Aperol",
           "quantite": 1,
           "unite": "cl",
           "cout_eur": 0.35,
@@ -5076,11 +5076,11 @@
         {
           "etape": 2,
           "action": "AJOUTER_INGREDIENT",
-          "ingredient": "Aperole",
+          "ingredient": "Aperol",
           "quantite": 1,
           "unite": "cl",
           "cible": "le shaker",
-          "description": "Ajouter Aperole (1.0 cl) dans le shaker."
+          "description": "Ajouter Aperol (1.0 cl) dans le shaker."
         },
         {
           "etape": 3,

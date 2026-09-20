@@ -8,6 +8,7 @@ import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { Cocktail } from '../../../app/core/models/cocktail.model';
 import { Glassware } from '../../../app/core/models/glassware.model';
 import { CommandeView, CommandeItemView } from '../../../app/features/dashboard-barman/models/commande-view.model';
+import { CocktailRecipeStep } from '../../../app/core/models/recipe-step.model';
 import { SimpleChange } from '@angular/core';
 
 describe('RecipeSidePanelComponent', () => {
@@ -522,6 +523,117 @@ describe('RecipeSidePanelComponent', () => {
 
       expect(component.resolvedItemVariante?.id).toBe(88);
       expect(component.deduplicatedIngredients[0].ingredientNom).toBe('Spiced Rum');
+    });
+  });
+
+  describe('getStepIngredientNom', () => {
+    it('should return ingredientNom when explicitly present', () => {
+      const step: CocktailRecipeStep = {
+        stepOrder: 1,
+        stepType: 'INGREDIENT',
+        ingredientNom: 'Prosecco DOC',
+        ingredientName: 'Prosecco',
+        actionTitle: 'Fallback Action'
+      };
+      expect(component.getStepIngredientNom(step)).toBe('Prosecco DOC');
+    });
+
+    it('should return ingredientName when ingredientNom is missing', () => {
+      const step: CocktailRecipeStep = {
+        stepOrder: 2,
+        stepType: 'INGREDIENT',
+        ingredientName: 'Aperol'
+      };
+      expect(component.getStepIngredientNom(step)).toBe('Aperol');
+    });
+
+    it('should return actionTitle when ingredientNom and ingredientName are missing', () => {
+      const step: CocktailRecipeStep = {
+        stepOrder: 3,
+        stepType: 'INGREDIENT',
+        actionTitle: 'Campari'
+      };
+      expect(component.getStepIngredientNom(step)).toBe('Campari');
+    });
+
+    it('should resolve ingredient name from cocktail.ingredients via ingredientId', () => {
+      component.cocktail = {
+        ...mockCocktail,
+        ingredients: [
+          { id: 1, ingredientId: 42, ingredientNom: 'Sucre de Canne', quantite: 2, uniteMesure: 'cl' }
+        ]
+      };
+      const step: CocktailRecipeStep = {
+        stepOrder: 1,
+        stepType: 'INGREDIENT',
+        ingredientId: 42
+      };
+      expect(component.getStepIngredientNom(step)).toBe('Sucre de Canne');
+    });
+
+    it('should resolve ingredient name from active variant ingredients via ingredientId', () => {
+      component.cocktail = {
+        ...mockCocktail,
+        ingredients: [],
+        variantes: [
+          {
+            id: 10,
+            nom: 'Virgin Variant',
+            prixSupplement: 0,
+            disponible: true,
+            ingredients: [
+              { id: 1, ingredientId: 99, ingredientNom: 'Limonade Artisanale', quantite: 15, unite: 'cl' }
+            ]
+          } as any
+        ]
+      };
+      component.item = {
+        ...mockItem,
+        varianteId: 10
+      };
+      const step: CocktailRecipeStep = {
+        stepOrder: 1,
+        stepType: 'INGREDIENT',
+        ingredientId: 99
+      };
+      expect(component.getStepIngredientNom(step)).toBe('Limonade Artisanale');
+    });
+
+    it('should fallback to positional matching in cocktail.ingredients when step has no IDs or titles', () => {
+      const step1: CocktailRecipeStep = { stepOrder: 1, stepType: 'INGREDIENT', quantite: 9 };
+      const step2: CocktailRecipeStep = { stepOrder: 2, stepType: 'INGREDIENT', quantite: 6 };
+      component.cocktail = {
+        ...mockCocktail,
+        recipeSteps: [step1, step2],
+        ingredients: [
+          { id: 1, ingredientId: 101, ingredientNom: 'Prosecco', quantite: 9, uniteMesure: 'cl' },
+          { id: 2, ingredientId: 102, ingredientNom: 'Aperol', quantite: 6, uniteMesure: 'cl' }
+        ]
+      };
+      expect(component.getStepIngredientNom(step1)).toBe('Prosecco');
+      expect(component.getStepIngredientNom(step2)).toBe('Aperol');
+    });
+
+    it('should extract ingredient from customText if present', () => {
+      const step: CocktailRecipeStep = {
+        stepOrder: 1,
+        stepType: 'INGREDIENT',
+        customText: 'Ajouter Prosecco (9 cl) dans le verre'
+      };
+      expect(component.getStepIngredientNom(step)).toBe('Prosecco');
+    });
+
+    it('should fallback to translated default ingredient when no information is available', () => {
+      component.cocktail = {
+        ...mockCocktail,
+        ingredients: [],
+        recipeSteps: []
+      };
+      const step: CocktailRecipeStep = {
+        stepOrder: 1,
+        stepType: 'INGREDIENT'
+      };
+      expect(component.getStepIngredientNom(step)).toBe('Ingrédient');
     });
   });
 });

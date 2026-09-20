@@ -7,7 +7,8 @@ import {
   OnInit,
   OnChanges,
   SimpleChanges,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon, IonButton, IonSpinner } from '@ionic/angular';
@@ -38,7 +39,7 @@ import {
   pricetagOutline,
   bookmarkOutline,
 } from 'ionicons/icons';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CommandeItemView, CommandeView } from '../../models/commande-view.model';
 import { Cocktail, CocktailVariante } from '../../../../core/models/cocktail.model';
 import { Glassware } from '../../../../core/models/glassware.model';
@@ -117,6 +118,8 @@ export class RecipeSidePanelComponent implements OnInit, OnChanges {
 
   /** Set of step identifiers marked as completed by the bartender. */
   completedSteps = new Set<number | string>();
+
+  private readonly translocoService = inject(TranslocoService);
 
   constructor() {
     addIcons({
@@ -436,21 +439,53 @@ export class RecipeSidePanelComponent implements OnInit, OnChanges {
    * @returns Resolved ingredient name
    */
   getStepIngredientNom(step: CocktailRecipeStep): string {
-    if (step.ingredientNom) {
-      return step.ingredientNom;
+    const directName = step.ingredientNom || step.ingredientName || step.actionTitle;
+    if (directName) {
+      return directName;
     }
-    if (step.ingredientName) {
-      return step.ingredientName;
+    const resolved = this.resolveIngredientFromEntities(step)
+      ?? this.resolvePositionalIngredient(step)
+      ?? this.extractIngredientFromCustomText(step.customText);
+
+    return resolved || this.translocoService.translate('BARMAN_DASHBOARD.DEFAULT_INGREDIENT') || 'Ingrédient';
+  }
+
+  private resolveIngredientFromEntities(step: CocktailRecipeStep): string | null {
+    if (!step.ingredientId) {
+      return null;
     }
-    if (step.ingredientId && this.cocktail?.ingredients) {
-      const match = this.cocktail.ingredients.find(
-        (i) => i.ingredientId === step.ingredientId || i.id === step.ingredientId
-      );
+    const lists = [
+      this.cocktail?.ingredients,
+      this.resolvedItemVariante?.ingredients
+    ];
+    for (const list of lists) {
+      const match = list?.find((i) => i.ingredientId === step.ingredientId || i.id === step.ingredientId);
       if (match?.ingredientNom) {
         return match.ingredientNom;
       }
     }
-    return 'Ingrédient';
+    return null;
+  }
+
+  private resolvePositionalIngredient(step: CocktailRecipeStep): string | null {
+    const ingredients = this.cocktail?.ingredients;
+    if (!ingredients || ingredients.length === 0) {
+      return null;
+    }
+    const ingredientSteps = (this.cocktail?.recipeSteps || []).filter((s) => s.stepType === 'INGREDIENT');
+    const stepIdx = ingredientSteps.indexOf(step);
+    if (stepIdx >= 0 && stepIdx < ingredients.length) {
+      return ingredients[stepIdx]?.ingredientNom ?? null;
+    }
+    return null;
+  }
+
+  private extractIngredientFromCustomText(customText?: string): string | null {
+    if (!customText) {
+      return null;
+    }
+    const cleaned = customText.replace(/^ajouter\s+/i, '').split('(')[0].trim();
+    return cleaned.length > 1 && !cleaned.toLowerCase().startsWith('consigne') ? cleaned : null;
   }
 
   /**

@@ -31,7 +31,7 @@ import {
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IngredientService } from '../../../core/services/ingredient.service';
-import { Ingredient, Allergen } from '../../../core/models/ingredient.model';
+import { Ingredient, Allergen, DEFAULT_ALLERGEN_OPTIONS } from '../../../core/models/ingredient.model';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 
 /**
@@ -77,15 +77,7 @@ export class IngredientFormComponent implements OnInit {
     { value: 'L', label: 'Litre (L)' }
   ];
 
-  readonly availableAllergens: { key: Allergen; labelKey: string; icon: string }[] = [
-    { key: 'LAIT', labelKey: 'COCKTAILS.ALLERGENS.LAIT', icon: 'nutrition-outline' },
-    { key: 'GLUTEN', labelKey: 'COCKTAILS.ALLERGENS.GLUTEN', icon: 'leaf-outline' },
-    { key: 'OEUF', labelKey: 'COCKTAILS.ALLERGENS.OEUF', icon: 'egg-outline' },
-    { key: 'FRUITS_A_COQUE', labelKey: 'COCKTAILS.ALLERGENS.FRUITS_A_COQUE', icon: 'nutrition-outline' },
-    { key: 'ARACHIDE', labelKey: 'COCKTAILS.ALLERGENS.ARACHIDE', icon: 'nutrition-outline' },
-    { key: 'SULFITES', labelKey: 'COCKTAILS.ALLERGENS.SULFITES', icon: 'wine-outline' },
-    { key: 'SOJA', labelKey: 'COCKTAILS.ALLERGENS.SOJA', icon: 'leaf-outline' },
-  ];
+  readonly availableAllergens = DEFAULT_ALLERGEN_OPTIONS;
 
   constructor(
     private readonly fb: FormBuilder,
@@ -177,6 +169,25 @@ export class IngredientFormComponent implements OnInit {
   get formTitleKey(): string {
     if (!this.isEditMode) return 'INGREDIENTS.NEW_TITLE';
     return this.canEdit ? 'INGREDIENTS.EDIT_TITLE' : 'INGREDIENTS.DETAILS_TITLE';
+  }
+
+  /**
+   * Toggles the vegan flag for the ingredient.
+   * If toggled to vegan, automatically removes animal-based allergens (LAIT, OEUF).
+   */
+  toggleVegan(): void {
+    if (!this.canEdit) return;
+    const current = !!this.ingredientForm.get('isVegan')?.value;
+    const nextVal = !current;
+    this.ingredientForm.patchValue({ isVegan: nextVal });
+    if (nextVal) {
+      const currentAllergens: Allergen[] = this.ingredientForm.get('allergens')?.value || [];
+      const filtered = currentAllergens.filter((a) => a !== 'LAIT' && a !== 'OEUF');
+      if (filtered.length !== currentAllergens.length) {
+        this.ingredientForm.patchValue({ allergens: filtered });
+      }
+    }
+    this.ingredientForm.markAsDirty();
   }
 
   isAllergenSelected(key: Allergen): boolean {

@@ -1,39 +1,23 @@
-<ion-header class="modal-header">
-  <ion-toolbar>
-    <ion-title>
-      <div class="header-title-wrap">
-        <ion-icon name="sparkles-outline"></ion-icon>
-        <span>{{ 'COCKTAILS.VARIANT_MODAL.TITLE' | transloco }}</span>
-        @if (baseCocktailName) {
-          <span class="base-badge">({{ baseCocktailName }})</span>
-        }
-      </div>
-    </ion-title>
-    <ion-buttons slot="end">
-      <button
-        type="button"
-        class="header-reset-btn"
-        (click)="resetToBaseRecipe()"
-        [title]="'COCKTAILS.VARIANT_MODAL.RESET_BASE' | transloco"
-        data-testid="variant-modal-reset-btn"
-      >
-        <ion-icon name="refresh-outline"></ion-icon>
-        <span>{{ 'COCKTAILS.VARIANT_MODAL.RESET_BASE' | transloco }}</span>
-      </button>
+<app-modal
+  [title]="'COCKTAILS.VARIANT_MODAL.TITLE' | transloco"
+  icon="sparkles-outline"
+  [badgeText]="baseCocktailName ? '(' + baseCocktailName + ')' : ''"
+  size="xl"
+  (dismiss)="cancel()"
+>
+  <button
+    slot="header-actions"
+    type="button"
+    class="header-reset-btn"
+    (click)="resetToBaseRecipe()"
+    [title]="'COCKTAILS.VARIANT_MODAL.RESET_BASE' | transloco"
+    [attr.aria-label]="'COCKTAILS.VARIANT_MODAL.RESET_BASE' | transloco"
+    data-testid="variant-modal-reset-btn"
+  >
+    <ion-icon name="refresh-outline"></ion-icon>
+    <span>{{ 'COCKTAILS.VARIANT_MODAL.RESET_BASE' | transloco }}</span>
+  </button>
 
-      <ion-button
-        (click)="cancel()"
-        (keyup.enter)="cancel()"
-        data-testid="variant-modal-close-btn"
-        aria-label="Close"
-      >
-        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="modal-content">
   <div class="modal-body-container">
     <!-- General Variant Information Card -->
     <div class="section-card variant-info-card">
@@ -250,13 +234,27 @@
               @if (step.stepType === 'INGREDIENT') {
                 <div class="grid-ingredient-inputs">
                   <div class="input-col col-select">
+                    <div class="field-label-row">
+                      <span class="field-label">{{ 'COCKTAILS.BUILDER.SELECT_INGREDIENT' | transloco }}</span>
+                      <button
+                        type="button"
+                        class="btn-inline-new-ing"
+                        (click)="openCreateIngredientModal(i)"
+                        [title]="'COCKTAILS.BUILDER.CREATE_NEW_INGREDIENT' | transloco"
+                        [attr.data-testid]="'btn-variant-create-ingredient-' + i">
+                        <ion-icon name="add-outline"></ion-icon>
+                        <span>{{ 'COCKTAILS.BUILDER.NEW_INGREDIENT_BTN' | transloco }}</span>
+                      </button>
+                    </div>
                     <app-searchable-select
-                      [label]="'COCKTAILS.BUILDER.SELECT_INGREDIENT' | transloco"
                       [placeholder]="'COCKTAILS.BUILDER.SELECT_INGREDIENT' | transloco"
                       [searchPlaceholder]="'COCKTAILS.BUILDER.SEARCH_INGREDIENT' | transloco"
                       [options]="ingredientOptions()"
                       [value]="step.ingredientId"
                       [testId]="'variant-select-ing-' + i"
+                      actionButtonIcon="add-outline"
+                      [actionButtonLabel]="'+ ' + ('COCKTAILS.BUILDER.CREATE_NEW_INGREDIENT' | transloco)"
+                      (actionClick)="openCreateIngredientModal(i)"
                       (selectionChange)="onIngredientSelected(i, $event)"
                     >
                     </app-searchable-select>
@@ -414,8 +412,8 @@
     </div>
   </div>
 
-  <!-- Live Summary Bar -->
-  <div class="live-summary-bar">
+  <!-- Live Summary Bar Slot -->
+  <div slot="summary" class="live-summary-bar">
     <div class="summary-item">
       <span class="summary-label">{{ 'COCKTAILS.BUILDER.STEPS' | transloco }}</span>
       <span class="summary-value" data-testid="variant-modal-step-count">{{ recipeSteps.length }}</span>
@@ -441,31 +439,28 @@
       </span>
     </div>
   </div>
-</ion-content>
 
-<ion-footer class="modal-footer">
-  <ion-toolbar>
-    <div class="footer-actions">
-      <ion-button
-        fill="outline"
-        color="medium"
-        (click)="cancel()"
-        (keyup.enter)="cancel()"
-        data-testid="variant-modal-cancel-btn"
-      >
-        {{ 'COCKTAILS.VARIANT_MODAL.CANCEL' | transloco }}
-      </ion-button>
+  <!-- Footer Actions Slot -->
+  <ng-container slot="footer">
+    <ion-button
+      fill="outline"
+      color="medium"
+      (click)="cancel()"
+      (keyup.enter)="cancel()"
+      data-testid="variant-modal-cancel-btn"
+    >
+      {{ 'COCKTAILS.VARIANT_MODAL.CANCEL' | transloco }}
+    </ion-button>
 
-      <ion-button
-        color="primary"
-        [disabled]="!nom.trim()"
-        (click)="save()"
-        (keyup.enter)="save()"
-        data-testid="variant-modal-save-btn"
-      >
-        <ion-icon name="save-outline" slot="start"></ion-icon>
-        <span>{{ 'COCKTAILS.VARIANT_MODAL.SAVE' | transloco }}</span>
-      </ion-button>
-    </div>
-  </ion-toolbar>
-</ion-footer>
+    <ion-button
+      color="primary"
+      [disabled]="!nom.trim()"
+      (click)="save()"
+      (keyup.enter)="save()"
+      data-testid="variant-modal-save-btn"
+    >
+      <ion-icon name="save-outline" slot="start"></ion-icon>
+      <span>{{ 'COCKTAILS.VARIANT_MODAL.SAVE' | transloco }}</span>
+    </ion-button>
+  </ng-container>
+</app-modal>

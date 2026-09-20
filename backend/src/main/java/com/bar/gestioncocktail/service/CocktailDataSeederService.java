@@ -418,17 +418,7 @@ public class CocktailDataSeederService {
         step.setStepOrder(order);
 
         if ("AJOUTER_INGREDIENT".equalsIgnoreCase(action)) {
-            step.setStepType(RecipeStepType.INGREDIENT);
-            if (stepNode.has(KEY_INGREDIENT)) {
-                step.setIngredient(ingredientRepository.findByNomIgnoreCase(stepNode.get(KEY_INGREDIENT).asText()).orElse(null));
-            }
-            if (stepNode.has(KEY_QUANTITE)) {
-                step.setQuantite(BigDecimal.valueOf(stepNode.get(KEY_QUANTITE).asDouble()).setScale(2, RoundingMode.HALF_UP));
-            }
-            if (stepNode.has(KEY_UNITE)) {
-                step.setUnite(stepNode.get(KEY_UNITE).asText());
-            }
-            step.setCustomText(desc);
+            populateIngredientStep(step, stepNode, savedCocktail, desc);
         } else {
             step.setStepType(RecipeStepType.CUSTOM_TEXT);
             step.setActionTitle(action);
@@ -436,6 +426,36 @@ public class CocktailDataSeederService {
             step.setDurationSeconds(15);
         }
         return step;
+    }
+
+    private void populateIngredientStep(CocktailRecipeStep step, JsonNode stepNode, Cocktail savedCocktail, String desc) {
+        step.setStepType(RecipeStepType.INGREDIENT);
+        if (stepNode.has(KEY_INGREDIENT)) {
+            String ingName = stepNode.get(KEY_INGREDIENT).asText().trim();
+            step.setActionTitle(ingName);
+            step.setIngredient(resolveCocktailIngredient(savedCocktail, ingName));
+        }
+        if (stepNode.has(KEY_QUANTITE)) {
+            step.setQuantite(BigDecimal.valueOf(stepNode.get(KEY_QUANTITE).asDouble()).setScale(2, RoundingMode.HALF_UP));
+        }
+        if (stepNode.has(KEY_UNITE)) {
+            step.setUnite(stepNode.get(KEY_UNITE).asText());
+        }
+        step.setCustomText(desc);
+    }
+
+    private Ingredient resolveCocktailIngredient(Cocktail savedCocktail, String ingName) {
+        Ingredient ing = ingredientRepository.findByNomIgnoreCase(ingName).orElse(null);
+        if (ing != null || savedCocktail.getIngredients() == null) {
+            return ing;
+        }
+        for (CocktailIngredient ci : savedCocktail.getIngredients()) {
+            if (ci.getIngredient() != null && ci.getIngredient().getNom() != null
+                    && ci.getIngredient().getNom().trim().equalsIgnoreCase(ingName)) {
+                return ci.getIngredient();
+            }
+        }
+        return null;
     }
 
     private CocktailCategorie detectCategory(JsonNode node, boolean containsAlcohol) {

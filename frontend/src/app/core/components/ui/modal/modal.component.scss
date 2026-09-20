@@ -1,0 +1,198 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.app-modal-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: var(--background-surface-1);
+  color: var(--text-primary);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Header */
+.app-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--background-surface-1);
+  border-bottom: 1px solid var(--border-medium);
+  flex-shrink: 0;
+  z-index: 10;
+
+  .modal-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+
+    .modal-icon-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: var(--radius-md, 0.75rem);
+      background: var(--background-surface-2);
+      border: 1px solid var(--border-light);
+      color: var(--primary);
+      font-size: 1.35rem;
+      flex-shrink: 0;
+    }
+
+    .modal-title-group {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+
+      .modal-title-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+
+        .modal-title {
+          margin: 0;
+          font-size: 1.15rem;
+          font-weight: 700;
+          color: var(--text-primary);
+          line-height: 1.3;
+        }
+
+        .modal-badge {
+          font-size: 0.85rem;
+          font-weight: 500;
+          color: var(--text-secondary);
+        }
+      }
+
+      .modal-subtitle {
+        margin: 0.15rem 0 0;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        line-height: 1.2;
+      }
+    }
+  }
+
+  .modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+
+    .modal-close-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: var(--radius-md, 0.5rem);
+      background: var(--background-surface-2);
+      border: 1px solid var(--border-medium);
+      color: var(--text-secondary);
+      font-size: 1.25rem;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+      &:hover {
+        background: var(--background-surface-3);
+        color: var(--text-primary);
+        border-color: var(--border-light);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+      }
+    }
+  }
+}
+
+/* Scrollable Body */
+.app-modal-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 1.25rem 1.5rem;
+  background: var(--background-bg-0);
+  -webkit-overflow-scrolling: touch;
+
+  /* Custom subtle scrollbar */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--border-light);
+  }
+}
+
+/* Optional live summary / sub-bar */
+.app-modal-summary {
+  flex-shrink: 0;
+
+  &:empty {
+    display: none;
+  }
+}
+
+/* Footer Actions */
+.app-modal-footer {
+  flex-shrink: 0;
+  padding: 0.85rem 1.5rem;
+  background: var(--background-surface-1);
+  border-top: 1px solid var(--border-medium);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+
+  &:empty {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .app-modal-header {
+    padding: 0.85rem 1rem;
+
+    .modal-header-left {
+      .modal-icon-badge {
+        width: 2rem;
+        height: 2rem;
+        font-size: 1.1rem;
+      }
+
+      .modal-title-group .modal-title-row .modal-title {
+        font-size: 1rem;
+      }
+    }
+  }
+
+  .app-modal-body {
+    padding: 1rem;
+  }
+
+  .app-modal-footer {
+    padding: 0.75rem 1rem;
+  }
+}

@@ -529,5 +529,85 @@ describe('CocktailListComponent', () => {
     expect(toggleBtn.classList.contains('active')).toBeFalse();
     expect(component.filteredCocktails).toHaveSize(2);
   }));
+
+  // --- Selection Mode & Embedded Behavior (#508) ---
+
+  it('in selectionMode, hides add cocktail button in header even for admins', fakeAsync(() => {
+    storeSpy.select.and.returnValue(of(true));
+    component.selectionMode = true;
+    component.charger();
+    tick();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const addBtn = compiled.querySelector('[data-testid="cocktail-add-btn"]');
+    expect(addBtn).toBeNull();
+  }));
+
+  it('in selectionMode, hides edit button, delete button and availability slider, and shows selection add button', fakeAsync(() => {
+    storeSpy.select.and.returnValue(of(true));
+    component.selectionMode = true;
+    component.charger();
+    tick();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const editBtn = compiled.querySelector('[data-testid="edit-cocktail-btn-1"]');
+    const deleteBtn = compiled.querySelector('[data-testid="delete-cocktail-btn-1"]');
+    const toggleDispoBtn = compiled.querySelector('[data-testid="toggle-dispo-btn-1"]');
+    const selectBtn = compiled.querySelector('[data-testid="select-cocktail-btn-1"]');
+
+    expect(editBtn).toBeNull();
+    expect(deleteBtn).toBeNull();
+    expect(toggleDispoBtn).toBeNull();
+    expect(selectBtn).toBeTruthy();
+  }));
+
+  it('in selectionMode, emits cocktailSelect when an available cocktail is selected', fakeAsync(() => {
+    component.selectionMode = true;
+    component.charger();
+    tick();
+    fixture.detectChanges();
+
+    spyOn(component.cocktailSelect, 'emit');
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const selectBtn = compiled.querySelector('[data-testid="select-cocktail-btn-1"]') as HTMLButtonElement;
+    expect(selectBtn).toBeTruthy();
+
+    selectBtn.click();
+    tick();
+
+    expect(component.cocktailSelect.emit).toHaveBeenCalledWith(jasmine.objectContaining({ id: 1, nom: 'Mojito' }));
+  }));
+
+  it('in selectionMode, does not emit cocktailSelect when an unavailable cocktail is clicked', fakeAsync(() => {
+    component.selectionMode = true;
+    component.charger();
+    tick();
+    fixture.detectChanges();
+
+    spyOn(component.cocktailSelect, 'emit');
+
+    const unavailableCocktail = mockCocktails.find(c => !c.disponible)!;
+    component.onSelectCocktail(unavailableCocktail);
+
+    expect(component.cocktailSelect.emit).not.toHaveBeenCalled();
+  }));
+
+  it('when hideHeaderTitle is true, renders compact embedded count instead of full title block', fakeAsync(() => {
+    component.hideHeaderTitle = true;
+    component.charger();
+    tick();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const pageTitle = compiled.querySelector('.page-title');
+    const embeddedCount = compiled.querySelector('.title-with-count.embedded-mode');
+
+    expect(pageTitle).toBeNull();
+    expect(embeddedCount).toBeTruthy();
+  }));
 });
+
 

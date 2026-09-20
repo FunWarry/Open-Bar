@@ -1159,8 +1159,9 @@ public class SampleDataSeederService {
             step.setDurationSeconds(stepNode.get("durationSeconds").asInt());
         }
         if (stepNode.has("ingredientName")) {
-            String ingName = stepNode.get("ingredientName").asText();
-            Ingredient ing = ingredientRepository.findByNomIgnoreCase(ingName).orElse(null);
+            String ingName = stepNode.get("ingredientName").asText().trim();
+            step.setActionTitle(ingName);
+            Ingredient ing = resolveIngredientForStep(cocktail, ingName);
             step.setIngredient(ing);
         }
         if (stepNode.has("templateName")) {
@@ -1171,6 +1172,79 @@ public class SampleDataSeederService {
         step.setCreatedAt(timeService.now());
         step.setUpdatedAt(timeService.now());
         return step;
+    }
+
+    private Ingredient resolveIngredientForStep(Cocktail cocktail, String ingName) {
+        if (ingName == null || ingName.isBlank()) {
+            return null;
+        }
+        String cleanName = ingName.trim();
+        Optional<Ingredient> exact = ingredientRepository.findByNomIgnoreCase(cleanName);
+        if (exact.isPresent()) {
+            return exact.get();
+        }
+
+        // Search within parent cocktail's existing ingredients first
+        if (cocktail != null && cocktail.getIngredients() != null) {
+            for (CocktailIngredient ci : cocktail.getIngredients()) {
+                if (ci.getIngredient() != null && isIngredientFuzzyMatch(cleanName, ci.getIngredient().getNom())) {
+                    return ci.getIngredient();
+                }
+            }
+        }
+
+        // Search across all ingredients in repository
+        List<Ingredient> all = ingredientRepository.findAll();
+        for (Ingredient candidate : all) {
+            if (candidate.getNom() != null && isIngredientFuzzyMatch(cleanName, candidate.getNom())) {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private static final String[][] FUZZY_INGREDIENT_PAIRS = {
+        {"prose", "prosc"},
+        {"apero", "apero"},
+        {"kahlua", "kahlua"},
+        {"cointreau", "cointreau"},
+        {"menthe", "menthe"},
+        {"angostura", "angostura"},
+        {"cranber", "cramber"},
+        {"ananas", "ananas"},
+        {"coco", "coco"},
+        {"citron", "citron"},
+        {"sucre", "cassonade"},
+        {"vermouth", "martini"},
+        {"whisky", "whisky"}
+    };
+
+    private boolean isIngredientFuzzyMatch(String target, String candidate) {
+        if (target == null || candidate == null) return false;
+        String t = normalizeIngredientString(target);
+        String c = normalizeIngredientString(candidate);
+        if (t.equals(c) || t.contains(c) || c.contains(t)) {
+            return true;
+        }
+        return matchesFuzzyKeywordPair(t, c);
+    }
+
+    private boolean matchesFuzzyKeywordPair(String t, String c) {
+        for (String[] pair : FUZZY_INGREDIENT_PAIRS) {
+            boolean direct = t.contains(pair[0]) && c.contains(pair[1]);
+            boolean inverse = t.contains(pair[1]) && c.contains(pair[0]);
+            if (direct || inverse) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String normalizeIngredientString(String input) {
+        if (input == null) return "";
+        String normalized = java.text.Normalizer.normalize(input, java.text.Normalizer.Form.NFD);
+        return normalized.replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]", "");
     }
 
     private void seedTableAppelsFromJson(JsonNode appelsNode, Map<Integer, TableEntity> tablesMap) {

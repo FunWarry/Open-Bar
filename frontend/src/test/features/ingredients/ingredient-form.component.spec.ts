@@ -132,6 +132,30 @@ describe('IngredientFormComponent', () => {
       expect(component.ingredientForm.get('isVegan')?.value).toBeFalse();
     });
 
+    it('toggleVegan() toggles isVegan and strips animal allergens when activated', () => {
+      component.ingredientForm.patchValue({ isVegan: false, allergens: ['LAIT', 'GLUTEN', 'OEUF'] });
+      component.toggleVegan();
+      expect(component.ingredientForm.get('isVegan')?.value).toBeTrue();
+      expect(component.ingredientForm.get('allergens')?.value).toEqual(['GLUTEN']);
+
+      component.toggleVegan();
+      expect(component.ingredientForm.get('isVegan')?.value).toBeFalse();
+    });
+
+    it('toggleVegan() does nothing when canEdit is false', () => {
+      component.canEdit = false;
+      component.ingredientForm.patchValue({ isVegan: false });
+      component.toggleVegan();
+      expect(component.ingredientForm.get('isVegan')?.value).toBeFalse();
+    });
+
+    it('availableAllergens includes standard emojis for visual parity with cocktail matcher', () => {
+      const lait = component.availableAllergens.find((a) => a.key === 'LAIT');
+      const gluten = component.availableAllergens.find((a) => a.key === 'GLUTEN');
+      expect(lait?.emoji).toBe('🥛');
+      expect(gluten?.emoji).toBe('🌾');
+    });
+
     it('validates degreAlcool bounds between 0 and 100', () => {
       component.ingredientForm.patchValue({ degreAlcool: -1 });
       expect(component.ingredientForm.get('degreAlcool')?.invalid).toBeTrue();
