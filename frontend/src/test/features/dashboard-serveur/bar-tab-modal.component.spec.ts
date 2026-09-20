@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ModalController, ToastController, provideIonicAngular } from '@ionic/angular';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { BarTabModalComponent } from '../../../app/features/dashboard-serveur/components/bar-tab-modal/bar-tab-modal.component';
 import { BarTabService } from '../../../app/core/services/bar-tab.service';
@@ -117,4 +117,64 @@ describe('BarTabModalComponent', () => {
     expect(barTabServiceSpy.updateTab).toHaveBeenCalled();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(mockTab, 'confirm');
   }));
+
+  it('should switch location type between BAR and TABLE and update validators', () => {
+    fixture.detectChanges();
+    component.setLocationType('TABLE');
+    expect(component.form.get('locationType')?.value).toBe('TABLE');
+    expect(component.form.get('tableOriginaleId')?.validator).toBeDefined();
+
+    component.setLocationType('BAR');
+    expect(component.form.get('locationType')?.value).toBe('BAR');
+    expect(component.form.get('tableOriginaleId')?.value).toBeNull();
+  });
+
+  it('should pass tableOriginaleId when submitting with TABLE location', fakeAsync(() => {
+    fixture.detectChanges();
+    component.setLocationType('TABLE');
+    component.form.patchValue({
+      nom: 'VIP Dupont Table',
+      tableOriginaleId: 12,
+    });
+
+    component.onSubmit();
+    tick();
+
+    expect(barTabServiceSpy.createTab).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        nom: 'VIP Dupont Table',
+        tableOriginaleId: 12,
+      })
+    );
+  }));
+
+  it('should display danger toast when createTab fails', fakeAsync(() => {
+    barTabServiceSpy.createTab.and.returnValue(throwError(() => new Error('Creation failed')));
+    fixture.detectChanges();
+    component.form.patchValue({ nom: 'Test Error' });
+
+    component.onSubmit();
+    tick();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(
+      jasmine.objectContaining({ color: 'danger' })
+    );
+    expect(component.isSubmitting).toBeFalse();
+  }));
+
+  it('should display danger toast when updateTab fails', fakeAsync(() => {
+    barTabServiceSpy.updateTab.and.returnValue(throwError(() => new Error('Update failed')));
+    component.tab = mockTab;
+    fixture.detectChanges();
+    component.form.patchValue({ nom: 'Test Error Update' });
+
+    component.onSubmit();
+    tick();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(
+      jasmine.objectContaining({ color: 'danger' })
+    );
+    expect(component.isSubmitting).toBeFalse();
+  }));
 });
+

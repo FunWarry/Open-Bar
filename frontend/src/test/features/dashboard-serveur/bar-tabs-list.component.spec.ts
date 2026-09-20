@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ModalController, AlertController, ToastController, provideIonicAngular } from '@ionic/angular';
 import { signal } from '@angular/core';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { BarTabsListComponent } from '../../../app/features/dashboard-serveur/components/bar-tabs-list/bar-tabs-list.component';
 import { BarTabService } from '../../../app/core/services/bar-tab.service';
@@ -168,12 +168,56 @@ describe('BarTabsListComponent', () => {
     expect(fakeBarTabService.loadTabs).toHaveBeenCalled();
   });
 
-  it('should present confirmation alert on cancel tab', async () => {
+  it('should present confirmation alert on cancel tab and execute destructive handler', async () => {
+    let alertOptions: any;
     const alertSpy = jasmine.createSpyObj('HTMLIonAlertElement', ['present']);
-    alertCtrlSpy.create.and.resolveTo(alertSpy);
+    alertCtrlSpy.create.and.callFake((opts: any) => {
+      alertOptions = opts;
+      return Promise.resolve(alertSpy);
+    });
+    const toastSpy = jasmine.createSpyObj('HTMLIonToastElement', ['present']);
+    toastCtrlSpy.create.and.resolveTo(toastSpy);
 
     await component.onCancelTab(mockTabs[0]);
     expect(alertCtrlSpy.create).toHaveBeenCalled();
     expect(alertSpy.present).toHaveBeenCalled();
+
+    // Execute the destructive button handler (success path)
+    const destructiveBtn = alertOptions.buttons.find((b: any) => b.role === 'destructive');
+    expect(destructiveBtn).toBeDefined();
+    destructiveBtn.handler();
+
+    expect(fakeBarTabService.cancelTab).toHaveBeenCalledWith(mockTabs[0].id);
+  });
+
+  it('should show danger toast when cancelTab fails', async () => {
+    let alertOptions: any;
+    const alertSpy = jasmine.createSpyObj('HTMLIonAlertElement', ['present']);
+    alertCtrlSpy.create.and.callFake((opts: any) => {
+      alertOptions = opts;
+      return Promise.resolve(alertSpy);
+    });
+    const toastSpy = jasmine.createSpyObj('HTMLIonToastElement', ['present']);
+    toastCtrlSpy.create.and.resolveTo(toastSpy);
+    fakeBarTabService.cancelTab.and.returnValue(throwError(() => new Error('Cancel failed')));
+
+    await component.onCancelTab(mockTabs[0]);
+    const destructiveBtn = alertOptions.buttons.find((b: any) => b.role === 'destructive');
+    destructiveBtn.handler();
+
+    expect(fakeBarTabService.cancelTab).toHaveBeenCalled();
+  });
+
+  it('should not open duplicate modals if a modal is already open', async () => {
+    const existingModal = jasmine.createSpyObj('HTMLIonModalElement', ['present']);
+    modalCtrlSpy.getTop.and.resolveTo(existingModal);
+    modalCtrlSpy.create.calls.reset();
+
+    await component.openCreateModal();
+    await component.openEditModal(mockTabs[0]);
+    await component.openTransferModal(mockTabs[0]);
+
+    expect(modalCtrlSpy.create).not.toHaveBeenCalled();
   });
 });
+

@@ -209,6 +209,13 @@ public class CommandeService {
         return saved;
     }
 
+    /**
+     * Automatically resolves and assigns the server for a newly created order.
+     * Checks explicitly provided server ID, then authenticated user (admin/manager/server),
+     * and finally falls back to the server assigned to the physical table.
+     *
+     * @param commande the order to enrich with server details
+     */
     private void resolveOrderServer(Commande commande) {
         if (commande.getServeur() != null && commande.getServeur().getId() != null && commande.getServeur().getUsername() == null) {
             userRepository.findById(commande.getServeur().getId()).ifPresent(commande::setServeur);

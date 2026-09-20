@@ -1103,5 +1103,29 @@ class CommandeServiceTest {
         assertThat(result.getServeur()).isNotNull();
         assertThat(result.getServeur().getUsername()).isEqualTo("serveur1");
     }
+
+    @Test
+    @DisplayName("createCommande - resolves server from table when order server is null and table has assigned server")
+    void createCommande_withTableServer_resolvesServerFromTable() {
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+
+        TableEntity table = new TableEntity();
+        table.setId(15L);
+        table.setServeurId(99L);
+        when(tableRepository.findById(15L)).thenReturn(Optional.of(table));
+
+        User tableServer = new User();
+        tableServer.setId(99L);
+        tableServer.setUsername("tableServeur");
+        when(userRepository.findById(99L)).thenReturn(Optional.of(tableServer));
+
+        Commande cmd = new Commande();
+        cmd.setTable(table);
+
+        Commande result = commandeService.createCommande(cmd);
+
+        assertThat(result.getServeur()).isNotNull();
+        assertThat(result.getServeur().getUsername()).isEqualTo("tableServeur");
+    }
 }
 

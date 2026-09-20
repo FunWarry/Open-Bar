@@ -28,12 +28,12 @@ export interface CommandeItem {
 
 export interface Commande {
   id: number;
-  tableId: number;
-  tableNumero: number;
+  tableId?: number;
+  tableNumero?: number;
   barTabId?: number;
   barTabNom?: string;
-  serveurId: number;
-  serveurUsername: string;
+  serveurId?: number;
+  serveurUsername?: string;
   items: CommandeItem[];
   statut: CommandeStatut;
   notes?: string;

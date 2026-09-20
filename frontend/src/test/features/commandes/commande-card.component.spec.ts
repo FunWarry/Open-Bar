@@ -100,4 +100,33 @@ describe('CommandeCardComponent', () => {
       targetStatut: 'EN_PREPARATION',
     });
   });
+
+  it('tableLabel returns formatted label for all combinations', () => {
+    component.commande = { ...mockCmd, tableNumero: 10, barTabNom: 'VIP Dupont' };
+    expect(component.tableLabel).toBe('Table 10 • VIP Dupont');
+
+    component.commande = { ...mockCmd, tableNumero: 10, barTabNom: undefined };
+    expect(component.tableLabel).toBe('Table 10');
+
+    component.commande = { ...mockCmd, tableNumero: undefined, barTabNom: 'VIP Dupont' };
+    expect(component.tableLabel).toBe('VIP Dupont (Bar)');
+
+    component.commande = { ...mockCmd, tableNumero: undefined, barTabNom: undefined };
+    expect(component.tableLabel).toBe('Bar');
+
+    component.commande = null as any;
+    expect(component.tableLabel).toBe('');
+  });
+
+  it('isPriority() handles prioritaire flag, late delay and null safely', () => {
+    component.commande = { ...mockCmd, prioritaire: true, notes: undefined };
+    expect(component.isPriority()).toBeTrue();
+
+    component.commande = { ...mockCmd, prioritaire: false, notes: undefined, dateCommande: new Date().toISOString() };
+    expect(component.isPriority()).toBeFalse();
+
+    component.commande = null as any;
+    expect(component.isPriority()).toBeFalse();
+  });
 });
+
