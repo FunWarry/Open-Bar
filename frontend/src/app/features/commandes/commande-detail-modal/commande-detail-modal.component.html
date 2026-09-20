@@ -46,14 +46,11 @@
                 Bar / Comptoir
               }
             </h2>
-            <ion-badge [color]="getStatutColor(commande.statut)" class="status-badge">
-              {{ ('COMMANDES.STATUTS.' + commande.statut) | transloco }}
-            </ion-badge>
-            @if (commande.prioritaire) {
-              <ion-badge color="danger" class="urgent-badge" data-testid="badge-modal-urgent">
-                ⚡ {{ 'COMMANDES.PRIORITE' | transloco }}
-              </ion-badge>
-            }
+            <app-status-badge
+              [status]="commande.statut"
+              [prioritary]="commande.prioritaire"
+              testId="badge-modal-status">
+            </app-status-badge>
           </div>
           <p class="header-subtitle">
             <ion-icon name="time-outline"></ion-icon>

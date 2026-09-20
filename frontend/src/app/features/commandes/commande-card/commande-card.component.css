@@ -59,30 +59,6 @@
   color: var(--text-secondary);
 }
 
-.priority-pill {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--status-waiting-25, rgba(244, 165, 42, 0.25));
-  color: var(--semantic-warning);
-  padding: 3px 8px;
-  border-radius: var(--radius-sm, 8px);
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.status-pill {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: var(--radius-sm, 8px);
-}
-
-.status-pending { background: var(--status-waiting-25, rgba(244, 165, 42, 0.25)); color: var(--semantic-warning); }
-.status-progress { background: var(--status-inprogress-25, rgba(43, 168, 232, 0.25)); color: var(--semantic-info); }
-.status-ready { background: var(--status-ready-25, rgba(47, 191, 107, 0.25)); color: var(--semantic-success); }
-.status-served { background: var(--background-surface-3); color: var(--text-secondary); }
-
 .card-meta {
   display: flex;
   gap: 12px;

@@ -27,6 +27,8 @@ export interface GroupedCommandeItem {
   notes?: string;
 }
 
+import { StatusBadgeComponent } from '../../../core/components/ui/status-badge/status-badge.component';
+
 /**
  * Encapsulates an order card displayed inside Kanban columns or list items.
  * Clicking on the card emits a view event to display order details in a modal.
@@ -40,6 +42,7 @@ export interface GroupedCommandeItem {
   imports: [
     IonIcon, IonButton,
     CurrencyPipe, DatePipe, TranslocoPipe,
+    StatusBadgeComponent,
   ],
 })
 export class CommandeCardComponent {

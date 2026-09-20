@@ -14,22 +14,11 @@
       <span class="order-id">#{{ commande.id }}</span>
     </div>
 
-    @if (isPriority()) {
-      <span class="priority-pill" data-testid="pill-priority">
-        <ion-icon name="alert-circle-outline"></ion-icon>
-        {{ 'COMMANDES.PRIORITE' | transloco }}
-      </span>
-    } @else {
-      <span
-        class="status-pill"
-        [class.status-pending]="commande.statut === 'EN_ATTENTE'"
-        [class.status-progress]="commande.statut === 'EN_PREPARATION'"
-        [class.status-ready]="commande.statut === 'PRET'"
-        [class.status-served]="commande.statut === 'LIVREE' || commande.statut === 'REGLEE'"
-      >
-        {{ getStatutLabelKey() | transloco }}
-      </span>
-    }
+    <app-status-badge
+      [status]="commande.statut"
+      [prioritary]="isPriority()"
+      testId="card-status-badge">
+    </app-status-badge>
   </div>
 
   <div class="card-meta">

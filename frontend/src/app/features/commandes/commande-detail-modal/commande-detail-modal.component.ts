@@ -4,7 +4,7 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import {
   ModalController, AlertController, ToastController,
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-  IonIcon, IonBadge, IonSpinner, IonFooter,
+  IonIcon, IonSpinner, IonFooter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -22,6 +22,8 @@ import { Commande, CommandeItem, CommandeStatut } from '../../../core/models/com
 import { CancelOrderModalComponent } from '../../../core/components/ui/cancel-order-modal/cancel-order-modal.component';
 import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
 
+import { StatusBadgeComponent } from '../../../core/components/ui/status-badge/status-badge.component';
+
 /**
  * Modal component rendering full order details, metrics, items breakdown with unit prices,
  * and direct action controls (advancing status, cancellation with confirmation popup).
@@ -34,10 +36,11 @@ import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-    IonIcon, IonBadge, IonSpinner, IonFooter,
+    IonIcon, IonSpinner, IonFooter,
     DatePipe,
     TranslocoPipe,
     AppCurrencyPipe,
+    StatusBadgeComponent,
   ],
 })
 export class CommandeDetailModalComponent implements OnInit, OnDestroy {
@@ -139,18 +142,6 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
           await toast.present();
         }
       });
-  }
-
-  getStatutColor(statut: string): string {
-    const map: Record<string, string> = {
-      EN_ATTENTE: 'warning',
-      EN_PREPARATION: 'tertiary',
-      PRET: 'success',
-      LIVREE: 'medium',
-      REGLEE: 'dark',
-      ANNULEE: 'danger',
-    };
-    return map[statut] ?? 'primary';
   }
 
   peutAnnuler(): boolean {

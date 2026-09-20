@@ -149,27 +149,57 @@ describe('Shared UI Components (Figma Design System)', () => {
     it('correctly maps color and label according to status', () => {
       component.status = 'EN_ATTENTE';
       expect(component.badgeColor).toBe('warning');
+      expect(component.statusBadgeColor).toBe('warning');
       expect(component.label).toBe('En attente');
+      expect(component.statusLabel).toBe('En attente');
 
       component.status = 'EN_PREPARATION';
       expect(component.badgeColor).toBe('primary');
+      expect(component.statusBadgeColor).toBe('primary');
       expect(component.label).toBe('En préparation');
+      expect(component.statusLabel).toBe('En préparation');
 
       component.status = 'PRET';
       expect(component.badgeColor).toBe('secondary');
+      expect(component.statusBadgeColor).toBe('secondary');
       expect(component.label).toBe('Prêt');
+      expect(component.statusLabel).toBe('Prêt');
 
       component.status = 'LIVREE';
       expect(component.badgeColor).toBe('success');
+      expect(component.statusBadgeColor).toBe('success');
       expect(component.label).toBe('Livrée');
+      expect(component.statusLabel).toBe('Livrée');
 
       component.status = 'ANNULEE';
       expect(component.badgeColor).toBe('danger');
+      expect(component.statusBadgeColor).toBe('danger');
       expect(component.label).toBe('Annulée');
+      expect(component.statusLabel).toBe('Annulée');
 
       component.prioritary = true;
       expect(component.badgeColor).toBe('tertiary');
       expect(component.label).toBe('⚡ Prioritaire');
+      expect(component.priorityLabel).toBe('Priorité');
+    });
+
+    it('renders urgent priority pill when marked as prioritary', () => {
+      component.status = 'EN_ATTENTE';
+      component.prioritary = true;
+      fixture.detectChanges();
+
+      const urgentPill = fixture.nativeElement.querySelector('[data-testid="status-badge-urgent"]');
+      expect(urgentPill).toBeTruthy();
+      expect(urgentPill.textContent).toContain('Priorité');
+    });
+
+    it('respects customLabel and customColor when provided', () => {
+      component.customLabel = 'Personnalisé';
+      component.customColor = 'primary';
+      expect(component.label).toBe('Personnalisé');
+      expect(component.statusLabel).toBe('Personnalisé');
+      expect(component.badgeColor).toBe('');
+      expect(component.statusBadgeColor).toBe('');
     });
   });
 

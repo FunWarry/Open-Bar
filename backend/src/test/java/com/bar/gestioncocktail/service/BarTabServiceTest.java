@@ -442,6 +442,59 @@ class BarTabServiceTest {
     }
 
     @Test
+    @DisplayName("updateTab - successfully updates tab fields including tableOriginale binding")
+    void updateTab_withTableOriginale_success() {
+        when(barTabRepository.findById(1L)).thenReturn(Optional.of(sampleTab));
+        TableEntity targetTable = new TableEntity();
+        targetTable.setId(12L);
+        targetTable.setNumero(12);
+        when(tableRepository.findById(12L)).thenReturn(Optional.of(targetTable));
+        when(barTabRepository.save(any(BarTab.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(commandeRepository.findByBarTab(any(BarTab.class))).thenReturn(List.of());
+
+        BarTabUpdateRequest updateRequest = new BarTabUpdateRequest("Updated Name", "REF-42", "Important notes", new BigDecimal("100.00"), 12L);
+        BarTabResponseDTO res = barTabService.updateTab(1L, updateRequest);
+
+        assertThat(res).isNotNull();
+        assertThat(sampleTab.getNom()).isEqualTo("Updated Name");
+        assertThat(sampleTab.getClientReference()).isEqualTo("REF-42");
+        assertThat(sampleTab.getNotes()).isEqualTo("Important notes");
+        assertThat(sampleTab.getCautionMontant()).isEqualByComparingTo("100.00");
+        assertThat(sampleTab.getTableOriginale()).isEqualTo(targetTable);
+        verify(barTabRepository).save(sampleTab);
+    }
+
+    @Test
+    @DisplayName("updateTab - detaches tableOriginale when tableOriginaleId is zero or negative")
+    void updateTab_detachTableOriginale_success() {
+        TableEntity existingTable = new TableEntity();
+        existingTable.setId(5L);
+        sampleTab.setTableOriginale(existingTable);
+        when(barTabRepository.findById(1L)).thenReturn(Optional.of(sampleTab));
+        when(barTabRepository.save(any(BarTab.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(commandeRepository.findByBarTab(any(BarTab.class))).thenReturn(List.of());
+
+        BarTabUpdateRequest updateRequest = new BarTabUpdateRequest("Bar Only", null, null, null, 0L);
+        BarTabResponseDTO res = barTabService.updateTab(1L, updateRequest);
+
+        assertThat(res).isNotNull();
+        assertThat(sampleTab.getTableOriginale()).isNull();
+        verify(barTabRepository).save(sampleTab);
+    }
+
+    @Test
+    @DisplayName("updateTab - throws ResourceNotFoundException when tableOriginale does not exist")
+    void updateTab_tableNotFound_throwsException() {
+        when(barTabRepository.findById(1L)).thenReturn(Optional.of(sampleTab));
+        when(tableRepository.findById(999L)).thenReturn(Optional.empty());
+
+        BarTabUpdateRequest updateRequest = new BarTabUpdateRequest("Tab", null, null, null, 999L);
+        assertThatThrownBy(() -> barTabService.updateTab(1L, updateRequest))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Table not found with id: 999");
+    }
+
+    @Test
     @DisplayName("addOrderToTab - adds order to active tab")
     void addOrderToTab_withEntity_success() {
         when(barTabRepository.findById(1L)).thenReturn(Optional.of(sampleTab));
@@ -460,6 +513,30 @@ class BarTabServiceTest {
         assertThat(cmd.getBarTab()).isEqualTo(sampleTab);
         assertThat(cmd.getTable()).isNull();
         verify(barTabRepository).save(sampleTab);
+    }
+
+    @Test
+    @DisplayName("addOrderToTab - attaches tab tableOriginale to placed order")
+    void addOrderToTab_withTableOriginale_success() {
+        TableEntity assignedTable = new TableEntity();
+        assignedTable.setId(7L);
+        assignedTable.setNumero(7);
+        sampleTab.setTableOriginale(assignedTable);
+
+        when(barTabRepository.findById(1L)).thenReturn(Optional.of(sampleTab));
+        Commande cmd = new Commande();
+        cmd.setId(405L);
+        cmd.setStatut(CommandeStatut.EN_ATTENTE);
+        cmd.setTotal(new BigDecimal("25.00"));
+
+        when(commandeService.createCommande(cmd)).thenReturn(cmd);
+        when(commandeRepository.findByBarTab(sampleTab)).thenReturn(List.of(cmd));
+        when(barTabRepository.save(sampleTab)).thenReturn(sampleTab);
+
+        CommandeResponseDTO dto = barTabService.addOrderToTab(1L, cmd, sampleUser);
+        assertThat(dto).isNotNull();
+        assertThat(cmd.getTable()).isEqualTo(assignedTable);
+        assertThat(cmd.getBarTab()).isEqualTo(sampleTab);
     }
 
     @Test
