@@ -68,7 +68,6 @@ import { CartModel, CartItemModel } from './models/cart.model';
 import { BarTabsListComponent } from './components/bar-tabs-list/bar-tabs-list.component';
 import { BarTabService } from '../../core/services/bar-tab.service';
 import { BarTab } from '../../core/models/bar-tab.model';
-import { DEFAULT_ALLERGEN_OPTIONS } from '../../core/models/ingredient.model';
 /**
  * View mode for the server dashboard (grid, list, kanban).
  */
@@ -145,7 +144,15 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   canSeeLowStock = false;
   currentUser: any = null;
 
-  readonly availableAllergens = DEFAULT_ALLERGEN_OPTIONS;
+  readonly availableAllergens: readonly { key: string; labelKey: string; icon: string }[] = [
+    { key: 'LAIT', labelKey: 'COCKTAILS.ALLERGENS.LAIT', icon: 'nutrition-outline' },
+    { key: 'GLUTEN', labelKey: 'COCKTAILS.ALLERGENS.GLUTEN', icon: 'leaf-outline' },
+    { key: 'OEUF', labelKey: 'COCKTAILS.ALLERGENS.OEUF', icon: 'egg-outline' },
+    { key: 'FRUITS_A_COQUE', labelKey: 'COCKTAILS.ALLERGENS.FRUITS_A_COQUE', icon: 'nutrition-outline' },
+    { key: 'ARACHIDE', labelKey: 'COCKTAILS.ALLERGENS.ARACHIDE', icon: 'nutrition-outline' },
+    { key: 'SULFITES', labelKey: 'COCKTAILS.ALLERGENS.SULFITES', icon: 'wine-outline' },
+    { key: 'SOJA', labelKey: 'COCKTAILS.ALLERGENS.SOJA', icon: 'leaf-outline' },
+  ];
 
   cart: CartModel = { tableId: null, items: [] };
   isSubmitting = false;

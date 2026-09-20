@@ -489,11 +489,7 @@
                   [class.excluded]="selectedAllergens.includes(allergen.key)"
                   (click)="toggleAllergenFilter(allergen.key)"
                   [attr.data-testid]="'allergen-filter-' + allergen.key.toLowerCase()">
-                  @if (allergen.emoji) {
-                    <span class="allergen-pill-emoji">{{ allergen.emoji }}</span>
-                  } @else {
-                    <ion-icon [name]="allergen.icon"></ion-icon>
-                  }
+                  <ion-icon [name]="allergen.icon"></ion-icon>
                   {{ ('COCKTAILS.ALLERGENS.SANS_PREFIX' | transloco) + ' ' + (allergen.labelKey | transloco) }}
                   @if (selectedAllergens.includes(allergen.key)) {
                     <span class="allergen-close-icon">✕</span>

@@ -38,7 +38,6 @@ import { HappyHourService } from '../../../core/services/happy-hour.service';
 import { TableSessionService } from '../../../core/services/table-session.service';
 import { TableJoinRequest, TableSessionStatus } from '../../../core/models/table-session.model';
 import { Cocktail, CocktailFacets, FlavorProfile } from '../../../core/models/cocktail.model';
-import { DEFAULT_ALLERGEN_OPTIONS } from '../../../core/models/ingredient.model';
 import { TableCartService } from '../../../core/services/table-cart.service';
 import { TableCartItem } from '../../../core/models/table-cart.model';
 import { WebSocketService } from '../../../core/services/websocket.service';
@@ -126,7 +125,15 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   selectedCategory = 'ALL';
   readonly categories = ['ALL', 'ALCOOLISE', 'SANS_ALCOOL', 'SHOT', 'APERITIF', 'DIGESTIF', 'SPECIAL'] as const;
   selectedAllergens: string[] = [];
-  readonly availableAllergens = DEFAULT_ALLERGEN_OPTIONS;
+  readonly availableAllergens = [
+    { key: 'LAIT', labelKey: 'COCKTAILS.ALLERGENS.LAIT', icon: 'nutrition-outline' },
+    { key: 'GLUTEN', labelKey: 'COCKTAILS.ALLERGENS.GLUTEN', icon: 'leaf-outline' },
+    { key: 'OEUF', labelKey: 'COCKTAILS.ALLERGENS.OEUF', icon: 'egg-outline' },
+    { key: 'FRUITS_A_COQUE', labelKey: 'COCKTAILS.ALLERGENS.FRUITS_A_COQUE', icon: 'nutrition-outline' },
+    { key: 'ARACHIDE', labelKey: 'COCKTAILS.ALLERGENS.ARACHIDE', icon: 'nutrition-outline' },
+    { key: 'SULFITES', labelKey: 'COCKTAILS.ALLERGENS.SULFITES', icon: 'wine-outline' },
+    { key: 'SOJA', labelKey: 'COCKTAILS.ALLERGENS.SOJA', icon: 'leaf-outline' },
+  ];
   catalogFacets: CocktailFacets | null = null;
   selectedFlavors: FlavorProfile[] = [];
   filterMocktail = false;
