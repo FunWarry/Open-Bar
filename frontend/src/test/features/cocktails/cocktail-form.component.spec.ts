@@ -144,6 +144,12 @@ describe('CocktailFormComponent', () => {
         role: 'confirm',
       })
     ),
+    onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(
+      Promise.resolve({
+        data: null,
+        role: 'cancel',
+      })
+    ),
   };
 
   const buildModule = async (routeId: string | null = null) => {
@@ -1120,6 +1126,113 @@ describe('CocktailFormComponent', () => {
       fixture.detectChanges();
 
       expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+  });
+
+  describe('openCreateIngredientModal', () => {
+    beforeEach(async () => {
+      await buildModule(null);
+    });
+
+    it('opens IngredientFormComponent modal with correct configuration and handles saved role', async () => {
+      const createdIng: Ingredient = {
+        id: 77,
+        nom: 'Sirop d orgeat',
+        uniteMesure: 'cl',
+        quantiteStock: 10,
+        seuilAlerte: 2,
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      };
+
+      modalMock.onDidDismiss.and.returnValue(
+        Promise.resolve({
+          data: createdIng,
+          role: 'saved',
+        })
+      );
+
+      await component.openCreateIngredientModal();
+
+      expect(modalCtrlSpy.create).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          cssClass: 'modal-lg',
+          componentProps: {
+            ingredient: null,
+            canEdit: true,
+          },
+        })
+      );
+      expect(component.ingredientsList().some((i) => i.id === 77)).toBeTrue();
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    it('updates existing ingredient in ingredientsList if saved ingredient id already exists', async () => {
+      const updatedExisting: Ingredient = {
+        id: 1,
+        nom: 'Fresh Mint Updated',
+        uniteMesure: 'feuilles',
+        quantiteStock: 50,
+        seuilAlerte: 10,
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      };
+
+      modalMock.onDidDismiss.and.returnValue(
+        Promise.resolve({
+          data: updatedExisting,
+          role: 'saved',
+        })
+      );
+
+      await component.openCreateIngredientModal();
+
+      const found = component.ingredientsList().find((i) => i.id === 1);
+      expect(found?.nom).toBe('Fresh Mint Updated');
+    });
+
+    it('auto-selects newly created ingredient into recipe step when stepIndex is provided', async () => {
+      component.addIngredientStep();
+      const stepIndex = component.recipeStepsArray.length - 1;
+      const initialVersion = component.recipeVersion();
+
+      const createdIng: Ingredient = {
+        id: 88,
+        nom: 'Blue Curacao',
+        uniteMesure: 'cl',
+        quantiteStock: 5,
+        seuilAlerte: 1,
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      };
+
+      modalMock.onDidDismiss.and.returnValue(
+        Promise.resolve({
+          data: createdIng,
+          role: 'saved',
+        })
+      );
+
+      await component.openCreateIngredientModal(stepIndex);
+
+      const group = component.recipeStepsArray.at(stepIndex);
+      expect(group.get('ingredientId')?.value).toBe(88);
+      expect(group.get('ingredientNom')?.value).toBe('Blue Curacao');
+      expect(component.recipeVersion()).toBeGreaterThan(initialVersion);
+    });
+
+    it('does not update ingredientsList when modal is cancelled', async () => {
+      const initialCount = component.ingredientsList().length;
+      modalMock.onDidDismiss.and.returnValue(
+        Promise.resolve({
+          data: null,
+          role: 'cancel',
+        })
+      );
+
+      await component.openCreateIngredientModal();
+
+      expect(component.ingredientsList()).toHaveSize(initialCount);
     });
   });
 });

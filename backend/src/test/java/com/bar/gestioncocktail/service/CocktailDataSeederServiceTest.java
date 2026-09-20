@@ -204,5 +204,28 @@ class CocktailDataSeederServiceTest {
         seederService.ensureFlavorProfilesPopulated();
         verify(cocktailRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("seedCocktailsIfEmpty falls back to cocktail ingredients when ingredientRepository does not have ingredient")
+    void seedCocktailsIfEmpty_fallsBackToCocktailIngredients() {
+        when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
+        when(cocktailRepository.count()).thenReturn(0L);
+        when(glasswareRepository.findAll()).thenReturn(List.of());
+        when(cocktailRepository.findByNomIgnoreCase(anyString())).thenReturn(Optional.empty());
+
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(inv -> {
+            Cocktail c = inv.getArgument(0);
+            Ingredient ing = new Ingredient();
+            ing.setNom("Rhum blanc");
+            CocktailIngredient ci = new CocktailIngredient();
+            ci.setIngredient(ing);
+            c.setIngredients(List.of(ci));
+            return c;
+        });
+
+        seederService.seedCocktailsIfEmpty();
+
+        verify(cocktailRepository, atLeastOnce()).save(any(Cocktail.class));
+    }
 }
 
