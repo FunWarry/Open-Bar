@@ -392,16 +392,6 @@
     <!-- ONGLET ARDOISES / BAR TABS -->
     @if (activeTab === 'tabs') {
       <div class="tabs-tab-wrapper" data-testid="wrapper-bar-tabs">
-        <div class="tabs-nav-bar" style="margin-bottom: 12px;">
-          <button
-            type="button"
-            class="filter-pill-btn"
-            data-testid="btn-back-to-tables"
-            (click)="onTabSelected('tables')">
-            <ion-icon name="restaurant-outline" style="margin-right: 4px; vertical-align: middle;"></ion-icon>
-            {{ 'SERVEUR_MOBILE.NAV.TABLES' | transloco }}
-          </button>
-        </div>
         <app-bar-tabs-list
           (orderForTab)="onOrderForTab($event)"
           (settleTab)="onSettleTab($event)">

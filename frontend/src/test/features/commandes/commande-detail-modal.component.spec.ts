@@ -155,4 +155,23 @@ describe('CommandeDetailModalComponent', () => {
     tick();
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
+
+  it('totalArticlesCount correctly sums item quantities and handles empty states', () => {
+    component.commande = {
+      id: 1,
+      items: [
+        { id: 1, quantite: 3, prixUnitaire: 5.0, cocktailNom: 'Mojito' },
+        { id: 2, quantite: 2, prixUnitaire: 8.0, cocktailNom: 'Gin Tonic' },
+        { id: 3, quantite: 2, prixUnitaire: 6.0, cocktailNom: 'Nachos' },
+      ],
+    } as any;
+    expect(component.totalArticlesCount).toBe(7);
+
+    component.commande = { id: 2, items: [] } as any;
+    expect(component.totalArticlesCount).toBe(0);
+
+    component.commande = null as any;
+    expect(component.totalArticlesCount).toBe(0);
+  });
 });
+

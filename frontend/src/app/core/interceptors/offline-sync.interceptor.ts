@@ -5,6 +5,7 @@ import { TranslocoService } from '@jsverse/transloco';
 import { catchError, from, Observable, of, switchMap, throwError } from 'rxjs';
 import { Commande, CreateCommandeRequest, OfflineQueuedOrderItem } from '../models/commande.model';
 import { OfflineOrderService } from '../services/offline-order.service';
+import { generateSafeUUID } from '../utils/uuid.util';
 
 /**
  * Functional HTTP interceptor managing offline order queueing for waitstaff.
@@ -20,8 +21,8 @@ export const offlineSyncInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
   next: HttpHandlerFn,
 ): Observable<HttpEvent<unknown>> => {
-  const isOrderCreation = req.method === 'POST' && isBaseCommandesUrl(req.url);
-  if (!isOrderCreation) {
+  // Only intercept POST /api/commandes (creation of orders)
+  if (req.method !== 'POST' || !req.url.includes('/api/commandes') || req.url.includes('/status') || req.url.includes('/cancel')) {
     return next(req);
   }
 
@@ -30,7 +31,7 @@ export const offlineSyncInterceptor: HttpInterceptorFn = (
   const transloco = inject(TranslocoService);
 
   const rawBody = req.body as CreateCommandeRequest | null;
-  const clientRequestId = rawBody?.clientRequestId || crypto.randomUUID();
+  const clientRequestId = rawBody?.clientRequestId || generateSafeUUID();
 
   // If the browser is currently offline, queue immediately without attempting network dispatch
   if (typeof navigator !== 'undefined' && !navigator.onLine) {

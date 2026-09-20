@@ -10,9 +10,9 @@
   flex-direction: column;
   gap: 14px;
   padding: 16px;
-  border-radius: 12px;
-  background: var(--background-surface-1, #1e2024);
-  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-lg, 16px);
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
 }
 
 .stats-and-actions {
@@ -36,19 +36,19 @@
   gap: 8px;
   padding: 6px 14px;
   border-radius: 20px;
-  background: var(--background-surface-2, #2a2d34);
-  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.1));
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
   font-size: 0.85rem;
-  color: var(--text-primary, #ffffff);
+  color: var(--text-primary);
 
   ion-icon {
     font-size: 1rem;
-    color: var(--primary, #3880ff);
+    color: var(--primary);
   }
 
   &.total-balance {
     strong {
-      color: var(--semantic-success, #2dd36f);
+      color: var(--semantic-success);
     }
   }
 }
@@ -59,7 +59,7 @@
   gap: 8px;
 
   .refresh-btn {
-    --color: var(--text-secondary, #9ba3af);
+    --color: var(--text-secondary);
   }
 
   .new-tab-btn {

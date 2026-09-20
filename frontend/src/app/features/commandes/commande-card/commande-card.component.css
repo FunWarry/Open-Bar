@@ -38,50 +38,39 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 6px;
   margin-bottom: 8px;
+  min-width: 0;
 }
 
 .table-title {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+  flex-shrink: 1;
 }
 
 .table-title h3 {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   font-weight: 700;
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
 .order-id {
   font-size: 0.8rem;
+  font-weight: 600;
   color: var(--text-secondary);
+  white-space: nowrap;
+  line-height: 1.2;
+  flex-shrink: 0;
 }
-
-.priority-pill {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--status-waiting-25, rgba(244, 165, 42, 0.25));
-  color: var(--semantic-warning);
-  padding: 3px 8px;
-  border-radius: var(--radius-sm, 8px);
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.status-pill {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: var(--radius-sm, 8px);
-}
-
-.status-pending { background: var(--status-waiting-25, rgba(244, 165, 42, 0.25)); color: var(--semantic-warning); }
-.status-progress { background: var(--status-inprogress-25, rgba(43, 168, 232, 0.25)); color: var(--semantic-info); }
-.status-ready { background: var(--status-ready-25, rgba(47, 191, 107, 0.25)); color: var(--semantic-success); }
-.status-served { background: var(--background-surface-3); color: var(--text-secondary); }
 
 .card-meta {
   display: flex;

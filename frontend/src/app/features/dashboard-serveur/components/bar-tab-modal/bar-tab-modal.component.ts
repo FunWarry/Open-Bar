@@ -1,50 +1,55 @@
 import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   ModalController,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
-  IonButton,
-  IonContent,
-  IonItem,
-  IonLabel,
-  IonInput,
-  IonTextarea,
   IonIcon,
   IonSpinner,
   ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { closeOutline, receiptOutline, checkmarkOutline } from 'ionicons/icons';
+import {
+  closeOutline,
+  receiptOutline,
+  checkmarkOutline,
+  personOutline,
+  cardOutline,
+  shieldCheckmarkOutline,
+  chatboxEllipsesOutline,
+  createOutline,
+  addCircleOutline,
+  timeOutline,
+  restaurantOutline,
+  wineOutline,
+  gridOutline,
+} from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { BarTab } from '../../../../core/models/bar-tab.model';
+import { TableBar } from '../../../../core/models/table.model';
 import { BarTabService } from '../../../../core/services/bar-tab.service';
+import { TableService } from '../../../../core/services/table.service';
+import { InputFieldComponent } from '../../../../core/components/ui/input-field/input-field.component';
+import {
+  SearchableSelectComponent,
+  SearchableOption,
+} from '../../../../core/components/ui/searchable-select/searchable-select.component';
 
 /**
- * Modal form component for creating a new bar tab or modifying an existing running tab.
+ * Modal dialog for opening a new bar tab or modifying an existing one.
+ * Supports mandatory attachment to either the Bar/Counter or a physical table.
  */
 @Component({
   selector: 'app-bar-tab-modal',
   standalone: true,
   imports: [
     CommonModule,
+    DatePipe,
     ReactiveFormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
-    IonButton,
-    IonContent,
-    IonItem,
-    IonLabel,
-    IonInput,
-    IonTextarea,
     IonIcon,
     IonSpinner,
     TranslocoPipe,
+    InputFieldComponent,
+    SearchableSelectComponent,
   ],
   templateUrl: './bar-tab-modal.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -56,24 +61,74 @@ export class BarTabModalComponent implements OnInit {
 
   form!: FormGroup;
   isSubmitting = false;
+  tables: TableBar[] = [];
+  tableOptions: SearchableOption<number>[] = [];
 
   private readonly fb = inject(FormBuilder);
   private readonly modalCtrl = inject(ModalController);
   private readonly barTabService = inject(BarTabService);
+  private readonly tableService = inject(TableService);
   private readonly toastCtrl = inject(ToastController);
   private readonly transloco = inject(TranslocoService);
 
   constructor() {
-    addIcons({ closeOutline, receiptOutline, checkmarkOutline });
+    addIcons({
+      closeOutline,
+      receiptOutline,
+      checkmarkOutline,
+      personOutline,
+      cardOutline,
+      shieldCheckmarkOutline,
+      chatboxEllipsesOutline,
+      createOutline,
+      addCircleOutline,
+      timeOutline,
+      restaurantOutline,
+      wineOutline,
+      gridOutline,
+    });
   }
 
   ngOnInit(): void {
+    const initialLocation = this.tab?.tableOriginaleId ? 'TABLE' : 'BAR';
     this.form = this.fb.group({
       nom: [this.tab?.nom || '', [Validators.required, Validators.maxLength(100)]],
       clientReference: [this.tab?.clientReference || '', [Validators.maxLength(100)]],
       cautionMontant: [this.tab?.cautionMontant ?? null, [Validators.min(0)]],
+      locationType: [initialLocation, [Validators.required]],
+      tableOriginaleId: [this.tab?.tableOriginaleId ?? null, initialLocation === 'TABLE' ? [Validators.required] : []],
       notes: [this.tab?.notes || '', [Validators.maxLength(500)]],
     });
+
+    this.tableService.getAll().subscribe({
+      next: (tables) => {
+        this.tables = tables || [];
+        this.tableOptions = this.tables.map(t => ({
+          value: t.id,
+          label: `Table ${t.numero}`,
+          subLabel: t.zone ? `Zone: ${t.zone}` : undefined,
+          icon: 'restaurant-outline',
+        }));
+      },
+      error: (err) => {
+        console.error('[BarTabModal] Error loading tables:', err);
+      },
+    });
+  }
+
+  /**
+   * Switches location type between Bar and physical table.
+   */
+  setLocationType(type: 'BAR' | 'TABLE'): void {
+    this.form.patchValue({ locationType: type });
+    const tableControl = this.form.get('tableOriginaleId');
+    if (type === 'TABLE') {
+      tableControl?.setValidators([Validators.required]);
+    } else {
+      tableControl?.clearValidators();
+      tableControl?.setValue(null);
+    }
+    tableControl?.updateValueAndValidity();
   }
 
   /**
@@ -93,6 +148,7 @@ export class BarTabModalComponent implements OnInit {
 
     this.isSubmitting = true;
     const val = this.form.value;
+    const targetTableId = val.locationType === 'TABLE' ? (Number(val.tableOriginaleId) || null) : null;
 
     if (this.tab?.id) {
       // Update existing tab
@@ -101,6 +157,7 @@ export class BarTabModalComponent implements OnInit {
         clientReference: val.clientReference?.trim() || undefined,
         cautionMontant: val.cautionMontant != null && val.cautionMontant !== '' ? Number(val.cautionMontant) : undefined,
         notes: val.notes?.trim() || undefined,
+        tableOriginaleId: targetTableId ?? -1,
       }).subscribe({
         next: async (updated) => {
           this.isSubmitting = false;
@@ -120,6 +177,7 @@ export class BarTabModalComponent implements OnInit {
         clientReference: val.clientReference?.trim() || undefined,
         cautionMontant: val.cautionMontant != null && val.cautionMontant !== '' ? Number(val.cautionMontant) : undefined,
         notes: val.notes?.trim() || undefined,
+        tableOriginaleId: targetTableId || undefined,
       }).subscribe({
         next: async (created) => {
           this.isSubmitting = false;

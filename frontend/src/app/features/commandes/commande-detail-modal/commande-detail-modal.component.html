@@ -35,15 +35,22 @@
       <div class="card-header-banner">
         <div class="header-title-group">
           <div class="title-with-badge">
-            <h2>Table {{ commande.tableNumero }}</h2>
-            <ion-badge [color]="getStatutColor(commande.statut)" class="status-badge">
-              {{ ('COMMANDES.STATUTS.' + commande.statut) | transloco }}
-            </ion-badge>
-            @if (commande.prioritaire) {
-              <ion-badge color="danger" class="urgent-badge" data-testid="badge-modal-urgent">
-                ⚡ {{ 'COMMANDES.PRIORITE' | transloco }}
-              </ion-badge>
-            }
+            <h2>
+              @if (commande.tableNumero && commande.barTabNom) {
+                Table {{ commande.tableNumero }} • {{ commande.barTabNom }}
+              } @else if (commande.tableNumero) {
+                Table {{ commande.tableNumero }}
+              } @else if (commande.barTabNom) {
+                {{ commande.barTabNom }} (Bar)
+              } @else {
+                Bar / Comptoir
+              }
+            </h2>
+            <app-status-badge
+              [status]="commande.statut"
+              [prioritary]="commande.prioritaire"
+              testId="badge-modal-status">
+            </app-status-badge>
           </div>
           <p class="header-subtitle">
             <ion-icon name="time-outline"></ion-icon>
@@ -52,48 +59,42 @@
         </div>
       </div>
 
-      <!-- Metrics Cards Grid -->
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-icon-box icon-table">
-            <ion-icon name="grid-outline"></ion-icon>
+      <!-- Order Metadata Strip -->
+      <div class="order-meta-strip" data-testid="order-meta-strip">
+        @if (commande.barTabNom) {
+          <div class="meta-pill tab-pill">
+            <ion-icon name="card-outline"></ion-icon>
+            <span>{{ 'COMMANDES.DETAILS.TAB' | transloco }}: <strong>{{ commande.barTabNom }}</strong></span>
           </div>
-          <div class="metric-info">
-            <span class="metric-label">{{ 'COMMANDES.DETAILS.TABLE' | transloco }}</span>
-            <span class="metric-value">Table {{ commande.tableNumero }}</span>
+        }
+
+        @if (commande.tableNumero) {
+          <div class="meta-pill table-pill">
+            <ion-icon name="restaurant-outline"></ion-icon>
+            <span>Table <strong>{{ commande.tableNumero }}</strong></span>
           </div>
+        }
+
+        @if (!commande.tableNumero && !commande.barTabNom) {
+          <div class="meta-pill bar-pill">
+            <ion-icon name="beer-outline"></ion-icon>
+            <span><strong>{{ 'COMMANDES.DETAILS.BAR' | transloco }}</strong></span>
+          </div>
+        }
+
+        <div class="meta-pill server-pill">
+          <ion-icon name="person-outline"></ion-icon>
+          <span>{{ 'COMMANDES.SERVER' | transloco }}: <strong>{{ commande.serveurUsername || '—' }}</strong></span>
         </div>
 
-        <div class="metric-card">
-          <div class="metric-icon-box icon-server">
-            <ion-icon name="person-outline"></ion-icon>
-          </div>
-          <div class="metric-info">
-            <span class="metric-label">{{ 'COMMANDES.SERVER' | transloco }}</span>
-            <span class="metric-value">{{ commande.serveurUsername || '—' }}</span>
-          </div>
+        <div class="meta-pill count-pill">
+          <ion-icon name="receipt-outline"></ion-icon>
+          <span>{{ (totalArticlesCount > 1 ? 'COMMANDES.DETAILS.ITEMS_COUNT_PLURAL' : 'COMMANDES.DETAILS.ITEMS_COUNT') | transloco:{ count: totalArticlesCount } }}</span>
         </div>
 
-        <div class="metric-card">
-          <div class="metric-icon-box icon-status">
-            <ion-icon name="stats-chart-outline"></ion-icon>
-          </div>
-          <div class="metric-info">
-            <span class="metric-label">{{ 'COMMANDES.DETAILS.STATUS' | transloco }}</span>
-            <span class="metric-value highlight-status">
-              {{ ('COMMANDES.STATUTS.' + commande.statut) | transloco }}
-            </span>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-icon-box icon-total">
-            <ion-icon name="cash-outline"></ion-icon>
-          </div>
-          <div class="metric-info">
-            <span class="metric-label">{{ 'COMMANDES.DETAILS.TOTAL' | transloco }}</span>
-            <span class="metric-value price-green">{{ getTotalCommande(commande) | currency:'EUR' }}</span>
-          </div>
+        <div class="meta-pill total-pill">
+          <ion-icon name="cash-outline"></ion-icon>
+          <span>{{ 'COMMANDES.DETAILS.TOTAL' | transloco }}: <strong class="pill-total-amount">{{ getTotalCommande(commande) | appCurrency }}</strong></span>
         </div>
       </div>
 
@@ -110,7 +111,13 @@
       <!-- Order Items Breakdown Table Card -->
       <div class="items-card">
         <div class="items-card-header">
-          <h3>{{ 'COMMANDES.DETAILS.ITEMS_HEADER' | transloco }}</h3>
+          <div class="header-left">
+            <ion-icon name="receipt-outline"></ion-icon>
+            <h3>{{ 'COMMANDES.DETAILS.ITEMS_HEADER' | transloco }}</h3>
+          </div>
+          <span class="items-badge-count">
+            {{ (totalArticlesCount > 1 ? 'COMMANDES.DETAILS.ITEMS_COUNT_PLURAL' : 'COMMANDES.DETAILS.ITEMS_COUNT') | transloco:{ count: totalArticlesCount } }}
+          </span>
         </div>
 
         <div class="table-responsive">
@@ -134,12 +141,12 @@
                   }
                 </div>
                 <div class="td-unit-price">
-                  {{ (item.prixUnitaire || 0) | currency:'EUR' }}
+                  {{ (item.prixUnitaire || 0) | appCurrency }}
                 </div>
                 <div class="td-qty">
                   <span class="qty-pill">× {{ item.quantite }}</span>
                 </div>
-                <div class="td-price">{{ getItemLineTotal(item) | currency:'EUR' }}</div>
+                <div class="td-price">{{ getItemLineTotal(item) | appCurrency }}</div>
               </div>
             }
           </div>
@@ -147,7 +154,7 @@
           <!-- Table Footer Total -->
           <div class="table-footer">
             <span class="footer-label">{{ 'COMMON.TOTAL' | transloco }}</span>
-            <span class="footer-amount">{{ getTotalCommande(commande) | currency:'EUR' }}</span>
+            <span class="footer-amount">{{ getTotalCommande(commande) | appCurrency }}</span>
           </div>
         </div>
       </div>

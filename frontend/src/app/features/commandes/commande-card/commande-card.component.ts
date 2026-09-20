@@ -27,6 +27,8 @@ export interface GroupedCommandeItem {
   notes?: string;
 }
 
+import { StatusBadgeComponent } from '../../../core/components/ui/status-badge/status-badge.component';
+
 /**
  * Encapsulates an order card displayed inside Kanban columns or list items.
  * Clicking on the card emits a view event to display order details in a modal.
@@ -40,6 +42,7 @@ export interface GroupedCommandeItem {
   imports: [
     IonIcon, IonButton,
     CurrencyPipe, DatePipe, TranslocoPipe,
+    StatusBadgeComponent,
   ],
 })
 export class CommandeCardComponent {
@@ -78,8 +81,26 @@ export class CommandeCardComponent {
     return Math.max(0, Math.floor((now - start) / 60000));
   }
 
+  /**
+   * Human-readable table / tab / bar label for the order card header.
+   */
+  get tableLabel(): string {
+    if (!this.commande) return '';
+    if (this.commande.tableNumero && this.commande.barTabNom) {
+      return `Table ${this.commande.tableNumero} • ${this.commande.barTabNom}`;
+    }
+    if (this.commande.tableNumero) {
+      return `Table ${this.commande.tableNumero}`;
+    }
+    if (this.commande.barTabNom) {
+      return `${this.commande.barTabNom} (Bar)`;
+    }
+    return 'Bar';
+  }
+
   isPriority(): boolean {
     if (!this.commande) return false;
+    if (this.commande.prioritaire) return true;
     const delay = this.getDelayMinutes(this.commande.dateCommande);
     const hasPriorityNote = this.commande.notes != null && (
       this.commande.notes.toLowerCase().includes('urg') ||

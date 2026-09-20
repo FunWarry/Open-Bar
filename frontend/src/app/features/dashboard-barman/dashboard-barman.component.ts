@@ -408,47 +408,63 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
     const alertThresholdMs = (this.tempsAlerteCommandeMinutes || 5) * 60 * 1000;
 
     return commandes.filter(cmd => {
-      // Urgent filter
-      if (this.urgentOnly) {
-        const isPrioritaire = Boolean(cmd.prioritaire);
-        const diff = cmd.dateCommande ? now - new Date(cmd.dateCommande).getTime() : 0;
-        const isPendingDelayed =
-          cmd.statut === 'EN_ATTENTE' &&
-          diff >= alertThresholdMs &&
-          diff < 2 * 60 * 60 * 1000;
-        const isUrgent = isPrioritaire || isPendingDelayed;
-        if (!isUrgent) return false;
+      if (this.urgentOnly && !this.isCommandUrgent(cmd, now, alertThresholdMs)) {
+        return false;
       }
-
-      // Station filter
-      if (this.stationFilter !== 'ALL') {
-        const hasStationItem = cmd.items?.some(item => {
-          const itemStation = item.station || 'BAR';
-          if (this.stationFilter === 'KITCHEN') {
-            return itemStation === 'KITCHEN' || itemStation === 'SNACK';
-          }
-          return itemStation === this.stationFilter;
-        });
-        if (!hasStationItem) return false;
+      if (this.stationFilter !== 'ALL' && !this.matchesStation(cmd)) {
+        return false;
       }
-
-      // Search term filter
-      if (!q) return true;
-
-      const tableName = cmd.tableNom || (cmd.tableNumero ? `Table ${cmd.tableNumero}` : '');
-      const matchesTable = tableName.toLowerCase().includes(q) || String(cmd.tableNumero || '').includes(q);;
-      const matchesId = String(cmd.id).includes(q);
-      const matchesServer =
-        cmd.serveurNom?.toLowerCase().includes(q) ||
-        cmd.serveurUsername?.toLowerCase().includes(q);
-      const matchesItems = cmd.items?.some(item =>
-        item.cocktailNom.toLowerCase().includes(q) ||
-        item.varianteNom?.toLowerCase().includes(q) ||
-        item.notes?.toLowerCase().includes(q)
-      );
-
-      return Boolean(matchesTable || matchesId || matchesServer || matchesItems);
+      if (q && !this.matchesCommandSearch(cmd, q)) {
+        return false;
+      }
+      return true;
     });
+  }
+
+  private isCommandUrgent(cmd: CommandeView, now: number, alertThresholdMs: number): boolean {
+    const isPrioritaire = Boolean(cmd.prioritaire);
+    const diff = cmd.dateCommande ? now - new Date(cmd.dateCommande).getTime() : 0;
+    const isPendingDelayed =
+      cmd.statut === 'EN_ATTENTE' &&
+      diff >= alertThresholdMs &&
+      diff < 2 * 60 * 60 * 1000;
+    return isPrioritaire || isPendingDelayed;
+  }
+
+  private matchesStation(cmd: CommandeView): boolean {
+    return Boolean(cmd.items?.some(item => {
+      const itemStation = item.station || 'BAR';
+      if (this.stationFilter === 'KITCHEN') {
+        return itemStation === 'KITCHEN' || itemStation === 'SNACK';
+      }
+      return itemStation === this.stationFilter;
+    }));
+  }
+
+  private resolveCommandTableName(cmd: CommandeView): string {
+    if (cmd.tableNom) return cmd.tableNom;
+    if (cmd.tableNumero && cmd.barTabNom) return `Table ${cmd.tableNumero} • ${cmd.barTabNom}`;
+    if (cmd.tableNumero) return `Table ${cmd.tableNumero}`;
+    if (cmd.barTabNom) return `${cmd.barTabNom} (Bar)`;
+    return 'Bar';
+  }
+
+  private matchesCommandSearch(cmd: CommandeView, q: string): boolean {
+    const tableName = this.resolveCommandTableName(cmd);
+    const matchesTable = tableName.toLowerCase().includes(q) ||
+      String(cmd.tableNumero || '').includes(q) ||
+      (cmd.barTabNom?.toLowerCase().includes(q) ?? false);
+    const matchesId = String(cmd.id).includes(q);
+    const matchesServer =
+      cmd.serveurNom?.toLowerCase().includes(q) ||
+      cmd.serveurUsername?.toLowerCase().includes(q);
+    const matchesItems = cmd.items?.some(item =>
+      item.cocktailNom.toLowerCase().includes(q) ||
+      item.varianteNom?.toLowerCase().includes(q) ||
+      item.notes?.toLowerCase().includes(q)
+    );
+
+    return Boolean(matchesTable || matchesId || matchesServer || matchesItems);
   }
 
   /**

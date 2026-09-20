@@ -1,14 +1,83 @@
 :host {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
   flex-shrink: 0;
 }
 
-.status-badge {
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 0.8rem;
-  letter-spacing: 0.02em;
+.status-badge-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+.status-badge,
+.urgent-badge {
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2.5px 8px;
+  border-radius: var(--radius-pill, 999px);
+  letter-spacing: 0.2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  border: 1px solid transparent;
+  text-transform: none;
   white-space: nowrap;
   flex-shrink: 0;
+  line-height: 1.3;
+}
+
+/* Status colors matching OpenBar Design System */
+.status-badge[color="warning"] {
+  background: var(--status-waiting-15, rgba(244, 165, 42, 0.15)) !important;
+  color: var(--semantic-warning, #f4a52a) !important;
+  border-color: rgba(244, 165, 42, 0.45) !important;
+}
+
+.status-badge[color="primary"] {
+  background: var(--status-inprogress-15, rgba(43, 168, 232, 0.15)) !important;
+  color: var(--semantic-info, #2ba8e8) !important;
+  border-color: rgba(43, 168, 232, 0.45) !important;
+}
+
+.status-badge[color="secondary"],
+.status-badge[color="success"] {
+  background: var(--status-ready-15, rgba(47, 191, 107, 0.15)) !important;
+  color: var(--semantic-success, #2fbf6b) !important;
+  border-color: rgba(47, 191, 107, 0.45) !important;
+}
+
+.status-badge[color="medium"] {
+  background: var(--background-surface-3, #2a3050) !important;
+  color: var(--text-secondary, #a4add0) !important;
+  border-color: var(--border-medium, #2a2e4d) !important;
+}
+
+.status-badge[color="danger"],
+.status-badge[color="tertiary"] {
+  background: var(--status-canceled-15, rgba(229, 96, 79, 0.15)) !important;
+  color: var(--semantic-danger, #e5604f) !important;
+  border-color: rgba(229, 96, 79, 0.45) !important;
+}
+
+/* Priority badge with red outline & glow */
+.urgent-badge {
+  background: var(--status-canceled-15, rgba(229, 96, 79, 0.18)) !important;
+  color: var(--semantic-danger, #e5604f) !important;
+  border: 1px solid var(--semantic-danger, #e5604f) !important;
+  box-shadow: 0 0 8px rgba(229, 96, 79, 0.25);
+  animation: pulse-urgent-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-urgent-badge {
+  0%, 100% {
+    box-shadow: 0 0 6px rgba(229, 96, 79, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(229, 96, 79, 0.4);
+  }
 }

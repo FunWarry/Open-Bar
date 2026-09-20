@@ -1242,5 +1242,38 @@ describe('DashboardServeurComponent', () => {
 
       expect(component.ouvrirSplitFacture).toHaveBeenCalledWith(mockFacture);
     }));
+
+    it('onOrderForTab() initializes cart with bar tab details and switches to catalogue', () => {
+      const mockTab = {
+        id: 77,
+        nom: 'VIP Martin',
+        tableOriginaleId: 14,
+        tableOriginaleNumero: 8,
+      } as any;
+
+      component.onOrderForTab(mockTab);
+
+      expect(component.cart.barTabId).toBe(77);
+      expect(component.cart.barTabNom).toBe('VIP Martin');
+      expect(component.cart.tableId).toBe(14);
+      expect(component.cart.tableNumero).toBe(8);
+      expect(component.activeTab).toBe('commande');
+    });
+
+    it('onOrderForTab() handles bar tab without attached physical table', () => {
+      const mockTabDirect = {
+        id: 78,
+        nom: 'Comptoir Direct',
+      } as any;
+
+      component.onOrderForTab(mockTabDirect);
+
+      expect(component.cart.barTabId).toBe(78);
+      expect(component.cart.barTabNom).toBe('Comptoir Direct');
+      expect(component.cart.tableId).toBeNull();
+      expect(component.cart.tableNumero).toBeUndefined();
+      expect(component.activeTab).toBe('commande');
+    });
   });
 });
+

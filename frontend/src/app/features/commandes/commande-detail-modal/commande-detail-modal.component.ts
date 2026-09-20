@@ -4,7 +4,7 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import {
   ModalController, AlertController, ToastController,
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-  IonIcon, IonBadge, IonSpinner, IonFooter,
+  IonIcon, IonSpinner, IonFooter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -12,13 +12,17 @@ import {
   checkmarkDoneOutline, timeOutline, personOutline,
   statsChartOutline, receiptOutline, gridOutline,
   cashOutline, chatbubbleEllipsesOutline, flashOutline,
+  restaurantOutline, wineOutline, cardOutline, beerOutline,
 } from 'ionicons/icons';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { CommandeService } from '../../../core/services/commande.service';
 import { Commande, CommandeItem, CommandeStatut } from '../../../core/models/commande.model';
 import { CancelOrderModalComponent } from '../../../core/components/ui/cancel-order-modal/cancel-order-modal.component';
 import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
+
+import { StatusBadgeComponent } from '../../../core/components/ui/status-badge/status-badge.component';
 
 /**
  * Modal component rendering full order details, metrics, items breakdown with unit prices,
@@ -32,8 +36,11 @@ import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-    IonIcon, IonBadge, IonSpinner, IonFooter,
-    CurrencyPipe, DatePipe, TranslocoPipe,
+    IonIcon, IonSpinner, IonFooter,
+    DatePipe,
+    TranslocoPipe,
+    AppCurrencyPipe,
+    StatusBadgeComponent,
   ],
 })
 export class CommandeDetailModalComponent implements OnInit, OnDestroy {
@@ -56,7 +63,7 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
       closeOutline, banOutline, playOutline, checkmarkCircleOutline,
       checkmarkDoneOutline, timeOutline, personOutline, gridOutline,
       statsChartOutline, receiptOutline, cashOutline, chatbubbleEllipsesOutline,
-      flashOutline,
+      flashOutline, restaurantOutline, wineOutline, cardOutline, beerOutline,
     });
   }
 
@@ -98,6 +105,14 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
     return groupCommandeItems(this.commande?.items) as CommandeItem[];
   }
 
+  /**
+   * Calculates the total number of article units across all items in the order.
+   */
+  get totalArticlesCount(): number {
+    if (!this.commande?.items || this.commande.items.length === 0) return 0;
+    return this.commande.items.reduce((sum, item) => sum + (item.quantite || 1), 0);
+  }
+
   getItemLineTotal(item: CommandeItem): number {
     return (item.prixUnitaire || 0) * (item.quantite || 1);
   }
@@ -135,18 +150,6 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
           await toast.present();
         }
       });
-  }
-
-  getStatutColor(statut: string): string {
-    const map: Record<string, string> = {
-      EN_ATTENTE: 'warning',
-      EN_PREPARATION: 'tertiary',
-      PRET: 'success',
-      LIVREE: 'medium',
-      REGLEE: 'dark',
-      ANNULEE: 'danger',
-    };
-    return map[statut] ?? 'primary';
   }
 
   peutAnnuler(): boolean {

@@ -70,7 +70,7 @@ export class CartDrawerComponent {
   }
 
   onSubmit() {
-    if (this.cart.items.length === 0 || !this.cart.tableId) return;
+    if (this.cart.items.length === 0 || (!this.cart.tableId && !this.cart.barTabId)) return;
     this.submitOrder.emit(this.cart);
   }
 

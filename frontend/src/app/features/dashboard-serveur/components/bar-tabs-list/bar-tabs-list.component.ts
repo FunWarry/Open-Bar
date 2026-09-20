@@ -97,42 +97,84 @@ export class BarTabsListComponent {
     this.searchTerm.set('');
   }
 
+  /** Flag to prevent duplicate simultaneous modal presentations */
+  private isOpeningModal = false;
+
   /**
    * Opens the creation modal for a new bar tab.
    */
   async openCreateModal(): Promise<void> {
-    const modal = await this.modalCtrl.create({
-      component: BarTabModalComponent,
-      enterAnimation: fastModalEnterAnimation,
-      leaveAnimation: fastModalLeaveAnimation,
-    });
-    await modal.present();
+    if (this.modalCtrl.getTop) {
+      const top = await this.modalCtrl.getTop();
+      if (top || this.isOpeningModal) return;
+    } else if (this.isOpeningModal) {
+      return;
+    }
+    this.isOpeningModal = true;
+    try {
+      const modal = await this.modalCtrl.create({
+        component: BarTabModalComponent,
+        cssClass: 'bar-tab-modal-container',
+        enterAnimation: fastModalEnterAnimation,
+        leaveAnimation: fastModalLeaveAnimation,
+      });
+      await modal.present();
+      await modal.onDidDismiss?.();
+    } finally {
+      this.isOpeningModal = false;
+    }
   }
 
   /**
    * Opens the edit modal for an existing bar tab.
    */
   async openEditModal(tab: BarTab): Promise<void> {
-    const modal = await this.modalCtrl.create({
-      component: BarTabModalComponent,
-      componentProps: { tab },
-      enterAnimation: fastModalEnterAnimation,
-      leaveAnimation: fastModalLeaveAnimation,
-    });
-    await modal.present();
+    if (this.modalCtrl.getTop) {
+      const top = await this.modalCtrl.getTop();
+      if (top || this.isOpeningModal) return;
+    } else if (this.isOpeningModal) {
+      return;
+    }
+    this.isOpeningModal = true;
+    try {
+      const modal = await this.modalCtrl.create({
+        component: BarTabModalComponent,
+        componentProps: { tab },
+        cssClass: 'bar-tab-modal-container',
+        enterAnimation: fastModalEnterAnimation,
+        leaveAnimation: fastModalLeaveAnimation,
+      });
+      await modal.present();
+      await modal.onDidDismiss?.();
+    } finally {
+      this.isOpeningModal = false;
+    }
   }
 
   /**
    * Opens the transfer modal for this tab.
    */
   async openTransferModal(tab: BarTab): Promise<void> {
-    const modal = await this.modalCtrl.create({
-      component: BarTabTransferModalComponent,
-      componentProps: { sourceTab: tab },
-      enterAnimation: fastModalEnterAnimation,
-      leaveAnimation: fastModalLeaveAnimation,
-    });
-    await modal.present();
+    if (this.modalCtrl.getTop) {
+      const top = await this.modalCtrl.getTop();
+      if (top || this.isOpeningModal) return;
+    } else if (this.isOpeningModal) {
+      return;
+    }
+    this.isOpeningModal = true;
+    try {
+      const modal = await this.modalCtrl.create({
+        component: BarTabTransferModalComponent,
+        componentProps: { sourceTab: tab },
+        cssClass: 'bar-tab-transfer-modal-container',
+        enterAnimation: fastModalEnterAnimation,
+        leaveAnimation: fastModalLeaveAnimation,
+      });
+      await modal.present();
+      await modal.onDidDismiss?.();
+    } finally {
+      this.isOpeningModal = false;
+    }
   }
 
   /**

@@ -54,6 +54,8 @@ class CommandeServiceTest {
     @Mock
     TableRepository tableRepository;
     @Mock
+    com.bar.gestioncocktail.repository.UserRepository userRepository;
+    @Mock
     ApplicationEventPublisher eventPublisher;
     @Spy
     TimeService timeService = new TimeService(null);
@@ -1058,6 +1060,72 @@ class CommandeServiceTest {
         assertThat(result.getItems().get(0).getStation()).isEqualTo(PreparationStation.BAR);
         assertThat(result.getItems().get(0).getStatut()).isEqualTo(CommandeStatut.EN_ATTENTE);
         verify(commandeRepository).save(cmdWithItems);
+    }
+
+    @Test
+    @DisplayName("createCommande - assigns authenticated user as server when no server is provided")
+    void createCommande_withoutServer_assignsAuthenticatedUser() {
+        org.springframework.security.core.Authentication auth = mock(org.springframework.security.core.Authentication.class);
+        when(auth.isAuthenticated()).thenReturn(true);
+        when(auth.getName()).thenReturn("admin");
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+
+        User adminUser = new User();
+        adminUser.setId(1L);
+        adminUser.setUsername("admin");
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(adminUser));
+
+        Commande cmd = new Commande();
+        Commande result = commandeService.createCommande(cmd);
+
+        assertThat(result.getServeur()).isNotNull();
+        assertThat(result.getServeur().getUsername()).isEqualTo("admin");
+
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    @DisplayName("createCommande - resolves full user when server ID is provided without username")
+    void createCommande_withServerIdOnly_resolvesUserEntity() {
+        User serverStub = new User();
+        serverStub.setId(42L);
+
+        User fullServer = new User();
+        fullServer.setId(42L);
+        fullServer.setUsername("serveur1");
+        when(userRepository.findById(42L)).thenReturn(Optional.of(fullServer));
+
+        Commande cmd = new Commande();
+        cmd.setServeur(serverStub);
+
+        Commande result = commandeService.createCommande(cmd);
+
+        assertThat(result.getServeur()).isNotNull();
+        assertThat(result.getServeur().getUsername()).isEqualTo("serveur1");
+    }
+
+    @Test
+    @DisplayName("createCommande - resolves server from table when order server is null and table has assigned server")
+    void createCommande_withTableServer_resolvesServerFromTable() {
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+
+        TableEntity table = new TableEntity();
+        table.setId(15L);
+        table.setServeurId(99L);
+        when(tableRepository.findById(15L)).thenReturn(Optional.of(table));
+
+        User tableServer = new User();
+        tableServer.setId(99L);
+        tableServer.setUsername("tableServeur");
+        when(userRepository.findById(99L)).thenReturn(Optional.of(tableServer));
+
+        Commande cmd = new Commande();
+        cmd.setTable(table);
+
+        Commande result = commandeService.createCommande(cmd);
+
+        assertThat(result.getServeur()).isNotNull();
+        assertThat(result.getServeur().getUsername()).isEqualTo("tableServeur");
     }
 }
 

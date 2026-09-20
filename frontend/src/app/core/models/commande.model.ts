@@ -28,10 +28,12 @@ export interface CommandeItem {
 
 export interface Commande {
   id: number;
-  tableId: number;
-  tableNumero: number;
-  serveurId: number;
-  serveurUsername: string;
+  tableId?: number;
+  tableNumero?: number;
+  barTabId?: number;
+  barTabNom?: string;
+  serveurId?: number;
+  serveurUsername?: string;
   items: CommandeItem[];
   statut: CommandeStatut;
   notes?: string;
@@ -63,6 +65,7 @@ export interface CreateCommandeRequest {
     prioritaire?: boolean;
   }>;
   sessionToken?: string | null;
+  serveurId?: number;
   clientRequestId?: string;
 }
 

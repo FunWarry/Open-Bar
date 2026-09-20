@@ -9,6 +9,7 @@ import {
 } from '../../../app/features/dashboard-serveur/services/dashboard-serveur.service';
 import { FactureService, SplitResultDTO } from '../../../app/features/factures/services/facture.service';
 import { BarTabService } from '../../../app/core/services/bar-tab.service';
+import { BarTab } from '../../../app/core/models/bar-tab.model';
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { AppSettingsService } from '../../../app/core/services/app-settings.service';
@@ -803,6 +804,27 @@ describe('EncaissementModalComponent', () => {
       component.applyPartDiscountTier(fixedTier);
       expect(component.partDiscountMode).toBe('fixed');
       expect(component.partDiscountAmount).toBe(5);
+    });
+
+    it('supports settling a bar tab and reflects tab labels and details', () => {
+      const mockTab: BarTab = {
+        id: 77,
+        nom: 'Comptoir VIP',
+        clientReference: 'CARD-VIP',
+        statut: 'ACTIVE',
+        openedAt: '2026-09-18T20:00:00',
+        total: 25.0,
+        activeOrdersCount: 1,
+        itemsCount: 2,
+      };
+      component.tab = mockTab;
+      component.table = undefined;
+      component.addition = mockAddition;
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.textContent).toContain('Comptoir VIP');
+      expect(el.textContent).toContain('CARD-VIP');
     });
   });
 });

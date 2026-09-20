@@ -26,6 +26,8 @@ import { EditCommandeModalComponent } from '../edit-commande-modal/edit-commande
 import { CancelOrderModalComponent } from '../../../../core/components/ui/cancel-order-modal/cancel-order-modal.component';
 import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../core/utils/modal-animation.utils';
 
+import { StatusBadgeComponent } from '../../../../core/components/ui/status-badge/status-badge.component';
+
 /**
  * Redesigned modal displaying active orders for a specific table with rich card layouts,
  * status badges, item breakdowns, bill summary, and actions for modification, transfer, and cancellation.
@@ -38,6 +40,7 @@ import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../co
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
     IonContent, IonBadge, IonIcon, IonSpinner, IonFooter,
     TranslocoPipe,
+    StatusBadgeComponent,
   ],
   templateUrl: './table-detail-modal.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

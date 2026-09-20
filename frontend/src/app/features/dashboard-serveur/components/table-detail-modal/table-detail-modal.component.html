@@ -121,14 +121,7 @@
                   <span class="id-hash">#</span>{{ cmd.id }}
                 </div>
                 <div class="order-status-badge">
-                  <ion-badge [color]="statutColor(cmd.statut)">
-                    {{ statutTranslocoKey(cmd.statut) | transloco }}
-                  </ion-badge>
-                  @if (cmd.prioritaire) {
-                    <ion-badge color="danger" class="urgent-badge" [attr.data-testid]="'badge-urgent-' + cmd.id">
-                      ⚡ {{ 'COMMANDES.PRIORITE' | transloco }}
-                    </ion-badge>
-                  }
+                  <app-status-badge [status]="cmd.statut" [prioritary]="cmd.prioritaire"></app-status-badge>
                 </div>
                 <div class="order-header-total">
                   {{ getCommandeTotal(cmd) | currency:'EUR':'symbol':'1.2-2' }}

@@ -3,7 +3,7 @@
     <ion-title>
       <div class="toolbar-title-wrap">
         <ion-icon name="receipt-outline" class="title-icon"></ion-icon>
-        <span>{{ 'ENCAISSEMENT.MODAL_TITLE' | transloco }} - {{ tab ? tab.nom : (table?.nom || '') }}</span>
+        <span>{{ (tab ? ('ENCAISSEMENT.MODAL_TITLE_TAB' | transloco) : ('ENCAISSEMENT.MODAL_TITLE' | transloco)) }} - {{ tab ? tab.nom : (table?.nom || '') }}</span>
         @if (table?.zone) {
           <ion-badge color="secondary" class="zone-badge">{{ table.zone }}</ion-badge>
         } @else if (tab?.clientReference) {
@@ -85,7 +85,7 @@
         <div class="items-list-container">
           @if (!addition.items || addition.items.length === 0) {
             <div class="no-items-note">
-              <p>{{ 'ENCAISSEMENT.NO_ITEMS' | transloco }}</p>
+              <p>{{ (tab ? ('ENCAISSEMENT.NO_ITEMS_TAB' | transloco) : ('ENCAISSEMENT.NO_ITEMS' | transloco)) }}</p>
             </div>
           }
           @for (item of addition.items; track trackByItemId($index, item)) {
@@ -364,7 +364,7 @@
             <div class="checkbox-row">
               <app-checkbox-field
                 [(ngModel)]="libererTable"
-                [label]="'ENCAISSEMENT.RELEASE_TABLE_LABEL' | transloco"
+                [label]="(tab ? ('ENCAISSEMENT.CLOSE_TAB_LABEL' | transloco) : ('ENCAISSEMENT.RELEASE_TABLE_LABEL' | transloco))"
                 testId="cb-liberer-table">
               </app-checkbox-field>
             </div>

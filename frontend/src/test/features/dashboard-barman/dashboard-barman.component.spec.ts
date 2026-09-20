@@ -762,5 +762,42 @@ describe('DashboardBarmanComponent', () => {
       expect(modalCtrlSpy.create).not.toHaveBeenCalled();
     });
   });
+
+  describe('filtrerCommandes with bar tabs and search queries', () => {
+    it('matches bar tab names and formatted table strings', () => {
+      const cmds: CommandeView[] = [
+        {
+          id: 1,
+          tableNumero: 5,
+          barTabNom: 'VIP Dupont',
+          statut: 'EN_ATTENTE',
+          items: [{ id: 1, cocktailId: 10, cocktailNom: 'Mojito', quantite: 1, prioritaire: false }],
+        } as any,
+        {
+          id: 2,
+          barTabNom: 'Comptoir Direct',
+          statut: 'EN_ATTENTE',
+          items: [{ id: 2, cocktailId: 20, cocktailNom: 'Negroni', quantite: 1, prioritaire: false }],
+        } as any,
+        {
+          id: 3,
+          statut: 'EN_ATTENTE',
+          items: [{ id: 3, cocktailId: 30, cocktailNom: 'Bière', quantite: 1, prioritaire: false }],
+        } as any,
+      ];
+
+      component.commandesEnAttente = cmds;
+      component.searchQuery = 'Dupont';
+      expect(component.filteredCommandesEnAttente).toHaveSize(1);
+      expect(component.filteredCommandesEnAttente[0].id).toBe(1);
+
+      component.searchQuery = 'Comptoir';
+      expect(component.filteredCommandesEnAttente).toHaveSize(1);
+      expect(component.filteredCommandesEnAttente[0].id).toBe(2);
+
+      component.searchQuery = 'Bar';
+      expect(component.filteredCommandesEnAttente.length).toBeGreaterThanOrEqual(2);
+    });
+  });
 });
 

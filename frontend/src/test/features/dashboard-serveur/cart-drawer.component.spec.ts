@@ -42,7 +42,7 @@ describe('CartDrawerComponent', () => {
     expect(component.submitOrder.emit).toHaveBeenCalledWith(mockCart);
   });
 
-  it('should not emit submitOrder when items are empty or tableId is null', () => {
+  it('should not emit submitOrder when items are empty or both tableId and barTabId are null', () => {
     spyOn(component.submitOrder, 'emit');
     component.cart = { tableId: null, items: [] };
     component.onSubmit();
@@ -51,6 +51,23 @@ describe('CartDrawerComponent', () => {
     component.cart = { tableId: 1, items: [] };
     component.onSubmit();
     expect(component.submitOrder.emit).not.toHaveBeenCalled();
+
+    component.cart = { tableId: null, barTabId: null, items: [{ boissonId: 101, nom: 'Pinte Blond', prix: 6.0, quantite: 1 }] };
+    component.onSubmit();
+    expect(component.submitOrder.emit).not.toHaveBeenCalled();
+  });
+
+  it('should emit submitOrder when cart has barTabId and tableId is null (bar tab order)', () => {
+    spyOn(component.submitOrder, 'emit');
+    const tabCart: CartModel = {
+      tableId: null,
+      barTabId: 42,
+      barTabNom: 'VIP Marc',
+      items: [{ boissonId: 101, nom: 'Pinte Blond', prix: 6.0, quantite: 1 }],
+    };
+    component.cart = tabCart;
+    component.onSubmit();
+    expect(component.submitOrder.emit).toHaveBeenCalledWith(tabCart);
   });
 
   it('should emit editCustomization event', () => {

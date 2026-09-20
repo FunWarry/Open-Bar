@@ -323,5 +323,44 @@ describe('DashboardBarmanService', () => {
     expect(req.request.body).toEqual({ cocktailIds: [1, 2], disponible: false });
     req.flush([{ id: 1, disponible: false }, { id: 2, disponible: false }]);
   });
+
+  it('aggregateBatches formats table names correctly for bar tabs and direct orders', () => {
+    const ordersWithTabs = [
+      {
+        id: 101,
+        tableNumero: 3,
+        barTabNom: 'Tab Table',
+        statut: 'EN_ATTENTE',
+        items: [{ id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 1, statut: 'EN_ATTENTE' }],
+      },
+      {
+        id: 102,
+        barTabNom: 'Comptoir Direct',
+        statut: 'EN_ATTENTE',
+        items: [{ id: 2, cocktailId: 1, cocktailNom: 'Mojito', quantite: 1, statut: 'EN_ATTENTE' }],
+      },
+      {
+        id: 103,
+        statut: 'EN_ATTENTE',
+        prioritaire: true,
+        items: [{ id: 3, cocktailId: 2, cocktailNom: 'Gin Tonic', quantite: 1, statut: 'EN_ATTENTE' }],
+      },
+    ] as any;
+
+    const batches = service.aggregateBatches(ordersWithTabs, []);
+    expect(batches).toHaveSize(2);
+
+    const mojitoBatch = batches.find(b => b.cocktailNom === 'Mojito');
+    expect(mojitoBatch).toBeDefined();
+    const tableNames = mojitoBatch?.items.map(o => o.tableNom);
+    expect(tableNames).toContain('Table 3 • Tab Table');
+    expect(tableNames).toContain('Comptoir Direct (Bar)');
+
+    const ginBatch = batches.find(b => b.cocktailNom === 'Gin Tonic');
+    expect(ginBatch).toBeDefined();
+    expect(ginBatch?.items[0].tableNom).toBe('Commande #103');
+    expect(ginBatch?.isUrgent).toBeTrue();
+  });
 });
+
 
