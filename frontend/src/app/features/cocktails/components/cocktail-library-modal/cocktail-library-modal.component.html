@@ -221,7 +221,7 @@
             <div class="card-footer-row">
               <div class="flavor-chips">
                 @for (fl of cocktail.flavorProfiles.slice(0, 3); track fl) {
-                  <span class="flavor-chip">{{ ('COCKTAILS.FLAVOR_PROFILES.' + fl) | transloco }}</span>
+                  <span class="flavor-chip">{{ ('COCKTAIL_LIBRARY.FLAVOR_' + fl) | transloco }}</span>
                 }
               </div>
 
@@ -246,7 +246,7 @@
     <div class="footer-summary">
       <span class="selected-pill">
         <ion-icon name="checkmark-circle"></ion-icon>
-        <strong>{{ selectedCount() }}</strong> {{ 'COCKTAIL_LIBRARY.SELECTED_COUNT' | transloco }}
+        <strong>{{ selectedCount() }}</strong> {{ (selectedCount() > 1 ? 'COCKTAIL_LIBRARY.SELECTED_COUNT_PLURAL' : 'COCKTAIL_LIBRARY.SELECTED_COUNT') | transloco }}
       </span>
     </div>
 
@@ -323,7 +323,7 @@
           <div class="attributes-row">
             @if (item.allergens && item.allergens.length > 0) {
               @for (all of item.allergens; track all) {
-                <span class="allergen-tag">{{ ('INGREDIENTS.ALLERGENS.' + all) | transloco }}</span>
+                <span class="allergen-tag">{{ ('COCKTAILS.ALLERGENS.' + all) | transloco }}</span>
               }
             } @else {
               <span class="allergen-none">{{ 'COCKTAIL_LIBRARY.NO_ALLERGENS' | transloco }}</span>

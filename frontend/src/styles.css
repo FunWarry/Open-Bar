@@ -1103,6 +1103,25 @@ ion-modal.variant-recipe-modal-container {
   --max-height: 92vh;
 }
 
+ion-modal.cocktail-library-modal-dialog,
+ion-modal.full-screen-modal {
+  --width: min(1360px, 96vw);
+  --max-width: 96vw;
+  --height: min(920px, 94vh);
+  --max-height: 94vh;
+}
+
+@media (max-width: 768px) {
+  ion-modal.cocktail-library-modal-dialog,
+  ion-modal.full-screen-modal {
+    --width: 100vw;
+    --height: 100vh;
+    --max-width: 100vw;
+    --max-height: 100vh;
+    --border-radius: 0;
+  }
+}
+
 ion-modal.modal-full {
   --width: 98vw;
   --max-width: 98vw;
@@ -1116,6 +1135,8 @@ ion-modal.modal-md,
 ion-modal.modal-lg,
 ion-modal.modal-xl,
 ion-modal.modal-full,
+ion-modal.cocktail-library-modal-dialog,
+ion-modal.full-screen-modal,
 ion-modal.variant-recipe-modal-container,
 ion-modal.bar-ticket-modal-container {
   --border-radius: var(--radius-xl, 18px);

@@ -140,7 +140,7 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   async openLibraryImportModal(): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: CocktailLibraryModalComponent,
-      cssClass: 'full-screen-modal'
+      cssClass: 'cocktail-library-modal-dialog full-screen-modal modal-xl'
     });
     await modal.present();
 
