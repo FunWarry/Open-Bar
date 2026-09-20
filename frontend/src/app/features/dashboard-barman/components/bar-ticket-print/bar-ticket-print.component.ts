@@ -31,7 +31,7 @@ import { PrinterService } from '../../../../core/services/printer.service';
     IonSpinner
   ],
   templateUrl: './bar-ticket-print.component.html',
-  changeDetection: ChangeDetectionStrategy.Default,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./bar-ticket-print.component.scss']
 })
 export class BarTicketPrintComponent implements OnInit {
