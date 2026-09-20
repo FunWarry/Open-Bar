@@ -13,7 +13,7 @@ Application de gestion de bar en temps réel : prise de commandes (serveurs), pr
 | Doc API    | Springdoc OpenAPI (Swagger UI) | 3.1.0       |
 | BDD        | PostgreSQL                   | —           |
 | ORM        | JPA / Hibernate + Lombok     | 1.18.34     |
-| Sécurité   | Spring Security + JWT custom | JJWT 0.13.0 |
+| Sécurité   | Spring Security + JWT custom | JJWT 0.13.0 (4h expiration & session timeout) |
 | Sanitisation| Jsoup (HTML / XSS clean)     | 1.23.2      |
 | Temps réel | WebSocket STOMP              | via Spring  |
 | PDF        | OpenPDF                      | 2.0.3       |

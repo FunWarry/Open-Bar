@@ -19,7 +19,7 @@
 | Runtime | Java | 22 (pinned) | Lombok 1.18.34 incompatible with JDK 23+ compiler internals |
 | Database | PostgreSQL | — | Managed via Docker Compose |
 | ORM | JPA/Hibernate + Lombok `@Data` | via Spring | |
-| Security | Spring Security + custom JWT | JJWT 0.13.0 | Requires `JWT_SECRET` (≥ 32 characters) |
+| Security | Spring Security + custom JWT | JJWT 0.13.0 | Requires `JWT_SECRET` (≥ 32 characters). 4-hour lifespan (`14400000 ms`) with frontend session auto-disconnect & extension reminder prompt |
 | Real-time | WebSocket STOMP | via Spring | 5 active topics |
 | Frontend | Angular | 22 | |
 | UI | Ionic | 9.0.4 | Angular Material abandoned |
