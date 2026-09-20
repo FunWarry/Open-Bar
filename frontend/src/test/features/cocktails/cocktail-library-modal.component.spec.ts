@@ -245,6 +245,7 @@ describe('CocktailLibraryModalComponent', () => {
     component.isModal = true;
     component.toggleSelection('lib_1');
     component.executeImport();
+    await fixture.whenStable();
 
     expect(libraryServiceSpy.importCocktails).toHaveBeenCalledWith({
       cocktailIds: ['lib_1']
@@ -257,6 +258,7 @@ describe('CocktailLibraryModalComponent', () => {
 
     component.toggleSelection('lib_1');
     component.executeImport();
+    await fixture.whenStable();
 
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
       color: 'danger'

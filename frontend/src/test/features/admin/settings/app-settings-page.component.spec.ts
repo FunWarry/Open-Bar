@@ -802,6 +802,7 @@ describe('AppSettingsPageComponent', () => {
         stockTracking: true,
         cashDrawer: false,
         barTabs: false,
+        cocktailLibrary: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -814,6 +815,7 @@ describe('AppSettingsPageComponent', () => {
         stockTracking: false,
         cashDrawer: false,
         barTabs: false,
+        cocktailLibrary: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });
