@@ -183,4 +183,26 @@ describe('CommandeCardComponent', () => {
     component.commande = null as any;
     expect(component.lisereColor).toBe('var(--border-medium)');
   });
+
+  it('formats delay correctly including +24h threshold', () => {
+    // Recent / zero delay
+    component.commande = { ...mockCmd, dateCommande: new Date().toISOString() };
+    expect(component.formattedDelay).toBe('');
+
+    // 15 minutes
+    component.commande = { ...mockCmd, dateCommande: new Date(Date.now() - 15 * 60000).toISOString() };
+    expect(component.formattedDelay).toBe('15m');
+
+    // 2 hours 15 minutes
+    component.commande = { ...mockCmd, dateCommande: new Date(Date.now() - 135 * 60000).toISOString() };
+    expect(component.formattedDelay).toBe('2h15');
+
+    // 24 hours or more -> +24h
+    component.commande = { ...mockCmd, dateCommande: new Date(Date.now() - 25 * 3600 * 1000).toISOString() };
+    expect(component.formattedDelay).toBe('+24h');
+
+    // Extreme delay (e.g. demo data 16080m) -> +24h
+    component.commande = { ...mockCmd, dateCommande: new Date(Date.now() - 16080 * 60000).toISOString() };
+    expect(component.formattedDelay).toBe('+24h');
+  });
 });

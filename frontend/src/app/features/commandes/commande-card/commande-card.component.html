@@ -40,7 +40,7 @@
             [class.timer--warning]="isWarning && !isUrgent && !isCritical"
             data-testid="card-timer">
             <ion-icon name="time-outline"></ion-icon>
-            {{ commande.dateCommande | date:'HH:mm' }}@if (commande.statut !== 'LIVREE' && commande.statut !== 'REGLEE' && commande.statut !== 'ANNULEE' && delayMinutes > 0) { ({{ delayMinutes }}m)}
+            {{ commande.dateCommande | date:'HH:mm' }}@if (commande.statut !== 'LIVREE' && commande.statut !== 'REGLEE' && commande.statut !== 'ANNULEE' && formattedDelay) { ({{ formattedDelay }})}
           </span>
         </div>
       </div>

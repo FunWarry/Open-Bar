@@ -98,6 +98,28 @@ export class CommandeCardComponent {
   }
 
   /**
+   * Formats elapsed delay into human-readable notation:
+   * - '+24h' if delay is 24 hours or more
+   * - 'XhYY' if delay is 1 hour or more
+   * - 'Xm' if delay is less than 1 hour
+   */
+  get formattedDelay(): string {
+    const minutes = this.delayMinutes;
+    if (minutes <= 0) return '';
+    const hours = Math.floor(minutes / 60);
+    if (hours >= 24) {
+      return '+24h';
+    }
+    if (hours > 0) {
+      const remainingMinutes = minutes % 60;
+      return remainingMinutes > 0
+        ? `${hours}h${String(remainingMinutes).padStart(2, '0')}`
+        : `${hours}h`;
+    }
+    return `${minutes}m`;
+  }
+
+  /**
    * Whether the order exceeds critical delay thresholds (>= 15 min without service).
    */
   get isCritical(): boolean {
