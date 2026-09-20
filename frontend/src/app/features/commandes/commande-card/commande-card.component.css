@@ -345,13 +345,11 @@
   margin-right: 6px;
 }
 
-/* Modificateurs d'état et animations */
+/* Modificateurs d'état et animations (fond uniforme var(--background-surface-1) sans altération d'état) */
 .prioritaire,
 .priority-card,
 .card-urgent {
   border-color: var(--semantic-danger);
-  background: linear-gradient(135deg, var(--status-waiting-15, rgba(244, 165, 42, 0.15)) 0%, var(--background-surface-1) 100%);
-  animation: pulse-urgent-card 2s infinite ease-in-out;
 }
 
 .card-critical {
@@ -361,7 +359,6 @@
 
 .card-ready-highlight {
   border-color: var(--semantic-success);
-  background: linear-gradient(135deg, var(--status-ready-15, rgba(47, 191, 107, 0.15)) 0%, var(--background-surface-1) 100%);
 }
 
 .card-served-dim {
@@ -374,11 +371,7 @@
   100% { transform: scale(1); }
 }
 
-@keyframes pulse-urgent-card {
-  0% { box-shadow: 0 0 4px var(--status-waiting-25, rgba(244, 165, 42, 0.25)); }
-  50% { box-shadow: 0 0 12px var(--status-waiting-25, rgba(244, 165, 42, 0.5)); }
-  100% { box-shadow: 0 0 4px var(--status-waiting-25, rgba(244, 165, 42, 0.25)); }
-}
+
 
 @keyframes pulse-critical-card {
   0% { box-shadow: 0 0 4px var(--status-canceled-15, rgba(235, 68, 90, 0.2)); }
