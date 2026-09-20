@@ -13,7 +13,7 @@
   border-radius: var(--radius-md, 10px);
   padding: 16px;
   gap: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-card);
   transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
   font-family: var(--font, 'Inter', sans-serif);
   cursor: pointer;
@@ -24,12 +24,12 @@
 .product-card-container:hover {
   border-color: var(--primary, #6c7fe8);
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .product-card-container:focus-visible {
   border-color: var(--primary, #6c7fe8);
-  box-shadow: 0 0 0 3px rgba(108, 127, 232, 0.35);
+  box-shadow: 0 0 0 3px var(--border-light);
 }
 
 .product-image-wrapper {

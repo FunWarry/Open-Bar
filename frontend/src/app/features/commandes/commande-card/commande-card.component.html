@@ -1,6 +1,10 @@
 <div
-  class="kanban-card"
+  class="kanban-card commande-card"
+  [class.prioritaire]="isPriority()"
   [class.priority-card]="isPriority()"
+  [class.card-critical]="isCritical"
+  [class.card-urgent]="isUrgent && !isCritical"
+  [class.card-warning]="isWarning && !isUrgent && !isCritical"
   [class.card-ready-highlight]="commande.statut === 'PRET'"
   [class.card-served-dim]="commande.statut === 'LIVREE' || commande.statut === 'REGLEE'"
   (click)="onView()"
@@ -8,117 +12,150 @@
   [attr.title]="'COMMANDES.ACTIONS.VIEW_TOOLTIP' | transloco"
   data-testid="card-commande"
 >
-  <div class="card-top">
-    <div class="table-title">
-      <h3 [attr.title]="tableLabel">{{ tableLabel }}</h3>
-      <span class="order-id">#{{ commande.id }}</span>
+  <!-- Liseré de statut vertical (style barman) -->
+  <div class="lisere" [style.background-color]="lisereColor"></div>
+
+  <div class="card-content">
+    <!-- En-tête : table + ID + priorité + serveur + timer + badge statut -->
+    <div class="card-header card-top">
+      <div class="card-header-text">
+        <div class="table-row table-title">
+          <h3 class="table-name" [attr.title]="tableLabel">
+            {{ tableLabel }}
+          </h3>
+          <span class="order-id">#{{ commande.id }}</span>
+          @if (isPriority()) {
+            <span class="priority-chip" data-testid="priority-chip">⚡ URGENT</span>
+          }
+        </div>
+
+        <div class="meta-row card-meta">
+          @if (commande.serveurUsername) {
+            <span class="server-name server-meta">👤 {{ commande.serveurUsername }}</span>
+          }
+          <span
+            class="card-timer time-meta"
+            [class.timer--critical]="isCritical"
+            [class.timer--urgent]="isUrgent && !isCritical"
+            [class.timer--warning]="isWarning && !isUrgent && !isCritical"
+            data-testid="card-timer">
+            <ion-icon name="time-outline"></ion-icon>
+            {{ commande.dateCommande | date:'HH:mm' }}@if (commande.statut !== 'LIVREE' && commande.statut !== 'REGLEE' && commande.statut !== 'ANNULEE' && formattedDelay) { ({{ formattedDelay }})}
+          </span>
+        </div>
+      </div>
+
+      <div class="card-header-actions">
+        <app-status-badge
+          [status]="commande.statut"
+          testId="card-status-badge">
+        </app-status-badge>
+      </div>
     </div>
 
-    <app-status-badge
-      [status]="commande.statut"
-      [prioritary]="isPriority()"
-      testId="card-status-badge">
-    </app-status-badge>
-  </div>
+    <div class="divider"></div>
 
-  <div class="card-meta">
-    <span class="time-meta">
-      <ion-icon name="time-outline"></ion-icon>
-      {{ commande.dateCommande | date:'HH:mm' }}@if (commande.statut !== 'LIVREE' && commande.statut !== 'REGLEE' && commande.statut !== 'ANNULEE' && getDelayMinutes(commande.dateCommande) > 0) { ({{ getDelayMinutes(commande.dateCommande) }}m)}
-    </span>
-    @if (commande.serveurUsername) {
-      <span class="server-meta">👤 {{ commande.serveurUsername }}</span>
-    }
-  </div>
+    <!-- Items de la commande -->
+    <div class="card-items items-list">
+      @for (item of groupedItems; track item.cocktailId + '_' + (item.varianteId || 0) + '_' + (item.notes || '')) {
+        <div class="item-row">
+          <div class="item-main-line">
+            <span class="qty">{{ item.quantite }}×</span>
+            <span class="item-name cocktail-nom">
+              {{ item.cocktailNom }}
+              @if (item.varianteNom) {
+                <span class="variant-tag variante-tag">{{ item.varianteNom }}</span>
+              }
+            </span>
+            <span class="item-price">{{ getItemLineTotal(item) | currency:'EUR' }}</span>
+          </div>
 
-  @if (commande.notes) {
-    <div class="card-notes">💬 {{ commande.notes }}</div>
-  }
-
-  <div class="card-items">
-    @for (item of groupedItems; track item.cocktailId + '_' + (item.varianteId || 0) + '_' + (item.notes || '')) {
-      <div class="item-row">
-        <span class="qty">× {{ item.quantite }}</span>
-        <span class="item-name">
-          {{ item.cocktailNom }}
-          @if (item.varianteNom) {
-            <small class="variante-tag">({{ item.varianteNom }})</small>
+          @if (item.notes) {
+            <div class="item-note">💬 {{ item.notes }}</div>
           }
-        </span>
-        <span class="item-price">{{ getItemLineTotal(item) | currency:'EUR' }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Notes générales de la commande -->
+    @if (commande.notes) {
+      <div class="commande-notes card-notes">
+        <span>📝 {{ commande.notes }}</span>
+      </div>
+    }
+
+    <!-- Total de la commande -->
+    <div class="card-total">
+      <span class="total-label">Total :</span>
+      <span class="total-amount">{{ commande.total | currency:'EUR' }}</span>
+    </div>
+
+    <!-- Boutons d'action -->
+    @if (showActions && (peutAnnuler() || commande.statut === 'EN_ATTENTE' || commande.statut === 'EN_PREPARATION' || commande.statut === 'PRET')) {
+      <div class="card-actions" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
+        @if (peutAnnuler()) {
+          <ion-button
+            fill="clear"
+            color="danger"
+            size="small"
+            class="action-icon-btn"
+            (click)="onAnnuler($event)"
+            (keydown.enter)="onAnnuler($event)"
+            [attr.title]="'COMMANDES.ACTIONS.CANCEL_TOOLTIP' | transloco"
+            data-testid="btn-annuler"
+          >
+            <ion-icon name="ban-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        }
+
+        @if (commande.statut === 'EN_ATTENTE') {
+          <ion-button
+            fill="solid"
+            color="primary"
+            size="small"
+            class="action-text-btn"
+            (click)="onUpdateStatus('EN_PREPARATION', $event)"
+            (keydown.enter)="onUpdateStatus('EN_PREPARATION', $event)"
+            [attr.title]="'COMMANDES.ACTIONS.MARK_IN_PROGRESS_TOOLTIP' | transloco"
+            data-testid="btn-mark-in-progress"
+          >
+            <ion-icon name="arrow-forward-circle-outline" slot="start"></ion-icon>
+            {{ 'COMMANDES.ACTIONS.MARK_IN_PROGRESS' | transloco }}
+          </ion-button>
+        }
+
+        @if (commande.statut === 'EN_PREPARATION') {
+          <ion-button
+            fill="solid"
+            color="primary"
+            size="small"
+            class="action-text-btn action-text-btn--ready"
+            (click)="onUpdateStatus('PRET', $event)"
+            (keydown.enter)="onUpdateStatus('PRET', $event)"
+            [attr.title]="'COMMANDES.ACTIONS.MARK_READY_TOOLTIP' | transloco"
+            data-testid="btn-mark-ready"
+          >
+            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+            {{ 'COMMANDES.ACTIONS.MARK_READY' | transloco }}
+          </ion-button>
+        }
+
+        @if (commande.statut === 'PRET') {
+          <ion-button
+            fill="solid"
+            color="primary"
+            size="small"
+            class="action-text-btn action-text-btn--delivered"
+            (click)="onUpdateStatus('LIVREE', $event)"
+            (keydown.enter)="onUpdateStatus('LIVREE', $event)"
+            [attr.title]="'COMMANDES.ACTIONS.MARK_DELIVERED_TOOLTIP' | transloco"
+            data-testid="btn-mark-delivered"
+          >
+            <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+            {{ 'COMMANDES.ACTIONS.MARK_DELIVERED' | transloco }}
+          </ion-button>
+        }
       </div>
     }
   </div>
-
-  <div class="card-total">
-    <span>Total :</span>
-    <span class="total-amount">{{ commande.total | currency:'EUR' }}</span>
-  </div>
-
-  @if (showActions) {
-    <div class="card-actions">
-      @if (peutAnnuler()) {
-        <ion-button
-          fill="clear"
-          color="danger"
-          size="small"
-          class="action-icon-btn"
-          (click)="onAnnuler($event)"
-          (keydown.enter)="onAnnuler($event)"
-          [attr.title]="'COMMANDES.ACTIONS.CANCEL_TOOLTIP' | transloco"
-          data-testid="btn-annuler"
-        >
-          <ion-icon name="ban-outline" slot="icon-only"></ion-icon>
-        </ion-button>
-      }
-
-      @if (commande.statut === 'EN_ATTENTE') {
-        <ion-button
-          fill="solid"
-          color="primary"
-          size="small"
-          class="action-text-btn"
-          (click)="onUpdateStatus('EN_PREPARATION', $event)"
-          (keydown.enter)="onUpdateStatus('EN_PREPARATION', $event)"
-          [attr.title]="'COMMANDES.ACTIONS.MARK_IN_PROGRESS_TOOLTIP' | transloco"
-          data-testid="btn-mark-in-progress"
-        >
-          <ion-icon name="play-outline" slot="start"></ion-icon>
-          {{ 'COMMANDES.ACTIONS.MARK_IN_PROGRESS' | transloco }}
-        </ion-button>
-      }
-
-      @if (commande.statut === 'EN_PREPARATION') {
-        <ion-button
-          fill="solid"
-          color="primary"
-          size="small"
-          class="action-text-btn"
-          (click)="onUpdateStatus('PRET', $event)"
-          (keydown.enter)="onUpdateStatus('PRET', $event)"
-          [attr.title]="'COMMANDES.ACTIONS.MARK_READY_TOOLTIP' | transloco"
-          data-testid="btn-mark-ready"
-        >
-          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-          {{ 'COMMANDES.ACTIONS.MARK_READY' | transloco }}
-        </ion-button>
-      }
-
-      @if (commande.statut === 'PRET') {
-        <ion-button
-          fill="solid"
-          color="primary"
-          size="small"
-          class="action-text-btn"
-          (click)="onUpdateStatus('LIVREE', $event)"
-          (keydown.enter)="onUpdateStatus('LIVREE', $event)"
-          [attr.title]="'COMMANDES.ACTIONS.MARK_DELIVERED_TOOLTIP' | transloco"
-          data-testid="btn-mark-delivered"
-        >
-          <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
-          {{ 'COMMANDES.ACTIONS.MARK_DELIVERED' | transloco }}
-        </ion-button>
-      }
-    </div>
-  }
 </div>

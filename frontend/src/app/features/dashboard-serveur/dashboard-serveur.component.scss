@@ -14,10 +14,10 @@
 ion-content.dashboard-serveur-content {
   --background: var(--background-bg-0, #0f0f1a);
   --color: var(--text-primary, #eceefb);
-  --padding-top: 12px;
+  --padding-top: 16px;
   --padding-bottom: 24px;
-  --padding-start: 12px;
-  --padding-end: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
 
   &::part(scroll) {
     scrollbar-width: thin;
@@ -235,13 +235,13 @@ ion-content.dashboard-serveur-content {
 .controls-card {
   background: var(--background-surface-1, #16192b);
   border: 1px solid var(--border-medium, #2a2e4d);
-  border-radius: 14px;
+  border-radius: var(--radius-lg, 14px);
   padding: 14px 16px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .visually-hidden {
@@ -753,7 +753,7 @@ ion-content.dashboard-serveur-content {
     flex-direction: column;
     height: 100%;
     overflow: hidden;
-    gap: var(--space-3, 12px);
+    gap: var(--space-4, 16px);
     margin: 0;
     padding: 0;
 
@@ -763,11 +763,11 @@ ion-content.dashboard-serveur-content {
       background: var(--background-surface-1, #16192b);
       border: 1px solid var(--border-medium, #2a2e4d);
       border-radius: var(--radius-lg, 14px);
-      padding: 12px 16px;
+      padding: 14px 16px;
       display: flex;
       flex-direction: column;
       gap: 12px;
-      box-shadow: none;
+      box-shadow: var(--shadow-card);
       margin: 0;
     }
 

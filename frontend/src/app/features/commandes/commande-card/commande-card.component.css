@@ -1,65 +1,87 @@
-/* KANBAN CARD STYLING */
+/* ==========================================================================
+   COMMANDE CARD — BARMAN-INSPIRED MODERN DESIGN
+   ========================================================================== */
+
+.commande-card,
 .kanban-card {
+  display: flex;
+  position: relative;
   background: var(--background-surface-1);
   border: 1px solid var(--border-medium);
-  border-radius: var(--radius-lg, 12px);
-  padding: 14px;
+  border-radius: var(--radius-md, 12px);
+  overflow: hidden;
+  margin: 4px 0;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
+.commande-card:hover,
 .kanban-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--primary);
 }
 
-.priority-card {
-  border: 1px solid var(--semantic-warning);
-  background: linear-gradient(135deg, var(--status-waiting-15, rgba(244, 165, 42, 0.15)) 0%, var(--background-surface-1) 100%);
-  animation: pulse-border 2s infinite ease-in-out;
+.commande-card:focus-visible,
+.kanban-card:focus-visible {
+  outline: 2px solid var(--primary);
 }
 
-@keyframes pulse-border {
-  0% { box-shadow: 0 0 4px var(--status-waiting-25, rgba(244, 165, 42, 0.25)); }
-  50% { box-shadow: 0 0 12px var(--status-waiting-25, rgba(244, 165, 42, 0.5)); }
-  100% { box-shadow: 0 0 4px var(--status-waiting-25, rgba(244, 165, 42, 0.25)); }
+/* Liseré de statut (barre verticale colorée style barman) */
+.lisere {
+  width: 5px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  align-self: stretch;
 }
 
-.card-ready-highlight {
-  border: 1px solid var(--semantic-success);
-  background: linear-gradient(135deg, var(--status-ready-15, rgba(47, 191, 107, 0.15)) 0%, var(--background-surface-1) 100%);
-}
-
-.card-served-dim {
-  opacity: 0.85;
-}
-
-.card-top {
+/* Conteneur de contenu */
+.card-content {
+  flex: 1;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 12px;
   min-width: 0;
 }
 
+/* En-tête : table, ID, timer, badges */
+.card-header,
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 6px;
+  padding-bottom: 2px;
+}
+
+.card-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.table-row,
 .table-title {
   display: flex;
   align-items: center;
   gap: 6px;
-  min-width: 0;
-  white-space: nowrap;
-  flex-shrink: 1;
+  flex-wrap: wrap;
 }
 
-.table-title h3 {
+.table-name {
   margin: 0;
-  font-size: 0.98rem;
+  font-family: 'Inter', sans-serif;
   font-weight: 700;
+  font-size: 0.95rem;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 170px;
   line-height: 1.2;
 }
 
@@ -68,87 +90,203 @@
   font-weight: 600;
   color: var(--text-secondary);
   white-space: nowrap;
-  line-height: 1.2;
   flex-shrink: 0;
 }
 
+.priority-chip {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--semantic-danger);
+  background: var(--status-canceled-15, rgba(229, 96, 79, 0.15));
+  border: 1px solid var(--semantic-danger);
+  padding: 1px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  animation: pulse-badge 1.5s infinite;
+}
+
+.meta-row,
 .card-meta {
   display: flex;
-  gap: 12px;
-  font-size: 0.82rem;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
   color: var(--text-secondary);
-  margin-bottom: 10px;
+  flex-wrap: wrap;
+  margin-top: 1px;
 }
 
+.server-name,
+.server-meta {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+/* Timer pill badge */
+.card-timer,
 .time-meta {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--background-surface-2);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 0.75rem;
 }
 
-.card-notes {
-  background: var(--status-inprogress-15, rgba(43, 168, 232, 0.15));
-  border-left: 3px solid var(--semantic-info);
-  padding: 6px 10px;
-  border-radius: 0 var(--radius-sm, 6px) var(--radius-sm, 6px) 0;
-  font-size: 0.82rem;
-  color: var(--text-primary);
-  margin-bottom: 10px;
+.card-timer ion-icon,
+.time-meta ion-icon {
+  font-size: 0.85rem;
 }
 
-.card-items {
-  border-top: 1px solid var(--border-medium);
-  border-bottom: 1px solid var(--border-medium);
-  padding: 8px 0;
-  margin-bottom: 10px;
+.card-timer.timer--warning {
+  background: var(--status-waiting-15, rgba(244, 165, 42, 0.15));
+  color: var(--semantic-warning);
+  border: 1px solid var(--semantic-warning);
+}
+
+.card-timer.timer--urgent {
+  background: var(--status-canceled-15, rgba(229, 96, 79, 0.2));
+  color: var(--semantic-danger);
+  border: 1px solid var(--semantic-danger);
+  font-weight: 700;
+}
+
+.card-timer.timer--critical {
+  background: var(--semantic-danger);
+  color: var(--text-on-accent);
+  border: 1px solid var(--semantic-danger);
+  font-weight: 800;
+  animation: pulse-critical-timer 1.2s infinite;
+}
+
+.card-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Séparateur horizontal discret */
+.divider {
+  background: var(--border-medium);
+  height: 1px;
+  width: 100%;
+  margin: 3px 0 2px 0;
+}
+
+/* Liste des items */
+.card-items,
+.items-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  padding: 2px 0;
+  margin: 0;
 }
 
 .item-row {
   display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.item-main-line {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 6px;
   font-size: 0.85rem;
 }
 
 .qty {
   font-weight: 700;
   color: var(--primary);
-  margin-right: 6px;
+  min-width: 22px;
+  flex-shrink: 0;
 }
 
-.item-name {
+.item-name,
+.cocktail-nom {
   flex: 1;
+  font-weight: 600;
   color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.variant-tag,
+.variante-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--status-waiting-15, rgba(108, 127, 232, 0.15));
+  color: var(--primary);
+  border: 1px solid var(--border-light);
 }
 
 .item-price {
   font-weight: 600;
   color: var(--text-secondary);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
-.variante-tag {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin-left: 4px;
+.item-note {
+  color: var(--semantic-warning);
+  font-style: italic;
+  font-size: 0.75rem;
+  padding-left: 28px;
 }
 
+/* Notes générales de la commande */
+.commande-notes,
+.card-notes {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--semantic-warning);
+  background: var(--status-waiting-15, rgba(244, 165, 42, 0.08));
+  border-left: 2px solid var(--semantic-warning);
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin: 3px 0;
+}
+
+/* Total de commande */
 .card-total {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 0.85rem;
   color: var(--text-secondary);
-  margin-bottom: 12px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--border-medium);
+  margin-top: 2px;
+}
+
+.total-label {
+  font-weight: 500;
 }
 
 .total-amount {
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--semantic-success);
 }
 
+/* Boutons d'action */
 .card-actions {
   display: flex;
   justify-content: flex-end;
@@ -161,9 +299,9 @@
   --padding-start: 0;
   --padding-end: 0;
   --border-radius: var(--radius-sm, 8px);
-  width: 36px;
-  height: 36px;
-  min-height: 36px;
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
   margin: 0;
   display: inline-flex;
   align-items: center;
@@ -185,23 +323,65 @@
   --border-radius: var(--radius-sm, 8px);
   --padding-start: 12px;
   --padding-end: 12px;
-  text-transform: uppercase;
   letter-spacing: 0.02em;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   box-sizing: border-box;
   --background: var(--primary);
   --background-hover: var(--primary-strong);
   --background-activated: var(--primary-press);
-  --color: #ffffff;
+  --color: var(--text-on-accent);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  flex: 1;
 }
 
 .action-text-btn:hover {
   transform: translateY(-1px);
+  box-shadow: var(--shadow-btn-primary);
 }
 
 .action-text-btn ion-icon {
-  font-size: 1.1rem;
-  margin-right: 4px;
+  font-size: 1.15rem;
+  margin-right: 6px;
+}
+
+/* Modificateurs d'état et animations (fond uniforme var(--background-surface-1) sans altération d'état) */
+.prioritaire,
+.priority-card,
+.card-urgent {
+  border-color: var(--semantic-danger);
+}
+
+.card-critical {
+  border-color: var(--semantic-danger);
+  animation: pulse-critical-card 1.5s infinite;
+}
+
+.card-ready-highlight {
+  border-color: var(--semantic-success);
+}
+
+.card-served-dim {
+  opacity: 0.85;
+}
+
+@keyframes pulse-badge {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+
+
+@keyframes pulse-critical-card {
+  0% { box-shadow: 0 0 4px var(--status-canceled-15, rgba(235, 68, 90, 0.2)); }
+  50% { box-shadow: 0 0 14px var(--status-canceled-15, rgba(235, 68, 90, 0.55)); }
+  100% { box-shadow: 0 0 4px var(--status-canceled-15, rgba(235, 68, 90, 0.2)); }
+}
+
+@keyframes pulse-critical-timer {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
 }
