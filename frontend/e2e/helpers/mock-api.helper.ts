@@ -1439,6 +1439,9 @@ export async function setupMockApi(page: Page): Promise<void> {
     floorPlan: true,
     qrClientOrdering: true,
     stockTracking: true,
+    cashDrawer: true,
+    barTabs: true,
+    cocktailLibrary: true,
   };
 
   await page.route('**/api/establishment/modules**', async (route) => {
