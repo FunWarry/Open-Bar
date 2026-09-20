@@ -21,7 +21,7 @@ test.describe('Cocktail Library Import Wizard E2E', () => {
     await page.goto('/cocktails');
     await expect(page.locator('ion-content')).toBeVisible();
 
-    const importBtn = page.locator('[data-testid="import-library-btn"]');
+    const importBtn = page.locator('[data-testid="import-library-btn"], [data-testid="cocktail-library-import-btn"]').first();
     await expect(importBtn).toBeVisible();
     await importBtn.click();
 
@@ -37,7 +37,7 @@ test.describe('Cocktail Library Import Wizard E2E', () => {
 
   test('should allow previewing recipe details in the side drawer', async ({ page }) => {
     await page.goto('/cocktails');
-    await page.click('[data-testid="import-library-btn"]');
+    await page.locator('[data-testid="import-library-btn"], [data-testid="cocktail-library-import-btn"]').first().click();
 
     const modal = page.locator('[data-testid="cocktail-library-modal"]');
     await expect(modal).toBeVisible();
@@ -59,7 +59,7 @@ test.describe('Cocktail Library Import Wizard E2E', () => {
 
   test('should select cocktail templates and execute batch import', async ({ page }) => {
     await page.goto('/cocktails');
-    await page.click('[data-testid="import-library-btn"]');
+    await page.locator('[data-testid="import-library-btn"], [data-testid="cocktail-library-import-btn"]').first().click();
 
     const modal = page.locator('[data-testid="cocktail-library-modal"]');
     await expect(modal).toBeVisible();
