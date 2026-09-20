@@ -58,6 +58,14 @@ export class AuthGuard implements CanActivate {
       return of(this.router.createUrlTree(['/auth/login']));
     }
 
+    // 4-hour session expired -> purge and redirect to login
+    const sessionExpiry = localStorage.getItem('auth_session_expiry');
+    if (sessionExpiry && Date.now() >= Number(sessionExpiry)) {
+      this.authService.logout();
+      this.store.dispatch(logout());
+      return of(this.router.createUrlTree(['/auth/login']));
+    }
+
     // Token is expired -> refresh proactively or redirect to login
     if (isJwtExpired(token)) {
       if (refreshToken) {

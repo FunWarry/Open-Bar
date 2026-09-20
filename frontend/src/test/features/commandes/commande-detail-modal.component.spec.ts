@@ -173,5 +173,65 @@ describe('CommandeDetailModalComponent', () => {
     component.commande = null as any;
     expect(component.totalArticlesCount).toBe(0);
   });
+
+  it('peutModifier returns true only for EN_ATTENTE or EN_PREPARATION', () => {
+    component.commande = { id: 1, statut: 'EN_ATTENTE' } as any;
+    expect(component.peutModifier()).toBeTrue();
+
+    component.commande = { id: 1, statut: 'EN_PREPARATION' } as any;
+    expect(component.peutModifier()).toBeTrue();
+
+    component.commande = { id: 1, statut: 'PRET' } as any;
+    expect(component.peutModifier()).toBeFalse();
+
+    component.commande = { id: 1, statut: 'LIVREE' } as any;
+    expect(component.peutModifier()).toBeFalse();
+  });
+
+  it('hasTable returns true when tableId or tableNumero is present', () => {
+    component.commande = { id: 1, tableId: 5 } as any;
+    expect(component.hasTable).toBeTrue();
+
+    component.commande = { id: 2, tableNumero: 3 } as any;
+    expect(component.hasTable).toBeTrue();
+
+    component.commande = { id: 3, barTabId: 2, barTabNom: 'Client VIP' } as any;
+    expect(component.hasTable).toBeFalse();
+  });
+
+  it('onModifierCommande opens EditCommandeModalComponent and refreshes if updated', fakeAsync(() => {
+    const mockModal = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: { updated: true } })),
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
+    component.commandeId = 1;
+    component.commande = { id: 1, statut: 'EN_ATTENTE' } as any;
+
+    component.onModifierCommande();
+    tick();
+
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(commandeServiceSpy.getById).toHaveBeenCalledWith(1);
+  }));
+
+  it('onVoirTable opens TableDetailModalComponent when table is present', fakeAsync(() => {
+    const mockModal = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
+    component.commande = { id: 1, tableNumero: 4, tableId: 10 } as any;
+
+    component.onVoirTable();
+    tick();
+
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        componentProps: jasmine.objectContaining({
+          table: jasmine.objectContaining({ id: 10, nom: 'Table 4' }),
+        }),
+      })
+    );
+  }));
 });
 

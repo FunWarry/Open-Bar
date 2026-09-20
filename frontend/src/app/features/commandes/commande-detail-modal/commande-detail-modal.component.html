@@ -178,6 +178,36 @@
         {{ (commande.prioritaire ? 'COMMANDES.ACTIONS.UNMARK_URGENT' : 'COMMANDES.ACTIONS.MARK_URGENT') | transloco }}
       </ion-button>
 
+      @if (peutModifier()) {
+        <ion-button
+          fill="outline"
+          color="primary"
+          class="btn-action-edit"
+          (click)="onModifierCommande()"
+          (keydown.enter)="onModifierCommande()"
+          [attr.title]="'TABLE_MODAL.BTN_EDIT_ORDER' | transloco"
+          data-testid="btn-modal-modifier"
+        >
+          <ion-icon name="pencil-outline" slot="start"></ion-icon>
+          {{ 'TABLE_MODAL.BTN_EDIT_ORDER' | transloco }}
+        </ion-button>
+      }
+
+      @if (hasTable) {
+        <ion-button
+          fill="outline"
+          color="secondary"
+          class="btn-action-table"
+          (click)="onVoirTable()"
+          (keydown.enter)="onVoirTable()"
+          [attr.title]="'COMMANDES.DETAILS.VIEW_TABLE' | transloco"
+          data-testid="btn-modal-voir-table"
+        >
+          <ion-icon name="restaurant-outline" slot="start"></ion-icon>
+          {{ 'COMMANDES.DETAILS.VIEW_TABLE' | transloco }}
+        </ion-button>
+      }
+
       @if (peutAnnuler()) {
         <ion-button
           fill="outline"

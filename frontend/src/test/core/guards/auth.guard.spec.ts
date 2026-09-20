@@ -228,4 +228,24 @@ describe('AuthGuard', () => {
       done();
     });
   });
+
+  it('redirects to login when 4-hour session has expired', (done) => {
+    localStorage.setItem('auth_session_expiry', String(Date.now() - 5000)); // expired 5s ago
+
+    const loginUrlTree = { toString: () => '/auth/login' } as unknown as UrlTree;
+    router.createUrlTree.and.callFake((commands: unknown[]) => {
+      if (Array.isArray(commands) && commands[0] === '/auth/login') {
+        return loginUrlTree;
+      }
+      return {} as UrlTree;
+    });
+
+    guard.canActivate().subscribe(result => {
+      expect(authServiceSpy.logout).toHaveBeenCalled();
+      expect(store.dispatch).toHaveBeenCalled();
+      expect(result).toBe(loginUrlTree);
+      localStorage.removeItem('auth_session_expiry');
+      done();
+    });
+  });
 });

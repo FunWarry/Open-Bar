@@ -19,8 +19,7 @@ import { CommandeView, CommandeItemView } from '../../models/commande-view.model
 import { groupCommandeItems } from '../../../../core/utils/order-item-grouper';
 import { StatusBadgeComponent } from '../../../../core/components/ui/status-badge/status-badge.component';
 import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
-import { TableDetailModalComponent } from '../../../dashboard-serveur/components/table-detail-modal/table-detail-modal.component';
-import { TableView } from '../../../dashboard-serveur/models/table-view.model';
+import { CommandeDetailModalComponent } from '../../../commandes/commande-detail-modal/commande-detail-modal.component';
 import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../core/utils/modal-animation.utils';
 import { CommandeService } from '../../../../core/services/commande.service';
 
@@ -146,27 +145,18 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Opens the full table details modal with active orders list and actions.
+   * Opens the full order details modal with item breakdown, recipe inspection, and status controls.
    */
   async openDetails(): Promise<void> {
     if (!this.modalCtrl) return;
 
-    const table: TableView = {
-      id: this.commande.tableId ?? this.commande.tableNumero ?? 0,
-      nom: this.commande.tableNom || `Table ${this.commande.tableNumero}`,
-      zone: (this.commande as any).tableZone || (this.commande as any).zone || '',
-      capacite: 4,
-      occupee: true,
-      serveurNom: this.commande.serveurNom || this.commande.serveurUsername,
-      commandesActives: [],
-    };
-
     const modal = await this.modalCtrl.create({
-      component: TableDetailModalComponent,
+      component: CommandeDetailModalComponent,
       componentProps: {
-        table,
+        commandeId: this.commande.id,
+        commandeInput: this.commande as any,
       },
-      cssClass: 'table-detail-modal-container',
+      cssClass: 'commande-detail-modal-container',
       enterAnimation: fastModalEnterAnimation,
       leaveAnimation: fastModalLeaveAnimation,
     });
@@ -175,8 +165,9 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
     modal.onDidDismiss().then(result => {
       document.body.classList.remove('modal-open');
       if (result.data) {
-        if (result.data.action === 'statusUpdated' && result.data.targetStatut) {
-          this.changerStatut.emit({ id: this.commande.id, statut: result.data.targetStatut });
+        const targetStatut = result.data.targetStatut || (result.data.role === 'statusUpdated' ? result.data.commande?.statut : undefined);
+        if ((result.data.action === 'statusUpdated' || result.data.role === 'statusUpdated') && targetStatut) {
+          this.changerStatut.emit({ id: this.commande.id, statut: targetStatut });
         } else if (result.data.action === 'cancelled' || result.data.role === 'cancelled') {
           this.changerStatut.emit({ id: this.commande.id, statut: 'ANNULEE' });
         }

@@ -18,7 +18,7 @@ spring:
   security:
     jwt:
       secret: "${JWT_SECRET:test_openbar_default_secret_key_minimum_32_chars_long}"
-      expiration: 86400000 # 24h
+      expiration: 14400000 # 4h
 
 openbar:
   cors:

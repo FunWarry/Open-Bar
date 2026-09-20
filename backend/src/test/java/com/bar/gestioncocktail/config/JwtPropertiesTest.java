@@ -1,6 +1,11 @@
 package com.bar.gestioncocktail.config;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -9,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class JwtPropertiesTest {
 
     @Test
-    void validate_secretValideDe32CaracteresOuPlus_neLevePasException() {
+    void validate_validSecretOf32CharsOrMore_doesNotThrowException() {
         JwtProperties properties = new JwtProperties();
         properties.setSecret("a".repeat(32));
         properties.setExpiration(86400000);
@@ -18,44 +23,25 @@ class JwtPropertiesTest {
         assertThatCode(properties::validate).doesNotThrowAnyException();
     }
 
-    @Test
-    void validate_secretNull_leveIllegalStateException() {
-        JwtProperties properties = new JwtProperties();
-        properties.setSecret(null);
-
-        assertThatThrownBy(properties::validate)
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("JWT_SECRET");
+    private static Stream<Arguments> invalidSecrets() {
+        return Stream.of(
+                Arguments.of(null, "JWT_SECRET"),
+                Arguments.of("", "JWT_SECRET"),
+                Arguments.of("   ", "JWT_SECRET"),
+                Arguments.of("${JWT_SECRET}", "JWT_SECRET"),
+                Arguments.of("trop-court", "256 bits")
+        );
     }
 
-    @Test
-    void validate_secretVide_leveIllegalStateException() {
+    @ParameterizedTest
+    @MethodSource("invalidSecrets")
+    void validate_invalidSecret_throwsIllegalStateException(String secret, String expectedMessagePart) {
         JwtProperties properties = new JwtProperties();
-        properties.setSecret("   ");
+        properties.setSecret(secret);
 
         assertThatThrownBy(properties::validate)
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("JWT_SECRET");
-    }
-
-    @Test
-    void validate_placeholderNonResolu_leveIllegalStateException() {
-        JwtProperties properties = new JwtProperties();
-        properties.setSecret("${JWT_SECRET}");
-
-        assertThatThrownBy(properties::validate)
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("JWT_SECRET");
-    }
-
-    @Test
-    void validate_secretTooShort_throwsIllegalStateExceptionWithMinSize() {
-        JwtProperties properties = new JwtProperties();
-        properties.setSecret("trop-court");
-
-        assertThatThrownBy(properties::validate)
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("256 bits");
+                .hasMessageContaining(expectedMessagePart);
     }
 
     @Test
@@ -75,5 +61,13 @@ class JwtPropertiesTest {
         properties.setSecret("secret-tres-confidentiel-32-caracteres");
 
         assertThat(properties.toString()).doesNotContain("secret-tres-confidentiel-32-caracteres");
+    }
+
+    @Test
+    void expiration_supportsFourHoursLifespan() {
+        JwtProperties properties = new JwtProperties();
+        properties.setExpiration(14400000L);
+
+        assertThat(properties.getExpiration()).isEqualTo(14400000L);
     }
 }

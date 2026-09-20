@@ -194,13 +194,13 @@ describe('CommandeCardComponent', () => {
     expect(emitted[0].id).toBe(1);
   });
 
-  it('openDetails opens TableDetailModalComponent with table data', async () => {
+  it('openDetails opens CommandeDetailModalComponent with order data', async () => {
     await component.openDetails();
     expect(modalCtrlSpy.create).toHaveBeenCalledWith(
       jasmine.objectContaining({
         component: jasmine.anything(),
         componentProps: jasmine.objectContaining({
-          table: jasmine.objectContaining({ nom: 'Table 1' }),
+          commandeId: 1,
         }),
       })
     );
