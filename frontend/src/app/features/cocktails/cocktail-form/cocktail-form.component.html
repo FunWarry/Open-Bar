@@ -435,13 +435,27 @@
                     @if (stepGroup.get('stepType')?.value === 'INGREDIENT') {
                       <div class="ingredient-block-inputs">
                         <div class="field-item ingredient-select-col">
+                          <div class="field-label-row">
+                            <span class="field-label">{{ 'COCKTAILS.BUILDER.SELECT_INGREDIENT' | transloco }}</span>
+                            <button
+                              type="button"
+                              class="btn-inline-new-ing"
+                              (click)="openCreateIngredientModal(i)"
+                              [title]="'COCKTAILS.BUILDER.CREATE_NEW_INGREDIENT' | transloco"
+                              [attr.data-testid]="'btn-create-ingredient-step-' + i">
+                              <ion-icon name="add-outline"></ion-icon>
+                              <span>{{ 'COCKTAILS.BUILDER.NEW_INGREDIENT_BTN' | transloco }}</span>
+                            </button>
+                          </div>
                           <app-searchable-select
-                            [label]="'COCKTAILS.BUILDER.SELECT_INGREDIENT' | transloco"
                             [placeholder]="'COCKTAILS.BUILDER.SELECT_INGREDIENT' | transloco"
-                            [searchPlaceholder]="'Rechercher un ingrédient...'"
+                            [searchPlaceholder]="'COCKTAILS.BUILDER.SEARCH_INGREDIENT_PLACEHOLDER' | transloco"
                             [options]="ingredientOptions()"
                             [value]="$safeNavigationMigration(stepGroup.get('ingredientId')?.value)"
                             [testId]="'select-ingredient-' + i"
+                            actionButtonIcon="add-outline"
+                            [actionButtonLabel]="'+ ' + ('COCKTAILS.BUILDER.CREATE_NEW_INGREDIENT' | transloco)"
+                            (actionClick)="openCreateIngredientModal(i)"
                             (selectionChange)="onIngredientOptionSelected(i, $event)">
                           </app-searchable-select>
                         </div>

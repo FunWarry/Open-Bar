@@ -1,0 +1,54 @@
+<div class="app-modal-container" [attr.data-size]="size" data-testid="app-modal-container">
+  <!-- Header -->
+  <header class="app-modal-header" data-testid="app-modal-header">
+    <div class="modal-header-left">
+      @if (icon) {
+        <div class="modal-icon-badge" aria-hidden="true">
+          <ion-icon [name]="icon"></ion-icon>
+        </div>
+      }
+      <div class="modal-title-group">
+        <div class="modal-title-row">
+          <h2 class="modal-title" data-testid="app-modal-title">{{ title }}</h2>
+          @if (badgeText) {
+            <span class="modal-badge" data-testid="app-modal-badge">{{ badgeText }}</span>
+          }
+        </div>
+        @if (subtitle) {
+          <p class="modal-subtitle" data-testid="app-modal-subtitle">{{ subtitle }}</p>
+        }
+      </div>
+    </div>
+
+    <div class="modal-header-actions">
+      <ng-content select="[slot=header-actions]"></ng-content>
+      @if (showCloseButton) {
+        <button
+          type="button"
+          class="modal-close-btn"
+          (click)="onDismiss()"
+          (keyup.enter)="onDismiss()"
+          [attr.aria-label]="'COMMON.CLOSE' | transloco"
+          data-testid="app-modal-close-btn"
+        >
+          <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+        </button>
+      }
+    </div>
+  </header>
+
+  <!-- Scrollable Body Content -->
+  <main class="app-modal-body" data-testid="app-modal-body">
+    <ng-content></ng-content>
+  </main>
+
+  <!-- Live Summary / Status Bar (optional) -->
+  <aside class="app-modal-summary" data-testid="app-modal-summary">
+    <ng-content select="[slot=summary]"></ng-content>
+  </aside>
+
+  <!-- Footer Actions -->
+  <footer class="app-modal-footer" data-testid="app-modal-footer">
+    <ng-content select="[slot=footer]"></ng-content>
+  </footer>
+</div>

@@ -1065,6 +1065,77 @@ ion-segment-button[aria-selected="true"] ion-label {
   font-weight: 700 !important;
 }
 
+/* ==========================================================================
+   Universal Modal Sizing Presets (OpenBar Design System)
+   Sizes adapt dynamically to modal content requirements:
+   - modal-sm: compact confirm dialogs, prompt modals (~460px)
+   - modal-md: standard entity forms, single-step dialogs (~640px)
+   - modal-lg: multi-field managers, shifts, floor zones (~860px)
+   - modal-xl: multi-step builders, variant recipe customization (~1120px)
+   - modal-full: immersive near-fullscreen dialogs (~98vw x 96vh)
+   ========================================================================== */
+ion-modal.modal-sm {
+  --width: 460px;
+  --max-width: 95vw;
+  --height: auto;
+  --max-height: 85vh;
+}
+
+ion-modal.modal-md {
+  --width: 640px;
+  --max-width: 95vw;
+  --height: auto;
+  --max-height: 88vh;
+}
+
+ion-modal.modal-lg {
+  --width: 860px;
+  --max-width: 95vw;
+  --height: min(800px, 90vh);
+  --max-height: 90vh;
+}
+
+ion-modal.modal-xl,
+ion-modal.variant-recipe-modal-container {
+  --width: 1120px;
+  --max-width: 96vw;
+  --height: min(880px, 92vh);
+  --max-height: 92vh;
+}
+
+ion-modal.modal-full {
+  --width: 98vw;
+  --max-width: 98vw;
+  --height: 96vh;
+  --max-height: 96vh;
+}
+
+ion-modal.app-modal-host,
+ion-modal.modal-sm,
+ion-modal.modal-md,
+ion-modal.modal-lg,
+ion-modal.modal-xl,
+ion-modal.modal-full,
+ion-modal.variant-recipe-modal-container {
+  --border-radius: var(--radius-xl, 18px);
+  --box-shadow: var(--shadow-modal);
+  --backdrop-opacity: 0.55;
+}
+
+ion-modal.app-modal-host::part(content),
+ion-modal.modal-sm::part(content),
+ion-modal.modal-md::part(content),
+ion-modal.modal-lg::part(content),
+ion-modal.modal-xl::part(content),
+ion-modal.modal-full::part(content),
+ion-modal.variant-recipe-modal-container::part(content) {
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-xl, 18px);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+  background: var(--background-surface-1);
+}
+
 /* Commande Detail Modal Sizing (Responsive Desktop / Tablet) */
 ion-modal.commande-detail-modal-container {
   --width: 850px;
@@ -1185,6 +1256,12 @@ ion-modal.zone-manager-modal-container::part(content) {
 }
 
 @media (max-width: 600px) {
+  ion-modal.modal-sm,
+  ion-modal.modal-md,
+  ion-modal.modal-lg,
+  ion-modal.modal-xl,
+  ion-modal.modal-full,
+  ion-modal.variant-recipe-modal-container,
   ion-modal.table-detail-modal-container,
   ion-modal.variante-modal-container,
   ion-modal.variante-modal,

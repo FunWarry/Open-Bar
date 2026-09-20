@@ -19,6 +19,7 @@ import {
   IonIcon,
 } from '@ionic/angular';
 import { VariantRecipeModalComponent } from '../components/variant-recipe-modal/variant-recipe-modal.component';
+import { IngredientFormComponent } from '../../ingredients/ingredient-form/ingredient-form.component';
 import { addIcons } from 'ionicons';
 import {
   calendarOutline,
@@ -1161,6 +1162,7 @@ export class CocktailFormComponent implements OnInit {
 
     const modal = await this.modalCtrl.create({
       component: VariantRecipeModalComponent,
+      cssClass: 'modal-xl',
       componentProps: {
         variante: existingVal,
         baseCocktailName: this.cocktailForm.get('name')?.value || '',
@@ -1368,6 +1370,41 @@ export class CocktailFormComponent implements OnInit {
         },
         error: () => this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger'),
       });
+  }
+
+  /**
+   * Opens the ingredient creation modal in real-time.
+   * On successful creation, updates ingredientsList and auto-selects the new ingredient in the specified step.
+   *
+   * @param stepIndex Optional index of the recipe step to auto-select into.
+   */
+  async openCreateIngredientModal(stepIndex?: number): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: IngredientFormComponent,
+      cssClass: 'modal-lg',
+      componentProps: {
+        ingredient: null,
+        canEdit: true,
+      },
+    });
+
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss();
+    if (role === 'saved' && data?.id) {
+      const created = data as Ingredient;
+      this.ingredientsList.update((list) => {
+        const exists = list.some((i) => i.id === created.id);
+        return exists ? list.map((i) => (i.id === created.id ? created : i)) : [...list, created];
+      });
+
+      if (stepIndex != null && stepIndex >= 0 && stepIndex < this.recipeStepsArray.length) {
+        const group = this.recipeStepsArray.at(stepIndex) as FormGroup;
+        this.onIngredientSelected(created.id, group);
+        this.recipeVersion.update((v) => v + 1);
+      }
+
+      this.showToast(this.transloco.translate('INGREDIENTS.CREATED_SUCCESS'));
+    }
   }
 
   getActionIcon(actionType: string | undefined | null): string {

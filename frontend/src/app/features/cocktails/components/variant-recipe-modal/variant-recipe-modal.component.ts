@@ -1,21 +1,17 @@
-import { Component, Input, OnInit, computed, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, computed, inject, ChangeDetectionStrategy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
   IonButton,
-  IonContent,
   IonToggle,
   IonIcon,
-  IonFooter,
   ModalController,
+  ToastController,
 } from '@ionic/angular';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 import { AppSettingsService } from '../../../../core/services/app-settings.service';
+import { IngredientFormComponent } from '../../../ingredients/ingredient-form/ingredient-form.component';
 import { addIcons } from 'ionicons';
 import {
   closeOutline,
@@ -58,6 +54,8 @@ import {
   SearchableSelectComponent,
 } from '../../../../core/components/ui/searchable-select/searchable-select.component';
 
+import { ModalComponent } from '../../../../core/components/ui/modal/modal.component';
+
 /**
  * Interactive Modal for configuring and customizing complete cocktail variant recipes.
  * Supports ingredient adjustments (replacements, extra/custom ingredients), volume recalculation,
@@ -69,18 +67,13 @@ import {
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
     IonButton,
-    IonContent,
     IonToggle,
     IonIcon,
-    IonFooter,
     TranslocoPipe,
     AppCurrencyPipe,
     SearchableSelectComponent,
+    ModalComponent,
   ],
   templateUrl: './variant-recipe-modal.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -105,12 +98,22 @@ export class VariantRecipeModalComponent implements OnInit {
   @Input() baseRecipeSteps: CocktailRecipeStep[] = [];
 
   /** Full catalog of available ingredients for additions and substitutions. */
-  @Input() availableIngredients: Ingredient[] = [];
+  @Input()
+  set availableIngredients(val: Ingredient[]) {
+    this._availableIngredients = val || [];
+    this.availableIngredientsList.set(this._availableIngredients);
+  }
+  get availableIngredients(): Ingredient[] {
+    return this._availableIngredients;
+  }
+  private _availableIngredients: Ingredient[] = [];
 
   /** Full catalog of action templates for mixing steps. */
   @Input() availableTemplates: RecipeStepTemplate[] = [];
 
   private readonly modalCtrl = inject(ModalController);
+  private readonly toastCtrl = inject(ToastController);
+  private readonly transloco = inject(TranslocoService);
 
   // Form Fields
   id: number | null = null;
@@ -124,9 +127,12 @@ export class VariantRecipeModalComponent implements OnInit {
   /** Sequential recipe steps for this specific variant */
   recipeSteps: CocktailRecipeStep[] = [];
 
+  /** Reactive list of available ingredients, enabling dynamic real-time additions */
+  readonly availableIngredientsList = signal<Ingredient[]>([]);
+
   /** Computed options for ingredient searchable select */
   readonly ingredientOptions = computed<SearchableOption[]>(() =>
-    this.availableIngredients.map((i) => ({
+    this.availableIngredientsList().map((i) => ({
       value: i.id,
       label: i.nom,
       sublabel: `${i.quantiteStock ?? 0} ${i.uniteMesure || 'cl'} en stock`,
@@ -173,6 +179,8 @@ export class VariantRecipeModalComponent implements OnInit {
 
   /** @inheritdoc */
   ngOnInit(): void {
+    this.availableIngredientsList.set(this.availableIngredients || []);
+
     if (this.variante) {
       this.id = this.variante.id ?? null;
       this.nom = this.variante.nom || '';
@@ -225,7 +233,7 @@ export class VariantRecipeModalComponent implements OnInit {
    * Adds a new ingredient step to the variant recipe.
    */
   addIngredientStep(): void {
-    const firstIng = this.availableIngredients[0];
+    const firstIng = this.availableIngredientsList()[0];
     this.recipeSteps.push({
       stepOrder: this.recipeSteps.length + 1,
       stepType: 'INGREDIENT',
@@ -315,7 +323,7 @@ export class VariantRecipeModalComponent implements OnInit {
    */
   onIngredientSelected(index: number, option: any): void {
     const val = option && typeof option === 'object' && 'value' in option ? option.value : option;
-    const ing = this.availableIngredients.find((i) => i.id === +val);
+    const ing = this.availableIngredientsList().find((i) => i.id === +val);
     if (ing && this.recipeSteps[index]) {
       this.recipeSteps[index].ingredientId = ing.id;
       this.recipeSteps[index].ingredientNom = ing.nom;
@@ -399,7 +407,46 @@ export class VariantRecipeModalComponent implements OnInit {
   }
 
   private findIngredientName(id: number): string {
-    return this.availableIngredients.find((i) => i.id === id)?.nom || 'Ingrédient';
+    return this.availableIngredientsList().find((i) => i.id === id)?.nom || 'Ingrédient';
+  }
+
+  /**
+   * Opens the ingredient creation modal in real-time.
+   * On successful creation, updates availableIngredientsList and auto-selects the new ingredient in the specified step.
+   *
+   * @param stepIndex Optional index of the recipe step to auto-select into.
+   */
+  async openCreateIngredientModal(stepIndex?: number): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: IngredientFormComponent,
+      cssClass: 'modal-lg',
+      componentProps: {
+        ingredient: null,
+        canEdit: true,
+      },
+    });
+
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss();
+    if (role === 'saved' && data?.id) {
+      const created = data as Ingredient;
+      this.availableIngredientsList.update((list) => {
+        const exists = list.some((i) => i.id === created.id);
+        return exists ? list.map((i) => (i.id === created.id ? created : i)) : [...list, created];
+      });
+
+      if (stepIndex != null && stepIndex >= 0 && stepIndex < this.recipeSteps.length) {
+        this.onIngredientSelected(stepIndex, created.id);
+      }
+
+      const toast = await this.toastCtrl.create({
+        message: this.transloco.translate('INGREDIENTS.CREATED_SUCCESS'),
+        duration: 2500,
+        position: 'bottom',
+        color: 'success',
+      });
+      await toast.present();
+    }
   }
 
   /**
