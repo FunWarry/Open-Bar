@@ -24,7 +24,7 @@
       <span class="section-label">{{ 'CLIENT_QR.MATCHER_FLAVORS' | transloco }}</span>
     }
     <div class="chips-scroll-wrapper">
-      @for (item of availableFlavors; track item) {
+      @for (item of availableFlavors; track item.key) {
         <button
           type="button"
           class="flavor-chip"
@@ -32,7 +32,11 @@
           [ngClass]="item.badgeClass"
           (click)="toggleFlavor(item.key)"
           [attr.data-testid]="'matcher-flavor-' + item.key">
-          <ion-icon [name]="item.icon" class="chip-icon"></ion-icon>
+          @if (item.emoji) {
+            <span class="chip-icon chip-emoji">{{ item.emoji }}</span>
+          } @else {
+            <ion-icon [name]="item.icon" class="chip-icon"></ion-icon>
+          }
           <span class="chip-text">{{ item.labelKey | transloco }}</span>
           @if (facets && getFlavorCount(item.key) !== null) {
             <span class="count-badge">

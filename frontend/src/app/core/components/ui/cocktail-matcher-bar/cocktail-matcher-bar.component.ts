@@ -35,6 +35,7 @@ export interface FlavorItemConfig {
   key: FlavorProfile;
   labelKey: string;
   icon: string;
+  emoji?: string;
   badgeClass: string;
 }
 
@@ -83,13 +84,13 @@ export class CocktailMatcherBarComponent {
 
   /** Available flavor profiles with localized keys and icons. */
   readonly availableFlavors: FlavorItemConfig[] = [
-    { key: 'FRUITY', labelKey: 'COCKTAIL.FLAVOR_FRUITY', icon: 'water-outline', badgeClass: 'flavor-fruity' },
-    { key: 'SMOKY', labelKey: 'COCKTAIL.FLAVOR_SMOKY', icon: 'cloud-outline', badgeClass: 'flavor-smoky' },
-    { key: 'SWEET', labelKey: 'COCKTAIL.FLAVOR_SWEET', icon: 'sparkles-outline', badgeClass: 'flavor-sweet' },
-    { key: 'SOUR', labelKey: 'COCKTAIL.FLAVOR_SOUR', icon: 'water-outline', badgeClass: 'flavor-sour' },
-    { key: 'BITTER', labelKey: 'COCKTAIL.FLAVOR_BITTER', icon: 'wine-outline', badgeClass: 'flavor-bitter' },
-    { key: 'SPICY', labelKey: 'COCKTAIL.FLAVOR_SPICY', icon: 'flame-outline', badgeClass: 'flavor-spicy' },
-    { key: 'HERBAL', labelKey: 'COCKTAIL.FLAVOR_HERBAL', icon: 'leaf-outline', badgeClass: 'flavor-herbal' },
+    { key: 'FRUITY', labelKey: 'COCKTAIL.FLAVOR_FRUITY', icon: 'water-outline', emoji: '🍓', badgeClass: 'flavor-fruity' },
+    { key: 'SMOKY', labelKey: 'COCKTAIL.FLAVOR_SMOKY', icon: 'cloud-outline', emoji: '💨', badgeClass: 'flavor-smoky' },
+    { key: 'SWEET', labelKey: 'COCKTAIL.FLAVOR_SWEET', icon: 'sparkles-outline', emoji: '🍯', badgeClass: 'flavor-sweet' },
+    { key: 'SOUR', labelKey: 'COCKTAIL.FLAVOR_SOUR', icon: 'water-outline', emoji: '🍋', badgeClass: 'flavor-sour' },
+    { key: 'BITTER', labelKey: 'COCKTAIL.FLAVOR_BITTER', icon: 'wine-outline', emoji: '☕', badgeClass: 'flavor-bitter' },
+    { key: 'SPICY', labelKey: 'COCKTAIL.FLAVOR_SPICY', icon: 'flame-outline', emoji: '🌶️', badgeClass: 'flavor-spicy' },
+    { key: 'HERBAL', labelKey: 'COCKTAIL.FLAVOR_HERBAL', icon: 'leaf-outline', emoji: '🌿', badgeClass: 'flavor-herbal' },
   ];
 
   constructor() {

@@ -428,6 +428,13 @@
   white-space: nowrap;
   transition: all 0.2s ease;
 
+  .allergen-pill-emoji {
+    font-size: 0.9rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+  }
+
   &:hover {
     background: rgba(229, 96, 79, 0.15);
     color: var(--semantic-danger);

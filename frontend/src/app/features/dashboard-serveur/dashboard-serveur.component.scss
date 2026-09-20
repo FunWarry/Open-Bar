@@ -866,6 +866,13 @@ ion-content.dashboard-serveur-content {
       cursor: pointer;
       transition: all 0.15s ease;
 
+      .allergen-pill-emoji {
+        font-size: 0.85rem;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+      }
+
       &:hover {
         background: var(--background-surface-3, #2a3050);
         color: var(--text-primary, #eceefb);

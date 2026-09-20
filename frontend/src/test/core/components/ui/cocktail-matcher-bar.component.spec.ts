@@ -133,5 +133,19 @@ describe('CocktailMatcherBarComponent', () => {
     expect(countBadge).toBeTruthy();
     expect(countBadge.textContent.trim()).toBe('5');
   });
+
+  it('should render flavor chips with intuitive emojis including lemon for sour', () => {
+    const sourBtn = fixture.nativeElement.querySelector('[data-testid="matcher-flavor-SOUR"]');
+    expect(sourBtn).toBeTruthy();
+    const sourEmoji = sourBtn.querySelector('.chip-emoji');
+    expect(sourEmoji).toBeTruthy();
+    expect(sourEmoji.textContent.trim()).toBe('🍋');
+
+    const fruityBtn = fixture.nativeElement.querySelector('[data-testid="matcher-flavor-FRUITY"]');
+    expect(fruityBtn).toBeTruthy();
+    const fruityEmoji = fruityBtn.querySelector('.chip-emoji');
+    expect(fruityEmoji).toBeTruthy();
+    expect(fruityEmoji.textContent.trim()).toBe('🍓');
+  });
 });
 

@@ -128,6 +128,11 @@
   transition: transform 0.15s ease, color 0.15s ease;
 }
 
+.flavor-chip .chip-emoji {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
 .flavor-chip.flavor-fruity .chip-icon { color: var(--semantic-danger); }
 .flavor-chip.flavor-smoky .chip-icon { color: var(--types-food); }
 .flavor-chip.flavor-sweet .chip-icon { color: var(--primary); }

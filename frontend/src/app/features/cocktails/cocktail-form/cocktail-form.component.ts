@@ -282,14 +282,14 @@ export class CocktailFormComponent implements OnInit {
   selectedFlavors = signal<FlavorProfile[]>([]);
 
   /** Available flavor profiles with labels and icons. */
-  readonly availableFlavors: { key: FlavorProfile; labelKey: string; icon: string }[] = [
-    { key: 'FRUITY', labelKey: 'COCKTAIL.FLAVOR_FRUITY', icon: 'water-outline' },
-    { key: 'SMOKY', labelKey: 'COCKTAIL.FLAVOR_SMOKY', icon: 'cloud-outline' },
-    { key: 'SWEET', labelKey: 'COCKTAIL.FLAVOR_SWEET', icon: 'sparkles-outline' },
-    { key: 'SOUR', labelKey: 'COCKTAIL.FLAVOR_SOUR', icon: 'water-outline' },
-    { key: 'BITTER', labelKey: 'COCKTAIL.FLAVOR_BITTER', icon: 'wine-outline' },
-    { key: 'SPICY', labelKey: 'COCKTAIL.FLAVOR_SPICY', icon: 'flame-outline' },
-    { key: 'HERBAL', labelKey: 'COCKTAIL.FLAVOR_HERBAL', icon: 'leaf-outline' },
+  readonly availableFlavors: { key: FlavorProfile; labelKey: string; icon: string; emoji?: string }[] = [
+    { key: 'FRUITY', labelKey: 'COCKTAIL.FLAVOR_FRUITY', icon: 'water-outline', emoji: '🍓' },
+    { key: 'SMOKY', labelKey: 'COCKTAIL.FLAVOR_SMOKY', icon: 'cloud-outline', emoji: '💨' },
+    { key: 'SWEET', labelKey: 'COCKTAIL.FLAVOR_SWEET', icon: 'sparkles-outline', emoji: '🍯' },
+    { key: 'SOUR', labelKey: 'COCKTAIL.FLAVOR_SOUR', icon: 'water-outline', emoji: '🍋' },
+    { key: 'BITTER', labelKey: 'COCKTAIL.FLAVOR_BITTER', icon: 'wine-outline', emoji: '☕' },
+    { key: 'SPICY', labelKey: 'COCKTAIL.FLAVOR_SPICY', icon: 'flame-outline', emoji: '🌶️' },
+    { key: 'HERBAL', labelKey: 'COCKTAIL.FLAVOR_HERBAL', icon: 'leaf-outline', emoji: '🌿' },
   ];
 
   cocktailForm: FormGroup = this.fb.group({

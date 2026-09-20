@@ -110,7 +110,11 @@
             [disabled]="!canEdit"
             (click)="toggleAllergen(allergen.key)"
             [attr.data-testid]="'allergen-chip-' + allergen.key.toLowerCase()">
-            <ion-icon [name]="allergen.icon" class="chip-icon"></ion-icon>
+            @if (allergen.emoji) {
+              <span class="chip-icon chip-emoji">{{ allergen.emoji }}</span>
+            } @else {
+              <ion-icon [name]="allergen.icon" class="chip-icon"></ion-icon>
+            }
             <span class="chip-label">{{ allergen.labelKey | transloco }}</span>
             @if (isAllergenSelected(allergen.key)) {
               <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>

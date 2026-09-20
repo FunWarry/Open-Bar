@@ -284,19 +284,26 @@
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s ease;
+}
 
-  &:hover {
-    background: rgba(229, 96, 79, 0.15);
-    color: var(--semantic-danger, #ef4444);
-    border-color: var(--semantic-danger, #ef4444);
-  }
+.figma-allergen-pill .allergen-pill-emoji {
+  font-size: 0.9rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+}
 
-  &.excluded {
-    background: rgba(229, 96, 79, 0.15);
-    color: var(--semantic-danger, #ef4444);
-    border: 1px solid var(--semantic-danger, #ef4444);
-    box-shadow: 0 2px 8px rgba(229, 96, 79, 0.2);
-  }
+.figma-allergen-pill:hover {
+  background: rgba(229, 96, 79, 0.15);
+  color: var(--semantic-danger, #ef4444);
+  border-color: var(--semantic-danger, #ef4444);
+}
+
+.figma-allergen-pill.excluded {
+  background: rgba(229, 96, 79, 0.15);
+  color: var(--semantic-danger, #ef4444);
+  border: 1px solid var(--semantic-danger, #ef4444);
+  box-shadow: 0 2px 8px rgba(229, 96, 79, 0.2);
 }
 
 .allergen-close-icon {

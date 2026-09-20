@@ -272,7 +272,11 @@
                     [class.selected]="isFlavorSelected(flavor.key)"
                     [attr.data-testid]="'flavor-chip-' + flavor.key.toLowerCase()"
                     (click)="toggleFlavorProfile(flavor.key)">
-                    <ion-icon [name]="flavor.icon"></ion-icon>
+                    @if (flavor.emoji) {
+                      <span class="flavor-chip-emoji">{{ flavor.emoji }}</span>
+                    } @else {
+                      <ion-icon [name]="flavor.icon"></ion-icon>
+                    }
                     <span>{{ flavor.labelKey | transloco }}</span>
                   </button>
                 }

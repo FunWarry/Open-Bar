@@ -140,6 +140,12 @@ ion-select {
   font-size: 15px;
 }
 
+.chip-emoji {
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+}
+
 .check-icon {
   font-size: 14px;
   color: var(--primary);
