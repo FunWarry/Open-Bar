@@ -8,11 +8,12 @@
 .tabs-header-card {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 16px;
-  border-radius: var(--radius-lg, 16px);
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg, 14px);
   background: var(--background-surface-1);
   border: 1px solid var(--border-medium);
+  box-shadow: var(--shadow-card);
 }
 
 .stats-and-actions {

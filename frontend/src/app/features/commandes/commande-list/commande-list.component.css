@@ -25,10 +25,10 @@
 .control-banner {
   background: var(--background-surface-1);
   border: 1px solid var(--border-medium);
-  border-radius: 14px;
-  padding: 18px 20px;
-  margin-bottom: 20px;
-  box-shadow: var(--elev-1);
+  border-radius: var(--radius-lg, 14px);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-card);
 }
 
 .banner-header {
@@ -36,8 +36,8 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .title-group h1 {
@@ -145,12 +145,12 @@ app-search-bar {
 .kanban-column {
   background: var(--background-surface-1);
   border: 1px solid var(--border-medium);
-  border-radius: 14px;
+  border-radius: var(--radius-lg, 14px);
   display: flex;
   flex-direction: column;
   min-height: 500px;
   overflow: hidden;
-  box-shadow: var(--elev-1);
+  box-shadow: var(--shadow-card);
 }
 
 .column-header {
@@ -219,8 +219,8 @@ app-search-bar {
 .list-card {
   background: var(--background-surface-1);
   border: 1px solid var(--border-medium);
-  border-radius: 14px;
-  box-shadow: var(--elev-1);
+  border-radius: var(--radius-lg, 14px);
+  box-shadow: var(--shadow-card);
 }
 
 .commande-table-row {
