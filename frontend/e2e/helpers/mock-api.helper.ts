@@ -125,6 +125,10 @@ export async function setupMockApi(page: Page): Promise<void> {
   });
 
   await page.route('**/api/cocktails/library**', async (route) => {
+    if (route.request().url().includes('/library/import')) {
+      await route.fallback();
+      return;
+    }
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
