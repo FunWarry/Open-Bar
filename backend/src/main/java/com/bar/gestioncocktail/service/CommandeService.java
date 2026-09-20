@@ -65,6 +65,7 @@ public class CommandeService {
     private final TimeService timeService;
     private final HappyHourService happyHourService;
     private final EstablishmentConfigService establishmentConfigService;
+    private final com.bar.gestioncocktail.repository.UserRepository userRepository;
 
     public CommandeService(
             CommandeRepository commandeRepository,
@@ -77,7 +78,8 @@ public class CommandeService {
             ApplicationEventPublisher eventPublisher,
             TimeService timeService,
             HappyHourService happyHourService,
-            EstablishmentConfigService establishmentConfigService) {
+            EstablishmentConfigService establishmentConfigService,
+            com.bar.gestioncocktail.repository.UserRepository userRepository) {
         this.commandeRepository = commandeRepository;
         this.commandeItemRepository = commandeItemRepository;
         this.ingredientRepository = ingredientRepository;
@@ -89,6 +91,7 @@ public class CommandeService {
         this.timeService = timeService;
         this.happyHourService = happyHourService;
         this.establishmentConfigService = establishmentConfigService;
+        this.userRepository = userRepository;
     }
 /**
      * Retrieves all orders registered in the system.
@@ -195,6 +198,8 @@ public class CommandeService {
 
         applyDynamicPricingAndCalculateTotal(commande, now);
 
+        resolveOrderServer(commande);
+
         Commande saved = commandeRepository.save(commande);
         updateTableOccupancyOnOrderCreation(saved);
         if (eventPublisher != null) {
@@ -202,6 +207,32 @@ public class CommandeService {
         }
         notifyOrderUpdated(saved);
         return saved;
+    }
+
+    private void resolveOrderServer(Commande commande) {
+        if (commande.getServeur() != null && commande.getServeur().getId() != null && commande.getServeur().getUsername() == null) {
+            userRepository.findById(commande.getServeur().getId()).ifPresent(commande::setServeur);
+        }
+
+        if (commande.getServeur() == null || commande.getServeur().getId() == null) {
+            try {
+                org.springframework.security.core.Authentication auth =
+                        org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+                if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+                    userRepository.findByUsername(auth.getName()).ifPresent(commande::setServeur);
+                }
+            } catch (Exception e) {
+                log.debug("Could not resolve authenticated user for order creation: {}", e.getMessage());
+            }
+        }
+
+        if (commande.getServeur() == null && commande.getTable() != null && commande.getTable().getId() != null) {
+            tableRepository.findById(commande.getTable().getId()).ifPresent(t -> {
+                if (t.getServeurId() != null) {
+                    userRepository.findById(t.getServeurId()).ifPresent(commande::setServeur);
+                }
+            });
+        }
     }
 
     private void initializeOrderItems(Commande commande) {

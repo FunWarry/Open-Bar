@@ -142,6 +142,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   productSearchQuery = '';
   selectedAllergens: string[] = [];
   canSeeLowStock = false;
+  currentUser: any = null;
 
   readonly availableAllergens: readonly { key: string; labelKey: string; icon: string }[] = [
     { key: 'LAIT', labelKey: 'COCKTAILS.ALLERGENS.LAIT', icon: 'nutrition-outline' },
@@ -272,6 +273,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     this.store.select(selectCurrentUser)
       .pipe(takeUntil(this.destroy$))
       .subscribe(user => {
+        this.currentUser = user;
         this.canSeeLowStock = user?.roles?.some(r => r === 'BARMAN' || r === 'MANAGER' || r === 'ADMIN') ?? false;
         this.cdr.detectChanges();
       });
@@ -1919,6 +1921,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       barTabId: targetBarTabId,
       notes: generalNote,
       items: mappedItems,
+      serveurId: this.currentUser?.id,
       clientRequestId,
     })
       .pipe(

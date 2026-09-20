@@ -105,6 +105,14 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
     return groupCommandeItems(this.commande?.items) as CommandeItem[];
   }
 
+  /**
+   * Calculates the total number of article units across all items in the order.
+   */
+  get totalArticlesCount(): number {
+    if (!this.commande?.items || this.commande.items.length === 0) return 0;
+    return this.commande.items.reduce((sum, item) => sum + (item.quantite || 1), 0);
+  }
+
   getItemLineTotal(item: CommandeItem): number {
     return (item.prixUnitaire || 0) * (item.quantite || 1);
   }

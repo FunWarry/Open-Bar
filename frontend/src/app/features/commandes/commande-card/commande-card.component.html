@@ -10,7 +10,7 @@
 >
   <div class="card-top">
     <div class="table-title">
-      <h3>Table {{ commande.tableNumero }}</h3>
+      <h3 [attr.title]="tableLabel">{{ tableLabel }}</h3>
       <span class="order-id">#{{ commande.id }}</span>
     </div>
 

@@ -140,7 +140,7 @@ describe('Shared UI Components (Figma Design System)', () => {
     let fixture: ComponentFixture<StatusBadgeComponent>;
 
     beforeEach(async () => {
-      await TestBed.configureTestingModule({ imports: [StatusBadgeComponent] }).compileComponents();
+      await TestBed.configureTestingModule({ imports: [StatusBadgeComponent, getTranslocoTestingModule()] }).compileComponents();
       fixture = TestBed.createComponent(StatusBadgeComponent);
       component = fixture.componentInstance;
       fixture.detectChanges();

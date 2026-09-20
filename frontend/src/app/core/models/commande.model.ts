@@ -65,6 +65,7 @@ export interface CreateCommandeRequest {
     prioritaire?: boolean;
   }>;
   sessionToken?: string | null;
+  serveurId?: number;
   clientRequestId?: string;
 }
 

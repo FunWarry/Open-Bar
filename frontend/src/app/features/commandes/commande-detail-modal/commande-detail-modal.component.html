@@ -89,7 +89,7 @@
 
         <div class="meta-pill count-pill">
           <ion-icon name="receipt-outline"></ion-icon>
-          <span><strong>{{ groupedItems.length }}</strong> {{ (groupedItems.length > 1 ? 'COMMANDES.DETAILS.ITEMS_COUNT_PLURAL' : 'COMMANDES.DETAILS.ITEMS_COUNT') | transloco:{ count: groupedItems.length } }}</span>
+          <span>{{ (totalArticlesCount > 1 ? 'COMMANDES.DETAILS.ITEMS_COUNT_PLURAL' : 'COMMANDES.DETAILS.ITEMS_COUNT') | transloco:{ count: totalArticlesCount } }}</span>
         </div>
 
         <div class="meta-pill total-pill">
@@ -116,7 +116,7 @@
             <h3>{{ 'COMMANDES.DETAILS.ITEMS_HEADER' | transloco }}</h3>
           </div>
           <span class="items-badge-count">
-            {{ groupedItems.length }} {{ (groupedItems.length > 1 ? 'COMMANDES.DETAILS.ITEMS_COUNT_PLURAL' : 'COMMANDES.DETAILS.ITEMS_COUNT') | transloco:{ count: groupedItems.length } }}
+            {{ (totalArticlesCount > 1 ? 'COMMANDES.DETAILS.ITEMS_COUNT_PLURAL' : 'COMMANDES.DETAILS.ITEMS_COUNT') | transloco:{ count: totalArticlesCount } }}
           </span>
         </div>
 
