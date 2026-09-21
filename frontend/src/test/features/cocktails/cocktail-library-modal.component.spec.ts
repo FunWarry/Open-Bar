@@ -616,4 +616,85 @@ describe('CocktailLibraryModalComponent', () => {
       expect(component.currentPage()).toBe(1);
     });
   });
+
+  describe('Pagination, Filters and Recipe Steps', () => {
+    it('should navigate pages and clamp correctly', () => {
+      const manyItems = Array.from({ length: 30 }, (_, i) => ({
+        ...mockLibraryItems[0],
+        id: `lib_${i + 1}`,
+        nom: `Cocktail ${i + 1}`
+      }));
+      component.allCocktails.set(manyItems);
+      component.pageSize.set(10);
+      component.currentPage.set(1);
+
+      expect(component.totalPages()).toBe(3);
+      expect(component.paginationInfo()).toEqual({ start: 1, end: 10, total: 30 });
+
+      component.nextPage();
+      expect(component.currentPage()).toBe(2);
+
+      component.nextPage();
+      expect(component.currentPage()).toBe(3);
+
+      component.nextPage();
+      expect(component.currentPage()).toBe(3);
+
+      component.previousPage();
+      expect(component.currentPage()).toBe(2);
+
+      component.goToPage(1);
+      expect(component.currentPage()).toBe(1);
+
+      component.goToPage(999);
+      expect(component.currentPage()).toBe(3);
+
+      component.goToPage(-5);
+      expect(component.currentPage()).toBe(1);
+    });
+
+    it('should handle onPageSizeChange and onSortChange', () => {
+      component.currentPage.set(3);
+      component.onPageSizeChange(48);
+      expect(component.pageSize()).toBe(48);
+      expect(component.currentPage()).toBe(1);
+
+      component.currentPage.set(2);
+      component.onSortChange('PRICE_ASC');
+      expect(component.selectedSort()).toBe('PRICE_ASC');
+      expect(component.currentPage()).toBe(1);
+    });
+
+    it('should toggle advanced filters and filter by variant family', () => {
+      expect(component.showAdvancedFilters()).toBeFalse();
+      component.toggleAdvancedFilters();
+      expect(component.showAdvancedFilters()).toBeTrue();
+
+      component.filterByVariantFamily('Margarita');
+      expect(component.selectedVariantFamily()).toBe('Margarita');
+      expect(component.showAdvancedFilters()).toBeTrue();
+      expect(component.currentPage()).toBe(1);
+    });
+
+    it('should return appropriate icon and label for recipe step actions', () => {
+      expect(component.getStepIcon('SHAKER')).toBe('sparkles-outline');
+      expect(component.getStepIcon('MELANGER')).toBe('sync-outline');
+      expect(component.getStepIcon('FILTRER')).toBe('funnel-outline');
+      expect(component.getStepIcon('GLACE')).toBe('snow-outline');
+      expect(component.getStepIcon('GARNIR')).toBe('leaf-outline');
+      expect(component.getStepIcon('UNKNOWN')).toBe('sparkles-outline');
+
+      expect(component.getStepActionLabel(null)).toBe('');
+      expect(component.getStepActionLabel('SHAKER')).toBeTruthy();
+    });
+
+    it('should calculate builder matches when shelf ingredients are set', () => {
+      component.allCocktails.set(mockLibraryItems);
+      component.shelfIngredients.set(['Rhum blanc', 'Menthe']);
+
+      const matches = component.builderMatches();
+      expect(matches.ready.length).toBeGreaterThan(0);
+      expect(matches.ready[0].nom).toBe('Mojito');
+    });
+  });
 });
