@@ -271,10 +271,8 @@
               </section>
             }
           </div>
-        }
-
-        <!-- Mode 2: Vraie Grille Plate avec Pagination (sans lag) -->
-        @else if (viewMode === 'grid') {
+        } @else if (viewMode === 'grid') {
+          <!-- Mode 2: Vraie Grille Plate avec Pagination (sans lag) -->
           <div class="flat-grid-wrapper" data-testid="flat-grid-wrapper">
             <!-- Header Pagination Toolbar -->
             <app-pagination
@@ -315,10 +313,8 @@
               </app-pagination>
             }
           </div>
-        }
-
-        <!-- Mode 3: Liste -->
-        @else if (viewMode === 'list') {
+        } @else if (viewMode === 'list') {
+          <!-- Mode 3: Liste -->
           <div class="category-sections-wrapper" data-testid="list-sections-wrapper">
             @for (group of groupedIngredients; track group.categoryKey) {
               <section class="category-section-block" [attr.data-testid]="'category-section-' + group.categoryKey.toLowerCase()">

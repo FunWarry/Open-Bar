@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
@@ -48,6 +48,7 @@ import { SearchBarComponent } from '../../../core/components/ui/search-bar/searc
     IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
     IonSpinner, SearchBarComponent, IonToggle, IonChip,
     FormsModule, CurrencyPipe, DatePipe, TranslocoPipe, CommandeCardComponent,
+    RouterLink,
   ],
 })
 export class CommandeListComponent implements OnInit, OnDestroy {

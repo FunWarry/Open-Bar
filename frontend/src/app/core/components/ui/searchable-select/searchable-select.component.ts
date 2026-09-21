@@ -62,7 +62,7 @@ export interface SearchableOption<T = any> {
     },
   ],
 })
-export class SearchableSelectComponent extends BaseControlValueAccessor<any> implements OnChanges {
+export class SearchableSelectComponent extends BaseControlValueAccessor implements OnChanges {
   private static nextId = 0;
   readonly selectId: string;
 

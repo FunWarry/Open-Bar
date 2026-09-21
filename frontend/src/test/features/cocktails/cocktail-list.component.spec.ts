@@ -2,14 +2,13 @@ import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
-import { provideIonicAngular, ToastController, ModalController } from '@ionic/angular';
+import { provideIonicAngular, ToastController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { Subject, of, throwError } from 'rxjs';
 import { CocktailListComponent } from '../../../app/features/cocktails/cocktail-list/cocktail-list.component';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
-import { EstablishmentModule } from '../../../app/core/models/establishment-module.model';
 import { Cocktail, CocktailCategorie } from '../../../app/core/models/cocktail.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 

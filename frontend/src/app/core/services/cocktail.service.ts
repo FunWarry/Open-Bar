@@ -68,7 +68,7 @@ export class CocktailService {
 
   /**
    * Searches cocktails by name query substring.
-   * @param query Search string
+   * @param nom Search string
    * @returns Observable emitting matching cocktails
    */
   search(nom: string): Observable<Cocktail[]> {
@@ -86,7 +86,8 @@ export class CocktailService {
   /**
    * Updates seasonal availability dates for a cocktail.
    * @param id Cocktail identifier
-   * @param request Seasonality settings
+   * @param moisDebut Seasonality start month (1-12 or null)
+   * @param moisFin Seasonality end month (1-12 or null)
    * @returns Observable emitting updated cocktail
    */
   updateSaisonnalite(id: number, moisDebut: number | null, moisFin: number | null): Observable<Cocktail> {

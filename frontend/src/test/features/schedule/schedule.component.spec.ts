@@ -568,7 +568,7 @@ describe('ScheduleComponent', () => {
 
       // Normal mode click on filled cell → opens employee shift modal
       component.isDeleteMode = false;
-      await component.onCellClick(emp, filledShift);
+      component.onCellClick(emp, filledShift);
       expect(mockUserService.getUserById).toHaveBeenCalledWith(5);
       expect(mockModalCtrl.create).toHaveBeenCalled();
 
@@ -810,7 +810,7 @@ describe('ScheduleComponent', () => {
       }));
       mockPublicationService.getPublication.and.returnValue(of(null));
 
-      await component.onCellClick(emp, emptyShift);
+      component.onCellClick(emp, emptyShift);
 
       expect(mockModalCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
         componentProps: jasmine.objectContaining({
@@ -837,7 +837,7 @@ describe('ScheduleComponent', () => {
       }));
       mockPublicationService.getPublication.and.returnValue(of(null));
 
-      await component.onCellClick(emp, filledShift);
+      component.onCellClick(emp, filledShift);
 
       expect(mockModalCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
         componentProps: jasmine.objectContaining({
@@ -864,7 +864,7 @@ describe('ScheduleComponent', () => {
       }));
       mockPublicationService.getPublication.and.returnValue(of(null));
 
-      await component.onEmployeeHeaderClick(emp);
+      component.onEmployeeHeaderClick(emp);
 
       expect(mockUserService.getUserById).toHaveBeenCalledWith(7);
       expect(mockModalCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({

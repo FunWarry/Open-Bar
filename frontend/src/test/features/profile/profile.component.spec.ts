@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonSelect, IonSelectOption } from '@ionic/angular';
-import { of, Subject, throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ProfileComponent } from '../../../app/features/profile/profile.component';
 import { DatePipe } from '@angular/common';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
