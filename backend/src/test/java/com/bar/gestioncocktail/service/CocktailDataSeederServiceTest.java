@@ -261,4 +261,3 @@ class CocktailDataSeederServiceTest {
         verify(ingredientRepository, atLeastOnce()).save(any(Ingredient.class));
     }
 }
-
