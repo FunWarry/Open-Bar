@@ -107,6 +107,44 @@
       testId="ingredient-alcohol-degree-input">
     </app-input-field>
 
+    <!-- Barcode / QR Code -->
+    <div class="barcode-input-row">
+      <app-input-field
+        formControlName="codeBarre"
+        [label]="'INGREDIENTS.FORM.BARCODE' | transloco"
+        [placeholder]="'INGREDIENTS.FORM.BARCODE_PLACEHOLDER' | transloco"
+        icon="barcode-outline"
+        [required]="false"
+        testId="ingredient-barcode-input">
+      </app-input-field>
+      @if (canEdit) {
+        <button
+          type="button"
+          class="btn-scan-action"
+          (click)="scanBarcode()"
+          [attr.aria-label]="'INGREDIENTS.FORM.SCAN_BARCODE' | transloco"
+          data-testid="ingredient-scan-btn">
+          <ion-icon name="barcode-outline"></ion-icon>
+          <span>{{ 'INGREDIENTS.FORM.SCAN_BARCODE' | transloco }}</span>
+        </button>
+      }
+    </div>
+
+    <!-- Default Supplier -->
+    <div class="field-item">
+      <app-searchable-select
+        formControlName="defaultSupplierId"
+        [label]="'INGREDIENTS.FORM.DEFAULT_SUPPLIER' | transloco"
+        [placeholder]="'INGREDIENTS.FORM.SELECT_SUPPLIER' | transloco"
+        [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+        [options]="supplierOptions"
+        [required]="false"
+        [clearable]="true"
+        [enableSearch]="true"
+        testId="ingredient-supplier-select">
+      </app-searchable-select>
+    </div>
+
     <!-- Dietary Preference: Vegan -->
     <div class="dietary-field-group">
       <span class="field-label">{{ 'CLIENT_QR.MATCHER_DIETARY' | transloco }}</span>

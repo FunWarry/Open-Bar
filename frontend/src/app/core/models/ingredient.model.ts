@@ -136,6 +136,9 @@ export interface Ingredient {
   prixUnitaire?: number;
   unitCost?: number;
   fournisseur?: string;
+  defaultSupplierId?: number;
+  defaultSupplierNom?: string;
+  codeBarre?: string;
   notes?: string;
   allergens?: Allergen[];
   degreAlcool?: number;

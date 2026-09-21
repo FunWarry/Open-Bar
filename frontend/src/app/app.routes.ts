@@ -87,6 +87,14 @@ export const routes: Routes = [
     data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.STOCK_TRACKING }
   },
 
+  // Supplier purchases, delivery receipts and PAMP recalculation
+  {
+    path: 'purchases',
+    loadComponent: () => import('./features/purchases/purchases-page.component').then(m => m.PurchasesPageComponent),
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER'], requiredModule: EstablishmentModule.SUPPLIERS_MANAGEMENT }
+  },
+
   // Cocktails
   {
     path: 'cocktails',

@@ -19,7 +19,8 @@ import {
   scaleOutline, layersOutline, checkmarkCircleOutline, closeCircleOutline,
   alertCircleOutline, wineOutline, waterOutline, colorFillOutline,
   nutritionOutline, cubeOutline, downloadOutline,
-  flaskOutline, beerOutline, sparklesOutline, leafOutline
+  flaskOutline, beerOutline, sparklesOutline, leafOutline,
+  cartOutline, barcodeOutline
 } from 'ionicons/icons';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -40,6 +41,7 @@ import { ActionButtonComponent } from '../../../core/components/ui/action-button
 import { PaginationComponent } from '../../../core/components/ui/pagination/pagination.component';
 import { CsvExportService, CsvColumn } from '../../../core/services/csv-export.service';
 import { StockWasteService } from '../../../core/services/stock-waste.service';
+import { BarcodeScannerModalComponent, BarcodeScannerResult } from '../../../core/components/ui/barcode-scanner-modal/barcode-scanner-modal.component';
 
 /**
  * Display modes for inventory ingredient list:
@@ -173,7 +175,8 @@ export class IngredientListComponent implements OnInit, OnDestroy {
       scaleOutline, layersOutline, checkmarkCircleOutline, closeCircleOutline,
       alertCircleOutline, wineOutline, waterOutline, colorFillOutline,
       nutritionOutline, cubeOutline, downloadOutline,
-      flaskOutline, beerOutline, sparklesOutline, leafOutline
+      flaskOutline, beerOutline, sparklesOutline, leafOutline,
+      cartOutline, barcodeOutline
     });
   }
 
@@ -253,6 +256,34 @@ export class IngredientListComponent implements OnInit, OnDestroy {
     const select = event.target as HTMLSelectElement;
     this.selectedCategory = select.value;
     this.gridPage = 1;
+  }
+
+  /**
+   * Opens barcode scanner modal and sets search query with scanned barcode.
+   */
+  async scanBarcode(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: BarcodeScannerModalComponent,
+      componentProps: {
+        title: 'SCANNER.SCAN_INGREDIENT_TITLE',
+        subtitle: 'SCANNER.SCAN_INGREDIENT_SUBTITLE'
+      }
+    });
+
+    await modal.present();
+    const { data } = await modal.onWillDismiss<BarcodeScannerResult>();
+
+    if (data && !data.cancelled && data.barcode) {
+      this.searchQuery = data.barcode;
+      this.onSearchChange();
+    }
+  }
+
+  /**
+   * Navigates to the purchases and supplier orders management view.
+   */
+  goToPurchases(): void {
+    this.router.navigate(['/purchases']);
   }
 
   onUnitChange(event: Event): void {

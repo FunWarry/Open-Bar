@@ -1,0 +1,204 @@
+<div class="reception-modal-wrapper" data-testid="purchase-order-reception-modal">
+  <header class="modal-header">
+    <div class="header-main-group">
+      <div class="icon-badge">
+        <ion-icon name="checkmark-done-outline" class="badge-icon"></ion-icon>
+      </div>
+      <div class="header-text">
+        <h2 class="modal-title">{{ 'PURCHASES.RECEPTION_TITLE' | transloco: { orderNum: order.numeroCommande } }}</h2>
+        <span class="modal-subtitle">{{ 'PURCHASES.RECEPTION_SUBTITLE' | transloco: { supplier: order.supplierNom } }}</span>
+      </div>
+    </div>
+    <button
+      type="button"
+      class="close-icon-btn"
+      (click)="onCancel()"
+      [attr.aria-label]="'COMMON.CLOSE' | transloco"
+      data-testid="reception-close-btn"
+    >
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </header>
+
+  @if (!priceVariations()) {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-form">
+      <div class="modal-body">
+        <!-- Delivery info -->
+        <div class="delivery-info-card">
+          <div class="form-row-2">
+            <div class="field-item">
+              <label for="reception-bl-field" class="field-label">{{ 'PURCHASES.DELIVERY_NOTE_NUMBER' | transloco }} *</label>
+              <input
+                id="reception-bl-field"
+                type="text"
+                formControlName="numeroBonLivraison"
+                class="field-input"
+                [placeholder]="'PURCHASES.DELIVERY_NOTE_PLACEHOLDER' | transloco"
+                data-testid="reception-bl-input"
+              />
+            </div>
+
+            <div class="field-item">
+              <label for="reception-notes-field" class="field-label">{{ 'PURCHASES.RECEPTION_NOTES' | transloco }}</label>
+              <input
+                id="reception-notes-field"
+                type="text"
+                formControlName="notes"
+                class="field-input"
+                [placeholder]="'PURCHASES.RECEPTION_NOTES_PLACEHOLDER' | transloco"
+                data-testid="reception-notes-input"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Scan action bar -->
+        <div class="scan-bar-row">
+          <span class="scan-bar-desc">{{ 'PURCHASES.SCAN_RECEPTION_HINT' | transloco }}</span>
+          <button
+            type="button"
+            class="btn-scan-pointing"
+            (click)="openBarcodeScanner()"
+            data-testid="reception-scan-btn"
+          >
+            <ion-icon name="barcode-outline"></ion-icon>
+            <span>{{ 'PURCHASES.SCAN_TO_POINT_BTN' | transloco }}</span>
+          </button>
+        </div>
+
+        <!-- Line check-in table / cards -->
+        <div class="items-container" formArrayName="items">
+          @for (item of items.controls; track $index) {
+            <div [formGroupName]="$index" class="reception-line-card" [attr.data-testid]="'reception-line-' + $index">
+              <div class="line-header">
+                <span class="ing-name">{{ item.get('ingredientNom')?.value }}</span>
+                <span class="qty-recap">
+                  {{ 'PURCHASES.ORDERED_SHORT' | transloco }}: {{ item.get('quantiteCommandee')?.value }} {{ item.get('ingredientUnite')?.value }} |
+                  {{ 'PURCHASES.RECEIVED_SHORT' | transloco }}: {{ item.get('quantiteRecue')?.value }}
+                </span>
+              </div>
+
+              <div class="line-inputs-grid">
+                <div class="field-item">
+                  <label [attr.for]="'reception-qty-' + $index" class="field-label">{{ 'PURCHASES.QTY_DELIVERED' | transloco }} ({{ item.get('ingredientUnite')?.value }})</label>
+                  <input
+                    [id]="'reception-qty-' + $index"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    formControlName="quantiteLivree"
+                    class="field-input"
+                    [attr.data-testid]="'reception-qty-' + $index"
+                  />
+                </div>
+
+                <div class="field-item">
+                  <label [attr.for]="'reception-price-' + $index" class="field-label">{{ 'PURCHASES.ACTUAL_UNIT_PRICE' | transloco }} (€)</label>
+                  <input
+                    [id]="'reception-price-' + $index"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    formControlName="prixUnitaireHt"
+                    class="field-input"
+                    [attr.data-testid]="'reception-price-' + $index"
+                  />
+                </div>
+
+                <div class="field-item">
+                  <label [attr.for]="'reception-lot-' + $index" class="field-label">{{ 'PURCHASES.BATCH_NUMBER' | transloco }}</label>
+                  <input
+                    [id]="'reception-lot-' + $index"
+                    type="text"
+                    formControlName="numeroLot"
+                    class="field-input"
+                    placeholder="Ex: LOT-2026-A"
+                    [attr.data-testid]="'reception-lot-' + $index"
+                  />
+                </div>
+
+                <div class="field-item">
+                  <label [attr.for]="'reception-expiry-' + $index" class="field-label">{{ 'PURCHASES.EXPIRY_DATE' | transloco }}</label>
+                  <input
+                    [id]="'reception-expiry-' + $index"
+                    type="date"
+                    formControlName="datePeremption"
+                    class="field-input"
+                    [attr.data-testid]="'reception-expiry-' + $index"
+                  />
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="onCancel()" data-testid="reception-cancel-btn">
+          {{ 'COMMON.CANCEL' | transloco }}
+        </button>
+        <button
+          type="submit"
+          class="btn-submit"
+          [disabled]="form.invalid || isSubmitting()"
+          data-testid="reception-submit-btn"
+        >
+          <ion-icon name="checkmark-done-outline"></ion-icon>
+          <span>{{ 'PURCHASES.CONFIRM_RECEPTION_BTN' | transloco }}</span>
+        </button>
+      </footer>
+    </form>
+  } @else {
+    <!-- Price Variation / PAMP Recalculation Results View -->
+    <div class="variations-wrapper" data-testid="reception-pamp-results">
+      <div class="success-banner">
+        <ion-icon name="checkmark-done-outline"></ion-icon>
+        <div class="banner-text">
+          <h3>{{ 'PURCHASES.PAMP_SUCCESS_TITLE' | transloco }}</h3>
+          <p>{{ 'PURCHASES.PAMP_SUCCESS_DESC' | transloco }}</p>
+        </div>
+      </div>
+
+      <div class="variations-table">
+        <div class="var-table-header">
+          <span>{{ 'PURCHASES.INGREDIENT' | transloco }}</span>
+          <span>{{ 'PURCHASES.PREVIOUS_PAMP' | transloco }}</span>
+          <span>{{ 'PURCHASES.PURCHASE_PRICE' | transloco }}</span>
+          <span>{{ 'PURCHASES.NEW_PAMP' | transloco }}</span>
+          <span>{{ 'PURCHASES.VARIATION' | transloco }}</span>
+        </div>
+
+        @for (item of priceVariations(); track item.ingredientId) {
+          <div class="var-table-row" [class.alert-row]="item.alerteHausse">
+            <span class="ing-col">
+              <strong>{{ item.ingredientNom }}</strong>
+              @if (item.alerteHausse) {
+                <span class="badge-alert-up">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  {{ 'PURCHASES.HAUSSE_ALERTE' | transloco }}
+                </span>
+              }
+            </span>
+            <span>{{ item.ancienPamp | number:'1.2-2' }} €</span>
+            <span>{{ item.dernierPrixAchat | number:'1.2-2' }} €</span>
+            <span class="new-pamp">{{ item.nouveauPamp | number:'1.2-2' }} €</span>
+            <span class="var-col" [class.up]="item.variationPourcentage > 0" [class.down]="item.variationPourcentage < 0">
+              @if (item.variationPourcentage > 0) {
+                <ion-icon name="trending-up-outline"></ion-icon>
+              } @else if (item.variationPourcentage < 0) {
+                <ion-icon name="trending-down-outline"></ion-icon>
+              }
+              {{ item.variationPourcentage > 0 ? '+' : '' }}{{ item.variationPourcentage | number:'1.1-1' }}%
+            </span>
+          </div>
+        }
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-submit" (click)="closeWithSuccess()" data-testid="reception-done-btn">
+          <span>{{ 'COMMON.CONFIRM' | transloco }}</span>
+        </button>
+      </footer>
+    </div>
+  }
+</div>

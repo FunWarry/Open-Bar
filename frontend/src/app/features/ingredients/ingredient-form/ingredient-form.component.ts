@@ -32,10 +32,13 @@ import {
   colorFillOutline,
   beerOutline,
   waterOutline,
-  sparklesOutline
+  sparklesOutline,
+  barcodeOutline,
+  businessOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IngredientService } from '../../../core/services/ingredient.service';
+import { SupplierService } from '../../../core/services/supplier.service';
 import {
   Ingredient,
   Allergen,
@@ -48,6 +51,7 @@ import {
   SearchableSelectComponent,
   SearchableOption
 } from '../../../core/components/ui/searchable-select/searchable-select.component';
+import { BarcodeScannerModalComponent, BarcodeScannerResult } from '../../../core/components/ui/barcode-scanner-modal/barcode-scanner-modal.component';
 
 /**
  * Form and detail modal component for creating, viewing, or editing an Ingredient entity in OpenBar.
@@ -106,12 +110,15 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
 
   readonly availableAllergens = DEFAULT_ALLERGEN_OPTIONS;
 
+  supplierOptions: SearchableOption<number>[] = [];
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly toastCtrl: ToastController,
     private readonly ingredientService: IngredientService,
+    private readonly supplierService: SupplierService,
     private readonly transloco: TranslocoService,
     @Optional() private readonly modalCtrl?: ModalController
   ) {
@@ -133,7 +140,9 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
       colorFillOutline,
       beerOutline,
       waterOutline,
-      sparklesOutline
+      sparklesOutline,
+      barcodeOutline,
+      businessOutline
     });
 
     this.ingredientForm = this.fb.group({
@@ -144,6 +153,8 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
       seuilAlerte: [5, [Validators.required, Validators.min(0)]],
       prixUnitaire: [0, [Validators.min(0)]],
       degreAlcool: [0, [Validators.min(0), Validators.max(100)]],
+      defaultSupplierId: [null],
+      codeBarre: [''],
       isVegan: [true],
       allergens: [[] as Allergen[]]
     });
@@ -155,6 +166,18 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.supplierService.getActive().subscribe({
+      next: (sups) => {
+        this.supplierOptions = sups.map(s => ({
+          value: s.id,
+          label: s.nom,
+          subLabel: s.ville || s.contactNom,
+          icon: 'business-outline'
+        }));
+      },
+      error: () => {}
+    });
+
     if (this.ingredient) {
       this.isEditMode = true;
       this.ingredientId = this.ingredient.id;
@@ -166,6 +189,8 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
         seuilAlerte: this.ingredient.seuilAlerte,
         prixUnitaire: this.ingredient.prixUnitaire ?? this.ingredient.unitCost ?? 0,
         degreAlcool: this.ingredient.degreAlcool ?? 0,
+        defaultSupplierId: this.ingredient.defaultSupplierId ?? null,
+        codeBarre: this.ingredient.codeBarre ?? '',
         isVegan: this.ingredient.isVegan ?? true,
         allergens: this.ingredient.allergens || []
       });
@@ -193,6 +218,8 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
             seuilAlerte: ingredient.seuilAlerte,
             prixUnitaire: ingredient.prixUnitaire ?? ingredient.unitCost ?? 0,
             degreAlcool: ingredient.degreAlcool ?? 0,
+            defaultSupplierId: ingredient.defaultSupplierId ?? null,
+            codeBarre: ingredient.codeBarre ?? '',
             isVegan: ingredient.isVegan ?? true,
             allergens: ingredient.allergens || []
           });
@@ -204,6 +231,30 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
           this.router.navigate(['/404']);
         }
       });
+    }
+  }
+
+  /**
+   * Opens barcode and QR code scanner modal to populate barcode field.
+   */
+  async scanBarcode(): Promise<void> {
+    if (!this.canEdit) return;
+    if (!this.modalCtrl) return;
+
+    const modal = await this.modalCtrl.create({
+      component: BarcodeScannerModalComponent,
+      componentProps: {
+        title: 'SCANNER.SCAN_INGREDIENT_TITLE',
+        subtitle: 'SCANNER.SCAN_INGREDIENT_SUBTITLE'
+      }
+    });
+
+    await modal.present();
+    const { data } = await modal.onWillDismiss<BarcodeScannerResult>();
+
+    if (data && !data.cancelled && data.barcode) {
+      this.ingredientForm.patchValue({ codeBarre: data.barcode });
+      this.ingredientForm.markAsDirty();
     }
   }
 

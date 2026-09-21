@@ -1,0 +1,411 @@
+<div class="purchases-page-container" data-testid="purchases-page">
+  <!-- Page Header -->
+  <header class="page-header">
+    <div class="header-main">
+      <div class="title-group">
+        <div class="header-badge">
+          <ion-icon name="cart-outline"></ion-icon>
+        </div>
+        <div class="header-titles">
+          <h1 class="page-title">{{ 'PURCHASES.PAGE_TITLE' | transloco }}</h1>
+          <p class="page-subtitle">{{ 'PURCHASES.PAGE_SUBTITLE' | transloco }}</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button
+          type="button"
+          class="btn-action btn-scan"
+          (click)="openGlobalBarcodeScanner()"
+          data-testid="purchases-global-scan-btn"
+        >
+          <ion-icon name="barcode-outline"></ion-icon>
+          <span>{{ 'PURCHASES.SCAN_ARTICLE_BTN' | transloco }}</span>
+        </button>
+
+        @if (activeTab() === 'orders') {
+          <button
+            type="button"
+            class="btn-action btn-primary"
+            (click)="openCreateOrderModal()"
+            data-testid="purchases-new-order-btn"
+          >
+            <ion-icon name="add-outline"></ion-icon>
+            <span>{{ 'PURCHASES.NEW_ORDER_BTN' | transloco }}</span>
+          </button>
+        } @else if (activeTab() === 'suppliers') {
+          <button
+            type="button"
+            class="btn-action btn-secondary"
+            (click)="migrateLegacySuppliers()"
+            data-testid="purchases-migrate-suppliers-btn"
+          >
+            <ion-icon name="sync-outline"></ion-icon>
+            <span>{{ 'SUPPLIERS.MIGRATE_BTN' | transloco }}</span>
+          </button>
+          <button
+            type="button"
+            class="btn-action btn-primary"
+            (click)="openCreateSupplierModal()"
+            data-testid="purchases-new-supplier-btn"
+          >
+            <ion-icon name="add-outline"></ion-icon>
+            <span>{{ 'SUPPLIERS.NEW_SUPPLIER_BTN' | transloco }}</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs-nav" data-testid="purchases-tabs-nav">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'orders'"
+        (click)="selectTab('orders')"
+        data-testid="tab-orders"
+      >
+        <ion-icon name="cart-outline"></ion-icon>
+        <span>{{ 'PURCHASES.TAB_ORDERS' | transloco }}</span>
+        <span class="tab-count">{{ purchaseOrders().length }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'suppliers'"
+        (click)="selectTab('suppliers')"
+        data-testid="tab-suppliers"
+      >
+        <ion-icon name="business-outline"></ion-icon>
+        <span>{{ 'PURCHASES.TAB_SUPPLIERS' | transloco }}</span>
+        <span class="tab-count">{{ suppliers().length }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'pamp'"
+        (click)="selectTab('pamp')"
+        data-testid="tab-pamp"
+      >
+        <ion-icon name="analyticsOutline"></ion-icon>
+        <span>{{ 'PURCHASES.TAB_PAMP' | transloco }}</span>
+        <span class="tab-count">{{ ingredients().length }}</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- Tab Content: Orders -->
+  @if (activeTab() === 'orders') {
+    <section class="tab-content" data-testid="orders-section">
+      <!-- Status Filters -->
+      <div class="filters-bar">
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="statusFilter() === 'ALL'"
+          (click)="statusFilter.set('ALL')"
+          data-testid="filter-status-all"
+        >
+          {{ 'COMMON.ALL' | transloco }}
+        </button>
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="statusFilter() === 'BROUILLON'"
+          (click)="statusFilter.set('BROUILLON')"
+          data-testid="filter-status-draft"
+        >
+          {{ 'PURCHASES.STATUS.BROUILLON' | transloco }}
+        </button>
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="statusFilter() === 'COMMANDEE'"
+          (click)="statusFilter.set('COMMANDEE')"
+          data-testid="filter-status-ordered"
+        >
+          {{ 'PURCHASES.STATUS.COMMANDEE' | transloco }}
+        </button>
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="statusFilter() === 'PARTIELLEMENT_LIVREE'"
+          (click)="statusFilter.set('PARTIELLEMENT_LIVREE')"
+          data-testid="filter-status-partial"
+        >
+          {{ 'PURCHASES.STATUS.PARTIELLEMENT_LIVREE' | transloco }}
+        </button>
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="statusFilter() === 'LIVREE'"
+          (click)="statusFilter.set('LIVREE')"
+          data-testid="filter-status-delivered"
+        >
+          {{ 'PURCHASES.STATUS.LIVREE' | transloco }}
+        </button>
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="statusFilter() === 'ANNULEE'"
+          (click)="statusFilter.set('ANNULEE')"
+          data-testid="filter-status-cancelled"
+        >
+          {{ 'PURCHASES.STATUS.ANNULEE' | transloco }}
+        </button>
+      </div>
+
+      <!-- Orders List -->
+      @if (filteredOrders().length > 0) {
+        <div class="orders-grid">
+          @for (order of filteredOrders(); track order.id) {
+            <article class="order-card" [attr.data-testid]="'order-card-' + order.id">
+              <div class="order-card-header">
+                <div class="order-id-group">
+                  <span class="order-number">{{ order.numeroCommande }}</span>
+                  <span class="order-supplier">{{ order.supplierNom }}</span>
+                </div>
+                <span class="status-badge" [attr.data-status]="order.status">
+                  {{ ('PURCHASES.STATUS.' + order.status) | transloco }}
+                </span>
+              </div>
+
+              <div class="order-card-body">
+                <div class="info-metric">
+                  <span class="metric-label">{{ 'PURCHASES.DATE_ORDERED' | transloco }}</span>
+                  <span class="metric-value">{{ order.dateCommande ? (order.dateCommande | date:'shortDate') : '-' }}</span>
+                </div>
+                <div class="info-metric">
+                  <span class="metric-label">{{ 'PURCHASES.DATE_EXPECTED' | transloco }}</span>
+                  <span class="metric-value">{{ order.dateLivraisonPrevue ? (order.dateLivraisonPrevue | date:'shortDate') : '-' }}</span>
+                </div>
+                <div class="info-metric">
+                  <span class="metric-label">{{ 'PURCHASES.ITEMS_COUNT' | transloco }}</span>
+                  <span class="metric-value">{{ order.items.length }}</span>
+                </div>
+                <div class="info-metric highlight">
+                  <span class="metric-label">{{ 'PURCHASES.TOTAL_TTC' | transloco }}</span>
+                  <span class="metric-value total">{{ order.totalTtc | number:'1.2-2' }} €</span>
+                </div>
+              </div>
+
+              <div class="order-card-footer">
+                @if (order.status === 'BROUILLON') {
+                  <button
+                    type="button"
+                    class="card-btn btn-send"
+                    (click)="sendOrder(order)"
+                    [attr.data-testid]="'order-send-btn-' + order.id"
+                  >
+                    <ion-icon name="send-outline"></ion-icon>
+                    <span>{{ 'PURCHASES.ACTION_SEND' | transloco }}</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="card-btn btn-cancel"
+                    (click)="cancelOrder(order)"
+                    [attr.data-testid]="'order-cancel-btn-' + order.id"
+                  >
+                    <ion-icon name="close-circle-outline"></ion-icon>
+                    <span>{{ 'COMMON.CANCEL' | transloco }}</span>
+                  </button>
+                }
+
+                @if (order.status === 'COMMANDEE' || order.status === 'PARTIELLEMENT_LIVREE') {
+                  <button
+                    type="button"
+                    class="card-btn btn-reception"
+                    (click)="openReceptionModal(order)"
+                    [attr.data-testid]="'order-receive-btn-' + order.id"
+                  >
+                    <ion-icon name="checkmark-done-outline"></ion-icon>
+                    <span>{{ 'PURCHASES.ACTION_RECEIVE' | transloco }}</span>
+                  </button>
+                }
+
+                @if (order.status !== 'BROUILLON' && order.status !== 'ANNULEE') {
+                  <button
+                    type="button"
+                    class="card-btn btn-pdf"
+                    (click)="downloadPdf(order)"
+                    [attr.data-testid]="'order-pdf-btn-' + order.id"
+                  >
+                    <ion-icon name="download-outline"></ion-icon>
+                    <span>{{ 'PURCHASES.ACTION_PDF' | transloco }}</span>
+                  </button>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      } @else {
+        <app-empty-state
+          icon="cart-outline"
+          [title]="'PURCHASES.EMPTY_ORDERS_TITLE' | transloco"
+          [subtitle]="'PURCHASES.EMPTY_ORDERS_DESC' | transloco"
+          [actionLabel]="'PURCHASES.NEW_ORDER_BTN' | transloco"
+          (actionClick)="openCreateOrderModal()"
+          testId="empty-orders"
+        ></app-empty-state>
+      }
+    </section>
+  }
+
+  <!-- Tab Content: Suppliers -->
+  @if (activeTab() === 'suppliers') {
+    <section class="tab-content" data-testid="suppliers-section">
+      <div class="search-bar-row">
+        <div class="search-input-wrap">
+          <label for="suppliers-search-input-field" class="visually-hidden">{{ 'SUPPLIERS.SEARCH_PLACEHOLDER' | transloco }}</label>
+          <ion-icon name="search-outline"></ion-icon>
+          <input
+            id="suppliers-search-input-field"
+            type="text"
+            class="search-input"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            [placeholder]="'SUPPLIERS.SEARCH_PLACEHOLDER' | transloco"
+            data-testid="suppliers-search-input"
+          />
+        </div>
+      </div>
+
+      @if (filteredSuppliers().length > 0) {
+        <div class="suppliers-grid">
+          @for (sup of filteredSuppliers(); track sup.id) {
+            <article class="supplier-card" [attr.data-testid]="'supplier-card-' + sup.id">
+              <div class="supplier-card-header">
+                <div class="supplier-name-wrap">
+                  <h3 class="supplier-name">{{ sup.nom }}</h3>
+                  @if (sup.contactNom) {
+                    <span class="supplier-contact">{{ sup.contactNom }}</span>
+                  }
+                </div>
+                <span class="active-pill" [class.inactive]="!sup.actif">
+                  {{ (sup.actif ? 'COMMON.ACTIVE' : 'COMMON.INACTIVE') | transloco }}
+                </span>
+              </div>
+
+              <div class="supplier-card-body">
+                @if (sup.email) {
+                  <div class="sup-detail">
+                    <span class="sup-label">{{ 'SUPPLIERS.EMAIL' | transloco }}:</span>
+                    <a [href]="'mailto:' + sup.email" class="sup-val">{{ sup.email }}</a>
+                  </div>
+                }
+                @if (sup.telephone) {
+                  <div class="sup-detail">
+                    <span class="sup-label">{{ 'SUPPLIERS.PHONE' | transloco }}:</span>
+                    <a [href]="'tel:' + sup.telephone" class="sup-val">{{ sup.telephone }}</a>
+                  </div>
+                }
+                @if (sup.ville) {
+                  <div class="sup-detail">
+                    <span class="sup-label">{{ 'SUPPLIERS.LOCATION' | transloco }}:</span>
+                    <span class="sup-val">{{ sup.codePostal }} {{ sup.ville }}</span>
+                  </div>
+                }
+                @if (sup.siret) {
+                  <div class="sup-detail">
+                    <span class="sup-label">{{ 'SUPPLIERS.SIRET' | transloco }}:</span>
+                    <span class="sup-val">{{ sup.siret }}</span>
+                  </div>
+                }
+              </div>
+
+              <div class="supplier-card-footer">
+                <button
+                  type="button"
+                  class="card-btn btn-edit"
+                  (click)="openEditSupplierModal(sup)"
+                  [attr.data-testid]="'supplier-edit-btn-' + sup.id"
+                >
+                  <ion-icon name="create-outline"></ion-icon>
+                  <span>{{ 'COMMON.EDIT' | transloco }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="card-btn btn-delete"
+                  (click)="confirmDeleteSupplier(sup)"
+                  [attr.data-testid]="'supplier-delete-btn-' + sup.id"
+                >
+                  <ion-icon name="trash-outline"></ion-icon>
+                  <span>{{ 'COMMON.DELETE' | transloco }}</span>
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      } @else {
+        <app-empty-state
+          icon="business-outline"
+          [title]="'SUPPLIERS.EMPTY_TITLE' | transloco"
+          [subtitle]="'SUPPLIERS.EMPTY_DESC' | transloco"
+          [actionLabel]="'SUPPLIERS.NEW_SUPPLIER_BTN' | transloco"
+          (actionClick)="openCreateSupplierModal()"
+          testId="empty-suppliers"
+        ></app-empty-state>
+      }
+    </section>
+  }
+
+  <!-- Tab Content: PAMP & Costs -->
+  @if (activeTab() === 'pamp') {
+    <section class="tab-content" data-testid="pamp-section">
+      <div class="search-bar-row">
+        <div class="search-input-wrap">
+          <label for="pamp-search-input-field" class="visually-hidden">{{ 'PURCHASES.SEARCH_INGREDIENTS_PLACEHOLDER' | transloco }}</label>
+          <ion-icon name="search-outline"></ion-icon>
+          <input
+            id="pamp-search-input-field"
+            type="text"
+            class="search-input"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            [placeholder]="'PURCHASES.SEARCH_INGREDIENTS_PLACEHOLDER' | transloco"
+            data-testid="pamp-search-input"
+          />
+        </div>
+      </div>
+
+      <div class="pamp-table-wrapper">
+        <table class="pamp-table" data-testid="pamp-table">
+          <thead>
+            <tr>
+              <th>{{ 'PURCHASES.INGREDIENT' | transloco }}</th>
+              <th>{{ 'PURCHASES.BARCODE' | transloco }}</th>
+              <th>{{ 'PURCHASES.STOCK' | transloco }}</th>
+              <th>{{ 'PURCHASES.PAMP_UNIT_COST' | transloco }}</th>
+              <th>{{ 'PURCHASES.DEFAULT_SUPPLIER' | transloco }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (ing of filteredIngredients(); track ing.id) {
+              <tr [attr.data-testid]="'pamp-row-' + ing.id">
+                <td class="td-name">
+                  <strong>{{ ing.nom }}</strong>
+                </td>
+                <td class="td-barcode">
+                  @if (ing.codeBarre) {
+                    <span class="barcode-pill">{{ ing.codeBarre }}</span>
+                  } @else {
+                    <span class="text-muted">-</span>
+                  }
+                </td>
+                <td>{{ ing.quantiteStock }} {{ ing.uniteMesure }}</td>
+                <td class="td-cost">
+                  <strong>{{ (ing.unitCost || ing.prixUnitaire || 0) | number:'1.2-2' }} €</strong>
+                </td>
+                <td>
+                  {{ ing.defaultSupplierNom || ing.fournisseur || '-' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+</div>

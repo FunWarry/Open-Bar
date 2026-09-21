@@ -21,6 +21,7 @@ const DEFAULT_MODULES: EstablishmentModules = {
   cashDrawer: true,
   barTabs: true,
   cocktailLibrary: true,
+  suppliersManagement: true,
 };
 
 /**

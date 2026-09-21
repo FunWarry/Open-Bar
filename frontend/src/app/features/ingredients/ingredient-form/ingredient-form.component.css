@@ -45,6 +45,38 @@ ion-title {
   margin: 2px 0 0 0;
 }
 
+.barcode-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.barcode-input-row app-input-field {
+  flex: 1;
+}
+
+.btn-scan-action {
+  height: 42px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(79, 70, 229, 0.12);
+  border: 1px solid rgba(79, 70, 229, 0.35);
+  border-radius: var(--radius-md, 8px);
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+
+.btn-scan-action:hover {
+  background: rgba(79, 70, 229, 0.22);
+}
+
 /* Dietary Preference (Vegan) */
 .dietary-field-group {
   display: flex;
