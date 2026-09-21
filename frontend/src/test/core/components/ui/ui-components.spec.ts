@@ -104,6 +104,67 @@ describe('Shared UI Components (Figma Design System)', () => {
       component.setDisabledState(true);
       expect(component.disabled).toBeTrue();
     });
+
+    it('generates unique accessible inputId', () => {
+      expect(component.inputId).toMatch(/^app-input-field-\d+$/);
+    });
+
+    it('handles numeric clamping with min and max on input and blur', () => {
+      component.type = 'number';
+      component.min = 5;
+      component.max = 20;
+
+      const mockTarget: any = { value: '2' };
+      component.onInput({ target: mockTarget } as any);
+      expect(component.value).toBe(5);
+      expect(mockTarget.value).toBe('5');
+
+      mockTarget.value = '25';
+      component.onInput({ target: mockTarget } as any);
+      expect(component.value).toBe(20);
+      expect(mockTarget.value).toBe('20');
+
+      mockTarget.value = '15';
+      component.onInput({ target: mockTarget } as any);
+      expect(component.value).toBe(15);
+      expect(mockTarget.value).toBe('15');
+
+      // Blur clamping with nativeInput sync
+      component.value = 50;
+      component.onBlur();
+      expect(component.value).toBe(20);
+
+      // Non-numeric or empty edge cases
+      mockTarget.value = '';
+      component.onInput({ target: mockTarget } as any);
+      expect(component.value).toBe('');
+
+      mockTarget.value = 'not-a-number';
+      component.onInput({ target: mockTarget } as any);
+      expect(component.value).toBe('not-a-number');
+    });
+
+    it('preserves values as-is when input type is not number', () => {
+      component.type = 'text';
+      component.min = 5;
+      component.max = 10;
+
+      const mockTarget: any = { value: '100' };
+      component.onInput({ target: mockTarget } as any);
+      expect(component.value).toBe('100');
+    });
+
+    it('syncs native input element value on writeValue', () => {
+      const mockInput = document.createElement('input');
+      component.nativeInput = { nativeElement: mockInput } as any;
+
+      component.writeValue('Direct Write');
+      expect(component.value).toBe('Direct Write');
+      expect(mockInput.value).toBe('Direct Write');
+
+      component.writeValue(null);
+      expect(mockInput.value).toBe('');
+    });
   });
 
   describe('PasswordInputComponent', () => {

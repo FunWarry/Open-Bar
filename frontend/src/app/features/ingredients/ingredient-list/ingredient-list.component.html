@@ -160,6 +160,87 @@
     </div>
     } @else {
       @if (filteredIngredients.length > 0) {
+        <!-- Shared Stock Card Template -->
+        <ng-template #stockCard let-ingredient>
+          <ion-card class="stock-card" [class.in-alert]="isEnAlerte(ingredient)"
+            (click)="openIngredientModal(ingredient)" (keydown.enter)="openIngredientModal(ingredient)" tabindex="0"
+            role="button" [attr.aria-label]="ingredient.nom" [attr.data-testid]="'ingredient-card-' + ingredient.id">
+            <ion-card-header class="card-header-compact">
+              <div class="card-title-row">
+                <h3 class="ingredient-name" [title]="ingredient.nom">{{ ingredient.nom }}</h3>
+                <ion-badge [color]="getStockColor(ingredient)" class="stock-badge">
+                  @if (ingredient.quantiteStock <= 0) { {{ 'STOCK.OUT_OF_STOCK' | transloco }} } @else if
+                    (isEnAlerte(ingredient)) { {{ 'STOCK.LOW_STOCK' | transloco }} } @else { {{ 'STOCK.NORMAL_STOCK' |
+                    transloco }} } </ion-badge>
+              </div>
+            </ion-card-header>
+
+            <ion-card-content>
+              <!-- Stock Progress Gauge -->
+              <div class="gauge-section">
+                <div class="gauge-labels">
+                  <span class="stock-qty-text">{{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }}</span>
+                  <span class="threshold-text">{{ 'INGREDIENTS.SEUIL_ALERTE' | transloco }}: {{ ingredient.seuilAlerte
+                    }} {{ ingredient.uniteMesure }}</span>
+                </div>
+                <ion-progress-bar [value]="getStockRatio(ingredient)" [color]="getStockColor(ingredient)"
+                  class="stock-progress-bar">
+                </ion-progress-bar>
+              </div>
+
+              <!-- Quick Stock Adjust Controls (-10 / -1 / +1 / +10) -->
+              @if (canEdit$ | async) {
+              <div class="quick-adjust-bar">
+                <ion-button fill="clear" size="small" color="danger" class="delta-btn"
+                  (click)="$event.stopPropagation(); adjustStock(ingredient, -10)"
+                  (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, -10)"
+                  [disabled]="ingredient.quantiteStock <= 0" title="-10" data-testid="stock-adjust-minus10-btn">
+                  -10
+                </ion-button>
+                <ion-button fill="outline" size="small" color="danger" class="step-btn"
+                  (click)="$event.stopPropagation(); adjustStock(ingredient, -1)"
+                  (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, -1)"
+                  [disabled]="ingredient.quantiteStock <= 0" title="-1" data-testid="stock-adjust-minus-btn">
+                  <ion-icon name="remove-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+                <ion-button fill="outline" size="small" color="success" class="step-btn"
+                  (click)="$event.stopPropagation(); adjustStock(ingredient, 1)"
+                  (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, 1)" title="+1"
+                  data-testid="stock-adjust-plus-btn">
+                  <ion-icon name="add-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" size="small" color="tertiary" class="delta-btn"
+                  (click)="$event.stopPropagation(); adjustStock(ingredient, 10)"
+                  (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, 10)" title="+10"
+                  data-testid="stock-adjust-plus10-btn">
+                  +10
+                </ion-button>
+              </div>
+              }
+
+              <!-- Footer Action Buttons -->
+              <div class="card-footer-actions">
+                <ion-button fill="clear" color="warning" size="small" class="waste-btn"
+                  (click)="$event.stopPropagation(); openWasteModal(ingredient)"
+                  (keyup.enter)="$event.stopPropagation(); openWasteModal(ingredient)"
+                  [title]="'STOCK.WASTE_RECORD_BTN' | transloco"
+                  [attr.data-testid]="'ingredient-waste-btn-' + ingredient.id">
+                  <ion-icon slot="start" name="alert-circle-outline"></ion-icon>
+                  <span>{{ 'STOCK.WASTE_RECORD_BTN' | transloco }}</span>
+                </ion-button>
+                @if (isAdmin$ | async) {
+                <ion-button fill="clear" color="danger" size="small" class="delete-btn"
+                  (click)="$event.stopPropagation(); onDelete(ingredient)"
+                  (keyup.enter)="$event.stopPropagation(); onDelete(ingredient)" data-testid="ingredient-delete-btn">
+                  <ion-icon slot="start" name="trash-outline"></ion-icon>
+                  <span>{{ 'COMMON.DELETE' | transloco }}</span>
+                </ion-button>
+                }
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </ng-template>
+
         <!-- Mode 1: Catégorie (Groupé par catégorie avec en-têtes et séparateurs) -->
         @if (viewMode === 'category') {
           <div class="category-sections-wrapper" data-testid="category-sections-wrapper">
@@ -182,83 +263,7 @@
                   <ion-row>
                     @for (ingredient of group.items; track ingredient.id) {
                     <ion-col size="12" size-sm="6" size-md="6" size-lg="4" size-xl="3">
-                      <ion-card class="stock-card" [class.in-alert]="isEnAlerte(ingredient)"
-                        (click)="openIngredientModal(ingredient)" (keydown.enter)="openIngredientModal(ingredient)" tabindex="0"
-                        role="button" [attr.aria-label]="ingredient.nom" [attr.data-testid]="'ingredient-card-' + ingredient.id">
-                        <ion-card-header class="card-header-compact">
-                          <div class="card-title-row">
-                            <h3 class="ingredient-name" [title]="ingredient.nom">{{ ingredient.nom }}</h3>
-                            <ion-badge [color]="getStockColor(ingredient)" class="stock-badge">
-                              @if (ingredient.quantiteStock <= 0) { {{ 'STOCK.OUT_OF_STOCK' | transloco }} } @else if
-                                (isEnAlerte(ingredient)) { {{ 'STOCK.LOW_STOCK' | transloco }} } @else { {{ 'STOCK.NORMAL_STOCK' |
-                                transloco }} } </ion-badge>
-                          </div>
-                        </ion-card-header>
-
-                        <ion-card-content>
-                          <!-- Stock Progress Gauge -->
-                          <div class="gauge-section">
-                            <div class="gauge-labels">
-                              <span class="stock-qty-text">{{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }}</span>
-                              <span class="threshold-text">{{ 'INGREDIENTS.SEUIL_ALERTE' | transloco }}: {{ ingredient.seuilAlerte
-                                }} {{ ingredient.uniteMesure }}</span>
-                            </div>
-                            <ion-progress-bar [value]="getStockRatio(ingredient)" [color]="getStockColor(ingredient)"
-                              class="stock-progress-bar">
-                            </ion-progress-bar>
-                          </div>
-
-                          <!-- Quick Stock Adjust Controls (-10 / -1 / +1 / +10) -->
-                          @if (canEdit$ | async) {
-                          <div class="quick-adjust-bar">
-                            <ion-button fill="clear" size="small" color="danger" class="delta-btn"
-                              (click)="$event.stopPropagation(); adjustStock(ingredient, -10)"
-                              (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, -10)"
-                              [disabled]="ingredient.quantiteStock <= 0" title="-10" data-testid="stock-adjust-minus10-btn">
-                              -10
-                            </ion-button>
-                            <ion-button fill="outline" size="small" color="danger" class="step-btn"
-                              (click)="$event.stopPropagation(); adjustStock(ingredient, -1)"
-                              (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, -1)"
-                              [disabled]="ingredient.quantiteStock <= 0" title="-1" data-testid="stock-adjust-minus-btn">
-                              <ion-icon name="remove-outline" slot="icon-only"></ion-icon>
-                            </ion-button>
-                            <ion-button fill="outline" size="small" color="success" class="step-btn"
-                              (click)="$event.stopPropagation(); adjustStock(ingredient, 1)"
-                              (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, 1)" title="+1"
-                              data-testid="stock-adjust-plus-btn">
-                              <ion-icon name="add-outline" slot="icon-only"></ion-icon>
-                            </ion-button>
-                            <ion-button fill="clear" size="small" color="tertiary" class="delta-btn"
-                              (click)="$event.stopPropagation(); adjustStock(ingredient, 10)"
-                              (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, 10)" title="+10"
-                              data-testid="stock-adjust-plus10-btn">
-                              +10
-                            </ion-button>
-                          </div>
-                          }
-
-                          <!-- Footer Action Buttons -->
-                          <div class="card-footer-actions">
-                            <ion-button fill="clear" color="warning" size="small" class="waste-btn"
-                              (click)="$event.stopPropagation(); openWasteModal(ingredient)"
-                              (keyup.enter)="$event.stopPropagation(); openWasteModal(ingredient)"
-                              [title]="'STOCK.WASTE_RECORD_BTN' | transloco"
-                              [attr.data-testid]="'ingredient-waste-btn-' + ingredient.id">
-                              <ion-icon slot="start" name="alert-circle-outline"></ion-icon>
-                              <span>{{ 'STOCK.WASTE_RECORD_BTN' | transloco }}</span>
-                            </ion-button>
-                            @if (isAdmin$ | async) {
-                            <ion-button fill="clear" color="danger" size="small" class="delete-btn"
-                              (click)="$event.stopPropagation(); onDelete(ingredient)"
-                              (keyup.enter)="$event.stopPropagation(); onDelete(ingredient)" data-testid="ingredient-delete-btn">
-                              <ion-icon slot="start" name="trash-outline"></ion-icon>
-                              <span>{{ 'COMMON.DELETE' | transloco }}</span>
-                            </ion-button>
-                            }
-                          </div>
-                        </ion-card-content>
-                      </ion-card>
+                      <ng-container *ngTemplateOutlet="stockCard; context: { $implicit: ingredient }"></ng-container>
                     </ion-col>
                     }
                   </ion-row>
@@ -290,83 +295,7 @@
               <ion-row>
                 @for (ingredient of paginatedGridIngredients; track ingredient.id) {
                 <ion-col size="12" size-sm="6" size-md="6" size-lg="4" size-xl="3">
-                  <ion-card class="stock-card" [class.in-alert]="isEnAlerte(ingredient)"
-                    (click)="openIngredientModal(ingredient)" (keydown.enter)="openIngredientModal(ingredient)" tabindex="0"
-                    role="button" [attr.aria-label]="ingredient.nom" [attr.data-testid]="'ingredient-card-' + ingredient.id">
-                    <ion-card-header class="card-header-compact">
-                      <div class="card-title-row">
-                        <h3 class="ingredient-name" [title]="ingredient.nom">{{ ingredient.nom }}</h3>
-                        <ion-badge [color]="getStockColor(ingredient)" class="stock-badge">
-                          @if (ingredient.quantiteStock <= 0) { {{ 'STOCK.OUT_OF_STOCK' | transloco }} } @else if
-                            (isEnAlerte(ingredient)) { {{ 'STOCK.LOW_STOCK' | transloco }} } @else { {{ 'STOCK.NORMAL_STOCK' |
-                            transloco }} } </ion-badge>
-                      </div>
-                    </ion-card-header>
-
-                    <ion-card-content>
-                      <!-- Stock Progress Gauge -->
-                      <div class="gauge-section">
-                        <div class="gauge-labels">
-                          <span class="stock-qty-text">{{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }}</span>
-                          <span class="threshold-text">{{ 'INGREDIENTS.SEUIL_ALERTE' | transloco }}: {{ ingredient.seuilAlerte
-                            }} {{ ingredient.uniteMesure }}</span>
-                        </div>
-                        <ion-progress-bar [value]="getStockRatio(ingredient)" [color]="getStockColor(ingredient)"
-                          class="stock-progress-bar">
-                        </ion-progress-bar>
-                      </div>
-
-                      <!-- Quick Stock Adjust Controls (-10 / -1 / +1 / +10) -->
-                      @if (canEdit$ | async) {
-                      <div class="quick-adjust-bar">
-                        <ion-button fill="clear" size="small" color="danger" class="delta-btn"
-                          (click)="$event.stopPropagation(); adjustStock(ingredient, -10)"
-                          (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, -10)"
-                          [disabled]="ingredient.quantiteStock <= 0" title="-10" data-testid="stock-adjust-minus10-btn">
-                          -10
-                        </ion-button>
-                        <ion-button fill="outline" size="small" color="danger" class="step-btn"
-                          (click)="$event.stopPropagation(); adjustStock(ingredient, -1)"
-                          (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, -1)"
-                          [disabled]="ingredient.quantiteStock <= 0" title="-1" data-testid="stock-adjust-minus-btn">
-                          <ion-icon name="remove-outline" slot="icon-only"></ion-icon>
-                        </ion-button>
-                        <ion-button fill="outline" size="small" color="success" class="step-btn"
-                          (click)="$event.stopPropagation(); adjustStock(ingredient, 1)"
-                          (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, 1)" title="+1"
-                          data-testid="stock-adjust-plus-btn">
-                          <ion-icon name="add-outline" slot="icon-only"></ion-icon>
-                        </ion-button>
-                        <ion-button fill="clear" size="small" color="tertiary" class="delta-btn"
-                          (click)="$event.stopPropagation(); adjustStock(ingredient, 10)"
-                          (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, 10)" title="+10"
-                          data-testid="stock-adjust-plus10-btn">
-                          +10
-                        </ion-button>
-                      </div>
-                      }
-
-                      <!-- Footer Action Buttons -->
-                      <div class="card-footer-actions">
-                        <ion-button fill="clear" color="warning" size="small" class="waste-btn"
-                          (click)="$event.stopPropagation(); openWasteModal(ingredient)"
-                          (keyup.enter)="$event.stopPropagation(); openWasteModal(ingredient)"
-                          [title]="'STOCK.WASTE_RECORD_BTN' | transloco"
-                          [attr.data-testid]="'ingredient-waste-btn-' + ingredient.id">
-                          <ion-icon slot="start" name="alert-circle-outline"></ion-icon>
-                          <span>{{ 'STOCK.WASTE_RECORD_BTN' | transloco }}</span>
-                        </ion-button>
-                        @if (isAdmin$ | async) {
-                        <ion-button fill="clear" color="danger" size="small" class="delete-btn"
-                          (click)="$event.stopPropagation(); onDelete(ingredient)"
-                          (keyup.enter)="$event.stopPropagation(); onDelete(ingredient)" data-testid="ingredient-delete-btn">
-                          <ion-icon slot="start" name="trash-outline"></ion-icon>
-                          <span>{{ 'COMMON.DELETE' | transloco }}</span>
-                        </ion-button>
-                        }
-                      </div>
-                    </ion-card-content>
-                  </ion-card>
+                  <ng-container *ngTemplateOutlet="stockCard; context: { $implicit: ingredient }"></ng-container>
                 </ion-col>
                 }
               </ion-row>

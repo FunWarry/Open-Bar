@@ -113,4 +113,46 @@ describe('CocktailLibraryService', () => {
     expect(req.request.body).toEqual(importPayload);
     req.flush(mockResult);
   });
+
+  it('should fetch and cache connection wheel data from assets', () => {
+    const mockWheelData: any = {
+      nodes: [{ id: 'ing_1', name: 'Rhum' }],
+      edges: [{ source: 'ing_1', target: 'ing_2', weight: 5 }],
+      categories: ['dark_liquor']
+    };
+
+    let result1: any;
+    let result2: any;
+
+    service.getWheelData().subscribe(data => result1 = data);
+    service.getWheelData().subscribe(data => result2 = data);
+
+    const req = httpMock.expectOne('assets/data/cocktail-connection-wheel.json');
+    expect(req.request.method).toBe('GET');
+    req.flush(mockWheelData);
+
+    expect(result1).toEqual(mockWheelData);
+    expect(result2).toEqual(mockWheelData);
+    httpMock.expectNone(`${baseUrl}/wheel`);
+  });
+
+  it('should fall back to backend API if connection wheel asset request fails', () => {
+    const mockWheelData: any = {
+      nodes: [{ id: 'ing_fallback', name: 'Gin' }],
+      edges: [],
+      categories: ['light_liquor']
+    };
+
+    let fallbackResult: any;
+    service.getWheelData().subscribe(data => fallbackResult = data);
+
+    const assetReq = httpMock.expectOne('assets/data/cocktail-connection-wheel.json');
+    assetReq.flush('Not Found', { status: 404, statusText: 'Not Found' });
+
+    const apiReq = httpMock.expectOne(`${baseUrl}/wheel`);
+    expect(apiReq.request.method).toBe('GET');
+    apiReq.flush(mockWheelData);
+
+    expect(fallbackResult).toEqual(mockWheelData);
+  });
 });

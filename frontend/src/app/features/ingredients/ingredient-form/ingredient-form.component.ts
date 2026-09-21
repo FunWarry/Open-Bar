@@ -36,7 +36,13 @@ import {
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IngredientService } from '../../../core/services/ingredient.service';
-import { Ingredient, Allergen, DEFAULT_ALLERGEN_OPTIONS } from '../../../core/models/ingredient.model';
+import {
+  Ingredient,
+  Allergen,
+  DEFAULT_ALLERGEN_OPTIONS,
+  INGREDIENT_UNIT_CONFIG,
+  INGREDIENT_CATEGORY_CONFIG
+} from '../../../core/models/ingredient.model';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import {
   SearchableSelectComponent,
@@ -79,203 +85,23 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
 
   /** Standard unit options with localized labels, sublabels, badges and mixology icons. */
   get unitOptions(): SearchableOption<string>[] {
-    return [
-      // Volumes liquides
-      {
-        value: 'cl',
-        label: this.transloco.translate('INGREDIENTS.UNITS.CL.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.CL.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.CL.BADGE'),
-        badgeType: 'primary',
-        icon: 'scale-outline'
-      },
-      {
-        value: 'ml',
-        label: this.transloco.translate('INGREDIENTS.UNITS.ML.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.ML.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.ML.BADGE'),
-        badgeType: 'primary',
-        icon: 'scale-outline'
-      },
-      {
-        value: 'L',
-        label: this.transloco.translate('INGREDIENTS.UNITS.L.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.L.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.L.BADGE'),
-        badgeType: 'primary',
-        icon: 'wine-outline'
-      },
-      {
-        value: 'dash',
-        label: this.transloco.translate('INGREDIENTS.UNITS.DASH.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.DASH.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.DASH.BADGE'),
-        badgeType: 'warning',
-        icon: 'color-fill-outline'
-      },
-      {
-        value: 'goutte',
-        label: this.transloco.translate('INGREDIENTS.UNITS.GOUTTE.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.GOUTTE.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.GOUTTE.BADGE'),
-        badgeType: 'primary',
-        icon: 'water-outline'
-      },
-      {
-        value: 'cuillère',
-        label: this.transloco.translate('INGREDIENTS.UNITS.CUILLERE.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.CUILLERE.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.CUILLERE.BADGE'),
-        badgeType: 'neutral',
-        icon: 'sparkles-outline'
-      },
-      {
-        value: 'dose',
-        label: this.transloco.translate('INGREDIENTS.UNITS.DOSE.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.DOSE.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.DOSE.BADGE'),
-        badgeType: 'primary',
-        icon: 'wine-outline'
-      },
-      // Masses solides
-      {
-        value: 'g',
-        label: this.transloco.translate('INGREDIENTS.UNITS.G.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.G.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.G.BADGE'),
-        badgeType: 'warning',
-        icon: 'scale-outline'
-      },
-      {
-        value: 'kg',
-        label: this.transloco.translate('INGREDIENTS.UNITS.KG.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.KG.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.KG.BADGE'),
-        badgeType: 'warning',
-        icon: 'scale-outline'
-      },
-      {
-        value: 'pincée',
-        label: this.transloco.translate('INGREDIENTS.UNITS.PINCEE.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.PINCEE.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.PINCEE.BADGE'),
-        badgeType: 'warning',
-        icon: 'sparkles-outline'
-      },
-      // Unités, découpes & contenants
-      {
-        value: 'pièce',
-        label: this.transloco.translate('INGREDIENTS.UNITS.PIECE.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.PIECE.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.PIECE.BADGE'),
-        badgeType: 'success',
-        icon: 'cube-outline'
-      },
-      {
-        value: 'morceau',
-        label: this.transloco.translate('INGREDIENTS.UNITS.MORCEAU.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.MORCEAU.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.MORCEAU.BADGE'),
-        badgeType: 'success',
-        icon: 'nutrition-outline'
-      },
-      {
-        value: 'tranche',
-        label: this.transloco.translate('INGREDIENTS.UNITS.TRANCHE.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.TRANCHE.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.TRANCHE.BADGE'),
-        badgeType: 'success',
-        icon: 'nutrition-outline'
-      },
-      {
-        value: 'zeste',
-        label: this.transloco.translate('INGREDIENTS.UNITS.ZESTE.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.ZESTE.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.ZESTE.BADGE'),
-        badgeType: 'success',
-        icon: 'leaf-outline'
-      },
-      {
-        value: 'feuille',
-        label: this.transloco.translate('INGREDIENTS.UNITS.FEUILLE.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.FEUILLE.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.FEUILLE.BADGE'),
-        badgeType: 'success',
-        icon: 'leaf-outline'
-      },
-      {
-        value: 'bouteille',
-        label: this.transloco.translate('INGREDIENTS.UNITS.BOUTEILLE.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.BOUTEILLE.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.BOUTEILLE.BADGE'),
-        badgeType: 'neutral',
-        icon: 'wine-outline'
-      },
-      {
-        value: 'portion',
-        label: this.transloco.translate('INGREDIENTS.UNITS.PORTION.LABEL'),
-        subLabel: this.transloco.translate('INGREDIENTS.UNITS.PORTION.SUBLABEL'),
-        badge: this.transloco.translate('INGREDIENTS.UNITS.PORTION.BADGE'),
-        badgeType: 'neutral',
-        icon: 'cube-outline'
-      }
-    ];
+    return INGREDIENT_UNIT_CONFIG.map(u => ({
+      value: u.value,
+      label: this.transloco.translate(`INGREDIENTS.UNITS.${u.key}.LABEL`),
+      subLabel: this.transloco.translate(`INGREDIENTS.UNITS.${u.key}.SUBLABEL`),
+      badge: this.transloco.translate(`INGREDIENTS.UNITS.${u.key}.BADGE`),
+      badgeType: u.badgeType,
+      icon: u.icon
+    }));
   }
 
   /** Predefined mixology category options with Transloco translation keys and icons. */
   get categoryOptions(): SearchableOption<string>[] {
-    return [
-      {
-        value: 'dark_liquor',
-        label: this.transloco.translate('SUNBURST.FAMILIES.DARK_LIQUOR'),
-        icon: 'wine-outline'
-      },
-      {
-        value: 'light_liquor',
-        label: this.transloco.translate('SUNBURST.FAMILIES.LIGHT_LIQUOR'),
-        icon: 'flask-outline'
-      },
-      {
-        value: 'liqueurs',
-        label: this.transloco.translate('SUNBURST.FAMILIES.LIQUEURS'),
-        icon: 'color-fill-outline'
-      },
-      {
-        value: 'wine_beer',
-        label: this.transloco.translate('SUNBURST.FAMILIES.WINE_BEER'),
-        icon: 'beer-outline'
-      },
-      {
-        value: 'juices',
-        label: this.transloco.translate('SUNBURST.FAMILIES.JUICES'),
-        icon: 'water-outline'
-      },
-      {
-        value: 'mixers',
-        label: this.transloco.translate('SUNBURST.FAMILIES.MIXERS'),
-        icon: 'sparkles-outline'
-      },
-      {
-        value: 'fruits',
-        label: this.transloco.translate('SUNBURST.FAMILIES.FRUITS'),
-        icon: 'nutrition-outline'
-      },
-      {
-        value: 'herbs',
-        label: this.transloco.translate('SUNBURST.FAMILIES.HERBS'),
-        icon: 'leaf-outline'
-      },
-      {
-        value: 'bitters',
-        label: this.transloco.translate('SUNBURST.FAMILIES.BITTERS'),
-        icon: 'flask-outline'
-      },
-      {
-        value: 'other',
-        label: this.transloco.translate('SUNBURST.FAMILIES.OTHER'),
-        icon: 'cube-outline'
-      }
-    ];
+    return INGREDIENT_CATEGORY_CONFIG.map(cat => ({
+      value: cat.key,
+      label: this.transloco.translate(cat.labelKey),
+      icon: cat.icon
+    }));
   }
 
   readonly availableAllergens = DEFAULT_ALLERGEN_OPTIONS;

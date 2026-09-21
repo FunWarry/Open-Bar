@@ -57,6 +57,33 @@ export const INGREDIENT_UNITS = [
 
 export type IngredientUnit = (typeof INGREDIENT_UNITS)[number];
 
+export interface IngredientUnitDescriptor {
+  value: string;
+  key: string;
+  badgeType: 'primary' | 'success' | 'warning' | 'neutral';
+  icon: string;
+}
+
+export const INGREDIENT_UNIT_CONFIG: readonly IngredientUnitDescriptor[] = [
+  { value: 'cl', key: 'CL', badgeType: 'primary', icon: 'scale-outline' },
+  { value: 'ml', key: 'ML', badgeType: 'primary', icon: 'scale-outline' },
+  { value: 'L', key: 'L', badgeType: 'primary', icon: 'wine-outline' },
+  { value: 'dash', key: 'DASH', badgeType: 'warning', icon: 'color-fill-outline' },
+  { value: 'goutte', key: 'GOUTTE', badgeType: 'primary', icon: 'water-outline' },
+  { value: 'cuillère', key: 'CUILLERE', badgeType: 'neutral', icon: 'sparkles-outline' },
+  { value: 'dose', key: 'DOSE', badgeType: 'primary', icon: 'wine-outline' },
+  { value: 'g', key: 'G', badgeType: 'warning', icon: 'scale-outline' },
+  { value: 'kg', key: 'KG', badgeType: 'warning', icon: 'scale-outline' },
+  { value: 'pincée', key: 'PINCEE', badgeType: 'warning', icon: 'sparkles-outline' },
+  { value: 'pièce', key: 'PIECE', badgeType: 'success', icon: 'cube-outline' },
+  { value: 'morceau', key: 'MORCEAU', badgeType: 'success', icon: 'nutrition-outline' },
+  { value: 'tranche', key: 'TRANCHE', badgeType: 'success', icon: 'nutrition-outline' },
+  { value: 'zeste', key: 'ZESTE', badgeType: 'success', icon: 'leaf-outline' },
+  { value: 'feuille', key: 'FEUILLE', badgeType: 'success', icon: 'leaf-outline' },
+  { value: 'bouteille', key: 'BOUTEILLE', badgeType: 'neutral', icon: 'wine-outline' },
+  { value: 'portion', key: 'PORTION', badgeType: 'neutral', icon: 'cube-outline' },
+] as const;
+
 /**
  * Standard mixology ingredient category classification.
  */

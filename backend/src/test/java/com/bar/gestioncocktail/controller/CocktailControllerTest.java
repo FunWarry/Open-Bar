@@ -39,6 +39,9 @@ class CocktailControllerTest {
     @Mock
     private com.bar.gestioncocktail.service.MarginCalculationService marginCalculationService;
 
+    @Mock
+    private com.bar.gestioncocktail.service.CocktailLibraryService cocktailLibraryService;
+
     @InjectMocks
     private CocktailController cocktailController;
 
@@ -270,6 +273,70 @@ class CocktailControllerTest {
         assertThat(response.getBody()).hasSize(1);
         assertThat(response.getBody().get(0).disponible()).isFalse();
         verify(cocktailService).setDisponibiliteBatch(List.of(1L), false);
+    }
+
+    @Test
+    @DisplayName("getLibraryCocktails - retrieves filtered library recipes")
+    void getLibraryCocktails_success() {
+        com.bar.gestioncocktail.dto.CocktailLibraryItemDTO item = new com.bar.gestioncocktail.dto.CocktailLibraryItemDTO(
+                "lib_1", "Old Fashioned", "Classic bourbon cocktail", "ALCOOLISE", "IBA_CLASSICS", "BOURBON",
+                true, new BigDecimal("10.00"), new BigDecimal("32.0"), false, true, true,
+                "Old Fashioned", "assets/images/verres/verre_old_fashioned.png", "assets/images/verres/verre_old_fashioned.png",
+                List.of("BITTER", "SWEET"), List.of(), 90, List.of("whiskey"), List.of(), List.of(), "Stir with ice",
+                85, true, null, null
+        );
+        when(cocktailLibraryService.getLibrary(null, null, null, null, null)).thenReturn(List.of(item));
+
+        ResponseEntity<List<com.bar.gestioncocktail.dto.CocktailLibraryItemDTO>> response =
+                cocktailController.getLibraryCocktails(null, null, null, null, null);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).nom()).isEqualTo("Old Fashioned");
+    }
+
+    @Test
+    @DisplayName("getLibraryWheel - retrieves precomputed connection wheel graph data")
+    void getLibraryWheel_success() {
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        com.fasterxml.jackson.databind.node.ObjectNode node = mapper.createObjectNode();
+        node.put("status", "ok");
+        when(cocktailLibraryService.getWheelData()).thenReturn(node);
+
+        ResponseEntity<com.fasterxml.jackson.databind.JsonNode> response = cocktailController.getLibraryWheel();
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().get("status").asText()).isEqualTo("ok");
+    }
+
+    @Test
+    @DisplayName("importLibraryCocktails - imports selected library recipes into active catalog")
+    void importLibraryCocktails_success() {
+        com.bar.gestioncocktail.dto.CocktailLibraryImportRequestDTO req =
+                new com.bar.gestioncocktail.dto.CocktailLibraryImportRequestDTO(List.of("lib_1"), null);
+        com.bar.gestioncocktail.dto.CocktailLibraryImportResultDTO result =
+                new com.bar.gestioncocktail.dto.CocktailLibraryImportResultDTO(
+                        1, 0, 3, 1, List.of("Old Fashioned"), List.of(), "Imported successfully"
+                );
+        when(cocktailLibraryService.importCocktails(req)).thenReturn(result);
+
+        ResponseEntity<com.bar.gestioncocktail.dto.CocktailLibraryImportResultDTO> response =
+                cocktailController.importLibraryCocktails(req);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().importedCount()).isEqualTo(1);
+        assertThat(response.getBody().importedCocktails()).contains("Old Fashioned");
+    }
+
+    @Test
+    @DisplayName("reloadLibraryCatalog - reloads library templates from resource")
+    void reloadLibraryCatalog_success() {
+        ResponseEntity<Void> response = cocktailController.reloadLibraryCatalog();
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(cocktailLibraryService).loadLibrary();
     }
 }
 
