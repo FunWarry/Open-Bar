@@ -1,0 +1,81 @@
+@if (totalPages > 1 || showSummary || showPageSize) {
+  <nav
+    class="pagination-container"
+    [attr.aria-label]="'COMMON.PAGINATION.PAGE' | transloco"
+    [attr.data-testid]="testId + '-root'">
+
+    <!-- Summary range text -->
+    @if (showSummary && totalItems > 0) {
+      <div class="pagination-summary" [attr.data-testid]="testId + '-summary'">
+        <span>{{ summaryKey | transloco:{ start: startItem, end: endItem, total: totalItems } }}</span>
+      </div>
+    }
+
+    <!-- Pagination Navigation Controls -->
+    @if (totalPages > 1) {
+      <div class="pagination-controls" [attr.data-testid]="testId + '-controls'">
+        <!-- Previous Page Button -->
+        <button
+          type="button"
+          class="pagination-btn pagination-nav-btn"
+          [disabled]="currentPage <= 1"
+          (click)="onPrev()"
+          [attr.aria-label]="'COMMON.PAGINATION.PREV' | transloco"
+          [attr.data-testid]="testId + '-prev-btn'">
+          <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+          <span class="btn-label">{{ 'COMMON.PAGINATION.PREV' | transloco }}</span>
+        </button>
+
+        <!-- Numbered Page Pills -->
+        <div class="pagination-pages" [attr.data-testid]="testId + '-pages'">
+          @for (page of pages; track $index) {
+            @if (page > 0) {
+              <button
+                type="button"
+                class="pagination-btn pagination-page-btn"
+                [class.active]="currentPage === page"
+                [attr.aria-current]="currentPage === page ? 'page' : null"
+                (click)="onPage(page)"
+                [attr.data-testid]="testId + '-page-btn-' + page">
+                {{ page }}
+              </button>
+            } @else {
+              <span class="pagination-ellipsis" aria-hidden="true" [attr.data-testid]="testId + '-ellipsis'">…</span>
+            }
+          }
+        </div>
+
+        <!-- Next Page Button -->
+        <button
+          type="button"
+          class="pagination-btn pagination-nav-btn"
+          [disabled]="currentPage >= totalPages"
+          (click)="onNext()"
+          [attr.aria-label]="'COMMON.PAGINATION.NEXT' | transloco"
+          [attr.data-testid]="testId + '-next-btn'">
+          <span class="btn-label">{{ 'COMMON.PAGINATION.NEXT' | transloco }}</span>
+          <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+    }
+
+    <!-- Optional Page Size Switcher -->
+    @if (showPageSize && pageSizeOptions.length > 1) {
+      <div class="pagination-page-size" [attr.data-testid]="testId + '-page-size'">
+        <span class="size-label">{{ 'COMMON.PAGINATION.PER_PAGE' | transloco }} :</span>
+        <div class="size-pills">
+          @for (opt of pageSizeOptions; track opt) {
+            <button
+              type="button"
+              class="size-pill-btn"
+              [class.active]="pageSize === opt"
+              (click)="onPageSize(opt)"
+              [attr.data-testid]="testId + '-page-size-' + opt">
+              {{ opt }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </nav>
+}

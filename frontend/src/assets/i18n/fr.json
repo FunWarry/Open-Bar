@@ -41,7 +41,13 @@
     "INCREASE": "Augmenter",
     "RETRY": "Réessayer",
     "REQUIRED": "Champ requis",
-    "NO_RESULTS": "Aucun résultat trouvé"
+    "NO_RESULTS": "Aucun résultat trouvé",
+    "PAGINATION": {
+      "PREV": "Précédent",
+      "NEXT": "Suivant",
+      "SHOWING": "Affichage de {{ start }} à {{ end }} sur {{ total }}",
+      "PER_PAGE": "Par page"
+    }
   },
   "TABLE_CARD": {
     "STATUS_FREE": "Libre",
@@ -442,7 +448,8 @@
       "MANAGEMENT": "Gestion & Admin",
       "USER_PROFILE": "Profil utilisateur"
     },
-    "KITCHEN": "Écran Cuisine"
+    "KITCHEN": "Écran Cuisine",
+    "COCKTAIL_LIBRARY": "Bibliothèque & Recettes"
   },
   "PLAN_SALLE_PAGE": {
     "TITLE": "Plan de Salle",
@@ -1044,6 +1051,18 @@
     "NO_ALLERGENS": "Aucun allergène déclaré",
     "INGREDIENTS_TITLE": "Ingrédients & Dosages",
     "STEPS_TITLE": "Étapes de réalisation",
+    "ACTIONS": {
+      "AJOUTER_INGREDIENT": "Ajouter",
+      "GLACE": "Glace",
+      "SHAKER": "Shaker",
+      "MELANGER": "Mélanger",
+      "FILTRER": "Filtrer",
+      "TOP_UP": "Top-up / Compléter",
+      "VERSER": "Verser",
+      "PILER": "Piler",
+      "MIXER": "Mixer",
+      "GARNIR": "Garnir"
+    },
     "CARD_SELECTED": "Sélectionné pour import",
     "CARD_SELECT": "Sélectionner ce cocktail",
     "IBA_OFFICIAL": "IBA Officiel",
@@ -1069,7 +1088,101 @@
     "LOAD_ERROR": "Impossible de charger le catalogue de cocktails.",
     "STEP_NUMBER": "Étape {{step}}",
     "STEP": "Étape",
-    "IMPORT_BUTTON": "Bibliothèque de recettes"
+    "IMPORT_BUTTON": "Bibliothèque de recettes",
+    "TAB_CATALOG": "Catalogue complet",
+    "TAB_BUILDER": "Constructeur d'ingrédients",
+    "SHELF_TITLE": "Mon Bar & Ingrédients sélectionnés",
+    "SHELF_COUNT": "ingrédients dans le bar",
+    "USE_STOCK_BTN": "Utiliser mon stock actuel",
+    "CLEAR_SHELF_BTN": "Vider la sélection",
+    "SHELF_EMPTY_TITLE": "Votre bar est vide",
+    "SHELF_EMPTY_DESC": "Sélectionnez des ingrédients ou chargez votre stock actuel pour voir quels cocktails vous pouvez préparer immédiatement.",
+    "ADD_INGREDIENT_PLACEHOLDER": "Ajouter un ingrédient ou une bouteille...",
+    "RECOMMENDED_NEXT_TITLE": "Achat clé recommandé",
+    "RECOMMENDED_NEXT_DESC": "Ajoutez {{ingredient}} pour débloquer {{count}} nouveaux cocktails !",
+    "ADD_TO_SHELF_BTN": "Ajouter au bar",
+    "READY_TO_MAKE_TITLE": "Cocktails faisables immédiatement",
+    "ONE_AWAY_TITLE": "À 1 ingrédient près",
+    "TWO_AWAY_TITLE": "À 2 ingrédients près",
+    "MISSING_BADGE": "Manque : {{ingredient}}",
+    "MISSING_COUNT": "Manque {{count}} ingrédients",
+    "STOCK_LOADED_SUCCESS": "{{count}} ingrédients chargés depuis votre stock actuel !",
+    "NO_STOCK_FOUND": "Aucun ingrédient avec du stock positif trouvé dans votre inventaire.",
+    "SORT_LABEL": "Trier par",
+    "SORT_POPULARITY": "Les plus connus / Populaires",
+    "SORT_NAME_ASC": "Nom (A → Z)",
+    "SORT_NAME_DESC": "Nom (Z → A)",
+    "SORT_ALCOHOL_ASC": "Teneur en alcool croissante",
+    "SORT_ALCOHOL_DESC": "Teneur en alcool décroissante",
+    "SORT_ING_COUNT": "Nombre d'ingrédients croissant",
+    "SORT_PRICE_ASC": "Prix croissant",
+    "SORT_PRICE_DESC": "Prix décroissant",
+    "FILTER_POPULAR_ONLY": "Incontournables seulement",
+    "ADVANCED_FILTERS": "Filtres avancés",
+    "HIDE_FILTERS": "Masquer filtres",
+    "GLASSWARE_LABEL": "Verre & Contenant",
+    "GLASSWARE_ALL": "Tous les verres",
+    "ABV_LABEL": "Force / Alcool",
+    "ABV_ALL": "Tous",
+    "ABV_MOCKTAIL": "Sans alcool (0%)",
+    "ABV_LIGHT": "Léger (1-12%)",
+    "ABV_MEDIUM": "Modéré (13-22%)",
+    "ABV_STRONG": "Corsé (23%+)",
+    "COMPLEXITY_LABEL": "Complexité",
+    "COMPLEXITY_ALL": "Toutes",
+    "COMPLEXITY_EXPRESS": "Express (1-3 ing.)",
+    "COMPLEXITY_STANDARD": "Standard (4-5 ing.)",
+    "COMPLEXITY_COMPLEX": "Élaboré (6+ ing.)",
+    "VARIANT_LABEL": "Famille de variantes",
+    "VARIANT_ALL": "Toutes les familles",
+    "VARIANT_BADGE": "Famille {{ family }}",
+    "VARIATION_OF": "Variante de : {{ name }}",
+    "VARIANTS_SECTION_TITLE": "Variantes de cette recette",
+    "POPULAR_BADGE": "Incontournable",
+    "POPULARITY_SCORE": "Score de popularité : {{ score }}/100",
+    "PAGINATION_SHOWING": "Affichage {{ start }} à {{ end }} sur {{ total }} recettes",
+    "PAGINATION_PAGE_LABEL": "Page {{ page }} / {{ totalPages }}",
+    "PAGE_SIZE_ITEM": "{{ count }} / page",
+    "PAGE_SIZE_LABEL": "Par page",
+    "PAGE_FIRST": "Première page",
+    "PAGE_PREVIOUS": "Page précédente",
+    "PAGE_NEXT": "Page suivante",
+    "PAGE_LAST": "Dernière page",
+    "SELECT_PAGE": "Sélectionner la page",
+    "SELECT_ALL_FILTERED": "Tout sélectionner ({{ count }})",
+    "TAB_WHEEL": "Roue des Connexions"
+  },
+  "COCKTAIL_WHEEL": {
+    "TITLE": "Roue des Connexions & Arômes",
+    "SUBTITLE": "Visualisez comment les 300 ingrédients de cocktails s'associent à travers 1 902 recettes. Cliquez sur un ingrédient pour découvrir ses combinaisons les plus fréquentes.",
+    "LOADING": "Génération de la roue des connexions...",
+    "SEARCH_LABEL": "Mettre en valeur un ingrédient",
+    "SEARCH_PLACEHOLDER": "Rechercher un ingrédient visible...",
+    "CONNECTIONS_LABEL": "Connexions",
+    "LIMIT_100": "100 plus fortes",
+    "LIMIT_250": "250 plus fortes",
+    "LIMIT_500": "500 plus fortes",
+    "LIMIT_ALL": "Toutes les connexions (1 902)",
+    "RESET_FOCUS": "Réinitialiser",
+    "FAMILY_ACTIVE": "Famille active ×",
+    "INSTRUCTIONS": "Survolez un ruban pour inspecter la liaison. Cliquez sur un ingrédient ou une famille pour verrouiller son focus.",
+    "SVG_ARIA_LABEL": "Diagramme de cordes des ingrédients de cocktails. L'anneau extérieur sélectionne les familles, l'anneau intérieur sélectionne les ingrédients.",
+    "COCKTAIL_SINGULAR": "cocktail",
+    "COCKTAIL_PLURAL": "cocktails",
+    "CONNECTIONS_SUFFIX": "connexions",
+    "INGREDIENTS_BY_FAMILY": "Ingrédients affichés, par famille",
+    "PARTNERS_BY_FAMILY": "Ingrédients associés avec {{ ingredient }}, par famille",
+    "BACK_TO_ALL": "Revenir à tous les ingrédients",
+    "PAIRS_MOST_OFTEN": "S'associe le plus souvent avec {{ ingredient }}",
+    "EXPLORE_DRINKS": "Explorer les cocktails",
+    "EMPTY_SEARCH": "Aucun ingrédient correspondant sur la roue.",
+    "SELECTED_INGREDIENTS": "Ingrédients sélectionnés",
+    "CLEAR_ALL": "Effacer la sélection",
+    "EXPLORE_COMBINED_RECIPES": "Voir les cocktails ({{ count }} ingrédients)",
+    "ADD_TO_SELECTION": "Ajouter au filtre",
+    "REMOVE_FROM_SELECTION": "Retirer",
+    "COMBINED_PARTNERS": "Ingrédients associés à la sélection",
+    "SHARED_RECIPES_COUNT": "{{ count }} recettes communes"
   },
   "INGREDIENTS": {
     "TITLE": "Gestion des Ingrédients",
@@ -1081,6 +1194,9 @@
     "DELETE_CONFIRM": "Supprimer cet ingrédient ?",
     "NAME": "Nom",
     "NAME_REQUIRED": "Le nom est requis",
+    "CATEGORY": "Catégorie",
+    "CATEGORY_REQUIRED": "La catégorie est requise",
+    "SELECT_CATEGORY": "Sélectionner une catégorie",
     "UNIT": "Unité de mesure",
     "UNIT_REQUIRED": "L'unité est requise",
     "STOCK": "Stock",
@@ -1104,7 +1220,95 @@
     "ALLERGENS_LABEL": "Allergènes",
     "ALLERGENS_HINT": "Sélectionnez les allergènes présents dans cet ingrédient",
     "ALCOHOL_DEGREE_LABEL": "Degré d'alcool",
-    "ALCOHOL_DEGREE_HINT": "Pourcentage volumique d'alcool (% ABV)"
+    "ALCOHOL_DEGREE_HINT": "Pourcentage volumique d'alcool (% ABV)",
+    "ALCOHOL_DEGREE_ERROR": "Le taux d'alcool doit être compris entre 0 et 100%",
+    "UNITS": {
+      "CL": {
+        "LABEL": "Centilitres (cl)",
+        "SUBLABEL": "Volume standard pour cocktails et verres",
+        "BADGE": "cl"
+      },
+      "ML": {
+        "LABEL": "Millilitres (ml)",
+        "SUBLABEL": "Petites doses et mesures de précision",
+        "BADGE": "ml"
+      },
+      "L": {
+        "LABEL": "Litres (L)",
+        "SUBLABEL": "Grands volumes, bouteilles, fûts et cubis",
+        "BADGE": "L"
+      },
+      "DASH": {
+        "LABEL": "Trait / Dash",
+        "SUBLABEL": "Giclée rapide pour bitters, tabasco, sauces",
+        "BADGE": "dash"
+      },
+      "GOUTTE": {
+        "LABEL": "Goutte",
+        "SUBLABEL": "Dosage pipette pour solutions et extraits",
+        "BADGE": "goutte"
+      },
+      "CUILLERE": {
+        "LABEL": "Cuillère à mélange",
+        "SUBLABEL": "Cuillère de bar (barspoon) pour sirops et purées",
+        "BADGE": "cuillère"
+      },
+      "DOSE": {
+        "LABEL": "Dose / Mesure",
+        "SUBLABEL": "Dose bar standard (shooter, jigger)",
+        "BADGE": "dose"
+      },
+      "G": {
+        "LABEL": "Grammes (g)",
+        "SUBLABEL": "Masse pour poudres, solides, sels et épices",
+        "BADGE": "g"
+      },
+      "KG": {
+        "LABEL": "Kilogrammes (kg)",
+        "SUBLABEL": "Poids en vrac pour fruits, glace ou gros stocks",
+        "BADGE": "kg"
+      },
+      "PINCEE": {
+        "LABEL": "Pincée",
+        "SUBLABEL": "Pincée manuelle pour sel, muscade ou cannelle",
+        "BADGE": "pincée"
+      },
+      "PIECE": {
+        "LABEL": "Pièce",
+        "SUBLABEL": "Unité entière (fruits entiers, garnitures)",
+        "BADGE": "pièce"
+      },
+      "MORCEAU": {
+        "LABEL": "Morceau / Quartier",
+        "SUBLABEL": "Morceaux de fruits coupés ou morceaux de sucre",
+        "BADGE": "morceau"
+      },
+      "TRANCHE": {
+        "LABEL": "Tranche / Rondelle",
+        "SUBLABEL": "Tranches et rondelles de garniture (orange, citron)",
+        "BADGE": "tranche"
+      },
+      "ZESTE": {
+        "LABEL": "Zeste / Twist",
+        "SUBLABEL": "Écorce ou twist d'agrume exprimé",
+        "BADGE": "zeste"
+      },
+      "FEUILLE": {
+        "LABEL": "Feuille",
+        "SUBLABEL": "Feuilles fraîches (menthe, basilic, sauge)",
+        "BADGE": "feuille"
+      },
+      "BOUTEILLE": {
+        "LABEL": "Bouteille",
+        "SUBLABEL": "Bouteille ou canette scellée",
+        "BADGE": "bouteille"
+      },
+      "PORTION": {
+        "LABEL": "Portion",
+        "SUBLABEL": "Portion individuelle préparée",
+        "BADGE": "portion"
+      }
+    }
   },
   "TABLES": {
     "TABLE": "Table",
@@ -1912,8 +2116,13 @@
     "OUT_OF_STOCK": "Rupture de Stock",
     "NORMAL_STOCK": "Stock Normal",
     "LOW_STOCK": "Stock Faible",
+    "VIEW_MODE_CATEGORY": "Catégorie",
     "VIEW_MODE_GRID": "Grille",
     "VIEW_MODE_LIST": "Liste",
+    "PAGE_PREV": "Précédent",
+    "PAGE_NEXT": "Suivant",
+    "PER_PAGE": "Par page",
+    "PAGINATION_SUMMARY": "Affichage de {{ start }} à {{ end }} sur {{ total }} ingrédients",
     "CATEGORY_LABEL": "Catégorie :",
     "ALL_CATEGORIES": "Toutes les catégories",
     "UNIT_LABEL": "Unité :",
@@ -3398,5 +3607,23 @@
     "LOGOUT_BTN": "Se déconnecter",
     "EXTENDED_SUCCESS": "Votre session a été prolongée de 4 heures avec succès.",
     "EXPIRED_DISCONNECTED": "Votre session a expiré après 4 heures de connexion. Veuillez vous reconnecter."
+  },
+  "SUNBURST": {
+    "ACCESSIBLE_TITLE": "Proportions des ingrédients de la recette",
+    "CLEAR_SELECTION": "Effacer la sélection",
+    "HINT_INTERACTION": "Survolez ou cliquez un ingrédient ou une famille pour afficher ses proportions.",
+    "PROPORTION_NOTE": "Anneau intérieur : ingrédients individuels. Anneau extérieur : familles de mixologie.",
+    "FAMILIES": {
+      "DARK_LIQUOR": "Spiritueux bruns",
+      "LIGHT_LIQUOR": "Spiritueux blancs",
+      "LIQUEURS": "Liqueurs & Digestifs",
+      "WINE_BEER": "Vins & Bières",
+      "JUICES": "Jus & Eaux",
+      "MIXERS": "Sirops & Édulcorants",
+      "FRUITS": "Fruits & Agrumes",
+      "HERBS": "Herbes & Épices",
+      "BITTERS": "Bitters & Aromates",
+      "OTHER": "Autres ingrédients"
+    }
   }
 }

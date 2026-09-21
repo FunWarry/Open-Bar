@@ -1,12 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { catchError, Observable, of, shareReplay } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   CocktailLibraryItem,
   CocktailLibraryFilterParams,
   CocktailLibraryImportRequest,
-  CocktailLibraryImportResult
+  CocktailLibraryImportResult,
+  CocktailConnectionWheelData
 } from '../models/cocktail-library.model';
 
 /**
@@ -55,5 +56,23 @@ export class CocktailLibraryService {
    */
   importCocktails(request: CocktailLibraryImportRequest): Observable<CocktailLibraryImportResult> {
     return this.http.post<CocktailLibraryImportResult>(`${this.api}/import`, request);
+  }
+
+  private wheelData$: Observable<CocktailConnectionWheelData> | null = null;
+
+  /**
+   * Retrieves the preprocessed DrinkWithData connection wheel dataset.
+   * Employs local asset caching for optimal offline performance with API fallback.
+   *
+   * @returns Observable emitting full connection wheel graph dataset
+   */
+  getWheelData(): Observable<CocktailConnectionWheelData> {
+    if (!this.wheelData$) {
+      this.wheelData$ = this.http.get<CocktailConnectionWheelData>('assets/data/cocktail-connection-wheel.json').pipe(
+        catchError(() => this.http.get<CocktailConnectionWheelData>(`${this.api}/wheel`)),
+        shareReplay(1)
+      );
+    }
+    return this.wheelData$;
   }
 }

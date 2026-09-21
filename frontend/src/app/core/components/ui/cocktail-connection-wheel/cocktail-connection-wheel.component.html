@@ -1,0 +1,403 @@
+<div class="cocktail-wheel-container" data-testid="cocktail-connection-wheel-view">
+  <!-- Loading spinner -->
+  @if (isLoading()) {
+    <div class="wheel-loading-state" data-testid="wheel-loading-indicator">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>{{ 'COCKTAIL_WHEEL.LOADING' | transloco }}</p>
+    </div>
+  } @else {
+    <!-- Controls Toolbar -->
+    <div class="wheel-controls-panel" data-testid="wheel-controls-panel">
+      <!-- Search visible ingredient -->
+      <div class="control-col search-box-col">
+        <span class="control-label">
+          <ion-icon name="search-outline"></ion-icon>
+          {{ 'COCKTAIL_WHEEL.SEARCH_LABEL' | transloco }}
+        </span>
+        <div class="search-input-wrap">
+          <app-search-bar
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            [placeholder]="'COCKTAIL_WHEEL.SEARCH_PLACEHOLDER' | transloco"
+            testId="wheel-ingredient-search-input">
+          </app-search-bar>
+
+          <!-- Autocomplete results dropdown -->
+          @if (searchMatches().length > 0) {
+            <div class="search-autocomplete-dropdown" data-testid="wheel-search-dropdown">
+              @for (match of searchMatches(); track match.id) {
+                <button
+                  type="button"
+                  class="autocomplete-item"
+                  (click)="selectIngredient(match.id)">
+                  <span class="match-name">{{ match.label }}</span>
+                  <span class="match-badge">{{ match.count }} {{ 'COCKTAIL_WHEEL.CONNECTIONS_SUFFIX' | transloco }}</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Connections threshold selector -->
+      <div class="control-col threshold-col">
+        <span class="control-label">
+          <ion-icon name="options-outline"></ion-icon>
+          {{ 'COCKTAIL_WHEEL.CONNECTIONS_LABEL' | transloco }}
+        </span>
+        <div class="select-wrapper">
+          <app-searchable-select
+            [options]="limitOptions()"
+            [ngModel]="connectionLimit()"
+            (ngModelChange)="onLimitChange($event)"
+            [clearable]="false"
+            [searchable]="false"
+            testId="wheel-connection-limit-select">
+          </app-searchable-select>
+        </div>
+      </div>
+
+      <!-- Active selection reset button -->
+      @if (hasActiveFocus()) {
+        <div class="control-col reset-col">
+          <button
+            type="button"
+            class="reset-focus-btn"
+            (click)="clearSelection()"
+            data-testid="wheel-reset-selection-btn">
+            <ion-icon name="close-outline"></ion-icon>
+            @if (selectedCategoryId()) {
+              <span>{{ 'COCKTAIL_WHEEL.FAMILY_ACTIVE' | transloco }}</span>
+            } @else {
+              <span>{{ 'COCKTAIL_WHEEL.RESET_FOCUS' | transloco }}</span>
+            }
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Active Multi-Selection Chips Toolbar -->
+    @if (selectedIngredientIds().length > 0) {
+      <div class="active-selection-chips-bar" data-testid="wheel-active-selection-chips">
+        <div class="chips-left">
+          <span class="chips-title">{{ 'COCKTAIL_WHEEL.SELECTED_INGREDIENTS' | transloco }}:</span>
+          <div class="chips-wrapper">
+            @for (ing of selectedIngredients(); track ing.id) {
+              <span class="ingredient-badge-chip" [style.border-color]="getIngredientColor(ing.id)">
+                <span class="chip-color-dot" [style.background-color]="getIngredientColor(ing.id)"></span>
+                <span class="chip-text">{{ ing.label }}</span>
+                <button
+                  type="button"
+                  class="chip-remove-btn"
+                  (click)="removeIngredient(ing.id); $event.stopPropagation()"
+                  [attr.aria-label]="'COCKTAIL_WHEEL.REMOVE_FROM_SELECTION' | transloco">
+                  <ion-icon name="close-outline"></ion-icon>
+                </button>
+              </span>
+            }
+          </div>
+        </div>
+
+        <div class="chips-actions">
+          <button
+            type="button"
+            class="clear-all-chips-btn"
+            (click)="clearSelection()"
+            data-testid="wheel-clear-all-btn">
+            <ion-icon name="trash-outline"></ion-icon>
+            <span>{{ 'COCKTAIL_WHEEL.CLEAR_ALL' | transloco }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="explore-combined-btn"
+            (click)="exploreCombined()"
+            data-testid="wheel-explore-combined-btn">
+            <ion-icon name="wine-outline"></ion-icon>
+            <span>{{ 'COCKTAIL_WHEEL.EXPLORE_COMBINED_RECIPES' | transloco: { count: selectedIngredients().length } }}</span>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Instructions bar -->
+    <div class="wheel-instructions-bar">
+      <p class="instructions-text">
+        <ion-icon name="sparkles-outline"></ion-icon>
+        {{ 'COCKTAIL_WHEEL.INSTRUCTIONS' | transloco }}
+      </p>
+    </div>
+
+    <!-- SVG Chord Diagram -->
+    @if (geometry(); as geom) {
+      <div class="chord-diagram-wrapper" (pointermove)="onPointerMove($event)">
+        <svg
+          viewBox="-465 -465 930 930"
+          class="chord-svg"
+          data-testid="wheel-chord-svg"
+          role="img"
+          (click)="onSvgBackgroundClick($event)"
+          (keydown.escape)="clearSelection()"
+          [attr.aria-label]="'COCKTAIL_WHEEL.SVG_ARIA_LABEL' | transloco">
+
+          <!-- Linear gradients definition for each ribbon -->
+          <defs>
+            @for (link of geom.links; track link.index) {
+              <linearGradient
+                [id]="'wheel-grad-' + link.index"
+                gradientUnits="userSpaceOnUse"
+                [attr.x1]="link.start[0]"
+                [attr.y1]="link.start[1]"
+                [attr.x2]="link.end[0]"
+                [attr.y2]="link.end[1]">
+                <stop offset="0%" [attr.stop-color]="link.colorA"></stop>
+                <stop offset="100%" [attr.stop-color]="link.colorB"></stop>
+              </linearGradient>
+            }
+          </defs>
+
+          <!-- Group 1: Background Ribbons -->
+          <g class="ribbons-layer base-layer" [class.dimmed]="hasActiveFocus()">
+            @for (link of geom.links; track link.index) {
+              <path
+                class="chord-ribbon"
+                [attr.aria-label]="link.a + ' + ' + link.b"
+                [attr.d]="link.path"
+                [attr.fill]="'url(#wheel-grad-' + link.index + ')'"
+                [attr.stroke]="'url(#wheel-grad-' + link.index + ')'"
+                stroke-width="0.35"
+                (pointerenter)="onRibbonEnter(link, $event)"
+                (pointerleave)="onRibbonLeave()"
+                (click)="onRibbonClick(link); $event.stopPropagation()"
+                (keydown.enter)="onRibbonClick(link); $event.stopPropagation()">
+              </path>
+            }
+          </g>
+
+          <!-- Group 2: Highlighted Ribbons -->
+          @if (hasActiveFocus()) {
+            <g class="ribbons-layer highlight-layer" pointer-events="none">
+              @for (link of geom.links; track link.index) {
+                @if (highlightedLinks().has(link.index)) {
+                  <path
+                    class="chord-ribbon is-highlighted"
+                    [attr.d]="link.path"
+                    [attr.fill]="'url(#wheel-grad-' + link.index + ')'"
+                    [attr.stroke]="'url(#wheel-grad-' + link.index + ')'"
+                    stroke-width="0.75">
+                  </path>
+                }
+              }
+            </g>
+          }
+
+          <!-- Group 3: Inner Ring Ingredient Arcs & Click Zones ("Cases") -->
+          <g class="ingredient-nodes-layer">
+            @for (node of geom.nodes; track node.id) {
+              <g
+                class="chord-node-group"
+                [attr.aria-label]="node.label"
+                [class.is-selected]="isSelected(node.id)"
+                [class.is-partner]="isPartnerOfSelected(node.id)"
+                [class.is-hovered]="hoveredIngredientId() === node.id"
+                [class.is-category-member]="activeCategoryId() === node.group"
+                [class.is-dimmed]="hasActiveFocus() && !isSelected(node.id) && !isPartnerOfSelected(node.id) && activeCategoryId() !== node.group"
+                [class.is-disabled]="selectedIngredientIds().length > 0 && !isSelected(node.id) && !isPartnerOfSelected(node.id)"
+                (click)="toggleIngredient(node.id); $event.stopPropagation()"
+                (keydown.enter)="toggleIngredient(node.id); $event.stopPropagation()"
+                (pointerenter)="hoveredIngredientId.set(node.id)"
+                (pointerleave)="hoveredIngredientId.set(null)"
+                [attr.data-testid]="'wheel-node-' + node.id">
+
+                <!-- Colored visual arc / case -->
+                <path
+                  class="node-arc"
+                  [attr.d]="node.arc"
+                  fill="none"
+                  [attr.stroke]="rawData()?.categories?.[node.group]?.color || '#8c817b'"
+                  [attr.stroke-width]="isSelected(node.id) ? 16 : (hoveredIngredientId() === node.id ? 14 : (activeCategoryId() === node.group ? 12 : (isPartnerOfSelected(node.id) ? 10 : 7)))">
+                </path>
+
+                <!-- Invisible wide hit-area for effortless pointer clicks -->
+                <path
+                  class="node-hit-area"
+                  [attr.d]="node.hit"
+                  fill="none"
+                  stroke="transparent"
+                  stroke-width="26">
+                </path>
+              </g>
+            }
+          </g>
+
+          <!-- Group 4: Outer Perimeter Category Bands -->
+          <g class="category-bands-layer">
+            @for (family of geom.families; track family.id) {
+              <g
+                class="category-arc-group"
+                [attr.aria-label]="family.label"
+                [class.is-selected]="selectedCategoryId() === family.id"
+                [class.is-hovered]="hoveredCategoryId() === family.id"
+                [class.is-dimmed]="activeCategoryId() !== null && activeCategoryId() !== family.id"
+                (click)="selectCategory(family.id); $event.stopPropagation()"
+                (keydown.enter)="selectCategory(family.id); $event.stopPropagation()"
+                (pointerenter)="hoveredCategoryId.set(family.id)"
+                (pointerleave)="hoveredCategoryId.set(null)"
+                [attr.data-testid]="'wheel-category-' + family.id">
+
+                <!-- Outer Category Band -->
+                <path
+                  class="category-band"
+                  [attr.d]="family.arc"
+                  fill="none"
+                  [attr.stroke]="family.color"
+                  [attr.stroke-width]="selectedCategoryId() === family.id ? 16 : (hoveredCategoryId() === family.id ? 14 : 9)">
+                </path>
+
+                <!-- Category label text -->
+                <text
+                  class="category-label-text"
+                  [attr.x]="family.position[0]"
+                  [attr.y]="family.position[1]"
+                  text-anchor="middle"
+                  dominant-baseline="middle">
+                  {{ family.label }}
+                </text>
+              </g>
+            }
+          </g>
+
+          <!-- Group 5: Radial Ingredient Text Label (displayed ONLY on hover or selection) -->
+          <g class="ingredient-labels-layer" pointer-events="none">
+            @for (node of geom.nodes; track node.id) {
+              @if (isNodeLabelVisible(node)) {
+                <text
+                  class="ingredient-name-text"
+                  [class.is-selected]="isSelected(node.id)"
+                  [class.is-partner]="isPartnerOfSelected(node.id)"
+                  [class.is-hovered]="hoveredIngredientId() === node.id"
+                  [attr.transform]="node.labelTransform"
+                  [attr.text-anchor]="node.anchor"
+                  dominant-baseline="middle">
+                  {{ node.label }}
+                </text>
+              }
+            }
+          </g>
+        </svg>
+
+        <!-- Floating Readout / Tooltip -->
+        @if (tooltip().visible) {
+          <div
+            class="floating-ribbon-readout"
+            [style.left.px]="tooltip().x + 14"
+            [style.top.px]="tooltip().y + 14"
+            data-testid="wheel-floating-readout">
+            <strong class="readout-pair">{{ tooltip().ingredientA }} + {{ tooltip().ingredientB }}</strong>
+            <span class="readout-count">× {{ tooltip().count }} {{ tooltip().count === 1 ? ('COCKTAIL_WHEEL.COCKTAIL_SINGULAR' | transloco) : ('COCKTAIL_WHEEL.COCKTAIL_PLURAL' | transloco) }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Bottom Breakdown & Partner Ranking Panel -->
+    <div class="wheel-details-section" data-testid="wheel-details-section">
+      <!-- Category distribution bars -->
+      <div class="category-bars-container">
+        <h4 class="section-subtitle">
+          @if (selectedIngredients().length === 1) {
+            {{ 'COCKTAIL_WHEEL.PARTNERS_BY_FAMILY' | transloco: { ingredient: selectedIngredients()[0].label } }}
+          } @else if (selectedIngredients().length > 1) {
+            {{ 'COCKTAIL_WHEEL.COMBINED_PARTNERS' | transloco }}
+          } @else {
+            {{ 'COCKTAIL_WHEEL.INGREDIENTS_BY_FAMILY' | transloco }}
+          }
+        </h4>
+
+        <div class="category-bars-grid">
+          @for (bar of categoryBars(); track bar.id) {
+            <button
+              type="button"
+              class="category-bar-item"
+              [class.active]="bar.isActive"
+              (click)="selectCategory(bar.id)"
+              [title]="bar.label + ': ' + bar.count">
+              <div class="bar-track">
+                <span class="bar-count">{{ bar.count }}</span>
+                <span
+                  class="bar-fill"
+                  [style.height.%]="bar.percentage"
+                  [style.background-color]="bar.color">
+                </span>
+              </div>
+              <span class="bar-label">{{ bar.label }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Ranked Partners Table (shown when an ingredient is focused) -->
+      @if (selectedIngredientIds().length > 0 || hoveredIngredientId()) {
+        <div class="partner-ranking-panel" data-testid="wheel-partner-ranking-panel">
+          <div class="panel-header">
+            <button
+              type="button"
+              class="back-all-btn"
+              (click)="clearSelection()"
+              data-testid="wheel-back-to-all-btn">
+              <ion-icon name="chevron-back-outline"></ion-icon>
+              {{ 'COCKTAIL_WHEEL.BACK_TO_ALL' | transloco }}
+            </button>
+
+            <h3 class="panel-title">
+              @if (selectedIngredients().length === 1) {
+                {{ 'COCKTAIL_WHEEL.PAIRS_MOST_OFTEN' | transloco: { ingredient: selectedIngredients()[0].label } }}
+              } @else if (selectedIngredients().length > 1) {
+                {{ 'COCKTAIL_WHEEL.COMBINED_PARTNERS' | transloco }}
+              } @else if (hoveredIngredientId(); as hId) {
+                {{ 'COCKTAIL_WHEEL.PAIRS_MOST_OFTEN' | transloco: { ingredient: getIngredientLabel(hId) } }}
+              }
+            </h3>
+          </div>
+
+          <div class="partners-list-grid">
+            @for (partner of partnerRankings(); track partner.id; let idx = $index) {
+              <div
+                class="partner-card"
+                [class.is-in-selection]="partner.isSelected"
+                [attr.data-testid]="'partner-card-' + partner.id">
+                <div class="partner-info">
+                  <span class="partner-rank">#{{ idx + 1 }}</span>
+                  <span class="category-dot" [style.background-color]="partner.groupColor"></span>
+                  <span class="partner-name">{{ partner.label }}</span>
+                  <strong class="partner-count">{{ partner.count }}</strong>
+                </div>
+
+                <div class="partner-actions">
+                  <button
+                    type="button"
+                    class="partner-toggle-btn"
+                    [class.active]="partner.isSelected"
+                    (click)="toggleIngredient(partner.id); $event.stopPropagation()"
+                    [attr.data-testid]="'toggle-partner-btn-' + partner.id">
+                    <ion-icon [name]="partner.isSelected ? 'remove-outline' : 'add-outline'"></ion-icon>
+                    <span>{{ (partner.isSelected ? 'COCKTAIL_WHEEL.REMOVE_FROM_SELECTION' : 'COCKTAIL_WHEEL.ADD_TO_SELECTION') | transloco }}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="explore-pair-btn"
+                    (click)="explorePair(partner.id)"
+                    [attr.data-testid]="'explore-pair-btn-' + partner.id">
+                    <ion-icon name="wine-outline"></ion-icon>
+                    {{ 'COCKTAIL_WHEEL.EXPLORE_DRINKS' | transloco }}
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

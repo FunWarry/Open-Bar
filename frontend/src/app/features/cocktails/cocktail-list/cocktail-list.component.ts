@@ -30,7 +30,6 @@ import { Cocktail, CocktailFacets, FlavorProfile } from '../../../core/models/co
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { CocktailMatcherBarComponent, CocktailMatcherFilters } from '../../../core/components/ui/cocktail-matcher-bar/cocktail-matcher-bar.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
-import { CocktailLibraryModalComponent } from '../components/cocktail-library-modal/cocktail-library-modal.component';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { getMarginBadgeClass } from '../../../core/utils/margin-calculation.util';
 import { environment } from '../../../../environments/environment';
@@ -135,19 +134,10 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Opens the full-screen interactive cocktail and ingredient library browser.
+   * Navigates directly to the cocktail and ingredient library browser page.
    */
-  async openLibraryImportModal(): Promise<void> {
-    const modal = await this.modalCtrl.create({
-      component: CocktailLibraryModalComponent,
-      cssClass: 'cocktail-library-modal-dialog full-screen-modal modal-xl'
-    });
-    await modal.present();
-
-    const { role } = await modal.onWillDismiss();
-    if (role === 'imported') {
-      this.charger();
-    }
+  openLibraryImportModal(): void {
+    void this.router.navigate(['/cocktails', 'library']);
   }
 
   ngOnInit(): void {

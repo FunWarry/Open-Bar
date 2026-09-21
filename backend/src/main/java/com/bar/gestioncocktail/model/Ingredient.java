@@ -58,8 +58,31 @@ public class Ingredient {
     @Column(name = "allergen", length = 50)
     private java.util.Set<Allergen> allergens = new java.util.HashSet<>();
 
+    public static final String DEFAULT_CATEGORY = "other";
+
+    @Column(name = "category", length = 50)
+    private String category = DEFAULT_CATEGORY;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    /**
+     * Gets the mixology family category of this ingredient.
+     *
+     * @return mixology category string (defaults to DEFAULT_CATEGORY if null)
+     */
+    public String getCategory() {
+        return category != null && !category.isBlank() ? category : DEFAULT_CATEGORY;
+    }
+
+    /**
+     * Sets the mixology family category of this ingredient.
+     *
+     * @param category category identifier to set
+     */
+    public void setCategory(String category) {
+        this.category = (category != null && !category.isBlank()) ? category : DEFAULT_CATEGORY;
+    }
 
     /**
      * Gets the alcohol degree percentage (ABV) of this ingredient.

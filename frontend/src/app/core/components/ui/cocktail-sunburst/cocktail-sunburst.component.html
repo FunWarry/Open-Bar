@@ -1,0 +1,162 @@
+<div class="sunburst-container" [class.mini-mode]="modeSignal() === 'mini'" [class.full-mode]="modeSignal() === 'full'" data-testid="cocktail-sunburst-root">
+  @if (modeSignal() === 'full') {
+    <!-- Dynamic Readout Header -->
+    <div class="sunburst-readout" data-testid="sunburst-readout">
+      @if (activeDetails(); as details) {
+        <div class="readout-active">
+          <span class="readout-dot" [style.background]="details.colorVar"></span>
+          <span class="readout-title">
+            @if (details.type === 'ingredient') {
+              <strong>{{ details.title }}</strong>
+              @if (details.measure) {
+                <span class="readout-measure">({{ details.measure }})</span>
+              }
+            } @else {
+              <strong>{{ details.title | transloco }}</strong>
+            }
+          </span>
+          <span class="readout-pct">{{ details.percentage }}</span>
+          <button
+            type="button"
+            class="readout-clear-btn"
+            (click)="clearActive()"
+            data-testid="sunburst-clear-highlight-btn"
+            [title]="'SUNBURST.CLEAR_SELECTION' | transloco">
+            ✕
+          </button>
+        </div>
+      } @else {
+        <p class="readout-hint">
+          {{ 'SUNBURST.HINT_INTERACTION' | transloco }}
+        </p>
+      }
+    </div>
+  }
+
+  <!-- SVG Chart -->
+  <div class="sunburst-svg-wrap">
+    <svg
+      class="sunburst-svg"
+      [attr.viewBox]="modeSignal() === 'mini' ? '-60 -60 120 120' : '-210 -210 420 420'"
+      role="img"
+      [attr.aria-label]="(cocktailName ? cocktailName + ': ' : '') + ('SUNBURST.ACCESSIBLE_TITLE' | transloco)"
+      (mouseleave)="clearActive()">
+
+      <defs>
+        <!-- Center cocktail decorative icon/circle in full modeSignal() -->
+        @if (modeSignal() === 'full') {
+          <filter id="sunburst-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        }
+      </defs>
+
+      <!-- Center hub -->
+      <circle
+        cx="0"
+        cy="0"
+        [attr.r]="modeSignal() === 'mini' ? 18 : 64"
+        class="sunburst-center-hub" />
+
+      <!-- Inner Ring: Individual Ingredients -->
+      <g class="sunburst-ring inner-ring" data-testid="sunburst-inner-ring">
+        @for (slice of ingredientSlices(); track slice.id) {
+          <path
+            class="sunburst-slice inner-slice"
+            [class.dimmed]="!isSliceHighlighted(slice)"
+            [class.selected]="activeIngredientId() === slice.id"
+            [attr.d]="slice.path"
+            [style.fill]="slice.colorVar"
+            [attr.data-testid]="'sunburst-slice-' + slice.id"
+            tabindex="0"
+            role="button"
+            [attr.aria-label]="slice.name + ' (' + slice.percentage + ')'"
+            (mouseenter)="onIngredientSelect(slice)"
+            (click)="onIngredientSelect(slice)"
+            (keydown.enter)="onIngredientSelect(slice)"
+            (keydown.space)="onIngredientSelect(slice); $event.preventDefault()">
+            <title>{{ slice.name }}: {{ slice.measure || slice.percentage }}</title>
+          </path>
+
+          @if (modeSignal() === 'full' && slice.labelTransform) {
+            <text
+              class="slice-label inner-label"
+              [class.dimmed]="!isSliceHighlighted(slice)"
+              [attr.transform]="slice.labelTransform"
+              text-anchor="middle"
+              dominant-baseline="central">
+              {{ slice.name }}
+            </text>
+          }
+        }
+      </g>
+
+      <!-- Outer Ring: Mixology Families -->
+      <g class="sunburst-ring outer-ring" data-testid="sunburst-outer-ring">
+        @for (fam of familySlices(); track fam.key) {
+          <path
+            class="sunburst-slice outer-slice"
+            [class.dimmed]="!isFamilyHighlighted(fam.key)"
+            [class.selected]="activeFamilyKey() === fam.key"
+            [attr.d]="fam.path"
+            [style.fill]="fam.colorVar"
+            [attr.data-testid]="'sunburst-fam-' + fam.key"
+            tabindex="0"
+            role="button"
+            [attr.aria-label]="(fam.labelKey | transloco) + ' (' + fam.percentage + ')'"
+            (mouseenter)="onFamilySelect(fam.key)"
+            (click)="onFamilySelect(fam.key)"
+            (keydown.enter)="onFamilySelect(fam.key)"
+            (keydown.space)="onFamilySelect(fam.key); $event.preventDefault()">
+            <title>{{ fam.labelKey | transloco }}: {{ fam.percentage }}</title>
+          </path>
+
+          @if (modeSignal() === 'full' && fam.labelTransform) {
+            <text
+              class="slice-label outer-label"
+              [class.dimmed]="!isFamilyHighlighted(fam.key)"
+              [attr.transform]="fam.labelTransform"
+              text-anchor="middle"
+              dominant-baseline="central">
+              {{ fam.labelKey | transloco }}
+            </text>
+          }
+        }
+      </g>
+
+      <!-- Selected Slice Contour Highlight Overlay (hugs exact arc geometry) -->
+      @if (selectedContourPath(); as contourD) {
+        <path
+          class="sunburst-selection-contour"
+          [attr.d]="contourD"
+          fill="none"
+          pointer-events="none" />
+      }
+    </svg>
+  </div>
+
+  @if (modeSignal() === 'full') {
+    <!-- Mixology Families Filter Chips / Legend -->
+    <div class="sunburst-footer">
+      <div class="family-chips-bar" data-testid="sunburst-family-chips">
+        @for (fam of familySlices(); track fam.key) {
+          <button
+            type="button"
+            class="family-chip"
+            [class.active]="activeFamilyKey() === fam.key"
+            [attr.data-testid]="'sunburst-chip-' + fam.key"
+            (click)="onFamilySelect(fam.key)">
+            <span class="chip-color" [style.background]="fam.colorVar"></span>
+            <span class="chip-name">{{ fam.labelKey | transloco }}</span>
+            <span class="chip-pct">{{ fam.percentage }}</span>
+          </button>
+        }
+      </div>
+
+      <p class="sunburst-note">
+        {{ 'SUNBURST.PROPORTION_NOTE' | transloco }}
+      </p>
+    </div>
+  }
+</div>

@@ -103,6 +103,18 @@
   --types-mocktail: #ff0000;
   --types-beer: #ffd900;
 
+  /* OpenBar DS — Sunburst Proportions Palette */
+  --sunburst-dark-liquor: #a8423f;
+  --sunburst-light-liquor: #d97d64;
+  --sunburst-liqueurs: #b85d89;
+  --sunburst-wine-beer: #8c537d;
+  --sunburst-juices: #3f9bbd;
+  --sunburst-mixers: #7a82c4;
+  --sunburst-fruits: #d4a73b;
+  --sunburst-herbs: #4e9e7c;
+  --sunburst-bitters: #8f7236;
+  --sunburst-other: #968c85;
+
   /* OpenBar DS — Saisonnalité */
   --season-inseason: #2eac48;
   --season-offseason: #ff9500;

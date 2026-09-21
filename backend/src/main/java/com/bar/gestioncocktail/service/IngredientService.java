@@ -72,6 +72,7 @@ public class IngredientService {
         existing.setAllergens(updatedData.getAllergens());
         existing.setDegreAlcool(updatedData.getDegreAlcool());
         existing.setIsVegan(updatedData.getIsVegan());
+        existing.setCategory(updatedData.getCategory() != null && !updatedData.getCategory().isBlank() ? updatedData.getCategory() : "other");
         existing.setUpdatedAt(timeService.now());
         return ingredientRepository.save(existing);
     }

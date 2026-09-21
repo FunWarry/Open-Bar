@@ -83,10 +83,13 @@ CREATE TABLE IF NOT EXISTS ingredients (
     prix_unitaire DECIMAL(10,4) DEFAULT 0,
     degre_alcool DECIMAL(5,2) DEFAULT 0.0,
     is_vegan BOOLEAN DEFAULT true,
+    category VARCHAR(50) DEFAULT 'other',
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT 'other';
 
 CREATE TABLE IF NOT EXISTS ingredient_allergens (
     ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,

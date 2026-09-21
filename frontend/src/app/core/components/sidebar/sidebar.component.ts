@@ -10,7 +10,8 @@ import {
   homeOutline, restaurantOutline, gridOutline, beerOutline,
   statsChartOutline, receiptOutline, wineOutline, cardOutline,
   nutritionOutline, settingsOutline, documentTextOutline, chevronBackOutline,
-  chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline
+  chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline,
+  libraryOutline
 } from 'ionicons/icons';
 import { tableRestaurantOutline } from '../../icons/custom-icons';
 import { selectCurrentUser } from '../../store/auth.selectors';
@@ -109,7 +110,7 @@ export class SidebarComponent implements OnDestroy {
       statsChartOutline, receiptOutline, wineOutline, cardOutline,
       nutritionOutline, settingsOutline, documentTextOutline, chevronBackOutline,
       chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline,
-      tableRestaurantOutline
+      libraryOutline, tableRestaurantOutline
     });
 
     this.currentUser$ = this.store.select(selectCurrentUser);

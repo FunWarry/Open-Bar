@@ -1167,62 +1167,74 @@
     {
       "nom": "Rhum Blanc",
       "quantiteStock": 45,
-      "seuilAlerte": 10
+      "seuilAlerte": 10,
+      "category": "light_liquor"
     },
     {
       "nom": "Vodka",
       "quantiteStock": 35,
-      "seuilAlerte": 5
+      "seuilAlerte": 5,
+      "category": "light_liquor"
     },
     {
       "nom": "Gin",
       "quantiteStock": 25,
-      "seuilAlerte": 5
+      "seuilAlerte": 5,
+      "category": "light_liquor"
     },
     {
       "nom": "Tequila",
       "quantiteStock": 20,
-      "seuilAlerte": 4
+      "seuilAlerte": 4,
+      "category": "light_liquor"
     },
     {
       "nom": "Aperol",
       "quantiteStock": 18,
-      "seuilAlerte": 5
+      "seuilAlerte": 5,
+      "category": "liqueurs"
     },
     {
       "nom": "Prosecco",
       "quantiteStock": 30,
-      "seuilAlerte": 6
+      "seuilAlerte": 6,
+      "category": "wine_beer"
     },
     {
       "nom": "Champagne",
       "quantiteStock": 15,
-      "seuilAlerte": 4
+      "seuilAlerte": 4,
+      "category": "wine_beer"
     },
     {
       "nom": "Rhum Ambré",
       "quantiteStock": 3.5,
-      "seuilAlerte": 8
+      "seuilAlerte": 8,
+      "category": "dark_liquor"
     },
     {
       "nom": "Menthe fraîche",
       "quantiteStock": 0.4,
-      "seuilAlerte": 1.5
+      "seuilAlerte": 1.5,
+      "category": "herbs"
     },
     {
       "nom": "Purée de fruit de la passion",
       "quantiteStock": 0.8,
-      "seuilAlerte": 2
+      "seuilAlerte": 2,
+      "category": "fruits"
     },
     {
       "nom": "Liqueur de café (Kahlúa)",
       "quantiteStock": 1.2,
-      "seuilAlerte": 3
+      "seuilAlerte": 3,
+      "category": "liqueurs"
     },
     {
       "nom": "Liqueur de framboise (Chambord)",
       "quantiteStock": 0,
-      "seuilAlerte": 2
+      "seuilAlerte": 2,
+      "category": "liqueurs"
     }
   ],
   "recipe_step_templates": [

@@ -28,6 +28,10 @@ import java.util.List;
  * @param ingredients            Itemized ingredient list with measure and cost estimates
  * @param recipeSteps            Step-by-step mixology action steps
  * @param instructions           Summary preparation instructions text
+ * @param popularityScore        Popularity ranking score from 1 to 100
+ * @param isPopular              Whether this is an iconic or top-famous cocktail
+ * @param variantFamily          Family grouping name for cocktail variations (e.g. "Margarita", "Mojito", "Sour")
+ * @param variationOf            Canonical base cocktail recipe name if this is a recipe variation
  */
 public record CocktailLibraryItemDTO(
         String id,
@@ -51,7 +55,11 @@ public record CocktailLibraryItemDTO(
         List<String> tags,
         List<CocktailLibraryIngredientDTO> ingredients,
         List<CocktailLibraryRecipeStepDTO> recipeSteps,
-        String instructions
+        String instructions,
+        Integer popularityScore,
+        boolean isPopular,
+        String variantFamily,
+        String variationOf
 ) {
 
     /**
@@ -69,6 +77,7 @@ public record CocktailLibraryItemDTO(
             String nom,
             BigDecimal quantite,
             String unite,
+            String category,
             BigDecimal degreAlcool,
             BigDecimal coutUnitaire,
             List<String> allergens,

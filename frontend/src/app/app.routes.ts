@@ -105,6 +105,12 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: {roles: ['ADMIN']}
   },
+  {
+    path: 'cocktails/library',
+    loadComponent: () => import('./features/cocktails/components/cocktail-library-modal/cocktail-library-modal.component').then(m => m.CocktailLibraryModalComponent),
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.COCKTAIL_LIBRARY }
+  },
 
   // Orders (English routes + legacy /commandes redirects)
   {
