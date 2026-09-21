@@ -2,6 +2,9 @@ package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.IngredientRequestDTO;
 import com.bar.gestioncocktail.dto.IngredientResponseDTO;
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
+import com.bar.gestioncocktail.model.Ingredient;
+import com.bar.gestioncocktail.repository.SupplierRepository;
 import com.bar.gestioncocktail.service.IngredientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,14 +29,17 @@ import java.util.Map;
 @Tag(name = "Ingredients", description = "Ingredient stock management, alert thresholds, and inventory")
 public class IngredientController {
     private final IngredientService ingredientService;
+    private final SupplierRepository supplierRepository;
 
     /**
-     * Constructs the controller with the ingredient service dependency.
+     * Constructs the controller with the ingredient service and supplier repository dependencies.
      *
      * @param ingredientService service managing ingredient business logic
+     * @param supplierRepository repository managing suppliers
      */
-    public IngredientController(IngredientService ingredientService) {
+    public IngredientController(IngredientService ingredientService, SupplierRepository supplierRepository) {
         this.ingredientService = ingredientService;
+        this.supplierRepository = supplierRepository;
     }
 
     /**
@@ -63,7 +69,11 @@ public class IngredientController {
     @Operation(summary = "Create a new ingredient (MANAGER/BARMAN/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Ingredient created")
     public ResponseEntity<IngredientResponseDTO> createIngredient(@Valid @RequestBody IngredientRequestDTO request) {
-        return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.createIngredient(request.toEntity())));
+        Ingredient entity = request.toEntity();
+        if (request.defaultSupplierId() != null) {
+            supplierRepository.findById(request.defaultSupplierId()).ifPresent(entity::setDefaultSupplier);
+        }
+        return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.createIngredient(entity)));
     }
 
 
@@ -81,7 +91,29 @@ public class IngredientController {
     public ResponseEntity<IngredientResponseDTO> updateIngredient(
         @Parameter(description = "Ingredient ID") @PathVariable Long id,
         @Valid @RequestBody IngredientRequestDTO request) {
-        return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.updateIngredient(id, request.toEntity())));
+        Ingredient entity = request.toEntity();
+        if (request.defaultSupplierId() != null) {
+            supplierRepository.findById(request.defaultSupplierId()).ifPresent(entity::setDefaultSupplier);
+        }
+        return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.updateIngredient(id, entity)));
+    }
+
+    /**
+     * Retrieves an ingredient by scanned barcode or QR code.
+     *
+     * @param code barcode or QR code string
+     * @return ingredient response DTO
+     */
+    @GetMapping("/by-barcode")
+    @Operation(summary = "Find ingredient by barcode or QR code (ADMIN/MANAGER/BARMAN/SERVEUR)")
+    @ApiResponse(responseCode = "200", description = "Ingredient found")
+    @ApiResponse(responseCode = "404", description = "Ingredient not found for barcode")
+    public ResponseEntity<IngredientResponseDTO> getByBarcode(
+        @Parameter(description = "Barcode or QR code") @RequestParam("code") String code
+    ) {
+        return ingredientService.findByCodeBarre(code)
+            .map(ing -> ResponseEntity.ok(IngredientResponseDTO.from(ing)))
+            .orElseThrow(() -> new ResourceNotFoundException("Ingredient not found for barcode: " + code));
     }
 
     /**

@@ -42,10 +42,65 @@ public record IngredientResponseDTO(
     BigDecimal degreAlcool,
     Boolean isVegan,
     String category,
+    Long defaultSupplierId,
+    String defaultSupplierNom,
+    String codeBarre,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
     public static final String DEFAULT_CATEGORY = "other";
+
+    /**
+     * Backward-compatible constructor without codeBarre.
+     */
+    public IngredientResponseDTO(
+        Long id,
+        String nom,
+        String uniteMesure,
+        BigDecimal quantiteStock,
+        BigDecimal seuilAlerte,
+        String numeroLot,
+        LocalDateTime datePeremption,
+        BigDecimal prixUnitaire,
+        BigDecimal unitCost,
+        String fournisseur,
+        String notes,
+        Set<Allergen> allergens,
+        BigDecimal degreAlcool,
+        Boolean isVegan,
+        String category,
+        Long defaultSupplierId,
+        String defaultSupplierNom,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        this(id, nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, defaultSupplierId, defaultSupplierNom, null, createdAt, updatedAt);
+    }
+
+    /**
+     * Backward-compatible constructor without default supplier info and codeBarre.
+     */
+    public IngredientResponseDTO(
+        Long id,
+        String nom,
+        String uniteMesure,
+        BigDecimal quantiteStock,
+        BigDecimal seuilAlerte,
+        String numeroLot,
+        LocalDateTime datePeremption,
+        BigDecimal prixUnitaire,
+        BigDecimal unitCost,
+        String fournisseur,
+        String notes,
+        Set<Allergen> allergens,
+        BigDecimal degreAlcool,
+        Boolean isVegan,
+        String category,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        this(id, nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, null, null, createdAt, updatedAt);
+    }
 
     /**
      * Backward-compatible constructor without category.
@@ -144,15 +199,20 @@ public record IngredientResponseDTO(
         if (i == null) {
             return null;
         }
-        Set<Allergen> allergens = i.getAllergens() != null ? i.getAllergens() : Set.of();
+        Set<Allergen> allergenSet = i.getAllergens() != null ? i.getAllergens() : Set.of();
+        Long supplierId = i.getDefaultSupplier() != null ? i.getDefaultSupplier().getId() : null;
+        String supplierNom = i.getDefaultSupplier() != null ? i.getDefaultSupplier().getNom() : i.getFournisseur();
         return new IngredientResponseDTO(
             i.getId(), i.getNom(), i.getUniteMesure(), i.getQuantiteStock(),
             i.getSeuilAlerte(), i.getNumeroLot(), i.getDatePeremption(),
             i.getPrixUnitaire(), i.getPrixUnitaire(), i.getFournisseur(), i.getNotes(),
-            allergens,
+            allergenSet,
             i.getDegreAlcool() != null ? i.getDegreAlcool() : BigDecimal.ZERO,
             i.getIsVegan() == null || i.getIsVegan(),
             i.getCategory() != null ? i.getCategory() : DEFAULT_CATEGORY,
+            supplierId,
+            supplierNom,
+            i.getCodeBarre(),
             i.getCreatedAt(), i.getUpdatedAt()
         );
     }

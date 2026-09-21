@@ -73,8 +73,24 @@ public class IngredientService {
         existing.setDegreAlcool(updatedData.getDegreAlcool());
         existing.setIsVegan(updatedData.getIsVegan());
         existing.setCategory(updatedData.getCategory() != null && !updatedData.getCategory().isBlank() ? updatedData.getCategory() : "other");
+        existing.setDefaultSupplier(updatedData.getDefaultSupplier());
+        existing.setCodeBarre(updatedData.getCodeBarre());
         existing.setUpdatedAt(timeService.now());
         return ingredientRepository.save(existing);
+    }
+
+    /**
+     * Finds an ingredient by its exact barcode or QR code.
+     *
+     * @param codeBarre barcode or QR code string
+     * @return matching ingredient entity, or empty Optional
+     */
+    @Transactional(readOnly = true)
+    public Optional<Ingredient> findByCodeBarre(String codeBarre) {
+        if (codeBarre == null || codeBarre.isBlank()) {
+            return Optional.empty();
+        }
+        return ingredientRepository.findByCodeBarre(codeBarre.trim());
     }
 /**
      * Deletes an ingredient from inventory.

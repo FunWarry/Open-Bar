@@ -2761,6 +2761,104 @@
       "notes": "Réglé par carte",
       "minutesAgo": 180
     }
+  ],
+  "suppliers": [
+    {
+      "nom": "Brasserie du Mont-Blanc",
+      "contactNom": "Sylvain Favre",
+      "email": "commandes@brasseriedumontblanc.com",
+      "telephone": "+33 4 50 12 34 56",
+      "adresse": "125 Rue des Brasseurs",
+      "codePostal": "74000",
+      "ville": "Annecy",
+      "pays": "France",
+      "siret": "43920192800025",
+      "delaiLivraisonJours": 3,
+      "francoPortMontant": 250.00,
+      "fraisPort": 15.00,
+      "notes": "Fournisseur principal de bières artisanales et fûts.",
+      "actif": true
+    },
+    {
+      "nom": "Distillerie des Alpes",
+      "contactNom": "Marc Veyrat",
+      "email": "contact@distillerie-alpes.fr",
+      "telephone": "+33 4 79 98 76 54",
+      "adresse": "48 Chemin des Alambics",
+      "codePostal": "73000",
+      "ville": "Chambéry",
+      "pays": "France",
+      "siret": "51283920100018",
+      "delaiLivraisonJours": 2,
+      "francoPortMontant": 300.00,
+      "fraisPort": 20.00,
+      "notes": "Génépi, liqueurs artisanales et spiritueux.",
+      "actif": true
+    },
+    {
+      "nom": "Grossiste Boissons Rhône",
+      "contactNom": "Claire Dupont",
+      "email": "ventes@gbr-boissons.fr",
+      "telephone": "+33 4 72 00 11 22",
+      "adresse": "12 Avenue de l'Industrie",
+      "codePostal": "69007",
+      "ville": "Lyon",
+      "pays": "France",
+      "siret": "38291048200034",
+      "delaiLivraisonJours": 1,
+      "francoPortMontant": 150.00,
+      "fraisPort": 12.50,
+      "notes": "Jus, sirops, softs, sodas et consommables de bar.",
+      "actif": true
+    }
+  ],
+  "purchase_orders": [
+    {
+      "supplierNom": "Distillerie des Alpes",
+      "statut": "RECU",
+      "notes": "Commande mensuelle spiritueux d'hiver",
+      "referenceFactureFournisseur": "FA-2026-089",
+      "daysAgo": 5,
+      "items": [
+        {
+          "ingredientNom": "Rhum",
+          "quantiteCommandee": 12.0,
+          "quantiteRecue": 12.0,
+          "prixUnitaireHt": 18.50,
+          "tauxTva": 20.0
+        },
+        {
+          "ingredientNom": "Gin",
+          "quantiteCommandee": 6.0,
+          "quantiteRecue": 6.0,
+          "prixUnitaireHt": 22.00,
+          "tauxTva": 20.0
+        }
+      ]
+    },
+    {
+      "supplierNom": "Grossiste Boissons Rhône",
+      "statut": "COMMANDE",
+      "notes": "Réapprovisionnement sirops et jus avant weekend",
+      "referenceFactureFournisseur": null,
+      "daysAgo": 1,
+      "items": [
+        {
+          "ingredientNom": "Sirop de sucre",
+          "quantiteCommandee": 20.0,
+          "quantiteRecue": 0.0,
+          "prixUnitaireHt": 3.80,
+          "tauxTva": 5.5
+        },
+        {
+          "ingredientNom": "Jus de citron",
+          "quantiteCommandee": 15.0,
+          "quantiteRecue": 0.0,
+          "prixUnitaireHt": 2.90,
+          "tauxTva": 5.5
+        }
+      ]
+    }
   ]
 }
 

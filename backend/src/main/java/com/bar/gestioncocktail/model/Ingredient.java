@@ -44,6 +44,11 @@ public class Ingredient {
     private LocalDateTime datePeremption;
     private BigDecimal prixUnitaire;
     private String fournisseur;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "supplier_id")
+    private Supplier defaultSupplier;
+
     private String notes;
 
     @Column(name = "degre_alcool", precision = 5, scale = 2)
@@ -62,6 +67,9 @@ public class Ingredient {
 
     @Column(name = "category", length = 50)
     private String category = DEFAULT_CATEGORY;
+
+    @Column(name = "code_barre", unique = true, length = 100)
+    private String codeBarre;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -154,6 +162,42 @@ public class Ingredient {
      */
     public void setUnitCost(BigDecimal unitCost) {
         this.prixUnitaire = unitCost;
+    }
+
+    /**
+     * Gets the default supplier for this ingredient.
+     *
+     * @return default supplier entity or null
+     */
+    public Supplier getDefaultSupplier() {
+        return defaultSupplier;
+    }
+
+    /**
+     * Sets the default supplier for this ingredient.
+     *
+     * @param defaultSupplier supplier to associate
+     */
+    public void setDefaultSupplier(Supplier defaultSupplier) {
+        this.defaultSupplier = defaultSupplier;
+    }
+
+    /**
+     * Gets the barcode or QR code associated with this bottle or consumable.
+     *
+     * @return barcode string (EAN-13, QR code, etc.)
+     */
+    public String getCodeBarre() {
+        return codeBarre;
+    }
+
+    /**
+     * Sets the barcode or QR code associated with this bottle or consumable.
+     *
+     * @param codeBarre barcode string to associate
+     */
+    public void setCodeBarre(String codeBarre) {
+        this.codeBarre = (codeBarre != null && !codeBarre.isBlank()) ? codeBarre.trim() : null;
     }
 
     @PrePersist

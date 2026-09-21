@@ -71,9 +71,59 @@ public record IngredientRequestDTO(
     Boolean isVegan,
 
     @Size(max = 50, message = "Category cannot exceed 50 characters")
-    String category
+    String category,
+
+    Long defaultSupplierId,
+
+    @Size(max = 100, message = "Barcode cannot exceed 100 characters")
+    String codeBarre
 ) {
     public static final String DEFAULT_CATEGORY = "other";
+
+    /**
+     * Backward-compatible constructor with defaultSupplierId and without codeBarre.
+     */
+    public IngredientRequestDTO(
+        String nom,
+        String uniteMesure,
+        BigDecimal quantiteStock,
+        BigDecimal seuilAlerte,
+        String numeroLot,
+        LocalDateTime datePeremption,
+        BigDecimal prixUnitaire,
+        BigDecimal unitCost,
+        String fournisseur,
+        String notes,
+        Set<Allergen> allergens,
+        BigDecimal degreAlcool,
+        Boolean isVegan,
+        String category,
+        Long defaultSupplierId
+    ) {
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, defaultSupplierId, null);
+    }
+
+    /**
+     * Backward-compatible constructor without defaultSupplierId and codeBarre.
+     */
+    public IngredientRequestDTO(
+        String nom,
+        String uniteMesure,
+        BigDecimal quantiteStock,
+        BigDecimal seuilAlerte,
+        String numeroLot,
+        LocalDateTime datePeremption,
+        BigDecimal prixUnitaire,
+        BigDecimal unitCost,
+        String fournisseur,
+        String notes,
+        Set<Allergen> allergens,
+        BigDecimal degreAlcool,
+        Boolean isVegan,
+        String category
+    ) {
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, null, null);
+    }
 
     /**
      * Backward-compatible constructor without category.
@@ -171,6 +221,7 @@ public record IngredientRequestDTO(
         ingredient.setDegreAlcool(degreAlcool != null ? degreAlcool : BigDecimal.ZERO);
         ingredient.setIsVegan(isVegan == null || isVegan);
         ingredient.setCategory(category != null && !category.isBlank() ? category : DEFAULT_CATEGORY);
+        ingredient.setCodeBarre(codeBarre);
         return ingredient;
     }
 }

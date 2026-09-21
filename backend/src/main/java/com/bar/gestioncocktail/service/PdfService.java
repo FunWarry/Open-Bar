@@ -23,6 +23,9 @@ import com.bar.gestioncocktail.model.DailyCashClosure;
 import com.bar.gestioncocktail.model.EstablishmentConfig;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
+import com.bar.gestioncocktail.model.PurchaseOrder;
+import com.bar.gestioncocktail.model.PurchaseOrderItem;
+import com.bar.gestioncocktail.model.Supplier;
 import com.bar.gestioncocktail.model.VatRate;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -56,6 +59,7 @@ public class PdfService {
     private static final Color LIGHT_BG = new Color(248, 249, 254);
     private static final Color BORDER_COLOR = new Color(218, 222, 240);
     private static final String TOTAL_TTC_HEADER = "Total TTC";
+    private static final String TOTAL_HT_HEADER = "Total HT";
     private static final String BASE_HT_HEADER = "Base HT";
     private static final String TAUX_TVA_HEADER = "Taux TVA";
     private static final DateTimeFormatter DATE_ONLY_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -248,8 +252,8 @@ public class PdfService {
         table.setWidths(new float[]{3.5f, 1f, 1.5f, 1.2f, 1.5f, 1.8f});
 
         String[] headers = isEn
-            ? new String[]{"Item", "Qty", "Unit Price HT", "VAT Rate", "Total HT", "Total Incl. VAT"}
-            : new String[]{"Article", "Qté", "P.U. HT", TAUX_TVA_HEADER, "Total HT", TOTAL_TTC_HEADER};
+            ? new String[]{"Item", "Qty", "Unit Price HT", "VAT Rate", TOTAL_HT_HEADER, "Total Incl. VAT"}
+            : new String[]{"Article", "Qté", "P.U. HT", TAUX_TVA_HEADER, TOTAL_HT_HEADER, TOTAL_TTC_HEADER};
 
         for (String header : headers) {
             PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
@@ -1363,4 +1367,227 @@ public class PdfService {
     }
 
     private record StandFonts(Font titleFont, Font tableNumFont, Font subFont, Font descFont) {}
+
+    private record PurchaseOrderFonts(
+        Font titleFont,
+        Font sectionTitleFont,
+        Font headerFont,
+        Font normalFont,
+        Font boldFont,
+        Font mutedFont,
+        Font totalFont
+    ) {}
+
+    /**
+     * Generates an official A4 PDF purchase order / goods receipt document for a supplier order.
+     * Document content adapts dynamically to the establishment configured language (French / English).
+     *
+     * @param order the purchase order entity
+     * @return PDF byte array
+     */
+    public byte[] generatePurchaseOrderPdf(PurchaseOrder order) {
+        if (order == null) {
+            throw new IllegalArgumentException("Purchase order cannot be null");
+        }
+
+        EstablishmentConfig config = establishmentConfigService != null ? establishmentConfigService.getConfig() : new EstablishmentConfig();
+        AppSettings settings = appSettingsService != null ? appSettingsService.getSettings() : new AppSettings();
+        boolean isEn = config != null && "en".equalsIgnoreCase(config.getLanguage());
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Document doc = new Document(PageSize.A4, 36, 36, 40, 40);
+            PdfWriter writer = PdfWriter.getInstance(doc, out);
+            writer.setPdfVersion(PdfWriter.PDF_VERSION_1_7);
+            doc.open();
+
+            PurchaseOrderFonts fonts = new PurchaseOrderFonts(
+                new Font(Font.HELVETICA, 18, Font.BOLD, PRIMARY),
+                new Font(Font.HELVETICA, 11, Font.BOLD, PRIMARY),
+                new Font(Font.HELVETICA, 9, Font.BOLD, TEXT),
+                new Font(Font.HELVETICA, 9, Font.NORMAL, DARK_TEXT),
+                new Font(Font.HELVETICA, 9, Font.BOLD, DARK_TEXT),
+                new Font(Font.HELVETICA, 8, Font.NORMAL, MUTED),
+                new Font(Font.HELVETICA, 11, Font.BOLD, PRIMARY)
+            );
+
+            addPurchaseOrderHeader(doc, order, config, settings, fonts, isEn);
+            addSupplierDetailsBox(doc, order.getSupplier(), fonts, isEn);
+            addPurchaseOrderItemsTable(doc, order, settings, fonts, isEn);
+            addPurchaseOrderTotals(doc, order, settings, fonts, isEn);
+            addDeliverySignaturesBox(doc, fonts.mutedFont(), isEn);
+            addLegalFooterSection(doc, config, fonts.mutedFont());
+
+            doc.close();
+            return out.toByteArray();
+        } catch (DocumentException | IOException e) {
+            throw new IllegalStateException("Error generating purchase order PDF " + order.getReference(), e);
+        }
+    }
+
+    private void addPurchaseOrderHeader(Document doc, PurchaseOrder order, EstablishmentConfig config, AppSettings settings,
+                                        PurchaseOrderFonts fonts, boolean isEn) throws DocumentException {
+        PdfPTable headerTable = new PdfPTable(2);
+        headerTable.setWidthPercentage(100);
+        headerTable.setWidths(new float[]{1.2f, 1f});
+
+        headerTable.addCell(buildEstablishmentCell(config, settings, fonts.normalFont(), fonts.mutedFont()));
+
+        PdfPCell metaCell = new PdfPCell();
+        metaCell.setBorder(Rectangle.NO_BORDER);
+        metaCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        metaCell.addElement(new Paragraph(isEn ? "PURCHASE ORDER" : "BON DE COMMANDE", fonts.titleFont()));
+        metaCell.addElement(new Paragraph((isEn ? "Ref: " : "Réf : ") + order.getReference(), fonts.boldFont()));
+        metaCell.addElement(new Paragraph((isEn ? "Order date: " : "Date commande : ") + (order.getDateCommande() != null ? order.getDateCommande().format(DATE_FMT) : "-"), fonts.normalFont()));
+        if (order.getDateLivraisonPrevue() != null) {
+            metaCell.addElement(new Paragraph((isEn ? "Expected delivery: " : "Livraison prévue : ") + order.getDateLivraisonPrevue().format(DATE_ONLY_FMT), fonts.normalFont()));
+        }
+        if (order.getDateReception() != null) {
+            metaCell.addElement(new Paragraph((isEn ? "Receipt date: " : "Date réception : ") + order.getDateReception().format(DATE_FMT), fonts.normalFont()));
+        }
+        metaCell.addElement(new Paragraph((isEn ? "Status: " : "Statut : ") + (order.getStatut() != null ? order.getStatut().name() : "DRAFT"), fonts.boldFont()));
+        headerTable.addCell(metaCell);
+
+        doc.add(headerTable);
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private void addSupplierDetailsBox(Document doc, Supplier supplier, PurchaseOrderFonts fonts, boolean isEn) throws DocumentException {
+        if (supplier == null) {
+            return;
+        }
+        PdfPTable supplierTable = new PdfPTable(1);
+        supplierTable.setWidthPercentage(100);
+        PdfPCell supplierCell = new PdfPCell();
+        supplierCell.setBackgroundColor(LIGHT_BG);
+        supplierCell.setBorderColor(BORDER_COLOR);
+        supplierCell.setPadding(10);
+
+        supplierCell.addElement(new Paragraph(isEn ? "SUPPLIER" : "FOURNISSEUR", fonts.sectionTitleFont()));
+        supplierCell.addElement(new Paragraph(supplier.getNom(), fonts.boldFont()));
+
+        addFieldIfPresent(supplierCell, isEn ? "Contact: " : "Contact : ", supplier.getContactNom(), fonts.normalFont());
+        addFieldIfPresent(supplierCell, "Email : ", supplier.getEmail(), fonts.normalFont());
+        addFieldIfPresent(supplierCell, isEn ? "Tel: " : "Tél : ", supplier.getTelephone(), fonts.normalFont());
+        addFieldIfPresent(supplierCell, isEn ? "Address: " : "Adresse : ", supplier.getAdresse(), fonts.normalFont());
+        addFieldIfPresent(supplierCell, isEn ? "Payment terms: " : "Conditions de paiement : ", supplier.getConditionsPaiement(), fonts.mutedFont());
+
+        supplierTable.addCell(supplierCell);
+        doc.add(supplierTable);
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private void addFieldIfPresent(PdfPCell cell, String label, String value, Font font) {
+        if (value != null && !value.isBlank()) {
+            cell.addElement(new Paragraph(label + value, font));
+        }
+    }
+
+    private void addPurchaseOrderItemsTable(Document doc, PurchaseOrder order, AppSettings settings,
+                                            PurchaseOrderFonts fonts, boolean isEn) throws DocumentException {
+        PdfPTable itemsTable = new PdfPTable(6);
+        itemsTable.setWidthPercentage(100);
+        itemsTable.setWidths(new float[]{3.5f, 1.2f, 1.2f, 1.5f, 1f, 1.6f});
+
+        addHeaderCell(itemsTable, isEn ? "Item / Ingredient" : "Article / Ingrédient", fonts.headerFont(), Element.ALIGN_LEFT);
+        addHeaderCell(itemsTable, isEn ? "Qty Ord." : "Qté Cde", fonts.headerFont(), Element.ALIGN_RIGHT);
+        addHeaderCell(itemsTable, isEn ? "Qty Rec." : "Qté Reçue", fonts.headerFont(), Element.ALIGN_RIGHT);
+        addHeaderCell(itemsTable, isEn ? "Unit Price Excl. VAT" : "P.U. HT", fonts.headerFont(), Element.ALIGN_RIGHT);
+        addHeaderCell(itemsTable, isEn ? "VAT %" : "TVA %", fonts.headerFont(), Element.ALIGN_RIGHT);
+        addHeaderCell(itemsTable, isEn ? "Total Excl. VAT" : TOTAL_HT_HEADER, fonts.headerFont(), Element.ALIGN_RIGHT);
+
+        if (order.getItems() != null) {
+            for (PurchaseOrderItem item : order.getItems()) {
+                addPurchaseOrderItemRow(itemsTable, item, settings, fonts);
+            }
+        }
+        doc.add(itemsTable);
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private void addPurchaseOrderItemRow(PdfPTable table, PurchaseOrderItem item, AppSettings settings, PurchaseOrderFonts fonts) {
+        String ingName = item.getIngredient() != null ? item.getIngredient().getNom() : "-";
+        String unit = item.getIngredient() != null ? item.getIngredient().getUniteMesure() : "";
+        String qtyOrdered = (item.getQuantiteCommandee() != null ? item.getQuantiteCommandee().toString() : "0") + " " + unit;
+        String qtyReceived = (item.getQuantiteRecue() != null ? item.getQuantiteRecue().toString() : "0") + " " + unit;
+        double puHt = item.getPrixUnitaireHt() != null ? item.getPrixUnitaireHt().doubleValue() : 0.0;
+        double vatRate = item.getTauxTva() != null ? item.getTauxTva().doubleValue() : 20.0;
+        double lineTotalHt = (item.getQuantiteCommandee() != null ? item.getQuantiteCommandee().doubleValue() : 0.0) * puHt;
+
+        addTableCell(table, ingName, fonts.normalFont(), Element.ALIGN_LEFT);
+        addTableCell(table, qtyOrdered, fonts.normalFont(), Element.ALIGN_RIGHT);
+        addTableCell(table, qtyReceived, fonts.normalFont(), Element.ALIGN_RIGHT);
+        addTableCell(table, formatPrix(puHt, settings), fonts.normalFont(), Element.ALIGN_RIGHT);
+        addTableCell(table, String.format(Locale.FRANCE, "%.1f %%", vatRate), fonts.normalFont(), Element.ALIGN_RIGHT);
+        addTableCell(table, formatPrix(lineTotalHt, settings), fonts.boldFont(), Element.ALIGN_RIGHT);
+    }
+
+    private void addPurchaseOrderTotals(Document doc, PurchaseOrder order, AppSettings settings,
+                                        PurchaseOrderFonts fonts, boolean isEn) throws DocumentException {
+        PdfPTable totalsTable = new PdfPTable(2);
+        totalsTable.setWidthPercentage(100);
+        totalsTable.setWidths(new float[]{1.5f, 1f});
+
+        PdfPCell notesCell = new PdfPCell();
+        notesCell.setBorder(Rectangle.NO_BORDER);
+        if (order.getNotes() != null && !order.getNotes().isBlank()) {
+            notesCell.addElement(new Paragraph(isEn ? "Instructions / Notes:" : "Instructions / Notes :", fonts.boldFont()));
+            notesCell.addElement(new Paragraph(order.getNotes(), fonts.mutedFont()));
+        }
+        totalsTable.addCell(notesCell);
+
+        PdfPCell finCell = new PdfPCell();
+        finCell.setBorder(Rectangle.NO_BORDER);
+        finCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        double totalHt = order.getTotalHt() != null ? order.getTotalHt().doubleValue() : 0.0;
+        double totalTva = order.getTotalTva() != null ? order.getTotalTva().doubleValue() : 0.0;
+        double totalTtc = order.getTotalTtc() != null ? order.getTotalTtc().doubleValue() : 0.0;
+
+        finCell.addElement(new Paragraph((isEn ? "Total Excl. VAT: " : "Total HT : ") + formatPrix(totalHt, settings), fonts.boldFont()));
+        finCell.addElement(new Paragraph((isEn ? "Total VAT: " : "Total TVA : ") + formatPrix(totalTva, settings), fonts.normalFont()));
+        finCell.addElement(new Paragraph((isEn ? "TOTAL INCL. VAT: " : "TOTAL TTC : ") + formatPrix(totalTtc, settings), fonts.totalFont()));
+        totalsTable.addCell(finCell);
+
+        doc.add(totalsTable);
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private void addDeliverySignaturesBox(Document doc, Font mutedFont, boolean isEn) throws DocumentException {
+        PdfPTable signTable = new PdfPTable(2);
+        signTable.setWidthPercentage(100);
+        signTable.setWidths(new float[]{1f, 1f});
+
+        PdfPCell visaSupplier = new PdfPCell();
+        visaSupplier.setBorderColor(BORDER_COLOR);
+        visaSupplier.setPadding(8);
+        visaSupplier.setFixedHeight(60);
+        visaSupplier.addElement(new Paragraph(isEn ? "Supplier / Carrier Signature:" : "Visa & Signature Livreur / Fournisseur :", mutedFont));
+        signTable.addCell(visaSupplier);
+
+        PdfPCell visaReceiver = new PdfPCell();
+        visaReceiver.setBorderColor(BORDER_COLOR);
+        visaReceiver.setPadding(8);
+        visaReceiver.setFixedHeight(60);
+        visaReceiver.addElement(new Paragraph(isEn ? "Receiver Signature & Date:" : "Visa Réceptionnaire & Date :", mutedFont));
+        signTable.addCell(visaReceiver);
+
+        doc.add(signTable);
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private void addHeaderCell(PdfPTable table, String text, Font font, int alignment) {
+        PdfPCell cell = new PdfPCell(new Phrase(text, font));
+        cell.setBackgroundColor(SURFACE);
+        cell.setPadding(6);
+        cell.setBorderColor(PRIMARY);
+        cell.setHorizontalAlignment(alignment);
+        table.addCell(cell);
+    }
+
+    private void addTableCell(PdfPTable table, String text, Font font, int alignment) {
+        PdfPCell cell = new PdfPCell(new Phrase(text, font));
+        cell.setPadding(5);
+        cell.setBorderColor(BORDER_COLOR);
+        cell.setHorizontalAlignment(alignment);
+        table.addCell(cell);
+    }
 }

@@ -126,6 +126,9 @@ public class EstablishmentConfig {
     @Column(name = "module_cocktail_library_enabled")
     private Boolean moduleCocktailLibraryEnabled = true;
 
+    @Column(name = "module_suppliers_management_enabled")
+    private Boolean moduleSuppliersManagementEnabled = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -363,6 +366,14 @@ public class EstablishmentConfig {
         this.moduleCocktailLibraryEnabled = moduleCocktailLibraryEnabled;
     }
 
+    public Boolean getModuleSuppliersManagementEnabled() {
+        return this.moduleSuppliersManagementEnabled;
+    }
+
+    public void setModuleSuppliersManagementEnabled(Boolean moduleSuppliersManagementEnabled) {
+        this.moduleSuppliersManagementEnabled = moduleSuppliersManagementEnabled;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -399,6 +410,7 @@ public class EstablishmentConfig {
             case CASH_DRAWER -> Boolean.TRUE.equals(this.moduleCashDrawerEnabled);
             case BAR_TABS -> Boolean.TRUE.equals(this.moduleBarTabsEnabled);
             case COCKTAIL_LIBRARY -> Boolean.TRUE.equals(this.moduleCocktailLibraryEnabled);
+            case SUPPLIERS_MANAGEMENT -> Boolean.TRUE.equals(this.moduleSuppliersManagementEnabled);
             default -> true;
         };
     }
@@ -440,6 +452,9 @@ public class EstablishmentConfig {
                 break;
             case COCKTAIL_LIBRARY:
                 this.moduleCocktailLibraryEnabled = enabled;
+                break;
+            case SUPPLIERS_MANAGEMENT:
+                this.moduleSuppliersManagementEnabled = enabled;
                 break;
             default:
                 break;
@@ -490,6 +505,7 @@ public class EstablishmentConfig {
                 ", moduleCashDrawerEnabled=" + moduleCashDrawerEnabled +
                 ", moduleBarTabsEnabled=" + moduleBarTabsEnabled +
                 ", moduleCocktailLibraryEnabled=" + moduleCocktailLibraryEnabled +
+                ", moduleSuppliersManagementEnabled=" + moduleSuppliersManagementEnabled +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
