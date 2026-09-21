@@ -616,20 +616,13 @@ describe('CocktailListComponent', () => {
     expect(component.isLibraryModuleEnabled).toBeTrue();
   });
 
-  it('openLibraryImportModal opens modal and reloads when imported', async () => {
-    const modalCtrl = TestBed.inject(ModalController);
-    const mockModalElement = {
-      present: jasmine.createSpy('present').and.resolveTo(),
-      onWillDismiss: jasmine.createSpy('onWillDismiss').and.resolveTo({ role: 'imported' })
-    };
-    spyOn(modalCtrl, 'create').and.resolveTo(mockModalElement as any);
-    spyOn(component, 'charger');
+  it('openLibraryImportModal navigates to /cocktails/library route', () => {
+    const router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
 
-    await component.openLibraryImportModal();
+    component.openLibraryImportModal();
 
-    expect(modalCtrl.create).toHaveBeenCalled();
-    expect(mockModalElement.present).toHaveBeenCalled();
-    expect(component.charger).toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/cocktails', 'library']);
   });
 });
 

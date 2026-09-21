@@ -41,11 +41,38 @@ public record IngredientResponseDTO(
     Set<Allergen> allergens,
     BigDecimal degreAlcool,
     Boolean isVegan,
+    String category,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
+    public static final String DEFAULT_CATEGORY = "other";
+
     /**
-     * Backward-compatible constructor without degreAlcool and isVegan.
+     * Backward-compatible constructor without category.
+     */
+    public IngredientResponseDTO(
+        Long id,
+        String nom,
+        String uniteMesure,
+        BigDecimal quantiteStock,
+        BigDecimal seuilAlerte,
+        String numeroLot,
+        LocalDateTime datePeremption,
+        BigDecimal prixUnitaire,
+        BigDecimal unitCost,
+        String fournisseur,
+        String notes,
+        Set<Allergen> allergens,
+        BigDecimal degreAlcool,
+        Boolean isVegan,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        this(id, nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, DEFAULT_CATEGORY, createdAt, updatedAt);
+    }
+
+    /**
+     * Backward-compatible constructor without degreAlcool, isVegan, and category.
      */
     public IngredientResponseDTO(
         Long id,
@@ -63,11 +90,11 @@ public record IngredientResponseDTO(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
-        this(id, nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, BigDecimal.ZERO, true, createdAt, updatedAt);
+        this(id, nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, BigDecimal.ZERO, true, DEFAULT_CATEGORY, createdAt, updatedAt);
     }
 
     /**
-     * Backward-compatible constructor without allergens, degreAlcool and isVegan.
+     * Backward-compatible constructor without allergens, degreAlcool, isVegan, and category.
      */
     public IngredientResponseDTO(
         Long id,
@@ -84,11 +111,11 @@ public record IngredientResponseDTO(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
-        this(id, nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, Set.of(), BigDecimal.ZERO, true, createdAt, updatedAt);
+        this(id, nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, Set.of(), BigDecimal.ZERO, true, DEFAULT_CATEGORY, createdAt, updatedAt);
     }
 
     /**
-     * Backward-compatible constructor without separate unitCost field, allergens, degreAlcool and isVegan.
+     * Backward-compatible constructor without separate unitCost field, allergens, degreAlcool, isVegan, and category.
      */
     public IngredientResponseDTO(
         Long id,
@@ -104,7 +131,7 @@ public record IngredientResponseDTO(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
-        this(id, nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, prixUnitaire, fournisseur, notes, Set.of(), BigDecimal.ZERO, true, createdAt, updatedAt);
+        this(id, nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, prixUnitaire, fournisseur, notes, Set.of(), BigDecimal.ZERO, true, DEFAULT_CATEGORY, createdAt, updatedAt);
     }
 
     /**
@@ -125,6 +152,7 @@ public record IngredientResponseDTO(
             allergens,
             i.getDegreAlcool() != null ? i.getDegreAlcool() : BigDecimal.ZERO,
             i.getIsVegan() == null || i.getIsVegan(),
+            i.getCategory() != null ? i.getCategory() : DEFAULT_CATEGORY,
             i.getCreatedAt(), i.getUpdatedAt()
         );
     }

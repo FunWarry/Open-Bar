@@ -12,6 +12,9 @@
       #nativeInput
       [id]="inputId"
       [type]="type"
+      [min]="min !== undefined ? min : null"
+      [max]="max !== undefined ? max : null"
+      [step]="step !== undefined ? step : null"
       [value]="value ?? ''"
       [placeholder]="placeholder"
       [disabled]="disabled"

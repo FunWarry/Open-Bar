@@ -28,22 +28,34 @@
     </app-input-field>
 
     <div class="select-field-group">
-      <span class="field-label" id="unit-select-label">{{ 'INGREDIENTS.UNIT' | transloco }} @if (canEdit) { <span class="required-star">*</span> }</span>
-      <div class="select-input-wrapper">
-        <ion-icon name="scale-outline" class="select-icon"></ion-icon>
-        <ion-select
-          formControlName="uniteMesure"
-          [placeholder]="'INGREDIENTS.SELECT_UNIT' | transloco"
-          [cancelText]="'COMMON.CANCEL' | transloco"
-          [okText]="'COMMON.CONFIRM' | transloco"
-          [interfaceOptions]="{ header: ('INGREDIENTS.UNIT' | transloco) }"
-          aria-labelledby="unit-select-label"
-          data-testid="ingredient-unit-select">
-          @for (unit of unitOptions; track unit.value) {
-            <ion-select-option [value]="unit.value">{{ unit.label }}</ion-select-option>
-          }
-        </ion-select>
-      </div>
+      <app-searchable-select
+        formControlName="category"
+        [label]="'INGREDIENTS.CATEGORY' | transloco"
+        [placeholder]="'INGREDIENTS.SELECT_CATEGORY' | transloco"
+        [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+        [options]="categoryOptions"
+        [required]="canEdit"
+        [clearable]="false"
+        [enableSearch]="true"
+        testId="ingredient-category-select">
+      </app-searchable-select>
+      @if (ingredientForm.get('category')?.hasError('required') && ingredientForm.get('category')?.touched) {
+        <p class="error-hint">{{ 'INGREDIENTS.CATEGORY_REQUIRED' | transloco }}</p>
+      }
+    </div>
+
+    <div class="select-field-group">
+      <app-searchable-select
+        formControlName="uniteMesure"
+        [label]="'INGREDIENTS.UNIT' | transloco"
+        [placeholder]="'INGREDIENTS.SELECT_UNIT' | transloco"
+        [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+        [options]="unitOptions"
+        [required]="canEdit"
+        [clearable]="false"
+        [enableSearch]="true"
+        testId="ingredient-unit-select">
+      </app-searchable-select>
       @if (ingredientForm.get('uniteMesure')?.hasError('required') && ingredientForm.get('uniteMesure')?.touched) {
         <p class="error-hint">{{ 'INGREDIENTS.UNIT_REQUIRED' | transloco }}</p>
       }
@@ -84,10 +96,14 @@
     <app-input-field
       formControlName="degreAlcool"
       type="number"
+      [min]="0"
+      [max]="100"
+      step="0.1"
       [label]="('INGREDIENTS.ALCOHOL_DEGREE_LABEL' | transloco) + ' (% ABV)'"
       placeholder="0.0"
       icon="wine-outline"
       [required]="false"
+      [errorMessage]="ingredientForm.get('degreAlcool')?.invalid && ingredientForm.get('degreAlcool')?.touched ? ('INGREDIENTS.ALCOHOL_DEGREE_ERROR' | transloco) : ''"
       testId="ingredient-alcohol-degree-input">
     </app-input-field>
 

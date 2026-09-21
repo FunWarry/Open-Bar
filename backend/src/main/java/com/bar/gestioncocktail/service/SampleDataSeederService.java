@@ -740,12 +740,16 @@ public class SampleDataSeederService {
             String ingName = aNode.get("nom").asText();
             BigDecimal stock = new BigDecimal(aNode.get("quantiteStock").asText());
             BigDecimal seuil = new BigDecimal(aNode.get("seuilAlerte").asText());
+            String category = aNode.hasNonNull("category") ? aNode.get("category").asText().trim() : null;
 
             ingredientRepository.findByNomIgnoreCase(ingName).ifPresent(ing -> {
                 ing.setQuantiteStock(stock);
                 ing.setSeuilAlerte(seuil);
+                if (category != null && !category.isBlank()) {
+                    ing.setCategory(category);
+                }
                 ingredientRepository.save(ing);
-                log.trace("Stock adjustment applied: {} -> {} (seuil: {})", ingName, stock, seuil);
+                log.trace("Stock adjustment applied: {} -> {} (seuil: {}, category: {})", ingName, stock, seuil, ing.getCategory());
             });
         }
     }

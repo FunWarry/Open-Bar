@@ -1,6 +1,7 @@
-import { Component, Input, OnInit, Optional, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, Optional, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject } from 'rxjs';
 import {
   ToastController,
   ModalController,
@@ -10,9 +11,7 @@ import {
   IonTitle,
   IonButtons,
   IonButton,
-  IonIcon,
-  IonSelect,
-  IonSelectOption
+  IonIcon
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -27,16 +26,32 @@ import {
   nutritionOutline,
   leafOutline,
   eggOutline,
-  wineOutline
+  wineOutline,
+  pricetagOutline,
+  flaskOutline,
+  colorFillOutline,
+  beerOutline,
+  waterOutline,
+  sparklesOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IngredientService } from '../../../core/services/ingredient.service';
-import { Ingredient, Allergen, DEFAULT_ALLERGEN_OPTIONS } from '../../../core/models/ingredient.model';
+import {
+  Ingredient,
+  Allergen,
+  DEFAULT_ALLERGEN_OPTIONS,
+  INGREDIENT_UNIT_CONFIG,
+  INGREDIENT_CATEGORY_CONFIG
+} from '../../../core/models/ingredient.model';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
+import {
+  SearchableSelectComponent,
+  SearchableOption
+} from '../../../core/components/ui/searchable-select/searchable-select.component';
 
 /**
  * Form and detail modal component for creating, viewing, or editing an Ingredient entity in OpenBar.
- * Conforms to Figma Design System with InputFieldComponent and Transloco i18n.
+ * Conforms to Figma Design System with InputFieldComponent, SearchableSelectComponent and Transloco i18n.
  * Can be opened as an Ionic modal dialog or as a standalone route.
  */
 @Component({
@@ -53,29 +68,41 @@ import { InputFieldComponent } from '../../../core/components/ui/input-field/inp
     IonButtons,
     IonButton,
     IonIcon,
-    IonSelect,
-    IonSelectOption,
+    SearchableSelectComponent,
     InputFieldComponent,
     ReactiveFormsModule,
     TranslocoModule
   ]
 })
-export class IngredientFormComponent implements OnInit {
+export class IngredientFormComponent implements OnInit, OnDestroy {
   @Input() ingredient: Ingredient | null = null;
   @Input() canEdit = true;
 
   ingredientForm: FormGroup;
   isEditMode = false;
   ingredientId: number | null = null;
+  private readonly destroy$ = new Subject<void>();
 
-  readonly unitOptions = [
-    { value: 'cl', label: 'Centilitres (cl)' },
-    { value: 'ml', label: 'Millilitres (ml)' },
-    { value: 'g', label: 'Grammes (g)' },
-    { value: 'kg', label: 'Kilogrammes (kg)' },
-    { value: 'pièce', label: 'Pièce' },
-    { value: 'L', label: 'Litre (L)' }
-  ];
+  /** Standard unit options with localized labels, sublabels, badges and mixology icons. */
+  get unitOptions(): SearchableOption<string>[] {
+    return INGREDIENT_UNIT_CONFIG.map(u => ({
+      value: u.value,
+      label: this.transloco.translate(`INGREDIENTS.UNITS.${u.key}.LABEL`),
+      subLabel: this.transloco.translate(`INGREDIENTS.UNITS.${u.key}.SUBLABEL`),
+      badge: this.transloco.translate(`INGREDIENTS.UNITS.${u.key}.BADGE`),
+      badgeType: u.badgeType,
+      icon: u.icon
+    }));
+  }
+
+  /** Predefined mixology category options with Transloco translation keys and icons. */
+  get categoryOptions(): SearchableOption<string>[] {
+    return INGREDIENT_CATEGORY_CONFIG.map(cat => ({
+      value: cat.key,
+      label: this.transloco.translate(cat.labelKey),
+      icon: cat.icon
+    }));
+  }
 
   readonly availableAllergens = DEFAULT_ALLERGEN_OPTIONS;
 
@@ -100,11 +127,18 @@ export class IngredientFormComponent implements OnInit {
       nutritionOutline,
       leafOutline,
       eggOutline,
-      wineOutline
+      wineOutline,
+      pricetagOutline,
+      flaskOutline,
+      colorFillOutline,
+      beerOutline,
+      waterOutline,
+      sparklesOutline
     });
 
     this.ingredientForm = this.fb.group({
       nom: ['', [Validators.required]],
+      category: ['other', [Validators.required]],
       uniteMesure: ['', [Validators.required]],
       quantiteStock: [0, [Validators.required, Validators.min(0)]],
       seuilAlerte: [5, [Validators.required, Validators.min(0)]],
@@ -115,12 +149,18 @@ export class IngredientFormComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   ngOnInit(): void {
     if (this.ingredient) {
       this.isEditMode = true;
       this.ingredientId = this.ingredient.id;
       this.ingredientForm.patchValue({
         nom: this.ingredient.nom,
+        category: this.ingredient.category || 'other',
         uniteMesure: this.ingredient.uniteMesure,
         quantiteStock: this.ingredient.quantiteStock,
         seuilAlerte: this.ingredient.seuilAlerte,
@@ -147,6 +187,7 @@ export class IngredientFormComponent implements OnInit {
         next: (ingredient) => {
           this.ingredientForm.patchValue({
             nom: ingredient.nom,
+            category: ingredient.category || 'other',
             uniteMesure: ingredient.uniteMesure,
             quantiteStock: ingredient.quantiteStock,
             seuilAlerte: ingredient.seuilAlerte,

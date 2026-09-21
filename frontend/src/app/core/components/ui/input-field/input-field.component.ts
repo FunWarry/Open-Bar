@@ -66,6 +66,15 @@ export class InputFieldComponent extends BaseControlValueAccessor {
   /** Custom data-testid attribute for End-to-End testing. */
   @Input() testId = 'input-field';
 
+  /** Minimum allowed value for number or date inputs. */
+  @Input() min?: number | string;
+
+  /** Maximum allowed value for number or date inputs. */
+  @Input() max?: number | string;
+
+  /** Step increment for number inputs. */
+  @Input() step?: number | string;
+
   /** Writes value to both component state and native input element. */
   override writeValue(val: any): void {
     super.writeValue(val);
@@ -74,10 +83,44 @@ export class InputFieldComponent extends BaseControlValueAccessor {
     }
   }
 
-  /** Input change handler. */
+  /** Clamps a numeric value between min and max bounds if specified. */
+  private clampValue(val: any): any {
+    if (this.type !== 'number' || val === '' || val === null || val === undefined) {
+      return val;
+    }
+    const num = Number(val);
+    if (Number.isNaN(num)) {
+      return val;
+    }
+    if (this.min !== undefined && num < Number(this.min)) {
+      return Number(this.min);
+    }
+    if (this.max !== undefined && num > Number(this.max)) {
+      return Number(this.max);
+    }
+    return num;
+  }
+
+  /** Input change handler with auto-clamping for bounded numeric fields. */
   onInput(event: Event): void {
     const target = event.target as HTMLInputElement;
-    this.value = target.value;
+    const clamped = this.clampValue(target.value);
+    if (clamped !== target.value) {
+      target.value = String(clamped);
+    }
+    this.value = clamped;
     this.onChange(this.value);
+  }
+
+  override onBlur(): void {
+    const clamped = this.clampValue(this.value);
+    if (clamped !== this.value) {
+      this.value = clamped;
+      if (this.nativeInput?.nativeElement) {
+        this.nativeInput.nativeElement.value = String(this.value);
+      }
+      this.onChange(this.value);
+    }
+    super.onBlur();
   }
 }

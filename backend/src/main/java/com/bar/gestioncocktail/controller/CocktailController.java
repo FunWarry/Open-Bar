@@ -7,6 +7,7 @@ import com.bar.gestioncocktail.model.FlavorProfile;
 import com.bar.gestioncocktail.service.CocktailLibraryService;
 import com.bar.gestioncocktail.service.CocktailService;
 import com.bar.gestioncocktail.service.MarginCalculationService;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -429,6 +430,18 @@ public class CocktailController {
     }
 
     /**
+     * Retrieves precomputed ingredient association connection wheel dataset.
+     *
+     * @return JsonNode containing connection wheel graph data
+     */
+    @GetMapping("/library/wheel")
+    @Operation(summary = "Get cocktail connection wheel data", description = "Retrieves precomputed chord diagram nodes, categories, and ingredient association edges.")
+    @ApiResponse(responseCode = "200", description = "Connection wheel dataset retrieved successfully")
+    public ResponseEntity<JsonNode> getLibraryWheel() {
+        return ResponseEntity.ok(cocktailLibraryService.getWheelData());
+    }
+
+    /**
      * Batch imports selected cocktail recipes from the library into the active catalog and inventory.
      *
      * @param request Request containing cocktail IDs or names to import
@@ -444,4 +457,19 @@ public class CocktailController {
             @Valid @RequestBody CocktailLibraryImportRequestDTO request) {
         return ResponseEntity.ok(cocktailLibraryService.importCocktails(request));
     }
+
+    /**
+     * Reloads the in-memory cocktail library catalog from JSON resource.
+     *
+     * @return HTTP 200 OK
+     */
+    @PostMapping("/library/reload")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Reload cocktail library catalog", description = "Forces a reload of the cocktail library catalog from the JSON resource file.")
+    @ApiResponse(responseCode = "200", description = "Library catalog reloaded successfully")
+    public ResponseEntity<Void> reloadLibraryCatalog() {
+        cocktailLibraryService.loadLibrary();
+        return ResponseEntity.ok().build();
+    }
 }
+

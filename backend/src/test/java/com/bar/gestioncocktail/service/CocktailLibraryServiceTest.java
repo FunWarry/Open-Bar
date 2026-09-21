@@ -160,6 +160,7 @@ class CocktailLibraryServiceTest {
         existingGrapeJuice.setNom("Jus de Raisin");
         existingGrapeJuice.setUniteMesure("cl");
         existingGrapeJuice.setQuantiteStock(BigDecimal.valueOf(100.0));
+        existingGrapeJuice.setCategory("juices");
 
         when(ingredientRepository.findByNomIgnoreCase("Jus de Raisin")).thenReturn(Optional.of(existingGrapeJuice));
         when(ingredientRepository.findByNomIgnoreCase(argThat(name -> !"Jus de Raisin".equalsIgnoreCase(name))))
@@ -308,5 +309,27 @@ class CocktailLibraryServiceTest {
         assertThat(result.importedCount()).isZero();
         assertThat(result.skippedCount()).isZero();
         verify(cocktailRepository, never()).save(any(Cocktail.class));
+    }
+
+    @Test
+    @DisplayName("getWheelData should load wheel JSON resource and cache it")
+    void getWheelData_successAndCaching() {
+        com.fasterxml.jackson.databind.JsonNode wheel1 = cocktailLibraryService.getWheelData();
+        com.fasterxml.jackson.databind.JsonNode wheel2 = cocktailLibraryService.getWheelData();
+
+        assertThat(wheel1).isNotNull();
+        assertThat(wheel2).isSameAs(wheel1);
+        verify(establishmentConfigService, times(2)).checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
+    }
+
+    @Test
+    @DisplayName("getWheelData should enforce module check")
+    void getWheelData_throwsWhenModuleDisabled() {
+        doThrow(new BusinessException("Module disabled"))
+                .when(establishmentConfigService).checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
+
+        assertThatThrownBy(() -> cocktailLibraryService.getWheelData())
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("Module disabled");
     }
 }

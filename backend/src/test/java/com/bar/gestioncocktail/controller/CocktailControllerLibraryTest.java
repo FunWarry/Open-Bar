@@ -68,7 +68,11 @@ class CocktailControllerLibraryTest {
                 List.of("classic", "summer"),
                 Collections.emptyList(),
                 Collections.emptyList(),
-                "Mix and serve"
+                "Mix and serve",
+                95,
+                true,
+                "Mojito",
+                null
         );
     }
 
@@ -117,5 +121,22 @@ class CocktailControllerLibraryTest {
         assertThat(response.getBody().importedCocktails()).contains("Mojito");
 
         verify(cocktailLibraryService, times(1)).importCocktails(request);
+    }
+
+    @Test
+    @DisplayName("GET /api/cocktails/library/wheel - should delegate to CocktailLibraryService and return wheel graph node")
+    void shouldGetLibraryWheel() {
+        com.fasterxml.jackson.databind.node.ObjectNode mockNode = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode();
+        mockNode.put("status", "ok");
+
+        when(cocktailLibraryService.getWheelData()).thenReturn(mockNode);
+
+        ResponseEntity<com.fasterxml.jackson.databind.JsonNode> response = cocktailController.getLibraryWheel();
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().get("status").asText()).isEqualTo("ok");
+
+        verify(cocktailLibraryService, times(1)).getWheelData();
     }
 }

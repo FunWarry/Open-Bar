@@ -7,6 +7,7 @@ export interface CocktailLibraryIngredient {
   nom: string;
   quantite: number;
   unite: string;
+  category?: string;
   degreAlcool?: number;
   coutUnitaire?: number;
   allergens?: string[];
@@ -95,7 +96,24 @@ export interface CocktailLibraryItem {
   ingredients: CocktailLibraryIngredient[];
   recipeSteps: CocktailLibraryRecipeStep[];
   instructions?: string;
+  popularityScore?: number;
+  isPopular?: boolean;
+  variantFamily?: string | null;
+  variationOf?: string | null;
 }
+
+/**
+ * Sorting criteria options for the cocktail library catalog.
+ */
+export type CocktailSortOption =
+  | 'POPULARITY'
+  | 'NAME_ASC'
+  | 'NAME_DESC'
+  | 'ALCOHOL_ASC'
+  | 'ALCOHOL_DESC'
+  | 'INGREDIENTS_COUNT_ASC'
+  | 'PRICE_ASC'
+  | 'PRICE_DESC';
 
 /**
  * Filter parameters for querying the base cocktail library catalog.
@@ -128,3 +146,98 @@ export interface CocktailLibraryImportResult {
   skippedCocktails: string[];
   message: string;
 }
+
+/**
+ * Category family metadata in the DrinkWithData connection wheel.
+ */
+export interface CocktailWheelCategory {
+  label: string;
+  labelFr?: string;
+  short: string;
+  shortFr?: string;
+  color: string;
+}
+
+/**
+ * An ingredient node positioned on the connection wheel ring.
+ */
+export interface CocktailWheelNode {
+  id: string;
+  label: string;
+  group: string;
+  subgroup?: string;
+  sourceIndex: number;
+  count: number;
+}
+
+/**
+ * A co-occurrence connection between two cocktail ingredients.
+ */
+export interface CocktailWheelEdge {
+  a: string;
+  b: string;
+  count: number;
+}
+
+/**
+ * Complete preprocessed dataset for the interactive DrinkWithData connection wheel.
+ */
+export interface CocktailConnectionWheelData {
+  categories: Record<string, CocktailWheelCategory>;
+  nodes: CocktailWheelNode[];
+  edges: CocktailWheelEdge[];
+}
+
+/**
+ * Computed ribbon link between two ingredients in the chord layout.
+ */
+export interface CocktailWheelLink {
+  index: number;
+  a: string;
+  b: string;
+  count: number;
+  path: string;
+  start: [number, number];
+  end: [number, number];
+  colorA: string;
+  colorB: string;
+}
+
+/**
+ * Positioned node element on the circular chord ring.
+ */
+export interface CocktailWheelLayoutNode extends CocktailWheelNode {
+  segment: {
+    index: number;
+    startAngle: number;
+    endAngle: number;
+    value: number;
+  };
+  arc: string;
+  hit: string;
+  labelTransform: string;
+  anchor: 'start' | 'end';
+  isProminent: boolean;
+}
+
+/**
+ * Family category arc surrounding the outer perimeter of the wheel.
+ */
+export interface CocktailWheelLayoutFamily extends CocktailWheelCategory {
+  id: string;
+  count: number;
+  arc: string;
+  position: [number, number];
+}
+
+/**
+ * Fully calculated geometry for rendering the SVG chord diagram.
+ */
+export interface CocktailWheelGeometry {
+  links: CocktailWheelLink[];
+  nodes: CocktailWheelLayoutNode[];
+  families: CocktailWheelLayoutFamily[];
+  byIngredient: Map<string, CocktailWheelLink[]>;
+  byCategory: Map<string, CocktailWheelLink[]>;
+}
+

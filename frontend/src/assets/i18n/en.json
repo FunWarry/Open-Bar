@@ -41,7 +41,13 @@
     "INCREASE": "Increase",
     "RETRY": "Retry",
     "REQUIRED": "Required field",
-    "NO_RESULTS": "No results found"
+    "NO_RESULTS": "No results found",
+    "PAGINATION": {
+      "PREV": "Previous",
+      "NEXT": "Next",
+      "SHOWING": "Showing {{ start }} to {{ end }} of {{ total }}",
+      "PER_PAGE": "Per page"
+    }
   },
   "TABLE_CARD": {
     "STATUS_FREE": "Free",
@@ -442,7 +448,8 @@
       "MANAGEMENT": "Management & Admin",
       "USER_PROFILE": "User profile"
     },
-    "KITCHEN": "Kitchen Screen"
+    "KITCHEN": "Kitchen Screen",
+    "COCKTAIL_LIBRARY": "Cocktail Library"
   },
   "PLAN_SALLE_PAGE": {
     "TITLE": "Floor Plan",
@@ -1044,6 +1051,18 @@
     "NO_ALLERGENS": "No allergens declared",
     "INGREDIENTS_TITLE": "Ingredients & Measurements",
     "STEPS_TITLE": "Preparation steps",
+    "ACTIONS": {
+      "AJOUTER_INGREDIENT": "Add",
+      "GLACE": "Ice",
+      "SHAKER": "Shake",
+      "MELANGER": "Stir",
+      "FILTRER": "Strain",
+      "TOP_UP": "Top-up / Finish",
+      "VERSER": "Pour",
+      "PILER": "Muddle",
+      "MIXER": "Blend",
+      "GARNIR": "Garnish"
+    },
     "CARD_SELECTED": "Selected for import",
     "CARD_SELECT": "Select this cocktail",
     "IBA_OFFICIAL": "IBA Official",
@@ -1069,7 +1088,101 @@
     "LOAD_ERROR": "Failed to load cocktail library.",
     "STEP_NUMBER": "Step {{step}}",
     "STEP": "Step",
-    "IMPORT_BUTTON": "Recipe Library"
+    "IMPORT_BUTTON": "Recipe Library",
+    "TAB_CATALOG": "Full Catalog",
+    "TAB_BUILDER": "Ingredient Builder",
+    "SHELF_TITLE": "My Bar & Selected Ingredients",
+    "SHELF_COUNT": "ingredients on shelf",
+    "USE_STOCK_BTN": "Use Current Inventory",
+    "CLEAR_SHELF_BTN": "Clear Shelf",
+    "SHELF_EMPTY_TITLE": "Your bar shelf is empty",
+    "SHELF_EMPTY_DESC": "Select ingredients or load your current stock to discover cocktails you can prepare right now.",
+    "ADD_INGREDIENT_PLACEHOLDER": "Add an ingredient or bottle...",
+    "RECOMMENDED_NEXT_TITLE": "Top Recommended Purchase",
+    "RECOMMENDED_NEXT_DESC": "Add {{ingredient}} to unlock {{count}} new cocktails!",
+    "ADD_TO_SHELF_BTN": "Add to Bar",
+    "READY_TO_MAKE_TITLE": "Ready to Make Immediately",
+    "ONE_AWAY_TITLE": "1 Ingredient Away",
+    "TWO_AWAY_TITLE": "2 Ingredients Away",
+    "MISSING_BADGE": "Missing: {{ingredient}}",
+    "MISSING_COUNT": "Missing {{count}} ingredients",
+    "STOCK_LOADED_SUCCESS": "{{count}} ingredients loaded from your current stock!",
+    "NO_STOCK_FOUND": "No positive-stock ingredients found in your inventory.",
+    "SORT_LABEL": "Sort by",
+    "SORT_POPULARITY": "Most Famous / Popular",
+    "SORT_NAME_ASC": "Name (A → Z)",
+    "SORT_NAME_DESC": "Name (Z → A)",
+    "SORT_ALCOHOL_ASC": "Alcohol Level (Low → High)",
+    "SORT_ALCOHOL_DESC": "Alcohol Level (High → Low)",
+    "SORT_ING_COUNT": "Ingredient Count (Fewest First)",
+    "SORT_PRICE_ASC": "Price (Low → High)",
+    "SORT_PRICE_DESC": "Price (High → Low)",
+    "FILTER_POPULAR_ONLY": "Iconic / Famous Only",
+    "ADVANCED_FILTERS": "Advanced Filters",
+    "HIDE_FILTERS": "Hide Filters",
+    "GLASSWARE_LABEL": "Glassware",
+    "GLASSWARE_ALL": "All Glasses",
+    "ABV_LABEL": "Strength / ABV",
+    "ABV_ALL": "All",
+    "ABV_MOCKTAIL": "Non-Alcoholic (0%)",
+    "ABV_LIGHT": "Light (1-12%)",
+    "ABV_MEDIUM": "Medium (13-22%)",
+    "ABV_STRONG": "Strong (23%+)",
+    "COMPLEXITY_LABEL": "Complexity",
+    "COMPLEXITY_ALL": "All",
+    "COMPLEXITY_EXPRESS": "Express (1-3 ing.)",
+    "COMPLEXITY_STANDARD": "Standard (4-5 ing.)",
+    "COMPLEXITY_COMPLEX": "Craft (6+ ing.)",
+    "VARIANT_LABEL": "Variant Family",
+    "VARIANT_ALL": "All Families",
+    "VARIANT_BADGE": "Family {{ family }}",
+    "VARIATION_OF": "Variation of: {{ name }}",
+    "VARIANTS_SECTION_TITLE": "Variants of this recipe",
+    "POPULAR_BADGE": "Iconic",
+    "POPULARITY_SCORE": "Popularity score: {{ score }}/100",
+    "PAGINATION_SHOWING": "Showing {{ start }} to {{ end }} of {{ total }} recipes",
+    "PAGINATION_PAGE_LABEL": "Page {{ page }} / {{ totalPages }}",
+    "PAGE_SIZE_ITEM": "{{ count }} / page",
+    "PAGE_SIZE_LABEL": "Per page",
+    "PAGE_FIRST": "First page",
+    "PAGE_PREVIOUS": "Previous page",
+    "PAGE_NEXT": "Next page",
+    "PAGE_LAST": "Last page",
+    "SELECT_PAGE": "Select page",
+    "SELECT_ALL_FILTERED": "Select all ({{ count }})",
+    "TAB_WHEEL": "Connection Wheel"
+  },
+  "COCKTAIL_WHEEL": {
+    "TITLE": "Ingredient Connection Wheel",
+    "SUBTITLE": "Map of which cocktail ingredients get mixed together across 1,857 recipes and 300 ingredients. Pick any ingredient and see its partners, ranked.",
+    "LOADING": "Generating connection chord wheel...",
+    "SEARCH_LABEL": "Highlight an ingredient",
+    "SEARCH_PLACEHOLDER": "Search visible ingredients...",
+    "CONNECTIONS_LABEL": "Connections",
+    "LIMIT_100": "100 strongest",
+    "LIMIT_250": "250 strongest",
+    "LIMIT_500": "500 strongest",
+    "LIMIT_ALL": "All connections (1,902)",
+    "RESET_FOCUS": "Reset focus",
+    "FAMILY_ACTIVE": "Family active ×",
+    "INSTRUCTIONS": "Hover ribbons to inspect. Click an arc to hold its highlight and see ranked partners.",
+    "SVG_ARIA_LABEL": "Cocktail ingredient chord diagram. Outer ring selects families; inner ring selects ingredients.",
+    "COCKTAIL_SINGULAR": "cocktail",
+    "COCKTAIL_PLURAL": "cocktails",
+    "CONNECTIONS_SUFFIX": "connections",
+    "INGREDIENTS_BY_FAMILY": "Ingredients shown, by family",
+    "PARTNERS_BY_FAMILY": "Ingredients paired with {{ ingredient }}, by family",
+    "BACK_TO_ALL": "Back to all ingredients",
+    "PAIRS_MOST_OFTEN": "Pairs most often with {{ ingredient }}",
+    "EXPLORE_DRINKS": "Drinks with both",
+    "EMPTY_SEARCH": "No matching ingredients visible.",
+    "SELECTED_INGREDIENTS": "Selected ingredients",
+    "CLEAR_ALL": "Clear selection",
+    "EXPLORE_COMBINED_RECIPES": "Explore cocktails ({{ count }} ingredients)",
+    "ADD_TO_SELECTION": "Add to filter",
+    "REMOVE_FROM_SELECTION": "Remove",
+    "COMBINED_PARTNERS": "Ingredients paired with selection",
+    "SHARED_RECIPES_COUNT": "{{ count }} shared recipes"
   },
   "INGREDIENTS": {
     "TITLE": "Ingredient Management",
@@ -1081,6 +1194,9 @@
     "DELETE_CONFIRM": "Delete this ingredient?",
     "NAME": "Name",
     "NAME_REQUIRED": "Name is required",
+    "CATEGORY": "Category",
+    "CATEGORY_REQUIRED": "Category is required",
+    "SELECT_CATEGORY": "Select a category",
     "UNIT": "Unit of measure",
     "UNIT_REQUIRED": "Unit is required",
     "STOCK": "Stock",
@@ -1104,7 +1220,95 @@
     "ALLERGENS_LABEL": "Allergens",
     "ALLERGENS_HINT": "Select allergens present in this ingredient",
     "ALCOHOL_DEGREE_LABEL": "Alcohol by Volume",
-    "ALCOHOL_DEGREE_HINT": "Alcohol percentage by volume (% ABV)"
+    "ALCOHOL_DEGREE_HINT": "Alcohol percentage by volume (% ABV)",
+    "ALCOHOL_DEGREE_ERROR": "Alcohol percentage must be between 0% and 100%",
+    "UNITS": {
+      "CL": {
+        "LABEL": "Centilitres (cl)",
+        "SUBLABEL": "Standard liquid volume for cocktails and pours",
+        "BADGE": "cl"
+      },
+      "ML": {
+        "LABEL": "Millilitres (ml)",
+        "SUBLABEL": "Small liquid doses and precision measurements",
+        "BADGE": "ml"
+      },
+      "L": {
+        "LABEL": "Litres (L)",
+        "SUBLABEL": "Large volumes, bottles, kegs and boxes",
+        "BADGE": "L"
+      },
+      "DASH": {
+        "LABEL": "Dash",
+        "SUBLABEL": "Quick splash for bitters, tabasco, hot sauces",
+        "BADGE": "dash"
+      },
+      "GOUTTE": {
+        "LABEL": "Drop",
+        "SUBLABEL": "Pipette dropper dosage for solutions and extracts",
+        "BADGE": "drop"
+      },
+      "CUILLERE": {
+        "LABEL": "Barspoon",
+        "SUBLABEL": "Barspoon measurement for syrups and purees",
+        "BADGE": "spoon"
+      },
+      "DOSE": {
+        "LABEL": "Dose / Jigger",
+        "SUBLABEL": "Standard bar shot or jigger measure",
+        "BADGE": "dose"
+      },
+      "G": {
+        "LABEL": "Grams (g)",
+        "SUBLABEL": "Weight for powders, solids, salts and spices",
+        "BADGE": "g"
+      },
+      "KG": {
+        "LABEL": "Kilograms (kg)",
+        "SUBLABEL": "Bulk weight for whole fruits, ice, or large stocks",
+        "BADGE": "kg"
+      },
+      "PINCEE": {
+        "LABEL": "Pinch",
+        "SUBLABEL": "Hand pinch for salt, nutmeg or cinnamon",
+        "BADGE": "pinch"
+      },
+      "PIECE": {
+        "LABEL": "Piece",
+        "SUBLABEL": "Whole piece (whole fruits, decorations)",
+        "BADGE": "pc"
+      },
+      "MORCEAU": {
+        "LABEL": "Chunk / Wedge",
+        "SUBLABEL": "Cut fruit wedges or sugar cubes",
+        "BADGE": "chunk"
+      },
+      "TRANCHE": {
+        "LABEL": "Slice / Wheel",
+        "SUBLABEL": "Garnish slices and citrus wheels",
+        "BADGE": "slice"
+      },
+      "ZESTE": {
+        "LABEL": "Zest / Twist",
+        "SUBLABEL": "Expressed citrus peel or twist",
+        "BADGE": "zest"
+      },
+      "FEUILLE": {
+        "LABEL": "Leaf",
+        "SUBLABEL": "Fresh aromatic leaves (mint, basil, sage)",
+        "BADGE": "leaf"
+      },
+      "BOUTEILLE": {
+        "LABEL": "Bottle",
+        "SUBLABEL": "Sealed bottle or can",
+        "BADGE": "btl"
+      },
+      "PORTION": {
+        "LABEL": "Portion / Serving",
+        "SUBLABEL": "Individual prepared serving",
+        "BADGE": "serving"
+      }
+    }
   },
   "TABLES": {
     "TABLE": "Table",
@@ -1912,8 +2116,13 @@
     "OUT_OF_STOCK": "Out of Stock",
     "NORMAL_STOCK": "Normal Stock",
     "LOW_STOCK": "Low Stock",
+    "VIEW_MODE_CATEGORY": "Category",
     "VIEW_MODE_GRID": "Grid",
     "VIEW_MODE_LIST": "List",
+    "PAGE_PREV": "Previous",
+    "PAGE_NEXT": "Next",
+    "PER_PAGE": "Per page",
+    "PAGINATION_SUMMARY": "Showing {{ start }} to {{ end }} of {{ total }} ingredients",
     "CATEGORY_LABEL": "Category:",
     "ALL_CATEGORIES": "All categories",
     "UNIT_LABEL": "Unit:",
@@ -3398,5 +3607,23 @@
     "LOGOUT_BTN": "Log Out",
     "EXTENDED_SUCCESS": "Your session has been successfully extended for 4 hours.",
     "EXPIRED_DISCONNECTED": "Your session has expired after 4 hours. Please log in again."
+  },
+  "SUNBURST": {
+    "ACCESSIBLE_TITLE": "Recipe ingredient proportions",
+    "CLEAR_SELECTION": "Clear selection",
+    "HINT_INTERACTION": "Hover or tap an ingredient or family to highlight proportions.",
+    "PROPORTION_NOTE": "Inner ring: individual ingredients. Outer ring: mixology families.",
+    "FAMILIES": {
+      "DARK_LIQUOR": "Dark Liquor",
+      "LIGHT_LIQUOR": "Light Liquor",
+      "LIQUEURS": "Liqueurs & Digestifs",
+      "WINE_BEER": "Wine & Beer",
+      "JUICES": "Juices & Sodas",
+      "MIXERS": "Syrups & Sweeteners",
+      "FRUITS": "Fruit & Citrus",
+      "HERBS": "Herbs & Spices",
+      "BITTERS": "Bitters & Aromatics",
+      "OTHER": "Other Ingredients"
+    }
   }
 }

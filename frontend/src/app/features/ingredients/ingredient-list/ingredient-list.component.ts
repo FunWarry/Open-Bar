@@ -18,22 +18,37 @@ import {
   gridOutline, listOutline, pulseOutline, search, swapVerticalOutline,
   scaleOutline, layersOutline, checkmarkCircleOutline, closeCircleOutline,
   alertCircleOutline, wineOutline, waterOutline, colorFillOutline,
-  nutritionOutline, cubeOutline, downloadOutline
+  nutritionOutline, cubeOutline, downloadOutline,
+  flaskOutline, beerOutline, sparklesOutline, leafOutline
 } from 'ionicons/icons';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IngredientService } from '../../../core/services/ingredient.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
-import { Ingredient } from '../../../core/models/ingredient.model';
+import {
+  Ingredient,
+  INGREDIENT_UNITS,
+  INGREDIENT_CATEGORY_CONFIG
+} from '../../../core/models/ingredient.model';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { IngredientFormComponent } from '../ingredient-form/ingredient-form.component';
 import { StockWasteModalComponent } from '../stock-waste-modal/stock-waste-modal.component';
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+import { PaginationComponent } from '../../../core/components/ui/pagination/pagination.component';
 import { CsvExportService, CsvColumn } from '../../../core/services/csv-export.service';
 import { StockWasteService } from '../../../core/services/stock-waste.service';
+
+/**
+ * Display modes for inventory ingredient list:
+ * - 'category': Grouped cards under category section headers
+ * - 'grid': Flat responsive card grid of all ingredients with pagination
+ * - 'list': Detailed tabular row list view
+ */
+export type StockViewMode = 'category' | 'grid' | 'list';
+
 /**
  * Sorting options for inventory ingredient list.
  */
@@ -75,7 +90,7 @@ export interface IngredientCategoryGroup {
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSpinner, SearchBarComponent,
     IonGrid, IonRow, IonCol, IonProgressBar,
-    SearchableSelectComponent, ActionButtonComponent,
+    SearchableSelectComponent, ActionButtonComponent, PaginationComponent
   ],
 })
 export class IngredientListComponent implements OnInit, OnDestroy {
@@ -86,25 +101,37 @@ export class IngredientListComponent implements OnInit, OnDestroy {
   selectedCategory = 'ALL';
   selectedUnit = 'ALL';
   sortOption: StockSortOption = 'NAME_ASC';
-  viewMode: 'grid' | 'list' = 'grid';
+  viewMode: StockViewMode = 'category';
+  gridPage = 1;
+  gridPageSize = 16;
 
-  readonly availableUnits: string[] = ['cl', 'ml', 'g', 'kg', 'pièce', 'L'];
+  readonly availableUnits: readonly string[] = INGREDIENT_UNITS;
 
   get categoryOptions(): SearchableOption<string>[] {
     return [
       { value: 'ALL', label: this.transloco.translate('STOCK.ALL_CATEGORIES'), icon: 'layers-outline' },
-      { value: 'SPIRITS', label: this.transloco.translate('STOCK.SPIRITS'), icon: 'wine-outline', badge: 'Alcools', badgeType: 'primary' },
-      { value: 'SOFTS', label: this.transloco.translate('STOCK.SOFTS'), icon: 'water-outline', badge: 'Softs', badgeType: 'success' },
-      { value: 'SYRUPS', label: this.transloco.translate('STOCK.SYRUPS'), icon: 'color-fill-outline', badge: 'Sirops', badgeType: 'warning' },
-      { value: 'FRUITS', label: this.transloco.translate('STOCK.FRUITS'), icon: 'nutrition-outline', badge: 'Fruits', badgeType: 'danger' },
-      { value: 'OTHER', label: this.transloco.translate('STOCK.OTHER'), icon: 'cube-outline', badge: 'Divers', badgeType: 'neutral' },
+      ...INGREDIENT_CATEGORY_CONFIG.map(cat => ({
+        value: cat.key,
+        label: this.transloco.translate(cat.labelKey),
+        icon: cat.icon,
+        badgeType: cat.badgeType
+      }))
     ];
   }
 
   get unitOptions(): SearchableOption<string>[] {
     return [
       { value: 'ALL', label: this.transloco.translate('STOCK.ALL_UNITS'), icon: 'scale-outline' },
-      ...this.availableUnits.map(u => ({ value: u, label: u })),
+      ...this.availableUnits.map(u => {
+        const key = u.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const transKey = `INGREDIENTS.UNITS.${key}.LABEL`;
+        const translated = this.transloco.translate(transKey);
+        return {
+          value: u,
+          label: translated && translated !== transKey ? translated : u,
+          badge: u
+        };
+      }),
     ];
   }
 
@@ -145,7 +172,8 @@ export class IngredientListComponent implements OnInit, OnDestroy {
       gridOutline, listOutline, pulseOutline, search, swapVerticalOutline,
       scaleOutline, layersOutline, checkmarkCircleOutline, closeCircleOutline,
       alertCircleOutline, wineOutline, waterOutline, colorFillOutline,
-      nutritionOutline, cubeOutline, downloadOutline
+      nutritionOutline, cubeOutline, downloadOutline,
+      flaskOutline, beerOutline, sparklesOutline, leafOutline
     });
   }
 
@@ -201,39 +229,128 @@ export class IngredientListComponent implements OnInit, OnDestroy {
 
   setStatusFilter(status: StockStatusFilter): void {
     this.selectedStatus = status;
+    this.gridPage = 1;
   }
 
   onCategorySelected(option: SearchableOption<string> | null): void {
     this.selectedCategory = option?.value || 'ALL';
+    this.gridPage = 1;
   }
 
   onUnitSelected(option: SearchableOption<string> | null): void {
     this.selectedUnit = option?.value || 'ALL';
+    this.gridPage = 1;
   }
 
   onSortSelected(option: SearchableOption<StockSortOption> | null): void {
     if (option?.value) {
       this.sortOption = option.value;
+      this.gridPage = 1;
     }
   }
 
   onCategoryChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
     this.selectedCategory = select.value;
+    this.gridPage = 1;
   }
 
   onUnitChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
     this.selectedUnit = select.value;
+    this.gridPage = 1;
   }
 
   onSortChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
     this.sortOption = select.value as StockSortOption;
+    this.gridPage = 1;
   }
 
-  setViewMode(mode: 'grid' | 'list'): void {
+  onSearchChange(): void {
+    this.gridPage = 1;
+  }
+
+  setViewMode(mode: StockViewMode): void {
     this.viewMode = mode;
+    if (mode === 'grid') {
+      this.gridPage = 1;
+    }
+  }
+
+  /** Total number of pages for flat grid mode based on page size. */
+  get totalGridPages(): number {
+    return Math.ceil(this.filteredIngredients.length / this.gridPageSize) || 1;
+  }
+
+  /** Slice of filtered ingredients displayed on the current grid page. */
+  get paginatedGridIngredients(): Ingredient[] {
+    const start = (this.gridPage - 1) * this.gridPageSize;
+    return this.filteredIngredients.slice(start, start + this.gridPageSize);
+  }
+
+  /** First item index (1-based) on the current grid page for summary display. */
+  get gridPaginationStart(): number {
+    return this.filteredIngredients.length === 0 ? 0 : (this.gridPage - 1) * this.gridPageSize + 1;
+  }
+
+  /** Last item index (1-based) on the current grid page for summary display. */
+  get gridPaginationEnd(): number {
+    return Math.min(this.gridPage * this.gridPageSize, this.filteredIngredients.length);
+  }
+
+  /** Generates array of page numbers or ellipsis indicator (-1) for pagination UI. */
+  get gridPageNumbers(): number[] {
+    const total = this.totalGridPages;
+    const current = this.gridPage;
+    const pages: number[] = [];
+    if (total <= 7) {
+      for (let i = 1; i <= total; i++) {
+        pages.push(i);
+      }
+    } else {
+      const left = Math.max(2, current - 1);
+      const right = Math.min(total - 1, current + 1);
+      pages.push(1);
+      if (left > 2) {
+        pages.push(-1);
+      }
+      for (let i = left; i <= right; i++) {
+        pages.push(i);
+      }
+      if (right < total - 1) {
+        pages.push(-2);
+      }
+      pages.push(total);
+    }
+    return pages;
+  }
+
+  /** Selects a specific page in flat grid mode. */
+  setGridPage(page: number): void {
+    if (page >= 1 && page <= this.totalGridPages) {
+      this.gridPage = page;
+    }
+  }
+
+  /** Moves to the previous page in flat grid mode. */
+  prevGridPage(): void {
+    if (this.gridPage > 1) {
+      this.gridPage--;
+    }
+  }
+
+  /** Moves to the next page in flat grid mode. */
+  nextGridPage(): void {
+    if (this.gridPage < this.totalGridPages) {
+      this.gridPage++;
+    }
+  }
+
+  /** Updates the items per page count in flat grid mode. */
+  setGridPageSize(size: number): void {
+    this.gridPageSize = size;
+    this.gridPage = 1;
   }
 
   get normalCount(): number {
@@ -253,18 +370,10 @@ export class IngredientListComponent implements OnInit, OnDestroy {
    */
   get groupedIngredients(): IngredientCategoryGroup[] {
     const filtered = this.filteredIngredients;
-    const groupsDef: { key: string; labelKey: string; icon: string; badgeType: 'primary' | 'success' | 'warning' | 'danger' | 'neutral' }[] = [
-      { key: 'SPIRITS', labelKey: 'STOCK.SPIRITS', icon: 'wine-outline', badgeType: 'primary' },
-      { key: 'SOFTS', labelKey: 'STOCK.SOFTS', icon: 'water-outline', badgeType: 'success' },
-      { key: 'SYRUPS', labelKey: 'STOCK.SYRUPS', icon: 'color-fill-outline', badgeType: 'warning' },
-      { key: 'FRUITS', labelKey: 'STOCK.FRUITS', icon: 'nutrition-outline', badgeType: 'danger' },
-      { key: 'OTHER', labelKey: 'STOCK.OTHER', icon: 'cube-outline', badgeType: 'neutral' },
-    ];
-
     const result: IngredientCategoryGroup[] = [];
 
-    for (const def of groupsDef) {
-      const items = filtered.filter(item => this.getIngredientCategory(item.nom) === def.key);
+    for (const def of INGREDIENT_CATEGORY_CONFIG) {
+      const items = filtered.filter(item => this.getIngredientCategory(item) === def.key);
       if (items.length > 0) {
         result.push({
           categoryKey: def.key,
@@ -290,7 +399,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
         (item.uniteMesure?.toLowerCase()?.includes(query) ?? false) ||
         (item.fournisseur?.toLowerCase()?.includes(query) ?? false);
 
-      const category = this.getIngredientCategory(item.nom);
+      const category = this.getIngredientCategory(item);
       const matchesCategory = this.selectedCategory === 'ALL' || category === this.selectedCategory;
 
       const matchesUnit = this.selectedUnit === 'ALL' || item.uniteMesure === this.selectedUnit;
@@ -327,8 +436,8 @@ export class IngredientListComponent implements OnInit, OnDestroy {
           return bAlert - aAlert || a.quantiteStock - b.quantiteStock;
         }
         case 'CATEGORY': {
-          const catA = this.getIngredientCategory(a.nom);
-          const catB = this.getIngredientCategory(b.nom);
+          const catA = this.getIngredientCategory(a);
+          const catB = this.getIngredientCategory(b);
           return catA.localeCompare(catB) || (a.nom || '').localeCompare(b.nom || '');
         }
         default:
@@ -350,29 +459,19 @@ export class IngredientListComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Categorizes an ingredient based on its name keywords.
-   * @param name Name of the ingredient
+   * Resolves the mixology category directly from the ingredient entity's category property.
+   * Does not use hardcoded keyword matching; uses the category defined in the data.
+   * @param item Target ingredient or category key string
    */
-  getIngredientCategory(name: string): string {
-    const n = name.toLowerCase();
-    if (n.includes('rhum') || n.includes('vodka') || n.includes('gin') || n.includes('tequila') ||
-        n.includes('whisky') || n.includes('cognac') || n.includes('bourbon') || n.includes('liqueur') ||
-        n.includes('aperol') || n.includes('campari') || n.includes('cointreau') || n.includes('triple sec')) {
-      return 'SPIRITS';
+  getIngredientCategory(item: Ingredient | string): string {
+    if (typeof item === 'string') {
+      return INGREDIENT_CATEGORY_CONFIG.some(c => c.key === item) ? item : 'other';
     }
-    if (n.includes('coca') || n.includes('tonic') || n.includes('soda') || n.includes('jus') ||
-        n.includes('eau') || n.includes('limonade') || n.includes('ginger') || n.includes('sprite')) {
-      return 'SOFTS';
+    const cat = item?.category;
+    if (cat && INGREDIENT_CATEGORY_CONFIG.some(c => c.key === cat)) {
+      return cat;
     }
-    if (n.includes('sirop') || n.includes('sucre') || n.includes('canne') || n.includes('grenadine') ||
-        n.includes('vanille') || n.includes('orgeat')) {
-      return 'SYRUPS';
-    }
-    if (n.includes('citron') || n.includes('menthe') || n.includes('fraise') || n.includes('framboise') ||
-        n.includes('orange') || n.includes('ananas') || n.includes('concombre') || n.includes('fruit')) {
-      return 'FRUITS';
-    }
-    return 'OTHER';
+    return 'other';
   }
 
   /**
