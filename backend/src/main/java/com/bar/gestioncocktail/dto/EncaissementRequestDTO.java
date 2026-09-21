@@ -56,6 +56,6 @@ public record EncaissementRequestDTO(
      * @return true if the table should be marked free
      */
     public boolean shouldLibererTable() {
-        return libererTable == null || Boolean.TRUE.equals(libererTable);
+        return !Boolean.FALSE.equals(libererTable);
     }
 }

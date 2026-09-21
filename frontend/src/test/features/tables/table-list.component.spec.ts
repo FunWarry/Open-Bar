@@ -1,11 +1,11 @@
-import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
 import { provideIonicAngular } from '@ionic/angular';
 import { ToastController, ModalController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TableListComponent } from '../../../app/features/tables/table-list/table-list.component';

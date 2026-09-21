@@ -1,7 +1,7 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
-import { of, throwError, Subject, EMPTY } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { ToastController, ModalController } from '@ionic/angular';
 import { provideRouter } from '@angular/router';
 import { DashboardManagerComponent } from '../../../app/features/dashboard-manager/dashboard-manager.component';

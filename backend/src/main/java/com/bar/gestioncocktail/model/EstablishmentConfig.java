@@ -132,7 +132,11 @@ public class EstablishmentConfig {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    /**
+     * Default no-arg constructor required by JPA.
+     */
     public EstablishmentConfig() {
+        // Default constructor required by JPA specification
     }
 
     public Long getId() {
@@ -385,28 +389,18 @@ public class EstablishmentConfig {
         if (module == null) {
             return true;
         }
-        switch (module) {
-            case CUISINE_KDS:
-                return Boolean.TRUE.equals(this.moduleKitchenKdsEnabled);
-            case HAPPY_HOUR:
-                return Boolean.TRUE.equals(this.moduleHappyHourEnabled);
-            case EMPLOYEE_MANAGEMENT:
-                return Boolean.TRUE.equals(this.moduleEmployeeManagementEnabled);
-            case FLOOR_PLAN:
-                return Boolean.TRUE.equals(this.moduleFloorPlanEnabled);
-            case QR_CLIENT_ORDERING:
-                return Boolean.TRUE.equals(this.moduleQrClientOrderingEnabled);
-            case STOCK_TRACKING:
-                return Boolean.TRUE.equals(this.moduleStockTrackingEnabled);
-            case CASH_DRAWER:
-                return Boolean.TRUE.equals(this.moduleCashDrawerEnabled);
-            case BAR_TABS:
-                return Boolean.TRUE.equals(this.moduleBarTabsEnabled);
-            case COCKTAIL_LIBRARY:
-                return Boolean.TRUE.equals(this.moduleCocktailLibraryEnabled);
-            default:
-                return true;
-        }
+        return switch (module) {
+            case CUISINE_KDS -> Boolean.TRUE.equals(this.moduleKitchenKdsEnabled);
+            case HAPPY_HOUR -> Boolean.TRUE.equals(this.moduleHappyHourEnabled);
+            case EMPLOYEE_MANAGEMENT -> Boolean.TRUE.equals(this.moduleEmployeeManagementEnabled);
+            case FLOOR_PLAN -> Boolean.TRUE.equals(this.moduleFloorPlanEnabled);
+            case QR_CLIENT_ORDERING -> Boolean.TRUE.equals(this.moduleQrClientOrderingEnabled);
+            case STOCK_TRACKING -> Boolean.TRUE.equals(this.moduleStockTrackingEnabled);
+            case CASH_DRAWER -> Boolean.TRUE.equals(this.moduleCashDrawerEnabled);
+            case BAR_TABS -> Boolean.TRUE.equals(this.moduleBarTabsEnabled);
+            case COCKTAIL_LIBRARY -> Boolean.TRUE.equals(this.moduleCocktailLibraryEnabled);
+            default -> true;
+        };
     }
 
     /**

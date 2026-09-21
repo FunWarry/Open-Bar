@@ -157,12 +157,11 @@ public class UserService implements UserDetailsService {
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
-/**
+    /**
      * Changes and encodes a user password.
      *
      * @param user        User entity to update
      * @param newPassword Raw new password
-     * @return Updated user entity
      */
 
     public void changePassword(User user, String newPassword) {

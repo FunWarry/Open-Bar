@@ -6,7 +6,7 @@
     <form (ngSubmit)="onSubmit()" [formGroup]="commandeForm">
       <ion-item>
         <ion-label position="stacked">{{ 'COMMANDES.TABLE' | transloco }}</ion-label>
-        <ion-select formControlName="tableId" required aria-label="Table">
+        <ion-select formControlName="tableId" aria-label="Table">
           @for (t of tables; track t.id) {
             <ion-select-option [value]="t.id">Table #{{ t.numero }} ({{ t.zone }})</ion-select-option>
           }

@@ -135,14 +135,12 @@ public class IngredientService {
     public List<Ingredient> getIngredientsByUniteMesure(String uniteMesure) {
         return ingredientRepository.findByUniteMesure(uniteMesure);
     }
-/**
+    /**
      * Updates current stock quantity for an ingredient and triggers low-stock alerts if needed.
      *
      * @param ingredient Ingredient entity
      * @param quantite   New stock quantity
-     * @return Updated ingredient entity
      */
-
     public void updateStock(Ingredient ingredient, BigDecimal quantite) {
         ingredient.setQuantiteStock(quantite);
         ingredient.setUpdatedAt(timeService.now());
@@ -151,14 +149,13 @@ public class IngredientService {
             eventPublisher.publishEvent(new StockAlertEvent(ingredient.getId(), ingredient.getNom(), quantite.doubleValue()));
         }
     }
-/**
+
+    /**
      * Configures the minimum threshold that triggers low-stock warnings for an ingredient.
      *
      * @param ingredient Ingredient entity
      * @param seuil      Alert threshold quantity
-     * @return Updated ingredient entity
      */
-
     public void definirSeuilAlerte(Ingredient ingredient, BigDecimal seuil) {
         ingredient.setSeuilAlerte(seuil);
         ingredient.setUpdatedAt(timeService.now());

@@ -1,6 +1,6 @@
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ScheduleService } from '../../../app/features/schedule/services/schedule.service';
 import { ShiftService } from '../../../app/core/services/shift.service';
 import { UserService } from '../../../app/core/services/user.service';

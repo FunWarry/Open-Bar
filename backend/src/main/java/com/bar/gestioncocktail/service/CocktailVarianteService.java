@@ -95,26 +95,23 @@ public class CocktailVarianteService {
     public List<CocktailVariante> searchVariantes(String nom) {
         return cocktailVarianteRepository.findByNomContainingIgnoreCase(nom);
     }
-/**
+    /**
      * Toggles the availability status of a cocktail variant.
      *
      * @param variante The variant to toggle
-     * @return The updated variant
      */
-
     public void toggleDisponibilite(CocktailVariante variante) {
         variante.setDisponible(!variante.isDisponible());
         variante.setUpdatedAt(timeService.now());
         cocktailVarianteRepository.save(variante);
     }
-/**
+
+    /**
      * Updates the price supplement associated with selecting this variant.
      *
      * @param variante       The variant to update
      * @param prixSupplement New additional price
-     * @return The updated variant
      */
-
     public void updatePrixSupplement(CocktailVariante variante, BigDecimal prixSupplement) {
         variante.setPrixSupplement(prixSupplement);
         variante.setUpdatedAt(timeService.now());

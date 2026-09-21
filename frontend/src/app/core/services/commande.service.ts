@@ -54,7 +54,7 @@ export class CommandeService {
 
   /**
    * Creates a new order.
-   * @param commande Order creation payload
+   * @param request Order creation payload
    * @returns Observable emitting created order
    */
   create(request: CreateCommandeRequest): Observable<Commande> {
@@ -83,7 +83,7 @@ export class CommandeService {
 
   /**
    * Advances or updates the lifecycle status of an order.
-   * @param id Order identifier
+   * @param commandeId Order identifier
    * @param statut Target status
    * @returns Observable emitting updated order
    */
@@ -93,7 +93,7 @@ export class CommandeService {
 
   /**
    * Cancels an order and restocks inventory.
-   * @param id Order identifier
+   * @param commandeId Order identifier
    * @returns Observable emitting cancelled order
    */
   annuler(commandeId: number): Observable<Commande> {

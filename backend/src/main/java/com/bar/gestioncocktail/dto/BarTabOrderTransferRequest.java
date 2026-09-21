@@ -22,7 +22,7 @@ public record BarTabOrderTransferRequest(
         Boolean releaseTable
 ) {
     public Long commandeId() {
-        return (commandeIds != null && !commandeIds.isEmpty()) ? commandeIds.get(0) : null;
+        return (commandeIds != null && !commandeIds.isEmpty()) ? commandeIds.getFirst() : null;
     }
 
     public boolean shouldReleaseTable() {

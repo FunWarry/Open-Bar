@@ -39,9 +39,9 @@ public record FactureReglementDTO(
         List<SplitResultDTO.SplitItemDTO> itemList = Collections.emptyList();
         if (r.getItemsJson() != null && !r.getItemsJson().isBlank()) {
             try {
-                itemList = MAPPER.readValue(r.getItemsJson(), new TypeReference<List<SplitResultDTO.SplitItemDTO>>() {});
+                itemList = MAPPER.readValue(r.getItemsJson(), new TypeReference<>() {});
             } catch (Exception _) {
-                itemList = Collections.emptyList();
+                // Keep default empty list
             }
         }
 

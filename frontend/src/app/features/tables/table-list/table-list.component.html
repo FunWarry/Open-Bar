@@ -237,10 +237,8 @@
             </div>
           </div>
         }
-      }
-
-      <!-- 2. GROUPED BY FLOOR -->
-      @else if (viewMode === 'BY_FLOOR') {
+      } @else if (viewMode === 'BY_FLOOR') {
+        <!-- 2. GROUPED BY FLOOR -->
         @for (group of groupedByFloor; track group.etageCode) {
           <div class="section-group-container">
             <div class="group-header">
@@ -262,10 +260,8 @@
             </div>
           </div>
         }
-      }
-
-      <!-- 3. FLAT GRID -->
-      @else {
+      } @else {
+        <!-- 3. FLAT GRID -->
         <div class="tables-grid">
           @for (table of filteredTables; track table.id) {
             <ng-container *ngTemplateOutlet="tableCardTpl; context: { $implicit: table }"></ng-container>
