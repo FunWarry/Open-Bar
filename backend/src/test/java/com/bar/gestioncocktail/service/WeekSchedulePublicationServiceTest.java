@@ -56,7 +56,7 @@ class WeekSchedulePublicationServiceTest {
 
     @Test
     @DisplayName("publishWeek() creates a new publication, saves it and broadcasts on /topic/schedule/published")
-    void publishWeek_createsAndBroadcasts() throws Exception {
+    void publishWeek_createsAndBroadcasts() {
         when(timeService.now()).thenReturn(LocalDateTime.of(2026, 8, 17, 12, 0));
         when(repository.findByWeekStart(monday)).thenReturn(Optional.empty());
         when(shiftRepository.findByDateShiftBetween(eq(monday), any(LocalDate.class))).thenReturn(List.of());
@@ -84,7 +84,7 @@ class WeekSchedulePublicationServiceTest {
 
     @Test
     @DisplayName("publishWeek() updates an existing publication for that week")
-    void publishWeek_updatesExisting() throws Exception {
+    void publishWeek_updatesExisting() {
         when(timeService.now()).thenReturn(LocalDateTime.of(2026, 8, 17, 14, 0));
         when(shiftRepository.findByDateShiftBetween(eq(monday), any(LocalDate.class))).thenReturn(List.of());
 

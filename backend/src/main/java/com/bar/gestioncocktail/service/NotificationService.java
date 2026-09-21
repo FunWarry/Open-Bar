@@ -210,17 +210,7 @@ public class NotificationService {
     /**
      * Payload DTO for order status transition WebSocket events.
      */
-    public static class CommandeStatutNotification {
-        private final Long commandeId;
-        private final CommandeStatut ancienStatut;
-        private final CommandeStatut nouveauStatut;
-
-        public CommandeStatutNotification(Long commandeId, CommandeStatut ancienStatut, CommandeStatut nouveauStatut) {
-            this.commandeId = commandeId;
-            this.ancienStatut = ancienStatut;
-            this.nouveauStatut = nouveauStatut;
-        }
-
+    public record CommandeStatutNotification(Long commandeId, CommandeStatut ancienStatut, CommandeStatut nouveauStatut) {
         public Long getCommandeId() {
             return commandeId;
         }
@@ -237,17 +227,7 @@ public class NotificationService {
     /**
      * Payload DTO for ingredient low stock alerts.
      */
-    public static class StockAlerteNotification {
-        private final Long ingredientId;
-        private final String nomIngredient;
-        private final double quantiteRestante;
-
-        public StockAlerteNotification(Long ingredientId, String nomIngredient, double quantiteRestante) {
-            this.ingredientId = ingredientId;
-            this.nomIngredient = nomIngredient;
-            this.quantiteRestante = quantiteRestante;
-        }
-
+    public record StockAlerteNotification(Long ingredientId, String nomIngredient, double quantiteRestante) {
         public Long getIngredientId() {
             return ingredientId;
         }
