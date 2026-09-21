@@ -15,15 +15,15 @@ import { StockWasteService } from '../../../app/core/services/stock-waste.servic
 import { StockMovement } from '../../../app/core/models/stock-waste.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
-const makeI = (id: number, nom: string, stock = 20, seuil = 5): Ingredient => ({
-  id, nom, uniteMesure: 'cl', quantiteStock: stock, seuilAlerte: seuil,
+const makeI = (id: number, nom: string, stock = 20, seuil = 5, category = 'other'): Ingredient => ({
+  id, nom, uniteMesure: 'cl', quantiteStock: stock, seuilAlerte: seuil, category,
   createdAt: '', updatedAt: '',
 });
 
 const mockIngredients: Ingredient[] = [
-  makeI(1, 'Rhum', 20, 5),
-  makeI(2, 'Citron', 3, 5),
-  makeI(3, 'Coca Cola', 10, 2),
+  makeI(1, 'Rhum', 20, 5, 'dark_liquor'),
+  makeI(2, 'Citron', 3, 5, 'fruits'),
+  makeI(3, 'Coca Cola', 10, 2, 'juices'),
 ];
 
 describe('IngredientListComponent', () => {
@@ -121,17 +121,19 @@ describe('IngredientListComponent', () => {
     expect(component.filteredIngredients[0].nom).toBe('Rhum');
 
     component.searchQuery = '';
-    component.selectedCategory = 'SOFTS';
+    component.selectedCategory = 'juices';
     expect(component.filteredIngredients).toHaveSize(1);
     expect(component.filteredIngredients[0].nom).toBe('Coca Cola');
   });
 
-  it('getIngredientCategory categorizes ingredients correctly', () => {
-    expect(component.getIngredientCategory('Rhum Blanc')).toBe('SPIRITS');
-    expect(component.getIngredientCategory('Coca Cola')).toBe('SOFTS');
-    expect(component.getIngredientCategory('Sirop de Canne')).toBe('SYRUPS');
-    expect(component.getIngredientCategory('Citron Vert')).toBe('FRUITS');
-    expect(component.getIngredientCategory('Crushed Ice')).toBe('OTHER');
+  it('getIngredientCategory resolves category directly from ingredient entity', () => {
+    expect(component.getIngredientCategory(makeI(1, 'Rhum Blanc', 20, 5, 'light_liquor'))).toBe('light_liquor');
+    expect(component.getIngredientCategory(makeI(2, 'Coca Cola', 10, 2, 'juices'))).toBe('juices');
+    expect(component.getIngredientCategory(makeI(3, 'Sirop de Canne', 5, 1, 'mixers'))).toBe('mixers');
+    expect(component.getIngredientCategory(makeI(4, 'Citron Vert', 3, 1, 'fruits'))).toBe('fruits');
+    expect(component.getIngredientCategory(makeI(5, 'Crushed Ice', 100, 10, 'other'))).toBe('other');
+    expect(component.getIngredientCategory('mixers')).toBe('mixers');
+    expect(component.getIngredientCategory('unknown_cat')).toBe('other');
   });
 
   it('adjustStock() modifie le stock et appelle le service backend', fakeAsync(() => {
@@ -275,16 +277,16 @@ describe('IngredientListComponent', () => {
 
   it('groupedIngredients groups filtered ingredients by category sections', () => {
     component.ingredients = [
-      makeI(1, 'Rhum Blanc', 20, 5),
-      makeI(2, 'Coca Cola', 15, 5),
-      makeI(3, 'Sirop de Grenadine', 10, 2),
-      makeI(4, 'Citron Vert', 8, 3),
-      makeI(5, 'Pailles Biodegradables', 100, 10),
+      makeI(1, 'Rhum Blanc', 20, 5, 'light_liquor'),
+      makeI(2, 'Coca Cola', 15, 5, 'juices'),
+      makeI(3, 'Sirop de Grenadine', 10, 2, 'mixers'),
+      makeI(4, 'Citron Vert', 8, 3, 'fruits'),
+      makeI(5, 'Pailles Biodegradables', 100, 10, 'other'),
     ];
 
     const groups = component.groupedIngredients;
     expect(groups).toHaveSize(5);
-    expect(groups.map(g => g.categoryKey)).toEqual(['SPIRITS', 'SOFTS', 'SYRUPS', 'FRUITS', 'OTHER']);
+    expect(groups.map(g => g.categoryKey)).toEqual(['light_liquor', 'juices', 'mixers', 'fruits', 'other']);
     expect(groups[0].items[0].nom).toBe('Rhum Blanc');
     expect(groups[1].items[0].nom).toBe('Coca Cola');
   });
@@ -410,5 +412,112 @@ describe('IngredientListComponent', () => {
       jasmine.objectContaining({ color: 'warning' })
     );
   }));
+
+  describe('View Modes & Pagination', () => {
+    it('initializes with category view mode by default', () => {
+      expect(component.viewMode).toBe('category');
+    });
+
+    it('switches between category, grid, and list view modes', () => {
+      component.setViewMode('grid');
+      expect(component.viewMode).toBe('grid');
+      expect(component.gridPage).toBe(1);
+
+      component.setViewMode('list');
+      expect(component.viewMode).toBe('list');
+
+      component.setViewMode('category');
+      expect(component.viewMode).toBe('category');
+    });
+
+    it('calculates total pages, slices items, and handles pagination correctly', () => {
+      // Create 35 test ingredients
+      component.ingredients = Array.from({ length: 35 }, (_, idx) =>
+        makeI(idx + 1, `Ingredient ${idx + 1}`, 20, 5)
+      );
+      component.gridPageSize = 10;
+      component.gridPage = 1;
+
+      expect(component.totalGridPages).toBe(4);
+      expect(component.gridPaginationStart).toBe(1);
+      expect(component.gridPaginationEnd).toBe(10);
+      expect(component.paginatedGridIngredients).toHaveSize(10);
+      expect(component.paginatedGridIngredients[0].nom).toBe('Ingredient 1');
+
+      // Next page
+      component.nextGridPage();
+      expect(component.gridPage).toBe(2);
+      expect(component.gridPaginationStart).toBe(11);
+      expect(component.gridPaginationEnd).toBe(20);
+
+      // Jump to last page
+      component.setGridPage(4);
+      expect(component.gridPage).toBe(4);
+      expect(component.gridPaginationStart).toBe(31);
+      expect(component.gridPaginationEnd).toBe(35);
+      expect(component.paginatedGridIngredients).toHaveSize(5);
+
+      // Prev page
+      component.prevGridPage();
+      expect(component.gridPage).toBe(3);
+
+      // Edge bounds check
+      component.setGridPage(999);
+      expect(component.gridPage).toBe(3); // ignored
+      component.setGridPage(-5);
+      expect(component.gridPage).toBe(3); // ignored
+    });
+
+    it('resets gridPage to 1 when changing filters or page size', () => {
+      component.ingredients = Array.from({ length: 30 }, (_, idx) =>
+        makeI(idx + 1, `Item ${idx + 1}`, 10, 5)
+      );
+      component.gridPageSize = 10;
+      component.gridPage = 3;
+
+      component.setStatusFilter('ALERT');
+      expect(component.gridPage).toBe(1);
+
+      component.gridPage = 3;
+      component.onCategorySelected({ value: 'SPIRITS', label: 'Spirits' });
+      expect(component.gridPage).toBe(1);
+
+      component.gridPage = 3;
+      component.onUnitSelected({ value: 'cl', label: 'cl' });
+      expect(component.gridPage).toBe(1);
+
+      component.gridPage = 3;
+      component.onSortSelected({ value: 'NAME_DESC', label: 'Name Desc' });
+      expect(component.gridPage).toBe(1);
+
+      component.gridPage = 3;
+      component.onSearchChange();
+      expect(component.gridPage).toBe(1);
+
+      component.gridPage = 3;
+      component.setGridPageSize(24);
+      expect(component.gridPage).toBe(1);
+      expect(component.gridPageSize).toBe(24);
+    });
+
+    it('generates page numbers correctly for small and large page sets', () => {
+      component.ingredients = Array.from({ length: 30 }, (_, idx) =>
+        makeI(idx + 1, `Item ${idx + 1}`, 10, 5)
+      );
+      component.gridPageSize = 10;
+      // total = 3 pages
+      expect(component.gridPageNumbers).toEqual([1, 2, 3]);
+
+      // large set: 15 pages
+      component.ingredients = Array.from({ length: 150 }, (_, idx) =>
+        makeI(idx + 1, `Item ${idx + 1}`, 10, 5)
+      );
+      component.gridPage = 5;
+      const pages = component.gridPageNumbers;
+      expect(pages[0]).toBe(1);
+      expect(pages[pages.length - 1]).toBe(15);
+      expect(pages).toContain(5);
+    });
+  });
 });
 

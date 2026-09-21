@@ -160,6 +160,7 @@ class CocktailLibraryServiceTest {
         existingGrapeJuice.setNom("Jus de Raisin");
         existingGrapeJuice.setUniteMesure("cl");
         existingGrapeJuice.setQuantiteStock(BigDecimal.valueOf(100.0));
+        existingGrapeJuice.setCategory("juices");
 
         when(ingredientRepository.findByNomIgnoreCase("Jus de Raisin")).thenReturn(Optional.of(existingGrapeJuice));
         when(ingredientRepository.findByNomIgnoreCase(argThat(name -> !"Jus de Raisin".equalsIgnoreCase(name))))

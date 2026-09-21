@@ -86,6 +86,7 @@ describe('IngredientFormComponent', () => {
     it('form is initialized with empty or default fields', () => {
       const form = component.ingredientForm;
       expect(form.get('nom')?.value).toBe('');
+      expect(form.get('category')?.value).toBe('other');
       expect(form.get('uniteMesure')?.value).toBe('');
       expect(form.get('quantiteStock')?.value).toBe(0);
       expect(form.get('seuilAlerte')?.value).toBe(5);
@@ -100,6 +101,7 @@ describe('IngredientFormComponent', () => {
     it('form should be valid when all required fields are filled', () => {
       component.ingredientForm.setValue({
         nom: 'Citron',
+        category: 'fruits',
         uniteMesure: 'kg',
         quantiteStock: 10,
         seuilAlerte: 5,
@@ -277,6 +279,7 @@ describe('IngredientFormComponent', () => {
     it('le champ quantiteStock accepte la valeur 0', () => {
       component.ingredientForm.setValue({
         nom: 'Sel',
+        category: 'other',
         uniteMesure: 'g',
         quantiteStock: 0,
         seuilAlerte: 5,
@@ -296,6 +299,7 @@ describe('IngredientFormComponent', () => {
       component.ingredient = {
         id: 99,
         nom: 'Gin',
+        category: 'light_liquor',
         uniteMesure: 'cl',
         quantiteStock: 15,
         seuilAlerte: 3,
@@ -308,6 +312,7 @@ describe('IngredientFormComponent', () => {
       expect(component.isEditMode).toBeTrue();
       expect(component.ingredientId).toBe(99);
       expect(component.ingredientForm.get('nom')?.value).toBe('Gin');
+      expect(component.ingredientForm.get('category')?.value).toBe('light_liquor');
       expect(component.ingredientForm.disabled).toBeTrue();
       expect(component.formTitleKey).toBe('INGREDIENTS.DETAILS_TITLE');
     });
@@ -315,6 +320,7 @@ describe('IngredientFormComponent', () => {
     it('onSubmit() with modal dismiss and role saved', () => {
       component.ingredientForm.setValue({
         nom: 'Vodka',
+        category: 'light_liquor',
         uniteMesure: 'cl',
         quantiteStock: 20,
         seuilAlerte: 5,
