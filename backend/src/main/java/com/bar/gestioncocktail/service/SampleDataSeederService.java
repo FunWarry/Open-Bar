@@ -734,7 +734,9 @@ public class SampleDataSeederService {
     }
 
     private void seedStockAdjustmentsFromJson(JsonNode adjustmentsNode) {
-        if (adjustmentsNode == null || !adjustmentsNode.isArray()) return;
+        if (adjustmentsNode == null || !adjustmentsNode.isArray()) {
+            return;
+        }
 
         for (JsonNode aNode : adjustmentsNode) {
             String ingName = aNode.get("nom").asText();
@@ -742,7 +744,9 @@ public class SampleDataSeederService {
             BigDecimal seuil = new BigDecimal(aNode.get("seuilAlerte").asText());
             String category = aNode.hasNonNull("category") ? aNode.get("category").asText().trim() : null;
 
-            ingredientRepository.findByNomIgnoreCase(ingName).ifPresent(ing -> {
+            Optional<Ingredient> ingOpt = ingredientRepository.findByNomIgnoreCase(ingName);
+            if (ingOpt.isPresent()) {
+                Ingredient ing = ingOpt.get();
                 ing.setQuantiteStock(stock);
                 ing.setSeuilAlerte(seuil);
                 if (category != null && !category.isBlank()) {
@@ -750,7 +754,7 @@ public class SampleDataSeederService {
                 }
                 ingredientRepository.save(ing);
                 log.trace("Stock adjustment applied: {} -> {} (seuil: {}, category: {})", ingName, stock, seuil, ing.getCategory());
-            });
+            }
         }
     }
 
