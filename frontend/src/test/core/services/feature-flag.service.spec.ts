@@ -27,6 +27,7 @@ describe('FeatureFlagService', () => {
     cashDrawer: true,
     barTabs: true,
     cocktailLibrary: true,
+    suppliersManagement: true,
   };
 
   beforeEach(() => {
@@ -142,6 +143,7 @@ describe('FeatureFlagService', () => {
       cashDrawer: false,
       barTabs: true,
       cocktailLibrary: false,
+      suppliersManagement: false,
     };
 
     wsSubject.next({ body: JSON.stringify(wsUpdate) });

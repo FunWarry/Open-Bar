@@ -178,6 +178,7 @@ describe('AppSettingsPageComponent', () => {
       cashDrawer: true,
       barTabs: true,
       cocktailLibrary: true,
+      suppliersManagement: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
 
@@ -783,6 +784,7 @@ describe('AppSettingsPageComponent', () => {
         cashDrawer: true,
         barTabs: true,
         cocktailLibrary: true,
+        suppliersManagement: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -861,6 +863,7 @@ describe('AppSettingsPageComponent', () => {
         cashDrawer: false,
         barTabs: false,
         cocktailLibrary: false,
+        suppliersManagement: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();

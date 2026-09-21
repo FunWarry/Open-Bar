@@ -1633,6 +1633,216 @@ export async function setupMockApi(page: Page): Promise<void> {
       ]),
     });
   });
+
+  // Mock suppliers endpoints
+  await page.route('**/api/suppliers/active', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          nom: 'Brasserie du Mont-Blanc',
+          contactNom: 'Sylvain Favre',
+          email: 'contact@montblanc.fr',
+          telephone: '+33 4 50 00 00 00',
+          adresse: '125 Rue des Brasseurs',
+          codePostal: '74000',
+          ville: 'Annecy',
+          siret: '43920192800025',
+          actif: true
+        }
+      ]),
+    });
+  });
+
+  await page.route('**/api/suppliers/migrate-legacy', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(3),
+    });
+  });
+
+  await page.route('**/api/suppliers**', async (route) => {
+    const url = route.request().url();
+    if (url.includes('/active') || url.includes('/migrate-legacy')) {
+      return route.fallback();
+    }
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 3,
+          ...body,
+          actif: body.actif ?? true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }),
+      });
+      return;
+    }
+    if (route.request().method() === 'PUT') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          ...body,
+          updatedAt: new Date().toISOString()
+        }),
+      });
+      return;
+    }
+    if (route.request().method() === 'DELETE') {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          nom: 'Brasserie du Mont-Blanc',
+          contactNom: 'Sylvain Favre',
+          email: 'contact@montblanc.fr',
+          telephone: '+33 4 50 00 00 00',
+          adresse: '125 Rue des Brasseurs',
+          codePostal: '74000',
+          ville: 'Annecy',
+          siret: '43920192800025',
+          actif: true
+        },
+        {
+          id: 2,
+          nom: 'Distillerie des Alpes',
+          contactNom: 'Marc Veyrat',
+          email: 'marc@alpes.fr',
+          telephone: '+33 4 79 00 00 00',
+          adresse: '48 Chemin des Alambics',
+          codePostal: '73000',
+          ville: 'Chambéry',
+          siret: '51283920100018',
+          actif: true
+        }
+      ]),
+    });
+  });
+
+  // Mock purchase orders endpoints
+  await page.route('**/api/purchase-orders/*/pdf', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/pdf',
+      body: Buffer.from('%PDF-1.4 mock purchase order pdf'),
+    });
+  });
+
+  await page.route('**/api/purchase-orders/*/send', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 1,
+        numeroCommande: 'BC-2026-0001',
+        status: 'COMMANDEE',
+        dateCommande: new Date().toISOString()
+      }),
+    });
+  });
+
+  await page.route('**/api/purchase-orders/*/receive', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          ingredientId: 1,
+          ingredientNom: 'Rhum Blanc',
+          ancienPamp: 12.0,
+          nouveauPamp: 13.5,
+          dernierPrixAchat: 15.0,
+          variationPourcentage: 25.0,
+          alerteHausse: true
+        }
+      ]),
+    });
+  });
+
+  await page.route('**/api/purchase-orders/*/cancel', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 1,
+        numeroCommande: 'BC-2026-0001',
+        status: 'ANNULEE'
+      }),
+    });
+  });
+
+  await page.route('**/api/purchase-orders**', async (route) => {
+    const url = route.request().url();
+    if (url.includes('/send') || url.includes('/receive') || url.includes('/cancel') || url.includes('/pdf')) {
+      return route.fallback();
+    }
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 99,
+          numeroCommande: 'BC-2026-0099',
+          supplierId: body.supplierId || 1,
+          supplierNom: 'Brasserie du Mont-Blanc',
+          status: 'BROUILLON',
+          totalHt: 100.0,
+          totalTva: 20.0,
+          totalTtc: 120.0,
+          items: body.items || [],
+          createdAt: new Date().toISOString()
+        }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          numeroCommande: 'BC-2026-0001',
+          supplierId: 1,
+          supplierNom: 'Brasserie du Mont-Blanc',
+          status: 'COMMANDEE',
+          dateCommande: '2026-09-20T10:00:00',
+          dateLivraisonPrevue: '2026-09-25',
+          totalHt: 250.0,
+          totalTva: 50.0,
+          totalTtc: 300.0,
+          items: [
+            {
+              id: 1,
+              ingredientId: 1,
+              ingredientNom: 'Rhum Blanc',
+              quantiteCommandee: 10,
+              quantiteRecue: 0,
+              prixUnitaireHt: 15.0,
+              tauxTva: 20.0,
+              montantHt: 150.0,
+              montantTtc: 180.0
+            }
+          ],
+          createdAt: '2026-09-20T10:00:00'
+        }
+      ]),
+    });
+  });
 }
 
 
