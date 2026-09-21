@@ -36,8 +36,9 @@ import java.util.*;
 public class CocktailLibraryService {
 
     private static final Logger log = LoggerFactory.getLogger(CocktailLibraryService.class);
-    private static final String LIBRARY_RESOURCE_PATH = "data/base_cocktail_library.json";
-    private static final String FALLBACK_RESOURCE_PATH = "data/cocktails_list.json";
+    private static final String LIBRARY_RESOURCE_PATH = "data/cocktail_library.json";
+    private static final String FALLBACK_RESOURCE_PATH = "data/test_cocktails.json";
+    private static final String WHEEL_RESOURCE_PATH = "data/cocktail_connection_wheel.json";
 
     private static final String FIELD_IS_VEGAN = "isVegan";
     private static final String FIELD_FLAVOR_PROFILES = "flavorProfiles";
@@ -47,6 +48,7 @@ public class CocktailLibraryService {
     private static final String FIELD_UNITE = "unite";
     private static final String FIELD_RECIPE_STEPS = "recipeSteps";
     private static final String FIELD_INGREDIENT_NOM = "ingredientNom";
+    private static final String CATEGORY_OTHER = "other";
 
     private final CocktailRepository cocktailRepository;
     private final IngredientRepository ingredientRepository;
@@ -58,6 +60,7 @@ public class CocktailLibraryService {
     private final List<CocktailLibraryItemDTO> libraryItems = new ArrayList<>();
     private final Map<String, CocktailLibraryItemDTO> itemsById = new HashMap<>();
     private final Map<String, CocktailLibraryItemDTO> itemsByNameLower = new HashMap<>();
+    private JsonNode wheelDataCache = null;
 
     /**
      * Constructs the library service with necessary repository and configuration dependencies.
@@ -132,6 +135,29 @@ public class CocktailLibraryService {
     }
 
     /**
+     * Retrieves the interactive connection wheel dataset (nodes, categorized taxonomy, and ingredient association matrix).
+     *
+     * @return JsonNode containing precomputed connection wheel data
+     */
+    @Transactional(readOnly = true)
+    public JsonNode getWheelData() {
+        establishmentConfigService.checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
+        if (wheelDataCache != null) {
+            return wheelDataCache;
+        }
+        try {
+            ClassPathResource resource = new ClassPathResource(WHEEL_RESOURCE_PATH);
+            if (resource.exists()) {
+                wheelDataCache = objectMapper.readTree(resource.getInputStream());
+                return wheelDataCache;
+            }
+        } catch (Exception e) {
+            log.error("Failed to load connection wheel dataset from '{}'", WHEEL_RESOURCE_PATH, e);
+        }
+        return objectMapper.createObjectNode();
+    }
+
+    /**
      * Retrieves cocktail library templates matching optional search and facet filter criteria.
      *
      * @param category   Optional category filter (e.g. "IBA_CLASSICS", "TROPICAL", "MOCKTAILS", "ALCOOLISE")
@@ -166,77 +192,104 @@ public class CocktailLibraryService {
      * @param request Import request specifying cocktail IDs or names
      * @return Detailed import result summary
      */
+    private static class ImportStats {
+        int importedCount = 0;
+        int skippedCount = 0;
+        int newIngredientsCount = 0;
+        int reusedIngredientsCount = 0;
+        final List<String> importedCocktails = new ArrayList<>();
+        final List<String> skippedCocktails = new ArrayList<>();
+    }
+
     @Transactional
     public CocktailLibraryImportResultDTO importCocktails(CocktailLibraryImportRequestDTO request) {
         establishmentConfigService.checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
 
         Set<CocktailLibraryItemDTO> targets = resolveTargetCocktails(request);
         List<Glassware> allGlassware = glasswareRepository.findAll();
-
-        int importedCount = 0;
-        int skippedCount = 0;
-        int newIngredientsCount = 0;
-        int reusedIngredientsCount = 0;
-        List<String> importedCocktails = new ArrayList<>();
-        List<String> skippedCocktails = new ArrayList<>();
+        ImportStats stats = new ImportStats();
 
         for (CocktailLibraryItemDTO template : targets) {
-            if (cocktailRepository.findByNomIgnoreCase(template.nom().trim()).isPresent()) {
-                skippedCount++;
-                skippedCocktails.add(template.nom());
-                continue;
-            }
-
-            Cocktail cocktail = createCocktailEntity(template, allGlassware);
-            Cocktail savedCocktail = cocktailRepository.save(cocktail);
-
-            List<CocktailIngredient> links = new ArrayList<>();
-            Map<String, Ingredient> resolvedIngredientsByName = new HashMap<>();
-
-            for (CocktailLibraryIngredientDTO ingDTO : template.ingredients()) {
-                String ingName = ingDTO.nom().trim();
-                Optional<Ingredient> existingOpt = ingredientRepository.findByNomIgnoreCase(ingName);
-
-                Ingredient resolvedIngredient;
-                if (existingOpt.isPresent()) {
-                    resolvedIngredient = existingOpt.get();
-                    reusedIngredientsCount++;
-                } else {
-                    resolvedIngredient = createNewIngredient(ingDTO);
-                    resolvedIngredient = ingredientRepository.save(resolvedIngredient);
-                    newIngredientsCount++;
-                }
-                resolvedIngredientsByName.put(ingName.toLowerCase(), resolvedIngredient);
-
-                CocktailIngredient link = new CocktailIngredient();
-                link.setCocktail(savedCocktail);
-                link.setIngredient(resolvedIngredient);
-                link.setQuantite(ingDTO.quantite() != null ? ingDTO.quantite() : BigDecimal.ONE);
-                link.setUnite(ingDTO.unite() != null ? ingDTO.unite() : "cl");
-                links.add(cocktailIngredientRepository.save(link));
-            }
-            savedCocktail.setIngredients(links);
-
-            List<CocktailRecipeStep> steps = createRecipeSteps(savedCocktail, template.recipeSteps(), resolvedIngredientsByName);
-            savedCocktail.setRecipeSteps(steps);
-
-            cocktailRepository.save(savedCocktail);
-            importedCount++;
-            importedCocktails.add(savedCocktail.getNom());
+            importSingleTemplateCocktail(template, allGlassware, stats);
         }
 
         String summary = String.format("Successfully imported %d cocktails (%d skipped, %d new ingredients created, %d ingredients reused).",
-                importedCount, skippedCount, newIngredientsCount, reusedIngredientsCount);
+                stats.importedCount, stats.skippedCount, stats.newIngredientsCount, stats.reusedIngredientsCount);
 
         return new CocktailLibraryImportResultDTO(
-                importedCount,
-                skippedCount,
-                newIngredientsCount,
-                reusedIngredientsCount,
-                importedCocktails,
-                skippedCocktails,
+                stats.importedCount,
+                stats.skippedCount,
+                stats.newIngredientsCount,
+                stats.reusedIngredientsCount,
+                stats.importedCocktails,
+                stats.skippedCocktails,
                 summary
         );
+    }
+
+    private void importSingleTemplateCocktail(
+            CocktailLibraryItemDTO template,
+            List<Glassware> allGlassware,
+            ImportStats stats) {
+        if (cocktailRepository.findByNomIgnoreCase(template.nom().trim()).isPresent()) {
+            stats.skippedCount++;
+            stats.skippedCocktails.add(template.nom());
+            return;
+        }
+
+        Cocktail cocktail = createCocktailEntity(template, allGlassware);
+        Cocktail savedCocktail = cocktailRepository.save(cocktail);
+
+        Map<String, Ingredient> resolvedIngredientsByName = new HashMap<>();
+        List<CocktailIngredient> links = linkTemplateIngredients(savedCocktail, template.ingredients(), resolvedIngredientsByName, stats);
+        savedCocktail.setIngredients(links);
+
+        List<CocktailRecipeStep> steps = createRecipeSteps(savedCocktail, template.recipeSteps(), resolvedIngredientsByName);
+        savedCocktail.setRecipeSteps(steps);
+
+        cocktailRepository.save(savedCocktail);
+        stats.importedCount++;
+        stats.importedCocktails.add(savedCocktail.getNom());
+    }
+
+    private List<CocktailIngredient> linkTemplateIngredients(
+            Cocktail savedCocktail,
+            List<CocktailLibraryIngredientDTO> ingredientDTOs,
+            Map<String, Ingredient> resolvedIngredientsByName,
+            ImportStats stats) {
+        List<CocktailIngredient> links = new ArrayList<>();
+        for (CocktailLibraryIngredientDTO ingDTO : ingredientDTOs) {
+            Ingredient resolved = resolveTemplateIngredient(ingDTO, stats);
+            resolvedIngredientsByName.put(ingDTO.nom().trim().toLowerCase(), resolved);
+
+            CocktailIngredient link = new CocktailIngredient();
+            link.setCocktail(savedCocktail);
+            link.setIngredient(resolved);
+            link.setQuantite(ingDTO.quantite() != null ? ingDTO.quantite() : BigDecimal.ONE);
+            link.setUnite(ingDTO.unite() != null ? ingDTO.unite() : "cl");
+            links.add(cocktailIngredientRepository.save(link));
+        }
+        return links;
+    }
+
+    private Ingredient resolveTemplateIngredient(CocktailLibraryIngredientDTO ingDTO, ImportStats stats) {
+        String ingName = ingDTO.nom().trim();
+        Optional<Ingredient> existingOpt = ingredientRepository.findByNomIgnoreCase(ingName);
+
+        if (existingOpt.isPresent()) {
+            Ingredient existing = existingOpt.get();
+            if (ingDTO.category() != null && !ingDTO.category().isBlank() && !CATEGORY_OTHER.equalsIgnoreCase(ingDTO.category())
+                    && CATEGORY_OTHER.equalsIgnoreCase(existing.getCategory())) {
+                existing.setCategory(ingDTO.category());
+                existing = ingredientRepository.save(existing);
+            }
+            stats.reusedIngredientsCount++;
+            return existing;
+        }
+
+        Ingredient newIng = createNewIngredient(ingDTO);
+        stats.newIngredientsCount++;
+        return ingredientRepository.save(newIng);
     }
 
     private Set<CocktailLibraryItemDTO> resolveTargetCocktails(CocktailLibraryImportRequestDTO request) {
@@ -306,6 +359,7 @@ public class CocktailLibraryService {
         ing.setDegreAlcool(dto.degreAlcool() != null ? dto.degreAlcool() : BigDecimal.ZERO);
         ing.setIsVegan(dto.isVegan());
         ing.setAllergens(resolveAllergens(dto.allergens()));
+        ing.setCategory(dto.category() != null && !dto.category().isBlank() ? dto.category() : CATEGORY_OTHER);
         return ing;
     }
 
@@ -494,10 +548,11 @@ public class CocktailLibraryService {
         String ingNom = getTextOrDefault(ingNode, "nom", "");
         BigDecimal qte = getBigDecimalOrDefault(ingNode, FIELD_QUANTITE, 1.0);
         String unite = getTextOrDefault(ingNode, FIELD_UNITE, "cl");
+        String category = getTextOrDefault(ingNode, "category", CATEGORY_OTHER);
         BigDecimal abv = getBigDecimalOrDefault(ingNode, "degreAlcool", 0.0);
         BigDecimal cost = getBigDecimalOrDefault(ingNode, "coutUnitaire", 0.50);
         boolean vegan = getBooleanOrDefault(ingNode, FIELD_IS_VEGAN, true);
-        return new CocktailLibraryIngredientDTO(ingNom, qte, unite, abv, cost, Collections.emptyList(), vegan);
+        return new CocktailLibraryIngredientDTO(ingNom, qte, unite, category, abv, cost, Collections.emptyList(), vegan);
     }
 
     private List<CocktailLibraryIngredientDTO> parseIngredients(JsonNode node) {
@@ -553,6 +608,10 @@ public class CocktailLibraryService {
             String imageUrl = getTextOrDefault(node, "imageUrl", "");
             int prepTime = getIntOrDefault(node, "preparationTimeSeconds", 60);
             String instructions = getTextOrDefault(node, "instructions", "");
+            int popularityScore = getIntOrDefault(node, "popularityScore", 30);
+            boolean isPopular = getBooleanOrDefault(node, "isPopular", false);
+            String variantFamily = node.hasNonNull("variantFamily") ? node.get("variantFamily").asText() : null;
+            String variationOf = node.hasNonNull("variationOf") ? node.get("variationOf").asText() : null;
 
             List<String> flavors = parseStringList(node, FIELD_FLAVOR_PROFILES);
             List<String> allergens = parseStringList(node, FIELD_ALLERGENS);
@@ -563,7 +622,8 @@ public class CocktailLibraryService {
             return new CocktailLibraryItemDTO(
                     id, nom, desc, cat, libCat, baseSpirit, iba, prix, alcoholLevel,
                     isMocktail, isVegan, isGlutenFree, glassware, glasswareImage, imageUrl,
-                    flavors, allergens, prepTime, tags, ingredients, steps, instructions
+                    flavors, allergens, prepTime, tags, ingredients, steps, instructions,
+                    popularityScore, isPopular, variantFamily, variationOf
             );
         } catch (Exception e) {
             log.error("Failed to parse library cocktail node: {}", node, e);

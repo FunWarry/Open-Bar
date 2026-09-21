@@ -42,7 +42,7 @@ import java.util.Set;
 public class CocktailDataSeederService {
 
     private static final Logger log = LoggerFactory.getLogger(CocktailDataSeederService.class);
-    private static final String DATASET_PATH = "data/cocktails_list.json";
+    private static final String DATASET_PATH = "data/test_cocktails.json";
 
     private static final String KEY_ECONOMIE = "economie";
     private static final String KEY_MEDIA = "media";
@@ -69,6 +69,9 @@ public class CocktailDataSeederService {
     private static final String KEY_INGREDIENTS = "ingredients";
     private static final String KEY_ALLERGENS = "allergens";
     private static final String KEY_FLAVOR_PROFILES = "flavor_profiles";
+    private static final String ACTION_TOP_UP = "TOP_UP";
+    private static final String CATEGORY_OTHER = "other";
+    private static final String KEY_CATEGORY = "category";
 
     private static final Set<String> ALCOHOL_KEYWORDS = Set.of(
             "rhum", "vodka", "gin", "tequila", KEY_WHISKY, KEY_WHISKEY, "calvados", "cognac", "armagnac",
@@ -122,6 +125,7 @@ public class CocktailDataSeederService {
         fixLegacyImageUrls();
         ensureFlavorProfilesPopulated();
         ensureIngredientAllergensPopulated();
+        ensureIngredientCategoriesPopulated();
         if (!isTestProfileActive()) {
             log.info("Skipping automatic cocktail startup seeding (active profile is not 'test'). Database remains clean.");
             return;
@@ -139,6 +143,7 @@ public class CocktailDataSeederService {
         fixLegacyImageUrls();
         ensureFlavorProfilesPopulated();
         ensureIngredientAllergensPopulated();
+        ensureIngredientCategoriesPopulated();
         if (!force && cocktailRepository.count() > 0) {
             log.info("Database already contains cocktails, skipping seeding.");
             return;
@@ -417,8 +422,11 @@ public class CocktailDataSeederService {
         step.setCocktail(savedCocktail);
         step.setStepOrder(order);
 
-        if ("AJOUTER_INGREDIENT".equalsIgnoreCase(action)) {
+        if ("AJOUTER_INGREDIENT".equalsIgnoreCase(action) || ACTION_TOP_UP.equalsIgnoreCase(action) || stepNode.has(KEY_INGREDIENT)) {
             populateIngredientStep(step, stepNode, savedCocktail, desc);
+            if (ACTION_TOP_UP.equalsIgnoreCase(action)) {
+                step.setActionTitle(ACTION_TOP_UP);
+            }
         } else {
             step.setStepType(RecipeStepType.CUSTOM_TEXT);
             step.setActionTitle(action);
@@ -541,8 +549,9 @@ public class CocktailDataSeederService {
         double costRaw = extractCost(ingNode);
         Set<Allergen> allergens = extractAllergens(ingNode);
         BigDecimal abv = extractAbv(ingNode);
+        String category = ingNode.hasNonNull(KEY_CATEGORY) ? ingNode.get(KEY_CATEGORY).asText().trim() : CATEGORY_OTHER;
 
-        Ingredient ingredient = findOrCreateIngredient(ingNom, unite, costRaw, allergens, abv);
+        Ingredient ingredient = findOrCreateIngredient(ingNom, unite, costRaw, allergens, abv, category);
 
         CocktailIngredient ci = new CocktailIngredient();
         ci.setCocktail(savedCocktail);
@@ -594,13 +603,13 @@ public class CocktailDataSeederService {
         }
     }
 
-    private Ingredient findOrCreateIngredient(String ingNom, String unite, double costRaw, Set<Allergen> allergens, BigDecimal abv) {
+    private Ingredient findOrCreateIngredient(String ingNom, String unite, double costRaw, Set<Allergen> allergens, BigDecimal abv, String category) {
         return ingredientRepository.findByNomIgnoreCase(ingNom)
-                .map(existing -> updateExistingIngredient(existing, allergens, abv))
-                .orElseGet(() -> createNewIngredient(ingNom, unite, costRaw, allergens, abv));
+                .map(existing -> updateExistingIngredient(existing, allergens, abv, category))
+                .orElseGet(() -> createNewIngredient(ingNom, unite, costRaw, allergens, abv, category));
     }
 
-    private Ingredient updateExistingIngredient(Ingredient existing, Set<Allergen> allergens, BigDecimal abv) {
+    private Ingredient updateExistingIngredient(Ingredient existing, Set<Allergen> allergens, BigDecimal abv, String category) {
         boolean modified = false;
         if (allergens != null && !allergens.isEmpty()
                 && (existing.getAllergens() == null || existing.getAllergens().isEmpty())) {
@@ -615,10 +624,15 @@ public class CocktailDataSeederService {
             existing.setIsVegan(false);
             modified = true;
         }
+        if (category != null && !category.isBlank() && !CATEGORY_OTHER.equalsIgnoreCase(category)
+                && (existing.getCategory() == null || CATEGORY_OTHER.equalsIgnoreCase(existing.getCategory()))) {
+            existing.setCategory(category);
+            modified = true;
+        }
         return modified ? ingredientRepository.save(existing) : existing;
     }
 
-    private Ingredient createNewIngredient(String ingNom, String unite, double costRaw, Set<Allergen> allergens, BigDecimal abv) {
+    private Ingredient createNewIngredient(String ingNom, String unite, double costRaw, Set<Allergen> allergens, BigDecimal abv, String category) {
         Ingredient newIng = new Ingredient();
         newIng.setNom(ingNom);
         newIng.setUniteMesure(unite.isEmpty() || unite.equalsIgnoreCase("nan") ? "cl" : unite);
@@ -632,6 +646,7 @@ public class CocktailDataSeederService {
         }
         newIng.setDegreAlcool(abv != null ? abv : BigDecimal.ZERO);
         newIng.setIsVegan(allergens == null || (!allergens.contains(Allergen.LAIT) && !allergens.contains(Allergen.OEUF)));
+        newIng.setCategory(category != null && !category.isBlank() ? category : CATEGORY_OTHER);
         return ingredientRepository.save(newIng);
     }
 
@@ -1043,6 +1058,114 @@ public class CocktailDataSeederService {
                 Set<Allergen> extracted = extractAllergens(ingNode);
                 if (!extracted.isEmpty()) {
                     map.computeIfAbsent(name, _ -> new HashSet<>()).addAll(extracted);
+                }
+            }
+        }
+    }
+
+    /**
+     * Ensures all existing ingredients in the database have their mixology category populated from the test dataset
+     * during development/test mode if they are currently null, blank, or defaulted to 'other'.
+     */
+    public void ensureIngredientCategoriesPopulated() {
+        try {
+            List<Ingredient> ingredients = ingredientRepository.findAll();
+            if (ingredients.isEmpty()) {
+                return;
+            }
+            Map<String, String> datasetCategories = loadDatasetCategoriesMap();
+            if (datasetCategories.isEmpty()) {
+                return;
+            }
+            int count = 0;
+            for (Ingredient ing : ingredients) {
+                if (ing.getNom() == null) {
+                    continue;
+                }
+                String norm = ing.getNom().trim().toLowerCase(java.util.Locale.ROOT);
+                String currentCat = ing.getCategory();
+                String targetCat = datasetCategories.get(norm);
+                if (targetCat != null && !targetCat.isBlank() && !CATEGORY_OTHER.equalsIgnoreCase(targetCat)
+                        && (currentCat == null || currentCat.isBlank() || CATEGORY_OTHER.equalsIgnoreCase(currentCat))) {
+                    ing.setCategory(targetCat);
+                    ingredientRepository.save(ing);
+                    count++;
+                }
+            }
+            if (count > 0) {
+                log.info("Successfully populated categories for {} test ingredients from dataset.", count);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to populate ingredient categories: {}", e.getMessage());
+        }
+    }
+
+    private Map<String, String> loadDatasetCategoriesMap() {
+        Map<String, String> map = new HashMap<>();
+        InputStream is = loadResourceStream();
+        if (is != null) {
+            try (InputStream stream = is) {
+                JsonNode root = objectMapper.readTree(stream);
+                populateCategoriesFromRoot(root, map);
+            } catch (Exception e) {
+                log.warn("Failed to read test dataset categories map: {}", e.getMessage());
+            }
+        }
+        loadDemoDatasetCategories(map);
+        return map;
+    }
+
+    private void loadDemoDatasetCategories(Map<String, String> map) {
+        try {
+            ClassPathResource res = new ClassPathResource("data/demo_dataset.json");
+            if (!res.exists()) {
+                return;
+            }
+            try (InputStream stream = res.getInputStream()) {
+                JsonNode root = objectMapper.readTree(stream);
+                parseAdjustmentsNode(root.get("stock_adjustments"), map);
+            }
+        } catch (Exception e) {
+            log.debug("Failed to read demo_dataset.json categories: {}", e.getMessage());
+        }
+    }
+
+    private void parseAdjustmentsNode(JsonNode adjustments, Map<String, String> map) {
+        if (adjustments == null || !adjustments.isArray()) {
+            return;
+        }
+        for (JsonNode a : adjustments) {
+            if (a.hasNonNull("nom") && a.hasNonNull(KEY_CATEGORY)) {
+                String nom = a.get("nom").asText().trim().toLowerCase(java.util.Locale.ROOT);
+                String cat = a.get(KEY_CATEGORY).asText().trim();
+                if (!cat.isBlank() && !CATEGORY_OTHER.equalsIgnoreCase(cat)) {
+                    map.putIfAbsent(nom, cat);
+                }
+            }
+        }
+    }
+
+    private void populateCategoriesFromRoot(JsonNode root, Map<String, String> map) {
+        JsonNode cocktailsNode = root.get(KEY_COCKTAILS);
+        if (cocktailsNode == null || !cocktailsNode.isArray()) {
+            return;
+        }
+        for (JsonNode cNode : cocktailsNode) {
+            populateCategoriesFromCocktail(cNode, map);
+        }
+    }
+
+    private void populateCategoriesFromCocktail(JsonNode cNode, Map<String, String> map) {
+        JsonNode ingArray = cNode.get(KEY_INGREDIENTS);
+        if (ingArray == null || !ingArray.isArray()) {
+            return;
+        }
+        for (JsonNode ingNode : ingArray) {
+            if (ingNode.hasNonNull("nom") && ingNode.hasNonNull(KEY_CATEGORY)) {
+                String name = ingNode.get("nom").asText().trim().toLowerCase(java.util.Locale.ROOT);
+                String cat = ingNode.get(KEY_CATEGORY).asText().trim();
+                if (!cat.isBlank() && !CATEGORY_OTHER.equalsIgnoreCase(cat)) {
+                    map.putIfAbsent(name, cat);
                 }
             }
         }
