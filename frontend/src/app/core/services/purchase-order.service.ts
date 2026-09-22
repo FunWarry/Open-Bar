@@ -109,24 +109,30 @@ export class PurchaseOrderService {
       status = 'BROUILLON';
     }
 
-    return {
+    const order: PurchaseOrder = {
+      ...dto,
       id: dto.id,
       numeroCommande: dto.numeroCommande || dto.reference || `CMD-2026-${String(dto.id).padStart(3, '0')}`,
-      supplierId: dto.supplierId,
-      supplierNom: dto.supplierNom,
       status,
-      dateCommande: dto.dateCommande,
-      dateLivraisonPrevue: dto.dateLivraisonPrevue,
-      dateLivraisonReelle: dto.dateLivraisonReelle || dto.dateReception,
       totalHt: dto.totalHt ?? 0,
       totalTva: dto.totalTva ?? 0,
       totalTtc: dto.totalTtc ?? 0,
-      notes: dto.notes,
-      referenceFactureFournisseur: dto.referenceFactureFournisseur,
-      items: dto.items || [],
-      createdAt: dto.createdAt,
-      updatedAt: dto.updatedAt
+      items: dto.items || []
     };
+
+    if (dto.supplierId !== undefined) order.supplierId = dto.supplierId;
+    if (dto.supplierNom !== undefined) order.supplierNom = dto.supplierNom;
+    if (dto.dateCommande !== undefined) order.dateCommande = dto.dateCommande;
+    if (dto.dateLivraisonPrevue !== undefined) order.dateLivraisonPrevue = dto.dateLivraisonPrevue;
+    if (dto.dateLivraisonReelle !== undefined || dto.dateReception !== undefined) {
+      order.dateLivraisonReelle = dto.dateLivraisonReelle ?? dto.dateReception;
+    }
+    if (dto.notes !== undefined) order.notes = dto.notes;
+    if (dto.referenceFactureFournisseur !== undefined) order.referenceFactureFournisseur = dto.referenceFactureFournisseur;
+    if (dto.createdAt !== undefined) order.createdAt = dto.createdAt;
+    if (dto.updatedAt !== undefined) order.updatedAt = dto.updatedAt;
+
+    return order;
   }
 
   /**

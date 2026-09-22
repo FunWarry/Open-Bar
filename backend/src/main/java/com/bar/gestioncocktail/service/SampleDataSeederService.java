@@ -1763,26 +1763,31 @@ public class SampleDataSeederService {
         if (sNode.hasNonNull(KEY_EMAIL)) s.setEmail(sNode.get(KEY_EMAIL).asText());
         if (sNode.hasNonNull("telephone")) s.setTelephone(sNode.get("telephone").asText());
 
-        StringBuilder addressBuilder = new StringBuilder();
-        if (sNode.hasNonNull("adresse")) addressBuilder.append(sNode.get("adresse").asText());
-        if (sNode.hasNonNull("codePostal")) {
-            if (!addressBuilder.isEmpty()) addressBuilder.append(", ");
-            addressBuilder.append(sNode.get("codePostal").asText());
-        }
-        if (sNode.hasNonNull("ville")) {
-            if (!addressBuilder.isEmpty()) addressBuilder.append(" ");
-            addressBuilder.append(sNode.get("ville").asText());
-        }
-        if (sNode.hasNonNull("pays")) {
-            if (!addressBuilder.isEmpty()) addressBuilder.append(", ");
-            addressBuilder.append(sNode.get("pays").asText());
-        }
-        if (!addressBuilder.isEmpty()) s.setAdresse(addressBuilder.toString());
+        String address = buildSupplierAddress(sNode);
+        if (!address.isBlank()) s.setAdresse(address);
 
         if (sNode.hasNonNull(KEY_NOTES)) s.setNotes(sNode.get(KEY_NOTES).asText());
         if (sNode.hasNonNull("conditionsPaiement")) s.setConditionsPaiement(sNode.get("conditionsPaiement").asText());
         if (sNode.hasNonNull("actif")) s.setActif(sNode.get("actif").asBoolean());
         return s;
+    }
+
+    private String buildSupplierAddress(JsonNode sNode) {
+        StringBuilder sb = new StringBuilder();
+        if (sNode.hasNonNull("adresse")) sb.append(sNode.get("adresse").asText());
+        if (sNode.hasNonNull("codePostal")) {
+            if (!sb.isEmpty()) sb.append(", ");
+            sb.append(sNode.get("codePostal").asText());
+        }
+        if (sNode.hasNonNull("ville")) {
+            if (!sb.isEmpty()) sb.append(" ");
+            sb.append(sNode.get("ville").asText());
+        }
+        if (sNode.hasNonNull("pays")) {
+            if (!sb.isEmpty()) sb.append(", ");
+            sb.append(sNode.get("pays").asText());
+        }
+        return sb.toString();
     }
 
     private void seedPurchaseOrders(JsonNode ordersNode, Map<String, Supplier> savedSuppliers, Map<String, User> usersMap) {
