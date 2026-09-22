@@ -80,11 +80,14 @@ class UnitConversionServiceTest {
     }
 
     @Test
-    @DisplayName("convert - discrete or unknown units return identity conversion")
-    void convert_discreteOrUnknownUnits_returnsQuantity() {
-        BigDecimal qty = new BigDecimal("2");
-        assertThat(UnitConversionService.convert(qty, "tranche", "piece")).isEqualTo(qty);
-        assertThat(UnitConversionService.convert(qty, "feuille", "unite")).isEqualTo(qty);
+    @DisplayName("convert - discrete units convert via base factor")
+    void convert_discreteUnits_returnsQuantity() {
+        assertThat(UnitConversionService.convert(new BigDecimal("8"), "slice", "piece")).isEqualByComparingTo(new BigDecimal("1.000000"));
+        assertThat(UnitConversionService.convert(new BigDecimal("4"), "quarter", "unit")).isEqualByComparingTo(new BigDecimal("1.000000"));
+        assertThat(UnitConversionService.convert(new BigDecimal("2"), "half", "unit")).isEqualByComparingTo(new BigDecimal("1.000000"));
+        assertThat(UnitConversionService.convert(new BigDecimal("2"), "leaf", "unit")).isEqualByComparingTo(new BigDecimal("2.000000"));
+        assertThat(UnitConversionService.convert(new BigDecimal("2"), "stick", "piece")).isEqualByComparingTo(new BigDecimal("2.000000"));
+        assertThat(UnitConversionService.convert(new BigDecimal("2"), "unknown_unit", "other_unit")).isEqualTo(new BigDecimal("2"));
     }
 
     @Test
