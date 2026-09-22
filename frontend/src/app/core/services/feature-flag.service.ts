@@ -69,6 +69,9 @@ export class FeatureFlagService implements OnDestroy {
   /** Computed signal for COCKTAIL_LIBRARY capability status. */
   readonly cocktailLibraryEnabled = computed(() => this.modules().cocktailLibrary);
 
+  /** Computed signal for SUPPLIERS_MANAGEMENT capability status. */
+  readonly suppliersManagementEnabled = computed(() => this.modules().suppliersManagement);
+
   constructor() {
     this.initWebSocketSubscription();
     this.loadModules().subscribe();
@@ -106,6 +109,8 @@ export class FeatureFlagService implements OnDestroy {
         return current.barTabs;
       case EstablishmentModule.COCKTAIL_LIBRARY:
         return current.cocktailLibrary;
+      case EstablishmentModule.SUPPLIERS_MANAGEMENT:
+        return current.suppliersManagement;
       default:
         return true;
     }

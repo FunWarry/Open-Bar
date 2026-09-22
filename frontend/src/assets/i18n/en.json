@@ -8,6 +8,8 @@
     "CONFIRM": "Confirm",
     "CLOSE": "Close",
     "SUBMIT": "Submit",
+    "ACTIVE": "Active",
+    "INACTIVE": "Inactive",
     "COPY": "Copy",
     "BACK": "Back",
     "SEARCH": "Search",
@@ -3688,7 +3690,12 @@
       "COMMANDEE": "Ordered",
       "PARTIELLEMENT_LIVREE": "Partially Delivered",
       "LIVREE": "Delivered",
-      "ANNULEE": "Cancelled"
+      "ANNULEE": "Cancelled",
+      "DRAFT": "Draft",
+      "ORDERED": "Ordered",
+      "PARTIALLY_RECEIVED": "Partially Delivered",
+      "RECEIVED": "Delivered",
+      "CANCELLED": "Cancelled"
     },
     "DATE_ORDERED": "Order Date",
     "DATE_EXPECTED": "Expected Delivery",

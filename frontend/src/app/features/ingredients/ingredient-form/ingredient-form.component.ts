@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, Optional, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, Optional, ChangeDetectionStrategy, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -39,6 +39,7 @@ import {
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IngredientService } from '../../../core/services/ingredient.service';
 import { SupplierService } from '../../../core/services/supplier.service';
+import { FeatureFlagService } from '../../../core/services/feature-flag.service';
 import {
   Ingredient,
   Allergen,
@@ -110,6 +111,9 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
 
   readonly availableAllergens = DEFAULT_ALLERGEN_OPTIONS;
 
+  private readonly featureFlagService = inject(FeatureFlagService);
+  readonly suppliersManagementEnabled = this.featureFlagService.suppliersManagementEnabled;
+
   supplierOptions: SearchableOption<number>[] = [];
 
   constructor(
@@ -166,17 +170,19 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.supplierService.getActive().subscribe({
-      next: (sups) => {
-        this.supplierOptions = sups.map(s => ({
-          value: s.id,
-          label: s.nom,
-          subLabel: s.ville || s.contactNom,
-          icon: 'business-outline'
-        }));
-      },
-      error: () => {}
-    });
+    if (this.suppliersManagementEnabled()) {
+      this.supplierService.getActive().subscribe({
+        next: (sups) => {
+          this.supplierOptions = sups.map(s => ({
+            value: s.id,
+            label: s.nom,
+            subLabel: s.ville || s.contactNom,
+            icon: 'business-outline'
+          }));
+        },
+        error: () => {}
+      });
+    }
 
     if (this.ingredient) {
       this.isEditMode = true;

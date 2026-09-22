@@ -2821,7 +2821,7 @@
       "daysAgo": 5,
       "items": [
         {
-          "ingredientNom": "Rhum",
+          "ingredientNom": "Rhum Blanc",
           "quantiteCommandee": 12.0,
           "quantiteRecue": 12.0,
           "prixUnitaireHt": 18.50,
@@ -2832,6 +2832,13 @@
           "quantiteCommandee": 6.0,
           "quantiteRecue": 6.0,
           "prixUnitaireHt": 22.00,
+          "tauxTva": 20.0
+        },
+        {
+          "ingredientNom": "Vodka",
+          "quantiteCommandee": 8.0,
+          "quantiteRecue": 8.0,
+          "prixUnitaireHt": 16.50,
           "tauxTva": 20.0
         }
       ]
@@ -2854,6 +2861,52 @@
           "ingredientNom": "Jus de citron",
           "quantiteCommandee": 15.0,
           "quantiteRecue": 0.0,
+          "prixUnitaireHt": 2.90,
+          "tauxTva": 5.5
+        }
+      ]
+    },
+    {
+      "supplierNom": "Brasserie du Mont-Blanc",
+      "statut": "BROUILLON",
+      "notes": "Préparation commande bières artisanales et fûts pour l'événement du weekend",
+      "referenceFactureFournisseur": null,
+      "daysAgo": 0,
+      "items": [
+        {
+          "ingredientNom": "Menthe fraîche",
+          "quantiteCommandee": 5.0,
+          "quantiteRecue": 0.0,
+          "prixUnitaireHt": 4.50,
+          "tauxTva": 5.5
+        },
+        {
+          "ingredientNom": "Citron vert",
+          "quantiteCommandee": 10.0,
+          "quantiteRecue": 0.0,
+          "prixUnitaireHt": 2.20,
+          "tauxTva": 5.5
+        }
+      ]
+    },
+    {
+      "supplierNom": "Grossiste Boissons Rhône",
+      "statut": "PARTIELLEMENT_LIVREE",
+      "notes": "BL partiel reçu ce matin (reliquat de livraison prévu sous 48h)",
+      "referenceFactureFournisseur": "BL-GBR-2026-441",
+      "daysAgo": 3,
+      "items": [
+        {
+          "ingredientNom": "Purée de fruit de la passion",
+          "quantiteCommandee": 10.0,
+          "quantiteRecue": 5.0,
+          "prixUnitaireHt": 6.50,
+          "tauxTva": 5.5
+        },
+        {
+          "ingredientNom": "Jus de citron",
+          "quantiteCommandee": 10.0,
+          "quantiteRecue": 10.0,
           "prixUnitaireHt": 2.90,
           "tauxTva": 5.5
         }

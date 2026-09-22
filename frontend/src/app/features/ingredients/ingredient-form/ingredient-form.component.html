@@ -131,19 +131,21 @@
     </div>
 
     <!-- Default Supplier -->
-    <div class="field-item">
-      <app-searchable-select
-        formControlName="defaultSupplierId"
-        [label]="'INGREDIENTS.FORM.DEFAULT_SUPPLIER' | transloco"
-        [placeholder]="'INGREDIENTS.FORM.SELECT_SUPPLIER' | transloco"
-        [searchPlaceholder]="'COMMON.SEARCH' | transloco"
-        [options]="supplierOptions"
-        [required]="false"
-        [clearable]="true"
-        [enableSearch]="true"
-        testId="ingredient-supplier-select">
-      </app-searchable-select>
-    </div>
+    @if (suppliersManagementEnabled()) {
+      <div class="field-item">
+        <app-searchable-select
+          formControlName="defaultSupplierId"
+          [label]="'INGREDIENTS.FORM.DEFAULT_SUPPLIER' | transloco"
+          [placeholder]="'INGREDIENTS.FORM.SELECT_SUPPLIER' | transloco"
+          [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+          [options]="supplierOptions"
+          [required]="false"
+          [clearable]="true"
+          [enableSearch]="true"
+          testId="ingredient-supplier-select">
+        </app-searchable-select>
+      </div>
+    }
 
     <!-- Dietary Preference: Vegan -->
     <div class="dietary-field-group">

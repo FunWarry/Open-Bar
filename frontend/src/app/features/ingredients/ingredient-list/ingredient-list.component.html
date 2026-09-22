@@ -44,11 +44,13 @@
             {{ 'STOCK.WASTE_RECORD_BTN' | transloco }}
           </ion-button>
 
-          <ion-button fill="outline" color="primary" class="header-action-btn" (click)="goToPurchases()" (keyup.enter)="goToPurchases()"
-            data-testid="ingredient-btn-purchases">
-            <ion-icon slot="start" name="cart-outline"></ion-icon>
-            {{ 'NAV.PURCHASES' | transloco }}
-          </ion-button>
+          @if (suppliersManagementEnabled()) {
+            <ion-button fill="outline" color="primary" class="header-action-btn" (click)="goToPurchases()" (keyup.enter)="goToPurchases()"
+              data-testid="ingredient-btn-purchases">
+              <ion-icon slot="start" name="cart-outline"></ion-icon>
+              {{ 'NAV.PURCHASES' | transloco }}
+            </ion-button>
+          }
 
           @if (canEdit$ | async) {
           <ion-button color="primary" class="header-action-btn" (click)="onAdd()" (keyup.enter)="onAdd()"

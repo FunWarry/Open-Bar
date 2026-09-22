@@ -8,6 +8,8 @@
     "CONFIRM": "Confirmer",
     "CLOSE": "Fermer",
     "SUBMIT": "Valider",
+    "ACTIVE": "Actif",
+    "INACTIVE": "Inactif",
     "COPY": "Copier",
     "BACK": "Retour",
     "SEARCH": "Rechercher",
@@ -3688,7 +3690,12 @@
       "COMMANDEE": "Commandée",
       "PARTIELLEMENT_LIVREE": "Partiellement livrée",
       "LIVREE": "Livrée",
-      "ANNULEE": "Annulée"
+      "ANNULEE": "Annulée",
+      "DRAFT": "Brouillon",
+      "ORDERED": "Commandée",
+      "PARTIALLY_RECEIVED": "Partiellement livrée",
+      "RECEIVED": "Livrée",
+      "CANCELLED": "Annulée"
     },
     "DATE_ORDERED": "Date commande",
     "DATE_EXPECTED": "Livraison prévue",

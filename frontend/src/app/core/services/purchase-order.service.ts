@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   PriceVariation,
@@ -26,10 +26,12 @@ export class PurchaseOrderService {
    */
   getAll(status?: PurchaseOrderStatus): Observable<PurchaseOrder[]> {
     let params = new HttpParams();
-    if (status) {
+    if (status && status !== ('ALL' as any)) {
       params = params.set('status', status);
     }
-    return this.http.get<PurchaseOrder[]>(this.api, { params });
+    return this.http.get<any[]>(this.api, { params }).pipe(
+      map(orders => (orders || []).map(o => this.normalizeOrder(o)))
+    );
   }
 
   /**
@@ -39,7 +41,9 @@ export class PurchaseOrderService {
    * @returns Observable emitting the purchase order.
    */
   getById(id: number): Observable<PurchaseOrder> {
-    return this.http.get<PurchaseOrder>(`${this.api}/${id}`);
+    return this.http.get<any>(`${this.api}/${id}`).pipe(
+      map(o => this.normalizeOrder(o))
+    );
   }
 
   /**
@@ -49,7 +53,9 @@ export class PurchaseOrderService {
    * @returns Observable emitting the created purchase order.
    */
   create(request: PurchaseOrderCreateRequest): Observable<PurchaseOrder> {
-    return this.http.post<PurchaseOrder>(this.api, request);
+    return this.http.post<any>(this.api, request).pipe(
+      map(o => this.normalizeOrder(o))
+    );
   }
 
   /**
@@ -59,7 +65,9 @@ export class PurchaseOrderService {
    * @returns Observable emitting the updated purchase order.
    */
   send(id: number): Observable<PurchaseOrder> {
-    return this.http.patch<PurchaseOrder>(`${this.api}/${id}/send`, {});
+    return this.http.patch<any>(`${this.api}/${id}/send`, {}).pipe(
+      map(o => this.normalizeOrder(o))
+    );
   }
 
   /**
@@ -80,7 +88,45 @@ export class PurchaseOrderService {
    * @returns Observable emitting the cancelled purchase order.
    */
   cancel(id: number): Observable<PurchaseOrder> {
-    return this.http.patch<PurchaseOrder>(`${this.api}/${id}/cancel`, {});
+    return this.http.patch<any>(`${this.api}/${id}/cancel`, {}).pipe(
+      map(o => this.normalizeOrder(o))
+    );
+  }
+
+  private normalizeOrder(dto: any): PurchaseOrder {
+    if (!dto) return dto;
+    const rawStatus = dto.statut || dto.status || 'BROUILLON';
+    let status: PurchaseOrderStatus;
+    if (rawStatus === 'ORDERED' || rawStatus === 'COMMANDEE' || rawStatus === 'COMMANDE') {
+      status = 'COMMANDEE';
+    } else if (rawStatus === 'PARTIALLY_RECEIVED' || rawStatus === 'PARTIELLEMENT_LIVREE') {
+      status = 'PARTIELLEMENT_LIVREE';
+    } else if (rawStatus === 'RECEIVED' || rawStatus === 'LIVREE' || rawStatus === 'RECU') {
+      status = 'LIVREE';
+    } else if (rawStatus === 'CANCELLED' || rawStatus === 'ANNULEE') {
+      status = 'ANNULEE';
+    } else {
+      status = 'BROUILLON';
+    }
+
+    return {
+      id: dto.id,
+      numeroCommande: dto.numeroCommande || dto.reference || `CMD-2026-${String(dto.id).padStart(3, '0')}`,
+      supplierId: dto.supplierId,
+      supplierNom: dto.supplierNom,
+      status,
+      dateCommande: dto.dateCommande,
+      dateLivraisonPrevue: dto.dateLivraisonPrevue,
+      dateLivraisonReelle: dto.dateLivraisonReelle || dto.dateReception,
+      totalHt: dto.totalHt ?? 0,
+      totalTva: dto.totalTva ?? 0,
+      totalTtc: dto.totalTtc ?? 0,
+      notes: dto.notes,
+      referenceFactureFournisseur: dto.referenceFactureFournisseur,
+      items: dto.items || [],
+      createdAt: dto.createdAt,
+      updatedAt: dto.updatedAt
+    };
   }
 
   /**

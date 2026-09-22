@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, firstValueFrom } from 'rxjs';
@@ -41,6 +41,7 @@ import { ActionButtonComponent } from '../../../core/components/ui/action-button
 import { PaginationComponent } from '../../../core/components/ui/pagination/pagination.component';
 import { CsvExportService, CsvColumn } from '../../../core/services/csv-export.service';
 import { StockWasteService } from '../../../core/services/stock-waste.service';
+import { FeatureFlagService } from '../../../core/services/feature-flag.service';
 import { BarcodeScannerModalComponent, BarcodeScannerResult } from '../../../core/components/ui/barcode-scanner-modal/barcode-scanner-modal.component';
 
 /**
@@ -96,6 +97,9 @@ export interface IngredientCategoryGroup {
   ],
 })
 export class IngredientListComponent implements OnInit, OnDestroy {
+  private readonly featureFlagService = inject(FeatureFlagService);
+  readonly suppliersManagementEnabled = this.featureFlagService.suppliersManagementEnabled;
+
   ingredients: Ingredient[] = [];
   isLoading = false;
   searchQuery = '';

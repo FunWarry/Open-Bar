@@ -401,16 +401,16 @@ public class EstablishmentConfig {
             return true;
         }
         return switch (module) {
-            case CUISINE_KDS -> Boolean.TRUE.equals(this.moduleKitchenKdsEnabled);
-            case HAPPY_HOUR -> Boolean.TRUE.equals(this.moduleHappyHourEnabled);
-            case EMPLOYEE_MANAGEMENT -> Boolean.TRUE.equals(this.moduleEmployeeManagementEnabled);
-            case FLOOR_PLAN -> Boolean.TRUE.equals(this.moduleFloorPlanEnabled);
-            case QR_CLIENT_ORDERING -> Boolean.TRUE.equals(this.moduleQrClientOrderingEnabled);
-            case STOCK_TRACKING -> Boolean.TRUE.equals(this.moduleStockTrackingEnabled);
-            case CASH_DRAWER -> Boolean.TRUE.equals(this.moduleCashDrawerEnabled);
-            case BAR_TABS -> Boolean.TRUE.equals(this.moduleBarTabsEnabled);
-            case COCKTAIL_LIBRARY -> Boolean.TRUE.equals(this.moduleCocktailLibraryEnabled);
-            case SUPPLIERS_MANAGEMENT -> Boolean.TRUE.equals(this.moduleSuppliersManagementEnabled);
+            case CUISINE_KDS -> this.moduleKitchenKdsEnabled == null || this.moduleKitchenKdsEnabled;
+            case HAPPY_HOUR -> this.moduleHappyHourEnabled == null || this.moduleHappyHourEnabled;
+            case EMPLOYEE_MANAGEMENT -> this.moduleEmployeeManagementEnabled == null || this.moduleEmployeeManagementEnabled;
+            case FLOOR_PLAN -> this.moduleFloorPlanEnabled == null || this.moduleFloorPlanEnabled;
+            case QR_CLIENT_ORDERING -> this.moduleQrClientOrderingEnabled == null || this.moduleQrClientOrderingEnabled;
+            case STOCK_TRACKING -> this.moduleStockTrackingEnabled == null || this.moduleStockTrackingEnabled;
+            case CASH_DRAWER -> this.moduleCashDrawerEnabled == null || this.moduleCashDrawerEnabled;
+            case BAR_TABS -> this.moduleBarTabsEnabled == null || this.moduleBarTabsEnabled;
+            case COCKTAIL_LIBRARY -> this.moduleCocktailLibraryEnabled == null || this.moduleCocktailLibraryEnabled;
+            case SUPPLIERS_MANAGEMENT -> this.moduleSuppliersManagementEnabled == null || this.moduleSuppliersManagementEnabled;
             default -> true;
         };
     }
