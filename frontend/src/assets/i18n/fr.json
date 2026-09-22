@@ -3722,6 +3722,7 @@
     "STOCK": "Stock actuel",
     "PAMP_UNIT_COST": "PAMP actuel",
     "DEFAULT_SUPPLIER": "Fournisseur habituel",
+    "SEARCH_ORDERS_PLACEHOLDER": "Rechercher par fournisseur, note, ID...",
     "SEARCH_INGREDIENTS_PLACEHOLDER": "Rechercher un ingrédient, code-barres...",
     "BARCODE_ITEM_ADDED": "{{ name }} ajouté à la commande",
     "BARCODE_QTY_INCREMENTED": "Quantité de {{ name }} incrémentée",

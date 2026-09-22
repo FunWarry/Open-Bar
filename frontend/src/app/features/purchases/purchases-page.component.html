@@ -99,6 +99,16 @@
   <!-- Tab Content: Orders -->
   @if (activeTab() === 'orders') {
     <section class="tab-content" data-testid="orders-section">
+      <!-- Orders Search Bar -->
+      <div class="search-bar-row">
+        <app-search-bar
+          [placeholder]="'PURCHASES.SEARCH_ORDERS_PLACEHOLDER' | transloco"
+          [value]="searchQuery()"
+          (valueChange)="searchQuery.set($event)"
+          testId="orders-search-input"
+        ></app-search-bar>
+      </div>
+
       <!-- Status Filters -->
       <div class="filters-bar">
         <button

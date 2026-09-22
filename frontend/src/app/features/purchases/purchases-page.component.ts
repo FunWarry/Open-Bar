@@ -131,9 +131,19 @@ export class PurchasesPageComponent implements OnInit {
    */
   filteredOrders = computed(() => {
     const filter = this.statusFilter();
-    const orders = this.purchaseOrders();
-    if (filter === 'ALL') return orders;
-    return orders.filter(o => o.status === filter);
+    const query = this.searchQuery().toLowerCase().trim();
+    let orders = this.purchaseOrders();
+    if (filter !== 'ALL') {
+      orders = orders.filter(o => o.status === filter);
+    }
+    if (query) {
+      orders = orders.filter(o =>
+        o.id.toString().includes(query) ||
+        Boolean(o.supplierNom?.toLowerCase().includes(query)) ||
+        Boolean(o.notes?.toLowerCase().includes(query))
+      );
+    }
+    return orders;
   });
 
   /**
