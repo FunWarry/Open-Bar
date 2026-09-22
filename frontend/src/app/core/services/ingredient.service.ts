@@ -103,4 +103,15 @@ export class IngredientService {
   getEnAlerte(): Observable<Ingredient[]> {
     return this.http.get<Ingredient[]>(`${this.api}/alerte`);
   }
+
+  /**
+   * Retrieves an ingredient by its scanned or typed barcode or QR code.
+   *
+   * @param code - Barcode or QR code value.
+   * @returns Observable emitting the matching Ingredient model.
+   */
+  getByBarcode(code: string): Observable<Ingredient> {
+    return this.http.get<Ingredient>(`${this.api}/by-barcode`, { params: { code } });
+  }
 }
+

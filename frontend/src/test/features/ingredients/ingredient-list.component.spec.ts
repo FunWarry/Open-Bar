@@ -518,6 +518,28 @@ describe('IngredientListComponent', () => {
       expect(pages[pages.length - 1]).toBe(15);
       expect(pages).toContain(5);
     });
+
+    it('calculates packaging equivalent string correctly', () => {
+      const ingWithPkg = {
+        ...makeI(99, 'Rhum', 175, 10),
+        purchaseUnit: 'Bottle 70cl',
+        packagingCapacity: 70
+      };
+      expect(component.getPackagingEquivalent(ingWithPkg)).toBe('≈ 2.5 Bottle 70cl');
+
+      const ingZeroCapacity = {
+        ...makeI(100, 'Vodka', 50, 10),
+        purchaseUnit: 'Bottle',
+        packagingCapacity: 0
+      };
+      expect(component.getPackagingEquivalent(ingZeroCapacity)).toBe('');
+
+      const ingNoUnit = {
+        ...makeI(101, 'Gin', 70, 10),
+        packagingCapacity: 70
+      };
+      expect(component.getPackagingEquivalent(ingNoUnit)).toBe('');
+    });
   });
 });
 

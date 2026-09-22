@@ -375,4 +375,37 @@ describe('AppSettingsService', () => {
       expect(tiers[0].label).toBe('Équipier');
     });
   });
+
+  describe('Timezone and Establishment Time', () => {
+    it('returns timeZone fallback to SYSTEM when settings are null', () => {
+      expect(service.timeZone).toBe('SYSTEM');
+    });
+
+    it('calculates getNowInEstablishmentTime with SYSTEM timezone', () => {
+      const now = service.getNowInEstablishmentTime();
+      expect(typeof now).toBe('number');
+      expect(now).toBeGreaterThan(0);
+    });
+
+    it('calculates getNowInEstablishmentTime with configured timezone', () => {
+      (service as any).currentSettings$.next({
+        ...mockSettings,
+        timeZone: 'Europe/Paris'
+      });
+      expect(service.timeZone).toBe('Europe/Paris');
+      const now = service.getNowInEstablishmentTime();
+      expect(typeof now).toBe('number');
+      expect(now).toBeGreaterThan(0);
+    });
+
+    it('falls back to Date.now() when invalid timezone is configured', () => {
+      (service as any).currentSettings$.next({
+        ...mockSettings,
+        timeZone: 'Invalid/Non_Existent_Timezone'
+      });
+      const now = service.getNowInEstablishmentTime();
+      expect(typeof now).toBe('number');
+      expect(now).toBeGreaterThan(0);
+    });
+  });
 });

@@ -36,6 +36,9 @@ class AppSettingsServiceTest {
     @Mock
     QrCodeService qrCodeService;
 
+    @Mock
+    com.bar.gestioncocktail.service.TimeService timeService;
+
     @InjectMocks
     AppSettingsService appSettingsService;
 

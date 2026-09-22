@@ -603,6 +603,18 @@
                           </div>
                           <p class="threshold-desc">{{ 'SETTINGS.MODULE_COCKTAIL_LIBRARY_DESC' | transloco }}</p>
                         </div>
+
+                        <!-- Module 10: SUPPLIERS_MANAGEMENT -->
+                        <div class="threshold-row" data-testid="module-row-suppliers-management">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="cart-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_SUPPLIERS_MANAGEMENT_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="suppliersManagement" data-testid="toggle-module-suppliers-management"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_SUPPLIERS_MANAGEMENT_DESC' | transloco }}</p>
+                        </div>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -832,6 +844,26 @@
                                 </span>
                               </div>
                               <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_COCKTAIL_LIBRARY' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 10. Fournisseurs, Commandes & Réceptions PAMP -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('suppliersManagement')"
+                            [class.node-inactive]="!isModuleControlActive('suppliersManagement')"
+                            data-testid="preview-node-suppliers-management">
+                            <div class="node-icon-box">
+                              <ion-icon name="cart-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_SUPPLIERS_MANAGEMENT_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('suppliersManagement')">
+                                  {{ (isModuleControlActive('suppliersManagement') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_PURCHASES' | transloco }}</span>
                             </div>
                           </div>
                         </div>

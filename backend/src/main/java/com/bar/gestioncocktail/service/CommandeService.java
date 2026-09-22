@@ -702,7 +702,12 @@ public class CommandeService {
         for (CocktailVarianteIngredient cvi : item.getVariante().getIngredients()) {
             Ingredient ingredient = cvi.getIngredient();
             if (ingredient != null && ingredient.getId() != null && cvi.getQuantite() != null) {
-                BigDecimal qte = cvi.getQuantite().multiply(BigDecimal.valueOf(item.getQuantite()));
+                BigDecimal convertedQty = UnitConversionService.convert(
+                        cvi.getQuantite(),
+                        cvi.getUnite(),
+                        ingredient.getUniteMesure()
+                );
+                BigDecimal qte = convertedQty.multiply(BigDecimal.valueOf(item.getQuantite()));
                 BigDecimal existent = quantites.get(ingredient.getId());
                 quantites.put(ingredient.getId(), existent != null ? existent.add(qte) : qte);
             }
@@ -743,7 +748,12 @@ public class CommandeService {
             BigDecimal mult) {
         Ingredient ingredient = ci.getIngredient();
         if (ingredient != null && ingredient.getId() != null && ci.getQuantite() != null) {
-            BigDecimal qte = ci.getQuantite()
+            BigDecimal convertedQty = UnitConversionService.convert(
+                    ci.getQuantite(),
+                    ci.getUnite(),
+                    ingredient.getUniteMesure()
+            );
+            BigDecimal qte = convertedQty
                     .multiply(BigDecimal.valueOf(item.getQuantite()))
                     .multiply(mult);
             BigDecimal existent = quantites.get(ingredient.getId());

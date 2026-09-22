@@ -7,6 +7,7 @@ import { provideIonicAngular } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { IngredientFormComponent } from '../../../app/features/ingredients/ingredient-form/ingredient-form.component';
 import { IngredientService } from '../../../app/core/services/ingredient.service';
+import { SupplierService } from '../../../app/core/services/supplier.service';
 
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
@@ -44,6 +45,9 @@ describe('IngredientFormComponent', () => {
     const toastSpy = jasmine.createSpyObj('HTMLIonToastElement', ['present']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(toastSpy));
 
+    const supplierServiceSpy = jasmine.createSpyObj('SupplierService', ['getActive']);
+    supplierServiceSpy.getActive.and.returnValue(of([]));
+
     TestBed.configureTestingModule({
       imports: [
         IngredientFormComponent,
@@ -56,6 +60,7 @@ describe('IngredientFormComponent', () => {
         { provide: Router, useValue: routerSpy },
         { provide: ActivatedRoute, useValue: activatedRouteStub },
         { provide: IngredientService, useValue: ingredientServiceSpy },
+        { provide: SupplierService, useValue: supplierServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
       ]
@@ -109,6 +114,11 @@ describe('IngredientFormComponent', () => {
         allergens: [],
         degreAlcool: 0,
         isVegan: true,
+        defaultSupplierId: null,
+        codeBarre: '',
+        purchaseUnit: 'Sachet 1kg',
+        packagingCapacity: 1,
+        packagingPriceHt: 2.5
       });
       expect(component.ingredientForm.valid).toBeTrue();
     });
@@ -287,6 +297,11 @@ describe('IngredientFormComponent', () => {
         allergens: [],
         degreAlcool: 0,
         isVegan: true,
+        defaultSupplierId: null,
+        codeBarre: '',
+        purchaseUnit: 'Boite 1kg',
+        packagingCapacity: 1000,
+        packagingPriceHt: 1.0
       });
       expect(component.ingredientForm.get('quantiteStock')?.valid).toBeTrue();
     });
@@ -328,6 +343,11 @@ describe('IngredientFormComponent', () => {
         allergens: ['GLUTEN'],
         degreAlcool: 40,
         isVegan: true,
+        defaultSupplierId: null,
+        codeBarre: '',
+        purchaseUnit: 'Bouteille 70cl',
+        packagingCapacity: 70,
+        packagingPriceHt: 14.5
       });
       component.onSubmit();
       const modalCtrl = TestBed.inject(ToastController); // injector lookup

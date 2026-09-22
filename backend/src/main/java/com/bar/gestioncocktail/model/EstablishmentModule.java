@@ -53,6 +53,12 @@ public enum EstablishmentModule {
      * Standard cocktail & ingredient library import wizard with preconfigured recipes,
      * IBA classics, glassware, flavor profiles, and automatic inventory deduplication.
      */
-    COCKTAIL_LIBRARY
+    COCKTAIL_LIBRARY,
+
+    /**
+     * Beverage and produce supplier management, purchase orders, incoming delivery (BL) check-in intake,
+     * automatic stock replenishment, and live Weighted Average Unit Cost (PAMP / WAC) recalculation.
+     */
+    SUPPLIERS_MANAGEMENT
 }
 

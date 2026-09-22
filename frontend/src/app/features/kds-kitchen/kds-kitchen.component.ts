@@ -42,6 +42,7 @@ import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-
 import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
 import { SoundService } from '../../core/services/sound.service';
 import { WebSocketService } from '../../core/services/websocket.service';
+import { AppSettingsService } from '../../core/services/app-settings.service';
 import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
 
 /**
@@ -81,6 +82,9 @@ import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
 export class KdsKitchenComponent implements OnInit, OnDestroy {
   commandes: CommandeView[] = [];
   activeFilter: 'ACTIVE' | 'ALL' | 'READY' = 'ACTIVE';
+
+  private readonly appSettingsService = inject(AppSettingsService);
+  currentTime = this.appSettingsService.getNowInEstablishmentTime();
 
   private readonly destroy$ = new Subject<void>();
   private timerSub?: Subscription;
@@ -160,10 +164,12 @@ export class KdsKitchenComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.currentTime = this.appSettingsService.getNowInEstablishmentTime();
     this.chargerCommandes();
 
-    // Elapsed timer tick every second
+    // Elapsed timer tick every second aligned with establishment timezone
     this.timerSub = interval(1000).subscribe(() => {
+      this.currentTime = this.appSettingsService.getNowInEstablishmentTime();
       this.cdr.markForCheck();
     });
 
@@ -320,7 +326,7 @@ export class KdsKitchenComponent implements OnInit, OnDestroy {
     if (!dateString) return '00:00';
     const start = new Date(dateString).getTime();
     if (Number.isNaN(start)) return '00:00';
-    const diff = Math.max(0, Date.now() - start);
+    const diff = Math.max(0, this.currentTime - start);
     const totalSeconds = Math.floor(diff / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;

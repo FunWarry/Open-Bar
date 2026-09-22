@@ -674,5 +674,71 @@ class PdfServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("cannot be null");
     }
+
+    @Test
+    void generatePurchaseOrderPdf_validOrderFrench_generatesValidPdf() {
+        Supplier supplier = new Supplier();
+        supplier.setNom("Brasserie du Mont-Blanc");
+        supplier.setContactNom("Sylvain Favre");
+        supplier.setEmail("contact@montblanc.fr");
+        supplier.setTelephone("+33 4 50 00 00 00");
+        supplier.setAdresse("125 Rue des Brasseurs, Annecy");
+        supplier.setConditionsPaiement("30 jours fin de mois");
+
+        Ingredient ing = new Ingredient();
+        ing.setNom("Bière Blanche");
+        ing.setUniteMesure("Bouteille");
+
+        PurchaseOrderItem item = new PurchaseOrderItem();
+        item.setIngredient(ing);
+        item.setQuantiteCommandee(BigDecimal.valueOf(24));
+        item.setQuantiteRecue(BigDecimal.ZERO);
+        item.setPrixUnitaireHt(BigDecimal.valueOf(2.50));
+        item.setTauxTva(BigDecimal.valueOf(20.0));
+
+        PurchaseOrder order = new PurchaseOrder();
+        order.setReference("BC-2026-0001");
+        order.setSupplier(supplier);
+        order.setStatut(PurchaseOrderStatus.ORDERED);
+        order.setDateCommande(LocalDateTime.of(2026, Month.SEPTEMBER, 20, 10, 0));
+        order.setDateLivraisonPrevue(LocalDateTime.of(2026, Month.SEPTEMBER, 22, 14, 0));
+        order.setNotes("Livraison par quai arrière.");
+        order.setTotalHt(BigDecimal.valueOf(60.00));
+        order.setTotalTva(BigDecimal.valueOf(12.00));
+        order.setTotalTtc(BigDecimal.valueOf(72.00));
+        order.setItems(List.of(item));
+
+        byte[] pdf = pdfService.generatePurchaseOrderPdf(order);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generatePurchaseOrderPdf_englishLocaleAndMinimalDetails_generatesValidPdf() {
+        EstablishmentConfig config = new EstablishmentConfig();
+        config.setLegalName("OpenBar English Pub");
+        config.setLanguage("en");
+        when(establishmentConfigService.getConfig()).thenReturn(config);
+
+        PurchaseOrder order = new PurchaseOrder();
+        order.setReference("PO-2026-9999");
+        order.setStatut(PurchaseOrderStatus.DRAFT);
+        order.setItems(new ArrayList<>());
+
+        byte[] pdf = pdfService.generatePurchaseOrderPdf(order);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generatePurchaseOrderPdf_withNullOrder_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> pdfService.generatePurchaseOrderPdf(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("cannot be null");
+    }
 }
 

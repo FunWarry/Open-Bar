@@ -27,6 +27,9 @@ class AppSettingsControllerTest {
     @Mock
     AppSettingsService appSettingsService;
 
+    @Mock
+    com.bar.gestioncocktail.service.TimeService timeService;
+
     @InjectMocks
     AppSettingsController appSettingsController;
 

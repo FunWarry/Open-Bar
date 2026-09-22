@@ -11,7 +11,7 @@ import {
   statsChartOutline, receiptOutline, wineOutline, cardOutline,
   nutritionOutline, settingsOutline, documentTextOutline, chevronBackOutline,
   chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline,
-  libraryOutline
+  libraryOutline, cartOutline
 } from 'ionicons/icons';
 import { tableRestaurantOutline } from '../../icons/custom-icons';
 import { selectCurrentUser } from '../../store/auth.selectors';
@@ -54,6 +54,7 @@ export const SIDEBAR_NAV_ITEMS: NavItemDef[] = [
   { id: 'nav-tables', route: '/tables', icon: 'table-restaurant-outline', labelKey: 'NAV.TABLES', section: 'main' },
   { id: 'nav-factures', route: '/factures', icon: 'card-outline', labelKey: 'NAV.FACTURES', roles: ['MANAGER', 'ADMIN', 'SERVEUR'], section: 'main' },
   { id: 'nav-ingredients', route: '/ingredients', icon: 'nutrition-outline', labelKey: 'NAV.INGREDIENTS', roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.STOCK_TRACKING, section: 'admin' },
+  { id: 'nav-purchases', route: '/purchases', icon: 'cart-outline', labelKey: 'NAV.PURCHASES', roles: ['ADMIN', 'MANAGER'], requiredModule: EstablishmentModule.SUPPLIERS_MANAGEMENT, section: 'admin' },
   { id: 'nav-users', route: '/admin/users', icon: 'people-outline', labelKey: 'NAV.USERS', roles: ['ADMIN'], section: 'admin' },
   { id: 'nav-admin', route: '/admin', icon: 'settings-outline', labelKey: 'NAV.ADMIN', roles: ['ADMIN'], section: 'admin' },
   { id: 'nav-audit-logs', route: '/admin/audit-logs', icon: 'document-text-outline', labelKey: 'NAV.AUDIT_LOGS', roles: ['ADMIN'], section: 'admin' },
@@ -110,7 +111,7 @@ export class SidebarComponent implements OnDestroy {
       statsChartOutline, receiptOutline, wineOutline, cardOutline,
       nutritionOutline, settingsOutline, documentTextOutline, chevronBackOutline,
       chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline,
-      libraryOutline, tableRestaurantOutline
+      libraryOutline, tableRestaurantOutline, cartOutline
     });
 
     this.currentUser$ = this.store.select(selectCurrentUser);

@@ -5,6 +5,7 @@ import com.bar.gestioncocktail.dto.AppSettingsUpdateRequest;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.AppSettings;
 import com.bar.gestioncocktail.repository.AppSettingsRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,21 +20,26 @@ public class AppSettingsService {
     private final AppSettingsRepository appSettingsRepository;
     private final NotificationService notificationService;
     private final QrCodeService qrCodeService;
+    private final TimeService timeService;
 
     /**
-     * Constructs the service with settings repository, notification service, and QR code service dependencies.
+     * Constructs the service with settings repository, notification service, QR code service, and time service dependencies.
      *
      * @param appSettingsRepository JPA settings repository
      * @param notificationService Notification service for STOMP broadcasting
      * @param qrCodeService QR code generation service
+     * @param timeService Application time service for active timezone resolution
      */
+    @Autowired
     public AppSettingsService(
             AppSettingsRepository appSettingsRepository,
             NotificationService notificationService,
-            QrCodeService qrCodeService) {
+            QrCodeService qrCodeService,
+            TimeService timeService) {
         this.appSettingsRepository = appSettingsRepository;
         this.notificationService = notificationService;
         this.qrCodeService = qrCodeService;
+        this.timeService = timeService;
     }
 
     /**
@@ -64,7 +70,10 @@ public class AppSettingsService {
         applyPrinters(current, request);
 
         AppSettings saved = appSettingsRepository.save(current);
-        notificationService.notifierParametresMisAJour(AppSettingsResponseDTO.from(saved));
+        String tz = (timeService != null && timeService.getZoneId() != null)
+                ? timeService.getZoneId().getId()
+                : AppSettingsResponseDTO.DEFAULT_TIMEZONE;
+        notificationService.notifierParametresMisAJour(AppSettingsResponseDTO.from(saved, tz));
         return saved;
     }
 

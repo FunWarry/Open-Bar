@@ -46,12 +46,13 @@ class BarTabIntegrationTest extends BaseIntegrationTest {
             return c;
         });
         config.setModuleBarTabsEnabled(true);
+        config.setModuleHappyHourEnabled(false);
         establishmentConfigRepository.save(config);
 
         Cocktail cocktail = new Cocktail();
         cocktail.setNom("Gin Tonic Tab Test");
         cocktail.setPrix(new BigDecimal("9.00"));
-        cocktail.setCategorie(CocktailCategorie.ALCOOLISE);
+        cocktail.setCategorie(CocktailCategorie.SANS_ALCOOL);
         cocktail = cocktailRepository.save(cocktail);
 
         String serveurToken = getServeurToken();

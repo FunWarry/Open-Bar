@@ -1,0 +1,230 @@
+<div class="po-modal-wrapper" data-testid="purchase-order-form-modal">
+  <header class="modal-header">
+    <div class="header-main-group">
+      <div class="icon-badge">
+        <ion-icon name="cart-outline" class="badge-icon"></ion-icon>
+      </div>
+      <div class="header-text">
+        <h2 class="modal-title">{{ (isEditing ? 'PURCHASES.EDIT_ORDER_TITLE' : 'PURCHASES.CREATE_ORDER_TITLE') | transloco }}</h2>
+        <span class="modal-subtitle">{{ isEditing ? order?.numeroCommande : ('PURCHASES.CREATE_ORDER_SUBTITLE' | transloco) }}</span>
+      </div>
+    </div>
+    <button
+      type="button"
+      class="close-icon-btn"
+      (click)="onCancel()"
+      [attr.aria-label]="'COMMON.CLOSE' | transloco"
+      data-testid="po-close-btn"
+    >
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-form">
+    <div class="modal-body">
+      <!-- Order General Information -->
+      <div class="general-info-card">
+        <div class="form-row-3">
+          <div class="field-item">
+            <label for="po-supplier-select-field" class="field-label">{{ 'PURCHASES.SUPPLIER_SELECT' | transloco }} *</label>
+            <app-searchable-select
+              id="po-supplier-select-field"
+              formControlName="supplierId"
+              [options]="supplierOptions"
+              [placeholder]="'PURCHASES.SELECT_SUPPLIER_PLACEHOLDER' | transloco"
+              [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+              [required]="true"
+              [clearable]="false"
+              testId="po-supplier-select"
+            ></app-searchable-select>
+          </div>
+
+          <div class="field-item">
+            <label for="po-delivery-date-field" class="field-label">{{ 'PURCHASES.DELIVERY_DATE_EXPECTED' | transloco }}</label>
+            <input
+              id="po-delivery-date-field"
+              type="date"
+              formControlName="dateLivraisonPrevue"
+              class="field-input"
+              data-testid="po-delivery-date-input"
+            />
+          </div>
+
+          <div class="field-item">
+            <label for="po-invoice-ref-field" class="field-label">{{ 'PURCHASES.SUPPLIER_INVOICE_REF' | transloco }}</label>
+            <input
+              id="po-invoice-ref-field"
+              type="text"
+              formControlName="referenceFactureFournisseur"
+              class="field-input"
+              [placeholder]="'PURCHASES.SUPPLIER_INVOICE_REF_PLACEHOLDER' | transloco"
+              data-testid="po-invoice-ref-input"
+            />
+          </div>
+        </div>
+
+        <div class="field-item">
+          <label for="po-notes-field" class="field-label">{{ 'PURCHASES.NOTES' | transloco }}</label>
+          <textarea
+            id="po-notes-field"
+            formControlName="notes"
+            class="field-textarea"
+            rows="2"
+            [placeholder]="'PURCHASES.NOTES_PLACEHOLDER' | transloco"
+            data-testid="po-notes-input"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Lines Header & Action Buttons -->
+      <div class="items-section-header">
+        <div class="section-title-wrap">
+          <ion-icon name="calculator-outline"></ion-icon>
+          <h3 class="section-title">{{ 'PURCHASES.ITEMS_TITLE' | transloco }}</h3>
+        </div>
+
+        <div class="items-actions-group">
+          <button
+            type="button"
+            class="btn-scan-barcode"
+            (click)="openBarcodeScanner()"
+            data-testid="po-scan-barcode-btn"
+          >
+            <ion-icon name="barcode-outline"></ion-icon>
+            <span>{{ 'PURCHASES.SCAN_ARTICLE_BTN' | transloco }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="btn-add-line"
+            (click)="addItem()"
+            data-testid="po-add-line-btn"
+          >
+            <ion-icon name="add-outline"></ion-icon>
+            <span>{{ 'PURCHASES.ADD_LINE_BTN' | transloco }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lines Table / Cards -->
+      <div class="items-container" formArrayName="items">
+        @for (item of items.controls; track $index) {
+          <div [formGroupName]="$index" class="item-line-card" [attr.data-testid]="'po-line-' + $index">
+            <div class="line-col-ingredient">
+              <label [attr.for]="'po-line-ingredient-' + $index" class="col-label">{{ 'PURCHASES.INGREDIENT' | transloco }}</label>
+              <app-searchable-select
+                [id]="'po-line-ingredient-' + $index"
+                formControlName="ingredientId"
+                [options]="ingredientOptions"
+                [placeholder]="'PURCHASES.SELECT_INGREDIENT_PLACEHOLDER' | transloco"
+                [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+                [required]="true"
+                (selectionChange)="onIngredientSelected($index, $event)"
+                [testId]="'po-line-ingredient-' + $index"
+              ></app-searchable-select>
+            </div>
+
+            <div class="line-col-qty">
+              <label [attr.for]="'po-line-qty-' + $index" class="col-label">
+                {{ 'PURCHASES.QUANTITY' | transloco }}
+                @if (item.get('purchaseUnit')?.value) {
+                  <span class="unit-tag">({{ item.get('purchaseUnit')?.value }})</span>
+                }
+              </label>
+              <input
+                [id]="'po-line-qty-' + $index"
+                type="number"
+                step="0.1"
+                min="0.01"
+                formControlName="quantiteCommandee"
+                class="field-input"
+                [attr.data-testid]="'po-line-qty-' + $index"
+              />
+              @if (getEquivalentStock(item).unit && (item.get('packagingCapacity')?.value > 1 || item.get('purchaseUnit')?.value)) {
+                <span class="stock-equiv-hint" [attr.data-testid]="'po-line-equiv-' + $index">
+                  ≈ {{ getEquivalentStock(item).qty }} {{ getEquivalentStock(item).unit }}
+                </span>
+              }
+            </div>
+
+            <div class="line-col-price">
+              <label [attr.for]="'po-line-price-' + $index" class="col-label">{{ 'PURCHASES.UNIT_PRICE_HT' | transloco }} (€)</label>
+              <input
+                [id]="'po-line-price-' + $index"
+                type="number"
+                step="0.01"
+                min="0"
+                formControlName="prixUnitaireHt"
+                class="field-input"
+                [attr.data-testid]="'po-line-price-' + $index"
+              />
+            </div>
+
+            <div class="line-col-vat">
+              <label [attr.for]="'po-line-vat-' + $index" class="col-label">{{ 'PURCHASES.VAT_RATE' | transloco }} (%)</label>
+              <input
+                [id]="'po-line-vat-' + $index"
+                type="number"
+                step="0.1"
+                min="0"
+                formControlName="tauxTva"
+                class="field-input"
+                [attr.data-testid]="'po-line-vat-' + $index"
+              />
+            </div>
+
+            <div class="line-col-subtotal">
+              <span class="col-label">{{ 'PURCHASES.SUBTOTAL_HT' | transloco }}</span>
+              <span class="subtotal-val">
+                {{ (item.get('quantiteCommandee')?.value * item.get('prixUnitaireHt')?.value) | number:'1.2-2' }} €
+              </span>
+            </div>
+
+            <div class="line-col-actions">
+              <button
+                type="button"
+                class="btn-remove-line"
+                (click)="removeItem($index)"
+                [disabled]="items.length === 1"
+                [attr.data-testid]="'po-line-remove-' + $index"
+              >
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Grand Totals Summary Card -->
+      <div class="totals-summary-card" data-testid="po-totals-card">
+        <div class="total-row">
+          <span class="total-label">{{ 'PURCHASES.TOTAL_HT' | transloco }}</span>
+          <span class="total-value">{{ totalHt | number:'1.2-2' }} €</span>
+        </div>
+        <div class="total-row">
+          <span class="total-label">{{ 'PURCHASES.TOTAL_TVA' | transloco }}</span>
+          <span class="total-value">{{ totalTva | number:'1.2-2' }} €</span>
+        </div>
+        <div class="total-row grand-total">
+          <span class="total-label">{{ 'PURCHASES.TOTAL_TTC' | transloco }}</span>
+          <span class="total-value grand-val">{{ totalTtc | number:'1.2-2' }} €</span>
+        </div>
+      </div>
+    </div>
+
+    <footer class="modal-footer">
+      <button type="button" class="btn-cancel" (click)="onCancel()" data-testid="po-cancel-btn">
+        {{ 'COMMON.CANCEL' | transloco }}
+      </button>
+      <button
+        type="submit"
+        class="btn-submit"
+        [disabled]="form.invalid || items.length === 0"
+        data-testid="po-submit-btn"
+      >
+        <ion-icon name="save-outline"></ion-icon>
+        <span>{{ 'PURCHASES.SAVE_DRAFT_BTN' | transloco }}</span>
+      </button>
+    </footer>
+  </form>
+</div>

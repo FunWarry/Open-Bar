@@ -42748,11 +42748,13 @@
         {
           "nom": "Boule de vanille",
           "quantite": 1,
-          "unite": "cl",
+          "unite": "boule",
           "degreAlcool": 0,
           "coutUnitaire": 0.35,
-          "allergens": [],
-          "isVegan": true,
+          "allergens": [
+            "LAIT"
+          ],
+          "isVegan": false,
           "category": "other"
         },
         {
@@ -42783,8 +42785,8 @@
           "actionTitle": "AJOUTER_INGREDIENT",
           "ingredientNom": "Boule de vanille",
           "quantite": 1,
-          "unite": "cl",
-          "customText": "Verser 1 cl de Boule de vanille dans le bol du blender.",
+          "unite": "boule",
+          "customText": "Ajouter 1 boule de glace vanille dans le bol du blender.",
           "durationSeconds": 10
         },
         {

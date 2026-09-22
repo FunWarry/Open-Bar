@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, firstValueFrom } from 'rxjs';
@@ -19,7 +19,8 @@ import {
   scaleOutline, layersOutline, checkmarkCircleOutline, closeCircleOutline,
   alertCircleOutline, wineOutline, waterOutline, colorFillOutline,
   nutritionOutline, cubeOutline, downloadOutline,
-  flaskOutline, beerOutline, sparklesOutline, leafOutline
+  flaskOutline, beerOutline, sparklesOutline, leafOutline,
+  cartOutline, barcodeOutline
 } from 'ionicons/icons';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -40,6 +41,8 @@ import { ActionButtonComponent } from '../../../core/components/ui/action-button
 import { PaginationComponent } from '../../../core/components/ui/pagination/pagination.component';
 import { CsvExportService, CsvColumn } from '../../../core/services/csv-export.service';
 import { StockWasteService } from '../../../core/services/stock-waste.service';
+import { FeatureFlagService } from '../../../core/services/feature-flag.service';
+import { BarcodeScannerModalComponent, BarcodeScannerResult } from '../../../core/components/ui/barcode-scanner-modal/barcode-scanner-modal.component';
 
 /**
  * Display modes for inventory ingredient list:
@@ -94,6 +97,9 @@ export interface IngredientCategoryGroup {
   ],
 })
 export class IngredientListComponent implements OnInit, OnDestroy {
+  private readonly featureFlagService = inject(FeatureFlagService);
+  readonly suppliersManagementEnabled = this.featureFlagService.suppliersManagementEnabled;
+
   ingredients: Ingredient[] = [];
   isLoading = false;
   searchQuery = '';
@@ -173,7 +179,8 @@ export class IngredientListComponent implements OnInit, OnDestroy {
       scaleOutline, layersOutline, checkmarkCircleOutline, closeCircleOutline,
       alertCircleOutline, wineOutline, waterOutline, colorFillOutline,
       nutritionOutline, cubeOutline, downloadOutline,
-      flaskOutline, beerOutline, sparklesOutline, leafOutline
+      flaskOutline, beerOutline, sparklesOutline, leafOutline,
+      cartOutline, barcodeOutline
     });
   }
 
@@ -253,6 +260,34 @@ export class IngredientListComponent implements OnInit, OnDestroy {
     const select = event.target as HTMLSelectElement;
     this.selectedCategory = select.value;
     this.gridPage = 1;
+  }
+
+  /**
+   * Opens barcode scanner modal and sets search query with scanned barcode.
+   */
+  async scanBarcode(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: BarcodeScannerModalComponent,
+      componentProps: {
+        title: 'SCANNER.SCAN_INGREDIENT_TITLE',
+        subtitle: 'SCANNER.SCAN_INGREDIENT_SUBTITLE'
+      }
+    });
+
+    await modal.present();
+    const { data } = await modal.onWillDismiss<BarcodeScannerResult>();
+
+    if (data && !data.cancelled && data.barcode) {
+      this.searchQuery = data.barcode;
+      this.onSearchChange();
+    }
+  }
+
+  /**
+   * Navigates to the purchases and supplier orders management view.
+   */
+  goToPurchases(): void {
+    this.router.navigate(['/purchases']);
   }
 
   onUnitChange(event: Event): void {
@@ -499,6 +534,21 @@ export class IngredientListComponent implements OnInit, OnDestroy {
     if (ingredient.quantiteStock <= 0) return 'danger';
     if (ingredient.quantiteStock <= ingredient.seuilAlerte) return 'warning';
     return 'success';
+  }
+
+  /**
+   * Formats the equivalent packaging quantity string for an ingredient (e.g., "≈ 2.5 Bottle 70cl").
+   * Returns empty string if no packaging capacity or packaging unit is missing.
+   * @param ingredient Target ingredient
+   */
+  getPackagingEquivalent(ingredient: Ingredient): string {
+    const capacity = ingredient.packagingCapacity;
+    const unit = ingredient.purchaseUnit;
+    if (!capacity || capacity <= 0 || !unit) {
+      return '';
+    }
+    const count = (ingredient.quantiteStock / capacity).toFixed(1).replace(/\.0$/, '');
+    return `≈ ${count} ${unit}`;
   }
 
   /**

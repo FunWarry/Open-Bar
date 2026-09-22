@@ -44,6 +44,11 @@ public class Ingredient {
     private LocalDateTime datePeremption;
     private BigDecimal prixUnitaire;
     private String fournisseur;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "supplier_id")
+    private Supplier defaultSupplier;
+
     private String notes;
 
     @Column(name = "degre_alcool", precision = 5, scale = 2)
@@ -62,6 +67,18 @@ public class Ingredient {
 
     @Column(name = "category", length = 50)
     private String category = DEFAULT_CATEGORY;
+
+    @Column(name = "purchase_unit", length = 50)
+    private String purchaseUnit;
+
+    @Column(name = "packaging_capacity", precision = 10, scale = 3)
+    private BigDecimal packagingCapacity = BigDecimal.ONE;
+
+    @Column(name = "packaging_price_ht", precision = 10, scale = 2)
+    private BigDecimal packagingPriceHt;
+
+    @Column(name = "code_barre", unique = true, length = 100)
+    private String codeBarre;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -154,6 +171,68 @@ public class Ingredient {
      */
     public void setUnitCost(BigDecimal unitCost) {
         this.prixUnitaire = unitCost;
+    }
+
+    /**
+     * Gets the default supplier for this ingredient.
+     *
+     * @return default supplier entity or null
+     */
+    public Supplier getDefaultSupplier() {
+        return defaultSupplier;
+    }
+
+    /**
+     * Sets the default supplier for this ingredient.
+     *
+     * @param defaultSupplier supplier to associate
+     */
+    public void setDefaultSupplier(Supplier defaultSupplier) {
+        this.defaultSupplier = defaultSupplier;
+    }
+
+    /**
+     * Gets the barcode or QR code associated with this bottle or consumable.
+     *
+     * @return barcode string (EAN-13, QR code, etc.)
+     */
+    public String getCodeBarre() {
+        return codeBarre;
+    }
+
+    /**
+     * Sets the barcode or QR code associated with this bottle or consumable.
+     *
+     * @param codeBarre barcode string to associate
+     */
+    public void setCodeBarre(String codeBarre) {
+        this.codeBarre = (codeBarre != null && !codeBarre.isBlank()) ? codeBarre.trim() : null;
+    }
+
+    /**
+     * Gets the effective packaging capacity in stock unit, falling back to 1.0 if not specified.
+     *
+     * @return packaging conversion capacity
+     */
+    public BigDecimal getEffectivePackagingCapacity() {
+        return (packagingCapacity != null && packagingCapacity.compareTo(BigDecimal.ZERO) > 0)
+                ? packagingCapacity
+                : BigDecimal.ONE;
+    }
+
+    /**
+     * Gets the effective packaging unit label, falling back to stock unit if not specified.
+     *
+     * @return packaging unit label
+     */
+    public String getEffectivePurchaseUnit() {
+        if (purchaseUnit != null && !purchaseUnit.isBlank()) {
+            return purchaseUnit.trim();
+        }
+        if (uniteMesure != null && !uniteMesure.isBlank()) {
+            return uniteMesure.trim();
+        }
+        return "u";
     }
 
     @PrePersist

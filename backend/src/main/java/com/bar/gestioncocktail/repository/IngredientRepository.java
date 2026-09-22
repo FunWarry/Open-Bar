@@ -18,6 +18,7 @@ public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
     java.util.Optional<Ingredient> findByNomIgnoreCase(String nom);
     List<Ingredient> findByFournisseur(String fournisseur);
     List<Ingredient> findByUniteMesure(String uniteMesure);
+    java.util.Optional<Ingredient> findByCodeBarre(String codeBarre);
 
     @Query("SELECT COUNT(i) FROM Ingredient i WHERE i.quantiteStock <= i.seuilAlerte")
     long countIngredientsSousSeuil();

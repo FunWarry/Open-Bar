@@ -207,6 +207,9 @@ public class EstablishmentConfigService {
         if (request.cocktailLibrary() != null) {
             config.setModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY, request.cocktailLibrary());
         }
+        if (request.suppliersManagement() != null) {
+            config.setModuleEnabled(EstablishmentModule.SUPPLIERS_MANAGEMENT, request.suppliersManagement());
+        }
     }
 
     private void applyLegalInfoUpdates(EstablishmentConfig config, EstablishmentConfigUpdateRequest request) {

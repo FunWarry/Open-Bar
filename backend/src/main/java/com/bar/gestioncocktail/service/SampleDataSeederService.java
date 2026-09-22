@@ -42,6 +42,7 @@ public class SampleDataSeederService {
     private static final Logger log = LoggerFactory.getLogger(SampleDataSeederService.class);
     private static final String DATASET_PATH = "data/demo_dataset.json";
     private static final String KEY_ROLES = "roles";
+    private static final String KEY_EMAIL = "email";
     private static final String KEY_SERVEUR_USERNAME = "serveurUsername";
     private static final String KEY_NOTES = "notes";
     private static final String KEY_REASON = "reason";
@@ -104,6 +105,8 @@ public class SampleDataSeederService {
     private final CashDrawerSessionRepository cashDrawerSessionRepository;
     private final CashMovementRepository cashMovementRepository;
     private final BarTabRepository barTabRepository;
+    private final SupplierRepository supplierRepository;
+    private final PurchaseOrderRepository purchaseOrderRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -141,7 +144,9 @@ public class SampleDataSeederService {
             @org.springframework.beans.factory.annotation.Autowired(required = false) DailyCashClosureRepository dailyCashClosureRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) CashDrawerSessionRepository cashDrawerSessionRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) CashMovementRepository cashMovementRepository,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) BarTabRepository barTabRepository) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) BarTabRepository barTabRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) SupplierRepository supplierRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) PurchaseOrderRepository purchaseOrderRepository) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -173,6 +178,8 @@ public class SampleDataSeederService {
         this.cashDrawerSessionRepository = cashDrawerSessionRepository;
         this.cashMovementRepository = cashMovementRepository;
         this.barTabRepository = barTabRepository;
+        this.supplierRepository = supplierRepository;
+        this.purchaseOrderRepository = purchaseOrderRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -397,6 +404,7 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedDailyCashClosuresFromJson(root.get("daily_cash_closures"), usersMap), "seedDailyCashClosures");
             safelyInTransaction(() -> seedCashDrawerSessionsFromJson(root.get("cash_drawer_sessions"), usersMap), "seedCashDrawerSessions");
             safelyInTransaction(() -> seedBarTabsFromJson(root.get("bar_tabs"), usersMap), "seedBarTabs");
+            safelyInTransaction(() -> seedSuppliersAndOrdersFromJson(root.get("suppliers"), root.get("purchase_orders"), usersMap), "seedSuppliersAndOrders");
 
         } catch (Exception e) {
             log.error("Failed to seed demo dataset from JSON file '{}'", DATASET_PATH, e);
@@ -438,7 +446,7 @@ public class SampleDataSeederService {
 
         for (JsonNode uNode : usersNode) {
             String username = uNode.get("username").asText();
-            String email = uNode.get("email").asText();
+            String email = uNode.get(KEY_EMAIL).asText();
             String password = extractPasswordFromJson(uNode);
             String nom = uNode.get("nom").asText();
             String prenom = uNode.get("prenom").asText();
@@ -1380,6 +1388,10 @@ public class SampleDataSeederService {
         if (config.getModuleFloorPlanEnabled() == null) config.setModuleFloorPlanEnabled(true);
         if (config.getModuleQrClientOrderingEnabled() == null) config.setModuleQrClientOrderingEnabled(true);
         if (config.getModuleStockTrackingEnabled() == null) config.setModuleStockTrackingEnabled(true);
+        if (config.getModuleCashDrawerEnabled() == null) config.setModuleCashDrawerEnabled(true);
+        if (config.getModuleBarTabsEnabled() == null) config.setModuleBarTabsEnabled(true);
+        if (config.getModuleCocktailLibraryEnabled() == null) config.setModuleCocktailLibraryEnabled(true);
+        if (config.getModuleSuppliersManagementEnabled() == null) config.setModuleSuppliersManagementEnabled(true);
         establishmentConfigRepository.save(config);
         log.info("Seeded default EstablishmentConfig singleton with modular capabilities.");
     }
@@ -1710,5 +1722,246 @@ public class SampleDataSeederService {
             tab.setSettledAt(timeService.now().minusMinutes(10));
         }
         return tab;
+    }
+
+    private void seedSuppliersAndOrdersFromJson(JsonNode suppliersNode, JsonNode ordersNode, Map<String, User> usersMap) {
+        if (supplierRepository == null || purchaseOrderRepository == null) {
+            return;
+        }
+
+        Map<String, Supplier> savedSuppliers = seedSuppliers(suppliersNode);
+        linkIngredientsToSuppliersAndBarcodes(savedSuppliers);
+        if (purchaseOrderRepository.count() == 0) {
+            seedPurchaseOrders(ordersNode, savedSuppliers, usersMap);
+        }
+    }
+
+    private Map<String, Supplier> seedSuppliers(JsonNode suppliersNode) {
+        Map<String, Supplier> savedSuppliers = new HashMap<>();
+        for (Supplier s : supplierRepository.findAll()) {
+            savedSuppliers.put(s.getNom(), s);
+        }
+        if (suppliersNode == null || !suppliersNode.isArray()) {
+            return savedSuppliers;
+        }
+        for (JsonNode sNode : suppliersNode) {
+            String name = sNode.get("nom").asText();
+            if (!savedSuppliers.containsKey(name)) {
+                Supplier s = createSupplierFromNode(sNode);
+                Supplier saved = supplierRepository.save(s);
+                savedSuppliers.put(saved.getNom(), saved);
+            }
+        }
+        log.info("Seeded/verified {} total suppliers in database.", savedSuppliers.size());
+        return savedSuppliers;
+    }
+
+    private Supplier createSupplierFromNode(JsonNode sNode) {
+        Supplier s = new Supplier();
+        s.setNom(sNode.get("nom").asText());
+        if (sNode.hasNonNull("contactNom")) s.setContactNom(sNode.get("contactNom").asText());
+        if (sNode.hasNonNull(KEY_EMAIL)) s.setEmail(sNode.get(KEY_EMAIL).asText());
+        if (sNode.hasNonNull("telephone")) s.setTelephone(sNode.get("telephone").asText());
+
+        String address = buildSupplierAddress(sNode);
+        if (!address.isBlank()) s.setAdresse(address);
+
+        if (sNode.hasNonNull(KEY_NOTES)) s.setNotes(sNode.get(KEY_NOTES).asText());
+        if (sNode.hasNonNull("conditionsPaiement")) s.setConditionsPaiement(sNode.get("conditionsPaiement").asText());
+        if (sNode.hasNonNull("actif")) s.setActif(sNode.get("actif").asBoolean());
+        return s;
+    }
+
+    private String buildSupplierAddress(JsonNode sNode) {
+        StringBuilder sb = new StringBuilder();
+        if (sNode.hasNonNull("adresse")) sb.append(sNode.get("adresse").asText());
+        if (sNode.hasNonNull("codePostal")) {
+            if (!sb.isEmpty()) sb.append(", ");
+            sb.append(sNode.get("codePostal").asText());
+        }
+        if (sNode.hasNonNull("ville")) {
+            if (!sb.isEmpty()) sb.append(" ");
+            sb.append(sNode.get("ville").asText());
+        }
+        if (sNode.hasNonNull("pays")) {
+            if (!sb.isEmpty()) sb.append(", ");
+            sb.append(sNode.get("pays").asText());
+        }
+        return sb.toString();
+    }
+
+    private void seedPurchaseOrders(JsonNode ordersNode, Map<String, Supplier> savedSuppliers, Map<String, User> usersMap) {
+        if (ordersNode == null || !ordersNode.isArray()) {
+            return;
+        }
+        log.info("Seeding {} purchase orders from demo dataset...", ordersNode.size());
+        User creator = usersMap.getOrDefault("admin", usersMap.values().stream().findFirst().orElse(null));
+        int orderSeq = 1;
+        for (JsonNode poNode : ordersNode) {
+            PurchaseOrder po = createPurchaseOrderFromNode(poNode, savedSuppliers, creator, orderSeq++);
+            if (po != null) {
+                purchaseOrderRepository.save(po);
+            }
+        }
+    }
+
+    private PurchaseOrder createPurchaseOrderFromNode(JsonNode poNode, Map<String, Supplier> savedSuppliers, User creator, int orderSeq) {
+        String supNom = poNode.get("supplierNom").asText();
+        Supplier sup = savedSuppliers.get(supNom);
+        if (sup == null) {
+            sup = savedSuppliers.values().stream().findFirst().orElse(null);
+        }
+        if (sup == null) return null;
+
+        PurchaseOrder po = new PurchaseOrder();
+        po.setReference(String.format("CMD-2026-%03d", orderSeq));
+        po.setSupplier(sup);
+        po.setStatut(parsePurchaseOrderStatus(poNode.hasNonNull(KEY_STATUT) ? poNode.get(KEY_STATUT).asText() : "DRAFT"));
+
+        String notes = poNode.hasNonNull(KEY_NOTES) ? poNode.get(KEY_NOTES).asText() : "";
+        if (poNode.hasNonNull("referenceFactureFournisseur")) {
+            String invRef = poNode.get("referenceFactureFournisseur").asText();
+            notes = notes.isBlank() ? "Facture/BL: " + invRef : notes + " (Facture/BL: " + invRef + ")";
+        }
+        if (!notes.isBlank()) {
+            po.setNotes(notes);
+        }
+
+        long daysAgo = poNode.hasNonNull(KEY_DAYS_AGO) ? poNode.get(KEY_DAYS_AGO).asLong() : 2;
+        po.setDateCommande(timeService.now().minusDays(daysAgo));
+        po.setDateLivraisonPrevue(timeService.now().plusDays(2));
+        if (po.getStatut() == PurchaseOrderStatus.RECEIVED) {
+            po.setDateReception(timeService.now().minusDays(1));
+        }
+        po.setCreatedBy(creator);
+
+        List<PurchaseOrderItem> items = parsePurchaseOrderItems(po, poNode.get(KEY_ITEMS));
+        calculateOrderTotals(po, items);
+        return po;
+    }
+
+    private void calculateOrderTotals(PurchaseOrder po, List<PurchaseOrderItem> items) {
+        BigDecimal totalHt = BigDecimal.ZERO;
+        BigDecimal totalTva = BigDecimal.ZERO;
+        BigDecimal totalTtc = BigDecimal.ZERO;
+        for (PurchaseOrderItem item : items) {
+            BigDecimal lineHt = item.getPrixUnitaireHt().multiply(item.getQuantiteCommandee()).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal lineTva = lineHt.multiply(item.getTauxTva()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            totalHt = totalHt.add(lineHt);
+            totalTva = totalTva.add(lineTva);
+            totalTtc = totalTtc.add(lineHt.add(lineTva));
+        }
+        po.setTotalHt(totalHt);
+        po.setTotalTva(totalTva);
+        po.setTotalTtc(totalTtc);
+        po.setItems(items);
+    }
+
+    private PurchaseOrderStatus parsePurchaseOrderStatus(String statusStr) {
+        if (statusStr == null) return PurchaseOrderStatus.DRAFT;
+        return switch (statusStr.toUpperCase()) {
+            case "RECU", "RECEIVED", "LIVREE" -> PurchaseOrderStatus.RECEIVED;
+            case "COMMANDE", "COMMANDEE", "ORDERED" -> PurchaseOrderStatus.ORDERED;
+            case "PARTIELLEMENT_LIVREE", "PARTIALLY_RECEIVED" -> PurchaseOrderStatus.PARTIALLY_RECEIVED;
+            case "ANNULEE", "CANCELLED" -> PurchaseOrderStatus.CANCELLED;
+            case "BROUILLON", "DRAFT" -> PurchaseOrderStatus.DRAFT;
+            default -> {
+                try {
+                    yield PurchaseOrderStatus.valueOf(statusStr.toUpperCase());
+                } catch (IllegalArgumentException _) {
+                    yield PurchaseOrderStatus.DRAFT;
+                }
+            }
+        };
+    }
+
+    private List<PurchaseOrderItem> parsePurchaseOrderItems(PurchaseOrder po, JsonNode itemsNode) {
+        List<PurchaseOrderItem> items = new ArrayList<>();
+        if (itemsNode == null || !itemsNode.isArray()) return items;
+
+        for (JsonNode itNode : itemsNode) {
+            String ingNom = itNode.get("ingredientNom").asText();
+            BigDecimal unitPrice = new BigDecimal(itNode.get("prixUnitaireHt").asText());
+            Ingredient ing = findOrCreateIngredient(ingNom, unitPrice);
+
+            PurchaseOrderItem item = new PurchaseOrderItem();
+            item.setPurchaseOrder(po);
+            item.setIngredient(ing);
+            item.setQuantiteCommandee(new BigDecimal(itNode.get("quantiteCommandee").asText()));
+            item.setQuantiteRecue(new BigDecimal(itNode.get("quantiteRecue").asText()));
+            item.setPrixUnitaireHt(unitPrice);
+            item.setTauxTva(new BigDecimal(itNode.get("tauxTva").asText()));
+            if (itNode.hasNonNull("purchaseUnit")) {
+                item.setPurchaseUnit(itNode.get("purchaseUnit").asText());
+            } else if (ing.getPurchaseUnit() != null) {
+                item.setPurchaseUnit(ing.getPurchaseUnit());
+            }
+            if (itNode.hasNonNull("packagingCapacity")) {
+                item.setPackagingCapacity(new BigDecimal(itNode.get("packagingCapacity").asText()));
+            } else if (ing.getPackagingCapacity() != null) {
+                item.setPackagingCapacity(ing.getPackagingCapacity());
+            }
+            items.add(item);
+        }
+        return items;
+    }
+
+    private Optional<Ingredient> findIngredient(String query) {
+        if (query == null || query.isBlank()) return Optional.empty();
+        String q = query.trim().toLowerCase();
+        Optional<Ingredient> exact = ingredientRepository.findByNomIgnoreCase(query.trim());
+        if (exact.isPresent()) return exact;
+
+        List<Ingredient> all = ingredientRepository.findAll();
+        for (Ingredient ing : all) {
+            if (ing.getNom().equalsIgnoreCase(query.trim())) return Optional.of(ing);
+        }
+        for (Ingredient ing : all) {
+            String nom = ing.getNom().toLowerCase();
+            if (nom.contains(q) || q.contains(nom)) {
+                return Optional.of(ing);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Ingredient findOrCreateIngredient(String ingNom, BigDecimal unitPrice) {
+        return findIngredient(ingNom).orElseGet(() -> {
+            Ingredient newIng = new Ingredient();
+            newIng.setNom(ingNom);
+            newIng.setUniteMesure("cl");
+            newIng.setQuantiteStock(new BigDecimal("100.0"));
+            newIng.setSeuilAlerte(new BigDecimal("20.0"));
+            newIng.setPrixUnitaire(unitPrice != null ? unitPrice : new BigDecimal("10.00"));
+            newIng.setPurchaseUnit("Bouteille 70cl");
+            newIng.setPackagingCapacity(BigDecimal.valueOf(70.0));
+            newIng.setPackagingPriceHt(unitPrice != null ? unitPrice : new BigDecimal("10.00"));
+            return ingredientRepository.save(newIng);
+        });
+    }
+
+    private void linkIngredientsToSuppliersAndBarcodes(Map<String, Supplier> savedSuppliers) {
+        Supplier distAlpes = savedSuppliers.get("Distillerie des Alpes");
+        Supplier grossiste = savedSuppliers.get("Grossiste Boissons Rhône");
+
+        Map<String, String> barcodes = Map.of(
+                "Rhum", "3256220148521",
+                "Gin", "3256220148538",
+                "Vodka", "3256220148545",
+                "Sirop", "3123456789012",
+                "Citron", "3123456789029"
+        );
+
+        for (Map.Entry<String, String> entry : barcodes.entrySet()) {
+            findIngredient(entry.getKey()).ifPresent(ing -> {
+                ing.setCodeBarre(entry.getValue());
+                if (entry.getKey().toLowerCase().contains("rhum") || entry.getKey().toLowerCase().contains("gin") || entry.getKey().toLowerCase().contains("vodka")) {
+                    if (distAlpes != null) ing.setDefaultSupplier(distAlpes);
+                } else if (grossiste != null) {
+                    ing.setDefaultSupplier(grossiste);
+                }
+                ingredientRepository.save(ing);
+            });
+        }
     }
 }
