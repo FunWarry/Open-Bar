@@ -1,38 +1,39 @@
-<div class="purchases-page-container" data-testid="purchases-page">
-  <!-- Page Header -->
-  <header class="page-header">
-    <div class="header-main">
-      <div class="title-group">
-        <div class="header-badge">
-          <ion-icon name="cart-outline"></ion-icon>
+<ion-content class="purchases-page-content">
+  <div class="purchases-page-container" data-testid="purchases-page">
+    <!-- Page Header -->
+    <header class="page-header">
+      <div class="header-main">
+        <div class="title-group">
+          <div class="header-badge">
+            <ion-icon name="cart-outline"></ion-icon>
+          </div>
+          <div class="header-titles">
+            <h1 class="page-title">{{ 'PURCHASES.PAGE_TITLE' | transloco }}</h1>
+            <p class="page-subtitle">{{ 'PURCHASES.PAGE_SUBTITLE' | transloco }}</p>
+          </div>
         </div>
-        <div class="header-titles">
-          <h1 class="page-title">{{ 'PURCHASES.PAGE_TITLE' | transloco }}</h1>
-          <p class="page-subtitle">{{ 'PURCHASES.PAGE_SUBTITLE' | transloco }}</p>
-        </div>
-      </div>
 
-      <div class="header-actions">
-        <button
-          type="button"
-          class="btn-action btn-scan"
-          (click)="openGlobalBarcodeScanner()"
-          data-testid="purchases-global-scan-btn"
-        >
-          <ion-icon name="barcode-outline"></ion-icon>
-          <span>{{ 'PURCHASES.SCAN_ARTICLE_BTN' | transloco }}</span>
-        </button>
-
-        @if (activeTab() === 'orders') {
+        <div class="header-actions">
           <button
             type="button"
-            class="btn-action btn-primary"
-            (click)="openCreateOrderModal()"
-            data-testid="purchases-new-order-btn"
+            class="btn-action btn-scan"
+            (click)="openGlobalBarcodeScanner()"
+            data-testid="global-barcode-scan-btn"
           >
-            <ion-icon name="add-outline"></ion-icon>
-            <span>{{ 'PURCHASES.NEW_ORDER_BTN' | transloco }}</span>
+            <ion-icon name="barcode-outline"></ion-icon>
+            <span>{{ 'PURCHASES.SCAN_ARTICLE_BTN' | transloco }}</span>
           </button>
+
+          @if (activeTab() === 'orders') {
+            <button
+              type="button"
+              class="btn-action btn-primary"
+              (click)="openCreateOrderModal()"
+              data-testid="new-order-btn"
+            >
+              <ion-icon name="add-outline"></ion-icon>
+              <span>{{ 'PURCHASES.NEW_ORDER_BTN' | transloco }}</span>
+            </button>
         } @else if (activeTab() === 'suppliers') {
           <button
             type="button"
@@ -63,7 +64,7 @@
         class="tab-btn"
         [class.active]="activeTab() === 'orders'"
         (click)="selectTab('orders')"
-        data-testid="tab-orders"
+        data-testid="purchases-tab-orders"
       >
         <ion-icon name="cart-outline"></ion-icon>
         <span>{{ 'PURCHASES.TAB_ORDERS' | transloco }}</span>
@@ -75,7 +76,7 @@
         class="tab-btn"
         [class.active]="activeTab() === 'suppliers'"
         (click)="selectTab('suppliers')"
-        data-testid="tab-suppliers"
+        data-testid="purchases-tab-suppliers"
       >
         <ion-icon name="business-outline"></ion-icon>
         <span>{{ 'PURCHASES.TAB_SUPPLIERS' | transloco }}</span>
@@ -87,7 +88,7 @@
         class="tab-btn"
         [class.active]="activeTab() === 'pamp'"
         (click)="selectTab('pamp')"
-        data-testid="tab-pamp"
+        data-testid="purchases-tab-pamp"
       >
         <ion-icon name="analytics-outline"></ion-icon>
         <span>{{ 'PURCHASES.TAB_PAMP' | transloco }}</span>
@@ -171,7 +172,12 @@
       @if (filteredOrders().length > 0) {
         <div class="orders-grid">
           @for (order of filteredOrders(); track order.id) {
-            <article class="order-card" [attr.data-testid]="'order-card-' + order.id">
+            <article
+              class="order-card"
+              [attr.data-testid]="'order-card-' + order.id"
+              (click)="openOrderDetailModal(order)"
+              (keydown)="onOrderCardKeyDown($event, order)"
+            >
               <div class="order-card-header">
                 <div class="order-id-group">
                   <span class="order-number">{{ order.numeroCommande }}</span>
@@ -206,7 +212,7 @@
                   <button
                     type="button"
                     class="card-btn btn-send"
-                    (click)="sendOrder(order)"
+                    (click)="$event.stopPropagation(); sendOrder(order)"
                     [attr.data-testid]="'order-send-btn-' + order.id"
                   >
                     <ion-icon name="send-outline"></ion-icon>
@@ -215,7 +221,7 @@
                   <button
                     type="button"
                     class="card-btn btn-cancel"
-                    (click)="cancelOrder(order)"
+                    (click)="$event.stopPropagation(); cancelOrder(order)"
                     [attr.data-testid]="'order-cancel-btn-' + order.id"
                   >
                     <ion-icon name="close-circle-outline"></ion-icon>
@@ -227,7 +233,7 @@
                   <button
                     type="button"
                     class="card-btn btn-reception"
-                    (click)="openReceptionModal(order)"
+                    (click)="$event.stopPropagation(); openReceptionModal(order)"
                     [attr.data-testid]="'order-receive-btn-' + order.id"
                   >
                     <ion-icon name="checkmark-done-outline"></ion-icon>
@@ -239,7 +245,7 @@
                   <button
                     type="button"
                     class="card-btn btn-pdf"
-                    (click)="downloadPdf(order)"
+                    (click)="$event.stopPropagation(); downloadPdf(order)"
                     [attr.data-testid]="'order-pdf-btn-' + order.id"
                   >
                     <ion-icon name="download-outline"></ion-icon>
@@ -362,7 +368,7 @@
           [placeholder]="'PURCHASES.SEARCH_INGREDIENTS_PLACEHOLDER' | transloco"
           [value]="searchQuery()"
           (valueChange)="searchQuery.set($event)"
-          testId="pamp-search-input"
+          testId="purchases-search-input"
         ></app-search-bar>
       </div>
 
@@ -404,4 +410,5 @@
       </div>
     </section>
   }
-</div>
+  </div>
+</ion-content>

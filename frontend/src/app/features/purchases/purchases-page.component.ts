@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonIcon, ModalController, ToastController, AlertController } from '@ionic/angular';
+import { IonIcon, IonContent, ModalController, ToastController, AlertController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   cartOutline,
@@ -40,6 +40,7 @@ import { IngredientService } from '../../core/services/ingredient.service';
 import { SupplierFormModalComponent } from './supplier-form-modal/supplier-form-modal.component';
 import { PurchaseOrderFormModalComponent } from './purchase-order-form-modal/purchase-order-form-modal.component';
 import { PurchaseOrderReceptionModalComponent } from './purchase-order-reception-modal/purchase-order-reception-modal.component';
+import { PurchaseOrderDetailModalComponent } from './purchase-order-detail-modal/purchase-order-detail-modal.component';
 import { BarcodeScannerModalComponent, BarcodeScannerResult } from '../../core/components/ui/barcode-scanner-modal/barcode-scanner-modal.component';
 import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
@@ -58,6 +59,7 @@ export type PurchasesTab = 'orders' | 'suppliers' | 'pamp';
   imports: [
     CommonModule,
     FormsModule,
+    IonContent,
     IonIcon,
     TranslocoPipe,
     EmptyStateComponent,
@@ -219,6 +221,39 @@ export class PurchasesPageComponent implements OnInit {
       },
       error: () => this.showToast(this.transloco.translate('PURCHASES.ORDER_SENT_ERROR'), 'danger')
     });
+  }
+
+  async openOrderDetailModal(order: PurchaseOrder): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: PurchaseOrderDetailModalComponent,
+      componentProps: { order }
+    });
+
+    await modal.present();
+    const { data } = await modal.onWillDismiss<{ action: string; order?: PurchaseOrder }>();
+    if (!data?.action) return;
+
+    switch (data.action) {
+      case 'send':
+        this.sendOrder(data.order || order);
+        break;
+      case 'cancel':
+        this.cancelOrder(data.order || order);
+        break;
+      case 'receive':
+        this.openReceptionModal(data.order || order);
+        break;
+      case 'pdf':
+        this.downloadPdf(data.order || order);
+        break;
+    }
+  }
+
+  onOrderCardKeyDown(event: KeyboardEvent, order: PurchaseOrder): void {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.openOrderDetailModal(order);
+    }
   }
 
   async openReceptionModal(order: PurchaseOrder): Promise<void> {

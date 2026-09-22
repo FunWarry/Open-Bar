@@ -211,4 +211,41 @@ describe('PurchasesPageComponent', () => {
     expect(supplierServiceSpy.migrateLegacy).toHaveBeenCalled();
     expect(toastCtrlSpy.create).toHaveBeenCalled();
   });
+
+  it('opens order detail modal and handles dismiss action', async () => {
+    const modalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+        data: { action: 'send', order: mockOrders[0] }
+      }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as unknown as HTMLIonModalElement));
+    purchaseOrderServiceSpy.send.and.returnValue(of(mockOrders[0]));
+
+    await component.openOrderDetailModal(mockOrders[0]);
+
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(modalMock.present).toHaveBeenCalled();
+    expect(purchaseOrderServiceSpy.send).toHaveBeenCalledWith(10);
+  });
+
+  it('triggers openOrderDetailModal on enter or space keydown', () => {
+    spyOn(component, 'openOrderDetailModal');
+
+    const enterEvent = new KeyboardEvent('keydown', { key: 'Enter' });
+    spyOn(enterEvent, 'preventDefault');
+    component.onOrderCardKeyDown(enterEvent, mockOrders[0]);
+    expect(enterEvent.preventDefault).toHaveBeenCalled();
+    expect(component.openOrderDetailModal).toHaveBeenCalledWith(mockOrders[0]);
+
+    const spaceEvent = new KeyboardEvent('keydown', { key: ' ' });
+    spyOn(spaceEvent, 'preventDefault');
+    component.onOrderCardKeyDown(spaceEvent, mockOrders[0]);
+    expect(spaceEvent.preventDefault).toHaveBeenCalled();
+
+    const otherEvent = new KeyboardEvent('keydown', { key: 'Tab' });
+    spyOn(otherEvent, 'preventDefault');
+    component.onOrderCardKeyDown(otherEvent, mockOrders[0]);
+    expect(otherEvent.preventDefault).not.toHaveBeenCalled();
+  });
 });
