@@ -49,7 +49,7 @@ test.describe('Purchases, Suppliers & Delivery Intake E2E', () => {
     await page.click('[data-testid="global-barcode-scan-btn"]');
 
     // Verify manual input fallback is available
-    const manualInput = page.locator('[data-testid="scanner-manual-input"]');
+    const manualInput = page.locator('[data-testid="barcode-manual-input"]');
     await expect(manualInput).toBeVisible();
 
     // Type a barcode manually and cancel
@@ -57,6 +57,6 @@ test.describe('Purchases, Suppliers & Delivery Intake E2E', () => {
     await page.click('[data-testid="scanner-cancel-btn"]');
 
     // Modal should dismiss
-    await expect(page.locator('[data-testid="scanner-manual-input"]')).not.toBeVisible();
+    await expect(page.locator('[data-testid="barcode-manual-input"]')).not.toBeVisible();
   });
 });
