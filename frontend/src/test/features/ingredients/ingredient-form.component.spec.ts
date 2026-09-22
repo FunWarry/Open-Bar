@@ -115,7 +115,10 @@ describe('IngredientFormComponent', () => {
         degreAlcool: 0,
         isVegan: true,
         defaultSupplierId: null,
-        codeBarre: ''
+        codeBarre: '',
+        purchaseUnit: 'Sachet 1kg',
+        packagingCapacity: 1,
+        packagingPriceHt: 2.5
       });
       expect(component.ingredientForm.valid).toBeTrue();
     });
@@ -295,7 +298,10 @@ describe('IngredientFormComponent', () => {
         degreAlcool: 0,
         isVegan: true,
         defaultSupplierId: null,
-        codeBarre: ''
+        codeBarre: '',
+        purchaseUnit: 'Boite 1kg',
+        packagingCapacity: 1000,
+        packagingPriceHt: 1.0
       });
       expect(component.ingredientForm.get('quantiteStock')?.valid).toBeTrue();
     });
@@ -338,7 +344,10 @@ describe('IngredientFormComponent', () => {
         degreAlcool: 40,
         isVegan: true,
         defaultSupplierId: null,
-        codeBarre: ''
+        codeBarre: '',
+        purchaseUnit: 'Bouteille 70cl',
+        packagingCapacity: 70,
+        packagingPriceHt: 14.5
       });
       component.onSubmit();
       const modalCtrl = TestBed.inject(ToastController); // injector lookup
