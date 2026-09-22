@@ -153,13 +153,24 @@ flowchart TD
         BAR_TABS -->|"1:1"| FACTURES
     end
 
-    subgraph StockDomain ["📦 Stock & Waste Tracking"]
+    subgraph StockDomain ["📦 Stock, Purchasing & Waste Tracking"]
         INGREDIENTS -->|"1:N"| STOCK_MOVEMENTS["stock_movements (Waste / Loss / Shrinkage)"]
         USERS -.->|"reported_by"| STOCK_MOVEMENTS
+        SUPPLIERS["suppliers (Fournisseurs)"] -->|"1:N"| PURCHASE_ORDERS["purchase_orders (Bons de commande)"]
+        PURCHASE_ORDERS -->|"1:N"| PURCHASE_ORDER_ITEMS["purchase_order_items"]
+        PURCHASE_ORDER_ITEMS -->|"N:1"| INGREDIENTS
+        PURCHASE_ORDERS -->|"1:N"| PURCHASE_ORDER_DELIVERIES["purchase_order_deliveries (Bons de livraison)"]
+        PURCHASE_ORDER_DELIVERIES -->|"1:N"| PURCHASE_ORDER_DELIVERY_ITEMS["purchase_order_delivery_items"]
+        PURCHASE_ORDER_DELIVERY_ITEMS -->|"N:1"| INGREDIENTS
     end
 ```
 
 *Standalone configuration & logging tables*:
+- `suppliers` : Supplier contacts and delivery terms (`name`, `contact_name`, `email`, `phone`, `address`, `notes`, `active`)
+- `purchase_orders` : Purchase orders placed with suppliers (`supplier_id`, `reference`, `status: DRAFT|ORDERED|PARTIALLY_DELIVERED|DELIVERED|CANCELLED`, `total_ht`, `expected_delivery_date`, `created_at`)
+- `purchase_order_items` : Line items on purchase orders (`purchase_order_id`, `ingredient_id`, `package_quantity`, `package_price_ht`, `line_total_ht`, `delivered_quantity`)
+- `purchase_order_deliveries` : Goods reception delivery slips / BL (`purchase_order_id`, `delivery_reference`, `delivery_date`, `notes`, `received_by`)
+- `purchase_order_delivery_items` : Goods reception delivery items (`delivery_id`, `ingredient_id`, `package_quantity`, `package_price_ht`)
 - `bar_tabs` : Customer running ledgers and bar tabs (`nom`, `client_reference`, `caution_montant`, `notes`, `statut: ACTIVE|SETTLED|TRANSFERRED|CANCELLED`, `serveur_id`, `date_ouverture`, `date_cloture`)
 - `cash_drawer_sessions` : Daily till opening sessions per operational date (`session_date`, `opened_at`, `closed_at`, `opened_by`, `closed_by`, `opening_float`, `status: OPEN|CLOSED`, `opening_denominations_json`, `notes`)
 - `cash_movements` : Intra-day cash movements (`session_id`, `type: CASH_IN|CASH_DROP|PAID_OUT`, `amount`, `reason`, `receipt_reference`, `user_id`, `created_at`)
@@ -327,6 +338,39 @@ OpenBar provides live tracking of recipe Cost of Goods Sold (COGS), gross margin
   - `target_gross_margin_percentage`: Target margin threshold (default 70%), triggering healthy status badges (`HEALTHY` / green).
   - `warning_gross_margin_percentage`: Warning threshold (default 50%), triggering warning badges (`WARNING` / orange) or critical alerts (`CRITICAL` / red when below warning).
 - **Manager Dashboard & Catalog Integration**: Visual margin health badges (`MarginHealthBadgeComponent`), live COGS and gross profit KPI cards in `DashboardManagerComponent`, real-time margin computation during cocktail creation/edition (`CocktailFormComponent`).
+
+---
+
+## Supplier Purchasing, Delivery Receipts (BL) & PAMP (Weighted Average Cost)
+
+OpenBar incorporates a complete procurement cycle directly connected to ingredient stock management and menu costing:
+
+- **Packaging & Purchasing Units**:
+  - `purchase_unit`: The unit under which the item is purchased (e.g. `BOTTLE`, `CAN`, `BOX`, `KEG`, `PACK`, `KG`, `L`).
+  - `packaging_capacity`: The quantity of base unit contained per package (e.g. 1 bottle of Gin = 0.70 L or 70 cl; 1 pack of beer = 24 bottles).
+  - `packaging_price_ht`: Supplier price per packaging unit excluding VAT.
+- **Conversion Engine in Order Destocking**:
+  - `UnitConversionService` standardizes units dynamically across volume, mass, and item counts (`slice` = 0.125 unit / 1/8th).
+  - When customer orders are prepared and validated (`CommandeService`), recipe ingredient portions are converted into the ingredient's inventory base unit and deducted accurately without unit mismatches.
+- **Weighted Average Cost (PAMP / WAC)**:
+  - Upon goods intake from a delivery receipt (`POST /api/purchases/orders/{id}/deliveries`), the ingredient inventory is incremented by the delivered quantity converted to base units:
+    $$\Delta Q = \text{packagesDelivered} \times \text{packagingCapacity}$$
+  - The unit cost is updated using the standard weighted average formula:
+    $$\text{PAMP}_{\text{new}} = \frac{Q_{\text{current}} \times C_{\text{current}} + \Delta Q \times C_{\text{incoming}}}{Q_{\text{current}} + \Delta Q}$$
+  - If initial stock was zero or negative, the incoming unit price directly establishes the new baseline PAMP.
+- **Endpoints**:
+
+| Method | URL | Roles | Description |
+|--------|-----|-------|-------------|
+| `GET` | `/api/suppliers` | BARMAN, MANAGER, ADMIN | List all registered suppliers |
+| `POST` | `/api/suppliers` | MANAGER, ADMIN | Create a new supplier profile |
+| `PUT` | `/api/suppliers/{id}` | MANAGER, ADMIN | Update supplier profile |
+| `DELETE` | `/api/suppliers/{id}` | MANAGER, ADMIN | Soft-delete/deactivate supplier |
+| `GET` | `/api/purchases/orders` | BARMAN, MANAGER, ADMIN | List purchase orders with status filter |
+| `POST` | `/api/purchases/orders` | MANAGER, ADMIN | Create a new purchase order |
+| `PUT` | `/api/purchases/orders/{id}` | MANAGER, ADMIN | Update draft purchase order |
+| `PUT` | `/api/purchases/orders/{id}/status` | MANAGER, ADMIN | Update purchase order lifecycle status |
+| `POST` | `/api/purchases/orders/{id}/deliveries` | BARMAN, MANAGER, ADMIN | Record goods delivery slip (BL), intake inventory, and recalculate PAMP |
 
 ---
 
