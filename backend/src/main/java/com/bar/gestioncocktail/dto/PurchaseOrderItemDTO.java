@@ -49,7 +49,8 @@ public record PurchaseOrderItemDTO(
         BigDecimal totalHt = qty.multiply(priceHt).setScale(2, RoundingMode.HALF_UP);
 
         BigDecimal vatRate = item.getTauxTva() != null ? item.getTauxTva() : PurchaseOrderItem.DEFAULT_VAT_RATE;
-        BigDecimal vatFactor = BigDecimal.ONE.add(vatRate.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP));
+        BigDecimal safeVatRate = vatRate != null ? vatRate : BigDecimal.valueOf(20);
+        BigDecimal vatFactor = BigDecimal.ONE.add(safeVatRate.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP));
         BigDecimal totalTtc = totalHt.multiply(vatFactor).setScale(2, RoundingMode.HALF_UP);
 
         Long ingId = item.getIngredient() != null ? item.getIngredient().getId() : null;

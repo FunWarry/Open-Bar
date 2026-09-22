@@ -97,7 +97,7 @@ class PurchaseOrderServiceTest {
 
         sampleOrder.setItems(new ArrayList<>(List.of(sampleItem)));
 
-        lenient().when(timeService.now()).thenReturn(LocalDateTime.of(2026, 9, 22, 10, 0));
+        lenient().when(timeService.now()).thenReturn(LocalDateTime.of(2026, java.time.Month.SEPTEMBER, 22, 10, 0));
     }
 
     @Nested
