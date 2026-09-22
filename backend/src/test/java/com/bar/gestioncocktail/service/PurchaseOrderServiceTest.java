@@ -2,6 +2,7 @@ package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.*;
 import com.bar.gestioncocktail.exception.BusinessException;
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -394,6 +395,163 @@ class PurchaseOrderServiceTest {
 
             BigDecimal res3 = purchaseOrderService.calculateWeightedAverageCost(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.TEN, new BigDecimal("15.00"));
             assertThat(res3).isEqualByComparingTo("15.00");
+        }
+
+        @Test
+        @DisplayName("Should update draft purchase order successfully")
+        void shouldUpdateDraftPurchaseOrder() {
+            PurchaseOrder order = new PurchaseOrder();
+            order.setId(100L);
+            order.setStatut(PurchaseOrderStatus.DRAFT);
+            order.setSupplier(sampleSupplier);
+            order.setItems(new ArrayList<>());
+
+            when(purchaseOrderRepository.findById(100L)).thenReturn(Optional.of(order));
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenAnswer(inv -> inv.getArgument(0));
+            when(ingredientRepository.findById(10L)).thenReturn(Optional.of(sampleRhum));
+
+            PurchaseOrderItemRequest itemReq = new PurchaseOrderItemRequest(10L, new BigDecimal("5.00"), new BigDecimal("14.00"), new BigDecimal("20.00"), "Bottle 70cl", new BigDecimal("70.00"));
+            PurchaseOrderCreateRequest updateReq = new PurchaseOrderCreateRequest(1L, LocalDateTime.now().plusDays(3), "Updated instructions", List.of(itemReq));
+
+            PurchaseOrderDTO updated = purchaseOrderService.updatePurchaseOrder(100L, updateReq);
+
+            assertThat(updated).isNotNull();
+            assertThat(order.getNotes()).isEqualTo("Updated instructions");
+            verify(purchaseOrderRepository).save(order);
+        }
+
+        @Test
+        @DisplayName("Should throw BusinessException when updating received or cancelled purchase order")
+        void shouldThrowWhenUpdatingReceivedOrCancelledOrder() {
+            PurchaseOrder order = new PurchaseOrder();
+            order.setId(100L);
+            order.setStatut(PurchaseOrderStatus.RECEIVED);
+            order.setSupplier(sampleSupplier);
+
+            when(purchaseOrderRepository.findById(100L)).thenReturn(Optional.of(order));
+
+            PurchaseOrderCreateRequest updateReq = new PurchaseOrderCreateRequest(1L, null, "Notes", List.of());
+
+            assertThatThrownBy(() -> purchaseOrderService.updatePurchaseOrder(100L, updateReq))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("Cannot modify a purchase order in RECEIVED status");
+        }
+
+        @Test
+        @DisplayName("Should update supplier on purchase order when new supplier ID is provided")
+        void shouldUpdateSupplierOnPurchaseOrder() {
+            PurchaseOrder order = new PurchaseOrder();
+            order.setId(100L);
+            order.setStatut(PurchaseOrderStatus.DRAFT);
+            order.setSupplier(sampleSupplier);
+            order.setItems(new ArrayList<>());
+
+            Supplier newSupplier = new Supplier();
+            newSupplier.setId(2L);
+            newSupplier.setNom("Distillerie des Alpes");
+
+            when(purchaseOrderRepository.findById(100L)).thenReturn(Optional.of(order));
+            when(supplierRepository.findById(2L)).thenReturn(Optional.of(newSupplier));
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            PurchaseOrderCreateRequest updateReq = new PurchaseOrderCreateRequest(2L, null, "New supplier", List.of());
+
+            PurchaseOrderDTO result = purchaseOrderService.updatePurchaseOrder(100L, updateReq);
+
+            assertThat(result).isNotNull();
+            assertThat(order.getSupplier().getId()).isEqualTo(2L);
+        }
+
+        @Test
+        @DisplayName("Should throw ResourceNotFoundException when updating with unknown supplier ID")
+        void shouldThrowWhenUpdatingWithUnknownSupplier() {
+            PurchaseOrder order = new PurchaseOrder();
+            order.setId(100L);
+            order.setStatut(PurchaseOrderStatus.DRAFT);
+            order.setSupplier(sampleSupplier);
+
+            when(purchaseOrderRepository.findById(100L)).thenReturn(Optional.of(order));
+            when(supplierRepository.findById(999L)).thenReturn(Optional.empty());
+
+            PurchaseOrderCreateRequest updateReq = new PurchaseOrderCreateRequest(999L, null, "Unknown supplier", List.of());
+
+            assertThatThrownBy(() -> purchaseOrderService.updatePurchaseOrder(100L, updateReq))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessageContaining("Supplier not found with ID: 999");
+        }
+
+        @Test
+        @DisplayName("Should throw BusinessException when markAsOrdered is called on non-draft order")
+        void shouldThrowWhenMarkAsOrderedOnNonDraft() {
+            PurchaseOrder order = new PurchaseOrder();
+            order.setId(100L);
+            order.setStatut(PurchaseOrderStatus.ORDERED);
+            when(purchaseOrderRepository.findById(100L)).thenReturn(Optional.of(order));
+
+            assertThatThrownBy(() -> purchaseOrderService.markAsOrdered(100L))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("Only DRAFT purchase orders can be marked as ORDERED");
+        }
+
+        @Test
+        @DisplayName("Should throw BusinessException when receiving delivery on order in DRAFT status")
+        void shouldThrowWhenReceivingDeliveryOnDraft() {
+            PurchaseOrder order = new PurchaseOrder();
+            order.setId(100L);
+            order.setStatut(PurchaseOrderStatus.DRAFT);
+            when(purchaseOrderRepository.findById(100L)).thenReturn(Optional.of(order));
+
+            PurchaseOrderReceptionRequest req = new PurchaseOrderReceptionRequest("BL-1", "Notes", List.of(new PurchaseOrderReceptionItemRequest(10L, BigDecimal.ONE, BigDecimal.TEN)));
+
+            assertThatThrownBy(() -> purchaseOrderService.receiveDelivery(100L, req, null))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("Cannot receive delivery for order in status: DRAFT");
+        }
+
+        @Test
+        @DisplayName("Should throw BusinessException when reception request has empty items or all zero quantities")
+        void shouldThrowWhenReceptionItemsAreEmptyOrZero() {
+            PurchaseOrder order = new PurchaseOrder();
+            order.setId(100L);
+            order.setStatut(PurchaseOrderStatus.ORDERED);
+            when(purchaseOrderRepository.findById(100L)).thenReturn(Optional.of(order));
+
+            PurchaseOrderReceptionRequest emptyReq = new PurchaseOrderReceptionRequest("BL-1", "Notes", List.of());
+            assertThatThrownBy(() -> purchaseOrderService.receiveDelivery(100L, emptyReq, null))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("Delivery check-in must specify at least one received item");
+
+            PurchaseOrderItem item = new PurchaseOrderItem();
+            item.setId(200L);
+            item.setPurchaseOrder(order);
+            item.setIngredient(sampleRhum);
+            item.setQuantiteCommandee(BigDecimal.TEN);
+            item.setQuantiteRecue(BigDecimal.ZERO);
+            item.setPrixUnitaireHt(BigDecimal.TEN);
+            order.setItems(List.of(item));
+
+            PurchaseOrderReceptionRequest zeroReq = new PurchaseOrderReceptionRequest("BL-1", "Notes", List.of(new PurchaseOrderReceptionItemRequest(200L, BigDecimal.ZERO, BigDecimal.TEN)));
+            assertThatThrownBy(() -> purchaseOrderService.receiveDelivery(100L, zeroReq, null))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("Delivery check-in must have at least one item with received quantity > 0");
+        }
+
+        @Test
+        @DisplayName("Should filter purchase orders by status")
+        void shouldFilterPurchaseOrdersByStatus() {
+            PurchaseOrder order = new PurchaseOrder();
+            order.setId(100L);
+            order.setStatut(PurchaseOrderStatus.ORDERED);
+            order.setSupplier(sampleSupplier);
+            order.setItems(List.of());
+
+            when(purchaseOrderRepository.findByStatutOrderByDateCommandeDesc(PurchaseOrderStatus.ORDERED))
+                    .thenReturn(List.of(order));
+
+            List<PurchaseOrderDTO> results = purchaseOrderService.getPurchaseOrdersByStatus(PurchaseOrderStatus.ORDERED);
+
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0).statut()).isEqualTo(PurchaseOrderStatus.ORDERED);
         }
     }
 }

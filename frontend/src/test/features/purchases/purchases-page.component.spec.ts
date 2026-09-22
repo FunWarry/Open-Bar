@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { PurchasesPageComponent } from '../../../app/features/purchases/purchases-page.component';
@@ -89,7 +89,7 @@ describe('PurchasesPageComponent', () => {
 
   beforeEach(async () => {
     supplierServiceSpy = jasmine.createSpyObj('SupplierService', ['getAll', 'create', 'update', 'delete', 'migrateLegacy']);
-    purchaseOrderServiceSpy = jasmine.createSpyObj('PurchaseOrderService', ['getAll', 'create', 'send', 'cancel', 'downloadPdf', 'receive']);
+    purchaseOrderServiceSpy = jasmine.createSpyObj('PurchaseOrderService', ['getAll', 'create', 'update', 'send', 'cancel', 'downloadPdf', 'receive']);
     ingredientServiceSpy = jasmine.createSpyObj('IngredientService', ['getAll']);
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
@@ -247,5 +247,199 @@ describe('PurchasesPageComponent', () => {
     spyOn(otherEvent, 'preventDefault');
     component.onOrderCardKeyDown(otherEvent, mockOrders[0]);
     expect(otherEvent.preventDefault).not.toHaveBeenCalled();
+  });
+
+  it('filters purchase orders by text matching supplier, id, and notes', () => {
+    component.purchaseOrders.set([
+      { ...mockOrders[0], notes: 'Livraison matinale express' },
+      mockOrders[1]
+    ]);
+    component.searchQuery.set('matinale');
+    expect(component.filteredOrders()).toHaveSize(1);
+    expect(component.filteredOrders()[0].id).toBe(10);
+
+    component.searchQuery.set('11');
+    expect(component.filteredOrders()).toHaveSize(1);
+    expect(component.filteredOrders()[0].id).toBe(11);
+  });
+
+  it('handles error states in sendOrder, cancelOrder and downloadPdf', () => {
+    purchaseOrderServiceSpy.send.and.returnValue(throwError(() => new Error('Network error')));
+    component.sendOrder(mockOrders[0]);
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+
+    purchaseOrderServiceSpy.cancel.and.returnValue(throwError(() => new Error('Cancel error')));
+    component.cancelOrder(mockOrders[0]);
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+
+    purchaseOrderServiceSpy.downloadPdf.and.returnValue(throwError(() => new Error('PDF error')));
+    component.downloadPdf(mockOrders[0]);
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('handles error state in migrateLegacySuppliers', () => {
+    supplierServiceSpy.migrateLegacy.and.returnValue(throwError(() => new Error('Migrate error')));
+    component.migrateLegacySuppliers();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('opens order form modal to create an order', async () => {
+    const modalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+        data: {
+          confirmed: true,
+          order: { supplierId: 1, items: [] }
+        }
+      }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as unknown as HTMLIonModalElement));
+    purchaseOrderServiceSpy.create.and.returnValue(of(mockOrders[0]));
+
+    await component.openOrderFormModal();
+
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(purchaseOrderServiceSpy.create).toHaveBeenCalled();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('opens order form modal to update an existing order', async () => {
+    const modalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+        data: {
+          confirmed: true,
+          orderId: 11,
+          order: { supplierId: 2, items: [] }
+        }
+      }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as unknown as HTMLIonModalElement));
+    purchaseOrderServiceSpy.update.and.returnValue(of(mockOrders[1]));
+
+    await component.openOrderFormModal(mockOrders[1]);
+
+    expect(purchaseOrderServiceSpy.update).toHaveBeenCalledWith(11, jasmine.any(Object));
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('opens reception modal and reloads on confirm', async () => {
+    const modalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+        data: { confirmed: true }
+      }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as unknown as HTMLIonModalElement));
+
+    await component.openReceptionModal(mockOrders[0]);
+
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(purchaseOrderServiceSpy.getAll).toHaveBeenCalled();
+  });
+
+  it('opens supplier creation modal and saves supplier', async () => {
+    const modalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+        data: {
+          confirmed: true,
+          supplier: { nom: 'Distillerie Savoyarde' }
+        }
+      }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as unknown as HTMLIonModalElement));
+    supplierServiceSpy.create.and.returnValue(of(mockSuppliers[0]));
+
+    await component.openCreateSupplierModal();
+
+    expect(supplierServiceSpy.create).toHaveBeenCalled();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('opens supplier edit modal and updates supplier', async () => {
+    const modalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+        data: {
+          confirmed: true,
+          supplier: { nom: 'Brasserie Modifiée' }
+        }
+      }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as unknown as HTMLIonModalElement));
+    supplierServiceSpy.update.and.returnValue(of(mockSuppliers[0]));
+
+    await component.openEditSupplierModal(mockSuppliers[0]);
+
+    expect(supplierServiceSpy.update).toHaveBeenCalledWith(1, jasmine.any(Object));
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('confirms and deletes supplier via alert dialog', async () => {
+    let deleteHandler: () => void = () => {};
+    const alertMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve())
+    };
+    alertCtrlSpy.create.and.callFake((opts: any) => {
+      deleteHandler = opts.buttons.find((b: any) => b.role === 'destructive')?.handler;
+      return Promise.resolve(alertMock as unknown as HTMLIonAlertElement);
+    });
+    supplierServiceSpy.delete.and.returnValue(of(undefined));
+
+    await component.confirmDeleteSupplier(mockSuppliers[0]);
+
+    expect(alertCtrlSpy.create).toHaveBeenCalled();
+    expect(alertMock.present).toHaveBeenCalled();
+
+    deleteHandler();
+    expect(supplierServiceSpy.delete).toHaveBeenCalledWith(1);
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('opens barcode scanner and sets pamp tab and search query on detect', async () => {
+    const modalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+        data: { barcode: '3760049010012', cancelled: false }
+      }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as unknown as HTMLIonModalElement));
+
+    await component.openGlobalBarcodeScanner();
+
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(component.searchQuery()).toBe('3760049010012');
+    expect(component.activeTab()).toBe('pamp');
+  });
+
+  it('handles edit, cancel, receive, and pdf actions from order detail modal', async () => {
+    spyOn(component, 'openOrderFormModal');
+    spyOn(component, 'cancelOrder');
+    spyOn(component, 'openReceptionModal');
+    spyOn(component, 'downloadPdf');
+
+    const createModalMock = (action: string) => ({
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+        data: { action, order: mockOrders[0] }
+      }))
+    });
+
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(createModalMock('edit') as any));
+    await component.openOrderDetailModal(mockOrders[0]);
+    expect(component.openOrderFormModal).toHaveBeenCalledWith(mockOrders[0]);
+
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(createModalMock('cancel') as any));
+    await component.openOrderDetailModal(mockOrders[0]);
+    expect(component.cancelOrder).toHaveBeenCalledWith(mockOrders[0]);
+
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(createModalMock('receive') as any));
+    await component.openOrderDetailModal(mockOrders[0]);
+    expect(component.openReceptionModal).toHaveBeenCalledWith(mockOrders[0]);
+
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(createModalMock('pdf') as any));
+    await component.openOrderDetailModal(mockOrders[0]);
+    expect(component.downloadPdf).toHaveBeenCalledWith(mockOrders[0]);
   });
 });
