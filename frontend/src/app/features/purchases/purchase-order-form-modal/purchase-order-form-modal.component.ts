@@ -2,6 +2,7 @@ import {
   Component,
   Input,
   OnInit,
+  OnChanges,
   inject,
   ChangeDetectionStrategy
 } from '@angular/core';
@@ -22,13 +23,14 @@ import {
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Supplier } from '../../../core/models/supplier.model';
 import { Ingredient } from '../../../core/models/ingredient.model';
-import { PurchaseOrderCreateRequest, PurchaseOrderItemRequest } from '../../../core/models/purchase-order.model';
+import { PurchaseOrder, PurchaseOrderCreateRequest, PurchaseOrderItemRequest } from '../../../core/models/purchase-order.model';
 import { IngredientService } from '../../../core/services/ingredient.service';
 import { BarcodeScannerModalComponent, BarcodeScannerResult } from '../../../core/components/ui/barcode-scanner-modal/barcode-scanner-modal.component';
+import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 
 /**
  * Modal dialog for preparing and drafting a supplier purchase order.
- * Features line item calculations, quick ingredient selection, and barcode scanning intake.
+ * Features line item calculations, quick ingredient selection via searchable dropdown, and barcode scanning intake.
  */
 @Component({
   selector: 'app-purchase-order-form-modal',
@@ -40,10 +42,11 @@ import { BarcodeScannerModalComponent, BarcodeScannerResult } from '../../../cor
     CommonModule,
     ReactiveFormsModule,
     IonIcon,
-    TranslocoPipe
+    TranslocoPipe,
+    SearchableSelectComponent
   ]
 })
-export class PurchaseOrderFormModalComponent implements OnInit {
+export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
   private readonly fb = inject(FormBuilder);
   private readonly modalCtrl = inject(ModalController);
   private readonly toastCtrl = inject(ToastController);
@@ -52,8 +55,15 @@ export class PurchaseOrderFormModalComponent implements OnInit {
 
   @Input() suppliers: Supplier[] = [];
   @Input() ingredients: Ingredient[] = [];
+  @Input() order?: PurchaseOrder;
 
   form!: FormGroup;
+  supplierOptions: SearchableOption<number>[] = [];
+  ingredientOptions: SearchableOption<number>[] = [];
+
+  get isEditing(): boolean {
+    return !!this.order;
+  }
 
   constructor() {
     addIcons({
@@ -73,28 +83,63 @@ export class PurchaseOrderFormModalComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const defaultSupplierId = this.suppliers.length > 0 ? this.suppliers[0].id : null;
+    this.initOptions();
+
+    const defaultSupplierId = this.order?.supplierId ?? (this.suppliers.length > 0 ? this.suppliers[0].id : null);
+    const defaultDate = this.order?.dateLivraisonPrevue ? this.order.dateLivraisonPrevue.substring(0, 10) : '';
+    const defaultRef = this.order?.referenceFactureFournisseur || '';
+    const defaultNotes = this.order?.notes || '';
 
     this.form = this.fb.group({
       supplierId: [defaultSupplierId, [Validators.required]],
-      dateLivraisonPrevue: [''],
-      referenceFactureFournisseur: [''],
-      notes: [''],
+      dateLivraisonPrevue: [defaultDate],
+      referenceFactureFournisseur: [defaultRef],
+      notes: [defaultNotes],
       items: this.fb.array([])
     });
 
-    if (this.items.length === 0) {
+    if (this.order?.items?.length) {
+      for (const item of this.order.items) {
+        this.addItem(
+          item.ingredientId,
+          item.prixUnitaireHt,
+          item.tauxTva ?? 20,
+          item.quantiteCommandee
+        );
+      }
+    } else if (this.items.length === 0) {
       this.addItem();
     }
+  }
+
+  ngOnChanges(): void {
+    this.initOptions();
+  }
+
+  /**
+   * Transforms raw suppliers and ingredients into SearchableOption models for the dropdowns.
+   */
+  private initOptions(): void {
+    this.supplierOptions = (this.suppliers || []).map((s) => ({
+      value: s.id,
+      label: s.nom,
+      subLabel: s.email || s.telephone || undefined
+    }));
+
+    this.ingredientOptions = (this.ingredients || []).map((ing) => ({
+      value: ing.id,
+      label: ing.nom,
+      subLabel: `${ing.uniteMesure}${ing.prixUnitaire != null ? ' · ' + ing.prixUnitaire + ' €' : ''}`
+    }));
   }
 
   /**
    * Appends an item line to the order form.
    */
-  addItem(ingredientId?: number, unitCost = 0, defaultVat = 20): void {
+  addItem(ingredientId?: number, unitCost = 0, defaultVat = 20, qty = 1): void {
     const itemGroup = this.fb.group({
-      ingredientId: [ingredientId || '', [Validators.required]],
-      quantiteCommandee: [1, [Validators.required, Validators.min(0.001)]],
+      ingredientId: [ingredientId ?? null, [Validators.required]],
+      quantiteCommandee: [qty, [Validators.required, Validators.min(0.001)]],
       prixUnitaireHt: [unitCost, [Validators.required, Validators.min(0)]],
       tauxTva: [defaultVat, [Validators.required, Validators.min(0)]]
     });
@@ -114,8 +159,15 @@ export class PurchaseOrderFormModalComponent implements OnInit {
   /**
    * Handles ingredient change to automatically preload unit cost.
    */
-  onIngredientSelected(index: number, ingredientIdValue: any): void {
-    const ingId = Number(ingredientIdValue);
+  onIngredientSelected(index: number, optionOrId: any): void {
+    const ingId = typeof optionOrId === 'object' && optionOrId !== null
+      ? Number(optionOrId.value)
+      : Number(optionOrId);
+
+    if (!ingId) {
+      return;
+    }
+
     const selectedIng = this.ingredients.find(i => i.id === ingId);
     if (selectedIng) {
       const line = this.items.at(index);
@@ -242,7 +294,7 @@ export class PurchaseOrderFormModalComponent implements OnInit {
       items: requestItems
     };
 
-    this.modalCtrl.dismiss({ order: payload, confirmed: true });
+    this.modalCtrl.dismiss({ order: payload, confirmed: true, orderId: this.order?.id });
   }
 
   onCancel(): void {

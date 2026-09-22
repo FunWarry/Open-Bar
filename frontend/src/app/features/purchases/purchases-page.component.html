@@ -211,6 +211,15 @@
                 @if (order.status === 'DRAFT') {
                   <button
                     type="button"
+                    class="card-btn btn-edit"
+                    (click)="$event.stopPropagation(); openOrderFormModal(order)"
+                    [attr.data-testid]="'order-edit-btn-' + order.id"
+                  >
+                    <ion-icon name="create-outline"></ion-icon>
+                    <span>{{ 'COMMON.EDIT' | transloco }}</span>
+                  </button>
+                  <button
+                    type="button"
                     class="card-btn btn-send"
                     (click)="$event.stopPropagation(); sendOrder(order)"
                     [attr.data-testid]="'order-send-btn-' + order.id"

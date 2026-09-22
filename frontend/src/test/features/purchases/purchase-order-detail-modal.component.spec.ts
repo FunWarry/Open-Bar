@@ -79,6 +79,11 @@ describe('PurchaseOrderDetailModalComponent', () => {
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ action: 'close' });
   });
 
+  it('onEdit() dismisses modal with edit action and order payload', () => {
+    component.onEdit();
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ action: 'edit', order: mockOrder });
+  });
+
   it('onSend() dismisses modal with send action and order payload', () => {
     component.onSend();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ action: 'send', order: mockOrder });

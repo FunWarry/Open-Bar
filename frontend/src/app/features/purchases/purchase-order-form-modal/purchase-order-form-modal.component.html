@@ -5,8 +5,8 @@
         <ion-icon name="cart-outline" class="badge-icon"></ion-icon>
       </div>
       <div class="header-text">
-        <h2 class="modal-title">{{ 'PURCHASES.CREATE_ORDER_TITLE' | transloco }}</h2>
-        <span class="modal-subtitle">{{ 'PURCHASES.CREATE_ORDER_SUBTITLE' | transloco }}</span>
+        <h2 class="modal-title">{{ (isEditing ? 'PURCHASES.EDIT_ORDER_TITLE' : 'PURCHASES.CREATE_ORDER_TITLE') | transloco }}</h2>
+        <span class="modal-subtitle">{{ isEditing ? order?.numeroCommande : ('PURCHASES.CREATE_ORDER_SUBTITLE' | transloco) }}</span>
       </div>
     </div>
     <button
@@ -27,16 +27,16 @@
         <div class="form-row-3">
           <div class="field-item">
             <label for="po-supplier-select-field" class="field-label">{{ 'PURCHASES.SUPPLIER_SELECT' | transloco }} *</label>
-            <select
+            <app-searchable-select
               id="po-supplier-select-field"
               formControlName="supplierId"
-              class="field-select"
-              data-testid="po-supplier-select"
-            >
-              @for (sup of suppliers; track sup.id) {
-                <option [value]="sup.id">{{ sup.nom }}</option>
-              }
-            </select>
+              [options]="supplierOptions"
+              [placeholder]="'PURCHASES.SELECT_SUPPLIER_PLACEHOLDER' | transloco"
+              [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+              [required]="true"
+              [clearable]="false"
+              testId="po-supplier-select"
+            ></app-searchable-select>
           </div>
 
           <div class="field-item">
@@ -112,20 +112,16 @@
           <div [formGroupName]="$index" class="item-line-card" [attr.data-testid]="'po-line-' + $index">
             <div class="line-col-ingredient">
               <label [attr.for]="'po-line-ingredient-' + $index" class="col-label">{{ 'PURCHASES.INGREDIENT' | transloco }}</label>
-              <select
+              <app-searchable-select
                 [id]="'po-line-ingredient-' + $index"
                 formControlName="ingredientId"
-                class="field-select"
-                (change)="onIngredientSelected($index, $any($event.target).value)"
-                [attr.data-testid]="'po-line-ingredient-' + $index"
-              >
-                <option value="" disabled>{{ 'PURCHASES.SELECT_INGREDIENT_PLACEHOLDER' | transloco }}</option>
-                @for (ing of ingredients; track ing.id) {
-                  <option [value]="ing.id">
-                    {{ ing.nom }} ({{ ing.uniteMesure }})
-                  </option>
-                }
-              </select>
+                [options]="ingredientOptions"
+                [placeholder]="'PURCHASES.SELECT_INGREDIENT_PLACEHOLDER' | transloco"
+                [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+                [required]="true"
+                (selectionChange)="onIngredientSelected($index, $event)"
+                [testId]="'po-line-ingredient-' + $index"
+              ></app-searchable-select>
             </div>
 
             <div class="line-col-qty">

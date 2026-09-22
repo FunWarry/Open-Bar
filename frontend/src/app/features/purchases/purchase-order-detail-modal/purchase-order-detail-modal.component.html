@@ -152,6 +152,15 @@
       @if (order.status === 'DRAFT') {
         <button
           type="button"
+          class="btn-action btn-edit-order"
+          (click)="onEdit()"
+          data-testid="order-detail-edit-btn"
+        >
+          <ion-icon name="create-outline"></ion-icon>
+          <span>{{ 'COMMON.EDIT' | transloco }}</span>
+        </button>
+        <button
+          type="button"
           class="btn-action btn-cancel-order"
           (click)="onCancelOrder()"
           data-testid="order-detail-cancel-btn"

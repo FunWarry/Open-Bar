@@ -149,7 +149,7 @@ public class PurchaseOrderController {
      * @param id purchase order ID
      * @return updated purchase order DTO
      */
-    @PostMapping("/{id}/order")
+    @RequestMapping(value = {"/{id}/order", "/{id}/send"}, method = {RequestMethod.POST, RequestMethod.PATCH})
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Mark purchase order as ordered", description = "Transitions order from DRAFT to ORDERED")
     @ApiResponse(responseCode = "200", description = "Order marked as ordered")
@@ -190,7 +190,7 @@ public class PurchaseOrderController {
      * @param auth   current authenticated user context
      * @return updated purchase order DTO
      */
-    @PostMapping("/{id}/cancel")
+    @RequestMapping(value = "/{id}/cancel", method = {RequestMethod.POST, RequestMethod.PATCH})
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Cancel purchase order", description = "Cancels purchase order and applies compensatory stock adjustments if needed")
     @ApiResponse(responseCode = "200", description = "Purchase order cancelled")

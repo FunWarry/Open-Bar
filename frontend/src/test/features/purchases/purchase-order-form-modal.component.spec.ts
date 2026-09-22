@@ -188,4 +188,33 @@ describe('PurchaseOrderFormModalComponent', () => {
       color: 'warning'
     }));
   });
+
+  it('should initialize form with existing order when editing', () => {
+    const editFixture = TestBed.createComponent(PurchaseOrderFormModalComponent);
+    const editComp = editFixture.componentInstance;
+    editComp.suppliers = mockSuppliers;
+    editComp.ingredients = mockIngredients;
+    editComp.order = {
+      id: 99,
+      numeroCommande: 'CMD-2026-099',
+      supplierId: 2,
+      supplierNom: 'Grossiste Boissons Rhône',
+      dateLivraisonPrevue: '2026-09-30T00:00:00',
+      status: 'DRAFT',
+      totalHt: 100,
+      totalTva: 20,
+      totalTtc: 120,
+      notes: 'Test edit draft',
+      items: [
+        { ingredientId: 10, quantiteCommandee: 4, prixUnitaireHt: 18.5, tauxTva: 20 }
+      ]
+    };
+    editFixture.detectChanges();
+
+    expect(editComp.isEditing).toBeTrue();
+    expect(editComp.form.get('supplierId')?.value).toBe(2);
+    expect(editComp.form.get('notes')?.value).toBe('Test edit draft');
+    expect(editComp.items).toHaveSize(1);
+    expect(editComp.items.at(0).get('quantiteCommandee')?.value).toBe(4);
+  });
 });

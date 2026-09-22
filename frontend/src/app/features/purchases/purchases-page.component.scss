@@ -427,6 +427,18 @@
     border: 1px solid transparent;
     transition: all 0.18s ease;
 
+    &.btn-edit {
+      background: var(--background-surface-1);
+      border-color: var(--border-medium);
+      color: var(--text-primary);
+
+      &:hover {
+        background: var(--background-surface-3);
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+    }
+
     &.btn-send {
       background: rgba(79, 70, 229, 0.15);
       border-color: rgba(79, 70, 229, 0.35);

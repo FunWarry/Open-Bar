@@ -59,13 +59,26 @@ export class PurchaseOrderService {
   }
 
   /**
-   * Marks a draft purchase order as sent to the supplier.
+   * Updates an existing purchase order before it is received.
+   *
+   * @param id - Numeric identifier.
+   * @param request - Updated order payload.
+   * @returns Observable emitting the updated purchase order.
+   */
+  update(id: number, request: PurchaseOrderCreateRequest): Observable<PurchaseOrder> {
+    return this.http.put<any>(`${this.api}/${id}`, request).pipe(
+      map(o => this.normalizeOrder(o))
+    );
+  }
+
+  /**
+   * Marks a draft purchase order as sent/ordered with the supplier.
    *
    * @param id - Numeric identifier.
    * @returns Observable emitting the updated purchase order.
    */
   send(id: number): Observable<PurchaseOrder> {
-    return this.http.patch<any>(`${this.api}/${id}/send`, {}).pipe(
+    return this.http.post<any>(`${this.api}/${id}/order`, {}).pipe(
       map(o => this.normalizeOrder(o))
     );
   }
@@ -85,10 +98,15 @@ export class PurchaseOrderService {
    * Cancels a draft or sent purchase order.
    *
    * @param id - Numeric identifier.
+   * @param reason - Optional cancellation memo.
    * @returns Observable emitting the cancelled purchase order.
    */
-  cancel(id: number): Observable<PurchaseOrder> {
-    return this.http.patch<any>(`${this.api}/${id}/cancel`, {}).pipe(
+  cancel(id: number, reason?: string): Observable<PurchaseOrder> {
+    let params = new HttpParams();
+    if (reason) {
+      params = params.set('reason', reason);
+    }
+    return this.http.post<any>(`${this.api}/${id}/cancel`, {}, { params }).pipe(
       map(o => this.normalizeOrder(o))
     );
   }

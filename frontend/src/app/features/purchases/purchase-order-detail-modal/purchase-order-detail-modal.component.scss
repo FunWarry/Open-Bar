@@ -454,6 +454,18 @@
     }
   }
 
+  &.btn-edit-order {
+    background: var(--background-surface-3);
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+
+    &:hover {
+      background: var(--background-surface-2);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+  }
+
   &.btn-cancel-order {
     background: rgba(229, 96, 79, 0.12);
     border-color: rgba(229, 96, 79, 0.3);

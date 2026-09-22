@@ -91,13 +91,32 @@ describe('PurchaseOrderService', () => {
     req.flush(mockOrder);
   });
 
-  it('send() sends PATCH request to /api/purchase-orders/:id/send', () => {
+  it('update() sends PUT request to /api/purchase-orders/:id', () => {
+    const payload: PurchaseOrderCreateRequest = {
+      supplierId: 1,
+      dateLivraisonPrevue: '2026-09-28',
+      items: [
+        { ingredientId: 10, quantiteCommandee: 8, prixUnitaireHt: 12.5, tauxTva: 20 }
+      ]
+    };
+
+    service.update(10, payload).subscribe(updated => {
+      expect(updated.id).toBe(10);
+    });
+
+    const req = httpMock.expectOne(`${baseUrl}/10`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual(payload);
+    req.flush(mockOrder);
+  });
+
+  it('send() sends POST request to /api/purchase-orders/:id/order', () => {
     service.send(10).subscribe(updated => {
       expect(updated.id).toBe(10);
     });
 
-    const req = httpMock.expectOne(`${baseUrl}/10/send`);
-    expect(req.request.method).toBe('PATCH');
+    const req = httpMock.expectOne(`${baseUrl}/10/order`);
+    expect(req.request.method).toBe('POST');
     req.flush(mockOrder);
   });
 
@@ -132,13 +151,13 @@ describe('PurchaseOrderService', () => {
     req.flush(mockVariations);
   });
 
-  it('cancel() sends PATCH request to /api/purchase-orders/:id/cancel', () => {
+  it('cancel() sends POST request to /api/purchase-orders/:id/cancel', () => {
     service.cancel(10).subscribe(cancelled => {
       expect(cancelled.id).toBe(10);
     });
 
     const req = httpMock.expectOne(`${baseUrl}/10/cancel`);
-    expect(req.request.method).toBe('PATCH');
+    expect(req.request.method).toBe('POST');
     req.flush({ ...mockOrder, status: 'CANCELLED' });
   });
 

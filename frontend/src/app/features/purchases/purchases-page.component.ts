@@ -185,6 +185,10 @@ export class PurchasesPageComponent implements OnInit {
   // --- Purchase Order Actions ---
 
   async openCreateOrderModal(): Promise<void> {
+    return this.openOrderFormModal();
+  }
+
+  async openOrderFormModal(editingOrder?: PurchaseOrder): Promise<void> {
     const activeSuppliers = this.suppliers().filter(s => s.actif);
     if (activeSuppliers.length === 0) {
       this.showToast(this.transloco.translate('PURCHASES.ERROR_NO_ACTIVE_SUPPLIERS'), 'warning');
@@ -195,20 +199,34 @@ export class PurchasesPageComponent implements OnInit {
       component: PurchaseOrderFormModalComponent,
       componentProps: {
         suppliers: activeSuppliers,
-        ingredients: this.ingredients()
-      }
+        ingredients: this.ingredients(),
+        order: editingOrder
+      },
+      cssClass: 'modal-lg openbar-modal-lg purchase-order-modal-container'
     });
 
     await modal.present();
-    const { data } = await modal.onWillDismiss<{ order: PurchaseOrderCreateRequest; confirmed: boolean }>();
+    const { data } = await modal.onWillDismiss<{ order: PurchaseOrderCreateRequest; confirmed: boolean; orderId?: number }>();
 
     if (data?.confirmed && data.order) {
-      this.purchaseOrderService.create(data.order).subscribe({
+      const request$ = data.orderId
+        ? this.purchaseOrderService.update(data.orderId, data.order)
+        : this.purchaseOrderService.create(data.order);
+
+      const successMsg = data.orderId
+        ? this.transloco.translate('PURCHASES.ORDER_UPDATED_SUCCESS')
+        : this.transloco.translate('PURCHASES.ORDER_CREATED_SUCCESS');
+
+      const errorMsg = data.orderId
+        ? this.transloco.translate('PURCHASES.ORDER_UPDATED_ERROR')
+        : this.transloco.translate('PURCHASES.ORDER_CREATED_ERROR');
+
+      request$.subscribe({
         next: () => {
-          this.showToast(this.transloco.translate('PURCHASES.ORDER_CREATED_SUCCESS'), 'success');
+          this.showToast(successMsg, 'success');
           this.loadAllData();
         },
-        error: () => this.showToast(this.transloco.translate('PURCHASES.ORDER_CREATED_ERROR'), 'danger')
+        error: () => this.showToast(errorMsg, 'danger')
       });
     }
   }
@@ -226,7 +244,8 @@ export class PurchasesPageComponent implements OnInit {
   async openOrderDetailModal(order: PurchaseOrder): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: PurchaseOrderDetailModalComponent,
-      componentProps: { order }
+      componentProps: { order },
+      cssClass: 'modal-lg openbar-modal-lg purchase-order-modal-container'
     });
 
     await modal.present();
@@ -234,6 +253,9 @@ export class PurchasesPageComponent implements OnInit {
     if (!data?.action) return;
 
     switch (data.action) {
+      case 'edit':
+        this.openOrderFormModal(data.order || order);
+        break;
       case 'send':
         this.sendOrder(data.order || order);
         break;
@@ -259,7 +281,8 @@ export class PurchasesPageComponent implements OnInit {
   async openReceptionModal(order: PurchaseOrder): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: PurchaseOrderReceptionModalComponent,
-      componentProps: { order }
+      componentProps: { order },
+      cssClass: 'modal-lg openbar-modal-lg purchase-order-modal-container'
     });
 
     await modal.present();
@@ -297,7 +320,8 @@ export class PurchasesPageComponent implements OnInit {
 
   async openCreateSupplierModal(): Promise<void> {
     const modal = await this.modalCtrl.create({
-      component: SupplierFormModalComponent
+      component: SupplierFormModalComponent,
+      cssClass: 'modal-md openbar-modal-md'
     });
 
     await modal.present();
@@ -317,7 +341,8 @@ export class PurchasesPageComponent implements OnInit {
   async openEditSupplierModal(supplier: Supplier): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: SupplierFormModalComponent,
-      componentProps: { supplier }
+      componentProps: { supplier },
+      cssClass: 'modal-md openbar-modal-md'
     });
 
     await modal.present();
@@ -376,7 +401,8 @@ export class PurchasesPageComponent implements OnInit {
       componentProps: {
         title: 'PURCHASES.SCAN_BARCODE_TITLE',
         subtitle: 'PURCHASES.SCAN_BARCODE_SUBTITLE'
-      }
+      },
+      cssClass: 'modal-md openbar-modal-md'
     });
 
     await modal.present();

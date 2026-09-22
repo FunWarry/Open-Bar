@@ -2,6 +2,10 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .po-modal-wrapper {
@@ -9,6 +13,10 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  overflow: hidden;
   color: var(--text-primary);
   font-family: var(--font, 'Inter', sans-serif);
 }
@@ -21,6 +29,7 @@
   border-bottom: 1px solid var(--border-medium);
   gap: 16px;
   background: var(--background-surface-1);
+  flex-shrink: 0;
 }
 
 .header-main-group {
@@ -88,6 +97,11 @@
 .modal-form {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .modal-body {
@@ -95,8 +109,32 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  max-height: 75vh;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+
+  /* Sleek custom scrollbar matching OpenBar Design System */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium, #2e3450) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-medium, #2e3450);
+    border-radius: 4px;
+
+    &:hover {
+      background: var(--primary, #6c7fe8);
+    }
+  }
 }
 
 .general-info-card {
@@ -134,6 +172,9 @@
 .field-input,
 .field-select {
   height: 40px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 0 12px;
   background: var(--background-surface-1);
   border: 1px solid var(--border-medium);
@@ -237,16 +278,32 @@
 
 .item-line-card {
   display: grid;
-  grid-template-columns: 2.2fr 1fr 1fr 0.8fr 1fr 40px;
+  grid-template-columns: minmax(160px, 2.2fr) minmax(70px, 0.9fr) minmax(85px, 1.1fr) minmax(65px, 0.8fr) minmax(75px, 1fr) 40px;
   gap: 10px;
   align-items: end;
   background: var(--background-surface-2);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md, 8px);
   padding: 12px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 
-  @media (max-width: 768px) {
+  > div {
+    min-width: 0;
+  }
+
+  @media (max-width: 860px) {
     grid-template-columns: 1fr 1fr;
+
+    .line-col-ingredient {
+      grid-column: span 2;
+    }
+
+    .line-col-actions {
+      grid-column: span 2;
+      justify-self: end;
+    }
   }
 
   .col-label {

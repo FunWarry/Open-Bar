@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { IonIcon, ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
+  createOutline,
   closeOutline,
   documentTextOutline,
   businessOutline,
@@ -41,6 +42,7 @@ export class PurchaseOrderDetailModalComponent {
 
   constructor() {
     addIcons({
+      createOutline,
       closeOutline,
       documentTextOutline,
       businessOutline,
@@ -57,6 +59,10 @@ export class PurchaseOrderDetailModalComponent {
 
   onClose(): void {
     this.modalCtrl.dismiss({ action: 'close' });
+  }
+
+  onEdit(): void {
+    this.modalCtrl.dismiss({ action: 'edit', order: this.order });
   }
 
   onSend(): void {

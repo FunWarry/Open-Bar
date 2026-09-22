@@ -882,10 +882,11 @@ ion-modal.zone-manager-modal-class {
 ion-modal.modal-lg,
 ion-modal.openbar-modal-lg,
 ion-modal.openbar-modal-payment,
+ion-modal.purchase-order-modal-container,
 ion-modal.commande-detail-modal-container {
-  --width: min(840px, 95vw);
-  --height: min(720px, 80vh);
-  --max-height: 80vh;
+  --width: min(920px, 96vw);
+  --height: min(780px, 88vh);
+  --max-height: 88vh;
 }
 
 ion-modal.openbar-modal-split,
