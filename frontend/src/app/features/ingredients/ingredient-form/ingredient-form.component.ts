@@ -160,7 +160,10 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
       defaultSupplierId: [null],
       codeBarre: [''],
       isVegan: [true],
-      allergens: [[] as Allergen[]]
+      allergens: [[] as Allergen[]],
+      purchaseUnit: [''],
+      packagingCapacity: [1, [Validators.min(0.001)]],
+      packagingPriceHt: [null]
     });
   }
 
@@ -198,7 +201,10 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
         defaultSupplierId: this.ingredient.defaultSupplierId ?? null,
         codeBarre: this.ingredient.codeBarre ?? '',
         isVegan: this.ingredient.isVegan ?? true,
-        allergens: this.ingredient.allergens || []
+        allergens: this.ingredient.allergens || [],
+        purchaseUnit: this.ingredient.purchaseUnit ?? '',
+        packagingCapacity: this.ingredient.packagingCapacity ?? 1,
+        packagingPriceHt: this.ingredient.packagingPriceHt ?? null
       });
       if (!this.canEdit) {
         this.ingredientForm.disable();
@@ -227,7 +233,10 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
             defaultSupplierId: ingredient.defaultSupplierId ?? null,
             codeBarre: ingredient.codeBarre ?? '',
             isVegan: ingredient.isVegan ?? true,
-            allergens: ingredient.allergens || []
+            allergens: ingredient.allergens || [],
+            purchaseUnit: ingredient.purchaseUnit ?? '',
+            packagingCapacity: ingredient.packagingCapacity ?? 1,
+            packagingPriceHt: ingredient.packagingPriceHt ?? null
           });
           if (!this.canEdit) {
             this.ingredientForm.disable();

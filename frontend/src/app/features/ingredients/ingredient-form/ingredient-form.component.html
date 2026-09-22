@@ -94,6 +94,36 @@
     </app-input-field>
 
     <app-input-field
+      formControlName="purchaseUnit"
+      type="text"
+      [label]="'INGREDIENTS.PURCHASE_UNIT_LABEL' | transloco"
+      [placeholder]="'INGREDIENTS.PURCHASE_UNIT_PLACEHOLDER' | transloco"
+      icon="cube-outline"
+      [required]="false"
+      testId="ingredient-purchase-unit-input">
+    </app-input-field>
+
+    <app-input-field
+      formControlName="packagingCapacity"
+      type="number"
+      [label]="'INGREDIENTS.PACKAGING_CAPACITY_LABEL' | transloco"
+      placeholder="1"
+      icon="scale-outline"
+      [required]="false"
+      testId="ingredient-packaging-capacity-input">
+    </app-input-field>
+
+    <app-input-field
+      formControlName="packagingPriceHt"
+      type="number"
+      [label]="('INGREDIENTS.PACKAGING_PRICE_LABEL' | transloco) + ' (€)'"
+      placeholder="0.00"
+      icon="cash-outline"
+      [required]="false"
+      testId="ingredient-packaging-price-input">
+    </app-input-field>
+
+    <app-input-field
       formControlName="degreAlcool"
       type="number"
       [min]="0"

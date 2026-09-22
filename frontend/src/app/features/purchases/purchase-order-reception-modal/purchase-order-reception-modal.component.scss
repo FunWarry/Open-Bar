@@ -182,6 +182,13 @@
   }
 }
 
+.stock-equiv-hint {
+  font-size: 0.72rem;
+  color: var(--semantic-success);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
 .scan-bar-row {
   display: flex;
   align-items: center;

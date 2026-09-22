@@ -106,7 +106,7 @@ export class PurchaseOrderService {
     if (reason) {
       params = params.set('reason', reason);
     }
-    return this.http.post<any>(`${this.api}/${id}/cancel`, {}, { params }).pipe(
+    return this.http.post<PurchaseOrder>(`${this.api}/${id}/cancel`, {}, { params }).pipe(
       map(o => this.normalizeOrder(o))
     );
   }
@@ -123,7 +123,13 @@ export class PurchaseOrderService {
       totalHt: dto.totalHt ?? 0,
       totalTva: dto.totalTva ?? 0,
       totalTtc: dto.totalTtc ?? 0,
-      items: dto.items || []
+      items: (dto.items || []).map((it: any) => ({
+        ...it,
+        ingredientUnite: it.ingredientUnite || it.uniteMesure,
+        purchaseUnit: it.purchaseUnit || it.ingredientUnite || it.uniteMesure,
+        packagingCapacity: it.packagingCapacity ?? 1,
+        equivalentStockQuantity: it.equivalentStockQuantity ?? ((it.quantiteCommandee ?? 0) * (it.packagingCapacity ?? 1))
+      }))
     };
 
     if (dto.supplierId !== undefined) order.supplierId = dto.supplierId;

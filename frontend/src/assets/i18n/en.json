@@ -1227,6 +1227,10 @@
     "ALCOHOL_DEGREE_LABEL": "Alcohol by Volume",
     "ALCOHOL_DEGREE_HINT": "Alcohol percentage by volume (% ABV)",
     "ALCOHOL_DEGREE_ERROR": "Alcohol percentage must be between 0% and 100%",
+    "PURCHASE_UNIT_LABEL": "Purchasing packaging unit",
+    "PURCHASE_UNIT_PLACEHOLDER": "e.g. 70cl Bottle, 1kg Pack, Box 6x1L",
+    "PACKAGING_CAPACITY_LABEL": "Packaging capacity (in recipe/stock unit)",
+    "PACKAGING_PRICE_LABEL": "Packaging unit purchase price excl. VAT",
     "UNITS": {
       "CL": {
         "LABEL": "Centilitres (cl)",

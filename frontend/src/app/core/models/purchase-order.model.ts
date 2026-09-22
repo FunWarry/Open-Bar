@@ -22,6 +22,9 @@ export interface PurchaseOrderItem {
   tauxTva?: number;
   montantHt?: number;
   montantTtc?: number;
+  purchaseUnit?: string;
+  packagingCapacity?: number;
+  equivalentStockQuantity?: number;
 }
 
 /**
@@ -54,6 +57,8 @@ export interface PurchaseOrderItemRequest {
   quantiteCommandee: number;
   prixUnitaireHt: number;
   tauxTva?: number;
+  purchaseUnit?: string;
+  packagingCapacity?: number;
 }
 
 /**

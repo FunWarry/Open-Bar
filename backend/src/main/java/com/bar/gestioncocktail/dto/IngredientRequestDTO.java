@@ -76,12 +76,45 @@ public record IngredientRequestDTO(
     Long defaultSupplierId,
 
     @Size(max = 100, message = "Barcode cannot exceed 100 characters")
-    String codeBarre
+    String codeBarre,
+
+    @Size(max = 50, message = "Purchase unit cannot exceed 50 characters")
+    String purchaseUnit,
+
+    @DecimalMin(value = "0.001", message = "Packaging capacity must be positive")
+    BigDecimal packagingCapacity,
+
+    @DecimalMin(value = "0.0", message = "Packaging price cannot be negative")
+    BigDecimal packagingPriceHt
 ) {
     public static final String DEFAULT_CATEGORY = "other";
 
     /**
-     * Backward-compatible constructor with defaultSupplierId and without codeBarre.
+     * Backward-compatible constructor without packaging fields.
+     */
+    public IngredientRequestDTO(
+        String nom,
+        String uniteMesure,
+        BigDecimal quantiteStock,
+        BigDecimal seuilAlerte,
+        String numeroLot,
+        LocalDateTime datePeremption,
+        BigDecimal prixUnitaire,
+        BigDecimal unitCost,
+        String fournisseur,
+        String notes,
+        Set<Allergen> allergens,
+        BigDecimal degreAlcool,
+        Boolean isVegan,
+        String category,
+        Long defaultSupplierId,
+        String codeBarre
+    ) {
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, defaultSupplierId, codeBarre, null, null, null);
+    }
+
+    /**
+     * Backward-compatible constructor with defaultSupplierId and without codeBarre and packaging fields.
      */
     public IngredientRequestDTO(
         String nom,
@@ -100,7 +133,7 @@ public record IngredientRequestDTO(
         String category,
         Long defaultSupplierId
     ) {
-        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, defaultSupplierId, null);
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, defaultSupplierId, null, null, null, null);
     }
 
     /**
@@ -222,6 +255,15 @@ public record IngredientRequestDTO(
         ingredient.setIsVegan(isVegan == null || isVegan);
         ingredient.setCategory(category != null && !category.isBlank() ? category : DEFAULT_CATEGORY);
         ingredient.setCodeBarre(codeBarre);
+        ingredient.setPurchaseUnit(purchaseUnit);
+        BigDecimal cap = (packagingCapacity != null && packagingCapacity.compareTo(BigDecimal.ZERO) > 0)
+                ? packagingCapacity
+                : BigDecimal.ONE;
+        ingredient.setPackagingCapacity(cap);
+        ingredient.setPackagingPriceHt(packagingPriceHt);
+        if (effectiveCost == null && packagingPriceHt != null) {
+            ingredient.setPrixUnitaire(packagingPriceHt.divide(cap, 4, java.math.RoundingMode.HALF_UP));
+        }
         return ingredient;
     }
 }

@@ -46,9 +46,40 @@ public record IngredientResponseDTO(
     String defaultSupplierNom,
     String codeBarre,
     LocalDateTime createdAt,
-    LocalDateTime updatedAt
+    LocalDateTime updatedAt,
+    String purchaseUnit,
+    BigDecimal packagingCapacity,
+    BigDecimal packagingPriceHt
 ) {
     public static final String DEFAULT_CATEGORY = "other";
+
+    /**
+     * Backward-compatible constructor without packaging fields.
+     */
+    public IngredientResponseDTO(
+        Long id,
+        String nom,
+        String uniteMesure,
+        BigDecimal quantiteStock,
+        BigDecimal seuilAlerte,
+        String numeroLot,
+        LocalDateTime datePeremption,
+        BigDecimal prixUnitaire,
+        BigDecimal unitCost,
+        String fournisseur,
+        String notes,
+        Set<Allergen> allergens,
+        BigDecimal degreAlcool,
+        Boolean isVegan,
+        String category,
+        Long defaultSupplierId,
+        String defaultSupplierNom,
+        String codeBarre,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        this(id, nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, defaultSupplierId, defaultSupplierNom, codeBarre, createdAt, updatedAt, null, null, null);
+    }
 
     /**
      * Backward-compatible constructor without codeBarre.
@@ -213,7 +244,10 @@ public record IngredientResponseDTO(
             supplierId,
             supplierNom,
             i.getCodeBarre(),
-            i.getCreatedAt(), i.getUpdatedAt()
+            i.getCreatedAt(), i.getUpdatedAt(),
+            i.getPurchaseUnit(),
+            i.getEffectivePackagingCapacity(),
+            i.getPackagingPriceHt()
         );
     }
 }

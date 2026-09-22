@@ -537,6 +537,21 @@ export class IngredientListComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Formats the equivalent packaging quantity string for an ingredient (e.g., "≈ 2.5 Bottle 70cl").
+   * Returns empty string if no packaging capacity or packaging unit is missing.
+   * @param ingredient Target ingredient
+   */
+  getPackagingEquivalent(ingredient: Ingredient): string {
+    const capacity = ingredient.packagingCapacity;
+    const unit = ingredient.purchaseUnit;
+    if (!capacity || capacity <= 0 || !unit) {
+      return '';
+    }
+    const count = (ingredient.quantiteStock / capacity).toFixed(1).replace(/\.0$/, '');
+    return `≈ ${count} ${unit}`;
+  }
+
+  /**
    * Checks if an ingredient is currently under its alert threshold.
    * @param ingredient Target ingredient
    */

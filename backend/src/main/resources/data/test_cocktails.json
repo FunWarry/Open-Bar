@@ -9688,9 +9688,11 @@
         {
           "nom": "Boule de vanille",
           "quantite": 1,
-          "unite": "cl",
+          "unite": "boule",
           "cout_eur": 0.35,
-          "allergens": [],
+          "allergens": [
+            "LAIT"
+          ],
           "category": "other"
         },
         {
@@ -9723,9 +9725,9 @@
           "action": "AJOUTER_INGREDIENT",
           "ingredient": "Boule de vanille",
           "quantite": 1,
-          "unite": "cl",
+          "unite": "boule",
           "cible": "AJOUTER_INGREDIENT",
-          "description": "Verser 1 cl de Boule de vanille dans le shaker."
+          "description": "Ajouter 1 boule de glace vanille dans le blender."
         },
         {
           "etape": 2,
@@ -9734,7 +9736,7 @@
           "quantite": 40,
           "unite": "cl",
           "cible": "AJOUTER_INGREDIENT",
-          "description": "Verser 40 cl de Lait dans le shaker."
+          "description": "Verser 40 cl de Lait dans le blender."
         },
         {
           "etape": 3,

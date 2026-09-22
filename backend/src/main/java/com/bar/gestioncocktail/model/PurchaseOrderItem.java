@@ -60,6 +60,12 @@ public class PurchaseOrderItem {
     @Column(name = "taux_tva", nullable = false, precision = 5, scale = 2)
     private BigDecimal tauxTva = DEFAULT_VAT_RATE;
 
+    @Column(name = "purchase_unit", length = 50)
+    private String purchaseUnit;
+
+    @Column(name = "packaging_capacity", precision = 10, scale = 3)
+    private BigDecimal packagingCapacity = BigDecimal.ONE;
+
     /**
      * Default constructor required by JPA.
      */
@@ -121,6 +127,44 @@ public class PurchaseOrderItem {
 
     public void setTauxTva(BigDecimal tauxTva) {
         this.tauxTva = tauxTva != null ? tauxTva : DEFAULT_VAT_RATE;
+    }
+
+    /**
+     * Gets the purchasing unit packaging name (e.g. Bottle, Box, Pack, Kg).
+     *
+     * @return packaging unit name
+     */
+    public String getPurchaseUnit() {
+        return purchaseUnit;
+    }
+
+    /**
+     * Sets the purchasing unit packaging name.
+     *
+     * @param purchaseUnit packaging unit name to assign
+     */
+    public void setPurchaseUnit(String purchaseUnit) {
+        this.purchaseUnit = purchaseUnit;
+    }
+
+    /**
+     * Gets the packaging capacity in stock unit (e.g. 70.0 for 70 cl bottle).
+     *
+     * @return capacity per purchase unit
+     */
+    public BigDecimal getPackagingCapacity() {
+        return (packagingCapacity != null && packagingCapacity.compareTo(BigDecimal.ZERO) > 0)
+                ? packagingCapacity
+                : BigDecimal.ONE;
+    }
+
+    /**
+     * Sets the packaging capacity in stock unit.
+     *
+     * @param packagingCapacity capacity per purchase unit
+     */
+    public void setPackagingCapacity(BigDecimal packagingCapacity) {
+        this.packagingCapacity = packagingCapacity != null ? packagingCapacity : BigDecimal.ONE;
     }
 
     @Override

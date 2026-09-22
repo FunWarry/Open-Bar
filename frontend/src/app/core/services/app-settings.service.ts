@@ -66,6 +66,31 @@ export class AppSettingsService {
     return this.currentSettings?.warningGrossMarginPercentage ?? 50.0;
   }
 
+  /** Current configured establishment timezone ID (e.g. 'Europe/Paris', default: 'SYSTEM'). */
+  get timeZone(): string {
+    return this.currentSettings?.timeZone || 'SYSTEM';
+  }
+
+  /**
+   * Calculates the current timestamp in milliseconds aligned with the establishment's configured timezone.
+   * If the timezone is 'SYSTEM' or unsupported, falls back gracefully to client browser Date.now().
+   *
+   * @returns Millisecond timestamp in the establishment timezone
+   */
+  getNowInEstablishmentTime(): number {
+    const tz = this.timeZone;
+    if (!tz || tz === 'SYSTEM') {
+      return Date.now();
+    }
+    try {
+      const nowInTzStr = new Date().toLocaleString('en-US', { timeZone: tz });
+      const parsed = new Date(nowInTzStr).getTime();
+      return Number.isNaN(parsed) ? Date.now() : parsed;
+    } catch {
+      return Date.now();
+    }
+  }
+
   /**
    * Retrieves the physical cash drawer denominations configured for the establishment.
    * If a custom JSON configuration is stored in settings, parses and returns it.

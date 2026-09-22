@@ -199,7 +199,12 @@
               <!-- Stock Progress Gauge -->
               <div class="gauge-section">
                 <div class="gauge-labels">
-                  <span class="stock-qty-text">{{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }}</span>
+                  <div class="stock-qty-wrap">
+                    <span class="stock-qty-text">{{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }}</span>
+                    @if (getPackagingEquivalent(ingredient)) {
+                      <span class="stock-packaging-hint">{{ getPackagingEquivalent(ingredient) }}</span>
+                    }
+                  </div>
                   <span class="threshold-text">{{ 'INGREDIENTS.SEUIL_ALERTE' | transloco }}: {{ ingredient.seuilAlerte
                     }} {{ ingredient.uniteMesure }}</span>
                 </div>
@@ -360,8 +365,12 @@
                         [attr.aria-label]="ingredient.nom" [attr.data-testid]="'ingredient-list-item-' + ingredient.id">
                         <ion-label>
                           <h3>{{ ingredient.nom }}</h3>
-                          <p>{{ ingredient.uniteMesure }} — {{ 'INGREDIENTS.SEUIL_ALERTE' | transloco }} : {{ ingredient.seuilAlerte
-                            }} {{ ingredient.uniteMesure }}</p>
+                          <p>
+                            {{ ingredient.uniteMesure }} — {{ 'INGREDIENTS.SEUIL_ALERTE' | transloco }} : {{ ingredient.seuilAlerte }} {{ ingredient.uniteMesure }}
+                            @if (getPackagingEquivalent(ingredient)) {
+                              <span class="list-packaging-hint"> • {{ getPackagingEquivalent(ingredient) }}</span>
+                            }
+                          </p>
                           <ion-progress-bar [value]="getStockRatio(ingredient)" [color]="getStockColor(ingredient)"
                             style="margin-top:6px">
                           </ion-progress-bar>

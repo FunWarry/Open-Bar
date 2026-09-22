@@ -144,6 +144,9 @@ export interface Ingredient {
   degreAlcool?: number;
   isVegan?: boolean;
   category?: string;
+  purchaseUnit?: string;
+  packagingCapacity?: number;
+  packagingPriceHt?: number;
   createdAt: string;
   updatedAt: string;
 }

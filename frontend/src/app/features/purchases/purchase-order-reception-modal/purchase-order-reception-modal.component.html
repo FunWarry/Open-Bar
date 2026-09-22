@@ -73,14 +73,14 @@
               <div class="line-header">
                 <span class="ing-name">{{ item.get('ingredientNom')?.value }}</span>
                 <span class="qty-recap">
-                  {{ 'PURCHASES.ORDERED_SHORT' | transloco }}: {{ item.get('quantiteCommandee')?.value }} {{ item.get('ingredientUnite')?.value }} |
+                  {{ 'PURCHASES.ORDERED_SHORT' | transloco }}: {{ item.get('quantiteCommandee')?.value }} {{ item.get('purchaseUnit')?.value || item.get('ingredientUnite')?.value }} |
                   {{ 'PURCHASES.RECEIVED_SHORT' | transloco }}: {{ item.get('quantiteRecue')?.value }}
                 </span>
               </div>
 
               <div class="line-inputs-grid">
                 <div class="field-item">
-                  <label [attr.for]="'reception-qty-' + $index" class="field-label">{{ 'PURCHASES.QTY_DELIVERED' | transloco }} ({{ item.get('ingredientUnite')?.value }})</label>
+                  <label [attr.for]="'reception-qty-' + $index" class="field-label">{{ 'PURCHASES.QTY_DELIVERED' | transloco }} ({{ item.get('purchaseUnit')?.value || item.get('ingredientUnite')?.value }})</label>
                   <input
                     [id]="'reception-qty-' + $index"
                     type="number"
@@ -90,6 +90,11 @@
                     class="field-input"
                     [attr.data-testid]="'reception-qty-' + $index"
                   />
+                  @if (item.get('packagingCapacity')?.value > 1 || (item.get('purchaseUnit')?.value && item.get('purchaseUnit')?.value !== item.get('ingredientUnite')?.value)) {
+                    <span class="stock-equiv-hint" [attr.data-testid]="'reception-equiv-' + $index">
+                      ≈ {{ getEquivalentStockCredit(item) }} {{ item.get('ingredientUnite')?.value }}
+                    </span>
+                  }
                 </div>
 
                 <div class="field-item">

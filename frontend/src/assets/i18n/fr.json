@@ -1227,6 +1227,10 @@
     "ALCOHOL_DEGREE_LABEL": "Degré d'alcool",
     "ALCOHOL_DEGREE_HINT": "Pourcentage volumique d'alcool (% ABV)",
     "ALCOHOL_DEGREE_ERROR": "Le taux d'alcool doit être compris entre 0 et 100%",
+    "PURCHASE_UNIT_LABEL": "Conditionnement d'achat",
+    "PURCHASE_UNIT_PLACEHOLDER": "ex: Bouteille 70cl, Pack 1kg, Carton 6x1L",
+    "PACKAGING_CAPACITY_LABEL": "Contenance par conditionnement (en unité recette)",
+    "PACKAGING_PRICE_LABEL": "Prix par conditionnement HT",
     "UNITS": {
       "CL": {
         "LABEL": "Centilitres (cl)",

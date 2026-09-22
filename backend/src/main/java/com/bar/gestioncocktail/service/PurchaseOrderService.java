@@ -305,12 +305,19 @@ public class PurchaseOrderService {
 
         BigDecimal receivedPrice = recItem.prixUnitaireHt() != null ? recItem.prixUnitaireHt() : orderItem.getPrixUnitaireHt();
         Ingredient ingredient = orderItem.getIngredient();
+        if (ingredient == null) {
+            throw new BusinessException("Order item ID " + orderItem.getId() + " is missing associated ingredient");
+        }
+
+        BigDecimal capacity = resolveItemPackagingCapacity(orderItem, ingredient);
+        BigDecimal qtyStockReceived = qtyReceivedNow.multiply(capacity);
+        BigDecimal unitStockPrice = receivedPrice.divide(capacity, 6, RoundingMode.HALF_UP);
 
         BigDecimal oldStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock() : BigDecimal.ZERO;
         BigDecimal oldPamp = ingredient.getPrixUnitaire();
 
-        BigDecimal newPamp = calculateWeightedAverageCost(oldStock, oldPamp, qtyReceivedNow, receivedPrice);
-        BigDecimal newStock = oldStock.add(qtyReceivedNow);
+        BigDecimal newPamp = calculateWeightedAverageCost(oldStock, oldPamp, qtyStockReceived, unitStockPrice);
+        BigDecimal newStock = oldStock.add(qtyStockReceived);
 
         ingredient.setQuantiteStock(newStock);
         ingredient.setPrixUnitaire(newPamp);
@@ -326,6 +333,12 @@ public class PurchaseOrderService {
         deliveryItem.setPrixUnitaireHt(receivedPrice);
         deliveryItem.setAncienPamp(oldPamp);
         deliveryItem.setNouveauPamp(newPamp);
+        String pUnit = (orderItem.getPurchaseUnit() != null && !orderItem.getPurchaseUnit().isBlank())
+                ? orderItem.getPurchaseUnit()
+                : ingredient.getEffectivePurchaseUnit();
+        deliveryItem.setPurchaseUnit(pUnit);
+        deliveryItem.setPackagingCapacity(capacity);
+        deliveryItem.setStockQuantityReceived(qtyStockReceived);
         delivery.addItem(deliveryItem);
     }
 
@@ -423,20 +436,39 @@ public class PurchaseOrderService {
         if (order.getStatut() != PurchaseOrderStatus.PARTIALLY_RECEIVED && order.getStatut() != PurchaseOrderStatus.RECEIVED) {
             return;
         }
+        if (order.getItems() == null) {
+            return;
+        }
 
         for (PurchaseOrderItem item : order.getItems()) {
-            BigDecimal received = item.getQuantiteRecue();
-            if (received != null && received.compareTo(BigDecimal.ZERO) > 0) {
-                Ingredient ingredient = item.getIngredient();
-                BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock() : BigDecimal.ZERO;
-                BigDecimal revertedStock = currentStock.subtract(received);
-                if (revertedStock.compareTo(BigDecimal.ZERO) < 0) {
-                    revertedStock = BigDecimal.ZERO;
-                }
-                ingredient.setQuantiteStock(revertedStock);
-                ingredientRepository.save(ingredient);
-            }
+            revertItemReceivedStock(item);
         }
+    }
+
+    private void revertItemReceivedStock(PurchaseOrderItem item) {
+        BigDecimal received = item.getQuantiteRecue();
+        if (received == null || received.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+        Ingredient ingredient = item.getIngredient();
+        if (ingredient == null) {
+            return;
+        }
+
+        BigDecimal capacity = resolveItemPackagingCapacity(item, ingredient);
+        BigDecimal stockToRevert = received.multiply(capacity);
+        BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock() : BigDecimal.ZERO;
+        BigDecimal revertedStock = currentStock.subtract(stockToRevert).max(BigDecimal.ZERO);
+
+        ingredient.setQuantiteStock(revertedStock);
+        ingredientRepository.save(ingredient);
+    }
+
+    private BigDecimal resolveItemPackagingCapacity(PurchaseOrderItem item, Ingredient ingredient) {
+        if (item.getPackagingCapacity() != null && item.getPackagingCapacity().compareTo(BigDecimal.ZERO) > 0) {
+            return item.getPackagingCapacity();
+        }
+        return ingredient.getEffectivePackagingCapacity();
     }
 
     /**
@@ -468,6 +500,16 @@ public class PurchaseOrderService {
             item.setQuantiteRecue(BigDecimal.ZERO);
             item.setPrixUnitaireHt(itemReq.prixUnitaireHt());
             item.setTauxTva(itemReq.tauxTva() != null ? itemReq.tauxTva() : DEFAULT_VAT_RATE);
+
+            String pUnit = (itemReq.purchaseUnit() != null && !itemReq.purchaseUnit().isBlank())
+                    ? itemReq.purchaseUnit()
+                    : ingredient.getEffectivePurchaseUnit();
+            BigDecimal capacity = (itemReq.packagingCapacity() != null && itemReq.packagingCapacity().compareTo(BigDecimal.ZERO) > 0)
+                    ? itemReq.packagingCapacity()
+                    : ingredient.getEffectivePackagingCapacity();
+            item.setPurchaseUnit(pUnit);
+            item.setPackagingCapacity(capacity);
+
             order.addItem(item);
         }
     }

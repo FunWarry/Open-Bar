@@ -313,6 +313,22 @@
     margin-bottom: 4px;
   }
 
+  .unit-tag {
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  .stock-equiv-hint {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--semantic-success);
+    font-weight: 500;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .subtotal-val {
     display: flex;
     align-items: center;

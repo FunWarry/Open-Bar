@@ -62,10 +62,39 @@ public record AppSettingsResponseDTO(
     Integer printerPort,
     Boolean directPrintingEnabled,
     String cashDenominationsJson,
+    String timeZone,
     LocalDateTime updatedAt
 ) {
+    /** Default fallback timezone identifier. */
+    public static final String DEFAULT_TIMEZONE = "SYSTEM";
+
     /**
-     * Backwards-compatible 26-parameter constructor defaulting cashDenominationsJson to null.
+     * Backwards-compatible 27-parameter constructor defaulting timeZone to SYSTEM.
+     */
+    public AppSettingsResponseDTO(
+            Long id, String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity,
+            Boolean wifiEnabled, Boolean tableSessionValidationEnabled,
+            BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
+            BigDecimal warningGrossMarginPercentage, String barPrinterIp,
+            String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
+            Boolean directPrintingEnabled, String cashDenominationsJson,
+            LocalDateTime updatedAt) {
+        this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
+                tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
+                cashDenominationsJson, DEFAULT_TIMEZONE, updatedAt);
+    }
+
+    /**
+     * Backwards-compatible 26-parameter constructor defaulting cashDenominationsJson to null and timeZone to SYSTEM.
      */
     public AppSettingsResponseDTO(
             Long id, String primaryColor, String primaryColorStrong, String logoUrl,
@@ -85,11 +114,11 @@ public record AppSettingsResponseDTO(
                 wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
                 defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
                 barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
-                null, updatedAt);
+                null, DEFAULT_TIMEZONE, updatedAt);
     }
 
     /**
-     * Backwards-compatible 22-parameter constructor defaulting printer settings to null/false and cash denominations to null.
+     * Backwards-compatible 22-parameter constructor defaulting printer settings to null/false, cash denominations to null, and timeZone to SYSTEM.
      */
     public AppSettingsResponseDTO(
             Long id, String primaryColor, String primaryColorStrong, String logoUrl,
@@ -106,16 +135,17 @@ public record AppSettingsResponseDTO(
                 tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
                 wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
                 defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
-                null, null, null, 9100, false, null, updatedAt);
+                null, null, null, 9100, false, null, DEFAULT_TIMEZONE, updatedAt);
     }
 
     /**
-     * Converts an {@link AppSettings} entity into a response DTO.
+     * Converts an {@link AppSettings} entity into a response DTO with an explicit active timezone.
      *
      * @param s Source entity
+     * @param timeZone Active establishment timezone ID (e.g. 'Europe/Paris' or 'SYSTEM')
      * @return Response DTO
      */
-    public static AppSettingsResponseDTO from(AppSettings s) {
+    public static AppSettingsResponseDTO from(AppSettings s, String timeZone) {
         return new AppSettingsResponseDTO(
             s.getId(), s.getPrimaryColor(), s.getPrimaryColorStrong(),
             s.getLogoUrl(), s.getEstablishmentName(), s.getDefaultTheme(),
@@ -137,8 +167,19 @@ public record AppSettingsResponseDTO(
             s.getPrinterPort() != null ? s.getPrinterPort() : 9100,
             Boolean.TRUE.equals(s.getDirectPrintingEnabled()),
             s.getCashDenominationsJson(),
+            timeZone != null ? timeZone : DEFAULT_TIMEZONE,
             s.getUpdatedAt()
         );
+    }
+
+    /**
+     * Converts an {@link AppSettings} entity into a response DTO defaulting timezone to SYSTEM.
+     *
+     * @param s Source entity
+     * @return Response DTO
+     */
+    public static AppSettingsResponseDTO from(AppSettings s) {
+        return from(s, DEFAULT_TIMEZONE);
     }
 }
 

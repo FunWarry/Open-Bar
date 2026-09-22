@@ -125,7 +125,12 @@
             </div>
 
             <div class="line-col-qty">
-              <label [attr.for]="'po-line-qty-' + $index" class="col-label">{{ 'PURCHASES.QUANTITY' | transloco }}</label>
+              <label [attr.for]="'po-line-qty-' + $index" class="col-label">
+                {{ 'PURCHASES.QUANTITY' | transloco }}
+                @if (item.get('purchaseUnit')?.value) {
+                  <span class="unit-tag">({{ item.get('purchaseUnit')?.value }})</span>
+                }
+              </label>
               <input
                 [id]="'po-line-qty-' + $index"
                 type="number"
@@ -135,6 +140,11 @@
                 class="field-input"
                 [attr.data-testid]="'po-line-qty-' + $index"
               />
+              @if (getEquivalentStock(item).unit && (item.get('packagingCapacity')?.value > 1 || item.get('purchaseUnit')?.value)) {
+                <span class="stock-equiv-hint" [attr.data-testid]="'po-line-equiv-' + $index">
+                  ≈ {{ getEquivalentStock(item).qty }} {{ getEquivalentStock(item).unit }}
+                </span>
+              }
             </div>
 
             <div class="line-col-price">

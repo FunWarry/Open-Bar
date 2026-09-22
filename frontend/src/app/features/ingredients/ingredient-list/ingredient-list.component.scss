@@ -786,3 +786,21 @@
     font-size: 0.9rem;
   }
 }
+
+.stock-qty-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stock-packaging-hint {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--primary);
+  opacity: 0.9;
+}
+
+.list-packaging-hint {
+  color: var(--primary);
+  font-weight: 500;
+}

@@ -18,11 +18,15 @@ export interface TableAppel {
   tableZone?: string;
   type: TableAppelType;
   statut: TableAppelStatut;
+  status?: TableAppelStatut;
   commentaire?: string;
+  comment?: string;
   acquittePar?: string;
+  acknowledgedBy?: string;
   createdAt: string;
   updatedAt?: string;
   acquitteAt?: string;
+  acknowledgedAt?: string;
 }
 
 /**

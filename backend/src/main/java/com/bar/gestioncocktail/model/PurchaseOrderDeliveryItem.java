@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
@@ -18,7 +19,7 @@ import java.util.Objects;
 
 /**
  * JPA entity recording each received ingredient line item within a goods delivery intake,
- * preserving before-and-after Weighted Average Unit Cost (PAMP) values for auditability.
+ * preserving before-and-after Weighted Average Unit Cost (PAMP) values and stock unit packaging metrics.
  */
 @Entity
 @Table(name = "purchase_order_delivery_items")
@@ -53,8 +54,26 @@ public class PurchaseOrderDeliveryItem {
     private BigDecimal ancienPamp;
 
     @NotNull(message = "New PAMP is required")
-    @Column(name = "nouveau_pamp", nullable = false, precision = 10, scale = 2)
+    @Column(name = "nouveau_pamp", nullable = false, precision = 10, scale = 4)
     private BigDecimal nouveauPamp;
+
+    @Column(name = "purchase_unit", length = 50)
+    private String purchaseUnit;
+
+    @Column(name = "packaging_capacity", precision = 10, scale = 3)
+    private BigDecimal packagingCapacity = BigDecimal.ONE;
+
+    @Column(name = "stock_quantity_received", precision = 10, scale = 3)
+    private BigDecimal stockQuantityReceived;
+
+    @Transient
+    private String uniteAchat;
+
+    @Transient
+    private BigDecimal contenanceAchat;
+
+    @Transient
+    private BigDecimal quantiteStockRecue;
 
     /**
      * Default constructor required by JPA.
@@ -117,6 +136,62 @@ public class PurchaseOrderDeliveryItem {
 
     public void setNouveauPamp(BigDecimal nouveauPamp) {
         this.nouveauPamp = nouveauPamp;
+    }
+
+    /**
+     * Gets the purchasing unit packaging name.
+     *
+     * @return packaging unit name
+     */
+    public String getPurchaseUnit() {
+        return purchaseUnit;
+    }
+
+    /**
+     * Sets the purchasing unit packaging name.
+     *
+     * @param purchaseUnit packaging unit name to assign
+     */
+    public void setPurchaseUnit(String purchaseUnit) {
+        this.purchaseUnit = purchaseUnit;
+    }
+
+    /**
+     * Gets the packaging capacity in stock unit.
+     *
+     * @return capacity per purchase unit
+     */
+    public BigDecimal getPackagingCapacity() {
+        return (packagingCapacity != null && packagingCapacity.compareTo(BigDecimal.ZERO) > 0)
+                ? packagingCapacity
+                : BigDecimal.ONE;
+    }
+
+    /**
+     * Sets the packaging capacity in stock unit.
+     *
+     * @param packagingCapacity capacity per purchase unit
+     */
+    public void setPackagingCapacity(BigDecimal packagingCapacity) {
+        this.packagingCapacity = packagingCapacity != null ? packagingCapacity : BigDecimal.ONE;
+    }
+
+    /**
+     * Gets the equivalent quantity received in stock unit.
+     *
+     * @return quantity received in stock units
+     */
+    public BigDecimal getStockQuantityReceived() {
+        return stockQuantityReceived;
+    }
+
+    /**
+     * Sets the equivalent quantity received in stock unit.
+     *
+     * @param stockQuantityReceived quantity received in stock units
+     */
+    public void setStockQuantityReceived(BigDecimal stockQuantityReceived) {
+        this.stockQuantityReceived = stockQuantityReceived;
     }
 
     @Override

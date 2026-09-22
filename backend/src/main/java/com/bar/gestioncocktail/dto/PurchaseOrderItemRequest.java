@@ -27,5 +27,16 @@ public record PurchaseOrderItemRequest(
         @DecimalMin(value = "0.0", message = "Unit price cannot be negative")
         BigDecimal prixUnitaireHt,
 
-        BigDecimal tauxTva
-) {}
+        BigDecimal tauxTva,
+
+        String purchaseUnit,
+
+        BigDecimal packagingCapacity
+) {
+    /**
+     * Backward-compatible constructor without packaging fields.
+     */
+    public PurchaseOrderItemRequest(Long ingredientId, BigDecimal quantiteCommandee, BigDecimal prixUnitaireHt, BigDecimal tauxTva) {
+        this(ingredientId, quantiteCommandee, prixUnitaireHt, tauxTva, null, null);
+    }
+}

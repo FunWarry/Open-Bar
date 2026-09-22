@@ -94,7 +94,8 @@ public class DatabaseSchemaMigrationService implements ApplicationRunner {
                     PRIMARY KEY (rule_id, cocktail_id)
                 )
             """);
-            log.info("Schema column migrations completed successfully.");
+
+            log.info("Baseline schema check completed.");
         } catch (Exception e) {
             log.warn("Schema migration notice: {}", e.getMessage());
         }

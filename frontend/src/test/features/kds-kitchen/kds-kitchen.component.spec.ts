@@ -1,19 +1,22 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ToastController } from '@ionic/angular';
 import { of, Subject } from 'rxjs';
 import { KdsKitchenComponent } from '../../../app/features/kds-kitchen/kds-kitchen.component';
 import { DashboardBarmanService } from '../../../app/features/dashboard-barman/services/dashboard-barman.service';
 import { SoundService } from '../../../app/core/services/sound.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
+import { AppSettingsService } from '../../../app/core/services/app-settings.service';
 import { CommandeView } from '../../../app/features/dashboard-barman/models/commande-view.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('KdsKitchenComponent', () => {
   let component: KdsKitchenComponent;
+  let fixture: ComponentFixture<KdsKitchenComponent>;
   let dashboardServiceSpy: jasmine.SpyObj<DashboardBarmanService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let soundServiceSpy: jasmine.SpyObj<SoundService>;
   let wsServiceSpy: jasmine.SpyObj<WebSocketService>;
+  let appSettingsServiceSpy: jasmine.SpyObj<AppSettingsService>;
   let wsTopicKitchen$: Subject<any>;
   let wsTopicCommandes$: Subject<any>;
 
@@ -125,23 +128,27 @@ describe('KdsKitchenComponent', () => {
       return wsTopicCommandes$.asObservable();
     });
 
+    appSettingsServiceSpy = jasmine.createSpyObj('AppSettingsService', ['getNowInEstablishmentTime']);
+    appSettingsServiceSpy.getNowInEstablishmentTime.and.returnValue(Date.now());
+
     await TestBed.configureTestingModule({
       imports: [KdsKitchenComponent, getTranslocoTestingModule()],
       providers: [
         { provide: DashboardBarmanService, useValue: dashboardServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: SoundService, useValue: soundServiceSpy },
-        { provide: WebSocketService, useValue: wsServiceSpy }
+        { provide: WebSocketService, useValue: wsServiceSpy },
+        { provide: AppSettingsService, useValue: appSettingsServiceSpy }
       ]
     }).compileComponents();
 
-    const fixture = TestBed.createComponent(KdsKitchenComponent);
+    fixture = TestBed.createComponent(KdsKitchenComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
   afterEach(() => {
-    component.ngOnDestroy();
+    fixture.destroy();
   });
 
   it('should initialize and load kitchen orders', () => {
@@ -213,6 +220,7 @@ describe('KdsKitchenComponent', () => {
 
   it('should format elapsed time properly', () => {
     const now = new Date();
+    component.currentTime = now.getTime();
     const twoMinutesAgo = new Date(now.getTime() - 125000);
     const formatted = component.formatElapsedTime(twoMinutesAgo.toISOString());
     expect(formatted).toBe('02:05');

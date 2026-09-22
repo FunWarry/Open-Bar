@@ -30,13 +30,13 @@ public class TableAppel {
 
     @NotNull(message = "Call status is required")
     @Enumerated(EnumType.STRING)
-    @Column(name = "statut", nullable = false, length = 30)
+    @Column(name = "status", nullable = false, length = 30)
     private TableAppelStatut statut = TableAppelStatut.EN_ATTENTE;
 
-    @Column(name = "commentaire", length = 255)
+    @Column(name = "comment", length = 255)
     private String commentaire;
 
-    @Column(name = "acquitte_par", length = 100)
+    @Column(name = "acknowledged_by", length = 100)
     private String acquittePar;
 
     @Column(name = "created_at", nullable = false)
@@ -45,7 +45,7 @@ public class TableAppel {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column(name = "acquitte_at")
+    @Column(name = "acknowledged_at")
     private LocalDateTime acquitteAt;
 
     @PrePersist

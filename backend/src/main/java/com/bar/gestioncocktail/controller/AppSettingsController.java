@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,14 +28,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class AppSettingsController {
 
     private final AppSettingsService appSettingsService;
+    private final com.bar.gestioncocktail.service.TimeService timeService;
 
     /**
-     * Constructs the controller with the settings service dependency.
+     * Constructs the controller with settings service and time service dependencies.
      *
      * @param appSettingsService Application settings service
+     * @param timeService Application time service for establishment timezone resolution
      */
-    public AppSettingsController(AppSettingsService appSettingsService) {
+    @Autowired
+    public AppSettingsController(AppSettingsService appSettingsService, com.bar.gestioncocktail.service.TimeService timeService) {
         this.appSettingsService = appSettingsService;
+        this.timeService = timeService;
     }
 
     /**
@@ -46,7 +51,10 @@ public class AppSettingsController {
     @Operation(summary = "Get establishment settings", description = "Public endpoint to retrieve establishment branding and alert thresholds.")
     @ApiResponse(responseCode = "200", description = "Settings retrieved successfully")
     public ResponseEntity<AppSettingsResponseDTO> getSettings() {
-        return ResponseEntity.ok(AppSettingsResponseDTO.from(appSettingsService.getSettings()));
+        String tz = (timeService != null && timeService.getZoneId() != null)
+                ? timeService.getZoneId().getId()
+                : AppSettingsResponseDTO.DEFAULT_TIMEZONE;
+        return ResponseEntity.ok(AppSettingsResponseDTO.from(appSettingsService.getSettings(), tz));
     }
 
     /**
@@ -61,7 +69,10 @@ public class AppSettingsController {
     @ApiResponse(responseCode = "200", description = "Settings updated successfully")
     @ApiResponse(responseCode = "403", description = "Access denied - ADMIN or MANAGER role required")
     public ResponseEntity<AppSettingsResponseDTO> updateSettings(@Valid @RequestBody AppSettingsUpdateRequest request) {
-        return ResponseEntity.ok(AppSettingsResponseDTO.from(appSettingsService.updateSettings(request)));
+        String tz = (timeService != null && timeService.getZoneId() != null)
+                ? timeService.getZoneId().getId()
+                : AppSettingsResponseDTO.DEFAULT_TIMEZONE;
+        return ResponseEntity.ok(AppSettingsResponseDTO.from(appSettingsService.updateSettings(request), tz));
     }
 
     /**

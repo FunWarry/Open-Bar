@@ -94,6 +94,8 @@ export class PurchaseOrderReceptionModalComponent implements OnInit {
           ingredientId: [it.ingredientId],
           ingredientNom: [it.ingredientNom],
           ingredientUnite: [it.ingredientUnite],
+          purchaseUnit: [it.purchaseUnit || it.ingredientUnite],
+          packagingCapacity: [it.packagingCapacity || 1],
           quantiteCommandee: [it.quantiteCommandee],
           quantiteRecue: [it.quantiteRecue || 0],
           quantiteLivree: [remaining, [Validators.required, Validators.min(0)]],
@@ -104,6 +106,15 @@ export class PurchaseOrderReceptionModalComponent implements OnInit {
         this.items.push(itemGroup);
       });
     }
+  }
+
+  /**
+   * Computes equivalent quantity credited to inventory stock units.
+   */
+  getEquivalentStockCredit(item: any): number {
+    const qty = Number(item.get('quantiteLivree')?.value) || 0;
+    const capacity = Number(item.get('packagingCapacity')?.value) || 1;
+    return Math.round(qty * capacity * 100) / 100;
   }
 
   /**

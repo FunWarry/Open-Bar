@@ -24,9 +24,15 @@ public final class UnitConversionService {
     private static final BigDecimal FIVE_THOUSANDTHS = new BigDecimal("0.005");
     private static final BigDecimal FIFTEEN_THOUSANDTHS = new BigDecimal("0.015");
     private static final BigDecimal ONE_MILLIONTH = new BigDecimal("0.000001");
+    private static final BigDecimal FIVE_TEN_THOUSANDTHS = new BigDecimal("0.0005");
+    private static final BigDecimal ONE_EIGHTH = new BigDecimal("0.125");
+    private static final BigDecimal ONE_TENTH = new BigDecimal("0.1");
+    private static final BigDecimal ONE_FOURTH = new BigDecimal("0.25");
+    private static final BigDecimal ONE_HALF = new BigDecimal("0.5");
 
     private static final Map<String, BigDecimal> VOLUME_TO_LITERS = new HashMap<>();
     private static final Map<String, BigDecimal> MASS_TO_KILOGRAMS = new HashMap<>();
+    private static final Map<String, BigDecimal> DISCRETE_TO_UNITS = new HashMap<>();
 
     private UnitConversionService() {
         // Utility class with static conversion methods
@@ -35,19 +41,34 @@ public final class UnitConversionService {
     static {
         // Volume conversions to base unit: Liters (l)
         VOLUME_TO_LITERS.put("l", BigDecimal.ONE);
-        VOLUME_TO_LITERS.put("dl", new BigDecimal("0.1"));
+        VOLUME_TO_LITERS.put("liter", BigDecimal.ONE);
+        VOLUME_TO_LITERS.put("dl", ONE_TENTH);
         VOLUME_TO_LITERS.put("cl", new BigDecimal("0.01"));
         VOLUME_TO_LITERS.put("ml", ONE_THOUSANDTH);
         VOLUME_TO_LITERS.put("oz", new BigDecimal("0.03"));
         VOLUME_TO_LITERS.put("dash", ONE_THOUSANDTH);
-        VOLUME_TO_LITERS.put("goutte", new BigDecimal("0.0005"));
+        VOLUME_TO_LITERS.put("drop", FIVE_TEN_THOUSANDTHS);
         VOLUME_TO_LITERS.put("tsp", FIVE_THOUSANDTHS);
         VOLUME_TO_LITERS.put("tbsp", FIFTEEN_THOUSANDTHS);
 
         // Mass conversions to base unit: Kilograms (kg)
         MASS_TO_KILOGRAMS.put("kg", BigDecimal.ONE);
+        MASS_TO_KILOGRAMS.put("kilogram", BigDecimal.ONE);
         MASS_TO_KILOGRAMS.put("g", ONE_THOUSANDTH);
+        MASS_TO_KILOGRAMS.put("gram", ONE_THOUSANDTH);
         MASS_TO_KILOGRAMS.put("mg", ONE_MILLIONTH);
+        MASS_TO_KILOGRAMS.put("pinch", FIVE_TEN_THOUSANDTHS);
+
+        // Discrete count conversions to base unit: Unit / Piece (piece / u)
+        DISCRETE_TO_UNITS.put("piece", BigDecimal.ONE);
+        DISCRETE_TO_UNITS.put("unit", BigDecimal.ONE);
+        DISCRETE_TO_UNITS.put("u", BigDecimal.ONE);
+        DISCRETE_TO_UNITS.put("stick", BigDecimal.ONE);
+        DISCRETE_TO_UNITS.put("leaf", BigDecimal.ONE);
+        DISCRETE_TO_UNITS.put("half", ONE_HALF);
+        DISCRETE_TO_UNITS.put("quarter", ONE_FOURTH);
+        DISCRETE_TO_UNITS.put("slice", ONE_EIGHTH);
+        DISCRETE_TO_UNITS.put("zest", ONE_TENTH);
     }
 
     /**
@@ -102,7 +123,14 @@ public final class UnitConversionService {
             return fromInKg.divide(toFactor, 6, RoundingMode.HALF_UP);
         }
 
-        // Fallback for identical categories (e.g. discrete count piece / tranche / zeste) or unknown pairs
+        // Both discrete count units
+        if (DISCRETE_TO_UNITS.containsKey(normFrom) && DISCRETE_TO_UNITS.containsKey(normTo)) {
+            BigDecimal fromInBaseUnits = quantity.multiply(DISCRETE_TO_UNITS.get(normFrom), MC);
+            BigDecimal toFactor = DISCRETE_TO_UNITS.get(normTo);
+            return fromInBaseUnits.divide(toFactor, 6, RoundingMode.HALF_UP);
+        }
+
+        // Fallback for identical categories (e.g. unknown discrete units) or unknown pairs
         log.debug("Direct 1:1 unit conversion applied between '{}' and '{}'", fromUnit, toUnit);
         return quantity;
     }

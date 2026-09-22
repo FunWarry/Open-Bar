@@ -1891,6 +1891,16 @@ public class SampleDataSeederService {
             item.setQuantiteRecue(new BigDecimal(itNode.get("quantiteRecue").asText()));
             item.setPrixUnitaireHt(unitPrice);
             item.setTauxTva(new BigDecimal(itNode.get("tauxTva").asText()));
+            if (itNode.hasNonNull("purchaseUnit")) {
+                item.setPurchaseUnit(itNode.get("purchaseUnit").asText());
+            } else if (ing.getPurchaseUnit() != null) {
+                item.setPurchaseUnit(ing.getPurchaseUnit());
+            }
+            if (itNode.hasNonNull("packagingCapacity")) {
+                item.setPackagingCapacity(new BigDecimal(itNode.get("packagingCapacity").asText()));
+            } else if (ing.getPackagingCapacity() != null) {
+                item.setPackagingCapacity(ing.getPackagingCapacity());
+            }
             items.add(item);
         }
         return items;
@@ -1919,10 +1929,13 @@ public class SampleDataSeederService {
         return findIngredient(ingNom).orElseGet(() -> {
             Ingredient newIng = new Ingredient();
             newIng.setNom(ingNom);
-            newIng.setUniteMesure("L");
-            newIng.setQuantiteStock(new BigDecimal("10.0"));
-            newIng.setSeuilAlerte(new BigDecimal("2.0"));
+            newIng.setUniteMesure("cl");
+            newIng.setQuantiteStock(new BigDecimal("100.0"));
+            newIng.setSeuilAlerte(new BigDecimal("20.0"));
             newIng.setPrixUnitaire(unitPrice != null ? unitPrice : new BigDecimal("10.00"));
+            newIng.setPurchaseUnit("Bouteille 70cl");
+            newIng.setPackagingCapacity(BigDecimal.valueOf(70.0));
+            newIng.setPackagingPriceHt(unitPrice != null ? unitPrice : new BigDecimal("10.00"));
             return ingredientRepository.save(newIng);
         });
     }

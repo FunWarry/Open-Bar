@@ -647,6 +647,20 @@ public class CocktailDataSeederService {
         newIng.setDegreAlcool(abv != null ? abv : BigDecimal.ZERO);
         newIng.setIsVegan(allergens == null || (!allergens.contains(Allergen.LAIT) && !allergens.contains(Allergen.OEUF)));
         newIng.setCategory(category != null && !category.isBlank() ? category : CATEGORY_OTHER);
+        String effUnit = newIng.getUniteMesure();
+        if ("cl".equalsIgnoreCase(effUnit) || "ml".equalsIgnoreCase(effUnit) || "l".equalsIgnoreCase(effUnit)) {
+            newIng.setPurchaseUnit("Bouteille 70cl");
+            newIng.setPackagingCapacity(BigDecimal.valueOf(70.0));
+            newIng.setPackagingPriceHt(newIng.getPrixUnitaire().multiply(BigDecimal.valueOf(70.0)).setScale(2, RoundingMode.HALF_UP));
+        } else if ("g".equalsIgnoreCase(effUnit) || "kg".equalsIgnoreCase(effUnit)) {
+            newIng.setPurchaseUnit("Paquet 1kg");
+            newIng.setPackagingCapacity(BigDecimal.valueOf(1000.0));
+            newIng.setPackagingPriceHt(newIng.getPrixUnitaire().multiply(BigDecimal.valueOf(1000.0)).setScale(2, RoundingMode.HALF_UP));
+        } else {
+            newIng.setPurchaseUnit("Colis 10 unités");
+            newIng.setPackagingCapacity(BigDecimal.valueOf(10.0));
+            newIng.setPackagingPriceHt(newIng.getPrixUnitaire().multiply(BigDecimal.valueOf(10.0)).setScale(2, RoundingMode.HALF_UP));
+        }
         return ingredientRepository.save(newIng);
     }
 

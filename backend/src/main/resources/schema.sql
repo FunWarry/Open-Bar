@@ -104,6 +104,9 @@ CREATE TABLE IF NOT EXISTS ingredients (
     degre_alcool DECIMAL(5,2) DEFAULT 0.0,
     is_vegan BOOLEAN DEFAULT true,
     category VARCHAR(50) DEFAULT 'other',
+    purchase_unit VARCHAR(50),
+    packaging_capacity DECIMAL(10,3) DEFAULT 1.000,
+    packaging_price_ht DECIMAL(10,2),
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -241,16 +244,16 @@ CREATE TABLE IF NOT EXISTS table_appels (
     id BIGSERIAL PRIMARY KEY,
     table_id BIGINT NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
     type VARCHAR(30) NOT NULL,
-    statut VARCHAR(30) NOT NULL DEFAULT 'EN_ATTENTE',
-    commentaire VARCHAR(255),
-    acquitte_par VARCHAR(100),
+    status VARCHAR(30) NOT NULL DEFAULT 'EN_ATTENTE',
+    comment VARCHAR(255),
+    acknowledged_by VARCHAR(100),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    acquitte_at TIMESTAMP
+    acknowledged_at TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_table_appels_table_statut ON table_appels(table_id, statut);
-CREATE INDEX IF NOT EXISTS idx_table_appels_statut ON table_appels(statut);
+CREATE INDEX IF NOT EXISTS idx_table_appels_table_status ON table_appels(table_id, status);
+CREATE INDEX IF NOT EXISTS idx_table_appels_status ON table_appels(status);
 
 CREATE TABLE IF NOT EXISTS table_sessions (
     id BIGSERIAL PRIMARY KEY,
@@ -727,7 +730,9 @@ CREATE TABLE IF NOT EXISTS purchase_order_items (
     quantite_commandee DECIMAL(10,2) NOT NULL,
     quantite_recue DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     prix_unitaire_ht DECIMAL(10,2) NOT NULL,
-    taux_tva DECIMAL(5,2) NOT NULL DEFAULT 20.00
+    taux_tva DECIMAL(5,2) NOT NULL DEFAULT 20.00,
+    purchase_unit VARCHAR(50),
+    packaging_capacity DECIMAL(10,3) DEFAULT 1.000
 );
 
 CREATE INDEX IF NOT EXISTS idx_po_items_po_id ON purchase_order_items(purchase_order_id);
@@ -751,8 +756,11 @@ CREATE TABLE IF NOT EXISTS purchase_order_delivery_items (
     ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE RESTRICT,
     quantite_recue DECIMAL(10,2) NOT NULL,
     prix_unitaire_ht DECIMAL(10,2) NOT NULL,
-    ancien_pamp DECIMAL(10,2),
-    nouveau_pamp DECIMAL(10,2) NOT NULL
+    ancien_pamp DECIMAL(10,4),
+    nouveau_pamp DECIMAL(10,4) NOT NULL,
+    purchase_unit VARCHAR(50),
+    packaging_capacity DECIMAL(10,3) DEFAULT 1.000,
+    stock_quantity_received DECIMAL(10,3)
 );
 
 CREATE INDEX IF NOT EXISTS idx_po_delivery_items_delivery ON purchase_order_delivery_items(delivery_id);

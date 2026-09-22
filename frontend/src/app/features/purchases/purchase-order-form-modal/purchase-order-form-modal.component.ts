@@ -86,9 +86,9 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
     this.initOptions();
 
     const defaultSupplierId = this.order?.supplierId ?? (this.suppliers.length > 0 ? this.suppliers[0].id : null);
-    const defaultDate = this.order?.dateLivraisonPrevue ? this.order.dateLivraisonPrevue.substring(0, 10) : '';
-    const defaultRef = this.order?.referenceFactureFournisseur || '';
-    const defaultNotes = this.order?.notes || '';
+    const defaultDate = this.order?.dateLivraisonPrevue?.substring(0, 10) ?? '';
+    const defaultRef = this.order?.referenceFactureFournisseur ?? '';
+    const defaultNotes = this.order?.notes ?? '';
 
     this.form = this.fb.group({
       supplierId: [defaultSupplierId, [Validators.required]],
@@ -98,13 +98,16 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
       items: this.fb.array([])
     });
 
-    if (this.order?.items?.length) {
-      for (const item of this.order.items) {
+    const orderItems = this.order?.items;
+    if (orderItems && orderItems.length > 0) {
+      for (const item of orderItems) {
         this.addItem(
           item.ingredientId,
           item.prixUnitaireHt,
           item.tauxTva ?? 20,
-          item.quantiteCommandee
+          item.quantiteCommandee,
+          item.purchaseUnit ?? '',
+          item.packagingCapacity ?? 1
         );
       }
     } else if (this.items.length === 0) {
@@ -136,12 +139,21 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
   /**
    * Appends an item line to the order form.
    */
-  addItem(ingredientId?: number, unitCost = 0, defaultVat = 20, qty = 1): void {
+  addItem(
+    ingredientId?: number,
+    unitCost = 0,
+    defaultVat = 20,
+    qty = 1,
+    purchaseUnit = '',
+    packagingCapacity = 1
+  ): void {
     const itemGroup = this.fb.group({
       ingredientId: [ingredientId ?? null, [Validators.required]],
       quantiteCommandee: [qty, [Validators.required, Validators.min(0.001)]],
       prixUnitaireHt: [unitCost, [Validators.required, Validators.min(0)]],
-      tauxTva: [defaultVat, [Validators.required, Validators.min(0)]]
+      tauxTva: [defaultVat, [Validators.required, Validators.min(0)]],
+      purchaseUnit: [purchaseUnit],
+      packagingCapacity: [packagingCapacity, [Validators.min(0.001)]]
     });
 
     this.items.push(itemGroup);
@@ -157,7 +169,7 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Handles ingredient change to automatically preload unit cost.
+   * Handles ingredient change to automatically preload unit cost and packaging details.
    */
   onIngredientSelected(index: number, optionOrId: any): void {
     const ingId = typeof optionOrId === 'object' && optionOrId !== null
@@ -171,9 +183,30 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
     const selectedIng = this.ingredients.find(i => i.id === ingId);
     if (selectedIng) {
       const line = this.items.at(index);
-      const defaultCost = selectedIng.unitCost || selectedIng.prixUnitaire || 0;
-      line.patchValue({ prixUnitaireHt: defaultCost });
+      const defaultCost = selectedIng.packagingPriceHt || selectedIng.unitCost || selectedIng.prixUnitaire || 0;
+      const defaultUnit = selectedIng.purchaseUnit || selectedIng.uniteMesure || '';
+      const defaultCapacity = selectedIng.packagingCapacity || 1;
+      line.patchValue({
+        prixUnitaireHt: defaultCost,
+        purchaseUnit: defaultUnit,
+        packagingCapacity: defaultCapacity
+      });
     }
+  }
+
+  /**
+   * Computes the calculated equivalent inventory stock quantity for an order line item.
+   */
+  getEquivalentStock(ctrl: any): { qty: number; unit: string } {
+    const ingId = Number(ctrl.get('ingredientId')?.value);
+    const qty = Number(ctrl.get('quantiteCommandee')?.value) || 0;
+    const capacity = Number(ctrl.get('packagingCapacity')?.value) || 1;
+    const ing = this.ingredients.find(i => i.id === ingId);
+    const unit = ing?.uniteMesure || '';
+    return {
+      qty: Math.round(qty * capacity * 100) / 100,
+      unit
+    };
   }
 
   /**
@@ -283,7 +316,9 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
       ingredientId: Number(it.ingredientId),
       quantiteCommandee: Number(it.quantiteCommandee),
       prixUnitaireHt: Number(it.prixUnitaireHt),
-      tauxTva: Number(it.tauxTva)
+      tauxTva: Number(it.tauxTva),
+      purchaseUnit: it.purchaseUnit || undefined,
+      packagingCapacity: it.packagingCapacity ? Number(it.packagingCapacity) : undefined
     }));
 
     const payload: PurchaseOrderCreateRequest = {
