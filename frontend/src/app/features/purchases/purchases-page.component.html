@@ -123,47 +123,47 @@
         <button
           type="button"
           class="filter-chip"
-          [class.active]="statusFilter() === 'BROUILLON'"
-          (click)="statusFilter.set('BROUILLON')"
+          [class.active]="statusFilter() === 'DRAFT'"
+          (click)="statusFilter.set('DRAFT')"
           data-testid="filter-status-draft"
         >
-          {{ 'PURCHASES.STATUS.BROUILLON' | transloco }}
+          {{ 'PURCHASES.STATUS.DRAFT' | transloco }}
         </button>
         <button
           type="button"
           class="filter-chip"
-          [class.active]="statusFilter() === 'COMMANDEE'"
-          (click)="statusFilter.set('COMMANDEE')"
+          [class.active]="statusFilter() === 'ORDERED'"
+          (click)="statusFilter.set('ORDERED')"
           data-testid="filter-status-ordered"
         >
-          {{ 'PURCHASES.STATUS.COMMANDEE' | transloco }}
+          {{ 'PURCHASES.STATUS.ORDERED' | transloco }}
         </button>
         <button
           type="button"
           class="filter-chip"
-          [class.active]="statusFilter() === 'PARTIELLEMENT_LIVREE'"
-          (click)="statusFilter.set('PARTIELLEMENT_LIVREE')"
+          [class.active]="statusFilter() === 'PARTIALLY_RECEIVED'"
+          (click)="statusFilter.set('PARTIALLY_RECEIVED')"
           data-testid="filter-status-partial"
         >
-          {{ 'PURCHASES.STATUS.PARTIELLEMENT_LIVREE' | transloco }}
+          {{ 'PURCHASES.STATUS.PARTIALLY_RECEIVED' | transloco }}
         </button>
         <button
           type="button"
           class="filter-chip"
-          [class.active]="statusFilter() === 'LIVREE'"
-          (click)="statusFilter.set('LIVREE')"
+          [class.active]="statusFilter() === 'RECEIVED'"
+          (click)="statusFilter.set('RECEIVED')"
           data-testid="filter-status-delivered"
         >
-          {{ 'PURCHASES.STATUS.LIVREE' | transloco }}
+          {{ 'PURCHASES.STATUS.RECEIVED' | transloco }}
         </button>
         <button
           type="button"
           class="filter-chip"
-          [class.active]="statusFilter() === 'ANNULEE'"
-          (click)="statusFilter.set('ANNULEE')"
+          [class.active]="statusFilter() === 'CANCELLED'"
+          (click)="statusFilter.set('CANCELLED')"
           data-testid="filter-status-cancelled"
         >
-          {{ 'PURCHASES.STATUS.ANNULEE' | transloco }}
+          {{ 'PURCHASES.STATUS.CANCELLED' | transloco }}
         </button>
       </div>
 
@@ -202,7 +202,7 @@
               </div>
 
               <div class="order-card-footer">
-                @if (order.status === 'BROUILLON') {
+                @if (order.status === 'DRAFT') {
                   <button
                     type="button"
                     class="card-btn btn-send"
@@ -223,7 +223,7 @@
                   </button>
                 }
 
-                @if (order.status === 'COMMANDEE' || order.status === 'PARTIELLEMENT_LIVREE') {
+                @if (order.status === 'ORDERED' || order.status === 'PARTIALLY_RECEIVED') {
                   <button
                     type="button"
                     class="card-btn btn-reception"
@@ -235,7 +235,7 @@
                   </button>
                 }
 
-                @if (order.status !== 'BROUILLON' && order.status !== 'ANNULEE') {
+                @if (order.status !== 'DRAFT' && order.status !== 'CANCELLED') {
                   <button
                     type="button"
                     class="card-btn btn-pdf"

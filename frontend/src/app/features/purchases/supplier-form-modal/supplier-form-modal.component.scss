@@ -38,7 +38,7 @@
   justify-content: center;
   font-size: 22px;
   background: rgba(79, 70, 229, 0.12);
-  color: var(--primary, #4f46e5);
+  color: var(--primary);
   border: 1px solid rgba(79, 70, 229, 0.3);
 
   ion-icon {
@@ -178,7 +178,7 @@
   .btn-submit {
     background: var(--primary);
     border: 1px solid transparent;
-    color: #ffffff;
+    color: var(--text-on-accent);
 
     &:disabled {
       opacity: 0.5;

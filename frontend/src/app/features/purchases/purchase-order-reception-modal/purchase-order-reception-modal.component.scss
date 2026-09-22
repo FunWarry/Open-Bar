@@ -38,7 +38,7 @@
   justify-content: center;
   font-size: 22px;
   background: rgba(52, 199, 123, 0.12);
-  color: var(--semantic-success, #34c77b);
+  color: var(--semantic-success);
   border: 1px solid rgba(52, 199, 123, 0.3);
 
   ion-icon {
@@ -170,7 +170,7 @@
   font-size: 0.825rem;
   font-weight: 600;
   background: var(--primary);
-  color: #ffffff;
+  color: var(--text-on-accent);
   border: none;
   cursor: pointer;
   transition: all 0.18s ease;
@@ -361,7 +361,7 @@
   .btn-submit {
     background: var(--semantic-success);
     border: 1px solid transparent;
-    color: #ffffff;
+    color: var(--text-on-accent);
 
     &:disabled {
       opacity: 0.5;

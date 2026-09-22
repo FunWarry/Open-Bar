@@ -2815,7 +2815,7 @@
   "purchase_orders": [
     {
       "supplierNom": "Distillerie des Alpes",
-      "statut": "RECU",
+      "statut": "RECEIVED",
       "notes": "Commande mensuelle spiritueux d'hiver",
       "referenceFactureFournisseur": "FA-2026-089",
       "daysAgo": 5,
@@ -2845,7 +2845,7 @@
     },
     {
       "supplierNom": "Grossiste Boissons Rhône",
-      "statut": "COMMANDE",
+      "statut": "ORDERED",
       "notes": "Réapprovisionnement sirops et jus avant weekend",
       "referenceFactureFournisseur": null,
       "daysAgo": 1,
@@ -2868,7 +2868,7 @@
     },
     {
       "supplierNom": "Brasserie du Mont-Blanc",
-      "statut": "BROUILLON",
+      "statut": "DRAFT",
       "notes": "Préparation commande bières artisanales et fûts pour l'événement du weekend",
       "referenceFactureFournisseur": null,
       "daysAgo": 0,
@@ -2891,7 +2891,7 @@
     },
     {
       "supplierNom": "Grossiste Boissons Rhône",
-      "statut": "PARTIELLEMENT_LIVREE",
+      "statut": "PARTIALLY_RECEIVED",
       "notes": "BL partiel reçu ce matin (reliquat de livraison prévu sous 48h)",
       "referenceFactureFournisseur": "BL-GBR-2026-441",
       "daysAgo": 3,

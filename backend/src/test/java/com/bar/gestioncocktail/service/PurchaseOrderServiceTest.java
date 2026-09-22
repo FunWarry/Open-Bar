@@ -282,4 +282,118 @@ class PurchaseOrderServiceTest {
                     .hasMessageContaining("Cannot receive delivery for order in status: CANCELLED");
         }
     }
+
+    @Nested
+    @DisplayName("Query Orders")
+    class QueryOrdersTests {
+
+        @Test
+        @DisplayName("Should retrieve all purchase orders")
+        void shouldRetrieveAllPurchaseOrders() {
+            when(purchaseOrderRepository.findAllByOrderByDateCommandeDesc()).thenReturn(List.of(sampleOrder));
+
+            List<PurchaseOrderDTO> orders = purchaseOrderService.getAllPurchaseOrders();
+
+            assertThat(orders).hasSize(1);
+            assertThat(orders.get(0).id()).isEqualTo(100L);
+            verify(establishmentConfigService).checkModuleEnabled(EstablishmentModule.SUPPLIERS_MANAGEMENT);
+        }
+
+        @Test
+        @DisplayName("Should retrieve purchase orders by status")
+        void shouldRetrieveOrdersByStatus() {
+            when(purchaseOrderRepository.findByStatutOrderByDateCommandeDesc(PurchaseOrderStatus.ORDERED))
+                    .thenReturn(List.of(sampleOrder));
+
+            List<PurchaseOrderDTO> orders = purchaseOrderService.getPurchaseOrdersByStatus(PurchaseOrderStatus.ORDERED);
+
+            assertThat(orders).hasSize(1);
+            assertThat(orders.get(0).statut()).isEqualTo(PurchaseOrderStatus.ORDERED);
+        }
+
+        @Test
+        @DisplayName("Should retrieve order by ID")
+        void shouldRetrieveOrderById() {
+            when(purchaseOrderRepository.findById(100L)).thenReturn(Optional.of(sampleOrder));
+
+            PurchaseOrderDTO dto = purchaseOrderService.getPurchaseOrderById(100L);
+
+            assertThat(dto).isNotNull();
+            assertThat(dto.id()).isEqualTo(100L);
+        }
+
+        @Test
+        @DisplayName("Should throw ResourceNotFoundException when order does not exist")
+        void shouldThrowWhenOrderNotFound() {
+            when(purchaseOrderRepository.findById(999L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> purchaseOrderService.getPurchaseOrderById(999L))
+                    .isInstanceOf(com.bar.gestioncocktail.exception.ResourceNotFoundException.class)
+                    .hasMessageContaining("Purchase order not found with ID: 999");
+        }
+    }
+
+    @Nested
+    @DisplayName("Stock Reversion and Variations")
+    class StockReversionAndVariationsTests {
+
+        @Test
+        @DisplayName("Should revert stock when cancelling a partially received order")
+        void shouldRevertStockWhenCancellingPartiallyReceivedOrder() {
+            sampleOrder.setStatut(PurchaseOrderStatus.PARTIALLY_RECEIVED);
+            sampleItem.setQuantiteRecue(new BigDecimal("5.00"));
+            sampleRhum.setQuantiteStock(new BigDecimal("15.00"));
+
+            when(purchaseOrderRepository.findById(100L)).thenReturn(Optional.of(sampleOrder));
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            PurchaseOrderDTO result = purchaseOrderService.cancelPurchaseOrder(100L, "Cancelled remainder", null);
+
+            assertThat(result.statut()).isEqualTo(PurchaseOrderStatus.CANCELLED);
+            assertThat(sampleRhum.getQuantiteStock()).isEqualByComparingTo("10.00");
+            verify(ingredientRepository).save(sampleRhum);
+        }
+
+        @Test
+        @DisplayName("Should retrieve price variations for all ingredients and single ingredient")
+        void shouldRetrievePriceVariations() {
+            PurchaseOrderDelivery delivery = new PurchaseOrderDelivery();
+            delivery.setDateReception(LocalDateTime.now());
+            delivery.setBonLivraisonRef("BL-100");
+
+            PurchaseOrderDeliveryItem item = new PurchaseOrderDeliveryItem();
+            item.setId(50L);
+            item.setDelivery(delivery);
+            item.setIngredient(sampleRhum);
+            item.setQuantiteRecue(new BigDecimal("10.00"));
+            item.setPrixUnitaireHt(new BigDecimal("15.00"));
+            item.setAncienPamp(new BigDecimal("12.00"));
+            item.setNouveauPamp(new BigDecimal("13.50"));
+
+            when(purchaseOrderDeliveryItemRepository.findAllByOrderByDeliveryDateReceptionDesc())
+                    .thenReturn(List.of(item));
+            when(purchaseOrderDeliveryItemRepository.findByIngredientIdOrderByDeliveryDateReceptionDesc(10L))
+                    .thenReturn(List.of(item));
+
+            List<PriceVariationDTO> all = purchaseOrderService.getPriceVariations(null);
+            List<PriceVariationDTO> single = purchaseOrderService.getPriceVariations(10L);
+
+            assertThat(all).hasSize(1);
+            assertThat(single).hasSize(1);
+            assertThat(single.get(0).ingredientId()).isEqualTo(10L);
+        }
+
+        @Test
+        @DisplayName("Should handle calculateWeightedAverageCost edge cases")
+        void shouldHandlePampEdgeCases() {
+            BigDecimal res1 = purchaseOrderService.calculateWeightedAverageCost(BigDecimal.TEN, new BigDecimal("12.00"), BigDecimal.ONE, null);
+            assertThat(res1).isEqualByComparingTo("12.00");
+
+            BigDecimal res2 = purchaseOrderService.calculateWeightedAverageCost(BigDecimal.TEN, new BigDecimal("12.00"), BigDecimal.ZERO, new BigDecimal("15.00"));
+            assertThat(res2).isEqualByComparingTo("12.00");
+
+            BigDecimal res3 = purchaseOrderService.calculateWeightedAverageCost(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.TEN, new BigDecimal("15.00"));
+            assertThat(res3).isEqualByComparingTo("15.00");
+        }
+    }
 }

@@ -2,11 +2,11 @@
  * Lifecycle status of a supplier purchase order.
  */
 export type PurchaseOrderStatus =
-  | 'BROUILLON'
-  | 'COMMANDEE'
-  | 'PARTIELLEMENT_LIVREE'
-  | 'LIVREE'
-  | 'ANNULEE';
+  | 'DRAFT'
+  | 'ORDERED'
+  | 'PARTIALLY_RECEIVED'
+  | 'RECEIVED'
+  | 'CANCELLED';
 
 /**
  * Line item in a purchase order.

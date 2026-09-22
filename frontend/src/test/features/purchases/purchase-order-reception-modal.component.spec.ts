@@ -21,7 +21,7 @@ describe('PurchaseOrderReceptionModalComponent', () => {
     numeroCommande: 'CMD-2026-001',
     supplierId: 1,
     supplierNom: 'Distillerie des Alpes',
-    status: 'COMMANDEE',
+    status: 'ORDERED',
     dateCommande: '2026-09-20T10:00:00',
     totalHt: 200,
     totalTva: 40,

@@ -21,7 +21,7 @@ describe('PurchaseOrderService', () => {
     supplierNom: 'Distillerie des Alpes',
     dateCommande: '2026-09-20T10:00:00',
     dateLivraisonPrevue: '2026-09-22',
-    status: 'COMMANDEE',
+    status: 'ORDERED',
     totalHt: 200,
     totalTva: 40,
     totalTtc: 240,
@@ -52,13 +52,13 @@ describe('PurchaseOrderService', () => {
   });
 
   it('getAll() adds status query param when specified', () => {
-    service.getAll('COMMANDEE').subscribe(orders => {
+    service.getAll('ORDERED').subscribe(orders => {
       expect(orders).toHaveSize(1);
     });
 
-    const req = httpMock.expectOne(`${baseUrl}?status=COMMANDEE`);
+    const req = httpMock.expectOne(`${baseUrl}?status=ORDERED`);
     expect(req.request.method).toBe('GET');
-    expect(req.request.params.get('status')).toBe('COMMANDEE');
+    expect(req.request.params.get('status')).toBe('ORDERED');
     req.flush([mockOrder]);
   });
 
@@ -139,7 +139,7 @@ describe('PurchaseOrderService', () => {
 
     const req = httpMock.expectOne(`${baseUrl}/10/cancel`);
     expect(req.request.method).toBe('PATCH');
-    req.flush({ ...mockOrder, status: 'ANNULEE' });
+    req.flush({ ...mockOrder, status: 'CANCELLED' });
   });
 
   it('downloadPdf() sends GET request with blob responseType', () => {

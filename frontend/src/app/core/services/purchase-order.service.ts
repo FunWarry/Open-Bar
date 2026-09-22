@@ -95,19 +95,7 @@ export class PurchaseOrderService {
 
   private normalizeOrder(dto: any): PurchaseOrder {
     if (!dto) return dto;
-    const rawStatus = dto.statut || dto.status || 'BROUILLON';
-    let status: PurchaseOrderStatus;
-    if (rawStatus === 'ORDERED' || rawStatus === 'COMMANDEE' || rawStatus === 'COMMANDE') {
-      status = 'COMMANDEE';
-    } else if (rawStatus === 'PARTIALLY_RECEIVED' || rawStatus === 'PARTIELLEMENT_LIVREE') {
-      status = 'PARTIELLEMENT_LIVREE';
-    } else if (rawStatus === 'RECEIVED' || rawStatus === 'LIVREE' || rawStatus === 'RECU') {
-      status = 'LIVREE';
-    } else if (rawStatus === 'CANCELLED' || rawStatus === 'ANNULEE') {
-      status = 'ANNULEE';
-    } else {
-      status = 'BROUILLON';
-    }
+    const status: PurchaseOrderStatus = dto.statut || dto.status || 'DRAFT';
 
     const order: PurchaseOrder = {
       ...dto,

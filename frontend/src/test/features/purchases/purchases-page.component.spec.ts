@@ -51,7 +51,7 @@ describe('PurchasesPageComponent', () => {
       numeroCommande: 'BC-2026-0001',
       supplierId: 1,
       supplierNom: 'Brasserie du Mont-Blanc',
-      status: 'COMMANDEE',
+      status: 'ORDERED',
       dateCommande: '2026-09-20T10:00:00',
       dateLivraisonPrevue: '2026-09-22',
       totalHt: 200,
@@ -64,7 +64,7 @@ describe('PurchasesPageComponent', () => {
       numeroCommande: 'BC-2026-0002',
       supplierId: 2,
       supplierNom: 'Distillerie des Alpes',
-      status: 'BROUILLON',
+      status: 'DRAFT',
       totalHt: 100,
       totalTva: 20,
       totalTtc: 120,
@@ -144,11 +144,11 @@ describe('PurchasesPageComponent', () => {
   it('filters purchase orders by status correctly', () => {
     expect(component.filteredOrders()).toHaveSize(2);
 
-    component.statusFilter.set('COMMANDEE');
+    component.statusFilter.set('ORDERED');
     expect(component.filteredOrders()).toHaveSize(1);
     expect(component.filteredOrders()[0].numeroCommande).toBe('BC-2026-0001');
 
-    component.statusFilter.set('LIVREE');
+    component.statusFilter.set('RECEIVED');
     expect(component.filteredOrders()).toHaveSize(0);
   });
 
