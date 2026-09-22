@@ -805,6 +805,7 @@ describe('AppSettingsPageComponent', () => {
         cashDrawer: false,
         barTabs: false,
         cocktailLibrary: false,
+        suppliersManagement: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -818,6 +819,7 @@ describe('AppSettingsPageComponent', () => {
         cashDrawer: false,
         barTabs: false,
         cocktailLibrary: false,
+        suppliersManagement: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });

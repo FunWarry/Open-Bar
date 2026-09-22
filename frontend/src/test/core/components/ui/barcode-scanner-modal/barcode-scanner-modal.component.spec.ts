@@ -63,10 +63,12 @@ describe('BarcodeScannerModalComponent', () => {
     component.cameraError.set('SCANNER.CAMERA_PERMISSION_DENIED');
     fixture.detectChanges();
 
-    const manualInput = fixture.nativeElement.querySelector('[data-testid="scanner-manual-input"]');
-    const submitBtn = fixture.nativeElement.querySelector('[data-testid="scanner-submit-btn"]');
+    const manualInput = fixture.nativeElement.querySelector('[data-testid="barcode-manual-input"]');
+    const submitBtn = fixture.nativeElement.querySelector('[data-testid="barcode-manual-submit"]');
+    const errorBanner = fixture.nativeElement.querySelector('[data-testid="scanner-camera-error"]');
 
     expect(manualInput).toBeTruthy();
     expect(submitBtn).toBeTruthy();
+    expect(errorBanner).toBeTruthy();
   });
 });

@@ -89,7 +89,7 @@
         (click)="selectTab('pamp')"
         data-testid="tab-pamp"
       >
-        <ion-icon name="analyticsOutline"></ion-icon>
+        <ion-icon name="analytics-outline"></ion-icon>
         <span>{{ 'PURCHASES.TAB_PAMP' | transloco }}</span>
         <span class="tab-count">{{ ingredients().length }}</span>
       </button>
@@ -257,19 +257,12 @@
   @if (activeTab() === 'suppliers') {
     <section class="tab-content" data-testid="suppliers-section">
       <div class="search-bar-row">
-        <div class="search-input-wrap">
-          <label for="suppliers-search-input-field" class="visually-hidden">{{ 'SUPPLIERS.SEARCH_PLACEHOLDER' | transloco }}</label>
-          <ion-icon name="search-outline"></ion-icon>
-          <input
-            id="suppliers-search-input-field"
-            type="text"
-            class="search-input"
-            [ngModel]="searchQuery()"
-            (ngModelChange)="searchQuery.set($event)"
-            [placeholder]="'SUPPLIERS.SEARCH_PLACEHOLDER' | transloco"
-            data-testid="suppliers-search-input"
-          />
-        </div>
+        <app-search-bar
+          [placeholder]="'SUPPLIERS.SEARCH_PLACEHOLDER' | transloco"
+          [value]="searchQuery()"
+          (valueChange)="searchQuery.set($event)"
+          testId="suppliers-search-input"
+        ></app-search-bar>
       </div>
 
       @if (filteredSuppliers().length > 0) {
@@ -355,19 +348,12 @@
   @if (activeTab() === 'pamp') {
     <section class="tab-content" data-testid="pamp-section">
       <div class="search-bar-row">
-        <div class="search-input-wrap">
-          <label for="pamp-search-input-field" class="visually-hidden">{{ 'PURCHASES.SEARCH_INGREDIENTS_PLACEHOLDER' | transloco }}</label>
-          <ion-icon name="search-outline"></ion-icon>
-          <input
-            id="pamp-search-input-field"
-            type="text"
-            class="search-input"
-            [ngModel]="searchQuery()"
-            (ngModelChange)="searchQuery.set($event)"
-            [placeholder]="'PURCHASES.SEARCH_INGREDIENTS_PLACEHOLDER' | transloco"
-            data-testid="pamp-search-input"
-          />
-        </div>
+        <app-search-bar
+          [placeholder]="'PURCHASES.SEARCH_INGREDIENTS_PLACEHOLDER' | transloco"
+          [value]="searchQuery()"
+          (valueChange)="searchQuery.set($event)"
+          testId="pamp-search-input"
+        ></app-search-bar>
       </div>
 
       <div class="pamp-table-wrapper">

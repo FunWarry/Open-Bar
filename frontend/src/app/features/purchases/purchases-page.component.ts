@@ -42,6 +42,7 @@ import { PurchaseOrderFormModalComponent } from './purchase-order-form-modal/pur
 import { PurchaseOrderReceptionModalComponent } from './purchase-order-reception-modal/purchase-order-reception-modal.component';
 import { BarcodeScannerModalComponent, BarcodeScannerResult } from '../../core/components/ui/barcode-scanner-modal/barcode-scanner-modal.component';
 import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
+import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
 
 export type PurchasesTab = 'orders' | 'suppliers' | 'pamp';
 
@@ -59,7 +60,8 @@ export type PurchasesTab = 'orders' | 'suppliers' | 'pamp';
     FormsModule,
     IonIcon,
     TranslocoPipe,
-    EmptyStateComponent
+    EmptyStateComponent,
+    SearchBarComponent
   ]
 })
 export class PurchasesPageComponent implements OnInit {
