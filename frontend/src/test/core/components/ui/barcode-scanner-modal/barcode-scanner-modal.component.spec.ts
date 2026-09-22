@@ -71,4 +71,60 @@ describe('BarcodeScannerModalComponent', () => {
     expect(submitBtn).toBeTruthy();
     expect(errorBanner).toBeTruthy();
   });
+
+  it('toggles torch constraint when hardware torch capability is present', async () => {
+    const mockTrack = {
+      getCapabilities: () => ({ torch: true }),
+      applyConstraints: jasmine.createSpy('applyConstraints').and.returnValue(Promise.resolve()),
+      stop: jasmine.createSpy('stop')
+    };
+    const accessor = component as unknown as {
+      mediaStream: { getVideoTracks: () => unknown[]; getTracks: () => unknown[] };
+      checkTorchCapability: () => void;
+    };
+    accessor.mediaStream = {
+      getVideoTracks: () => [mockTrack],
+      getTracks: () => [mockTrack]
+    };
+
+    accessor.checkTorchCapability();
+    expect(component.hasTorch()).toBeTrue();
+
+    await component.toggleTorch();
+    expect(mockTrack.applyConstraints).toHaveBeenCalledWith({
+      advanced: [{ torch: true }]
+    });
+    expect(component.torchActive()).toBeTrue();
+  });
+
+  it('handles successful scan by stopping camera and dismissing with barcode', () => {
+    const accessor = component as unknown as {
+      handleSuccessfulScan: (code: string) => void;
+      playSuccessBeep: () => void;
+    };
+    spyOn(accessor, 'playSuccessBeep');
+
+    accessor.handleSuccessfulScan('3760049010012');
+
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({
+      barcode: '3760049010012',
+      cancelled: false
+    });
+  });
+
+  it('stops media stream tracks and clears intervals on destroy', () => {
+    const mockTrack = { stop: jasmine.createSpy('stop') };
+    const accessor = component as unknown as {
+      mediaStream: { getTracks: () => unknown[] } | null;
+    };
+    accessor.mediaStream = {
+      getTracks: () => [mockTrack]
+    };
+    component.cameraActive.set(true);
+
+    component.ngOnDestroy();
+
+    expect(mockTrack.stop).toHaveBeenCalled();
+    expect(component.cameraActive()).toBeFalse();
+  });
 });

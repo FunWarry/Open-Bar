@@ -102,7 +102,9 @@ export async function setupMockApi(page: Page): Promise<void> {
         qrClientOrdering: true,
         stockTracking: true,
         cashDrawer: true,
+        barTabs: true,
         cocktailLibrary: true,
+        suppliersManagement: true,
       }),
     });
   });
@@ -1446,6 +1448,7 @@ export async function setupMockApi(page: Page): Promise<void> {
     cashDrawer: true,
     barTabs: true,
     cocktailLibrary: true,
+    suppliersManagement: true,
   };
 
   await page.route('**/api/establishment/modules**', async (route) => {
