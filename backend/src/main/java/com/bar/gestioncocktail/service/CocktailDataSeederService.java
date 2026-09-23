@@ -647,21 +647,33 @@ public class CocktailDataSeederService {
         newIng.setDegreAlcool(abv != null ? abv : BigDecimal.ZERO);
         newIng.setIsVegan(allergens == null || (!allergens.contains(Allergen.LAIT) && !allergens.contains(Allergen.OEUF)));
         newIng.setCategory(category != null && !category.isBlank() ? category : CATEGORY_OTHER);
-        String effUnit = newIng.getUniteMesure();
-        if ("cl".equalsIgnoreCase(effUnit) || "ml".equalsIgnoreCase(effUnit) || "l".equalsIgnoreCase(effUnit)) {
-            newIng.setPurchaseUnit("Bouteille 70cl");
-            newIng.setPackagingCapacity(BigDecimal.valueOf(70.0));
-            newIng.setPackagingPriceHt(newIng.getPrixUnitaire().multiply(BigDecimal.valueOf(70.0)).setScale(2, RoundingMode.HALF_UP));
-        } else if ("g".equalsIgnoreCase(effUnit) || "kg".equalsIgnoreCase(effUnit)) {
-            newIng.setPurchaseUnit("Paquet 1kg");
-            newIng.setPackagingCapacity(BigDecimal.valueOf(1000.0));
-            newIng.setPackagingPriceHt(newIng.getPrixUnitaire().multiply(BigDecimal.valueOf(1000.0)).setScale(2, RoundingMode.HALF_UP));
-        } else {
-            newIng.setPurchaseUnit("Colis 10 unités");
-            newIng.setPackagingCapacity(BigDecimal.valueOf(10.0));
-            newIng.setPackagingPriceHt(newIng.getPrixUnitaire().multiply(BigDecimal.valueOf(10.0)).setScale(2, RoundingMode.HALF_UP));
-        }
+        assignDefaultPackaging(newIng);
         return ingredientRepository.save(newIng);
+    }
+
+    private void assignDefaultPackaging(Ingredient ing) {
+        String effUnit = ing.getUniteMesure();
+        if ("l".equalsIgnoreCase(effUnit)) {
+            applyPackaging(ing, "Bouteille 1L", 1.0);
+        } else if ("cl".equalsIgnoreCase(effUnit)) {
+            applyPackaging(ing, "Bouteille 70cl", 70.0);
+        } else if ("ml".equalsIgnoreCase(effUnit)) {
+            applyPackaging(ing, "Bouteille 700ml", 700.0);
+        } else if ("g".equalsIgnoreCase(effUnit)) {
+            applyPackaging(ing, "Paquet 1kg", 1000.0);
+        } else if ("kg".equalsIgnoreCase(effUnit)) {
+            applyPackaging(ing, "Paquet 1kg", 1.0);
+        } else if ("feuille".equalsIgnoreCase(effUnit) || "feuilles".equalsIgnoreCase(effUnit)) {
+            applyPackaging(ing, "Botte (≈ 50 feuilles)", 50.0);
+        } else {
+            applyPackaging(ing, "Colis 10 unités", 10.0);
+        }
+    }
+
+    private void applyPackaging(Ingredient ing, String purchaseUnit, double capacity) {
+        ing.setPurchaseUnit(purchaseUnit);
+        ing.setPackagingCapacity(BigDecimal.valueOf(capacity));
+        ing.setPackagingPriceHt(ing.getPrixUnitaire().multiply(BigDecimal.valueOf(capacity)).setScale(2, RoundingMode.HALF_UP));
     }
 
     private String buildDescription(JsonNode node) {

@@ -1220,12 +1220,14 @@ public class SampleDataSeederService {
         return null;
     }
 
+    private static final String FUZZY_MENTHE = "menthe";
+
     private static final String[][] FUZZY_INGREDIENT_PAIRS = {
         {"prose", "prosc"},
         {"apero", "apero"},
         {"kahlua", "kahlua"},
         {"cointreau", "cointreau"},
-        {"menthe", "menthe"},
+        {FUZZY_MENTHE, FUZZY_MENTHE},
         {"angostura", "angostura"},
         {"cranber", "cramber"},
         {"ananas", "ananas"},
@@ -1926,18 +1928,20 @@ public class SampleDataSeederService {
     }
 
     private Ingredient findOrCreateIngredient(String ingNom, BigDecimal unitPrice) {
-        return findIngredient(ingNom).orElseGet(() -> {
-            Ingredient newIng = new Ingredient();
-            newIng.setNom(ingNom);
-            newIng.setUniteMesure("cl");
-            newIng.setQuantiteStock(new BigDecimal("100.0"));
-            newIng.setSeuilAlerte(new BigDecimal("20.0"));
-            newIng.setPrixUnitaire(unitPrice != null ? unitPrice : new BigDecimal("10.00"));
-            newIng.setPurchaseUnit("Bouteille 70cl");
-            newIng.setPackagingCapacity(BigDecimal.valueOf(70.0));
-            newIng.setPackagingPriceHt(unitPrice != null ? unitPrice : new BigDecimal("10.00"));
-            return ingredientRepository.save(newIng);
-        });
+        Optional<Ingredient> opt = findIngredient(ingNom);
+        if (opt.isPresent()) {
+            return opt.get();
+        }
+        Ingredient newIng = new Ingredient();
+        newIng.setNom(ingNom);
+        newIng.setUniteMesure("cl");
+        newIng.setQuantiteStock(new BigDecimal("100.0"));
+        newIng.setSeuilAlerte(new BigDecimal("20.0"));
+        newIng.setPrixUnitaire(unitPrice != null ? unitPrice : new BigDecimal("10.00"));
+        newIng.setPurchaseUnit("Bouteille 70cl");
+        newIng.setPackagingCapacity(BigDecimal.valueOf(70.0));
+        newIng.setPackagingPriceHt(unitPrice != null ? unitPrice : new BigDecimal("10.00"));
+        return ingredientRepository.save(newIng);
     }
 
     private void linkIngredientsToSuppliersAndBarcodes(Map<String, Supplier> savedSuppliers) {
@@ -1952,16 +1956,19 @@ public class SampleDataSeederService {
                 "Citron", "3123456789029"
         );
 
-        for (Map.Entry<String, String> entry : barcodes.entrySet()) {
-            findIngredient(entry.getKey()).ifPresent(ing -> {
-                ing.setCodeBarre(entry.getValue());
-                if (entry.getKey().toLowerCase().contains("rhum") || entry.getKey().toLowerCase().contains("gin") || entry.getKey().toLowerCase().contains("vodka")) {
+        barcodes.forEach((name, barcode) -> {
+            Optional<Ingredient> opt = findIngredient(name);
+            if (opt.isPresent()) {
+                Ingredient ing = opt.get();
+                ing.setCodeBarre(barcode);
+                String lower = name.toLowerCase();
+                if (lower.contains("rhum") || lower.contains("gin") || lower.contains("vodka")) {
                     if (distAlpes != null) ing.setDefaultSupplier(distAlpes);
                 } else if (grossiste != null) {
                     ing.setDefaultSupplier(grossiste);
                 }
                 ingredientRepository.save(ing);
-            });
-        }
+            }
+        });
     }
 }

@@ -1214,8 +1214,8 @@
     },
     {
       "nom": "Menthe fraîche",
-      "quantiteStock": 0.4,
-      "seuilAlerte": 1.5,
+      "quantiteStock": 150,
+      "seuilAlerte": 30,
       "category": "herbs"
     },
     {
@@ -2601,13 +2601,13 @@
       "minutesAgo": 120
     },
     {
-      "ingredientNom": "Menthe",
-      "quantity": 0.5,
-      "unit": "kg",
+      "ingredientNom": "Menthe fraîche",
+      "quantity": 25,
+      "unit": "feuille",
       "reason": "PEREMPTION",
       "reportedByUsername": "manager",
       "notes": "Feuilles noircies en chambre froide après le week-end",
-      "cost": 8,
+      "cost": 1.25,
       "minutesAgo": 240
     },
     {
@@ -2825,21 +2825,27 @@
           "quantiteCommandee": 12.0,
           "quantiteRecue": 12.0,
           "prixUnitaireHt": 18.50,
-          "tauxTva": 20.0
+          "tauxTva": 20.0,
+          "purchaseUnit": "Bouteille 70cl",
+          "packagingCapacity": 70.0
         },
         {
           "ingredientNom": "Gin",
           "quantiteCommandee": 6.0,
           "quantiteRecue": 6.0,
           "prixUnitaireHt": 22.00,
-          "tauxTva": 20.0
+          "tauxTva": 20.0,
+          "purchaseUnit": "Bouteille 70cl",
+          "packagingCapacity": 70.0
         },
         {
           "ingredientNom": "Vodka",
           "quantiteCommandee": 8.0,
           "quantiteRecue": 8.0,
           "prixUnitaireHt": 16.50,
-          "tauxTva": 20.0
+          "tauxTva": 20.0,
+          "purchaseUnit": "Bouteille 70cl",
+          "packagingCapacity": 70.0
         }
       ]
     },
@@ -2855,14 +2861,18 @@
           "quantiteCommandee": 20.0,
           "quantiteRecue": 0.0,
           "prixUnitaireHt": 3.80,
-          "tauxTva": 5.5
+          "tauxTva": 5.5,
+          "purchaseUnit": "Bouteille 1L",
+          "packagingCapacity": 100.0
         },
         {
           "ingredientNom": "Jus de citron",
           "quantiteCommandee": 15.0,
           "quantiteRecue": 0.0,
           "prixUnitaireHt": 2.90,
-          "tauxTva": 5.5
+          "tauxTva": 5.5,
+          "purchaseUnit": "Bouteille 1L",
+          "packagingCapacity": 100.0
         }
       ]
     },
@@ -2877,15 +2887,19 @@
           "ingredientNom": "Menthe fraîche",
           "quantiteCommandee": 5.0,
           "quantiteRecue": 0.0,
-          "prixUnitaireHt": 4.50,
-          "tauxTva": 5.5
+          "prixUnitaireHt": 2.50,
+          "tauxTva": 5.5,
+          "purchaseUnit": "Botte (≈ 50 feuilles)",
+          "packagingCapacity": 50.0
         },
         {
           "ingredientNom": "Citron vert",
           "quantiteCommandee": 10.0,
           "quantiteRecue": 0.0,
           "prixUnitaireHt": 2.20,
-          "tauxTva": 5.5
+          "tauxTva": 5.5,
+          "purchaseUnit": "Filet 1kg",
+          "packagingCapacity": 10.0
         }
       ]
     },
@@ -2901,14 +2915,18 @@
           "quantiteCommandee": 10.0,
           "quantiteRecue": 5.0,
           "prixUnitaireHt": 6.50,
-          "tauxTva": 5.5
+          "tauxTva": 5.5,
+          "purchaseUnit": "Bouteille 1L",
+          "packagingCapacity": 100.0
         },
         {
           "ingredientNom": "Jus de citron",
           "quantiteCommandee": 10.0,
           "quantiteRecue": 10.0,
           "prixUnitaireHt": 2.90,
-          "tauxTva": 5.5
+          "tauxTva": 5.5,
+          "purchaseUnit": "Bouteille 1L",
+          "packagingCapacity": 100.0
         }
       ]
     }

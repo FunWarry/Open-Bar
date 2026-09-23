@@ -1339,7 +1339,147 @@
                 </ion-col>
               </ion-row>
 
-              <!-- Row 3: Coupures et Pièces de Caisse (Détail de Comptage) -->
+              <!-- Row 3: Système d'unités de mesure & Procurement -->
+              <ion-row>
+                <ion-col size="12" sizeLg="7">
+                  <ion-card class="settings-card" data-testid="card-unit-systems">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="nutrition-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.UNIT_SYSTEM_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="block-desc">{{ 'SETTINGS.UNIT_SYSTEM_SUBTITLE' | transloco }}</p>
+
+                      <!-- Quick Unit System Presets -->
+                      <div class="currency-presets-box">
+                        <span class="presets-title">{{ 'SETTINGS.UNIT_SYSTEM_PRESETS' | transloco }}</span>
+                        <div class="currency-chips">
+                          @for (p of unitPresets; track p.key) {
+                            <button
+                              type="button"
+                              class="currency-chip"
+                              [class.active]="appSettingsForm.get('unitSystem')?.value === p.key"
+                              (click)="applyUnitPreset(p)"
+                              [attr.data-testid]="'unit-preset-btn-' + p.key">
+                              {{ p.labelKey | transloco }} ({{ p.desc }})
+                            </button>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Granular Selectors: Liquid / Volume & Solid / Weight -->
+                      <div class="unit-selectors-grid">
+                        <div class="unit-selector-item">
+                          <div class="unit-selector-label">
+                            <ion-icon name="beer-outline"></ion-icon>
+                            <span>{{ 'SETTINGS.UNIT_SYSTEM_VOLUME_LABEL' | transloco }}</span>
+                          </div>
+                          <div class="position-buttons">
+                            @for (vOpt of volumeUnitChoices; track vOpt.value) {
+                              <button
+                                type="button"
+                                class="pos-btn"
+                                [class.active]="appSettingsForm.get('volumeUnit')?.value === vOpt.value"
+                                (click)="setVolumeUnit(vOpt.value)"
+                                [attr.data-testid]="'vol-unit-btn-' + vOpt.value">
+                                {{ vOpt.value }}
+                              </button>
+                            }
+                          </div>
+                          <span class="unit-selector-hint">{{ 'SETTINGS.UNIT_SYSTEM_VOLUME_HINT' | transloco }}</span>
+                        </div>
+
+                        <div class="unit-selector-item">
+                          <div class="unit-selector-label">
+                            <ion-icon name="speedometer-outline"></ion-icon>
+                            <span>{{ 'SETTINGS.UNIT_SYSTEM_WEIGHT_LABEL' | transloco }}</span>
+                          </div>
+                          <div class="position-buttons">
+                            @for (wOpt of weightUnitChoices; track wOpt.value) {
+                              <button
+                                type="button"
+                                class="pos-btn"
+                                [class.active]="appSettingsForm.get('weightUnit')?.value === wOpt.value"
+                                (click)="setWeightUnit(wOpt.value)"
+                                [attr.data-testid]="'weight-unit-btn-' + wOpt.value">
+                                {{ wOpt.value }}
+                              </button>
+                            }
+                          </div>
+                          <span class="unit-selector-hint">{{ 'SETTINGS.UNIT_SYSTEM_WEIGHT_HINT' | transloco }}</span>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+
+                <!-- Live Unit Previews -->
+                <ion-col size="12" sizeLg="5">
+                  <ion-card class="settings-card preview-card" data-testid="card-units-preview">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="sparkles-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.UNIT_PREVIEW_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="preview-instructions">{{ 'SETTINGS.UNIT_PREVIEW_DESC' | transloco }}</p>
+
+                      <!-- Recipe preview -->
+                      <div class="unit-preview-group">
+                        <span class="unit-preview-heading">
+                          <ion-icon name="restaurant-outline"></ion-icon>
+                          {{ 'SETTINGS.UNIT_PREVIEW_RECIPES' | transloco }} (Mojito Signature)
+                        </span>
+                        <div class="price-previews-list">
+                          <div class="preview-price-item">
+                            <span>Rhum Blanc :</span>
+                            <strong class="unit-val" data-testid="preview-vol-rhum">{{ formatSampleVolume(5) }}</strong>
+                          </div>
+                          <div class="preview-price-item">
+                            <span>Jus de Citron Vert :</span>
+                            <strong class="unit-val" data-testid="preview-vol-lime">{{ formatSampleVolume(3) }}</strong>
+                          </div>
+                          <div class="preview-price-item">
+                            <span>Sucre roux :</span>
+                            <strong class="unit-val" data-testid="preview-weight-sugar">{{ formatSampleWeight(10) }}</strong>
+                          </div>
+                          <div class="preview-price-item">
+                            <span>Feuilles de Menthe :</span>
+                            <strong class="unit-val">8 feuilles</strong>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Packaging preview -->
+                      <div class="unit-preview-group" style="margin-top: 14px;">
+                        <span class="unit-preview-heading">
+                          <ion-icon name="briefcase-outline"></ion-icon>
+                          {{ 'SETTINGS.UNIT_PREVIEW_PACKAGING' | transloco }}
+                        </span>
+                        <div class="price-previews-list">
+                          <div class="preview-price-item">
+                            <span>Format Bouteille Standard :</span>
+                            <strong class="unit-val" data-testid="preview-pack-bottle">{{ formatSampleVolume(70) }}</strong>
+                          </div>
+                          <div class="preview-price-item">
+                            <span>Menthe fraîche (fournisseur) :</span>
+                            <strong class="unit-val">Botte (≈ 50 feuilles)</strong>
+                          </div>
+                          <div class="preview-price-item">
+                            <span>Conditionnement Glaçons / Citrons :</span>
+                            <strong class="unit-val" data-testid="preview-pack-ice">{{ formatSampleWeight(1000) }}</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+
+              <!-- Row 4: Coupures et Pièces de Caisse (Détail de Comptage) -->
               <ion-row>
                 <ion-col size="12">
                   <ion-card class="settings-card" data-testid="card-cash-denominations">
@@ -1483,14 +1623,14 @@
                 </ion-col>
               </ion-row>
 
-              <!-- Row 4: Paliers de Remise Commerciale & Gestes -->
+              <!-- Row 5: Paliers de Remise Commerciale & Gestes -->
               <ion-row>
                 <ion-col size="12">
                   <ion-card class="settings-card" data-testid="card-discount-tiers">
                     <ion-card-header>
                       <div class="card-header-flex">
                         <ion-card-title class="card-title">
-                          <ion-icon name="pricetag-outline" class="title-icon"></ion-icon>
+                          <ion-icon name="gift-outline" class="title-icon"></ion-icon>
                           {{ 'SETTINGS.DISCOUNT_TIERS_TITLE' | transloco }}
                         </ion-card-title>
                         <button
@@ -1506,35 +1646,49 @@
                     <ion-card-content>
                       <p class="block-desc">{{ 'SETTINGS.DISCOUNT_TIERS_SUBTITLE' | transloco }}</p>
 
-                      <!-- Configured Tiers List -->
-                      <div class="denominations-chips-grid" data-testid="discount-tiers-list">
-                        @for (tier of configuredDiscountTiers(); track tier.id) {
-                          <div class="denom-tag bill-tag" [attr.data-testid]="'discount-tier-' + tier.id">
-                            <span class="denom-type-badge">{{ tier.type === 'percent' ? '%' : (appSettingsForm.get('currencySymbol')?.value || '€') }}</span>
-                            <span class="denom-label">{{ tier.label }} (-{{ tier.value }}{{ tier.type === 'percent' ? '%' : (appSettingsForm.get('currencySymbol')?.value || '€') }})</span>
-                            <button
-                              type="button"
-                              class="delete-denom-btn"
-                              (click)="removeDiscountTier(tier.id)"
-                              [attr.title]="'COMMON.DELETE' | transloco"
-                              [attr.data-testid]="'delete-tier-' + tier.id">
-                              <ion-icon name="close-outline"></ion-icon>
-                            </button>
+                      <!-- Discount Tiers Group -->
+                      <div class="discount-tiers-group">
+                        <div class="discount-group-header">
+                          <div class="discount-group-header-left">
+                            <ion-icon name="pricetag-outline" class="discount-group-icon"></ion-icon>
+                            <span class="discount-group-title">{{ 'SETTINGS.DISCOUNT_TIERS_TITLE' | transloco }}</span>
                           </div>
-                        }
-                        @if (configuredDiscountTiers().length === 0) {
-                          <div class="empty-denoms-note">{{ 'SETTINGS.NO_DISCOUNT_TIERS_CONFIGURED' | transloco }}</div>
-                        }
+                          <span class="count-pill" data-testid="discount-tiers-count">{{ configuredDiscountTiers().length }}</span>
+                        </div>
+
+                        <!-- Configured Tiers List -->
+                        <div class="discount-tiers-grid" data-testid="discount-tiers-list">
+                          @for (tier of configuredDiscountTiers(); track tier.id) {
+                            <div class="discount-tier-chip" [class.percent-tier]="tier.type === 'percent'" [class.fixed-tier]="tier.type === 'fixed'" [attr.data-testid]="'discount-tier-' + tier.id">
+                              <span class="discount-type-badge">{{ tier.type === 'percent' ? '%' : (appSettingsForm.get('currencySymbol')?.value || '€') }}</span>
+                              <div class="discount-info">
+                                <span class="discount-label">{{ tier.label }}</span>
+                                <span class="discount-value-pill">-{{ tier.value }}{{ tier.type === 'percent' ? '%' : (' ' + (appSettingsForm.get('currencySymbol')?.value || '€')) }}</span>
+                              </div>
+                              <button
+                                type="button"
+                                class="delete-discount-btn"
+                                (click)="removeDiscountTier(tier.id)"
+                                [attr.title]="'COMMON.DELETE' | transloco"
+                                [attr.data-testid]="'delete-tier-' + tier.id">
+                                <ion-icon name="close-outline"></ion-icon>
+                              </button>
+                            </div>
+                          }
+                          @if (configuredDiscountTiers().length === 0) {
+                            <div class="empty-tiers-note">{{ 'SETTINGS.NO_DISCOUNT_TIERS_CONFIGURED' | transloco }}</div>
+                          }
+                        </div>
                       </div>
 
                       <!-- Add Custom Tier Form -->
-                      <div class="add-denom-box" data-testid="add-discount-tier-box">
-                        <h4 class="add-denom-heading">
+                      <div class="add-discount-tier-card" data-testid="add-discount-tier-box">
+                        <h4 class="add-tier-heading">
                           <ion-icon name="add-circle-outline"></ion-icon>
                           {{ 'SETTINGS.ADD_DISCOUNT_TIER' | transloco }}
                         </h4>
-                        <div class="add-denom-fields">
-                          <div class="denom-type-toggle">
+                        <div class="add-tier-fields">
+                          <div class="tier-type-toggle">
                             <button
                               type="button"
                               class="type-btn"
@@ -1553,7 +1707,7 @@
                             </button>
                           </div>
 
-                          <div class="denom-value-input-wrapper">
+                          <div class="tier-input-wrapper label-input">
                             <label for="input-new-tier-label" class="sr-only">{{ 'SETTINGS.TIER_LABEL' | transloco }}</label>
                             <input
                               id="input-new-tier-label"
@@ -1561,12 +1715,12 @@
                               [(ngModel)]="newDiscountTierLabel"
                               [ngModelOptions]="{standalone: true}"
                               [placeholder]="'SETTINGS.TIER_LABEL_PLACEHOLDER' | transloco"
-                              class="custom-denom-input"
+                              class="custom-tier-input"
                               data-testid="input-new-tier-label"
                             />
                           </div>
 
-                          <div class="denom-value-input-wrapper">
+                          <div class="tier-input-wrapper val-input">
                             <label for="input-new-tier-val" class="sr-only">{{ 'SETTINGS.TIER_VALUE' | transloco }}</label>
                             <input
                               id="input-new-tier-val"
@@ -1576,16 +1730,16 @@
                               [(ngModel)]="newDiscountTierValue"
                               [ngModelOptions]="{standalone: true}"
                               [placeholder]="'50'"
-                              class="custom-denom-input"
+                              class="custom-tier-input"
                               data-testid="input-new-tier-value"
                               (keyup.enter)="addDiscountTier()"
                             />
-                            <span class="denom-currency-affix">{{ newDiscountTierType === 'percent' ? '%' : (appSettingsForm.get('currencySymbol')?.value || '€') }}</span>
+                            <span class="tier-currency-affix">{{ newDiscountTierType === 'percent' ? '%' : (appSettingsForm.get('currencySymbol')?.value || '€') }}</span>
                           </div>
 
                           <button
                             type="button"
-                            class="add-denom-btn"
+                            class="add-tier-btn"
                             (click)="addDiscountTier()"
                             [disabled]="!newDiscountTierLabel.trim() || !newDiscountTierValue || newDiscountTierValue <= 0"
                             data-testid="btn-add-discount-tier">

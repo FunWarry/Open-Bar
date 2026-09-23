@@ -70,6 +70,20 @@ public class AppSettings {
     @Column(name = "currency_position", nullable = false, length = 10)
     private CurrencyPosition currencyPosition = CurrencyPosition.AFTER;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "unit_system", nullable = false, length = 20)
+    private UnitSystem unitSystem = UnitSystem.METRIC_CL;
+
+    @NotBlank(message = "Volume unit is required")
+    @Size(max = 20, message = "Volume unit cannot exceed 20 characters")
+    @Column(name = "volume_unit", nullable = false, length = 20)
+    private String volumeUnit = "cl";
+
+    @NotBlank(message = "Weight unit is required")
+    @Size(max = 20, message = "Weight unit cannot exceed 20 characters")
+    @Column(name = "weight_unit", nullable = false, length = 20)
+    private String weightUnit = "g";
+
     @jakarta.validation.constraints.NotNull(message = "Order warning alert time is required")
     @jakarta.validation.constraints.Min(value = 1, message = "Warning alert time must be at least 1 minute")
     @jakarta.validation.constraints.Max(value = 120, message = "Warning alert time cannot exceed 120 minutes")

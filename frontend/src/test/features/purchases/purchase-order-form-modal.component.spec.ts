@@ -39,6 +39,79 @@ describe('PurchaseOrderFormModalComponent', () => {
       uniteMesure: 'Bouteille',
       createdAt: '2026-09-01T00:00:00.000Z',
       updatedAt: '2026-09-01T00:00:00.000Z'
+    },
+    {
+      id: 30,
+      nom: 'Vodka',
+      quantiteStock: 200,
+      seuilAlerte: 50,
+      prixUnitaire: 0.30,
+      uniteMesure: 'cl',
+      createdAt: '2026-09-01T00:00:00.000Z',
+      updatedAt: '2026-09-01T00:00:00.000Z'
+    },
+    {
+      id: 31,
+      nom: 'Sirop Sucre',
+      quantiteStock: 10,
+      seuilAlerte: 2,
+      prixUnitaire: 8.00,
+      uniteMesure: 'l',
+      createdAt: '2026-09-01T00:00:00.000Z',
+      updatedAt: '2026-09-01T00:00:00.000Z'
+    },
+    {
+      id: 32,
+      nom: 'Menthe Fraîche',
+      quantiteStock: 150,
+      seuilAlerte: 30,
+      prixUnitaire: 0.04,
+      uniteMesure: 'feuille',
+      createdAt: '2026-09-01T00:00:00.000Z',
+      updatedAt: '2026-09-01T00:00:00.000Z'
+    },
+    {
+      id: 33,
+      nom: 'Sucre de Canne',
+      quantiteStock: 2000,
+      seuilAlerte: 500,
+      prixUnitaire: 0.01,
+      uniteMesure: 'g',
+      createdAt: '2026-09-01T00:00:00.000Z',
+      updatedAt: '2026-09-01T00:00:00.000Z'
+    },
+    {
+      id: 34,
+      nom: 'Citrons Frais',
+      quantiteStock: 5,
+      seuilAlerte: 1,
+      prixUnitaire: 3.50,
+      uniteMesure: 'kg',
+      createdAt: '2026-09-01T00:00:00.000Z',
+      updatedAt: '2026-09-01T00:00:00.000Z'
+    },
+    {
+      id: 35,
+      nom: 'Glaçons',
+      quantiteStock: 10,
+      seuilAlerte: 2,
+      uniteMesure: 'Sac',
+      purchaseUnit: 'Sac 5kg',
+      packagingCapacity: 5,
+      packagingPriceHt: 6.50,
+      prixUnitaire: 6.50,
+      createdAt: '2026-09-01T00:00:00.000Z',
+      updatedAt: '2026-09-01T00:00:00.000Z'
+    },
+    {
+      id: 36,
+      nom: 'Paille Inox',
+      quantiteStock: 50,
+      seuilAlerte: 10,
+      prixUnitaire: 0.50,
+      uniteMesure: 'pièce',
+      createdAt: '2026-09-01T00:00:00.000Z',
+      updatedAt: '2026-09-01T00:00:00.000Z'
     }
   ];
 
@@ -97,6 +170,81 @@ describe('PurchaseOrderFormModalComponent', () => {
   it('onIngredientSelected() updates prixUnitaireHt from ingredient unitCost', () => {
     component.onIngredientSelected(0, 10);
     expect(component.items.at(0).get('prixUnitaireHt')?.value).toBe(18.5);
+  });
+
+  it('onIngredientSelected() preloads smart commercial packaging for liquid ingredients (cl)', () => {
+    component.onIngredientSelected(0, 30);
+    const line = component.items.at(0);
+    expect(line.get('purchaseUnit')?.value).toBe('Bouteille 70cl');
+    expect(line.get('packagingCapacity')?.value).toBe(70);
+    expect(line.get('prixUnitaireHt')?.value).toBe(21.0);
+  });
+
+  it('onIngredientSelected() preloads smart packaging for 1L liquid ingredients', () => {
+    component.onIngredientSelected(0, 31);
+    const line = component.items.at(0);
+    expect(line.get('purchaseUnit')?.value).toBe('Bouteille 1L');
+    expect(line.get('packagingCapacity')?.value).toBe(1);
+    expect(line.get('prixUnitaireHt')?.value).toBe(8.00);
+  });
+
+  it('onIngredientSelected() preloads bunch packaging for mint leaves (feuille)', () => {
+    component.onIngredientSelected(0, 32);
+    const line = component.items.at(0);
+    expect(line.get('purchaseUnit')?.value).toBe('Botte (≈ 50 feuilles)');
+    expect(line.get('packagingCapacity')?.value).toBe(50);
+    expect(line.get('prixUnitaireHt')?.value).toBe(2.00);
+  });
+
+  it('onIngredientSelected() preloads 1kg packaging for gram ingredients (g)', () => {
+    component.onIngredientSelected(0, 33);
+    const line = component.items.at(0);
+    expect(line.get('purchaseUnit')?.value).toBe('Paquet 1kg');
+    expect(line.get('packagingCapacity')?.value).toBe(1000);
+    expect(line.get('prixUnitaireHt')?.value).toBe(10.00);
+  });
+
+  it('onIngredientSelected() preloads packaging for kg ingredients', () => {
+    component.onIngredientSelected(0, 34);
+    const line = component.items.at(0);
+    expect(line.get('purchaseUnit')?.value).toBe('Paquet 1kg');
+    expect(line.get('packagingCapacity')?.value).toBe(1);
+    expect(line.get('prixUnitaireHt')?.value).toBe(3.50);
+  });
+
+  it('onIngredientSelected() preserves existing custom packaging when already defined', () => {
+    component.onIngredientSelected(0, 35);
+    const line = component.items.at(0);
+    expect(line.get('purchaseUnit')?.value).toBe('Sac 5kg');
+    expect(line.get('packagingCapacity')?.value).toBe(5);
+    expect(line.get('prixUnitaireHt')?.value).toBe(6.50);
+  });
+
+  it('onIngredientSelected() handles piece/other units fallback', () => {
+    component.onIngredientSelected(0, 36);
+    const line = component.items.at(0);
+    expect(line.get('purchaseUnit')?.value).toBe('pièce');
+    expect(line.get('packagingCapacity')?.value).toBe(1);
+    expect(line.get('prixUnitaireHt')?.value).toBe(0.50);
+  });
+
+  it('onIngredientSelected() accepts SearchableOption object and handles null/unknown gracefully', () => {
+    component.onIngredientSelected(0, { value: 30, label: 'Vodka' });
+    expect(component.items.at(0).get('purchaseUnit')?.value).toBe('Bouteille 70cl');
+
+    // Should return early and not throw when null or unknown
+    expect(() => component.onIngredientSelected(0, null)).not.toThrow();
+    expect(() => component.onIngredientSelected(0, 9999)).not.toThrow();
+  });
+
+  it('getEquivalentStock() computes inventory quantity from line item quantity and packaging capacity', () => {
+    component.onIngredientSelected(0, 30);
+    const line = component.items.at(0);
+    line.patchValue({ ingredientId: 30, quantiteCommandee: 3, packagingCapacity: 70 });
+
+    const eq = component.getEquivalentStock(line);
+    expect(eq.qty).toBe(210);
+    expect(eq.unit).toBe('cl');
   });
 
   it('calculates totalHt, totalTva and totalTtc correctly', () => {

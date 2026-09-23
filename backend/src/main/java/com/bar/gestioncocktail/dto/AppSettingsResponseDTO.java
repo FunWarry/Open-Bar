@@ -3,6 +3,7 @@ package com.bar.gestioncocktail.dto;
 import com.bar.gestioncocktail.model.AppSettings;
 import com.bar.gestioncocktail.model.CurrencyPosition;
 import com.bar.gestioncocktail.model.DefaultTheme;
+import com.bar.gestioncocktail.model.UnitSystem;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
  * @param currencyCode ISO 4217 currency code (e.g. EUR, USD, GBP, CHF)
  * @param currencySymbol Currency symbol (e.g. €, $, £, CHF)
  * @param currencyPosition Display position of the currency symbol relative to amounts (BEFORE or AFTER)
+ * @param unitSystem Measurement unit system (METRIC_CL, METRIC_ML, IMPERIAL_US)
  * @param tempsAlerteWarningMinutes Order warning alert threshold in minutes
  * @param tempsAlerteCommandeMinutes Order urgent alert threshold in minutes
  * @param tempsAlerteCritiqueCommandeMinutes Order critical alert threshold in minutes
@@ -44,6 +46,9 @@ public record AppSettingsResponseDTO(
     String currencyCode,
     String currencySymbol,
     CurrencyPosition currencyPosition,
+    UnitSystem unitSystem,
+    String volumeUnit,
+    String weightUnit,
     Integer tempsAlerteWarningMinutes,
     Integer tempsAlerteCommandeMinutes,
     Integer tempsAlerteCritiqueCommandeMinutes,
@@ -69,7 +74,59 @@ public record AppSettingsResponseDTO(
     public static final String DEFAULT_TIMEZONE = "SYSTEM";
 
     /**
-     * Backwards-compatible 27-parameter constructor defaulting timeZone to SYSTEM.
+     * Backwards-compatible 30-parameter constructor defaulting volumeUnit to cl and weightUnit to g.
+     */
+    public AppSettingsResponseDTO(
+            Long id, String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity,
+            Boolean wifiEnabled, Boolean tableSessionValidationEnabled,
+            BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
+            BigDecimal warningGrossMarginPercentage, String barPrinterIp,
+            String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
+            Boolean directPrintingEnabled, String cashDenominationsJson,
+            String timeZone, LocalDateTime updatedAt) {
+        this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem != null ? unitSystem : UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
+                cashDenominationsJson, timeZone != null ? timeZone : DEFAULT_TIMEZONE, updatedAt);
+    }
+
+    /**
+     * Backwards-compatible 28-parameter constructor defaulting timeZone to SYSTEM.
+     */
+    public AppSettingsResponseDTO(
+            Long id, String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity,
+            Boolean wifiEnabled, Boolean tableSessionValidationEnabled,
+            BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
+            BigDecimal warningGrossMarginPercentage, String barPrinterIp,
+            String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
+            Boolean directPrintingEnabled, String cashDenominationsJson,
+            LocalDateTime updatedAt) {
+        this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem != null ? unitSystem : UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
+                cashDenominationsJson, DEFAULT_TIMEZONE, updatedAt);
+    }
+
+    /**
+     * Backwards-compatible 27-parameter constructor defaulting unitSystem to METRIC_CL and timeZone to SYSTEM.
      */
     public AppSettingsResponseDTO(
             Long id, String primaryColor, String primaryColorStrong, String logoUrl,
@@ -85,7 +142,9 @@ public record AppSettingsResponseDTO(
             Boolean directPrintingEnabled, String cashDenominationsJson,
             LocalDateTime updatedAt) {
         this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
-                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
+                currencyCode, currencySymbol, currencyPosition, UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes,
                 tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
                 wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
                 defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
@@ -109,7 +168,9 @@ public record AppSettingsResponseDTO(
             String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
             Boolean directPrintingEnabled, LocalDateTime updatedAt) {
         this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
-                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
+                currencyCode, currencySymbol, currencyPosition, UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes,
                 tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
                 wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
                 defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
@@ -131,7 +192,9 @@ public record AppSettingsResponseDTO(
             BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
             BigDecimal warningGrossMarginPercentage, LocalDateTime updatedAt) {
         this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
-                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
+                currencyCode, currencySymbol, currencyPosition, UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes,
                 tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
                 wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
                 defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
@@ -150,6 +213,9 @@ public record AppSettingsResponseDTO(
             s.getId(), s.getPrimaryColor(), s.getPrimaryColorStrong(),
             s.getLogoUrl(), s.getEstablishmentName(), s.getDefaultTheme(),
             s.getCurrencyCode(), s.getCurrencySymbol(), s.getCurrencyPosition(),
+            s.getUnitSystem() != null ? s.getUnitSystem() : UnitSystem.METRIC_CL,
+            s.getVolumeUnit() != null ? s.getVolumeUnit() : "cl",
+            s.getWeightUnit() != null ? s.getWeightUnit() : "g",
             s.getTempsAlerteWarningMinutes(),
             s.getTempsAlerteCommandeMinutes(), s.getTempsAlerteCritiqueCommandeMinutes(),
             s.getClientBaseUrl(),

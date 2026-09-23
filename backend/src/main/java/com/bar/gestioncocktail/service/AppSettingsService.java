@@ -97,6 +97,15 @@ public class AppSettingsService {
         if (request.currencyPosition() != null) {
             current.setCurrencyPosition(request.currencyPosition());
         }
+        if (request.unitSystem() != null) {
+            current.setUnitSystem(request.unitSystem());
+        }
+        if (request.volumeUnit() != null && !request.volumeUnit().isBlank()) {
+            current.setVolumeUnit(request.volumeUnit().trim());
+        }
+        if (request.weightUnit() != null && !request.weightUnit().isBlank()) {
+            current.setWeightUnit(request.weightUnit().trim());
+        }
         if (request.cashDenominationsJson() != null) {
             current.setCashDenominationsJson(request.cashDenominationsJson());
         }

@@ -1165,12 +1165,12 @@
           "category": "juices"
         },
         {
-          "nom": "Citron jaune",
+          "nom": "Jus de Citron jaune",
           "quantite": 0.5,
           "unite": "cl",
           "cout_eur": 0.35,
           "allergens": [],
-          "category": "fruits"
+          "category": "juices"
         },
         {
           "nom": "Sauce Worcestershire",
@@ -3164,12 +3164,12 @@
           "category": "light_liquor"
         },
         {
-          "nom": "Citron vert",
+          "nom": "Jus de Citron vert",
           "quantite": 2,
           "unite": "cl",
           "cout_eur": 0.35,
           "allergens": [],
-          "category": "fruits"
+          "category": "juices"
         },
         {
           "nom": "Sirop de Sucre de canne",
@@ -3893,12 +3893,12 @@
           "category": "mixers"
         },
         {
-          "nom": "Citron jaune",
+          "nom": "Jus de Citron jaune",
           "quantite": 2,
           "unite": "cl",
           "cout_eur": 0.571,
           "allergens": [],
-          "category": "fruits"
+          "category": "juices"
         },
         {
           "nom": "Bâton de Cannelle",
@@ -4747,12 +4747,12 @@
           "category": "liqueurs"
         },
         {
-          "nom": "Citron jaune",
+          "nom": "Jus de Citron jaune",
           "quantite": 1,
           "unite": "cl",
           "cout_eur": 0.286,
           "allergens": [],
-          "category": "fruits"
+          "category": "juices"
         },
         {
           "nom": "Coca-Cola",
@@ -11689,7 +11689,7 @@
           "category": "juices"
         },
         {
-          "nom": "Feuilles de Menthe",
+          "nom": "Feuille de Menthe",
           "quantite": 2,
           "unite": "feuille",
           "cout_eur": 0.05,
@@ -12267,7 +12267,7 @@
           "category": "juices"
         },
         {
-          "nom": "Feuilles de Menthe",
+          "nom": "Feuille de Menthe",
           "quantite": 3,
           "unite": "feuille",
           "cout_eur": 0.1,

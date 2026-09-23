@@ -76,6 +76,7 @@ import {
   briefcaseOutline,
   addCircleOutline,
   closeOutline,
+  giftOutline,
 } from 'ionicons/icons';
 import { HappyHourConfigComponent } from './components/happy-hour-config/happy-hour-config.component';
 import { LegalComponent, LegalTab } from '../../legal/legal.component';
@@ -85,7 +86,7 @@ import { takeUntil, catchError } from 'rxjs/operators';
 import { EtablissementService } from '../../../core/services/etablissement.service';
 import { EstablishmentConfig } from '../../../core/models/establishment-config.model';
 import { AppSettingsService, DEFAULT_DISCOUNT_TIERS } from '../../../core/services/app-settings.service';
-import { AppSettings, CurrencyPosition, DiscountTier } from '../../../core/models/app-settings.model';
+import { AppSettings, CurrencyPosition, DiscountTier, UnitSystem } from '../../../core/models/app-settings.model';
 import {
   CashDenomination,
   DEFAULT_EUR_DENOMINATIONS,
@@ -194,6 +195,35 @@ export interface VatPreset {
   rate: number;
   label: string;
 }
+
+export interface UnitSystemPresetOption {
+  key: UnitSystem;
+  labelKey: string;
+  volumeUnit: string;
+  weightUnit: string;
+  desc: string;
+}
+
+export const UNIT_SYSTEM_PRESET_OPTIONS: UnitSystemPresetOption[] = [
+  { key: 'METRIC_CL', labelKey: 'SETTINGS.UNIT_SYSTEM_METRIC_CL', volumeUnit: 'cl', weightUnit: 'g', desc: 'cl / g' },
+  { key: 'METRIC_ML', labelKey: 'SETTINGS.UNIT_SYSTEM_METRIC_ML', volumeUnit: 'ml', weightUnit: 'g', desc: 'ml / g' },
+  { key: 'IMPERIAL_US', labelKey: 'SETTINGS.UNIT_SYSTEM_IMPERIAL_US', volumeUnit: 'fl oz', weightUnit: 'oz', desc: 'fl oz / oz' },
+  { key: 'CUSTOM', labelKey: 'SETTINGS.UNIT_SYSTEM_CUSTOM', volumeUnit: 'cl', weightUnit: 'g', desc: 'Custom' },
+];
+
+export const VOLUME_UNIT_CHOICES = [
+  { value: 'cl', label: 'Centilitre (cl)' },
+  { value: 'ml', label: 'Millilitre (ml)' },
+  { value: 'fl oz', label: 'Fluid Ounce (fl oz)' },
+  { value: 'l', label: 'Litre (L)' },
+];
+
+export const WEIGHT_UNIT_CHOICES = [
+  { value: 'g', label: 'Gramme (g)' },
+  { value: 'kg', label: 'Kilogramme (kg)' },
+  { value: 'oz', label: 'Ounce (oz)' },
+  { value: 'lb', label: 'Pound (lb)' },
+];
 
 /**
  * Unified application settings management component covering legal establishment info,
@@ -434,6 +464,10 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     { country: 'US', rate: 0.0, label: 'Exempt / Hors-TVA (0%)' },
   ];
 
+  readonly unitPresets = UNIT_SYSTEM_PRESET_OPTIONS;
+  readonly volumeUnitChoices = VOLUME_UNIT_CHOICES;
+  readonly weightUnitChoices = WEIGHT_UNIT_CHOICES;
+
   readonly wifiSecurityOptions: SearchableOption<string>[] = [
     { value: 'WPA', label: 'WPA / WPA2 / WPA3 (Standard)', subLabel: 'Recommandé pour la majorité des réseaux Wi-Fi', badge: 'WPA', badgeType: 'primary' },
     { value: 'WEP', label: 'WEP (Ancien protocole)', subLabel: 'Réseaux Wi-Fi historiques', badge: 'WEP', badgeType: 'warning' },
@@ -479,6 +513,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       briefcaseOutline,
       addCircleOutline,
       closeOutline,
+      giftOutline,
     });
     this.initForms();
   }
@@ -646,6 +681,9 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       currencyCode: ['EUR', [Validators.required, Validators.minLength(3), Validators.maxLength(3)]],
       currencySymbol: ['€', [Validators.required]],
       currencyPosition: ['AFTER', [Validators.required]],
+      unitSystem: ['METRIC_CL', [Validators.required]],
+      volumeUnit: ['cl', [Validators.required]],
+      weightUnit: ['g', [Validators.required]],
       cashDenominationsJson: [''],
       discountTiersJson: [''],
       defaultVatRate: [20.0, [Validators.required, Validators.min(0), Validators.max(100)]],
@@ -957,6 +995,88 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     }).format(amount);
 
     return pos === 'BEFORE' ? `${symbol} ${formatted}` : `${formatted} ${symbol}`;
+  }
+
+  // --- Unit System Helpers ---
+  applyUnitPreset(preset: UnitSystemPresetOption): void {
+    if (preset.key !== 'CUSTOM') {
+      this.appSettingsForm.patchValue({
+        unitSystem: preset.key,
+        volumeUnit: preset.volumeUnit,
+        weightUnit: preset.weightUnit,
+      });
+    } else {
+      this.appSettingsForm.patchValue({ unitSystem: 'CUSTOM' });
+    }
+    this.appSettingsForm.markAsDirty();
+    this.cdr.markForCheck();
+  }
+
+  setVolumeUnit(unit: string): void {
+    this.appSettingsForm.patchValue({ volumeUnit: unit });
+    this.recalculateUnitSystemPreset();
+    this.appSettingsForm.markAsDirty();
+    this.cdr.markForCheck();
+  }
+
+  setWeightUnit(unit: string): void {
+    this.appSettingsForm.patchValue({ weightUnit: unit });
+    this.recalculateUnitSystemPreset();
+    this.appSettingsForm.markAsDirty();
+    this.cdr.markForCheck();
+  }
+
+  private recalculateUnitSystemPreset(): void {
+    const vol = this.appSettingsForm.get('volumeUnit')?.value;
+    const weight = this.appSettingsForm.get('weightUnit')?.value;
+    if (vol === 'cl' && weight === 'g') {
+      this.appSettingsForm.patchValue({ unitSystem: 'METRIC_CL' }, { emitEvent: false });
+    } else if (vol === 'ml' && weight === 'g') {
+      this.appSettingsForm.patchValue({ unitSystem: 'METRIC_ML' }, { emitEvent: false });
+    } else if (vol === 'fl oz' && weight === 'oz') {
+      this.appSettingsForm.patchValue({ unitSystem: 'IMPERIAL_US' }, { emitEvent: false });
+    } else {
+      this.appSettingsForm.patchValue({ unitSystem: 'CUSTOM' }, { emitEvent: false });
+    }
+  }
+
+  get currentVolumeUnit(): string {
+    return this.appSettingsForm.get('volumeUnit')?.value || 'cl';
+  }
+
+  get currentWeightUnit(): string {
+    return this.appSettingsForm.get('weightUnit')?.value || 'g';
+  }
+
+  formatSampleVolume(clAmount: number): string {
+    const unit = this.currentVolumeUnit;
+    if (unit === 'ml') {
+      return `${Math.round(clAmount * 10)} ml`;
+    }
+    if (unit === 'fl oz') {
+      const flOz = (clAmount / 2.95735).toFixed(1);
+      return `${flOz} fl oz`;
+    }
+    if (unit === 'l') {
+      return `${(clAmount / 100).toFixed(2)} L`;
+    }
+    return `${clAmount} cl`;
+  }
+
+  formatSampleWeight(gAmount: number): string {
+    const unit = this.currentWeightUnit;
+    if (unit === 'oz') {
+      const oz = (gAmount / 28.3495).toFixed(2);
+      return `${oz} oz`;
+    }
+    if (unit === 'lb') {
+      const lb = (gAmount / 453.592).toFixed(2);
+      return `${lb} lb`;
+    }
+    if (unit === 'kg') {
+      return `${(gAmount / 1000).toFixed(2)} kg`;
+    }
+    return `${gAmount} g`;
   }
 
   /**

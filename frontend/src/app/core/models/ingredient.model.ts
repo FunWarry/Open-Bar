@@ -52,7 +52,10 @@ export const INGREDIENT_UNITS = [
   'zeste',
   'feuille',
   'bouteille',
-  'portion'
+  'portion',
+  'fl oz',
+  'oz',
+  'lb'
 ] as const;
 
 export type IngredientUnit = (typeof INGREDIENT_UNITS)[number];
@@ -68,12 +71,15 @@ export const INGREDIENT_UNIT_CONFIG: readonly IngredientUnitDescriptor[] = [
   { value: 'cl', key: 'CL', badgeType: 'primary', icon: 'scale-outline' },
   { value: 'ml', key: 'ML', badgeType: 'primary', icon: 'scale-outline' },
   { value: 'L', key: 'L', badgeType: 'primary', icon: 'wine-outline' },
+  { value: 'fl oz', key: 'FL_OZ', badgeType: 'primary', icon: 'scale-outline' },
   { value: 'dash', key: 'DASH', badgeType: 'warning', icon: 'color-fill-outline' },
   { value: 'goutte', key: 'GOUTTE', badgeType: 'primary', icon: 'water-outline' },
   { value: 'cuillère', key: 'CUILLERE', badgeType: 'neutral', icon: 'sparkles-outline' },
   { value: 'dose', key: 'DOSE', badgeType: 'primary', icon: 'wine-outline' },
   { value: 'g', key: 'G', badgeType: 'warning', icon: 'scale-outline' },
   { value: 'kg', key: 'KG', badgeType: 'warning', icon: 'scale-outline' },
+  { value: 'oz', key: 'OZ', badgeType: 'warning', icon: 'scale-outline' },
+  { value: 'lb', key: 'LB', badgeType: 'warning', icon: 'scale-outline' },
   { value: 'pincée', key: 'PINCEE', badgeType: 'warning', icon: 'sparkles-outline' },
   { value: 'pièce', key: 'PIECE', badgeType: 'success', icon: 'cube-outline' },
   { value: 'morceau', key: 'MORCEAU', badgeType: 'success', icon: 'nutrition-outline' },
