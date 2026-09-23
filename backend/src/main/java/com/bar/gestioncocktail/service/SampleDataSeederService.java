@@ -1956,16 +1956,19 @@ public class SampleDataSeederService {
                 "Citron", "3123456789029"
         );
 
-        for (Map.Entry<String, String> entry : barcodes.entrySet()) {
-            findIngredient(entry.getKey()).ifPresent(ing -> {
-                ing.setCodeBarre(entry.getValue());
-                if (entry.getKey().toLowerCase().contains("rhum") || entry.getKey().toLowerCase().contains("gin") || entry.getKey().toLowerCase().contains("vodka")) {
+        barcodes.forEach((name, barcode) -> {
+            Optional<Ingredient> opt = findIngredient(name);
+            if (opt.isPresent()) {
+                Ingredient ing = opt.get();
+                ing.setCodeBarre(barcode);
+                String lower = name.toLowerCase();
+                if (lower.contains("rhum") || lower.contains("gin") || lower.contains("vodka")) {
                     if (distAlpes != null) ing.setDefaultSupplier(distAlpes);
                 } else if (grossiste != null) {
                     ing.setDefaultSupplier(grossiste);
                 }
                 ingredientRepository.save(ing);
-            });
-        }
+            }
+        });
     }
 }

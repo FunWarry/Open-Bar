@@ -1186,7 +1186,7 @@ describe('AppSettingsPageComponent', () => {
 
       component.addDiscountTier();
 
-      expect(component.configuredDiscountTiers().length).toBe(initialCount + 1);
+      expect(component.configuredDiscountTiers()).toHaveSize(initialCount + 1);
       const added = component.configuredDiscountTiers().find(t => t.label === 'Test VIP');
       expect(added).toBeDefined();
       expect(added?.value).toBe(35);
@@ -1201,12 +1201,12 @@ describe('AppSettingsPageComponent', () => {
       component.newDiscountTierLabel = '   ';
       component.newDiscountTierValue = 10;
       component.addDiscountTier();
-      expect(component.configuredDiscountTiers().length).toBe(initialCount);
+      expect(component.configuredDiscountTiers()).toHaveSize(initialCount);
 
       component.newDiscountTierLabel = 'Valid';
       component.newDiscountTierValue = 0;
       component.addDiscountTier();
-      expect(component.configuredDiscountTiers().length).toBe(initialCount);
+      expect(component.configuredDiscountTiers()).toHaveSize(initialCount);
     });
 
     it('should remove a discount tier by id', () => {
@@ -1220,7 +1220,7 @@ describe('AppSettingsPageComponent', () => {
 
     it('should reset discount tiers to defaults', () => {
       component.configuredDiscountTiers.set([]);
-      expect(component.configuredDiscountTiers().length).toBe(0);
+      expect(component.configuredDiscountTiers()).toHaveSize(0);
 
       component.resetDiscountTiersToDefault();
       expect(component.configuredDiscountTiers().length).toBeGreaterThan(0);

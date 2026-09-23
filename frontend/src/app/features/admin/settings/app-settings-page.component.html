@@ -1372,10 +1372,10 @@
                       <!-- Granular Selectors: Liquid / Volume & Solid / Weight -->
                       <div class="unit-selectors-grid">
                         <div class="unit-selector-item">
-                          <label class="unit-selector-label">
+                          <div class="unit-selector-label">
                             <ion-icon name="beer-outline"></ion-icon>
                             <span>{{ 'SETTINGS.UNIT_SYSTEM_VOLUME_LABEL' | transloco }}</span>
-                          </label>
+                          </div>
                           <div class="position-buttons">
                             @for (vOpt of volumeUnitChoices; track vOpt.value) {
                               <button
@@ -1392,10 +1392,10 @@
                         </div>
 
                         <div class="unit-selector-item">
-                          <label class="unit-selector-label">
+                          <div class="unit-selector-label">
                             <ion-icon name="speedometer-outline"></ion-icon>
                             <span>{{ 'SETTINGS.UNIT_SYSTEM_WEIGHT_LABEL' | transloco }}</span>
-                          </label>
+                          </div>
                           <div class="position-buttons">
                             @for (wOpt of weightUnitChoices; track wOpt.value) {
                               <button
