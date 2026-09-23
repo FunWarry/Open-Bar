@@ -6,6 +6,11 @@ export type CurrencyPosition = 'BEFORE' | 'AFTER';
 export type WifiSecurityType = 'WPA' | 'WEP' | 'nopass';
 
 /**
+ * Standard measurement unit systems supported by OpenBar for recipes, inventory, and procurement.
+ */
+export type UnitSystem = 'METRIC_CL' | 'METRIC_ML' | 'IMPERIAL_US' | 'CUSTOM';
+
+/**
  * Commercial discount tier preset for fast register settlement (e.g. staff, VIP, complimentary).
  */
 export interface DiscountTier {
@@ -25,6 +30,9 @@ export interface AppSettings {
   currencyCode?: string;
   currencySymbol?: string;
   currencyPosition?: CurrencyPosition;
+  unitSystem?: UnitSystem;
+  volumeUnit?: string;
+  weightUnit?: string;
   tempsAlerteWarningMinutes?: number;
   tempsAlerteCommandeMinutes?: number;
   tempsAlerteCritiqueCommandeMinutes?: number;

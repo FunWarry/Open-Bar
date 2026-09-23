@@ -7,7 +7,7 @@ import {
   ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IonIcon, ModalController, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -169,9 +169,9 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Handles ingredient change to automatically preload unit cost and packaging details.
+   * Handles ingredient change to automatically preload unit cost and smart commercial packaging details.
    */
-  onIngredientSelected(index: number, optionOrId: any): void {
+  onIngredientSelected(index: number, optionOrId: SearchableOption | number | string | null): void {
     const ingId = typeof optionOrId === 'object' && optionOrId !== null
       ? Number(optionOrId.value)
       : Number(optionOrId);
@@ -183,9 +183,41 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
     const selectedIng = this.ingredients.find(i => i.id === ingId);
     if (selectedIng) {
       const line = this.items.at(index);
-      const defaultCost = selectedIng.packagingPriceHt || selectedIng.unitCost || selectedIng.prixUnitaire || 0;
-      const defaultUnit = selectedIng.purchaseUnit || selectedIng.uniteMesure || '';
-      const defaultCapacity = selectedIng.packagingCapacity || 1;
+      let defaultUnit = selectedIng.purchaseUnit;
+      let defaultCapacity = selectedIng.packagingCapacity;
+      let defaultCost = selectedIng.packagingPriceHt;
+
+      if (!defaultUnit || !defaultCapacity || defaultCapacity <= 1) {
+        const u = (selectedIng.uniteMesure || '').toLowerCase();
+        if (u === 'cl' || u === 'ml') {
+          defaultUnit = 'Bouteille 70cl';
+          defaultCapacity = 70;
+          defaultCost = defaultCost || Math.round((selectedIng.prixUnitaire || selectedIng.unitCost || 0.25) * 70 * 100) / 100;
+        } else if (u === 'l') {
+          defaultUnit = 'Bouteille 1L';
+          defaultCapacity = 1;
+          defaultCost = defaultCost || selectedIng.prixUnitaire || selectedIng.unitCost || 0;
+        } else if (u === 'feuille' || u === 'feuilles') {
+          defaultUnit = 'Botte (≈ 50 feuilles)';
+          defaultCapacity = 50;
+          defaultCost = defaultCost || Math.round((selectedIng.prixUnitaire || selectedIng.unitCost || 0.05) * 50 * 100) / 100;
+        } else if (u === 'g') {
+          defaultUnit = 'Paquet 1kg';
+          defaultCapacity = 1000;
+          defaultCost = defaultCost || Math.round((selectedIng.prixUnitaire || selectedIng.unitCost || 0.01) * 1000 * 100) / 100;
+        } else if (u === 'kg') {
+          defaultUnit = 'Paquet 1kg';
+          defaultCapacity = 1;
+          defaultCost = defaultCost || selectedIng.prixUnitaire || selectedIng.unitCost || 0;
+        } else {
+          defaultUnit = defaultUnit || selectedIng.uniteMesure || 'Pièce';
+          defaultCapacity = defaultCapacity || 1;
+          defaultCost = defaultCost || selectedIng.unitCost || selectedIng.prixUnitaire || 0;
+        }
+      } else {
+        defaultCost = defaultCost || selectedIng.unitCost || selectedIng.prixUnitaire || 0;
+      }
+
       line.patchValue({
         prixUnitaireHt: defaultCost,
         purchaseUnit: defaultUnit,
@@ -197,7 +229,7 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
   /**
    * Computes the calculated equivalent inventory stock quantity for an order line item.
    */
-  getEquivalentStock(ctrl: any): { qty: number; unit: string } {
+  getEquivalentStock(ctrl: AbstractControl): { qty: number; unit: string } {
     const ingId = Number(ctrl.get('ingredientId')?.value);
     const qty = Number(ctrl.get('quantiteCommandee')?.value) || 0;
     const capacity = Number(ctrl.get('packagingCapacity')?.value) || 1;

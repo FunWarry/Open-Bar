@@ -473,6 +473,9 @@ CREATE TABLE IF NOT EXISTS app_settings (
     currency_code VARCHAR(3) NOT NULL,
     currency_symbol VARCHAR(10) NOT NULL,
     currency_position VARCHAR(10) NOT NULL,
+    unit_system VARCHAR(20) DEFAULT 'METRIC_CL',
+    volume_unit VARCHAR(20) DEFAULT 'cl',
+    weight_unit VARCHAR(20) DEFAULT 'g',
     temps_alerte_warning_minutes INTEGER NOT NULL,
     temps_alerte_commande_minutes INTEGER NOT NULL,
     temps_alerte_critique_commande_minutes INTEGER NOT NULL,
@@ -765,3 +768,7 @@ CREATE TABLE IF NOT EXISTS purchase_order_delivery_items (
 
 CREATE INDEX IF NOT EXISTS idx_po_delivery_items_delivery ON purchase_order_delivery_items(delivery_id);
 CREATE INDEX IF NOT EXISTS idx_po_delivery_items_ingredient ON purchase_order_delivery_items(ingredient_id);
+
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS unit_system VARCHAR(20) DEFAULT 'METRIC_CL';
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS volume_unit VARCHAR(20) DEFAULT 'cl';
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS weight_unit VARCHAR(20) DEFAULT 'g';

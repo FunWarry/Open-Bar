@@ -29,6 +29,10 @@ public final class UnitConversionService {
     private static final BigDecimal ONE_TENTH = new BigDecimal("0.1");
     private static final BigDecimal ONE_FOURTH = new BigDecimal("0.25");
     private static final BigDecimal ONE_HALF = new BigDecimal("0.5");
+    private static final BigDecimal FL_OZ_TO_LITERS = new BigDecimal("0.0295735");
+    private static final BigDecimal OZ_TO_KG = new BigDecimal("0.0283495");
+    private static final BigDecimal LB_TO_KG = new BigDecimal("0.453592");
+    private static final BigDecimal MINT_BUNCH_CAPACITY = new BigDecimal("50");
 
     private static final Map<String, BigDecimal> VOLUME_TO_LITERS = new HashMap<>();
     private static final Map<String, BigDecimal> MASS_TO_KILOGRAMS = new HashMap<>();
@@ -42,37 +46,66 @@ public final class UnitConversionService {
         // Volume conversions to base unit: Liters (l)
         VOLUME_TO_LITERS.put("l", BigDecimal.ONE);
         VOLUME_TO_LITERS.put("liter", BigDecimal.ONE);
+        VOLUME_TO_LITERS.put("litre", BigDecimal.ONE);
         VOLUME_TO_LITERS.put("dl", ONE_TENTH);
         VOLUME_TO_LITERS.put("cl", new BigDecimal("0.01"));
         VOLUME_TO_LITERS.put("ml", ONE_THOUSANDTH);
-        VOLUME_TO_LITERS.put("oz", new BigDecimal("0.03"));
+        VOLUME_TO_LITERS.put("oz", FL_OZ_TO_LITERS);
+        VOLUME_TO_LITERS.put("fl oz", FL_OZ_TO_LITERS);
+        VOLUME_TO_LITERS.put("floz", FL_OZ_TO_LITERS);
+        VOLUME_TO_LITERS.put("fluid ounce", FL_OZ_TO_LITERS);
         VOLUME_TO_LITERS.put("dash", ONE_THOUSANDTH);
+        VOLUME_TO_LITERS.put("trait", ONE_THOUSANDTH);
         VOLUME_TO_LITERS.put("drop", FIVE_TEN_THOUSANDTHS);
+        VOLUME_TO_LITERS.put("goutte", FIVE_TEN_THOUSANDTHS);
         VOLUME_TO_LITERS.put("tsp", FIVE_THOUSANDTHS);
+        VOLUME_TO_LITERS.put("c a c", FIVE_THOUSANDTHS);
+        VOLUME_TO_LITERS.put("barspoon", FIVE_THOUSANDTHS);
+        VOLUME_TO_LITERS.put("cuillere", FIVE_THOUSANDTHS);
         VOLUME_TO_LITERS.put("tbsp", FIFTEEN_THOUSANDTHS);
+        VOLUME_TO_LITERS.put("c a s", FIFTEEN_THOUSANDTHS);
 
         // Mass conversions to base unit: Kilograms (kg)
         MASS_TO_KILOGRAMS.put("kg", BigDecimal.ONE);
         MASS_TO_KILOGRAMS.put("kilogram", BigDecimal.ONE);
+        MASS_TO_KILOGRAMS.put("kilogramme", BigDecimal.ONE);
         MASS_TO_KILOGRAMS.put("g", ONE_THOUSANDTH);
         MASS_TO_KILOGRAMS.put("gram", ONE_THOUSANDTH);
+        MASS_TO_KILOGRAMS.put("gramme", ONE_THOUSANDTH);
         MASS_TO_KILOGRAMS.put("mg", ONE_MILLIONTH);
+        MASS_TO_KILOGRAMS.put("oz", OZ_TO_KG);
+        MASS_TO_KILOGRAMS.put("ounce", OZ_TO_KG);
+        MASS_TO_KILOGRAMS.put("once", OZ_TO_KG);
+        MASS_TO_KILOGRAMS.put("lb", LB_TO_KG);
+        MASS_TO_KILOGRAMS.put("pound", LB_TO_KG);
+        MASS_TO_KILOGRAMS.put("livre", LB_TO_KG);
         MASS_TO_KILOGRAMS.put("pinch", FIVE_TEN_THOUSANDTHS);
+        MASS_TO_KILOGRAMS.put("pincee", FIVE_TEN_THOUSANDTHS);
 
         // Discrete count conversions to base unit: Unit / Piece (piece / u)
         DISCRETE_TO_UNITS.put("piece", BigDecimal.ONE);
         DISCRETE_TO_UNITS.put("unit", BigDecimal.ONE);
+        DISCRETE_TO_UNITS.put("unite", BigDecimal.ONE);
         DISCRETE_TO_UNITS.put("u", BigDecimal.ONE);
         DISCRETE_TO_UNITS.put("stick", BigDecimal.ONE);
         DISCRETE_TO_UNITS.put("leaf", BigDecimal.ONE);
+        DISCRETE_TO_UNITS.put("feuille", BigDecimal.ONE);
+        DISCRETE_TO_UNITS.put("morceau", BigDecimal.ONE);
         DISCRETE_TO_UNITS.put("half", ONE_HALF);
+        DISCRETE_TO_UNITS.put("demi", ONE_HALF);
         DISCRETE_TO_UNITS.put("quarter", ONE_FOURTH);
+        DISCRETE_TO_UNITS.put("quartier", ONE_FOURTH);
+        DISCRETE_TO_UNITS.put("quart", ONE_FOURTH);
         DISCRETE_TO_UNITS.put("slice", ONE_EIGHTH);
+        DISCRETE_TO_UNITS.put("tranche", ONE_EIGHTH);
         DISCRETE_TO_UNITS.put("zest", ONE_TENTH);
+        DISCRETE_TO_UNITS.put("zeste", ONE_TENTH);
+        DISCRETE_TO_UNITS.put("bouteille", BigDecimal.ONE);
+        DISCRETE_TO_UNITS.put("botte", MINT_BUNCH_CAPACITY);
     }
 
     /**
-     * Normalizes a unit string by trimming, lowercasing, stripping accents, and removing trailing plural 's'.
+     * Normalizes a unit string by trimming, lowercasing, stripping accents, and removing trailing plural 's' or 'x'.
      *
      * @param unit the raw unit string
      * @return normalized unit identifier
@@ -84,7 +117,7 @@ public final class UnitConversionService {
         String normalized = Normalizer.normalize(unit.trim().toLowerCase(Locale.ROOT), Normalizer.Form.NFD);
         normalized = normalized.replaceAll("\\p{M}", "");
         normalized = normalized.replace(".", "").replace("-", " ").replaceAll("\\s+", " ").trim();
-        if (normalized.endsWith("s") && normalized.length() > 2 && !normalized.equals("cs") && !normalized.equals("ds")) {
+        if (((normalized.endsWith("s") && !normalized.equals("cs") && !normalized.equals("ds")) || normalized.endsWith("x")) && normalized.length() > 2) {
             normalized = normalized.substring(0, normalized.length() - 1);
         }
         return normalized;

@@ -1220,12 +1220,14 @@ public class SampleDataSeederService {
         return null;
     }
 
+    private static final String FUZZY_MENTHE = "menthe";
+
     private static final String[][] FUZZY_INGREDIENT_PAIRS = {
         {"prose", "prosc"},
         {"apero", "apero"},
         {"kahlua", "kahlua"},
         {"cointreau", "cointreau"},
-        {"menthe", "menthe"},
+        {FUZZY_MENTHE, FUZZY_MENTHE},
         {"angostura", "angostura"},
         {"cranber", "cramber"},
         {"ananas", "ananas"},
@@ -1926,18 +1928,20 @@ public class SampleDataSeederService {
     }
 
     private Ingredient findOrCreateIngredient(String ingNom, BigDecimal unitPrice) {
-        return findIngredient(ingNom).orElseGet(() -> {
-            Ingredient newIng = new Ingredient();
-            newIng.setNom(ingNom);
-            newIng.setUniteMesure("cl");
-            newIng.setQuantiteStock(new BigDecimal("100.0"));
-            newIng.setSeuilAlerte(new BigDecimal("20.0"));
-            newIng.setPrixUnitaire(unitPrice != null ? unitPrice : new BigDecimal("10.00"));
-            newIng.setPurchaseUnit("Bouteille 70cl");
-            newIng.setPackagingCapacity(BigDecimal.valueOf(70.0));
-            newIng.setPackagingPriceHt(unitPrice != null ? unitPrice : new BigDecimal("10.00"));
-            return ingredientRepository.save(newIng);
-        });
+        Optional<Ingredient> opt = findIngredient(ingNom);
+        if (opt.isPresent()) {
+            return opt.get();
+        }
+        Ingredient newIng = new Ingredient();
+        newIng.setNom(ingNom);
+        newIng.setUniteMesure("cl");
+        newIng.setQuantiteStock(new BigDecimal("100.0"));
+        newIng.setSeuilAlerte(new BigDecimal("20.0"));
+        newIng.setPrixUnitaire(unitPrice != null ? unitPrice : new BigDecimal("10.00"));
+        newIng.setPurchaseUnit("Bouteille 70cl");
+        newIng.setPackagingCapacity(BigDecimal.valueOf(70.0));
+        newIng.setPackagingPriceHt(unitPrice != null ? unitPrice : new BigDecimal("10.00"));
+        return ingredientRepository.save(newIng);
     }
 
     private void linkIngredientsToSuppliersAndBarcodes(Map<String, Supplier> savedSuppliers) {

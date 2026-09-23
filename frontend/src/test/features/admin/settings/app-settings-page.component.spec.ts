@@ -1101,6 +1101,132 @@ describe('AppSettingsPageComponent', () => {
       expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
     });
   });
+
+  describe('Measurement Unit Systems & Discount Tiers', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+    });
+
+    it('should initialize with default METRIC_CL unit system and cl/g units', () => {
+      expect(component.appSettingsForm.get('unitSystem')?.value).toBe('METRIC_CL');
+      expect(component.appSettingsForm.get('volumeUnit')?.value).toBe('cl');
+      expect(component.appSettingsForm.get('weightUnit')?.value).toBe('g');
+      expect(component.currentVolumeUnit).toBe('cl');
+      expect(component.currentWeightUnit).toBe('g');
+    });
+
+    it('should apply METRIC_ML preset and update controls', () => {
+      const mlPreset = component.unitPresets.find(p => p.key === 'METRIC_ML')!;
+      component.applyUnitPreset(mlPreset);
+
+      expect(component.appSettingsForm.get('unitSystem')?.value).toBe('METRIC_ML');
+      expect(component.appSettingsForm.get('volumeUnit')?.value).toBe('ml');
+      expect(component.appSettingsForm.get('weightUnit')?.value).toBe('g');
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+
+    it('should apply IMPERIAL_US preset and update controls', () => {
+      const usPreset = component.unitPresets.find(p => p.key === 'IMPERIAL_US')!;
+      component.applyUnitPreset(usPreset);
+
+      expect(component.appSettingsForm.get('unitSystem')?.value).toBe('IMPERIAL_US');
+      expect(component.appSettingsForm.get('volumeUnit')?.value).toBe('fl oz');
+      expect(component.appSettingsForm.get('weightUnit')?.value).toBe('oz');
+    });
+
+    it('should apply CUSTOM preset without altering current volume and weight units', () => {
+      const customPreset = component.unitPresets.find(p => p.key === 'CUSTOM')!;
+      component.applyUnitPreset(customPreset);
+
+      expect(component.appSettingsForm.get('unitSystem')?.value).toBe('CUSTOM');
+    });
+
+    it('should switch to CUSTOM when volume and weight units do not match standard presets', () => {
+      component.setVolumeUnit('l');
+      expect(component.appSettingsForm.get('unitSystem')?.value).toBe('CUSTOM');
+
+      component.setVolumeUnit('cl');
+      component.setWeightUnit('g');
+      expect(component.appSettingsForm.get('unitSystem')?.value).toBe('METRIC_CL');
+    });
+
+    it('should correctly format sample volume in various units', () => {
+      component.setVolumeUnit('cl');
+      expect(component.formatSampleVolume(5)).toBe('5 cl');
+
+      component.setVolumeUnit('ml');
+      expect(component.formatSampleVolume(5)).toBe('50 ml');
+
+      component.setVolumeUnit('fl oz');
+      expect(component.formatSampleVolume(5)).toContain('fl oz');
+
+      component.setVolumeUnit('l');
+      expect(component.formatSampleVolume(70)).toBe('0.70 L');
+    });
+
+    it('should correctly format sample weight in various units', () => {
+      component.setWeightUnit('g');
+      expect(component.formatSampleWeight(100)).toBe('100 g');
+
+      component.setWeightUnit('kg');
+      expect(component.formatSampleWeight(1000)).toBe('1.00 kg');
+
+      component.setWeightUnit('oz');
+      expect(component.formatSampleWeight(28.35)).toContain('oz');
+
+      component.setWeightUnit('lb');
+      expect(component.formatSampleWeight(453.6)).toContain('lb');
+    });
+
+    it('should add a custom discount tier and reset input fields', () => {
+      const initialCount = component.configuredDiscountTiers().length;
+      component.newDiscountTierLabel = 'Test VIP';
+      component.newDiscountTierType = 'percent';
+      component.newDiscountTierValue = 35;
+
+      component.addDiscountTier();
+
+      expect(component.configuredDiscountTiers().length).toBe(initialCount + 1);
+      const added = component.configuredDiscountTiers().find(t => t.label === 'Test VIP');
+      expect(added).toBeDefined();
+      expect(added?.value).toBe(35);
+      expect(added?.type).toBe('percent');
+      expect(component.newDiscountTierLabel).toBe('');
+      expect(component.newDiscountTierValue).toBeNull();
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+
+    it('should not add a discount tier when label or value is invalid', () => {
+      const initialCount = component.configuredDiscountTiers().length;
+      component.newDiscountTierLabel = '   ';
+      component.newDiscountTierValue = 10;
+      component.addDiscountTier();
+      expect(component.configuredDiscountTiers().length).toBe(initialCount);
+
+      component.newDiscountTierLabel = 'Valid';
+      component.newDiscountTierValue = 0;
+      component.addDiscountTier();
+      expect(component.configuredDiscountTiers().length).toBe(initialCount);
+    });
+
+    it('should remove a discount tier by id', () => {
+      const tiers = component.configuredDiscountTiers();
+      const toRemove = tiers[0];
+      component.removeDiscountTier(toRemove.id);
+
+      expect(component.configuredDiscountTiers().some(t => t.id === toRemove.id)).toBeFalse();
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+
+    it('should reset discount tiers to defaults', () => {
+      component.configuredDiscountTiers.set([]);
+      expect(component.configuredDiscountTiers().length).toBe(0);
+
+      component.resetDiscountTiersToDefault();
+      expect(component.configuredDiscountTiers().length).toBeGreaterThan(0);
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+  });
 });
 
 

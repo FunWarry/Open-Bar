@@ -355,7 +355,7 @@ class AppSettingsServiceTest {
         String denominationsJson = "[{\"key\":\"500e\",\"label\":\"500 €\",\"value\":500,\"type\":\"bill\"}]";
         AppSettingsUpdateRequest req = new AppSettingsUpdateRequest(
             "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
-            "EUR", "€", null, 3, 5, 10, null, null, null, null, false, false,
+            "EUR", "€", CurrencyPosition.AFTER, 3, 5, 10, null, null, null, null, false, false,
             null, null, null, null, null, null, 9100, false, denominationsJson
         );
 
