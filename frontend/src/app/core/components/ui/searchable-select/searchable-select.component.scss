@@ -125,7 +125,9 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .item-label {
@@ -133,6 +135,9 @@
     color: var(--text-primary);
     font-size: 0.9rem;
     line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .item-badge {
@@ -466,7 +471,7 @@
     padding: 0.5rem 0.75rem;
     border-radius: 0.55rem;
     background: var(--primary);
-    color: #ffffff;
+    color: var(--text-on-accent, var(--text-primary));
     border: none;
     font-size: 0.82rem;
     font-weight: 600;
