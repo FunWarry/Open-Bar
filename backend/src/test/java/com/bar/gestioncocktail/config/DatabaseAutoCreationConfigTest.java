@@ -29,14 +29,14 @@ class DatabaseAutoCreationConfigTest {
 
     @Test
     @DisplayName("databaseAutoCreator returns non-null BeanFactoryPostProcessor")
-    void databaseAutoCreator_returnsNonNullProcessor() {
+    void databaseAutoCreatorReturnsNonNullProcessor() {
         BeanFactoryPostProcessor processor = DatabaseAutoCreationConfig.databaseAutoCreator(environment);
         assertNotNull(processor);
     }
 
     @Test
     @DisplayName("postProcessBeanFactory executes safely with null spring.datasource.url")
-    void postProcessBeanFactory_handlesNullUrl() {
+    void postProcessBeanFactoryHandlesNullUrl() {
         when(environment.getProperty("spring.datasource.url")).thenReturn(null);
         BeanFactoryPostProcessor processor = DatabaseAutoCreationConfig.databaseAutoCreator(environment);
 
@@ -45,7 +45,7 @@ class DatabaseAutoCreationConfigTest {
 
     @Test
     @DisplayName("postProcessBeanFactory executes safely with non-PostgreSQL url")
-    void postProcessBeanFactory_handlesNonPostgresUrl() {
+    void postProcessBeanFactoryHandlesNonPostgresUrl() {
         when(environment.getProperty("spring.datasource.url")).thenReturn("jdbc:h2:mem:testdb");
         BeanFactoryPostProcessor processor = DatabaseAutoCreationConfig.databaseAutoCreator(environment);
 
@@ -59,12 +59,49 @@ class DatabaseAutoCreationConfigTest {
             "jdbc:postgresql://127.0.0.1:5433/gestion_cocktail_dev?ssl=false"
     })
     @DisplayName("postProcessBeanFactory executes safely with various PostgreSQL URLs")
-    void postProcessBeanFactory_handlesPostgresUrls(String url) {
+    void postProcessBeanFactoryHandlesPostgresUrls(String url) {
         when(environment.getProperty("spring.datasource.url")).thenReturn(url);
-        when(environment.getProperty("spring.datasource.username", "postgres")).thenReturn("postgres");
-        when(environment.getProperty("spring.datasource.password", "postgres")).thenReturn("postgres");
+        org.mockito.Mockito.lenient().when(environment.getProperty("spring.datasource.username", "postgres")).thenReturn("postgres");
+        org.mockito.Mockito.lenient().when(environment.getProperty("spring.datasource.password", "postgres")).thenReturn("postgres");
         BeanFactoryPostProcessor processor = DatabaseAutoCreationConfig.databaseAutoCreator(environment);
 
         assertDoesNotThrow(() -> processor.postProcessBeanFactory(beanFactory));
+    }
+
+    @Test
+    @DisplayName("DbStatus enum defines all required connection states")
+    void dbStatusDefinesAllRequiredStates() {
+        DatabaseAutoCreationConfig.DbStatus[] statuses = DatabaseAutoCreationConfig.DbStatus.values();
+        org.assertj.core.api.Assertions.assertThat(statuses).containsExactlyInAnyOrder(
+                DatabaseAutoCreationConfig.DbStatus.READY,
+                DatabaseAutoCreationConfig.DbStatus.SERVER_UP_NO_DB,
+                DatabaseAutoCreationConfig.DbStatus.UNREACHABLE
+        );
+    }
+
+    @Test
+    @DisplayName("probeDatabaseStatus returns UNREACHABLE for unreachable host")
+    void probeDatabaseStatusReturnsUnreachableForInvalidHost() {
+        DatabaseAutoCreationConfig.ProbeResult result = DatabaseAutoCreationConfig.probeDatabaseStatus(
+                "jdbc:postgresql://192.0.2.1:5433/unreachable_db", "postgres", "postgres");
+        org.assertj.core.api.Assertions.assertThat(result.status()).isEqualTo(DatabaseAutoCreationConfig.DbStatus.UNREACHABLE);
+        org.assertj.core.api.Assertions.assertThat(result.errorMessage()).isNotBlank();
+    }
+
+    @Test
+    @DisplayName("postProcessBeanFactory aborts with IllegalStateException when wait-for-connection times out")
+    void postProcessBeanFactoryThrowsIllegalStateExceptionOnTimeout() {
+        when(environment.getProperty("spring.datasource.url")).thenReturn("jdbc:postgresql://192.0.2.1:5433/gestion_cocktail_test");
+        org.mockito.Mockito.lenient().when(environment.getProperty("spring.datasource.username", "postgres")).thenReturn("postgres");
+        org.mockito.Mockito.lenient().when(environment.getProperty("spring.datasource.password", "postgres")).thenReturn("postgres");
+        when(environment.getProperty("openbar.database.wait-for-connection", Boolean.class, false)).thenReturn(true);
+        when(environment.getProperty("openbar.database.poll-interval-seconds", Integer.class)).thenReturn(1);
+        when(environment.getProperty("openbar.database.max-wait-seconds", Integer.class)).thenReturn(1);
+
+        BeanFactoryPostProcessor processor = DatabaseAutoCreationConfig.databaseAutoCreator(environment);
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> processor.postProcessBeanFactory(beanFactory))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("is not reachable after");
     }
 }

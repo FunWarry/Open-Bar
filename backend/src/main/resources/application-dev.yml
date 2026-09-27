@@ -13,3 +13,4 @@ logging:
     org.springframework.security: DEBUG
     com.bar.gestioncocktail: DEBUG
     org.hibernate.SQL: off
+    org.hibernate.orm.jdbc.warn: ERROR
