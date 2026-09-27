@@ -20,7 +20,8 @@ import {
   alertCircleOutline, wineOutline, waterOutline, colorFillOutline,
   nutritionOutline, cubeOutline, downloadOutline,
   flaskOutline, beerOutline, sparklesOutline, leafOutline,
-  cartOutline, barcodeOutline, warningOutline, shieldCheckmarkOutline, eggOutline
+  cartOutline, barcodeOutline, warningOutline, shieldCheckmarkOutline, eggOutline,
+  clipboardOutline
 } from 'ionicons/icons';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -102,6 +103,7 @@ export interface IngredientCategoryGroup {
 export class IngredientListComponent implements OnInit, OnDestroy {
   private readonly featureFlagService = inject(FeatureFlagService);
   readonly suppliersManagementEnabled = this.featureFlagService.suppliersManagementEnabled;
+  readonly inventoryAuditEnabled = this.featureFlagService.inventoryAuditEnabled;
 
   ingredients: Ingredient[] = [];
   isLoading = false;
@@ -189,7 +191,8 @@ export class IngredientListComponent implements OnInit, OnDestroy {
       alertCircleOutline, wineOutline, waterOutline, colorFillOutline,
       nutritionOutline, cubeOutline, downloadOutline,
       flaskOutline, beerOutline, sparklesOutline, leafOutline,
-      cartOutline, barcodeOutline, warningOutline, shieldCheckmarkOutline, eggOutline
+      cartOutline, barcodeOutline, warningOutline, shieldCheckmarkOutline, eggOutline,
+      clipboardOutline
     });
   }
 
@@ -334,6 +337,13 @@ export class IngredientListComponent implements OnInit, OnDestroy {
    */
   goToPurchases(): void {
     this.router.navigate(['/purchases']);
+  }
+
+  /**
+   * Navigates to the physical inventory audits and shrinkage management view.
+   */
+  goToInventory(): void {
+    this.router.navigate(['/inventory']);
   }
 
   onUnitChange(event: Event): void {

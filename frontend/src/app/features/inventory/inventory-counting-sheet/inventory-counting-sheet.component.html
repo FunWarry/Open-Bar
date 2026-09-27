@@ -1,0 +1,488 @@
+<ion-content class="ion-padding counting-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadSessionData($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="counting-container">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <span>{{ 'COMMON.LOADING' | transloco }}</span>
+      </div>
+    } @else if (session(); as s) {
+      <!-- Header Card -->
+      <div class="header-card">
+        <div class="header-top-row">
+          <div class="nav-back-title">
+            <button type="button" class="back-btn" (click)="goBack()" data-testid="btn-back-to-sessions">
+              <ion-icon name="arrow-back-outline"></ion-icon>
+            </button>
+            <div class="title-details">
+              <div class="ref-status-row">
+                <span class="ref-badge">{{ s.referenceCode }}</span>
+                <ion-badge [color]="s.status === 'FINALIZED' ? 'success' : s.status === 'CANCELLED' ? 'danger' : 'primary'" class="status-badge" data-testid="badge-session-status">
+                  {{ 'INVENTORY.STATUS_' + s.status | transloco }}
+                </ion-badge>
+              </div>
+              <h1 class="session-title" data-testid="text-session-title">{{ s.title }}</h1>
+              <p class="session-subtitle">
+                {{ 'INVENTORY.CARD_CREATED_ON' | transloco:{ date: (s.createdAt | date:'short'), user: s.createdByUsername || 'Admin' } }}
+                @if (s.finalizedAt) {
+                  • {{ 'INVENTORY.CARD_FINALIZED_ON' | transloco:{ date: (s.finalizedAt | date:'short'), user: s.finalizedByUsername || 'Admin' } }}
+                }
+              </p>
+            </div>
+          </div>
+
+          <!-- Header Actions -->
+          <div class="header-actions">
+            <app-action-button
+              variant="secondary"
+              size="medium"
+              icon="document-text-outline"
+              (btnClick)="exportPdf()"
+              testId="btn-export-pdf"
+              data-testid="btn-export-pdf">
+              PDF
+            </app-action-button>
+
+            <app-action-button
+              variant="secondary"
+              size="medium"
+              icon="download-outline"
+              (btnClick)="exportCsv()"
+              testId="btn-export-csv"
+              data-testid="btn-export-csv">
+              CSV
+            </app-action-button>
+
+            @if (s.status !== 'FINALIZED' && s.status !== 'CANCELLED') {
+              <app-action-button
+                variant="secondary"
+                size="medium"
+                icon="close-outline"
+                (btnClick)="cancelAudit()"
+                testId="btn-cancel-audit"
+                data-testid="btn-cancel-audit">
+                {{ 'INVENTORY.BTN_CANCEL_AUDIT' | transloco }}
+              </app-action-button>
+
+              <app-action-button
+                variant="primary"
+                size="medium"
+                icon="checkmark-circle-outline"
+                (btnClick)="openFinalizeModal()"
+                testId="btn-finalize-audit"
+                data-testid="btn-finalize-audit">
+                {{ 'INVENTORY.BTN_FINALIZE' | transloco }}
+              </app-action-button>
+            }
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="session-progress-row">
+          <div class="progress-info">
+            <span class="progress-title">{{ 'INVENTORY.CARD_PROGRESS' | transloco }}</span>
+            <span class="progress-count">
+              {{ 'INVENTORY.CARD_ITEMS_COUNTED' | transloco:{ counted: s.countedItemsCount, total: s.totalItemsCount } }}
+            </span>
+          </div>
+          <ion-progress-bar
+            [value]="getProgress()"
+            [color]="s.status === 'FINALIZED' ? 'success' : 'primary'"
+            class="header-progress-bar">
+          </ion-progress-bar>
+        </div>
+
+        <!-- Segment Switcher -->
+        <div class="segment-switcher">
+          <button
+            type="button"
+            class="segment-btn"
+            [class.active]="activeTab() === 'counting'"
+            (click)="selectTab('counting')"
+            data-testid="tab-counting-sheet">
+            <ion-icon name="clipboard-outline"></ion-icon>
+            <span>{{ 'INVENTORY.COUNTING_SHEET_TITLE' | transloco }}</span>
+          </button>
+          <button
+            type="button"
+            class="segment-btn"
+            [class.active]="activeTab() === 'report'"
+            (click)="selectTab('report')"
+            data-testid="tab-variance-report">
+            <ion-icon name="trending-down-outline"></ion-icon>
+            <span>{{ 'INVENTORY.REPORT_TAB_TITLE' | transloco }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 1: COUNTING SHEET -->
+      @if (activeTab() === 'counting') {
+        <div class="counting-tab-view">
+          <!-- Storage Location Selector & Filters -->
+          <div class="controls-toolbar">
+            <div class="location-tabs">
+              @for (loc of storageLocations; track loc.key) {
+                <button
+                  type="button"
+                  class="location-pill"
+                  [class.active]="selectedLocation() === loc.key"
+                  (click)="selectLocation(loc.key)"
+                  [attr.data-testid]="'tab-location-' + loc.key">
+                  {{ loc.labelKey | transloco }}
+                </button>
+              }
+            </div>
+
+            <div class="search-and-toggle">
+              <div class="search-wrapper">
+                <app-search-bar
+                  [placeholder]="'INVENTORY.FILTER_SEARCH_INGREDIENTS' | transloco"
+                  [value]="searchQuery()"
+                  (searchChange)="onSearch($event)"
+                  testId="input-search-items"
+                  data-testid="input-search-items">
+                </app-search-bar>
+              </div>
+
+              <button
+                type="button"
+                class="discrepancy-toggle-btn"
+                [class.active]="showDiscrepanciesOnly()"
+                (click)="toggleDiscrepanciesOnly()"
+                data-testid="btn-toggle-discrepancies">
+                <ion-icon name="filter-outline"></ion-icon>
+                <span>{{ 'INVENTORY.FILTER_DISCREPANCIES_ONLY' | transloco }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Items Counting Grid -->
+          <div class="items-grid" data-testid="counting-items-grid">
+            @for (item of filteredItems(); track item.id) {
+              @let state = getItemState(item.id);
+              <div class="item-count-card" [class.discrepancy]="item.varianceQuantity !== 0 && item.varianceQuantity !== null" [attr.data-testid]="'item-card-' + item.id">
+                <div class="item-header-row">
+                  <div class="item-title-meta">
+                    <h3 class="item-name">{{ item.ingredientNom }}</h3>
+                    <div class="item-tags">
+                      <span class="cat-pill">{{ item.ingredientCategory }}</span>
+                      <span class="unit-pill">
+                        {{ item.packagingCapacity ? (item.packagingCapacity + ' ' + item.ingredientUnite + ' / btl') : item.ingredientUnite }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Theoretical Stock -->
+                  <div class="stock-compare-box">
+                    <div class="compare-col">
+                      <span class="compare-label">{{ 'INVENTORY.COL_THEORETICAL' | transloco }}</span>
+                      <span class="compare-val">{{ item.theoreticalQuantity | number:'1.0-3' }} {{ item.ingredientUnite }}</span>
+                    </div>
+                    <div class="compare-col counted">
+                      <span class="compare-label">{{ 'INVENTORY.COL_PHYSICAL' | transloco }}</span>
+                      <span class="compare-val font-bold">
+                        {{ (item.countedQuantity !== null ? (item.countedQuantity | number:'1.0-3') : '-') }} {{ item.ingredientUnite }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Hybrid Bottle Gauging Widget -->
+                <div class="gauging-widget">
+                  <!-- Full Containers Counter -->
+                  <div class="full-containers-box">
+                    <label class="gauge-label" [for]="'full-containers-' + item.id">{{ 'INVENTORY.GAUGE_FULL_CONTAINERS' | transloco }}</label>
+                    <div class="stepper-row">
+                      <button
+                        type="button"
+                        class="stepper-btn"
+                        [disabled]="s.status === 'FINALIZED' || s.status === 'CANCELLED' || state.fullContainers <= 0"
+                        (click)="updateFullContainers(item.id, state.fullContainers - 1); saveCount(item)"
+                        [attr.data-testid]="'btn-decrement-full-' + item.id">
+                        -
+                      </button>
+                      <input
+                        [id]="'full-containers-' + item.id"
+                        type="number"
+                        min="0"
+                        class="stepper-input"
+                        [disabled]="s.status === 'FINALIZED' || s.status === 'CANCELLED'"
+                        [value]="state.fullContainers"
+                        (input)="updateFullContainers(item.id, +$any($event.target).value)"
+                        (blur)="saveCount(item)"
+                        [attr.data-testid]="'input-full-containers-' + item.id" />
+                      <button
+                        type="button"
+                        class="stepper-btn"
+                        [disabled]="s.status === 'FINALIZED' || s.status === 'CANCELLED'"
+                        (click)="updateFullContainers(item.id, state.fullContainers + 1); saveCount(item)"
+                        [attr.data-testid]="'btn-increment-full-' + item.id">
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Partial Gauge Section -->
+                  <div class="partial-gauge-box">
+                    <div class="partial-header">
+                      <span class="gauge-label">{{ 'INVENTORY.GAUGE_PARTIAL_VOLUME' | transloco }}</span>
+                      <span class="gauge-sub">{{ 'INVENTORY.GAUGE_FRACTIONS_HINT' | transloco }}</span>
+                    </div>
+
+                    <!-- Quick Fraction Buttons -->
+                    <div class="fractions-row">
+                      @for (frac of bottleFractions; track frac.fraction) {
+                        <button
+                          type="button"
+                          class="fraction-btn"
+                          [disabled]="s.status === 'FINALIZED' || s.status === 'CANCELLED'"
+                          (click)="applyFraction(item, frac.fraction)"
+                          [attr.data-testid]="'btn-fraction-' + frac.fraction + '-' + item.id">
+                          {{ frac.percentage }}
+                        </button>
+                      }
+                    </div>
+
+                    <!-- Exact Partial Quantity Input -->
+                    <div class="exact-input-row">
+                      <label class="sr-only" [for]="'partial-qty-' + item.id">{{ 'INVENTORY.GAUGE_EXACT_INPUT' | transloco }}</label>
+                      <input
+                        [id]="'partial-qty-' + item.id"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        class="exact-input"
+                        [placeholder]="'INVENTORY.GAUGE_EXACT_INPUT' | transloco"
+                        [disabled]="s.status === 'FINALIZED' || s.status === 'CANCELLED'"
+                        [value]="state.partialQuantity"
+                        (input)="updatePartialQuantity(item.id, +$any($event.target).value)"
+                        (blur)="saveCount(item)"
+                        [attr.data-testid]="'input-partial-qty-' + item.id" />
+                      <span class="exact-unit">{{ item.ingredientUnite }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Footer Summary Row for this line -->
+                <div class="item-footer-row">
+                  <div class="variance-pill-box">
+                    @if (item.varianceQuantity !== null && item.varianceQuantity !== undefined) {
+                      @if (item.varianceQuantity === 0) {
+                        <span class="status-pill match">
+                          <ion-icon name="checkmark-circle-outline"></ion-icon>
+                          {{ 'INVENTORY.STATUS_MATCH' | transloco }} (0 {{ item.ingredientUnite }})
+                        </span>
+                      } @else if (item.varianceQuantity < 0) {
+                        <span class="status-pill shrinkage">
+                          <ion-icon name="trending-down-outline"></ion-icon>
+                          {{ 'INVENTORY.STATUS_SHRINKAGE' | transloco }}: {{ item.varianceQuantity | number:'1.0-3' }} {{ item.ingredientUnite }}
+                          ({{ item.varianceValueHt | number:'1.2-2' }} €)
+                        </span>
+                      } @else {
+                        <span class="status-pill surplus">
+                          <ion-icon name="trending-up-outline"></ion-icon>
+                          {{ 'INVENTORY.STATUS_SURPLUS' | transloco }}: +{{ item.varianceQuantity | number:'1.0-3' }} {{ item.ingredientUnite }}
+                          (+{{ item.varianceValueHt | number:'1.2-2' }} €)
+                        </span>
+                      }
+                    }
+                  </div>
+
+                  @if (s.status !== 'FINALIZED' && s.status !== 'CANCELLED') {
+                    <div class="item-actions">
+                      <button
+                        type="button"
+                        class="btn-save-line"
+                        (click)="saveCount(item)"
+                        [disabled]="state.isSaving"
+                        [attr.data-testid]="'btn-save-item-' + item.id">
+                        @if (state.isSaving) {
+                          <ion-spinner name="dots"></ion-spinner>
+                        } @else {
+                          <ion-icon name="save-outline"></ion-icon>
+                          <span>{{ 'COMMON.SAVE' | transloco }}</span>
+                        }
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- TAB 2: VARIANCE & SHRINKAGE REPORT -->
+      @if (activeTab() === 'report') {
+        <div class="report-tab-view" data-testid="variance-report-view">
+          <!-- 5 Financial KPI Summary Cards -->
+          <ion-grid class="report-stats-grid">
+            <ion-row>
+              <ion-col size="12" sizeSm="6" sizeLg="2.4">
+                <app-stat-card
+                  [title]="'INVENTORY.REPORT_THEO_TOTAL' | transloco"
+                  [value]="((summary()?.totalTheoreticalValueHt ?? s.totalTheoreticalValueHt) | number:'1.2-2') + ' €'"
+                  icon="clipboard-outline"
+                  color="neutral"
+                  testId="stat-report-theo-val">
+                </app-stat-card>
+              </ion-col>
+              <ion-col size="12" sizeSm="6" sizeLg="2.4">
+                <app-stat-card
+                  [title]="'INVENTORY.REPORT_COUNTED_TOTAL' | transloco"
+                  [value]="((summary()?.totalCountedValueHt ?? s.totalCountedValueHt) | number:'1.2-2') + ' €'"
+                  icon="checkmark-circle-outline"
+                  color="primary"
+                  testId="stat-report-counted-val">
+                </app-stat-card>
+              </ion-col>
+              <ion-col size="12" sizeSm="6" sizeLg="2.4">
+                <app-stat-card
+                  [title]="'INVENTORY.REPORT_NET_VARIANCE' | transloco"
+                  [value]="(((summary()?.totalVarianceValueHt ?? s.totalVarianceValueHt) >= 0 ? '+' : '') + ((summary()?.totalVarianceValueHt ?? s.totalVarianceValueHt) | number:'1.2-2')) + ' €'"
+                  icon="trending-up-outline"
+                  [color]="(summary()?.totalVarianceValueHt ?? s.totalVarianceValueHt) >= 0 ? 'success' : 'danger'"
+                  testId="stat-report-net-variance">
+                </app-stat-card>
+              </ion-col>
+              <ion-col size="12" sizeSm="6" sizeLg="2.4">
+                <app-stat-card
+                  [title]="'INVENTORY.REPORT_SHRINKAGE_LOSS' | transloco"
+                  [value]="('-' + ((summary()?.totalShrinkageValueHt ?? (s.totalVarianceValueHt < 0 ? -s.totalVarianceValueHt : 0)) | number:'1.2-2')) + ' €'"
+                  icon="trending-down-outline"
+                  color="danger"
+                  testId="stat-report-shrinkage-loss">
+                </app-stat-card>
+              </ion-col>
+              <ion-col size="12" sizeSm="6" sizeLg="2.4">
+                <app-stat-card
+                  [title]="'INVENTORY.REPORT_SURPLUS_GAIN' | transloco"
+                  [value]="('+' + ((summary()?.totalSurplusValueHt ?? (s.totalVarianceValueHt > 0 ? s.totalVarianceValueHt : 0)) | number:'1.2-2')) + ' €'"
+                  icon="trending-up-outline"
+                  color="success"
+                  testId="stat-report-surplus-gain">
+                </app-stat-card>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+
+          <!-- Report Table Card -->
+          <div class="report-table-card">
+            <div class="table-header-flex">
+              <h2 class="table-title">{{ 'INVENTORY.REPORT_SUMMARY_TITLE' | transloco }}</h2>
+              <div class="table-actions">
+                <button
+                  type="button"
+                  class="filter-discrepancy-btn"
+                  [class.active]="showDiscrepanciesOnly()"
+                  (click)="toggleDiscrepanciesOnly()"
+                  data-testid="btn-report-toggle-discrepancies">
+                  <ion-icon name="filter-outline"></ion-icon>
+                  <span>{{ 'INVENTORY.FILTER_DISCREPANCIES_ONLY' | transloco }}</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="variance-matrix-table" data-testid="variance-matrix-table">
+                <thead>
+                  <tr>
+                    <th>{{ 'INVENTORY.COL_INGREDIENT' | transloco }}</th>
+                    <th>{{ 'INVENTORY.COL_CATEGORY' | transloco }}</th>
+                    <th class="num-col">{{ 'INVENTORY.COL_THEORETICAL' | transloco }}</th>
+                    <th class="num-col">{{ 'INVENTORY.COL_PHYSICAL' | transloco }}</th>
+                    <th class="num-col">{{ 'INVENTORY.COL_VARIANCE_QTY' | transloco }}</th>
+                    <th class="num-col">{{ 'INVENTORY.COL_UNIT_COST' | transloco }}</th>
+                    <th class="num-col">{{ 'INVENTORY.COL_THEO_VAL' | transloco }}</th>
+                    <th class="num-col">{{ 'INVENTORY.COL_COUNTED_VAL' | transloco }}</th>
+                    <th class="num-col">{{ 'INVENTORY.COL_VARIANCE_VAL' | transloco }}</th>
+                    <th>{{ 'INVENTORY.COL_STATUS' | transloco }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of reportItems(); track item.id) {
+                    <tr>
+                      <td class="font-bold">{{ item.ingredientNom }}</td>
+                      <td><span class="cat-pill">{{ item.ingredientCategory }}</span></td>
+                      <td class="num-col">{{ item.theoreticalQuantity | number:'1.0-3' }} {{ item.ingredientUnite }}</td>
+                      <td class="num-col font-bold">
+                        {{ item.countedQuantity !== null ? (item.countedQuantity | number:'1.0-3') : '-' }} {{ item.ingredientUnite }}
+                      </td>
+                      <td class="num-col" [class.loss]="item.varianceQuantity < 0" [class.gain]="item.varianceQuantity > 0">
+                        {{ (item.varianceQuantity > 0 ? '+' : '') + (item.varianceQuantity | number:'1.0-3') }} {{ item.ingredientUnite }}
+                      </td>
+                      <td class="num-col">{{ item.unitCostHt | number:'1.2-2' }} €</td>
+                      <td class="num-col">{{ item.theoreticalValueHt | number:'1.2-2' }} €</td>
+                      <td class="num-col">{{ item.countedValueHt | number:'1.2-2' }} €</td>
+                      <td class="num-col font-bold" [class.loss]="item.varianceValueHt < 0" [class.gain]="item.varianceValueHt > 0">
+                        {{ (item.varianceValueHt > 0 ? '+' : '') + (item.varianceValueHt | number:'1.2-2') }} €
+                      </td>
+                      <td>
+                        @if (item.varianceQuantity === 0) {
+                          <span class="status-pill match">{{ 'INVENTORY.STATUS_MATCH' | transloco }}</span>
+                        } @else if (item.varianceQuantity < 0) {
+                          <span class="status-pill shrinkage">{{ 'INVENTORY.STATUS_SHRINKAGE' | transloco }}</span>
+                        } @else {
+                          <span class="status-pill surplus">{{ 'INVENTORY.STATUS_SURPLUS' | transloco }}</span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Finalize Confirmation Modal -->
+  <ion-modal [isOpen]="isFinalizeModalOpen()" (didDismiss)="closeFinalizeModal()" class="finalize-audit-modal">
+    <ng-template>
+      <div class="modal-wrapper-custom" data-testid="modal-finalize-audit">
+        <div class="modal-header-custom">
+          <div class="modal-title-box">
+            <ion-icon name="warning-outline" class="modal-warning-icon"></ion-icon>
+            <div>
+              <h2 class="modal-title">{{ 'INVENTORY.FINALIZE_MODAL_TITLE' | transloco }}</h2>
+            </div>
+          </div>
+          <button type="button" class="close-btn" (click)="closeFinalizeModal()" data-testid="btn-close-finalize-modal">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <p class="warning-text">{{ 'INVENTORY.FINALIZE_MODAL_WARNING' | transloco }}</p>
+        </div>
+
+        <div class="modal-footer-custom">
+          <button
+            type="button"
+            class="btn-secondary-custom"
+            (click)="closeFinalizeModal()"
+            data-testid="btn-cancel-finalize">
+            {{ 'COMMON.CANCEL' | transloco }}
+          </button>
+          <button
+            type="button"
+            class="btn-finalize-confirm"
+            (click)="confirmFinalize()"
+            [disabled]="isFinalizing()"
+            data-testid="btn-confirm-finalize">
+            @if (isFinalizing()) {
+              <ion-spinner name="dots"></ion-spinner>
+            } @else {
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <span>{{ 'INVENTORY.BTN_FINALIZE' | transloco }}</span>
+            }
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+</ion-content>

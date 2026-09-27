@@ -1846,6 +1846,208 @@ export async function setupMockApi(page: Page): Promise<void> {
       ]),
     });
   });
+
+  await page.route('**/api/establishment/modules**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        cuisineKds: true,
+        happyHour: true,
+        employeeManagement: true,
+        floorPlan: true,
+        qrClientOrdering: true,
+        stockTracking: true,
+        cashDrawer: true,
+        barTabs: true,
+        cocktailLibrary: true,
+        suppliersManagement: true,
+        inventoryAudit: true,
+      }),
+    });
+  });
+
+  await page.route('**/api/inventory-audits**', async (route) => {
+    const url = route.request().url();
+    const method = route.request().method();
+
+    if (url.includes('/export/pdf')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/pdf',
+        body: Buffer.from('%PDF-1.4\n%EOF'),
+      });
+      return;
+    }
+
+    if (url.includes('/export/csv')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'text/csv',
+        body: 'Reference;Title;Status\nINV-2026-001;Audit;IN_PROGRESS\n',
+      });
+      return;
+    }
+
+    if (url.includes('/summary')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totalTheoreticalValueHt: 8050,
+          totalCountedValueHt: 7175,
+          totalVarianceValueHt: -875,
+          totalShrinkageValueHt: 875,
+          totalSurplusValueHt: 0,
+          totalItemsAudited: 2,
+          itemsWithVarianceCount: 1,
+          varianceValueByCategory: { alcohol: -875 },
+          countedValueByLocation: { 'Main Bar': 2800 },
+        }),
+      });
+      return;
+    }
+
+    if (url.includes('/finalize') && method === 'POST') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          referenceCode: 'INV-2026-001',
+          title: 'Inventaire Mensuel Alcools',
+          status: 'FINALIZED',
+          storageLocationScope: 'ALL',
+          categoryScope: 'alcohol',
+          createdByUsername: 'admin',
+          createdAt: new Date().toISOString(),
+          totalTheoreticalValueHt: 8050,
+          totalCountedValueHt: 7175,
+          totalVarianceValueHt: -875,
+          totalItemsCount: 2,
+          countedItemsCount: 2,
+          items: [],
+        }),
+      });
+      return;
+    }
+
+    if (method === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 99,
+          referenceCode: 'INV-2026-0099',
+          title: body.title || 'Nouvel Inventaire',
+          status: 'IN_PROGRESS',
+          storageLocationScope: body.storageLocationScope || 'ALL',
+          categoryScope: body.categoryScope || null,
+          createdByUsername: 'admin',
+          createdAt: new Date().toISOString(),
+          totalTheoreticalValueHt: 5000,
+          totalCountedValueHt: 0,
+          totalVarianceValueHt: 0,
+          totalItemsCount: 5,
+          countedItemsCount: 0,
+          items: [],
+        }),
+      });
+      return;
+    }
+
+    if (/\/api\/inventory-audits\/\d+$/.exec(url)) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          referenceCode: 'INV-2026-001',
+          title: 'Inventaire Mensuel Alcools',
+          status: 'IN_PROGRESS',
+          storageLocationScope: 'ALL',
+          categoryScope: 'alcohol',
+          createdByUsername: 'admin',
+          createdAt: '2026-09-20T10:00:00',
+          totalTheoreticalValueHt: 8050,
+          totalCountedValueHt: 7175,
+          totalVarianceValueHt: -875,
+          totalItemsCount: 2,
+          countedItemsCount: 1,
+          items: [
+            {
+              id: 10,
+              ingredientId: 1,
+              ingredientNom: 'Rhum Blanc',
+              ingredientUnite: 'cl',
+              ingredientCategory: 'alcohol',
+              packagingCapacity: 70,
+              theoreticalQuantity: 140,
+              countedQuantity: 140,
+              varianceQuantity: 0,
+              unitCostHt: 20,
+              theoreticalValueHt: 2800,
+              countedValueHt: 2800,
+              varianceValueHt: 0,
+              notes: '',
+              locationCounts: [
+                {
+                  id: 101,
+                  auditItemId: 10,
+                  storageLocation: 'Main Bar',
+                  fullContainersCount: 2,
+                  partialQuantity: 0,
+                  countedQuantity: 140,
+                },
+              ],
+            },
+            {
+              id: 11,
+              ingredientId: 2,
+              ingredientNom: 'Gin Artisanal',
+              ingredientUnite: 'cl',
+              ingredientCategory: 'alcohol',
+              packagingCapacity: 70,
+              theoreticalQuantity: 210,
+              countedQuantity: 175,
+              varianceQuantity: -35,
+              unitCostHt: 25,
+              theoreticalValueHt: 5250,
+              countedValueHt: 4375,
+              varianceValueHt: -875,
+              notes: 'Écart constaté',
+              locationCounts: [],
+            },
+          ],
+        }),
+      });
+      return;
+    }
+
+    // Default: list of sessions
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          referenceCode: 'INV-2026-001',
+          title: 'Inventaire Mensuel Alcools',
+          status: 'IN_PROGRESS',
+          storageLocationScope: 'ALL',
+          categoryScope: 'alcohol',
+          createdByUsername: 'admin',
+          createdAt: '2026-09-20T10:00:00',
+          totalTheoreticalValueHt: 8050,
+          totalCountedValueHt: 7175,
+          totalVarianceValueHt: -875,
+          totalItemsCount: 2,
+          countedItemsCount: 1,
+        },
+      ]),
+    });
+  });
 }
 
 

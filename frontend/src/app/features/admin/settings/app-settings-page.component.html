@@ -615,6 +615,18 @@
                           </div>
                           <p class="threshold-desc">{{ 'SETTINGS.MODULE_SUPPLIERS_MANAGEMENT_DESC' | transloco }}</p>
                         </div>
+
+                        <!-- Module 11: INVENTORY_AUDIT -->
+                        <div class="threshold-row" data-testid="module-row-inventory-audit">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="clipboard-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_INVENTORY_AUDIT_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="inventoryAudit" data-testid="toggle-module-inventory-audit"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_INVENTORY_AUDIT_DESC' | transloco }}</p>
+                        </div>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -864,6 +876,26 @@
                                 </span>
                               </div>
                               <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_PURCHASES' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 11. Inventaire Physique & Démarque -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('inventoryAudit')"
+                            [class.node-inactive]="!isModuleControlActive('inventoryAudit')"
+                            data-testid="preview-node-inventory-audit">
+                            <div class="node-icon-box">
+                              <ion-icon name="clipboard-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_INVENTORY_AUDIT_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('inventoryAudit')">
+                                  {{ (isModuleControlActive('inventoryAudit') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_INVENTORY' | transloco }}</span>
                             </div>
                           </div>
                         </div>

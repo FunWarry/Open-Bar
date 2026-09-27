@@ -542,6 +542,7 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     module_bar_tabs_enabled BOOLEAN DEFAULT true,
     module_cocktail_library_enabled BOOLEAN DEFAULT true,
     module_suppliers_management_enabled BOOLEAN DEFAULT true,
+    module_inventory_audit_enabled BOOLEAN DEFAULT true,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -783,3 +784,57 @@ CREATE TABLE IF NOT EXISTS purchase_order_delivery_items (
 
 CREATE INDEX IF NOT EXISTS idx_po_delivery_items_delivery ON purchase_order_delivery_items(delivery_id);
 CREATE INDEX IF NOT EXISTS idx_po_delivery_items_ingredient ON purchase_order_delivery_items(ingredient_id);
+
+-- 16. Periodic Physical Inventory Audit & Variance Reconciliation
+CREATE TABLE IF NOT EXISTS inventory_audit_sessions (
+    id BIGSERIAL PRIMARY KEY,
+    reference_code VARCHAR(50) NOT NULL UNIQUE,
+    title VARCHAR(255) NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'DRAFT',
+    storage_location_scope VARCHAR(100) DEFAULT 'ALL',
+    category_scope VARCHAR(50),
+    created_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    finalized_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    started_at TIMESTAMP,
+    finalized_at TIMESTAMP,
+    notes TEXT,
+    total_theoretical_value_ht DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    total_counted_value_ht DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    total_variance_value_ht DECIMAL(12,2) NOT NULL DEFAULT 0.00
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_sessions_status ON inventory_audit_sessions(status);
+CREATE INDEX IF NOT EXISTS idx_audit_sessions_created_at ON inventory_audit_sessions(created_at);
+
+CREATE TABLE IF NOT EXISTS inventory_audit_items (
+    id BIGSERIAL PRIMARY KEY,
+    session_id BIGINT NOT NULL REFERENCES inventory_audit_sessions(id) ON DELETE CASCADE,
+    ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE RESTRICT,
+    theoretical_quantity DECIMAL(10,3) NOT NULL DEFAULT 0.000,
+    counted_quantity DECIMAL(10,3),
+    variance_quantity DECIMAL(10,3) NOT NULL DEFAULT 0.000,
+    unit_cost_ht DECIMAL(10,4) NOT NULL DEFAULT 0.0000,
+    theoretical_value_ht DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    counted_value_ht DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    variance_value_ht DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    notes TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_items_session_id ON inventory_audit_items(session_id);
+CREATE INDEX IF NOT EXISTS idx_audit_items_ingredient_id ON inventory_audit_items(ingredient_id);
+
+CREATE TABLE IF NOT EXISTS inventory_audit_location_counts (
+    id BIGSERIAL PRIMARY KEY,
+    audit_item_id BIGINT NOT NULL REFERENCES inventory_audit_items(id) ON DELETE CASCADE,
+    storage_location VARCHAR(100) NOT NULL DEFAULT 'Main Bar',
+    full_containers_count INTEGER NOT NULL DEFAULT 0,
+    partial_quantity DECIMAL(10,3) NOT NULL DEFAULT 0.000,
+    counted_quantity DECIMAL(10,3) NOT NULL DEFAULT 0.000,
+    notes TEXT,
+    counted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    counted_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_loc_counts_item_id ON inventory_audit_location_counts(audit_item_id);
+CREATE INDEX IF NOT EXISTS idx_audit_loc_counts_location ON inventory_audit_location_counts(storage_location);

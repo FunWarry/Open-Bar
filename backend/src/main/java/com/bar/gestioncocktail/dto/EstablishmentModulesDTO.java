@@ -15,6 +15,7 @@ import com.bar.gestioncocktail.model.EstablishmentConfig;
  * @param barTabs             Whether customer bar tabs and running ledgers without mandatory physical table assignment are enabled
  * @param cocktailLibrary     Whether cocktail and ingredient library import wizard is enabled
  * @param suppliersManagement Whether beverage and produce supplier management, purchase orders, and PAMP calculation are enabled
+ * @param inventoryAudit      Whether periodic physical inventory audit (stocktake) and shrinkage reconciliation are enabled
  */
 public record EstablishmentModulesDTO(
         boolean cuisineKds,
@@ -26,8 +27,24 @@ public record EstablishmentModulesDTO(
         boolean cashDrawer,
         boolean barTabs,
         boolean cocktailLibrary,
-        boolean suppliersManagement
+        boolean suppliersManagement,
+        boolean inventoryAudit
 ) {
+    public EstablishmentModulesDTO(
+            boolean cuisineKds,
+            boolean happyHour,
+            boolean employeeManagement,
+            boolean floorPlan,
+            boolean qrClientOrdering,
+            boolean stockTracking,
+            boolean cashDrawer,
+            boolean barTabs,
+            boolean cocktailLibrary,
+            boolean suppliersManagement
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, true);
+    }
+
     public EstablishmentModulesDTO(
             boolean cuisineKds,
             boolean happyHour,
@@ -39,7 +56,7 @@ public record EstablishmentModulesDTO(
             boolean barTabs,
             boolean cocktailLibrary
     ) {
-        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, true);
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, true, true);
     }
 
     public EstablishmentModulesDTO(
@@ -52,7 +69,7 @@ public record EstablishmentModulesDTO(
             boolean cashDrawer,
             boolean barTabs
     ) {
-        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, true, true);
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, true, true, true);
     }
 
     public EstablishmentModulesDTO(
@@ -64,7 +81,7 @@ public record EstablishmentModulesDTO(
             boolean stockTracking,
             boolean cashDrawer
     ) {
-        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, true, true, true);
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, true, true, true, true);
     }
 
     /**
@@ -87,7 +104,8 @@ public record EstablishmentModulesDTO(
                 config.getModuleCashDrawerEnabled() == null || config.getModuleCashDrawerEnabled(),
                 config.getModuleBarTabsEnabled() == null || config.getModuleBarTabsEnabled(),
                 config.getModuleCocktailLibraryEnabled() == null || config.getModuleCocktailLibraryEnabled(),
-                config.getModuleSuppliersManagementEnabled() == null || config.getModuleSuppliersManagementEnabled()
+                config.getModuleSuppliersManagementEnabled() == null || config.getModuleSuppliersManagementEnabled(),
+                config.getModuleInventoryAuditEnabled() == null || config.getModuleInventoryAuditEnabled()
         );
     }
 
@@ -97,6 +115,6 @@ public record EstablishmentModulesDTO(
      * @return New instance with all flags set to true
      */
     public static EstablishmentModulesDTO defaultEnabled() {
-        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true, true, true);
+        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true, true, true, true);
     }
 }

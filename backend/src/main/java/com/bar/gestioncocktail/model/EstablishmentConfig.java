@@ -129,6 +129,9 @@ public class EstablishmentConfig {
     @Column(name = "module_suppliers_management_enabled")
     private Boolean moduleSuppliersManagementEnabled = true;
 
+    @Column(name = "module_inventory_audit_enabled")
+    private Boolean moduleInventoryAuditEnabled = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -374,6 +377,14 @@ public class EstablishmentConfig {
         this.moduleSuppliersManagementEnabled = moduleSuppliersManagementEnabled;
     }
 
+    public Boolean getModuleInventoryAuditEnabled() {
+        return this.moduleInventoryAuditEnabled;
+    }
+
+    public void setModuleInventoryAuditEnabled(Boolean moduleInventoryAuditEnabled) {
+        this.moduleInventoryAuditEnabled = moduleInventoryAuditEnabled;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -411,6 +422,7 @@ public class EstablishmentConfig {
             case BAR_TABS -> this.moduleBarTabsEnabled == null || this.moduleBarTabsEnabled;
             case COCKTAIL_LIBRARY -> this.moduleCocktailLibraryEnabled == null || this.moduleCocktailLibraryEnabled;
             case SUPPLIERS_MANAGEMENT -> this.moduleSuppliersManagementEnabled == null || this.moduleSuppliersManagementEnabled;
+            case INVENTORY_AUDIT -> (this.moduleStockTrackingEnabled == null || this.moduleStockTrackingEnabled) && (this.moduleInventoryAuditEnabled == null || this.moduleInventoryAuditEnabled);
             default -> true;
         };
     }
@@ -455,6 +467,9 @@ public class EstablishmentConfig {
                 break;
             case SUPPLIERS_MANAGEMENT:
                 this.moduleSuppliersManagementEnabled = enabled;
+                break;
+            case INVENTORY_AUDIT:
+                this.moduleInventoryAuditEnabled = enabled;
                 break;
             default:
                 break;

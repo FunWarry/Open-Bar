@@ -12,6 +12,7 @@ export enum EstablishmentModule {
   BAR_TABS = 'BAR_TABS',
   COCKTAIL_LIBRARY = 'COCKTAIL_LIBRARY',
   SUPPLIERS_MANAGEMENT = 'SUPPLIERS_MANAGEMENT',
+  INVENTORY_AUDIT = 'INVENTORY_AUDIT',
 }
 
 /**
@@ -28,6 +29,7 @@ export interface EstablishmentModules {
   barTabs: boolean;
   cocktailLibrary: boolean;
   suppliersManagement: boolean;
+  inventoryAudit: boolean;
 }
 
 /**
@@ -50,6 +52,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     barTabs: true,
     cocktailLibrary: true,
     suppliersManagement: true,
+    inventoryAudit: true,
   },
   RESTAURANT: {
     cuisineKds: true,
@@ -62,6 +65,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     barTabs: true,
     cocktailLibrary: true,
     suppliersManagement: true,
+    inventoryAudit: true,
   },
   FOOD_TRUCK: {
     cuisineKds: true,
@@ -74,6 +78,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     barTabs: false,
     cocktailLibrary: true,
     suppliersManagement: false,
+    inventoryAudit: false,
   },
   NIGHTCLUB: {
     cuisineKds: false,
@@ -86,5 +91,6 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     barTabs: true,
     cocktailLibrary: true,
     suppliersManagement: true,
+    inventoryAudit: true,
   },
 };

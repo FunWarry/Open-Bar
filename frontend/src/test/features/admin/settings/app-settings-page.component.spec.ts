@@ -179,6 +179,7 @@ describe('AppSettingsPageComponent', () => {
       barTabs: true,
       cocktailLibrary: true,
       suppliersManagement: true,
+      inventoryAudit: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
 
@@ -801,6 +802,7 @@ describe('AppSettingsPageComponent', () => {
         barTabs: true,
         cocktailLibrary: true,
         suppliersManagement: true,
+        inventoryAudit: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -822,6 +824,7 @@ describe('AppSettingsPageComponent', () => {
         barTabs: false,
         cocktailLibrary: false,
         suppliersManagement: false,
+        inventoryAudit: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -836,6 +839,7 @@ describe('AppSettingsPageComponent', () => {
         barTabs: false,
         cocktailLibrary: false,
         suppliersManagement: false,
+        inventoryAudit: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });
@@ -882,6 +886,7 @@ describe('AppSettingsPageComponent', () => {
         barTabs: false,
         cocktailLibrary: false,
         suppliersManagement: false,
+        inventoryAudit: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();
