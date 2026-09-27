@@ -34,6 +34,7 @@ describe('ModuleGuard', () => {
     cocktailLibrary: true,
     suppliersManagement: true,
     inventoryAudit: true,
+    mysteryRoulette: true,
   };
 
   beforeEach(() => {

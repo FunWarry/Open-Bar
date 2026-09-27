@@ -118,7 +118,9 @@ public class PublicCommandeService {
             prixUnitaire = prixUnitaire.add(variante.getPrixSupplement());
         }
 
-        if (happyHourService != null) {
+        if (itemDto.getPrixOverride() != null) {
+            prixUnitaire = itemDto.getPrixOverride();
+        } else if (happyHourService != null) {
             BigDecimal effectivePrice = happyHourService.resolveEffectivePrice(cocktail, variante, timeService.now());
             if (effectivePrice != null) {
                 prixUnitaire = effectivePrice;
@@ -134,6 +136,7 @@ public class PublicCommandeService {
         item.setQuantite(itemDto.getQuantite());
         item.setPrixUnitaire(prixUnitaire);
         item.setNotes(itemDto.getNotes());
+        item.setIsMysteryDrink(itemDto.getIsMysteryDrink() != null && itemDto.getIsMysteryDrink());
         return item;
     }
 

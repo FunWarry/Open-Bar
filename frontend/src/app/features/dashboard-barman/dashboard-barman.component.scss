@@ -188,6 +188,43 @@ ion-header {
     }
   }
 
+  &.btn-roulette-tv {
+    --background: var(--background-surface-2);
+    --color: var(--primary);
+    --border-radius: var(--radius-pill, 999px);
+    --border-width: 1px;
+    --border-style: solid;
+    --border-color: var(--primary);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: 0 0 10px var(--primary-glow);
+    transition: all 0.2s ease;
+
+    ion-icon {
+      font-size: 1.1rem;
+      margin-right: 6px;
+      color: var(--primary);
+    }
+
+    .btn-text {
+      color: var(--primary);
+      display: none;
+      @media (min-width: 640px) {
+        display: inline;
+      }
+    }
+
+    &:hover {
+      --background: var(--primary);
+      --color: var(--text-contrast);
+
+      ion-icon,
+      .btn-text {
+        color: var(--text-contrast) !important;
+      }
+    }
+  }
+
   &.btn-refresh {
     --background: var(--background-surface-2, #21263f);
     --color: var(--text-primary, #eceefb);
@@ -568,7 +605,7 @@ ion-header {
         align-items: center;
         justify-content: center;
         background: var(--semantic-warning);
-        color: #000000;
+        color: var(--background-bg-0);
         font-size: 0.72rem;
         font-weight: 800;
         min-width: 18px;

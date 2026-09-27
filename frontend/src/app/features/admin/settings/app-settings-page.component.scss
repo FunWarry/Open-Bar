@@ -490,6 +490,56 @@ ion-col {
     color: var(--text-secondary, #94a3b8);
     margin: 0 0 12px;
   }
+
+  .roulette-pin-setting-box {
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: var(--background-surface-1, #121422);
+    border: 1px dashed var(--border-medium, rgba(255, 255, 255, 0.15));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    .pin-info-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+
+      .pin-labels {
+        display: flex;
+        flex-direction: column;
+
+        .pin-title {
+          font-size: 0.88rem;
+          font-weight: 700;
+          color: var(--text-primary, #ffffff);
+        }
+
+        .pin-desc {
+          font-size: 0.76rem;
+          color: var(--text-muted, #7e87a8);
+        }
+      }
+
+      .pin-display-badge {
+        padding: 4px 10px;
+        background: var(--background-surface-2, #181a2e);
+        border: 1px solid var(--primary, #6c7fe8);
+        border-radius: 8px;
+
+        code {
+          font-family: monospace;
+          font-size: 1.15rem;
+          font-weight: 900;
+          letter-spacing: 0.15em;
+          color: var(--primary, #6c7fe8);
+        }
+      }
+    }
+  }
 }
 
 /* Custom Range Sliders */

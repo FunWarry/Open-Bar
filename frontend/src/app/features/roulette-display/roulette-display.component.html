@@ -1,0 +1,340 @@
+<div class="roulette-display-page" data-testid="roulette-display-root">
+  @if (!isUnlocked()) {
+    <!-- PIN Lock Screen Overlay -->
+    <div class="pin-lock-stage" data-testid="roulette-pin-lock-stage">
+      <div class="pin-card" data-testid="roulette-pin-card">
+        <div class="pin-card-icon">
+          <ion-icon name="tv-outline" aria-hidden="true"></ion-icon>
+          <span class="lock-mini-badge">
+            <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
+          </span>
+        </div>
+        <h1 class="pin-card-title">OPENBAR TV</h1>
+        <p class="pin-card-subtitle">{{ 'ROULETTE.PIN_LOCK_SUBTITLE' | transloco }}</p>
+
+        <!-- PIN digit slots (4 dots) -->
+        <div class="pin-dots-row" data-testid="roulette-pin-dots">
+          @for (dot of [0, 1, 2, 3]; track dot) {
+            <div class="pin-dot" [class.filled]="pinInput().length > dot"></div>
+          }
+        </div>
+
+        <!-- Error banner -->
+        @if (pinErrorMessage(); as err) {
+          <div class="pin-error-banner" data-testid="roulette-pin-error">
+            <span>{{ err | transloco }}</span>
+          </div>
+        }
+
+        <!-- Keypad Grid -->
+        <div class="pin-keypad-grid" data-testid="roulette-pin-keypad">
+          <button type="button" class="pin-key" (click)="onPinDigit('1')" data-testid="btn-pin-1">1</button>
+          <button type="button" class="pin-key" (click)="onPinDigit('2')" data-testid="btn-pin-2">2</button>
+          <button type="button" class="pin-key" (click)="onPinDigit('3')" data-testid="btn-pin-3">3</button>
+
+          <button type="button" class="pin-key" (click)="onPinDigit('4')" data-testid="btn-pin-4">4</button>
+          <button type="button" class="pin-key" (click)="onPinDigit('5')" data-testid="btn-pin-5">5</button>
+          <button type="button" class="pin-key" (click)="onPinDigit('6')" data-testid="btn-pin-6">6</button>
+
+          <button type="button" class="pin-key" (click)="onPinDigit('7')" data-testid="btn-pin-7">7</button>
+          <button type="button" class="pin-key" (click)="onPinDigit('8')" data-testid="btn-pin-8">8</button>
+          <button type="button" class="pin-key" (click)="onPinDigit('9')" data-testid="btn-pin-9">9</button>
+
+          <button type="button" class="pin-key pin-key-action" (click)="onPinClear()" data-testid="btn-pin-clear">C</button>
+          <button type="button" class="pin-key" (click)="onPinDigit('0')" data-testid="btn-pin-0">0</button>
+          <button type="button" class="pin-key pin-key-action" (click)="onPinBackspace()" data-testid="btn-pin-backspace">
+            <ion-icon name="backspace-outline" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+
+        <div class="pin-staff-hint">
+          <ion-icon name="keypad-outline" aria-hidden="true"></ion-icon>
+          <span>{{ 'ROULETTE.PIN_STAFF_HINT' | transloco }}</span>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- Top Ambient Broadcast Header -->
+    <header class="display-top-header" data-testid="roulette-display-header">
+      <div class="brand-left">
+        <div class="brand-logo-icon">
+          <ion-icon name="tv-outline" aria-hidden="true"></ion-icon>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">OPENBAR TV</h1>
+          <span class="brand-subtitle">{{ 'ROULETTE.TITLE' | transloco }}</span>
+        </div>
+      </div>
+
+      <!-- Center Live Promotional Ticker -->
+      <div class="header-center-promo">
+        <span class="promo-gem">🎲</span>
+        <span class="promo-text">{{ 'ROULETTE.SUBTITLE_INDECISIVE' | transloco }}</span>
+      </div>
+
+      <!-- Right Controls: Live Badge & Discrete Settings Button -->
+      <div class="header-right-actions">
+        <div class="live-status-pill" data-testid="roulette-live-indicator">
+          <span class="live-dot"></span>
+          <span class="live-label">LIVE DISPLAY</span>
+        </div>
+
+        <button
+          type="button"
+          class="settings-modal-trigger-btn"
+          (click)="openSettingsModal()"
+          (keyup.enter)="openSettingsModal()"
+          aria-label="Settings"
+          data-testid="btn-open-display-settings"
+        >
+          <ion-icon name="settings-outline" aria-hidden="true"></ion-icon>
+          <span class="btn-label">{{ 'ROULETTE.SETTINGS_BTN' | transloco }}</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Broadcast Content Stage -->
+    <main class="display-main-stage" data-testid="roulette-display-stage">
+      <!-- Active Spin Event Announcement Bar -->
+      @if (currentEvent && currentEvent.tableNumero) {
+        <div class="table-announcement-banner" data-testid="roulette-table-announcement">
+          <ion-icon name="flame-outline" class="banner-fire-icon" aria-hidden="true"></ion-icon>
+          <span class="banner-text">
+            TABLE {{ currentEvent.tableNumero }} — {{ 'ROULETTE.SPINNING' | transloco }}
+          </span>
+        </div>
+      } @else {
+        <div class="ambient-idle-banner" data-testid="roulette-idle-banner">
+          <ion-icon name="sparkles-outline" class="idle-sparkle-icon" aria-hidden="true"></ion-icon>
+          <span>{{ 'ROULETTE.DISPLAY_WAITING' | transloco }}</span>
+        </div>
+      }
+
+      <!-- Giant Wheel Stage with Ambient Glow Podium -->
+      <div class="display-wheel-wrapper" data-testid="roulette-wheel-container">
+        <div class="wheel-glow-podium"></div>
+        <app-roulette-wheel
+          #wheel
+          [sectors]="sectors"
+          [size]="460"
+          [isSpinning]="isSpinning"
+          [readOnly]="true"
+          (spinComplete)="onSpinCompleted($event)"
+        ></app-roulette-wheel>
+      </div>
+    </main>
+
+    <!-- Bottom Ticker Bar: Scan Hint & Recent Winners -->
+    <footer class="display-bottom-bar" data-testid="roulette-display-footer">
+      <div class="scan-hint-box" data-testid="roulette-scan-hint">
+        <span class="hint-icon">📱</span>
+        <span class="hint-text">{{ 'ROULETTE.SCAN_QR_HINT' | transloco }}</span>
+      </div>
+
+      <div class="recent-winners-row" data-testid="roulette-recent-winners">
+        <div class="winners-title">
+          <ion-icon name="trophy-outline" aria-hidden="true"></ion-icon>
+          <span>{{ 'ROULETTE.RECENT_WINNERS' | transloco }} :</span>
+        </div>
+        <div class="winners-chips">
+          @for (winner of recentWinners(); track winner.tableNumero + winner.timeAgo) {
+            <div class="winner-chip">
+              <span class="chip-table">T{{ winner.tableNumero }}</span>
+              <span class="chip-name">{{ winner.cocktailNom }}</span>
+              <span class="chip-time">{{ winner.timeAgo }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </footer>
+
+    <!-- Celebratory Reveal Overlay (When celebrationActive is true) -->
+    @if (celebrationActive() && winningResult(); as win) {
+      <div class="celebration-overlay" data-testid="roulette-celebration-overlay">
+        <div class="celebration-card" data-testid="roulette-celebration-card">
+          <div class="card-confetti-halo"></div>
+          <div class="celebration-badge-line">
+            <ion-icon name="trophy-outline" class="trophy-icon" aria-hidden="true"></ion-icon>
+            <span class="celebration-eyebrow">{{ 'ROULETTE.DISPLAY_CELEBRATION' | transloco }}</span>
+          </div>
+
+          <h2 class="winner-drink-name" data-testid="winner-cocktail-name">{{ win.cocktailNom }}</h2>
+
+          @if (win.cocktailDescription) {
+            <p class="winner-description">{{ win.cocktailDescription }}</p>
+          }
+
+          @if (win.rewardText) {
+            <div class="winner-special-reward">
+              <ion-icon name="sparkles-outline" aria-hidden="true"></ion-icon>
+              <span>{{ win.rewardText }}</span>
+            </div>
+          }
+
+          <div class="winner-pricing-pill" data-testid="winner-price-pill">
+            <span class="price-prefix">{{ 'ROULETTE.FLAT_PRICE_PROMO' | transloco }} :</span>
+            <span class="price-amount">{{ win.prix | appCurrency }}</span>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Discrete Settings Modal (Cleanly tucked behind settings button) -->
+    @if (isSettingsModalOpen()) {
+      <dialog
+        class="settings-modal-backdrop"
+        open
+        (keydown.escape)="closeSettingsModal()"
+        (click)="onBackdropClick($event)"
+        data-testid="roulette-settings-backdrop"
+      >
+        <div
+          class="settings-modal-dialog"
+          (click)="$event.stopPropagation()"
+          (keydown)="$event.stopPropagation()"
+          data-testid="roulette-settings-dialog"
+        >
+          <div class="dialog-header">
+            <div class="dialog-title-group">
+              <ion-icon name="settings-outline" class="dialog-title-icon" aria-hidden="true"></ion-icon>
+              <h2 class="dialog-title">{{ 'ROULETTE.SETTINGS_TITLE' | transloco }}</h2>
+            </div>
+            <button
+              type="button"
+              class="dialog-close-btn"
+              (click)="closeSettingsModal()"
+              (keyup.enter)="closeSettingsModal()"
+              aria-label="Close"
+              data-testid="btn-close-display-settings"
+            >
+              <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+            </button>
+          </div>
+
+          <div class="dialog-body">
+            <!-- Language Selector Row -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">{{ 'SETTINGS.LANGUAGE' | transloco }}</span>
+                <span class="setting-desc">Langue d'affichage de la diffusion</span>
+              </div>
+              <button
+                type="button"
+                class="setting-toggle-btn"
+                (click)="languageService.toggleLanguage()"
+                (keyup.enter)="languageService.toggleLanguage()"
+                data-testid="btn-toggle-display-language"
+              >
+                <ion-icon name="globe-outline"></ion-icon>
+                <span>{{ (languageService.currentLang$ | async) | uppercase }}</span>
+              </button>
+            </div>
+
+            <!-- Audio Toggle Row -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">{{ 'ROULETTE.SOUND_EFFECTS' | transloco }}</span>
+                <span class="setting-desc">{{ isMuted() ? ('ROULETTE.SOUND_MUTED' | transloco) : ('ROULETTE.SOUND_ON' | transloco) }}</span>
+              </div>
+              <button
+                type="button"
+                class="setting-toggle-btn"
+                [class.muted]="isMuted()"
+                (click)="toggleMute()"
+                (keyup.enter)="toggleMute()"
+                data-testid="btn-toggle-sound"
+              >
+                <ion-icon [name]="isMuted() ? 'volume-mute-outline' : 'volume-high-outline'"></ion-icon>
+                <span>{{ isMuted() ? ('ROULETTE.UNMUTE' | transloco) : ('ROULETTE.MUTE' | transloco) }}</span>
+              </button>
+            </div>
+
+            <!-- Sound Profile Selector Row -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">{{ 'ROULETTE.SOUND_PROFILE' | transloco }}</span>
+                <span class="setting-desc">Ticks mécaniques et fanfare de révélation</span>
+              </div>
+              <div class="profile-options-group">
+                <button
+                  type="button"
+                  class="profile-btn"
+                  [class.active]="soundProfile() === 'CSGO'"
+                  (click)="selectSoundProfile('CSGO')"
+                  (keyup.enter)="selectSoundProfile('CSGO')"
+                  data-testid="btn-profile-csgo"
+                >
+                  <span>{{ 'ROULETTE.PROFILE_CSGO' | transloco }}</span>
+                  @if (soundProfile() === 'CSGO') {
+                    <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>
+                  }
+                </button>
+                <button
+                  type="button"
+                  class="profile-btn"
+                  [class.active]="soundProfile() === 'ARCADE'"
+                  (click)="selectSoundProfile('ARCADE')"
+                  (keyup.enter)="selectSoundProfile('ARCADE')"
+                  data-testid="btn-profile-arcade"
+                >
+                  <span>{{ 'ROULETTE.PROFILE_ARCADE' | transloco }}</span>
+                  @if (soundProfile() === 'ARCADE') {
+                    <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>
+                  }
+                </button>
+              </div>
+            </div>
+
+            <!-- Test Sound Row -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">{{ 'ROULETTE.TEST_SOUND' | transloco }}</span>
+                <span class="setting-desc">Aperçu immédiat de la fanfare sonore</span>
+              </div>
+              <button
+                type="button"
+                class="test-fanfare-btn"
+                (click)="testFanfare()"
+                (keyup.enter)="testFanfare()"
+                data-testid="btn-test-fanfare"
+              >
+                <ion-icon name="musical-notes-outline" aria-hidden="true"></ion-icon>
+                <span>Play Fanfare</span>
+              </button>
+            </div>
+
+            <!-- Lock Screen Row -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">{{ 'ROULETTE.LOCK_DISPLAY' | transloco }}</span>
+                <span class="setting-desc">{{ 'ROULETTE.LOCK_DISPLAY_DESC' | transloco }}</span>
+              </div>
+              <button
+                type="button"
+                class="lock-display-btn"
+                (click)="lockScreen()"
+                (keyup.enter)="lockScreen()"
+                data-testid="btn-lock-display"
+              >
+                <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
+                <span>{{ 'ROULETTE.LOCK_NOW' | transloco }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="dialog-footer">
+            <button
+              type="button"
+              class="dialog-confirm-btn"
+              (click)="closeSettingsModal()"
+              (keyup.enter)="closeSettingsModal()"
+              data-testid="btn-confirm-display-settings"
+            >
+              {{ 'COMMON.CONFIRM' | transloco }}
+            </button>
+          </div>
+        </div>
+      </dialog>
+    }
+  }
+</div>

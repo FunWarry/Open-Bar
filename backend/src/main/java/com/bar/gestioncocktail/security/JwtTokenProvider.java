@@ -97,6 +97,9 @@ public class JwtTokenProvider {
         try {
             Jwts.parser().verifyWith(key).build().parseSignedClaims(authToken);
             return true;
+        } catch (ExpiredJwtException e) {
+            logger.debug("Expired JWT token: {}", e.getMessage());
+            return false;
         } catch (JwtException | IllegalArgumentException e) {
             logger.warn("Invalid JWT token: {}", e.getMessage());
             return false;

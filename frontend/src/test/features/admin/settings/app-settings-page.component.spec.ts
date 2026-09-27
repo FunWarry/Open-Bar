@@ -16,6 +16,7 @@ import { AppUpdateService } from '../../../../app/core/services/app-update.servi
 import { AuthService } from '../../../../app/core/services/auth.service';
 import { OnboardingService } from '../../../../app/core/services/onboarding.service';
 import { FeatureFlagService } from '../../../../app/core/services/feature-flag.service';
+import { RouletteService } from '../../../../app/core/services/roulette.service';
 import { ESTABLISHMENT_PRESETS, EstablishmentPresetType } from '../../../../app/core/models/establishment-module.model';
 
 describe('AppSettingsPageComponent', () => {
@@ -24,6 +25,7 @@ describe('AppSettingsPageComponent', () => {
   let etabServiceSpy: jasmine.SpyObj<EtablissementService>;
   let appSettingsServiceSpy: jasmine.SpyObj<AppSettingsService>;
   let featureFlagServiceSpy: jasmine.SpyObj<FeatureFlagService>;
+  let rouletteServiceSpy: jasmine.SpyObj<RouletteService>;
   let themeServiceSpy: jasmine.SpyObj<ThemeService>;
   let printerServiceSpy: jasmine.SpyObj<PrinterService>;
   let appUpdateServiceSpy: jasmine.SpyObj<AppUpdateService>;
@@ -180,8 +182,13 @@ describe('AppSettingsPageComponent', () => {
       cocktailLibrary: true,
       suppliersManagement: true,
       inventoryAudit: true,
+      mysteryRoulette: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
+
+    rouletteServiceSpy = jasmine.createSpyObj('RouletteService', ['getDisplayPin', 'regenerateDisplayPin']);
+    rouletteServiceSpy.getDisplayPin.and.returnValue(of({ pin: '7777', establishmentId: 1 }));
+    rouletteServiceSpy.regenerateDisplayPin.and.returnValue(of({ pin: '4321', establishmentId: 1 }));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -201,6 +208,7 @@ describe('AppSettingsPageComponent', () => {
         { provide: EtablissementService, useValue: etabServiceSpy },
         { provide: AppSettingsService, useValue: appSettingsServiceSpy },
         { provide: FeatureFlagService, useValue: featureFlagServiceSpy },
+        { provide: RouletteService, useValue: rouletteServiceSpy },
         { provide: PrinterService, useValue: printerServiceSpy },
         { provide: AppUpdateService, useValue: appUpdateServiceSpy },
         { provide: ThemeService, useValue: themeServiceSpy },
@@ -803,6 +811,7 @@ describe('AppSettingsPageComponent', () => {
         cocktailLibrary: true,
         suppliersManagement: true,
         inventoryAudit: true,
+        mysteryRoulette: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -825,6 +834,7 @@ describe('AppSettingsPageComponent', () => {
         cocktailLibrary: false,
         suppliersManagement: false,
         inventoryAudit: false,
+        mysteryRoulette: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -840,6 +850,7 @@ describe('AppSettingsPageComponent', () => {
         cocktailLibrary: false,
         suppliersManagement: false,
         inventoryAudit: false,
+        mysteryRoulette: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });
@@ -887,6 +898,7 @@ describe('AppSettingsPageComponent', () => {
         cocktailLibrary: false,
         suppliersManagement: false,
         inventoryAudit: false,
+        mysteryRoulette: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -1246,6 +1258,25 @@ describe('AppSettingsPageComponent', () => {
       component.resetDiscountTiersToDefault();
       expect(component.configuredDiscountTiers().length).toBeGreaterThan(0);
       expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+  });
+
+  describe('Roulette TV PIN Management', () => {
+    it('should load roulette PIN on init', () => {
+      expect(rouletteServiceSpy.getDisplayPin).toHaveBeenCalled();
+      expect(component.roulettePin()).toBe('7777');
+    });
+
+    it('should prompt alert before regenerating PIN', async () => {
+      await component.confirmRegenerateRoulettePin();
+      expect(alertCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    it('should regenerate PIN and show success toast', () => {
+      component.regenerateRoulettePin();
+      expect(rouletteServiceSpy.regenerateDisplayPin).toHaveBeenCalled();
+      expect(component.roulettePin()).toBe('4321');
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
     });
   });
 });

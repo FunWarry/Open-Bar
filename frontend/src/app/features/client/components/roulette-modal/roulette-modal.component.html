@@ -1,0 +1,120 @@
+<ion-header class="ion-no-border" data-testid="roulette-modal-header">
+  <ion-toolbar class="roulette-toolbar">
+    <div class="toolbar-title-wrap">
+      <ion-icon name="sparkles-outline" class="title-sparkle-icon" aria-hidden="true"></ion-icon>
+      <ion-title>{{ 'ROULETTE.TITLE' | transloco }}</ion-title>
+    </div>
+    <ion-buttons slot="end">
+      <ion-button
+        (click)="dismiss()"
+        (keyup.enter)="dismiss()"
+        (keydown.space)="dismiss()"
+        [disabled]="isSpinning"
+        aria-label="Close"
+        data-testid="roulette-modal-close-btn"
+      >
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="roulette-content" [fullscreen]="true" data-testid="roulette-modal-content">
+  @if (isLoading) {
+    <div class="loading-state-wrap" data-testid="roulette-loading">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p class="loading-text">{{ 'COMMON.LOADING' | transloco }}</p>
+    </div>
+  } @else {
+    <div class="roulette-modal-body">
+      <!-- Intro subtitle & mystery choice banner (Anti-fraud: standard menu price) -->
+      <div class="roulette-header-promo">
+        <div class="promo-badge-line">
+          <ion-badge color="primary" class="mystery-badge" data-testid="roulette-promo-badge">
+            🎲 {{ 'ROULETTE.MYSTERY_CHOICE_BADGE' | transloco }}
+          </ion-badge>
+          <span class="price-highlight standard-price-badge" data-testid="roulette-standard-price-note">
+            {{ 'ROULETTE.STANDARD_PRICE_NOTE' | transloco }}
+          </span>
+        </div>
+        <p class="promo-subtitle">{{ 'ROULETTE.SUBTITLE_INDECISIVE' | transloco }}</p>
+      </div>
+
+      <!-- Spirit Category Chips Selector -->
+      <div class="categories-filter-bar" data-testid="roulette-category-chips">
+        <span class="filter-label">
+          <ion-icon name="filter-outline" aria-hidden="true"></ion-icon>
+          {{ 'ROULETTE.CHOOSE_MOOD' | transloco }}
+        </span>
+        <div class="chips-scroll-row">
+          @for (cat of availableCategories; track cat) {
+            <ion-chip
+              [class.active-chip]="selectedCategory === cat"
+              [class.disabled-chip]="isSpinning"
+              tabindex="0"
+              (click)="selectCategory(cat)"
+              (keyup.enter)="selectCategory(cat)"
+              (keyup.space)="selectCategory(cat)"
+              [attr.data-testid]="'category-chip-' + cat.toLowerCase()"
+            >
+              <span class="chip-text">{{ ('ROULETTE.CAT_' + cat) | transloco }}</span>
+            </ion-chip>
+          }
+        </div>
+      </div>
+
+      <!-- Wheel Visual Container -->
+      <div class="wheel-stage-container" data-testid="roulette-wheel-stage">
+        <app-roulette-wheel
+          #wheel
+          [sectors]="sectors"
+          [size]="340"
+          [isSpinning]="isSpinning"
+          (spinRequested)="startSpin()"
+          (spinComplete)="onSpinComplete($event)"
+        ></app-roulette-wheel>
+      </div>
+
+      <!-- Winning Reveal Card (Displayed once spin completes) -->
+      @if (winningResult(); as win) {
+        <div class="winning-reveal-card" data-testid="roulette-win-card">
+          <div class="win-card-header">
+            <ion-icon name="checkmark-circle-outline" class="win-check-icon" aria-hidden="true"></ion-icon>
+            <div class="win-titles">
+              <span class="win-eyebrow">{{ 'ROULETTE.YOU_WON' | transloco }}</span>
+              <h3 class="win-name" data-testid="roulette-win-title">{{ win.cocktailNom }}</h3>
+            </div>
+            <div class="win-price-tag" data-testid="roulette-win-price">
+              {{ win.prix | appCurrency }}
+            </div>
+          </div>
+
+          @if (win.cocktailDescription) {
+            <p class="win-description">{{ win.cocktailDescription }}</p>
+          }
+
+          @if (win.rewardText) {
+            <div class="win-reward-pill">
+              <ion-icon name="sparkles-outline" aria-hidden="true"></ion-icon>
+              <span>{{ win.rewardText }}</span>
+            </div>
+          }
+
+          <div class="win-card-actions">
+            <ion-button
+              expand="block"
+              class="add-cart-action-btn"
+              (click)="confirmAndAddToCart()"
+              (keyup.enter)="confirmAndAddToCart()"
+              (keydown.space)="confirmAndAddToCart()"
+              data-testid="roulette-confirm-cart-btn"
+            >
+              <ion-icon name="add-outline" slot="start"></ion-icon>
+              {{ 'ROULETTE.ADD_TO_CART_ACTION' | transloco }}
+            </ion-button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</ion-content>

@@ -23,6 +23,7 @@ const DEFAULT_MODULES: EstablishmentModules = {
   cocktailLibrary: true,
   suppliersManagement: true,
   inventoryAudit: true,
+  mysteryRoulette: true,
 };
 
 /**
@@ -76,6 +77,9 @@ export class FeatureFlagService implements OnDestroy {
   /** Computed signal for INVENTORY_AUDIT capability status. */
   readonly inventoryAuditEnabled = computed(() => this.modules().inventoryAudit && this.modules().stockTracking);
 
+  /** Computed signal for MYSTERY_ROULETTE capability status. */
+  readonly mysteryRouletteEnabled = computed(() => this.modules().mysteryRoulette);
+
   constructor() {
     this.initWebSocketSubscription();
     this.loadModules().subscribe();
@@ -117,6 +121,8 @@ export class FeatureFlagService implements OnDestroy {
         return current.suppliersManagement;
       case EstablishmentModule.INVENTORY_AUDIT:
         return current.inventoryAudit && current.stockTracking;
+      case EstablishmentModule.MYSTERY_ROULETTE:
+        return current.mysteryRoulette;
       default:
         return true;
     }

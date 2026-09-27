@@ -1,10 +1,12 @@
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { Router } from '@angular/router';
-import { AbstractControl, AbstractControlOptions, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { AbstractControl, AbstractControlOptions, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { Subject, takeUntil } from 'rxjs';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, ToastController, IonSelect, IonSelectOption } from '@ionic/angular';
+import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, ToastController, IonIcon } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { moonOutline, sunnyOutline, laptopOutline, tvOutline, copyOutline, refreshOutline, openOutline, colorPaletteOutline, chevronDownOutline, chevronUpOutline } from 'ionicons/icons';
 import { DatePipe } from '@angular/common';
 import { selectCurrentUser } from '../../core/store/auth.selectors';
 import { setCurrentUser } from '../../core/store/auth.actions';
@@ -13,6 +15,9 @@ import { UserService } from '../../core/services/user.service';
 import { SoundService } from '../../core/services/sound.service';
 import { LanguageService, SupportedLanguage } from '../../core/services/language.service';
 import { PreferencesService } from '../../core/services/preferences.service';
+import { ThemeService, AppTheme } from '../../core/services/theme.service';
+import { RouletteService } from '../../core/services/roulette.service';
+import { FeatureFlagService } from '../../core/services/feature-flag.service';
 
 import { UserAvatarComponent } from '../../core/components/ui/user-avatar/user-avatar.component';
 import { InputFieldComponent } from '../../core/components/ui/input-field/input-field.component';
@@ -20,20 +25,22 @@ import { PasswordInputComponent } from '../../core/components/ui/password-input/
 import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
 import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
 import { ToggleSwitchComponent } from '../../core/components/ui/toggle-switch/toggle-switch.component';
+import { SearchableSelectComponent, SearchableOption } from '../../core/components/ui/searchable-select/searchable-select.component';
+import { ThemeCustomizerComponent } from '../theme/theme-customizer.component';
 
 /**
  * Profile Component displaying personal user information, roles, profile settings form,
- * and user preferences (sound/visual notifications, language).
+ * user preferences (theme mode, sound/visual notifications, language), and Roulette TV PIN.
  *
  * <p>Aligned with Figma Common system view Profile layout ({@code 540:946}),
- * including the PREFERENCES section with toggles and language selector.</p>
+ * including the PREFERENCES section with toggles, theme switcher, and language selector.</p>
  *
  * <p>The form fields (username, email) are reactively pre-filled from the NgRx Auth store
  * via {@link selectCurrentUser}. On submit, the changes are persisted through
  * {@link UserService#updateUser} and the store is updated accordingly.</p>
  *
- * <p>Preferences (sound, visual notifications, language) are persisted via
- * {@link PreferencesService} and {@link LanguageService} using {@code localStorage}.</p>
+ * <p>Preferences (theme, sound, visual notifications, language) are persisted via
+ * {@link ThemeService}, {@link PreferencesService}, and {@link LanguageService} using {@code localStorage}.</p>
  */
 @Component({
   selector: 'app-profile',
@@ -46,9 +53,10 @@ import { ToggleSwitchComponent } from '../../core/components/ui/toggle-switch/to
     IonCardHeader,
     IonCardTitle,
     IonCardContent,
-    IonSelect,
-    IonSelectOption,
+    IonIcon,
+    RouterLink,
     DatePipe,
+    FormsModule,
     ReactiveFormsModule,
     TranslocoModule,
     UserAvatarComponent,
@@ -57,6 +65,8 @@ import { ToggleSwitchComponent } from '../../core/components/ui/toggle-switch/to
     ActionButtonComponent,
     RoleBadgeComponent,
     ToggleSwitchComponent,
+    SearchableSelectComponent,
+    ThemeCustomizerComponent,
   ]
 })
 export class ProfileComponent implements OnInit, OnDestroy {
@@ -81,6 +91,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
   /** Currently selected language ('fr' | 'en'). */
   selectedLanguage: SupportedLanguage = 'fr';
 
+  /** Available language options for app-searchable-select dropdown. */
+  readonly languageOptions: SearchableOption<SupportedLanguage>[] = [
+    { value: 'fr', label: '🇫🇷 Français' },
+    { value: 'en', label: '🇬🇧 English' },
+  ];
+
+  /** Current interface theme mode ('dark' | 'light' | 'system'). */
+  currentTheme: AppTheme = 'dark';
+
+  /** Whether the full theme customizer studio is expanded in profile. */
+  showThemeStudio = false;
+
+  /** Current 4-digit PIN code for the Roulette TV display screen. */
+  roulettePin = '7777';
+
+  /** Whether a PIN regeneration request is currently in flight. */
+  isRegeneratingPin = false;
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly store: Store,
@@ -90,8 +118,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private readonly soundService: SoundService,
     private readonly languageService: LanguageService,
     private readonly preferences: PreferencesService,
+    private readonly themeService: ThemeService,
+    private readonly rouletteService: RouletteService,
+    public readonly featureFlagService: FeatureFlagService,
     private readonly router: Router
   ) {
+    addIcons({
+      moonOutline,
+      sunnyOutline,
+      laptopOutline,
+      tvOutline,
+      copyOutline,
+      refreshOutline,
+      openOutline,
+      colorPaletteOutline,
+      chevronDownOutline,
+      chevronUpOutline,
+    });
+
     const groupOptions: AbstractControlOptions = { validators: [this.passwordMatchValidator] };
     this.profileForm = this.fb.group(
       {
@@ -125,6 +169,89 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.soundEnabled = this.preferences.soundEnabled();
     this.visualNotifEnabled = this.preferences.visualNotifEnabled();
     this.selectedLanguage = this.languageService.currentLanguage;
+    this.currentTheme = this.themeService.currentTheme;
+
+    this.loadRoulettePin();
+  }
+
+  /**
+   * Loads the current 4-digit PIN for the roulette TV display screen.
+   */
+  loadRoulettePin(): void {
+    if (this.featureFlagService.mysteryRouletteEnabled()) {
+      this.rouletteService.getDisplayPin()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (res) => {
+            if (res?.pin) {
+              this.roulettePin = res.pin;
+            }
+          },
+          error: () => {}
+        });
+    }
+  }
+
+  /**
+   * Changes the application theme mode and updates localStorage.
+   *
+   * @param mode Theme mode to activate
+   */
+  onSetThemeMode(mode: AppTheme): void {
+    this.themeService.setTheme(mode);
+    this.currentTheme = mode;
+  }
+
+  /**
+   * Toggles the inline theme studio customizer view.
+   */
+  toggleThemeStudio(): void {
+    this.showThemeStudio = !this.showThemeStudio;
+  }
+
+  /**
+   * Regenerates a new 4-digit PIN for the TV broadcast display.
+   */
+  regenerateRoulettePin(): void {
+    this.isRegeneratingPin = true;
+    this.rouletteService.regenerateDisplayPin()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: async (res) => {
+          this.roulettePin = res.pin;
+          this.isRegeneratingPin = false;
+          const toast = await this.toastCtrl.create({
+            message: this.transloco.translate('ROULETTE.REGENERATE_PIN_SUCCESS'),
+            duration: 3000,
+            color: 'success'
+          });
+          await toast.present();
+        },
+        error: async () => {
+          this.isRegeneratingPin = false;
+          const toast = await this.toastCtrl.create({
+            message: this.transloco.translate('ERRORS.GENERIC'),
+            duration: 3000,
+            color: 'danger'
+          });
+          await toast.present();
+        }
+      });
+  }
+
+  /**
+   * Copies the TV display PIN code to the user clipboard.
+   */
+  async copyPin(): Promise<void> {
+    if (navigator?.clipboard) {
+      await navigator.clipboard.writeText(this.roulettePin);
+      const toast = await this.toastCtrl.create({
+        message: this.transloco.translate('ROULETTE.PIN_COPIED'),
+        duration: 2000,
+        color: 'success'
+      });
+      await toast.present();
+    }
   }
 
   /**
@@ -226,9 +353,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
    *
    * @param lang The selected language code ('fr' or 'en').
    */
-  onLanguageChange(lang: SupportedLanguage): void {
-    this.selectedLanguage = lang;
-    this.languageService.setLanguage(lang);
+  onLanguageChange(lang: string): void {
+    const supported: SupportedLanguage = lang === 'en' ? 'en' : 'fr';
+    this.selectedLanguage = supported;
+    this.languageService.setLanguage(supported);
   }
 
   /**

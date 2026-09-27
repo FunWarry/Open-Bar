@@ -51,6 +51,21 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'profile',
+    loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'parametres',
+    redirectTo: '/profile',
+    pathMatch: 'full'
+  },
+  {
+    path: 'user/settings',
+    redirectTo: '/profile',
+    pathMatch: 'full'
+  },
+  {
     path: 'auth/login',
     loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
   },
@@ -193,11 +208,26 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
 
-  // Profile & Admin
+  // Profile & Theme
   {
     path: 'profile',
     loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'theme',
+    loadComponent: () => import('./features/theme/theme-page.component').then(m => m.ThemePageComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'settings/theme',
+    redirectTo: '/theme',
+    pathMatch: 'full'
+  },
+  {
+    path: 'parametres/theme',
+    redirectTo: '/theme',
+    pathMatch: 'full'
   },
   {
     path: 'admin',
@@ -482,6 +512,14 @@ export const routes: Routes = [
   {
     path: 'client/tracking/:id',
     redirectTo: route => `/client/suivi/${route.params['id']}`
+  },
+
+  // Mystery Drink Roulette Display Screen (Big TV / Bar Tablets)
+  {
+    path: 'roulette-display',
+    loadComponent: () => import('./features/roulette-display/roulette-display.component').then(m => m.RouletteDisplayComponent),
+    canActivate: [ModuleGuard],
+    data: { requiredModule: EstablishmentModule.MYSTERY_ROULETTE }
   },
 
   // Onboarding & Fallback

@@ -42,4 +42,31 @@ public class TableCartItemRequestDTO {
     @Size(max = 500, message = "Notes cannot exceed 500 characters")
     @Schema(description = "Optional preparation notes for this item", example = "Less ice")
     private String notes;
+
+    @Schema(description = "Whether this is a mystery drink won on the roulette", example = "true")
+    private Boolean isMysteryDrink = false;
+
+    @Schema(description = "Optional override unit price for mystery drinks", example = "7.50")
+    private java.math.BigDecimal prixOverride;
+
+    /**
+     * Backward-compatible 6-argument constructor.
+     *
+     * @param guestSessionId Guest session UUID
+     * @param guestName      Guest display nickname
+     * @param cocktailId     Cocktail ID
+     * @param varianteId     Optional variant ID
+     * @param quantite       Quantity
+     * @param notes          Special notes
+     */
+    public TableCartItemRequestDTO(String guestSessionId, String guestName, Long cocktailId, Long varianteId, int quantite, String notes) {
+        this.guestSessionId = guestSessionId;
+        this.guestName = guestName;
+        this.cocktailId = cocktailId;
+        this.varianteId = varianteId;
+        this.quantite = quantite;
+        this.notes = notes;
+        this.isMysteryDrink = false;
+        this.prixOverride = null;
+    }
 }

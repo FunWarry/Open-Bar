@@ -202,6 +202,12 @@ button.sidebar-brand,
   align-items: center;
   gap: 10px;
   overflow: hidden;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
 }
 
 /* Avatar circle (Figma ID 120:8) */

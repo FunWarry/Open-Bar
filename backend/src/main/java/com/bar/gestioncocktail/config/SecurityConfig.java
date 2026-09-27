@@ -81,6 +81,7 @@ public class SecurityConfig {
                                     "/ws/**",
                                     "/api/client/**",
                                     "/api/public/**",
+                                    "/api/roulette/public/**",
                                     "/v3/api-docs/**",
                                     "/api-docs/**",
                                     "/api-docs",

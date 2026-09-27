@@ -79,6 +79,8 @@ public class SampleDataSeederService {
     private static final String KEY_CATEGORY = "category";
     private static final String KEY_UNITE_MESURE = "uniteMesure";
     private static final String KEY_PACKAGING_PRICE_HT = "packagingPriceHt";
+    private static final String KEY_COCKTAIL_NOM = "cocktailNom";
+    private static final String KEY_REWARD_TEXT = "rewardText";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -113,6 +115,7 @@ public class SampleDataSeederService {
     private final BarTabRepository barTabRepository;
     private final SupplierRepository supplierRepository;
     private final PurchaseOrderRepository purchaseOrderRepository;
+    private final RouletteWheelSectorRepository rouletteWheelSectorRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -152,7 +155,8 @@ public class SampleDataSeederService {
             @org.springframework.beans.factory.annotation.Autowired(required = false) CashMovementRepository cashMovementRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) BarTabRepository barTabRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) SupplierRepository supplierRepository,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) PurchaseOrderRepository purchaseOrderRepository) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) PurchaseOrderRepository purchaseOrderRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) RouletteWheelSectorRepository rouletteWheelSectorRepository) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -186,6 +190,7 @@ public class SampleDataSeederService {
         this.barTabRepository = barTabRepository;
         this.supplierRepository = supplierRepository;
         this.purchaseOrderRepository = purchaseOrderRepository;
+        this.rouletteWheelSectorRepository = rouletteWheelSectorRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -402,6 +407,7 @@ public class SampleDataSeederService {
             if (!cocktails.isEmpty()) {
                 safelyInTransaction(() -> seedOrdersFromJson(root.get("orders"), usersMap, tablesMap, cocktails), "seedOrders");
                 safelyInTransaction(() -> seedTableCartItemsFromJson(root.get("table_cart_items"), tablesMap, cocktails), "seedTableCartItems");
+                safelyInTransaction(() -> seedRouletteWheelSectorsFromJson(root.get("roulette_wheel_sectors"), cocktails), "seedRouletteWheelSectors");
             }
             safelyInTransaction(() -> seedHappyHourRulesFromJson(root.get("happy_hour_rules"), cocktails), "seedHappyHourRules");
             safelyInTransaction(() -> seedInvoicesFromJson(root.get("invoices"), tablesMap), "seedInvoices");
@@ -1408,7 +1414,7 @@ public class SampleDataSeederService {
                 table = tableRepository.findByNumero(tableNumero).orElse(null);
             }
 
-            String cocktailNom = itemNode.path("cocktailNom").asText("Mojito");
+            String cocktailNom = itemNode.path(KEY_COCKTAIL_NOM).asText("Mojito");
             Cocktail cocktail = findCocktailByName(cocktails, cocktailNom);
 
             if (table != null && cocktail != null) {
@@ -1451,8 +1457,69 @@ public class SampleDataSeederService {
         if (config.getModuleCocktailLibraryEnabled() == null) config.setModuleCocktailLibraryEnabled(true);
         if (config.getModuleSuppliersManagementEnabled() == null) config.setModuleSuppliersManagementEnabled(true);
         if (config.getModuleInventoryAuditEnabled() == null) config.setModuleInventoryAuditEnabled(true);
+        if (config.getModuleMysteryRouletteEnabled() == null) config.setModuleMysteryRouletteEnabled(true);
         establishmentConfigRepository.save(config);
         log.info("Seeded default EstablishmentConfig singleton with modular capabilities.");
+    }
+
+    private void seedRouletteWheelSectorsFromJson(JsonNode sectorsNode, List<Cocktail> cocktails) {
+        if (sectorsNode == null || !sectorsNode.isArray() || rouletteWheelSectorRepository == null || rouletteWheelSectorRepository.count() > 0) {
+            return;
+        }
+
+        Map<String, Cocktail> cocktailMap = buildCocktailMap(cocktails);
+        List<RouletteWheelSector> toSave = new ArrayList<>();
+        LocalDateTime now = timeService.now();
+
+        for (JsonNode node : sectorsNode) {
+            toSave.add(parseRouletteWheelSector(node, cocktailMap, now));
+        }
+        rouletteWheelSectorRepository.saveAll(toSave);
+        log.info("Seeded {} roulette wheel sectors from demo dataset.", toSave.size());
+    }
+
+    private RouletteWheelSector parseRouletteWheelSector(JsonNode node, Map<String, Cocktail> cocktailMap, LocalDateTime now) {
+        RouletteWheelSector sector = new RouletteWheelSector();
+        sector.setLabel(node.path("label").asText("Cocktail Mystère"));
+        sector.setPrizeType(RoulettePrizeType.valueOf(node.path("prizeType").asText("COCKTAIL")));
+        bindSectorCocktail(sector, node, cocktailMap);
+        bindSectorReward(sector, node);
+        bindSectorPricing(sector, node);
+        sector.setColorHex(node.path("colorHex").asText("#10b981"));
+        sector.setIconName(node.path("iconName").asText("wine-outline"));
+        sector.setProbabilityWeight(node.path("probabilityWeight").asInt(2));
+        sector.setActive(node.path("active").asBoolean(true));
+        sector.setDisplayOrder(node.path("displayOrder").asInt(0));
+        sector.setCreatedAt(now);
+        sector.setUpdatedAt(now);
+        return sector;
+    }
+
+    private void bindSectorCocktail(RouletteWheelSector sector, JsonNode node, Map<String, Cocktail> cocktailMap) {
+        if (!node.has(KEY_COCKTAIL_NOM)) return;
+        Cocktail c = cocktailMap.get(node.path(KEY_COCKTAIL_NOM).asText().toLowerCase().trim());
+        if (c != null) {
+            sector.setCocktail(c);
+            if (sector.getPrix() == null && c.getPrix() != null) {
+                sector.setPrix(c.getPrix());
+            }
+        }
+    }
+
+    private void bindSectorReward(RouletteWheelSector sector, JsonNode node) {
+        if (node.has(KEY_REWARD_TEXT)) {
+            sector.setRewardText(node.path(KEY_REWARD_TEXT).asText());
+        } else if (node.has("customRewardText")) {
+            sector.setRewardText(node.path("customRewardText").asText());
+        }
+    }
+
+    private void bindSectorPricing(RouletteWheelSector sector, JsonNode node) {
+        if (node.has(KEY_PRIX_UNITAIRE)) {
+            sector.setPrix(new BigDecimal(node.path(KEY_PRIX_UNITAIRE).asText()));
+        } else if (node.has("prix")) {
+            sector.setPrix(new BigDecimal(node.path("prix").asText()));
+        }
     }
 
     private void seedHappyHourRulesFromJson(JsonNode rulesNode, List<Cocktail> cocktails) {

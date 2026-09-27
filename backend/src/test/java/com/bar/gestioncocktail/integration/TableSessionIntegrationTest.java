@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Validates session lifecycle (creation on occupancy, invalidation on liberation),
  * rejection of forged/expired tokens (403 Forbidden), and authorization of valid sessions.
  */
+
 class TableSessionIntegrationTest extends BaseIntegrationTest {
 
     @Autowired

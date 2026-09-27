@@ -2049,6 +2049,97 @@ export async function setupMockApi(page: Page): Promise<void> {
       ]),
     });
   });
+
+  // Mock Roulette TV PIN and Staff Administration
+  await page.route('**/api/roulette/pin**', async (route) => {
+    if (route.request().method() === 'POST') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ pin: '8888', establishmentId: 1 }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ pin: '7777', establishmentId: 1 }),
+    });
+  });
+
+  // Mock Public Roulette Config, Spin, and PIN Verification
+  await page.route('**/api/public/roulette/**', async (route) => {
+    const url = route.request().url();
+    if (url.includes('/verify-pin')) {
+      const body = route.request().postDataJSON() || {};
+      const valid = body.pin === '7777';
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ valid, establishmentId: 1, message: valid ? 'PIN valid' : 'PIN invalid' }),
+      });
+      return;
+    }
+
+    if (url.includes('/spin')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          spinId: 'spin-mock-1',
+          sectorId: 1,
+          label: 'Mojito Mystère',
+          cocktailId: 1,
+          cocktailNom: 'Mojito',
+          price: 9.50,
+          discountApplied: false,
+          animationDurationSeconds: 4,
+          winAngleDegrees: 45,
+          addedToCart: true,
+          isCustomReward: false,
+          shooterColorHex: null,
+        }),
+      });
+      return;
+    }
+
+    // Default: config
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        active: true,
+        price: 9.50,
+        spiritCategories: ['ALL', 'RUM', 'GIN', 'VODKA', 'MOCKTAIL'],
+        sectors: [
+          {
+            id: 1,
+            label: 'Mojito Mystère',
+            prizeType: 'COCKTAIL',
+            cocktailId: 1,
+            cocktailNom: 'Mojito',
+            prix: 9.50,
+            displayOrder: 1,
+            active: true,
+            probabilityWeight: 5,
+            colorHex: '#6C7FE8',
+          },
+          {
+            id: 2,
+            label: 'Virgin Colada',
+            prizeType: 'COCKTAIL',
+            cocktailId: 2,
+            cocktailNom: 'Virgin Colada',
+            prix: 7.00,
+            displayOrder: 2,
+            active: true,
+            probabilityWeight: 4,
+            colorHex: '#34C77B',
+          },
+        ],
+      }),
+    });
+  });
 }
 
 
