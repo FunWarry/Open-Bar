@@ -33,6 +33,7 @@ describe('ModuleGuard', () => {
     barTabs: true,
     cocktailLibrary: true,
     suppliersManagement: true,
+    inventoryAudit: true,
   };
 
   beforeEach(() => {

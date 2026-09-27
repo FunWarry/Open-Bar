@@ -95,6 +95,20 @@ export const routes: Routes = [
     data: { roles: ['ADMIN', 'MANAGER'], requiredModule: EstablishmentModule.SUPPLIERS_MANAGEMENT }
   },
 
+  // Physical inventory audits, variance reconciliation & shrinkage
+  {
+    path: 'inventory',
+    loadComponent: () => import('./features/inventory/inventory-sessions/inventory-sessions.component').then(m => m.InventorySessionsComponent),
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.INVENTORY_AUDIT }
+  },
+  {
+    path: 'inventory/:id',
+    loadComponent: () => import('./features/inventory/inventory-counting-sheet/inventory-counting-sheet.component').then(m => m.InventoryCountingSheetComponent),
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.INVENTORY_AUDIT }
+  },
+
   // Cocktails
   {
     path: 'cocktails',

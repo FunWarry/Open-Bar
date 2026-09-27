@@ -3067,6 +3067,89 @@
         }
       ]
     }
+  ],
+  "inventory_audits": [
+    {
+      "referenceCode": "INV-2026-001",
+      "title": "Inventaire Mensuel Alcools & Spiritueux",
+      "status": "FINALIZED",
+      "storageLocationScope": "ALL",
+      "categoryScope": "ALCOHOL",
+      "createdByUser": "admin",
+      "daysAgo": 7,
+      "notes": "Inventaire mensuel clôturé avec régularisation automatique des écarts de stock.",
+      "items": [
+        {
+          "ingredientNom": "Rhum Blanc",
+          "actualStock": 800.0,
+          "notes": "Écart négatif de 40cl identifié au bar principal",
+          "locationCounts": [
+            {
+              "storageLocation": "MAIN_BAR",
+              "fullContainersCount": 2,
+              "partialFraction": 0.5,
+              "exactQuantity": 175.0
+            },
+            {
+              "storageLocation": "CELLAR",
+              "fullContainersCount": 8,
+              "partialFraction": 0.93,
+              "exactQuantity": 625.0
+            }
+          ]
+        },
+        {
+          "ingredientNom": "Gin",
+          "actualStock": 420.0,
+          "notes": "Comptage conforme au stock théorique",
+          "locationCounts": [
+            {
+              "storageLocation": "MAIN_BAR",
+              "fullContainersCount": 2,
+              "partialFraction": 0.0,
+              "exactQuantity": 140.0
+            },
+            {
+              "storageLocation": "BACK_BAR",
+              "fullContainersCount": 4,
+              "partialFraction": 0.0,
+              "exactQuantity": 280.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "referenceCode": "INV-2026-002",
+      "title": "Audit Hebdomadaire Cave & Sirops",
+      "status": "IN_PROGRESS",
+      "storageLocationScope": "CELLAR",
+      "categoryScope": null,
+      "createdByUser": "manager",
+      "daysAgo": 1,
+      "notes": "Audit physique en cours par le responsable de stock",
+      "items": [
+        {
+          "ingredientNom": "Vodka",
+          "actualStock": 350.0,
+          "notes": "Comptage en cave terminé",
+          "locationCounts": [
+            {
+              "storageLocation": "CELLAR",
+              "fullContainersCount": 5,
+              "partialFraction": 0.0,
+              "exactQuantity": 350.0
+            }
+          ]
+        },
+        {
+          "ingredientNom": "Sirop de sucre",
+          "actualStock": 0.0,
+          "notes": "À compter dans l'arrière-bar",
+          "locationCounts": []
+        }
+      ]
+    }
   ]
 }
 

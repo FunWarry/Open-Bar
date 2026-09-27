@@ -210,6 +210,9 @@ public class EstablishmentConfigService {
         if (request.suppliersManagement() != null) {
             config.setModuleEnabled(EstablishmentModule.SUPPLIERS_MANAGEMENT, request.suppliersManagement());
         }
+        if (request.inventoryAudit() != null) {
+            config.setModuleEnabled(EstablishmentModule.INVENTORY_AUDIT, request.inventoryAudit());
+        }
     }
 
     private void applyLegalInfoUpdates(EstablishmentConfig config, EstablishmentConfigUpdateRequest request) {

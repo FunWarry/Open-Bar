@@ -59,6 +59,12 @@ public enum EstablishmentModule {
      * Beverage and produce supplier management, purchase orders, incoming delivery (BL) check-in intake,
      * automatic stock replenishment, and live Weighted Average Unit Cost (PAMP / WAC) recalculation.
      */
-    SUPPLIERS_MANAGEMENT
+    SUPPLIERS_MANAGEMENT,
+
+    /**
+     * Periodic physical inventory audit (Stocktake), storage room counting sheets,
+     * theoretical vs physical variance matrix, and automated shrinkage adjustment.
+     */
+    INVENTORY_AUDIT
 }
 

@@ -23,6 +23,8 @@ import com.bar.gestioncocktail.model.DailyCashClosure;
 import com.bar.gestioncocktail.model.EstablishmentConfig;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
+import com.bar.gestioncocktail.model.InventoryAuditItem;
+import com.bar.gestioncocktail.model.InventoryAuditSession;
 import com.bar.gestioncocktail.model.PurchaseOrder;
 import com.bar.gestioncocktail.model.PurchaseOrderItem;
 import com.bar.gestioncocktail.model.Supplier;
@@ -1589,5 +1591,254 @@ public class PdfService {
         cell.setBorderColor(BORDER_COLOR);
         cell.setHorizontalAlignment(alignment);
         table.addCell(cell);
+    }
+
+    /**
+     * Generates a comprehensive A4 PDF audit and shrinkage variance report for an inventory audit session.
+     *
+     * @param session The inventory audit session entity
+     * @return Generated PDF document as byte array
+     */
+    public byte[] generateInventoryAuditPdf(InventoryAuditSession session) {
+        if (session == null) {
+            throw new IllegalArgumentException("Audit session cannot be null");
+        }
+        EstablishmentConfig config = establishmentConfigService.getConfig();
+        AppSettings settings = appSettingsService.getSettings();
+        boolean isEn = "en".equalsIgnoreCase(config.getLanguage());
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Document doc = new Document(PageSize.A4, 36, 36, 36, 36);
+
+        try {
+            PdfWriter.getInstance(doc, baos);
+            doc.open();
+
+            InventoryAuditPdfFonts fonts = new InventoryAuditPdfFonts(
+                    new Font(Font.HELVETICA, 16, Font.BOLD, PRIMARY),
+                    new Font(Font.HELVETICA, 10, Font.BOLD, MUTED),
+                    new Font(Font.HELVETICA, 11, Font.BOLD, SURFACE),
+                    new Font(Font.HELVETICA, 8, Font.BOLD, Color.WHITE),
+                    new Font(Font.HELVETICA, 8, Font.NORMAL, DARK_TEXT),
+                    new Font(Font.HELVETICA, 8, Font.BOLD, DARK_TEXT),
+                    new Font(Font.HELVETICA, 7, Font.NORMAL, MUTED),
+                    new Font(Font.HELVETICA, 8, Font.BOLD, new Color(46, 125, 50)),
+                    new Font(Font.HELVETICA, 8, Font.BOLD, new Color(198, 40, 40)),
+                    new Font(Font.HELVETICA, 12, Font.BOLD, DARK_TEXT),
+                    new Font(Font.HELVETICA, 8, Font.BOLD, MUTED)
+            );
+
+            doc.add(createAuditHeaderTable(session, config, isEn, fonts));
+            doc.add(Chunk.NEWLINE);
+
+            doc.add(createAuditMetaTable(session, isEn, fonts));
+            doc.add(Chunk.NEWLINE);
+
+            doc.add(createAuditKpiTable(session, settings, isEn, fonts));
+            doc.add(Chunk.NEWLINE);
+
+            Paragraph tableTitle = new Paragraph(isEn ? "DETAILED INVENTORY VARIANCE MATRIX" : "MATRICE DÉTAILLÉE DES ÉCARTS D'INVENTAIRE", fonts.sectionTitleFont());
+            tableTitle.setSpacingAfter(6);
+            doc.add(tableTitle);
+
+            doc.add(createAuditItemsTable(session, settings, isEn, fonts));
+            doc.add(Chunk.NEWLINE);
+
+            addDeliverySignaturesBox(doc, fonts.mutedFont(), isEn);
+
+            doc.close();
+            return baos.toByteArray();
+        } catch (DocumentException e) {
+            throw new IllegalStateException("Failed to generate inventory audit PDF", e);
+        }
+    }
+
+    private PdfPTable createAuditHeaderTable(InventoryAuditSession session, EstablishmentConfig config, boolean isEn, InventoryAuditPdfFonts fonts) {
+        PdfPTable headerTable = new PdfPTable(2);
+        headerTable.setWidthPercentage(100);
+        headerTable.setWidths(new float[]{1.4f, 1f});
+
+        PdfPCell titleCell = new PdfPCell();
+        titleCell.setBorder(Rectangle.NO_BORDER);
+        String titleText = isEn ? "PHYSICAL INVENTORY AUDIT & VARIANCE REPORT" : "RAPPORT D'INVENTAIRE PHYSIQUE & VARIANCE";
+        titleCell.addElement(new Paragraph(titleText, fonts.titleFont()));
+        titleCell.addElement(new Paragraph((isEn ? "Reference: " : "Référence : ") + session.getReferenceCode()
+                + "  |  " + (isEn ? "Status: " : "Statut : ") + session.getStatus(), fonts.subtitleFont()));
+        titleCell.addElement(new Paragraph(session.getTitle(), fonts.boldFont()));
+        headerTable.addCell(titleCell);
+
+        PdfPCell estCell = new PdfPCell();
+        estCell.setBorder(Rectangle.NO_BORDER);
+        estCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        estCell.addElement(new Paragraph(config.getLegalName(), fonts.boldFont()));
+        if (config.getSiret() != null && !config.getSiret().isBlank()) {
+            estCell.addElement(new Paragraph("SIRET : " + config.getSiret(), fonts.mutedFont()));
+        }
+        if (config.getAddress() != null && !config.getAddress().isBlank()) {
+            estCell.addElement(new Paragraph(config.getAddress(), fonts.mutedFont()));
+        }
+        headerTable.addCell(estCell);
+        return headerTable;
+    }
+
+    private PdfPTable createAuditMetaTable(InventoryAuditSession session, boolean isEn, InventoryAuditPdfFonts fonts) {
+        PdfPTable metaTable = new PdfPTable(4);
+        metaTable.setWidthPercentage(100);
+        metaTable.setWidths(new float[]{1f, 1f, 1f, 1f});
+
+        String createdStr = session.getCreatedAt() != null ? session.getCreatedAt().format(DATE_FMT) : "-";
+        String finalizedStr = session.getFinalizedAt() != null ? session.getFinalizedAt().format(DATE_FMT) : "-";
+        String createdByStr = session.getCreatedBy() != null ? session.getCreatedBy().getUsername() : "-";
+        String finalizedByStr = session.getFinalizedBy() != null ? session.getFinalizedBy().getUsername() : "-";
+
+        addMetaBox(metaTable, isEn ? "Created At" : "Date de création", createdStr, fonts.normalFont(), fonts.mutedFont());
+        addMetaBox(metaTable, isEn ? "Finalized At" : "Date finalisation", finalizedStr, fonts.normalFont(), fonts.mutedFont());
+        addMetaBox(metaTable, isEn ? "Auditor / Created By" : "Créé par", createdByStr, fonts.normalFont(), fonts.mutedFont());
+        addMetaBox(metaTable, isEn ? "Approved By" : "Validé par", finalizedByStr, fonts.normalFont(), fonts.mutedFont());
+        return metaTable;
+    }
+
+    private PdfPTable createAuditKpiTable(InventoryAuditSession session, AppSettings settings, boolean isEn, InventoryAuditPdfFonts fonts) {
+        PdfPTable kpiTable = new PdfPTable(4);
+        kpiTable.setWidthPercentage(100);
+        kpiTable.setWidths(new float[]{1f, 1f, 1f, 1f});
+
+        double theoVal = session.getTotalTheoreticalValueHt() != null ? session.getTotalTheoreticalValueHt().doubleValue() : 0.0;
+        double countedVal = session.getTotalCountedValueHt() != null ? session.getTotalCountedValueHt().doubleValue() : 0.0;
+        double varianceVal = session.getTotalVarianceValueHt() != null ? session.getTotalVarianceValueHt().doubleValue() : 0.0;
+
+        addKpiCard(kpiTable, isEn ? "THEORETICAL VALUE HT" : "VALEUR THÉORIQUE HT", formatPrix(theoVal, settings), fonts.kpiLblFont(), fonts.kpiValFont(), LIGHT_BG);
+        addKpiCard(kpiTable, isEn ? "PHYSICAL COUNT VALUE HT" : "VALEUR PHYSIQUE HT", formatPrix(countedVal, settings), fonts.kpiLblFont(), fonts.kpiValFont(), LIGHT_BG);
+
+        Font varValFont = resolveVarianceFont(varianceVal, fonts);
+        Color varBg = resolveVarianceBg(varianceVal);
+        addKpiCard(kpiTable, isEn ? "NET VARIANCE HT" : "VARIANCE NETTE HT", formatPrix(varianceVal, settings), fonts.kpiLblFont(), varValFont, varBg);
+
+        int totalItems = session.getItems() != null ? session.getItems().size() : 0;
+        int discrepancyCount = countDiscrepancies(session);
+        String itemsSummary = discrepancyCount + " / " + totalItems + (isEn ? " with variance" : " avec écart");
+        addKpiCard(kpiTable, isEn ? "DISCREPANCIES" : "ÉCARTS CONSTATÉS", itemsSummary, fonts.kpiLblFont(), fonts.boldFont(), LIGHT_BG);
+        return kpiTable;
+    }
+
+    private int countDiscrepancies(InventoryAuditSession session) {
+        if (session.getItems() == null) {
+            return 0;
+        }
+        int count = 0;
+        for (InventoryAuditItem itm : session.getItems()) {
+            if (itm.getVarianceQuantity() != null && itm.getVarianceQuantity().compareTo(BigDecimal.ZERO) != 0) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private Font resolveVarianceFont(double varianceVal, InventoryAuditPdfFonts fonts) {
+        if (varianceVal < 0) {
+            return fonts.dangerFont();
+        }
+        if (varianceVal > 0) {
+            return fonts.successFont();
+        }
+        return fonts.boldFont();
+    }
+
+    private Color resolveVarianceBg(double varianceVal) {
+        if (varianceVal < 0) {
+            return new Color(255, 235, 238);
+        }
+        if (varianceVal > 0) {
+            return new Color(232, 245, 233);
+        }
+        return LIGHT_BG;
+    }
+
+    private PdfPTable createAuditItemsTable(InventoryAuditSession session, AppSettings settings, boolean isEn, InventoryAuditPdfFonts fonts) {
+        PdfPTable itemsTable = new PdfPTable(8);
+        itemsTable.setWidthPercentage(100);
+        itemsTable.setWidths(new float[]{2.2f, 1f, 0.7f, 1f, 1f, 1f, 1f, 1.1f});
+
+        addHeaderCell(itemsTable, isEn ? "Ingredient" : "Ingrédient", fonts.tableHeaderFont(), Element.ALIGN_LEFT);
+        addHeaderCell(itemsTable, isEn ? "Category" : "Catégorie", fonts.tableHeaderFont(), Element.ALIGN_LEFT);
+        addHeaderCell(itemsTable, isEn ? "Unit" : "Unité", fonts.tableHeaderFont(), Element.ALIGN_CENTER);
+        addHeaderCell(itemsTable, isEn ? "Theo. Qty" : "Qté Théo", fonts.tableHeaderFont(), Element.ALIGN_RIGHT);
+        addHeaderCell(itemsTable, isEn ? "Counted Qty" : "Qté Réelle", fonts.tableHeaderFont(), Element.ALIGN_RIGHT);
+        addHeaderCell(itemsTable, isEn ? "Variance Qty" : "Écart Qté", fonts.tableHeaderFont(), Element.ALIGN_RIGHT);
+        addHeaderCell(itemsTable, isEn ? "Unit Cost HT" : "Coût U. HT", fonts.tableHeaderFont(), Element.ALIGN_RIGHT);
+        addHeaderCell(itemsTable, isEn ? "Variance HT" : "Écart HT", fonts.tableHeaderFont(), Element.ALIGN_RIGHT);
+
+        if (session.getItems() != null) {
+            for (InventoryAuditItem itm : session.getItems()) {
+                addAuditItemRow(itemsTable, itm, settings, fonts);
+            }
+        }
+        return itemsTable;
+    }
+
+    private void addAuditItemRow(PdfPTable table, InventoryAuditItem itm, AppSettings settings, InventoryAuditPdfFonts fonts) {
+        String name = itm.getIngredient() != null ? itm.getIngredient().getNom() : "-";
+        String cat = itm.getIngredient() != null ? itm.getIngredient().getCategory() : "-";
+        String unit = itm.getIngredient() != null ? itm.getIngredient().getUniteMesure() : "";
+        double theoQ = itm.getTheoreticalQuantity() != null ? itm.getTheoreticalQuantity().doubleValue() : 0.0;
+        String countedQStr = itm.getCountedQuantity() != null ? String.format(Locale.FRANCE, "%.2f", itm.getCountedQuantity().doubleValue()) : "-";
+        double varQ = itm.getVarianceQuantity() != null ? itm.getVarianceQuantity().doubleValue() : 0.0;
+        double unitCost = itm.getUnitCostHt() != null ? itm.getUnitCostHt().doubleValue() : 0.0;
+        double varHt = itm.getVarianceValueHt() != null ? itm.getVarianceValueHt().doubleValue() : 0.0;
+
+        Font lineFont = resolveItemVarianceFont(varQ, fonts);
+
+        addTableCell(table, name, fonts.boldFont(), Element.ALIGN_LEFT);
+        addTableCell(table, cat, fonts.mutedFont(), Element.ALIGN_LEFT);
+        addTableCell(table, unit, fonts.normalFont(), Element.ALIGN_CENTER);
+        addTableCell(table, String.format(Locale.FRANCE, "%.2f", theoQ), fonts.normalFont(), Element.ALIGN_RIGHT);
+        addTableCell(table, countedQStr, fonts.boldFont(), Element.ALIGN_RIGHT);
+        addTableCell(table, String.format(Locale.FRANCE, "%+.2f", varQ), lineFont, Element.ALIGN_RIGHT);
+        addTableCell(table, formatPrix(unitCost, settings), fonts.normalFont(), Element.ALIGN_RIGHT);
+        addTableCell(table, formatPrix(varHt, settings), lineFont, Element.ALIGN_RIGHT);
+    }
+
+    private Font resolveItemVarianceFont(double varQ, InventoryAuditPdfFonts fonts) {
+        if (varQ < 0) {
+            return fonts.dangerFont();
+        }
+        if (varQ > 0) {
+            return fonts.successFont();
+        }
+        return fonts.normalFont();
+    }
+
+    private void addMetaBox(PdfPTable table, String label, String value, Font valFont, Font lblFont) {
+        PdfPCell cell = new PdfPCell();
+        cell.setBorderColor(BORDER_COLOR);
+        cell.setPadding(6);
+        cell.addElement(new Paragraph(label, lblFont));
+        cell.addElement(new Paragraph(value, valFont));
+        table.addCell(cell);
+    }
+
+    private void addKpiCard(PdfPTable table, String label, String value, Font lblFont, Font valFont, Color bgColor) {
+        PdfPCell cell = new PdfPCell();
+        cell.setBackgroundColor(bgColor);
+        cell.setBorderColor(BORDER_COLOR);
+        cell.setPadding(8);
+        cell.addElement(new Paragraph(label, lblFont));
+        cell.addElement(new Paragraph(value, valFont));
+        table.addCell(cell);
+    }
+
+    private record InventoryAuditPdfFonts(
+            Font titleFont,
+            Font subtitleFont,
+            Font sectionTitleFont,
+            Font tableHeaderFont,
+            Font normalFont,
+            Font boldFont,
+            Font mutedFont,
+            Font successFont,
+            Font dangerFont,
+            Font kpiValFont,
+            Font kpiLblFont
+    ) {
     }
 }

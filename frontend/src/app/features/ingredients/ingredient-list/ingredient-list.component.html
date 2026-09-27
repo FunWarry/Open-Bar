@@ -52,6 +52,14 @@
             </ion-button>
           }
 
+          @if (inventoryAuditEnabled()) {
+            <ion-button fill="outline" color="secondary" class="header-action-btn" (click)="goToInventory()" (keyup.enter)="goToInventory()"
+              data-testid="ingredient-btn-inventory">
+              <ion-icon slot="start" name="clipboard-outline"></ion-icon>
+              {{ 'NAV.INVENTORY' | transloco }}
+            </ion-button>
+          }
+
           @if (canEdit$ | async) {
           <ion-button color="primary" class="header-action-btn" (click)="onAdd()" (keyup.enter)="onAdd()"
             data-testid="ingredient-add-btn">

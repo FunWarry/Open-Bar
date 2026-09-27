@@ -77,6 +77,7 @@ import {
   addCircleOutline,
   closeOutline,
   giftOutline,
+  clipboardOutline,
 } from 'ionicons/icons';
 import { HappyHourConfigComponent } from './components/happy-hour-config/happy-hour-config.component';
 import { LegalComponent, LegalTab } from '../../legal/legal.component';
@@ -360,6 +361,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     barTabs: true,
     cocktailLibrary: true,
     suppliersManagement: true,
+    inventoryAudit: true,
   };
   initialThemeMode: AppTheme = 'dark';
   initialColors: CustomThemeColors = { ...DEFAULT_FIGMA_PALETTE };
@@ -514,6 +516,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       addCircleOutline,
       closeOutline,
       giftOutline,
+      clipboardOutline,
     });
     this.initForms();
   }
@@ -650,6 +653,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       barTabs: [true],
       cocktailLibrary: [true],
       suppliersManagement: [true],
+      inventoryAudit: [true],
     });
 
     this.etabForm = this.fb.group({

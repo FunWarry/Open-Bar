@@ -22,6 +22,7 @@ const DEFAULT_MODULES: EstablishmentModules = {
   barTabs: true,
   cocktailLibrary: true,
   suppliersManagement: true,
+  inventoryAudit: true,
 };
 
 /**
@@ -72,6 +73,9 @@ export class FeatureFlagService implements OnDestroy {
   /** Computed signal for SUPPLIERS_MANAGEMENT capability status. */
   readonly suppliersManagementEnabled = computed(() => this.modules().suppliersManagement);
 
+  /** Computed signal for INVENTORY_AUDIT capability status. */
+  readonly inventoryAuditEnabled = computed(() => this.modules().inventoryAudit && this.modules().stockTracking);
+
   constructor() {
     this.initWebSocketSubscription();
     this.loadModules().subscribe();
@@ -111,6 +115,8 @@ export class FeatureFlagService implements OnDestroy {
         return current.cocktailLibrary;
       case EstablishmentModule.SUPPLIERS_MANAGEMENT:
         return current.suppliersManagement;
+      case EstablishmentModule.INVENTORY_AUDIT:
+        return current.inventoryAudit && current.stockTracking;
       default:
         return true;
     }
