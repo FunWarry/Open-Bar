@@ -95,7 +95,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   readonly tableCartService = inject(TableCartService);
   private readonly webSocketService = inject(WebSocketService, { optional: true });
   private readonly toastCtrl = inject(ToastController);
-  private readonly modalCtrl = inject(ModalController);
+  private readonly modalCtrl = inject(ModalController, { optional: true });
   private readonly featureFlagService = inject(FeatureFlagService, { optional: true });
   private readonly translocoService = inject(TranslocoService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -946,6 +946,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
    * Opens the interactive Mystery Drink Roulette modal for this table.
    */
   async openRouletteModal(): Promise<void> {
+    if (!this.modalCtrl) return;
     const tableId = this.tableNumero ? Number(this.tableNumero) : null;
     const modal = await this.modalCtrl.create({
       component: RouletteModalComponent,

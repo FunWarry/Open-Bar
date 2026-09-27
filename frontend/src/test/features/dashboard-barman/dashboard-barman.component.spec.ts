@@ -12,6 +12,7 @@ import { AppSettingsService } from '../../../app/core/services/app-settings.serv
 import { SoundService } from '../../../app/core/services/sound.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { CommandeService } from '../../../app/core/services/commande.service';
+import { RouletteService } from '../../../app/core/services/roulette.service';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('DashboardBarmanComponent', () => {
@@ -147,7 +148,14 @@ describe('DashboardBarmanComponent', () => {
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: AppSettingsService, useValue: settingsServiceSpy },
         { provide: SoundService, useValue: soundServiceSpy },
-        { provide: CommandeService, useValue: commandeServiceSpy }
+        { provide: CommandeService, useValue: commandeServiceSpy },
+        {
+          provide: RouletteService,
+          useValue: {
+            getDisplayPin: () => of({ pin: '7777' }),
+            watchEvents: () => EMPTY
+          }
+        }
       ]
     }).compileComponents();
 

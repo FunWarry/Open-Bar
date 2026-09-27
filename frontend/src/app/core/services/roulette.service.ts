@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, filter } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import {
   RouletteBroadcastSpinRequest,
@@ -108,7 +108,14 @@ export class RouletteService {
       return new Observable<RouletteEvent>();
     }
     return this.wsService.watch('/topic/roulette/events').pipe(
-      map(message => JSON.parse(message.body) as RouletteEvent)
+      map(message => {
+        try {
+          return JSON.parse(message.body) as RouletteEvent;
+        } catch {
+          return null;
+        }
+      }),
+      filter((evt): evt is RouletteEvent => evt !== null)
     );
   }
 

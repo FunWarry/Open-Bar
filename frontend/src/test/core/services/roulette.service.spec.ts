@@ -22,8 +22,8 @@ describe('RouletteService', () => {
   let wsMock: jasmine.SpyObj<WebSocketService>;
   let wsSubject: Subject<IMessage>;
 
-  const publicApiUrl = `${environment.apiUrl}/api/public/roulette`;
-  const adminApiUrl = `${environment.apiUrl}/api/roulette`;
+  const publicApiUrl = `${environment.apiUrl}/public/roulette`;
+  const adminApiUrl = `${environment.apiUrl}/roulette`;
 
   const mockSector: RouletteWheelSector = {
     id: 1,
