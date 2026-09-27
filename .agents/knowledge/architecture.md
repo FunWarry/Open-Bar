@@ -164,6 +164,9 @@ flowchart TD
         PURCHASE_ORDERS -->|"1:N"| PURCHASE_ORDER_DELIVERIES["purchase_order_deliveries (Bons de livraison)"]
         PURCHASE_ORDER_DELIVERIES -->|"1:N"| PURCHASE_ORDER_DELIVERY_ITEMS["purchase_order_delivery_items"]
         PURCHASE_ORDER_DELIVERY_ITEMS -->|"N:1"| INGREDIENTS
+        INVENTORY_AUDIT_SESSIONS["inventory_audit_sessions (Physical Stocktakes)"] -->|"1:N"| INVENTORY_AUDIT_ITEMS["inventory_audit_items"]
+        INVENTORY_AUDIT_ITEMS -->|"N:1"| INGREDIENTS
+        INVENTORY_AUDIT_ITEMS -->|"1:N"| INVENTORY_AUDIT_LOCATION_COUNTS["inventory_audit_location_counts"]
     end
 ```
 
@@ -173,6 +176,9 @@ flowchart TD
 - `purchase_order_items` : Line items on purchase orders (`purchase_order_id`, `ingredient_id`, `package_quantity`, `package_price_ht`, `line_total_ht`, `delivered_quantity`)
 - `purchase_order_deliveries` : Goods reception delivery slips / BL (`purchase_order_id`, `delivery_reference`, `delivery_date`, `notes`, `received_by`)
 - `purchase_order_delivery_items` : Goods reception delivery items (`delivery_id`, `ingredient_id`, `package_quantity`, `package_price_ht`)
+- `inventory_audit_sessions` : Periodic physical stocktake sessions (`reference_code`, `title`, `status: IN_PROGRESS|FINALIZED|CANCELLED`, `target_storage_area`, `target_category`, `created_by`, `finalized_by`, `started_at`, `finalized_at`, `notes`, `theoretical_total_value_ht`, `actual_total_value_ht`, `net_variance_value_ht`)
+- `inventory_audit_items` : Item lines per counted ingredient in an audit (`session_id`, `ingredient_id`, `theoretical_quantity`, `actual_quantity`, `variance_quantity`, `unit_cost_ht`, `theoretical_value_ht`, `actual_value_ht`, `variance_value_ht`, `variance_percentage`, `notes`, `reconciled`)
+- `inventory_audit_location_counts` : Granular multi-location counts and partial bottle gauging entries per item (`audit_item_id`, `location_name`, `full_units_count`, `partial_volume`, `gauge_fraction`, `total_counted_quantity`, `counted_by`, `counted_at`, `notes`)
 - `bar_tabs` : Customer running ledgers and bar tabs (`nom`, `client_reference`, `caution_montant`, `notes`, `statut: ACTIVE|SETTLED|TRANSFERRED|CANCELLED`, `serveur_id`, `date_ouverture`, `date_cloture`)
 - `cash_drawer_sessions` : Daily till opening sessions per operational date (`session_date`, `opened_at`, `closed_at`, `opened_by`, `closed_by`, `opening_float`, `status: OPEN|CLOSED`, `opening_denominations_json`, `notes`)
 - `cash_movements` : Intra-day cash movements (`session_id`, `type: CASH_IN|CASH_DROP|PAID_OUT`, `amount`, `reason`, `receipt_reference`, `user_id`, `created_at`)
