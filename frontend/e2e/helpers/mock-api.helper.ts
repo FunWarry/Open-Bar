@@ -1903,7 +1903,7 @@ export async function setupMockApi(page: Page): Promise<void> {
           totalItemsAudited: 2,
           itemsWithVarianceCount: 1,
           varianceValueByCategory: { alcohol: -875 },
-          countedValueByLocation: { 'Main Bar': 2800 },
+          countedValueByLocation: { 'Bar Principal': 2800 },
         }),
       });
       return;
@@ -1996,7 +1996,7 @@ export async function setupMockApi(page: Page): Promise<void> {
                 {
                   id: 101,
                   auditItemId: 10,
-                  storageLocation: 'Main Bar',
+                  storageLocation: 'Bar Principal',
                   fullContainersCount: 2,
                   partialQuantity: 0,
                   countedQuantity: 140,

@@ -62,7 +62,7 @@ test.describe('Physical Inventory Audit & Variance Matrix E2E', () => {
     await expect(page.locator('[data-testid="tab-variance-report"]')).toBeVisible();
 
     // Verify storage location tabs on counting sheet
-    await expect(page.locator('[data-testid="tab-location-Main Bar"]')).toBeVisible();
+    await expect(page.locator('[data-testid="tab-location-Bar Principal"]')).toBeVisible();
 
     // Verify ingredient rows
     await expect(page.locator('[data-testid="item-card-10"]')).toBeVisible();
