@@ -169,6 +169,12 @@ public class AppSettings {
     @Column(name = "cash_denominations_json", columnDefinition = "TEXT")
     private String cashDenominationsJson;
 
+    /**
+     * Serialized JSON configuration of inventory storage and service locations (zones de stockage & service).
+     */
+    @Column(name = "storage_locations_json", columnDefinition = "TEXT")
+    private String storageLocationsJson = "[\"Bar Principal\", \"Arrière-bar\", \"Cave à vins & Spiritueux\", \"Chambre froide fûts\"]";
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

@@ -124,14 +124,14 @@
           <!-- Storage Location Selector & Filters -->
           <div class="controls-toolbar">
             <div class="location-tabs">
-              @for (loc of storageLocations; track loc.key) {
+              @for (loc of storageLocations(); track loc.key) {
                 <button
                   type="button"
                   class="location-pill"
                   [class.active]="selectedLocation() === loc.key"
                   (click)="selectLocation(loc.key)"
                   [attr.data-testid]="'tab-location-' + loc.key">
-                  {{ loc.labelKey | transloco }}
+                  {{ loc.label }}
                 </button>
               }
             </div>
@@ -194,7 +194,12 @@
                 <div class="gauging-widget">
                   <!-- Full Containers Counter -->
                   <div class="full-containers-box">
-                    <label class="gauge-label" [for]="'full-containers-' + item.id">{{ 'INVENTORY.GAUGE_FULL_CONTAINERS' | transloco }}</label>
+                    <div class="full-containers-header">
+                      <label class="gauge-label" [for]="'full-containers-' + item.id">{{ 'INVENTORY.GAUGE_FULL_CONTAINERS' | transloco }}</label>
+                      @if (item.packagingCapacity) {
+                        <span class="gauge-sub">1 btl = {{ item.packagingCapacity }} {{ item.ingredientUnite }}</span>
+                      }
+                    </div>
                     <div class="stepper-row">
                       <button
                         type="button"
@@ -246,8 +251,8 @@
                       }
                     </div>
 
-                    <!-- Exact Partial Quantity Input -->
-                    <div class="exact-input-row">
+                    <!-- Exact Partial Quantity Input Group -->
+                    <div class="exact-input-group">
                       <label class="sr-only" [for]="'partial-qty-' + item.id">{{ 'INVENTORY.GAUGE_EXACT_INPUT' | transloco }}</label>
                       <input
                         [id]="'partial-qty-' + item.id"
@@ -261,7 +266,7 @@
                         (input)="updatePartialQuantity(item.id, +$any($event.target).value)"
                         (blur)="saveCount(item)"
                         [attr.data-testid]="'input-partial-qty-' + item.id" />
-                      <span class="exact-unit">{{ item.ingredientUnite }}</span>
+                      <span class="exact-unit-badge">{{ item.ingredientUnite }}</span>
                     </div>
                   </div>
                 </div>

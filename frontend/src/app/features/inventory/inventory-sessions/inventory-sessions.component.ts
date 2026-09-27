@@ -45,7 +45,9 @@ import {
   wineOutline,
   snowOutline,
   fileTrayStackedOutline,
+  businessOutline,
 } from 'ionicons/icons';
+import { AppSettingsService } from '../../../core/services/app-settings.service';
 import { InventoryAuditService } from '../../../core/services/inventory-audit.service';
 import {
   InventoryAuditSession,
@@ -105,6 +107,7 @@ export type AuditStatusFilter = 'ALL' | 'DRAFT' | 'IN_PROGRESS' | 'FINALIZED' | 
 })
 export class InventorySessionsComponent implements OnInit, OnDestroy {
   private readonly auditService = inject(InventoryAuditService);
+  private readonly appSettingsService = inject(AppSettingsService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly toastCtrl = inject(ToastController);
@@ -123,48 +126,24 @@ export class InventorySessionsComponent implements OnInit, OnDestroy {
   // Creation form
   createForm!: FormGroup;
 
-  // Storage location options
-  readonly storageLocationOptions = [
-    { value: '', labelKey: 'INVENTORY.FIELD_LOCATION_ALL' },
-    { value: 'Main Bar', labelKey: 'INVENTORY.LOCATION_MAIN_BAR' },
-    { value: 'Arrière-bar', labelKey: 'INVENTORY.LOCATION_BACK_BAR' },
-    { value: 'Cave à vins & Spiritueux', labelKey: 'INVENTORY.LOCATION_CELLAR' },
-    { value: 'Chambre froide fûts', labelKey: 'INVENTORY.LOCATION_KEG_ROOM' },
-  ];
-
   // Category filter options
   readonly categoryOptions = [
     { value: '', labelKey: 'INVENTORY.FIELD_CATEGORY_ALL' },
     ...INGREDIENT_CATEGORY_CONFIG.map(c => ({ value: c.key, labelKey: c.labelKey })),
   ];
 
-  // Design system SearchableSelect dropdown options
+  // Design system SearchableSelect dropdown options for storage locations
   readonly storageLocationSelectOptions = computed<SearchableOption<string>[]>(() => [
     {
       value: '',
       label: this.transloco.translate('INVENTORY.FIELD_LOCATION_ALL'),
       icon: 'grid-outline',
     },
-    {
-      value: 'Main Bar',
-      label: this.transloco.translate('INVENTORY.LOCATION_MAIN_BAR'),
-      icon: 'wine-outline',
-    },
-    {
-      value: 'Arrière-bar',
-      label: this.transloco.translate('INVENTORY.LOCATION_BACK_BAR'),
-      icon: 'layers-outline',
-    },
-    {
-      value: 'Cave à vins & Spiritueux',
-      label: this.transloco.translate('INVENTORY.LOCATION_CELLAR'),
-      icon: 'file-tray-stacked-outline',
-    },
-    {
-      value: 'Chambre froide fûts',
-      label: this.transloco.translate('INVENTORY.LOCATION_KEG_ROOM'),
-      icon: 'snow-outline',
-    },
+    ...this.appSettingsService.getStorageLocations().map(loc => ({
+      value: loc,
+      label: loc,
+      icon: 'business-outline',
+    })),
   ]);
 
   readonly categorySelectOptions = computed<SearchableOption<string>[]>(() => [
@@ -247,6 +226,7 @@ export class InventorySessionsComponent implements OnInit, OnDestroy {
       wineOutline,
       snowOutline,
       fileTrayStackedOutline,
+      businessOutline,
     });
     this.initForm();
   }
@@ -449,9 +429,9 @@ export class InventorySessionsComponent implements OnInit, OnDestroy {
     if (!scope || scope === 'ALL') {
       return this.transloco.translate('INVENTORY.LOCATION_ALL');
     }
-    const match = this.storageLocationOptions.find(o => o.value === scope);
+    const match = this.storageLocationSelectOptions().find((o: SearchableOption<string>) => o.value === scope);
     if (match) {
-      return this.transloco.translate(match.labelKey);
+      return match.label;
     }
     return scope;
   }

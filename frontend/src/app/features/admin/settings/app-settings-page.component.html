@@ -1784,6 +1784,102 @@
                   </ion-card>
                 </ion-col>
               </ion-row>
+
+              <!-- Row 6: Zones & Emplacements de Stockage & Service (Inventaires) -->
+              <ion-row>
+                <ion-col size="12">
+                  <ion-card class="settings-card" data-testid="card-storage-locations">
+                    <ion-card-header>
+                      <div class="card-header-flex">
+                        <ion-card-title class="card-title">
+                          <ion-icon name="grid-outline" class="title-icon"></ion-icon>
+                          {{ 'SETTINGS.STORAGE_LOCATIONS_TITLE' | transloco }}
+                        </ion-card-title>
+                        <button
+                          type="button"
+                          class="reset-denoms-btn"
+                          (click)="resetStorageLocationsToDefault()"
+                          data-testid="btn-reset-storage-locations">
+                          <ion-icon name="refresh-outline"></ion-icon>
+                          <span>{{ 'SETTINGS.RESET_STORAGE_LOCATIONS' | transloco }}</span>
+                        </button>
+                      </div>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="block-desc">{{ 'SETTINGS.STORAGE_LOCATIONS_SUBTITLE' | transloco }}</p>
+
+                      <!-- Storage Locations Group -->
+                      <div class="discount-tiers-group">
+                        <div class="discount-group-header">
+                          <div class="discount-group-header-left">
+                            <ion-icon name="business-outline" class="discount-group-icon"></ion-icon>
+                            <span class="discount-group-title">{{ 'SETTINGS.STORAGE_LOCATIONS_LIST_TITLE' | transloco }}</span>
+                          </div>
+                          <span class="count-pill" data-testid="storage-locations-count">{{ configuredStorageLocations().length }}</span>
+                        </div>
+
+                        <!-- Configured Locations List -->
+                        <div class="discount-tiers-grid" data-testid="storage-locations-list">
+                          @for (loc of configuredStorageLocations(); track loc) {
+                            <div class="discount-tier-chip" data-testid="storage-location-chip">
+                              <span class="discount-type-badge">
+                                <ion-icon name="wine-outline"></ion-icon>
+                              </span>
+                              <div class="discount-info">
+                                <span class="discount-label font-bold">{{ loc }}</span>
+                              </div>
+                              <button
+                                type="button"
+                                class="delete-discount-btn"
+                                (click)="removeStorageLocation(loc)"
+                                [attr.title]="'COMMON.DELETE' | transloco"
+                                [attr.data-testid]="'delete-location-' + loc">
+                                <ion-icon name="close-outline"></ion-icon>
+                              </button>
+                            </div>
+                          }
+                          @if (configuredStorageLocations().length === 0) {
+                            <div class="empty-tiers-note">{{ 'SETTINGS.NO_STORAGE_LOCATIONS_CONFIGURED' | transloco }}</div>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Add Storage Location Form -->
+                      <div class="add-discount-tier-card" data-testid="add-storage-location-box">
+                        <h4 class="add-tier-heading">
+                          <ion-icon name="add-circle-outline"></ion-icon>
+                          {{ 'SETTINGS.ADD_STORAGE_LOCATION' | transloco }}
+                        </h4>
+                        <div class="add-tier-fields">
+                          <div class="tier-input-wrapper label-input" style="flex: 1;">
+                            <label for="input-new-storage-loc" class="sr-only">{{ 'SETTINGS.STORAGE_LOCATION_NAME_LABEL' | transloco }}</label>
+                            <input
+                              id="input-new-storage-loc"
+                              type="text"
+                              [(ngModel)]="newStorageLocationName"
+                              [ngModelOptions]="{standalone: true}"
+                              [placeholder]="'SETTINGS.STORAGE_LOCATION_PLACEHOLDER' | transloco"
+                              class="custom-tier-input"
+                              data-testid="input-new-storage-location"
+                              (keyup.enter)="addStorageLocation()"
+                            />
+                          </div>
+
+                          <button
+                            type="button"
+                            class="add-tier-btn"
+                            (click)="addStorageLocation()"
+                            [disabled]="!newStorageLocationName.trim()"
+                            data-testid="btn-add-storage-location">
+                            <ion-icon name="add-circle-outline"></ion-icon>
+                            <span>{{ 'COMMON.ADD' | transloco }}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
             </ion-grid>
           </form>
         </section>

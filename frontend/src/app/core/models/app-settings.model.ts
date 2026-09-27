@@ -52,6 +52,7 @@ export interface AppSettings {
   directPrintingEnabled?: boolean;
   cashDenominationsJson?: string;
   discountTiersJson?: string;
+  storageLocationsJson?: string;
   timeZone?: string;
   updatedAt: string | null;
 }

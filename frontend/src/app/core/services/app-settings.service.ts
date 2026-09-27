@@ -17,6 +17,16 @@ export const DEFAULT_DISCOUNT_TIERS: DiscountTier[] = [
 ];
 
 /**
+ * Standard default inventory storage and service locations for bar operations.
+ */
+export const DEFAULT_STORAGE_LOCATIONS: string[] = [
+  'Bar Principal',
+  'Arrière-bar',
+  'Cave à vins & Spiritueux',
+  'Chambre froide fûts'
+];
+
+/**
  * Service managing establishment branding, customization, and operational alert thresholds.
  * Emits reactive settings updates via STOMP WebSocket topics and REST API.
  */
@@ -146,6 +156,28 @@ export class AppSettingsService {
     } catch {
       // LocalStorage fallback protection
     }
+  }
+
+  /**
+   * Retrieves configured storage and service locations for physical inventory audits.
+   * If custom JSON is stored in settings, parses and returns it.
+   * Otherwise falls back to DEFAULT_STORAGE_LOCATIONS.
+   *
+   * @returns Array of storage location names
+   */
+  getStorageLocations(): string[] {
+    const json = this.currentSettings?.storageLocationsJson;
+    if (json && typeof json === 'string' && json.trim().length > 0) {
+      try {
+        const parsed = JSON.parse(json);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.filter((loc): loc is string => typeof loc === 'string' && loc.trim().length > 0);
+        }
+      } catch (err) {
+        console.warn('Failed to parse storageLocationsJson, falling back to defaults:', err);
+      }
+    }
+    return [...DEFAULT_STORAGE_LOCATIONS];
   }
 
   /**

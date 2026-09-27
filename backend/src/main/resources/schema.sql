@@ -509,6 +509,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
     printer_port INTEGER DEFAULT 9100,
     direct_printing_enabled BOOLEAN DEFAULT false,
     cash_denominations_json TEXT,
+    storage_locations_json TEXT DEFAULT '["Bar Principal", "Arrière-bar", "Cave à vins & Spiritueux", "Chambre froide fûts"]',
     updated_at TIMESTAMP
 );
 

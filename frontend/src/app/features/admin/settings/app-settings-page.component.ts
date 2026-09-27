@@ -86,7 +86,7 @@ import { Subject, forkJoin, of } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
 import { EtablissementService } from '../../../core/services/etablissement.service';
 import { EstablishmentConfig } from '../../../core/models/establishment-config.model';
-import { AppSettingsService, DEFAULT_DISCOUNT_TIERS } from '../../../core/services/app-settings.service';
+import { AppSettingsService, DEFAULT_DISCOUNT_TIERS, DEFAULT_STORAGE_LOCATIONS } from '../../../core/services/app-settings.service';
 import { AppSettings, CurrencyPosition, DiscountTier, UnitSystem } from '../../../core/models/app-settings.model';
 import {
   CashDenomination,
@@ -385,6 +385,10 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   newDiscountTierLabel = '';
   newDiscountTierType: 'percent' | 'fixed' = 'percent';
   newDiscountTierValue: number | null = null;
+
+  // Configured storage and service locations (zones de stockage & service pour inventaire)
+  configuredStorageLocations = signal<string[]>([...DEFAULT_STORAGE_LOCATIONS]);
+  newStorageLocationName = '';
 
   readonly modulePresets: { type: Exclude<EstablishmentPresetType, 'CUSTOM'>; labelKey: string; icon: string; descKey: string }[] = [
     { type: 'BAR', labelKey: 'SETTINGS.MODULES_PRESET_BAR', icon: 'beer-outline', descKey: 'SETTINGS.MODULES_PRESET_BAR_DESC' },
@@ -773,9 +777,11 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
             this.configuredDenominations.set(this.resolveDenominations(appSettings));
             this.configuredDiscountTiers.set(this.resolveDiscountTiers(appSettings));
+            this.configuredStorageLocations.set(this.resolveStorageLocations(appSettings));
           } else {
             this.configuredDenominations.set([...DEFAULT_EUR_DENOMINATIONS]);
             this.configuredDiscountTiers.set(this.appSettingsService.getDiscountTiers());
+            this.configuredStorageLocations.set(this.appSettingsService.getStorageLocations());
           }
 
           if (modules) {
@@ -852,6 +858,26 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       return this.appSettingsService.getDiscountTiers();
     }
     return [...DEFAULT_DISCOUNT_TIERS];
+  }
+
+  /**
+   * Resolves configured storage and service locations from serialized JSON or service defaults.
+   */
+  private resolveStorageLocations(settings?: Partial<AppSettings> | null): string[] {
+    if (settings?.storageLocationsJson) {
+      try {
+        const parsed = JSON.parse(settings.storageLocationsJson);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.filter((loc): loc is string => typeof loc === 'string' && loc.trim().length > 0);
+        }
+      } catch {
+        // Fallback to service defaults on invalid JSON
+      }
+    }
+    if (this.appSettingsService && typeof this.appSettingsService.getStorageLocations === 'function') {
+      return this.appSettingsService.getStorageLocations();
+    }
+    return [...DEFAULT_STORAGE_LOCATIONS];
   }
 
   // --- Cadence Presets ---
@@ -1180,6 +1206,47 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     this.showToast(this.translocoService.translate('SETTINGS.DISCOUNT_TIERS_RESET_SUCCESS'), 'info');
   }
 
+  /**
+   * Adds a user-defined inventory storage or service location.
+   */
+  addStorageLocation(): void {
+    const name = this.newStorageLocationName?.trim();
+    if (!name) return;
+    const current = this.configuredStorageLocations();
+    if (current.some(loc => loc.toLowerCase() === name.toLowerCase())) {
+      this.showToast(this.translocoService.translate('SETTINGS.STORAGE_LOCATION_EXISTS'), 'warning');
+      return;
+    }
+    this.configuredStorageLocations.update(locs => [...locs, name]);
+    this.newStorageLocationName = '';
+    this.appSettingsForm.markAsDirty();
+  }
+
+  /**
+   * Removes a storage or service location from configuration.
+   *
+   * @param locationName Name of location to remove
+   */
+  removeStorageLocation(locationName: string): void {
+    const current = this.configuredStorageLocations();
+    if (current.length <= 1) {
+      this.showToast(this.translocoService.translate('SETTINGS.STORAGE_LOCATION_MIN_ONE'), 'warning');
+      return;
+    }
+    this.configuredStorageLocations.update(locs => locs.filter(l => l !== locationName));
+    this.appSettingsForm.markAsDirty();
+  }
+
+  /**
+   * Resets storage locations to standard establishment default zones.
+   */
+  resetStorageLocationsToDefault(): void {
+    this.configuredStorageLocations.set([...DEFAULT_STORAGE_LOCATIONS]);
+    this.appSettingsForm.markAsDirty();
+    this.cdr.markForCheck();
+    this.showToast(this.translocoService.translate('SETTINGS.STORAGE_LOCATIONS_RESET_SUCCESS'), 'info');
+  }
+
   // --- VAT & Margin Helpers ---
   applyVatPreset(rate: number): void {
     this.appSettingsForm.patchValue({ defaultVatRate: rate });
@@ -1373,6 +1440,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       establishmentName: etabPayload.legalName || this.appSettingsForm.value.establishmentName || 'OpenBar',
       cashDenominationsJson: JSON.stringify(this.configuredDenominations()),
       discountTiersJson: JSON.stringify(this.configuredDiscountTiers()),
+      storageLocationsJson: JSON.stringify(this.configuredStorageLocations()),
     };
 
     const updatePayload: Record<string, any> = {

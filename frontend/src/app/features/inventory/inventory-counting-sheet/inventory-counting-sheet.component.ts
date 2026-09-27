@@ -42,6 +42,7 @@ import {
   lockClosedOutline,
   trashOutline,
 } from 'ionicons/icons';
+import { AppSettingsService } from '../../../core/services/app-settings.service';
 import { InventoryAuditService } from '../../../core/services/inventory-audit.service';
 import {
   InventoryAuditSession,
@@ -99,6 +100,7 @@ interface ItemCountState {
 })
 export class InventoryCountingSheetComponent implements OnInit, OnDestroy {
   private readonly auditService = inject(InventoryAuditService);
+  private readonly appSettingsService = inject(AppSettingsService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toastCtrl = inject(ToastController);
@@ -114,18 +116,18 @@ export class InventoryCountingSheetComponent implements OnInit, OnDestroy {
   readonly isLoading = signal<boolean>(false);
   readonly isFinalizing = signal<boolean>(false);
   readonly activeTab = signal<CountingSheetTab>('counting');
-  readonly selectedLocation = signal<string>('Main Bar');
+  readonly selectedLocation = signal<string>('Bar Principal');
   readonly searchQuery = signal<string>('');
   readonly showDiscrepanciesOnly = signal<boolean>(false);
   readonly isFinalizeModalOpen = signal<boolean>(false);
 
   // Storage location tabs
-  readonly storageLocations = [
-    { key: 'Main Bar', labelKey: 'INVENTORY.LOCATION_MAIN_BAR' },
-    { key: 'Arrière-bar', labelKey: 'INVENTORY.LOCATION_BACK_BAR' },
-    { key: 'Cave à vins & Spiritueux', labelKey: 'INVENTORY.LOCATION_CELLAR' },
-    { key: 'Chambre froide fûts', labelKey: 'INVENTORY.LOCATION_KEG_ROOM' },
-  ];
+  readonly storageLocations = computed(() => {
+    return this.appSettingsService.getStorageLocations().map(loc => ({
+      key: loc,
+      label: loc,
+    }));
+  });
 
   // Quick bottle gauging fractions
   readonly bottleFractions = [
@@ -234,6 +236,11 @@ export class InventoryCountingSheetComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (session: InventoryAuditSession) => {
           this.session.set(session);
+          if (session.storageLocationScope && session.storageLocationScope !== 'ALL') {
+            this.selectedLocation.set(session.storageLocationScope);
+          } else if (!this.storageLocations().some(l => l.key === this.selectedLocation())) {
+            this.selectedLocation.set(this.storageLocations()[0]?.key || 'Bar Principal');
+          }
           this.syncItemStates(session);
           if (session.status === 'FINALIZED') {
             this.activeTab.set('report');

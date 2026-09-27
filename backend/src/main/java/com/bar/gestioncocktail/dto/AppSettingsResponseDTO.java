@@ -33,6 +33,8 @@ import java.time.LocalDateTime;
  * @param defaultVatRate Default VAT rate percentage for menu prices
  * @param targetGrossMarginPercentage Target high margin percentage threshold
  * @param warningGrossMarginPercentage Warning low margin percentage threshold
+ * @param storageLocationsJson Serialized JSON list of inventory storage and service locations
+ * @param timeZone Establishment active timezone ID
  * @param updatedAt Last modification timestamp
  */
 @Schema(description = "Visual, operational, currency, and QR/Wi-Fi configuration data of the establishment")
@@ -67,6 +69,7 @@ public record AppSettingsResponseDTO(
     Integer printerPort,
     Boolean directPrintingEnabled,
     String cashDenominationsJson,
+    String storageLocationsJson,
     String timeZone,
     LocalDateTime updatedAt
 ) {
@@ -74,7 +77,34 @@ public record AppSettingsResponseDTO(
     public static final String DEFAULT_TIMEZONE = "SYSTEM";
 
     /**
-     * Backwards-compatible 30-parameter constructor defaulting volumeUnit to cl and weightUnit to g.
+     * Backwards-compatible 32-parameter constructor defaulting storageLocationsJson to null.
+     */
+    public AppSettingsResponseDTO(
+            Long id, String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            String volumeUnit, String weightUnit,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity,
+            Boolean wifiEnabled, Boolean tableSessionValidationEnabled,
+            BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
+            BigDecimal warningGrossMarginPercentage, String barPrinterIp,
+            String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
+            Boolean directPrintingEnabled, String cashDenominationsJson,
+            String timeZone, LocalDateTime updatedAt) {
+        this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem != null ? unitSystem : UnitSystem.METRIC_CL,
+                volumeUnit != null ? volumeUnit : "cl", weightUnit != null ? weightUnit : "g",
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
+                cashDenominationsJson, null, timeZone != null ? timeZone : DEFAULT_TIMEZONE, updatedAt);
+    }
+
+    /**
+     * Backwards-compatible 30-parameter constructor defaulting volumeUnit to cl, weightUnit to g, and storageLocationsJson to null.
      */
     public AppSettingsResponseDTO(
             Long id, String primaryColor, String primaryColorStrong, String logoUrl,
@@ -96,7 +126,7 @@ public record AppSettingsResponseDTO(
                 wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
                 defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
                 barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
-                cashDenominationsJson, timeZone != null ? timeZone : DEFAULT_TIMEZONE, updatedAt);
+                cashDenominationsJson, null, timeZone != null ? timeZone : DEFAULT_TIMEZONE, updatedAt);
     }
 
     /**
@@ -233,6 +263,7 @@ public record AppSettingsResponseDTO(
             s.getPrinterPort() != null ? s.getPrinterPort() : 9100,
             Boolean.TRUE.equals(s.getDirectPrintingEnabled()),
             s.getCashDenominationsJson(),
+            s.getStorageLocationsJson(),
             timeZone != null ? timeZone : DEFAULT_TIMEZONE,
             s.getUpdatedAt()
         );

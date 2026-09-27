@@ -123,8 +123,34 @@ public record AppSettingsUpdateRequest(
 
     Boolean directPrintingEnabled,
 
-    String cashDenominationsJson
+    String cashDenominationsJson,
+
+    String storageLocationsJson
 ) {
+    /**
+     * Backwards-compatible 29-parameter constructor defaulting storageLocationsJson to null.
+     */
+    public AppSettingsUpdateRequest(
+            String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            String volumeUnit, String weightUnit,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled,
+            Boolean tableSessionValidationEnabled, java.math.BigDecimal defaultVatRate,
+            java.math.BigDecimal targetGrossMarginPercentage, java.math.BigDecimal warningGrossMarginPercentage,
+            String barPrinterIp, String kitchenPrinterIp, String cashDeskPrinterIp,
+            Integer printerPort, Boolean directPrintingEnabled, String cashDenominationsJson) {
+        this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem, volumeUnit, weightUnit,
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes,
+                clientBaseUrl, wifiSsid, wifiPassword, wifiSecurity, wifiEnabled,
+                tableSessionValidationEnabled, defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
+                cashDenominationsJson, null);
+    }
+
     /**
      * Backwards-compatible 27-parameter constructor with unitSystem, defaulting volumeUnit and weightUnit to cl and g.
      */

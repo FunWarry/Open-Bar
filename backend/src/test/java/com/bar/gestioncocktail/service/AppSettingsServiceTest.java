@@ -409,4 +409,26 @@ class AppSettingsServiceTest {
         assertThat(updated.getVolumeUnit()).isEqualTo("ml");
         assertThat(updated.getWeightUnit()).isEqualTo("g");
     }
+
+    @Test
+    @DisplayName("updateSettings updates storageLocationsJson successfully")
+    void updateSettings_updatesStorageLocations() {
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+        when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        String customLocations = "[\"Comptoir\", \"Terrasse VIP\", \"Cave\"]";
+        AppSettingsUpdateRequest req = new AppSettingsUpdateRequest(
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
+            "EUR", "€", CurrencyPosition.AFTER,
+            com.bar.gestioncocktail.model.UnitSystem.METRIC_CL, "cl", "g",
+            3, 5, 10, null, null, null, null, false, false,
+            null, null, null, null, null, null, 9100, false, null,
+            customLocations
+        );
+
+        AppSettings updated = appSettingsService.updateSettings(req);
+
+        assertThat(updated.getStorageLocationsJson()).isEqualTo(customLocations);
+    }
 }
+
