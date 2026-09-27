@@ -259,6 +259,68 @@
   max-width: 280px;
 }
 
+.controls-view-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.allergens-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 13px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border-medium);
+  background: var(--background-surface-2);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  ion-icon {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    transition: color 0.2s ease;
+  }
+
+  .toggle-indicator-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    transition: all 0.2s ease;
+  }
+
+  &:hover {
+    color: var(--text-primary);
+    border-color: var(--border-light);
+
+    ion-icon {
+      color: var(--text-primary);
+    }
+  }
+
+  &.active {
+    background: var(--stock-low-15);
+    border-color: var(--semantic-warning);
+    color: var(--semantic-warning);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+
+    ion-icon {
+      color: var(--semantic-warning);
+    }
+
+    .toggle-indicator-dot {
+      background: var(--semantic-warning);
+      box-shadow: 0 0 6px var(--semantic-warning);
+    }
+  }
+}
+
 .view-mode-group {
   display: flex;
   background: var(--background-surface-2);
@@ -481,6 +543,14 @@
   min-width: 0;
 }
 
+.card-badges-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
 .stock-badge {
   font-size: 0.72rem;
   font-weight: 600;
@@ -489,6 +559,75 @@
   flex-shrink: 0;
   padding: 4px 8px;
   border-radius: var(--radius-sm, 6px);
+}
+
+.card-allergens-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 10px;
+  margin-bottom: 2px;
+  padding: 6px 8px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm, 8px);
+  animation: fadeInAllergens 0.2s ease-in-out;
+
+  &.list-mode-allergens {
+    margin-top: 6px;
+    margin-bottom: 2px;
+    display: inline-flex;
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+}
+
+@keyframes fadeInAllergens {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ingredient-allergen-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.2;
+  background: var(--stock-low-15);
+  color: var(--semantic-warning);
+  border: 1px solid var(--semantic-warning);
+
+  .alg-emoji {
+    font-size: 0.85rem;
+    line-height: 1;
+  }
+
+  .alg-name {
+    white-space: nowrap;
+  }
+
+  &.allergen-free {
+    background: var(--stock-normal-15);
+    color: var(--semantic-success);
+    border-color: var(--semantic-success);
+  }
+
+  &.vegan {
+    background: var(--stock-normal-15);
+    color: var(--semantic-success);
+    border-color: var(--semantic-success);
+  }
 }
 
 .gauge-section {
