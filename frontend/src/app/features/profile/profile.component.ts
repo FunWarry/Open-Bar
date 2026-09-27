@@ -351,7 +351,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
    * Handles language selection changes.
    * Applies the selected language via {@link LanguageService}.
    *
-   * @param lang The selected language code ('fr' or 'en').
+   * @param lang The selected language code (such as fr or en).
    */
   onLanguageChange(lang: string): void {
     const supported: SupportedLanguage = lang === 'en' ? 'en' : 'fr';

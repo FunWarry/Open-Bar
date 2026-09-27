@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of, Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { RouletteDisplayComponent } from '../../../app/features/roulette-display/roulette-display.component';
 import { RouletteService } from '../../../app/core/services/roulette.service';
@@ -148,5 +148,147 @@ describe('RouletteDisplayComponent', () => {
   it('should change language through language service', () => {
     component.changeLanguage('en');
     expect(languageServiceMock.setLanguage).toHaveBeenCalledWith('en');
+  });
+
+  it('should remove last digit with onPinBackspace and clear with onPinClear', () => {
+    component.onPinDigit('1');
+    component.onPinDigit('2');
+    expect(component.pinInput()).toBe('12');
+
+    component.onPinBackspace();
+    expect(component.pinInput()).toBe('1');
+
+    component.onPinClear();
+    expect(component.pinInput()).toBe('');
+  });
+
+  it('should handle submitPin server error gracefully', () => {
+    rouletteServiceMock.verifyDisplayPin.and.returnValue(throwError(() => new Error('Server error')));
+    component.onPinDigit('9');
+    component.onPinDigit('9');
+    component.onPinDigit('9');
+    component.onPinDigit('9');
+
+    expect(component.isUnlocked()).toBeFalse();
+    expect(component.pinErrorMessage()).toBe('ROULETTE.PIN_ERROR');
+    expect(component.pinInput()).toBe('');
+  });
+
+  it('should lock screen and display custom reason key', () => {
+    component.isUnlocked.set(true);
+    component.lockScreen('ROULETTE.CUSTOM_LOCK');
+
+    expect(component.isUnlocked()).toBeFalse();
+    expect(component.pinErrorMessage()).toBe('ROULETTE.CUSTOM_LOCK');
+  });
+
+  it('should handle loadInitialConfig error gracefully', () => {
+    rouletteServiceMock.getPublicConfig.and.returnValue(throwError(() => new Error('Network error')));
+    component.loadInitialConfig();
+
+    expect(component.isLoading).toBeFalse();
+  });
+
+  it('should reload config when SECTORS_UPDATED event is received', () => {
+    spyOn(component, 'loadInitialConfig');
+    const updateEvent: RouletteEvent = {
+      eventType: 'SECTORS_UPDATED',
+      eventId: 'upd-1',
+      durationMs: 0,
+      soundProfile: 'CSGO',
+      timestamp: new Date().toISOString()
+    };
+
+    eventsSubject.next(updateEvent);
+    expect(component.loadInitialConfig).toHaveBeenCalled();
+  });
+
+  it('should handle SPIN_TRIGGERED event and trigger spin animation', () => {
+    const spinEvent: RouletteEvent = {
+      eventType: 'SPIN_TRIGGERED',
+      eventId: 'spin-1',
+      durationMs: 4000,
+      soundProfile: 'ARCADE',
+      tableNumero: 12,
+      spinResult: {
+        sectorId: 1,
+        winningIndex: 0,
+        prizeType: 'COCKTAIL',
+        cocktailId: 1,
+        cocktailNom: 'Mojito',
+        prix: 7.5,
+        isMysteryDrink: true,
+        addedToCart: false,
+        activeSectors: mockConfig.sectors
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    eventsSubject.next(spinEvent);
+
+    expect(component.isSpinning).toBeTrue();
+    expect(component.celebrationActive()).toBeFalse();
+  });
+
+  it('should celebrate winner and update recent winners on spin completed', () => {
+    component.currentEvent = {
+      eventType: 'SPIN_TRIGGERED',
+      eventId: 'spin-1',
+      durationMs: 4000,
+      soundProfile: 'ARCADE',
+      tableNumero: 7,
+      spinResult: {
+        sectorId: 1,
+        winningIndex: 0,
+        prizeType: 'COCKTAIL',
+        cocktailId: 1,
+        cocktailNom: 'Cosmopolitan',
+        prix: 8.0,
+        isMysteryDrink: true,
+        addedToCart: false,
+        activeSectors: mockConfig.sectors
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    component.onSpinCompleted({ sector: mockConfig.sectors[0], index: 0 });
+
+    expect(component.isSpinning).toBeFalse();
+    expect(component.celebrationActive()).toBeTrue();
+    expect(component.winningResult()?.cocktailNom).toBe('Cosmopolitan');
+    expect(audioServiceMock.playWinFanfare).toHaveBeenCalled();
+    expect(component.recentWinners()).toHaveSize(4);
+    expect(component.recentWinners()[0].tableNumero).toBe(7);
+  });
+
+  it('should dismiss celebration cleanly', () => {
+    component.celebrationActive.set(true);
+    component.winningResult.set({
+      sectorId: 1,
+      winningIndex: 0,
+      prizeType: 'COCKTAIL',
+      cocktailNom: 'Cosmopolitan',
+      prix: 8.0,
+      isMysteryDrink: true,
+      addedToCart: false,
+      activeSectors: []
+    });
+
+    component.dismissCelebration();
+
+    expect(component.celebrationActive()).toBeFalse();
+    expect(component.winningResult()).toBeNull();
+  });
+
+  it('should close settings modal when backdrop is clicked', () => {
+    component.openSettingsModal();
+    const dummyTarget = document.createElement('div');
+    const mockEvent = {
+      target: dummyTarget,
+      currentTarget: dummyTarget
+    } as unknown as MouseEvent;
+
+    component.onBackdropClick(mockEvent);
+    expect(component.isSettingsModalOpen()).toBeFalse();
   });
 });

@@ -101,6 +101,44 @@ describe('RouletteModalComponent', () => {
     expect(component.selectedCategory).toBe('ALL');
   });
 
+  it('should start spin and store pending result on success', () => {
+    component.selectedCategory = 'GIN';
+    component.startSpin();
+
+    expect(rouletteServiceMock.spin).toHaveBeenCalledWith(jasmine.objectContaining({
+      spiritCategory: 'GIN',
+      nonAlcoholicOnly: false,
+      autoAddToCart: false
+    }));
+    expect(component.isSpinning).toBeTrue();
+  });
+
+  it('should start spin with nonAlcoholicOnly true when MOCKTAIL is selected', () => {
+    component.selectedCategory = 'MOCKTAIL';
+    component.startSpin();
+
+    expect(rouletteServiceMock.spin).toHaveBeenCalledWith(jasmine.objectContaining({
+      nonAlcoholicOnly: true,
+      autoAddToCart: false
+    }));
+  });
+
+  it('should handle spin error gracefully and reset isSpinning', () => {
+    rouletteServiceMock.spin.and.returnValue(throwError(() => ({ error: { message: 'Out of stock' } })));
+    component.startSpin();
+
+    expect(component.isSpinning).toBeFalse();
+    expect(toastCtrlMock.create).toHaveBeenCalled();
+  });
+
+  it('should update winningResult when onSpinComplete is invoked', () => {
+    component.startSpin();
+    component.onSpinComplete({ sector: mockConfig.sectors[0], index: 0 });
+
+    expect(component.isSpinning).toBeFalse();
+    expect(component.winningResult()).toEqual(mockSpinResult);
+  });
+
   it('should dismiss modal with winning result when confirmAndAddToCart is called', () => {
     component.winningResult.set(mockSpinResult);
     component.confirmAndAddToCart();
@@ -109,6 +147,13 @@ describe('RouletteModalComponent', () => {
       action: 'ADD_TO_CART',
       result: mockSpinResult
     });
+  });
+
+  it('should dismiss modal with null when confirmAndAddToCart is called with null winningResult', () => {
+    component.winningResult.set(null);
+    component.confirmAndAddToCart();
+
+    expect(modalCtrlMock.dismiss).toHaveBeenCalledWith(null, 'cancel');
   });
 
   it('should dismiss modal with null when dismiss is called', () => {
