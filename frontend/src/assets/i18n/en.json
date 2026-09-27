@@ -436,7 +436,8 @@
         "AUDIT_LOGS": "Audit Logs",
         "UNKNOWN": "OpenBar",
         "KITCHEN": "Kitchen Display (KDS)",
-        "PURCHASES": "Purchases & Suppliers"
+        "PURCHASES": "Purchases & Suppliers",
+        "INVENTORY": "Physical Inventory"
       },
       "ROLE_LABELS": {
         "ADMIN": "Admin",

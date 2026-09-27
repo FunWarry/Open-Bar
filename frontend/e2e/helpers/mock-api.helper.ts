@@ -105,6 +105,7 @@ export async function setupMockApi(page: Page): Promise<void> {
         barTabs: true,
         cocktailLibrary: true,
         suppliersManagement: true,
+        inventoryAudit: true,
       }),
     });
   });

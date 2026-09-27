@@ -838,3 +838,6 @@ CREATE TABLE IF NOT EXISTS inventory_audit_location_counts (
 
 CREATE INDEX IF NOT EXISTS idx_audit_loc_counts_item_id ON inventory_audit_location_counts(audit_item_id);
 CREATE INDEX IF NOT EXISTS idx_audit_loc_counts_location ON inventory_audit_location_counts(storage_location);
+
+-- Idempotent column migrations
+ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_inventory_audit_enabled BOOLEAN DEFAULT true;

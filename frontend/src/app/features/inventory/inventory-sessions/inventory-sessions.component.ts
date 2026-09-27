@@ -47,6 +47,7 @@ import {
   InventoryAuditStatus,
   CreateInventoryAuditSessionRequest,
 } from '../../../core/models/inventory-audit.model';
+import { INGREDIENT_CATEGORY_CONFIG } from '../../../core/models/ingredient.model';
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { EmptyStateComponent } from '../../../core/components/ui/empty-state/empty-state.component';
@@ -123,12 +124,7 @@ export class InventorySessionsComponent implements OnInit, OnDestroy {
   // Category filter options
   readonly categoryOptions = [
     { value: '', labelKey: 'INVENTORY.FIELD_CATEGORY_ALL' },
-    { value: 'alcohol', labelKey: 'INGREDIENTS.CATEGORIES.ALCOHOL' },
-    { value: 'soft', labelKey: 'INGREDIENTS.CATEGORIES.SOFT' },
-    { value: 'syrup', labelKey: 'INGREDIENTS.CATEGORIES.SYRUP' },
-    { value: 'fruit', labelKey: 'INGREDIENTS.CATEGORIES.FRUIT' },
-    { value: 'garnish', labelKey: 'INGREDIENTS.CATEGORIES.GARNISH' },
-    { value: 'snack', labelKey: 'INGREDIENTS.CATEGORIES.SNACK' },
+    ...INGREDIENT_CATEGORY_CONFIG.map(c => ({ value: c.key, labelKey: c.labelKey })),
   ];
 
   // Filtered sessions

@@ -436,7 +436,8 @@
         "AUDIT_LOGS": "Journal d'audit",
         "UNKNOWN": "OpenBar",
         "KITCHEN": "Écran Cuisine (KDS)",
-        "PURCHASES": "Achats & Fournisseurs"
+        "PURCHASES": "Achats & Fournisseurs",
+        "INVENTORY": "Inventaire physique"
       },
       "ROLE_LABELS": {
         "ADMIN": "Admin",

@@ -18,15 +18,15 @@ test.describe('Physical Inventory Audit & Variance Matrix E2E', () => {
     await expect(page.locator('ion-content')).toBeVisible();
 
     // Verify 4 financial KPI stat cards
-    await expect(page.locator('[data-testid="stat-total-audits"]')).toBeVisible();
-    await expect(page.locator('[data-testid="stat-active-audits"]')).toBeVisible();
-    await expect(page.locator('[data-testid="stat-shrinkage-loss"]')).toBeVisible();
-    await expect(page.locator('[data-testid="stat-surplus-gain"]')).toBeVisible();
+    await expect(page.locator('[data-testid="kpi-total-audits"]')).toBeVisible();
+    await expect(page.locator('[data-testid="kpi-active-audits"]')).toBeVisible();
+    await expect(page.locator('[data-testid="kpi-net-variance"]')).toBeVisible();
+    await expect(page.locator('[data-testid="kpi-shrinkage-loss"]')).toBeVisible();
 
-    // Verify filter segment
-    await expect(page.locator('[data-testid="segment-all"]')).toBeVisible();
-    await expect(page.locator('[data-testid="segment-in-progress"]')).toBeVisible();
-    await expect(page.locator('[data-testid="segment-finalized"]')).toBeVisible();
+    // Verify filter tabs
+    await expect(page.locator('[data-testid="tab-filter-all"]')).toBeVisible();
+    await expect(page.locator('[data-testid="tab-filter-in-progress"]')).toBeVisible();
+    await expect(page.locator('[data-testid="tab-filter-finalized"]')).toBeVisible();
 
     // Verify session card in list
     await expect(page.locator('[data-testid="session-card-1"]')).toBeVisible();
@@ -45,7 +45,7 @@ test.describe('Physical Inventory Audit & Variance Matrix E2E', () => {
     await expect(page.locator('[data-testid="select-location-scope"]')).toBeVisible();
 
     // Cancel modal
-    await page.click('[data-testid="btn-cancel-modal"]');
+    await page.click('[data-testid="btn-cancel-create"]');
     await expect(page.locator('[data-testid="input-audit-title"]')).not.toBeVisible();
   });
 
@@ -58,36 +58,36 @@ test.describe('Physical Inventory Audit & Variance Matrix E2E', () => {
     await expect(page.locator('text=Inventaire Mensuel Alcools')).toBeVisible();
 
     // Verify segment buttons
-    await expect(page.locator('[data-testid="tab-counting"]')).toBeVisible();
-    await expect(page.locator('[data-testid="tab-report"]')).toBeVisible();
+    await expect(page.locator('[data-testid="tab-counting-sheet"]')).toBeVisible();
+    await expect(page.locator('[data-testid="tab-variance-report"]')).toBeVisible();
 
     // Verify storage location tabs on counting sheet
-    await expect(page.locator('[data-testid="loc-tab-main-bar"]')).toBeVisible();
+    await expect(page.locator('[data-testid="tab-location-Main Bar"]')).toBeVisible();
 
     // Verify ingredient rows
-    await expect(page.locator('[data-testid="sheet-row-10"]')).toBeVisible();
+    await expect(page.locator('[data-testid="item-card-10"]')).toBeVisible();
     await expect(page.locator('text=Rhum Blanc')).toBeVisible();
 
     // Switch to Report & Shrinkage tab
-    await page.click('[data-testid="tab-report"]');
+    await page.click('[data-testid="tab-variance-report"]');
 
     // Verify Financial KPIs on report tab
-    await expect(page.locator('[data-testid="kpi-net-variance"]')).toBeVisible();
-    await expect(page.locator('[data-testid="kpi-shrinkage-loss"]')).toBeVisible();
+    await expect(page.locator('[data-testid="stat-report-net-variance"]')).toBeVisible();
+    await expect(page.locator('[data-testid="stat-report-shrinkage-loss"]')).toBeVisible();
 
     // Verify variance table
-    await expect(page.locator('[data-testid="table-variance-matrix"]')).toBeVisible();
+    await expect(page.locator('[data-testid="variance-matrix-table"]')).toBeVisible();
 
     // Switch back to counting sheet
-    await page.click('[data-testid="tab-counting"]');
-    await expect(page.locator('[data-testid="sheet-row-10"]')).toBeVisible();
+    await page.click('[data-testid="tab-counting-sheet"]');
+    await expect(page.locator('[data-testid="item-card-10"]')).toBeVisible();
   });
 
   test('should open finalize confirmation modal and close it', async ({ page }) => {
     await page.goto('/inventory/1');
 
     // Open finalize modal
-    await page.click('[data-testid="btn-open-finalize-modal"]');
+    await page.click('[data-testid="btn-finalize-audit"]');
     await expect(page.locator('[data-testid="btn-confirm-finalize"]')).toBeVisible();
 
     // Cancel modal

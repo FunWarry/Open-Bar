@@ -1450,6 +1450,7 @@ public class SampleDataSeederService {
         if (config.getModuleBarTabsEnabled() == null) config.setModuleBarTabsEnabled(true);
         if (config.getModuleCocktailLibraryEnabled() == null) config.setModuleCocktailLibraryEnabled(true);
         if (config.getModuleSuppliersManagementEnabled() == null) config.setModuleSuppliersManagementEnabled(true);
+        if (config.getModuleInventoryAuditEnabled() == null) config.setModuleInventoryAuditEnabled(true);
         establishmentConfigRepository.save(config);
         log.info("Seeded default EstablishmentConfig singleton with modular capabilities.");
     }
