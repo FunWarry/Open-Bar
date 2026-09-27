@@ -136,6 +136,8 @@ flowchart TD
         COCKTAIL_VARIANTES -->|"1:N"| COCKTAIL_VARIANTE_INGREDIENTS["cocktail_variante_ingredients"]
         COCKTAIL_VARIANTE_INGREDIENTS -->|"N:1"| INGREDIENTS["ingredients"]
         COCKTAIL_INGREDIENTS -->|"N:1"| INGREDIENTS
+        INGREDIENTS -->|"1:N crafted"| INGREDIENT_CONFECTION_SOURCES["ingredient_confection_sources"]
+        INGREDIENT_CONFECTION_SOURCES -->|"N:1 source"| INGREDIENTS
         COCKTAIL_RECIPE_STEPS -->|"N:1"| RECIPE_STEP_TEMPLATES["recipe_step_templates"]
         COCKTAIL_RECIPE_STEPS -.->|"consumes"| INGREDIENTS
         COMMANDE_ITEMS -.->|"variant"| COCKTAIL_VARIANTES
