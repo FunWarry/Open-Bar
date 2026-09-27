@@ -5,6 +5,8 @@ import { RouletteDisplayComponent } from '../../../app/features/roulette-display
 import { RouletteService } from '../../../app/core/services/roulette.service';
 import { RouletteAudioService } from '../../../app/core/services/roulette-audio.service';
 import { LanguageService } from '../../../app/core/services/language.service';
+import { AuthService } from '../../../app/core/services/auth.service';
+import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { RouletteEvent, RoulettePublicConfig } from '../../../app/core/models/roulette.model';
 
 describe('RouletteDisplayComponent', () => {
@@ -46,6 +48,9 @@ describe('RouletteDisplayComponent', () => {
     audioServiceMock.getSoundProfile.and.returnValue('CSGO');
 
     languageServiceMock = jasmine.createSpyObj('LanguageService', ['setLanguage', 'toggleLanguage']);
+    const authServiceMock = jasmine.createSpyObj('AuthService', ['getToken']);
+    authServiceMock.getToken.and.returnValue(null);
+    const webSocketServiceMock = jasmine.createSpyObj('WebSocketService', ['connect', 'connectAsGuest']);
 
     await TestBed.configureTestingModule({
       imports: [
@@ -58,7 +63,9 @@ describe('RouletteDisplayComponent', () => {
       providers: [
         { provide: RouletteService, useValue: rouletteServiceMock },
         { provide: RouletteAudioService, useValue: audioServiceMock },
-        { provide: LanguageService, useValue: languageServiceMock }
+        { provide: LanguageService, useValue: languageServiceMock },
+        { provide: AuthService, useValue: authServiceMock },
+        { provide: WebSocketService, useValue: webSocketServiceMock }
       ]
     }).compileComponents();
 

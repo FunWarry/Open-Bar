@@ -6,7 +6,8 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   inject,
-  signal
+  signal,
+  NgZone
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon } from '@ionic/angular';
@@ -31,13 +32,15 @@ import {
   refreshOutline
 } from 'ionicons/icons';
 import { TranslocoModule } from '@jsverse/transloco';
-import { Subject } from 'rxjs';
+import { Subject, interval } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AppCurrencyPipe } from '../../core/pipes/app-currency.pipe';
 import { RouletteWheelComponent } from '../../core/components/ui/roulette-wheel/roulette-wheel.component';
 import { RouletteService } from '../../core/services/roulette.service';
 import { RouletteAudioService, RouletteSoundProfile } from '../../core/services/roulette-audio.service';
 import { LanguageService } from '../../core/services/language.service';
+import { AuthService } from '../../core/services/auth.service';
+import { WebSocketService } from '../../core/services/websocket.service';
 import {
   RouletteEvent,
   RoulettePublicConfig,
@@ -79,6 +82,9 @@ export class RouletteDisplayComponent implements OnInit, OnDestroy {
   private readonly rouletteService = inject(RouletteService);
   private readonly audioService = inject(RouletteAudioService);
   public readonly languageService = inject(LanguageService);
+  private readonly authService = inject(AuthService);
+  private readonly wsService = inject(WebSocketService, { optional: true });
+  private readonly ngZone = inject(NgZone);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
@@ -136,11 +142,32 @@ export class RouletteDisplayComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const isAlreadyUnlocked = typeof window !== 'undefined' && sessionStorage.getItem('openbar_roulette_display_unlocked') === 'true';
-    if (isAlreadyUnlocked) {
-      this.isUnlocked.set(true);
-      this.loadInitialConfig();
+    const savedPin = typeof window !== 'undefined' ? sessionStorage.getItem('openbar_roulette_display_pin') : null;
+
+    if (isAlreadyUnlocked && savedPin) {
+      // Validate saved PIN with backend to detect if PIN was regenerated while screen was closed
+      this.rouletteService.verifyDisplayPin(savedPin)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (res) => {
+            if (res.valid) {
+              this.isUnlocked.set(true);
+              this.loadInitialConfig();
+            } else {
+              this.lockScreen('ROULETTE.PIN_REVOKED_NOTICE');
+            }
+          },
+          error: () => {
+            this.isUnlocked.set(true);
+            this.loadInitialConfig();
+          }
+        });
+    } else {
+      this.lockScreen();
     }
+
     this.subscribeToLiveEvents();
+    this.startPeriodicPinVerification();
   }
 
   ngOnDestroy(): void {
@@ -218,7 +245,7 @@ export class RouletteDisplayComponent implements OnInit, OnDestroy {
     if (reasonKey) {
       this.pinErrorMessage.set(reasonKey);
     }
-    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   loadInitialConfig(): void {
@@ -242,13 +269,46 @@ export class RouletteDisplayComponent implements OnInit, OnDestroy {
   }
 
   private subscribeToLiveEvents(): void {
+    if (this.wsService) {
+      if (this.authService.getToken()) {
+        this.wsService.connect();
+      } else {
+        const guestId = 'roulette-tv-' + (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36));
+        this.wsService.connectAsGuest(guestId);
+      }
+    }
+
     this.rouletteService.watchEvents()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (event: RouletteEvent) => this.handleIncomingEvent(event),
+        next: (event: RouletteEvent) => {
+          this.ngZone.run(() => this.handleIncomingEvent(event));
+        },
         error: (err: unknown) => {
           // Reconnection is handled automatically by STOMP
         }
+      });
+  }
+
+  private startPeriodicPinVerification(): void {
+    interval(10000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (!this.isUnlocked()) return;
+        const savedPin = typeof window !== 'undefined' ? sessionStorage.getItem('openbar_roulette_display_pin') : null;
+        if (!savedPin) {
+          this.lockScreen();
+          return;
+        }
+        this.rouletteService.verifyDisplayPin(savedPin)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: (res) => {
+              if (!res.valid) {
+                this.ngZone.run(() => this.lockScreen('ROULETTE.PIN_REVOKED_NOTICE'));
+              }
+            }
+          });
       });
   }
 

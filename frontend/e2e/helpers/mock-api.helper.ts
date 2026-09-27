@@ -2050,6 +2050,28 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
+  // Mock Establishment Capability Modules
+  await page.route('**/api/establishment/modules**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        cuisineKds: true,
+        happyHour: true,
+        employeeManagement: true,
+        floorPlan: true,
+        qrClientOrdering: true,
+        stockTracking: true,
+        cashDrawer: true,
+        barTabs: true,
+        cocktailLibrary: true,
+        suppliersManagement: true,
+        inventoryAudit: true,
+        mysteryRoulette: true,
+      }),
+    });
+  });
+
   // Mock Roulette TV PIN and Staff Administration
   await page.route('**/api/roulette/pin**', async (route) => {
     if (route.request().method() === 'POST') {
