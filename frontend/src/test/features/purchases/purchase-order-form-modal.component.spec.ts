@@ -582,5 +582,44 @@ describe('PurchaseOrderFormModalComponent', () => {
       line.patchValue({ isCustom: false, purchaseUnit: 'Format sur-mesure' });
       expect(component.isCustomPackaging(line)).toBeTrue();
     });
+
+    it('onCustomSizeChange() updates capacity based on single format size', () => {
+      component.onIngredientSelected(0, 30); // Vodka: unit cl
+      component.applyCustomPackaging(0, 6, 70, 'cl');
+
+      const mockEvent = {
+        target: { value: '75' }
+      } as unknown as Event;
+
+      component.onCustomSizeChange(0, mockEvent);
+
+      const line = component.items.at(0);
+      expect(line.get('packagingCapacity')?.value).toBe(450); // 6 * 75 = 450
+      expect(line.get('purchaseUnit')?.value).toBe('Carton 6x75cl');
+    });
+
+    it('getAvailableUnits() and getCustomUnitOptions() return matching units for ingredients', () => {
+      component.onIngredientSelected(0, 30); // Vodka: unit cl
+      const line = component.items.at(0);
+
+      const units = component.getAvailableUnits(line);
+      expect(units).toContain('cl');
+      expect(units).toContain('L');
+      expect(units).toContain('ml');
+
+      const options = component.getCustomUnitOptions(line);
+      expect(options.some(o => o.value === 'L')).toBeTrue();
+    });
+
+    it('getEquivalentStock() calculates correct stock equivalent for custom packaging', () => {
+      component.onIngredientSelected(0, 30); // Vodka: unit cl
+      component.applyCustomPackaging(0, 6, 70, 'cl');
+      const line = component.items.at(0);
+
+      const equiv = component.getEquivalentStock(line);
+      expect(equiv.qty).toBe(420);
+      expect(equiv.unit).toBe('cl');
+    });
   });
 });
+
