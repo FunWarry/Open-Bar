@@ -1363,7 +1363,7 @@
                               [class.active]="appSettingsForm.get('unitSystem')?.value === p.key"
                               (click)="applyUnitPreset(p)"
                               [attr.data-testid]="'unit-preset-btn-' + p.key">
-                              {{ p.labelKey | transloco }} ({{ p.desc }})
+                              {{ p.labelKey | transloco }}
                             </button>
                           }
                         </div>

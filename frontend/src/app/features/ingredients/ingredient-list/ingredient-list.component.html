@@ -153,23 +153,40 @@
           </div>
         </div>
 
-        <!-- View Mode Segment Buttons -->
-        <div class="view-mode-group">
-          <button type="button" class="view-toggle-btn" [class.active]="viewMode === 'category'"
-            (click)="setViewMode('category')" data-testid="view-category-btn" title="{{ 'STOCK.VIEW_MODE_CATEGORY' | transloco }}">
-            <ion-icon name="layers-outline"></ion-icon>
-            <span>{{ 'STOCK.VIEW_MODE_CATEGORY' | transloco }}</span>
+        <div class="controls-view-actions">
+          <!-- Allergens Toggle Pill -->
+          <button
+            type="button"
+            class="allergens-toggle-pill"
+            [class.active]="showAllergens"
+            (click)="toggleShowAllergens()"
+            (keydown.enter)="toggleShowAllergens()"
+            data-testid="stock-toggle-allergens-btn"
+            [attr.aria-pressed]="showAllergens"
+            [title]="(showAllergens ? 'STOCK.HIDE_ALLERGENS' : 'STOCK.SHOW_ALLERGENS') | transloco">
+            <ion-icon [name]="showAllergens ? 'shield-checkmark-outline' : 'warning-outline'"></ion-icon>
+            <span>{{ 'STOCK.ALLERGENS_TOGGLE' | transloco }}</span>
+            <span class="toggle-indicator-dot" [class.on]="showAllergens"></span>
           </button>
-          <button type="button" class="view-toggle-btn" [class.active]="viewMode === 'grid'"
-            (click)="setViewMode('grid')" data-testid="view-grid-btn" title="{{ 'STOCK.VIEW_MODE_GRID' | transloco }}">
-            <ion-icon name="grid-outline"></ion-icon>
-            <span>{{ 'STOCK.VIEW_MODE_GRID' | transloco }}</span>
-          </button>
-          <button type="button" class="view-toggle-btn" [class.active]="viewMode === 'list'"
-            (click)="setViewMode('list')" data-testid="view-list-btn" title="{{ 'STOCK.VIEW_MODE_LIST' | transloco }}">
-            <ion-icon name="list-outline"></ion-icon>
-            <span>{{ 'STOCK.VIEW_MODE_LIST' | transloco }}</span>
-          </button>
+
+          <!-- View Mode Segment Buttons -->
+          <div class="view-mode-group">
+            <button type="button" class="view-toggle-btn" [class.active]="viewMode === 'category'"
+              (click)="setViewMode('category')" data-testid="view-category-btn" title="{{ 'STOCK.VIEW_MODE_CATEGORY' | transloco }}">
+              <ion-icon name="layers-outline"></ion-icon>
+              <span>{{ 'STOCK.VIEW_MODE_CATEGORY' | transloco }}</span>
+            </button>
+            <button type="button" class="view-toggle-btn" [class.active]="viewMode === 'grid'"
+              (click)="setViewMode('grid')" data-testid="view-grid-btn" title="{{ 'STOCK.VIEW_MODE_GRID' | transloco }}">
+              <ion-icon name="grid-outline"></ion-icon>
+              <span>{{ 'STOCK.VIEW_MODE_GRID' | transloco }}</span>
+            </button>
+            <button type="button" class="view-toggle-btn" [class.active]="viewMode === 'list'"
+              (click)="setViewMode('list')" data-testid="view-list-btn" title="{{ 'STOCK.VIEW_MODE_LIST' | transloco }}">
+              <ion-icon name="list-outline"></ion-icon>
+              <span>{{ 'STOCK.VIEW_MODE_LIST' | transloco }}</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -188,14 +205,51 @@
             <ion-card-header class="card-header-compact">
               <div class="card-title-row">
                 <h3 class="ingredient-name" [title]="ingredient.nom">{{ ingredient.nom }}</h3>
-                <ion-badge [color]="getStockColor(ingredient)" class="stock-badge">
-                  @if (ingredient.quantiteStock <= 0) { {{ 'STOCK.OUT_OF_STOCK' | transloco }} } @else if
-                    (isEnAlerte(ingredient)) { {{ 'STOCK.LOW_STOCK' | transloco }} } @else { {{ 'STOCK.NORMAL_STOCK' |
-                    transloco }} } </ion-badge>
+                <div class="card-badges-wrap">
+                  <ion-badge [color]="getStockColor(ingredient)" class="stock-badge">
+                    @if (ingredient.quantiteStock <= 0) { {{ 'STOCK.OUT_OF_STOCK' | transloco }} } @else if
+                      (isEnAlerte(ingredient)) { {{ 'STOCK.LOW_STOCK' | transloco }} } @else { {{ 'STOCK.NORMAL_STOCK' |
+                      transloco }} }
+                  </ion-badge>
+                  @if (ingredient.isCrafted) {
+                    <ion-badge color="tertiary" class="crafted-badge" [attr.data-testid]="'crafted-badge-' + ingredient.id">
+                      🔧 {{ 'INGREDIENTS.CONFECTION.BADGE' | transloco }}
+                    </ion-badge>
+                    @if (!ingredient.isPurchasable) {
+                      <ion-badge color="medium" class="crafted-badge" [attr.data-testid]="'not-purchasable-badge-' + ingredient.id">
+                        {{ 'INGREDIENTS.CONFECTION.NOT_PURCHASABLE_BADGE' | transloco }}
+                      </ion-badge>
+                    }
+                  }
+                </div>
               </div>
             </ion-card-header>
 
             <ion-card-content>
+              <!-- Allergens row when showAllergens is active -->
+              @if (showAllergens) {
+                <div class="card-allergens-row" [attr.data-testid]="'card-allergens-' + ingredient.id">
+                  @if (ingredient.allergens && ingredient.allergens.length > 0) {
+                    @for (algKey of ingredient.allergens; track algKey) {
+                      <span class="ingredient-allergen-badge" [title]="getAllergenInfo(algKey).labelKey | transloco">
+                        <span class="alg-emoji">{{ getAllergenInfo(algKey).emoji }}</span>
+                        <span class="alg-name">{{ getAllergenInfo(algKey).labelKey | transloco }}</span>
+                      </span>
+                    }
+                  } @else {
+                    <span class="ingredient-allergen-badge allergen-free" [title]="'STOCK.NO_ALLERGENS' | transloco">
+                      <span class="alg-emoji">🛡️</span>
+                      <span class="alg-name">{{ 'STOCK.NO_ALLERGENS' | transloco }}</span>
+                    </span>
+                  }
+                  @if (ingredient.isVegan) {
+                    <span class="ingredient-allergen-badge vegan" [title]="'COCKTAILS.VEGAN' | transloco">
+                      <span class="alg-emoji">🌱</span>
+                      <span class="alg-name">{{ 'COCKTAILS.VEGAN' | transloco }}</span>
+                    </span>
+                  }
+                </div>
+              }
               <!-- Stock Progress Gauge -->
               <div class="gauge-section">
                 <div class="gauge-labels">
@@ -371,6 +425,29 @@
                               <span class="list-packaging-hint"> • {{ getPackagingEquivalent(ingredient) }}</span>
                             }
                           </p>
+                          @if (showAllergens) {
+                            <div class="card-allergens-row list-mode-allergens" [attr.data-testid]="'list-allergens-' + ingredient.id">
+                              @if (ingredient.allergens && ingredient.allergens.length > 0) {
+                                @for (algKey of ingredient.allergens; track algKey) {
+                                  <span class="ingredient-allergen-badge" [title]="getAllergenInfo(algKey).labelKey | transloco">
+                                    <span class="alg-emoji">{{ getAllergenInfo(algKey).emoji }}</span>
+                                    <span class="alg-name">{{ getAllergenInfo(algKey).labelKey | transloco }}</span>
+                                  </span>
+                                }
+                              } @else {
+                                <span class="ingredient-allergen-badge allergen-free" [title]="'STOCK.NO_ALLERGENS' | transloco">
+                                  <span class="alg-emoji">🛡️</span>
+                                  <span class="alg-name">{{ 'STOCK.NO_ALLERGENS' | transloco }}</span>
+                                </span>
+                              }
+                              @if (ingredient.isVegan) {
+                                <span class="ingredient-allergen-badge vegan" [title]="'COCKTAILS.VEGAN' | transloco">
+                                  <span class="alg-emoji">🌱</span>
+                                  <span class="alg-name">{{ 'COCKTAILS.VEGAN' | transloco }}</span>
+                                </span>
+                              }
+                            </div>
+                          }
                           <ion-progress-bar [value]="getStockRatio(ingredient)" [color]="getStockColor(ingredient)"
                             style="margin-top:6px">
                           </ion-progress-bar>

@@ -64,7 +64,7 @@ class IngredientControllerTest {
     @DisplayName("createIngredient - calls service and returns DTO")
     void createIngredient_success() {
         IngredientRequestDTO request = new IngredientRequestDTO("Rhum", "cl", new BigDecimal("500.00"), new BigDecimal("50.00"), null, null, null, null, null);
-        when(ingredientService.createIngredient(any(Ingredient.class))).thenReturn(ingredient);
+        when(ingredientService.createIngredientWithSources(any(Ingredient.class), any())).thenReturn(ingredient);
 
         ResponseEntity<IngredientResponseDTO> response = ingredientController.createIngredient(request);
 
@@ -77,7 +77,7 @@ class IngredientControllerTest {
     @DisplayName("updateIngredient - updates ingredient and returns DTO")
     void updateIngredient_success() {
         IngredientRequestDTO request = new IngredientRequestDTO("Rhum", "cl", new BigDecimal("500.00"), new BigDecimal("50.00"), null, null, null, null, null);
-        when(ingredientService.updateIngredient(eq(1L), any(Ingredient.class))).thenReturn(ingredient);
+        when(ingredientService.updateIngredientWithSources(eq(1L), any(Ingredient.class), any())).thenReturn(ingredient);
 
         ResponseEntity<IngredientResponseDTO> response = ingredientController.updateIngredient(1L, request);
 

@@ -11,6 +11,7 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -85,7 +86,13 @@ public record IngredientRequestDTO(
     BigDecimal packagingCapacity,
 
     @DecimalMin(value = "0.0", message = "Packaging price cannot be negative")
-    BigDecimal packagingPriceHt
+    BigDecimal packagingPriceHt,
+
+    Boolean isCrafted,
+
+    Boolean isPurchasable,
+
+    List<ConfectionSourceRequest> confectionSources
 ) {
     public static final String DEFAULT_CATEGORY = "other";
 
@@ -110,7 +117,7 @@ public record IngredientRequestDTO(
         Long defaultSupplierId,
         String codeBarre
     ) {
-        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, defaultSupplierId, codeBarre, null, null, null);
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, defaultSupplierId, codeBarre, null, null, null, null, null, null);
     }
 
     /**
@@ -133,7 +140,7 @@ public record IngredientRequestDTO(
         String category,
         Long defaultSupplierId
     ) {
-        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, defaultSupplierId, null, null, null, null);
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, defaultSupplierId, null, null, null, null, null, null, null);
     }
 
     /**
@@ -261,6 +268,8 @@ public record IngredientRequestDTO(
                 : BigDecimal.ONE;
         ingredient.setPackagingCapacity(cap);
         ingredient.setPackagingPriceHt(packagingPriceHt);
+        ingredient.setIsCrafted(isCrafted != null && isCrafted);
+        ingredient.setIsPurchasable(isPurchasable == null || isPurchasable);
         if (effectiveCost == null && packagingPriceHt != null) {
             ingredient.setPrixUnitaire(packagingPriceHt.divide(cap, 4, java.math.RoundingMode.HALF_UP));
         }

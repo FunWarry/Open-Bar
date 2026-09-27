@@ -1381,7 +1381,7 @@ export class CocktailFormComponent implements OnInit {
   async openCreateIngredientModal(stepIndex?: number): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: IngredientFormComponent,
-      cssClass: 'modal-lg',
+      cssClass: 'modal-lg openbar-modal-lg ingredient-form-modal-container',
       componentProps: {
         ingredient: null,
         canEdit: true,

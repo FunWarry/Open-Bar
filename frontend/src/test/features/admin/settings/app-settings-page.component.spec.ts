@@ -554,6 +554,22 @@ describe('AppSettingsPageComponent', () => {
     expect(component.appSettingsForm.get('defaultVatRate')?.value).toBe(0);
   });
 
+  it('should apply unit system presets correctly', () => {
+    component.applyUnitPreset(component.unitPresets[0]);
+    expect(component.appSettingsForm.get('unitSystem')?.value).toBe('METRIC_CL');
+    expect(component.appSettingsForm.get('volumeUnit')?.value).toBe('cl');
+    expect(component.appSettingsForm.get('weightUnit')?.value).toBe('g');
+
+    component.applyUnitPreset(component.unitPresets[1]);
+    expect(component.appSettingsForm.get('unitSystem')?.value).toBe('METRIC_ML');
+    expect(component.appSettingsForm.get('volumeUnit')?.value).toBe('ml');
+
+    component.applyUnitPreset(component.unitPresets[2]);
+    expect(component.appSettingsForm.get('unitSystem')?.value).toBe('IMPERIAL_US');
+    expect(component.appSettingsForm.get('volumeUnit')?.value).toBe('fl oz');
+    expect(component.appSettingsForm.get('weightUnit')?.value).toBe('oz');
+  });
+
   it('should compute simulated selling price HT, margin amount, percentage and badge', () => {
     component.appSettingsForm.patchValue({
       defaultVatRate: 20,

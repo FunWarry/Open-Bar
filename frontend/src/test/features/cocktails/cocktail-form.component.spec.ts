@@ -1156,7 +1156,7 @@ describe('CocktailFormComponent', () => {
 
       expect(modalCtrlSpy.create).toHaveBeenCalledWith(
         jasmine.objectContaining({
-          cssClass: 'modal-lg',
+          cssClass: 'modal-lg openbar-modal-lg ingredient-form-modal-container',
           componentProps: {
             ingredient: null,
             canEdit: true,

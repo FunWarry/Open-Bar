@@ -20,7 +20,7 @@ import {
   alertCircleOutline, wineOutline, waterOutline, colorFillOutline,
   nutritionOutline, cubeOutline, downloadOutline,
   flaskOutline, beerOutline, sparklesOutline, leafOutline,
-  cartOutline, barcodeOutline
+  cartOutline, barcodeOutline, warningOutline, shieldCheckmarkOutline, eggOutline
 } from 'ionicons/icons';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -29,6 +29,9 @@ import { IngredientService } from '../../../core/services/ingredient.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import {
   Ingredient,
+  Allergen,
+  AllergenOption,
+  DEFAULT_ALLERGEN_OPTIONS,
   INGREDIENT_UNITS,
   INGREDIENT_CATEGORY_CONFIG
 } from '../../../core/models/ingredient.model';
@@ -111,6 +114,12 @@ export class IngredientListComponent implements OnInit, OnDestroy {
   gridPage = 1;
   gridPageSize = 16;
 
+  /** Controls display of allergen badges on ingredient cards. */
+  showAllergens = false;
+
+  /** Standard allergen descriptors with emoji and translation keys. */
+  readonly allergenOptions = DEFAULT_ALLERGEN_OPTIONS;
+
   readonly availableUnits: readonly string[] = INGREDIENT_UNITS;
 
   get categoryOptions(): SearchableOption<string>[] {
@@ -180,13 +189,50 @@ export class IngredientListComponent implements OnInit, OnDestroy {
       alertCircleOutline, wineOutline, waterOutline, colorFillOutline,
       nutritionOutline, cubeOutline, downloadOutline,
       flaskOutline, beerOutline, sparklesOutline, leafOutline,
-      cartOutline, barcodeOutline
+      cartOutline, barcodeOutline, warningOutline, shieldCheckmarkOutline, eggOutline
     });
   }
 
   ngOnInit(): void {
+    try {
+      this.showAllergens = localStorage.getItem('openbar_stock_show_allergens') === 'true';
+    } catch {
+      this.showAllergens = false;
+    }
     this.charger();
     this.initWebSocketStream();
+  }
+
+  /**
+   * Toggles the display of allergen badges across ingredient cards and list rows.
+   * Persists preference in localStorage.
+   */
+  toggleShowAllergens(): void {
+    this.showAllergens = !this.showAllergens;
+    try {
+      localStorage.setItem('openbar_stock_show_allergens', String(this.showAllergens));
+    } catch {
+      // Ignore storage errors in restricted private browsing
+    }
+  }
+
+  /**
+   * Resolves allergen display information (emoji, localized label key) for a given allergen.
+   *
+   * @param key Allergen code
+   * @return AllergenOption descriptor with icon, emoji, and translation key
+   */
+  getAllergenInfo(key: string): AllergenOption {
+    const found = DEFAULT_ALLERGEN_OPTIONS.find(a => a.key === key);
+    if (found) {
+      return found;
+    }
+    return {
+      key: key as Allergen,
+      labelKey: `COCKTAILS.ALLERGENS.${key}`,
+      icon: 'nutrition-outline',
+      emoji: '⚠️'
+    };
   }
 
   ngOnDestroy(): void {
@@ -636,6 +682,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
 
     const modal = await this.modalCtrl.create({
       component: IngredientFormComponent,
+      cssClass: 'modal-lg openbar-modal-lg ingredient-form-modal-container',
       componentProps: {
         ingredient: ingredient ?? null,
         canEdit,

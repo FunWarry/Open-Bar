@@ -1168,73 +1168,210 @@
       "nom": "Rhum Blanc",
       "quantiteStock": 45,
       "seuilAlerte": 10,
-      "category": "light_liquor"
+      "category": "light_liquor",
+      "uniteMesure": "cl",
+      "purchaseUnit": "Bouteille 70cl",
+      "packagingCapacity": 70,
+      "prixUnitaire": 0.2786,
+      "packagingPriceHt": 19.50
     },
     {
       "nom": "Vodka",
-      "quantiteStock": 35,
-      "seuilAlerte": 5,
-      "category": "light_liquor"
+      "quantiteStock": 350,
+      "seuilAlerte": 50,
+      "category": "light_liquor",
+      "uniteMesure": "cl",
+      "purchaseUnit": "Magnum 1.75L",
+      "packagingCapacity": 175,
+      "prixUnitaire": 0.24,
+      "packagingPriceHt": 42.00
     },
     {
       "nom": "Gin",
       "quantiteStock": 25,
       "seuilAlerte": 5,
-      "category": "light_liquor"
+      "category": "light_liquor",
+      "uniteMesure": "cl",
+      "purchaseUnit": "Bouteille 70cl",
+      "packagingCapacity": 70,
+      "prixUnitaire": 0.40,
+      "packagingPriceHt": 28.00
     },
     {
       "nom": "Tequila",
       "quantiteStock": 20,
       "seuilAlerte": 4,
-      "category": "light_liquor"
+      "category": "light_liquor",
+      "uniteMesure": "cl",
+      "purchaseUnit": "Bouteille 70cl",
+      "packagingCapacity": 70,
+      "prixUnitaire": 0.357,
+      "packagingPriceHt": 25.00
     },
     {
       "nom": "Aperol",
       "quantiteStock": 18,
       "seuilAlerte": 5,
-      "category": "liqueurs"
+      "category": "liqueurs",
+      "uniteMesure": "cl",
+      "purchaseUnit": "Bouteille 70cl",
+      "packagingCapacity": 70,
+      "prixUnitaire": 0.35,
+      "packagingPriceHt": 24.50
     },
     {
       "nom": "Prosecco",
       "quantiteStock": 30,
       "seuilAlerte": 6,
-      "category": "wine_beer"
+      "category": "wine_beer",
+      "uniteMesure": "cl",
+      "purchaseUnit": "Bouteille 75cl",
+      "packagingCapacity": 75,
+      "prixUnitaire": 0.16,
+      "packagingPriceHt": 12.00
     },
     {
       "nom": "Champagne",
       "quantiteStock": 15,
       "seuilAlerte": 4,
-      "category": "wine_beer"
+      "category": "wine_beer",
+      "uniteMesure": "cl",
+      "purchaseUnit": "Bouteille 75cl",
+      "packagingCapacity": 75,
+      "prixUnitaire": 0.506,
+      "packagingPriceHt": 38.00
     },
     {
       "nom": "Rhum Ambré",
-      "quantiteStock": 3.5,
+      "quantiteStock": 25,
       "seuilAlerte": 8,
-      "category": "dark_liquor"
+      "category": "dark_liquor",
+      "uniteMesure": "cl",
+      "purchaseUnit": "Bouteille 70cl",
+      "packagingCapacity": 70,
+      "prixUnitaire": 0.342,
+      "packagingPriceHt": 24.00
     },
     {
       "nom": "Menthe fraîche",
       "quantiteStock": 150,
       "seuilAlerte": 30,
-      "category": "herbs"
+      "category": "herbs",
+      "uniteMesure": "feuille",
+      "purchaseUnit": "Botte (≈ 50 feuilles)",
+      "packagingCapacity": 50,
+      "prixUnitaire": 0.05,
+      "packagingPriceHt": 2.50
     },
     {
       "nom": "Purée de fruit de la passion",
-      "quantiteStock": 0.8,
+      "quantiteStock": 5,
       "seuilAlerte": 2,
-      "category": "fruits"
+      "category": "fruits",
+      "uniteMesure": "cl",
+      "purchaseUnit": "Bouteille 1L",
+      "packagingCapacity": 100,
+      "prixUnitaire": 0.065,
+      "packagingPriceHt": 6.50
     },
     {
       "nom": "Liqueur de café (Kahlúa)",
-      "quantiteStock": 1.2,
+      "quantiteStock": 15,
       "seuilAlerte": 3,
-      "category": "liqueurs"
+      "category": "liqueurs",
+      "uniteMesure": "cl",
+      "purchaseUnit": "Bouteille 70cl",
+      "packagingCapacity": 70,
+      "prixUnitaire": 0.314,
+      "packagingPriceHt": 22.00
     },
     {
       "nom": "Liqueur de framboise (Chambord)",
-      "quantiteStock": 0,
+      "quantiteStock": 10,
       "seuilAlerte": 2,
-      "category": "liqueurs"
+      "category": "liqueurs",
+      "uniteMesure": "cl",
+      "purchaseUnit": "Bouteille 50cl",
+      "packagingCapacity": 50,
+      "prixUnitaire": 0.56,
+      "packagingPriceHt": 28.00
+    },
+    {
+      "nom": "Cointreau",
+      "quantiteStock": 20,
+      "seuilAlerte": 5,
+      "category": "liqueurs",
+      "uniteMesure": "cl",
+      "purchaseUnit": "Bouteille 70cl",
+      "packagingCapacity": 70,
+      "prixUnitaire": 0.378,
+      "packagingPriceHt": 26.50
+    },
+    {
+      "nom": "Baileys",
+      "quantiteStock": 15,
+      "seuilAlerte": 4,
+      "category": "liqueurs",
+      "uniteMesure": "cl",
+      "purchaseUnit": "Bouteille 70cl",
+      "packagingCapacity": 70,
+      "prixUnitaire": 0.30,
+      "packagingPriceHt": 21.00
+    },
+    {
+      "nom": "Sirop de Canne",
+      "quantiteStock": 20,
+      "seuilAlerte": 5,
+      "category": "mixers",
+      "uniteMesure": "cl",
+      "purchaseUnit": "Bouteille 1L",
+      "packagingCapacity": 100,
+      "prixUnitaire": 0.065,
+      "packagingPriceHt": 6.50
+    },
+    {
+      "nom": "Sirop de Cranberry",
+      "quantiteStock": 15,
+      "seuilAlerte": 4,
+      "category": "mixers",
+      "uniteMesure": "cl",
+      "purchaseUnit": "Bouteille 1L",
+      "packagingCapacity": 100,
+      "prixUnitaire": 0.072,
+      "packagingPriceHt": 7.20
+    },
+    {
+      "nom": "Citron vert",
+      "quantiteStock": 50,
+      "seuilAlerte": 10,
+      "category": "fruits",
+      "uniteMesure": "pièce",
+      "purchaseUnit": "Filet 1kg (≈ 10 citrons)",
+      "packagingCapacity": 10,
+      "prixUnitaire": 0.35,
+      "packagingPriceHt": 3.50
+    },
+    {
+      "nom": "Sucre de canne blanc",
+      "quantiteStock": 2000,
+      "seuilAlerte": 500,
+      "category": "other",
+      "uniteMesure": "g",
+      "purchaseUnit": "Paquet 1kg",
+      "packagingCapacity": 1000,
+      "prixUnitaire": 0.0021,
+      "packagingPriceHt": 2.10
+    },
+    {
+      "nom": "Cannelle",
+      "quantiteStock": 50,
+      "seuilAlerte": 10,
+      "category": "herbs",
+      "uniteMesure": "pièce",
+      "purchaseUnit": "Boîte 50 bâtons",
+      "packagingCapacity": 50,
+      "prixUnitaire": 0.17,
+      "packagingPriceHt": 8.50
     }
   ],
   "recipe_step_templates": [

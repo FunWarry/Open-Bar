@@ -1,6 +1,9 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.ConfectionSourceRequest;
+import com.bar.gestioncocktail.model.Allergen;
 import com.bar.gestioncocktail.model.Ingredient;
+import com.bar.gestioncocktail.repository.IngredientConfectionSourceRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +27,9 @@ class IngredientServiceTest {
 
     @Mock
     IngredientRepository ingredientRepository;
+
+    @Mock
+    IngredientConfectionSourceRepository confectionSourceRepository;
 
     @Mock
     org.springframework.context.ApplicationEventPublisher eventPublisher;
@@ -149,5 +155,78 @@ class IngredientServiceTest {
         ingredientService.updateStock(ingredient, new BigDecimal("15.00"));
 
         verify(eventPublisher).publishEvent(any(com.bar.gestioncocktail.event.StockAlertEvent.class));
+    }
+
+    @Test
+    void createIngredientWithSources_synchronizesAllergensAndForcesNonVegan() {
+        Ingredient crafted = new Ingredient();
+        crafted.setId(10L);
+        crafted.setNom("Sirop Lait-Amande");
+        crafted.setIsVegan(true);
+        crafted.setAllergens(new java.util.HashSet<>());
+
+        Ingredient sourceMilk = new Ingredient();
+        sourceMilk.setId(2L);
+        sourceMilk.setNom("Lait");
+        sourceMilk.setIsVegan(false);
+        sourceMilk.setAllergens(new java.util.HashSet<>(java.util.List.of(Allergen.LAIT)));
+
+        when(ingredientRepository.findById(2L)).thenReturn(Optional.of(sourceMilk));
+        when(ingredientRepository.save(any(Ingredient.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(ingredientRepository.findById(10L)).thenReturn(Optional.of(crafted));
+
+        ConfectionSourceRequest req = new ConfectionSourceRequest(2L, new BigDecimal("2.5"), "cl", "Test source");
+        Ingredient result = ingredientService.createIngredientWithSources(crafted, java.util.List.of(req));
+
+        assertThat(result.getAllergens()).contains(Allergen.LAIT);
+        assertThat(result.getIsVegan()).isFalse();
+        verify(confectionSourceRepository).save(any());
+    }
+
+    @Test
+    void createIngredientWithSources_withNullOrEmptyRequests_persistsSafely() {
+        Ingredient nouveau = new Ingredient();
+        nouveau.setId(20L);
+        nouveau.setNom("Sirop Simple");
+        when(ingredientRepository.save(any(Ingredient.class))).thenReturn(nouveau);
+        when(ingredientRepository.findById(20L)).thenReturn(Optional.of(nouveau));
+
+        Ingredient resultNull = ingredientService.createIngredientWithSources(nouveau, null);
+        assertThat(resultNull).isNotNull();
+
+        Ingredient resultEmpty = ingredientService.createIngredientWithSources(nouveau, List.of());
+        assertThat(resultEmpty).isNotNull();
+        verify(confectionSourceRepository, never()).save(any());
+    }
+
+    @Test
+    void updateIngredientWithSources_updatesAndReplacesConfectionSources() {
+        Ingredient existing = new Ingredient();
+        existing.setId(30L);
+        existing.setNom("Ancien Sirop");
+        existing.setIsCrafted(true);
+
+        when(ingredientRepository.findById(30L)).thenReturn(Optional.of(existing));
+        when(ingredientRepository.save(any(Ingredient.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Ingredient eggWhite = new Ingredient();
+        eggWhite.setId(4L);
+        eggWhite.setNom("Blanc d oeuf");
+        eggWhite.setAllergens(new java.util.HashSet<>(List.of(Allergen.OEUF)));
+        eggWhite.setIsVegan(true); // even if erroneously marked vegan, egg allergen forces isVegan false
+        when(ingredientRepository.findById(4L)).thenReturn(Optional.of(eggWhite));
+
+        Ingredient updateData = new Ingredient();
+        updateData.setNom("Mousse Albumine");
+        updateData.setIsVegan(true);
+
+        ConfectionSourceRequest req = new ConfectionSourceRequest(4L, new BigDecimal("1.0"), "pièce", "Egg white");
+        Ingredient updated = ingredientService.updateIngredientWithSources(30L, updateData, List.of(req));
+
+        assertThat(updated.getNom()).isEqualTo("Mousse Albumine");
+        assertThat(updated.getAllergens()).contains(Allergen.OEUF);
+        assertThat(updated.getIsVegan()).isFalse();
+        verify(confectionSourceRepository).deleteByCraftedIngredientId(30L);
+        verify(confectionSourceRepository).save(any());
     }
 }

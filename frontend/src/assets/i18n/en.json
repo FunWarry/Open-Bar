@@ -1231,6 +1231,35 @@
     "PURCHASE_UNIT_PLACEHOLDER": "e.g. 70cl Bottle, 1kg Pack, Box 6x1L",
     "PACKAGING_CAPACITY_LABEL": "Packaging capacity (in recipe/stock unit)",
     "PACKAGING_PRICE_LABEL": "Packaging unit purchase price excl. VAT",
+    "CONFECTION": {
+      "TITLE": "On-site preparation",
+      "HINT": "Is this ingredient prepared on-site from other ingredients?",
+      "ALSO_PURCHASABLE": "Also available for purchase",
+      "PURCHASABLE_HINT": "If enabled, this ingredient can also be ordered from a supplier.",
+      "PURCHASABLE_ACTIVE_NOTICE": "Deduction priority: own stock is consumed first before cascading to source ingredients.",
+      "NOT_PURCHASABLE_NOTICE": "Pure crafted: this item has no direct purchase stock. Deductions are calculated from source ingredients.",
+      "SOURCES_TITLE": "Source ingredients & Yield",
+      "SOURCES_COUNT": "{{ count }} required ingredient(s)",
+      "SOURCE_NUMBER": "Source ingredient #{{ number }}",
+      "NO_SOURCES_TITLE": "No source ingredients configured",
+      "NO_SOURCES_HINT": "Add the raw base ingredients required to prepare this item on-site.",
+      "ADD_SOURCE": "Add source ingredient",
+      "SOURCE_INGREDIENT": "Source ingredient",
+      "SELECT_SOURCE": "Select an ingredient",
+      "YIELD_RATIO": "Yield ratio",
+      "YIELD_RATIO_PLACEHOLDER": "e.g. 2.5",
+      "YIELD_UNIT": "Yield unit",
+      "SELECT_UNIT": "Unit",
+      "YIELD_EXPLANATION": "To prepare 1 {{ craftedUnit }}, will deduct {{ ratio }} {{ yieldUnit }} of {{ sourceName }}.",
+      "YIELD_HINT_DEFAULT": "Specify the ingredient and quantity required to produce 1 unit of this product.",
+      "BADGE": "Crafted",
+      "NOT_PURCHASABLE_BADGE": "Not purchasable",
+      "ALLERGENS_INHERITED_NOTICE": "Locked allergens (🔒) are mandatorily inherited from on-site confection source ingredients.",
+      "ALLERGEN_INHERITED_TOOLTIP": "Mandatory allergen: present in a source ingredient.",
+      "SOURCE_BADGE": "Source",
+      "VEGAN_LOCKED_NOTICE": "This ingredient cannot be vegan because a source ingredient contains animal products.",
+      "VEGAN_LOCKED_TOOLTIP": "Locked: a source ingredient contains animal products."
+    },
     "UNITS": {
       "CL": {
         "LABEL": "Centilitres (cl)",
@@ -1246,6 +1275,11 @@
         "LABEL": "Litres (L)",
         "SUBLABEL": "Large volumes, bottles, kegs and boxes",
         "BADGE": "L"
+      },
+      "FL_OZ": {
+        "LABEL": "Fluid Ounces (fl oz)",
+        "SUBLABEL": "Standard US/Imperial liquid volume for cocktails (≈ 30 ml)",
+        "BADGE": "fl oz"
       },
       "DASH": {
         "LABEL": "Dash",
@@ -1276,6 +1310,16 @@
         "LABEL": "Kilograms (kg)",
         "SUBLABEL": "Bulk weight for whole fruits, ice, or large stocks",
         "BADGE": "kg"
+      },
+      "OZ": {
+        "LABEL": "Dry Ounces (oz)",
+        "SUBLABEL": "Standard US/Imperial weight for dry goods and powders (≈ 28.35 g)",
+        "BADGE": "oz"
+      },
+      "LB": {
+        "LABEL": "Pounds (lb)",
+        "SUBLABEL": "Bulk US/Imperial weight (≈ 453.6 g)",
+        "BADGE": "lb"
       },
       "PINCEE": {
         "LABEL": "Pinch",
@@ -2135,6 +2179,10 @@
     "VIEW_MODE_CATEGORY": "Category",
     "VIEW_MODE_GRID": "Grid",
     "VIEW_MODE_LIST": "List",
+    "ALLERGENS_TOGGLE": "Allergens",
+    "SHOW_ALLERGENS": "Show allergens",
+    "HIDE_ALLERGENS": "Hide allergens",
+    "NO_ALLERGENS": "Allergen-free",
     "PAGE_PREV": "Previous",
     "PAGE_NEXT": "Next",
     "PER_PAGE": "Per page",
@@ -3698,6 +3746,17 @@
     "ITEMS_TITLE": "Ordered Items",
     "INGREDIENT": "Ingredient / Product",
     "SELECT_INGREDIENT_PLACEHOLDER": "Select a product",
+    "PACKAGING_UNIT": "Packaging Format",
+    "PACKAGING_SELECT_PLACEHOLDER": "Select a format",
+    "CUSTOM_PACKAGING": "Custom format",
+    "CUSTOM_PACKAGING_TITLE": "Custom packaging configuration",
+    "CUSTOM_PACKAGING_HINT": "Define a unit format or a pack / case (e.g. 6x70cl, 12x33cl)",
+    "QUICK_ENTRY": "Quick entry (e.g. 6x70cl)",
+    "PACK_UNITS": "Units per pack",
+    "UNIT_CAPACITY": "Unit capacity",
+    "UNIT": "Unit",
+    "PACK_RESULT": "Stock equivalent per package",
+    "PACKAGE_UNIT_SHORT": "pack",
     "QUANTITY": "Quantity",
     "UNIT_PRICE_HT": "Unit price excl. tax",
     "VAT_RATE": "VAT",

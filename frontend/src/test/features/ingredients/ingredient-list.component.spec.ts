@@ -540,6 +540,56 @@ describe('IngredientListComponent', () => {
       };
       expect(component.getPackagingEquivalent(ingNoUnit)).toBe('');
     });
+
+    it('toggles showAllergens and persists preference in localStorage', () => {
+      expect(component.showAllergens).toBeFalse();
+
+      component.toggleShowAllergens();
+      expect(component.showAllergens).toBeTrue();
+      expect(localStorage.getItem('openbar_stock_show_allergens')).toBe('true');
+
+      component.toggleShowAllergens();
+      expect(component.showAllergens).toBeFalse();
+      expect(localStorage.getItem('openbar_stock_show_allergens')).toBe('false');
+    });
+
+    it('resolves allergen info correctly with emoji and translation key', () => {
+      const lait = component.getAllergenInfo('LAIT');
+      expect(lait.emoji).toBe('🥛');
+      expect(lait.labelKey).toBe('COCKTAILS.ALLERGENS.LAIT');
+
+      const gluten = component.getAllergenInfo('GLUTEN');
+      expect(gluten.emoji).toBe('🌾');
+
+      const soja = component.getAllergenInfo('SOJA');
+      expect(soja.emoji).toBe('🫘');
+
+      const unknown = component.getAllergenInfo('UNKNOWN_ALLERGEN');
+      expect(unknown.emoji).toBe('⚠️');
+      expect(unknown.labelKey).toBe('COCKTAILS.ALLERGENS.UNKNOWN_ALLERGEN');
+    });
+
+    it('renders allergen badges on stock card when showAllergens is active', () => {
+      const ingredientWithAllergens: Ingredient = {
+        ...makeI(10, 'Bière Artisanale', 50, 10),
+        allergens: ['GLUTEN'],
+        isVegan: true
+      };
+      component.ingredients = [ingredientWithAllergens];
+      component.showAllergens = true;
+      fixture.detectChanges();
+
+      const allergensRow = fixture.nativeElement.querySelector('[data-testid="card-allergens-10"]');
+      expect(allergensRow).toBeTruthy();
+      expect(allergensRow.textContent).toContain('🌾');
+      expect(allergensRow.textContent).toContain('🌱');
+
+      // When turned off, allergen row is removed
+      component.showAllergens = false;
+      fixture.detectChanges();
+      const hiddenRow = fixture.nativeElement.querySelector('[data-testid="card-allergens-10"]');
+      expect(hiddenRow).toBeNull();
+    });
   });
 });
 

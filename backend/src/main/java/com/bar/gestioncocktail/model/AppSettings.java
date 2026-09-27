@@ -71,17 +71,17 @@ public class AppSettings {
     private CurrencyPosition currencyPosition = CurrencyPosition.AFTER;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "unit_system", nullable = false, length = 20)
+    @Column(name = "unit_system", length = 20)
     private UnitSystem unitSystem = UnitSystem.METRIC_CL;
 
     @NotBlank(message = "Volume unit is required")
     @Size(max = 20, message = "Volume unit cannot exceed 20 characters")
-    @Column(name = "volume_unit", nullable = false, length = 20)
+    @Column(name = "volume_unit", length = 20)
     private String volumeUnit = "cl";
 
     @NotBlank(message = "Weight unit is required")
     @Size(max = 20, message = "Weight unit cannot exceed 20 characters")
-    @Column(name = "weight_unit", nullable = false, length = 20)
+    @Column(name = "weight_unit", length = 20)
     private String weightUnit = "g";
 
     @jakarta.validation.constraints.NotNull(message = "Order warning alert time is required")
@@ -128,19 +128,19 @@ public class AppSettings {
     @NotNull(message = "Default VAT rate is required")
     @DecimalMin(value = "0.0", message = "VAT rate cannot be negative")
     @DecimalMax(value = "100.0", message = "VAT rate cannot exceed 100%")
-    @Column(name = "default_vat_rate", nullable = false)
+    @Column(name = "default_vat_rate")
     private BigDecimal defaultVatRate = new BigDecimal("20.00");
 
     @NotNull(message = "Target gross margin percentage is required")
     @DecimalMin(value = "1.0", message = "Target margin must be at least 1%")
     @DecimalMax(value = "100.0", message = "Target margin cannot exceed 100%")
-    @Column(name = "target_gross_margin_percentage", nullable = false)
+    @Column(name = "target_gross_margin_percentage")
     private BigDecimal targetGrossMarginPercentage = new BigDecimal("70.00");
 
     @NotNull(message = "Warning gross margin percentage is required")
     @DecimalMin(value = "0.0", message = "Warning margin cannot be negative")
     @DecimalMax(value = "100.0", message = "Warning margin cannot exceed 100%")
-    @Column(name = "warning_gross_margin_percentage", nullable = false)
+    @Column(name = "warning_gross_margin_percentage")
     private BigDecimal warningGrossMarginPercentage = new BigDecimal("50.00");
 
     @Size(max = 100, message = "Bar printer IP cannot exceed 100 characters")
@@ -171,6 +171,38 @@ public class AppSettings {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public UnitSystem getUnitSystem() {
+        return unitSystem != null ? unitSystem : UnitSystem.METRIC_CL;
+    }
+
+    public String getVolumeUnit() {
+        return (volumeUnit != null && !volumeUnit.isBlank()) ? volumeUnit : "cl";
+    }
+
+    public String getWeightUnit() {
+        return (weightUnit != null && !weightUnit.isBlank()) ? weightUnit : "g";
+    }
+
+    public BigDecimal getDefaultVatRate() {
+        return defaultVatRate != null ? defaultVatRate : new BigDecimal("20.00");
+    }
+
+    public BigDecimal getTargetGrossMarginPercentage() {
+        return targetGrossMarginPercentage != null ? targetGrossMarginPercentage : new BigDecimal("70.00");
+    }
+
+    public BigDecimal getWarningGrossMarginPercentage() {
+        return warningGrossMarginPercentage != null ? warningGrossMarginPercentage : new BigDecimal("50.00");
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
     @PrePersist
     @PreUpdate

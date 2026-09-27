@@ -1231,6 +1231,35 @@
     "PURCHASE_UNIT_PLACEHOLDER": "ex: Bouteille 70cl, Pack 1kg, Carton 6x1L",
     "PACKAGING_CAPACITY_LABEL": "Contenance par conditionnement (en unité recette)",
     "PACKAGING_PRICE_LABEL": "Prix par conditionnement HT",
+    "CONFECTION": {
+      "TITLE": "Confection maison",
+      "HINT": "Cet ingrédient est-il préparé sur place à partir d'autres ingrédients ?",
+      "ALSO_PURCHASABLE": "Aussi disponible à l'achat",
+      "PURCHASABLE_HINT": "Si activé, cet ingrédient peut aussi être commandé chez un fournisseur.",
+      "PURCHASABLE_ACTIVE_NOTICE": "Priorité déstockage : le stock propre est consommé en priorité avant de déstocker les ingrédients sources.",
+      "NOT_PURCHASABLE_NOTICE": "Préparation pure : cet ingrédient n'a pas de stock direct achetable. Le déstockage est calculé sur ses ingrédients sources.",
+      "SOURCES_TITLE": "Ingrédients sources & Rendement",
+      "SOURCES_COUNT": "{{ count }} ingrédient(s) requis",
+      "SOURCE_NUMBER": "Ingrédient source #{{ number }}",
+      "NO_SOURCES_TITLE": "Aucun ingrédient source configuré",
+      "NO_SOURCES_HINT": "Ajoutez les ingrédients de base nécessaires pour fabriquer ce produit sur place.",
+      "ADD_SOURCE": "Ajouter un ingrédient source",
+      "SOURCE_INGREDIENT": "Ingrédient source",
+      "SELECT_SOURCE": "Sélectionner un ingrédient",
+      "YIELD_RATIO": "Rendement (ratio)",
+      "YIELD_RATIO_PLACEHOLDER": "ex: 2.5",
+      "YIELD_UNIT": "Unité de rendement",
+      "SELECT_UNIT": "Unité",
+      "YIELD_EXPLANATION": "Pour préparer 1 {{ craftedUnit }}, déstockera {{ ratio }} {{ yieldUnit }} de {{ sourceName }}.",
+      "YIELD_HINT_DEFAULT": "Renseignez l'ingrédient et la quantité nécessaire pour fabriquer 1 unité de ce produit.",
+      "BADGE": "Confectionné",
+      "NOT_PURCHASABLE_BADGE": "Non achetable",
+      "ALLERGENS_INHERITED_NOTICE": "Les allergènes verrouillés (🔒) sont obligatoirement reportés depuis les ingrédients sources de la confection maison.",
+      "ALLERGEN_INHERITED_TOOLTIP": "Allergène obligatoire : présent dans un ingrédient source.",
+      "SOURCE_BADGE": "Source",
+      "VEGAN_LOCKED_NOTICE": "Cet ingrédient ne peut pas être végétalien car l'un des ingrédients sources contient des produits animaux.",
+      "VEGAN_LOCKED_TOOLTIP": "Non modifiable : un ingrédient source contient des produits animaux."
+    },
     "UNITS": {
       "CL": {
         "LABEL": "Centilitres (cl)",
@@ -1246,6 +1275,11 @@
         "LABEL": "Litres (L)",
         "SUBLABEL": "Grands volumes, bouteilles, fûts et cubis",
         "BADGE": "L"
+      },
+      "FL_OZ": {
+        "LABEL": "Onces liquides (fl oz)",
+        "SUBLABEL": "Volume anglo-saxon pour cocktails (≈ 30 ml)",
+        "BADGE": "fl oz"
       },
       "DASH": {
         "LABEL": "Trait / Dash",
@@ -1276,6 +1310,16 @@
         "LABEL": "Kilogrammes (kg)",
         "SUBLABEL": "Poids en vrac pour fruits, glace ou gros stocks",
         "BADGE": "kg"
+      },
+      "OZ": {
+        "LABEL": "Onces sèches (oz)",
+        "SUBLABEL": "Masse anglo-saxonne pour poudres et solides (≈ 28.35 g)",
+        "BADGE": "oz"
+      },
+      "LB": {
+        "LABEL": "Livres (lb)",
+        "SUBLABEL": "Poids anglo-saxon en vrac (≈ 453.6 g)",
+        "BADGE": "lb"
       },
       "PINCEE": {
         "LABEL": "Pincée",
@@ -2135,6 +2179,10 @@
     "VIEW_MODE_CATEGORY": "Catégorie",
     "VIEW_MODE_GRID": "Grille",
     "VIEW_MODE_LIST": "Liste",
+    "ALLERGENS_TOGGLE": "Allergènes",
+    "SHOW_ALLERGENS": "Afficher allergènes",
+    "HIDE_ALLERGENS": "Masquer allergènes",
+    "NO_ALLERGENS": "Sans allergène",
     "PAGE_PREV": "Précédent",
     "PAGE_NEXT": "Suivant",
     "PER_PAGE": "Par page",
@@ -3698,6 +3746,17 @@
     "ITEMS_TITLE": "Articles commandés",
     "INGREDIENT": "Ingrédient / Produit",
     "SELECT_INGREDIENT_PLACEHOLDER": "Sélectionner un produit",
+    "PACKAGING_UNIT": "Format d'achat",
+    "PACKAGING_SELECT_PLACEHOLDER": "Sélectionner un format",
+    "CUSTOM_PACKAGING": "Format sur-mesure",
+    "CUSTOM_PACKAGING_TITLE": "Configuration du format sur-mesure",
+    "CUSTOM_PACKAGING_HINT": "Définissez un format unitaire ou un pack / carton (ex: 6x70cl, 12x33cl)",
+    "QUICK_ENTRY": "Saisie rapide (ex: 6x70cl)",
+    "PACK_UNITS": "Unités par pack",
+    "UNIT_CAPACITY": "Contenance unitaire",
+    "UNIT": "Unité",
+    "PACK_RESULT": "Équivalent stock par colis",
+    "PACKAGE_UNIT_SHORT": "colis",
     "QUANTITY": "Quantité",
     "UNIT_PRICE_HT": "Prix unitaire HT",
     "VAT_RATE": "TVA",

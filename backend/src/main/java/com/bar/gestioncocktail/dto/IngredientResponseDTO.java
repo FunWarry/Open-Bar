@@ -5,6 +5,7 @@ import com.bar.gestioncocktail.model.Ingredient;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -49,7 +50,10 @@ public record IngredientResponseDTO(
     LocalDateTime updatedAt,
     String purchaseUnit,
     BigDecimal packagingCapacity,
-    BigDecimal packagingPriceHt
+    BigDecimal packagingPriceHt,
+    Boolean isCrafted,
+    Boolean isPurchasable,
+    List<ConfectionSourceDTO> confectionSources
 ) {
     public static final String DEFAULT_CATEGORY = "other";
 
@@ -78,7 +82,7 @@ public record IngredientResponseDTO(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
-        this(id, nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, defaultSupplierId, defaultSupplierNom, codeBarre, createdAt, updatedAt, null, null, null);
+        this(id, nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, defaultSupplierId, defaultSupplierNom, codeBarre, createdAt, updatedAt, null, null, null, false, true, List.of());
     }
 
     /**
@@ -233,6 +237,9 @@ public record IngredientResponseDTO(
         Set<Allergen> allergenSet = i.getAllergens() != null ? i.getAllergens() : Set.of();
         Long supplierId = i.getDefaultSupplier() != null ? i.getDefaultSupplier().getId() : null;
         String supplierNom = i.getDefaultSupplier() != null ? i.getDefaultSupplier().getNom() : i.getFournisseur();
+        List<ConfectionSourceDTO> sources = i.getConfectionSources() != null
+            ? i.getConfectionSources().stream().map(ConfectionSourceDTO::from).toList()
+            : List.of();
         return new IngredientResponseDTO(
             i.getId(), i.getNom(), i.getUniteMesure(), i.getQuantiteStock(),
             i.getSeuilAlerte(), i.getNumeroLot(), i.getDatePeremption(),
@@ -247,7 +254,10 @@ public record IngredientResponseDTO(
             i.getCreatedAt(), i.getUpdatedAt(),
             i.getPurchaseUnit(),
             i.getEffectivePackagingCapacity(),
-            i.getPackagingPriceHt()
+            i.getPackagingPriceHt(),
+            i.getIsCrafted(),
+            i.getIsPurchasable(),
+            sources
         );
     }
 }

@@ -124,18 +124,29 @@
               ></app-searchable-select>
             </div>
 
+            <div class="line-col-packaging">
+              <label [attr.for]="'po-line-packaging-' + $index" class="col-label">{{ 'PURCHASES.PACKAGING_UNIT' | transloco }}</label>
+              <app-searchable-select
+                [id]="'po-line-packaging-' + $index"
+                formControlName="purchaseUnit"
+                [options]="getPackagingOptions(item)"
+                [placeholder]="'PURCHASES.PACKAGING_SELECT_PLACEHOLDER' | transloco"
+                [searchable]="false"
+                [clearable]="false"
+                (selectionChange)="onPackagingSelected($index, $event)"
+                [testId]="'po-line-packaging-' + $index"
+              ></app-searchable-select>
+            </div>
+
             <div class="line-col-qty">
               <label [attr.for]="'po-line-qty-' + $index" class="col-label">
                 {{ 'PURCHASES.QUANTITY' | transloco }}
-                @if (item.get('purchaseUnit')?.value) {
-                  <span class="unit-tag">({{ item.get('purchaseUnit')?.value }})</span>
-                }
               </label>
               <input
                 [id]="'po-line-qty-' + $index"
                 type="number"
-                step="0.1"
-                min="0.01"
+                step="1"
+                min="1"
                 formControlName="quantiteCommandee"
                 class="field-input"
                 [attr.data-testid]="'po-line-qty-' + $index"
@@ -181,6 +192,7 @@
             </div>
 
             <div class="line-col-actions">
+              <span class="col-label col-label-spacer" aria-hidden="true">&nbsp;</span>
               <button
                 type="button"
                 class="btn-remove-line"
@@ -191,6 +203,99 @@
                 <ion-icon name="trash-outline"></ion-icon>
               </button>
             </div>
+
+            @if (isCustomPackaging(item)) {
+              <div class="custom-pack-builder" [attr.data-testid]="'po-custom-builder-' + $index">
+                <div class="pack-builder-header">
+                  <div class="pack-builder-title-wrap">
+                    <ion-icon name="cube-outline" class="pack-builder-icon"></ion-icon>
+                    <span class="pack-builder-title">{{ 'PURCHASES.CUSTOM_PACKAGING_TITLE' | transloco }}</span>
+                  </div>
+                  <span class="pack-builder-subtitle">{{ 'PURCHASES.CUSTOM_PACKAGING_HINT' | transloco }}</span>
+                </div>
+
+                <div class="pack-builder-controls">
+                  <!-- Quick text input (ex: 6x70cl) -->
+                  <div class="control-group quick-group">
+                    <label [attr.for]="'po-custom-quick-' + $index" class="pack-control-label">
+                      {{ 'PURCHASES.QUICK_ENTRY' | transloco }}
+                    </label>
+                    <input
+                      [id]="'po-custom-quick-' + $index"
+                      type="text"
+                      class="field-input quick-input"
+                      placeholder="6x70cl, 12x33cl, 1.5L..."
+                      [value]="getCustomRawText(item)"
+                      (input)="onQuickCustomInput($index, $event)"
+                      [attr.data-testid]="'po-custom-quick-' + $index"
+                    />
+                  </div>
+
+                  <span class="pack-or-separator">ou</span>
+
+                  <!-- Structured Pack: Units x Capacity + Unit -->
+                  <div class="structured-pack-row">
+                    <div class="control-group pack-count-group">
+                      <label [attr.for]="'po-custom-pack-' + $index" class="pack-control-label">
+                        {{ 'PURCHASES.PACK_UNITS' | transloco }}
+                      </label>
+                      <input
+                        [id]="'po-custom-pack-' + $index"
+                        type="number"
+                        min="1"
+                        step="1"
+                        class="field-input pack-num-input"
+                        [value]="getCustomPackCount(item)"
+                        (input)="onCustomPackChange($index, $event)"
+                        [attr.data-testid]="'po-custom-pack-' + $index"
+                      />
+                    </div>
+
+                    <span class="pack-math-symbol">×</span>
+
+                    <div class="control-group pack-size-group">
+                      <label [attr.for]="'po-custom-size-' + $index" class="pack-control-label">
+                        {{ 'PURCHASES.UNIT_CAPACITY' | transloco }}
+                      </label>
+                      <input
+                        [id]="'po-custom-size-' + $index"
+                        type="number"
+                        min="0.01"
+                        step="any"
+                        class="field-input pack-num-input"
+                        [value]="getCustomUnitCapacity(item)"
+                        (input)="onCustomSizeChange($index, $event)"
+                        [attr.data-testid]="'po-custom-size-' + $index"
+                      />
+                    </div>
+
+                    <div class="control-group pack-unit-group">
+                      <label [attr.for]="'po-custom-unit-' + $index" class="pack-control-label">
+                        {{ 'PURCHASES.UNIT' | transloco }}
+                      </label>
+                      <app-searchable-select
+                        [id]="'po-custom-unit-' + $index"
+                        formControlName="customUnit"
+                        [options]="getCustomUnitOptions(item)"
+                        [placeholder]="'PURCHASES.UNIT' | transloco"
+                        [searchable]="false"
+                        [clearable]="false"
+                        (selectionChange)="onCustomUnitChange($index, $event)"
+                        [testId]="'po-custom-unit-' + $index"
+                      ></app-searchable-select>
+                    </div>
+                  </div>
+
+                  <!-- Result Badge -->
+                  <div class="pack-summary-badge" [attr.data-testid]="'po-custom-summary-' + $index">
+                    <span class="pack-summary-label">{{ 'PURCHASES.PACK_RESULT' | transloco }}:</span>
+                    <span class="pack-summary-value">
+                      {{ item.get('packagingCapacity')?.value }} {{ getIngredientUnit(item) }} / {{ 'PURCHASES.PACKAGE_UNIT_SHORT' | transloco }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            }
           </div>
         }
       </div>

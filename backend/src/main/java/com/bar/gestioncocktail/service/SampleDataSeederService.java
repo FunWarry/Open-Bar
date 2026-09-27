@@ -73,6 +73,12 @@ public class SampleDataSeederService {
     private static final String KEY_OPENING_FLOAT = "openingFloat";
     private static final String KEY_OPENING_DENOMINATIONS = "openingDenominations";
     private static final String KEY_MOVEMENTS = "movements";
+    private static final String KEY_PURCHASE_UNIT = "purchaseUnit";
+    private static final String KEY_PACKAGING_CAPACITY = "packagingCapacity";
+    private static final String KEY_PRIX_UNITAIRE = "prixUnitaire";
+    private static final String KEY_CATEGORY = "category";
+    private static final String KEY_UNITE_MESURE = "uniteMesure";
+    private static final String KEY_PACKAGING_PRICE_HT = "packagingPriceHt";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -746,23 +752,73 @@ public class SampleDataSeederService {
             return;
         }
 
-        for (JsonNode aNode : adjustmentsNode) {
-            String ingName = aNode.get("nom").asText();
-            BigDecimal stock = new BigDecimal(aNode.get("quantiteStock").asText());
-            BigDecimal seuil = new BigDecimal(aNode.get("seuilAlerte").asText());
-            String category = aNode.hasNonNull("category") ? aNode.get("category").asText().trim() : null;
+        sanitizeDirtyProsceco();
 
-            Optional<Ingredient> ingOpt = ingredientRepository.findByNomIgnoreCase(ingName);
-            if (ingOpt.isPresent()) {
-                Ingredient ing = ingOpt.get();
-                ing.setQuantiteStock(stock);
-                ing.setSeuilAlerte(seuil);
-                if (category != null && !category.isBlank()) {
-                    ing.setCategory(category);
-                }
-                ingredientRepository.save(ing);
-                log.trace("Stock adjustment applied: {} -> {} (seuil: {}, category: {})", ingName, stock, seuil, ing.getCategory());
-            }
+        for (JsonNode aNode : adjustmentsNode) {
+            applySingleStockAdjustment(aNode);
+        }
+    }
+
+    private void sanitizeDirtyProsceco() {
+        Optional<Ingredient> dirtyProsceco = ingredientRepository.findByNomIgnoreCase("Prosceco");
+        if (dirtyProsceco.isEmpty()) {
+            return;
+        }
+        Ingredient prosceco = dirtyProsceco.get();
+        Optional<Ingredient> realProsecco = ingredientRepository.findByNomIgnoreCase("Prosecco");
+        if (realProsecco.isPresent()) {
+            ingredientRepository.delete(prosceco);
+        } else {
+            prosceco.setNom("Prosecco");
+            prosceco.setUniteMesure("cl");
+            ingredientRepository.save(prosceco);
+        }
+    }
+
+    private void applySingleStockAdjustment(JsonNode aNode) {
+        String ingName = aNode.get("nom").asText();
+        BigDecimal stock = new BigDecimal(aNode.get("quantiteStock").asText());
+        BigDecimal seuil = new BigDecimal(aNode.get("seuilAlerte").asText());
+
+        Ingredient ing = ingredientRepository.findByNomIgnoreCase(ingName)
+                .orElseGet(() -> createDefaultAdjustmentIngredient(ingName, stock, seuil));
+
+        ing.setQuantiteStock(stock);
+        ing.setSeuilAlerte(seuil);
+        updateIngredientPackagingAndPricing(ing, aNode);
+        ingredientRepository.save(ing);
+        log.trace("Stock adjustment applied: {} -> {} (seuil: {}, category: {}, purchaseUnit: {})",
+                ingName, stock, seuil, ing.getCategory(), ing.getPurchaseUnit());
+    }
+
+    private Ingredient createDefaultAdjustmentIngredient(String name, BigDecimal stock, BigDecimal seuil) {
+        Ingredient newIng = new Ingredient();
+        newIng.setNom(name);
+        newIng.setUniteMesure("cl");
+        newIng.setQuantiteStock(stock);
+        newIng.setSeuilAlerte(seuil);
+        newIng.setPrixUnitaire(BigDecimal.valueOf(1.0));
+        return newIng;
+    }
+
+    private void updateIngredientPackagingAndPricing(Ingredient ing, JsonNode aNode) {
+        if (aNode.hasNonNull(KEY_CATEGORY) && !aNode.get(KEY_CATEGORY).asText().isBlank()) {
+            ing.setCategory(aNode.get(KEY_CATEGORY).asText().trim());
+        }
+        if (aNode.hasNonNull(KEY_UNITE_MESURE)) {
+            ing.setUniteMesure(aNode.get(KEY_UNITE_MESURE).asText().trim());
+        }
+        if (aNode.hasNonNull(KEY_PURCHASE_UNIT)) {
+            ing.setPurchaseUnit(aNode.get(KEY_PURCHASE_UNIT).asText().trim());
+        }
+        if (aNode.hasNonNull(KEY_PACKAGING_CAPACITY)) {
+            ing.setPackagingCapacity(new BigDecimal(aNode.get(KEY_PACKAGING_CAPACITY).asText()));
+        }
+        if (aNode.hasNonNull(KEY_PACKAGING_PRICE_HT)) {
+            ing.setPackagingPriceHt(new BigDecimal(aNode.get(KEY_PACKAGING_PRICE_HT).asText()));
+        }
+        if (aNode.hasNonNull(KEY_PRIX_UNITAIRE)) {
+            ing.setPrixUnitaire(new BigDecimal(aNode.get(KEY_PRIX_UNITAIRE).asText()));
         }
     }
 
@@ -1040,7 +1096,7 @@ public class SampleDataSeederService {
             for (JsonNode itemNode : itemsNode) {
                 String description = itemNode.get(KEY_DESCRIPTION).asText();
                 int quantite = itemNode.get(KEY_QUANTITE).asInt();
-                BigDecimal prixUnitaire = new BigDecimal(itemNode.get("prixUnitaire").asText());
+                BigDecimal prixUnitaire = new BigDecimal(itemNode.get(KEY_PRIX_UNITAIRE).asText());
                 BigDecimal itemTotal = prixUnitaire.multiply(BigDecimal.valueOf(quantite));
 
                 VatRate vatRate = resolveInvoiceItemVatRate(description);
@@ -1893,13 +1949,13 @@ public class SampleDataSeederService {
             item.setQuantiteRecue(new BigDecimal(itNode.get("quantiteRecue").asText()));
             item.setPrixUnitaireHt(unitPrice);
             item.setTauxTva(new BigDecimal(itNode.get("tauxTva").asText()));
-            if (itNode.hasNonNull("purchaseUnit")) {
-                item.setPurchaseUnit(itNode.get("purchaseUnit").asText());
+            if (itNode.hasNonNull(KEY_PURCHASE_UNIT)) {
+                item.setPurchaseUnit(itNode.get(KEY_PURCHASE_UNIT).asText());
             } else if (ing.getPurchaseUnit() != null) {
                 item.setPurchaseUnit(ing.getPurchaseUnit());
             }
-            if (itNode.hasNonNull("packagingCapacity")) {
-                item.setPackagingCapacity(new BigDecimal(itNode.get("packagingCapacity").asText()));
+            if (itNode.hasNonNull(KEY_PACKAGING_CAPACITY)) {
+                item.setPackagingCapacity(new BigDecimal(itNode.get(KEY_PACKAGING_CAPACITY).asText()));
             } else if (ing.getPackagingCapacity() != null) {
                 item.setPackagingCapacity(ing.getPackagingCapacity());
             }

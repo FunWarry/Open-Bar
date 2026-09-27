@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.time.LocalDateTime;
 /**
  * JPA entity representing an inventory ingredient, bottle, or raw consumable with stock thresholds.
@@ -79,6 +81,15 @@ public class Ingredient {
 
     @Column(name = "code_barre", unique = true, length = 100)
     private String codeBarre;
+
+    @Column(name = "is_crafted")
+    private Boolean isCrafted = false;
+
+    @Column(name = "is_purchasable")
+    private Boolean isPurchasable = true;
+
+    @OneToMany(mappedBy = "craftedIngredient", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<IngredientConfectionSource> confectionSources = new ArrayList<>();
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -233,6 +244,61 @@ public class Ingredient {
             return uniteMesure.trim();
         }
         return "u";
+    }
+
+    /**
+     * Gets whether this ingredient is crafted (confectionné) on-site from source ingredients.
+     *
+     * @return true if crafted, false if raw/purchased
+     */
+    public Boolean getIsCrafted() {
+        return isCrafted != null && isCrafted;
+    }
+
+    /**
+     * Sets whether this ingredient is crafted on-site.
+     *
+     * @param isCrafted crafted status to assign
+     */
+    public void setIsCrafted(Boolean isCrafted) {
+        this.isCrafted = isCrafted;
+    }
+
+    /**
+     * Gets whether this ingredient can be directly purchased from suppliers.
+     * Crafted ingredients may or may not be purchasable (e.g., bottled lemon juice vs fresh-squeezed).
+     *
+     * @return true if purchasable, false if only obtainable through confection
+     */
+    public Boolean getIsPurchasable() {
+        return isPurchasable == null || isPurchasable;
+    }
+
+    /**
+     * Sets whether this ingredient can be directly purchased.
+     *
+     * @param isPurchasable purchasable status to assign
+     */
+    public void setIsPurchasable(Boolean isPurchasable) {
+        this.isPurchasable = isPurchasable;
+    }
+
+    /**
+     * Gets the confection source mappings for this crafted ingredient.
+     *
+     * @return list of confection source mappings
+     */
+    public List<IngredientConfectionSource> getConfectionSources() {
+        return confectionSources != null ? confectionSources : new ArrayList<>();
+    }
+
+    /**
+     * Sets the confection source mappings for this crafted ingredient.
+     *
+     * @param confectionSources list of confection source mappings
+     */
+    public void setConfectionSources(List<IngredientConfectionSource> confectionSources) {
+        this.confectionSources = confectionSources != null ? confectionSources : new ArrayList<>();
     }
 
     @PrePersist
