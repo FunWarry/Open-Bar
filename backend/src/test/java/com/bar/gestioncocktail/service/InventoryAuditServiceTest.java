@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -75,7 +76,7 @@ class InventoryAuditServiceTest {
     @BeforeEach
     void setUp() {
         lenient().when(establishmentConfigService.isModuleEnabled(EstablishmentModule.INVENTORY_AUDIT)).thenReturn(true);
-        lenient().when(timeService.now()).thenReturn(LocalDateTime.of(2026, 9, 27, 10, 0, 0));
+        lenient().when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.SEPTEMBER, 27, 10, 0, 0));
 
         adminUser = new User();
         adminUser.setId(1L);
@@ -107,7 +108,7 @@ class InventoryAuditServiceTest {
         draftSession.setTitle("Monthly Alcohol Audit");
         draftSession.setStatus(InventoryAuditStatus.IN_PROGRESS);
         draftSession.setCreatedBy(adminUser);
-        draftSession.setCreatedAt(LocalDateTime.of(2026, 9, 27, 10, 0, 0));
+        draftSession.setCreatedAt(LocalDateTime.of(2026, Month.SEPTEMBER, 27, 10, 0, 0));
         draftSession.setItems(new ArrayList<>());
 
         draftItem = new InventoryAuditItem();

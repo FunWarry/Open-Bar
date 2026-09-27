@@ -19,6 +19,7 @@ import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -61,8 +62,8 @@ class InventoryAuditControllerTest {
                 "ALCOHOL",
                 "manager",
                 null,
-                LocalDateTime.of(2026, 9, 27, 10, 0),
-                LocalDateTime.of(2026, 9, 27, 10, 5),
+                LocalDateTime.of(2026, Month.SEPTEMBER, 27, 10, 0),
+                LocalDateTime.of(2026, Month.SEPTEMBER, 27, 10, 5),
                 null,
                 "Sample notes",
                 BigDecimal.valueOf(1500.00),
