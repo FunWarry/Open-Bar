@@ -312,4 +312,133 @@ class InventoryAuditServiceTest {
         assertThat(pdf).containsExactly(1, 2, 3);
         verify(pdfService).generateInventoryAuditPdf(draftSession);
     }
+
+    @Test
+    @DisplayName("getVarianceSummary should compute category and location variances accurately")
+    void getVarianceSummary_shouldComputeMetricsAccurately() {
+        draftItem.setVarianceValueHt(BigDecimal.valueOf(-100.00));
+
+        InventoryAuditLocationCount loc = new InventoryAuditLocationCount();
+        loc.setStorageLocation("Main Bar");
+        loc.setCountedQuantity(BigDecimal.valueOf(10.0));
+        draftItem.setLocationCounts(List.of(loc));
+
+        when(sessionRepository.findById(100L)).thenReturn(Optional.of(draftSession));
+
+        InventoryVarianceSummaryDTO summary = inventoryAuditService.getVarianceSummary(100L);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.totalShrinkageValueHt()).isEqualByComparingTo(BigDecimal.valueOf(100.00));
+        assertThat(summary.itemsWithVarianceCount()).isEqualTo(1);
+        assertThat(summary.varianceValueByCategory()).containsKey("ALCOHOL");
+        assertThat(summary.countedValueByLocation()).containsKey("Main Bar");
+    }
+
+    @Test
+    @DisplayName("startSession should transition status from DRAFT to IN_PROGRESS")
+    void startSession_shouldTransitionToInProgress() {
+        draftSession.setStatus(InventoryAuditStatus.DRAFT);
+        when(sessionRepository.findById(100L)).thenReturn(Optional.of(draftSession));
+        when(sessionRepository.save(any(InventoryAuditSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        InventoryAuditSessionResponseDTO result = inventoryAuditService.startSession(100L, "admin");
+
+        assertThat(result.status()).isEqualTo(InventoryAuditStatus.IN_PROGRESS);
+        verify(sessionRepository).save(draftSession);
+    }
+
+    @Test
+    @DisplayName("startSession should throw BusinessException when status is not DRAFT")
+    void startSession_shouldThrow_whenNotDraft() {
+        draftSession.setStatus(InventoryAuditStatus.IN_PROGRESS);
+        when(sessionRepository.findById(100L)).thenReturn(Optional.of(draftSession));
+
+        assertThatThrownBy(() -> inventoryAuditService.startSession(100L, "admin"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Only DRAFT inventory sessions can be started");
+    }
+
+    @Test
+    @DisplayName("batchUpdateCounts should update multiple items in batch")
+    void batchUpdateCounts_shouldApplyBatchEntries() {
+        when(sessionRepository.findById(100L)).thenReturn(Optional.of(draftSession));
+        when(itemRepository.findById(200L)).thenReturn(Optional.of(draftItem));
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(adminUser));
+        when(sessionRepository.save(any(InventoryAuditSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        BatchUpdateItemCountsDTO request = new BatchUpdateItemCountsDTO(List.of(
+                new BatchUpdateItemCountsDTO.BatchItemCountEntryDTO(200L, "Main Bar", 5, BigDecimal.valueOf(10.0), "Batch notes")
+        ));
+
+        InventoryAuditSessionResponseDTO response = inventoryAuditService.batchUpdateCounts(100L, request, "admin");
+
+        assertThat(response).isNotNull();
+        verify(itemRepository).save(draftItem);
+        verify(sessionRepository).save(draftSession);
+    }
+
+    @Test
+    @DisplayName("getAllSessions should return all sessions ordered by creation date")
+    void getAllSessions_shouldReturnAllSessions() {
+        when(sessionRepository.findAllByOrderByCreatedAtDesc()).thenReturn(List.of(draftSession));
+
+        List<InventoryAuditSessionResponseDTO> sessions = inventoryAuditService.getAllSessions();
+
+        assertThat(sessions).hasSize(1);
+        assertThat(sessions.get(0).id()).isEqualTo(100L);
+    }
+
+    @Test
+    @DisplayName("finalizeSession should throw BusinessException when already finalized or cancelled")
+    void finalizeSession_shouldThrow_whenAlreadyFinalizedOrCancelled() {
+        draftSession.setStatus(InventoryAuditStatus.FINALIZED);
+        when(sessionRepository.findById(100L)).thenReturn(Optional.of(draftSession));
+
+        assertThatThrownBy(() -> inventoryAuditService.finalizeSession(100L, "admin", "127.0.0.1"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("already finalized");
+
+        draftSession.setStatus(InventoryAuditStatus.CANCELLED);
+        assertThatThrownBy(() -> inventoryAuditService.finalizeSession(100L, "admin", "127.0.0.1"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Cannot finalize a cancelled audit session");
+    }
+
+    @Test
+    @DisplayName("cancelSession should throw BusinessException when already finalized")
+    void cancelSession_shouldThrow_whenAlreadyFinalized() {
+        draftSession.setStatus(InventoryAuditStatus.FINALIZED);
+        when(sessionRepository.findById(100L)).thenReturn(Optional.of(draftSession));
+
+        assertThatThrownBy(() -> inventoryAuditService.cancelSession(100L, "admin"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Cannot cancel an already finalized audit session");
+    }
+
+    @Test
+    @DisplayName("updateItemCount should throw BusinessException when item does not belong to session")
+    void updateItemCount_shouldThrow_whenItemNotInSession() {
+        InventoryAuditSession otherSession = new InventoryAuditSession();
+        otherSession.setId(999L);
+        draftItem.setSession(otherSession);
+
+        when(sessionRepository.findById(100L)).thenReturn(Optional.of(draftSession));
+        when(itemRepository.findById(200L)).thenReturn(Optional.of(draftItem));
+
+        UpdateInventoryAuditItemCountDTO updateRequest = new UpdateInventoryAuditItemCountDTO(
+                "Main Bar", 1, BigDecimal.ZERO, "Notes"
+        );
+
+        assertThatThrownBy(() -> inventoryAuditService.updateItemCount(100L, 200L, updateRequest, "admin"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("does not belong to session");
+    }
+
+    @Test
+    @DisplayName("createSession should throw BusinessException when request is null")
+    void createSession_shouldThrow_whenRequestNull() {
+        assertThatThrownBy(() -> inventoryAuditService.createSession(null, "admin"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("cannot be null");
+    }
 }

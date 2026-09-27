@@ -227,4 +227,24 @@ describe('InventoryCountingSheetComponent', () => {
     component.exportCsv();
     expect(auditServiceSpy.downloadCsv).toHaveBeenCalledWith(1);
   });
+
+  it('cancelAudit should present alert and cancel session on confirm', async () => {
+    auditServiceSpy.cancelSession.and.returnValue(of({ ...mockSession, status: 'CANCELLED' }));
+    await component.cancelAudit();
+    expect(alertCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('getProgress should compute ratio correctly', () => {
+    expect(component.getProgress()).toBe(0.5);
+  });
+
+  it('computeItemLocationCount should calculate total location volume', () => {
+    const counted = component.computeItemLocationCount(mockItem);
+    expect(counted).toBe(140);
+  });
+
+  it('goBack should navigate to /inventory', () => {
+    component.goBack();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/inventory']);
+  });
 });
