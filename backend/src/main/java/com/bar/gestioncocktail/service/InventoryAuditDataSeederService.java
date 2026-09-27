@@ -26,6 +26,8 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -83,9 +85,14 @@ public class InventoryAuditDataSeederService {
     @PostConstruct
     @Transactional
     public void seedInventoryAuditsIfEmpty() {
-        if (auditSessionRepository.count() > 0) {
+        if (auditSessionRepository.count() > 0 && auditItemRepository.count() > 0) {
             log.info("Inventory audit sessions already populated, skipping seeder.");
             return;
+        }
+
+        if (auditSessionRepository.count() > 0 && auditItemRepository.count() == 0) {
+            log.info("Found empty inventory audit sessions with 0 items, clearing them for clean seeding...");
+            auditSessionRepository.deleteAll();
         }
 
         log.info("Seeding demo inventory audit sessions from '{}'...", DATASET_PATH);
@@ -128,8 +135,12 @@ public class InventoryAuditDataSeederService {
         LocalDateTime now = timeService.now();
         LocalDateTime sessionCreated = now.minusDays(daysAgo);
         session.setCreatedAt(sessionCreated);
+        if (status == InventoryAuditStatus.IN_PROGRESS || status == InventoryAuditStatus.FINALIZED) {
+            session.setStartedAt(sessionCreated.plusMinutes(15));
+        }
         if (status == InventoryAuditStatus.FINALIZED) {
             session.setFinalizedAt(sessionCreated.plusHours(2));
+            session.setFinalizedBy(creator);
         }
 
         InventoryAuditSession savedSession = auditSessionRepository.save(session);
@@ -145,6 +156,7 @@ public class InventoryAuditDataSeederService {
         BigDecimal totalCounted = BigDecimal.ZERO;
         BigDecimal totalVariance = BigDecimal.ZERO;
 
+        List<InventoryAuditItem> items = new ArrayList<>();
         for (JsonNode itemNode : itemsNode) {
             String ingredientNom = itemNode.get("ingredientNom").asText();
             Optional<Ingredient> ingOpt = ingredientRepository.findByNomIgnoreCase(ingredientNom);
@@ -175,6 +187,7 @@ public class InventoryAuditDataSeederService {
             item.setNotes(itemNode.hasNonNull(KEY_NOTES) ? itemNode.get(KEY_NOTES).asText() : null);
 
             InventoryAuditItem savedItem = auditItemRepository.save(item);
+            items.add(savedItem);
             populateLocationCounts(savedItem, session.getCreatedBy(), itemNode.get("locationCounts"));
 
             totalTheoretical = totalTheoretical.add(theoVal);
@@ -182,6 +195,7 @@ public class InventoryAuditDataSeederService {
             totalVariance = totalVariance.add(varCost);
         }
 
+        session.setItems(items);
         session.setTotalTheoreticalValueHt(totalTheoretical.setScale(2, RoundingMode.HALF_UP));
         session.setTotalCountedValueHt(totalCounted.setScale(2, RoundingMode.HALF_UP));
         session.setTotalVarianceValueHt(totalVariance.setScale(2, RoundingMode.HALF_UP));

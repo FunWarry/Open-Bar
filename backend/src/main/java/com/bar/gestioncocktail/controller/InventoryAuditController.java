@@ -34,7 +34,7 @@ import java.util.List;
  * storage room counting sheets, theoretical vs actual variance analysis, and shrinkage adjustments.
  */
 @RestController
-@RequestMapping("/api/inventory-audits")
+@RequestMapping({"/api/inventory-audits", "/api/inventory/audits"})
 @Tag(name = "Inventory Audit", description = "Periodic physical stock audits, counting sheets, and shrinkage reconciliation endpoints")
 public class InventoryAuditController {
 

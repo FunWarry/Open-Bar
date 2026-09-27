@@ -134,8 +134,7 @@ public class InventoryAuditService {
         List<InventoryAuditItem> items = new ArrayList<>();
 
         for (Ingredient ing : ingredients) {
-            if (session.getCategoryScope() != null && !session.getCategoryScope().equalsIgnoreCase("ALL")
-                    && !session.getCategoryScope().equalsIgnoreCase(ing.getCategory())) {
+            if (!matchesCategoryScope(session.getCategoryScope(), ing.getCategory())) {
                 continue;
             }
 
@@ -167,6 +166,32 @@ public class InventoryAuditService {
         item.setCountedValueHt(BigDecimal.ZERO);
         item.setVarianceValueHt(BigDecimal.ZERO);
         return item;
+    }
+
+    /**
+     * Determines whether an ingredient category falls within the requested audit category scope,
+     * including support for umbrella alcohol group aliases.
+     *
+     * @param categoryScope Desired category scope filter
+     * @param ingredientCategory Actual ingredient category string
+     * @return true if the ingredient should be audited, false otherwise
+     */
+    private boolean matchesCategoryScope(String categoryScope, String ingredientCategory) {
+        if (categoryScope == null || categoryScope.isBlank() || categoryScope.equalsIgnoreCase("ALL")) {
+            return true;
+        }
+        if (ingredientCategory == null) {
+            return false;
+        }
+        if (categoryScope.equalsIgnoreCase(ingredientCategory)) {
+            return true;
+        }
+        if (categoryScope.equalsIgnoreCase("ALCOHOL") || categoryScope.equalsIgnoreCase("ALCOOLS")) {
+            return List.of("alcohol", "alcools", "dark_liquor", "light_liquor", "liqueurs", "wine_beer")
+                    .stream()
+                    .anyMatch(cat -> cat.equalsIgnoreCase(ingredientCategory));
+        }
+        return false;
     }
 
     /**

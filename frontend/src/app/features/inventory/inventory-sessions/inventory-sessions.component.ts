@@ -40,6 +40,11 @@ import {
   eyeOutline,
   createOutline,
   chevronForwardOutline,
+  gridOutline,
+  appsOutline,
+  wineOutline,
+  snowOutline,
+  fileTrayStackedOutline,
 } from 'ionicons/icons';
 import { InventoryAuditService } from '../../../core/services/inventory-audit.service';
 import {
@@ -52,6 +57,9 @@ import { SearchBarComponent } from '../../../core/components/ui/search-bar/searc
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { EmptyStateComponent } from '../../../core/components/ui/empty-state/empty-state.component';
 import { StatCardComponent } from '../../../core/components/ui/stat-card/stat-card.component';
+import { ModalComponent } from '../../../core/components/ui/modal/modal.component';
+import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
+import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 
 /**
@@ -90,6 +98,9 @@ export type AuditStatusFilter = 'ALL' | 'DRAFT' | 'IN_PROGRESS' | 'FINALIZED' | 
     ActionButtonComponent,
     EmptyStateComponent,
     StatCardComponent,
+    ModalComponent,
+    SearchableSelectComponent,
+    InputFieldComponent
   ],
 })
 export class InventorySessionsComponent implements OnInit, OnDestroy {
@@ -126,6 +137,56 @@ export class InventorySessionsComponent implements OnInit, OnDestroy {
     { value: '', labelKey: 'INVENTORY.FIELD_CATEGORY_ALL' },
     ...INGREDIENT_CATEGORY_CONFIG.map(c => ({ value: c.key, labelKey: c.labelKey })),
   ];
+
+  // Design system SearchableSelect dropdown options
+  readonly storageLocationSelectOptions = computed<SearchableOption<string>[]>(() => [
+    {
+      value: '',
+      label: this.transloco.translate('INVENTORY.FIELD_LOCATION_ALL'),
+      icon: 'grid-outline',
+    },
+    {
+      value: 'Main Bar',
+      label: this.transloco.translate('INVENTORY.LOCATION_MAIN_BAR'),
+      icon: 'wine-outline',
+    },
+    {
+      value: 'Arrière-bar',
+      label: this.transloco.translate('INVENTORY.LOCATION_BACK_BAR'),
+      icon: 'layers-outline',
+    },
+    {
+      value: 'Cave à vins & Spiritueux',
+      label: this.transloco.translate('INVENTORY.LOCATION_CELLAR'),
+      icon: 'file-tray-stacked-outline',
+    },
+    {
+      value: 'Chambre froide fûts',
+      label: this.transloco.translate('INVENTORY.LOCATION_KEG_ROOM'),
+      icon: 'snow-outline',
+    },
+  ]);
+
+  readonly categorySelectOptions = computed<SearchableOption<string>[]>(() => [
+    {
+      value: '',
+      label: this.transloco.translate('INVENTORY.FIELD_CATEGORY_ALL'),
+      icon: 'apps-outline',
+    },
+    {
+      value: 'ALCOHOL',
+      label: this.transloco.translate('INVENTORY.CATEGORY_ALCOHOL'),
+      icon: 'wine-outline',
+      badge: 'Groupe',
+      badgeType: 'primary',
+    },
+    ...INGREDIENT_CATEGORY_CONFIG.map(c => ({
+      value: c.key,
+      label: this.transloco.translate(c.labelKey),
+      icon: c.icon,
+      badgeType: c.badgeType,
+    })),
+  ]);
 
   // Filtered sessions
   readonly filteredSessions = computed(() => {
@@ -181,6 +242,11 @@ export class InventorySessionsComponent implements OnInit, OnDestroy {
       eyeOutline,
       createOutline,
       chevronForwardOutline,
+      gridOutline,
+      appsOutline,
+      wineOutline,
+      snowOutline,
+      fileTrayStackedOutline,
     });
     this.initForm();
   }
@@ -199,6 +265,7 @@ export class InventorySessionsComponent implements OnInit, OnDestroy {
       title: ['', [Validators.required, Validators.maxLength(150)]],
       storageLocationScope: [''],
       categoryFilter: [''],
+      categoryScope: [''],
       notes: ['', [Validators.maxLength(1000)]],
     });
   }
@@ -266,7 +333,7 @@ export class InventorySessionsComponent implements OnInit, OnDestroy {
     const request: CreateInventoryAuditSessionRequest = {
       title: formVal.title.trim(),
       storageLocationScope: formVal.storageLocationScope || undefined,
-      categoryScope: formVal.categoryFilter || undefined,
+      categoryScope: formVal.categoryFilter || (formVal as Record<string, unknown>)['categoryScope'] as string || undefined,
       notes: formVal.notes?.trim() || undefined,
     };
 
@@ -374,4 +441,36 @@ export class InventorySessionsComponent implements OnInit, OnDestroy {
         return 'medium';
     }
   }
+
+  /**
+   * Formats the storage location scope string to its localized display label.
+   */
+  formatLocationScope(scope?: string | null): string {
+    if (!scope || scope === 'ALL') {
+      return this.transloco.translate('INVENTORY.LOCATION_ALL');
+    }
+    const match = this.storageLocationOptions.find(o => o.value === scope);
+    if (match) {
+      return this.transloco.translate(match.labelKey);
+    }
+    return scope;
+  }
+
+  /**
+   * Formats the category scope string to its localized display label.
+   */
+  formatCategoryScope(scope?: string | null): string {
+    if (!scope || scope === 'ALL') {
+      return this.transloco.translate('INVENTORY.FIELD_CATEGORY_ALL');
+    }
+    if (scope.toUpperCase() === 'ALCOHOL' || scope.toUpperCase() === 'ALCOOLS') {
+      return this.transloco.translate('INVENTORY.CATEGORY_ALCOHOL');
+    }
+    const match = this.categoryOptions.find(c => c.value === scope);
+    if (match) {
+      return this.transloco.translate(match.labelKey);
+    }
+    return scope;
+  }
 }
+

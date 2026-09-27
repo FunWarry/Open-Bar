@@ -3081,39 +3081,66 @@
       "items": [
         {
           "ingredientNom": "Rhum Blanc",
-          "actualStock": 800.0,
-          "notes": "Écart négatif de 40cl identifié au bar principal",
+          "actualStock": 42.0,
+          "notes": "Léger écart de 3cl constaté au bar principal",
           "locationCounts": [
             {
               "storageLocation": "MAIN_BAR",
-              "fullContainersCount": 2,
-              "partialFraction": 0.5,
-              "exactQuantity": 175.0
-            },
-            {
-              "storageLocation": "CELLAR",
-              "fullContainersCount": 8,
-              "partialFraction": 0.93,
-              "exactQuantity": 625.0
+              "fullContainersCount": 0,
+              "partialFraction": 0.6,
+              "exactQuantity": 42.0
             }
           ]
         },
         {
           "ingredientNom": "Gin",
-          "actualStock": 420.0,
-          "notes": "Comptage conforme au stock théorique",
+          "actualStock": 25.0,
+          "notes": "Comptage parfaitement conforme au stock théorique",
           "locationCounts": [
             {
               "storageLocation": "MAIN_BAR",
-              "fullContainersCount": 2,
-              "partialFraction": 0.0,
-              "exactQuantity": 140.0
-            },
+              "fullContainersCount": 0,
+              "partialFraction": 0.35,
+              "exactQuantity": 25.0
+            }
+          ]
+        },
+        {
+          "ingredientNom": "Vodka",
+          "actualStock": 345.0,
+          "notes": "Écart de 5cl en cave après le service du week-end",
+          "locationCounts": [
             {
-              "storageLocation": "BACK_BAR",
+              "storageLocation": "CELLAR",
               "fullContainersCount": 4,
-              "partialFraction": 0.0,
-              "exactQuantity": 280.0
+              "partialFraction": 0.93,
+              "exactQuantity": 345.0
+            }
+          ]
+        },
+        {
+          "ingredientNom": "Rhum Ambré",
+          "actualStock": 24.0,
+          "notes": "Conforme aux tolérances de débit",
+          "locationCounts": [
+            {
+              "storageLocation": "MAIN_BAR",
+              "fullContainersCount": 0,
+              "partialFraction": 0.34,
+              "exactQuantity": 24.0
+            }
+          ]
+        },
+        {
+          "ingredientNom": "Tequila",
+          "actualStock": 20.0,
+          "notes": "Bouteille entamée vérifiée à la jauge",
+          "locationCounts": [
+            {
+              "storageLocation": "MAIN_BAR",
+              "fullContainersCount": 0,
+              "partialFraction": 0.28,
+              "exactQuantity": 20.0
             }
           ]
         }
@@ -3143,10 +3170,30 @@
           ]
         },
         {
-          "ingredientNom": "Sirop de sucre",
-          "actualStock": 0.0,
-          "notes": "À compter dans l'arrière-bar",
-          "locationCounts": []
+          "ingredientNom": "Sirop de Canne",
+          "actualStock": 18.0,
+          "notes": "Compté au bar principal",
+          "locationCounts": [
+            {
+              "storageLocation": "MAIN_BAR",
+              "fullContainersCount": 0,
+              "partialFraction": 0.9,
+              "exactQuantity": 18.0
+            }
+          ]
+        },
+        {
+          "ingredientNom": "Menthe fraîche",
+          "actualStock": 140.0,
+          "notes": "Contrôle chambre froide",
+          "locationCounts": [
+            {
+              "storageLocation": "CELLAR",
+              "fullContainersCount": 2,
+              "partialFraction": 0.8,
+              "exactQuantity": 140.0
+            }
+          ]
         }
       ]
     }

@@ -839,5 +839,18 @@ CREATE TABLE IF NOT EXISTS inventory_audit_location_counts (
 CREATE INDEX IF NOT EXISTS idx_audit_loc_counts_item_id ON inventory_audit_location_counts(audit_item_id);
 CREATE INDEX IF NOT EXISTS idx_audit_loc_counts_location ON inventory_audit_location_counts(storage_location);
 
--- Idempotent column migrations
-ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_inventory_audit_enabled BOOLEAN DEFAULT true;
+-- Stock Movements & Waste Tracking
+CREATE TABLE IF NOT EXISTS stock_movements (
+    id BIGSERIAL PRIMARY KEY,
+    ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+    quantity DECIMAL(10,2) NOT NULL,
+    unit VARCHAR(50) NOT NULL,
+    reason VARCHAR(50) NOT NULL CHECK (reason IN ('CASSE', 'PEREMPTION', 'OFFERT_PATRON', 'DEGUSTATION_STAFF', 'ERREUR_PREPARATION', 'INVENTORY_ADJUSTMENT', 'INVENTORY_SURPLUS')),
+    reported_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    notes TEXT,
+    cost DECIMAL(10,2) DEFAULT 0.00,
+    recorded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_stock_movements_ingredient ON stock_movements(ingredient_id);
+CREATE INDEX IF NOT EXISTS idx_stock_movements_recorded_at ON stock_movements(recorded_at);

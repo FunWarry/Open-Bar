@@ -163,6 +163,8 @@
           <article
             class="session-card"
             [class.finalized]="session.status === 'FINALIZED'"
+            [class.in-progress]="session.status === 'IN_PROGRESS'"
+            [class.draft]="session.status === 'DRAFT'"
             [attr.data-testid]="'session-card-' + session.id">
             
             <div class="card-top-row">
@@ -192,15 +194,15 @@
                 </div>
               }
               @if (session.storageLocationScope) {
-                <div class="meta-item location-tag">
+                <div class="meta-item">
                   <ion-icon name="location-outline"></ion-icon>
-                  <span>{{ session.storageLocationScope }}</span>
+                  <span>{{ formatLocationScope(session.storageLocationScope) }}</span>
                 </div>
               }
               @if (session.categoryScope) {
-                <div class="meta-item category-tag">
+                <div class="meta-item">
                   <ion-icon name="layers-outline"></ion-icon>
-                  <span>{{ session.categoryScope }}</span>
+                  <span>{{ formatCategoryScope(session.categoryScope) }}</span>
                 </div>
               }
             </div>
@@ -224,28 +226,22 @@
               </ion-progress-bar>
             </div>
 
-            <!-- Financial Summary Matrix -->
+            <!-- Financial Summary Matrix (3 equal columns) -->
             <div class="financial-summary-row">
               <div class="summary-col">
-                <span class="summary-label">{{ 'INVENTORY.COL_THEO_VAL' | transloco }}</span>
+                <span class="summary-label">{{ 'INVENTORY.CARD_THEO_VAL' | transloco }}</span>
                 <span class="summary-value">{{ session.totalTheoreticalValueHt | number:'1.2-2' }} €</span>
               </div>
               <div class="summary-col">
-                <span class="summary-label">{{ 'INVENTORY.COL_COUNTED_VAL' | transloco }}</span>
+                <span class="summary-label">{{ 'INVENTORY.CARD_COUNTED_VAL' | transloco }}</span>
                 <span class="summary-value">{{ session.totalCountedValueHt | number:'1.2-2' }} €</span>
               </div>
               <div class="summary-col" [class.loss]="session.totalVarianceValueHt < 0" [class.gain]="session.totalVarianceValueHt > 0">
-                <span class="summary-label">{{ 'INVENTORY.COL_VARIANCE_VAL' | transloco }}</span>
+                <span class="summary-label">{{ 'INVENTORY.CARD_VARIANCE_VAL' | transloco }}</span>
                 <span class="summary-value font-bold">
                   {{ (session.totalVarianceValueHt >= 0 ? '+' : '') + (session.totalVarianceValueHt | number:'1.2-2') }} €
                 </span>
               </div>
-              @if (session.totalVarianceValueHt < 0) {
-                <div class="summary-col loss">
-                  <span class="summary-label">{{ 'INVENTORY.REPORT_SHRINKAGE_LOSS' | transloco }}</span>
-                  <span class="summary-value font-bold">{{ session.totalVarianceValueHt | number:'1.2-2' }} €</span>
-                </div>
-              }
             </div>
 
             <!-- Card Actions Footer -->
@@ -291,94 +287,86 @@
 
   <!-- Creation Modal -->
   <ion-modal [isOpen]="isCreateModalOpen()" (didDismiss)="closeCreateModal()" class="create-audit-modal">
-    <ng-template>
-      <div class="modal-wrapper-custom" data-testid="modal-create-audit">
-        <div class="modal-header-custom">
-          <div class="modal-title-box">
-            <ion-icon name="clipboard-outline" class="modal-icon"></ion-icon>
-            <div>
-              <h2 class="modal-title">{{ 'INVENTORY.CREATE_MODAL_TITLE' | transloco }}</h2>
-              <p class="modal-subtitle">{{ 'INVENTORY.CREATE_MODAL_SUBTITLE' | transloco }}</p>
-            </div>
-          </div>
-          <button type="button" class="close-btn" (click)="closeCreateModal()" data-testid="btn-close-create-modal">
-            <ion-icon name="close-outline"></ion-icon>
-          </button>
-        </div>
-
-        <form [formGroup]="createForm" (ngSubmit)="submitCreate()" class="modal-body-form">
-          <div class="form-group">
-            <label class="form-label" for="audit-title">{{ 'INVENTORY.FIELD_TITLE' | transloco }} *</label>
-            <input
-              id="audit-title"
-              type="text"
-              class="custom-input"
+    @if (isCreateModalOpen()) {
+      <app-modal
+        [title]="'INVENTORY.CREATE_MODAL_TITLE' | transloco"
+        [subtitle]="'INVENTORY.CREATE_MODAL_SUBTITLE' | transloco"
+        icon="clipboard-outline"
+        size="md"
+        (dismiss)="closeCreateModal()">
+        
+        <form [formGroup]="createForm" (ngSubmit)="submitCreate()" id="createAuditForm" class="modal-form">
+          <div class="form-row">
+            <app-input-field
               formControlName="title"
+              [label]="('INVENTORY.FIELD_TITLE' | transloco) + ' *'"
               [placeholder]="'INVENTORY.FIELD_TITLE_PLACEHOLDER' | transloco"
-              data-testid="input-audit-title" />
+              icon="create-outline"
+              [required]="true"
+              testId="input-audit-title"
+              data-testid="input-audit-title">
+            </app-input-field>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="audit-location-scope">{{ 'INVENTORY.FIELD_LOCATION_SCOPE' | transloco }}</label>
-            <select
-              id="audit-location-scope"
-              class="custom-select"
+          <div class="form-row">
+            <app-searchable-select
               formControlName="storageLocationScope"
+              [label]="'INVENTORY.FIELD_LOCATION_SCOPE' | transloco"
+              [options]="storageLocationSelectOptions()"
+              [placeholder]="'INVENTORY.FIELD_LOCATION_SCOPE' | transloco"
+              testId="select-location-scope"
               data-testid="select-location-scope">
-              @for (opt of storageLocationOptions; track opt.value) {
-                <option [value]="opt.value">{{ opt.labelKey | transloco }}</option>
-              }
-            </select>
+            </app-searchable-select>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="audit-category-filter">{{ 'INVENTORY.FIELD_CATEGORY_FILTER' | transloco }}</label>
-            <select
-              id="audit-category-filter"
-              class="custom-select"
+          <div class="form-row">
+            <app-searchable-select
               formControlName="categoryFilter"
+              [label]="'INVENTORY.FIELD_CATEGORY_FILTER' | transloco"
+              [options]="categorySelectOptions()"
+              [placeholder]="'INVENTORY.FIELD_CATEGORY_FILTER' | transloco"
+              testId="select-category-filter"
               data-testid="select-category-filter">
-              @for (cat of categoryOptions; track cat.value) {
-                <option [value]="cat.value">{{ cat.labelKey | transloco }}</option>
-              }
-            </select>
+            </app-searchable-select>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="audit-notes">{{ 'INVENTORY.FIELD_NOTES' | transloco }}</label>
+          <div class="form-row">
+            <label class="dropdown-label" for="audit-notes">{{ 'INVENTORY.FIELD_NOTES' | transloco }}</label>
             <textarea
               id="audit-notes"
-              class="custom-textarea"
+              class="notes-textarea"
               rows="3"
               formControlName="notes"
               [placeholder]="'INVENTORY.FIELD_NOTES_PLACEHOLDER' | transloco"
               data-testid="textarea-audit-notes">
             </textarea>
           </div>
-
-          <div class="modal-footer-custom">
-            <button
-              type="button"
-              class="btn-secondary-custom"
-              (click)="closeCreateModal()"
-              data-testid="btn-cancel-create">
-              {{ 'COMMON.CANCEL' | transloco }}
-            </button>
-            <button
-              type="submit"
-              class="btn-primary-custom"
-              [disabled]="createForm.invalid || isCreating()"
-              data-testid="btn-submit-create-audit">
-              @if (isCreating()) {
-                <ion-spinner name="dots"></ion-spinner>
-              } @else {
-                <ion-icon name="checkmark-circle-outline"></ion-icon>
-                <span>{{ 'INVENTORY.BTN_START_AUDIT' | transloco }}</span>
-              }
-            </button>
-          </div>
         </form>
-      </div>
-    </ng-template>
+
+        <div slot="footer" class="modal-actions-footer">
+          <app-action-button
+            variant="secondary"
+            size="medium"
+            (btnClick)="closeCreateModal()"
+            testId="btn-cancel-create"
+            data-testid="btn-cancel-create">
+            {{ 'COMMON.CANCEL' | transloco }}
+          </app-action-button>
+
+          <app-action-button
+            variant="primary"
+            size="medium"
+            type="submit"
+            [disabled]="createForm.invalid || isCreating()"
+            [loading]="isCreating()"
+            icon="checkmark-circle-outline"
+            (btnClick)="submitCreate()"
+            testId="btn-submit-create-audit"
+            data-testid="btn-submit-create-audit">
+            {{ 'INVENTORY.BTN_START_AUDIT' | transloco }}
+          </app-action-button>
+        </div>
+      </app-modal>
+    }
   </ion-modal>
 </ion-content>
