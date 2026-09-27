@@ -889,6 +889,12 @@ ion-modal.commande-detail-modal-container {
   --max-height: 88vh;
 }
 
+ion-modal.ingredient-form-modal-container {
+  --width: min(960px, 96vw);
+  --height: min(860px, 92vh);
+  --max-height: 92vh;
+}
+
 ion-modal.openbar-modal-split,
 ion-modal.encaissement-modal-container {
   --width: min(1180px, 96vw);

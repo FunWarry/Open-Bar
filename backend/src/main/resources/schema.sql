@@ -107,6 +107,8 @@ CREATE TABLE IF NOT EXISTS ingredients (
     purchase_unit VARCHAR(50),
     packaging_capacity DECIMAL(10,3) DEFAULT 1.000,
     packaging_price_ht DECIMAL(10,2),
+    is_crafted BOOLEAN DEFAULT false,
+    is_purchasable BOOLEAN DEFAULT true,
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -122,6 +124,19 @@ CREATE TABLE IF NOT EXISTS ingredient_allergens (
 );
 
 CREATE INDEX IF NOT EXISTS idx_ingredient_allergens_ingredient_id ON ingredient_allergens(ingredient_id);
+
+CREATE TABLE IF NOT EXISTS ingredient_confection_sources (
+    id BIGSERIAL PRIMARY KEY,
+    crafted_ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+    source_ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+    yield_ratio DECIMAL(10,4) NOT NULL,
+    yield_unit VARCHAR(20),
+    notes TEXT,
+    UNIQUE(crafted_ingredient_id, source_ingredient_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_confection_sources_crafted ON ingredient_confection_sources(crafted_ingredient_id);
+CREATE INDEX IF NOT EXISTS idx_confection_sources_source ON ingredient_confection_sources(source_ingredient_id);
 
 CREATE TABLE IF NOT EXISTS cocktail_ingredients (
     id BIGSERIAL PRIMARY KEY,
@@ -768,7 +783,3 @@ CREATE TABLE IF NOT EXISTS purchase_order_delivery_items (
 
 CREATE INDEX IF NOT EXISTS idx_po_delivery_items_delivery ON purchase_order_delivery_items(delivery_id);
 CREATE INDEX IF NOT EXISTS idx_po_delivery_items_ingredient ON purchase_order_delivery_items(ingredient_id);
-
-ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS unit_system VARCHAR(20) DEFAULT 'METRIC_CL';
-ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS volume_unit VARCHAR(20) DEFAULT 'cl';
-ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS weight_unit VARCHAR(20) DEFAULT 'g';

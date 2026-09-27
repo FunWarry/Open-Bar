@@ -73,7 +73,8 @@ public class IngredientController {
         if (request.defaultSupplierId() != null) {
             supplierRepository.findById(request.defaultSupplierId()).ifPresent(entity::setDefaultSupplier);
         }
-        return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.createIngredient(entity)));
+        Ingredient saved = ingredientService.createIngredientWithSources(entity, request.confectionSources());
+        return ResponseEntity.ok(IngredientResponseDTO.from(saved));
     }
 
 
@@ -95,7 +96,8 @@ public class IngredientController {
         if (request.defaultSupplierId() != null) {
             supplierRepository.findById(request.defaultSupplierId()).ifPresent(entity::setDefaultSupplier);
         }
-        return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.updateIngredient(id, entity)));
+        Ingredient updated = ingredientService.updateIngredientWithSources(id, entity, request.confectionSources());
+        return ResponseEntity.ok(IngredientResponseDTO.from(updated));
     }
 
     /**

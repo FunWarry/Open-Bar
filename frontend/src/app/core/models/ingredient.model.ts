@@ -30,6 +30,7 @@ export const DEFAULT_ALLERGEN_OPTIONS: readonly AllergenOption[] = [
   { key: 'FRUITS_A_COQUE', labelKey: 'COCKTAILS.ALLERGENS.FRUITS_A_COQUE', icon: 'nutrition-outline', emoji: '🌰' },
   { key: 'ARACHIDE', labelKey: 'COCKTAILS.ALLERGENS.ARACHIDE', icon: 'nutrition-outline', emoji: '🥜' },
   { key: 'SULFITES', labelKey: 'COCKTAILS.ALLERGENS.SULFITES', icon: 'wine-outline', emoji: '🍷' },
+  { key: 'SOJA', labelKey: 'COCKTAILS.ALLERGENS.SOJA', icon: 'nutrition-outline', emoji: '🫘' },
 ] as const;
 
 /**
@@ -129,6 +130,25 @@ export const INGREDIENT_CATEGORY_CONFIG: readonly IngredientCategoryDescriptor[]
 ] as const;
 
 /**
+ * Represents a single source ingredient and yield ratio in a confection (on-site preparation) mapping.
+ * Example: 1 "Citron jaune" yields 3.0 cl of "Jus de citron jaune".
+ */
+export interface ConfectionSource {
+  /** ID of the source (raw) ingredient. */
+  sourceIngredientId: number;
+  /** Display name of the source ingredient. */
+  sourceIngredientNom?: string;
+  /** Stock unit of the source ingredient. */
+  sourceIngredientUnit?: string;
+  /** Yield ratio: how many crafted-ingredient units are produced from 1 source unit. */
+  yieldRatio: number;
+  /** Unit of the yield output (should match crafted ingredient's uniteMesure). */
+  yieldUnit?: string;
+  /** Optional notes about this confection source. */
+  notes?: string;
+}
+
+/**
  * Raw beverage ingredient or bottle inventory entity.
  */
 export interface Ingredient {
@@ -153,6 +173,12 @@ export interface Ingredient {
   purchaseUnit?: string;
   packagingCapacity?: number;
   packagingPriceHt?: number;
+  /** True if this ingredient is crafted on-site from source ingredients. */
+  isCrafted?: boolean;
+  /** True if this ingredient can also be purchased directly from a supplier. */
+  isPurchasable?: boolean;
+  /** Confection source mappings (only populated if isCrafted is true). */
+  confectionSources?: ConfectionSource[];
   createdAt: string;
   updatedAt: string;
 }

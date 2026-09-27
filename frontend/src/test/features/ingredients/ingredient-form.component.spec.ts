@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormGroup } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController, ModalController } from '@ionic/angular';
@@ -31,7 +31,8 @@ describe('IngredientFormComponent', () => {
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
     modalCtrlSpy.dismiss.and.returnValue(Promise.resolve(true));
-    ingredientServiceSpy = jasmine.createSpyObj('IngredientService', ['getById', 'create', 'update']);
+    ingredientServiceSpy = jasmine.createSpyObj('IngredientService', ['getById', 'create', 'update', 'getAll']);
+    ingredientServiceSpy.getAll.and.returnValue(of([]));
     ingredientServiceSpy.create.and.returnValue(of({} as any));
     ingredientServiceSpy.update.and.returnValue(of({} as any));
     ingredientServiceSpy.getById.and.returnValue(of({
@@ -118,7 +119,10 @@ describe('IngredientFormComponent', () => {
         codeBarre: '',
         purchaseUnit: 'Sachet 1kg',
         packagingCapacity: 1,
-        packagingPriceHt: 2.5
+        packagingPriceHt: 2.5,
+        isCrafted: false,
+        isPurchasable: true,
+        confectionSources: []
       });
       expect(component.ingredientForm.valid).toBeTrue();
     });
@@ -234,7 +238,8 @@ describe('IngredientFormComponent', () => {
       routerSpy = jasmine.createSpyObj('Router', ['navigate']);
       toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
       modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
-      ingredientServiceSpy = jasmine.createSpyObj('IngredientService', ['getById', 'create', 'update']);
+      ingredientServiceSpy = jasmine.createSpyObj('IngredientService', ['getById', 'create', 'update', 'getAll']);
+      ingredientServiceSpy.getAll.and.returnValue(of([]));
       ingredientServiceSpy.getById.and.returnValue(throwError(() => new Error('Not found')));
 
       TestBed.configureTestingModule({
@@ -301,7 +306,10 @@ describe('IngredientFormComponent', () => {
         codeBarre: '',
         purchaseUnit: 'Boite 1kg',
         packagingCapacity: 1000,
-        packagingPriceHt: 1.0
+        packagingPriceHt: 1.0,
+        isCrafted: false,
+        isPurchasable: true,
+        confectionSources: []
       });
       expect(component.ingredientForm.get('quantiteStock')?.valid).toBeTrue();
     });
@@ -347,7 +355,10 @@ describe('IngredientFormComponent', () => {
         codeBarre: '',
         purchaseUnit: 'Bouteille 70cl',
         packagingCapacity: 70,
-        packagingPriceHt: 14.5
+        packagingPriceHt: 14.5,
+        isCrafted: false,
+        isPurchasable: true,
+        confectionSources: []
       });
       component.onSubmit();
       const modalCtrl = TestBed.inject(ToastController); // injector lookup
@@ -357,6 +368,106 @@ describe('IngredientFormComponent', () => {
     it('onCancel() appelle modalCtrl.dismiss', () => {
       component.onCancel();
       expect(component).toBeTruthy();
+    });
+  });
+
+  describe('confection maison et sources', () => {
+    beforeEach(() => createComponent(activatedRouteStubNoId));
+
+    it('onIsCraftedChange(true) automatically adds a source row if empty', () => {
+      expect(component.confectionSources).toHaveSize(0);
+      component.onIsCraftedChange(true);
+      expect(component.confectionSources).toHaveSize(1);
+    });
+
+    it('onIsCraftedChange(false) clears sources and resets isPurchasable to true', () => {
+      component.onIsCraftedChange(true);
+      component.ingredientForm.patchValue({ isPurchasable: false });
+      expect(component.confectionSources).toHaveSize(1);
+
+      component.onIsCraftedChange(false);
+      expect(component.confectionSources).toHaveSize(0);
+      expect(component.ingredientForm.get('isPurchasable')?.value).toBeTrue();
+    });
+
+    it('addConfectionSource and removeConfectionSource manage FormArray items', () => {
+      expect(component.confectionSources).toHaveSize(0);
+      component.addConfectionSource({ sourceIngredientId: 10, yieldRatio: 2.0, yieldUnit: 'cl' });
+      expect(component.confectionSources).toHaveSize(1);
+      expect(component.confectionSources.at(0).get('sourceIngredientId')?.value).toBe(10);
+      expect(component.confectionSources.at(0).get('yieldRatio')?.value).toBe(2.0);
+
+      component.removeConfectionSource(0);
+      expect(component.confectionSources).toHaveSize(0);
+    });
+
+    it('onSourceSelectionChange pre-populates yieldUnit if empty (from subLabel or badge)', () => {
+      component.addConfectionSource({ sourceIngredientId: 5, yieldRatio: 1.5, yieldUnit: '' });
+      component.onSourceSelectionChange(0, { value: 5, label: 'Sucre', subLabel: 'g' });
+      expect(component.confectionSources.at(0).get('yieldUnit')?.value).toBe('g');
+
+      component.confectionSources.at(0).patchValue({ yieldUnit: '' });
+      component.onSourceSelectionChange(0, { value: 5, label: 'Sucre', badge: 'cl' });
+      expect(component.confectionSources.at(0).get('yieldUnit')?.value).toBe('cl');
+    });
+
+    it('yieldUnitOptions returns compact options with badge and icon without subLabel', () => {
+      const options = component.yieldUnitOptions;
+      expect(options.length).toBeGreaterThan(0);
+      const clOption = options.find(o => o.value === 'cl');
+      expect(clOption).toBeDefined();
+      expect(clOption?.badge).toBeDefined();
+      expect(clOption?.subLabel).toBeUndefined();
+    });
+
+    it('getYieldExplanation returns meaningful localized text', () => {
+      component.allIngredients = [{ id: 7, nom: 'Eau', uniteMesure: 'cl' } as any];
+      component.ingredientForm.patchValue({ uniteMesure: 'cl' });
+      component.addConfectionSource({ sourceIngredientId: 7, yieldRatio: 1.5, yieldUnit: 'cl' });
+
+      const explanation = component.getYieldExplanation(component.confectionSources.at(0) as FormGroup);
+      expect(explanation).toBeTruthy();
+    });
+
+    it('automatically inherits allergens from confection source ingredients and locks them', () => {
+      component.allIngredients = [
+        { id: 10, nom: 'Lait entier', uniteMesure: 'cl', allergens: ['LAIT'], isVegan: false } as any,
+        { id: 20, nom: 'Bière', uniteMesure: 'cl', allergens: ['GLUTEN'], isVegan: true } as any
+      ];
+      component.onIsCraftedChange(true);
+      expect(component.confectionSources).toHaveSize(1);
+
+      // Select source ingredient with LAIT
+      component.confectionSources.at(0).patchValue({ sourceIngredientId: 10 });
+      component.onSourceSelectionChange(0, { value: 10, label: 'Lait entier' });
+
+      expect(component.isAllergenInherited('LAIT')).toBeTrue();
+      expect(component.isAllergenSelected('LAIT')).toBeTrue();
+      expect(component.hasInheritedAllergens).toBeTrue();
+      expect(component.isVeganLockedFalse).toBeTrue();
+      expect(component.ingredientForm.get('isVegan')?.value).toBeFalse();
+
+      // Attempting to deselect inherited allergen does nothing
+      component.toggleAllergen('LAIT');
+      expect(component.isAllergenSelected('LAIT')).toBeTrue();
+
+      // Attempting to toggle vegan when locked does nothing
+      component.toggleVegan();
+      expect(component.ingredientForm.get('isVegan')?.value).toBeFalse();
+
+      // Adding a second source with GLUTEN
+      component.addConfectionSource({ sourceIngredientId: 20, yieldRatio: 1.0 });
+      component.onSourceSelectionChange(1, { value: 20, label: 'Bière' });
+
+      expect(component.isAllergenInherited('GLUTEN')).toBeTrue();
+      expect(component.isAllergenSelected('GLUTEN')).toBeTrue();
+
+      // Removing first source (Lait) leaves only GLUTEN
+      component.removeConfectionSource(0);
+      expect(component.isAllergenInherited('LAIT')).toBeFalse();
+      expect(component.isAllergenSelected('LAIT')).toBeFalse();
+      expect(component.isAllergenInherited('GLUTEN')).toBeTrue();
+      expect(component.isAllergenSelected('GLUTEN')).toBeTrue();
     });
   });
 });

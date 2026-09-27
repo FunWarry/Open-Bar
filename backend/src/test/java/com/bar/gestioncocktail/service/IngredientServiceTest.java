@@ -1,6 +1,9 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.ConfectionSourceRequest;
+import com.bar.gestioncocktail.model.Allergen;
 import com.bar.gestioncocktail.model.Ingredient;
+import com.bar.gestioncocktail.repository.IngredientConfectionSourceRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +27,9 @@ class IngredientServiceTest {
 
     @Mock
     IngredientRepository ingredientRepository;
+
+    @Mock
+    IngredientConfectionSourceRepository confectionSourceRepository;
 
     @Mock
     org.springframework.context.ApplicationEventPublisher eventPublisher;
@@ -149,5 +155,31 @@ class IngredientServiceTest {
         ingredientService.updateStock(ingredient, new BigDecimal("15.00"));
 
         verify(eventPublisher).publishEvent(any(com.bar.gestioncocktail.event.StockAlertEvent.class));
+    }
+
+    @Test
+    void createIngredientWithSources_synchronizesAllergensAndForcesNonVegan() {
+        Ingredient crafted = new Ingredient();
+        crafted.setId(10L);
+        crafted.setNom("Sirop Lait-Amande");
+        crafted.setIsVegan(true);
+        crafted.setAllergens(new java.util.HashSet<>());
+
+        Ingredient sourceMilk = new Ingredient();
+        sourceMilk.setId(2L);
+        sourceMilk.setNom("Lait");
+        sourceMilk.setIsVegan(false);
+        sourceMilk.setAllergens(new java.util.HashSet<>(java.util.List.of(Allergen.LAIT)));
+
+        when(ingredientRepository.findById(2L)).thenReturn(Optional.of(sourceMilk));
+        when(ingredientRepository.save(any(Ingredient.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(ingredientRepository.findById(10L)).thenReturn(Optional.of(crafted));
+
+        ConfectionSourceRequest req = new ConfectionSourceRequest(2L, new BigDecimal("2.5"), "cl", "Test source");
+        Ingredient result = ingredientService.createIngredientWithSources(crafted, java.util.List.of(req));
+
+        assertThat(result.getAllergens()).contains(Allergen.LAIT);
+        assertThat(result.getIsVegan()).isFalse();
+        verify(confectionSourceRepository).save(any());
     }
 }
