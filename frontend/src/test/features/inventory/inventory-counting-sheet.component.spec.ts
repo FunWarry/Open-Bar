@@ -40,7 +40,7 @@ describe('InventoryCountingSheetComponent', () => {
     locationCounts: [
       {
         id: 101,
-        storageLocation: 'Main Bar',
+        storageLocation: 'Bar Principal',
         fullContainersCount: 2,
         partialQuantity: 0,
         countedQuantity: 140,
@@ -93,7 +93,7 @@ describe('InventoryCountingSheetComponent', () => {
     totalItemsAudited: 2,
     itemsWithVarianceCount: 1,
     varianceValueByCategory: { alcohol: -875 },
-    countedValueByLocation: { 'Main Bar': 2800 },
+    countedValueByLocation: { 'Bar Principal': 2800 },
   };
 
   beforeEach(async () => {
@@ -168,7 +168,7 @@ describe('InventoryCountingSheetComponent', () => {
   });
 
   it('should switch selected storage location', () => {
-    expect(component.selectedLocation()).toBe('Main Bar');
+    expect(component.selectedLocation()).toBe('Bar Principal');
 
     component.selectLocation('Cave à vins & Spiritueux');
     expect(component.selectedLocation()).toBe('Cave à vins & Spiritueux');
