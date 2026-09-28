@@ -96,37 +96,37 @@ export class StatCardComponent {
   @Input() size: StatCardSize = 'md';
 
   /** Metric card title header. */
-  @Input() title?: string;
+  @Input() title?: string | null;
 
   /** Alias for title. */
-  @Input() label?: string;
+  @Input() label?: string | null;
 
   /** Metric value content text or number. */
-  @Input() value?: string | number;
+  @Input() value?: string | number | null;
 
   /** Additional CSS class applied to the value text element. */
-  @Input() valueClass?: string;
+  @Input() valueClass?: string | null;
 
   /** Secondary subtitle or helper text displayed under title or value. */
-  @Input() subtext?: string;
+  @Input() subtext?: string | null;
 
   /** Additional CSS class applied to the subtext element. */
-  @Input() subtextClass?: string;
+  @Input() subtextClass?: string | null;
 
   /** Ionicon icon identifier (e.g. 'cash-outline', 'restaurant-outline'). */
-  @Input() icon?: string;
+  @Input() icon?: string | null;
 
   /** Explicit position of label relative to value ('top' or 'bottom'). */
-  @Input() labelPosition?: StatCardLabelPosition;
+  @Input() labelPosition?: StatCardLabelPosition | null;
 
   /** Optional trend percentage or text string (e.g. '+12%', 'Critique'). */
-  @Input() trend?: string;
+  @Input() trend?: string | null;
 
   /** Trend direction indicator ('up', 'down', 'neutral'). */
   @Input() trendDirection: TrendDirection = 'neutral';
 
   /** Color variant identifier. */
-  @Input() color?: StatCardColor;
+  @Input() color?: StatCardColor | null;
 
   /** Whether the card has an active glow/accent border highlight. */
   @Input() highlight = false;
