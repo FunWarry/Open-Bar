@@ -1,15 +1,14 @@
-<div
-  class="table-tile"
-  [class.is-occupied]="table.occupee"
-  [class.wait-border-normal]="table.occupee && waitTimeMinutes > 0 && waitTimeMinutes < 10"
-  [class.wait-border-warning]="table.occupee && waitTimeMinutes >= 10 && waitTimeMinutes < 20"
-  [class.wait-border-danger]="table.occupee && waitTimeMinutes >= 20"
-  [attr.data-testid]="'mobile-table-card-' + table.id"
-  (click)="tableSelect.emit(table)"
-  (keyup.enter)="tableSelect.emit(table)"
-  (keydown.enter)="tableSelect.emit(table)">
+<app-card
+  [accentColor]="accentColor"
+  [clickable]="true"
+  [headerDivider]="'none'"
+  [footerDivider]="'solid'"
+  [padding]="'md'"
+  [testId]="'mobile-table-card-' + table.id"
+  [customClass]="'table-tile ' + (table.occupee ? 'is-occupied ' + WaitTimeClass : '')"
+  (cardClick)="tableSelect.emit(table)">
 
-  <div class="tile-header">
+  <div card-header class="tile-header">
     <div class="table-identity">
       <div class="icon-box">
         <ion-icon name="restaurant-outline"></ion-icon>
@@ -21,26 +20,26 @@
     </span>
   </div>
 
-  <!-- Active Table Call Alert Banner -->
-  @if (table.activeAppels && table.activeAppels.length > 0) {
-    <div
-      class="call-alert-banner"
-      [class.bill-alert]="table.activeAppelType === 'ADDITION'"
-      [attr.data-testid]="'mobile-card-call-alert-' + table.id">
-      <span class="call-icon pulse">{{ table.activeAppelType === 'ADDITION' ? '💳' : '🔔' }}</span>
-      <span class="call-text">{{ (table.activeAppelType === 'ADDITION' ? 'SERVEUR.ALERTS.BILL_REQUEST' : 'SERVEUR.ALERTS.ASSISTANCE_REQUEST') | transloco }}</span>
-      <button
-        type="button"
-        class="call-ack-btn"
-        [attr.data-testid]="'btn-card-ack-call-' + table.id"
-        (click)="$event.stopPropagation(); ackAppel.emit(table.activeAppels[0])"
-        (keyup.enter)="$event.stopPropagation(); ackAppel.emit(table.activeAppels[0])">
-        ✓ {{ 'SERVEUR.ALERTS.ACKNOWLEDGE_BTN' | transloco }}
-      </button>
-    </div>
-  }
+  <div card-content class="tile-body">
+    <!-- Active Table Call Alert Banner -->
+    @if (table.activeAppels && table.activeAppels.length > 0) {
+      <div
+        class="call-alert-banner"
+        [class.bill-alert]="table.activeAppelType === 'ADDITION'"
+        [attr.data-testid]="'mobile-card-call-alert-' + table.id">
+        <span class="call-icon pulse">{{ table.activeAppelType === 'ADDITION' ? '💳' : '🔔' }}</span>
+        <span class="call-text">{{ (table.activeAppelType === 'ADDITION' ? 'SERVEUR.ALERTS.BILL_REQUEST' : 'SERVEUR.ALERTS.ASSISTANCE_REQUEST') | transloco }}</span>
+        <button
+          type="button"
+          class="call-ack-btn"
+          [attr.data-testid]="'btn-card-ack-call-' + table.id"
+          (click)="$event.stopPropagation(); ackAppel.emit(table.activeAppels[0])"
+          (keyup.enter)="$event.stopPropagation(); ackAppel.emit(table.activeAppels[0])">
+          ✓ {{ 'SERVEUR.ALERTS.ACKNOWLEDGE_BTN' | transloco }}
+        </button>
+      </div>
+    }
 
-  <div class="tile-body">
     <div class="meta-row">
       <span class="meta-item">
         <ion-icon name="people-outline"></ion-icon>
@@ -63,7 +62,7 @@
     }
   </div>
 
-  <div class="tile-footer">
+  <div card-footer class="tile-footer">
     @if (activeTotal > 0) {
       <div class="total-badge">
         <span class="label">{{ 'SERVEUR_MOBILE.CARD.TOTAL' | transloco }}</span>
@@ -110,4 +109,4 @@
       </button>
     </div>
   </div>
-</div>
+</app-card>

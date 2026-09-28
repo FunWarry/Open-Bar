@@ -67,8 +67,8 @@ public class CommandeController {
      * @return DTO of the created order
      */
     @PostMapping
-    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
-    @Operation(summary = "Create an order (SERVEUR/ADMIN)", description = "Places a new order for a table.")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN') or hasRole('MANAGER') or hasRole('ADMIN')")
+    @Operation(summary = "Create an order (SERVEUR/BARMAN/MANAGER/ADMIN)", description = "Places a new order for a table or bar tab.")
     @ApiResponse(responseCode = "200", description = "Order created successfully")
     public ResponseEntity<CommandeResponseDTO> createCommande(@Valid @RequestBody CommandeRequestDTO request) {
         return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.createCommande(request.toEntity())));
@@ -82,8 +82,8 @@ public class CommandeController {
      * @return DTO of the updated order
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
-    @Operation(summary = "Update an order (SERVEUR/ADMIN)")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN') or hasRole('MANAGER') or hasRole('ADMIN')")
+    @Operation(summary = "Update an order (SERVEUR/BARMAN/MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Order updated")
     public ResponseEntity<CommandeResponseDTO> updateCommande(
         @Parameter(description = "Order ID") @PathVariable Long id,
@@ -219,8 +219,8 @@ public class CommandeController {
      * @return Updated order DTO
      */
     @PostMapping("/{id}/items")
-    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
-    @Operation(summary = "Add an item to an order (SERVEUR/ADMIN)")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN') or hasRole('MANAGER') or hasRole('ADMIN')")
+    @Operation(summary = "Add an item to an order (SERVEUR/BARMAN/MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Item added")
     public ResponseEntity<CommandeResponseDTO> ajouterItem(
         @Parameter(description = "Order ID") @PathVariable Long id,
@@ -236,8 +236,8 @@ public class CommandeController {
      * @return Updated order DTO
      */
     @DeleteMapping("/{id}/items/{itemId}")
-    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
-    @Operation(summary = "Remove an item from an order (SERVEUR/ADMIN)")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN') or hasRole('MANAGER') or hasRole('ADMIN')")
+    @Operation(summary = "Remove an item from an order (SERVEUR/BARMAN/MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Item removed")
     public ResponseEntity<CommandeResponseDTO> retirerItem(
         @Parameter(description = "Order ID") @PathVariable Long id,
@@ -281,8 +281,8 @@ public class CommandeController {
      * @return DTO of the canceled order
      */
     @RequestMapping(value = "/{id}/annuler", method = {RequestMethod.PUT, RequestMethod.PATCH})
-    @PreAuthorize("hasRole('SERVEUR') or hasRole('MANAGER') or hasRole('ADMIN')")
-    @Operation(summary = "Cancel an order (SERVEUR/MANAGER/ADMIN)")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN') or hasRole('MANAGER') or hasRole('ADMIN')")
+    @Operation(summary = "Cancel an order (SERVEUR/BARMAN/MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Order canceled")
     @ApiResponse(responseCode = "404", description = "Order not found")
     public ResponseEntity<CommandeResponseDTO> annulerCommande(@Parameter(description = "Order ID") @PathVariable Long id) {
@@ -334,15 +334,15 @@ public class CommandeController {
     }
 
     /**
-     * Transfer an order to a new table (SERVEUR/ADMIN).
+     * Transfer an order to a new table (SERVEUR/BARMAN/MANAGER/ADMIN).
      *
      * @param id Order ID
      * @param newTableId New target table ID
      * @return DTO of the updated order
      */
     @PutMapping("/{id}/table/{newTableId}")
-    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
-    @Operation(summary = "Transfer an order to a new table (SERVEUR/ADMIN)")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN') or hasRole('MANAGER') or hasRole('ADMIN')")
+    @Operation(summary = "Transfer an order to a new table (SERVEUR/BARMAN/MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Order transferred to new table")
     public ResponseEntity<CommandeResponseDTO> transfererCommande(
         @Parameter(description = "Order ID") @PathVariable Long id,

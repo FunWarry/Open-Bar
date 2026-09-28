@@ -85,6 +85,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Subject, forkJoin, of } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
 import { EtablissementService } from '../../../core/services/etablissement.service';
+import { RouletteService } from '../../../core/services/roulette.service';
 import { EstablishmentConfig } from '../../../core/models/establishment-config.model';
 import { AppSettingsService, DEFAULT_DISCOUNT_TIERS, DEFAULT_STORAGE_LOCATIONS } from '../../../core/services/app-settings.service';
 import { AppSettings, CurrencyPosition, DiscountTier, UnitSystem } from '../../../core/models/app-settings.model';
@@ -104,12 +105,11 @@ import {
 import { AuthService } from '../../../core/services/auth.service';
 import { OnboardingService } from '../../../core/services/onboarding.service';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
-import { RoleBadgeComponent } from '../../../core/components/ui/role-badge/role-badge.component';
-import { StatusBadgeComponent } from '../../../core/components/ui/status-badge/status-badge.component';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { TicketReceiptComponent } from '../../factures/ticket-receipt/ticket-receipt.component';
 import { Facture } from '../../factures/models/facture.model';
+import { ThemeCustomizerComponent } from '../../theme/theme-customizer.component';
 import { PrinterService } from '../../../core/services/printer.service';
 import { AppUpdateService } from '../../../core/services/app-update.service';
 import { PrinterRole } from '../../../core/models/printer.model';
@@ -254,12 +254,11 @@ export const WEIGHT_UNIT_CHOICES = [
     IonToggle,
     TranslocoPipe,
     ActionButtonComponent,
-    RoleBadgeComponent,
-    StatusBadgeComponent,
     InputFieldComponent,
     SearchableSelectComponent,
     TicketReceiptComponent,
-    HappyHourConfigComponent
+    HappyHourConfigComponent,
+    ThemeCustomizerComponent
 ],
 })
 export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingChanges {
@@ -278,11 +277,15 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   private readonly translocoService = inject(TranslocoService);
   private readonly printerService = inject(PrinterService);
   private readonly appUpdateService = inject(AppUpdateService);
+  private readonly rouletteService = inject(RouletteService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
   readonly happyHourEnabled = this.featureFlagService.happyHourEnabled;
   readonly qrClientOrderingEnabled = this.featureFlagService.qrClientOrderingEnabled;
+
+  readonly roulettePin = signal<string>('7777');
+  readonly isRegeneratingPin = signal<boolean>(false);
 
   currentAppVersion = this.appUpdateService.currentVersion;
   isCheckingUpdates = false;
@@ -362,6 +365,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     cocktailLibrary: true,
     suppliersManagement: true,
     inventoryAudit: true,
+    mysteryRoulette: true,
   };
   initialThemeMode: AppTheme = 'dark';
   initialColors: CustomThemeColors = { ...DEFAULT_FIGMA_PALETTE };
@@ -658,6 +662,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       cocktailLibrary: [true],
       suppliersManagement: [true],
       inventoryAudit: [true],
+      mysteryRoulette: [true],
     });
 
     this.etabForm = this.fb.group({
@@ -792,6 +797,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
           this.initialColors = { ...this.themeService.currentCustomColors };
           this.colorForm.markAsPristine();
+          this.loadRoulettePin();
           this.isLoading = false;
           this.cdr.markForCheck();
         },
@@ -800,6 +806,76 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
           this.cdr.markForCheck();
         },
       });
+  }
+
+  /**
+   * Loads the current active 4-digit PIN code for the TV Roulette screen.
+   */
+  loadRoulettePin(): void {
+    this.rouletteService.getDisplayPin().pipe(
+      takeUntil(this.destroy$),
+      catchError(() => of({ pin: '7777', establishmentId: 1 }))
+    ).subscribe(res => {
+      if (res?.pin) {
+        this.roulettePin.set(res.pin);
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  /**
+   * Prompts the manager with a confirmation dialog before generating a new TV PIN code.
+   */
+  async confirmRegenerateRoulettePin(): Promise<void> {
+    const alert = await this.alertCtrl.create({
+      header: this.translocoService.translate('ROULETTE.REGENERATE_PIN'),
+      message: this.translocoService.translate('ROULETTE.REGENERATE_PIN_CONFIRM'),
+      buttons: [
+        {
+          text: this.translocoService.translate('COMMON.CANCEL'),
+          role: 'cancel'
+        },
+        {
+          text: this.translocoService.translate('COMMON.CONFIRM'),
+          handler: () => {
+            this.regenerateRoulettePin();
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  /**
+   * Generates a new secure 4-digit PIN code and broadcasts revocation to all live TV screens.
+   */
+  regenerateRoulettePin(): void {
+    this.isRegeneratingPin.set(true);
+    this.rouletteService.regenerateDisplayPin().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (res) => {
+        this.isRegeneratingPin.set(false);
+        this.roulettePin.set(res.pin);
+        this.cdr.markForCheck();
+        this.toastCtrl.create({
+          message: this.translocoService.translate('ROULETTE.REGENERATE_PIN_SUCCESS'),
+          duration: 3500,
+          color: 'success',
+          position: 'top'
+        }).then(t => t.present());
+      },
+      error: () => {
+        this.isRegeneratingPin.set(false);
+        this.cdr.markForCheck();
+        this.toastCtrl.create({
+          message: this.translocoService.translate('ROULETTE.PIN_ERROR'),
+          duration: 3500,
+          color: 'danger',
+          position: 'top'
+        }).then(t => t.present());
+      }
+    });
   }
 
   /**

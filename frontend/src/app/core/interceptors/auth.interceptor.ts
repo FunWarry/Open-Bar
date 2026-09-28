@@ -11,9 +11,43 @@ import { NavigationService } from '../services/navigation.service';
 let refreshInProgress$: Observable<string> | null = null;
 
 /**
+ * Checks whether the destination URL represents a public endpoint that requires no Authorization header.
+ *
+ * @param url Request URL
+ * @returns true if endpoint is public
+ */
+function isPublicEndpoint(url: string): boolean {
+  return (
+    url.includes('/api/public/') ||
+    url.includes('/api/roulette/public/') ||
+    url.includes('/api/auth/') ||
+    url.includes('/assets/')
+  );
+}
+
+/**
+ * Checks whether a JWT token's expiration timestamp is past the current local time.
+ *
+ * @param token JWT token string
+ * @returns true if expired or malformed
+ */
+function isJwtExpired(token: string): boolean {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return false;
+    const payload = JSON.parse(atob(parts[1]));
+    if (!payload.exp) return false;
+    return Date.now() >= payload.exp * 1000;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Functional HTTP authentication interceptor for JWT handling.
  * <p>
- * Injects the {@code Authorization: Bearer <token>} header on all outgoing HTTP requests.
+ * Injects the {@code Authorization: Bearer <token>} header on all protected outgoing HTTP requests.
+ * Automatically skips public endpoints (/api/public/**, /api/roulette/public/**) to prevent sending stale tokens.
  * On 401 Unauthorized responses, attempts automatic token refresh via the refresh token.
  *
  * @param req HTTP request to intercept
@@ -25,7 +59,25 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
   const authService = inject(AuthService);
   const navigationService = inject(NavigationService);
 
+  // Skip injecting credentials on public endpoints
+  if (isPublicEndpoint(req.url)) {
+    return next(req);
+  }
+
   const token = authService.getToken();
+
+  // If token is expired, attempt refresh immediately or clear stale session
+  if (token && isJwtExpired(token)) {
+    const refreshToken = authService.getRefreshToken();
+    if (refreshToken) {
+      return handleRefresh(req, next, store, authService, navigationService, token);
+    } else {
+      authService.logout();
+      store.dispatch(logout());
+      return next(req);
+    }
+  }
+
   const authReq = token ? addAuthHeader(req, token) : req;
 
   return next(authReq).pipe(

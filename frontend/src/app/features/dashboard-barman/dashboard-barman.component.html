@@ -36,6 +36,17 @@
 
       <!-- Action Buttons -->
       <div class="toolbar-actions">
+        <!-- Prise de commande directe au comptoir -->
+        <ion-button
+          class="header-action-btn btn-new-order"
+          routerLink="/serveur"
+          [queryParams]="{ tab: 'commande' }"
+          [title]="'BARMAN_DASHBOARD.TAKE_ORDER' | transloco"
+          data-testid="barman-take-order-btn">
+          <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+          <span class="btn-text">{{ 'BARMAN_DASHBOARD.TAKE_ORDER' | transloco }}</span>
+        </ion-button>
+
         <!-- Ruptures à chaud -->
         <ion-button
           class="header-action-btn btn-ruptures"
@@ -46,6 +57,19 @@
           <ion-icon slot="start" name="flame-outline"></ion-icon>
           <span class="btn-text">{{ 'BARMAN_DASHBOARD.QUICK_STOCK_TOGGLES' | transloco }}</span>
         </ion-button>
+
+        <!-- Bouton Roulette TV PIN -->
+        @if (featureFlagService.mysteryRouletteEnabled()) {
+          <ion-button
+            class="header-action-btn btn-roulette-tv"
+            routerLink="/roulette-display"
+            target="_blank"
+            [title]="('ROULETTE.TV_DISPLAY_BUTTON_TITLE' | transloco) + ' (PIN: ' + roulettePin + ')'"
+            data-testid="barman-roulette-tv-btn">
+            <ion-icon slot="start" name="tv-outline"></ion-icon>
+            <span class="btn-text">🎰 TV PIN: {{ roulettePin }}</span>
+          </ion-button>
+        }
 
         <!-- Refresh manuel -->
         <ion-button

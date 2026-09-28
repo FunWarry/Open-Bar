@@ -1,0 +1,27 @@
+<div class="roulette-wheel-wrapper" [style.max-width.px]="size + 40">
+  <!-- Wheel Canvas with Needle Pointer -->
+  <div class="canvas-container" [style.width.px]="size" [style.height.px]="size">
+    <div class="wheel-pointer" data-testid="roulette-wheel-pointer">
+      <div class="pointer-pin"></div>
+      <div class="pointer-arrow"></div>
+    </div>
+
+    <canvas #wheelCanvas [style.width.px]="size" [style.height.px]="size" data-testid="roulette-canvas"></canvas>
+  </div>
+
+  <!-- Action Button (Hidden in readOnly mode) -->
+  @if (!readOnly) {
+    <div class="wheel-action-bar">
+      <button
+        type="button"
+        class="spin-trigger-btn"
+        [disabled]="isSpinning"
+        (click)="onSpinClick()"
+        data-testid="roulette-spin-btn"
+      >
+        <ion-icon [name]="isSpinning ? 'refresh-outline' : 'sparkles-outline'" [class.spin-icon]="isSpinning"></ion-icon>
+        <span>{{ (isSpinning ? 'ROULETTE.SPINNING' : 'ROULETTE.SPIN_NOW') | transloco }}</span>
+      </button>
+    </div>
+  }
+</div>

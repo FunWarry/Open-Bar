@@ -195,4 +195,27 @@ class EstablishmentConfigServiceTest {
         config.setModuleHappyHourEnabled(true);
         service.checkModuleEnabled(EstablishmentModule.HAPPY_HOUR);
     }
+
+    @Test
+    void updateRouletteDisplayPin_metAJourCodePinEtSauvegarde() {
+        when(repository.findById(1L)).thenReturn(Optional.of(config));
+        when(repository.save(any(EstablishmentConfig.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        EstablishmentConfig result = service.updateRouletteDisplayPin("4321");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getRouletteDisplayPin()).isEqualTo("4321");
+        verify(repository).save(config);
+    }
+
+    @Test
+    void isModuleEnabled_mysteryRoulette_verifieActivationEtDesactivation() {
+        when(repository.findById(1L)).thenReturn(Optional.of(config));
+
+        config.setModuleMysteryRouletteEnabled(true);
+        assertThat(service.isModuleEnabled(EstablishmentModule.MYSTERY_ROULETTE)).isTrue();
+
+        config.setModuleMysteryRouletteEnabled(false);
+        assertThat(service.isModuleEnabled(EstablishmentModule.MYSTERY_ROULETTE)).isFalse();
+    }
 }

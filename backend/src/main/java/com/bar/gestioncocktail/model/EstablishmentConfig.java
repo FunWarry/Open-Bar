@@ -132,6 +132,24 @@ public class EstablishmentConfig {
     @Column(name = "module_inventory_audit_enabled")
     private Boolean moduleInventoryAuditEnabled = true;
 
+    @Column(name = "module_mystery_roulette_enabled")
+    private Boolean moduleMysteryRouletteEnabled = true;
+
+    @Column(name = "roulette_price_cocktail", precision = 10, scale = 2)
+    private BigDecimal roulettePriceCocktail = new BigDecimal("7.50");
+
+    @Column(name = "roulette_price_mocktail", precision = 10, scale = 2)
+    private BigDecimal roulettePriceMocktail = new BigDecimal("5.50");
+
+    @Column(name = "roulette_stock_bias", length = 30)
+    private String rouletteStockBias = "BALANCED";
+
+    @Column(name = "roulette_sound_profile", length = 30)
+    private String rouletteSoundProfile = "CSGO";
+
+    @Column(name = "roulette_display_pin", length = 10)
+    private String rouletteDisplayPin = "7777";
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -385,6 +403,56 @@ public class EstablishmentConfig {
         this.moduleInventoryAuditEnabled = moduleInventoryAuditEnabled;
     }
 
+    public Boolean getModuleMysteryRouletteEnabled() {
+        return this.moduleMysteryRouletteEnabled;
+    }
+
+    public void setModuleMysteryRouletteEnabled(Boolean moduleMysteryRouletteEnabled) {
+        this.moduleMysteryRouletteEnabled = moduleMysteryRouletteEnabled;
+    }
+
+    public BigDecimal getRoulettePriceCocktail() {
+        return this.roulettePriceCocktail != null ? this.roulettePriceCocktail : new BigDecimal("7.50");
+    }
+
+    public void setRoulettePriceCocktail(BigDecimal roulettePriceCocktail) {
+        this.roulettePriceCocktail = roulettePriceCocktail;
+    }
+
+    public BigDecimal getRoulettePriceMocktail() {
+        return this.roulettePriceMocktail != null ? this.roulettePriceMocktail : new BigDecimal("5.50");
+    }
+
+    public void setRoulettePriceMocktail(BigDecimal roulettePriceMocktail) {
+        this.roulettePriceMocktail = roulettePriceMocktail;
+    }
+
+    public String getRouletteStockBias() {
+        return this.rouletteStockBias != null ? this.rouletteStockBias : "BALANCED";
+    }
+
+    public void setRouletteStockBias(String rouletteStockBias) {
+        this.rouletteStockBias = rouletteStockBias;
+    }
+
+    public String getRouletteSoundProfile() {
+        return this.rouletteSoundProfile != null ? this.rouletteSoundProfile : "CSGO";
+    }
+
+    public void setRouletteSoundProfile(String rouletteSoundProfile) {
+        this.rouletteSoundProfile = rouletteSoundProfile;
+    }
+
+    public String getRouletteDisplayPin() {
+        return this.rouletteDisplayPin != null && !this.rouletteDisplayPin.isBlank()
+                ? this.rouletteDisplayPin
+                : "7777";
+    }
+
+    public void setRouletteDisplayPin(String rouletteDisplayPin) {
+        this.rouletteDisplayPin = rouletteDisplayPin;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -423,6 +491,7 @@ public class EstablishmentConfig {
             case COCKTAIL_LIBRARY -> this.moduleCocktailLibraryEnabled == null || this.moduleCocktailLibraryEnabled;
             case SUPPLIERS_MANAGEMENT -> this.moduleSuppliersManagementEnabled == null || this.moduleSuppliersManagementEnabled;
             case INVENTORY_AUDIT -> (this.moduleStockTrackingEnabled == null || this.moduleStockTrackingEnabled) && (this.moduleInventoryAuditEnabled == null || this.moduleInventoryAuditEnabled);
+            case MYSTERY_ROULETTE -> this.moduleMysteryRouletteEnabled == null || this.moduleMysteryRouletteEnabled;
             default -> true;
         };
     }
@@ -470,6 +539,9 @@ public class EstablishmentConfig {
                 break;
             case INVENTORY_AUDIT:
                 this.moduleInventoryAuditEnabled = enabled;
+                break;
+            case MYSTERY_ROULETTE:
+                this.moduleMysteryRouletteEnabled = enabled;
                 break;
             default:
                 break;

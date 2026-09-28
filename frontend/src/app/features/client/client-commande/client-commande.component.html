@@ -450,6 +450,17 @@
                 <span class="orders-count-badge">{{ tableCartService.tableOrdersSummary()?.totalDrinksOrdered }}</span>
               }
             </button>
+            @if (isMysteryRouletteEnabled) {
+              <button
+                type="button"
+                class="roulette-launcher-btn"
+                (click)="openRouletteModal()"
+                data-testid="btn-open-roulette-modal"
+              >
+                <ion-icon name="sparkles-outline"></ion-icon>
+                <span>{{ 'ROULETTE.TITLE' | transloco }} 🎲</span>
+              </button>
+            }
           </div>
         </div>
 
@@ -474,6 +485,33 @@
             <button type="button" class="grace-action-btn finalize-btn" (click)="finalizeGracePeriod()" data-testid="btn-finalize-grace">
               <ion-icon name="checkmark-outline"></ion-icon>
               <span>{{ 'CLIENT.GRACE_BANNER_DISPATCH_NOW' | transloco }}</span>
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Mystery Drink Gamification Hero Banner -->
+      @if (isMysteryRouletteEnabled) {
+        <div class="roulette-hero-card" data-testid="roulette-hero-card">
+          <div class="roulette-hero-content">
+            <div class="roulette-hero-icon-box">
+              <span class="roulette-dice-icon">🎲</span>
+            </div>
+            <div class="roulette-hero-text">
+              <div class="roulette-hero-title-row">
+                <h2 class="roulette-hero-title">{{ 'ROULETTE.TITLE' | transloco }}</h2>
+                <span class="roulette-hero-badge">{{ 'ROULETTE.HERO_BADGE' | transloco }}</span>
+              </div>
+              <p class="roulette-hero-desc">{{ 'ROULETTE.SUBTITLE_INDECISIVE' | transloco }}</p>
+            </div>
+            <button
+              type="button"
+              class="roulette-hero-cta-btn"
+              (click)="openRouletteModal()"
+              data-testid="btn-hero-open-roulette"
+            >
+              <ion-icon name="sparkles-outline" aria-hidden="true"></ion-icon>
+              <span>{{ 'ROULETTE.HERO_CTA' | transloco }}</span>
             </button>
           </div>
         </div>
@@ -603,6 +641,21 @@
           </div>
         </div>
       }
+
+      <!-- Floating Roulette Quick Action Button -->
+      @if (isMysteryRouletteEnabled) {
+        <button
+          type="button"
+          class="floating-roulette-fab"
+          [class.above-cart]="totalItemsCount > 0"
+          (click)="openRouletteModal()"
+          [attr.aria-label]="'ROULETTE.TITLE' | transloco"
+          data-testid="floating-roulette-fab"
+        >
+          <span class="fab-dice">🎲</span>
+          <span class="fab-text">{{ 'ROULETTE.TITLE' | transloco }}</span>
+        </button>
+      }
     </div>
   }
 
@@ -655,7 +708,12 @@
                 @for (item of group.items; track item.id) {
                   <div class="recap-item" [attr.data-testid]="'cart-item-' + item.id">
                     <div class="item-details">
-                      <span class="item-name">{{ item.cocktailNom }}</span>
+                      <span class="item-name">
+                        {{ item.cocktailNom }}
+                        @if (item.isMysteryDrink) {
+                          <span class="mystery-drink-tag">🎲 {{ 'ROULETTE.TABLE_CART_BADGE' | transloco }}</span>
+                        }
+                      </span>
                       @if (item.varianteNom) {
                         <span class="item-variant">{{ item.varianteNom }}</span>
                       }

@@ -42,7 +42,7 @@ export interface NavItemDef {
 /** Predefined navigation items matching all OpenBar application views. */
 export const SIDEBAR_NAV_ITEMS: NavItemDef[] = [
   { id: 'nav-home', route: '/app-home', icon: 'home-outline', labelKey: 'NAV.HOME', section: 'main' },
-  { id: 'nav-serveur', route: '/serveur', icon: 'restaurant-outline', labelKey: 'NAV.SERVEUR', roles: ['SERVEUR', 'ADMIN', 'MANAGER'], section: 'main' },
+  { id: 'nav-serveur', route: '/serveur', icon: 'restaurant-outline', labelKey: 'NAV.SERVEUR', roles: ['SERVEUR', 'BARMAN', 'ADMIN', 'MANAGER'], section: 'main' },
   { id: 'nav-plan-salle', route: '/plan-salle', icon: 'grid-outline', labelKey: 'NAV.PLAN_SALLE', roles: ['MANAGER', 'ADMIN', 'SERVEUR'], requiredModule: EstablishmentModule.FLOOR_PLAN, section: 'main' },
   { id: 'nav-barman', route: '/barman', icon: 'beer-outline', labelKey: 'NAV.BARMAN', roles: ['BARMAN', 'ADMIN', 'MANAGER'], section: 'main' },
   { id: 'nav-kitchen', route: '/kitchen', icon: 'restaurant-outline', labelKey: 'NAV.KITCHEN', roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS, section: 'main' },
@@ -52,7 +52,7 @@ export const SIDEBAR_NAV_ITEMS: NavItemDef[] = [
   { id: 'nav-cocktails', route: '/cocktails', icon: 'wine-outline', labelKey: 'NAV.COCKTAILS', section: 'main' },
   { id: 'nav-commandes', route: '/commandes', icon: 'receipt-outline', labelKey: 'NAV.COMMANDES', section: 'main' },
   { id: 'nav-tables', route: '/tables', icon: 'table-restaurant-outline', labelKey: 'NAV.TABLES', section: 'main' },
-  { id: 'nav-factures', route: '/factures', icon: 'card-outline', labelKey: 'NAV.FACTURES', roles: ['MANAGER', 'ADMIN', 'SERVEUR'], section: 'main' },
+  { id: 'nav-factures', route: '/factures', icon: 'card-outline', labelKey: 'NAV.FACTURES', roles: ['MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN'], section: 'main' },
   { id: 'nav-ingredients', route: '/ingredients', icon: 'nutrition-outline', labelKey: 'NAV.INGREDIENTS', roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.STOCK_TRACKING, section: 'admin' },
   { id: 'nav-purchases', route: '/purchases', icon: 'cart-outline', labelKey: 'NAV.PURCHASES', roles: ['ADMIN', 'MANAGER'], requiredModule: EstablishmentModule.SUPPLIERS_MANAGEMENT, section: 'admin' },
   { id: 'nav-inventory', route: '/inventory', icon: 'clipboard-outline', labelKey: 'NAV.INVENTORY', roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.INVENTORY_AUDIT, section: 'admin' },

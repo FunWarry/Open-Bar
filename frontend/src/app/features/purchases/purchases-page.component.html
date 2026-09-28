@@ -172,13 +172,17 @@
       @if (filteredOrders().length > 0) {
         <div class="orders-grid">
           @for (order of filteredOrders(); track order.id) {
-            <article
-              class="order-card"
-              [attr.data-testid]="'order-card-' + order.id"
-              (click)="openOrderDetailModal(order)"
-              (keydown)="onOrderCardKeyDown($event, order)"
-            >
-              <div class="order-card-header">
+            <app-card
+              [accentColor]="getOrderAccentColor(order.status)"
+              [headerDivider]="'solid'"
+              [footerDivider]="'none'"
+              [clickable]="true"
+              [padding]="'none'"
+              [testId]="'order-card-' + order.id"
+              [customClass]="'order-card'"
+              (cardClick)="openOrderDetailModal(order)">
+
+              <div card-header class="order-card-header">
                 <div class="order-id-group">
                   <span class="order-number">{{ order.numeroCommande }}</span>
                   <span class="order-supplier">{{ order.supplierNom }}</span>
@@ -188,7 +192,7 @@
                 </span>
               </div>
 
-              <div class="order-card-body">
+              <div card-content class="order-card-body">
                 <div class="info-metric">
                   <span class="metric-label">{{ 'PURCHASES.DATE_ORDERED' | transloco }}</span>
                   <span class="metric-value">{{ order.dateCommande ? (order.dateCommande | date:'shortDate') : '-' }}</span>
@@ -207,7 +211,7 @@
                 </div>
               </div>
 
-              <div class="order-card-footer">
+              <div card-footer class="order-card-footer">
                 @if (order.status === 'DRAFT') {
                   <button
                     type="button"
@@ -262,7 +266,7 @@
                   </button>
                 }
               </div>
-            </article>
+            </app-card>
           }
         </div>
       } @else {

@@ -9,6 +9,7 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { peopleOutline, restaurantOutline, checkmarkOutline, timeOutline } from 'ionicons/icons';
+import { CardComponent, CardAccentColor } from '../../../../core/components/ui/card/card.component';
 
 /**
  * Card component representing a table status and occupancy on server view.
@@ -19,7 +20,8 @@ import { peopleOutline, restaurantOutline, checkmarkOutline, timeOutline } from 
   imports: [
     CommonModule, RouterModule, TranslocoModule,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonButton, IonIcon
+    IonButton, IonIcon,
+    CardComponent
   ],
   templateUrl: './table-card.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -32,6 +34,13 @@ export class TableCardComponent {
 
   constructor() {
     addIcons({ peopleOutline, restaurantOutline, checkmarkOutline, timeOutline });
+  }
+
+  /** Accent border color mapping for CardComponent based on table state */
+  get statutAccentColor(): CardAccentColor {
+    if (!this.table?.occupee) return 'success';
+    if (this.commandesEnCours > 0) return 'info';
+    return 'warning';
   }
 
   /** Displayed status i18n key */

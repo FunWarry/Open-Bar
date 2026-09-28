@@ -143,6 +143,19 @@ public class EstablishmentConfigService {
     }
 
     /**
+     * Updates the 4-digit PIN code used to unlock the roulette display TV screen.
+     *
+     * @param newPin 4-digit PIN code
+     * @return updated EstablishmentConfig
+     */
+    @Transactional
+    public EstablishmentConfig updateRouletteDisplayPin(String newPin) {
+        EstablishmentConfig config = getConfigInternal();
+        config.setRouletteDisplayPin(newPin);
+        return establishmentConfigRepository.save(config);
+    }
+
+    /**
      * Updates legal establishment configuration with Luhn validation on SIRET.
      *
      * @param request the request containing updated fields
@@ -212,6 +225,9 @@ public class EstablishmentConfigService {
         }
         if (request.inventoryAudit() != null) {
             config.setModuleEnabled(EstablishmentModule.INVENTORY_AUDIT, request.inventoryAudit());
+        }
+        if (request.mysteryRoulette() != null) {
+            config.setModuleEnabled(EstablishmentModule.MYSTERY_ROULETTE, request.mysteryRoulette());
         }
     }
 

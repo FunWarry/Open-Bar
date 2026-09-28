@@ -17,11 +17,13 @@ import {
 import { addIcons } from 'ionicons';
 import {
   home, settings, personCircle, person, logOut, chevronDown,
-  notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline, globeOutline
+  notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline, globeOutline,
+  moonOutline, sunnyOutline
 } from 'ionicons/icons';
 import { AsyncPipe, UpperCasePipe } from '@angular/common';
 import * as AuthActions from '../../store/auth.actions';
 import { User } from '../../models/user.model';
+import { ThemeService } from '../../services/theme.service';
 
 /** Map from URL prefix to translation key for page titles. */
 const ROUTE_TITLE_MAP: Record<string, string> = {
@@ -118,11 +120,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
     public readonly languageService: LanguageService,
     private readonly popoverCtrl: PopoverController,
     private readonly transloco: TranslocoService,
+    @Optional() public readonly themeService?: ThemeService,
     @Optional() private readonly router?: Router,
   ) {
     addIcons({
       home, settings, personCircle, person, logOut, chevronDown,
       notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline, globeOutline,
+      moonOutline, sunnyOutline
     });
 
     this.isAdmin$ = this.store.select(selectIsAdmin);

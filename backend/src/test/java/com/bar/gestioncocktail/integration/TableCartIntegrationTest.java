@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests multi-guest item additions, real-time shared cart view, quantity updates,
  * consolidated order submission to the bar, and cart purging upon table liberation.
  */
+
 class TableCartIntegrationTest extends BaseIntegrationTest {
 
     @Autowired

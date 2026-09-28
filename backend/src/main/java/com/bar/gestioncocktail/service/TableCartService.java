@@ -128,13 +128,18 @@ public class TableCartService {
     }
 
     private void saveOrIncrementItem(Long tableId, TableCartItemRequestDTO dto) {
-        Optional<TableCartItem> existing = dto.getVarianteId() != null
-                ? tableCartItemRepository.findByTableIdAndGuestSessionIdAndCocktailIdAndCocktailVarianteId(
-                        tableId, dto.getGuestSessionId(), dto.getCocktailId(), dto.getVarianteId())
-                : tableCartItemRepository.findByTableIdAndGuestSessionIdAndCocktailIdAndCocktailVarianteIdIsNull(
-                        tableId, dto.getGuestSessionId(), dto.getCocktailId());
+        boolean isMystery = Boolean.TRUE.equals(dto.getIsMysteryDrink());
+        Optional<TableCartItem> existing = Optional.empty();
 
-        if (existing.isPresent()) {
+        if (!isMystery) {
+            existing = dto.getVarianteId() != null
+                    ? tableCartItemRepository.findByTableIdAndGuestSessionIdAndCocktailIdAndCocktailVarianteId(
+                            tableId, dto.getGuestSessionId(), dto.getCocktailId(), dto.getVarianteId())
+                    : tableCartItemRepository.findByTableIdAndGuestSessionIdAndCocktailIdAndCocktailVarianteIdIsNull(
+                            tableId, dto.getGuestSessionId(), dto.getCocktailId());
+        }
+
+        if (existing.isPresent() && !Boolean.TRUE.equals(existing.get().getIsMysteryDrink())) {
             TableCartItem item = existing.get();
             item.setQuantite(item.getQuantite() + dto.getQuantite());
             item.setGuestName(dto.getGuestName());
@@ -151,6 +156,8 @@ public class TableCartService {
             newItem.setCocktailVarianteId(dto.getVarianteId());
             newItem.setQuantite(dto.getQuantite());
             newItem.setNotes(dto.getNotes());
+            newItem.setIsMysteryDrink(dto.getIsMysteryDrink());
+            newItem.setPrixOverride(dto.getPrixOverride());
             tableCartItemRepository.save(newItem);
         }
     }
@@ -251,6 +258,8 @@ public class TableCartService {
             orderItem.setCocktailId(item.getCocktailId());
             orderItem.setVarianteId(item.getCocktailVarianteId());
             orderItem.setQuantite(item.getQuantite());
+            orderItem.setIsMysteryDrink(item.getIsMysteryDrink());
+            orderItem.setPrixOverride(item.getPrixOverride());
 
             String itemNotes = (item.getNotes() != null && !item.getNotes().isBlank()) ? item.getNotes().trim() : "";
             String guestLabel = "[" + item.getGuestName() + "]";
@@ -582,8 +591,8 @@ public class TableCartService {
                 ? variantesMap.get(item.getCocktailVarianteId())
                 : null;
 
-        BigDecimal unitPrice = cocktail.getPrix();
-        if (variante != null && variante.getPrixSupplement() != null) {
+        BigDecimal unitPrice = item.getPrixOverride() != null ? item.getPrixOverride() : cocktail.getPrix();
+        if (item.getPrixOverride() == null && variante != null && variante.getPrixSupplement() != null) {
             unitPrice = unitPrice.add(variante.getPrixSupplement());
         }
 
@@ -602,7 +611,8 @@ public class TableCartService {
                 unitPrice,
                 lineTotal,
                 item.getNotes(),
-                item.getCreatedAt() != null ? item.getCreatedAt() : timeService.now()
+                item.getCreatedAt() != null ? item.getCreatedAt() : timeService.now(),
+                item.getIsMysteryDrink() != null && item.getIsMysteryDrink()
         );
     }
 

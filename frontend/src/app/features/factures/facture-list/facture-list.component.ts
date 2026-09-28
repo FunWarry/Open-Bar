@@ -31,6 +31,7 @@ import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+import { CardComponent, CardAccentColor } from '../../../core/components/ui/card/card.component';
 /**
  * Filter options for invoice list queries.
  */
@@ -98,7 +99,8 @@ export const getOperationalMonthString = getMonthString;
     TranslocoModule,
     IonContent, SearchBarComponent, IonButton,
     IonRefresher, IonRefresherContent, IonIcon, IonSpinner, IonProgressBar,
-    SearchableSelectComponent, ActionButtonComponent
+    SearchableSelectComponent, ActionButtonComponent,
+    CardComponent
   ],
   templateUrl: './facture-list.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -111,6 +113,11 @@ export class FactureListComponent implements OnInit, OnDestroy {
   private readonly transloco = inject(TranslocoService);
   private readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
+
+  /** Maps invoice status to CardAccentColor */
+  getFactureAccentColor(facture: Facture): CardAccentColor {
+    return facture.reglee ? 'success' : 'warning';
+  }
 
   factures: Facture[] = [];
   loading = false;

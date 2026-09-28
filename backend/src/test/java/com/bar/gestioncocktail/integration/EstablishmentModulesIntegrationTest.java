@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Full-stack integration tests for modular capability feature flags and establishment module endpoints.
  */
+
 class EstablishmentModulesIntegrationTest extends BaseIntegrationTest {
 
     @Test

@@ -3197,6 +3197,86 @@
         }
       ]
     }
+  ],
+  "roulette_wheel_sectors": [
+    {
+      "label": "Mojito",
+      "prizeType": "COCKTAIL",
+      "cocktailNom": "Mojito",
+      "colorHex": "#10b981",
+      "iconName": "leaf-outline",
+      "probabilityWeight": 2,
+      "active": true,
+      "displayOrder": 0
+    },
+    {
+      "label": "Création Barman",
+      "prizeType": "BARTENDER_SPECIAL",
+      "colorHex": "#f59e0b",
+      "iconName": "sparkles-outline",
+      "probabilityWeight": 3,
+      "active": true,
+      "displayOrder": 1
+    },
+    {
+      "label": "Margarita",
+      "prizeType": "COCKTAIL",
+      "cocktailNom": "Margarita",
+      "colorHex": "#ec4899",
+      "iconName": "wine-outline",
+      "probabilityWeight": 2,
+      "active": true,
+      "displayOrder": 2
+    },
+    {
+      "label": "Tournée Shooters",
+      "prizeType": "SHOOTER",
+      "colorHex": "#ef4444",
+      "iconName": "flame-outline",
+      "probabilityWeight": 1,
+      "active": true,
+      "displayOrder": 3
+    },
+    {
+      "label": "Piña Colada",
+      "prizeType": "COCKTAIL",
+      "cocktailNom": "Piña Colada",
+      "colorHex": "#8b5cf6",
+      "iconName": "wine-outline",
+      "probabilityWeight": 2,
+      "active": true,
+      "displayOrder": 4
+    },
+    {
+      "label": "Shooter au Choix",
+      "prizeType": "CUSTOM_REWARD",
+      "customRewardText": "Shooter au choix offert !",
+      "colorHex": "#06b6d4",
+      "iconName": "gift-outline",
+      "probabilityWeight": 1,
+      "active": true,
+      "displayOrder": 5
+    },
+    {
+      "label": "Virgin Mojito",
+      "prizeType": "COCKTAIL",
+      "cocktailNom": "Virgin Mojito",
+      "colorHex": "#3b82f6",
+      "iconName": "leaf-outline",
+      "probabilityWeight": 2,
+      "active": true,
+      "displayOrder": 6
+    },
+    {
+      "label": "Moscow Mule",
+      "prizeType": "COCKTAIL",
+      "cocktailNom": "Moscow Mule",
+      "colorHex": "#6366f1",
+      "iconName": "beer-outline",
+      "probabilityWeight": 2,
+      "active": true,
+      "displayOrder": 7
+    }
   ]
 }
 

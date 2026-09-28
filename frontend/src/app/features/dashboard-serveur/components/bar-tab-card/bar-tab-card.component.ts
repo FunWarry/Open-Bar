@@ -19,6 +19,8 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { BarTab } from '../../../../core/models/bar-tab.model';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 
+import { CardComponent } from '../../../../core/components/ui/card/card.component';
+
 /**
  * Visual card representing a customer running bar tab in server and manager views.
  * Displays customer identifier, running duration, consolidated balance, and action buttons.
@@ -31,8 +33,9 @@ import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
     IonIcon,
     TranslocoPipe,
     AppCurrencyPipe,
+    CardComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './bar-tab-card.component.html',
   styleUrls: ['./bar-tab-card.component.scss'],
 })

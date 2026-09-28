@@ -309,6 +309,8 @@ CREATE TABLE IF NOT EXISTS table_cart_items (
     cocktail_variante_id BIGINT REFERENCES cocktail_variantes(id) ON DELETE SET NULL,
     quantite INTEGER NOT NULL DEFAULT 1 CHECK (quantite > 0),
     notes VARCHAR(500),
+    is_mystery_drink BOOLEAN DEFAULT false,
+    prix_override DECIMAL(10,2),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -374,6 +376,7 @@ CREATE TABLE IF NOT EXISTS commande_items (
     prix_unitaire DECIMAL(10,2) NOT NULL,
     notes TEXT,
     prioritaire BOOLEAN DEFAULT false,
+    is_mystery_drink BOOLEAN DEFAULT false,
     station VARCHAR(30) DEFAULT 'BAR',
     statut VARCHAR(30) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -544,6 +547,12 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     module_cocktail_library_enabled BOOLEAN DEFAULT true,
     module_suppliers_management_enabled BOOLEAN DEFAULT true,
     module_inventory_audit_enabled BOOLEAN DEFAULT true,
+    module_mystery_roulette_enabled BOOLEAN DEFAULT true,
+    roulette_price_cocktail DECIMAL(10,2) DEFAULT 7.50,
+    roulette_price_mocktail DECIMAL(10,2) DEFAULT 5.50,
+    roulette_stock_bias VARCHAR(30) DEFAULT 'BALANCED',
+    roulette_sound_profile VARCHAR(30) DEFAULT 'CSGO',
+    roulette_display_pin VARCHAR(10) DEFAULT '7777',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -855,3 +864,23 @@ CREATE TABLE IF NOT EXISTS stock_movements (
 
 CREATE INDEX IF NOT EXISTS idx_stock_movements_ingredient ON stock_movements(ingredient_id);
 CREATE INDEX IF NOT EXISTS idx_stock_movements_recorded_at ON stock_movements(recorded_at);
+
+-- 18. Mystery Drink Roulette & Wheel Sectors
+CREATE TABLE IF NOT EXISTS roulette_wheel_sectors (
+    id BIGSERIAL PRIMARY KEY,
+    label VARCHAR(100) NOT NULL,
+    prize_type VARCHAR(30) NOT NULL,
+    cocktail_id BIGINT REFERENCES cocktails(id) ON DELETE SET NULL,
+    reward_text VARCHAR(255),
+    prix DECIMAL(10,2),
+    color_hex VARCHAR(30),
+    icon_name VARCHAR(50),
+    probability_weight INTEGER NOT NULL DEFAULT 1,
+    active BOOLEAN NOT NULL DEFAULT true,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_roulette_sectors_active ON roulette_wheel_sectors(active);
+CREATE INDEX IF NOT EXISTS idx_roulette_sectors_display_order ON roulette_wheel_sectors(display_order);
