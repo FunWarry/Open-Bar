@@ -234,74 +234,54 @@
         <ion-row>
           <!-- CA Total TTC -->
           <ion-col size="12" size-sm="6" size-md="3">
-            <ion-card class="kpi-card ca-card" data-testid="recap-kpi-ca">
-              <ion-card-content>
-                <div class="kpi-header">
-                  <span class="kpi-label">{{ 'RECAP.TOTAL_CA_TTC' | transloco }}</span>
-                  <div class="kpi-icon-box ca-icon">
-                    <ion-icon name="trending-up-outline"></ion-icon>
-                  </div>
-                </div>
-                <h2 class="kpi-value primary-value">{{ recap.totalCaTtc | appCurrency }}</h2>
-                <div class="kpi-subtext">
-                  <span>{{ 'RECAP.HT' | transloco }}: {{ recap.totalCaHt | appCurrency }}</span>
-                </div>
-              </ion-card-content>
-            </ion-card>
+            <app-stat-card
+              layout="vertical"
+              color="primary"
+              icon="trending-up-outline"
+              [label]="'RECAP.TOTAL_CA_TTC' | transloco"
+              [value]="recap.totalCaTtc | appCurrency"
+              [subtext]="('RECAP.HT' | transloco) + ': ' + (recap.totalCaHt | appCurrency)"
+              testId="recap-kpi-ca">
+            </app-stat-card>
           </ion-col>
 
           <!-- TVA Total -->
           <ion-col size="12" size-sm="6" size-md="3">
-            <ion-card class="kpi-card vat-card" data-testid="recap-kpi-vat">
-              <ion-card-content>
-                <div class="kpi-header">
-                  <span class="kpi-label">{{ 'RECAP.TOTAL_TVA' | transloco }}</span>
-                  <div class="kpi-icon-box vat-icon">
-                    <ion-icon name="cash-outline"></ion-icon>
-                  </div>
-                </div>
-                <h2 class="kpi-value">{{ recap.totalTva | appCurrency }}</h2>
-                <div class="kpi-subtext">
-                  <span>{{ 'RECAP.NET_HT' | transloco }}: {{ recap.totalCaHt | appCurrency }}</span>
-                </div>
-              </ion-card-content>
-            </ion-card>
+            <app-stat-card
+              layout="vertical"
+              color="info"
+              icon="cash-outline"
+              [label]="'RECAP.TOTAL_TVA' | transloco"
+              [value]="recap.totalTva | appCurrency"
+              [subtext]="('RECAP.NET_HT' | transloco) + ': ' + (recap.totalCaHt | appCurrency)"
+              testId="recap-kpi-vat">
+            </app-stat-card>
           </ion-col>
 
           <!-- Factures & Panier Moyen -->
           <ion-col size="12" size-sm="6" size-md="3">
-            <ion-card class="kpi-card avg-card" data-testid="recap-kpi-avg">
-              <ion-card-content>
-                <div class="kpi-header">
-                  <span class="kpi-label">{{ 'RECAP.PANIER_MOYEN' | transloco }}</span>
-                  <div class="kpi-icon-box avg-icon">
-                    <ion-icon name="card-outline"></ion-icon>
-                  </div>
-                </div>
-                <h2 class="kpi-value">{{ recap.panierMoyen | appCurrency }}</h2>
-                <div class="kpi-subtext">
-                  <span>{{ recap.nombreFacturesReglees }} {{ 'RECAP.FACTURES_SETTLED' | transloco }}</span>
-                </div>
-              </ion-card-content>
-            </ion-card>
+            <app-stat-card
+              layout="vertical"
+              color="warning"
+              icon="card-outline"
+              [label]="'RECAP.PANIER_MOYEN' | transloco"
+              [value]="recap.panierMoyen | appCurrency"
+              [subtext]="recap.nombreFacturesReglees + ' ' + ('RECAP.FACTURES_SETTLED' | transloco)"
+              testId="recap-kpi-avg">
+            </app-stat-card>
           </ion-col>
 
           <!-- Couverts / Clients -->
           <ion-col size="12" size-sm="6" size-md="3">
-            <ion-card class="kpi-card guests-card" data-testid="recap-kpi-guests">
-              <ion-card-content>
-                <div class="kpi-header">
-                  <span class="kpi-label">{{ 'RECAP.TOTAL_CLIENTS' | transloco }}</span>
-                  <div class="kpi-icon-box guests-icon">
-                    <ion-icon name="people-outline"></ion-icon>
-                  </div>
-                </div>
-                <h2 class="kpi-value">{{ recap.nombreClients }}</h2>
-                <div class="kpi-subtext">
-                  <span>{{ 'RECAP.GUESTS_SERVED' | transloco }}</span>
-                </div>
-              </ion-card-content>
-            </ion-card>
+            <app-stat-card
+              layout="vertical"
+              color="purple"
+              icon="people-outline"
+              [label]="'RECAP.TOTAL_CLIENTS' | transloco"
+              [value]="recap.nombreClients"
+              [subtext]="'RECAP.GUESTS_SERVED' | transloco"
+              testId="recap-kpi-guests">
+            </app-stat-card>
           </ion-col>
         </ion-row>
       </ion-grid>

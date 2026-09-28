@@ -13,8 +13,6 @@ import {
   notificationsOutline, cardOutline,
 } from 'ionicons/icons';
 
-import { CardComponent, CardAccentColor } from '../../../../core/components/ui/card/card.component';
-
 /**
  * Mobile table card component for waiter dashboard.
  * Displays compact table details, occupancy status, active total, and waiting timer indicator.
@@ -22,7 +20,7 @@ import { CardComponent, CardAccentColor } from '../../../../core/components/ui/c
 @Component({
   selector: 'app-mobile-table-card',
   standalone: true,
-  imports: [IonIcon, TranslocoPipe, AppCurrencyPipe, CardComponent],
+  imports: [IonIcon, TranslocoPipe, AppCurrencyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './mobile-table-card.component.html',
   styleUrls: ['./mobile-table-card.component.scss'],
@@ -79,16 +77,5 @@ export class MobileTableCardComponent {
     if (this.waitTimeMinutes >= 20) return 'wait-danger';
     if (this.waitTimeMinutes >= 10) return 'wait-warning';
     return 'wait-normal';
-  }
-
-  /**
-   * Left accent border color for generic card integration.
-   */
-  get accentColor(): CardAccentColor | null {
-    if (!this.table?.occupee) return null;
-    if (this.waitTimeMinutes >= 20) return 'danger';
-    if (this.waitTimeMinutes >= 10) return 'warning';
-    if (this.waitTimeMinutes > 0) return 'success';
-    return 'warning';
   }
 }

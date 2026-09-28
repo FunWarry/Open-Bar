@@ -15,65 +15,61 @@
 
   <!-- Live KPI Stat Cards -->
   <section class="kpi-grid">
-    <div class="kpi-card users-card" data-testid="kpi-users">
-      <div class="kpi-icon-wrapper">
-        <i class="ki-icon">👥</i>
-      </div>
-      <div class="kpi-body">
-        <span class="kpi-number">{{ userCount$ | async }}</span>
-        <span class="kpi-title">{{ t('ADMIN_DASHBOARD.STATS.USERS') }}</span>
-        <span class="kpi-desc">{{ t('ADMIN_DASHBOARD.STATS.USERS_DESC') }}</span>
-      </div>
-      <a routerLink="/admin/users" class="kpi-action-btn" data-testid="kpi-users-action">
+    <app-stat-card
+      layout="horizontal"
+      color="primary"
+      [value]="userCount$ | async"
+      [title]="t('ADMIN_DASHBOARD.STATS.USERS')"
+      [subtext]="t('ADMIN_DASHBOARD.STATS.USERS_DESC')"
+      testId="kpi-users">
+      <span stat-icon class="ki-icon">👥</span>
+      <a stat-footer routerLink="/admin/users" class="kpi-action-btn" data-testid="kpi-users-action">
         <span>{{ t('ADMIN_DASHBOARD.STATS.VIEW_LIST') }}</span>
         <span class="arrow">→</span>
       </a>
-    </div>
+    </app-stat-card>
 
-    <div class="kpi-card cocktails-card" data-testid="kpi-cocktails">
-      <div class="kpi-icon-wrapper">
-        <i class="ki-icon">🍸</i>
-      </div>
-      <div class="kpi-body">
-        <span class="kpi-number">{{ cocktailCount$ | async }}</span>
-        <span class="kpi-title">{{ t('ADMIN_DASHBOARD.STATS.COCKTAILS') }}</span>
-        <span class="kpi-desc">{{ t('ADMIN_DASHBOARD.STATS.COCKTAILS_DESC') }}</span>
-      </div>
-      <a routerLink="/cocktails" class="kpi-action-btn" data-testid="kpi-cocktails-action">
+    <app-stat-card
+      layout="horizontal"
+      color="purple"
+      [value]="cocktailCount$ | async"
+      [title]="t('ADMIN_DASHBOARD.STATS.COCKTAILS')"
+      [subtext]="t('ADMIN_DASHBOARD.STATS.COCKTAILS_DESC')"
+      testId="kpi-cocktails">
+      <span stat-icon class="ki-icon">🍸</span>
+      <a stat-footer routerLink="/cocktails" class="kpi-action-btn" data-testid="kpi-cocktails-action">
         <span>{{ t('ADMIN_DASHBOARD.STATS.VIEW_CATALOG') }}</span>
         <span class="arrow">→</span>
       </a>
-    </div>
+    </app-stat-card>
 
-    <div class="kpi-card ingredients-card" data-testid="kpi-ingredients">
-      <div class="kpi-icon-wrapper">
-        <i class="ki-icon">🧪</i>
-      </div>
-      <div class="kpi-body">
-        <span class="kpi-number">{{ ingredientCount$ | async }}</span>
-        <span class="kpi-title">{{ t('ADMIN_DASHBOARD.STATS.INGREDIENTS') }}</span>
-        <span class="kpi-desc">{{ t('ADMIN_DASHBOARD.STATS.INGREDIENTS_DESC') }}</span>
-      </div>
-      <a routerLink="/ingredients" class="kpi-action-btn" data-testid="kpi-ingredients-action">
+    <app-stat-card
+      layout="horizontal"
+      color="success"
+      [value]="ingredientCount$ | async"
+      [title]="t('ADMIN_DASHBOARD.STATS.INGREDIENTS')"
+      [subtext]="t('ADMIN_DASHBOARD.STATS.INGREDIENTS_DESC')"
+      testId="kpi-ingredients">
+      <span stat-icon class="ki-icon">🧪</span>
+      <a stat-footer routerLink="/ingredients" class="kpi-action-btn" data-testid="kpi-ingredients-action">
         <span>{{ t('ADMIN_DASHBOARD.STATS.VIEW_STOCKS') }}</span>
         <span class="arrow">→</span>
       </a>
-    </div>
+    </app-stat-card>
 
-    <div class="kpi-card etab-card" data-testid="kpi-establishment">
-      <div class="kpi-icon-wrapper">
-        <i class="ki-icon">🏬</i>
-      </div>
-      <div class="kpi-body">
-        <span class="kpi-text-value">{{ etablissementName$ | async }}</span>
-        <span class="kpi-title">{{ t('ADMIN_DASHBOARD.STATS.ESTABLISHMENT') }}</span>
-        <span class="kpi-desc">{{ t('ADMIN_DASHBOARD.STATS.ESTABLISHMENT_DESC') }}</span>
-      </div>
-      <a routerLink="/admin/settings" [queryParams]="{ tab: 'legal' }" class="kpi-action-btn" data-testid="kpi-etab-action">
+    <app-stat-card
+      layout="horizontal"
+      color="warning"
+      [value]="etablissementName$ | async"
+      [title]="t('ADMIN_DASHBOARD.STATS.ESTABLISHMENT')"
+      [subtext]="t('ADMIN_DASHBOARD.STATS.ESTABLISHMENT_DESC')"
+      testId="kpi-establishment">
+      <span stat-icon class="ki-icon">🏬</span>
+      <a stat-footer routerLink="/admin/settings" [queryParams]="{ tab: 'legal' }" class="kpi-action-btn" data-testid="kpi-etab-action">
         <span>{{ t('ADMIN_DASHBOARD.STATS.VIEW_SETTINGS') }}</span>
         <span class="arrow">→</span>
       </a>
-    </div>
+    </app-stat-card>
   </section>
 
   <!-- Categorized Action Hub -->

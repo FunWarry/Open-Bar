@@ -1,22 +1,66 @@
-<div class="stat-card" [ngClass]="color ? 'color-' + color : ''" [attr.data-testid]="testId">
-  <div class="stat-accent-bar"></div>
+<div
+  class="stat-card"
+  [ngClass]="[
+    'layout-' + layout,
+    'size-' + size,
+    color ? 'color-' + color : '',
+    highlight ? 'stat-card-highlight' : '',
+    (clickable || cardClick.observed) ? 'is-clickable' : ''
+  ]"
+  [attr.data-testid]="testId"
+  [attr.role]="(clickable || cardClick.observed) ? 'button' : null"
+  [attr.tabindex]="(clickable || cardClick.observed) ? 0 : null"
+  (click)="onClick($event)"
+  (keydown)="onKeyDown($event)">
+
+  @if (layout === 'vertical') {
+    <div class="stat-accent-bar"></div>
+  }
+
   <div class="stat-card-inner">
-    <div class="stat-header">
-      <span class="stat-title">{{ displayTitle }}</span>
+    <div class="stat-icon-wrapper" [class.stat-icon-horizontal]="layout === 'horizontal'">
       @if (icon) {
-        <div class="stat-icon-wrapper">
-          <ion-icon [name]="icon" class="stat-icon"></ion-icon>
+        <ion-icon [name]="icon" class="stat-icon"></ion-icon>
+      }
+      <ng-content select="[stat-icon]"></ng-content>
+    </div>
+
+    <div class="stat-content-col" [class.label-top]="isLabelTop">
+      <div class="stat-title-wrapper">
+        <span class="stat-title">
+          @if (displayTitle) {
+            {{ displayTitle }}
+          }
+          <ng-content select="[stat-title]"></ng-content>
+        </span>
+      </div>
+
+      <div class="stat-value" [ngClass]="valueClass || ''">
+        @if (value !== undefined && value !== null) {
+          {{ value }}
+        }
+        <ng-content select="[stat-value]"></ng-content>
+      </div>
+
+      @if (subtext) {
+        <div class="stat-subtext" [ngClass]="subtextClass || ''">
+          {{ subtext }}
         </div>
       }
-    </div>
-    <div class="stat-value">{{ value }}</div>
-    @if (trend) {
-      <div class="stat-footer">
-        <div class="stat-trend-badge" [ngClass]="'trend-' + trendDirection">
-          <ion-icon [name]="trendDirection === 'up' ? 'trending-up-outline' : (trendDirection === 'down' ? 'trending-down-outline' : 'remove-outline')"></ion-icon>
-          <span>{{ trend }}</span>
+
+      @if (trend) {
+        <div class="stat-trend-container">
+          <div class="stat-trend-badge" [ngClass]="'trend-' + trendDirection">
+            <ion-icon [name]="trendDirection === 'up' ? 'trending-up-outline' : (trendDirection === 'down' ? 'trending-down-outline' : 'remove-outline')"></ion-icon>
+            <span>{{ trend }}</span>
+          </div>
         </div>
+      }
+
+      <div class="stat-custom-footer">
+        <ng-content select="[stat-footer]"></ng-content>
+        <ng-content></ng-content>
       </div>
-    }
+    </div>
   </div>
 </div>

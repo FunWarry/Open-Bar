@@ -60,22 +60,29 @@
 
       <!-- KPI Summary Cards Grid -->
       <div class="kpis-grid" data-testid="x-report-kpis">
-        <div class="kpi-card">
-          <span class="kpi-title">{{ 'CASH_DRAWER.TOTAL_CA_TTC' | transloco }}</span>
-          <span class="kpi-value" data-testid="x-report-ca-ttc">{{ xReport.totalRevenueTTC | appCurrency }}</span>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-title">{{ 'CASH_DRAWER.TOTAL_CA_HT' | transloco }}</span>
-          <span class="kpi-value">{{ xReport.totalRevenueHT | appCurrency }}</span>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-title">{{ 'CASH_DRAWER.OPENING_FLOAT' | transloco }}</span>
-          <span class="kpi-value">{{ xReport.openingFloat | appCurrency }}</span>
-        </div>
-        <div class="kpi-card highlight">
-          <span class="kpi-title">{{ 'CASH_DRAWER.THEORETICAL_CASH' | transloco }}</span>
-          <span class="kpi-value" data-testid="x-report-theoretical-cash">{{ xReport.theoreticalCashInDrawer | appCurrency }}</span>
-        </div>
+        <app-stat-card
+          [title]="'CASH_DRAWER.TOTAL_CA_TTC' | transloco"
+          [value]="xReport.totalRevenueTTC | appCurrency"
+          [color]="'primary'"
+          [testId]="'x-report-ca-ttc'">
+        </app-stat-card>
+        <app-stat-card
+          [title]="'CASH_DRAWER.TOTAL_CA_HT' | transloco"
+          [value]="xReport.totalRevenueHT | appCurrency"
+          [color]="'default'">
+        </app-stat-card>
+        <app-stat-card
+          [title]="'CASH_DRAWER.OPENING_FLOAT' | transloco"
+          [value]="xReport.openingFloat | appCurrency"
+          [color]="'default'">
+        </app-stat-card>
+        <app-stat-card
+          [title]="'CASH_DRAWER.THEORETICAL_CASH' | transloco"
+          [value]="xReport.theoreticalCashInDrawer | appCurrency"
+          [color]="'success'"
+          [highlight]="true"
+          [testId]="'x-report-theoretical-cash'">
+        </app-stat-card>
       </div>
 
       <!-- Cash Position & Reconciliation Table -->

@@ -62,7 +62,6 @@ import { StatCardComponent } from '../../../core/components/ui/stat-card/stat-ca
 import { ModalComponent } from '../../../core/components/ui/modal/modal.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
-import { CardComponent, CardAccentColor } from '../../../core/components/ui/card/card.component';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 
 /**
@@ -103,8 +102,7 @@ export type AuditStatusFilter = 'ALL' | 'DRAFT' | 'IN_PROGRESS' | 'FINALIZED' | 
     StatCardComponent,
     ModalComponent,
     SearchableSelectComponent,
-    InputFieldComponent,
-    CardComponent,
+    InputFieldComponent
   ],
 })
 export class InventorySessionsComponent implements OnInit, OnDestroy {
@@ -115,17 +113,6 @@ export class InventorySessionsComponent implements OnInit, OnDestroy {
   private readonly toastCtrl = inject(ToastController);
   private readonly alertCtrl = inject(AlertController);
   private readonly transloco = inject(TranslocoService);
-
-  /** Maps audit session status to CardAccentColor */
-  getSessionAccentColor(status: InventoryAuditStatus): CardAccentColor {
-    switch (status) {
-      case 'FINALIZED': return 'success';
-      case 'IN_PROGRESS': return 'warning';
-      case 'CANCELLED': return 'danger';
-      case 'DRAFT': return 'none';
-      default: return 'none';
-    }
-  }
   private readonly destroy$ = new Subject<void>();
 
   // State signals

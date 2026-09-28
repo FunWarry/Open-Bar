@@ -30,7 +30,6 @@ import { Cocktail, CocktailFacets, FlavorProfile } from '../../../core/models/co
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { CocktailMatcherBarComponent, CocktailMatcherFilters } from '../../../core/components/ui/cocktail-matcher-bar/cocktail-matcher-bar.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
-import { CardComponent } from '../../../core/components/ui/card/card.component';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { getMarginBadgeClass } from '../../../core/utils/margin-calculation.util';
 import { environment } from '../../../../environments/environment';
@@ -57,8 +56,7 @@ export type { AllergenOption } from '../../../core/models/ingredient.model';
     IonSpinner, IonThumbnail, IonGrid, IonRow, IonCol,
     CocktailMatcherBarComponent,
     SearchBarComponent,
-    ActionButtonComponent,
-    CardComponent
+    ActionButtonComponent
   ]
 })
 export class CocktailListComponent implements OnInit, OnDestroy {

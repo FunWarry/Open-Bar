@@ -44,7 +44,6 @@ import { PurchaseOrderDetailModalComponent } from './purchase-order-detail-modal
 import { BarcodeScannerModalComponent, BarcodeScannerResult } from '../../core/components/ui/barcode-scanner-modal/barcode-scanner-modal.component';
 import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
-import { CardComponent, CardAccentColor } from '../../core/components/ui/card/card.component';
 
 export type PurchasesTab = 'orders' | 'suppliers' | 'pamp';
 
@@ -64,8 +63,7 @@ export type PurchasesTab = 'orders' | 'suppliers' | 'pamp';
     IonIcon,
     TranslocoPipe,
     EmptyStateComponent,
-    SearchBarComponent,
-    CardComponent,
+    SearchBarComponent
   ]
 })
 export class PurchasesPageComponent implements OnInit {
@@ -76,18 +74,6 @@ export class PurchasesPageComponent implements OnInit {
   private readonly toastCtrl = inject(ToastController);
   private readonly alertCtrl = inject(AlertController);
   private readonly transloco = inject(TranslocoService);
-
-  /** Maps purchase order status to CardAccentColor */
-  getOrderAccentColor(status: PurchaseOrderStatus): CardAccentColor {
-    switch (status) {
-      case 'DRAFT': return 'warning';
-      case 'ORDERED': return 'info';
-      case 'PARTIALLY_RECEIVED': return 'purple';
-      case 'RECEIVED': return 'success';
-      case 'CANCELLED': return 'danger';
-      default: return 'none';
-    }
-  }
 
   activeTab = signal<PurchasesTab>('orders');
   statusFilter = signal<PurchaseOrderStatus | 'ALL'>('ALL');

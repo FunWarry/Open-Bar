@@ -13,6 +13,7 @@ import { CocktailService } from '../../core/services/cocktail.service';
 import { IngredientService } from '../../core/services/ingredient.service';
 import { EtablissementService } from '../../core/services/etablissement.service';
 import { NavigationService } from '../../core/services/navigation.service';
+import { StatCardComponent } from '../../core/components/ui/stat-card/stat-card.component';
 
 /**
  * Admin Component providing centralized administration dashboard and quick actions.
@@ -24,7 +25,7 @@ import { NavigationService } from '../../core/services/navigation.service';
   styleUrls: ['./admin.component.css'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [AsyncPipe, RouterLink, TranslocoModule]
+  imports: [AsyncPipe, RouterLink, TranslocoModule, StatCardComponent]
 })
 export class AdminComponent implements OnInit {
   currentUser$: Observable<User | null>;

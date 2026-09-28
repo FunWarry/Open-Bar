@@ -52,6 +52,7 @@ import {
 } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+import { StatCardComponent } from '../../../core/components/ui/stat-card/stat-card.component';
 import { CsvExportService, CsvColumn } from '../../../core/services/csv-export.service';
 
 /**
@@ -82,6 +83,7 @@ export type AuditDateFilter = 'ALL' | 'TODAY' | 'WEEK' | 'MONTH';
     SearchableSelectComponent,
     SearchBarComponent,
     ActionButtonComponent,
+    StatCardComponent,
     IonIcon,
     IonSpinner,
   ]

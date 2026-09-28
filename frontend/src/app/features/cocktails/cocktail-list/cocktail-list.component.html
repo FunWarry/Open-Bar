@@ -250,18 +250,19 @@
           <ion-row>
             @for (cocktail of filteredCocktails; track cocktail.id) {
               <ion-col size="12" size-sm="6" size-md="4" size-lg="3" size-xl="3">
-                <app-card
-                  [active]="cocktail.disponible"
-                  [clickable]="selectionMode"
-                  [accentColor]="'none'"
-                  [headerDivider]="'none'"
-                  [footerDivider]="'none'"
-                  [padding]="'none'"
-                  [testId]="'cocktail-card-' + cocktail.id"
-                  [customClass]="'figma-cocktail-card product-card ' + (!showPictures ? 'no-picture ' : '') + (!cocktail.disponible ? 'unavailable ' : '') + (selectionMode ? 'selection-mode' : '')"
-                  (cardClick)="selectionMode ? onSelectCocktail(cocktail) : null">
+                <div
+                  class="figma-cocktail-card product-card"
+                  [class.no-picture]="!showPictures"
+                  [class.unavailable]="!cocktail.disponible"
+                  [class.selection-mode]="selectionMode"
+                  (click)="selectionMode ? onSelectCocktail(cocktail) : null"
+                  (keydown.enter)="selectionMode ? onSelectCocktail(cocktail) : null"
+                  (keydown.space)="selectionMode ? onSelectCocktail(cocktail) : null"
+                  [attr.tabindex]="selectionMode ? 0 : null"
+                  [attr.role]="selectionMode ? 'button' : null"
+                  [attr.data-testid]="'cocktail-card-' + cocktail.id">
                   @if (showPictures) {
-                    <div card-header class="figma-card-image-area">
+                    <div class="figma-card-image-area">
                       <img
                         [src]="getCocktailImage(cocktail)"
                         [alt]="cocktail.nom"
@@ -270,7 +271,7 @@
                   }
 
                   <!-- Card Text Body -->
-                  <div card-content class="figma-card-body">
+                  <div class="figma-card-body">
                     <div class="figma-card-top-row">
                       <div class="badges-group">
                         <span class="figma-category-pill" [ngStyle]="getCategoryPillStyle(cocktail.categorie, false)">
@@ -382,7 +383,7 @@
                       </div>
                     </div>
                   </div>
-                </app-card>
+                </div>
               </ion-col>
               } @empty {
               <ion-col size="12">

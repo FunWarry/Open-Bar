@@ -32,6 +32,7 @@ import { ConfirmDeleteModalComponent } from '../../../core/components/ui/confirm
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
+import { StatCardComponent } from '../../../core/components/ui/stat-card/stat-card.component';
 /**
  * Sorting options for table list overview.
  */
@@ -71,7 +72,7 @@ export interface GroupedTables {
     IonContent, IonIcon, IonButton,
     IonRefresher, IonRefresherContent, IonSpinner, SearchBarComponent,
     AsyncPipe, NgTemplateOutlet, TranslocoPipe,
-    SearchableSelectComponent,
+    SearchableSelectComponent, StatCardComponent
   ],
 })
 export class TableListComponent implements OnInit, OnDestroy {

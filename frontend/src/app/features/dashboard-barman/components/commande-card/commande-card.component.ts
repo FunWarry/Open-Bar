@@ -23,8 +23,6 @@ import { CommandeDetailModalComponent } from '../../../commandes/commande-detail
 import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../core/utils/modal-animation.utils';
 import { CommandeService } from '../../../../core/services/commande.service';
 
-import { CardComponent } from '../../../../core/components/ui/card/card.component';
-
 /**
  * Kanban order ticket card component for the bar counter preparation dashboard.
  * Features live countdowns/timers, color-shifting urgency, quick recipe sheet inspection,
@@ -38,8 +36,7 @@ import { CardComponent } from '../../../../core/components/ui/card/card.componen
     IonIcon,
     TranslocoPipe,
     StatusBadgeComponent,
-    ActionButtonComponent,
-    CardComponent
+    ActionButtonComponent
   ],
   templateUrl: './commande-card.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
