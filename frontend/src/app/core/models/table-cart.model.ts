@@ -63,6 +63,16 @@ export interface TableCartItem {
   notes?: string | null;
 
   /**
+   * Whether this item was won on the cocktail roulette wheel.
+   */
+  isMysteryDrink?: boolean;
+
+  /**
+   * Optional override unit price.
+   */
+  prixOverride?: number | null;
+
+  /**
    * Timestamp when added.
    */
   createdAt?: string | null;
@@ -214,6 +224,16 @@ export interface TableCartItemRequest {
    * Optional item notes.
    */
   notes?: string | null;
+
+  /**
+   * Whether this item is a mystery drink won on the roulette.
+   */
+  isMysteryDrink?: boolean;
+
+  /**
+   * Optional override unit price.
+   */
+  prixOverride?: number | null;
 }
 
 /**

@@ -30,10 +30,21 @@
           (click)="languageService.toggleLanguage()"
           (keydown.enter)="languageService.toggleLanguage()"
           data-testid="topbar-language-toggle"
-          [title]="'THEME.TOGGLE' | transloco">
+          [title]="'PROFILE.SECTION_LANGUAGE' | transloco">
           <ion-icon slot="start" name="globe-outline"></ion-icon>
           {{ (languageService.currentLang$ | async) | uppercase }}
         </ion-button>
+
+        <!-- Theme toggle button -->
+        @if (themeService) {
+          <ion-button
+            (click)="themeService.toggleTheme()"
+            (keydown.enter)="themeService.toggleTheme()"
+            data-testid="topbar-theme-toggle"
+            [title]="'THEME.TOGGLE' | transloco">
+            <ion-icon slot="icon-only" [name]="themeService.currentTheme === 'dark' ? 'sunny-outline' : 'moon-outline'"></ion-icon>
+          </ion-button>
+        }
 
         <!-- Sound toggle button -->
         <ion-button

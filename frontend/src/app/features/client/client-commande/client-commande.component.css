@@ -1440,3 +1440,190 @@ dialog.cocktail-details-dialog {
   border-top: 1px solid var(--border-medium);
 }
 
+/* Roulette Launcher Button & Mystery Drink Badge */
+.roulette-launcher-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(236, 72, 153, 0.2));
+  border: 1px solid var(--semantic-warning, #f59e0b);
+  color: var(--semantic-warning, #f59e0b);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+}
+
+.roulette-launcher-btn:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(236, 72, 153, 0.35));
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+}
+
+.mystery-drink-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+  background: var(--background-surface-2, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--semantic-warning, #f59e0b);
+  color: var(--semantic-warning, #f59e0b);
+  vertical-align: middle;
+}
+
+/* Mystery Drink Gamification Hero Promotion Banner */
+.roulette-hero-card {
+  position: relative;
+  margin-bottom: 18px;
+  background: linear-gradient(135deg, var(--background-surface-2) 0%, var(--background-surface-3) 100%);
+  border: 1.5px solid var(--primary);
+  border-radius: var(--radius-lg, 18px);
+  padding: 16px 20px;
+  box-shadow: 0 4px 20px rgba(108, 127, 232, 0.2);
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.roulette-hero-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(108, 127, 232, 0.35);
+  border-color: var(--primary-light);
+}
+
+.roulette-hero-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.roulette-hero-icon-box {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md, 16px);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--border-selected) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  box-shadow: 0 4px 14px rgba(108, 127, 232, 0.35);
+  flex-shrink: 0;
+}
+
+.roulette-hero-text {
+  flex: 1;
+  min-width: 200px;
+}
+
+.roulette-hero-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.roulette-hero-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.roulette-hero-badge {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 9999px);
+  background: rgba(108, 127, 232, 0.15);
+  border: 1px solid var(--primary);
+  color: var(--primary-light);
+}
+
+.roulette-hero-desc {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.roulette-hero-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: linear-gradient(135deg, var(--primary-strong) 0%, var(--border-selected) 100%);
+  border: 1px solid var(--primary-light);
+  border-radius: var(--radius-full, 9999px);
+  color: var(--text-on-accent);
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(108, 127, 232, 0.4);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.roulette-hero-cta-btn:hover {
+  transform: scale(1.04);
+  box-shadow: 0 6px 20px rgba(108, 127, 232, 0.6);
+}
+
+.roulette-hero-cta-btn ion-icon {
+  font-size: 1.2rem;
+}
+
+/* Floating Roulette Action Button */
+.floating-roulette-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  z-index: 990;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, var(--primary-strong) 0%, var(--border-selected) 100%);
+  border: 2px solid var(--primary-light);
+  border-radius: var(--radius-full, 9999px);
+  color: var(--text-on-accent);
+  font-size: 0.92rem;
+  font-weight: 800;
+  box-shadow: 0 6px 24px rgba(108, 127, 232, 0.45);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.floating-roulette-fab:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 30px rgba(108, 127, 232, 0.65);
+}
+
+.floating-roulette-fab.above-cart {
+  bottom: 84px;
+}
+
+.floating-roulette-fab .fab-dice {
+  font-size: 1.3rem;
+}
+
+@media (max-width: 600px) {
+  .roulette-hero-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .roulette-hero-cta-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+

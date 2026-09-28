@@ -80,9 +80,14 @@
 
     </nav>
 
-    <!-- Footer: User Avatar & Logout (Figma ID 120:8) -->
     <div class="sidebar-footer" data-testid="sidebar-footer">
-      <div class="user-info">
+      <button
+        type="button"
+        class="user-info"
+        (click)="navigationService.navigateToUserProfile()"
+        (keyup.enter)="navigationService.navigateToUserProfile()"
+        [title]="'NAV.PROFILE' | transloco"
+        data-testid="sidebar-user-info-btn">
         <!-- Avatar circle with role color background -->
         <div
           class="user-avatar"
@@ -100,7 +105,7 @@
             </span>
           </div>
         }
-      </div>
+      </button>
 
       <!-- Quick Logout Button -->
       <button

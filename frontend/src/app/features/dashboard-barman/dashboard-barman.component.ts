@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
-
+import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -40,7 +40,9 @@ import {
   sparklesOutline,
   layersOutline,
   checkmarkCircleOutline,
-  eyeOutline
+  eyeOutline,
+  tvOutline,
+  addCircleOutline
 } from 'ionicons/icons';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
 import { CommandeCardComponent } from './components/commande-card/commande-card.component';
@@ -60,6 +62,7 @@ import { Cocktail } from '../../core/models/cocktail.model';
 import { Ingredient } from '../../core/models/ingredient.model';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { FeatureFlagService } from '../../core/services/feature-flag.service';
+import { RouletteService } from '../../core/services/roulette.service';
 
 /**
  * Dashboard Barman Component managing the real-time preparation Kanban board.
@@ -91,7 +94,8 @@ import { FeatureFlagService } from '../../core/services/feature-flag.service';
     IonSegmentButton,
     CommandeCardComponent,
     EmptyStateComponent,
-    RecipeSidePanelComponent
+    RecipeSidePanelComponent,
+    RouterLink
 ],
   templateUrl: './dashboard-barman.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -129,14 +133,16 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   private readonly modalCtrl = inject(ModalController);
   private readonly notificationService = inject(NotificationService);
   private readonly settingsService = inject(AppSettingsService);
-  private readonly featureFlagService = inject(FeatureFlagService);
+  public readonly featureFlagService = inject(FeatureFlagService);
   private readonly soundService = inject(SoundService);
   private readonly transloco = inject(TranslocoService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly wsService = inject(WebSocketService);
+  private readonly rouletteService = inject(RouletteService, { optional: true });
 
   readonly cuisineKdsEnabled = this.featureFlagService.cuisineKdsEnabled;
   activeViewMode: 'tickets' | 'batch' = 'tickets';
+  roulettePin = '7777';
 
   constructor() {
     addIcons({
@@ -155,7 +161,9 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       sparklesOutline,
       layersOutline,
       checkmarkCircleOutline,
-      eyeOutline
+      eyeOutline,
+      tvOutline,
+      addCircleOutline
     });
   }
 
@@ -288,6 +296,35 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       });
 
     this.chargerCommandes();
+
+    if (this.featureFlagService.mysteryRouletteEnabled() && this.rouletteService) {
+      this.rouletteService.getDisplayPin()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (res) => {
+            if (res?.pin) {
+              this.roulettePin = res.pin;
+              this.cdr.markForCheck();
+            }
+          },
+          error: () => {}
+        });
+
+      this.rouletteService.watchEvents()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(evt => {
+          if (evt?.eventType === 'PIN_REVOKED') {
+            this.rouletteService?.getDisplayPin()
+              .pipe(takeUntil(this.destroy$))
+              .subscribe(res => {
+                if (res?.pin) {
+                  this.roulettePin = res.pin;
+                  this.cdr.markForCheck();
+                }
+              });
+          }
+        });
+    }
 
     this.notificationService
       .onNotification()

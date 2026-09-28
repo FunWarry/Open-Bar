@@ -177,8 +177,8 @@ public class TableController {
      * @return Updated table DTO
      */
     @RequestMapping(value = "/{id:\\d+}/occuper", method = {RequestMethod.POST, RequestMethod.PATCH})
-    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Mark table as occupied (SERVEUR/MANAGER/ADMIN)")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN') or hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Mark table as occupied (SERVEUR/BARMAN/MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Table marked as occupied")
     public ResponseEntity<TableResponseDTO> occuperTable(
         @PathVariable Long id,
@@ -193,8 +193,8 @@ public class TableController {
      * @return Liberated table DTO
      */
     @RequestMapping(value = "/{id:\\d+}/liberer", method = {RequestMethod.POST, RequestMethod.PATCH})
-    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Liberate a table (SERVEUR/MANAGER/ADMIN)")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN') or hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Liberate a table (SERVEUR/BARMAN/MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Table liberated")
     public ResponseEntity<TableResponseDTO> libererTable(@PathVariable Long id) {
         return ResponseEntity.ok(TableResponseDTO.from(tableService.libererTable(id)));
@@ -270,8 +270,8 @@ public class TableController {
      * @return Updated target table DTO
      */
     @PostMapping("/{sourceId:\\d+}/transfer/{targetId:\\d+}")
-    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Transfer orders from one table to another (SERVEUR/MANAGER/ADMIN)")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN') or hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Transfer orders from one table to another (SERVEUR/BARMAN/MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Orders transferred")
     public ResponseEntity<TableResponseDTO> transfererCommandes(
         @Parameter(description = "Source table ID") @PathVariable Long sourceId,

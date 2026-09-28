@@ -36,6 +36,7 @@ import * as allIcons from 'ionicons/icons';
 })
 export class AppComponent implements OnInit {
   showNavbar$: Observable<boolean>;
+  showUnauthLangBtn$: Observable<boolean>;
 
   constructor(
     private readonly router: Router,
@@ -74,6 +75,18 @@ export class AppComponent implements OnInit {
 
     this.showNavbar$ = combineLatest([isAuth$, isStandaloneRoute$]).pipe(
       map(([isAuth, isStandalone]) => isAuth && !isStandalone)
+    );
+
+    const isDisplayRoute = (url: string): boolean => url.includes('/roulette-display');
+    const isInitialDisplayRoute = isDisplayRoute(initialUrl);
+
+    this.showUnauthLangBtn$ = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      map((event: any) => {
+        const url = event.urlAfterRedirects || event.url;
+        return !isDisplayRoute(url);
+      }),
+      startWith(!isInitialDisplayRoute)
     );
   }
 

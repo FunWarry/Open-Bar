@@ -65,6 +65,11 @@ public enum EstablishmentModule {
      * Periodic physical inventory audit (Stocktake), storage room counting sheets,
      * theoretical vs physical variance matrix, and automated shrinkage adjustment.
      */
-    INVENTORY_AUDIT
+    INVENTORY_AUDIT,
+
+    /**
+     * Mystery Drink roulette wheel gamification for patrons and bartender overstock depletion.
+     */
+    MYSTERY_ROULETTE
 }
 

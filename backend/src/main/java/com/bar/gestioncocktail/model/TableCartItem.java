@@ -54,6 +54,12 @@ public class TableCartItem {
     @Column(name = "notes", length = 500)
     private String notes;
 
+    @Column(name = "is_mystery_drink")
+    private Boolean isMysteryDrink = false;
+
+    @Column(name = "prix_override", precision = 10, scale = 2)
+    private java.math.BigDecimal prixOverride;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
