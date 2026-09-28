@@ -41,7 +41,8 @@ import {
   layersOutline,
   checkmarkCircleOutline,
   eyeOutline,
-  tvOutline
+  tvOutline,
+  addCircleOutline
 } from 'ionicons/icons';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
 import { CommandeCardComponent } from './components/commande-card/commande-card.component';
@@ -161,7 +162,8 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       layersOutline,
       checkmarkCircleOutline,
       eyeOutline,
-      tvOutline
+      tvOutline,
+      addCircleOutline
     });
   }
 

@@ -2722,6 +2722,7 @@
   "BARMAN_DASHBOARD": {
     "TITLE": "Comptoir Barman",
     "SUBTITLE": "Suivi des préparations en direct",
+    "TAKE_ORDER": "Prise de commande",
     "PENDING_ORDERS": "En attente",
     "IN_PROGRESS_ORDERS": "En préparation",
     "READY_ORDERS": "Prêt à servir",

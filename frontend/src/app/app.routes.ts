@@ -318,7 +318,7 @@ export const routes: Routes = [
     path: 'waiter',
     loadComponent: () => import('./features/dashboard-serveur/dashboard-serveur.component').then(m => m.DashboardServeurComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['SERVEUR', 'MANAGER', 'ADMIN'] }
+    data: { roles: ['SERVEUR', 'BARMAN', 'MANAGER', 'ADMIN'] }
   },
   {
     path: 'waiter/new-order',
@@ -338,7 +338,7 @@ export const routes: Routes = [
     path: 'serveur',
     loadComponent: () => import('./features/dashboard-serveur/dashboard-serveur.component').then(m => m.DashboardServeurComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['SERVEUR', 'MANAGER', 'ADMIN'] }
+    data: { roles: ['SERVEUR', 'BARMAN', 'MANAGER', 'ADMIN'] }
   },
   {
     path: 'serveur/nouvelle-commande',
@@ -435,7 +435,7 @@ export const routes: Routes = [
     path: 'invoices',
     loadComponent: () => import('./features/factures/facture-list/facture-list.component').then(m => m.FactureListComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN'] }
   },
   {
     path: 'invoices/recap',
@@ -447,19 +447,19 @@ export const routes: Routes = [
     path: 'invoices/:id/split',
     loadComponent: () => import('./features/factures/facture-split/facture-split.component').then(m => m.FactureSplitComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN'] }
   },
   {
     path: 'invoices/:id',
     loadComponent: () => import('./features/factures/facture-detail/facture-detail.component').then(m => m.FactureDetailComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN'] }
   },
   {
     path: 'factures',
     loadComponent: () => import('./features/factures/facture-list/facture-list.component').then(m => m.FactureListComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN'] }
   },
   {
     path: 'factures/recap',
@@ -471,13 +471,13 @@ export const routes: Routes = [
     path: 'factures/:id/split',
     loadComponent: () => import('./features/factures/facture-split/facture-split.component').then(m => m.FactureSplitComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN'] }
   },
   {
     path: 'factures/:id',
     loadComponent: () => import('./features/factures/facture-detail/facture-detail.component').then(m => m.FactureDetailComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN'] }
   },
 
   // Client QR & Ordering

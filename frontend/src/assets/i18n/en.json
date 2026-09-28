@@ -2722,6 +2722,7 @@
   "BARMAN_DASHBOARD": {
     "TITLE": "Barman Counter",
     "SUBTITLE": "Live preparation tracking",
+    "TAKE_ORDER": "Take Order",
     "PENDING_ORDERS": "Pending",
     "IN_PROGRESS_ORDERS": "In Progress",
     "READY_ORDERS": "Ready to Serve",

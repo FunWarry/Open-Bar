@@ -36,6 +36,17 @@
 
       <!-- Action Buttons -->
       <div class="toolbar-actions">
+        <!-- Prise de commande directe au comptoir -->
+        <ion-button
+          class="header-action-btn btn-new-order"
+          routerLink="/serveur"
+          [queryParams]="{ tab: 'commande' }"
+          [title]="'BARMAN_DASHBOARD.TAKE_ORDER' | transloco"
+          data-testid="barman-take-order-btn">
+          <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+          <span class="btn-text">{{ 'BARMAN_DASHBOARD.TAKE_ORDER' | transloco }}</span>
+        </ion-button>
+
         <!-- Ruptures à chaud -->
         <ion-button
           class="header-action-btn btn-ruptures"

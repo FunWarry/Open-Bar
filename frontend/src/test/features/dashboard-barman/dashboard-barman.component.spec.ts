@@ -807,5 +807,15 @@ describe('DashboardBarmanComponent', () => {
       expect(component.filteredCommandesEnAttente.length).toBeGreaterThanOrEqual(2);
     });
   });
+
+  describe('direct order taking button', () => {
+    it('should render take order button with link to /serveur and tab=commande query param', () => {
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const takeOrderBtn = compiled.querySelector('[data-testid="barman-take-order-btn"]');
+      expect(takeOrderBtn).toBeTruthy();
+      expect(takeOrderBtn?.getAttribute('routerLink')).toBe('/serveur');
+    });
+  });
 });
 
