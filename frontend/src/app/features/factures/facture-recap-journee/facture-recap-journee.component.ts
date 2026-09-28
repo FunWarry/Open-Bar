@@ -28,6 +28,7 @@ import { CashMovementModalComponent } from '../cash-movement-modal/cash-movement
 import { XReportModalComponent } from '../x-report-modal/x-report-modal.component';
 import { CashDrawerService } from '../../../core/services/cash-drawer.service';
 import { FeatureFlagService } from '../../../core/services/feature-flag.service';
+import { StatCardComponent } from '../../../core/components/ui/stat-card/stat-card.component';
 
 /**
  * Daily Sales Closing Summary component (Z-Report) for Managers in OpenBar (Figma 628:1096).
@@ -44,7 +45,7 @@ import { FeatureFlagService } from '../../../core/services/feature-flag.service'
     CommonModule, FormsModule, TranslocoModule, AppCurrencyPipe,
     IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonGrid, IonRow, IonCol, IonBadge, IonIcon, IonButton, IonSpinner,
-    IonRefresher, IonRefresherContent,
+    IonRefresher, IonRefresherContent, StatCardComponent
   ],
 })
 export class FactureRecapJourneeComponent implements OnInit, OnDestroy {

@@ -57,49 +57,45 @@
     <!-- --- KPI STATS OVERVIEW --- -->
     <!-- ========================================================================= -->
     <div class="kpi-grid">
-      <div class="kpi-card" data-testid="kpi-total">
-        <div class="kpi-icon-wrapper icon-total">
-          <ion-icon name="shield-checkmark-outline"></ion-icon>
-        </div>
-        <div class="kpi-data">
-          <span class="kpi-value">{{ kpiTotal() }}</span>
-          <span class="kpi-title">{{ 'AUDIT_LOGS.KPI_TOTAL_TITLE' | transloco }}</span>
-          <span class="kpi-sub">{{ 'AUDIT_LOGS.KPI_TOTAL_SUB' | transloco }}</span>
-        </div>
-      </div>
+      <app-stat-card
+        layout="horizontal"
+        color="purple"
+        icon="shield-checkmark-outline"
+        [value]="kpiTotal()"
+        [title]="'AUDIT_LOGS.KPI_TOTAL_TITLE' | transloco"
+        [subtext]="'AUDIT_LOGS.KPI_TOTAL_SUB' | transloco"
+        testId="kpi-total">
+      </app-stat-card>
 
-      <div class="kpi-card" data-testid="kpi-today">
-        <div class="kpi-icon-wrapper icon-today">
-          <ion-icon name="time-outline"></ion-icon>
-        </div>
-        <div class="kpi-data">
-          <span class="kpi-value">{{ kpiToday() }}</span>
-          <span class="kpi-title">{{ 'AUDIT_LOGS.KPI_TODAY_TITLE' | transloco }}</span>
-          <span class="kpi-sub">{{ 'AUDIT_LOGS.KPI_TODAY_SUB' | transloco }}</span>
-        </div>
-      </div>
+      <app-stat-card
+        layout="horizontal"
+        color="info"
+        icon="time-outline"
+        [value]="kpiToday()"
+        [title]="'AUDIT_LOGS.KPI_TODAY_TITLE' | transloco"
+        [subtext]="'AUDIT_LOGS.KPI_TODAY_SUB' | transloco"
+        testId="kpi-today">
+      </app-stat-card>
 
-      <div class="kpi-card" data-testid="kpi-critical">
-        <div class="kpi-icon-wrapper icon-critical">
-          <ion-icon name="trash-outline"></ion-icon>
-        </div>
-        <div class="kpi-data">
-          <span class="kpi-value">{{ kpiCritical() }}</span>
-          <span class="kpi-title">{{ 'AUDIT_LOGS.KPI_CRITICAL_TITLE' | transloco }}</span>
-          <span class="kpi-sub">{{ 'AUDIT_LOGS.KPI_CRITICAL_SUB' | transloco }}</span>
-        </div>
-      </div>
+      <app-stat-card
+        layout="horizontal"
+        color="danger"
+        icon="trash-outline"
+        [value]="kpiCritical()"
+        [title]="'AUDIT_LOGS.KPI_CRITICAL_TITLE' | transloco"
+        [subtext]="'AUDIT_LOGS.KPI_CRITICAL_SUB' | transloco"
+        testId="kpi-critical">
+      </app-stat-card>
 
-      <div class="kpi-card" data-testid="kpi-actors">
-        <div class="kpi-icon-wrapper icon-actors">
-          <ion-icon name="person-outline"></ion-icon>
-        </div>
-        <div class="kpi-data">
-          <span class="kpi-value">{{ kpiUniqueUsers() }}</span>
-          <span class="kpi-title">{{ 'AUDIT_LOGS.KPI_ACTORS_TITLE' | transloco }}</span>
-          <span class="kpi-sub">{{ 'AUDIT_LOGS.KPI_ACTORS_SUB' | transloco }}</span>
-        </div>
-      </div>
+      <app-stat-card
+        layout="horizontal"
+        color="success"
+        icon="person-outline"
+        [value]="kpiUniqueUsers()"
+        [title]="'AUDIT_LOGS.KPI_ACTORS_TITLE' | transloco"
+        [subtext]="'AUDIT_LOGS.KPI_ACTORS_SUB' | transloco"
+        testId="kpi-actors">
+      </app-stat-card>
     </div>
 
     <!-- ========================================================================= -->

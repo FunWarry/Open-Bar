@@ -42,7 +42,6 @@ import { StockWasteModalComponent } from '../stock-waste-modal/stock-waste-modal
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
-import { CardComponent, CardAccentColor } from '../../../core/components/ui/card/card.component';
 import { PaginationComponent } from '../../../core/components/ui/pagination/pagination.component';
 import { CsvExportService, CsvColumn } from '../../../core/services/csv-export.service';
 import { StockWasteService } from '../../../core/services/stock-waste.service';
@@ -98,8 +97,7 @@ export interface IngredientCategoryGroup {
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSpinner, SearchBarComponent,
     IonGrid, IonRow, IonCol, IonProgressBar,
-    SearchableSelectComponent, ActionButtonComponent, PaginationComponent,
-    CardComponent
+    SearchableSelectComponent, ActionButtonComponent, PaginationComponent
   ],
 })
 export class IngredientListComponent implements OnInit, OnDestroy {

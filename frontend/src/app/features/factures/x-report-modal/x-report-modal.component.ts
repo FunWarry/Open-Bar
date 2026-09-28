@@ -12,6 +12,7 @@ import {
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
+import { StatCardComponent } from '../../../core/components/ui/stat-card/stat-card.component';
 import { CashDrawerService } from '../../../core/services/cash-drawer.service';
 import { XReport } from '../../../core/models/cash-drawer.model';
 
@@ -34,7 +35,8 @@ import { XReport } from '../../../core/models/cash-drawer.model';
     IonContent,
     IonFooter,
     IonSpinner,
-    IonBadge
+    IonBadge,
+    StatCardComponent
   ],
   templateUrl: './x-report-modal.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

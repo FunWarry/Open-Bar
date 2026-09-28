@@ -467,40 +467,34 @@
         <ion-card-content>
           <!-- Modern KPI Stat Cards Grid -->
           <div class="waste-kpi-grid">
-            <div class="waste-kpi-card loss-kpi">
-              <div class="kpi-icon-bubble danger-bubble">
-                <ion-icon name="trending-down-outline"></ion-icon>
-              </div>
-              <div class="kpi-body">
-                <span class="kpi-label">{{ 'STOCK.WASTE_AUDIT_TOTAL_LOSS' | transloco }}</span>
-                <strong class="kpi-value danger" data-testid="waste-stat-total-loss">
-                  {{ (wasteSummary?.totalLossValue || 0) | appCurrency }}
-                </strong>
-                <span class="kpi-subtext">{{ 'STOCK.WASTE_AUDIT_TOTAL_LOSS_SUBTEXT' | transloco }}</span>
-              </div>
-            </div>
-            <div class="waste-kpi-card count-kpi">
-              <div class="kpi-icon-bubble primary-bubble">
-                <ion-icon name="receipt-outline"></ion-icon>
-              </div>
-              <div class="kpi-body">
-                <span class="kpi-label">{{ 'STOCK.WASTE_AUDIT_TOTAL_COUNT' | transloco }}</span>
-                <strong class="kpi-value">{{ wasteSummary?.totalMovements || 0 }}</strong>
-                <span class="kpi-subtext">{{ 'STOCK.WASTE_AUDIT_TOTAL_COUNT_SUBTEXT' | transloco }}</span>
-              </div>
-            </div>
-            <div class="waste-kpi-card qty-kpi">
-              <div class="kpi-icon-bubble warning-bubble">
-                <ion-icon name="cube-outline"></ion-icon>
-              </div>
-              <div class="kpi-body">
-                <span class="kpi-label">{{ 'STOCK.WASTE_AUDIT_TOTAL_QTY' | transloco }}</span>
-                <strong class="kpi-value" data-testid="waste-stat-total-qty">
-                  {{ wasteSummary?.totalQuantityLost || 0 }}
-                </strong>
-                <span class="kpi-subtext">{{ 'STOCK.WASTE_AUDIT_TOTAL_QTY_SUBTEXT' | transloco }}</span>
-              </div>
-            </div>
+            <app-stat-card
+              layout="horizontal"
+              color="danger"
+              icon="trending-down-outline"
+              [title]="'STOCK.WASTE_AUDIT_TOTAL_LOSS' | transloco"
+              [subtext]="'STOCK.WASTE_AUDIT_TOTAL_LOSS_SUBTEXT' | transloco">
+              <strong stat-value class="danger" data-testid="waste-stat-total-loss">
+                {{ (wasteSummary?.totalLossValue || 0) | appCurrency }}
+              </strong>
+            </app-stat-card>
+            <app-stat-card
+              layout="horizontal"
+              color="primary"
+              icon="receipt-outline"
+              [title]="'STOCK.WASTE_AUDIT_TOTAL_COUNT' | transloco"
+              [value]="wasteSummary?.totalMovements || 0"
+              [subtext]="'STOCK.WASTE_AUDIT_TOTAL_COUNT_SUBTEXT' | transloco">
+            </app-stat-card>
+            <app-stat-card
+              layout="horizontal"
+              color="warning"
+              icon="cube-outline"
+              [title]="'STOCK.WASTE_AUDIT_TOTAL_QTY' | transloco"
+              [subtext]="'STOCK.WASTE_AUDIT_TOTAL_QTY_SUBTEXT' | transloco">
+              <strong stat-value data-testid="waste-stat-total-qty">
+                {{ wasteSummary?.totalQuantityLost || 0 }}
+              </strong>
+            </app-stat-card>
           </div>
           <!-- Breakdown by Reason & Recent Movements -->
           <div class="waste-audit-grid">

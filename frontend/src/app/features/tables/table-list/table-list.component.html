@@ -31,48 +31,52 @@
 
       <!-- Quick KPI Stats Bar -->
       <div class="stats-overview-grid">
-        <div class="stat-card">
-          <div class="stat-icon-wrapper total">
-            <ion-icon name="restaurant-outline"></ion-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-label">{{ 'TABLES.STATS.TOTAL' | transloco }}</span>
-            <span class="stat-value">{{ tableStats.totalCount }}</span>
-          </div>
-        </div>
+        <app-stat-card
+          layout="horizontal"
+          size="sm"
+          color="purple"
+          icon="restaurant-outline"
+          [label]="'TABLES.STATS.TOTAL' | transloco"
+          [value]="tableStats.totalCount"
+          testId="stat-total-tables">
+        </app-stat-card>
 
-        <div class="stat-card">
-          <div class="stat-icon-wrapper free">
-            <ion-icon name="checkmark-circle-outline"></ion-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-label">{{ 'TABLES.STATS.AVAILABLE' | transloco }}</span>
-            <span class="stat-value stat-free">{{ tableStats.freeCount }}</span>
-          </div>
-        </div>
+        <app-stat-card
+          layout="horizontal"
+          size="sm"
+          color="success"
+          icon="checkmark-circle-outline"
+          [label]="'TABLES.STATS.AVAILABLE' | transloco"
+          [value]="tableStats.freeCount"
+          valueClass="stat-free"
+          testId="stat-free-tables">
+        </app-stat-card>
 
-        <div class="stat-card">
-          <div class="stat-icon-wrapper occupied">
-            <ion-icon name="close-circle-outline"></ion-icon>
+        <app-stat-card
+          layout="horizontal"
+          size="sm"
+          color="warning"
+          icon="close-circle-outline"
+          [label]="'TABLES.STATS.OCCUPIED' | transloco"
+          testId="stat-occupied-tables">
+          <div stat-value class="stat-val-group">
+            <span class="stat-value stat-occupied">{{ tableStats.occupiedCount }}</span>
+            <span class="stat-sub">({{ tableStats.occupancyRate }}%)</span>
           </div>
-          <div class="stat-info">
-            <span class="stat-label">{{ 'TABLES.STATS.OCCUPIED' | transloco }}</span>
-            <div class="stat-val-group">
-              <span class="stat-value stat-occupied">{{ tableStats.occupiedCount }}</span>
-              <span class="stat-sub">({{ tableStats.occupancyRate }}%)</span>
-            </div>
-          </div>
-        </div>
+        </app-stat-card>
 
-        <div class="stat-card">
-          <div class="stat-icon-wrapper capacity">
-            <ion-icon name="people"></ion-icon>
+        <app-stat-card
+          layout="horizontal"
+          size="sm"
+          color="pink"
+          icon="people"
+          [label]="'TABLES.STATS.CAPACITY' | transloco"
+          testId="stat-capacity-tables">
+          <div stat-value class="stat-val-group">
+            <span class="stat-value">{{ tableStats.occupiedCapacity }} / {{ tableStats.totalCapacity }}</span>
+            <span class="stat-sub">{{ 'TABLES.STATS.SEATS' | transloco }}</span>
           </div>
-          <div class="stat-info">
-            <span class="stat-label">{{ 'TABLES.STATS.CAPACITY' | transloco }}</span>
-            <span class="stat-value">{{ tableStats.occupiedCapacity }} / {{ tableStats.totalCapacity }} <small>{{ 'TABLES.STATS.SEATS' | transloco }}</small></span>
-          </div>
-        </div>
+        </app-stat-card>
       </div>
     </div>
 
