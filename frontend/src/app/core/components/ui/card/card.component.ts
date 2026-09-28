@@ -18,7 +18,7 @@ export type CardAccentColor =
   | 'info'
   | 'purple'
   | 'none'
-  | (string & {});
+  | (string & { _?: never });
 
 /**
  * Divider border line styles between header, body, and footer sections.
@@ -33,7 +33,7 @@ export type CardBackgroundVariant =
   | 'surface-2'
   | 'glass'
   | 'transparent'
-  | (string & {});
+  | (string & { _?: never });
 
 /**
  * Inner padding preset sizes.

@@ -1,6 +1,13 @@
-<div class="bar-tab-card" [attr.data-testid]="'bar-tab-card-' + tab.id">
+<app-card
+  [accentColor]="'purple'"
+  [headerDivider]="'solid'"
+  [footerDivider]="'none'"
+  [padding]="'none'"
+  [testId]="'bar-tab-card-' + tab.id"
+  [customClass]="'bar-tab-card'">
+
   <!-- Card Header -->
-  <div class="card-header">
+  <div card-header class="card-header">
     <!-- Row 1: Icon, Title & Caution Badge -->
     <div class="header-title-row">
       <div class="tab-identity">
@@ -44,7 +51,7 @@
   </div>
 
   <!-- Card Body / Content -->
-  <div class="card-body">
+  <div card-content class="card-body">
     <!-- Balance Row -->
     <div class="balance-box">
       <div class="balance-label-group">
@@ -63,48 +70,48 @@
         <p class="tab-notes-text">{{ tab.notes }}</p>
       </div>
     }
+  </div>
 
-    <!-- Action Buttons (Clean 2-tier layout) -->
-    <div class="card-actions-layout">
-      <div class="primary-actions-row">
-        <button
-          type="button"
-          class="action-btn btn-order"
-          [attr.data-testid]="'btn-tab-add-order-' + tab.id"
-          (click)="addOrder.emit(tab)">
-          <ion-icon name="add-outline"></ion-icon>
-          <span>{{ 'TABS.CARD_BTN_ADD_ORDER' | transloco }}</span>
-        </button>
+  <!-- Footer Actions -->
+  <div card-footer class="card-actions-layout">
+    <div class="primary-actions-row">
+      <button
+        type="button"
+        class="action-btn btn-order"
+        [attr.data-testid]="'btn-tab-add-order-' + tab.id"
+        (click)="addOrder.emit(tab)">
+        <ion-icon name="add-outline"></ion-icon>
+        <span>{{ 'TABS.CARD_BTN_ADD_ORDER' | transloco }}</span>
+      </button>
 
-        <button
-          type="button"
-          class="action-btn btn-settle"
-          [attr.data-testid]="'btn-tab-settle-' + tab.id"
-          (click)="settle.emit(tab)">
-          <ion-icon name="cash-outline"></ion-icon>
-          <span>{{ 'TABS.CARD_BTN_SETTLE' | transloco }}</span>
-        </button>
-      </div>
+      <button
+        type="button"
+        class="action-btn btn-settle"
+        [attr.data-testid]="'btn-tab-settle-' + tab.id"
+        (click)="settle.emit(tab)">
+        <ion-icon name="cash-outline"></ion-icon>
+        <span>{{ 'TABS.CARD_BTN_SETTLE' | transloco }}</span>
+      </button>
+    </div>
 
-      <div class="secondary-actions-row">
-        <button
-          type="button"
-          class="action-btn btn-transfer"
-          [attr.data-testid]="'btn-tab-transfer-' + tab.id"
-          (click)="transfer.emit(tab)">
-          <ion-icon name="swap-horizontal-outline"></ion-icon>
-          <span>{{ 'TABS.CARD_BTN_TRANSFER' | transloco }}</span>
-        </button>
+    <div class="secondary-actions-row">
+      <button
+        type="button"
+        class="action-btn btn-transfer"
+        [attr.data-testid]="'btn-tab-transfer-' + tab.id"
+        (click)="transfer.emit(tab)">
+        <ion-icon name="swap-horizontal-outline"></ion-icon>
+        <span>{{ 'TABS.CARD_BTN_TRANSFER' | transloco }}</span>
+      </button>
 
-        <button
-          type="button"
-          class="action-btn btn-details"
-          [attr.data-testid]="'btn-tab-details-' + tab.id"
-          (click)="viewDetails.emit(tab)">
-          <ion-icon name="eye-outline"></ion-icon>
-          <span>{{ 'TABS.CARD_BTN_DETAILS' | transloco }}</span>
-        </button>
-      </div>
+      <button
+        type="button"
+        class="action-btn btn-details"
+        [attr.data-testid]="'btn-tab-details-' + tab.id"
+        (click)="viewDetails.emit(tab)">
+        <ion-icon name="eye-outline"></ion-icon>
+        <span>{{ 'TABS.CARD_BTN_DETAILS' | transloco }}</span>
+      </button>
     </div>
   </div>
-</div>
+</app-card>
