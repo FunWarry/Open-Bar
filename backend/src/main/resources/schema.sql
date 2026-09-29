@@ -530,6 +530,8 @@ CREATE TABLE IF NOT EXISTS app_settings (
     tpe_timeout_seconds INTEGER DEFAULT 45,
     cash_denominations_json TEXT,
     storage_locations_json TEXT DEFAULT '["Bar Principal", "Arrière-bar", "Cave à vins & Spiritueux", "Chambre froide fûts"]',
+    printers_json TEXT,
+    tpe_terminals_json TEXT,
     updated_at TIMESTAMP
 );
 

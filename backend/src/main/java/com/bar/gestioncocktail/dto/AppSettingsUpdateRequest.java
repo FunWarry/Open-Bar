@@ -146,8 +146,41 @@ public record AppSettingsUpdateRequest(
 
     @jakarta.validation.constraints.Min(value = 5, message = "TPE timeout must be at least 5 seconds")
     @jakarta.validation.constraints.Max(value = 300, message = "TPE timeout cannot exceed 300 seconds")
-    Integer tpeTimeoutSeconds
+    Integer tpeTimeoutSeconds,
+
+    String printersJson,
+
+    String tpeTerminalsJson
 ) {
+    /**
+     * Backwards-compatible 37-parameter constructor before printersJson/tpeTerminalsJson.
+     */
+    public AppSettingsUpdateRequest(
+            String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            String volumeUnit, String weightUnit,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled,
+            Boolean tableSessionValidationEnabled, java.math.BigDecimal defaultVatRate,
+            java.math.BigDecimal targetGrossMarginPercentage, java.math.BigDecimal warningGrossMarginPercentage,
+            String barPrinterIp, String kitchenPrinterIp, String cashDeskPrinterIp,
+            Integer printerPort, Boolean directPrintingEnabled, String cashDenominationsJson,
+            String storageLocationsJson, Boolean tpeEnabled, Boolean tpeSimulatorEnabled,
+            String tpeBarIp, String tpeFloorIp, Integer tpePort,
+            String tpeTerminalId, Integer tpeTimeoutSeconds
+    ) {
+        this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem, volumeUnit, weightUnit,
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes,
+                clientBaseUrl, wifiSsid, wifiPassword, wifiSecurity, wifiEnabled,
+                tableSessionValidationEnabled, defaultVatRate, targetGrossMarginPercentage,
+                warningGrossMarginPercentage, barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp,
+                printerPort, directPrintingEnabled, cashDenominationsJson, storageLocationsJson,
+                tpeEnabled, tpeSimulatorEnabled, tpeBarIp, tpeFloorIp, tpePort, tpeTerminalId,
+                tpeTimeoutSeconds, null, null);
+    }
     /**
      * Backwards-compatible 30-parameter constructor before TPE configuration was introduced.
      */

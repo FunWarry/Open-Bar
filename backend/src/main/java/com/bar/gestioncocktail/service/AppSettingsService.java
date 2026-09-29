@@ -192,6 +192,9 @@ public class AppSettingsService {
         if (request.directPrintingEnabled() != null) {
             current.setDirectPrintingEnabled(request.directPrintingEnabled());
         }
+        if (request.printersJson() != null) {
+            current.setPrintersJson(request.printersJson());
+        }
     }
 
     private void applyTpe(AppSettings current, AppSettingsUpdateRequest request) {
@@ -215,6 +218,9 @@ public class AppSettingsService {
         }
         if (request.tpeTimeoutSeconds() != null) {
             current.setTpeTimeoutSeconds(request.tpeTimeoutSeconds());
+        }
+        if (request.tpeTerminalsJson() != null) {
+            current.setTpeTerminalsJson(request.tpeTerminalsJson());
         }
     }
 

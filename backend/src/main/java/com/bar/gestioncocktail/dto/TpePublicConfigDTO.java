@@ -34,5 +34,23 @@ public record TpePublicConfigDTO(
     String terminalId,
 
     @Schema(description = "Transaction timeout in seconds", example = "45")
-    int timeoutSeconds
-) {}
+    int timeoutSeconds,
+
+    @Schema(description = "Serialized JSON list of all configured and customized TPE terminals")
+    String terminalsJson
+) {
+    /**
+     * Backwards-compatible 7-parameter constructor.
+     */
+    public TpePublicConfigDTO(
+            boolean enabled,
+            boolean simulatorEnabled,
+            boolean barIpConfigured,
+            boolean floorIpConfigured,
+            int port,
+            String terminalId,
+            int timeoutSeconds
+    ) {
+        this(enabled, simulatorEnabled, barIpConfigured, floorIpConfigured, port, terminalId, timeoutSeconds, null);
+    }
+}

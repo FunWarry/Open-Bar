@@ -203,6 +203,18 @@ public class AppSettings {
     @Column(name = "storage_locations_json", columnDefinition = "TEXT")
     private String storageLocationsJson = "[\"Bar Principal\", \"Arrière-bar\", \"Cave à vins & Spiritueux\", \"Chambre froide fûts\"]";
 
+    /**
+     * Serialized JSON configuration of ESC/POS network receipt and kitchen printers.
+     */
+    @Column(name = "printers_json", columnDefinition = "TEXT")
+    private String printersJson;
+
+    /**
+     * Serialized JSON configuration of Concert / CB IP payment terminals (TPEs).
+     */
+    @Column(name = "tpe_terminals_json", columnDefinition = "TEXT")
+    private String tpeTerminalsJson;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
@@ -228,6 +240,22 @@ public class AppSettings {
 
     public BigDecimal getWarningGrossMarginPercentage() {
         return warningGrossMarginPercentage != null ? warningGrossMarginPercentage : new BigDecimal("50.00");
+    }
+
+    public String getPrintersJson() {
+        return printersJson;
+    }
+
+    public void setPrintersJson(String printersJson) {
+        this.printersJson = printersJson;
+    }
+
+    public String getTpeTerminalsJson() {
+        return tpeTerminalsJson;
+    }
+
+    public void setTpeTerminalsJson(String tpeTerminalsJson) {
+        this.tpeTerminalsJson = tpeTerminalsJson;
     }
 
     public LocalDateTime getUpdatedAt() {

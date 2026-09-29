@@ -203,7 +203,8 @@ public class PaymentTerminalService {
                 floorConfigured,
                 settings.getTpePort() != null ? settings.getTpePort() : 8888,
                 settings.getTpeTerminalId() != null ? settings.getTpeTerminalId() : "01",
-                settings.getTpeTimeoutSeconds() != null ? settings.getTpeTimeoutSeconds() : 45
+                settings.getTpeTimeoutSeconds() != null ? settings.getTpeTimeoutSeconds() : 45,
+                settings.getTpeTerminalsJson()
         );
     }
 
@@ -223,7 +224,7 @@ public class PaymentTerminalService {
                     null,
                     null,
                     null,
-                    "Présentez ou insérez la carte sur le terminal...",
+                    "Please present or insert card on the terminal...",
                     LocalDateTime.now(SYSTEM_ZONE)
             );
             activeTransactions.put(transactionId, waiting);
@@ -243,7 +244,7 @@ public class PaymentTerminalService {
                     null,
                     null,
                     null,
-                    "Autorisation bancaire en cours...",
+                    "Banking authorization in progress...",
                     LocalDateTime.now(SYSTEM_ZONE)
             );
             activeTransactions.put(transactionId, processing);
@@ -267,7 +268,7 @@ public class PaymentTerminalService {
                     "CB",
                     "************" + panLast4,
                     String.valueOf(randomSeq),
-                    "Paiement accepté",
+                    "Payment accepted",
                     LocalDateTime.now(SYSTEM_ZONE)
             );
             activeTransactions.put(transactionId, approved);
@@ -305,7 +306,7 @@ public class PaymentTerminalService {
                     null,
                     null,
                     null,
-                    "Présentez ou insérez la carte sur le terminal...",
+                    "Please present or insert card on the terminal...",
                     LocalDateTime.now(SYSTEM_ZONE)
             );
             activeTransactions.put(transactionId, waiting);
@@ -343,7 +344,7 @@ public class PaymentTerminalService {
                     response.cardBrand() != null ? response.cardBrand() : "CB",
                     response.maskedPan(),
                     response.sequenceNumber(),
-                    response.status() == TpeTransactionStatus.APPROVED ? "Paiement accepté" : "Transaction refusée",
+                    response.status() == TpeTransactionStatus.APPROVED ? "Payment accepted" : "Transaction declined",
                     LocalDateTime.now(SYSTEM_ZONE)
             );
             activeTransactions.put(transactionId, finalResult);

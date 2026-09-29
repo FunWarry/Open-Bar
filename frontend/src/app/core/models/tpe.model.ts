@@ -61,6 +61,7 @@ export interface TpeConnectionTestRequest {
   ip?: string;
   port?: number;
   terminalId?: string;
+  timeoutSeconds?: number;
 }
 
 export type TpeConnectionTestRequestDTO = TpeConnectionTestRequest;
@@ -71,9 +72,11 @@ export type TpeConnectionTestRequestDTO = TpeConnectionTestRequest;
 export interface TpeConnectionTestResponse {
   success: boolean;
   connected?: boolean;
+  reachable?: boolean;
+  latencyMs?: number;
   ip?: string;
   message: string;
-  responseTimeMs: number;
+  responseTimeMs?: number;
 }
 
 export type TpeConnectionTestResponseDTO = TpeConnectionTestResponse;
@@ -89,4 +92,5 @@ export interface TpePublicConfig {
   port: number;
   terminalId: string;
   timeoutSeconds: number;
+  terminalsJson?: string;
 }
