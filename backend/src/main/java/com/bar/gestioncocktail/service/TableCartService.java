@@ -24,8 +24,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Service managing collaborative multi-guest table carts.
@@ -542,9 +542,7 @@ public class TableCartService {
 
     private Map<Long, Cocktail> loadCocktailsMap(List<TableCartItem> items) {
         List<Long> cocktailIds = items.stream()
-                .filter(Objects::nonNull)
-                .map(TableCartItem::getCocktailId)
-                .filter(Objects::nonNull)
+                .flatMap(item -> Stream.ofNullable(item.getCocktailId()))
                 .distinct()
                 .toList();
         Map<Long, Cocktail> map = new HashMap<>();
@@ -558,9 +556,8 @@ public class TableCartService {
 
     private Map<Long, CocktailVariante> loadVariantesMap(List<TableCartItem> items) {
         List<Long> varianteIds = items.stream()
-                .filter(Objects::nonNull)
-                .map(TableCartItem::getCocktailVarianteId)
-                .filter(vId -> vId != null && vId > 0)
+                .flatMap(item -> Stream.ofNullable(item.getCocktailVarianteId()))
+                .filter(vId -> vId > 0)
                 .distinct()
                 .toList();
 
