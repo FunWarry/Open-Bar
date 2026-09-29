@@ -1535,6 +1535,119 @@ describe('AppSettingsPageComponent', () => {
       component.testCashDrawer();
       expect(printerServiceSpy.openCashDrawer).toHaveBeenCalled();
     });
+
+    it('should test legacy TPE connection by role with success response', () => {
+      component.appSettingsForm.patchValue({
+        tpeBarIp: '192.168.1.50',
+        tpePort: 8888,
+        tpeTerminalId: 'POS01'
+      });
+      paymentTerminalServiceSpy.testConnection.and.returnValue(of({
+        success: true,
+        ip: '192.168.1.50',
+        port: 8888,
+        terminalId: 'POS01',
+        message: 'Connected',
+        responseTimeMs: 25
+      }));
+
+      component.testTpeConnection('BAR');
+
+      expect(paymentTerminalServiceSpy.testConnection).toHaveBeenCalledWith({
+        ip: '192.168.1.50',
+        port: 8888,
+        terminalId: 'POS01'
+      });
+      expect(component.isTestingTpe['BAR']).toBeFalse();
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    it('should handle legacy TPE test connection with business failure response', () => {
+      component.appSettingsForm.patchValue({
+        tpeBarIp: '192.168.1.50',
+        tpePort: 8888,
+        tpeTerminalId: 'POS01'
+      });
+      paymentTerminalServiceSpy.testConnection.and.returnValue(of({
+        success: false,
+        ip: '192.168.1.50',
+        port: 8888,
+        terminalId: 'POS01',
+        message: 'Terminal busy'
+      }));
+
+      component.testTpeConnection('BAR');
+
+      expect(component.isTestingTpe['BAR']).toBeFalse();
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    it('should handle legacy TPE test connection HTTP error', () => {
+      component.appSettingsForm.patchValue({
+        tpeBarIp: '192.168.1.50',
+        tpePort: 8888,
+        tpeTerminalId: 'POS01'
+      });
+      paymentTerminalServiceSpy.testConnection.and.returnValue(throwError(() => new Error('Connection refused')));
+
+      component.testTpeConnection('BAR');
+
+      expect(component.isTestingTpe['BAR']).toBeFalse();
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    it('should return early when testing legacy TPE connection if IP is empty', () => {
+      component.appSettingsForm.patchValue({
+        tpeFloorIp: ''
+      });
+      paymentTerminalServiceSpy.testConnection.calls.reset();
+
+      component.testTpeConnection('FLOOR');
+
+      expect(paymentTerminalServiceSpy.testConnection).not.toHaveBeenCalled();
+    });
+
+    it('should resolve printers and TPE terminals from custom serialized JSON', () => {
+      const customPrinters = [{
+        id: 'p-json-1',
+        name: 'JSON Printer',
+        role: 'BAR' as const,
+        ip: '192.168.1.88',
+        port: 9100,
+        paperWidth: 80 as const,
+        openCashDrawer: false,
+        enabled: true
+      }];
+      const customTpe = [{
+        id: 't-json-1',
+        name: 'JSON TPE',
+        role: 'BAR' as const,
+        ip: '192.168.1.89',
+        port: 8888,
+        terminalId: 'POS88',
+        timeoutSeconds: 30,
+        enabled: true
+      }];
+
+      const resolvedPrinters = (component as unknown as { resolvePrinters: (s: unknown) => unknown[] })
+        .resolvePrinters({ printersJson: JSON.stringify(customPrinters) });
+      const resolvedTpe = (component as unknown as { resolveTpeTerminals: (s: unknown) => unknown[] })
+        .resolveTpeTerminals({ tpeTerminalsJson: JSON.stringify(customTpe) });
+
+      expect(resolvedPrinters).toHaveSize(1);
+      expect(resolvedPrinters[0]).toEqual(customPrinters[0]);
+      expect(resolvedTpe).toHaveSize(1);
+      expect(resolvedTpe[0]).toEqual(customTpe[0]);
+    });
+
+    it('should handle settings load error and fallback to default peripheral lists', () => {
+      appSettingsServiceSpy.getSettings.and.returnValue(throwError(() => new Error('Network error')));
+
+      (component as unknown as { loadSettings: () => void }).loadSettings();
+
+      expect(component.configuredPrinters().length).toBeGreaterThan(0);
+      expect(component.configuredTpeTerminals().length).toBeGreaterThan(0);
+    });
   });
 });
 

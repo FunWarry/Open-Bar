@@ -383,4 +383,49 @@ class PaymentTerminalServiceTest {
         assertThat(config.enabled()).isFalse();
         assertThat(config.simulatorEnabled()).isTrue();
     }
+
+    @Test
+    @DisplayName("Should resolve floor IP when configured and fallback to bar IP when floor IP is blank")
+    void shouldResolveFloorIpAndFallbackToBarIp() throws Exception {
+        mockSettings.setTpeSimulatorEnabled(false);
+        mockSettings.setTpeFloorIp("192.168.1.180");
+        mockSettings.setTpeBarIp("192.168.1.150");
+        when(appSettingsService.getSettings()).thenReturn(mockSettings);
+
+        when(socketClient.testConnection("192.168.1.180", 8888, 4000)).thenReturn(42L);
+
+        TpeConnectionTestResponseDTO resFloor = paymentTerminalService.testConnection(
+                new TpeConnectionTestRequestDTO(TpeTerminalRole.FLOOR, null, null)
+        );
+        assertThat(resFloor.success()).isTrue();
+        assertThat(resFloor.responseTimeMs()).isEqualTo(42L);
+        verify(socketClient).testConnection("192.168.1.180", 8888, 4000);
+
+        // Now blank floor IP -> should fallback to Bar IP
+        mockSettings.setTpeFloorIp("   ");
+        when(socketClient.testConnection("192.168.1.150", 8888, 4000)).thenReturn(42L);
+
+        TpeConnectionTestResponseDTO resFallback = paymentTerminalService.testConnection(
+                new TpeConnectionTestRequestDTO(TpeTerminalRole.FLOOR, null, null)
+        );
+        assertThat(resFallback.success()).isTrue();
+        assertThat(resFallback.responseTimeMs()).isEqualTo(42L);
+        verify(socketClient).testConnection("192.168.1.150", 8888, 4000);
+    }
+
+    @Test
+    @DisplayName("Should test connection using manual IP and custom request port")
+    void shouldTestConnectionWithManualIpAndCustomPort() throws Exception {
+        mockSettings.setTpeSimulatorEnabled(false);
+        when(appSettingsService.getSettings()).thenReturn(mockSettings);
+        when(socketClient.testConnection("10.0.0.50", 9999, 4000)).thenReturn(55L);
+
+        TpeConnectionTestResponseDTO res = paymentTerminalService.testConnection(
+                new TpeConnectionTestRequestDTO(TpeTerminalRole.BAR, " 10.0.0.50 ", 9999)
+        );
+
+        assertThat(res.success()).isTrue();
+        assertThat(res.responseTimeMs()).isEqualTo(55L);
+        verify(socketClient).testConnection("10.0.0.50", 9999, 4000);
+    }
 }

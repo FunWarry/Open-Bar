@@ -115,6 +115,55 @@ class ConcertFrameBuilderTest {
         assertThat(ConcertFrameBuilder.resolveCurrencyNumericCode(null)).isEqualTo(ConcertProtocolConstants.CURRENCY_EUR);
     }
 
+    @Test
+    @DisplayName("Should truncate long private reference exceeding 10 characters")
+    void shouldTruncateLongReference() {
+        byte[] frame = ConcertFrameBuilder.buildDebitFrame("01", 1000L, "EUR", "VERY_LONG_REFERENCE_ABC");
+        String payload = new String(frame, 1, frame.length - 3);
+
+        assertThat(payload).contains("VERY_LONG_");
+    }
+
+    @Test
+    @DisplayName("Should throw IllegalArgumentException when frame lacks leading STX")
+    void shouldRejectFrameMissingLeadingStx() {
+        byte[] raw = new byte[] { 0x05, '0', '1', ConcertProtocolConstants.ETX, 0x00 };
+        assertThatThrownBy(() -> ConcertFrameBuilder.parseResponseFrame(raw))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("missing leading STX");
+    }
+
+    @Test
+    @DisplayName("Should throw IllegalArgumentException when frame lacks terminating ETX")
+    void shouldRejectFrameMissingTerminatingEtx() {
+        byte[] raw = new byte[] { ConcertProtocolConstants.STX, '0', '1', 0x00, 0x00 };
+        assertThatThrownBy(() -> ConcertFrameBuilder.parseResponseFrame(raw))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("missing terminating ETX");
+    }
+
+    @Test
+    @DisplayName("Should map unknown status code to CANCELLED and handle unparseable amount safely")
+    void shouldMapUnknownStatusAndSafeAmount() {
+        // POS(01) + Status('9' unknown) + Amount(invalidchars) + Auth(OK)
+        byte[] raw = buildMockResponseFrame("019INVALID9AUTH   ");
+        ConcertFrameBuilder.ConcertResponse response = ConcertFrameBuilder.parseResponseFrame(raw);
+
+        assertThat(response.status()).isEqualTo(TpeTransactionStatus.CANCELLED);
+        assertThat(response.amount()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test
+    @DisplayName("Should fallback card details when frame payload is short")
+    void shouldFallbackCardDetailsOnShortPayload() {
+        // Short frame (length < 22)
+        byte[] raw = buildMockResponseFrame("01000001000");
+        ConcertFrameBuilder.ConcertResponse response = ConcertFrameBuilder.parseResponseFrame(raw);
+
+        assertThat(response.cardBrand()).isEqualTo("CB");
+        assertThat(response.maskedPan()).isNull();
+    }
+
     private byte[] buildMockResponseFrame(String content) {
         byte[] contentBytes = content.getBytes();
         byte[] frame = new byte[contentBytes.length + 3]; // STX + content + ETX + LRC

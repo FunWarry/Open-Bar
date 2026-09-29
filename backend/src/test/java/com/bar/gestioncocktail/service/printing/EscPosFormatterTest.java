@@ -169,6 +169,33 @@ class EscPosFormatterTest {
     }
 
     @Test
+    @DisplayName("formatInvoiceReceipt includes TPE authorization and card details when present")
+    void formatInvoiceReceipt_withTpeDetails_printsAuthorizationAndCard() {
+        Facture facture = new Facture();
+        facture.setId(102L);
+        facture.setNumero("FAC-2026-002");
+        facture.setDateFacture(LocalDateTime.of(2026, Month.SEPTEMBER, 6, 21, 35));
+        facture.setModePaiement("CARTE");
+        facture.setTotalHT(new BigDecimal("10.00"));
+        facture.setTotalVAT(new BigDecimal("2.00"));
+        facture.setTotalTTC(new BigDecimal("12.00"));
+        facture.setReglee(true);
+        facture.setTpeAutorisation("AUTH-123456");
+        facture.setTpeCardBrand("CB");
+        facture.setTpeMaskedPan("****9876");
+
+        AppSettings settings = new AppSettings();
+        settings.setEstablishmentName("Le Rooftop");
+        settings.setCurrencySymbol("€");
+
+        byte[] output = formatter.formatInvoiceReceipt(facture, null, settings, false);
+
+        assertThat(output).isNotEmpty();
+        String text = new String(output, CP850);
+        assertThat(text).contains("TPE Auth : AUTH-123456", "Carte    : CB ****9876");
+    }
+
+    @Test
     @DisplayName("formatTestTicket produces test ticket with role, IP and port")
     void formatTestTicket_generatesDiagnosticTicket() {
         byte[] output = formatter.formatTestTicket(PrinterRole.BAR, "My Bar", "192.168.1.100", 9100);
