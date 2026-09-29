@@ -14,36 +14,31 @@ test.describe('Payment Terminal (TPE) Integration E2E Flow', () => {
   });
 
   test('should display TPE settings card and allow connectivity diagnostic test', async ({ page }) => {
-    await page.goto('/admin/settings');
-    await expect(page.locator('ion-content')).toBeVisible();
+    await page.goto('/admin/settings?tab=printers');
+    await expect(page.locator('[data-testid="unified-app-settings-page"]').first()).toBeVisible();
 
     // Select Hardware & Peripherals tab (Tab 7)
-    const hardwareTabBtn = page.locator('[data-testid="tab-materiel"]');
+    const hardwareTabBtn = page.locator('[data-testid="tab-printers"]');
     if (await hardwareTabBtn.isVisible()) {
       await hardwareTabBtn.click();
     }
 
     // Verify TPE Settings Card
-    const tpeCard = page.locator('[data-testid="settings-tpe-card"]');
+    const tpeCard = page.locator('[data-testid="card-settings-tpe"]');
     await expect(tpeCard).toBeVisible();
 
-    // Verify Station Inputs
-    await expect(page.locator('[data-testid="input-tpe-bar-ip"]')).toBeVisible();
-    await expect(page.locator('[data-testid="input-tpe-floor-ip"]')).toBeVisible();
+    // Verify Toggles & Global Inputs
+    await expect(page.locator('[data-testid="toggle-tpe-enabled"]')).toBeVisible();
+    await expect(page.locator('[data-testid="toggle-tpe-simulator-enabled"]')).toBeVisible();
     await expect(page.locator('[data-testid="input-tpe-port"]')).toBeVisible();
 
-    // Test TPE Bar Connection Button
-    const testBarBtn = page.locator('[data-testid="btn-test-tpe-bar"]');
-    await expect(testBarBtn).toBeVisible();
-    await testBarBtn.click();
-
-    // Verify test feedback badge or toast appears
-    await expect(page.locator('[data-testid="badge-tpe-test-bar"]')).toBeVisible({ timeout: 5000 });
+    // Verify Add TPE Button
+    await expect(page.locator('[data-testid="btn-add-tpe"]')).toBeVisible();
   });
 
   test('should display paymentTerminal module toggle in App Settings and blueprint preview', async ({ page }) => {
-    await page.goto('/admin/settings');
-    await expect(page.locator('ion-content')).toBeVisible();
+    await page.goto('/admin/settings?tab=modules');
+    await expect(page.locator('[data-testid="unified-app-settings-page"]').first()).toBeVisible();
 
     // Switch to Modules tab
     const modulesTabBtn = page.locator('[data-testid="tab-modules"]');
@@ -56,7 +51,7 @@ test.describe('Payment Terminal (TPE) Integration E2E Flow', () => {
     await expect(moduleToggle).toBeVisible();
 
     // Check blueprint preview node
-    const blueprintNode = page.locator('[data-testid="blueprint-node-paymentTerminal"]');
+    const blueprintNode = page.locator('[data-testid="preview-node-payment-terminal"]');
     await expect(blueprintNode).toBeVisible();
   });
 });

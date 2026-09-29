@@ -1399,6 +1399,138 @@ describe('AppSettingsPageComponent', () => {
       expect(component.tpeTestResults()['t-test'].success).toBeTrue();
     });
 
+    it('should update printer properties and mark form dirty', () => {
+      component.configuredPrinters.set([{
+        id: 'p-up',
+        name: 'Initial Printer',
+        role: 'BAR',
+        ip: '192.168.1.10',
+        port: 9100,
+        paperWidth: 80,
+        openCashDrawer: false,
+        enabled: true
+      }]);
+
+      component.updatePrinter('p-up', 'name', 'Renamed Printer');
+      expect(component.configuredPrinters()[0].name).toBe('Renamed Printer');
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+
+    it('should ignore testConfiguredPrinter when IP is blank', () => {
+      component.testConfiguredPrinter({
+        id: 'p-blank',
+        name: 'Blank Printer',
+        role: 'BAR',
+        ip: '',
+        port: 9100,
+        paperWidth: 80,
+        openCashDrawer: false,
+        enabled: true
+      });
+      expect(printerServiceSpy.testConnection).not.toHaveBeenCalled();
+    });
+
+    it('should handle failure and error response during testConfiguredPrinter', () => {
+      printerServiceSpy.testConnection.and.returnValue(throwError(() => ({ error: { message: 'Connection refused' } })));
+
+      component.testConfiguredPrinter({
+        id: 'p-err',
+        name: 'Failing Printer',
+        role: 'BAR',
+        ip: '192.168.1.200',
+        port: 9100,
+        paperWidth: 80,
+        openCashDrawer: false,
+        enabled: true
+      });
+
+      expect(component.printerTestResults()['p-err']).toBeDefined();
+      expect(component.printerTestResults()['p-err'].success).toBeFalse();
+    });
+
+    it('should update TPE terminal properties and mark form dirty', () => {
+      component.configuredTpeTerminals.set([{
+        id: 't-up',
+        name: 'Initial TPE',
+        role: 'BAR',
+        ip: '192.168.1.20',
+        port: 8888,
+        terminalId: '01',
+        timeoutSeconds: 30,
+        enabled: true
+      }]);
+
+      component.updateTpeTerminal('t-up', 'name', 'Renamed TPE');
+      expect(component.configuredTpeTerminals()[0].name).toBe('Renamed TPE');
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+
+    it('should ignore testConfiguredTpe when IP is blank', () => {
+      component.testConfiguredTpe({
+        id: 't-blank',
+        name: 'Blank TPE',
+        role: 'BAR',
+        ip: '',
+        port: 8888,
+        terminalId: '01',
+        timeoutSeconds: 30,
+        enabled: true
+      });
+      expect(paymentTerminalServiceSpy.testConnection).not.toHaveBeenCalled();
+    });
+
+    it('should handle failure and error response during testConfiguredTpe', () => {
+      paymentTerminalServiceSpy.testConnection.and.returnValue(throwError(() => ({ error: { message: 'Timeout' } })));
+
+      component.testConfiguredTpe({
+        id: 't-err',
+        name: 'Failing TPE',
+        role: 'BAR',
+        ip: '192.168.1.201',
+        port: 8888,
+        terminalId: '01',
+        timeoutSeconds: 30,
+        enabled: true
+      });
+
+      expect(component.tpeTestResults()['t-err']).toBeDefined();
+      expect(component.tpeTestResults()['t-err'].success).toBeFalse();
+    });
+
+    it('should serialize configured printers and TPEs in saveAll() payload', fakeAsync(() => {
+      component.configuredPrinters.set([{
+        id: 'p-custom',
+        name: 'Custom Printer',
+        role: 'BAR',
+        ip: '192.168.1.111',
+        port: 9100,
+        paperWidth: 80,
+        openCashDrawer: false,
+        enabled: true
+      }]);
+
+      component.configuredTpeTerminals.set([{
+        id: 't-custom',
+        name: 'Custom TPE',
+        role: 'BAR',
+        ip: '192.168.1.222',
+        port: 8888,
+        terminalId: 'POS99',
+        timeoutSeconds: 45,
+        enabled: true
+      }]);
+
+      component.saveAll();
+      tick();
+
+      expect(appSettingsServiceSpy.updateSettings).toHaveBeenCalledWith(jasmine.objectContaining({
+        barPrinterIp: '192.168.1.111',
+        tpeBarIp: '192.168.1.222',
+        printersJson: jasmine.stringContaining('p-custom'),
+        tpeTerminalsJson: jasmine.stringContaining('t-custom')
+      }));
+    }));
+
     it('should trigger cash drawer diagnostic opening', () => {
       component.testCashDrawer();
       expect(printerServiceSpy.openCashDrawer).toHaveBeenCalled();

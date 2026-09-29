@@ -22,7 +22,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import java.math.BigDecimal;
 import java.time.Duration;
 
+import com.bar.gestioncocktail.exception.BusinessException;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -319,5 +321,66 @@ class PaymentTerminalServiceTest {
 
         assertThat(response.success()).isFalse();
         assertThat(response.message()).contains("Host unreachable");
+    }
+
+    @Test
+    @DisplayName("Should throw BusinessException when querying status for unknown transaction")
+    void shouldThrowWhenTransactionNotFound() {
+        assertThatThrownBy(() -> paymentTerminalService.getTransactionStatus("non-existent-tx"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Transaction not found");
+    }
+
+    @Test
+    @DisplayName("Should cancel active transaction and mark status as CANCELLED")
+    void shouldCancelActiveTransaction() {
+        when(appSettingsService.getSettings()).thenReturn(mockSettings);
+
+        TpePaymentRequestDTO request = new TpePaymentRequestDTO(
+                new BigDecimal("10.00"),
+                "EUR",
+                TpeTerminalRole.BAR,
+                null,
+                null,
+                "Table 1"
+        );
+
+        TpePaymentResponseDTO initial = paymentTerminalService.initiatePayment(request);
+        TpePaymentResponseDTO cancelled = paymentTerminalService.cancelPayment(initial.transactionId());
+
+        assertThat(cancelled.status()).isEqualTo(TpeTransactionStatus.CANCELLED);
+        verify(socketClient).abortTransaction(initial.transactionId());
+    }
+
+    @Test
+    @DisplayName("Should return failure when no IP address configured for role")
+    void shouldReturnFailureWhenNoIpConfigured() {
+        mockSettings.setTpeSimulatorEnabled(false);
+        mockSettings.setTpeBarIp(null);
+        mockSettings.setTpeFloorIp(null);
+        when(appSettingsService.getSettings()).thenReturn(mockSettings);
+
+        TpeConnectionTestRequestDTO request = new TpeConnectionTestRequestDTO(
+                TpeTerminalRole.BAR,
+                null,
+                null
+        );
+
+        TpeConnectionTestResponseDTO response = paymentTerminalService.testConnection(request);
+
+        assertThat(response.success()).isFalse();
+        assertThat(response.message()).contains("No terminal IP configured");
+    }
+
+    @Test
+    @DisplayName("Should return public config indicating disabled when module is off")
+    void shouldReturnDisabledPublicConfigWhenModuleDisabled() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.PAYMENT_TERMINAL)).thenReturn(false);
+        when(appSettingsService.getSettings()).thenReturn(mockSettings);
+
+        TpePublicConfigDTO config = paymentTerminalService.getPublicConfig();
+
+        assertThat(config.enabled()).isFalse();
+        assertThat(config.simulatorEnabled()).isTrue();
     }
 }
