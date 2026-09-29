@@ -262,7 +262,8 @@
                   [elevation]="'sm'"
                   [showHeader]="false"
                   [showFooter]="false"
-                  [testId]="'cocktail-card-' + cocktail.id"
+                  [attr.data-testid]="'cocktail-card-' + cocktail.id"
+                  [customClass]="!cocktail.disponible ? 'unavailable' : ''"
                   (cardClick)="selectionMode ? onSelectCocktail(cocktail) : null"
                   [attr.tabindex]="selectionMode ? 0 : null"
                   [attr.role]="selectionMode ? 'button' : null">
