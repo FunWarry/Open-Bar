@@ -155,7 +155,7 @@ export class TableListComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger'
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
@@ -464,7 +464,7 @@ export class TableListComponent implements OnInit, OnDestroy {
           duration: 3000,
           color: 'danger'
         });
-        toast.present();
+        await toast.present();
       }
     });
   }
@@ -501,7 +501,7 @@ export class TableListComponent implements OnInit, OnDestroy {
     await modal.present();
     const { data } = await modal.onDidDismiss();
     if (data?.action === 'edit') {
-      this.onEdit(data.table || t);
+      void this.onEdit(data.table || t);
     } else if (data?.action === 'deleted') {
       this.charger();
     }
@@ -567,7 +567,7 @@ export class TableListComponent implements OnInit, OnDestroy {
             duration: 2500,
             color: 'success'
           });
-          toast.present();
+          await toast.present();
           this.charger();
         },
         error: async (err) => {
@@ -577,7 +577,7 @@ export class TableListComponent implements OnInit, OnDestroy {
             duration: 3500,
             color: 'danger'
           });
-          toast.present();
+          await toast.present();
         }
       });
   }

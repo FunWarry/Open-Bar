@@ -560,7 +560,7 @@ export class AuditLogsComponent implements OnInit {
   copyJsonPayload(log: AuditLog): void {
     const jsonStr = JSON.stringify(log, null, 2);
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      navigator.clipboard.writeText(jsonStr);
+      void navigator.clipboard.writeText(jsonStr);
       this.copiedJson.set(true);
       setTimeout(() => this.copiedJson.set(false), 2000);
     }

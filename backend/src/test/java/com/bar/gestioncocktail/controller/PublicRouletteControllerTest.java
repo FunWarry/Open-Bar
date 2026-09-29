@@ -33,7 +33,7 @@ class PublicRouletteControllerTest {
 
     @Test
     @DisplayName("getConfig returns 200 with public config")
-    void getConfig_returns200() {
+    void getConfigReturns200() {
         RoulettePublicConfigDTO config = new RoulettePublicConfigDTO(
                 true, new BigDecimal("7.50"), new BigDecimal("5.50"),
                 "BALANCED", "CSGO", List.of(), List.of("ALL")
@@ -49,7 +49,7 @@ class PublicRouletteControllerTest {
 
     @Test
     @DisplayName("spin returns 200 with resolved outcome")
-    void spin_returns200WithResult() {
+    void spinReturns200WithResult() {
         RouletteSpinRequestDTO request = new RouletteSpinRequestDTO(
                 null, null, null, null, false, List.of(), false
         );

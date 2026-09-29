@@ -542,12 +542,11 @@ public class TableCartService {
     }
 
     private Map<Long, Cocktail> loadCocktailsMap(List<TableCartItem> items) {
-        List<Long> cocktailIds = new ArrayList<>();
-        for (TableCartItem item : items) {
-            if (item.getCocktailId() != null && !cocktailIds.contains(item.getCocktailId())) {
-                cocktailIds.add(item.getCocktailId());
-            }
-        }
+        List<Long> cocktailIds = items.stream()
+                .map(TableCartItem::getCocktailId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
         Map<Long, Cocktail> map = new HashMap<>();
         for (Cocktail cocktail : cocktailRepository.findAllById(cocktailIds)) {
             if (cocktail.getId() != null) {
@@ -558,13 +557,11 @@ public class TableCartService {
     }
 
     private Map<Long, CocktailVariante> loadVariantesMap(List<TableCartItem> items) {
-        List<Long> varianteIds = new ArrayList<>();
-        for (TableCartItem item : items) {
-            Long varianteId = item.getCocktailVarianteId();
-            if (varianteId != null && varianteId > 0 && !varianteIds.contains(varianteId)) {
-                varianteIds.add(varianteId);
-            }
-        }
+        List<Long> varianteIds = items.stream()
+                .map(TableCartItem::getCocktailVarianteId)
+                .filter(vId -> vId != null && vId > 0)
+                .distinct()
+                .toList();
 
         Map<Long, CocktailVariante> map = new HashMap<>();
         if (!varianteIds.isEmpty()) {

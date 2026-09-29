@@ -19,6 +19,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -119,7 +120,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("Returns public configuration with active sectors and pricing")
-        void getPublicConfig_returnsConfigAndSectors() {
+        void getPublicConfigReturnsConfigAndSectors() {
             when(establishmentConfigService.isModuleEnabled(EstablishmentModule.MYSTERY_ROULETTE)).thenReturn(true);
             when(establishmentConfigService.getConfig()).thenReturn(establishmentConfig);
             when(sectorRepository.findByActiveTrueOrderByDisplayOrderAsc()).thenReturn(List.of(sectorMojito, sectorBartenderSpecial));
@@ -140,7 +141,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("Spins successfully and resolves winning sector")
-        void spin_resolvesWinningSector() {
+        void spinResolvesWinningSector() {
             when(sectorRepository.findByActiveTrueOrderByDisplayOrderAsc()).thenReturn(List.of(sectorMojito));
 
             RouletteSpinRequestDTO request = new RouletteSpinRequestDTO(
@@ -158,7 +159,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("Excludes CUSTOM_REWARD from client spins to prevent indefinite re-roll fraud")
-        void spin_excludesCustomReward_antiFraud() {
+        void spinExcludesCustomRewardAntiFraud() {
             RouletteWheelSector customReward = new RouletteWheelSector();
             customReward.setId(99L);
             customReward.setLabel("Free Shooter Gift");
@@ -181,11 +182,11 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("Spins and adds to table cart when tableId is provided")
-        void spin_addsToTableCartWhenTableIdPresent() {
+        void spinAddsToTableCartWhenTableIdPresent() {
             when(sectorRepository.findByActiveTrueOrderByDisplayOrderAsc()).thenReturn(List.of(sectorMojito));
             TableCartResponseDTO mockCartResponse = new TableCartResponseDTO(
                     5L, "OPEN", List.of(), 1, new BigDecimal("7.50"),
-                    null, null, null, LocalDateTime.now()
+                    null, null, null, LocalDateTime.now(ZoneId.of("Europe/Paris"))
             );
             when(tableCartService.addItem(eq(5L), any(TableCartItemRequestDTO.class))).thenReturn(mockCartResponse);
 
@@ -201,7 +202,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("Filters by non-alcoholic mocktail when requested")
-        void spin_filtersNonAlcoholicMocktail() {
+        void spinFiltersNonAlcoholicMocktail() {
             RouletteWheelSector sectorVirgin = new RouletteWheelSector();
             sectorVirgin.setId(3L);
             sectorVirgin.setLabel("Virgin Mojito");
@@ -229,7 +230,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("Broadcasts live spin event to STOMP topic")
-        void triggerBroadcastSpin_broadcastsToStomp() {
+        void triggerBroadcastSpinBroadcastsToStomp() {
             when(sectorRepository.findByActiveTrueOrderByDisplayOrderAsc()).thenReturn(List.of(sectorMojito, sectorBartenderSpecial));
             when(timeService.now()).thenReturn(LocalDateTime.of(2026, 9, 27, 20, 0));
 
@@ -245,7 +246,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("Respects rigged sector ID when requested by bartender")
-        void triggerBroadcastSpin_withRiggedSector() {
+        void triggerBroadcastSpinWithRiggedSector() {
             when(sectorRepository.findByActiveTrueOrderByDisplayOrderAsc()).thenReturn(List.of(sectorMojito, sectorBartenderSpecial));
             when(sectorRepository.findById(2L)).thenReturn(Optional.of(sectorBartenderSpecial));
             when(timeService.now()).thenReturn(LocalDateTime.of(2026, 9, 27, 20, 0));
@@ -267,7 +268,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("getAllSectors returns all sectors ordered by displayOrder")
-        void getAllSectors_returnsSectors() {
+        void getAllSectorsReturnsSectors() {
             when(sectorRepository.findAllByOrderByDisplayOrderAsc()).thenReturn(List.of(sectorMojito, sectorBartenderSpecial));
 
             List<RouletteWheelSectorDTO> sectors = rouletteService.getAllSectors();
@@ -278,7 +279,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("createSector creates and saves sector")
-        void createSector_createsAndSaves() {
+        void createSectorCreatesAndSaves() {
             RouletteWheelSectorRequestDTO dto = new RouletteWheelSectorRequestDTO(
                     "Cosmopolitan", RoulettePrizeType.COCKTAIL, 10L, null,
                     new BigDecimal("8.00"), "#ec4899", "wine-outline", 2, true, 3
@@ -299,7 +300,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("updateSector updates existing sector")
-        void updateSector_updatesExisting() {
+        void updateSectorUpdatesExisting() {
             when(sectorRepository.findById(1L)).thenReturn(Optional.of(sectorMojito));
             when(cocktailRepository.findById(10L)).thenReturn(Optional.of(mojito));
             when(sectorRepository.save(any(RouletteWheelSector.class))).thenAnswer(i -> i.getArgument(0));
@@ -316,7 +317,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("updateSector throws ResourceNotFoundException when sector missing")
-        void updateSector_notFoundThrowsException() {
+        void updateSectorNotFoundThrowsException() {
             when(sectorRepository.findById(999L)).thenReturn(Optional.empty());
 
             RouletteWheelSectorRequestDTO dto = new RouletteWheelSectorRequestDTO(
@@ -329,7 +330,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("deleteSector deletes existing sector")
-        void deleteSector_deletesExisting() {
+        void deleteSectorDeletesExisting() {
             when(sectorRepository.findById(1L)).thenReturn(Optional.of(sectorMojito));
 
             rouletteService.deleteSector(1L);
@@ -344,7 +345,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("verifyDisplayPin returns true when PIN matches")
-        void verifyDisplayPin_validReturnsTrue() {
+        void verifyDisplayPinValidReturnsTrue() {
             EstablishmentConfig config = new EstablishmentConfig();
             config.setRouletteDisplayPin("7777");
             when(establishmentConfigService.getConfig()).thenReturn(config);
@@ -356,7 +357,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("verifyDisplayPin returns false when PIN is incorrect or blank")
-        void verifyDisplayPin_invalidReturnsFalse() {
+        void verifyDisplayPinInvalidReturnsFalse() {
             EstablishmentConfig config = new EstablishmentConfig();
             config.setRouletteDisplayPin("7777");
             when(establishmentConfigService.getConfig()).thenReturn(config);
@@ -368,7 +369,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("getDisplayPin returns current PIN")
-        void getDisplayPin_returnsCurrentPin() {
+        void getDisplayPinReturnsCurrentPin() {
             EstablishmentConfig config = new EstablishmentConfig();
             config.setRouletteDisplayPin("4321");
             when(establishmentConfigService.getConfig()).thenReturn(config);
@@ -380,7 +381,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("updateDisplayPin updates PIN and broadcasts revocation")
-        void updateDisplayPin_validUpdatesAndBroadcasts() {
+        void updateDisplayPinValidUpdatesAndBroadcasts() {
             RoulettePinDTO dto = rouletteService.updateDisplayPin("8888");
 
             assertThat(dto.pin()).isEqualTo("8888");
@@ -390,7 +391,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("updateDisplayPin throws BusinessException when PIN is not 4 digits")
-        void updateDisplayPin_invalidThrowsException() {
+        void updateDisplayPinInvalidThrowsException() {
             assertThatThrownBy(() -> rouletteService.updateDisplayPin("123"))
                     .isInstanceOf(BusinessException.class);
             assertThatThrownBy(() -> rouletteService.updateDisplayPin("12345"))
@@ -401,7 +402,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("regenerateDisplayPin generates a 4-digit PIN and broadcasts revocation")
-        void regenerateDisplayPin_generatesAndBroadcasts() {
+        void regenerateDisplayPinGeneratesAndBroadcasts() {
             RoulettePinDTO dto = rouletteService.regenerateDisplayPin();
 
             assertThat(dto.pin()).matches("^\\d{4}$");
@@ -416,7 +417,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("triggerBroadcastSpin with RIGGED_SECTOR selects target sector")
-        void triggerBroadcastSpin_riggedSector() {
+        void triggerBroadcastSpinRiggedSector() {
             when(sectorRepository.findByActiveTrueOrderByDisplayOrderAsc()).thenReturn(List.of(sectorMojito, sectorBartenderSpecial));
             when(sectorRepository.findById(2L)).thenReturn(Optional.of(sectorBartenderSpecial));
 
@@ -432,7 +433,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("triggerBroadcastSpin with RIGGED_COCKTAIL selects sector with matching cocktail")
-        void triggerBroadcastSpin_riggedCocktail() {
+        void triggerBroadcastSpinRiggedCocktail() {
             when(sectorRepository.findByActiveTrueOrderByDisplayOrderAsc()).thenReturn(List.of(sectorMojito, sectorBartenderSpecial));
 
             RouletteBroadcastSpinRequestDTO req = new RouletteBroadcastSpinRequestDTO(
@@ -447,7 +448,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("triggerBroadcastSpin with CATEGORY filters sectors")
-        void triggerBroadcastSpin_category() {
+        void triggerBroadcastSpinCategory() {
             when(sectorRepository.findByActiveTrueOrderByDisplayOrderAsc()).thenReturn(List.of(sectorMojito));
 
             RouletteBroadcastSpinRequestDTO req = new RouletteBroadcastSpinRequestDTO(
@@ -461,7 +462,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("triggerBroadcastSpin with autoAddToCart adds won drink to table cart")
-        void triggerBroadcastSpin_autoAddToCart() {
+        void triggerBroadcastSpinAutoAddToCart() {
             when(sectorRepository.findByActiveTrueOrderByDisplayOrderAsc()).thenReturn(List.of(sectorMojito));
             TableEntity mockTable = new TableEntity();
             mockTable.setNumero(4);
@@ -484,7 +485,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("Excludes cocktail with excluded allergen")
-        void spin_excludesAllergen() {
+        void spinExcludesAllergen() {
             Ingredient mint = new Ingredient();
             mint.setId(20L);
             mint.setNom("Menthe");
@@ -509,7 +510,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("Boosts weight when ingredient is approaching expiration date within 14 days")
-        void spin_boostsWeightForExpiringIngredient() {
+        void spinBoostsWeightForExpiringIngredient() {
             Ingredient rum = new Ingredient();
             rum.setId(21L);
             rum.setNom("Rhum blanc");
@@ -536,7 +537,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("getAllSectors returns all sectors ordered by display order")
-        void getAllSectors_returnsOrdered() {
+        void getAllSectorsReturnsOrdered() {
             when(sectorRepository.findAllByOrderByDisplayOrderAsc()).thenReturn(List.of(sectorMojito, sectorBartenderSpecial));
 
             List<RouletteWheelSectorDTO> all = rouletteService.getAllSectors();
@@ -547,7 +548,7 @@ class RouletteServiceTest {
 
         @Test
         @DisplayName("initDefaultSectors initializes and persists default wheel sectors when empty")
-        void initDefaultSectors_populatesDefaults() {
+        void initDefaultSectorsPopulatesDefaults() {
             when(sectorRepository.findByActiveTrueOrderByDisplayOrderAsc()).thenReturn(List.of());
             when(cocktailRepository.findAll()).thenReturn(List.of(mojito));
             when(sectorRepository.saveAll(anyList())).thenAnswer(i -> {

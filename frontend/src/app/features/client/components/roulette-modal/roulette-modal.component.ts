@@ -132,7 +132,7 @@ export class RouletteModalComponent implements OnInit {
       error: (err) => {
         this.isLoading = false;
         this.cdr.markForCheck();
-        this.showToast(this.translocoService.translate('ROULETTE.LOAD_ERROR'), 'danger');
+        void this.showToast(this.translocoService.translate('ROULETTE.LOAD_ERROR'), 'danger');
       }
     });
   }
@@ -172,7 +172,7 @@ export class RouletteModalComponent implements OnInit {
         this.isSpinning = false;
         this.cdr.markForCheck();
         const msg = err?.error?.message || this.translocoService.translate('ROULETTE.SPIN_ERROR');
-        this.showToast(msg, 'danger');
+        void this.showToast(msg, 'danger');
       }
     });
   }
@@ -194,14 +194,14 @@ export class RouletteModalComponent implements OnInit {
       return;
     }
 
-    this.modalCtrl.dismiss({
+    void this.modalCtrl.dismiss({
       action: 'ADD_TO_CART',
       result
     });
   }
 
   dismiss(): void {
-    this.modalCtrl.dismiss(null, 'cancel');
+    void this.modalCtrl.dismiss(null, 'cancel');
   }
 
   private async showToast(message: string, color: 'success' | 'warning' | 'danger'): Promise<void> {

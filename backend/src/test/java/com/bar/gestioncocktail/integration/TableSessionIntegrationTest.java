@@ -29,20 +29,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class TableSessionIntegrationTest extends BaseIntegrationTest {
 
-    @Autowired
-    private TableRepository tableRepository;
+    private final TableRepository tableRepository;
+    private final TableSessionRepository tableSessionRepository;
+    private final AppSettingsRepository appSettingsRepository;
+    private final CocktailRepository cocktailRepository;
+    private final IngredientRepository ingredientRepository;
 
     @Autowired
-    private TableSessionRepository tableSessionRepository;
-
-    @Autowired
-    private AppSettingsRepository appSettingsRepository;
-
-    @Autowired
-    private CocktailRepository cocktailRepository;
-
-    @Autowired
-    private IngredientRepository ingredientRepository;
+    TableSessionIntegrationTest(TableRepository tableRepository,
+                                TableSessionRepository tableSessionRepository,
+                                AppSettingsRepository appSettingsRepository,
+                                CocktailRepository cocktailRepository,
+                                IngredientRepository ingredientRepository) {
+        this.tableRepository = tableRepository;
+        this.tableSessionRepository = tableSessionRepository;
+        this.appSettingsRepository = appSettingsRepository;
+        this.cocktailRepository = cocktailRepository;
+        this.ingredientRepository = ingredientRepository;
+    }
 
     private Long tableId;
     private Long cocktailId;

@@ -4,9 +4,11 @@
   [headerDivider]="'dashed'"
   [footerDivider]="'dashed'"
   [padding]="'sm'"
+  [attr.data-testid]="'table-card-' + table.id"
   [testId]="'table-card-' + table.id"
   (cardClick)="selectionner.emit(table)"
-  class="table-card-host">
+  class="table-card table-card-host"
+  [customClass]="'table-card'">
 
   <div card-header class="table-card-header">
     <div class="table-header">

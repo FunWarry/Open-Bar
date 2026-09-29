@@ -292,7 +292,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
@@ -350,14 +350,14 @@ export class IngredientListComponent implements OnInit, OnDestroy {
    * Navigates to the purchases and supplier orders management view.
    */
   goToPurchases(): void {
-    this.router.navigate(['/purchases']);
+    void this.router.navigate(['/purchases']);
   }
 
   /**
    * Navigates to the physical inventory audits and shrinkage management view.
    */
   goToInventory(): void {
-    this.router.navigate(['/inventory']);
+    void this.router.navigate(['/inventory']);
   }
 
   onUnitChange(event: Event): void {
@@ -651,7 +651,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
             duration: 2000,
             color: 'success',
           });
-          toast.present();
+          await toast.present();
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
@@ -659,7 +659,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
@@ -679,7 +679,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'success',
           });
-          toast.present();
+          await toast.present();
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
@@ -687,7 +687,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
@@ -742,11 +742,11 @@ export class IngredientListComponent implements OnInit, OnDestroy {
   }
 
   onAdd(): void {
-    this.openIngredientModal();
+    void this.openIngredientModal();
   }
 
   onEdit(i: Ingredient): void {
-    this.openIngredientModal(i);
+    void this.openIngredientModal(i);
   }
 
   onRefresh(event: any): void {
@@ -799,7 +799,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
     this.stockWasteService.getMovements().pipe(takeUntil(this.destroy$)).subscribe({
       next: (movements) => {
         if (!movements || movements.length === 0) {
-          this.toastCtrl.create({
+          void this.toastCtrl.create({
             message: this.transloco.translate('CSV_EXPORT.NO_DATA'),
             duration: 2500,
             color: 'warning'

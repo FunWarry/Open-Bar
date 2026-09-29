@@ -122,7 +122,7 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         }
       });
 
@@ -235,12 +235,12 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
         finalize(() => (this.isExporting = false))
       )
       .subscribe({
-        next: async (blob: Blob) => {
+        next: (blob: Blob) => {
           this.triggerBlobDownload(blob, `recap-caisse-${this.selectedDate}.pdf`);
-          this.showToast(this.transloco.translate('RECAP.EXPORT_SUCCESS'), 'success');
+          void this.showToast(this.transloco.translate('RECAP.EXPORT_SUCCESS'), 'success');
         },
-        error: async () => {
-          this.showToast(this.transloco.translate('RECAP.EXPORT_ERROR'), 'danger');
+        error: () => {
+          void this.showToast(this.transloco.translate('RECAP.EXPORT_ERROR'), 'danger');
         }
       });
   }
@@ -260,9 +260,9 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
         next: res => {
           const key = res.success ? 'CLOTURE.PRINT_SUCCESS' : 'CLOTURE.PRINT_FAILED';
           const color = res.success ? 'success' : 'warning';
-          this.showToast(this.transloco.translate(key), color);
+          void this.showToast(this.transloco.translate(key), color);
         },
-        error: () => this.showToast(this.transloco.translate('CLOTURE.PRINT_FAILED'), 'danger')
+        error: () => { void this.showToast(this.transloco.translate('CLOTURE.PRINT_FAILED'), 'danger'); }
       });
   }
 
@@ -280,9 +280,9 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
       .subscribe({
         next: blob => {
           this.triggerBlobDownload(blob, `ticket-z-${this.currentClosure?.closureNumber}.pdf`);
-          this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_PDF_SUCCESS'), 'success');
+          void this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_PDF_SUCCESS'), 'success');
         },
-        error: () => this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_PDF_ERROR'), 'danger')
+        error: () => { void this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_PDF_ERROR'), 'danger'); }
       });
   }
 
@@ -300,9 +300,9 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
       .subscribe({
         next: blob => {
           this.triggerBlobDownload(blob, `FEC-${this.currentClosure?.closureNumber}.txt`);
-          this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_FEC_SUCCESS'), 'success');
+          void this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_FEC_SUCCESS'), 'success');
         },
-        error: () => this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_FEC_ERROR'), 'danger')
+        error: () => { void this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_FEC_ERROR'), 'danger'); }
       });
   }
 
@@ -311,8 +311,8 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
    */
   copySealHash(): void {
     if (this.currentClosure?.sha256Hash) {
-      navigator.clipboard.writeText(this.currentClosure.sha256Hash);
-      this.showToast(this.transloco.translate('CLOTURE.HASH_COPIED'), 'success');
+      void navigator.clipboard.writeText(this.currentClosure.sha256Hash);
+      void this.showToast(this.transloco.translate('CLOTURE.HASH_COPIED'), 'success');
     }
   }
 

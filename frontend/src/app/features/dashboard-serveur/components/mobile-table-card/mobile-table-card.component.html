@@ -1,9 +1,12 @@
 <app-card
+  class="mobile-table-card table-card"
+  [customClass]="'mobile-table-card table-card'"
   [accentColor]="accentColor"
   [clickable]="true"
   [headerDivider]="'dashed'"
   [footerDivider]="'dashed'"
   [padding]="'md'"
+  [attr.data-testid]="'mobile-table-card-' + table.id"
   [testId]="'mobile-table-card-' + table.id"
   (cardClick)="tableSelect.emit(table)">
 

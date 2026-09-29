@@ -121,7 +121,7 @@ export class FactureListComponent implements OnInit, OnDestroy {
    * Navigates to invoice detail page.
    */
   navigateToDetail(factureId: number): void {
-    this.router.navigate(['/factures', factureId]);
+    void this.router.navigate(['/factures', factureId]);
   }
   private readonly factureService = inject(FactureService);
   private readonly toastCtrl = inject(ToastController);
@@ -193,7 +193,7 @@ export class FactureListComponent implements OnInit, OnDestroy {
    * Navigates to the daily recap and cash register closure (Z-Report) page.
    */
   goToRecap(): void {
-    this.router.navigate(['/factures/recap']);
+    void this.router.navigate(['/factures/recap']);
   }
 
   /**

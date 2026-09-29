@@ -164,7 +164,7 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
     });
 
     document.body.classList.add('modal-open');
-    modal.onDidDismiss().then(result => {
+    void modal.onDidDismiss().then(result => {
       document.body.classList.remove('modal-open');
       if (result.data) {
         const targetStatut = result.data.targetStatut || (result.data.role === 'statusUpdated' ? result.data.commande?.statut : undefined);

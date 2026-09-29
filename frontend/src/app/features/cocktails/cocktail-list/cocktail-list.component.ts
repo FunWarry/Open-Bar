@@ -247,7 +247,7 @@ export class CocktailListComponent implements OnInit, OnDestroy {
           this.cocktails = cocktails;
         },
         error: () => {
-          this.showToast('COMMON.ERROR', 'danger');
+          void this.showToast('COMMON.ERROR', 'danger');
         },
       });
 
@@ -444,12 +444,12 @@ export class CocktailListComponent implements OnInit, OnDestroy {
           this.cocktails = this.cocktails.filter(c => c.id !== cocktail.id);
           await this.showToast('COMMON.SUCCESS', 'success', 2000);
         },
-        error: () => this.showToast('COMMON.ERROR', 'danger'),
+        error: () => { void this.showToast('COMMON.ERROR', 'danger'); },
       });
   }
 
-  onAdd(): void { this.router.navigate(['/cocktails/new']); }
-  onEdit(c: Cocktail): void { this.router.navigate(['/cocktails', c.id, 'edit']); }
+  onAdd(): void { void this.router.navigate(['/cocktails/new']); }
+  onEdit(c: Cocktail): void { void this.router.navigate(['/cocktails', c.id, 'edit']); }
 
   /**
    * Handles cocktail selection when embedded in order-taking mode.

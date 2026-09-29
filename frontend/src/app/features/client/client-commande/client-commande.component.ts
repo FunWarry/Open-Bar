@@ -200,7 +200,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
         !this.isSubmitting
       ) {
         this.previousSubmittedOrderId = cart.submittedOrderId;
-        this.notifyOrderSubmittedByPeer(cart.submittedBy, cart.submittedOrderId);
+        void this.notifyOrderSubmittedByPeer(cart.submittedBy, cart.submittedOrderId);
       }
     });
   }
@@ -503,7 +503,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
                 this.isJoinRejected.set(false);
                 this.initTableCart();
                 this.loadCocktails();
-                this.toastCtrl.create({
+                void this.toastCtrl.create({
                   message: this.translocoService.translate('CLIENT.JOIN_APPROVAL_ACCEPT_BTN'),
                   duration: 3000,
                   color: 'success'
@@ -1131,7 +1131,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
           });
           await toast.present();
           const orderId = res.commandeId || (res as any).id;
-          this.router.navigate(['/client/suivi', orderId]);
+          void this.router.navigate(['/client/suivi', orderId]);
         },
 
         error: async (err: { status?: number; error?: { message?: string } }) => {
@@ -1161,7 +1161,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
             {
               text: this.translocoService.translate('CLIENT.ORDER_NOW'),
               handler: () => {
-                this.router.navigate(['/client/suivi', orderId]);
+                void this.router.navigate(['/client/suivi', orderId]);
               }
             }
           ]
@@ -1169,7 +1169,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
     });
     await toast.present();
     if (orderId && this.step === 'recap') {
-      this.router.navigate(['/client/suivi', orderId]);
+      void this.router.navigate(['/client/suivi', orderId]);
     }
   }
 }

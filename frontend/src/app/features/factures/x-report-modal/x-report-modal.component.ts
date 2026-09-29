@@ -86,7 +86,7 @@ export class XReportModalComponent implements OnInit {
         this.cdr.markForCheck();
         this.cdr.detectChanges();
         const msg = err?.error?.message || this.transloco.translate('CASH_DRAWER.X_REPORT_LOAD_ERROR');
-        this.showToast(msg, 'danger');
+        void this.showToast(msg, 'danger');
       }
     });
   }
@@ -103,15 +103,15 @@ export class XReportModalComponent implements OnInit {
         this.isPrinting = false;
         this.cdr.markForCheck();
         if (res.success) {
-          this.showToast(this.transloco.translate('CASH_DRAWER.PRINT_SUCCESS'));
+          void this.showToast(this.transloco.translate('CASH_DRAWER.PRINT_SUCCESS'));
         } else {
-          this.showToast(res.message || this.transloco.translate('CASH_DRAWER.PRINT_ERROR'), 'danger');
+          void this.showToast(res.message || this.transloco.translate('CASH_DRAWER.PRINT_ERROR'), 'danger');
         }
       },
       error: () => {
         this.isPrinting = false;
         this.cdr.markForCheck();
-        this.showToast(this.transloco.translate('CASH_DRAWER.PRINT_ERROR'), 'danger');
+        void this.showToast(this.transloco.translate('CASH_DRAWER.PRINT_ERROR'), 'danger');
       }
     });
   }
@@ -136,18 +136,18 @@ export class XReportModalComponent implements OnInit {
         a.click();
         a.remove();
         window.URL.revokeObjectURL(url);
-        this.showToast(this.transloco.translate('CASH_DRAWER.PDF_DOWNLOAD_SUCCESS'));
+        void this.showToast(this.transloco.translate('CASH_DRAWER.PDF_DOWNLOAD_SUCCESS'));
       },
       error: () => {
         this.isDownloadingPdf = false;
         this.cdr.markForCheck();
-        this.showToast(this.transloco.translate('CASH_DRAWER.PDF_DOWNLOAD_ERROR'), 'danger');
+        void this.showToast(this.transloco.translate('CASH_DRAWER.PDF_DOWNLOAD_ERROR'), 'danger');
       }
     });
   }
 
   cancel(): void {
-    this.modalCtrl.dismiss(null);
+    void this.modalCtrl.dismiss(null);
   }
 
   /**

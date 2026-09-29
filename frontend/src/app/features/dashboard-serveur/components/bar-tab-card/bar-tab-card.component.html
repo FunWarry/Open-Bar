@@ -1,9 +1,12 @@
 <app-card
+  class="bar-tab-card"
+  [customClass]="'bar-tab-card'"
   [accentColor]="accentColor"
   [clickable]="false"
   [headerDivider]="'dashed'"
   [footerDivider]="'dashed'"
   [padding]="'none'"
+  [attr.data-testid]="'bar-tab-card-' + tab.id"
   [testId]="'bar-tab-card-' + tab.id">
 
   <!-- Card Header -->

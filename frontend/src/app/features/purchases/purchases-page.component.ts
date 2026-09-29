@@ -219,7 +219,7 @@ export class PurchasesPageComponent implements OnInit {
   async openOrderFormModal(editingOrder?: PurchaseOrder): Promise<void> {
     const activeSuppliers = this.suppliers().filter(s => s.actif);
     if (activeSuppliers.length === 0) {
-      this.showToast(this.transloco.translate('PURCHASES.ERROR_NO_ACTIVE_SUPPLIERS'), 'warning');
+      void this.showToast(this.transloco.translate('PURCHASES.ERROR_NO_ACTIVE_SUPPLIERS'), 'warning');
       return;
     }
 
@@ -251,10 +251,10 @@ export class PurchasesPageComponent implements OnInit {
 
       request$.subscribe({
         next: () => {
-          this.showToast(successMsg, 'success');
+          void this.showToast(successMsg, 'success');
           this.loadAllData();
         },
-        error: () => this.showToast(errorMsg, 'danger')
+        error: () => { void this.showToast(errorMsg, 'danger'); }
       });
     }
   }
@@ -262,10 +262,10 @@ export class PurchasesPageComponent implements OnInit {
   sendOrder(order: PurchaseOrder): void {
     this.purchaseOrderService.send(order.id).subscribe({
       next: () => {
-        this.showToast(this.transloco.translate('PURCHASES.ORDER_SENT_SUCCESS'), 'success');
+        void this.showToast(this.transloco.translate('PURCHASES.ORDER_SENT_SUCCESS'), 'success');
         this.loadAllData();
       },
-      error: () => this.showToast(this.transloco.translate('PURCHASES.ORDER_SENT_ERROR'), 'danger')
+      error: () => { void this.showToast(this.transloco.translate('PURCHASES.ORDER_SENT_ERROR'), 'danger'); }
     });
   }
 
@@ -282,7 +282,7 @@ export class PurchasesPageComponent implements OnInit {
 
     switch (data.action) {
       case 'edit':
-        this.openOrderFormModal(data.order || order);
+        void this.openOrderFormModal(data.order || order);
         break;
       case 'send':
         this.sendOrder(data.order || order);
@@ -291,7 +291,7 @@ export class PurchasesPageComponent implements OnInit {
         this.cancelOrder(data.order || order);
         break;
       case 'receive':
-        this.openReceptionModal(data.order || order);
+        void this.openReceptionModal(data.order || order);
         break;
       case 'pdf':
         this.downloadPdf(data.order || order);
@@ -302,7 +302,7 @@ export class PurchasesPageComponent implements OnInit {
   onOrderCardKeyDown(event: KeyboardEvent, order: PurchaseOrder): void {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      this.openOrderDetailModal(order);
+      void this.openOrderDetailModal(order);
     }
   }
 
@@ -323,10 +323,10 @@ export class PurchasesPageComponent implements OnInit {
   cancelOrder(order: PurchaseOrder): void {
     this.purchaseOrderService.cancel(order.id).subscribe({
       next: () => {
-        this.showToast(this.transloco.translate('PURCHASES.ORDER_CANCELLED_SUCCESS'), 'success');
+        void this.showToast(this.transloco.translate('PURCHASES.ORDER_CANCELLED_SUCCESS'), 'success');
         this.loadAllData();
       },
-      error: () => this.showToast(this.transloco.translate('PURCHASES.ORDER_CANCELLED_ERROR'), 'danger')
+      error: () => { void this.showToast(this.transloco.translate('PURCHASES.ORDER_CANCELLED_ERROR'), 'danger'); }
     });
   }
 
@@ -358,10 +358,10 @@ export class PurchasesPageComponent implements OnInit {
     if (data?.confirmed && data.supplier) {
       this.supplierService.create(data.supplier).subscribe({
         next: () => {
-          this.showToast(this.transloco.translate('SUPPLIERS.CREATE_SUCCESS'), 'success');
+          void this.showToast(this.transloco.translate('SUPPLIERS.CREATE_SUCCESS'), 'success');
           this.loadAllData();
         },
-        error: () => this.showToast(this.transloco.translate('SUPPLIERS.CREATE_ERROR'), 'danger')
+        error: () => { void this.showToast(this.transloco.translate('SUPPLIERS.CREATE_ERROR'), 'danger'); }
       });
     }
   }
@@ -379,10 +379,10 @@ export class PurchasesPageComponent implements OnInit {
     if (data?.confirmed && data.supplier) {
       this.supplierService.update(supplier.id, data.supplier).subscribe({
         next: () => {
-          this.showToast(this.transloco.translate('SUPPLIERS.UPDATE_SUCCESS'), 'success');
+          void this.showToast(this.transloco.translate('SUPPLIERS.UPDATE_SUCCESS'), 'success');
           this.loadAllData();
         },
-        error: () => this.showToast(this.transloco.translate('SUPPLIERS.UPDATE_ERROR'), 'danger')
+        error: () => { void this.showToast(this.transloco.translate('SUPPLIERS.UPDATE_ERROR'), 'danger'); }
       });
     }
   }
@@ -399,10 +399,10 @@ export class PurchasesPageComponent implements OnInit {
           handler: () => {
             this.supplierService.delete(supplier.id).subscribe({
               next: () => {
-                this.showToast(this.transloco.translate('SUPPLIERS.DELETE_SUCCESS'), 'success');
+                void this.showToast(this.transloco.translate('SUPPLIERS.DELETE_SUCCESS'), 'success');
                 this.loadAllData();
               },
-              error: () => this.showToast(this.transloco.translate('SUPPLIERS.DELETE_ERROR'), 'danger')
+              error: () => { void this.showToast(this.transloco.translate('SUPPLIERS.DELETE_ERROR'), 'danger'); }
             });
           }
         }
@@ -414,10 +414,10 @@ export class PurchasesPageComponent implements OnInit {
   migrateLegacySuppliers(): void {
     this.supplierService.migrateLegacy().subscribe({
       next: (count) => {
-        this.showToast(this.transloco.translate('SUPPLIERS.MIGRATE_SUCCESS', { count }), 'success');
+        void this.showToast(this.transloco.translate('SUPPLIERS.MIGRATE_SUCCESS', { count }), 'success');
         this.loadAllData();
       },
-      error: () => this.showToast(this.transloco.translate('SUPPLIERS.MIGRATE_ERROR'), 'danger')
+      error: () => { void this.showToast(this.transloco.translate('SUPPLIERS.MIGRATE_ERROR'), 'danger'); }
     });
   }
 

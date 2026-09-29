@@ -344,7 +344,7 @@ export class InventorySessionsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (created: InventoryAuditSession) => {
           this.closeCreateModal();
-          this.router.navigate(['/inventory', created.id]);
+          void this.router.navigate(['/inventory', created.id]);
         },
         error: async (err: { error?: { message?: string } }) => {
           const toast = await this.toastCtrl.create({
@@ -362,7 +362,7 @@ export class InventorySessionsComponent implements OnInit, OnDestroy {
    * Navigates to the counting sheet or report of a session.
    */
   openSession(session: InventoryAuditSession): void {
-    this.router.navigate(['/inventory', session.id]);
+    void this.router.navigate(['/inventory', session.id]);
   }
 
   /**
