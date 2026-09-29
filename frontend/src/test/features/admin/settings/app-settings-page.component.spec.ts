@@ -18,6 +18,19 @@ import { OnboardingService } from '../../../../app/core/services/onboarding.serv
 import { FeatureFlagService } from '../../../../app/core/services/feature-flag.service';
 import { RouletteService } from '../../../../app/core/services/roulette.service';
 import { ESTABLISHMENT_PRESETS, EstablishmentPresetType } from '../../../../app/core/models/establishment-module.model';
+import { PaymentTerminalService } from '../../../../app/core/services/payment-terminal.service';
+import { TpePublicConfig } from '../../../../app/core/models/tpe.model';
+
+const mockTpePublicConfig: TpePublicConfig = {
+  enabled: true,
+  simulatorEnabled: true,
+  barIpConfigured: true,
+  floorIpConfigured: false,
+  port: 8888,
+  terminalId: 'TEST-01',
+  timeoutSeconds: 30,
+  terminalsJson: '[]'
+};
 
 describe('AppSettingsPageComponent', () => {
   let component: AppSettingsPageComponent;
@@ -35,6 +48,7 @@ describe('AppSettingsPageComponent', () => {
   let alertCtrlSpy: jasmine.SpyObj<AlertController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let routerSpy: jasmine.SpyObj<Router>;
+  let paymentTerminalServiceSpy: jasmine.SpyObj<PaymentTerminalService>;
 
   const mockEtab: EstablishmentConfig = {
     id: 1,
@@ -191,6 +205,30 @@ describe('AppSettingsPageComponent', () => {
     rouletteServiceSpy.getDisplayPin.and.returnValue(of({ pin: '7777', establishmentId: 1 }));
     rouletteServiceSpy.regenerateDisplayPin.and.returnValue(of({ pin: '4321', establishmentId: 1 }));
 
+    paymentTerminalServiceSpy = jasmine.createSpyObj('PaymentTerminalService', [
+      'initiatePayment',
+      'cancelPayment',
+      'getStatus',
+      'watchTransaction',
+      'watchPayment',
+      'testConnection',
+      'getConfig',
+      'getPreferredTerminalRole',
+      'setPreferredTerminalRole'
+    ], {
+      paymentEvents$: of(),
+      preferredRole: 'BAR'
+    });
+    paymentTerminalServiceSpy.getConfig.and.returnValue(of(mockTpePublicConfig));
+    paymentTerminalServiceSpy.testConnection.and.returnValue(of({
+      role: 'BAR',
+      ip: '192.168.1.50',
+      port: 8888,
+      success: true,
+      message: 'TPE connected successfully',
+      durationMs: 42
+    }));
+
     await TestBed.configureTestingModule({
       imports: [
         AppSettingsPageComponent,
@@ -211,6 +249,7 @@ describe('AppSettingsPageComponent', () => {
         { provide: FeatureFlagService, useValue: featureFlagServiceSpy },
         { provide: RouletteService, useValue: rouletteServiceSpy },
         { provide: PrinterService, useValue: printerServiceSpy },
+        { provide: PaymentTerminalService, useValue: paymentTerminalServiceSpy },
         { provide: AppUpdateService, useValue: appUpdateServiceSpy },
         { provide: ThemeService, useValue: themeServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
@@ -837,6 +876,7 @@ describe('AppSettingsPageComponent', () => {
         suppliersManagement: false,
         inventoryAudit: false,
         mysteryRoulette: false,
+        paymentTerminal: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -853,6 +893,7 @@ describe('AppSettingsPageComponent', () => {
         suppliersManagement: false,
         inventoryAudit: false,
         mysteryRoulette: false,
+        paymentTerminal: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });

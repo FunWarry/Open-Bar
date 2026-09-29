@@ -1,6 +1,8 @@
+import { signal } from '@angular/core';
 import { TestBed, ComponentFixture, fakeAsync, tick } from '@angular/core/testing';
 import { ModalController, ToastController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
+import { provideMockStore } from '@ngrx/store/testing';
 import { EncaissementModalComponent } from '../../../app/features/dashboard-serveur/components/encaissement-modal/encaissement-modal.component';
 import {
   DashboardServeurService,
@@ -13,12 +15,26 @@ import { BarTab } from '../../../app/core/models/bar-tab.model';
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { AppSettingsService } from '../../../app/core/services/app-settings.service';
+import { PaymentTerminalService } from '../../../app/core/services/payment-terminal.service';
+import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
+import { TpePublicConfig } from '../../../app/core/models/tpe.model';
 import {
   DEFAULT_EUR_DENOMINATIONS,
   DEFAULT_USD_DENOMINATIONS,
   DEFAULT_CHF_DENOMINATIONS,
   DEFAULT_JPY_DENOMINATIONS
 } from '../../../app/core/models/cash-denomination.model';
+
+const mockTpePublicConfig: TpePublicConfig = {
+  enabled: true,
+  simulatorEnabled: true,
+  barIpConfigured: true,
+  floorIpConfigured: false,
+  port: 8888,
+  terminalId: 'TEST-01',
+  timeoutSeconds: 30,
+  terminalsJson: '[]'
+};
 
 describe('EncaissementModalComponent', () => {
   let component: EncaissementModalComponent;
@@ -30,6 +46,8 @@ describe('EncaissementModalComponent', () => {
   let dashboardServiceSpy: jasmine.SpyObj<DashboardServeurService>;
   let factureServiceSpy: jasmine.SpyObj<FactureService>;
   let barTabServiceSpy: jasmine.SpyObj<BarTabService>;
+  let paymentTerminalServiceSpy: jasmine.SpyObj<PaymentTerminalService>;
+  let featureFlagServiceSpy: jasmine.SpyObj<FeatureFlagService>;
 
   const mockTable: TableView = {
     id: 1,
@@ -105,6 +123,27 @@ describe('EncaissementModalComponent', () => {
     factureServiceSpy = jasmine.createSpyObj('FactureService', ['getFacturesByTable', 'genererFactureTable', 'genererFactureTab']);
     barTabServiceSpy = jasmine.createSpyObj('BarTabService', ['getTabAddition', 'encaisserTab']);
 
+    paymentTerminalServiceSpy = jasmine.createSpyObj('PaymentTerminalService', [
+      'initiatePayment',
+      'cancelPayment',
+      'getStatus',
+      'watchTransaction',
+      'watchPayment',
+      'testConnection',
+      'getConfig',
+      'getPreferredTerminalRole',
+      'setPreferredTerminalRole'
+    ], {
+      paymentEvents$: of(),
+      preferredRole: 'BAR'
+    });
+    paymentTerminalServiceSpy.getConfig.and.returnValue(of(mockTpePublicConfig));
+
+    featureFlagServiceSpy = jasmine.createSpyObj('FeatureFlagService', ['isModuleEnabled'], {
+      paymentTerminalEnabled: signal(true),
+      cashDrawerEnabled: signal(true)
+    });
+
     TestBed.configureTestingModule({
       imports: [
         EncaissementModalComponent,
@@ -114,11 +153,14 @@ describe('EncaissementModalComponent', () => {
         })
       ],
       providers: [
+        provideMockStore({ initialState: { auth: { user: null, token: null } } }),
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: DashboardServeurService, useValue: dashboardServiceSpy },
         { provide: FactureService, useValue: factureServiceSpy },
-        { provide: BarTabService, useValue: barTabServiceSpy }
+        { provide: BarTabService, useValue: barTabServiceSpy },
+        { provide: PaymentTerminalService, useValue: paymentTerminalServiceSpy },
+        { provide: FeatureFlagService, useValue: featureFlagServiceSpy }
       ]
     }).compileComponents();
 
