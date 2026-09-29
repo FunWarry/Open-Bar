@@ -1,10 +1,11 @@
 import { Component, Input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonCard, IonCardContent, IonIcon } from '@ionic/angular';
+import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { timeOutline, timerOutline, personOutline, documentTextOutline } from 'ionicons/icons';
 import { OngoingOrder } from '../../models/ongoing-order.model';
 import { AppSettingsService } from '../../../../core/services/app-settings.service';
+import { CardComponent, CardAccentColor } from '../../../../core/components/ui/card/card.component';
 
 /**
  * Compact order card representation for Manager Kanban columns.
@@ -13,7 +14,7 @@ import { AppSettingsService } from '../../../../core/services/app-settings.servi
 @Component({
   selector: 'app-mini-commande-card',
   standalone: true,
-  imports: [CommonModule, IonCard, IonCardContent, IonIcon],
+  imports: [CommonModule, IonIcon, CardComponent],
   templateUrl: './mini-commande-card.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./mini-commande-card.component.scss'],
@@ -21,6 +22,19 @@ import { AppSettingsService } from '../../../../core/services/app-settings.servi
 export class MiniCommandeCardComponent {
   /** The ongoing order view displayed by the mini card. */
   @Input() order!: OngoingOrder;
+
+  /** Accent border color mapped to wait time severity */
+  get accentColor(): CardAccentColor {
+    switch (this.waitTimeSeverity) {
+      case 'critical':
+      case 'urgent':
+        return 'danger';
+      case 'warning':
+        return 'warning';
+      default:
+        return 'none';
+    }
+  }
 
   private readonly appSettingsService = inject(AppSettingsService, { optional: true });
 

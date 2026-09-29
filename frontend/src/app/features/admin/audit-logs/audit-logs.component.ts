@@ -136,6 +136,9 @@ export class AuditLogsComponent implements OnInit {
       { value: 'TRANSFERT_TABLE', label: this.translocoService.translate('AUDIT_LOGS.ACTIONS.TRANSFERT_TABLE'), badge: 'TABLE', badgeType: 'warning' },
       { value: 'FUSION_FACTURES', label: this.translocoService.translate('AUDIT_LOGS.ACTIONS.FUSION_FACTURES'), badge: 'FUSION', badgeType: 'warning' },
       { value: 'SETUP', label: this.translocoService.translate('AUDIT_LOGS.ACTIONS.SETUP'), badge: 'SETUP', badgeType: 'success' },
+      { value: 'INVENTORY_AUDIT_FINALIZED', label: this.translocoService.translate('AUDIT_LOGS.ACTIONS.INVENTORY_AUDIT_FINALIZED'), badge: 'AUDIT', badgeType: 'primary' },
+      { value: 'ENCAISSEMENT_TABLE', label: this.translocoService.translate('AUDIT_LOGS.ACTIONS.ENCAISSEMENT_TABLE'), badge: 'ENCAISSEMENT', badgeType: 'primary' },
+      { value: 'GENERATE_INVOICE_TABLE', label: this.translocoService.translate('AUDIT_LOGS.ACTIONS.GENERATE_INVOICE_TABLE'), badge: 'FACTURE', badgeType: 'primary' },
     ];
   });
 
@@ -458,10 +461,11 @@ export class AuditLogsComponent implements OnInit {
     if (!action) return 'primary';
     const upper = action.toUpperCase();
     if (upper.includes('CREATE') || upper.includes('SETUP')) return 'success';
-    if (upper.includes('UPDATE') || upper.includes('TRANSFERT') || upper.includes('FUSION')) return 'warning';
-    if (upper.includes('DELETE') || upper.includes('CANCEL')) return 'danger';
+    if (upper.includes('UPDATE') || upper.includes('TRANSFERT') || upper.includes('TRANSFER') || upper.includes('FUSION')) return 'warning';
+    if (upper.includes('DELETE') || upper.includes('CANCEL') || upper.includes('WASTE')) return 'danger';
     if (upper.includes('LOGIN') || upper.includes('AUTH')) return 'tertiary';
-    if (upper.includes('REGLEMENT') || upper.includes('SETTLED')) return 'secondary';
+    if (upper.includes('REGLEMENT') || upper.includes('SETTLED') || upper.includes('ENCAISSEMENT') || upper.includes('INVOICE') || upper.includes('FACTURE') || upper.includes('AVOIR')) return 'secondary';
+    if (upper.includes('INVENTORY') || upper.includes('AUDIT')) return 'info';
     return 'primary';
   }
 
@@ -475,8 +479,11 @@ export class AuditLogsComponent implements OnInit {
     if (act.includes('DELETE') || act.includes('CANCEL')) return 'trash-outline';
     if (act.includes('CREATE') || act.includes('SETUP')) return 'add-circle-outline';
     if (act.includes('LOGIN') || act.includes('AUTH')) return 'lock-closed-outline';
-    if (act.includes('TRANSFERT') || act.includes('FUSION')) return 'swap-horizontal-outline';
-    if (act.includes('REGLEMENT') || act.includes('SETTLED') || ent.includes('facture')) return 'receipt-outline';
+    if (act.includes('TRANSFERT') || act.includes('TRANSFER') || act.includes('FUSION')) return 'swap-horizontal-outline';
+    if (act.includes('INVENTORY') || act.includes('AUDIT') || ent.includes('audit')) return 'clipboard-outline';
+    if (act.includes('CASH') || act.includes('DRAWER') || ent.includes('cash')) return 'cash-outline';
+    if (act.includes('REGLEMENT') || act.includes('SETTLED') || act.includes('ENCAISSEMENT') || act.includes('INVOICE') || ent.includes('facture')) return 'receipt-outline';
+    if (act.includes('APPEL')) return 'notifications-outline';
     if (ent.includes('cocktail')) return 'wine-outline';
     if (ent.includes('ingredient')) return 'cube-outline';
     if (ent.includes('table')) return 'restaurant-outline';

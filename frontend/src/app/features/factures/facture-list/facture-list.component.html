@@ -323,15 +323,18 @@
       @if (viewMode === 'grid') {
         <section class="invoices-grid" data-testid="factures-grid-container">
           @for (facture of filteredFactures; track trackById($index, facture)) {
-            <article
-              class="invoice-card"
-              [class.card-settled]="facture.reglee"
-              [class.card-pending]="!facture.reglee"
-              [routerLink]="['/factures', facture.id]"
+            <app-card
+              [accentColor]="getFactureAccentColor(facture)"
+              [clickable]="true"
+              [headerDivider]="'dashed'"
+              [footerDivider]="'none'"
+              [padding]="'md'"
+              [testId]="'invoice-card-' + facture.id"
+              (cardClick)="navigateToDetail(facture.id)"
               data-testid="invoice-card-item">
 
               <!-- Card Header -->
-              <div class="card-top">
+              <div card-header class="card-top">
                 <div class="invoice-num-group">
                   <button
                     type="button"
@@ -370,7 +373,7 @@
               </div>
 
               <!-- Card Middle -->
-              <div class="card-middle">
+              <div card-content class="card-middle">
                 <div class="amount-hero-box">
                   <span class="amount-val">{{ (facture.totalTTC ?? facture.total) | appCurrency }}</span>
                   <span class="amount-tax-label">{{ t('FACTURES.TTC_LABEL') }}</span>
@@ -399,7 +402,7 @@
               </div>
 
               <!-- Card Bottom Actions -->
-              <div class="card-bottom">
+              <div card-footer class="card-bottom">
                 <div class="quick-card-actions">
                   <button
                     type="button"
@@ -417,7 +420,7 @@
                   <ion-icon name="chevron-forward-outline" class="detail-arrow"></ion-icon>
                 </div>
               </div>
-            </article>
+            </app-card>
           }
         </section>
       } @else {

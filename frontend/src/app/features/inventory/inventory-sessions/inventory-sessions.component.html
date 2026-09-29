@@ -160,20 +160,20 @@
       <!-- Session Cards Grid -->
       <div class="sessions-list" data-testid="inventory-sessions-list">
         @for (session of filteredSessions(); track session.id) {
-          <article
-            class="session-card"
-            [class.finalized]="session.status === 'FINALIZED'"
-            [class.in-progress]="session.status === 'IN_PROGRESS'"
-            [class.draft]="session.status === 'DRAFT'"
-            [attr.data-testid]="'session-card-' + session.id">
-            
-            <div class="card-top-row">
+          <app-card
+            [accentColor]="getSessionAccentColor(session.status)"
+            [headerDivider]="'dashed'"
+            [footerDivider]="'dashed'"
+            [clickable]="true"
+            [padding]="'md'"
+            [testId]="'session-card-' + session.id"
+            (cardClick)="openSession(session)">
+
+            <div card-header class="card-top-row">
               <div class="ref-and-title">
                 <span class="session-ref">{{ session.referenceCode }}</span>
                 <h3 class="session-title">
-                  <button type="button" class="session-title-btn" (click)="openSession(session)">
-                    {{ session.title }}
-                  </button>
+                  <span class="session-title-text">{{ session.title }}</span>
                 </h3>
               </div>
               <ion-badge [color]="getStatusBadgeColor(session.status)" class="status-badge" [attr.data-testid]="'badge-status-' + session.id">
@@ -181,77 +181,79 @@
               </ion-badge>
             </div>
 
-            <!-- Metadata Pills -->
-            <div class="meta-row">
-              <div class="meta-item">
-                <ion-icon name="calendar-outline"></ion-icon>
-                <span>{{ session.createdAt | date:'short' }}</span>
-              </div>
-              @if (session.createdByUsername) {
+            <div card-content class="card-body-content">
+              <!-- Metadata Pills -->
+              <div class="meta-row">
                 <div class="meta-item">
-                  <ion-icon name="person-outline"></ion-icon>
-                  <span>{{ session.createdByUsername }}</span>
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <span>{{ session.createdAt | date:'short' }}</span>
                 </div>
+                @if (session.createdByUsername) {
+                  <div class="meta-item">
+                    <ion-icon name="person-outline"></ion-icon>
+                    <span>{{ session.createdByUsername }}</span>
+                  </div>
+                }
+                @if (session.storageLocationScope) {
+                  <div class="meta-item">
+                    <ion-icon name="location-outline"></ion-icon>
+                    <span>{{ formatLocationScope(session.storageLocationScope) }}</span>
+                  </div>
+                }
+                @if (session.categoryScope) {
+                  <div class="meta-item">
+                    <ion-icon name="layers-outline"></ion-icon>
+                    <span>{{ formatCategoryScope(session.categoryScope) }}</span>
+                  </div>
+                }
+              </div>
+
+              @if (session.notes) {
+                <p class="session-notes">{{ session.notes }}</p>
               }
-              @if (session.storageLocationScope) {
-                <div class="meta-item">
-                  <ion-icon name="location-outline"></ion-icon>
-                  <span>{{ formatLocationScope(session.storageLocationScope) }}</span>
+
+              <!-- Progress Bar -->
+              <div class="progress-section">
+                <div class="progress-label-row">
+                  <span class="progress-title">{{ 'INVENTORY.CARD_PROGRESS' | transloco }}</span>
+                  <span class="progress-count">
+                    {{ 'INVENTORY.CARD_ITEMS_COUNTED' | transloco:{ counted: session.countedItemsCount, total: session.totalItemsCount } }}
+                  </span>
                 </div>
-              }
-              @if (session.categoryScope) {
-                <div class="meta-item">
-                  <ion-icon name="layers-outline"></ion-icon>
-                  <span>{{ formatCategoryScope(session.categoryScope) }}</span>
+                <ion-progress-bar
+                  [value]="getProgress(session)"
+                  [color]="session.status === 'FINALIZED' ? 'success' : 'primary'"
+                  class="session-progress-bar">
+                </ion-progress-bar>
+              </div>
+
+              <!-- Financial Summary Matrix (3 equal columns) -->
+              <div class="financial-summary-row">
+                <div class="summary-col">
+                  <span class="summary-label">{{ 'INVENTORY.CARD_THEO_VAL' | transloco }}</span>
+                  <span class="summary-value">{{ session.totalTheoreticalValueHt | number:'1.2-2' }} €</span>
                 </div>
-              }
-            </div>
-
-            @if (session.notes) {
-              <p class="session-notes">{{ session.notes }}</p>
-            }
-
-            <!-- Progress Bar -->
-            <div class="progress-section">
-              <div class="progress-label-row">
-                <span class="progress-title">{{ 'INVENTORY.CARD_PROGRESS' | transloco }}</span>
-                <span class="progress-count">
-                  {{ 'INVENTORY.CARD_ITEMS_COUNTED' | transloco:{ counted: session.countedItemsCount, total: session.totalItemsCount } }}
-                </span>
-              </div>
-              <ion-progress-bar
-                [value]="getProgress(session)"
-                [color]="session.status === 'FINALIZED' ? 'success' : 'primary'"
-                class="session-progress-bar">
-              </ion-progress-bar>
-            </div>
-
-            <!-- Financial Summary Matrix (3 equal columns) -->
-            <div class="financial-summary-row">
-              <div class="summary-col">
-                <span class="summary-label">{{ 'INVENTORY.CARD_THEO_VAL' | transloco }}</span>
-                <span class="summary-value">{{ session.totalTheoreticalValueHt | number:'1.2-2' }} €</span>
-              </div>
-              <div class="summary-col">
-                <span class="summary-label">{{ 'INVENTORY.CARD_COUNTED_VAL' | transloco }}</span>
-                <span class="summary-value">{{ session.totalCountedValueHt | number:'1.2-2' }} €</span>
-              </div>
-              <div class="summary-col" [class.loss]="session.totalVarianceValueHt < 0" [class.gain]="session.totalVarianceValueHt > 0">
-                <span class="summary-label">{{ 'INVENTORY.CARD_VARIANCE_VAL' | transloco }}</span>
-                <span class="summary-value font-bold">
-                  {{ (session.totalVarianceValueHt >= 0 ? '+' : '') + (session.totalVarianceValueHt | number:'1.2-2') }} €
-                </span>
+                <div class="summary-col">
+                  <span class="summary-label">{{ 'INVENTORY.CARD_COUNTED_VAL' | transloco }}</span>
+                  <span class="summary-value">{{ session.totalCountedValueHt | number:'1.2-2' }} €</span>
+                </div>
+                <div class="summary-col" [class.loss]="session.totalVarianceValueHt < 0" [class.gain]="session.totalVarianceValueHt > 0">
+                  <span class="summary-label">{{ 'INVENTORY.CARD_VARIANCE_VAL' | transloco }}</span>
+                  <span class="summary-value font-bold">
+                    {{ (session.totalVarianceValueHt >= 0 ? '+' : '') + (session.totalVarianceValueHt | number:'1.2-2') }} €
+                  </span>
+                </div>
               </div>
             </div>
 
             <!-- Card Actions Footer -->
-            <div class="card-footer-actions">
+            <div card-footer class="card-footer-actions">
               <div class="export-btns">
                 <button
                   type="button"
                   class="icon-action-btn"
                   title="PDF"
-                  (click)="exportPdf(session, $event)"
+                  (click)="$event.stopPropagation(); exportPdf(session, $event)"
                   [attr.data-testid]="'btn-export-pdf-' + session.id">
                   <ion-icon name="document-text-outline"></ion-icon>
                   <span>PDF</span>
@@ -260,7 +262,7 @@
                   type="button"
                   class="icon-action-btn"
                   title="CSV"
-                  (click)="exportCsv(session, $event)"
+                  (click)="$event.stopPropagation(); exportCsv(session, $event)"
                   [attr.data-testid]="'btn-export-csv-' + session.id">
                   <ion-icon name="download-outline"></ion-icon>
                   <span>CSV</span>
@@ -270,7 +272,7 @@
               <button
                 type="button"
                 class="navigate-btn"
-                (click)="openSession(session)"
+                (click)="$event.stopPropagation(); openSession(session)"
                 [attr.data-testid]="'btn-open-session-' + session.id">
                 <span class="nav-text">
                   {{ (session.status === 'FINALIZED' ? 'INVENTORY.BTN_VIEW_REPORT' : 'INVENTORY.BTN_CONTINUE_COUNT') | transloco }}
@@ -278,8 +280,7 @@
                 <ion-icon name="chevron-forward-outline"></ion-icon>
               </button>
             </div>
-
-          </article>
+          </app-card>
         }
       </div>
     }

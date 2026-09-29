@@ -207,10 +207,19 @@
       @if (filteredIngredients.length > 0) {
         <!-- Shared Stock Card Template -->
         <ng-template #stockCard let-ingredient>
-          <ion-card class="stock-card" [class.in-alert]="isEnAlerte(ingredient)"
-            (click)="openIngredientModal(ingredient)" (keydown.enter)="openIngredientModal(ingredient)" tabindex="0"
-            role="button" [attr.aria-label]="ingredient.nom" [attr.data-testid]="'ingredient-card-' + ingredient.id">
-            <ion-card-header class="card-header-compact">
+          <app-card
+            [accentColor]="getIngredientAccentColor(ingredient)"
+            [clickable]="true"
+            [headerDivider]="'dashed'"
+            [footerDivider]="'dashed'"
+            [padding]="'sm'"
+            [testId]="'ingredient-card-' + ingredient.id"
+            (cardClick)="openIngredientModal(ingredient)"
+            (keydown.enter)="openIngredientModal(ingredient)"
+            [attr.aria-label]="ingredient.nom"
+            class="stock-card-host">
+
+            <div card-header class="card-header-compact">
               <div class="card-title-row">
                 <h3 class="ingredient-name" [title]="ingredient.nom">{{ ingredient.nom }}</h3>
                 <div class="card-badges-wrap">
@@ -231,9 +240,9 @@
                   }
                 </div>
               </div>
-            </ion-card-header>
+            </div>
 
-            <ion-card-content>
+            <div card-content class="card-content-compact">
               <!-- Allergens row when showAllergens is active -->
               @if (showAllergens) {
                 <div class="card-allergens-row" [attr.data-testid]="'card-allergens-' + ingredient.id">
@@ -304,28 +313,28 @@
                 </ion-button>
               </div>
               }
+            </div>
 
-              <!-- Footer Action Buttons -->
-              <div class="card-footer-actions">
-                <ion-button fill="clear" color="warning" size="small" class="waste-btn"
-                  (click)="$event.stopPropagation(); openWasteModal(ingredient)"
-                  (keyup.enter)="$event.stopPropagation(); openWasteModal(ingredient)"
-                  [title]="'STOCK.WASTE_RECORD_BTN' | transloco"
-                  [attr.data-testid]="'ingredient-waste-btn-' + ingredient.id">
-                  <ion-icon slot="start" name="alert-circle-outline"></ion-icon>
-                  <span>{{ 'STOCK.WASTE_RECORD_BTN' | transloco }}</span>
-                </ion-button>
-                @if (isAdmin$ | async) {
-                <ion-button fill="clear" color="danger" size="small" class="delete-btn"
-                  (click)="$event.stopPropagation(); onDelete(ingredient)"
-                  (keyup.enter)="$event.stopPropagation(); onDelete(ingredient)" data-testid="ingredient-delete-btn">
-                  <ion-icon slot="start" name="trash-outline"></ion-icon>
-                  <span>{{ 'COMMON.DELETE' | transloco }}</span>
-                </ion-button>
-                }
-              </div>
-            </ion-card-content>
-          </ion-card>
+            <!-- Footer Action Buttons -->
+            <div card-footer class="card-footer-actions">
+              <ion-button fill="clear" color="warning" size="small" class="waste-btn"
+                (click)="$event.stopPropagation(); openWasteModal(ingredient)"
+                (keyup.enter)="$event.stopPropagation(); openWasteModal(ingredient)"
+                [title]="'STOCK.WASTE_RECORD_BTN' | transloco"
+                [attr.data-testid]="'ingredient-waste-btn-' + ingredient.id">
+                <ion-icon slot="start" name="alert-circle-outline"></ion-icon>
+                <span>{{ 'STOCK.WASTE_RECORD_BTN' | transloco }}</span>
+              </ion-button>
+              @if (isAdmin$ | async) {
+              <ion-button fill="clear" color="danger" size="small" class="delete-btn"
+                (click)="$event.stopPropagation(); onDelete(ingredient)"
+                (keyup.enter)="$event.stopPropagation(); onDelete(ingredient)" data-testid="ingredient-delete-btn">
+                <ion-icon slot="start" name="trash-outline"></ion-icon>
+                <span>{{ 'COMMON.DELETE' | transloco }}</span>
+              </ion-button>
+              }
+            </div>
+          </app-card>
         </ng-template>
 
         <!-- Mode 1: Catégorie (Groupé par catégorie avec en-têtes et séparateurs) -->
@@ -418,8 +427,8 @@
                 </div>
 
                 <!-- Mode Liste -->
-                <ion-card class="stock-list-card">
-                  <ion-card-content>
+                <app-card class="stock-list-card" [padding]="'none'">
+                  <div card-content>
                     <ion-list>
                       @for (ingredient of group.items; track ingredient.id) {
                       <ion-item class="stock-list-item" (click)="openIngredientModal(ingredient)"
@@ -512,8 +521,8 @@
                       </ion-item>
                       }
                     </ion-list>
-                  </ion-card-content>
-                </ion-card>
+                  </div>
+                </app-card>
               </section>
             }
           </div>

@@ -1730,21 +1730,42 @@ ion-col {
 
 .color-picker-input {
   width: 40px;
+  min-width: 40px;
   height: 40px;
+  min-height: 40px;
+  flex-shrink: 0;
   padding: 0;
-  border: none;
+  border: 1px solid var(--border-medium);
   border-radius: 8px;
   cursor: pointer;
   background: none;
+  -webkit-appearance: none;
+  appearance: none;
+
+  &::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border-radius: 6px;
+  }
+
+  &::-webkit-color-swatch {
+    border: none;
+    border-radius: 6px;
+  }
+
+  &::-moz-color-swatch {
+    border: none;
+    border-radius: 6px;
+  }
 }
 
 .hex-text-input {
   flex: 1;
+  min-width: 0;
   padding: 8px 12px;
   border-radius: 8px;
-  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.12));
-  background-color: var(--background-surface-2, #1a1d30);
-  color: var(--text-primary, #ffffff);
+  border: 1px solid var(--border-medium);
+  background-color: var(--background-surface-2);
+  color: var(--text-primary);
   font-family: monospace;
   font-size: 13px;
 }

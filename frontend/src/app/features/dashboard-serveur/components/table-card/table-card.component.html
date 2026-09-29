@@ -1,7 +1,16 @@
-<ion-card class="table-card" [ngClass]="statutClass" [attr.data-testid]="'table-card-' + table.id">
-  <ion-card-header>
+<app-card
+  [accentColor]="accentColor"
+  [clickable]="true"
+  [headerDivider]="'dashed'"
+  [footerDivider]="'dashed'"
+  [padding]="'sm'"
+  [testId]="'table-card-' + table.id"
+  (cardClick)="selectionner.emit(table)"
+  class="table-card-host">
+
+  <div card-header class="table-card-header">
     <div class="table-header">
-      <ion-card-title class="table-name">{{ table.nom }}</ion-card-title>
+      <h3 class="table-name">{{ table.nom }}</h3>
       <span class="statut-badge" [ngClass]="'badge-' + statutClass">{{ statutKey | transloco }}</span>
     </div>
     <div class="table-meta">
@@ -11,9 +20,9 @@
       </span>
       <span class="meta-zone">{{ table.zone }}</span>
     </div>
-  </ion-card-header>
+  </div>
 
-  <ion-card-content>
+  <div card-content class="table-card-content">
     @if (table.serveurNom) {
       <div class="serveur-info">
         <ion-icon name="restaurant-outline"></ion-icon>
@@ -37,30 +46,30 @@
         }
       </div>
     }
+  </div>
 
-    <div class="card-actions">
+  <div card-footer class="card-actions">
+    <ion-button
+      (click)="$event.stopPropagation(); selectionner.emit(table)"
+      (keyup.enter)="$event.stopPropagation(); selectionner.emit(table)"
+      expand="block"
+      fill="outline"
+      size="small"
+      class="btn-voir"
+      [attr.data-testid]="'table-btn-voir-' + table.id">
+      {{ 'TABLE_CARD.VIEW_ORDERS' | transloco }}
+    </ion-button>
+    @if (table.occupee) {
       <ion-button
-        (click)="selectionner.emit(table)"
-        (keyup.enter)="selectionner.emit(table)"
+        (click)="$event.stopPropagation(); liberer.emit(table.id)"
+        (keyup.enter)="$event.stopPropagation(); liberer.emit(table.id)"
         expand="block"
         fill="outline"
         size="small"
-        class="btn-voir"
-        [attr.data-testid]="'table-btn-voir-' + table.id">
-        {{ 'TABLE_CARD.VIEW_ORDERS' | transloco }}
+        color="danger"
+        class="btn-liberer">
+        {{ 'TABLE_CARD.FREE_TABLE' | transloco }}
       </ion-button>
-      @if (table.occupee) {
-        <ion-button
-          (click)="liberer.emit(table.id)"
-          (keyup.enter)="liberer.emit(table.id)"
-          expand="block"
-          fill="outline"
-          size="small"
-          color="danger"
-          class="btn-liberer">
-          {{ 'TABLE_CARD.FREE_TABLE' | transloco }}
-        </ion-button>
-      }
-    </div>
-  </ion-card-content>
-</ion-card>
+    }
+  </div>
+</app-card>

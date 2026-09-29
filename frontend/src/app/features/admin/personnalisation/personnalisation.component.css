@@ -211,21 +211,42 @@
 
 .color-picker-input {
   width: 38px;
+  min-width: 38px;
   height: 38px;
+  min-height: 38px;
+  flex-shrink: 0;
   padding: 0;
-  border: none;
+  border: 1px solid var(--border-medium);
   border-radius: 6px;
   cursor: pointer;
   background: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.color-picker-input::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: 5px;
+}
+
+.color-picker-input::-webkit-color-swatch {
+  border: none;
+  border-radius: 5px;
+}
+
+.color-picker-input::-moz-color-swatch {
+  border: none;
+  border-radius: 5px;
 }
 
 .hex-text-input {
   flex: 1;
+  min-width: 0;
   padding: 8px 12px;
   border-radius: 6px;
-  border: 1px solid var(--border-default, #2e3450);
-  background-color: var(--surface-2, #21263f);
-  color: var(--text-primary, #eceefb);
+  border: 1px solid var(--border-medium);
+  background-color: var(--background-surface-2);
+  color: var(--text-primary);
   font-family: monospace;
   font-size: 13px;
 }

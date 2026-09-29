@@ -78,6 +78,11 @@ export class CardComponent {
   @Input() accentWidth = '4px';
 
   /**
+   * Position/style of the accent border ('left', 'full', 'top'). Defaults to 'left'.
+   */
+  @Input() accentPosition: 'left' | 'full' | 'top' = 'left';
+
+  /**
    * Background styling variant. Accepts 'surface-1', 'surface-2', 'glass', 'transparent', or a direct CSS color string.
    */
   @Input() background: CardBackgroundVariant = 'surface-1';

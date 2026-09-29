@@ -250,25 +250,31 @@
           <ion-row>
             @for (cocktail of filteredCocktails; track cocktail.id) {
               <ion-col size="12" size-sm="6" size-md="4" size-lg="3" size-xl="3">
-                <div
+                <app-card
                   class="figma-cocktail-card product-card"
                   [class.no-picture]="!showPictures"
                   [class.unavailable]="!cocktail.disponible"
                   [class.selection-mode]="selectionMode"
-                  (click)="selectionMode ? onSelectCocktail(cocktail) : null"
-                  (keydown.enter)="selectionMode ? onSelectCocktail(cocktail) : null"
-                  (keydown.space)="selectionMode ? onSelectCocktail(cocktail) : null"
+                  [active]="cocktail.disponible"
+                  [clickable]="selectionMode && cocktail.disponible"
+                  [accentColor]="'none'"
+                  [padding]="'none'"
+                  [elevation]="'sm'"
+                  [showHeader]="false"
+                  [showFooter]="false"
+                  [testId]="'cocktail-card-' + cocktail.id"
+                  (cardClick)="selectionMode ? onSelectCocktail(cocktail) : null"
                   [attr.tabindex]="selectionMode ? 0 : null"
-                  [attr.role]="selectionMode ? 'button' : null"
-                  [attr.data-testid]="'cocktail-card-' + cocktail.id">
-                  @if (showPictures) {
-                    <div class="figma-card-image-area">
-                      <img
-                        [src]="getCocktailImage(cocktail)"
-                        [alt]="cocktail.nom"
-                        (error)="$any($event.target).src = 'assets/images/verres/verre_tumbler.png'" />
-                    </div>
-                  }
+                  [attr.role]="selectionMode ? 'button' : null">
+                  <div card-content class="figma-card-inner">
+                    @if (showPictures) {
+                      <div class="figma-card-image-area">
+                        <img
+                          [src]="getCocktailImage(cocktail)"
+                          [alt]="cocktail.nom"
+                          (error)="$any($event.target).src = 'assets/images/verres/verre_tumbler.png'" />
+                      </div>
+                    }
 
                   <!-- Card Text Body -->
                   <div class="figma-card-body">
@@ -384,7 +390,8 @@
                     </div>
                   </div>
                 </div>
-              </ion-col>
+              </app-card>
+            </ion-col>
               } @empty {
               <ion-col size="12">
                 <div class="empty-cocktail-message">
@@ -407,8 +414,8 @@
         </ion-grid>
       } @else {
         <!-- Mode Liste -->
-        <ion-card class="cocktail-list-card">
-          <ion-card-content>
+        <app-card class="cocktail-list-card" [padding]="'none'" [showHeader]="false" [showFooter]="false">
+          <div card-content>
             <ion-list>
               @for (cocktail of filteredCocktails; track cocktail.id) {
                 <ion-item
@@ -517,8 +524,8 @@
               </ion-item>
             }
           </ion-list>
-        </ion-card-content>
-      </ion-card>
+        </div>
+      </app-card>
     }
   }
 </div>

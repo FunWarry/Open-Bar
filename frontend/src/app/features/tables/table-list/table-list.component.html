@@ -275,16 +275,20 @@
     }
   </div>
 
+  <app-card [hidden]="true" style="display: none;" [accentColor]="'none'"></app-card>
+
   <!-- Reusable Modern Table Card Template -->
   <ng-template #tableCardTpl let-table>
-    <div
-      class="modern-table-card"
-      [class.occupied]="table.occupee"
-      [class.free]="!table.occupee"
-      [attr.data-testid]="'table-card-' + table.id">
+    <app-card
+      class="modern-table-card-host"
+      [accentColor]="table.occupee ? 'warning' : 'success'"
+      [headerDivider]="'dashed'"
+      [footerDivider]="'dashed'"
+      [padding]="'sm'"
+      [testId]="'table-card-' + table.id">
       
       <!-- Top Header: Table Number Avatar + Info + Status Toggle -->
-      <div class="card-header-row">
+      <div card-header class="card-header-row">
         <div class="table-badge-group">
           <div class="table-num-avatar" [class.occupied]="table.occupee">
             <ion-icon name="restaurant-outline" class="avatar-icon"></ion-icon>
@@ -316,7 +320,7 @@
       </div>
 
       <!-- Mid Section: Capacity & Details Badges -->
-      <div class="card-body-row">
+      <div card-content class="card-body-row">
         <div class="meta-badge capacity-badge">
           <ion-icon name="people-outline"></ion-icon>
           <span>{{ 'TABLES.CARD.CAPACITY' | transloco : { count: table.capacite } }}</span>
@@ -324,7 +328,7 @@
       </div>
 
       <!-- Footer Action Buttons -->
-      <div class="card-actions-row">
+      <div card-footer class="card-actions-row">
         <button
           type="button"
           class="action-btn btn-view"
@@ -358,6 +362,6 @@
           </button>
         }
       </div>
-    </div>
+    </app-card>
   </ng-template>
 </ion-content>

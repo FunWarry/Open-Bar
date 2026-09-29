@@ -4,11 +4,11 @@ import { RouterModule } from '@angular/router';
 import { TranslocoModule } from '@jsverse/transloco';
 import { TableView } from '../../models/table-view.model';
 import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonButton, IonIcon
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { peopleOutline, restaurantOutline, checkmarkOutline, timeOutline } from 'ionicons/icons';
+import { CardComponent, CardAccentColor } from '../../../../core/components/ui/card/card.component';
 
 /**
  * Card component representing a table status and occupancy on server view.
@@ -18,14 +18,19 @@ import { peopleOutline, restaurantOutline, checkmarkOutline, timeOutline } from 
   standalone: true,
   imports: [
     CommonModule, RouterModule, TranslocoModule,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonButton, IonIcon
+    IonButton, IonIcon, CardComponent
   ],
   templateUrl: './table-card.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./table-card.component.scss'],
 })
 export class TableCardComponent {
+  /** Accent border color mapped to table status */
+  get accentColor(): CardAccentColor {
+    if (!this.table?.occupee) return 'success';
+    if (this.commandesEnCours > 0) return 'info';
+    return 'warning';
+  }
   @Input() table!: TableView;
   @Output() liberer = new EventEmitter<number>();
   @Output() selectionner = new EventEmitter<TableView>();

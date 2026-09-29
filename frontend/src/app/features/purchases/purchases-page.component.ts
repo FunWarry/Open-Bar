@@ -44,6 +44,7 @@ import { PurchaseOrderDetailModalComponent } from './purchase-order-detail-modal
 import { BarcodeScannerModalComponent, BarcodeScannerResult } from '../../core/components/ui/barcode-scanner-modal/barcode-scanner-modal.component';
 import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
+import { CardComponent, CardAccentColor } from '../../core/components/ui/card/card.component';
 
 export type PurchasesTab = 'orders' | 'suppliers' | 'pamp';
 
@@ -63,7 +64,8 @@ export type PurchasesTab = 'orders' | 'suppliers' | 'pamp';
     IonIcon,
     TranslocoPipe,
     EmptyStateComponent,
-    SearchBarComponent
+    SearchBarComponent,
+    CardComponent
   ]
 })
 export class PurchasesPageComponent implements OnInit {
@@ -101,6 +103,32 @@ export class PurchasesPageComponent implements OnInit {
       downloadOutline,
       searchOutline
     });
+  }
+
+  /**
+   * Resolves semantic accent border color for purchase order status.
+   */
+  getOrderAccentColor(status: PurchaseOrderStatus): CardAccentColor {
+    switch (status) {
+      case 'RECEIVED':
+        return 'success';
+      case 'ORDERED':
+        return 'primary';
+      case 'PARTIALLY_RECEIVED':
+        return 'warning';
+      case 'CANCELLED':
+        return 'danger';
+      case 'DRAFT':
+      default:
+        return 'none';
+    }
+  }
+
+  /**
+   * Resolves semantic accent border color for supplier active status.
+   */
+  getSupplierAccentColor(actif: boolean): CardAccentColor {
+    return actif ? 'primary' : 'none';
   }
 
   ngOnInit(): void {

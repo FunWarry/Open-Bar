@@ -5,7 +5,7 @@ import { Observable, Subject, firstValueFrom } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { selectIsAdmin, selectCanEditIngredient } from '../../../core/store/auth.selectors';
 import {
-  IonContent, IonCard, IonCardHeader, IonCardContent,
+  IonContent,
   IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
   IonRefresher, IonRefresherContent, IonSpinner,
   IonGrid, IonRow, IonCol, IonProgressBar,
@@ -43,6 +43,7 @@ import { SearchBarComponent } from '../../../core/components/ui/search-bar/searc
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { PaginationComponent } from '../../../core/components/ui/pagination/pagination.component';
+import { CardComponent, CardAccentColor } from '../../../core/components/ui/card/card.component';
 import { CsvExportService, CsvColumn } from '../../../core/services/csv-export.service';
 import { StockWasteService } from '../../../core/services/stock-waste.service';
 import { FeatureFlagService } from '../../../core/services/feature-flag.service';
@@ -93,14 +94,27 @@ export interface IngredientCategoryGroup {
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule, FormsModule, AsyncPipe, TranslocoModule,
-    IonContent, IonCard, IonCardHeader, IonCardContent,
+    IonContent,
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSpinner, SearchBarComponent,
     IonGrid, IonRow, IonCol, IonProgressBar,
-    SearchableSelectComponent, ActionButtonComponent, PaginationComponent
+    SearchableSelectComponent, ActionButtonComponent, PaginationComponent,
+    CardComponent
   ],
 })
 export class IngredientListComponent implements OnInit, OnDestroy {
+  /**
+   * Resolves semantic accent color based on ingredient stock level.
+   */
+  getIngredientAccentColor(ingredient: Ingredient): CardAccentColor {
+    if (ingredient.quantiteStock <= 0) {
+      return 'danger';
+    }
+    if (this.isEnAlerte(ingredient)) {
+      return 'warning';
+    }
+    return 'none';
+  }
   private readonly featureFlagService = inject(FeatureFlagService);
   readonly suppliersManagementEnabled = this.featureFlagService.suppliersManagementEnabled;
   readonly inventoryAuditEnabled = this.featureFlagService.inventoryAuditEnabled;

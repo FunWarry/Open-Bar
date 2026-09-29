@@ -18,6 +18,7 @@ import {
 import { TranslocoPipe } from '@jsverse/transloco';
 import { BarTab } from '../../../../core/models/bar-tab.model';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
+import { CardComponent, CardAccentColor } from '../../../../core/components/ui/card/card.component';
 
 /**
  * Visual card representing a customer running bar tab in server and manager views.
@@ -31,12 +32,22 @@ import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
     IonIcon,
     TranslocoPipe,
     AppCurrencyPipe,
+    CardComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './bar-tab-card.component.html',
   styleUrls: ['./bar-tab-card.component.scss'],
 })
 export class BarTabCardComponent {
+  /**
+   * Resolves semantic accent border color.
+   */
+  get accentColor(): CardAccentColor {
+    if (this.tab?.cautionMontant && this.tab.cautionMontant > 0) {
+      return 'purple';
+    }
+    return 'primary';
+  }
   /** The bar tab entity displayed by this card */
   @Input({ required: true }) tab!: BarTab;
 

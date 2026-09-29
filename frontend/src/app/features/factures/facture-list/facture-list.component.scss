@@ -570,63 +570,13 @@ ion-content.factures-content {
   gap: 20px;
 }
 
-.invoice-card {
-  position: relative;
-  background: var(--background-surface-1, #1a1a2e);
-  border: 1px solid var(--border-medium, #2e3450);
-  border-radius: var(--radius-lg, 16px);
-  padding: 18px 20px;
-  cursor: pointer;
-  text-decoration: none;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 16px;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm, 0 4px 12px rgba(0, 0, 0, 0.15));
-
-  // Subtle glow accent on hover
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: transparent;
-    transition: background 0.25s ease;
-  }
-
-  &.card-settled::before {
-    background: var(--semantic-success, #2fbf6b);
-  }
-
-  &.card-pending::before {
-    background: var(--semantic-warning, #f4a52a);
-  }
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md, 0 8px 24px rgba(0, 0, 0, 0.25));
-    border-color: var(--border-light, #3a4682);
-  }
-
-  &.card-settled:hover {
-    border-color: rgba(47, 191, 107, 0.4);
-  }
-
-  &.card-pending:hover {
-    border-color: rgba(244, 165, 42, 0.4);
-  }
-}
-
 // Card Top (Invoice Num + Table + Status)
 .card-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 10px;
+  width: 100%;
 }
 
 .invoice-num-group {
@@ -762,9 +712,7 @@ ion-content.factures-content {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 10px 0;
-  border-top: 1px dashed var(--border-medium, #2e3450);
-  border-bottom: 1px dashed var(--border-medium, #2e3450);
+  padding: 4px 0;
 }
 
 .amount-hero-box {
