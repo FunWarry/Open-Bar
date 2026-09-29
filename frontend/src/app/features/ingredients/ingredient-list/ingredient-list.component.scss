@@ -481,44 +481,16 @@
   }
 }
 
-.stock-card {
-  --background: var(--background-surface-1);
-  background: var(--background-surface-1);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-lg, 16px);
-  margin: 0;
-  width: 100%;
-  height: 100%;
+.stock-card-host {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  box-shadow: var(--elev-1, 0 2px 8px rgba(0, 0, 0, 0.3));
-  cursor: pointer;
-  outline: none;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-
-  &:hover,
-  &:focus-visible {
-    transform: translateY(-3px);
-    border-color: var(--primary);
-    box-shadow: var(--elev-2, 0 4px 14px rgba(0, 0, 0, 0.4));
-  }
-
-  &.in-alert {
-    border-color: var(--semantic-danger);
-    background: linear-gradient(180deg, rgba(229, 96, 79, 0.08) 0%, var(--background-surface-1) 100%);
-  }
-
-  ion-card-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    flex: 1;
-  }
+  width: 100%;
+  height: 100%;
 }
 
 .card-header-compact {
-  padding: 16px 16px 8px 16px;
+  padding: 0;
+  width: 100%;
 }
 
 .card-title-row {
@@ -698,9 +670,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid var(--border-medium);
-  margin-top: 12px;
-  padding-top: 8px;
+  width: 100%;
   gap: 8px;
 
   ion-button {
@@ -737,11 +707,9 @@
 
 /* ── Stock List View ────────────────────────────────────── */
 .stock-list-card {
-  --background: var(--background-surface-1);
-  background: var(--background-surface-1);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-lg, 16px);
-  box-shadow: var(--elev-1, 0 2px 8px rgba(0, 0, 0, 0.3));
+  display: block;
+  overflow: hidden;
+  width: 100%;
 }
 
 .stock-list-item {

@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.StreamSupport;
 
 /**
  * Service responsible for automatically seeding a rich, complete demonstration dataset
@@ -1203,10 +1204,9 @@ public class SampleDataSeederService {
             return;
         }
 
-        List<CocktailRecipeStep> steps = new ArrayList<>();
-        for (JsonNode stepNode : stepsNode) {
-            steps.add(buildSingleRecipeStep(cocktail, stepNode, templatesMap));
-        }
+        List<CocktailRecipeStep> steps = StreamSupport.stream(stepsNode.spliterator(), false)
+                .map(stepNode -> buildSingleRecipeStep(cocktail, stepNode, templatesMap))
+                .toList();
         if (cocktail.getRecipeSteps() != null) {
             cocktail.getRecipeSteps().clear();
             cocktail.getRecipeSteps().addAll(steps);
@@ -1468,12 +1468,10 @@ public class SampleDataSeederService {
         }
 
         Map<String, Cocktail> cocktailMap = buildCocktailMap(cocktails);
-        List<RouletteWheelSector> toSave = new ArrayList<>();
         LocalDateTime now = timeService.now();
-
-        for (JsonNode node : sectorsNode) {
-            toSave.add(parseRouletteWheelSector(node, cocktailMap, now));
-        }
+        List<RouletteWheelSector> toSave = StreamSupport.stream(sectorsNode.spliterator(), false)
+                .map(node -> parseRouletteWheelSector(node, cocktailMap, now))
+                .toList();
         rouletteWheelSectorRepository.saveAll(toSave);
         log.info("Seeded {} roulette wheel sectors from demo dataset.", toSave.size());
     }
@@ -1533,11 +1531,10 @@ public class SampleDataSeederService {
         }
 
         Map<String, Cocktail> cocktailMap = buildCocktailMap(cocktails);
-        List<HappyHourRule> toSave = new ArrayList<>();
         LocalDateTime now = timeService.now();
-        for (JsonNode ruleNode : rulesNode) {
-            toSave.add(parseHappyHourRule(ruleNode, cocktailMap, now));
-        }
+        List<HappyHourRule> toSave = StreamSupport.stream(rulesNode.spliterator(), false)
+                .map(ruleNode -> parseHappyHourRule(ruleNode, cocktailMap, now))
+                .toList();
 
         happyHourRuleRepository.saveAll(toSave);
         log.info("Successfully seeded {} Happy Hour promotional rules from demo dataset.", toSave.size());

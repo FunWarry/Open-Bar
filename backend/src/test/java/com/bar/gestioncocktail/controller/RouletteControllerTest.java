@@ -33,7 +33,7 @@ class RouletteControllerTest {
 
     @Test
     @DisplayName("triggerBroadcast returns 200 with broadcast result")
-    void triggerBroadcast_returns200() {
+    void triggerBroadcastReturns200() {
         RouletteBroadcastSpinRequestDTO request = new RouletteBroadcastSpinRequestDTO(
                 null, "FAIR", null, null, null, false, 5, "CSGO"
         );
@@ -54,7 +54,7 @@ class RouletteControllerTest {
 
     @Test
     @DisplayName("getAllSectors returns 200 with list of sectors")
-    void getAllSectors_returns200() {
+    void getAllSectorsReturns200() {
         RouletteWheelSectorDTO dto = new RouletteWheelSectorDTO(
                 1L, "Mojito", RoulettePrizeType.COCKTAIL, 10L, "Mojito",
                 null, null, new BigDecimal("7.50"), "#10b981", "leaf-outline", 2, true, 0
@@ -69,7 +69,7 @@ class RouletteControllerTest {
 
     @Test
     @DisplayName("createSector returns 201 with created sector")
-    void createSector_returns201() {
+    void createSectorReturns201() {
         RouletteWheelSectorRequestDTO request = new RouletteWheelSectorRequestDTO(
                 "Mojito", RoulettePrizeType.COCKTAIL, 10L, null,
                 new BigDecimal("7.50"), "#10b981", "leaf-outline", 2, true, 0
@@ -89,7 +89,7 @@ class RouletteControllerTest {
 
     @Test
     @DisplayName("updateSector returns 200 with updated sector")
-    void updateSector_returns200() {
+    void updateSectorReturns200() {
         RouletteWheelSectorRequestDTO request = new RouletteWheelSectorRequestDTO(
                 "Mojito Royal", RoulettePrizeType.COCKTAIL, 10L, null,
                 new BigDecimal("10.00"), "#10b981", "leaf-outline", 2, true, 0
@@ -109,7 +109,7 @@ class RouletteControllerTest {
 
     @Test
     @DisplayName("deleteSector returns 204")
-    void deleteSector_returns204() {
+    void deleteSectorReturns204() {
         ResponseEntity<Void> response = controller.deleteSector(1L);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);

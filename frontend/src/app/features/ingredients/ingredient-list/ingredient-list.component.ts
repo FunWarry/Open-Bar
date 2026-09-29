@@ -5,7 +5,7 @@ import { Observable, Subject, firstValueFrom } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { selectIsAdmin, selectCanEditIngredient } from '../../../core/store/auth.selectors';
 import {
-  IonContent, IonCard, IonCardHeader, IonCardContent,
+  IonContent,
   IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
   IonRefresher, IonRefresherContent, IonSpinner,
   IonGrid, IonRow, IonCol, IonProgressBar,
@@ -43,6 +43,7 @@ import { SearchBarComponent } from '../../../core/components/ui/search-bar/searc
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { PaginationComponent } from '../../../core/components/ui/pagination/pagination.component';
+import { CardComponent, CardAccentColor } from '../../../core/components/ui/card/card.component';
 import { CsvExportService, CsvColumn } from '../../../core/services/csv-export.service';
 import { StockWasteService } from '../../../core/services/stock-waste.service';
 import { FeatureFlagService } from '../../../core/services/feature-flag.service';
@@ -93,14 +94,27 @@ export interface IngredientCategoryGroup {
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule, FormsModule, AsyncPipe, TranslocoModule,
-    IonContent, IonCard, IonCardHeader, IonCardContent,
+    IonContent,
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSpinner, SearchBarComponent,
     IonGrid, IonRow, IonCol, IonProgressBar,
-    SearchableSelectComponent, ActionButtonComponent, PaginationComponent
+    SearchableSelectComponent, ActionButtonComponent, PaginationComponent,
+    CardComponent
   ],
 })
 export class IngredientListComponent implements OnInit, OnDestroy {
+  /**
+   * Resolves semantic accent color based on ingredient stock level.
+   */
+  getIngredientAccentColor(ingredient: Ingredient): CardAccentColor {
+    if (ingredient.quantiteStock <= 0) {
+      return 'danger';
+    }
+    if (this.isEnAlerte(ingredient)) {
+      return 'warning';
+    }
+    return 'none';
+  }
   private readonly featureFlagService = inject(FeatureFlagService);
   readonly suppliersManagementEnabled = this.featureFlagService.suppliersManagementEnabled;
   readonly inventoryAuditEnabled = this.featureFlagService.inventoryAuditEnabled;
@@ -278,7 +292,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
@@ -336,14 +350,14 @@ export class IngredientListComponent implements OnInit, OnDestroy {
    * Navigates to the purchases and supplier orders management view.
    */
   goToPurchases(): void {
-    this.router.navigate(['/purchases']);
+    void this.router.navigate(['/purchases']);
   }
 
   /**
    * Navigates to the physical inventory audits and shrinkage management view.
    */
   goToInventory(): void {
-    this.router.navigate(['/inventory']);
+    void this.router.navigate(['/inventory']);
   }
 
   onUnitChange(event: Event): void {
@@ -637,7 +651,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
             duration: 2000,
             color: 'success',
           });
-          toast.present();
+          await toast.present();
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
@@ -645,7 +659,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
@@ -665,7 +679,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'success',
           });
-          toast.present();
+          await toast.present();
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
@@ -673,7 +687,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
@@ -728,11 +742,11 @@ export class IngredientListComponent implements OnInit, OnDestroy {
   }
 
   onAdd(): void {
-    this.openIngredientModal();
+    void this.openIngredientModal();
   }
 
   onEdit(i: Ingredient): void {
-    this.openIngredientModal(i);
+    void this.openIngredientModal(i);
   }
 
   onRefresh(event: any): void {
@@ -785,7 +799,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
     this.stockWasteService.getMovements().pipe(takeUntil(this.destroy$)).subscribe({
       next: (movements) => {
         if (!movements || movements.length === 0) {
-          this.toastCtrl.create({
+          void this.toastCtrl.create({
             message: this.transloco.translate('CSV_EXPORT.NO_DATA'),
             duration: 2500,
             color: 'warning'

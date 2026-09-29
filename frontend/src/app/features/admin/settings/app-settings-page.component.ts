@@ -574,7 +574,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
           if (!validTabs.has(defTab) ||
               (defTab === 'pricing' && !this.happyHourEnabled()) ||
               (defTab === 'qr' && !this.qrClientOrderingEnabled())) {
-            this.router.navigate(['/404']);
+            void this.router.navigate(['/404']);
             return;
           }
           this.activeTab = defTab;
@@ -590,7 +590,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
           if (!validTabs.has(tab) ||
               (tab === 'pricing' && !this.happyHourEnabled()) ||
               (tab === 'qr' && !this.qrClientOrderingEnabled())) {
-            this.router.navigate(['/404']);
+            void this.router.navigate(['/404']);
             return;
           }
           this.activeTab = tab;
@@ -633,16 +633,16 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
   selectTab(tab: SettingsTab): void {
     if (tab === 'pricing' && !this.happyHourEnabled()) {
-      this.router.navigate(['/404']);
+      void this.router.navigate(['/404']);
       return;
     }
     if (tab === 'qr' && !this.qrClientOrderingEnabled()) {
-      this.router.navigate(['/404']);
+      void this.router.navigate(['/404']);
       return;
     }
     this.activeTab = tab;
     this.cdr.markForCheck();
-    this.router.navigate([], {
+    void this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { tab },
       queryParamsHandling: 'merge',
@@ -858,7 +858,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
         this.isRegeneratingPin.set(false);
         this.roulettePin.set(res.pin);
         this.cdr.markForCheck();
-        this.toastCtrl.create({
+        void this.toastCtrl.create({
           message: this.translocoService.translate('ROULETTE.REGENERATE_PIN_SUCCESS'),
           duration: 3500,
           color: 'success',
@@ -868,7 +868,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       error: () => {
         this.isRegeneratingPin.set(false);
         this.cdr.markForCheck();
-        this.toastCtrl.create({
+        void this.toastCtrl.create({
           message: this.translocoService.translate('ROULETTE.PIN_ERROR'),
           duration: 3500,
           color: 'danger',
@@ -1211,7 +1211,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
     const current = this.configuredDenominations();
     if (current.some(d => d.key === key || (d.value === val && d.type === this.newDenomType))) {
-      this.showToast(this.translocoService.translate('SETTINGS.DENOMINATION_EXISTS'), 'warning');
+      void this.showToast(this.translocoService.translate('SETTINGS.DENOMINATION_EXISTS'), 'warning');
       return;
     }
 
@@ -1240,7 +1240,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     this.configuredDenominations.set(getDefaultDenominationsForCurrency(code, symbol, position));
     this.appSettingsForm.markAsDirty();
     this.cdr.markForCheck();
-    this.showToast(this.translocoService.translate('SETTINGS.DENOMINATIONS_RESET_SUCCESS'), 'info');
+    void this.showToast(this.translocoService.translate('SETTINGS.DENOMINATIONS_RESET_SUCCESS'), 'info');
   }
 
   /**
@@ -1279,7 +1279,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     this.configuredDiscountTiers.set([...DEFAULT_DISCOUNT_TIERS]);
     this.appSettingsForm.markAsDirty();
     this.cdr.markForCheck();
-    this.showToast(this.translocoService.translate('SETTINGS.DISCOUNT_TIERS_RESET_SUCCESS'), 'info');
+    void this.showToast(this.translocoService.translate('SETTINGS.DISCOUNT_TIERS_RESET_SUCCESS'), 'info');
   }
 
   /**
@@ -1290,7 +1290,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     if (!name) return;
     const current = this.configuredStorageLocations();
     if (current.some(loc => loc.toLowerCase() === name.toLowerCase())) {
-      this.showToast(this.translocoService.translate('SETTINGS.STORAGE_LOCATION_EXISTS'), 'warning');
+      void this.showToast(this.translocoService.translate('SETTINGS.STORAGE_LOCATION_EXISTS'), 'warning');
       return;
     }
     this.configuredStorageLocations.update(locs => [...locs, name]);
@@ -1306,7 +1306,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   removeStorageLocation(locationName: string): void {
     const current = this.configuredStorageLocations();
     if (current.length <= 1) {
-      this.showToast(this.translocoService.translate('SETTINGS.STORAGE_LOCATION_MIN_ONE'), 'warning');
+      void this.showToast(this.translocoService.translate('SETTINGS.STORAGE_LOCATION_MIN_ONE'), 'warning');
       return;
     }
     this.configuredStorageLocations.update(locs => locs.filter(l => l !== locationName));
@@ -1320,7 +1320,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     this.configuredStorageLocations.set([...DEFAULT_STORAGE_LOCATIONS]);
     this.appSettingsForm.markAsDirty();
     this.cdr.markForCheck();
-    this.showToast(this.translocoService.translate('SETTINGS.STORAGE_LOCATIONS_RESET_SUCCESS'), 'info');
+    void this.showToast(this.translocoService.translate('SETTINGS.STORAGE_LOCATIONS_RESET_SUCCESS'), 'info');
   }
 
   // --- VAT & Margin Helpers ---
@@ -1396,7 +1396,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       this.colorForm.patchValue(generated);
       this.themeService.setCustomColors(generated);
       this.colorForm.markAsDirty();
-      this.showToast('Palette générée automatiquement avec succès !', 'success');
+      void this.showToast('Palette générée automatiquement avec succès !', 'success');
     }
   }
 
@@ -1405,7 +1405,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     const defaults = this.themeService.currentCustomColors;
     this.colorForm.patchValue(defaults);
     this.colorForm.markAsDirty();
-    this.showToast('Couleurs réinitialisées aux valeurs Figma par défaut.', 'info');
+    void this.showToast('Couleurs réinitialisées aux valeurs Figma par défaut.', 'info');
   }
 
   private darkenHex(hex: string, percent: number): string {
@@ -1486,14 +1486,14 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     if (this.etabForm.invalid) {
       this.activeTab = 'legal';
       this.etabForm.markAllAsTouched();
-      this.showToast('Veuillez corriger les erreurs dans les informations légales.', 'danger');
+      void this.showToast('Veuillez corriger les erreurs dans les informations légales.', 'danger');
       return;
     }
 
     if (this.appSettingsForm.invalid || this.colorForm.invalid) {
       this.appSettingsForm.markAllAsTouched();
       this.colorForm.markAllAsTouched();
-      this.showToast('Veuillez vérifier les paramètres d\'alertes, devise ou couleurs.', 'danger');
+      void this.showToast('Veuillez vérifier les paramètres d\'alertes, devise ou couleurs.', 'danger');
       return;
     }
 
@@ -1548,11 +1548,11 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
           this.appSettingsForm.markAsPristine();
           this.colorForm.markAsPristine();
 
-          this.showToast(this.translocoService.translate('SETTINGS.SAVE_SUCCESS'), 'success');
+          void this.showToast(this.translocoService.translate('SETTINGS.SAVE_SUCCESS'), 'success');
         },
         error: () => {
           this.isSaving = false;
-          this.showToast(this.translocoService.translate('SETTINGS.SAVE_ERROR'), 'danger');
+          void this.showToast(this.translocoService.translate('SETTINGS.SAVE_ERROR'), 'danger');
         },
       });
   }
@@ -1572,11 +1572,11 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
           this.initialModulesValue = { ...updated };
           this.modulesForm.patchValue(updated);
           this.modulesForm.markAsPristine();
-          this.showToast(this.translocoService.translate('SETTINGS.MODULES_SAVE_SUCCESS'), 'success');
+          void this.showToast(this.translocoService.translate('SETTINGS.MODULES_SAVE_SUCCESS'), 'success');
         },
         error: () => {
           this.isSaving = false;
-          this.showToast(this.translocoService.translate('SETTINGS.MODULES_SAVE_ERROR'), 'danger');
+          void this.showToast(this.translocoService.translate('SETTINGS.MODULES_SAVE_ERROR'), 'danger');
         },
       });
   }
@@ -1681,12 +1681,12 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
         next: (res) => {
           this.isTestingPrinter[role] = false;
           if (res.success) {
-            this.showToast(
+            void this.showToast(
               this.translocoService.translate('SETTINGS.PRINTER_TEST_SUCCESS', { role: res.role, ip: res.ip || '' }),
               'success'
             );
           } else {
-            this.showToast(
+            void this.showToast(
               this.translocoService.translate('SETTINGS.PRINTER_TEST_FAILED', { role: res.role, error: res.message }),
               'danger'
             );
@@ -1694,7 +1694,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
         },
         error: (err) => {
           this.isTestingPrinter[role] = false;
-          this.showToast(
+          void this.showToast(
             this.translocoService.translate('SETTINGS.PRINTER_TEST_FAILED', { role, error: err?.message || 'Error' }),
             'danger'
           );
@@ -1716,9 +1716,9 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
         next: (res) => {
           this.isTestingPrinter['drawer'] = false;
           if (res.success) {
-            this.showToast(this.translocoService.translate('SETTINGS.DRAWER_TEST_SUCCESS'), 'success');
+            void this.showToast(this.translocoService.translate('SETTINGS.DRAWER_TEST_SUCCESS'), 'success');
           } else {
-            this.showToast(
+            void this.showToast(
               this.translocoService.translate('SETTINGS.DRAWER_TEST_FAILED', { error: res.message }),
               'danger'
             );
@@ -1726,7 +1726,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
         },
         error: (err) => {
           this.isTestingPrinter['drawer'] = false;
-          this.showToast(
+          void this.showToast(
             this.translocoService.translate('SETTINGS.DRAWER_TEST_FAILED', { error: err?.message || 'Error' }),
             'danger'
           );
@@ -1773,7 +1773,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     const user = this.authService.getStoredUser();
     const userKey = user?.id ? String(user.id) : (user?.roles?.[0] || 'ADMIN');
     this.onboardingService.resetOnboarding(userKey);
-    this.router.navigate(['/onboarding']);
+    void this.router.navigate(['/onboarding']);
   }
 
   private async showToast(message: string, color: 'success' | 'danger' | 'warning' | 'info'): Promise<void> {

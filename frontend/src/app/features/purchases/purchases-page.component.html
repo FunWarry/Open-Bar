@@ -172,13 +172,17 @@
       @if (filteredOrders().length > 0) {
         <div class="orders-grid">
           @for (order of filteredOrders(); track order.id) {
-            <article
-              class="order-card"
-              [attr.data-testid]="'order-card-' + order.id"
-              (click)="openOrderDetailModal(order)"
-              (keydown)="onOrderCardKeyDown($event, order)"
-            >
-              <div class="order-card-header">
+            <app-card
+              [accentColor]="getOrderAccentColor(order.status)"
+              [clickable]="true"
+              [headerDivider]="'dashed'"
+              [footerDivider]="'dashed'"
+              [padding]="'md'"
+              [testId]="'order-card-' + order.id"
+              (cardClick)="openOrderDetailModal(order)"
+              (keydown)="onOrderCardKeyDown($event, order)">
+
+              <div card-header class="order-card-header">
                 <div class="order-id-group">
                   <span class="order-number">{{ order.numeroCommande }}</span>
                   <span class="order-supplier">{{ order.supplierNom }}</span>
@@ -188,7 +192,7 @@
                 </span>
               </div>
 
-              <div class="order-card-body">
+              <div card-content class="order-card-body">
                 <div class="info-metric">
                   <span class="metric-label">{{ 'PURCHASES.DATE_ORDERED' | transloco }}</span>
                   <span class="metric-value">{{ order.dateCommande ? (order.dateCommande | date:'shortDate') : '-' }}</span>
@@ -207,7 +211,7 @@
                 </div>
               </div>
 
-              <div class="order-card-footer">
+              <div card-footer class="order-card-footer">
                 @if (order.status === 'DRAFT') {
                   <button
                     type="button"
@@ -262,7 +266,7 @@
                   </button>
                 }
               </div>
-            </article>
+            </app-card>
           }
         </div>
       } @else {
@@ -293,8 +297,15 @@
       @if (filteredSuppliers().length > 0) {
         <div class="suppliers-grid">
           @for (sup of filteredSuppliers(); track sup.id) {
-            <article class="supplier-card" [attr.data-testid]="'supplier-card-' + sup.id">
-              <div class="supplier-card-header">
+            <app-card
+              [accentColor]="getSupplierAccentColor(sup.actif)"
+              [active]="sup.actif"
+              [headerDivider]="'dashed'"
+              [footerDivider]="'dashed'"
+              [padding]="'md'"
+              [testId]="'supplier-card-' + sup.id">
+
+              <div card-header class="supplier-card-header">
                 <div class="supplier-name-wrap">
                   <h3 class="supplier-name">{{ sup.nom }}</h3>
                   @if (sup.contactNom) {
@@ -306,7 +317,7 @@
                 </span>
               </div>
 
-              <div class="supplier-card-body">
+              <div card-content class="supplier-card-body">
                 @if (sup.email) {
                   <div class="sup-detail">
                     <span class="sup-label">{{ 'SUPPLIERS.EMAIL' | transloco }}:</span>
@@ -333,7 +344,7 @@
                 }
               </div>
 
-              <div class="supplier-card-footer">
+              <div card-footer class="supplier-card-footer">
                 <button
                   type="button"
                   class="card-btn btn-edit"
@@ -353,7 +364,7 @@
                   <span>{{ 'COMMON.DELETE' | transloco }}</span>
                 </button>
               </div>
-            </article>
+            </app-card>
           }
         </div>
       } @else {

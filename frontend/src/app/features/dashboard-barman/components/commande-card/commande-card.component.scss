@@ -1,55 +1,25 @@
-.commande-card {
-  display: flex;
-  background: var(--background-surface-1);
-  border-radius: var(--radius-md, 10px);
-  border: 1px solid var(--border-medium);
-  overflow: hidden;
+.commande-card-host {
+  display: block;
   margin: 6px 0;
-  cursor: pointer;
-  box-shadow: var(--shadow-card);
-  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  position: relative;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-card-hover);
-    border-color: var(--primary);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--primary);
-  }
-
-  /* Statut critique : alerte visuelle pulsante */
-  &.card-critical {
-    border-color: var(--semantic-danger);
-    box-shadow: var(--shadow-glow-danger, 0 0 10px rgba(235, 68, 90, 0.35));
-    animation: pulse-critical-card 1.5s infinite;
-  }
+  width: 100%;
 
   &.prioritaire,
-  &.card-urgent {
-    border-color: rgba(229, 96, 79, 0.5);
+  &.card-urgent,
+  &.card-critical {
+    --card-accent-color: var(--semantic-danger);
   }
 
   &.card-warning {
-    border-color: rgba(244, 165, 42, 0.4);
+    --card-accent-color: var(--semantic-warning);
   }
 }
 
-.lisere {
-  width: 5px;
-  border-radius: 999px;
-  flex-shrink: 0;
-  align-self: stretch;
-}
-
 .card-content {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 10px 12px;
+  padding: 0;
+  width: 100%;
   min-width: 0;
 }
 
@@ -209,11 +179,6 @@
   }
 }
 
-@keyframes pulse-critical-card {
-  0% { box-shadow: 0 0 4px rgba(235, 68, 90, 0.2); }
-  50% { box-shadow: 0 0 14px rgba(235, 68, 90, 0.55); }
-  100% { box-shadow: 0 0 4px rgba(235, 68, 90, 0.2); }
-}
 
 @keyframes pulse-critical-timer {
   0% { transform: scale(1); }

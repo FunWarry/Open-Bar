@@ -32,6 +32,7 @@ import { SearchBarComponent } from '../../../core/components/ui/search-bar/searc
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { StatCardComponent } from '../../../core/components/ui/stat-card/stat-card.component';
+import { CardComponent, CardAccentColor } from '../../../core/components/ui/card/card.component';
 /**
  * Filter options for invoice list queries.
  */
@@ -99,14 +100,29 @@ export const getOperationalMonthString = getMonthString;
     TranslocoModule,
     IonContent, SearchBarComponent, IonButton,
     IonRefresher, IonRefresherContent, IonIcon, IonSpinner, IonProgressBar,
-    SearchableSelectComponent, ActionButtonComponent,
-    StatCardComponent
+    SearchableSelectComponent,
+    ActionButtonComponent,
+    StatCardComponent,
+    CardComponent,
   ],
   templateUrl: './facture-list.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./facture-list.component.scss'],
 })
 export class FactureListComponent implements OnInit, OnDestroy {
+  /**
+   * Resolves semantic accent color for invoice settlement status.
+   */
+  getFactureAccentColor(facture: Facture): CardAccentColor {
+    return facture.reglee ? 'success' : 'warning';
+  }
+
+  /**
+   * Navigates to invoice detail page.
+   */
+  navigateToDetail(factureId: number): void {
+    void this.router.navigate(['/factures', factureId]);
+  }
   private readonly factureService = inject(FactureService);
   private readonly toastCtrl = inject(ToastController);
   private readonly modalCtrl = inject(ModalController);
@@ -177,7 +193,7 @@ export class FactureListComponent implements OnInit, OnDestroy {
    * Navigates to the daily recap and cash register closure (Z-Report) page.
    */
   goToRecap(): void {
-    this.router.navigate(['/factures/recap']);
+    void this.router.navigate(['/factures/recap']);
   }
 
   /**

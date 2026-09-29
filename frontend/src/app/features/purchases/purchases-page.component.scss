@@ -289,29 +289,12 @@
   }
 }
 
-.order-card {
-  background: var(--background-surface-1);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-md, 12px);
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.18s ease;
-
-  &:hover {
-    border-color: var(--primary);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    transform: translateY(-2px);
-  }
-}
-
 .order-card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
+  width: 100%;
 }
 
 .order-id-group {
@@ -413,15 +396,16 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  width: 100%;
 
   .card-btn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    height: 34px;
-    padding: 0 12px;
+    height: 32px;
+    padding: 0 10px;
     border-radius: var(--radius-md, 8px);
-    font-size: 0.8rem;
+    font-size: 0.775rem;
     font-weight: 600;
     cursor: pointer;
     border: 1px solid transparent;
@@ -493,21 +477,12 @@
   }
 }
 
-.supplier-card {
-  background: var(--background-surface-1);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-md, 12px);
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
 .supplier-card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
+  width: 100%;
 }
 
 .supplier-name-wrap {
@@ -571,6 +546,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
 
   .card-btn {
     display: inline-flex;

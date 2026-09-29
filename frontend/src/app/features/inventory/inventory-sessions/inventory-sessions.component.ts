@@ -59,6 +59,7 @@ import { SearchBarComponent } from '../../../core/components/ui/search-bar/searc
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { EmptyStateComponent } from '../../../core/components/ui/empty-state/empty-state.component';
 import { StatCardComponent } from '../../../core/components/ui/stat-card/stat-card.component';
+import { CardComponent, CardAccentColor } from '../../../core/components/ui/card/card.component';
 import { ModalComponent } from '../../../core/components/ui/modal/modal.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
@@ -100,12 +101,29 @@ export type AuditStatusFilter = 'ALL' | 'DRAFT' | 'IN_PROGRESS' | 'FINALIZED' | 
     ActionButtonComponent,
     EmptyStateComponent,
     StatCardComponent,
+    CardComponent,
     ModalComponent,
     SearchableSelectComponent,
-    InputFieldComponent
+    InputFieldComponent,
   ],
 })
 export class InventorySessionsComponent implements OnInit, OnDestroy {
+  /**
+   * Resolves the semantic accent color for the session card border.
+   */
+  getSessionAccentColor(status: string): CardAccentColor {
+    switch (status) {
+      case 'FINALIZED':
+        return 'success';
+      case 'IN_PROGRESS':
+        return 'primary';
+      case 'CANCELLED':
+        return 'danger';
+      case 'DRAFT':
+      default:
+        return 'warning';
+    }
+  }
   private readonly auditService = inject(InventoryAuditService);
   private readonly appSettingsService = inject(AppSettingsService);
   private readonly router = inject(Router);
@@ -326,7 +344,7 @@ export class InventorySessionsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (created: InventoryAuditSession) => {
           this.closeCreateModal();
-          this.router.navigate(['/inventory', created.id]);
+          void this.router.navigate(['/inventory', created.id]);
         },
         error: async (err: { error?: { message?: string } }) => {
           const toast = await this.toastCtrl.create({
@@ -344,7 +362,7 @@ export class InventorySessionsComponent implements OnInit, OnDestroy {
    * Navigates to the counting sheet or report of a session.
    */
   openSession(session: InventoryAuditSession): void {
-    this.router.navigate(['/inventory', session.id]);
+    void this.router.navigate(['/inventory', session.id]);
   }
 
   /**

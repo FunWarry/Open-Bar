@@ -431,7 +431,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger'
           });
-          toast.present();
+          await toast.present();
         }
       });
   }
@@ -512,7 +512,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
     const msg = state
       ? this.transloco.translate('BARMAN_DASHBOARD.SOUND_ALERTS_ENABLED')
       : this.transloco.translate('BARMAN_DASHBOARD.SOUND_ALERTS_DISABLED');
-    this.showToast(msg, 'primary');
+    void this.showToast(msg, 'primary');
   }
 
   /**
@@ -599,10 +599,10 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
           if (event.statut === 'PRET') {
             this.soundService.playOrderReadySound();
           }
-          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATED_SUCCESS'), 'success');
+          void this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATED_SUCCESS'), 'success');
         },
         error: () => {
-          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATE_ERROR'), 'danger');
+          void this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATE_ERROR'), 'danger');
         }
       });
   }
@@ -681,13 +681,13 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.chargerCommandes();
-          this.showToast(
+          void this.showToast(
             this.transloco.translate('BARMAN_DASHBOARD.BATCH_STARTED_SUCCESS', { name: batch.cocktailNom }),
             'primary'
           );
         },
         error: () => {
-          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.BATCH_ACTION_ERROR'), 'danger');
+          void this.showToast(this.transloco.translate('BARMAN_DASHBOARD.BATCH_ACTION_ERROR'), 'danger');
         }
       });
   }
@@ -709,13 +709,13 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
         next: () => {
           this.chargerCommandes();
           this.soundService.playOrderReadySound();
-          this.showToast(
+          void this.showToast(
             this.transloco.translate('BARMAN_DASHBOARD.BATCH_COMPLETED_SUCCESS', { name: batch.cocktailNom }),
             'success'
           );
         },
         error: () => {
-          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.BATCH_ACTION_ERROR'), 'danger');
+          void this.showToast(this.transloco.translate('BARMAN_DASHBOARD.BATCH_ACTION_ERROR'), 'danger');
         }
       });
   }
@@ -752,6 +752,6 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       duration: 2000,
       color
     });
-    toast.present();
+    await toast.present();
   }
 }

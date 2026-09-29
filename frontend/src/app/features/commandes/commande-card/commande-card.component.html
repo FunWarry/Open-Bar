@@ -1,60 +1,63 @@
-<div
-  class="kanban-card commande-card"
-  [class.prioritaire]="isPriority()"
-  [class.priority-card]="isPriority()"
-  [class.card-critical]="isCritical"
-  [class.card-urgent]="isUrgent && !isCritical"
-  [class.card-warning]="isWarning && !isUrgent && !isCritical"
-  [class.card-ready-highlight]="commande.statut === 'PRET'"
-  [class.card-served-dim]="commande.statut === 'LIVREE' || commande.statut === 'REGLEE'"
-  (click)="onView()"
-  (keydown.enter)="onView()"
+<app-card
+  [accentColor]="lisereColor"
+  [clickable]="true"
+  [headerDivider]="'dashed'"
+  [footerDivider]="'dashed'"
+  [padding]="'sm'"
+  [testId]="'card-commande'"
+  (cardClick)="onView()"
+  (keyup.enter)="onView()"
   [attr.title]="'COMMANDES.ACTIONS.VIEW_TOOLTIP' | transloco"
-  data-testid="card-commande"
->
-  <!-- Liseré de statut vertical (style barman) -->
-  <div class="lisere" [style.background-color]="lisereColor"></div>
+  class="kanban-card-host commande-card-host"
+  [ngClass]="{
+    'prioritaire': isPriority(),
+    'priority-card': isPriority(),
+    'card-critical': isCritical,
+    'card-urgent': isUrgent && !isCritical,
+    'card-warning': isWarning && !isUrgent && !isCritical,
+    'card-ready-highlight': commande.statut === 'PRET',
+    'card-served-dim': commande.statut === 'LIVREE' || commande.statut === 'REGLEE'
+  }">
 
-  <div class="card-content">
-    <!-- En-tête : table + ID + priorité + serveur + timer + badge statut -->
-    <div class="card-header card-top">
-      <div class="card-header-text">
-        <div class="table-row table-title">
-          <h3 class="table-name" [attr.title]="tableLabel">
-            {{ tableLabel }}
-          </h3>
-          <span class="order-id">#{{ commande.id }}</span>
-          @if (isPriority()) {
-            <span class="priority-chip" data-testid="priority-chip">⚡ URGENT</span>
-          }
-        </div>
-
-        <div class="meta-row card-meta">
-          @if (commande.serveurUsername) {
-            <span class="server-name server-meta">👤 {{ commande.serveurUsername }}</span>
-          }
-          <span
-            class="card-timer time-meta"
-            [class.timer--critical]="isCritical"
-            [class.timer--urgent]="isUrgent && !isCritical"
-            [class.timer--warning]="isWarning && !isUrgent && !isCritical"
-            data-testid="card-timer">
-            <ion-icon name="time-outline"></ion-icon>
-            {{ commande.dateCommande | date:'HH:mm' }}@if (commande.statut !== 'LIVREE' && commande.statut !== 'REGLEE' && commande.statut !== 'ANNULEE' && formattedDelay) { ({{ formattedDelay }})}
-          </span>
-        </div>
+  <!-- En-tête : table + ID + priorité + serveur + timer + badge statut -->
+  <div card-header class="card-header card-top">
+    <div class="card-header-text">
+      <div class="table-row table-title">
+        <h3 class="table-name" [attr.title]="tableLabel">
+          {{ tableLabel }}
+        </h3>
+        <span class="order-id">#{{ commande.id }}</span>
+        @if (isPriority()) {
+          <span class="priority-chip" data-testid="priority-chip">⚡ URGENT</span>
+        }
       </div>
 
-      <div class="card-header-actions">
-        <app-status-badge
-          [status]="commande.statut"
-          testId="card-status-badge">
-        </app-status-badge>
+      <div class="meta-row card-meta">
+        @if (commande.serveurUsername) {
+          <span class="server-name server-meta">👤 {{ commande.serveurUsername }}</span>
+        }
+        <span
+          class="card-timer time-meta"
+          [class.timer--critical]="isCritical"
+          [class.timer--urgent]="isUrgent && !isCritical"
+          [class.timer--warning]="isWarning && !isUrgent && !isCritical"
+          data-testid="card-timer">
+          <ion-icon name="time-outline"></ion-icon>
+          {{ commande.dateCommande | date:'HH:mm' }}@if (commande.statut !== 'LIVREE' && commande.statut !== 'REGLEE' && commande.statut !== 'ANNULEE' && formattedDelay) { ({{ formattedDelay }})}
+        </span>
       </div>
     </div>
 
-    <div class="divider"></div>
+    <div class="card-header-actions">
+      <app-status-badge
+        [status]="commande.statut"
+        testId="card-status-badge">
+      </app-status-badge>
+    </div>
+  </div>
 
+  <!-- Contenu : items et notes -->
+  <div card-content class="card-content-body">
     <!-- Items de la commande -->
     <div class="card-items items-list">
       @for (item of groupedItems; track item.cocktailId + '_' + (item.varianteId || 0) + '_' + (item.notes || '')) {
@@ -83,7 +86,10 @@
         <span>📝 {{ commande.notes }}</span>
       </div>
     }
+  </div>
 
+  <!-- Pied de carte : total + boutons d'action -->
+  <div card-footer class="card-footer-layout">
     <!-- Total de la commande -->
     <div class="card-total">
       <span class="total-label">Total :</span>
@@ -158,4 +164,4 @@
       </div>
     }
   </div>
-</div>
+</app-card>

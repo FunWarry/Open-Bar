@@ -5,7 +5,7 @@ import { Observable, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { selectIsAdmin } from '../../../core/store/auth.selectors';
 import {
-  IonContent, IonCard, IonCardContent,
+  IonContent,
   IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
   IonRefresher, IonRefresherContent,
   IonSpinner, ToastController, ModalController, IonThumbnail,
@@ -27,6 +27,7 @@ import { AppSettingsService } from '../../../core/services/app-settings.service'
 import { FeatureFlagService } from '../../../core/services/feature-flag.service';
 import { EstablishmentModule } from '../../../core/models/establishment-module.model';
 import { Cocktail, CocktailFacets, FlavorProfile } from '../../../core/models/cocktail.model';
+import { CardComponent } from '../../../core/components/ui/card/card.component';
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { CocktailMatcherBarComponent, CocktailMatcherFilters } from '../../../core/components/ui/cocktail-matcher-bar/cocktail-matcher-bar.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
@@ -50,10 +51,11 @@ export type { AllergenOption } from '../../../core/models/ingredient.model';
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule, FormsModule, AsyncPipe, CurrencyPipe, TranslocoModule,
-    IonContent, IonCard, IonCardContent,
+    IonContent,
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent,
     IonSpinner, IonThumbnail, IonGrid, IonRow, IonCol,
+    CardComponent,
     CocktailMatcherBarComponent,
     SearchBarComponent,
     ActionButtonComponent
@@ -245,7 +247,7 @@ export class CocktailListComponent implements OnInit, OnDestroy {
           this.cocktails = cocktails;
         },
         error: () => {
-          this.showToast('COMMON.ERROR', 'danger');
+          void this.showToast('COMMON.ERROR', 'danger');
         },
       });
 
@@ -442,12 +444,12 @@ export class CocktailListComponent implements OnInit, OnDestroy {
           this.cocktails = this.cocktails.filter(c => c.id !== cocktail.id);
           await this.showToast('COMMON.SUCCESS', 'success', 2000);
         },
-        error: () => this.showToast('COMMON.ERROR', 'danger'),
+        error: () => { void this.showToast('COMMON.ERROR', 'danger'); },
       });
   }
 
-  onAdd(): void { this.router.navigate(['/cocktails/new']); }
-  onEdit(c: Cocktail): void { this.router.navigate(['/cocktails', c.id, 'edit']); }
+  onAdd(): void { void this.router.navigate(['/cocktails/new']); }
+  onEdit(c: Cocktail): void { void this.router.navigate(['/cocktails', c.id, 'edit']); }
 
   /**
    * Handles cocktail selection when embedded in order-taking mode.

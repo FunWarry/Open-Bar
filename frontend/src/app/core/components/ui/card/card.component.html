@@ -3,6 +3,9 @@
   [class.clickable]="clickable && active"
   [class.inactive]="!active"
   [class.has-accent]="!!resolvedAccentColor"
+  [class.accent-left]="accentPosition === 'left' && !!resolvedAccentColor"
+  [class.accent-full]="accentPosition === 'full' && !!resolvedAccentColor"
+  [class.accent-top]="accentPosition === 'top' && !!resolvedAccentColor"
   [class.padding-none]="padding === 'none'"
   [class.padding-sm]="padding === 'sm'"
   [class.padding-md]="padding === 'md'"
@@ -22,9 +25,9 @@
   (click)="onCardClick($event)"
   (keydown)="onKeyDown($event)">
 
-  <!-- Left vertical rounded accent border (Liseré) -->
+  <!-- Accessible indicator for screen readers & testing -->
   @if (resolvedAccentColor) {
-    <div class="card-accent-strip" aria-hidden="true" data-testid="card-accent-strip"></div>
+    <span class="card-accent-marker" aria-hidden="true" data-testid="card-accent-strip"></span>
   }
 
   <div class="card-inner">

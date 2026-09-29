@@ -1,22 +1,30 @@
-<ion-card class="mini-card" button [attr.data-testid]="'manager-order-card-' + order.id">
-  <ion-card-content class="mini-card__content">
-    <!-- Header: Table, Wait Time & Order ID -->
-    <div class="mini-card__header">
-      <div class="table-badge">
-        <strong class="table-label">{{ order.tableNom || ('Table ' + order.tableNumero) }}</strong>
-      </div>
-      <div class="header-badges">
-        @if (order.dateCommande) {
-          <span class="wait-time-badge" [ngClass]="waitTimeSeverity" [title]="'Temps d\'attente : ' + waitTimeLabel">
-            <ion-icon name="timer-outline"></ion-icon>
-            <span>{{ waitTimeLabel }}</span>
-          </span>
-        }
-        <span class="order-id">#{{ order.id }}</span>
-      </div>
-    </div>
+<app-card
+  [accentColor]="accentColor"
+  [clickable]="true"
+  [headerDivider]="'dashed'"
+  [footerDivider]="'dashed'"
+  [padding]="'sm'"
+  [testId]="'manager-order-card-' + order.id"
+  class="mini-card-host">
 
-    <!-- Items Preview List -->
+  <!-- Header: Table, Wait Time & Order ID -->
+  <div card-header class="mini-card__header">
+    <div class="table-badge">
+      <strong class="table-label">{{ order.tableNom || ('Table ' + order.tableNumero) }}</strong>
+    </div>
+    <div class="header-badges">
+      @if (order.dateCommande) {
+        <span class="wait-time-badge" [ngClass]="waitTimeSeverity" [title]="'Temps d\'attente : ' + waitTimeLabel">
+          <ion-icon name="timer-outline"></ion-icon>
+          <span>{{ waitTimeLabel }}</span>
+        </span>
+      }
+      <span class="order-id">#{{ order.id }}</span>
+    </div>
+  </div>
+
+  <!-- Content: Items Preview & Notes -->
+  <div card-content class="mini-card__content">
     @if (order.items && order.items.length > 0) {
       <div class="mini-card__items">
         @for (item of order.items; track item) {
@@ -35,26 +43,26 @@
         <span class="notes-text">{{ order.notes }}</span>
       </div>
     }
+  </div>
 
-    <!-- Footer: Server, Time & Total -->
-    <div class="mini-card__footer">
-      <div class="footer-left">
-        @if (order.serveurUsername) {
-          <span class="server-badge">
-            <ion-icon name="person-outline"></ion-icon>
-            {{ order.serveurUsername }}
-          </span>
-        }
-        @if (formattedTime) {
-          <span class="time-badge">
-            <ion-icon name="time-outline"></ion-icon>
-            {{ formattedTime }}
-          </span>
-        }
-      </div>
-      @if (order.total) {
-        <span class="total-badge">{{ formatCurrency(order.total) }}</span>
+  <!-- Footer: Server, Time & Total -->
+  <div card-footer class="mini-card__footer">
+    <div class="footer-left">
+      @if (order.serveurUsername) {
+        <span class="server-badge">
+          <ion-icon name="person-outline"></ion-icon>
+          {{ order.serveurUsername }}
+        </span>
+      }
+      @if (formattedTime) {
+        <span class="time-badge">
+          <ion-icon name="time-outline"></ion-icon>
+          {{ formattedTime }}
+        </span>
       }
     </div>
-  </ion-card-content>
-</ion-card>
+    @if (order.total) {
+      <span class="total-badge">{{ formatCurrency(order.total) }}</span>
+    }
+  </div>
+</app-card>

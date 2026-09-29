@@ -22,6 +22,7 @@ import { ActionButtonComponent } from '../../../../core/components/ui/action-but
 import { CommandeDetailModalComponent } from '../../../commandes/commande-detail-modal/commande-detail-modal.component';
 import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../core/utils/modal-animation.utils';
 import { CommandeService } from '../../../../core/services/commande.service';
+import { CardComponent } from '../../../../core/components/ui/card/card.component';
 
 /**
  * Kanban order ticket card component for the bar counter preparation dashboard.
@@ -36,7 +37,8 @@ import { CommandeService } from '../../../../core/services/commande.service';
     IonIcon,
     TranslocoPipe,
     StatusBadgeComponent,
-    ActionButtonComponent
+    ActionButtonComponent,
+    CardComponent
   ],
   templateUrl: './commande-card.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -162,7 +164,7 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
     });
 
     document.body.classList.add('modal-open');
-    modal.onDidDismiss().then(result => {
+    void modal.onDidDismiss().then(result => {
       document.body.classList.remove('modal-open');
       if (result.data) {
         const targetStatut = result.data.targetStatut || (result.data.role === 'statusUpdated' ? result.data.commande?.statut : undefined);

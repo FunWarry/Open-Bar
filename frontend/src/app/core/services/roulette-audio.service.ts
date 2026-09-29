@@ -40,9 +40,7 @@ export class RouletteAudioService {
     const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     if (!AudioContextClass) return null;
 
-    if (!this.audioCtx) {
-      this.audioCtx = new AudioContextClass();
-    }
+    this.audioCtx ??= new AudioContextClass();
     if (this.audioCtx.state === 'suspended') {
       this.audioCtx.resume().catch(() => {});
     }

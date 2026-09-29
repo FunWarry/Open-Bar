@@ -590,6 +590,23 @@ describe('IngredientListComponent', () => {
       const hiddenRow = fixture.nativeElement.querySelector('[data-testid="card-allergens-10"]');
       expect(hiddenRow).toBeNull();
     });
+
+    it('returns correct accentColor based on stock status', () => {
+      expect(component.getIngredientAccentColor(makeI(10, 'Out', 0, 5))).toBe('danger');
+      expect(component.getIngredientAccentColor(makeI(11, 'Negative', -2, 5))).toBe('danger');
+      expect(component.getIngredientAccentColor(makeI(12, 'Low', 3, 5))).toBe('warning');
+      expect(component.getIngredientAccentColor(makeI(13, 'OK', 20, 5))).toBe('none');
+    });
+
+    it('goToPurchases and goToInventory navigate to correct routes', () => {
+      const routerSpy = TestBed.inject(Router);
+      spyOn(routerSpy, 'navigate');
+      component.goToPurchases();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/purchases']);
+
+      component.goToInventory();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/inventory']);
+    });
   });
 });
 

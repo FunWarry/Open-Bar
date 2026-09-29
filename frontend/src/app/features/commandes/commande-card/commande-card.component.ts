@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, Optional, ChangeDetectionStrategy } from '@angular/core';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import {
   IonIcon, IonButton, ModalController,
 } from '@ionic/angular';
@@ -14,6 +14,7 @@ import { Commande, CommandeStatut } from '../../../core/models/commande.model';
 import { CancelOrderModalComponent } from '../../../core/components/ui/cancel-order-modal/cancel-order-modal.component';
 import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
 import { StatusBadgeComponent } from '../../../core/components/ui/status-badge/status-badge.component';
+import { CardComponent } from '../../../core/components/ui/card/card.component';
 
 /**
  * Grouped order item line for card display.
@@ -42,9 +43,11 @@ export interface GroupedCommandeItem {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    CommonModule,
     IonIcon, IonButton,
     CurrencyPipe, DatePipe, TranslocoPipe,
     StatusBadgeComponent,
+    CardComponent,
   ],
 })
 export class CommandeCardComponent {

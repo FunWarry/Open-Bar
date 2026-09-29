@@ -792,7 +792,7 @@ ion-header {
 }
 
 .batch-col {
-  background: var(--background-surface-1);
+  background: var(--background-surface-2, var(--background-bg-1));
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg, 14px);
   padding: 16px;
@@ -884,9 +884,9 @@ ion-header {
 }
 
 .batch-card {
-  background: var(--background-surface-2);
+  background: var(--card-bg, var(--background-surface-1));
   border: 1px solid var(--border-medium);
-  border-radius: var(--radius-md, 12px);
+  border-radius: var(--radius-card, 14px);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -895,21 +895,22 @@ ion-header {
               box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
               border-color 0.2s ease;
   position: relative;
+  box-shadow: var(--shadow-sm);
 
   &:hover {
     transform: translateY(-2px);
     border-color: color-mix(in srgb, var(--primary) 40%, var(--border-medium));
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--shadow-md, 0 4px 14px rgba(0, 0, 0, 0.12));
   }
 
   &--urgent {
     border-left: 4px solid var(--semantic-danger) !important;
-    background: color-mix(in srgb, var(--semantic-danger) 4%, var(--background-surface-2));
+    background: var(--card-bg, var(--background-surface-1));
   }
 
   &--active {
     border-left: 4px solid var(--semantic-info) !important;
-    background: color-mix(in srgb, var(--semantic-info) 4%, var(--background-surface-2));
+    background: var(--card-bg, var(--background-surface-1));
   }
 
   .batch-card-header {

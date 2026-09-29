@@ -442,4 +442,19 @@ describe('PurchasesPageComponent', () => {
     await component.openOrderDetailModal(mockOrders[0]);
     expect(component.downloadPdf).toHaveBeenCalledWith(mockOrders[0]);
   });
+
+  describe('Accent Colors', () => {
+    it('should map getOrderAccentColor correctly', () => {
+      expect(component.getOrderAccentColor('RECEIVED')).toBe('success');
+      expect(component.getOrderAccentColor('ORDERED')).toBe('primary');
+      expect(component.getOrderAccentColor('PARTIALLY_RECEIVED')).toBe('warning');
+      expect(component.getOrderAccentColor('CANCELLED')).toBe('danger');
+      expect(component.getOrderAccentColor('DRAFT')).toBe('none');
+    });
+
+    it('should map getSupplierAccentColor correctly', () => {
+      expect(component.getSupplierAccentColor(true)).toBe('primary');
+      expect(component.getSupplierAccentColor(false)).toBe('none');
+    });
+  });
 });

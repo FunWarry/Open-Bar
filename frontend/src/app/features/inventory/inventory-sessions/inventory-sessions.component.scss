@@ -150,45 +150,19 @@
   gap: 20px;
 }
 
-.session-card {
-  background: var(--background-surface-1);
-  border: 1px solid var(--border-medium);
-  border-radius: 14px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  position: relative;
-  overflow: hidden;
-
-  &.finalized {
-    border-left: 4px solid var(--semantic-success);
-  }
-
-  &.in-progress {
-    border-left: 4px solid var(--primary);
-  }
-
-  &.draft {
-    border-left: 4px solid var(--border-medium);
-  }
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
-    border-top-color: var(--border-light);
-    border-right-color: var(--border-light);
-    border-bottom-color: var(--border-light);
-  }
-}
-
 .card-top-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
+  width: 100%;
+}
+
+.card-body-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
 }
 
 .ref-and-title {
@@ -356,8 +330,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 14px;
+  width: 100%;
 }
 
 .export-btns {

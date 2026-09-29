@@ -18,7 +18,7 @@
     <app-stat-card
       layout="horizontal"
       color="primary"
-      [value]="userCount$ | async"
+      [value]="(userCount$ | async) ?? 0"
       [title]="t('ADMIN_DASHBOARD.STATS.USERS')"
       [subtext]="t('ADMIN_DASHBOARD.STATS.USERS_DESC')"
       testId="kpi-users">
@@ -32,7 +32,7 @@
     <app-stat-card
       layout="horizontal"
       color="purple"
-      [value]="cocktailCount$ | async"
+      [value]="(cocktailCount$ | async) ?? 0"
       [title]="t('ADMIN_DASHBOARD.STATS.COCKTAILS')"
       [subtext]="t('ADMIN_DASHBOARD.STATS.COCKTAILS_DESC')"
       testId="kpi-cocktails">
@@ -46,7 +46,7 @@
     <app-stat-card
       layout="horizontal"
       color="success"
-      [value]="ingredientCount$ | async"
+      [value]="(ingredientCount$ | async) ?? 0"
       [title]="t('ADMIN_DASHBOARD.STATS.INGREDIENTS')"
       [subtext]="t('ADMIN_DASHBOARD.STATS.INGREDIENTS_DESC')"
       testId="kpi-ingredients">
@@ -60,7 +60,7 @@
     <app-stat-card
       layout="horizontal"
       color="warning"
-      [value]="etablissementName$ | async"
+      [value]="(etablissementName$ | async) || ''"
       [title]="t('ADMIN_DASHBOARD.STATS.ESTABLISHMENT')"
       [subtext]="t('ADMIN_DASHBOARD.STATS.ESTABLISHMENT_DESC')"
       testId="kpi-establishment">
