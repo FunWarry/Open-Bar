@@ -70,6 +70,12 @@ public enum EstablishmentModule {
     /**
      * Mystery Drink roulette wheel gamification for patrons and bartender overstock depletion.
      */
-    MYSTERY_ROULETTE
+    MYSTERY_ROULETTE,
+
+    /**
+     * Physical payment terminal (TPE) LAN integration via Concert / CB IP protocol,
+     * automated card payment amount dispatch, and card authorization auditing.
+     */
+    PAYMENT_TERMINAL
 }
 

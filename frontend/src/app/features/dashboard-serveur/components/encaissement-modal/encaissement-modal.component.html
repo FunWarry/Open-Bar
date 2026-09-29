@@ -368,6 +368,47 @@
                 testId="cb-liberer-table">
               </app-checkbox-field>
             </div>
+
+            @if (modePaiement === 'CARTE' && paymentTerminalEnabled()) {
+              <div class="tpe-action-box" data-testid="tpe-action-box-single">
+                <div class="tpe-station-selector">
+                  <span class="tpe-station-label">{{ 'TPE.TARGET_TERMINAL' | transloco }}:</span>
+                  <div class="tpe-role-pills">
+                    <button
+                      type="button"
+                      class="tpe-pill"
+                      [class.active]="preferredTpeRole() === 'BAR'"
+                      (click)="setPreferredTpeRole('BAR')"
+                      data-testid="tpe-role-bar">
+                      {{ 'TPE.ROLE_BAR' | transloco }}
+                    </button>
+                    <button
+                      type="button"
+                      class="tpe-pill"
+                      [class.active]="preferredTpeRole() === 'FLOOR'"
+                      (click)="setPreferredTpeRole('FLOOR')"
+                      data-testid="tpe-role-floor">
+                      {{ 'TPE.ROLE_FLOOR' | transloco }}
+                    </button>
+                  </div>
+                </div>
+
+                <ion-button
+                  expand="block"
+                  color="primary"
+                  size="large"
+                  (click)="envoyerAuTpe(false)"
+                  (keydown.enter)="envoyerAuTpe(false)"
+                  (keyup.enter)="envoyerAuTpe(false)"
+                  [disabled]="isSubmitting || isTpeProcessing()"
+                  data-testid="btn-tpe-send-single"
+                  class="btn-tpe-trigger">
+                  <ion-icon name="card-outline" slot="start"></ion-icon>
+                  <span>{{ 'TPE.SEND_TO_TPE' | transloco }} ({{ totalNetAPayer | appCurrency }})</span>
+                </ion-button>
+              </div>
+            }
+
             <!-- Main Action CTA -->
             <div class="actions-group">
               <ion-button expand="block" color="success" size="large" (click)="validerEncaissement()" (keydown.enter)="validerEncaissement()" (keyup.enter)="validerEncaissement()" [disabled]="isSubmitting || !isMontantRecuSuffisant" data-testid="btn-submit-encaissement" class="btn-encaisser">
@@ -648,6 +689,46 @@
                     <strong class="breakdown-value total-value" data-testid="part-total-net-display">{{ partTotalNetAPayer | appCurrency }}</strong>
                   </div>
                 </div>
+
+                @if (partPaymentMode === 'CARTE' && paymentTerminalEnabled()) {
+                  <div class="tpe-action-box" data-testid="tpe-action-box-part">
+                    <div class="tpe-station-selector">
+                      <span class="tpe-station-label">{{ 'TPE.TARGET_TERMINAL' | transloco }}:</span>
+                      <div class="tpe-role-pills">
+                        <button
+                          type="button"
+                          class="tpe-pill"
+                          [class.active]="preferredTpeRole() === 'BAR'"
+                          (click)="setPreferredTpeRole('BAR')"
+                          data-testid="tpe-part-role-bar">
+                          {{ 'TPE.ROLE_BAR' | transloco }}
+                        </button>
+                        <button
+                          type="button"
+                          class="tpe-pill"
+                          [class.active]="preferredTpeRole() === 'FLOOR'"
+                          (click)="setPreferredTpeRole('FLOOR')"
+                          data-testid="tpe-part-role-floor">
+                          {{ 'TPE.ROLE_FLOOR' | transloco }}
+                        </button>
+                      </div>
+                    </div>
+
+                    <ion-button
+                      expand="block"
+                      color="primary"
+                      size="large"
+                      (click)="envoyerAuTpe(true)"
+                      (keydown.enter)="envoyerAuTpe(true)"
+                      (keyup.enter)="envoyerAuTpe(true)"
+                      [disabled]="isTpeProcessing()"
+                      data-testid="btn-tpe-send-part"
+                      class="btn-tpe-trigger">
+                      <ion-icon name="card-outline" slot="start"></ion-icon>
+                      <span>{{ 'TPE.SEND_TO_TPE' | transloco }} ({{ partTotalNetAPayer | appCurrency }})</span>
+                    </ion-button>
+                  </div>
+                }
 
                 <!-- Action Button: Valider le règlement de la part -->
                 <div class="actions-group">
@@ -1161,6 +1242,51 @@
           </div>
         }
       </div>
+    </div>
+  }
+
+  @if (isTpeProcessing()) {
+    <div class="tpe-overlay" data-testid="tpe-overlay-processing">
+      <div class="tpe-modal-card">
+        <div class="tpe-modal-icon-pulse">
+          <ion-icon name="card-outline"></ion-icon>
+        </div>
+        <h3 class="tpe-modal-title">
+          {{ 'TPE.WAITING_FOR_CARD' | transloco }}
+        </h3>
+        <p class="tpe-modal-desc">
+          {{ 'TPE.WAITING_CARD_INSTRUCTION' | transloco: { role: preferredTpeRole() === 'BAR' ? ('TPE.ROLE_BAR' | transloco) : ('TPE.ROLE_FLOOR' | transloco) } }}
+        </p>
+        <div class="tpe-amount-badge" data-testid="tpe-display-amount">
+          {{ (activeTpeTransaction()?.amount ?? totalNetAPayer) | appCurrency }}
+        </div>
+        <div class="tpe-spinner-wrap">
+          <ion-spinner name="crescent" color="primary"></ion-spinner>
+          <span>{{ (activeTpeTransaction()?.status === 'PROCESSING' ? ('TPE.PROCESSING' | transloco) : ('TPE.INSERT_OR_TAP_CARD' | transloco)) }}</span>
+        </div>
+        <ion-button
+          fill="outline"
+          color="danger"
+          size="default"
+          (click)="annulerTpe()"
+          (keydown.enter)="annulerTpe()"
+          (keyup.enter)="annulerTpe()"
+          data-testid="btn-cancel-tpe-transaction"
+          class="btn-cancel-tpe">
+          <ion-icon name="close-outline" slot="start"></ion-icon>
+          {{ 'TPE.CANCEL_TRANSACTION' | transloco }}
+        </ion-button>
+      </div>
+    </div>
+  }
+
+  @if (tpeErrorMessage()) {
+    <div class="tpe-error-toast" data-testid="tpe-error-banner">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <span class="tpe-error-text">{{ tpeErrorMessage() }}</span>
+      <button type="button" class="btn-dismiss-error" (click)="tpeErrorMessage.set(null)" data-testid="btn-dismiss-tpe-error">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
     </div>
   }
 </ion-content>

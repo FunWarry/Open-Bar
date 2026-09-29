@@ -183,6 +183,7 @@ describe('AppSettingsPageComponent', () => {
       suppliersManagement: true,
       inventoryAudit: true,
       mysteryRoulette: true,
+      paymentTerminal: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
 
@@ -812,6 +813,7 @@ describe('AppSettingsPageComponent', () => {
         suppliersManagement: true,
         inventoryAudit: true,
         mysteryRoulette: true,
+        paymentTerminal: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -899,6 +901,7 @@ describe('AppSettingsPageComponent', () => {
         suppliersManagement: false,
         inventoryAudit: false,
         mysteryRoulette: false,
+        paymentTerminal: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();

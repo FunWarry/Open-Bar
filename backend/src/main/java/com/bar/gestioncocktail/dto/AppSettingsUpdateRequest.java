@@ -125,8 +125,55 @@ public record AppSettingsUpdateRequest(
 
     String cashDenominationsJson,
 
-    String storageLocationsJson
+    String storageLocationsJson,
+
+    Boolean tpeEnabled,
+
+    Boolean tpeSimulatorEnabled,
+
+    @Size(max = 100, message = "Bar TPE IP cannot exceed 100 characters")
+    String tpeBarIp,
+
+    @Size(max = 100, message = "Floor TPE IP cannot exceed 100 characters")
+    String tpeFloorIp,
+
+    @jakarta.validation.constraints.Min(value = 1, message = "TPE port must be at least 1")
+    @jakarta.validation.constraints.Max(value = 65535, message = "TPE port cannot exceed 65535")
+    Integer tpePort,
+
+    @Size(max = 50, message = "TPE terminal ID cannot exceed 50 characters")
+    String tpeTerminalId,
+
+    @jakarta.validation.constraints.Min(value = 5, message = "TPE timeout must be at least 5 seconds")
+    @jakarta.validation.constraints.Max(value = 300, message = "TPE timeout cannot exceed 300 seconds")
+    Integer tpeTimeoutSeconds
 ) {
+    /**
+     * Backwards-compatible 30-parameter constructor before TPE configuration was introduced.
+     */
+    public AppSettingsUpdateRequest(
+            String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            String volumeUnit, String weightUnit,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled,
+            Boolean tableSessionValidationEnabled, java.math.BigDecimal defaultVatRate,
+            java.math.BigDecimal targetGrossMarginPercentage, java.math.BigDecimal warningGrossMarginPercentage,
+            String barPrinterIp, String kitchenPrinterIp, String cashDeskPrinterIp,
+            Integer printerPort, Boolean directPrintingEnabled, String cashDenominationsJson,
+            String storageLocationsJson) {
+        this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem, volumeUnit, weightUnit,
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes,
+                clientBaseUrl, wifiSsid, wifiPassword, wifiSecurity, wifiEnabled,
+                tableSessionValidationEnabled, defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
+                cashDenominationsJson, storageLocationsJson,
+                null, null, null, null, null, null, null);
+    }
+
     /**
      * Backwards-compatible 29-parameter constructor defaulting storageLocationsJson to null.
      */

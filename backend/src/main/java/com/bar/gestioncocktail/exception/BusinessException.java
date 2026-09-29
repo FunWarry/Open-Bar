@@ -13,4 +13,14 @@ public class BusinessException extends RuntimeException {
     public BusinessException(String message) {
         super(message);
     }
+
+    /**
+     * Constructs the exception with a business error message and an underlying cause.
+     *
+     * @param message Explanatory error message
+     * @param cause   Underlying root cause
+     */
+    public BusinessException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

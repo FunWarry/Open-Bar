@@ -78,6 +78,7 @@ import {
   closeOutline,
   giftOutline,
   clipboardOutline,
+  cardOutline,
 } from 'ionicons/icons';
 import { HappyHourConfigComponent } from './components/happy-hour-config/happy-hour-config.component';
 import { LegalComponent, LegalTab } from '../../legal/legal.component';
@@ -119,6 +120,7 @@ import {
   EstablishmentPresetType,
 } from '../../../core/models/establishment-module.model';
 import { FeatureFlagService } from '../../../core/services/feature-flag.service';
+import { PaymentTerminalService } from '../../../core/services/payment-terminal.service';
 /**
  * Active configuration tab on the admin settings page.
  */
@@ -278,6 +280,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   private readonly printerService = inject(PrinterService);
   private readonly appUpdateService = inject(AppUpdateService);
   private readonly rouletteService = inject(RouletteService);
+  private readonly paymentTerminalService = inject(PaymentTerminalService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
@@ -293,6 +296,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   updateCheckSuccess = true;
 
   isTestingPrinter: Record<string, boolean> = {};
+  isTestingTpe: Record<string, boolean> = {};
 
   /** Demonstration invoice used to preview realistic thermal receipt in real time. */
   readonly demoFacture: Facture = {
@@ -366,6 +370,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     suppliersManagement: true,
     inventoryAudit: true,
     mysteryRoulette: true,
+    paymentTerminal: true,
   };
   initialThemeMode: AppTheme = 'dark';
   initialColors: CustomThemeColors = { ...DEFAULT_FIGMA_PALETTE };
@@ -525,6 +530,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       closeOutline,
       giftOutline,
       clipboardOutline,
+      cardOutline,
     });
     this.initForms();
   }
@@ -663,6 +669,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       suppliersManagement: [true],
       inventoryAudit: [true],
       mysteryRoulette: [true],
+      paymentTerminal: [true],
     });
 
     this.etabForm = this.fb.group({
@@ -716,6 +723,13 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       cashDeskPrinterIp: ['', [Validators.pattern(/^(\d{1,3}\.){3}\d{1,3}$/)]],
       printerPort: [9100, [Validators.min(1), Validators.max(65535)]],
       directPrintingEnabled: [false],
+      tpeEnabled: [false],
+      tpeSimulatorEnabled: [false],
+      tpeBarIp: ['', [Validators.pattern(/^(\d{1,3}\.){3}\d{1,3}$/)]],
+      tpeFloorIp: ['', [Validators.pattern(/^(\d{1,3}\.){3}\d{1,3}$/)]],
+      tpePort: [8888, [Validators.min(1), Validators.max(65535)]],
+      tpeTerminalId: ['POS01', [Validators.maxLength(50)]],
+      tpeTimeoutSeconds: [90, [Validators.min(5), Validators.max(300)]],
     }, { validators: [thresholdPriorityValidator, marginThresholdPriorityValidator] });
 
     const currentColors = this.themeService.currentCustomColors;
@@ -1627,14 +1641,17 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       !!current.cashDrawer === target.cashDrawer &&
       !!current.barTabs === target.barTabs &&
       !!current.cocktailLibrary === target.cocktailLibrary &&
-      !!current.suppliersManagement === target.suppliersManagement
+      !!current.suppliersManagement === target.suppliersManagement &&
+      !!current.inventoryAudit === target.inventoryAudit &&
+      !!current.mysteryRoulette === target.mysteryRoulette &&
+      !!current.paymentTerminal === target.paymentTerminal
     );
   }
 
   /**
    * Total count of available modular capabilities.
    */
-  readonly totalModulesCount = 10;
+  readonly totalModulesCount = 13;
 
   /**
    * Computes the number of currently active modules in modulesForm.
@@ -1731,6 +1748,59 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
             'danger'
           );
         },
+      });
+  }
+
+  /**
+   * Tests the TCP/IP network connection to the payment terminal (TPE) configured for the specified role.
+   *
+   * @param role TPE role ('BAR' | 'FLOOR')
+   */
+  testTpeConnection(role: 'BAR' | 'FLOOR'): void {
+    const ipControlName = role === 'BAR' ? 'tpeBarIp' : 'tpeFloorIp';
+    const ip = this.appSettingsForm.get(ipControlName)?.value;
+    const port = this.appSettingsForm.get('tpePort')?.value || 8888;
+    const terminalId = this.appSettingsForm.get('tpeTerminalId')?.value || 'POS01';
+    if (!ip) {
+      return;
+    }
+    this.isTestingTpe[role] = true;
+    this.paymentTerminalService.testConnection({ ip, port, terminalId })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.isTestingTpe[role] = false;
+          if (res.success) {
+            void this.showToast(
+              this.translocoService.translate('SETTINGS.TPE_TEST_SUCCESS', {
+                role: role === 'BAR' ? 'Bar' : 'Salle',
+                ip: res.ip || ip,
+                responseTimeMs: res.responseTimeMs ?? 0
+              }),
+              'success'
+            );
+          } else {
+            void this.showToast(
+              this.translocoService.translate('SETTINGS.TPE_TEST_FAILED', {
+                role: role === 'BAR' ? 'Bar' : 'Salle',
+                error: res.message || 'Error'
+              }),
+              'warning'
+            );
+          }
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.isTestingTpe[role] = false;
+          void this.showToast(
+            this.translocoService.translate('SETTINGS.TPE_TEST_FAILED', {
+              role: role === 'BAR' ? 'Bar' : 'Salle',
+              error: err?.message || 'Error'
+            }),
+            'danger'
+          );
+          this.cdr.markForCheck();
+        }
       });
   }
 

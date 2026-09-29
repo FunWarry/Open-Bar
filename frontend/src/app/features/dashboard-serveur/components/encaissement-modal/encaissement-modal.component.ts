@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Observable, Subject } from 'rxjs';
@@ -35,6 +35,9 @@ import { Facture } from '../../../factures/models/facture.model';
 import { environment } from '../../../../../environments/environment';
 import { BarTab } from '../../../../core/models/bar-tab.model';
 import { BarTabService } from '../../../../core/services/bar-tab.service';
+import { PaymentTerminalService } from '../../../../core/services/payment-terminal.service';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
+import { TpePaymentRequestDTO, TpePaymentResponseDTO, TpeTerminalRole } from '../../../../core/models/tpe.model';
 
 /**
  * Encaissement and table payment modal component for server and manager dashboards.
@@ -153,7 +156,19 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   splitResults: SplitResultDTO[] = [];
   isLoadingSplit = false;
   splitError: string | null = null;
-  partStates: { [guestIndex: number]: { reglee: boolean; modePaiement: string; pourboire?: number; totalPaid: number } } = {};
+  partStates: {
+    [guestIndex: number]: {
+      reglee: boolean;
+      modePaiement: string;
+      pourboire?: number;
+      totalPaid: number;
+      tpeAutorisation?: string;
+      tpeTerminalId?: string;
+      tpeCardBrand?: string;
+      tpeMaskedPan?: string;
+      tpeSequence?: string;
+    };
+  } = {};
 
   // Part settling state (in-modal settlement)
   settlingPartIndex: number | null = null;
@@ -186,10 +201,25 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   private readonly dashboardService = inject(DashboardServeurService);
   private readonly factureService = inject(FactureService);
   private readonly barTabService = inject(BarTabService, { optional: true });
+  private readonly paymentTerminalService = inject(PaymentTerminalService);
+  private readonly featureFlagService = inject(FeatureFlagService);
   private readonly modalCtrl = inject(ModalController);
   private readonly toastCtrl = inject(ToastController);
   private readonly transloco = inject(TranslocoService);
   private readonly destroy$ = new Subject<void>();
+
+  readonly paymentTerminalEnabled = this.featureFlagService.paymentTerminalEnabled;
+  readonly activeTpeTransaction = signal<TpePaymentResponseDTO | null>(null);
+  readonly isTpeProcessing = signal<boolean>(false);
+  readonly tpeErrorMessage = signal<string | null>(null);
+  readonly preferredTpeRole = signal<TpeTerminalRole>(this.paymentTerminalService.preferredRole);
+  tpeMetadata: {
+    tpeAutorisation?: string;
+    tpeTerminalId?: string;
+    tpeCardBrand?: string;
+    tpeMaskedPan?: string;
+    tpeSequence?: string;
+  } = {};
 
   constructor() {
     this.discountTiers = this.appSettingsService.getDiscountTiers();
@@ -653,6 +683,106 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
     return larger.slice(0, 3);
   }
 
+  // --- Payment Terminal (TPE) Integration ---
+
+  /**
+   * Updates preferred TPE station routing role.
+   *
+   * @param role Target TPE station role (BAR or FLOOR)
+   */
+  setPreferredTpeRole(role: TpeTerminalRole): void {
+    this.paymentTerminalService.preferredRole = role;
+    this.preferredTpeRole.set(role);
+  }
+
+  /**
+   * Initiates payment on network payment terminal (TPE) via Concert IP protocol.
+   *
+   * @param isPart Whether the transaction is for a split part or the single bill
+   */
+  envoyerAuTpe(isPart: boolean = false): void {
+    if (this.isTpeProcessing()) return;
+
+    const amount = isPart ? this.partTotalNetAPayer : this.totalNetAPayer;
+    if (amount <= 0) return;
+
+    this.isTpeProcessing.set(true);
+    this.tpeErrorMessage.set(null);
+
+    const targetRole = this.preferredTpeRole();
+    const req: TpePaymentRequestDTO = {
+      amount: Math.round(amount * 100) / 100,
+      targetRole: targetRole,
+      tableNumber: this.table?.nom || (this.tab?.nom ?? 'Bar'),
+      invoiceId: this.addition?.existingFactureId,
+    };
+
+    this.paymentTerminalService.initiatePayment(req)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (initialRes) => {
+          this.activeTpeTransaction.set(initialRes);
+          if (initialRes.status === 'APPROVED') {
+            this.handleTpeApproved(initialRes, isPart);
+            return;
+          }
+          if (['DECLINED', 'CANCELLED', 'FAILED', 'TIMEOUT'].includes(initialRes.status)) {
+            this.isTpeProcessing.set(false);
+            this.tpeErrorMessage.set(initialRes.message || this.transloco.translate('TPE.TRANSACTION_FAILED'));
+            return;
+          }
+
+          // Listen for asynchronous STOMP WebSocket broadcast updates
+          this.paymentTerminalService.watchPayment(initialRes.transactionId)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((updated: TpePaymentResponseDTO) => {
+              this.activeTpeTransaction.set(updated);
+              if (updated.status === 'APPROVED') {
+                this.handleTpeApproved(updated, isPart);
+              } else if (['DECLINED', 'CANCELLED', 'FAILED', 'TIMEOUT'].includes(updated.status)) {
+                this.isTpeProcessing.set(false);
+                this.tpeErrorMessage.set(updated.message || this.transloco.translate('TPE.TRANSACTION_FAILED'));
+              }
+            });
+        },
+        error: (err) => {
+          this.isTpeProcessing.set(false);
+          const msg = err?.error?.message || err?.message || this.transloco.translate('TPE.TRANSACTION_FAILED');
+          this.tpeErrorMessage.set(msg);
+        }
+      });
+  }
+
+  private handleTpeApproved(res: TpePaymentResponseDTO, isPart: boolean): void {
+    this.isTpeProcessing.set(false);
+    this.tpeMetadata = {
+      tpeAutorisation: res.authorizationCode,
+      tpeTerminalId: res.terminalId,
+      tpeCardBrand: res.cardBrand,
+      tpeMaskedPan: res.maskedPan,
+      tpeSequence: res.sequenceNumber
+    };
+    if (isPart) {
+      void this.validerReglementPart();
+    } else {
+      this.validerEncaissement();
+    }
+  }
+
+  /**
+   * Cancels active TPE payment transaction on the physical terminal.
+   */
+  annulerTpe(): void {
+    const tx = this.activeTpeTransaction();
+    if (tx?.transactionId) {
+      this.paymentTerminalService.cancelPayment(tx.transactionId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe();
+    }
+    this.isTpeProcessing.set(false);
+    this.activeTpeTransaction.set(null);
+  }
+
   // --- Settlement Submission ---
 
   /**
@@ -674,8 +804,14 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
       montantRecu: this.modePaiement === 'ESPECES' && this.montantRecu ? this.montantRecu : undefined,
       notes: this.notes.trim() || undefined,
       libererTable: this.libererTable,
-      commandeIds: this.addition.commandeIds
+      commandeIds: this.addition.commandeIds,
+      tpeAutorisation: this.tpeMetadata.tpeAutorisation,
+      tpeTerminalId: this.tpeMetadata.tpeTerminalId,
+      tpeCardBrand: this.tpeMetadata.tpeCardBrand,
+      tpeMaskedPan: this.tpeMetadata.tpeMaskedPan,
+      tpeSequence: this.tpeMetadata.tpeSequence
     };
+    this.tpeMetadata = {};
 
     let settlement$: Observable<Facture> | null = null;
     if (this.tab && this.barTabService) {
@@ -707,7 +843,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
             color: 'success'
           });
           await toast.present();
-          this.modalCtrl.dismiss({ action: 'settled', facture });
+          await this.modalCtrl.dismiss({ action: 'settled', facture });
         },
         error: async (err: { error?: { message?: string } }) => {
           const msg = err?.error?.message || this.transloco.translate('ENCAISSEMENT.ERROR_SETTLEMENT');
@@ -1162,8 +1298,14 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
       reglee: true,
       modePaiement: this.partPaymentMode,
       pourboire: this.partPourboire,
-      totalPaid: this.partTotalNetAPayer
+      totalPaid: this.partTotalNetAPayer,
+      tpeAutorisation: this.tpeMetadata.tpeAutorisation,
+      tpeTerminalId: this.tpeMetadata.tpeTerminalId,
+      tpeCardBrand: this.tpeMetadata.tpeCardBrand,
+      tpeMaskedPan: this.tpeMetadata.tpeMaskedPan,
+      tpeSequence: this.tpeMetadata.tpeSequence
     };
+    this.tpeMetadata = {};
 
     const guestName = part.nomConvive;
     const mode = this.partPaymentMode;
@@ -1213,7 +1355,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
           color: 'success'
         });
         await toast.present();
-        this.modalCtrl.dismiss({ action: 'settled', facture });
+        await this.modalCtrl.dismiss({ action: 'settled', facture });
       },
       error: async () => {
         const toast = await this.toastCtrl.create({
@@ -1240,7 +1382,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   }
 
   fermer(): void {
-    this.modalCtrl.dismiss();
+    void this.modalCtrl.dismiss();
   }
 
   trackByItemId(_index: number, item: TableAdditionItem): number {

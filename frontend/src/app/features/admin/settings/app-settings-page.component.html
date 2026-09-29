@@ -665,6 +665,18 @@
                             </div>
                           }
                         </div>
+
+                        <!-- Module 13: PAYMENT_TERMINAL -->
+                        <div class="threshold-row" data-testid="module-row-payment-terminal">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="card-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_PAYMENT_TERMINAL_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="paymentTerminal" data-testid="toggle-module-payment-terminal"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_PAYMENT_TERMINAL_DESC' | transloco }}</p>
+                        </div>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -954,6 +966,26 @@
                                 </span>
                               </div>
                               <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_ROULETTE' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 13. Terminaux de Paiement (TPE) -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('paymentTerminal')"
+                            [class.node-inactive]="!isModuleControlActive('paymentTerminal')"
+                            data-testid="preview-node-payment-terminal">
+                            <div class="node-icon-box">
+                              <ion-icon name="card-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_PAYMENT_TERMINAL_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('paymentTerminal')">
+                                  {{ (isModuleControlActive('paymentTerminal') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_PAYMENT_TERMINAL' | transloco }}</span>
                             </div>
                           </div>
                         </div>
@@ -2272,6 +2304,146 @@
                           {{ 'SETTINGS.TEST_DRAWER_BTN' | transloco }}
                         </app-action-button>
                       </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+
+              <!-- Ligne 2 : Terminaux de Paiement Électronique (TPE / Concert IP) -->
+              <ion-row>
+                <ion-col size="12">
+                  <ion-card class="settings-card" data-testid="card-settings-tpe">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="card-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.TPE_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="section-lead">{{ 'SETTINGS.TPE_SUBTITLE' | transloco }}</p>
+
+                      <div class="form-row-2">
+                        <!-- Activation TPE Réseau -->
+                        <div class="field-item checkbox-field">
+                          <label class="checkbox-label" for="tpeEnabled">
+                            <input
+                              type="checkbox"
+                              id="tpeEnabled"
+                              formControlName="tpeEnabled"
+                              data-testid="toggle-tpe-enabled" />
+                            <span class="checkbox-custom"></span>
+                            <div class="checkbox-text">
+                              <strong>{{ 'SETTINGS.TPE_ENABLE_LABEL' | transloco }}</strong>
+                              <p class="field-hint">{{ 'SETTINGS.TPE_ENABLE_HINT' | transloco }}</p>
+                            </div>
+                          </label>
+                        </div>
+
+                        <!-- Mode Simulateur TPE -->
+                        <div class="field-item checkbox-field">
+                          <label class="checkbox-label" for="tpeSimulatorEnabled">
+                            <input
+                              type="checkbox"
+                              id="tpeSimulatorEnabled"
+                              formControlName="tpeSimulatorEnabled"
+                              data-testid="toggle-tpe-simulator-enabled" />
+                            <span class="checkbox-custom"></span>
+                            <div class="checkbox-text">
+                              <strong>{{ 'SETTINGS.TPE_SIMULATOR_LABEL' | transloco }}</strong>
+                              <p class="field-hint">{{ 'SETTINGS.TPE_SIMULATOR_HINT' | transloco }}</p>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div class="form-row-3">
+                        <!-- Port TCP Concert IP -->
+                        <div class="field-item">
+                          <app-input-field
+                            formControlName="tpePort"
+                            type="number"
+                            [label]="'SETTINGS.TPE_PORT' | transloco"
+                            [helperText]="'SETTINGS.TPE_PORT_HINT' | transloco"
+                            placeholder="8888"
+                            [required]="true"
+                            data-testid="input-tpe-port">
+                          </app-input-field>
+                        </div>
+
+                        <!-- Identifiant TPE / Caissier -->
+                        <div class="field-item">
+                          <app-input-field
+                            formControlName="tpeTerminalId"
+                            [label]="'SETTINGS.TPE_TERMINAL_ID' | transloco"
+                            [helperText]="'SETTINGS.TPE_TERMINAL_ID_HINT' | transloco"
+                            placeholder="POS01"
+                            data-testid="input-tpe-terminal-id">
+                          </app-input-field>
+                        </div>
+
+                        <!-- Timeout TPE (secondes) -->
+                        <div class="field-item">
+                          <app-input-field
+                            formControlName="tpeTimeoutSeconds"
+                            type="number"
+                            [label]="'SETTINGS.TPE_TIMEOUT' | transloco"
+                            [helperText]="'SETTINGS.TPE_TIMEOUT_HINT' | transloco"
+                            placeholder="90"
+                            data-testid="input-tpe-timeout">
+                          </app-input-field>
+                        </div>
+                      </div>
+
+                      <div class="form-section-title">{{ 'SETTINGS.TPE_BAR_TITLE' | transloco }}</div>
+                      <div class="printer-row-flex">
+                        <div class="printer-input-grow">
+                          <app-input-field
+                            formControlName="tpeBarIp"
+                            [label]="'SETTINGS.TPE_BAR_IP' | transloco"
+                            [helperText]="'SETTINGS.TPE_BAR_IP_HINT' | transloco"
+                            placeholder="192.168.1.150"
+                            data-testid="input-tpe-bar-ip">
+                          </app-input-field>
+                        </div>
+                        <div class="printer-action-btn-wrap">
+                          <app-action-button
+                            type="button"
+                            variant="secondary"
+                            [loading]="isTestingTpe['BAR']"
+                            [disabled]="!appSettingsForm.get('tpeBarIp')?.value || isTestingTpe['BAR']"
+                            (btnClick)="testTpeConnection('BAR')"
+                            data-testid="btn-test-tpe-bar">
+                            <ion-icon name="card-outline" slot="start"></ion-icon>
+                            {{ 'SETTINGS.TEST_TPE_BTN' | transloco }}
+                          </app-action-button>
+                        </div>
+                      </div>
+
+                      <div class="form-section-title">{{ 'SETTINGS.TPE_FLOOR_TITLE' | transloco }}</div>
+                      <div class="printer-row-flex">
+                        <div class="printer-input-grow">
+                          <app-input-field
+                            formControlName="tpeFloorIp"
+                            [label]="'SETTINGS.TPE_FLOOR_IP' | transloco"
+                            [helperText]="'SETTINGS.TPE_FLOOR_IP_HINT' | transloco"
+                            placeholder="192.168.1.151"
+                            data-testid="input-tpe-floor-ip">
+                          </app-input-field>
+                        </div>
+                        <div class="printer-action-btn-wrap">
+                          <app-action-button
+                            type="button"
+                            variant="secondary"
+                            [loading]="isTestingTpe['FLOOR']"
+                            [disabled]="!appSettingsForm.get('tpeFloorIp')?.value || isTestingTpe['FLOOR']"
+                            (btnClick)="testTpeConnection('FLOOR')"
+                            data-testid="btn-test-tpe-floor">
+                            <ion-icon name="card-outline" slot="start"></ion-icon>
+                            {{ 'SETTINGS.TEST_TPE_BTN' | transloco }}
+                          </app-action-button>
+                        </div>
+                      </div>
+
                     </ion-card-content>
                   </ion-card>
                 </ion-col>

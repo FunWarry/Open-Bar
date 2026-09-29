@@ -544,7 +544,23 @@ public class EscPosFormatter {
             writeText(out, "Paiement : " + facture.getModePaiement());
             out.write(LF);
         }
+        appendTpeMetadata(out, facture);
     }
+
+    private void appendTpeMetadata(ByteArrayOutputStream out, Facture facture) throws IOException {
+        if (facture.getTpeAutorisation() == null || facture.getTpeAutorisation().isBlank()) {
+            return;
+        }
+        writeText(out, "TPE Auth : " + facture.getTpeAutorisation());
+        out.write(LF);
+        if (facture.getTpeCardBrand() != null || facture.getTpeMaskedPan() != null) {
+            String cardBrand = facture.getTpeCardBrand() != null ? facture.getTpeCardBrand() + " " : "";
+            String maskedPan = facture.getTpeMaskedPan() != null ? facture.getTpeMaskedPan() : "";
+            writeText(out, "Carte    : " + (cardBrand + maskedPan).trim());
+            out.write(LF);
+        }
+    }
+
 
     private void appendInvoiceItems(ByteArrayOutputStream out, List<FactureItem> items, String currencySymbol) throws IOException {
         writeText(out, repeat("-", LINE_WIDTH));

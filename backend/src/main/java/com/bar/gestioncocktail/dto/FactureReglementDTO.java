@@ -24,9 +24,34 @@ public record FactureReglementDTO(
     String modePaiement,
     String typeSplit,
     List<SplitResultDTO.SplitItemDTO> items,
-    LocalDateTime dateReglement
+    LocalDateTime dateReglement,
+    String tpeAutorisation,
+    String tpeTerminalId,
+    String tpeCardBrand,
+    String tpeMaskedPan,
+    String tpeSequence
 ) {
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    /**
+     * Backwards-compatible 12-parameter constructor before TPE fields were added.
+     */
+    public FactureReglementDTO(
+        Long id,
+        Long factureId,
+        String nomConvive,
+        Integer partIndex,
+        Integer totalParts,
+        BigDecimal montant,
+        BigDecimal pourboire,
+        BigDecimal totalRegle,
+        String modePaiement,
+        String typeSplit,
+        List<SplitResultDTO.SplitItemDTO> items,
+        LocalDateTime dateReglement
+    ) {
+        this(id, factureId, nomConvive, partIndex, totalParts, montant, pourboire, totalRegle, modePaiement, typeSplit, items, dateReglement, null, null, null, null, null);
+    }
 
     /**
      * Converts a JPA {@link FactureReglement} entity into its corresponding DTO representation.
@@ -57,7 +82,12 @@ public record FactureReglementDTO(
             r.getModePaiement(),
             r.getTypeSplit(),
             itemList,
-            r.getDateReglement()
+            r.getDateReglement(),
+            r.getTpeAutorisation(),
+            r.getTpeTerminalId(),
+            r.getTpeCardBrand(),
+            r.getTpeMaskedPan(),
+            r.getTpeSequence()
         );
     }
 }

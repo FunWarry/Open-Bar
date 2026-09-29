@@ -16,6 +16,7 @@ package com.bar.gestioncocktail.dto;
  * @param suppliersManagement Optional new status for Suppliers & Purchase Orders module
  * @param inventoryAudit      Optional new status for Physical Inventory Audit module
  * @param mysteryRoulette     Optional new status for Mystery Drink Roulette module
+ * @param paymentTerminal     Optional new status for Physical Payment Terminal (TPE) module
  */
 public record EstablishmentModulesUpdateRequest(
         Boolean cuisineKds,
@@ -29,8 +30,29 @@ public record EstablishmentModulesUpdateRequest(
         Boolean cocktailLibrary,
         Boolean suppliersManagement,
         Boolean inventoryAudit,
-        Boolean mysteryRoulette
+        Boolean mysteryRoulette,
+        Boolean paymentTerminal
 ) {
+    /**
+     * Backward-compatible constructor for 12 modules before paymentTerminal was introduced.
+     */
+    public EstablishmentModulesUpdateRequest(
+            Boolean cuisineKds,
+            Boolean happyHour,
+            Boolean employeeManagement,
+            Boolean floorPlan,
+            Boolean qrClientOrdering,
+            Boolean stockTracking,
+            Boolean cashDrawer,
+            Boolean barTabs,
+            Boolean cocktailLibrary,
+            Boolean suppliersManagement,
+            Boolean inventoryAudit,
+            Boolean mysteryRoulette
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, null);
+    }
+
     /**
      * Backward-compatible constructor for 11 modules before mysteryRoulette was introduced.
      */

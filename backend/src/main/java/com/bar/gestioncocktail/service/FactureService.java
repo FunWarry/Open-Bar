@@ -26,6 +26,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import com.bar.gestioncocktail.dto.SplitMontantsRequest;
@@ -451,12 +452,10 @@ public class FactureService {
             totalArticles += item.quantite();
         }
 
-        List<Long> commandeIds = new ArrayList<>();
-        for (Commande c : activeCommandes) {
-            if (c.getId() != null) {
-                commandeIds.add(c.getId());
-            }
-        }
+        List<Long> commandeIds = activeCommandes.stream()
+                .filter(c -> c != null && c.getId() != null)
+                .map(c -> c.getId())
+                .toList();
 
         return new TableAdditionResponseDTO(
                 table.getId(),
@@ -510,6 +509,13 @@ public class FactureService {
         facture.setDateReglement(LocalDateTime.now(timeService.getZoneId()));
         if (request.notes() != null && !request.notes().isBlank()) {
             facture.setNotes(request.notes());
+        }
+        if (request.tpeAutorisation() != null) {
+            facture.setTpeAutorisation(request.tpeAutorisation());
+            facture.setTpeTerminalId(request.tpeTerminalId());
+            facture.setTpeCardBrand(request.tpeCardBrand());
+            facture.setTpeMaskedPan(request.tpeMaskedPan());
+            facture.setTpeSequence(request.tpeSequence());
         }
 
         Facture savedFacture = factureRepository.save(facture);
@@ -636,12 +642,10 @@ public class FactureService {
             totalArticles += item.quantite();
         }
 
-        List<Long> commandeIds = new ArrayList<>();
-        for (Commande c : activeCommandes) {
-            if (c.getId() != null) {
-                commandeIds.add(c.getId());
-            }
-        }
+        List<Long> commandeIds = activeCommandes.stream()
+                .filter(c -> c != null && c.getId() != null)
+                .map(c -> c.getId())
+                .toList();
 
         return new TableAdditionResponseDTO(
                 null,
@@ -704,6 +708,13 @@ public class FactureService {
         facture.setDateReglement(LocalDateTime.now(timeService.getZoneId()));
         if (request.notes() != null && !request.notes().isBlank()) {
             facture.setNotes(request.notes());
+        }
+        if (request.tpeAutorisation() != null) {
+            facture.setTpeAutorisation(request.tpeAutorisation());
+            facture.setTpeTerminalId(request.tpeTerminalId());
+            facture.setTpeCardBrand(request.tpeCardBrand());
+            facture.setTpeMaskedPan(request.tpeMaskedPan());
+            facture.setTpeSequence(request.tpeSequence());
         }
 
         Facture savedFacture = factureRepository.save(facture);
@@ -1266,13 +1277,9 @@ public class FactureService {
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_PREFIX + factureId));
 
         Map<Long, FactureItem> itemsIndex = buildInvoiceItemsIndex(facture);
-        List<SplitResultDTO> result = new ArrayList<>();
-
-        for (com.bar.gestioncocktail.dto.SplitPartRequest part : request.parts()) {
-            result.add(createSplitResultForGuest(factureId, part, itemsIndex));
-        }
-
-        return result;
+        return request.parts().stream()
+                .map(part -> createSplitResultForGuest(factureId, part, itemsIndex))
+                .toList();
     }
 
     /**
@@ -1414,6 +1421,8 @@ public class FactureService {
             reglement.setItemsJson("[]");
         }
 
+        populateTpeFields(reglement, request);
+
         com.bar.gestioncocktail.model.FactureReglement saved = factureReglementRepository.save(reglement);
         if (facture.getReglements() == null) {
             facture.setReglements(new ArrayList<>());
@@ -1487,6 +1496,16 @@ public class FactureService {
             }
             auditLogService.logAction(null, "FACTURE_SETTLED_SPLIT", ENTITY_FACTURE, factureId,
                     "Invoice " + facture.getNumero() + " settled via split parts (" + allReglements.size() + " parts)", null);
+        }
+    }
+
+    private void populateTpeFields(com.bar.gestioncocktail.model.FactureReglement reglement, com.bar.gestioncocktail.dto.EncaisserPartRequest request) {
+        if (request.tpeAutorisation() != null) {
+            reglement.setTpeAutorisation(request.tpeAutorisation());
+            reglement.setTpeTerminalId(request.tpeTerminalId());
+            reglement.setTpeCardBrand(request.tpeCardBrand());
+            reglement.setTpeMaskedPan(request.tpeMaskedPan());
+            reglement.setTpeSequence(request.tpeSequence());
         }
     }
 
@@ -1948,30 +1967,26 @@ public class FactureService {
 
     private List<com.bar.gestioncocktail.dto.PaymentModeSummaryDTO> buildPaymentModeSummaries(
             Map<String, BigDecimal> modeTotals, Map<String, Long> modeCounts) {
-        List<com.bar.gestioncocktail.dto.PaymentModeSummaryDTO> list = new ArrayList<>();
-        for (Map.Entry<String, BigDecimal> entry : modeTotals.entrySet()) {
-            list.add(new com.bar.gestioncocktail.dto.PaymentModeSummaryDTO(
-                entry.getKey(),
-                modeCounts.get(entry.getKey()),
-                entry.getValue()
-            ));
-        }
-        return list;
+        return modeTotals.entrySet().stream()
+                .map(entry -> new com.bar.gestioncocktail.dto.PaymentModeSummaryDTO(
+                        entry.getKey(),
+                        modeCounts.get(entry.getKey()),
+                        entry.getValue()
+                ))
+                .toList();
     }
 
     private List<VatSummaryDTO> buildVatSummaries(Map<VatRate, BigDecimal> baseHTMap,
                                                   Map<VatRate, BigDecimal> vatAmountMap,
                                                   Map<VatRate, BigDecimal> totalTTCMap) {
-        List<VatSummaryDTO> list = new ArrayList<>();
-        for (VatRate rate : VatRate.values()) {
-            list.add(new VatSummaryDTO(
-                rate.getLabel(),
-                baseHTMap.get(rate),
-                vatAmountMap.get(rate),
-                totalTTCMap.get(rate)
-            ));
-        }
-        return list;
+        return Arrays.stream(VatRate.values())
+                .map(rate -> new VatSummaryDTO(
+                        rate.getLabel(),
+                        baseHTMap.get(rate),
+                        vatAmountMap.get(rate),
+                        totalTTCMap.get(rate)
+                ))
+                .toList();
     }
 
     private BigDecimal resolveFactureTTC(Facture f) {

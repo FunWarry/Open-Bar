@@ -24,6 +24,7 @@ const DEFAULT_MODULES: EstablishmentModules = {
   suppliersManagement: true,
   inventoryAudit: true,
   mysteryRoulette: true,
+  paymentTerminal: true,
 };
 
 /**
@@ -80,6 +81,9 @@ export class FeatureFlagService implements OnDestroy {
   /** Computed signal for MYSTERY_ROULETTE capability status. */
   readonly mysteryRouletteEnabled = computed(() => this.modules().mysteryRoulette);
 
+  /** Computed signal for PAYMENT_TERMINAL capability status. */
+  readonly paymentTerminalEnabled = computed(() => this.modules().paymentTerminal);
+
   constructor() {
     this.initWebSocketSubscription();
     this.loadModules().subscribe();
@@ -123,6 +127,8 @@ export class FeatureFlagService implements OnDestroy {
         return current.inventoryAudit && current.stockTracking;
       case EstablishmentModule.MYSTERY_ROULETTE:
         return current.mysteryRoulette;
+      case EstablishmentModule.PAYMENT_TERMINAL:
+        return current.paymentTerminal;
       default:
         return true;
     }

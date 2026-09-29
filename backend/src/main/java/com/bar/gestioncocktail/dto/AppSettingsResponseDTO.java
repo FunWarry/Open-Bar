@@ -70,11 +70,47 @@ public record AppSettingsResponseDTO(
     Boolean directPrintingEnabled,
     String cashDenominationsJson,
     String storageLocationsJson,
+    Boolean tpeEnabled,
+    Boolean tpeSimulatorEnabled,
+    String tpeBarIp,
+    String tpeFloorIp,
+    Integer tpePort,
+    String tpeTerminalId,
+    Integer tpeTimeoutSeconds,
     String timeZone,
     LocalDateTime updatedAt
 ) {
     /** Default fallback timezone identifier. */
     public static final String DEFAULT_TIMEZONE = "SYSTEM";
+
+    /**
+     * Backwards-compatible 35-parameter constructor before TPE configuration was introduced.
+     */
+    public AppSettingsResponseDTO(
+            Long id, String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            String volumeUnit, String weightUnit,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity,
+            Boolean wifiEnabled, Boolean tableSessionValidationEnabled,
+            BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
+            BigDecimal warningGrossMarginPercentage, String barPrinterIp,
+            String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
+            Boolean directPrintingEnabled, String cashDenominationsJson,
+            String storageLocationsJson, String timeZone, LocalDateTime updatedAt) {
+        this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem != null ? unitSystem : UnitSystem.METRIC_CL,
+                volumeUnit != null ? volumeUnit : "cl", weightUnit != null ? weightUnit : "g",
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
+                cashDenominationsJson, storageLocationsJson,
+                false, true, null, null, 8888, "01", 45,
+                timeZone != null ? timeZone : DEFAULT_TIMEZONE, updatedAt);
+    }
 
     /**
      * Backwards-compatible 32-parameter constructor defaulting storageLocationsJson to null.
@@ -264,6 +300,13 @@ public record AppSettingsResponseDTO(
             Boolean.TRUE.equals(s.getDirectPrintingEnabled()),
             s.getCashDenominationsJson(),
             s.getStorageLocationsJson(),
+            Boolean.TRUE.equals(s.getTpeEnabled()),
+            s.getTpeSimulatorEnabled() == null || s.getTpeSimulatorEnabled(),
+            s.getTpeBarIp(),
+            s.getTpeFloorIp(),
+            s.getTpePort() != null ? s.getTpePort() : 8888,
+            s.getTpeTerminalId() != null ? s.getTpeTerminalId() : "01",
+            s.getTpeTimeoutSeconds() != null ? s.getTpeTimeoutSeconds() : 45,
             timeZone != null ? timeZone : DEFAULT_TIMEZONE,
             s.getUpdatedAt()
         );

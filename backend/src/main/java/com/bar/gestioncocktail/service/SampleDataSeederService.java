@@ -1437,8 +1437,14 @@ public class SampleDataSeederService {
 
     private void seedSettingsAndConfig() {
         if (!appSettingsRepository.existsById(AppSettings.SINGLETON_ID)) {
-            appSettingsRepository.save(new AppSettings());
-            log.info("Seeded default AppSettings singleton.");
+            AppSettings defaultSettings = new AppSettings();
+            defaultSettings.setTpeEnabled(true);
+            defaultSettings.setTpeSimulatorEnabled(true);
+            defaultSettings.setTpePort(8888);
+            defaultSettings.setTpeTerminalId("01");
+            defaultSettings.setTpeTimeoutSeconds(45);
+            appSettingsRepository.save(defaultSettings);
+            log.info("Seeded default AppSettings singleton with TPE configuration.");
         }
         EstablishmentConfig config = establishmentConfigRepository.findById(EstablishmentConfig.SINGLETON_ID)
                 .orElseGet(() -> {
@@ -1458,6 +1464,7 @@ public class SampleDataSeederService {
         if (config.getModuleSuppliersManagementEnabled() == null) config.setModuleSuppliersManagementEnabled(true);
         if (config.getModuleInventoryAuditEnabled() == null) config.setModuleInventoryAuditEnabled(true);
         if (config.getModuleMysteryRouletteEnabled() == null) config.setModuleMysteryRouletteEnabled(true);
+        if (config.getModulePaymentTerminalEnabled() == null) config.setModulePaymentTerminalEnabled(true);
         establishmentConfigRepository.save(config);
         log.info("Seeded default EstablishmentConfig singleton with modular capabilities.");
     }

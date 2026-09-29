@@ -163,6 +163,34 @@ public class AppSettings {
     @Column(name = "direct_printing_enabled")
     private Boolean directPrintingEnabled = false;
 
+    @Column(name = "tpe_enabled")
+    private Boolean tpeEnabled = false;
+
+    @Column(name = "tpe_simulator_enabled")
+    private Boolean tpeSimulatorEnabled = true;
+
+    @Size(max = 100, message = "Bar TPE IP cannot exceed 100 characters")
+    @Column(name = "tpe_bar_ip", length = 100)
+    private String tpeBarIp;
+
+    @Size(max = 100, message = "Floor TPE IP cannot exceed 100 characters")
+    @Column(name = "tpe_floor_ip", length = 100)
+    private String tpeFloorIp;
+
+    @jakarta.validation.constraints.Min(value = 1, message = "TPE port must be at least 1")
+    @jakarta.validation.constraints.Max(value = 65535, message = "TPE port cannot exceed 65535")
+    @Column(name = "tpe_port")
+    private Integer tpePort = 8888;
+
+    @Size(max = 50, message = "TPE terminal ID cannot exceed 50 characters")
+    @Column(name = "tpe_terminal_id", length = 50)
+    private String tpeTerminalId = "01";
+
+    @jakarta.validation.constraints.Min(value = 5, message = "TPE timeout must be at least 5 seconds")
+    @jakarta.validation.constraints.Max(value = 300, message = "TPE timeout cannot exceed 300 seconds")
+    @Column(name = "tpe_timeout_seconds")
+    private Integer tpeTimeoutSeconds = 45;
+
     /**
      * Serialized JSON configuration of physical banknotes and coins used for cash drawer counting.
      */

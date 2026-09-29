@@ -50,6 +50,13 @@ export interface AppSettings {
   cashDeskPrinterIp?: string;
   printerPort?: number;
   directPrintingEnabled?: boolean;
+  tpeEnabled?: boolean;
+  tpeSimulatorEnabled?: boolean;
+  tpeBarIp?: string;
+  tpeFloorIp?: string;
+  tpePort?: number;
+  tpeTerminalId?: string;
+  tpeTimeoutSeconds?: number;
   cashDenominationsJson?: string;
   discountTiersJson?: string;
   storageLocationsJson?: string;

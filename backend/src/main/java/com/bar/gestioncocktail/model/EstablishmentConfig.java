@@ -135,6 +135,9 @@ public class EstablishmentConfig {
     @Column(name = "module_mystery_roulette_enabled")
     private Boolean moduleMysteryRouletteEnabled = true;
 
+    @Column(name = "module_payment_terminal_enabled")
+    private Boolean modulePaymentTerminalEnabled = true;
+
     @Column(name = "roulette_price_cocktail", precision = 10, scale = 2)
     private BigDecimal roulettePriceCocktail = new BigDecimal("7.50");
 
@@ -411,6 +414,14 @@ public class EstablishmentConfig {
         this.moduleMysteryRouletteEnabled = moduleMysteryRouletteEnabled;
     }
 
+    public Boolean getModulePaymentTerminalEnabled() {
+        return this.modulePaymentTerminalEnabled;
+    }
+
+    public void setModulePaymentTerminalEnabled(Boolean modulePaymentTerminalEnabled) {
+        this.modulePaymentTerminalEnabled = modulePaymentTerminalEnabled;
+    }
+
     public BigDecimal getRoulettePriceCocktail() {
         return this.roulettePriceCocktail != null ? this.roulettePriceCocktail : new BigDecimal("7.50");
     }
@@ -480,20 +491,25 @@ public class EstablishmentConfig {
             return true;
         }
         return switch (module) {
-            case CUISINE_KDS -> this.moduleKitchenKdsEnabled == null || this.moduleKitchenKdsEnabled;
-            case HAPPY_HOUR -> this.moduleHappyHourEnabled == null || this.moduleHappyHourEnabled;
-            case EMPLOYEE_MANAGEMENT -> this.moduleEmployeeManagementEnabled == null || this.moduleEmployeeManagementEnabled;
-            case FLOOR_PLAN -> this.moduleFloorPlanEnabled == null || this.moduleFloorPlanEnabled;
-            case QR_CLIENT_ORDERING -> this.moduleQrClientOrderingEnabled == null || this.moduleQrClientOrderingEnabled;
-            case STOCK_TRACKING -> this.moduleStockTrackingEnabled == null || this.moduleStockTrackingEnabled;
-            case CASH_DRAWER -> this.moduleCashDrawerEnabled == null || this.moduleCashDrawerEnabled;
-            case BAR_TABS -> this.moduleBarTabsEnabled == null || this.moduleBarTabsEnabled;
-            case COCKTAIL_LIBRARY -> this.moduleCocktailLibraryEnabled == null || this.moduleCocktailLibraryEnabled;
-            case SUPPLIERS_MANAGEMENT -> this.moduleSuppliersManagementEnabled == null || this.moduleSuppliersManagementEnabled;
-            case INVENTORY_AUDIT -> (this.moduleStockTrackingEnabled == null || this.moduleStockTrackingEnabled) && (this.moduleInventoryAuditEnabled == null || this.moduleInventoryAuditEnabled);
-            case MYSTERY_ROULETTE -> this.moduleMysteryRouletteEnabled == null || this.moduleMysteryRouletteEnabled;
+            case CUISINE_KDS -> isEnabledOrDefault(this.moduleKitchenKdsEnabled);
+            case HAPPY_HOUR -> isEnabledOrDefault(this.moduleHappyHourEnabled);
+            case EMPLOYEE_MANAGEMENT -> isEnabledOrDefault(this.moduleEmployeeManagementEnabled);
+            case FLOOR_PLAN -> isEnabledOrDefault(this.moduleFloorPlanEnabled);
+            case QR_CLIENT_ORDERING -> isEnabledOrDefault(this.moduleQrClientOrderingEnabled);
+            case STOCK_TRACKING -> isEnabledOrDefault(this.moduleStockTrackingEnabled);
+            case CASH_DRAWER -> isEnabledOrDefault(this.moduleCashDrawerEnabled);
+            case BAR_TABS -> isEnabledOrDefault(this.moduleBarTabsEnabled);
+            case COCKTAIL_LIBRARY -> isEnabledOrDefault(this.moduleCocktailLibraryEnabled);
+            case SUPPLIERS_MANAGEMENT -> isEnabledOrDefault(this.moduleSuppliersManagementEnabled);
+            case INVENTORY_AUDIT -> isEnabledOrDefault(this.moduleStockTrackingEnabled) && isEnabledOrDefault(this.moduleInventoryAuditEnabled);
+            case MYSTERY_ROULETTE -> isEnabledOrDefault(this.moduleMysteryRouletteEnabled);
+            case PAYMENT_TERMINAL -> isEnabledOrDefault(this.modulePaymentTerminalEnabled);
             default -> true;
         };
+    }
+
+    private static boolean isEnabledOrDefault(Boolean flag) {
+        return flag == null || flag;
     }
 
     /**
@@ -542,6 +558,9 @@ public class EstablishmentConfig {
                 break;
             case MYSTERY_ROULETTE:
                 this.moduleMysteryRouletteEnabled = enabled;
+                break;
+            case PAYMENT_TERMINAL:
+                this.modulePaymentTerminalEnabled = enabled;
                 break;
             default:
                 break;

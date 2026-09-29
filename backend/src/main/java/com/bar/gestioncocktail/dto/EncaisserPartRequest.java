@@ -34,5 +34,29 @@ public record EncaisserPartRequest(
     @NotBlank(message = "Split type (EGAL or SELECTION) is mandatory")
     String typeSplit,
 
-    List<SplitResultDTO.SplitItemDTO> items
-) {}
+    List<SplitResultDTO.SplitItemDTO> items,
+
+    String tpeAutorisation,
+    String tpeTerminalId,
+    String tpeCardBrand,
+    String tpeMaskedPan,
+    String tpeSequence
+) {
+    /**
+     * Backwards-compatible 9-parameter constructor before TPE fields were added.
+     */
+    public EncaisserPartRequest(
+        String nomConvive,
+        int partIndex,
+        Integer totalParts,
+        BigDecimal montant,
+        BigDecimal pourboire,
+        BigDecimal totalRegle,
+        String modePaiement,
+        String typeSplit,
+        List<SplitResultDTO.SplitItemDTO> items
+    ) {
+        this(nomConvive, partIndex, totalParts, montant, pourboire, totalRegle, modePaiement, typeSplit, items, null, null, null, null, null);
+    }
+}
+

@@ -71,6 +71,22 @@ public class Facture {
 
     @Column(name = "mode_paiement")
     private String modePaiement;
+
+    @Column(name = "tpe_autorisation", length = 50)
+    private String tpeAutorisation;
+
+    @Column(name = "tpe_terminal_id", length = 50)
+    private String tpeTerminalId;
+
+    @Column(name = "tpe_card_brand", length = 50)
+    private String tpeCardBrand;
+
+    @Column(name = "tpe_masked_pan", length = 50)
+    private String tpeMaskedPan;
+
+    @Column(name = "tpe_sequence", length = 50)
+    private String tpeSequence;
+
     private String notes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
