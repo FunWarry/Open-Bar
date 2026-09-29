@@ -1643,7 +1643,7 @@ describe('AppSettingsPageComponent', () => {
     it('should handle settings load error and fallback to default peripheral lists', () => {
       appSettingsServiceSpy.getSettings.and.returnValue(throwError(() => new Error('Network error')));
 
-      (component as unknown as { loadSettings: () => void }).loadSettings();
+      (component as unknown as { loadAllSettings: () => void }).loadAllSettings();
 
       expect(component.configuredPrinters().length).toBeGreaterThan(0);
       expect(component.configuredTpeTerminals().length).toBeGreaterThan(0);
