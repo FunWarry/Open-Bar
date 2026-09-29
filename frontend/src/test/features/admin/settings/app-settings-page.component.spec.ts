@@ -124,6 +124,14 @@ describe('AppSettingsPageComponent', () => {
       message: 'Cash drawer opened',
       durationMs: 10,
     }));
+    printerServiceSpy.testConnection.and.returnValue(of({
+      role: 'BAR',
+      ip: '192.168.1.101',
+      port: 9100,
+      success: true,
+      message: 'OK',
+      durationMs: 15,
+    }));
 
     appUpdateServiceSpy = jasmine.createSpyObj('AppUpdateService', ['checkNewerRelease', 'presentUpdateModal'], {
       currentVersion: '1.0.0',
@@ -1321,6 +1329,79 @@ describe('AppSettingsPageComponent', () => {
       expect(rouletteServiceSpy.regenerateDisplayPin).toHaveBeenCalled();
       expect(component.roulettePin()).toBe('4321');
       expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+  });
+
+  describe('Hardware and Network Peripherals Management', () => {
+    it('should add and remove ESC/POS printers dynamically', () => {
+      const initialCount = component.configuredPrinters().length;
+      component.addPrinter();
+      expect(component.configuredPrinters()).toHaveSize(initialCount + 1);
+      expect(component.appSettingsForm.dirty).toBeTrue();
+
+      const added = component.configuredPrinters()[component.configuredPrinters().length - 1];
+      component.removePrinter(added.id);
+      expect(component.configuredPrinters()).toHaveSize(initialCount);
+    });
+
+    it('should test printer connection and record test result', () => {
+      const testPrinter = {
+        id: 'p-test',
+        name: 'Test Printer',
+        role: 'BAR' as const,
+        ip: '192.168.1.101',
+        port: 9100,
+        paperWidth: 80 as const,
+        openCashDrawer: false,
+        enabled: true
+      };
+
+      component.testConfiguredPrinter(testPrinter);
+      expect(printerServiceSpy.testConnection).toHaveBeenCalledWith({
+        ip: '192.168.1.101',
+        port: 9100,
+        role: 'BAR'
+      });
+      expect(component.printerTestResults()['p-test']).toBeDefined();
+      expect(component.printerTestResults()['p-test'].success).toBeTrue();
+    });
+
+    it('should add and remove TPE terminals dynamically', () => {
+      const initialCount = component.configuredTpeTerminals().length;
+      component.addTpeTerminal();
+      expect(component.configuredTpeTerminals()).toHaveSize(initialCount + 1);
+      expect(component.appSettingsForm.dirty).toBeTrue();
+
+      const added = component.configuredTpeTerminals()[component.configuredTpeTerminals().length - 1];
+      component.removeTpeTerminal(added.id);
+      expect(component.configuredTpeTerminals()).toHaveSize(initialCount);
+    });
+
+    it('should test TPE connection and record test result', () => {
+      const testTpe = {
+        id: 't-test',
+        name: 'Test TPE',
+        role: 'BAR' as const,
+        ip: '192.168.1.50',
+        port: 8888,
+        terminalId: 'POS01',
+        timeoutSeconds: 30,
+        enabled: true
+      };
+
+      component.testConfiguredTpe(testTpe);
+      expect(paymentTerminalServiceSpy.testConnection).toHaveBeenCalledWith(jasmine.objectContaining({
+        ip: '192.168.1.50',
+        port: 8888,
+        terminalId: 'POS01'
+      }));
+      expect(component.tpeTestResults()['t-test']).toBeDefined();
+      expect(component.tpeTestResults()['t-test'].success).toBeTrue();
+    });
+
+    it('should trigger cash drawer diagnostic opening', () => {
+      component.testCashDrawer();
+      expect(printerServiceSpy.openCashDrawer).toHaveBeenCalled();
     });
   });
 });

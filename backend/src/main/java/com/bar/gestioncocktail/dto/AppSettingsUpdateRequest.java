@@ -152,6 +152,7 @@ public record AppSettingsUpdateRequest(
 
     String tpeTerminalsJson
 ) {
+
     /**
      * Backwards-compatible 37-parameter constructor before printersJson/tpeTerminalsJson.
      */

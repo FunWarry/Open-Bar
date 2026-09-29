@@ -274,7 +274,7 @@ public class PaymentTerminalService {
             activeTransactions.put(transactionId, approved);
             broadcastStatus(approved);
         } catch (Exception e) {
-            log.error("Simulation error for transaction {}", transactionId, e);
+            log.error("Simulation error for transaction {}", sanitizeLog(transactionId), e);
             publishError(transactionId, request.montant(), currencyCode, terminalId, "Simulation failed: " + e.getMessage());
         }
     }
@@ -350,7 +350,7 @@ public class PaymentTerminalService {
             activeTransactions.put(transactionId, finalResult);
             broadcastStatus(finalResult);
         } catch (Exception e) {
-            log.error("Hardware execution error for transaction {}", transactionId, e);
+            log.error("Hardware execution error for transaction {}", sanitizeLog(transactionId), e);
             publishError(transactionId, request.montant(), currencyCode, terminalId, e.getMessage());
         }
     }
@@ -405,6 +405,13 @@ public class PaymentTerminalService {
         } catch (Exception e) {
             log.warn("Failed to broadcast TPE status event over STOMP: {}", e.getMessage());
         }
+    }
+
+    private static String sanitizeLog(String input) {
+        if (input == null) {
+            return "";
+        }
+        return input.replaceAll("[^a-zA-Z0-9_.-]", "");
     }
 
     private void sleep(long ms) {

@@ -155,4 +155,169 @@ class PaymentTerminalServiceTest {
         assertThat(config.port()).isEqualTo(8888);
         assertThat(config.terminalId()).isEqualTo("POS01");
     }
+
+    @Test
+    @DisplayName("Should process hardware payment and transition to APPROVED")
+    void shouldProcessHardwarePaymentApproved() {
+        mockSettings.setTpeSimulatorEnabled(false);
+        when(appSettingsService.getSettings()).thenReturn(mockSettings);
+
+        ConcertFrameBuilder.ConcertResponse mockResponse = new ConcertFrameBuilder.ConcertResponse(
+                "01",
+                TpeTransactionStatus.APPROVED,
+                new BigDecimal("50.00"),
+                "AUTH777",
+                "VISA",
+                "4970********1234",
+                "001",
+                "Payment accepted"
+        );
+        when(socketClient.sendDebitTransaction(any(), eq("192.168.1.150"), eq(8888), eq(90), any()))
+                .thenReturn(mockResponse);
+
+        TpePaymentRequestDTO request = new TpePaymentRequestDTO(
+                new BigDecimal("50.00"),
+                "EUR",
+                TpeTerminalRole.BAR,
+                null,
+                null,
+                "Table 1"
+        );
+
+        TpePaymentResponseDTO initial = paymentTerminalService.initiatePayment(request);
+
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+            TpePaymentResponseDTO latest = paymentTerminalService.getTransactionStatus(initial.transactionId());
+            assertThat(latest.status()).isEqualTo(TpeTransactionStatus.APPROVED);
+            assertThat(latest.authorizationCode()).isEqualTo("AUTH777");
+            assertThat(latest.cardBrand()).isEqualTo("VISA");
+        });
+    }
+
+    @Test
+    @DisplayName("Should process hardware payment and record DECLINED status")
+    void shouldProcessHardwarePaymentDeclined() {
+        mockSettings.setTpeSimulatorEnabled(false);
+        when(appSettingsService.getSettings()).thenReturn(mockSettings);
+
+        ConcertFrameBuilder.ConcertResponse mockResponse = new ConcertFrameBuilder.ConcertResponse(
+                "01",
+                TpeTransactionStatus.DECLINED,
+                new BigDecimal("30.00"),
+                null,
+                "CB",
+                "4970********0000",
+                "002",
+                "Transaction declined"
+        );
+        when(socketClient.sendDebitTransaction(any(), eq("192.168.1.150"), eq(8888), eq(90), any()))
+                .thenReturn(mockResponse);
+
+        TpePaymentRequestDTO request = new TpePaymentRequestDTO(
+                new BigDecimal("30.00"),
+                "EUR",
+                TpeTerminalRole.BAR,
+                null,
+                null,
+                "Table 3"
+        );
+
+        TpePaymentResponseDTO initial = paymentTerminalService.initiatePayment(request);
+
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+            TpePaymentResponseDTO latest = paymentTerminalService.getTransactionStatus(initial.transactionId());
+            assertThat(latest.status()).isEqualTo(TpeTransactionStatus.DECLINED);
+        });
+    }
+
+    @Test
+    @DisplayName("Should handle hardware execution socket exception gracefully")
+    void shouldHandleHardwareSocketException() {
+        mockSettings.setTpeSimulatorEnabled(false);
+        when(appSettingsService.getSettings()).thenReturn(mockSettings);
+
+        when(socketClient.sendDebitTransaction(any(), eq("192.168.1.150"), eq(8888), eq(90), any()))
+                .thenThrow(new RuntimeException("Connection timed out"));
+
+        TpePaymentRequestDTO request = new TpePaymentRequestDTO(
+                new BigDecimal("15.00"),
+                "EUR",
+                TpeTerminalRole.BAR,
+                null,
+                null,
+                "Table 4"
+        );
+
+        TpePaymentResponseDTO initial = paymentTerminalService.initiatePayment(request);
+
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+            TpePaymentResponseDTO latest = paymentTerminalService.getTransactionStatus(initial.transactionId());
+            assertThat(latest.status()).isEqualTo(TpeTransactionStatus.ERROR);
+            assertThat(latest.message()).contains("Connection timed out");
+        });
+    }
+
+    @Test
+    @DisplayName("Should handle missing terminal IP in hardware payment")
+    void shouldHandleMissingTerminalIp() {
+        mockSettings.setTpeSimulatorEnabled(false);
+        mockSettings.setTpeBarIp(null);
+        mockSettings.setTpeFloorIp(null);
+        when(appSettingsService.getSettings()).thenReturn(mockSettings);
+
+        TpePaymentRequestDTO request = new TpePaymentRequestDTO(
+                new BigDecimal("20.00"),
+                "EUR",
+                TpeTerminalRole.BAR,
+                null,
+                null,
+                "Table 2"
+        );
+
+        TpePaymentResponseDTO initial = paymentTerminalService.initiatePayment(request);
+
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+            TpePaymentResponseDTO latest = paymentTerminalService.getTransactionStatus(initial.transactionId());
+            assertThat(latest.status()).isEqualTo(TpeTransactionStatus.ERROR);
+        });
+    }
+
+    @Test
+    @DisplayName("Should test connection in simulator mode directly with simulated latency")
+    void shouldTestConnectionInSimulatorMode() {
+        mockSettings.setTpeSimulatorEnabled(true);
+        when(appSettingsService.getSettings()).thenReturn(mockSettings);
+
+        TpeConnectionTestRequestDTO request = new TpeConnectionTestRequestDTO(
+                TpeTerminalRole.BAR,
+                null,
+                null
+        );
+
+        TpeConnectionTestResponseDTO response = paymentTerminalService.testConnection(request);
+
+        assertThat(response.success()).isTrue();
+        assertThat(response.message()).contains("Simulated TPE terminal reachable");
+        assertThat(response.responseTimeMs()).isPositive();
+    }
+
+    @Test
+    @DisplayName("Should handle socket error during connection test")
+    void shouldHandleConnectionTestSocketError() throws Exception {
+        mockSettings.setTpeSimulatorEnabled(false);
+        when(appSettingsService.getSettings()).thenReturn(mockSettings);
+        when(socketClient.testConnection("192.168.1.150", 8888, 4000))
+                .thenThrow(new java.io.IOException("Host unreachable"));
+
+        TpeConnectionTestRequestDTO request = new TpeConnectionTestRequestDTO(
+                TpeTerminalRole.BAR,
+                null,
+                null
+        );
+
+        TpeConnectionTestResponseDTO response = paymentTerminalService.testConnection(request);
+
+        assertThat(response.success()).isFalse();
+        assertThat(response.message()).contains("Host unreachable");
+    }
 }

@@ -45,7 +45,9 @@ public class ConcertSocketClient {
             int timeoutSeconds,
             byte[] requestFrame
     ) {
-        log.info("Connecting to TPE at {}:{} for transaction {}", ip, port, transactionId);
+        String safeTxId = sanitizeLog(transactionId);
+        String safeIp = sanitizeLog(ip);
+        log.info("Connecting to TPE at {}:{} for transaction {}", safeIp, port, safeTxId);
 
         try (Socket socket = new Socket()) {
             activeTransactionSockets.put(transactionId, socket);
@@ -66,14 +68,14 @@ public class ConcertSocketClient {
 
             // 4. Read response frame and acknowledge
             byte[] responseBytes = readResponseBytes(out, in);
-            log.info("Received {} response bytes from TPE for transaction {}", responseBytes.length, transactionId);
+            log.info("Received {} response bytes from TPE for transaction {}", responseBytes.length, safeTxId);
 
             return ConcertFrameBuilder.parseResponseFrame(responseBytes);
         } catch (SocketTimeoutException e) {
-            log.warn("TPE transaction {} timed out after {}s", transactionId, timeoutSeconds);
+            log.warn("TPE transaction {} timed out after {}s", safeTxId, timeoutSeconds);
             throw new BusinessException("Transaction card terminal timed out: customer did not complete payment in time", e);
         } catch (IOException e) {
-            log.error("Socket communication error with TPE {}:{} for transaction {}", ip, port, transactionId, e);
+            log.error("Socket communication error with TPE {}:{} for transaction {}", safeIp, port, safeTxId, e);
             throw new BusinessException("Failed to communicate with payment terminal: " + e.getMessage(), e);
         } finally {
             activeTransactionSockets.remove(transactionId);
@@ -87,17 +89,25 @@ public class ConcertSocketClient {
      * @return True if an active socket was interrupted, false otherwise
      */
     public boolean abortTransaction(String transactionId) {
+        String safeTxId = sanitizeLog(transactionId);
         Socket socket = activeTransactionSockets.remove(transactionId);
         if (socket != null && !socket.isClosed()) {
             try {
-                log.info("Aborting socket connection for transaction {}", transactionId);
+                log.info("Aborting socket connection for transaction {}", safeTxId);
                 socket.close();
                 return true;
             } catch (IOException e) {
-                log.warn("Error closing aborted transaction socket {}", transactionId, e);
+                log.warn("Error closing aborted transaction socket {}", safeTxId, e);
             }
         }
         return false;
+    }
+
+    private static String sanitizeLog(String input) {
+        if (input == null) {
+            return "";
+        }
+        return input.replaceAll("[^a-zA-Z0-9_.-]", "");
     }
 
     /**
