@@ -96,4 +96,15 @@ describe('BarTabCardComponent', () => {
     expect(duration).toBeDefined();
     expect(typeof duration).toBe('string');
   });
+
+  it('should compute accentColor correctly based on cautionMontant', () => {
+    component.tab = { ...mockTab, cautionMontant: 50 };
+    expect(component.accentColor).toBe('purple');
+
+    component.tab = { ...mockTab, cautionMontant: 0 };
+    expect(component.accentColor).toBe('primary');
+
+    component.tab = { ...mockTab, cautionMontant: undefined };
+    expect(component.accentColor).toBe('primary');
+  });
 });

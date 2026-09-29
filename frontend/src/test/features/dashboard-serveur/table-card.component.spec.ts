@@ -170,4 +170,21 @@ describe('TableCardComponent', () => {
     component.table = { ...tableOccupee, commandesActives: [] };
     expect(component.commandesEnCours).toBe(0);
   });
+
+  describe('accentColor', () => {
+    it('returns "success" when table is not occupied', () => {
+      component.table = tableLibre;
+      expect(component.accentColor).toBe('success');
+    });
+
+    it('returns "info" when table is occupied and has orders in preparation', () => {
+      component.table = tableEnCours;
+      expect(component.accentColor).toBe('info');
+    });
+
+    it('returns "warning" when table is occupied and has no orders in preparation', () => {
+      component.table = tableOccupee;
+      expect(component.accentColor).toBe('warning');
+    });
+  });
 });

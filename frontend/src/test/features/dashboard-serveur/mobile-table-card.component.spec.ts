@@ -99,4 +99,22 @@ describe('MobileTableCardComponent', () => {
 
     expect(component.ackAppel.emit).toHaveBeenCalledWith(tableWithCall.activeAppels![0]);
   });
+
+  it('should compute accentColor correctly based on table state and wait time', () => {
+    fixture.componentRef.setInput('table', { ...mockTable, occupee: false });
+    expect(component.accentColor).toBeNull();
+
+    fixture.componentRef.setInput('table', { ...mockTable, occupee: true });
+    component.waitTimeMinutes = 25;
+    expect(component.accentColor).toBe('danger');
+
+    component.waitTimeMinutes = 15;
+    expect(component.accentColor).toBe('warning');
+
+    component.waitTimeMinutes = 5;
+    expect(component.accentColor).toBe('success');
+
+    component.waitTimeMinutes = 0;
+    expect(component.accentColor).toBe('warning');
+  });
 });
