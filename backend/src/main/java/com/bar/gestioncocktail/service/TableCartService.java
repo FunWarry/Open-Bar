@@ -62,7 +62,6 @@ public class TableCartService {
      * @param commandeRepository Repository for order queries and updates
      * @param tableAppelRepository Repository for waiter and bill alerts
      */
-    @Autowired
     public TableCartService(
             TableCartItemRepository tableCartItemRepository,
             TableRepository tableRepository,
@@ -543,7 +542,8 @@ public class TableCartService {
 
     private Map<Long, Cocktail> loadCocktailsMap(List<TableCartItem> items) {
         List<Long> cocktailIds = items.stream()
-                .map(item -> item.getCocktailId())
+                .filter(Objects::nonNull)
+                .map(TableCartItem::getCocktailId)
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();
@@ -558,7 +558,8 @@ public class TableCartService {
 
     private Map<Long, CocktailVariante> loadVariantesMap(List<TableCartItem> items) {
         List<Long> varianteIds = items.stream()
-                .map(item -> item.getCocktailVarianteId())
+                .filter(Objects::nonNull)
+                .map(TableCartItem::getCocktailVarianteId)
                 .filter(vId -> vId != null && vId > 0)
                 .distinct()
                 .toList();
