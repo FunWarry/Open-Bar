@@ -14,7 +14,6 @@ import com.bar.gestioncocktail.repository.TableRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -543,7 +543,7 @@ public class TableCartService {
 
     private Map<Long, Cocktail> loadCocktailsMap(List<TableCartItem> items) {
         List<Long> cocktailIds = items.stream()
-                .map(TableCartItem::getCocktailId)
+                .map(item -> item.getCocktailId())
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();
@@ -558,7 +558,7 @@ public class TableCartService {
 
     private Map<Long, CocktailVariante> loadVariantesMap(List<TableCartItem> items) {
         List<Long> varianteIds = items.stream()
-                .map(TableCartItem::getCocktailVarianteId)
+                .map(item -> item.getCocktailVarianteId())
                 .filter(vId -> vId != null && vId > 0)
                 .distinct()
                 .toList();
