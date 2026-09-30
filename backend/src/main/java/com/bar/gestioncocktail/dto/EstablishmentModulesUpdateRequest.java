@@ -33,6 +33,11 @@ public record EstablishmentModulesUpdateRequest(
         Boolean mysteryRoulette,
         Boolean paymentTerminal
 ) {
+    @Override
+    public Boolean paymentTerminal() {
+        return paymentTerminal;
+    }
+
     /**
      * Backward-compatible constructor for 12 modules before paymentTerminal was introduced.
      */

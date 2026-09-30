@@ -186,7 +186,8 @@ flowchart TD
 - `establishment_closures` : Exceptional closures and recurring holidays
 - `shift_presets` : Predefined shift templates (duration, breaks)
 - `week_schedule_publications` : Publication log of employee schedules
-- `app_settings` : Global establishment settings singleton (currency, anti-fraud toggles, legal data, margin alert thresholds target/warning, default VAT rate, direct ESC/POS printer IPs for bar, kitchen, cash desk, port 9100, and toggle)
+- `app_settings` : Global establishment settings singleton (currency, anti-fraud toggles, legal data, margin alert thresholds target/warning, default VAT rate, direct ESC/POS printer IPs & dynamic JSON array configuration for bar, kitchen, cash desk on port 9100, Concert IP / CB payment terminal TCP client configuration and dynamic JSON array, and toggles)
+- `tpe_terminals` : Handled via Concert IP protocol over local network (`ConcertSocketClient`, `PaymentTerminalService`, `/api/tpe`); stores transaction metadata on `factures` and `facture_reglements` (`tpe_autorisation`, `tpe_terminal_id`, `tpe_card_brand`, `tpe_masked_pan`, `tpe_sequence`)
 - `happy_hour_rules`, `happy_hour_days`, `happy_hour_categories`, `happy_hour_cocktails` : Promotional Happy Hour & dynamic schedule-based pricing rule engine
 - `stock_movements` : Audit log of stock losses, breakages, expired ingredients, spills, staff tastings, and shrinkage (`ingredient_id`, `quantity`, `unit`, `reason`, `reported_by`, `cost`, `notes`, `recorded_at`)
 

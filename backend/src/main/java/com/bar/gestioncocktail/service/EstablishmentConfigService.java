@@ -229,6 +229,7 @@ public class EstablishmentConfigService {
         if (request.mysteryRoulette() != null) {
             config.setModuleEnabled(EstablishmentModule.MYSTERY_ROULETTE, request.mysteryRoulette());
         }
+        // Toggle payment terminal module if explicitly provided in update request
         if (request.paymentTerminal() != null) {
             config.setModuleEnabled(EstablishmentModule.PAYMENT_TERMINAL, request.paymentTerminal());
         }
