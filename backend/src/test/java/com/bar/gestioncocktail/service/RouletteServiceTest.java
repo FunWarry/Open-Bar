@@ -19,6 +19,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
@@ -232,7 +233,7 @@ class RouletteServiceTest {
         @DisplayName("Broadcasts live spin event to STOMP topic")
         void triggerBroadcastSpinBroadcastsToStomp() {
             when(sectorRepository.findByActiveTrueOrderByDisplayOrderAsc()).thenReturn(List.of(sectorMojito, sectorBartenderSpecial));
-            when(timeService.now()).thenReturn(LocalDateTime.of(2026, 9, 27, 20, 0));
+            when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.SEPTEMBER, 27, 20, 0));
 
             RouletteBroadcastSpinRequestDTO request = new RouletteBroadcastSpinRequestDTO(
                     null, "FAIR", null, null, null, false, 5, "CSGO"
@@ -249,7 +250,7 @@ class RouletteServiceTest {
         void triggerBroadcastSpinWithRiggedSector() {
             when(sectorRepository.findByActiveTrueOrderByDisplayOrderAsc()).thenReturn(List.of(sectorMojito, sectorBartenderSpecial));
             when(sectorRepository.findById(2L)).thenReturn(Optional.of(sectorBartenderSpecial));
-            when(timeService.now()).thenReturn(LocalDateTime.of(2026, 9, 27, 20, 0));
+            when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.SEPTEMBER, 27, 20, 0));
 
             RouletteBroadcastSpinRequestDTO request = new RouletteBroadcastSpinRequestDTO(
                     null, "RIGGED_SECTOR", null, 2L, null, false, 5, "CSGO"
@@ -516,14 +517,14 @@ class RouletteServiceTest {
             rum.setNom("Rhum blanc");
             rum.setQuantiteStock(new BigDecimal("100.0"));
             rum.setSeuilAlerte(new BigDecimal("10.0"));
-            rum.setDatePeremption(LocalDateTime.of(2026, 9, 30, 0, 0));
+            rum.setDatePeremption(LocalDateTime.of(2026, Month.SEPTEMBER, 30, 0, 0));
 
             CocktailIngredient ci = new CocktailIngredient();
             ci.setIngredient(rum);
             ci.setQuantite(new BigDecimal("5.0"));
             mojito.setIngredients(List.of(ci));
 
-            when(timeService.now()).thenReturn(LocalDateTime.of(2026, 9, 25, 0, 0));
+            when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.SEPTEMBER, 25, 0, 0));
             when(sectorRepository.findByActiveTrueOrderByDisplayOrderAsc()).thenReturn(List.of(sectorMojito));
 
             RouletteSpinRequestDTO req = new RouletteSpinRequestDTO(
