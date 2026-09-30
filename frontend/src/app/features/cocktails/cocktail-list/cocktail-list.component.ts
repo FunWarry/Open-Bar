@@ -31,6 +31,7 @@ import { CardComponent } from '../../../core/components/ui/card/card.component';
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { CocktailMatcherBarComponent, CocktailMatcherFilters } from '../../../core/components/ui/cocktail-matcher-bar/cocktail-matcher-bar.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+import { CocktailConnectionWheelComponent } from '../../../core/components/ui/cocktail-connection-wheel/cocktail-connection-wheel.component';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { getMarginBadgeClass } from '../../../core/utils/margin-calculation.util';
 import { environment } from '../../../../environments/environment';
@@ -58,7 +59,8 @@ export type { AllergenOption } from '../../../core/models/ingredient.model';
     CardComponent,
     CocktailMatcherBarComponent,
     SearchBarComponent,
-    ActionButtonComponent
+    ActionButtonComponent,
+    CocktailConnectionWheelComponent
   ]
 })
 export class CocktailListComponent implements OnInit, OnDestroy {
@@ -84,7 +86,7 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   matcherGlutenFree = false;
   matcherLowAbv = false;
   searchQuery = '';
-  viewMode: 'grid' | 'list' = 'grid';
+  viewMode: 'grid' | 'list' | 'wheel' = 'grid';
   showPictures = localStorage.getItem('openbar_show_pictures') !== 'false';
 
   getMarginBadgeClass(percentage: number | null | undefined): string {
@@ -140,6 +142,30 @@ export class CocktailListComponent implements OnInit, OnDestroy {
    */
   openLibraryImportModal(): void {
     void this.router.navigate(['/cocktails', 'library']);
+  }
+
+  /**
+   * Handles ingredient pair selection from the embedded connection wheel.
+   *
+   * @param pair Selected ingredient pair with count
+   */
+  onWheelPairSelected(pair: { ingredientA: string; ingredientB: string; count: number }): void {
+    if (pair?.ingredientA && pair?.ingredientB) {
+      this.searchQuery = `${pair.ingredientA} ${pair.ingredientB}`;
+      this.viewMode = 'grid';
+    }
+  }
+
+  /**
+   * Handles exploring cocktails matching a list of ingredients from the wheel.
+   *
+   * @param event Object containing list of ingredients
+   */
+  onWheelExploreCocktails(event: { ingredients: string[] }): void {
+    if (event?.ingredients?.length) {
+      this.searchQuery = event.ingredients.join(' ');
+      this.viewMode = 'grid';
+    }
   }
 
   ngOnInit(): void {

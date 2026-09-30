@@ -158,6 +158,57 @@
       }
     }
   }
+
+  .scope-col {
+    .scope-pill-group {
+      display: inline-flex;
+      align-items: center;
+      background: var(--background-bg-0);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-full, 9999px);
+      padding: 3px;
+      gap: 4px;
+
+      .scope-pill-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border: none;
+        border-radius: var(--radius-full, 9999px);
+        background: transparent;
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        ion-icon {
+          font-size: 15px;
+        }
+
+        &:hover:not(.active) {
+          color: var(--text-primary);
+          background: var(--background-surface-2);
+        }
+
+        &.active {
+          background: var(--primary);
+          color: var(--text-contrast, #ffffff);
+          font-weight: 600;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+      }
+    }
+  }
+}
+
+.wheel-empty-state-card {
+  padding: 32px 16px;
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg, 12px);
+  animation: fadeIn 0.2s ease-out;
 }
 
 // Active Multi-Selection Chips Toolbar

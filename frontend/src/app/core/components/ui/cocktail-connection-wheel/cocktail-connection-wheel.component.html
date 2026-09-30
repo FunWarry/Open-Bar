@@ -8,6 +8,36 @@
   } @else {
     <!-- Controls Toolbar -->
     <div class="wheel-controls-panel" data-testid="wheel-controls-panel">
+      <!-- Scope selector (Library vs Establishment) -->
+      @if (showScopeToggle) {
+        <div class="control-col scope-col" data-testid="wheel-scope-switcher">
+          <span class="control-label">
+            <ion-icon name="filter-outline"></ion-icon>
+            {{ 'COCKTAIL_WHEEL.SCOPE_LABEL' | transloco }}
+          </span>
+          <div class="scope-pill-group">
+            <button
+              type="button"
+              class="scope-pill-btn"
+              [class.active]="currentScope() === 'LIBRARY'"
+              (click)="onScopeChange('LIBRARY')"
+              data-testid="wheel-scope-library-btn">
+              <ion-icon name="library-outline"></ion-icon>
+              <span>{{ 'COCKTAIL_WHEEL.SCOPE_LIBRARY' | transloco }}</span>
+            </button>
+            <button
+              type="button"
+              class="scope-pill-btn"
+              [class.active]="currentScope() === 'ESTABLISHMENT'"
+              (click)="onScopeChange('ESTABLISHMENT')"
+              data-testid="wheel-scope-establishment-btn">
+              <ion-icon name="wine-outline"></ion-icon>
+              <span>{{ 'COCKTAIL_WHEEL.SCOPE_ESTABLISHMENT' | transloco }}</span>
+            </button>
+          </div>
+        </div>
+      }
+
       <!-- Search visible ingredient -->
       <div class="control-col search-box-col">
         <span class="control-label">
@@ -76,7 +106,18 @@
       }
     </div>
 
-    <!-- Active Multi-Selection Chips Toolbar -->
+    @if (!filteredGraph() || filteredGraph()!.nodes.length === 0) {
+      <div class="wheel-empty-state-card" data-testid="wheel-empty-state">
+        <app-empty-state
+          icon="wine-outline"
+          [title]="(currentScope() === 'ESTABLISHMENT' ? 'COCKTAIL_WHEEL.EMPTY_ESTABLISHMENT_TITLE' : 'COCKTAIL_WHEEL.EMPTY_TITLE') | transloco"
+          [subtitle]="(currentScope() === 'ESTABLISHMENT' ? 'COCKTAIL_WHEEL.EMPTY_ESTABLISHMENT_DESC' : 'COCKTAIL_WHEEL.EMPTY_DESC') | transloco"
+          [actionLabel]="(currentScope() === 'ESTABLISHMENT' ? 'COCKTAIL_WHEEL.SWITCH_TO_LIBRARY' : undefined) | transloco"
+          (actionClick)="onScopeChange('LIBRARY')">
+        </app-empty-state>
+      </div>
+    } @else {
+      <!-- Active Multi-Selection Chips Toolbar -->
     @if (selectedIngredientIds().length > 0) {
       <div class="active-selection-chips-bar" data-testid="wheel-active-selection-chips">
         <div class="chips-left">
@@ -400,4 +441,5 @@
       }
     </div>
   }
+}
 </div>

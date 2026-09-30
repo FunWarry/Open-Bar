@@ -49,6 +49,9 @@ class CocktailLibraryServiceTest {
     @Mock
     private EstablishmentConfigService establishmentConfigService;
 
+    @Mock
+    private CocktailWheelService cocktailWheelService;
+
     private CocktailLibraryService cocktailLibraryService;
     private final AtomicLong idGenerator = new AtomicLong(100);
 
@@ -61,7 +64,8 @@ class CocktailLibraryServiceTest {
                 ingredientRepository,
                 cocktailIngredientRepository,
                 glasswareRepository,
-                establishmentConfigService
+                establishmentConfigService,
+                cocktailWheelService
         );
         cocktailLibraryService.initLibrary();
 
@@ -312,14 +316,35 @@ class CocktailLibraryServiceTest {
     }
 
     @Test
-    @DisplayName("getWheelData should load wheel JSON resource and cache it")
+    @DisplayName("getWheelData should load wheel JSON resource and delegate to CocktailWheelService")
     void getWheelData_successAndCaching() {
+        com.fasterxml.jackson.databind.JsonNode mockNode = new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode();
+        when(cocktailWheelService.getWheelData(CocktailWheelScope.LIBRARY)).thenReturn(mockNode);
+
         com.fasterxml.jackson.databind.JsonNode wheel1 = cocktailLibraryService.getWheelData();
         com.fasterxml.jackson.databind.JsonNode wheel2 = cocktailLibraryService.getWheelData();
 
-        assertThat(wheel1).isNotNull();
-        assertThat(wheel2).isSameAs(wheel1);
+        assertThat(wheel1).isSameAs(mockNode);
+        assertThat(wheel2).isSameAs(mockNode);
         verify(establishmentConfigService, times(2)).checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
+        verify(cocktailWheelService, times(2)).getWheelData(CocktailWheelScope.LIBRARY);
+    }
+
+    @Test
+    @DisplayName("getWheelData with scope string should delegate to CocktailWheelService with parsed scope")
+    void getWheelData_withScopeString_success() {
+        com.fasterxml.jackson.databind.JsonNode mockNode = new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode();
+        when(cocktailWheelService.getWheelData(CocktailWheelScope.ESTABLISHMENT)).thenReturn(mockNode);
+        when(cocktailWheelService.getWheelData(CocktailWheelScope.LIBRARY)).thenReturn(mockNode);
+
+        com.fasterxml.jackson.databind.JsonNode wheelEst = cocktailLibraryService.getWheelData("ESTABLISHMENT");
+        com.fasterxml.jackson.databind.JsonNode wheelLib = cocktailLibraryService.getWheelData("LIBRARY");
+
+        assertThat(wheelEst).isSameAs(mockNode);
+        assertThat(wheelLib).isSameAs(mockNode);
+        verify(establishmentConfigService, times(2)).checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
+        verify(cocktailWheelService, times(1)).getWheelData(CocktailWheelScope.ESTABLISHMENT);
+        verify(cocktailWheelService, times(1)).getWheelData(CocktailWheelScope.LIBRARY);
     }
 
     @Test
@@ -333,3 +358,4 @@ class CocktailLibraryServiceTest {
                 .hasMessage("Module disabled");
     }
 }
+

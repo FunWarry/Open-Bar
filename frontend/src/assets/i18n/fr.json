@@ -848,6 +848,7 @@
     "SHOW_PICTURES": "Photos",
     "VIEW_GRID": "Vue Grille",
     "VIEW_LIST": "Vue Tableau",
+    "VIEW_WHEEL": "Roue des saveurs",
     "ALL": "Tous",
     "DISPONIBLES": "Disponibles",
     "INDISPONIBLES": "Indisponibles",
@@ -1190,7 +1191,15 @@
     "ADD_TO_SELECTION": "Ajouter au filtre",
     "REMOVE_FROM_SELECTION": "Retirer",
     "COMBINED_PARTNERS": "Ingrédients associés à la sélection",
-    "SHARED_RECIPES_COUNT": "{{ count }} recettes communes"
+    "SHARED_RECIPES_COUNT": "{{ count }} recettes communes",
+    "SCOPE_LABEL": "Périmètre",
+    "SCOPE_LIBRARY": "Bibliothèque (1 902)",
+    "SCOPE_ESTABLISHMENT": "Notre Carte",
+    "EMPTY_ESTABLISHMENT_TITLE": "Aucun cocktail dans votre carte",
+    "EMPTY_ESTABLISHMENT_DESC": "Votre établissement n'a pas encore configuré de cocktails avec des ingrédients associés. Importez des recettes depuis la bibliothèque pour générer votre roue d'accords.",
+    "SWITCH_TO_LIBRARY": "Explorer la bibliothèque complète",
+    "EMPTY_TITLE": "Aucune donnée de roue disponible",
+    "EMPTY_DESC": "Impossible de charger les données du graphe d'accords."
   },
   "INGREDIENTS": {
     "TITLE": "Gestion des Ingrédients",

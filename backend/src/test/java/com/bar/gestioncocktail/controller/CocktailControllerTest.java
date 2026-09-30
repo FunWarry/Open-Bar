@@ -303,7 +303,7 @@ class CocktailControllerTest {
         node.put("status", "ok");
         when(cocktailLibraryService.getWheelData()).thenReturn(node);
 
-        ResponseEntity<com.fasterxml.jackson.databind.JsonNode> response = cocktailController.getLibraryWheel();
+        ResponseEntity<com.fasterxml.jackson.databind.JsonNode> response = cocktailController.getLibraryWheel(null);
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getBody()).isNotNull();

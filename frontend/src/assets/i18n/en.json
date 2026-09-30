@@ -848,6 +848,7 @@
     "SHOW_PICTURES": "Photos",
     "VIEW_GRID": "Grid View",
     "VIEW_LIST": "Table View",
+    "VIEW_WHEEL": "Connection Wheel",
     "ALL": "All",
     "DISPONIBLES": "Available",
     "INDISPONIBLES": "Unavailable",
@@ -1190,7 +1191,15 @@
     "ADD_TO_SELECTION": "Add to filter",
     "REMOVE_FROM_SELECTION": "Remove",
     "COMBINED_PARTNERS": "Ingredients paired with selection",
-    "SHARED_RECIPES_COUNT": "{{ count }} shared recipes"
+    "SHARED_RECIPES_COUNT": "{{ count }} shared recipes",
+    "SCOPE_LABEL": "Scope",
+    "SCOPE_LIBRARY": "Master Library (1,902)",
+    "SCOPE_ESTABLISHMENT": "Our Menu",
+    "EMPTY_ESTABLISHMENT_TITLE": "No cocktails on your menu",
+    "EMPTY_ESTABLISHMENT_DESC": "Your establishment hasn't configured any cocktails with ingredients yet. Import recipes from the library to generate your flavor connection wheel.",
+    "SWITCH_TO_LIBRARY": "Explore full library",
+    "EMPTY_TITLE": "No connection wheel data available",
+    "EMPTY_DESC": "Unable to load connection wheel graph data."
   },
   "INGREDIENTS": {
     "TITLE": "Ingredient Management",

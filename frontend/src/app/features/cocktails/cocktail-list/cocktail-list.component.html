@@ -92,6 +92,17 @@
               <ion-icon name="list-outline"></ion-icon>
               <span>{{ 'COCKTAILS.VIEW_LIST' | transloco }}</span>
             </button>
+
+            <button
+              type="button"
+              class="view-pill-btn"
+              [class.active]="viewMode === 'wheel'"
+              (click)="viewMode = 'wheel'"
+              (keydown.enter)="viewMode = 'wheel'"
+              data-testid="view-wheel-btn">
+              <ion-icon name="sparkles-outline"></ion-icon>
+              <span>{{ 'COCKTAILS.VIEW_WHEEL' | transloco }}</span>
+            </button>
           </div>
 
           @if (!selectionMode && (isAdmin$ | async)) {
@@ -413,7 +424,7 @@
             }
           </ion-row>
         </ion-grid>
-      } @else {
+      } @else if (viewMode === 'list') {
         <!-- Mode Liste -->
         <app-card class="cocktail-list-card" [padding]="'none'" [showHeader]="false" [showFooter]="false">
           <div card-content>
@@ -527,6 +538,16 @@
           </ion-list>
         </div>
       </app-card>
+    } @else if (viewMode === 'wheel') {
+      <!-- Mode Roue des saveurs / Connection Wheel -->
+      <div class="cocktail-wheel-section" data-testid="cocktails-page-wheel-section">
+        <app-cocktail-connection-wheel
+          [scope]="'ESTABLISHMENT'"
+          [showScopeToggle]="true"
+          (pairSelected)="onWheelPairSelected($event)"
+          (exploreCocktails)="onWheelExploreCocktails($event)">
+        </app-cocktail-connection-wheel>
+      </div>
     }
   }
 </div>
