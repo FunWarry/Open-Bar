@@ -144,6 +144,7 @@ public class CocktailLibraryService {
      */
     @Transactional(readOnly = true)
     public JsonNode getWheelData() {
+        establishmentConfigService.checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
         return cocktailWheelService.getWheelData(CocktailWheelScope.LIBRARY);
     }
 
@@ -155,6 +156,7 @@ public class CocktailLibraryService {
      */
     @Transactional(readOnly = true)
     public JsonNode getWheelData(String scope) {
+        establishmentConfigService.checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
         CocktailWheelScope wheelScope = CocktailWheelScope.fromString(scope);
         return cocktailWheelService.getWheelData(wheelScope);
     }

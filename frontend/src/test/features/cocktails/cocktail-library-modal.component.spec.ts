@@ -171,8 +171,9 @@ describe('CocktailLibraryModalComponent', () => {
   ];
 
   beforeEach(async () => {
-    libraryServiceSpy = jasmine.createSpyObj('CocktailLibraryService', ['getLibraryCocktails', 'importCocktails', 'getWheelData']);
+    libraryServiceSpy = jasmine.createSpyObj('CocktailLibraryService', ['getLibraryCocktails', 'importCocktails', 'getWheelData', 'getCachedWheelData']);
     libraryServiceSpy.getLibraryCocktails.and.returnValue(of(mockLibraryItems));
+    libraryServiceSpy.getCachedWheelData.and.returnValue(null);
     libraryServiceSpy.getWheelData.and.returnValue(of({
       categories: {},
       nodes: [],

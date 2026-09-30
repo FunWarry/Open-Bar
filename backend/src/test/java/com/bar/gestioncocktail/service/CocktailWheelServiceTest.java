@@ -36,23 +36,23 @@ class CocktailWheelServiceTest {
     @Mock
     private EstablishmentConfigService establishmentConfigService;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private CocktailWheelService cocktailWheelService;
 
     private static final String TEST_WHEEL_FILE = "data/establishment_connection_wheel.json";
 
     @BeforeEach
-    void setUp() {
+    void setUpTest() {
         new java.io.File(TEST_WHEEL_FILE).delete();
+        ObjectMapper jsonMapper = new ObjectMapper();
         cocktailWheelService = new CocktailWheelService(
                 cocktailRepository,
-                objectMapper,
+                jsonMapper,
                 establishmentConfigService
         );
     }
 
     @AfterEach
-    void tearDown() {
+    void cleanUpTestFile() {
         new java.io.File(TEST_WHEEL_FILE).delete();
     }
 

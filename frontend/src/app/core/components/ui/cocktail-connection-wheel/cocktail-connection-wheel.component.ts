@@ -428,7 +428,7 @@ export class CocktailConnectionWheelComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: () => {
-        if (!this.rawData()) {
+        if (!cached) {
           this.rawData.set(null);
         }
         this.isLoading.set(false);

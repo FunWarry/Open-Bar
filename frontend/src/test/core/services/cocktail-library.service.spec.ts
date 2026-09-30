@@ -51,9 +51,15 @@ describe('CocktailLibraryService', () => {
     });
     service = TestBed.inject(CocktailLibraryService);
     httpMock = TestBed.inject(HttpTestingController);
+    localStorage.removeItem('openbar_wheel_cache_library');
+    localStorage.removeItem('openbar_wheel_cache_establishment');
   });
 
-  afterEach(() => httpMock.verify());
+  afterEach(() => {
+    httpMock.verify();
+    localStorage.removeItem('openbar_wheel_cache_library');
+    localStorage.removeItem('openbar_wheel_cache_establishment');
+  });
 
   it('should fetch library cocktails with no query params', () => {
     service.getLibraryCocktails().subscribe((items: CocktailLibraryItem[]) => {
@@ -114,29 +120,25 @@ describe('CocktailLibraryService', () => {
     req.flush(mockResult);
   });
 
-  it('should fetch and cache connection wheel data from assets', () => {
+  it('should fetch and cache connection wheel data from backend API with scope', () => {
     const mockWheelData: any = {
       nodes: [{ id: 'ing_1', name: 'Rhum' }],
       edges: [{ source: 'ing_1', target: 'ing_2', weight: 5 }],
       categories: ['dark_liquor']
     };
 
-    let result1: any;
-    let result2: any;
+    let result: any;
+    service.getWheelData('LIBRARY').subscribe(data => result = data);
 
-    service.getWheelData().subscribe(data => result1 = data);
-    service.getWheelData().subscribe(data => result2 = data);
-
-    const req = httpMock.expectOne('assets/data/cocktail-connection-wheel.json');
+    const req = httpMock.expectOne(`${baseUrl}/wheel?scope=LIBRARY`);
     expect(req.request.method).toBe('GET');
     req.flush(mockWheelData);
 
-    expect(result1).toEqual(mockWheelData);
-    expect(result2).toEqual(mockWheelData);
-    httpMock.expectNone(`${baseUrl}/wheel`);
+    expect(result).toEqual(mockWheelData);
+    expect(service.getCachedWheelData('LIBRARY')).toEqual(mockWheelData);
   });
 
-  it('should fall back to backend API if connection wheel asset request fails', () => {
+  it('should fall back to local assets if backend API fails for LIBRARY scope', () => {
     const mockWheelData: any = {
       nodes: [{ id: 'ing_fallback', name: 'Gin' }],
       edges: [],
@@ -144,15 +146,33 @@ describe('CocktailLibraryService', () => {
     };
 
     let fallbackResult: any;
-    service.getWheelData().subscribe(data => fallbackResult = data);
+    service.getWheelData('LIBRARY').subscribe(data => fallbackResult = data);
+
+    const apiReq = httpMock.expectOne(`${baseUrl}/wheel?scope=LIBRARY`);
+    expect(apiReq.request.method).toBe('GET');
+    apiReq.flush('Not Found', { status: 404, statusText: 'Not Found' });
 
     const assetReq = httpMock.expectOne('assets/data/cocktail-connection-wheel.json');
-    assetReq.flush('Not Found', { status: 404, statusText: 'Not Found' });
-
-    const apiReq = httpMock.expectOne(`${baseUrl}/wheel`);
-    expect(apiReq.request.method).toBe('GET');
-    apiReq.flush(mockWheelData);
+    expect(assetReq.request.method).toBe('GET');
+    assetReq.flush(mockWheelData);
 
     expect(fallbackResult).toEqual(mockWheelData);
+  });
+
+  it('should fall back to localStorage cached data if network request fails', () => {
+    const cachedData: any = {
+      nodes: [{ id: 'ing_cached', name: 'Vodka' }],
+      edges: [],
+      categories: ['light_liquor']
+    };
+    localStorage.setItem('openbar_wheel_cache_establishment', JSON.stringify(cachedData));
+
+    let result: any;
+    service.getWheelData('ESTABLISHMENT').subscribe(data => result = data);
+
+    const apiReq = httpMock.expectOne(`${baseUrl}/wheel?scope=ESTABLISHMENT`);
+    apiReq.flush('Network failure', { status: 0, statusText: 'Unknown Error' });
+
+    expect(result).toEqual(cachedData);
   });
 });
