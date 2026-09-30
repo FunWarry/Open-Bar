@@ -38,7 +38,8 @@ describe('CocktailConnectionWheelComponent', () => {
   };
 
   beforeEach(async () => {
-    mockLibraryService = jasmine.createSpyObj<CocktailLibraryService>('CocktailLibraryService', ['getWheelData']);
+    mockLibraryService = jasmine.createSpyObj<CocktailLibraryService>('CocktailLibraryService', ['getWheelData', 'getCachedWheelData']);
+    mockLibraryService.getCachedWheelData.and.returnValue(null);
     mockLibraryService.getWheelData.and.returnValue(of(mockWheelData));
 
     await TestBed.configureTestingModule({
@@ -324,6 +325,36 @@ describe('CocktailConnectionWheelComponent', () => {
       component.hoveredIngredientId.set(null);
       component.toggleIngredient('gin');
       expect(component.isNodeLabelVisible(ginNode!)).toBeTrue();
+    });
+  });
+
+  describe('Scope Switcher & Dynamic Catalog Generation', () => {
+    it('should switch scope to ESTABLISHMENT and reload data', () => {
+      component.onScopeChange('ESTABLISHMENT');
+      expect(component.currentScope()).toBe('ESTABLISHMENT');
+      expect(mockLibraryService.getWheelData).toHaveBeenCalledWith('ESTABLISHMENT');
+    });
+
+    it('should identify empty establishment dataset and flag isEmpty', () => {
+      mockLibraryService.getWheelData.and.returnValue(of({
+        categories: {},
+        nodes: [],
+        edges: []
+      }));
+
+      component.onScopeChange('ESTABLISHMENT');
+      fixture.detectChanges();
+
+      expect(component.isEmpty()).toBeTrue();
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('[data-testid="wheel-empty-state"]')).toBeTruthy();
+    });
+
+    it('should switch back to LIBRARY when clicking library scope pill', () => {
+      component.currentScope.set('ESTABLISHMENT');
+      component.onScopeChange('LIBRARY');
+      expect(component.currentScope()).toBe('LIBRARY');
+      expect(mockLibraryService.getWheelData).toHaveBeenCalledWith('LIBRARY');
     });
   });
 });

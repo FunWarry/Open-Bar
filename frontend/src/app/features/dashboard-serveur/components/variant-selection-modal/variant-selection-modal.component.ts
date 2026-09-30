@@ -130,10 +130,10 @@ export class VariantSelectionModalComponent {
   }
 
   close() {
-    this.modalCtrl.dismiss(null, 'cancel');
+    void this.modalCtrl.dismiss(null, 'cancel');
   }
 
   selectVariant(variant: ProductVariant) {
-    this.modalCtrl.dismiss({ selectedVariant: variant }, 'confirm');
+    void this.modalCtrl.dismiss({ selectedVariant: variant }, 'confirm');
   }
 }

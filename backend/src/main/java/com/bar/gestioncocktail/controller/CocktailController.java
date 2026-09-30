@@ -430,15 +430,43 @@ public class CocktailController {
     }
 
     /**
-     * Retrieves precomputed ingredient association connection wheel dataset.
+     * Retrieves dynamically generated ingredient association connection wheel dataset.
      *
+     * @param scope Optional scope identifier ('LIBRARY' or 'ESTABLISHMENT')
      * @return JsonNode containing connection wheel graph data
      */
     @GetMapping("/library/wheel")
-    @Operation(summary = "Get cocktail connection wheel data", description = "Retrieves precomputed chord diagram nodes, categories, and ingredient association edges.")
+    @Operation(summary = "Get cocktail connection wheel data", description = "Retrieves dynamically generated chord diagram nodes, categories, and ingredient association edges for library or establishment scope.")
     @ApiResponse(responseCode = "200", description = "Connection wheel dataset retrieved successfully")
+    public ResponseEntity<JsonNode> getLibraryWheel(
+            @RequestParam(value = "scope", required = false) String scope) {
+        if (scope == null || scope.isBlank()) {
+            return ResponseEntity.ok(cocktailLibraryService.getWheelData());
+        }
+        return ResponseEntity.ok(cocktailLibraryService.getWheelData(scope));
+    }
+
+    /**
+     * Retrieves connection wheel dataset for default library scope.
+     *
+     * @return JsonNode containing connection wheel graph data
+     */
     public ResponseEntity<JsonNode> getLibraryWheel() {
-        return ResponseEntity.ok(cocktailLibraryService.getWheelData());
+        return getLibraryWheel(null);
+    }
+
+    /**
+     * Retrieves establishment cocktail connection wheel dataset.
+     *
+     * @param scope Optional scope identifier ('ESTABLISHMENT' or 'LIBRARY')
+     * @return JsonNode containing connection wheel graph data
+     */
+    @GetMapping("/wheel")
+    @Operation(summary = "Get establishment connection wheel data", description = "Retrieves dynamically generated chord diagram for the establishment cocktail catalog.")
+    @ApiResponse(responseCode = "200", description = "Connection wheel dataset retrieved successfully")
+    public ResponseEntity<JsonNode> getEstablishmentWheel(
+            @RequestParam(value = "scope", defaultValue = "ESTABLISHMENT") String scope) {
+        return ResponseEntity.ok(cocktailLibraryService.getWheelData(scope));
     }
 
     /**

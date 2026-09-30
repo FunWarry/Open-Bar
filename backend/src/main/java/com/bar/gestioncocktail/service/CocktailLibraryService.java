@@ -38,7 +38,6 @@ public class CocktailLibraryService {
     private static final Logger log = LoggerFactory.getLogger(CocktailLibraryService.class);
     private static final String LIBRARY_RESOURCE_PATH = "data/cocktail_library.json";
     private static final String FALLBACK_RESOURCE_PATH = "data/test_cocktails.json";
-    private static final String WHEEL_RESOURCE_PATH = "data/cocktail_connection_wheel.json";
 
     private static final String FIELD_IS_VEGAN = "isVegan";
     private static final String FIELD_FLAVOR_PROFILES = "flavorProfiles";
@@ -55,12 +54,12 @@ public class CocktailLibraryService {
     private final CocktailIngredientRepository cocktailIngredientRepository;
     private final GlasswareRepository glasswareRepository;
     private final EstablishmentConfigService establishmentConfigService;
+    private final CocktailWheelService cocktailWheelService;
     private final ObjectMapper objectMapper;
 
     private final List<CocktailLibraryItemDTO> libraryItems = new ArrayList<>();
     private final Map<String, CocktailLibraryItemDTO> itemsById = new HashMap<>();
     private final Map<String, CocktailLibraryItemDTO> itemsByNameLower = new HashMap<>();
-    private JsonNode wheelDataCache = null;
 
     /**
      * Constructs the library service with necessary repository and configuration dependencies.
@@ -70,18 +69,21 @@ public class CocktailLibraryService {
      * @param cocktailIngredientRepository Repository for cocktail-ingredient link entities
      * @param glasswareRepository          Repository for glassware presets
      * @param establishmentConfigService   Service for establishment capability toggles
+     * @param cocktailWheelService         Service for dynamic flavor and chord wheel generation
      */
     public CocktailLibraryService(
             CocktailRepository cocktailRepository,
             IngredientRepository ingredientRepository,
             CocktailIngredientRepository cocktailIngredientRepository,
             GlasswareRepository glasswareRepository,
-            EstablishmentConfigService establishmentConfigService) {
+            EstablishmentConfigService establishmentConfigService,
+            CocktailWheelService cocktailWheelService) {
         this.cocktailRepository = cocktailRepository;
         this.ingredientRepository = ingredientRepository;
         this.cocktailIngredientRepository = cocktailIngredientRepository;
         this.glasswareRepository = glasswareRepository;
         this.establishmentConfigService = establishmentConfigService;
+        this.cocktailWheelService = cocktailWheelService;
         this.objectMapper = JsonMapper.builder()
                 .enable(JsonReadFeature.ALLOW_NON_NUMERIC_NUMBERS)
                 .build();
@@ -127,6 +129,7 @@ public class CocktailLibraryService {
                         itemsByNameLower.put(item.nom().toLowerCase().trim(), item);
                     }
                 }
+                cocktailWheelService.generateLibraryWheel(libraryItems);
             }
             log.info("Loaded {} recipes into cocktail library cache.", libraryItems.size());
         } catch (Exception e) {
@@ -135,26 +138,25 @@ public class CocktailLibraryService {
     }
 
     /**
-     * Retrieves the interactive connection wheel dataset (nodes, categorized taxonomy, and ingredient association matrix).
+     * Retrieves the interactive connection wheel dataset for the default library scope.
      *
-     * @return JsonNode containing precomputed connection wheel data
+     * @return JsonNode containing connection wheel data
      */
     @Transactional(readOnly = true)
     public JsonNode getWheelData() {
-        establishmentConfigService.checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
-        if (wheelDataCache != null) {
-            return wheelDataCache;
-        }
-        try {
-            ClassPathResource resource = new ClassPathResource(WHEEL_RESOURCE_PATH);
-            if (resource.exists()) {
-                wheelDataCache = objectMapper.readTree(resource.getInputStream());
-                return wheelDataCache;
-            }
-        } catch (Exception e) {
-            log.error("Failed to load connection wheel dataset from '{}'", WHEEL_RESOURCE_PATH, e);
-        }
-        return objectMapper.createObjectNode();
+        return cocktailWheelService.getWheelData(CocktailWheelScope.LIBRARY);
+    }
+
+    /**
+     * Retrieves the interactive connection wheel dataset for the specified scope.
+     *
+     * @param scope Scope identifier (e.g. "LIBRARY" or "ESTABLISHMENT")
+     * @return JsonNode containing connection wheel data
+     */
+    @Transactional(readOnly = true)
+    public JsonNode getWheelData(String scope) {
+        CocktailWheelScope wheelScope = CocktailWheelScope.fromString(scope);
+        return cocktailWheelService.getWheelData(wheelScope);
     }
 
     /**
@@ -211,6 +213,10 @@ public class CocktailLibraryService {
 
         for (CocktailLibraryItemDTO template : targets) {
             importSingleTemplateCocktail(template, allGlassware, stats);
+        }
+
+        if (stats.importedCount > 0) {
+            cocktailWheelService.regenerateEstablishmentWheel();
         }
 
         String summary = String.format("Successfully imported %d cocktails (%d skipped, %d new ingredients created, %d ingredients reused).",
@@ -367,16 +373,12 @@ public class CocktailLibraryService {
             Cocktail cocktail,
             List<CocktailLibraryRecipeStepDTO> stepDTOs,
             Map<String, Ingredient> resolvedIngredients) {
-        List<CocktailRecipeStep> steps = new ArrayList<>();
-        if (stepDTOs == null) {
-            return steps;
+        if (stepDTOs == null || stepDTOs.isEmpty()) {
+            return Collections.emptyList();
         }
-
-        int order = 1;
-        for (CocktailLibraryRecipeStepDTO s : stepDTOs) {
-            steps.add(buildSingleRecipeStep(cocktail, s, order++, resolvedIngredients));
-        }
-        return steps;
+        return java.util.stream.IntStream.range(0, stepDTOs.size())
+                .mapToObj(i -> buildSingleRecipeStep(cocktail, stepDTOs.get(i), i + 1, resolvedIngredients))
+                .toList();
     }
 
     private CocktailRecipeStep buildSingleRecipeStep(

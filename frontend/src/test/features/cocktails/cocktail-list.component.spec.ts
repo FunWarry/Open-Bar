@@ -9,6 +9,7 @@ import { CocktailListComponent } from '../../../app/features/cocktails/cocktail-
 import { CocktailService } from '../../../app/core/services/cocktail.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
+import { CocktailLibraryService } from '../../../app/core/services/cocktail-library.service';
 import { Cocktail, CocktailCategorie } from '../../../app/core/models/cocktail.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
@@ -73,6 +74,10 @@ describe('CocktailListComponent', () => {
     storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
     storeSpy.select.and.returnValue(of(false));
 
+    const mockLibraryService = jasmine.createSpyObj('CocktailLibraryService', ['getWheelData', 'getCachedWheelData']);
+    mockLibraryService.getCachedWheelData.and.returnValue(null);
+    mockLibraryService.getWheelData.and.returnValue(of({ categories: {}, nodes: [], edges: [] }));
+
     await TestBed.configureTestingModule({
       imports: [CocktailListComponent, RouterTestingModule, getTranslocoTestingModule()],
       providers: [
@@ -81,6 +86,7 @@ describe('CocktailListComponent', () => {
         { provide: CocktailService, useValue: serviceSpy },
         { provide: WebSocketService, useValue: wsSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: CocktailLibraryService, useValue: mockLibraryService },
       ],
     }).compileComponents();
 
@@ -622,6 +628,34 @@ describe('CocktailListComponent', () => {
     component.openLibraryImportModal();
 
     expect(router.navigate).toHaveBeenCalledWith(['/cocktails', 'library']);
+  });
+
+  describe('Connection Wheel View Mode', () => {
+    it('renders connection wheel section when viewMode is wheel', fakeAsync(() => {
+      component.viewMode = 'wheel';
+      component.isLoading = false;
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const wheelSection = compiled.querySelector('[data-testid="cocktails-page-wheel-section"]');
+      expect(wheelSection).toBeTruthy();
+    }));
+
+    it('onWheelPairSelected sets search query and switches viewMode to grid', () => {
+      component.viewMode = 'wheel';
+      component.onWheelPairSelected({ ingredientA: 'Gin', ingredientB: 'Vermouth', count: 12 });
+
+      expect(component.searchQuery).toBe('Gin Vermouth');
+      expect(component.viewMode).toBe('grid');
+    });
+
+    it('onWheelExploreCocktails sets search query and switches viewMode to grid', () => {
+      component.viewMode = 'wheel';
+      component.onWheelExploreCocktails({ ingredients: ['Bourbon', 'Bitters', 'Simple Syrup'] });
+
+      expect(component.searchQuery).toBe('Bourbon Bitters Simple Syrup');
+      expect(component.viewMode).toBe('grid');
+    });
   });
 });
 

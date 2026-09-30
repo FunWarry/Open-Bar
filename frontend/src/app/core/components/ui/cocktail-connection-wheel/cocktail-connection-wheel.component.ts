@@ -24,10 +24,12 @@ import {
   removeOutline,
   sparklesOutline,
   trashOutline,
-  wineOutline,
   filterOutline,
-  searchOutline
+  searchOutline,
+  libraryOutline,
+  wineOutline
 } from 'ionicons/icons';
+import { EmptyStateComponent } from '../empty-state/empty-state.component';
 import { CocktailLibraryService } from '../../../services/cocktail-library.service';
 import {
   CocktailConnectionWheelData,
@@ -109,7 +111,8 @@ interface RawChordItem {
     IonIcon,
     IonSpinner,
     SearchBarComponent,
-    SearchableSelectComponent
+    SearchableSelectComponent,
+    EmptyStateComponent
   ],
   templateUrl: './cocktail-connection-wheel.component.html',
   styleUrls: ['./cocktail-connection-wheel.component.scss']
@@ -122,17 +125,35 @@ export class CocktailConnectionWheelComponent implements OnInit {
   /** Default connection threshold count (e.g. 500). */
   @Input() defaultLimit = 500;
 
+  /** Target scope of the connection wheel ('LIBRARY' or 'ESTABLISHMENT'). */
+  @Input() scope: 'LIBRARY' | 'ESTABLISHMENT' = 'LIBRARY';
+
+  /** Whether to show the scope switcher control pills. */
+  @Input() showScopeToggle = true;
+
   /** Event emitted when user selects a pair of ingredients to explore recipes. */
   @Output() readonly pairSelected = new EventEmitter<{ ingredientA: string; ingredientB: string; count: number }>();
 
   /** Event emitted when user wants to filter recipes with a given ingredient list. */
   @Output() readonly exploreCocktails = new EventEmitter<{ ingredients: string[] }>();
 
+  /** Currently selected scope signal. */
+  readonly currentScope = signal<'LIBRARY' | 'ESTABLISHMENT'>('LIBRARY');
+
   /** Raw graph data loaded from asset / API. */
   readonly rawData = signal<CocktailConnectionWheelData | null>(null);
 
   /** Loading state indicator. */
   readonly isLoading = signal<boolean>(true);
+
+  /** Empty state detection (e.g. establishment with no cocktails configured). */
+  readonly isEmpty = computed<boolean>(() => {
+    const data = this.rawData();
+    return !this.isLoading() && !data?.nodes?.length;
+  });
+
+  /** Wine icon for empty state and scope toggle. */
+  readonly wineOutline = wineOutline;
 
   /** Active connection limit (100, 250, 500, or Infinity). */
   readonly connectionLimit = signal<number>(500);
@@ -192,7 +213,9 @@ export class CocktailConnectionWheelComponent implements OnInit {
       : data.edges.slice(0, Math.max(0, limit));
 
     const connectedIds = new Set<string>(edges.flatMap(e => [e.a, e.b]));
-    const nodes = data.nodes.filter(n => connectedIds.has(n.id));
+    const nodes = connectedIds.size > 0
+      ? data.nodes.filter(n => connectedIds.has(n.id))
+      : data.nodes;
     const idToIndex = new Map<string, number>(nodes.map((n, idx) => [n.id, idx]));
     const matrix: number[][] = nodes.map(() => nodes.map(() => 0));
 
@@ -371,11 +394,15 @@ export class CocktailConnectionWheelComponent implements OnInit {
       searchOutline,
       sparklesOutline,
       trashOutline,
-      wineOutline
+      wineOutline,
+      libraryOutline
     });
   }
 
   ngOnInit(): void {
+    if (this.scope) {
+      this.currentScope.set(this.scope);
+    }
     if (this.defaultLimit) {
       this.connectionLimit.set(this.defaultLimit);
     }
@@ -383,20 +410,44 @@ export class CocktailConnectionWheelComponent implements OnInit {
   }
 
   /**
-   * Loads the preprocessed DrinkWithData wheel dataset from the library service.
+   * Loads the wheel dataset from the library service with offline caching.
    */
   loadGraphData(): void {
-    this.isLoading.set(true);
-    this.libraryService.getWheelData().subscribe({
+    const targetScope = this.currentScope();
+    const cached = this.libraryService.getCachedWheelData(targetScope);
+    if (cached) {
+      this.rawData.set(cached);
+      this.isLoading.set(false);
+    } else {
+      this.isLoading.set(true);
+    }
+
+    this.libraryService.getWheelData(targetScope).subscribe({
       next: (data) => {
         this.rawData.set(data);
         this.isLoading.set(false);
       },
       error: () => {
-        this.rawData.set(null);
+        if (!this.rawData()) {
+          this.rawData.set(null);
+        }
         this.isLoading.set(false);
       }
     });
+  }
+
+  /**
+   * Switches the active connection wheel scope (LIBRARY vs ESTABLISHMENT).
+   *
+   * @param scope Target scope
+   */
+  onScopeChange(scope: 'LIBRARY' | 'ESTABLISHMENT'): void {
+    if (scope && scope !== this.currentScope()) {
+      this.currentScope.set(scope);
+      this.clearSelection();
+      this.searchQuery.set('');
+      this.loadGraphData();
+    }
   }
 
   /**

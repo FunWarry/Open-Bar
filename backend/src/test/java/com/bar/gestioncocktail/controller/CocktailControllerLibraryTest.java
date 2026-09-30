@@ -130,7 +130,7 @@ class CocktailControllerLibraryTest {
 
         when(cocktailLibraryService.getWheelData()).thenReturn(mockNode);
 
-        ResponseEntity<com.fasterxml.jackson.databind.JsonNode> response = cocktailController.getLibraryWheel();
+        ResponseEntity<com.fasterxml.jackson.databind.JsonNode> response = cocktailController.getLibraryWheel(null);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
