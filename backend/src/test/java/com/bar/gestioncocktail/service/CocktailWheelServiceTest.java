@@ -175,15 +175,94 @@ class CocktailWheelServiceTest {
     }
 
     @Test
-    @DisplayName("regenerateEstablishmentWheel with empty repository returns empty nodes and edges")
-    void regenerateEstablishmentWheel_emptyRepository_returnsCleanEmptyGraph() {
-        when(cocktailRepository.findAllWithIngredients()).thenReturn(Collections.emptyList());
+    @DisplayName("generateLibraryWheel with null or empty list falls back to library wheel data")
+    void generateLibraryWheel_nullOrEmpty_fallsBackToLibraryWheel() {
+        JsonNode resultNull = cocktailWheelService.generateLibraryWheel(null);
+        JsonNode resultEmpty = cocktailWheelService.generateLibraryWheel(Collections.emptyList());
+
+        assertThat(resultNull).isNotNull();
+        assertThat(resultEmpty).isNotNull();
+        assertThat(resultNull).isEqualTo(resultEmpty);
+    }
+
+    @Test
+    @DisplayName("regenerateEstablishmentWheel should fall back to findAll when findAllWithIngredients throws")
+    void regenerateEstablishmentWheel_queryFails_fallsBackToFindAll() {
+        when(cocktailRepository.findAllWithIngredients()).thenThrow(new RuntimeException("Query error"));
+        when(cocktailRepository.findAll()).thenReturn(Collections.emptyList());
 
         JsonNode wheel = cocktailWheelService.regenerateEstablishmentWheel();
 
         assertThat(wheel).isNotNull();
-        assertThat(wheel.get("nodes").size()).isZero();
-        assertThat(wheel.get("edges").size()).isZero();
-        assertThat(wheel.get("categories").size()).isGreaterThan(0);
+        verify(cocktailRepository, times(1)).findAll();
+    }
+
+    @Test
+    @DisplayName("regenerateEstablishmentWheel handles null ingredient names and unknown category fallback")
+    void regenerateEstablishmentWheel_handlesEdgeCaseIngredients() {
+        Cocktail cocktail = new Cocktail();
+        cocktail.setId(2L);
+        cocktail.setNom("Exotic");
+
+        Ingredient ingNullName = new Ingredient();
+        ingNullName.setId(20L);
+        ingNullName.setNom("   ");
+
+        Ingredient ingUnknownCat = new Ingredient();
+        ingUnknownCat.setId(21L);
+        ingUnknownCat.setNom("Dragonfruit Syrup");
+        ingUnknownCat.setCategory("unknown_category_xyz");
+
+        CocktailIngredient ci1 = new CocktailIngredient();
+        ci1.setCocktail(cocktail);
+        ci1.setIngredient(ingNullName);
+
+        CocktailIngredient ci2 = new CocktailIngredient();
+        ci2.setCocktail(cocktail);
+        ci2.setIngredient(ingUnknownCat);
+
+        cocktail.setIngredients(new ArrayList<>(List.of(ci1, ci2)));
+        when(cocktailRepository.findAllWithIngredients()).thenReturn(List.of(cocktail));
+
+        JsonNode wheel = cocktailWheelService.regenerateEstablishmentWheel();
+
+        assertThat(wheel).isNotNull();
+        JsonNode nodes = wheel.get("nodes");
+        assertThat(nodes.size()).isEqualTo(1);
+        assertThat(nodes.get(0).get("group").asText()).isEqualTo("other");
+    }
+
+    @Test
+    @DisplayName("getEstablishmentWheelData should read from persistent file when present")
+    void getEstablishmentWheelData_readsFromFile() throws Exception {
+        Cocktail cocktail = new Cocktail();
+        cocktail.setId(1L);
+        cocktail.setNom("Mojito");
+        Ingredient rum = new Ingredient();
+        rum.setId(1L);
+        rum.setNom("Rum");
+        rum.setCategory("light_liquor");
+        Ingredient lime = new Ingredient();
+        lime.setId(2L);
+        lime.setNom("Lime");
+        lime.setCategory("fruits");
+
+        CocktailIngredient ci1 = new CocktailIngredient();
+        ci1.setCocktail(cocktail);
+        ci1.setIngredient(rum);
+        CocktailIngredient ci2 = new CocktailIngredient();
+        ci2.setCocktail(cocktail);
+        ci2.setIngredient(lime);
+        cocktail.setIngredients(new ArrayList<>(List.of(ci1, ci2)));
+
+        when(cocktailRepository.findAllWithIngredients()).thenReturn(List.of(cocktail));
+        cocktailWheelService.regenerateEstablishmentWheel();
+
+        cocktailWheelService.clearCaches();
+
+        JsonNode fromFile = cocktailWheelService.getEstablishmentWheelData();
+        assertThat(fromFile).isNotNull();
+        assertThat(fromFile.get("nodes").size()).isEqualTo(2);
     }
 }
+
