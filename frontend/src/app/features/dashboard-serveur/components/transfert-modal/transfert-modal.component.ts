@@ -76,13 +76,13 @@ export class TransfertModalComponent implements OnInit {
    * @param targetTable Selected table entity.
    */
   selectionnerTable(targetTable: TableBar): void {
-    this.modalCtrl.dismiss({ targetTableId: targetTable.id, targetTableNumero: targetTable.numero });
+    void this.modalCtrl.dismiss({ targetTableId: targetTable.id, targetTableNumero: targetTable.numero });
   }
 
   /**
    * Closes the transfer dialog without making changes.
    */
   fermer(): void {
-    this.modalCtrl.dismiss(null);
+    void this.modalCtrl.dismiss(null);
   }
 }

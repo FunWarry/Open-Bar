@@ -148,4 +148,55 @@ describe('UserListComponent', () => {
 
     expect(component.currentPage).toBe(0);
   });
+
+  it('openCreateDialog() handles creation success and error', async () => {
+    const mockModal = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: { username: 'charlie' } }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
+
+    userServiceSpy.createUser.and.returnValue(of({ id: 3, username: 'charlie' } as any));
+    await component.openCreateDialog();
+    expect(userServiceSpy.createUser).toHaveBeenCalled();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
+
+    userServiceSpy.createUser.and.returnValue(throwError(() => ({ error: { message: 'Failed' } })));
+    await component.openCreateDialog();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  });
+
+  it('openEditDialog() handles update success and error', async () => {
+    const mockModal = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: { username: 'alice_updated' } }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
+
+    userServiceSpy.updateUser.and.returnValue(of({ id: 1, username: 'alice_updated' } as any));
+    await component.openEditDialog(mockUsers[0]);
+    expect(userServiceSpy.updateUser).toHaveBeenCalled();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
+
+    userServiceSpy.updateUser.and.returnValue(throwError(() => ({ error: { message: 'Failed' } })));
+    await component.openEditDialog(mockUsers[0]);
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  });
+
+  it('openDeleteDialog() handles delete success and error', async () => {
+    const mockModal = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: true }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
+
+    userServiceSpy.deleteUser.and.returnValue(of(undefined as any));
+    await component.openDeleteDialog(mockUsers[0]);
+    expect(userServiceSpy.deleteUser).toHaveBeenCalled();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
+
+    userServiceSpy.deleteUser.and.returnValue(throwError(() => ({ error: { message: 'Failed' } })));
+    await component.openDeleteDialog(mockUsers[0]);
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  });
 });

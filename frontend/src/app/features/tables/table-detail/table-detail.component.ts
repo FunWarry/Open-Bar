@@ -79,7 +79,7 @@ export class TableDetailComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const idParam = this.route?.snapshot?.paramMap?.get('id');
     if (idParam && Number.isNaN(+idParam)) {
-      this.router.navigate(['/404']);
+      void this.router.navigate(['/404']);
       return;
     }
     const targetId = this.tableId ?? (idParam ? +idParam : (this.table?.id ?? null));
@@ -113,18 +113,21 @@ export class TableDetailComponent implements OnInit, OnDestroy {
         error: async () => {
           const topModal = await this.modalCtrl.getTop();
           if (topModal) {
-            const toast = await this.toastCtrl.create({
-              message: String(this.transloco.translate('ERRORS.SERVER') || 'Erreur lors du chargement'),
-              duration: 3000,
-              color: 'danger'
-            });
-            toast.present();
-            this.onClose();
+            this.showToast(String(this.transloco.translate('ERRORS.SERVER') || 'Erreur lors du chargement'), 'danger');
+            await this.onClose();
             return;
           }
-          this.router.navigate(['/404']);
+          await this.router.navigate(['/404']);
         }
       });
+  }
+
+  private showToast(message: string, color: 'success' | 'danger'): void {
+    void this.toastCtrl.create({
+      message,
+      duration: color === 'danger' ? 3500 : 2500,
+      color
+    }).then(t => void t.present());
   }
 
   getStatutColor(statut: string): string {
@@ -149,7 +152,7 @@ export class TableDetailComponent implements OnInit, OnDestroy {
     } catch {
       // Fallback to router
     }
-    this.router.navigate(['/tables']);
+    await this.router.navigate(['/tables']);
   }
 
   /** Dismisses modal with an edit signal to trigger the edit modal. */
@@ -163,7 +166,7 @@ export class TableDetailComponent implements OnInit, OnDestroy {
     } catch {
       // Fallback
     }
-    this.router.navigate(['/tables', this.table?.id, 'edit']);
+    await this.router.navigate(['/tables', this.table?.id, 'edit']);
   }
 
   /**
@@ -218,12 +221,7 @@ export class TableDetailComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$), finalize(() => (this.isDeleting = false)))
       .subscribe({
         next: async () => {
-          const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('TABLES.DELETE_SUCCESS'),
-            duration: 2500,
-            color: 'success'
-          });
-          toast.present();
+          this.showToast(this.transloco.translate('TABLES.DELETE_SUCCESS'), 'success');
           try {
             const topModal = await this.modalCtrl.getTop();
             if (topModal) {
@@ -233,24 +231,18 @@ export class TableDetailComponent implements OnInit, OnDestroy {
           } catch {
             // Fallback
           }
-          this.router.navigate(['/tables']);
+          await this.router.navigate(['/tables']);
         },
-        error: async (err) => {
+        error: (err) => {
           const errMsg = err?.error?.message || this.transloco.translate('TABLES.DELETE_ERROR');
-          const toast = await this.toastCtrl.create({
-            message: errMsg,
-            duration: 3500,
-            color: 'danger'
-          });
-          toast.present();
+          this.showToast(errMsg, 'danger');
         }
       });
   }
 
-  onViewCommande(c: Commande): void {
-    this.onClose().then(() => {
-      this.router.navigate(['/commandes', c.id]);
-    });
+  async onViewCommande(c: Commande): Promise<void> {
+    await this.onClose();
+    await this.router.navigate(['/commandes', c.id]);
   }
 
   async onOpenQrModal(): Promise<void> {

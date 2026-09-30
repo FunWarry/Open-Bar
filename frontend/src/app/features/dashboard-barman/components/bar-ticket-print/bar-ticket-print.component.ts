@@ -160,13 +160,13 @@ export class BarTicketPrintComponent implements OnInit {
         this.isDirectPrinting = false;
         const allSuccess = results && results.length > 0 && results.every(r => r.success);
         if (allSuccess) {
-          this.showToast(
+          void this.showToast(
             this.translocoService.translate('BARMAN_DASHBOARD.DIRECT_PRINT_SUCCESS', { id: this.commande.id }),
             'success'
           );
         } else {
           const errors = (results || []).filter(r => !r.success).map(r => `${r.role}: ${r.message}`).join(', ');
-          this.showToast(
+          void this.showToast(
             this.translocoService.translate('BARMAN_DASHBOARD.DIRECT_PRINT_FAILED', { error: errors || 'Erreur' }),
             'warning'
           );
@@ -174,7 +174,7 @@ export class BarTicketPrintComponent implements OnInit {
       },
       error: (err) => {
         this.isDirectPrinting = false;
-        this.showToast(
+        void this.showToast(
           this.translocoService.translate('BARMAN_DASHBOARD.DIRECT_PRINT_FAILED', { error: err?.message || 'Error' }),
           'danger'
         );
@@ -199,7 +199,7 @@ export class BarTicketPrintComponent implements OnInit {
    */
   dismiss(): void {
     if (this.modalCtrl) {
-      this.modalCtrl.dismiss();
+      void this.modalCtrl.dismiss();
     }
   }
 }

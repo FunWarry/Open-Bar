@@ -118,6 +118,6 @@ export class ShiftHistoryModalComponent implements OnInit {
   }
 
   dismiss(): void {
-    this.modalCtrl.dismiss();
+    void this.modalCtrl.dismiss();
   }
 }

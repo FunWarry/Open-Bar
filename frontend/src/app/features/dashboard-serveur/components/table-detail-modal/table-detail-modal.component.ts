@@ -262,27 +262,27 @@ export class TableDetailModalComponent implements OnInit {
   }
 
   nouvelleCommande(): void {
-    this.modalCtrl.dismiss();
-    this.router.navigate(['/serveur'], { queryParams: { tableId: this.table.id } });
+    void this.modalCtrl.dismiss();
+    void this.router.navigate(['/serveur'], { queryParams: { tableId: this.table.id } });
   }
 
   encaisser(): void {
-    this.modalCtrl.dismiss({ action: 'encaisser', table: this.table });
+    void this.modalCtrl.dismiss({ action: 'encaisser', table: this.table });
   }
 
   /**
    * Dismisses the modal requesting split payment for this table.
    */
   diviserAddition(): void {
-    this.modalCtrl.dismiss({ action: 'split', table: this.table });
+    void this.modalCtrl.dismiss({ action: 'split', table: this.table });
   }
 
   liberer(): void {
-    this.modalCtrl.dismiss({ action: 'liberer', tableId: this.table.id });
+    void this.modalCtrl.dismiss({ action: 'liberer', tableId: this.table.id });
   }
 
   fermer(): void {
-    this.modalCtrl.dismiss();
+    void this.modalCtrl.dismiss();
   }
 
   getCommandeTotal(cmd: Commande | null | undefined): number {

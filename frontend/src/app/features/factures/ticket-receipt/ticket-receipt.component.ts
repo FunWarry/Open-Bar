@@ -175,20 +175,20 @@ export class TicketReceiptComponent implements OnInit {
     if (!this.facture?.id || !this.printerService) return;
     this.isDirectPrinting = true;
     this.printerService.printInvoiceReceipt(this.facture.id, openCashDrawer).subscribe({
-      next: (result) => {
+      next: async (result) => {
         this.isDirectPrinting = false;
         if (result.success) {
-          this.showToast(this.translocoService.translate('FACTURES.DIRECT_RECEIPT_SUCCESS'), 'success');
+          await this.showToast(this.translocoService.translate('FACTURES.DIRECT_RECEIPT_SUCCESS'), 'success');
         } else {
-          this.showToast(
+          await this.showToast(
             this.translocoService.translate('FACTURES.DIRECT_RECEIPT_FAILED', { error: result.message }),
             'warning'
           );
         }
       },
-      error: (err) => {
+      error: async (err) => {
         this.isDirectPrinting = false;
-        this.showToast(
+        await this.showToast(
           this.translocoService.translate('FACTURES.DIRECT_RECEIPT_FAILED', { error: err?.message || 'Error' }),
           'danger'
         );

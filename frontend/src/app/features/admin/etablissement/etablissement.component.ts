@@ -130,13 +130,12 @@ export class EtablissementComponent implements OnInit, OnDestroy {
             this.configForm.patchValue(config);
           }
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
+        error: () => {
+          void this.toastCtrl.create({
             message: this.transloco.translate('ETABLISSEMENT.LOAD_ERROR'),
             duration: 3000,
             color: 'danger',
-          });
-          toast.present();
+          }).then(t => void t.present());
         },
       });
   }
@@ -156,22 +155,20 @@ export class EtablissementComponent implements OnInit, OnDestroy {
         finalize(() => (this.isSaving = false))
       )
       .subscribe({
-        next: async (updated) => {
+        next: (updated) => {
           this.configForm.patchValue(updated);
-          const toast = await this.toastCtrl.create({
+          void this.toastCtrl.create({
             message: this.transloco.translate('ETABLISSEMENT.SAVE_SUCCESS'),
             duration: 3000,
             color: 'success',
-          });
-          toast.present();
+          }).then(t => void t.present());
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
+        error: () => {
+          void this.toastCtrl.create({
             message: this.transloco.translate('ETABLISSEMENT.SAVE_ERROR_GENERIC'),
             duration: 3000,
             color: 'danger',
-          });
-          toast.present();
+          }).then(t => void t.present());
         },
       });
   }

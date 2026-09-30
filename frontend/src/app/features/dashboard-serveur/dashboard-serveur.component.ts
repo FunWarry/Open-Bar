@@ -393,11 +393,11 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         this.filtrer();
       },
       error: () => {
-        this.toastCtrl.create({
+        void this.toastCtrl.create({
           message: 'Erreur lors du chargement des tables',
           duration: 3000,
           color: 'danger',
-        }).then(t => t.present());
+        }).then(t => void t.present());
       },
     });
   }
@@ -420,11 +420,11 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
           this.filtrer();
         },
         error: () => {
-          this.toastCtrl.create({
+          void this.toastCtrl.create({
             message: 'Erreur lors du chargement des tables',
             duration: 3000,
             color: 'danger',
-          }).then(t => t.present());
+          }).then(t => void t.present());
         },
       });
   }
@@ -1383,7 +1383,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       });
 
       group.on('click tap', () => {
-        this.ngZone.run(() => this.onSelectionner(table));
+        this.ngZone.run(() => void this.onSelectionner(table));
       });
 
       this.layer!.add(group);
@@ -1468,9 +1468,9 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     if (data?.action === 'liberer') {
       this.onLiberer(data.tableId);
     } else if (data?.action === 'encaisser') {
-      this.ouvrirEncaissement(data.table || table);
+      void this.ouvrirEncaissement(data.table || table);
     } else if (data?.action === 'split') {
-      this.ouvrirSplitTable(data.table || table);
+      void this.ouvrirSplitTable(data.table || table);
     }
   }
 
@@ -1530,26 +1530,24 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     this.activeTab = 'suivi';
   }
 
-  async onLiberer(tableId: number) {
+  onLiberer(tableId: number): void {
     this.service.libererTable(tableId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async () => {
+        next: () => {
           this.chargerTables();
-          const toast = await this.toastCtrl.create({
+          void this.toastCtrl.create({
             message: 'Table libérée',
             duration: 2000,
             color: 'success',
-          });
-          toast.present();
+          }).then(t => void t.present());
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
+        error: () => {
+          void this.toastCtrl.create({
             message: 'Impossible de libérer la table',
             duration: 3000,
             color: 'danger',
-          });
-          toast.present();
+          }).then(t => void t.present());
         },
       });
   }
@@ -1558,7 +1556,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
    * Directly marks a free table as occupied from its card.
    * @param table Target table
    */
-  async onOccupyTable(table: TableView): Promise<void> {
+  onOccupyTable(table: TableView): void {
     this.service.occuperTable(table.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -1588,7 +1586,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
    * Directly frees an occupied table with no active orders from its card.
    * @param table Target table
    */
-  async onFreeTable(table: TableView): Promise<void> {
+  onFreeTable(table: TableView): void {
     this.service.libererTable(table.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -1947,7 +1945,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     this.chargerTables();
   }
 
-  async onSubmitCart() {
+  onSubmitCart(): void {
     if ((!this.cart.tableId && !this.cart.barTabId) || this.cart.items.length === 0 || this.isSubmitting) return;
 
     this.isSubmitting = true;
@@ -2059,7 +2057,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       enterAnimation: fastModalEnterAnimation,
       leaveAnimation: fastModalLeaveAnimation,
     });
-    modal.onDidDismiss().then(async (result) => {
+    void modal.onDidDismiss().then(async (result) => {
       if (result.data?.action === 'settled') {
         this.barTabService.loadTabs().subscribe();
       } else if (result.data?.action === 'open_split' && result.data?.facture) {

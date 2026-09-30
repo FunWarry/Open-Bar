@@ -434,7 +434,7 @@ export class HappyHourConfigComponent implements OnInit, OnDestroy {
   }
 
   onSimulationCocktailSelect(opt: SearchableOption<number> | null): void {
-    if (opt && opt.value !== null && opt.value !== undefined) {
+    if (opt?.value !== null && opt?.value !== undefined) {
       this.simulationCocktailId.set(Number(opt.value));
       this.runSimulation();
     }

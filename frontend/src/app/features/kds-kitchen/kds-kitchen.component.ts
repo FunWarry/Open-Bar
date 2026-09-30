@@ -239,13 +239,8 @@ export class KdsKitchenComponent implements OnInit, OnDestroy {
           }
           this.cdr.markForCheck();
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('KDS.LOAD_ERROR'),
-            duration: 3000,
-            color: 'danger'
-          });
-          toast.present();
+        error: () => {
+          this.showToast(this.transloco.translate('KDS.LOAD_ERROR'), 'danger');
         }
       });
   }
@@ -333,13 +328,12 @@ export class KdsKitchenComponent implements OnInit, OnDestroy {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   }
 
-  private async showToast(message: string, color: 'success' | 'danger' | 'primary' = 'primary'): Promise<void> {
-    const toast = await this.toastCtrl.create({
+  private showToast(message: string, color: 'success' | 'danger' | 'primary' = 'primary'): void {
+    void this.toastCtrl.create({
       message,
       duration: 2500,
       position: 'bottom',
       color
-    });
-    await toast.present();
+    }).then(t => void t.present());
   }
 }

@@ -67,7 +67,7 @@ export class SetupComponent implements OnInit {
     this.setupService.getStatus().subscribe({
       next: (status) => {
         if (status.initialized) {
-          this.router.navigate(['/auth/login']);
+          void this.router.navigate(['/auth/login']);
         }
       },
       error: () => {}
@@ -134,7 +134,7 @@ export class SetupComponent implements OnInit {
           color: 'success'
         });
         await toast.present();
-        this.router.navigate(['/auth/login']);
+        await this.router.navigate(['/auth/login']);
       },
       error: (err) => {
         this.loading = false;

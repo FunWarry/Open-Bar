@@ -281,7 +281,7 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
       this.isEditMode = true;
       this.ingredientId = +id;
       if (Number.isNaN(this.ingredientId)) {
-        this.router.navigate(['/404']);
+        void this.router.navigate(['/404']);
         return;
       }
       this.ingredientService.getById(this.ingredientId).subscribe({
@@ -315,7 +315,7 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
           }
         },
         error: () => {
-          this.router.navigate(['/404']);
+          void this.router.navigate(['/404']);
         }
       });
     }
@@ -591,28 +591,26 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
         const msgKey = this.isEditMode
           ? 'INGREDIENTS.UPDATED_SUCCESS'
           : 'INGREDIENTS.CREATED_SUCCESS';
-        const toast = await this.toastCtrl.create({
-          message: this.transloco.translate(msgKey),
-          duration: 3000,
-          color: 'success'
-        });
-        toast.present();
+        this.showToast(this.transloco.translate(msgKey), 'success');
 
         if (this.modalCtrl) {
           await this.modalCtrl.dismiss(savedResult ?? payload, 'saved');
         } else {
-          this.router.navigate(['/ingredients']);
+          await this.router.navigate(['/ingredients']);
         }
       },
-      error: async () => {
-        const toast = await this.toastCtrl.create({
-          message: this.transloco.translate('COMMON.ERROR'),
-          duration: 3000,
-          color: 'danger'
-        });
-        toast.present();
+      error: () => {
+        this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger');
       }
     });
+  }
+
+  private showToast(message: string, color: 'success' | 'danger'): void {
+    void this.toastCtrl.create({
+      message,
+      duration: 3000,
+      color
+    }).then(t => void t.present());
   }
 
   async onCancel(): Promise<void> {
@@ -620,10 +618,10 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
       try {
         await this.modalCtrl.dismiss(null, 'cancel');
       } catch {
-        this.router.navigate(['/ingredients']);
+        await this.router.navigate(['/ingredients']);
       }
     } else {
-      this.router.navigate(['/ingredients']);
+      await this.router.navigate(['/ingredients']);
     }
   }
 }

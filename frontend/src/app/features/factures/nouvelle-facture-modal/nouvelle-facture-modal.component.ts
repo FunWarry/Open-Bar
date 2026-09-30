@@ -153,7 +153,7 @@ export class NouvelleFactureModalComponent implements OnInit {
         });
         await toast.present();
 
-        this.modalCtrl.dismiss({
+        await this.modalCtrl.dismiss({
           action: 'created',
           facture,
           openSplit
@@ -176,6 +176,6 @@ export class NouvelleFactureModalComponent implements OnInit {
    * Closes the modal without action.
    */
   close(): void {
-    this.modalCtrl.dismiss({ action: 'cancelled' } satisfies NouvelleFactureModalResult);
+    void this.modalCtrl.dismiss({ action: 'cancelled' } satisfies NouvelleFactureModalResult);
   }
 }

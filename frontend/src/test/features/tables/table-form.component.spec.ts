@@ -169,4 +169,32 @@ describe('TableFormComponent', () => {
     flushMicrotasks();
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
   }));
+
+  it('onSubmit() displays error toast when create fails', fakeAsync(() => {
+    tableServiceSpy.create.and.returnValue(throwError(() => new Error('Create error')));
+    component.isEditMode = false;
+    component.tableForm.setValue({ numero: 3, zone: 'Bar', capacite: 2 });
+    component.onSubmit();
+    tick();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+    expect(component.isSubmitting).toBeFalse();
+  }));
+
+  it('onDelete() displays error toast when delete fails', fakeAsync(() => {
+    tableServiceSpy.delete.and.returnValue(throwError(() => new Error('Delete error')));
+    component.isEditMode = true;
+    component.tableId = 5;
+    component.onDelete();
+    tick();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  it('dismissOrNavigate() falls back to router when no modal is open', fakeAsync(() => {
+    modalCtrlSpy.getTop.and.returnValue(Promise.resolve(null as any));
+    component.isEditMode = false;
+    component.tableForm.setValue({ numero: 3, zone: 'Bar', capacite: 2 });
+    component.onSubmit();
+    tick();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/tables']);
+  }));
 });

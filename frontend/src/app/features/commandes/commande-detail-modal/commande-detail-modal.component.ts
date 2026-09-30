@@ -91,16 +91,19 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$), finalize(() => (this.isLoading = false)))
       .subscribe({
         next: commande => (this.commande = commande),
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Commande introuvable',
-            duration: 3000,
-            color: 'danger',
-          });
-          toast.present();
+        error: () => {
+          this.showToast('Commande introuvable', 'danger');
           this.dismiss();
         },
       });
+  }
+
+  private showToast(message: string, color: 'success' | 'warning' | 'danger'): void {
+    void this.toastCtrl.create({
+      message,
+      duration: color === 'danger' ? 3000 : 2000,
+      color,
+    }).then(t => void t.present());
   }
 
   /**
@@ -227,23 +230,13 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
     this.commandeService.changerStatut(this.commande.id, targetStatut)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async updated => {
+        next: updated => {
           this.commande = updated;
-          const toast = await this.toastCtrl.create({
-            message: 'Statut de la commande mis à jour',
-            duration: 2000,
-            color: 'success',
-          });
-          toast.present();
+          this.showToast('Statut de la commande mis à jour', 'success');
           this.dismiss({ role: 'statusUpdated', commande: updated, targetStatut });
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Erreur lors du changement de statut',
-            duration: 3000,
-            color: 'danger',
-          });
-          toast.present();
+        error: () => {
+          this.showToast('Erreur lors du changement de statut', 'danger');
         },
       });
   }
@@ -272,28 +265,18 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
     this.commandeService.annuler(this.commande.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async updated => {
+        next: updated => {
           this.commande = updated;
-          const toast = await this.toastCtrl.create({
-            message: 'Commande annulée avec succès',
-            duration: 2000,
-            color: 'warning',
-          });
-          toast.present();
+          this.showToast('Commande annulée avec succès', 'warning');
           this.dismiss({ role: 'cancelled', commande: updated });
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Impossible d\'annuler cette commande',
-            duration: 3000,
-            color: 'danger',
-          });
-          toast.present();
+        error: () => {
+          this.showToast('Impossible d\'annuler cette commande', 'danger');
         },
       });
   }
 
   dismiss(data?: any): void {
-    this.modalCtrl.dismiss(data);
+    void this.modalCtrl.dismiss(data);
   }
 }

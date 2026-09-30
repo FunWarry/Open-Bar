@@ -58,26 +58,26 @@ export class PurchaseOrderDetailModalComponent {
   }
 
   onClose(): void {
-    this.modalCtrl.dismiss({ action: 'close' });
+    void this.modalCtrl.dismiss({ action: 'close' });
   }
 
   onEdit(): void {
-    this.modalCtrl.dismiss({ action: 'edit', order: this.order });
+    void this.modalCtrl.dismiss({ action: 'edit', order: this.order });
   }
 
   onSend(): void {
-    this.modalCtrl.dismiss({ action: 'send', order: this.order });
+    void this.modalCtrl.dismiss({ action: 'send', order: this.order });
   }
 
   onCancelOrder(): void {
-    this.modalCtrl.dismiss({ action: 'cancel', order: this.order });
+    void this.modalCtrl.dismiss({ action: 'cancel', order: this.order });
   }
 
   onReceive(): void {
-    this.modalCtrl.dismiss({ action: 'receive', order: this.order });
+    void this.modalCtrl.dismiss({ action: 'receive', order: this.order });
   }
 
   onDownloadPdf(): void {
-    this.modalCtrl.dismiss({ action: 'pdf', order: this.order });
+    void this.modalCtrl.dismiss({ action: 'pdf', order: this.order });
   }
 }

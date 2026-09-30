@@ -77,7 +77,7 @@ export class SessionTimeoutModalComponent implements OnInit, OnDestroy {
       this.remainingSeconds--;
       if (this.remainingSeconds <= 0) {
         this.stopCountdown();
-        this.modalCtrl.dismiss({ action: 'expired' });
+        void this.modalCtrl.dismiss({ action: 'expired' });
       }
       this.cdr.markForCheck();
     }, 1000);
@@ -95,7 +95,7 @@ export class SessionTimeoutModalComponent implements OnInit, OnDestroy {
    */
   onExtend(): void {
     this.stopCountdown();
-    this.modalCtrl.dismiss({ action: 'extend' });
+    void this.modalCtrl.dismiss({ action: 'extend' });
   }
 
   /**
@@ -103,6 +103,6 @@ export class SessionTimeoutModalComponent implements OnInit, OnDestroy {
    */
   onLogout(): void {
     this.stopCountdown();
-    this.modalCtrl.dismiss({ action: 'logout' });
+    void this.modalCtrl.dismiss({ action: 'logout' });
   }
 }

@@ -770,7 +770,7 @@ export class CocktailFormComponent implements OnInit {
       this.isEditMode = true;
       this.cocktailId = +id;
       if (Number.isNaN(this.cocktailId)) {
-        this.router.navigate(['/404']);
+        void this.router.navigate(['/404']);
         return;
       }
       this.cocktailService.getById(this.cocktailId).subscribe({
@@ -847,7 +847,7 @@ export class CocktailFormComponent implements OnInit {
           }
         },
         error: () => {
-          this.router.navigate(['/404']);
+          void this.router.navigate(['/404']);
         },
       });
     }
@@ -1472,9 +1472,8 @@ export class CocktailFormComponent implements OnInit {
     this.showToast(this.transloco.translate('COMMON.SUCCESS'));
   }
 
-  private async showToast(message: string, color = 'success'): Promise<void> {
-    const toast = await this.toastCtrl.create({ message, duration: 3000, color });
-    await toast.present();
+  private showToast(message: string, color = 'success'): void {
+    void this.toastCtrl.create({ message, duration: 3000, color }).then(t => void t.present());
   }
 
   // --- Final Form Submission ---
@@ -1567,7 +1566,7 @@ export class CocktailFormComponent implements OnInit {
       .subscribe({
         next: () => {
           this.showToast(this.transloco.translate('COMMON.SUCCESS'));
-          this.router.navigate(['/cocktails']);
+          void this.router.navigate(['/cocktails']);
         },
         error: () => this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger'),
       });

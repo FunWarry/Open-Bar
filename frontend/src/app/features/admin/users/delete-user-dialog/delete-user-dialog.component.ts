@@ -28,10 +28,10 @@ export class DeleteUserDialogComponent {
   }
 
   onConfirm(): void {
-    this.modalCtrl.dismiss(true);
+    void this.modalCtrl.dismiss(true);
   }
 
   onCancel(): void {
-    this.modalCtrl.dismiss(false);
+    void this.modalCtrl.dismiss(false);
   }
 }

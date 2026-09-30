@@ -201,6 +201,21 @@ describe('IngredientFormComponent', () => {
       expect(routerSpy.navigate).not.toHaveBeenCalled();
     });
 
+    it('onSubmit() handles create error gracefully with toast', () => {
+      component.ingredientForm.patchValue({
+        nom: 'Sucre de canne',
+        uniteMesure: 'CL',
+        degreAlcool: 0,
+        prixUnitaire: 5,
+        seuilAlerte: 10,
+        quantiteStock: 100,
+        categorie: 'SIROP'
+      });
+      ingredientServiceSpy.create.and.returnValue(throwError(() => new Error('Creation failed')));
+      component.onSubmit();
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+    });
+
     it('onCancel() appelle dismiss sur modalCtrl', async () => {
       await component.onCancel();
       expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null, 'cancel');

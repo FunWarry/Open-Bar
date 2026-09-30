@@ -128,6 +128,14 @@ export class ZoneManagerComponent implements OnInit {
     this.loadData();
   }
 
+  private showToast(message: string, color: 'success' | 'danger'): void {
+    void this.toastCtrl.create({
+      message,
+      duration: 3000,
+      color
+    }).then(t => void t.present());
+  }
+
   loadData(): void {
     this.isLoading = true;
     forkJoin({
@@ -139,14 +147,9 @@ export class ZoneManagerComponent implements OnInit {
         this.etages = res.etages;
         this.isLoading = false;
       },
-      error: async () => {
+      error: () => {
         this.isLoading = false;
-        const toast = await this.toastCtrl.create({
-          message: this.translocoService.translate('COMMON.ERROR'),
-          duration: 3000,
-          color: 'danger'
-        });
-        toast.present();
+        this.showToast(this.translocoService.translate('COMMON.ERROR'), 'danger');
       }
     });
   }
@@ -244,19 +247,11 @@ export class ZoneManagerComponent implements OnInit {
         const key = isEdit ? 'ZONE_MANAGER.ZONE_SAVED' : 'ZONE_MANAGER.ZONE_CREATED';
         this.resetForm();
         this.loadData();
-        this.toastCtrl.create({
-          message: this.translocoService.translate(key),
-          duration: 3000,
-          color: 'success'
-        }).then((t) => t.present());
+        this.showToast(this.translocoService.translate(key), 'success');
       },
       error: (err) => {
         const msg = err.error?.message || this.translocoService.translate('COMMON.ERROR');
-        this.toastCtrl.create({
-          message: msg,
-          duration: 3000,
-          color: 'danger'
-        }).then((t) => t.present());
+        this.showToast(msg, 'danger');
       }
     });
   }
@@ -289,19 +284,11 @@ export class ZoneManagerComponent implements OnInit {
     if (data?.confirmed) {
       this.zoneService.delete(zone.id).subscribe({
         next: () => {
-          this.toastCtrl.create({
-            message: this.translocoService.translate('ZONE_MANAGER.ZONE_DELETED'),
-            duration: 3000,
-            color: 'success'
-          }).then((t) => t.present());
+          this.showToast(this.translocoService.translate('ZONE_MANAGER.ZONE_DELETED'), 'success');
           this.loadData();
         },
         error: () => {
-          this.toastCtrl.create({
-            message: this.translocoService.translate('COMMON.ERROR'),
-            duration: 3000,
-            color: 'danger'
-          }).then((t) => t.present());
+          this.showToast(this.translocoService.translate('COMMON.ERROR'), 'danger');
         }
       });
     }
@@ -347,19 +334,11 @@ export class ZoneManagerComponent implements OnInit {
         const key = isEdit ? 'ZONE_MANAGER.ETAGE_SAVED' : 'ZONE_MANAGER.ETAGE_CREATED';
         this.resetEtageForm();
         this.loadData();
-        this.toastCtrl.create({
-          message: this.translocoService.translate(key),
-          duration: 3000,
-          color: 'success'
-        }).then((t) => t.present());
+        this.showToast(this.translocoService.translate(key), 'success');
       },
       error: (err) => {
         const msg = err.error?.message || this.translocoService.translate('COMMON.ERROR');
-        this.toastCtrl.create({
-          message: msg,
-          duration: 3000,
-          color: 'danger'
-        }).then((t) => t.present());
+        this.showToast(msg, 'danger');
       }
     });
   }
@@ -396,28 +375,18 @@ export class ZoneManagerComponent implements OnInit {
 
     if (data?.confirmed) {
       this.etageService.delete(etage.id).subscribe({
-        next: async () => {
-          const toast = await this.toastCtrl.create({
-            message: this.translocoService.translate('ZONE_MANAGER.ETAGE_DELETED'),
-            duration: 3000,
-            color: 'success'
-          });
-          toast.present();
+        next: () => {
+          this.showToast(this.translocoService.translate('ZONE_MANAGER.ETAGE_DELETED'), 'success');
           this.loadData();
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: this.translocoService.translate('COMMON.ERROR'),
-            duration: 3000,
-            color: 'danger'
-          });
-          toast.present();
+        error: () => {
+          this.showToast(this.translocoService.translate('COMMON.ERROR'), 'danger');
         }
       });
     }
   }
 
   onClose(): void {
-    this.modalCtrl.dismiss();
+    void this.modalCtrl.dismiss();
   }
 }

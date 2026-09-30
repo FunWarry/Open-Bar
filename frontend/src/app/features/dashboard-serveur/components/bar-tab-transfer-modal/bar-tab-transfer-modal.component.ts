@@ -115,7 +115,7 @@ export class BarTabTransferModalComponent implements OnInit {
   }
 
   dismiss(): void {
-    this.modalCtrl.dismiss(null, 'cancel');
+    void this.modalCtrl.dismiss(null, 'cancel');
   }
 
   onModeChange(mode: TransferMode): void {
@@ -131,7 +131,7 @@ export class BarTabTransferModalComponent implements OnInit {
     return this.selectedTabId != null;
   }
 
-  async onConfirmTransfer(): Promise<void> {
+  onConfirmTransfer(): void {
     if (!this.canSubmit() || this.isSubmitting) {
       return;
     }
@@ -145,16 +145,8 @@ export class BarTabTransferModalComponent implements OnInit {
         targetTableId: this.transferMode === 'TAB_TO_TABLE' ? this.selectedTableId! : undefined,
         targetTabId: this.transferMode === 'TABLE_TO_TAB' ? this.selectedTabId! : undefined,
       }).subscribe({
-        next: async (res: BarTab) => {
-          this.isSubmitting = false;
-          await this.showToast(this.transloco.translate('TABS.SUCCESS_TRANSFERRED'), 'success');
-          this.modalCtrl.dismiss(res, 'confirm');
-        },
-        error: async (err: unknown) => {
-          this.isSubmitting = false;
-          console.error('[BarTabTransferModal] Error transferring order:', err);
-          await this.showToast(this.transloco.translate('TABS.ERROR_TRANSFER'), 'danger');
-        },
+        next: (res: BarTab) => this.handleTransferSuccess(res),
+        error: (err: unknown) => this.handleTransferError(err, 'Error transferring order'),
       });
       return;
     }
@@ -163,41 +155,36 @@ export class BarTabTransferModalComponent implements OnInit {
       this.barTabService.transferTabToTable(this.sourceTab.id, {
         targetTableId: this.selectedTableId!,
       }).subscribe({
-        next: async (res: BarTab) => {
-          this.isSubmitting = false;
-          await this.showToast(this.transloco.translate('TABS.SUCCESS_TRANSFERRED'), 'success');
-          this.modalCtrl.dismiss(res, 'confirm');
-        },
-        error: async (err: unknown) => {
-          this.isSubmitting = false;
-          console.error('[BarTabTransferModal] Error transferring tab to table:', err);
-          await this.showToast(this.transloco.translate('TABS.ERROR_TRANSFER'), 'danger');
-        },
+        next: (res: BarTab) => this.handleTransferSuccess(res),
+        error: (err: unknown) => this.handleTransferError(err, 'Error transferring tab to table'),
       });
     } else if (this.transferMode === 'TABLE_TO_TAB' && this.sourceTableId && this.selectedTabId) {
       this.barTabService.transferOrdersFromTable(this.selectedTabId, {
         targetTableId: this.sourceTableId,
       }).subscribe({
-        next: async (res: BarTab) => {
-          this.isSubmitting = false;
-          await this.showToast(this.transloco.translate('TABS.SUCCESS_TRANSFERRED'), 'success');
-          this.modalCtrl.dismiss(res, 'confirm');
-        },
-        error: async (err: unknown) => {
-          this.isSubmitting = false;
-          console.error('[BarTabTransferModal] Error transferring table to tab:', err);
-          await this.showToast(this.transloco.translate('TABS.ERROR_TRANSFER'), 'danger');
-        },
+        next: (res: BarTab) => this.handleTransferSuccess(res),
+        error: (err: unknown) => this.handleTransferError(err, 'Error transferring table to tab'),
       });
     }
   }
 
-  private async showToast(message: string, color: 'success' | 'danger'): Promise<void> {
-    const toast = await this.toastCtrl.create({
+  private handleTransferSuccess(res: BarTab): void {
+    this.isSubmitting = false;
+    this.showToast(this.transloco.translate('TABS.SUCCESS_TRANSFERRED'), 'success');
+    void this.modalCtrl.dismiss(res, 'confirm');
+  }
+
+  private handleTransferError(err: unknown, logMsg: string): void {
+    this.isSubmitting = false;
+    console.error(`[BarTabTransferModal] ${logMsg}:`, err);
+    this.showToast(this.transloco.translate('TABS.ERROR_TRANSFER'), 'danger');
+  }
+
+  private showToast(message: string, color: 'success' | 'danger'): void {
+    void this.toastCtrl.create({
       message,
       duration: 2500,
       color,
-    });
-    await toast.present();
+    }).then(t => void t.present());
   }
 }

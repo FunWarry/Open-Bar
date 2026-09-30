@@ -71,7 +71,7 @@ export class AppUpdateService {
         this.checkNewerRelease()
           .then((result) => {
             if (result.hasUpdate && result.latestRelease && !this.isSnoozed(result.latestRelease.version)) {
-              this.presentUpdateModal(result.latestRelease);
+              void this.presentUpdateModal(result.latestRelease);
             }
           })
           .catch(() => {

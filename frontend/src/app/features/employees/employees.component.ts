@@ -76,7 +76,7 @@ export class EmployeesComponent implements OnInit {
    * Navigates to the shift presets management page.
    */
   goToShiftPresets(): void {
-    this.router.navigate(['/manager/shift-presets']);
+    void this.router.navigate(['/manager/shift-presets']);
   }
 
   loading = true;

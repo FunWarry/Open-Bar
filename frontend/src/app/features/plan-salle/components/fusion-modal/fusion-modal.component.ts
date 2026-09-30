@@ -37,10 +37,10 @@ export class FusionModalComponent {
   }
 
   cancel() {
-    this.modalCtrl.dismiss(null, 'cancel');
+    void this.modalCtrl.dismiss(null, 'cancel');
   }
 
   confirm() {
-    this.modalCtrl.dismiss({ confirmed: true }, 'confirm');
+    void this.modalCtrl.dismiss({ confirmed: true }, 'confirm');
   }
 }

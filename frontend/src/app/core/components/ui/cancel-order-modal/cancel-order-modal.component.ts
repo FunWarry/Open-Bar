@@ -151,7 +151,7 @@ export class CancelOrderModalComponent {
 
   /** Dismisses modal without cancelling. */
   dismissCancel(): void {
-    this.modalCtrl.dismiss({ confirmed: false }, 'cancel');
+    void this.modalCtrl.dismiss({ confirmed: false }, 'cancel');
   }
 
   /** Confirms order cancellation and returns payload with reason. */
@@ -163,7 +163,7 @@ export class CancelOrderModalComponent {
       ? `${reasonTranslated} (${this.customReason().trim()})`
       : reasonTranslated;
 
-    this.modalCtrl.dismiss({
+    void this.modalCtrl.dismiss({
       confirmed: true,
       reason: finalReason
     } satisfies CancelOrderModalResult, 'confirm');

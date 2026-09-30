@@ -117,13 +117,13 @@ export class VarianteModalComponent implements OnInit {
       notes: this.notes.trim() || undefined,
       prixEffectif: this.prixEffectif,
     };
-    this.modalCtrl.dismiss(result, 'confirm');
+    void this.modalCtrl.dismiss(result, 'confirm');
   }
 
   /**
    * Cancels the selection and dismisses the modal without data.
    */
   annuler(): void {
-    this.modalCtrl.dismiss(null, 'cancel');
+    void this.modalCtrl.dismiss(null, 'cancel');
   }
 }

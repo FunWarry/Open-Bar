@@ -103,11 +103,11 @@ export class DayClosureModalComponent implements OnInit {
   }
 
   dismiss(): void {
-    this.modalCtrl.dismiss(null);
+    void this.modalCtrl.dismiss(null);
   }
 
   saveClosure(): void {
-    this.modalCtrl.dismiss({
+    void this.modalCtrl.dismiss({
       action: 'close',
       startDate: this.startDate || this.dateISO,
       endDate: this.isDateRange && this.endDate ? this.endDate : undefined,
@@ -117,7 +117,7 @@ export class DayClosureModalComponent implements OnInit {
   }
 
   reopenDay(): void {
-    this.modalCtrl.dismiss({
+    void this.modalCtrl.dismiss({
       action: 'reopen'
     });
   }

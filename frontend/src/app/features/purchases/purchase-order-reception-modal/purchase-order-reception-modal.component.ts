@@ -211,20 +211,19 @@ export class PurchaseOrderReceptionModalComponent implements OnInit {
   }
 
   closeWithSuccess(): void {
-    this.modalCtrl.dismiss({ confirmed: true, variations: this.priceVariations() });
+    void this.modalCtrl.dismiss({ confirmed: true, variations: this.priceVariations() });
   }
 
   onCancel(): void {
-    this.modalCtrl.dismiss({ confirmed: false });
+    void this.modalCtrl.dismiss({ confirmed: false });
   }
 
-  private async showToast(message: string, color: 'success' | 'warning' | 'danger'): Promise<void> {
-    const toast = await this.toastCtrl.create({
+  private showToast(message: string, color: 'success' | 'warning' | 'danger'): void {
+    void this.toastCtrl.create({
       message,
       duration: 3000,
       position: 'bottom',
       color
-    });
-    await toast.present();
+    }).then(t => void t.present());
   }
 }
