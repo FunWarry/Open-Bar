@@ -135,13 +135,13 @@ export class BarTabModalComponent implements OnInit {
    * Closes the modal dialog without saving.
    */
   dismiss(): void {
-    this.modalCtrl.dismiss(null, 'cancel');
+    void this.modalCtrl.dismiss(null, 'cancel');
   }
 
   /**
    * Submits the form to either create or update the bar tab.
    */
-  async onSubmit(): Promise<void> {
+  onSubmit(): void {
     if (this.form.invalid || this.isSubmitting) {
       return;
     }
@@ -162,7 +162,7 @@ export class BarTabModalComponent implements OnInit {
         next: async (updated) => {
           this.isSubmitting = false;
           await this.showToast(this.transloco.translate('TABS.SUCCESS_UPDATED'), 'success');
-          this.modalCtrl.dismiss(updated, 'confirm');
+          await this.modalCtrl.dismiss(updated, 'confirm');
         },
         error: async (err) => {
           this.isSubmitting = false;
@@ -182,7 +182,7 @@ export class BarTabModalComponent implements OnInit {
         next: async (created) => {
           this.isSubmitting = false;
           await this.showToast(this.transloco.translate('TABS.SUCCESS_CREATED'), 'success');
-          this.modalCtrl.dismiss(created, 'confirm');
+          await this.modalCtrl.dismiss(created, 'confirm');
         },
         error: async (err) => {
           this.isSubmitting = false;

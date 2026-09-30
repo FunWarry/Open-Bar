@@ -146,7 +146,7 @@ export class ZoneManagerComponent implements OnInit {
           duration: 3000,
           color: 'danger'
         });
-        toast.present();
+        await toast.present();
       }
     });
   }
@@ -240,23 +240,25 @@ export class ZoneManagerComponent implements OnInit {
     const isEdit = this.editingZoneId !== null;
 
     obs$.subscribe({
-      next: () => {
+      next: async () => {
         const key = isEdit ? 'ZONE_MANAGER.ZONE_SAVED' : 'ZONE_MANAGER.ZONE_CREATED';
         this.resetForm();
         this.loadData();
-        this.toastCtrl.create({
+        const toast = await this.toastCtrl.create({
           message: this.translocoService.translate(key),
           duration: 3000,
           color: 'success'
-        }).then((t) => t.present());
+        });
+        await toast.present();
       },
-      error: (err) => {
+      error: async (err) => {
         const msg = err.error?.message || this.translocoService.translate('COMMON.ERROR');
-        this.toastCtrl.create({
+        const toast = await this.toastCtrl.create({
           message: msg,
           duration: 3000,
           color: 'danger'
-        }).then((t) => t.present());
+        });
+        await toast.present();
       }
     });
   }
@@ -288,20 +290,22 @@ export class ZoneManagerComponent implements OnInit {
 
     if (data?.confirmed) {
       this.zoneService.delete(zone.id).subscribe({
-        next: () => {
-          this.toastCtrl.create({
+        next: async () => {
+          const toast = await this.toastCtrl.create({
             message: this.translocoService.translate('ZONE_MANAGER.ZONE_DELETED'),
             duration: 3000,
             color: 'success'
-          }).then((t) => t.present());
+          });
+          await toast.present();
           this.loadData();
         },
-        error: () => {
-          this.toastCtrl.create({
+        error: async () => {
+          const toast = await this.toastCtrl.create({
             message: this.translocoService.translate('COMMON.ERROR'),
             duration: 3000,
             color: 'danger'
-          }).then((t) => t.present());
+          });
+          await toast.present();
         }
       });
     }
@@ -343,23 +347,25 @@ export class ZoneManagerComponent implements OnInit {
     const isEdit = this.editingEtageId !== null;
 
     obs$.subscribe({
-      next: () => {
+      next: async () => {
         const key = isEdit ? 'ZONE_MANAGER.ETAGE_SAVED' : 'ZONE_MANAGER.ETAGE_CREATED';
         this.resetEtageForm();
         this.loadData();
-        this.toastCtrl.create({
+        const toast = await this.toastCtrl.create({
           message: this.translocoService.translate(key),
           duration: 3000,
           color: 'success'
-        }).then((t) => t.present());
+        });
+        await toast.present();
       },
-      error: (err) => {
+      error: async (err) => {
         const msg = err.error?.message || this.translocoService.translate('COMMON.ERROR');
-        this.toastCtrl.create({
+        const toast = await this.toastCtrl.create({
           message: msg,
           duration: 3000,
           color: 'danger'
-        }).then((t) => t.present());
+        });
+        await toast.present();
       }
     });
   }
@@ -402,7 +408,7 @@ export class ZoneManagerComponent implements OnInit {
             duration: 3000,
             color: 'success'
           });
-          toast.present();
+          await toast.present();
           this.loadData();
         },
         error: async () => {
@@ -411,13 +417,13 @@ export class ZoneManagerComponent implements OnInit {
             duration: 3000,
             color: 'danger'
           });
-          toast.present();
+          await toast.present();
         }
       });
     }
   }
 
   onClose(): void {
-    this.modalCtrl.dismiss();
+    void this.modalCtrl.dismiss();
   }
 }

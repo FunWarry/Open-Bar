@@ -55,7 +55,7 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (Number.isNaN(this.commandeId)) {
-      this.router.navigate(['/404']);
+      void this.router.navigate(['/404']);
       return;
     }
     this.isLoading = true;
@@ -64,7 +64,7 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
       .subscribe({
         next: commande => (this.commande = commande),
         error: () => {
-          this.router.navigate(['/404']);
+          void this.router.navigate(['/404']);
         },
       });
   }
@@ -113,7 +113,7 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'warning',
           });
-          toast.present();
+          await toast.present();
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
@@ -121,12 +121,12 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
 
   onBack(): void {
-    this.router.navigate(['/commandes']);
+    void this.router.navigate(['/commandes']);
   }
 }

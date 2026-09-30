@@ -306,6 +306,6 @@ export class TableQrModalComponent implements OnInit, OnDestroy {
   }
 
   dismiss(): void {
-    this.modalCtrl.dismiss();
+    void this.modalCtrl.dismiss();
   }
 }

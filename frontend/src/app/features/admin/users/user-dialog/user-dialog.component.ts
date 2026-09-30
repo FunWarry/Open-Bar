@@ -140,11 +140,11 @@ export class UserDialogComponent implements OnInit {
       } else {
         delete formValue.confirmPassword;
       }
-      this.modalCtrl.dismiss(formValue);
+      void this.modalCtrl.dismiss(formValue);
     }
   }
 
   onCancel(): void {
-    this.modalCtrl.dismiss(null);
+    void this.modalCtrl.dismiss(null);
   }
 }

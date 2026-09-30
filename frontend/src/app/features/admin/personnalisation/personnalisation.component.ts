@@ -135,7 +135,7 @@ export class PersonnalisationComponent implements OnInit, OnDestroy {
       this.colorForm.patchValue(generated);
       this.themeService.setCustomColors(generated);
 
-      this.presentToast('Palette générée automatiquement avec succès !', 'success');
+      void this.presentToast('Palette générée automatiquement avec succès !', 'success');
     }
   }
 
@@ -146,7 +146,7 @@ export class PersonnalisationComponent implements OnInit, OnDestroy {
     this.themeService.resetToDefaultColors();
     const defaults = this.themeService.currentCustomColors;
     this.colorForm.patchValue(defaults);
-    this.presentToast('Couleurs réinitialisées aux valeurs Figma par défaut.', 'info');
+    void this.presentToast('Couleurs réinitialisées aux valeurs Figma par défaut.', 'info');
   }
 
   /**

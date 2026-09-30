@@ -126,7 +126,7 @@ export class TableFormComponent implements OnInit, OnDestroy {
 
     const idFromRoute = this.route?.snapshot?.params?.['id'];
     if (idFromRoute && Number.isNaN(+idFromRoute)) {
-      this.router.navigate(['/404']);
+      void this.router.navigate(['/404']);
       return;
     }
     const targetId = this.tableId ?? (idFromRoute ? +idFromRoute : (this.table?.id ?? null));
@@ -153,10 +153,10 @@ export class TableFormComponent implements OnInit, OnDestroy {
                   duration: 3000,
                   color: 'danger'
                 });
-                toast.present();
+                await toast.present();
                 return;
               }
-              this.router.navigate(['/404']);
+              await this.router.navigate(['/404']);
             }
           });
       }
@@ -238,7 +238,7 @@ export class TableFormComponent implements OnInit, OnDestroy {
             duration: 2500,
             color: 'success'
           });
-          toast.present();
+          await toast.present();
 
           try {
             const topModal = await this.modalCtrl.getTop();
@@ -249,7 +249,7 @@ export class TableFormComponent implements OnInit, OnDestroy {
           } catch {
             // Fallback to route
           }
-          this.router.navigate(['/tables']);
+          await this.router.navigate(['/tables']);
         },
         error: async (err) => {
           const errMsg = err?.error?.message || this.transloco.translate('TABLES.SAVE_ERROR');
@@ -258,7 +258,7 @@ export class TableFormComponent implements OnInit, OnDestroy {
             duration: 3500,
             color: 'danger'
           });
-          toast.present();
+          await toast.present();
         }
       });
   }
@@ -310,7 +310,7 @@ export class TableFormComponent implements OnInit, OnDestroy {
             duration: 2500,
             color: 'success'
           });
-          toast.present();
+          await toast.present();
 
           try {
             const topModal = await this.modalCtrl.getTop();
@@ -321,7 +321,7 @@ export class TableFormComponent implements OnInit, OnDestroy {
           } catch {
             // Fallback
           }
-          this.router.navigate(['/tables']);
+          await this.router.navigate(['/tables']);
         },
         error: async (err) => {
           const errMsg = err?.error?.message || this.transloco.translate('TABLES.DELETE_ERROR');
@@ -330,7 +330,7 @@ export class TableFormComponent implements OnInit, OnDestroy {
             duration: 3500,
             color: 'danger'
           });
-          toast.present();
+          await toast.present();
         }
       });
   }
@@ -346,6 +346,6 @@ export class TableFormComponent implements OnInit, OnDestroy {
     } catch {
       // Fallback
     }
-    this.router.navigate(['/tables']);
+    await this.router.navigate(['/tables']);
   }
 }

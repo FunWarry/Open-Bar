@@ -298,7 +298,7 @@ export class StockWasteModalComponent implements OnInit {
           color: 'success'
         });
         await toast.present();
-        this.modalCtrl.dismiss({ saved: true, movement }, 'saved');
+        await this.modalCtrl.dismiss({ saved: true, movement }, 'saved');
       },
       error: async (err) => {
         this.isSubmitting = false;
@@ -319,13 +319,14 @@ export class StockWasteModalComponent implements OnInit {
   exportWasteHistoryCsv(): void {
     const ingredientId = this.ingredient?.id ?? this.preselectedIngredientId ?? this.selectedIngredientId ?? undefined;
     this.stockWasteService.getMovements(ingredientId).subscribe({
-      next: (movements) => {
+      next: async (movements) => {
         if (!movements || movements.length === 0) {
-          this.toastCtrl.create({
+          const toast = await this.toastCtrl.create({
             message: this.transloco.translate('CSV_EXPORT.NO_DATA'),
             duration: 2500,
             color: 'warning'
-          }).then(t => t.present());
+          });
+          await toast.present();
           return;
         }
 
@@ -339,6 +340,6 @@ export class StockWasteModalComponent implements OnInit {
    * Dismisses the modal dialog without saving.
    */
   dismiss(): void {
-    this.modalCtrl.dismiss(null, 'cancel');
+    void this.modalCtrl.dismiss(null, 'cancel');
   }
 }

@@ -19,6 +19,6 @@ export class ErrorDialogComponent {
   constructor(private readonly modalCtrl: ModalController) {}
 
   onClose(): void {
-    this.modalCtrl.dismiss();
+    void this.modalCtrl.dismiss();
   }
 }

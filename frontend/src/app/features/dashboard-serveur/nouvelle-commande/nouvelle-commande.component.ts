@@ -207,7 +207,7 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
@@ -428,8 +428,8 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
             duration: 2000,
             color: 'success',
           });
-          toast.present();
-          this.router.navigate(['/serveur']);
+          await toast.present();
+          await this.router.navigate(['/serveur']);
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
@@ -437,7 +437,7 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }

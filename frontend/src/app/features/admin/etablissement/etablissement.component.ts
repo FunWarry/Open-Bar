@@ -136,7 +136,7 @@ export class EtablissementComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
@@ -163,7 +163,7 @@ export class EtablissementComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'success',
           });
-          toast.present();
+          await toast.present();
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
@@ -171,7 +171,7 @@ export class EtablissementComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }

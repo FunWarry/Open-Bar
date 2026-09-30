@@ -131,7 +131,7 @@ export class ShiftPresetsConfigComponent implements OnInit {
    *
    * @param preset The modified ShiftPreset to persist
    */
-  async savePreset(preset: ShiftPreset): Promise<void> {
+  savePreset(preset: ShiftPreset): void {
     if (!preset.typeShift) return;
     this.savingMap[preset.typeShift] = true;
 

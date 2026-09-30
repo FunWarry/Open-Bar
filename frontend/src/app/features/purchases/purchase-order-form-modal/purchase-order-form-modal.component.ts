@@ -793,7 +793,7 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
    */
   private handleBarcodeScanned(code: string): void {
     this.ingredientService.getByBarcode(code).subscribe({
-      next: (ingredient) => {
+      next: async (ingredient) => {
         // Check if ingredient is already in items
         const existingIndex = this.items.controls.findIndex(
           ctrl => Number(ctrl.get('ingredientId')?.value) === ingredient.id
@@ -803,7 +803,7 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
           const ctrl = this.items.at(existingIndex);
           const currentQty = Number(ctrl.get('quantiteCommandee')?.value || 0);
           ctrl.patchValue({ quantiteCommandee: currentQty + 1 });
-          this.showToast(
+          await this.showToast(
             this.transloco.translate('PURCHASES.BARCODE_QTY_INCREMENTED', { name: ingredient.nom }),
             'success'
           );
@@ -822,14 +822,14 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
               20
             );
           }
-          this.showToast(
+          await this.showToast(
             this.transloco.translate('PURCHASES.BARCODE_ITEM_ADDED', { name: ingredient.nom }),
             'success'
           );
         }
       },
-      error: () => {
-        this.showToast(
+      error: async () => {
+        await this.showToast(
           this.transloco.translate('PURCHASES.BARCODE_NOT_FOUND', { code }),
           'warning'
         );
@@ -888,11 +888,11 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
       items: requestItems
     };
 
-    this.modalCtrl.dismiss({ order: payload, confirmed: true, orderId: this.order?.id });
+    void this.modalCtrl.dismiss({ order: payload, confirmed: true, orderId: this.order?.id });
   }
 
   onCancel(): void {
-    this.modalCtrl.dismiss({ confirmed: false });
+    void this.modalCtrl.dismiss({ confirmed: false });
   }
 
   private async showToast(message: string, color: 'success' | 'warning' | 'danger'): Promise<void> {

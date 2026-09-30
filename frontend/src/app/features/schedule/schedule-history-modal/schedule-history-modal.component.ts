@@ -241,10 +241,10 @@ export class ScheduleHistoryModalComponent implements OnInit {
   }
 
   replayAtInstant(timestamp: string): void {
-    this.modalCtrl.dismiss({ action: 'replay', timestamp });
+    void this.modalCtrl.dismiss({ action: 'replay', timestamp });
   }
 
   dismiss(): void {
-    this.modalCtrl.dismiss();
+    void this.modalCtrl.dismiss();
   }
 }

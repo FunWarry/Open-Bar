@@ -480,7 +480,7 @@ export class VariantRecipeModalComponent implements OnInit {
    * Cancels editing and closes the modal without saving.
    */
   cancel(): void {
-    this.modalCtrl.dismiss(null, 'cancel');
+    void this.modalCtrl.dismiss(null, 'cancel');
   }
 
   /**
@@ -520,6 +520,6 @@ export class VariantRecipeModalComponent implements OnInit {
       recipeSteps: stepsToSave,
     };
 
-    this.modalCtrl.dismiss(result, 'confirm');
+    void this.modalCtrl.dismiss(result, 'confirm');
   }
 }

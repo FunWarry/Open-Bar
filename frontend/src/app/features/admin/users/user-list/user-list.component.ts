@@ -114,7 +114,7 @@ export class UserListComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
-        this.showToast('Erreur lors du chargement des utilisateurs', 'danger');
+        void this.showToast('Erreur lors du chargement des utilisateurs', 'danger');
       }
     });
   }
@@ -173,12 +173,12 @@ export class UserListComponent implements OnInit {
     if (data) {
       this.userService.createUser(data).subscribe({
         next: () => {
-          this.showToast('Utilisateur créé avec succès', 'success');
+          void this.showToast('Utilisateur créé avec succès', 'success');
           this.loadUsers();
         },
         error: (err) => {
           const msg = err?.error?.message || 'Erreur lors de la création de l\'utilisateur';
-          this.showToast(msg, 'danger');
+          void this.showToast(msg, 'danger');
         }
       });
     }
@@ -194,12 +194,12 @@ export class UserListComponent implements OnInit {
     if (data) {
       this.userService.updateUser(user.id, data).subscribe({
         next: () => {
-          this.showToast('Utilisateur modifié avec succès', 'success');
+          void this.showToast('Utilisateur modifié avec succès', 'success');
           this.loadUsers();
         },
         error: (err) => {
           const msg = err?.error?.message || 'Erreur lors de la modification de l\'utilisateur';
-          this.showToast(msg, 'danger');
+          void this.showToast(msg, 'danger');
         }
       });
     }
@@ -216,12 +216,12 @@ export class UserListComponent implements OnInit {
     if (data) {
       this.userService.deleteUser(user.id).subscribe({
         next: () => {
-          this.showToast('Utilisateur supprimé avec succès', 'success');
+          void this.showToast('Utilisateur supprimé avec succès', 'success');
           this.loadUsers();
         },
         error: (err) => {
           const msg = err?.error?.message || 'Erreur lors de la suppression de l\'utilisateur';
-          this.showToast(msg, 'danger');
+          void this.showToast(msg, 'danger');
         }
       });
     }

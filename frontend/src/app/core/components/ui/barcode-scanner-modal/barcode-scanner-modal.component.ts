@@ -91,7 +91,7 @@ export class BarcodeScannerModalComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initBarcodeDetector();
-    this.startCamera();
+    void this.startCamera();
   }
 
   ngOnDestroy(): void {
@@ -101,7 +101,7 @@ export class BarcodeScannerModalComponent implements OnInit, OnDestroy {
   /**
    * Initializes BarcodeDetector API if available in current browser.
    */
-  private async initBarcodeDetector(): Promise<void> {
+  private initBarcodeDetector(): void {
     if ('BarcodeDetector' in window) {
       try {
         const formats = ['qr_code', 'ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e'];
@@ -213,7 +213,7 @@ export class BarcodeScannerModalComponent implements OnInit, OnDestroy {
   private handleSuccessfulScan(barcode: string): void {
     this.playSuccessBeep();
     this.stopCamera();
-    this.modalCtrl.dismiss({ barcode, cancelled: false } satisfies BarcodeScannerResult);
+    void this.modalCtrl.dismiss({ barcode, cancelled: false } satisfies BarcodeScannerResult);
   }
 
   /**
@@ -223,7 +223,7 @@ export class BarcodeScannerModalComponent implements OnInit, OnDestroy {
     const code = this.manualCode().trim();
     if (!code) return;
     this.stopCamera();
-    this.modalCtrl.dismiss({ barcode: code, cancelled: false } satisfies BarcodeScannerResult);
+    void this.modalCtrl.dismiss({ barcode: code, cancelled: false } satisfies BarcodeScannerResult);
   }
 
   /**
@@ -231,7 +231,7 @@ export class BarcodeScannerModalComponent implements OnInit, OnDestroy {
    */
   cancel(): void {
     this.stopCamera();
-    this.modalCtrl.dismiss({ cancelled: true } satisfies BarcodeScannerResult);
+    void this.modalCtrl.dismiss({ cancelled: true } satisfies BarcodeScannerResult);
   }
 
   /**

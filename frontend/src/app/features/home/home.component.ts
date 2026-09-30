@@ -43,7 +43,7 @@ export class HomeComponent {
   }
 
   navigateTo(path: string): void {
-    this.router.navigate([path]);
+    void this.router.navigate([path]);
   }
 }
 

@@ -57,7 +57,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       next: (status) => {
         if (!status.initialized) {
           this.authService.logout();
-          this.router.navigate(['/setup']);
+          void this.router.navigate(['/setup']);
           return;
         }
         this.checkExistingAuth();
@@ -90,9 +90,9 @@ export class LoginComponent implements OnInit, OnDestroy {
       .subscribe((user) => {
         const userKey = user?.id ? String(user.id) : (user?.roles?.[0] || 'CLIENT');
         if (!this.onboardingService.isCompleted(userKey)) {
-          this.router.navigate(['/onboarding']);
+          void this.router.navigate(['/onboarding']);
         } else {
-          this.router.navigate(['/app-home']);
+          void this.router.navigate(['/app-home']);
         }
       });
 

@@ -207,7 +207,7 @@ export class InventoryCountingSheetComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
     if (!idParam || Number.isNaN(Number(idParam))) {
-      this.router.navigate(['/inventory']);
+      void this.router.navigate(['/inventory']);
       return;
     }
     this.sessionId = Number(idParam);
@@ -255,7 +255,7 @@ export class InventoryCountingSheetComponent implements OnInit, OnDestroy {
             position: 'top',
           });
           await toast.present();
-          this.router.navigate(['/inventory']);
+          await this.router.navigate(['/inventory']);
         },
       });
   }
@@ -312,7 +312,7 @@ export class InventoryCountingSheetComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.router.navigate(['/inventory']);
+    void this.router.navigate(['/inventory']);
   }
 
   getItemState(itemId: number): ItemCountState {

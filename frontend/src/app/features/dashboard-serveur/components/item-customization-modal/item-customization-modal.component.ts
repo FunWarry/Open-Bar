@@ -316,11 +316,11 @@ export class ItemCustomizationModalComponent implements OnInit {
   }
 
   close() {
-    this.modalCtrl.dismiss(null, 'cancel');
+    void this.modalCtrl.dismiss(null, 'cancel');
   }
 
   save() {
-    this.modalCtrl.dismiss({
+    void this.modalCtrl.dismiss({
       commentaire: this.commentaire.trim(),
       exclusions: this.excludedIngredients,
     }, 'confirm');

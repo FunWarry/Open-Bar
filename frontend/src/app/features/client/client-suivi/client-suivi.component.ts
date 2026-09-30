@@ -48,7 +48,7 @@ export class ClientSuiviComponent implements OnInit, OnDestroy {
         this.loadCommande(id);
         this.subscribeWebSocket(id);
       } else {
-        this.router.navigate(['/404']);
+        void this.router.navigate(['/404']);
       }
     });
   }
@@ -70,7 +70,7 @@ export class ClientSuiviComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.isLoading = false;
-          this.router.navigate(['/404']);
+          void this.router.navigate(['/404']);
         }
       });
   }

@@ -187,7 +187,7 @@ export class CommandeListComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
@@ -283,7 +283,7 @@ export class CommandeListComponent implements OnInit, OnDestroy {
             duration: 2000,
             color: 'success',
           });
-          toast.present();
+          await toast.present();
           this.charger();
         },
         error: async () => {
@@ -292,7 +292,7 @@ export class CommandeListComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
@@ -314,7 +314,7 @@ export class CommandeListComponent implements OnInit, OnDestroy {
             duration: 2000,
             color: 'warning',
           });
-          toast.present();
+          await toast.present();
           this.charger();
         },
         error: async () => {
@@ -323,7 +323,7 @@ export class CommandeListComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
@@ -342,7 +342,7 @@ export class CommandeListComponent implements OnInit, OnDestroy {
     });
 
     document.body.classList.add('modal-open');
-    modal.onDidDismiss().then(result => {
+    void modal.onDidDismiss().then(result => {
       document.body.classList.remove('modal-open');
       if (result.data) {
         this.charger();

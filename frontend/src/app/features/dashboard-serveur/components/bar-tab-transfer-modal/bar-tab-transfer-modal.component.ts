@@ -115,7 +115,7 @@ export class BarTabTransferModalComponent implements OnInit {
   }
 
   dismiss(): void {
-    this.modalCtrl.dismiss(null, 'cancel');
+    void this.modalCtrl.dismiss(null, 'cancel');
   }
 
   onModeChange(mode: TransferMode): void {
@@ -131,7 +131,7 @@ export class BarTabTransferModalComponent implements OnInit {
     return this.selectedTabId != null;
   }
 
-  async onConfirmTransfer(): Promise<void> {
+  onConfirmTransfer(): void {
     if (!this.canSubmit() || this.isSubmitting) {
       return;
     }
@@ -148,7 +148,7 @@ export class BarTabTransferModalComponent implements OnInit {
         next: async (res: BarTab) => {
           this.isSubmitting = false;
           await this.showToast(this.transloco.translate('TABS.SUCCESS_TRANSFERRED'), 'success');
-          this.modalCtrl.dismiss(res, 'confirm');
+          await this.modalCtrl.dismiss(res, 'confirm');
         },
         error: async (err: unknown) => {
           this.isSubmitting = false;
@@ -166,7 +166,7 @@ export class BarTabTransferModalComponent implements OnInit {
         next: async (res: BarTab) => {
           this.isSubmitting = false;
           await this.showToast(this.transloco.translate('TABS.SUCCESS_TRANSFERRED'), 'success');
-          this.modalCtrl.dismiss(res, 'confirm');
+          await this.modalCtrl.dismiss(res, 'confirm');
         },
         error: async (err: unknown) => {
           this.isSubmitting = false;
@@ -181,7 +181,7 @@ export class BarTabTransferModalComponent implements OnInit {
         next: async (res: BarTab) => {
           this.isSubmitting = false;
           await this.showToast(this.transloco.translate('TABS.SUCCESS_TRANSFERRED'), 'success');
-          this.modalCtrl.dismiss(res, 'confirm');
+          await this.modalCtrl.dismiss(res, 'confirm');
         },
         error: async (err: unknown) => {
           this.isSubmitting = false;

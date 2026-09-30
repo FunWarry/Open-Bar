@@ -79,7 +79,7 @@ export class TableDetailComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const idParam = this.route?.snapshot?.paramMap?.get('id');
     if (idParam && Number.isNaN(+idParam)) {
-      this.router.navigate(['/404']);
+      void this.router.navigate(['/404']);
       return;
     }
     const targetId = this.tableId ?? (idParam ? +idParam : (this.table?.id ?? null));
@@ -118,11 +118,11 @@ export class TableDetailComponent implements OnInit, OnDestroy {
               duration: 3000,
               color: 'danger'
             });
-            toast.present();
-            this.onClose();
+            await toast.present();
+            await this.onClose();
             return;
           }
-          this.router.navigate(['/404']);
+          await this.router.navigate(['/404']);
         }
       });
   }
@@ -149,7 +149,7 @@ export class TableDetailComponent implements OnInit, OnDestroy {
     } catch {
       // Fallback to router
     }
-    this.router.navigate(['/tables']);
+    await this.router.navigate(['/tables']);
   }
 
   /** Dismisses modal with an edit signal to trigger the edit modal. */
@@ -163,7 +163,7 @@ export class TableDetailComponent implements OnInit, OnDestroy {
     } catch {
       // Fallback
     }
-    this.router.navigate(['/tables', this.table?.id, 'edit']);
+    await this.router.navigate(['/tables', this.table?.id, 'edit']);
   }
 
   /**
@@ -223,7 +223,7 @@ export class TableDetailComponent implements OnInit, OnDestroy {
             duration: 2500,
             color: 'success'
           });
-          toast.present();
+          await toast.present();
           try {
             const topModal = await this.modalCtrl.getTop();
             if (topModal) {
@@ -233,7 +233,7 @@ export class TableDetailComponent implements OnInit, OnDestroy {
           } catch {
             // Fallback
           }
-          this.router.navigate(['/tables']);
+          await this.router.navigate(['/tables']);
         },
         error: async (err) => {
           const errMsg = err?.error?.message || this.transloco.translate('TABLES.DELETE_ERROR');
@@ -242,15 +242,14 @@ export class TableDetailComponent implements OnInit, OnDestroy {
             duration: 3500,
             color: 'danger'
           });
-          toast.present();
+          await toast.present();
         }
       });
   }
 
-  onViewCommande(c: Commande): void {
-    this.onClose().then(() => {
-      this.router.navigate(['/commandes', c.id]);
-    });
+  async onViewCommande(c: Commande): Promise<void> {
+    await this.onClose();
+    await this.router.navigate(['/commandes', c.id]);
   }
 
   async onOpenQrModal(): Promise<void> {

@@ -400,7 +400,7 @@ export class ReglementModalComponent implements OnInit {
 
   /** Dismisses the modal without confirming payment. */
   cancel(): void {
-    this.modalCtrl.dismiss(null);
+    void this.modalCtrl.dismiss(null);
   }
 
   /** Alias for backward-compatibility. */
@@ -426,7 +426,7 @@ export class ReglementModalComponent implements OnInit {
     if (this.canLibererTable) {
       result.libererTable = this.libererTable;
     }
-    this.modalCtrl.dismiss(result);
+    void this.modalCtrl.dismiss(result);
   }
 
   /** Alias for backward-compatibility. */

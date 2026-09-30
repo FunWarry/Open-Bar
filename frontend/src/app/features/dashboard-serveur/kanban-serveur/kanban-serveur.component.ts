@@ -178,7 +178,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
@@ -224,7 +224,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
    * Marks an order as delivered.
    * @param commandeId - ID of the order to mark delivered.
    */
-  async markDelivered(commandeId: number) {
+  markDelivered(commandeId: number): void {
     this.service.changerStatutCommande(commandeId, 'LIVREE')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -235,7 +235,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
             duration: 2000,
             color: 'success',
           });
-          toast.present();
+          await toast.present();
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
@@ -243,20 +243,20 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
 
-  async marquerLivree(commandeId: number) {
-    await this.markDelivered(commandeId);
+  marquerLivree(commandeId: number): void {
+    this.markDelivered(commandeId);
   }
 
   /**
    * Cancels an order.
    * @param commandeId - ID of the order to cancel.
    */
-  async cancelOrder(commandeId: number) {
+  cancelOrder(commandeId: number): void {
     this.service.annulerCommande(commandeId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -267,7 +267,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
             duration: 2000,
             color: 'medium',
           });
-          toast.present();
+          await toast.present();
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
@@ -275,13 +275,13 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
 
-  async annuler(commandeId: number) {
-    await this.cancelOrder(commandeId);
+  annuler(commandeId: number): void {
+    this.cancelOrder(commandeId);
   }
 
   /**

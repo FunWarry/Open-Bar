@@ -204,6 +204,6 @@ export class ClosureConfigModalComponent implements OnInit {
   }
 
   dismiss(): void {
-    this.modalCtrl.dismiss(true);
+    void this.modalCtrl.dismiss(true);
   }
 }

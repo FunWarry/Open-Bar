@@ -220,7 +220,7 @@ export class FactureSplitComponent implements OnInit {
       if (routeId) {
         this.factureId = +routeId;
         if (Number.isNaN(this.factureId)) {
-          this.router.navigate(['/404']);
+          void this.router.navigate(['/404']);
           return;
         }
       }
@@ -235,7 +235,7 @@ export class FactureSplitComponent implements OnInit {
 
   /** Dismisses modal returning settlement status. */
   closeModal(didSettle = false): void {
-    this.modalCtrl.dismiss({ settled: didSettle || this.allPartsSettled });
+    void this.modalCtrl.dismiss({ settled: didSettle || this.allPartsSettled });
   }
 
   onModeChange() {
@@ -259,7 +259,7 @@ export class FactureSplitComponent implements OnInit {
       error: () => {
         this.errorMessage = String(this.transloco.translate('SPLIT.LOAD_ITEMS_ERROR'));
         if (this.route.snapshot?.paramMap?.get('id')) {
-          this.router.navigate(['/404']);
+          void this.router.navigate(['/404']);
         }
       },
     });

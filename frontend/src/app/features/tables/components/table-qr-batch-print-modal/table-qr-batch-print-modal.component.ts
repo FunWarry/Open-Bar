@@ -200,6 +200,6 @@ export class TableQrBatchPrintModalComponent implements OnInit {
   }
 
   dismiss(): void {
-    this.modalCtrl.dismiss();
+    void this.modalCtrl.dismiss();
   }
 }

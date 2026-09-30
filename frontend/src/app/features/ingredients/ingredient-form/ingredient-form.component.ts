@@ -281,7 +281,7 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
       this.isEditMode = true;
       this.ingredientId = +id;
       if (Number.isNaN(this.ingredientId)) {
-        this.router.navigate(['/404']);
+        void this.router.navigate(['/404']);
         return;
       }
       this.ingredientService.getById(this.ingredientId).subscribe({
@@ -315,7 +315,7 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
           }
         },
         error: () => {
-          this.router.navigate(['/404']);
+          void this.router.navigate(['/404']);
         }
       });
     }
@@ -596,12 +596,12 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
           duration: 3000,
           color: 'success'
         });
-        toast.present();
+        await toast.present();
 
         if (this.modalCtrl) {
           await this.modalCtrl.dismiss(savedResult ?? payload, 'saved');
         } else {
-          this.router.navigate(['/ingredients']);
+          await this.router.navigate(['/ingredients']);
         }
       },
       error: async () => {
@@ -610,7 +610,7 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
           duration: 3000,
           color: 'danger'
         });
-        toast.present();
+        await toast.present();
       }
     });
   }
@@ -620,10 +620,10 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
       try {
         await this.modalCtrl.dismiss(null, 'cancel');
       } catch {
-        this.router.navigate(['/ingredients']);
+        await this.router.navigate(['/ingredients']);
       }
     } else {
-      this.router.navigate(['/ingredients']);
+      await this.router.navigate(['/ingredients']);
     }
   }
 }

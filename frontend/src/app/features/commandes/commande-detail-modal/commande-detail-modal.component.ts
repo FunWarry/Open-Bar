@@ -97,7 +97,7 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
           this.dismiss();
         },
       });
@@ -234,7 +234,7 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
             duration: 2000,
             color: 'success',
           });
-          toast.present();
+          await toast.present();
           this.dismiss({ role: 'statusUpdated', commande: updated, targetStatut });
         },
         error: async () => {
@@ -243,7 +243,7 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
@@ -279,7 +279,7 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
             duration: 2000,
             color: 'warning',
           });
-          toast.present();
+          await toast.present();
           this.dismiss({ role: 'cancelled', commande: updated });
         },
         error: async () => {
@@ -288,12 +288,12 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
 
   dismiss(data?: any): void {
-    this.modalCtrl.dismiss(data);
+    void this.modalCtrl.dismiss(data);
   }
 }

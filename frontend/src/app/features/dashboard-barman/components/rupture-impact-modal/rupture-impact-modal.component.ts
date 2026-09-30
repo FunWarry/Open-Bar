@@ -130,7 +130,7 @@ export class RuptureImpactModalComponent implements OnInit, OnDestroy {
           this.initializeDefaultSelection();
         },
         error: () => {
-          this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger');
+          void this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger');
         }
       });
   }
@@ -210,11 +210,11 @@ export class RuptureImpactModalComponent implements OnInit, OnDestroy {
             qty: this.quickRestockQty,
             unit: this.ingredient.uniteMesure
           });
-          this.showToast(msg, 'success');
-          this.modalCtrl.dismiss({ action: 'restocked', newStock: this.quickRestockQty });
+          void this.showToast(msg, 'success');
+          void this.modalCtrl.dismiss({ action: 'restocked', newStock: this.quickRestockQty });
         },
         error: () => {
-          this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger');
+          void this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger');
         }
       });
   }
@@ -235,7 +235,7 @@ export class RuptureImpactModalComponent implements OnInit, OnDestroy {
     const executeBatchCascade = () => {
       if (selectedIds.length === 0) {
         this.isProcessing = false;
-        this.modalCtrl.dismiss({ action: 'ingredient_only' });
+        void this.modalCtrl.dismiss({ action: 'ingredient_only' });
         return;
       }
 
@@ -250,11 +250,11 @@ export class RuptureImpactModalComponent implements OnInit, OnDestroy {
               count: selectedIds.length,
               name: this.ingredient.nom
             });
-            this.showToast(msg, 'warning');
-            this.modalCtrl.dismiss({ action: 'cascaded', cocktailIds: selectedIds });
+            void this.showToast(msg, 'warning');
+            void this.modalCtrl.dismiss({ action: 'cascaded', cocktailIds: selectedIds });
           },
           error: () => {
-            this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger');
+            void this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger');
           }
         });
     };
@@ -266,7 +266,7 @@ export class RuptureImpactModalComponent implements OnInit, OnDestroy {
           next: () => executeBatchCascade(),
           error: () => {
             this.isProcessing = false;
-            this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger');
+            void this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger');
           }
         });
     } else {
@@ -288,15 +288,15 @@ export class RuptureImpactModalComponent implements OnInit, OnDestroy {
         .subscribe({
           next: () => {
             const msg = this.transloco.translate('BARMAN_DASHBOARD.STOCK_UPDATED');
-            this.showToast(msg, 'success');
-            this.modalCtrl.dismiss({ action: 'ingredient_only' });
+            void this.showToast(msg, 'success');
+            void this.modalCtrl.dismiss({ action: 'ingredient_only' });
           },
           error: () => {
-            this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger');
+            void this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger');
           }
         });
     } else {
-      this.modalCtrl.dismiss({ action: 'cancel' });
+      void this.modalCtrl.dismiss({ action: 'cancel' });
     }
   }
 
@@ -304,7 +304,7 @@ export class RuptureImpactModalComponent implements OnInit, OnDestroy {
    * Dismisses the modal without changes.
    */
   dismiss(): void {
-    this.modalCtrl.dismiss({ action: 'cancel' });
+    void this.modalCtrl.dismiss({ action: 'cancel' });
   }
 
   private async showToast(message: string, color: 'success' | 'warning' | 'danger'): Promise<void> {

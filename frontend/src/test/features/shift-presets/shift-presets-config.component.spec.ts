@@ -89,22 +89,22 @@ describe('ShiftPresetsConfigComponent', () => {
     expect(component.loading).toBeFalse();
   });
 
-  it('should save preset and present success toast with Transloco translation', async () => {
+  it('should save preset and present success toast with Transloco translation', () => {
     const target = samplePresets[0];
     mockShiftService.updatePreset.and.returnValue(of(target));
 
-    await component.savePreset(target);
+    component.savePreset(target);
 
     expect(mockShiftService.updatePreset).toHaveBeenCalledWith('MATIN', target);
     expect(mockToastCtrl.create).toHaveBeenCalled();
     expect(component.savingMap['MATIN']).toBeFalse();
   });
 
-  it('should handle savePreset error and present danger toast', async () => {
+  it('should handle savePreset error and present danger toast', () => {
     const target = samplePresets[1];
     mockShiftService.updatePreset.and.returnValue(throwError(() => new Error('Server error')));
 
-    await component.savePreset(target);
+    component.savePreset(target);
 
     expect(mockShiftService.updatePreset).toHaveBeenCalledWith('SOIR', target);
     expect(mockToastCtrl.create).toHaveBeenCalled();

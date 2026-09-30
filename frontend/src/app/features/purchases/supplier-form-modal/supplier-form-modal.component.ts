@@ -74,10 +74,10 @@ export class SupplierFormModalComponent implements OnInit {
       return;
     }
     const payload: SupplierCreateRequest = this.form.value;
-    this.modalCtrl.dismiss({ supplier: payload, confirmed: true });
+    void this.modalCtrl.dismiss({ supplier: payload, confirmed: true });
   }
 
   onCancel(): void {
-    this.modalCtrl.dismiss({ confirmed: false });
+    void this.modalCtrl.dismiss({ confirmed: false });
   }
 }

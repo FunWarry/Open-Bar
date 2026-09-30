@@ -139,7 +139,7 @@ export class PurchaseOrderReceptionModalComponent implements OnInit {
 
   private handleBarcodeScanned(code: string): void {
     this.ingredientService.getByBarcode(code).subscribe({
-      next: (ingredient) => {
+      next: async (ingredient) => {
         const matchingIndex = this.items.controls.findIndex(
           ctrl => Number(ctrl.get('ingredientId')?.value) === ingredient.id
         );
@@ -148,19 +148,19 @@ export class PurchaseOrderReceptionModalComponent implements OnInit {
           const ctrl = this.items.at(matchingIndex);
           const currentLivree = Number(ctrl.get('quantiteLivree')?.value || 0);
           ctrl.patchValue({ quantiteLivree: currentLivree + 1 });
-          this.showToast(
+          await this.showToast(
             this.transloco.translate('PURCHASES.RECEPTION_ITEM_POINTED', { name: ingredient.nom }),
             'success'
           );
         } else {
-          this.showToast(
+          await this.showToast(
             this.transloco.translate('PURCHASES.BARCODE_NOT_IN_ORDER', { name: ingredient.nom }),
             'warning'
           );
         }
       },
-      error: () => {
-        this.showToast(
+      error: async () => {
+        await this.showToast(
           this.transloco.translate('PURCHASES.BARCODE_NOT_FOUND', { code }),
           'warning'
         );
@@ -186,7 +186,7 @@ export class PurchaseOrderReceptionModalComponent implements OnInit {
       }));
 
     if (receptionItems.length === 0) {
-      this.showToast(this.transloco.translate('PURCHASES.ERROR_NO_ITEMS_RECEIVED'), 'warning');
+      void this.showToast(this.transloco.translate('PURCHASES.ERROR_NO_ITEMS_RECEIVED'), 'warning');
       return;
     }
 
@@ -202,20 +202,20 @@ export class PurchaseOrderReceptionModalComponent implements OnInit {
         this.isSubmitting.set(false);
         this.priceVariations.set(variations);
       },
-      error: (err) => {
+      error: async (err) => {
         this.isSubmitting.set(false);
         const msg = err?.error?.message || this.transloco.translate('PURCHASES.RECEPTION_ERROR');
-        this.showToast(msg, 'danger');
+        await this.showToast(msg, 'danger');
       }
     });
   }
 
   closeWithSuccess(): void {
-    this.modalCtrl.dismiss({ confirmed: true, variations: this.priceVariations() });
+    void this.modalCtrl.dismiss({ confirmed: true, variations: this.priceVariations() });
   }
 
   onCancel(): void {
-    this.modalCtrl.dismiss({ confirmed: false });
+    void this.modalCtrl.dismiss({ confirmed: false });
   }
 
   private async showToast(message: string, color: 'success' | 'warning' | 'danger'): Promise<void> {

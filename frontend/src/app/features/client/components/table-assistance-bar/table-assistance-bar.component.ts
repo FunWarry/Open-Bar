@@ -53,7 +53,7 @@ export class TableAssistanceBarComponent implements OnDestroy {
         this.activeCallType = type;
         this.startCooldown(60);
         this.cdr.markForCheck();
-        this.afficherToast(
+        void this.afficherToast(
           type === 'ADDITION'
             ? 'CLIENT.ALERTS.BILL_SENT_SUCCESS'
             : 'CLIENT.ALERTS.CALL_SENT_SUCCESS',
@@ -66,7 +66,7 @@ export class TableAssistanceBarComponent implements OnDestroy {
         const msgKey = err?.status === 400
           ? 'CLIENT.ALERTS.COOLDOWN_ACTIVE'
           : 'CLIENT.ALERTS.SEND_ERROR';
-        this.afficherToast(msgKey, 'danger');
+        void this.afficherToast(msgKey, 'danger');
       }
     });
   }

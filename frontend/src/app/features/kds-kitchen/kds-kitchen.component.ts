@@ -245,7 +245,7 @@ export class KdsKitchenComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger'
           });
-          toast.present();
+          await toast.present();
         }
       });
   }
@@ -266,7 +266,7 @@ export class KdsKitchenComponent implements OnInit, OnDestroy {
     const msg = enabled
       ? this.transloco.translate('BARMAN_DASHBOARD.SOUND_ALERTS_ENABLED')
       : this.transloco.translate('BARMAN_DASHBOARD.SOUND_ALERTS_DISABLED');
-    this.showToast(msg, 'primary');
+    void this.showToast(msg, 'primary');
   }
 
   /**
@@ -281,16 +281,16 @@ export class KdsKitchenComponent implements OnInit, OnDestroy {
       .changerItemStatut(commande.id, item.id, targetStatut)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
+        next: async () => {
           item.statut = targetStatut as any;
           this.chargerCommandes();
           if (targetStatut === 'PRET') {
             this.soundService.playOrderReadySound();
           }
-          this.showToast(this.transloco.translate('KDS.ITEM_STATUS_UPDATED'), 'success');
+          await this.showToast(this.transloco.translate('KDS.ITEM_STATUS_UPDATED'), 'success');
         },
-        error: () => {
-          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATE_ERROR'), 'danger');
+        error: async () => {
+          await this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATE_ERROR'), 'danger');
         }
       });
   }
@@ -305,13 +305,13 @@ export class KdsKitchenComponent implements OnInit, OnDestroy {
       .changerStatut(commande.id, 'PRET')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
+        next: async () => {
           this.chargerCommandes();
           this.soundService.playOrderReadySound();
-          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATED_SUCCESS'), 'success');
+          await this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATED_SUCCESS'), 'success');
         },
-        error: () => {
-          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATE_ERROR'), 'danger');
+        error: async () => {
+          await this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATE_ERROR'), 'danger');
         }
       });
   }
