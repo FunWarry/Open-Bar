@@ -234,7 +234,7 @@ class CocktailWheelServiceTest {
 
     @Test
     @DisplayName("getEstablishmentWheelData should read from persistent file when present")
-    void getEstablishmentWheelData_readsFromFile() throws Exception {
+    void getEstablishmentWheelData_readsFromFile() {
         Cocktail cocktail = new Cocktail();
         cocktail.setId(1L);
         cocktail.setNom("Mojito");
