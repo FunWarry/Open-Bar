@@ -3,6 +3,7 @@ package com.bar.gestioncocktail.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 /**
  * JPA entity representing an audit log entry tracking administrative, security, and fiscal operations.
  */
@@ -32,6 +33,6 @@ public class AuditLog {
 
     @PrePersist
     protected void onCreate() {
-        timestamp = LocalDateTime.now();
+        timestamp = LocalDateTime.now(ZoneId.systemDefault());
     }
 } 

@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,7 +45,7 @@ class WeekSchedulePublicationControllerTest {
     @InjectMocks
     private WeekSchedulePublicationController controller;
 
-    private final LocalDate monday = LocalDate.of(2026, 8, 17);
+    private final LocalDate monday = LocalDate.of(2026, Month.AUGUST, 17);
 
     @Test
     @DisplayName("POST /publish returns 200 with saved publication DTO")
@@ -89,7 +90,7 @@ class WeekSchedulePublicationControllerTest {
     void getAuditLog_returnsOkWithLogs() {
         ShiftAuditLogDTO dto = new ShiftAuditLogDTO(
                 1L, 100L, 10L, "serveur1", "Martin", "Alice",
-                LocalDate.of(2026, 8, 18), ShiftAuditAction.CREATED,
+                LocalDate.of(2026, Month.AUGUST, 18), ShiftAuditAction.CREATED,
                 "manager1", LocalDateTime.now(), null, "{}"
         );
         when(shiftAuditService.getAuditLogForWeek(monday, null)).thenReturn(List.of(dto));
@@ -105,7 +106,7 @@ class WeekSchedulePublicationControllerTest {
     @Test
     @DisplayName("GET /at returns 200 with reconstructed shifts at instant T")
     void getScheduleAt_returnsOkWithShifts() {
-        LocalDateTime at = LocalDateTime.of(2026, 8, 18, 12, 0, 0);
+        LocalDateTime at = LocalDateTime.of(2026, Month.AUGUST, 18, 12, 0, 0);
 
         User user = new User();
         user.setId(10L);
@@ -116,7 +117,7 @@ class WeekSchedulePublicationControllerTest {
         EmployeeShift shiftEntity = new EmployeeShift();
         shiftEntity.setId(100L);
         shiftEntity.setUser(user);
-        shiftEntity.setDateShift(LocalDate.of(2026, 8, 18));
+        shiftEntity.setDateShift(LocalDate.of(2026, Month.AUGUST, 18));
         shiftEntity.setTypeShift(TypeShift.SOIR);
         shiftEntity.setTypePoste(TypePoste.SERVEUR);
         shiftEntity.setHeureDebut("17:00");

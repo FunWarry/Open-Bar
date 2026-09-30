@@ -680,11 +680,9 @@ public class BarTabService {
         for (Commande order : orders) {
             consolidateOrderItems(order, map);
         }
-        List<BarTabItemDTO> items = new ArrayList<>(map.size());
-        for (BarTabItemAccumulator accumulator : map.values()) {
-            items.add(accumulator.toDTO());
-        }
-        return items;
+        return map.values().stream()
+                .map(accumulator -> accumulator.toDTO())
+                .toList();
     }
 
     private void consolidateOrderItems(Commande order, Map<String, BarTabItemAccumulator> map) {

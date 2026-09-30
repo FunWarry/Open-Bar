@@ -31,6 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 /**
  * Service responsible for automatically seeding the database with the cocktail
@@ -402,17 +405,14 @@ public class CocktailDataSeederService {
     }
 
     private List<CocktailRecipeStep> importRecipeSteps(Cocktail savedCocktail, JsonNode node) {
-        List<CocktailRecipeStep> steps = new ArrayList<>();
         if (!node.has(KEY_RECETTE_ULTRA_DETAILLEE) || !node.get(KEY_RECETTE_ULTRA_DETAILLEE).isArray()) {
-            return steps;
+            return new ArrayList<>();
         }
 
         JsonNode stepsNode = node.get(KEY_RECETTE_ULTRA_DETAILLEE);
-        int order = 1;
-        for (JsonNode stepNode : stepsNode) {
-            steps.add(createRecipeStepFromNode(savedCocktail, stepNode, order++));
-        }
-        return steps;
+        return IntStream.range(0, stepsNode.size())
+                .mapToObj(i -> createRecipeStepFromNode(savedCocktail, stepsNode.get(i), i + 1))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private CocktailRecipeStep createRecipeStepFromNode(Cocktail savedCocktail, JsonNode stepNode, int order) {
@@ -706,11 +706,9 @@ public class CocktailDataSeederService {
             return "Préparer au shaker et servir bien frais.";
         }
 
-        List<String> list = new ArrayList<>();
-        for (JsonNode step : etapes) {
-            list.add(step.asText());
-        }
-        return String.join("\n", list);
+        return StreamSupport.stream(etapes.spliterator(), false)
+                .map(step -> step.asText())
+                .collect(Collectors.joining("\n"));
     }
 
     private boolean detectAlcohol(JsonNode ingredientsNode, String cocktailName) {

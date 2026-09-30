@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -50,7 +51,7 @@ class HappyHourControllerTest {
     private HappyHourController controller;
 
     private HappyHourRule rule;
-    private final LocalDateTime referenceTime = LocalDateTime.of(2026, 9, 5, 18, 30);
+    private final LocalDateTime referenceTime = LocalDateTime.of(2026, Month.SEPTEMBER, 5, 18, 30);
 
     @BeforeEach
     void setUp() {
