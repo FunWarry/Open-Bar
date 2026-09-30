@@ -7,7 +7,7 @@ import { AppSettingsPageComponent } from '../../../../app/features/admin/setting
 import { LegalComponent } from '../../../../app/features/legal/legal.component';
 import { EtablissementService } from '../../../../app/core/services/etablissement.service';
 import { EstablishmentConfig } from '../../../../app/core/models/establishment-config.model';
-import { AppSettingsService, DEFAULT_DISCOUNT_TIERS } from '../../../../app/core/services/app-settings.service';
+import { AppSettingsService, DEFAULT_DISCOUNT_TIERS, DEFAULT_STORAGE_LOCATIONS } from '../../../../app/core/services/app-settings.service';
 import { AppSettings } from '../../../../app/core/models/app-settings.model';
 import { ThemeService, DEFAULT_FIGMA_PALETTE, THEME_PRESETS } from '../../../../app/core/services/theme.service';
 import { PrinterService } from '../../../../app/core/services/printer.service';
@@ -97,10 +97,19 @@ describe('AppSettingsPageComponent', () => {
     etabServiceSpy.updateConfig.and.returnValue(of(mockEtab));
     etabServiceSpy.getTimeZones.and.returnValue(of(['Europe/Paris', 'UTC', 'America/New_York']));
 
-    appSettingsServiceSpy = jasmine.createSpyObj('AppSettingsService', ['getSettings', 'updateSettings', 'applyTokens', 'getDiscountTiers', 'saveDiscountTiersLocally']);
+    appSettingsServiceSpy = jasmine.createSpyObj('AppSettingsService', [
+      'getSettings',
+      'updateSettings',
+      'applyTokens',
+      'getDiscountTiers',
+      'saveDiscountTiersLocally',
+      'getStorageLocations',
+      'saveStorageLocationsLocally',
+    ]);
     appSettingsServiceSpy.getSettings.and.returnValue(of(mockAppSettings));
     appSettingsServiceSpy.updateSettings.and.returnValue(of(mockAppSettings));
     appSettingsServiceSpy.getDiscountTiers.and.returnValue([...DEFAULT_DISCOUNT_TIERS]);
+    appSettingsServiceSpy.getStorageLocations.and.returnValue([...DEFAULT_STORAGE_LOCATIONS]);
 
     printerServiceSpy = jasmine.createSpyObj('PrinterService', [
       'getStatus',
