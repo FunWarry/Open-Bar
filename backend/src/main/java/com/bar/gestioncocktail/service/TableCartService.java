@@ -31,7 +31,7 @@ import java.util.stream.Stream;
  * Service managing collaborative multi-guest table carts.
  * <p>
  * Synchronizes items added by patrons at the same table in real time via STOMP destination
- * {@code /topic/tables/{tableId}/cart}, allowing consolidated submission to the bar.
+ * {@code /topic/tables/{tableId}/cart}, allowing consolidated submission to the bar workstations.
  */
 @Service
 @Transactional

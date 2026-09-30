@@ -21,7 +21,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneId;
-import com.bar.gestioncocktail.service.TableCartService;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -34,7 +33,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for {@link RouletteService}.
- * Validates public configuration, fair/stock-weighted spins, bartender broadcasts, and wheel sector management.
+ * Validates public configuration, fair/stock-weighted spins, bartender broadcasts, table cart additions, and wheel sector management.
  */
 @ExtendWith(MockitoExtension.class)
 class RouletteServiceTest {
