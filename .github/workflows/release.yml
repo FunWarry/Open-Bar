@@ -37,7 +37,12 @@ jobs:
         env:
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
-          LAST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
+          if [ "$HEAD_BRANCH" = "master" ]; then
+            # On master, find the last stable release tag (exclude -beta)
+            LAST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | grep -v 'beta' | head -n1)
+          else
+            LAST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
+          fi
           LAST_TAG=${LAST_TAG:-v0.0.0}
           echo "last_tag=$LAST_TAG" >> $GITHUB_OUTPUT
 
@@ -55,12 +60,21 @@ jobs:
             BUMP="minor"
           fi
 
-          if [ "$BUMP" = "major" ]; then
-            NEW_VERSION="$((MAJOR + 1)).0.0"
-          elif [ "$BUMP" = "minor" ]; then
-            NEW_VERSION="${MAJOR}.$((MINOR + 1)).0"
+          # While in initial development (v0), prevent premature v1.0.0 release: keep MAJOR at 0 (SemVer 0.y.z)
+          if [ "$MAJOR" -eq 0 ]; then
+            if [ "$BUMP" = "major" ] || [ "$BUMP" = "minor" ]; then
+              NEW_VERSION="0.$((MINOR + 1)).0"
+            else
+              NEW_VERSION="0.${MINOR}.$((PATCH + 1))"
+            fi
           else
-            NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+            if [ "$BUMP" = "major" ]; then
+              NEW_VERSION="$((MAJOR + 1)).0.0"
+            elif [ "$BUMP" = "minor" ]; then
+              NEW_VERSION="${MAJOR}.$((MINOR + 1)).0"
+            else
+              NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+            fi
           fi
 
           if [ "$HEAD_BRANCH" = "dev" ]; then
@@ -69,11 +83,7 @@ jobs:
             IS_PRERELEASE="true"
           else
             NEW_TAG="v${NEW_VERSION}"
-            if [ "$MAJOR" -eq 0 ]; then
-              IS_PRERELEASE="true"
-            else
-              IS_PRERELEASE="false"
-            fi
+            IS_PRERELEASE="false"
           fi
 
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
@@ -119,7 +129,7 @@ jobs:
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           VERSION="${{ steps.version.outputs.new_version }}"
-          sed -i "s|<version>[0-9]*\.[0-9]*\.[0-9]*-SNAPSHOT</version>|<version>${VERSION}</version>|" backend/pom.xml
+          sed -i "0,/<version>[0-9]*\.[0-9]*\.[0-9]*\(-SNAPSHOT\)\?<\/version>/s|<version>[0-9]*\.[0-9]*\.[0-9]*\(-SNAPSHOT\)\?<\/version>|<version>${VERSION}</version>|" backend/pom.xml
           sed -i "s|\"version\": \"[^\"]*\"|\"version\": \"${VERSION}\"|" frontend/package.json
           if ! git diff --quiet backend/pom.xml frontend/package.json; then
             git add backend/pom.xml frontend/package.json
