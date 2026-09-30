@@ -33,7 +33,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.StreamSupport;
 
 /**
  * Service responsible for automatically seeding the database with the cocktail
@@ -706,11 +705,14 @@ public class CocktailDataSeederService {
             return "Préparer au shaker et servir bien frais.";
         }
 
-        List<String> list = new ArrayList<>(etapes.size());
+        StringBuilder sb = new StringBuilder();
         for (JsonNode etape : etapes) {
-            list.add(etape.asText());
+            if (!sb.isEmpty()) {
+                sb.append('\n');
+            }
+            sb.append(etape.asText());
         }
-        return String.join("\n", list);
+        return sb.toString();
     }
 
     private boolean detectAlcohol(JsonNode ingredientsNode, String cocktailName) {

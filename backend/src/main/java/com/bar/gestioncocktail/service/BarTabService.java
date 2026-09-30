@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Service managing customer bar tabs and running ledgers without mandatory physical table binding.
@@ -680,11 +681,10 @@ public class BarTabService {
         for (Commande order : orders) {
             consolidateOrderItems(order, map);
         }
-        List<BarTabItemDTO> items = new ArrayList<>(map.size());
-        for (BarTabItemAccumulator acc : map.values()) {
-            items.add(acc.toDTO());
-        }
-        return items;
+        return map.values().stream()
+                .map(acc -> acc != null ? acc.toDTO() : null)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     private void consolidateOrderItems(Commande order, Map<String, BarTabItemAccumulator> map) {
