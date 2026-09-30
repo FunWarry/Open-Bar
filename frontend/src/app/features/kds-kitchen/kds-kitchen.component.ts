@@ -239,13 +239,8 @@ export class KdsKitchenComponent implements OnInit, OnDestroy {
           }
           this.cdr.markForCheck();
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('KDS.LOAD_ERROR'),
-            duration: 3000,
-            color: 'danger'
-          });
-          await toast.present();
+        error: () => {
+          this.showToast(this.transloco.translate('KDS.LOAD_ERROR'), 'danger');
         }
       });
   }
@@ -266,7 +261,7 @@ export class KdsKitchenComponent implements OnInit, OnDestroy {
     const msg = enabled
       ? this.transloco.translate('BARMAN_DASHBOARD.SOUND_ALERTS_ENABLED')
       : this.transloco.translate('BARMAN_DASHBOARD.SOUND_ALERTS_DISABLED');
-    void this.showToast(msg, 'primary');
+    this.showToast(msg, 'primary');
   }
 
   /**
@@ -281,16 +276,16 @@ export class KdsKitchenComponent implements OnInit, OnDestroy {
       .changerItemStatut(commande.id, item.id, targetStatut)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async () => {
+        next: () => {
           item.statut = targetStatut as any;
           this.chargerCommandes();
           if (targetStatut === 'PRET') {
             this.soundService.playOrderReadySound();
           }
-          await this.showToast(this.transloco.translate('KDS.ITEM_STATUS_UPDATED'), 'success');
+          this.showToast(this.transloco.translate('KDS.ITEM_STATUS_UPDATED'), 'success');
         },
-        error: async () => {
-          await this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATE_ERROR'), 'danger');
+        error: () => {
+          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATE_ERROR'), 'danger');
         }
       });
   }
@@ -305,13 +300,13 @@ export class KdsKitchenComponent implements OnInit, OnDestroy {
       .changerStatut(commande.id, 'PRET')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async () => {
+        next: () => {
           this.chargerCommandes();
           this.soundService.playOrderReadySound();
-          await this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATED_SUCCESS'), 'success');
+          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATED_SUCCESS'), 'success');
         },
-        error: async () => {
-          await this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATE_ERROR'), 'danger');
+        error: () => {
+          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATE_ERROR'), 'danger');
         }
       });
   }
@@ -333,13 +328,12 @@ export class KdsKitchenComponent implements OnInit, OnDestroy {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   }
 
-  private async showToast(message: string, color: 'success' | 'danger' | 'primary' = 'primary'): Promise<void> {
-    const toast = await this.toastCtrl.create({
+  private showToast(message: string, color: 'success' | 'danger' | 'primary' = 'primary'): void {
+    void this.toastCtrl.create({
       message,
       duration: 2500,
       position: 'bottom',
       color
-    });
-    await toast.present();
+    }).then(t => void t.present());
   }
 }

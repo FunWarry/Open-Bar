@@ -247,4 +247,17 @@ describe('InventoryCountingSheetComponent', () => {
     component.goBack();
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/inventory']);
   });
+
+  it('ngOnInit should navigate to /inventory when id is invalid', () => {
+    (component as any).route = { snapshot: { paramMap: { get: () => 'invalid_id' } } };
+    component.ngOnInit();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/inventory']);
+  });
+
+  it('loadSessionData should navigate to /inventory on error', fakeAsync(() => {
+    auditServiceSpy.getSessionById.and.returnValue(throwError(() => ({ error: { message: 'Not found' } })));
+    component.loadSessionData();
+    tick();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/inventory']);
+  }));
 });

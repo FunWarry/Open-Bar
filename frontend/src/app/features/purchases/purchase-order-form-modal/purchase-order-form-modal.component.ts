@@ -793,7 +793,7 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
    */
   private handleBarcodeScanned(code: string): void {
     this.ingredientService.getByBarcode(code).subscribe({
-      next: async (ingredient) => {
+      next: (ingredient) => {
         // Check if ingredient is already in items
         const existingIndex = this.items.controls.findIndex(
           ctrl => Number(ctrl.get('ingredientId')?.value) === ingredient.id
@@ -803,7 +803,7 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
           const ctrl = this.items.at(existingIndex);
           const currentQty = Number(ctrl.get('quantiteCommandee')?.value || 0);
           ctrl.patchValue({ quantiteCommandee: currentQty + 1 });
-          await this.showToast(
+          this.showToast(
             this.transloco.translate('PURCHASES.BARCODE_QTY_INCREMENTED', { name: ingredient.nom }),
             'success'
           );
@@ -822,14 +822,14 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
               20
             );
           }
-          await this.showToast(
+          this.showToast(
             this.transloco.translate('PURCHASES.BARCODE_ITEM_ADDED', { name: ingredient.nom }),
             'success'
           );
         }
       },
-      error: async () => {
-        await this.showToast(
+      error: () => {
+        this.showToast(
           this.transloco.translate('PURCHASES.BARCODE_NOT_FOUND', { code }),
           'warning'
         );
@@ -895,13 +895,12 @@ export class PurchaseOrderFormModalComponent implements OnInit, OnChanges {
     void this.modalCtrl.dismiss({ confirmed: false });
   }
 
-  private async showToast(message: string, color: 'success' | 'warning' | 'danger'): Promise<void> {
-    const toast = await this.toastCtrl.create({
+  private showToast(message: string, color: 'success' | 'warning' | 'danger'): void {
+    void this.toastCtrl.create({
       message,
       duration: 3000,
       position: 'bottom',
       color
-    });
-    await toast.present();
+    }).then(t => void t.present());
   }
 }

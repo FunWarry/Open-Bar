@@ -113,18 +113,21 @@ export class TableDetailComponent implements OnInit, OnDestroy {
         error: async () => {
           const topModal = await this.modalCtrl.getTop();
           if (topModal) {
-            const toast = await this.toastCtrl.create({
-              message: String(this.transloco.translate('ERRORS.SERVER') || 'Erreur lors du chargement'),
-              duration: 3000,
-              color: 'danger'
-            });
-            await toast.present();
+            this.showToast(String(this.transloco.translate('ERRORS.SERVER') || 'Erreur lors du chargement'), 'danger');
             await this.onClose();
             return;
           }
           await this.router.navigate(['/404']);
         }
       });
+  }
+
+  private showToast(message: string, color: 'success' | 'danger'): void {
+    void this.toastCtrl.create({
+      message,
+      duration: color === 'danger' ? 3500 : 2500,
+      color
+    }).then(t => void t.present());
   }
 
   getStatutColor(statut: string): string {
@@ -218,12 +221,7 @@ export class TableDetailComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$), finalize(() => (this.isDeleting = false)))
       .subscribe({
         next: async () => {
-          const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('TABLES.DELETE_SUCCESS'),
-            duration: 2500,
-            color: 'success'
-          });
-          await toast.present();
+          this.showToast(this.transloco.translate('TABLES.DELETE_SUCCESS'), 'success');
           try {
             const topModal = await this.modalCtrl.getTop();
             if (topModal) {
@@ -235,14 +233,9 @@ export class TableDetailComponent implements OnInit, OnDestroy {
           }
           await this.router.navigate(['/tables']);
         },
-        error: async (err) => {
+        error: (err) => {
           const errMsg = err?.error?.message || this.transloco.translate('TABLES.DELETE_ERROR');
-          const toast = await this.toastCtrl.create({
-            message: errMsg,
-            duration: 3500,
-            color: 'danger'
-          });
-          await toast.present();
+          this.showToast(errMsg, 'danger');
         }
       });
   }

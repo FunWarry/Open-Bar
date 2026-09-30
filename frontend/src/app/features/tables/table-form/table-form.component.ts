@@ -209,6 +209,27 @@ export class TableFormComponent implements OnInit, OnDestroy {
     this.tableForm.patchValue({ zone: opt ? opt.value : '' });
   }
 
+  private showToast(message: string, color: 'success' | 'danger'): void {
+    void this.toastCtrl.create({
+      message,
+      duration: color === 'danger' ? 3500 : 2500,
+      color
+    }).then(t => void t.present());
+  }
+
+  private async dismissOrNavigate(data?: any): Promise<void> {
+    try {
+      const topModal = await this.modalCtrl.getTop();
+      if (topModal) {
+        await this.modalCtrl.dismiss(data);
+        return;
+      }
+    } catch {
+      // Fallback to route
+    }
+    await this.router.navigate(['/tables']);
+  }
+
   /** Submits the form: calls create or update depending on the mode. */
   onSubmit(): void {
     if (this.tableForm.invalid || this.isSubmitting) return;
@@ -232,33 +253,12 @@ export class TableFormComponent implements OnInit, OnDestroy {
           const successMsg = this.isEditMode
             ? this.transloco.translate('TABLES.UPDATED_SUCCESS')
             : this.transloco.translate('TABLES.CREATED_SUCCESS');
-
-          const toast = await this.toastCtrl.create({
-            message: successMsg,
-            duration: 2500,
-            color: 'success'
-          });
-          await toast.present();
-
-          try {
-            const topModal = await this.modalCtrl.getTop();
-            if (topModal) {
-              await this.modalCtrl.dismiss({ action: 'saved', table: savedTable });
-              return;
-            }
-          } catch {
-            // Fallback to route
-          }
-          await this.router.navigate(['/tables']);
+          this.showToast(successMsg, 'success');
+          await this.dismissOrNavigate({ action: 'saved', table: savedTable });
         },
-        error: async (err) => {
+        error: (err) => {
           const errMsg = err?.error?.message || this.transloco.translate('TABLES.SAVE_ERROR');
-          const toast = await this.toastCtrl.create({
-            message: errMsg,
-            duration: 3500,
-            color: 'danger'
-          });
-          await toast.present();
+          this.showToast(errMsg, 'danger');
         }
       });
   }
@@ -305,32 +305,12 @@ export class TableFormComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$), finalize(() => (this.isSubmitting = false)))
       .subscribe({
         next: async () => {
-          const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('TABLES.DELETE_SUCCESS'),
-            duration: 2500,
-            color: 'success'
-          });
-          await toast.present();
-
-          try {
-            const topModal = await this.modalCtrl.getTop();
-            if (topModal) {
-              await this.modalCtrl.dismiss({ action: 'deleted', tableId });
-              return;
-            }
-          } catch {
-            // Fallback
-          }
-          await this.router.navigate(['/tables']);
+          this.showToast(this.transloco.translate('TABLES.DELETE_SUCCESS'), 'success');
+          await this.dismissOrNavigate({ action: 'deleted', tableId });
         },
-        error: async (err) => {
+        error: (err) => {
           const errMsg = err?.error?.message || this.transloco.translate('TABLES.DELETE_ERROR');
-          const toast = await this.toastCtrl.create({
-            message: errMsg,
-            duration: 3500,
-            color: 'danger'
-          });
-          await toast.present();
+          this.showToast(errMsg, 'danger');
         }
       });
   }

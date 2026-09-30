@@ -181,15 +181,18 @@ export class CommandeListComponent implements OnInit, OnDestroy {
           this.commandes = commandes;
           this.appliquerFiltre();
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Erreur lors du chargement des commandes',
-            duration: 3000,
-            color: 'danger',
-          });
-          await toast.present();
+        error: () => {
+          this.showToast('Erreur lors du chargement des commandes', 'danger');
         },
       });
+  }
+
+  private showToast(message: string, color: 'success' | 'warning' | 'danger'): void {
+    void this.toastCtrl.create({
+      message,
+      duration: color === 'danger' ? 3000 : 2000,
+      color,
+    }).then(t => void t.present());
   }
 
   /**
@@ -277,22 +280,12 @@ export class CommandeListComponent implements OnInit, OnDestroy {
     this.commandeService.changerStatut(commande.id, nextStatut)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Statut de la commande mis à jour',
-            duration: 2000,
-            color: 'success',
-          });
-          await toast.present();
+        next: () => {
+          this.showToast('Statut de la commande mis à jour', 'success');
           this.charger();
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Erreur lors du changement de statut',
-            duration: 3000,
-            color: 'danger',
-          });
-          await toast.present();
+        error: () => {
+          this.showToast('Erreur lors du changement de statut', 'danger');
         },
       });
   }
@@ -308,22 +301,12 @@ export class CommandeListComponent implements OnInit, OnDestroy {
     this.commandeService.annuler(c.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Commande annulée avec succès',
-            duration: 2000,
-            color: 'warning',
-          });
-          await toast.present();
+        next: () => {
+          this.showToast('Commande annulée avec succès', 'warning');
           this.charger();
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Impossible d\'annuler cette commande',
-            duration: 3000,
-            color: 'danger',
-          });
-          await toast.present();
+        error: () => {
+          this.showToast('Impossible d\'annuler cette commande', 'danger');
         },
       });
   }

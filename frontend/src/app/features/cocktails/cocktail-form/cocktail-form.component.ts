@@ -856,7 +856,7 @@ export class CocktailFormComponent implements OnInit {
   loadIngredients(): void {
     this.ingredientService.getAll().subscribe({
       next: (data) => this.ingredientsList.set(data),
-      error: () => void this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger'),
+      error: () => this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger'),
     });
   }
 
@@ -960,7 +960,7 @@ export class CocktailFormComponent implements OnInit {
       this.currentStep.set(step);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      void this.showToast(this.transloco.translate('COCKTAILS.WIZARD.VALIDATION_ERROR'), 'warning');
+      this.showToast(this.transloco.translate('COCKTAILS.WIZARD.VALIDATION_ERROR'), 'warning');
     }
   }
 
@@ -1309,14 +1309,14 @@ export class CocktailFormComponent implements OnInit {
                 this.cocktailForm.get('glasswareId')?.setValue(withImage.id);
                 this.recipeVersion.update((v) => v + 1);
                 this.closeCreateGlasswareModal();
-                void this.showToast(this.transloco.translate('COCKTAILS.GLASSWARE.SAVED_SUCCESS'));
+                this.showToast(this.transloco.translate('COCKTAILS.GLASSWARE.SAVED_SUCCESS'));
               },
               error: () => {
                 this.glasswareList.update((list) => [...list, created]);
                 this.cocktailForm.get('glasswareId')?.setValue(created.id);
                 this.recipeVersion.update((v) => v + 1);
                 this.closeCreateGlasswareModal();
-                void this.showToast(this.transloco.translate('COCKTAILS.GLASSWARE.SAVED_SUCCESS'));
+                this.showToast(this.transloco.translate('COCKTAILS.GLASSWARE.SAVED_SUCCESS'));
               },
             });
           } else {
@@ -1324,10 +1324,10 @@ export class CocktailFormComponent implements OnInit {
             this.cocktailForm.get('glasswareId')?.setValue(created.id);
             this.recipeVersion.update((v) => v + 1);
             this.closeCreateGlasswareModal();
-            void this.showToast(this.transloco.translate('COCKTAILS.GLASSWARE.SAVED_SUCCESS'));
+            this.showToast(this.transloco.translate('COCKTAILS.GLASSWARE.SAVED_SUCCESS'));
           }
         },
-        error: () => void this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger'),
+        error: () => this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger'),
       });
   }
 
@@ -1366,9 +1366,9 @@ export class CocktailFormComponent implements OnInit {
         next: (created) => {
           this.templatesList.update((list) => [...list, created]);
           this.closeCreateTemplateModal();
-          void this.showToast(this.transloco.translate('COCKTAILS.BUILDER.TEMPLATE_SAVED_SUCCESS'));
+          this.showToast(this.transloco.translate('COCKTAILS.BUILDER.TEMPLATE_SAVED_SUCCESS'));
         },
-        error: () => void this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger'),
+        error: () => this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger'),
       });
   }
 
@@ -1403,7 +1403,7 @@ export class CocktailFormComponent implements OnInit {
         this.recipeVersion.update((v) => v + 1);
       }
 
-      void this.showToast(this.transloco.translate('INGREDIENTS.CREATED_SUCCESS'));
+      this.showToast(this.transloco.translate('INGREDIENTS.CREATED_SUCCESS'));
     }
   }
 
@@ -1469,12 +1469,11 @@ export class CocktailFormComponent implements OnInit {
       moisDebut: updatedCocktail.moisDebut || null,
       moisFin: updatedCocktail.moisFin || null,
     };
-    void this.showToast(this.transloco.translate('COMMON.SUCCESS'));
+    this.showToast(this.transloco.translate('COMMON.SUCCESS'));
   }
 
-  private async showToast(message: string, color = 'success'): Promise<void> {
-    const toast = await this.toastCtrl.create({ message, duration: 3000, color });
-    await toast.present();
+  private showToast(message: string, color = 'success'): void {
+    void this.toastCtrl.create({ message, duration: 3000, color }).then(t => void t.present());
   }
 
   // --- Final Form Submission ---
@@ -1566,10 +1565,10 @@ export class CocktailFormComponent implements OnInit {
       )
       .subscribe({
         next: () => {
-          void this.showToast(this.transloco.translate('COMMON.SUCCESS'));
+          this.showToast(this.transloco.translate('COMMON.SUCCESS'));
           void this.router.navigate(['/cocktails']);
         },
-        error: () => void this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger'),
+        error: () => this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger'),
       });
   }
 }

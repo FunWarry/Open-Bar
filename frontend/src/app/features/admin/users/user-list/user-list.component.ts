@@ -114,7 +114,7 @@ export class UserListComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
-        void this.showToast('Erreur lors du chargement des utilisateurs', 'danger');
+        this.showToast('Erreur lors du chargement des utilisateurs', 'danger');
       }
     });
   }
@@ -173,12 +173,12 @@ export class UserListComponent implements OnInit {
     if (data) {
       this.userService.createUser(data).subscribe({
         next: () => {
-          void this.showToast('Utilisateur créé avec succès', 'success');
+          this.showToast('Utilisateur créé avec succès', 'success');
           this.loadUsers();
         },
         error: (err) => {
           const msg = err?.error?.message || 'Erreur lors de la création de l\'utilisateur';
-          void this.showToast(msg, 'danger');
+          this.showToast(msg, 'danger');
         }
       });
     }
@@ -194,12 +194,12 @@ export class UserListComponent implements OnInit {
     if (data) {
       this.userService.updateUser(user.id, data).subscribe({
         next: () => {
-          void this.showToast('Utilisateur modifié avec succès', 'success');
+          this.showToast('Utilisateur modifié avec succès', 'success');
           this.loadUsers();
         },
         error: (err) => {
           const msg = err?.error?.message || 'Erreur lors de la modification de l\'utilisateur';
-          void this.showToast(msg, 'danger');
+          this.showToast(msg, 'danger');
         }
       });
     }
@@ -216,24 +216,23 @@ export class UserListComponent implements OnInit {
     if (data) {
       this.userService.deleteUser(user.id).subscribe({
         next: () => {
-          void this.showToast('Utilisateur supprimé avec succès', 'success');
+          this.showToast('Utilisateur supprimé avec succès', 'success');
           this.loadUsers();
         },
         error: (err) => {
           const msg = err?.error?.message || 'Erreur lors de la suppression de l\'utilisateur';
-          void this.showToast(msg, 'danger');
+          this.showToast(msg, 'danger');
         }
       });
     }
   }
 
-  private async showToast(message: string, color: 'success' | 'danger' | 'warning'): Promise<void> {
-    const toast = await this.toastCtrl.create({
+  private showToast(message: string, color: 'success' | 'danger' | 'warning'): void {
+    void this.toastCtrl.create({
       message,
       duration: 3000,
       color,
       position: 'bottom'
-    });
-    await toast.present();
+    }).then(t => void t.present());
   }
 }

@@ -172,15 +172,18 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
           this.tables = tables;
           this.applyFilter();
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: String(this.transloco.translate('COMMANDES.MESSAGES.UPDATE_ERROR')),
-            duration: 3000,
-            color: 'danger',
-          });
-          await toast.present();
+        error: () => {
+          this.showToast(String(this.transloco.translate('COMMANDES.MESSAGES.UPDATE_ERROR')), 'danger');
         },
       });
+  }
+
+  private showToast(message: string, color: 'success' | 'medium' | 'danger'): void {
+    void this.toastCtrl.create({
+      message,
+      duration: color === 'danger' ? 3000 : 2000,
+      color,
+    }).then(t => void t.present());
   }
 
   charger(refreshEvent?: any) {
@@ -228,22 +231,12 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
     this.service.changerStatutCommande(commandeId, 'LIVREE')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async () => {
+        next: () => {
           this.loadOrders();
-          const toast = await this.toastCtrl.create({
-            message: String(this.transloco.translate('COMMANDES.MESSAGES.STATUS_UPDATED')),
-            duration: 2000,
-            color: 'success',
-          });
-          await toast.present();
+          this.showToast(String(this.transloco.translate('COMMANDES.MESSAGES.STATUS_UPDATED')), 'success');
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: String(this.transloco.translate('COMMANDES.MESSAGES.UPDATE_ERROR')),
-            duration: 3000,
-            color: 'danger',
-          });
-          await toast.present();
+        error: () => {
+          this.showToast(String(this.transloco.translate('COMMANDES.MESSAGES.UPDATE_ERROR')), 'danger');
         },
       });
   }
@@ -260,22 +253,12 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
     this.service.annulerCommande(commandeId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async () => {
+        next: () => {
           this.loadOrders();
-          const toast = await this.toastCtrl.create({
-            message: String(this.transloco.translate('COMMANDES.MESSAGES.CANCELLED_SUCCESS')),
-            duration: 2000,
-            color: 'medium',
-          });
-          await toast.present();
+          this.showToast(String(this.transloco.translate('COMMANDES.MESSAGES.CANCELLED_SUCCESS')), 'medium');
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: String(this.transloco.translate('COMMANDES.MESSAGES.CANCELLED_ERROR')),
-            duration: 3000,
-            color: 'danger',
-          });
-          await toast.present();
+        error: () => {
+          this.showToast(String(this.transloco.translate('COMMANDES.MESSAGES.CANCELLED_ERROR')), 'danger');
         },
       });
   }

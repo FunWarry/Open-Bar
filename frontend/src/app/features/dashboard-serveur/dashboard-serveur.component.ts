@@ -392,13 +392,12 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         this.tables = this.enrichTablesWithOrders(tables, commandes, appels || []);
         this.filtrer();
       },
-      error: async () => {
-        const toast = await this.toastCtrl.create({
+      error: () => {
+        void this.toastCtrl.create({
           message: 'Erreur lors du chargement des tables',
           duration: 3000,
           color: 'danger',
-        });
-        await toast.present();
+        }).then(t => void t.present());
       },
     });
   }
@@ -420,13 +419,12 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
           this.tables = this.enrichTablesWithOrders(tables, commandes, appels || []);
           this.filtrer();
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
+        error: () => {
+          void this.toastCtrl.create({
             message: 'Erreur lors du chargement des tables',
             duration: 3000,
             color: 'danger',
-          });
-          await toast.present();
+          }).then(t => void t.present());
         },
       });
   }
@@ -1536,22 +1534,20 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     this.service.libererTable(tableId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async () => {
+        next: () => {
           this.chargerTables();
-          const toast = await this.toastCtrl.create({
+          void this.toastCtrl.create({
             message: 'Table libérée',
             duration: 2000,
             color: 'success',
-          });
-          await toast.present();
+          }).then(t => void t.present());
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
+        error: () => {
+          void this.toastCtrl.create({
             message: 'Impossible de libérer la table',
             duration: 3000,
             color: 'danger',
-          });
-          await toast.present();
+          }).then(t => void t.present());
         },
       });
   }

@@ -591,12 +591,7 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
         const msgKey = this.isEditMode
           ? 'INGREDIENTS.UPDATED_SUCCESS'
           : 'INGREDIENTS.CREATED_SUCCESS';
-        const toast = await this.toastCtrl.create({
-          message: this.transloco.translate(msgKey),
-          duration: 3000,
-          color: 'success'
-        });
-        await toast.present();
+        this.showToast(this.transloco.translate(msgKey), 'success');
 
         if (this.modalCtrl) {
           await this.modalCtrl.dismiss(savedResult ?? payload, 'saved');
@@ -604,15 +599,18 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
           await this.router.navigate(['/ingredients']);
         }
       },
-      error: async () => {
-        const toast = await this.toastCtrl.create({
-          message: this.transloco.translate('COMMON.ERROR'),
-          duration: 3000,
-          color: 'danger'
-        });
-        await toast.present();
+      error: () => {
+        this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger');
       }
     });
+  }
+
+  private showToast(message: string, color: 'success' | 'danger'): void {
+    void this.toastCtrl.create({
+      message,
+      duration: 3000,
+      color
+    }).then(t => void t.present());
   }
 
   async onCancel(): Promise<void> {

@@ -163,4 +163,27 @@ describe('TableDetailComponent', () => {
     }));
     expect(mockChildModal.present).toHaveBeenCalled();
   }));
+
+  it('onDelete() handles deletion error with danger toast', fakeAsync(() => {
+    tableServiceSpy.delete.and.returnValue(throwError(() => new Error('Delete error')));
+    component.commandes = [];
+    component.table = mockTable;
+
+    component.onDelete();
+    tick();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+    expect(component.isDeleting).toBeFalse();
+  }));
+
+  it('loadTable error with topModal presents toast and closes', fakeAsync(() => {
+    modalCtrlSpy.getTop.and.returnValue(Promise.resolve(mockChildModal as any));
+    tableServiceSpy.getById.and.returnValue(throwError(() => new Error('Network error')));
+    (component as any).route = { snapshot: { paramMap: { get: () => '5' } } };
+    component.table = null;
+
+    component.ngOnInit();
+    tick();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
 });
