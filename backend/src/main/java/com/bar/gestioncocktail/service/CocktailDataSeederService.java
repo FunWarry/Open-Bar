@@ -707,7 +707,7 @@ public class CocktailDataSeederService {
         }
 
         return StreamSupport.stream(etapes.spliterator(), false)
-                .map(step -> step.asText())
+                .map(JsonNode::asText)
                 .collect(Collectors.joining("\n"));
     }
 

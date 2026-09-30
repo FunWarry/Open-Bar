@@ -681,7 +681,7 @@ public class BarTabService {
             consolidateOrderItems(order, map);
         }
         return map.values().stream()
-                .map(accumulator -> accumulator.toDTO())
+                .map(BarTabItemAccumulator::toDTO)
                 .toList();
     }
 
