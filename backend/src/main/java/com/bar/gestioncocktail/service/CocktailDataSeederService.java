@@ -706,9 +706,11 @@ public class CocktailDataSeederService {
             return "Préparer au shaker et servir bien frais.";
         }
 
-        return StreamSupport.stream(etapes.spliterator(), false)
-                .map(JsonNode::asText)
-                .collect(Collectors.joining("\n"));
+        List<String> list = new ArrayList<>(etapes.size());
+        for (JsonNode etape : etapes) {
+            list.add(etape.asText());
+        }
+        return String.join("\n", list);
     }
 
     private boolean detectAlcohol(JsonNode ingredientsNode, String cocktailName) {
