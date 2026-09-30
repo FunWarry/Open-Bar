@@ -430,5 +430,33 @@ class AppSettingsServiceTest {
 
         assertThat(updated.getStorageLocationsJson()).isEqualTo(customLocations);
     }
+
+    @Test
+    @DisplayName("updateSettings persists printersJson and tpeTerminalsJson dynamically")
+    void updateSettings_hardwarePeripheralsJson_persistedSuccessfully() {
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+        when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        String printersJson = "[{\"id\":\"p1\",\"name\":\"Bar Printer\",\"role\":\"BAR\",\"ip\":\"192.168.1.101\",\"port\":9100,\"paperWidth\":\"80mm\",\"enabled\":true}]";
+        String tpeJson = "[{\"id\":\"t1\",\"name\":\"Bar TPE\",\"role\":\"BAR\",\"ip\":\"192.168.1.50\",\"port\":8888,\"terminalId\":\"POS01\",\"timeoutSeconds\":30,\"enabled\":true}]";
+
+        AppSettingsUpdateRequest req = new AppSettingsUpdateRequest(
+                "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
+                "EUR", "€", CurrencyPosition.AFTER,
+                com.bar.gestioncocktail.model.UnitSystem.METRIC_CL, "cl", "g",
+                3, 5, 10,
+                null, null, null, null, false, false,
+                null, null, null,
+                "192.168.1.101", null, null, 9100, true,
+                null, null, true, false, "192.168.1.50", null, 8888, "POS01", 30,
+                printersJson, tpeJson
+        );
+
+        AppSettings updated = appSettingsService.updateSettings(req);
+
+        assertThat(updated.getPrintersJson()).isEqualTo(printersJson);
+        assertThat(updated.getTpeTerminalsJson()).isEqualTo(tpeJson);
+        verify(appSettingsRepository).save(any(AppSettings.class));
+    }
 }
 

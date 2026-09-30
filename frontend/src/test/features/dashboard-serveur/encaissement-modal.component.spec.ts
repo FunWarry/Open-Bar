@@ -1,6 +1,8 @@
+import { signal } from '@angular/core';
 import { TestBed, ComponentFixture, fakeAsync, tick } from '@angular/core/testing';
 import { ModalController, ToastController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
+import { provideMockStore } from '@ngrx/store/testing';
 import { EncaissementModalComponent } from '../../../app/features/dashboard-serveur/components/encaissement-modal/encaissement-modal.component';
 import {
   DashboardServeurService,
@@ -13,12 +15,26 @@ import { BarTab } from '../../../app/core/models/bar-tab.model';
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { AppSettingsService } from '../../../app/core/services/app-settings.service';
+import { PaymentTerminalService } from '../../../app/core/services/payment-terminal.service';
+import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
+import { TpePublicConfig } from '../../../app/core/models/tpe.model';
 import {
   DEFAULT_EUR_DENOMINATIONS,
   DEFAULT_USD_DENOMINATIONS,
   DEFAULT_CHF_DENOMINATIONS,
   DEFAULT_JPY_DENOMINATIONS
 } from '../../../app/core/models/cash-denomination.model';
+
+const mockTpePublicConfig: TpePublicConfig = {
+  enabled: true,
+  simulatorEnabled: true,
+  barIpConfigured: true,
+  floorIpConfigured: false,
+  port: 8888,
+  terminalId: 'TEST-01',
+  timeoutSeconds: 30,
+  terminalsJson: '[]'
+};
 
 describe('EncaissementModalComponent', () => {
   let component: EncaissementModalComponent;
@@ -30,6 +46,8 @@ describe('EncaissementModalComponent', () => {
   let dashboardServiceSpy: jasmine.SpyObj<DashboardServeurService>;
   let factureServiceSpy: jasmine.SpyObj<FactureService>;
   let barTabServiceSpy: jasmine.SpyObj<BarTabService>;
+  let paymentTerminalServiceSpy: jasmine.SpyObj<PaymentTerminalService>;
+  let featureFlagServiceSpy: jasmine.SpyObj<FeatureFlagService>;
 
   const mockTable: TableView = {
     id: 1,
@@ -105,6 +123,27 @@ describe('EncaissementModalComponent', () => {
     factureServiceSpy = jasmine.createSpyObj('FactureService', ['getFacturesByTable', 'genererFactureTable', 'genererFactureTab']);
     barTabServiceSpy = jasmine.createSpyObj('BarTabService', ['getTabAddition', 'encaisserTab']);
 
+    paymentTerminalServiceSpy = jasmine.createSpyObj('PaymentTerminalService', [
+      'initiatePayment',
+      'cancelPayment',
+      'getStatus',
+      'watchTransaction',
+      'watchPayment',
+      'testConnection',
+      'getConfig',
+      'getPreferredTerminalRole',
+      'setPreferredTerminalRole'
+    ], {
+      paymentEvents$: of()
+    });
+    paymentTerminalServiceSpy.preferredRole = 'BAR';
+    paymentTerminalServiceSpy.getConfig.and.returnValue(of(mockTpePublicConfig));
+
+    featureFlagServiceSpy = jasmine.createSpyObj('FeatureFlagService', ['isModuleEnabled'], {
+      paymentTerminalEnabled: signal(true),
+      cashDrawerEnabled: signal(true)
+    });
+
     TestBed.configureTestingModule({
       imports: [
         EncaissementModalComponent,
@@ -114,11 +153,14 @@ describe('EncaissementModalComponent', () => {
         })
       ],
       providers: [
+        provideMockStore({ initialState: { auth: { user: null, token: null } } }),
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: DashboardServeurService, useValue: dashboardServiceSpy },
         { provide: FactureService, useValue: factureServiceSpy },
-        { provide: BarTabService, useValue: barTabServiceSpy }
+        { provide: BarTabService, useValue: barTabServiceSpy },
+        { provide: PaymentTerminalService, useValue: paymentTerminalServiceSpy },
+        { provide: FeatureFlagService, useValue: featureFlagServiceSpy }
       ]
     }).compileComponents();
 
@@ -825,6 +867,171 @@ describe('EncaissementModalComponent', () => {
       const el = fixture.nativeElement as HTMLElement;
       expect(el.textContent).toContain('Comptoir VIP');
       expect(el.textContent).toContain('CARD-VIP');
+    });
+  });
+
+  describe('Payment Terminal (TPE) Integration', () => {
+    beforeEach(() => {
+      component.addition = mockAddition;
+      component.modePaiement = 'CARTE';
+    });
+
+    it('should set preferred TPE role on service and signal', () => {
+      component.setPreferredTpeRole('FLOOR');
+      expect(paymentTerminalServiceSpy.preferredRole).toBe('FLOOR');
+      expect(component.preferredTpeRole()).toBe('FLOOR');
+    });
+
+    it('should ignore envoyerAuTpe when already processing or amount <= 0', () => {
+      component.isTpeProcessing.set(true);
+      component.envoyerAuTpe();
+      expect(paymentTerminalServiceSpy.initiatePayment).not.toHaveBeenCalled();
+
+      component.isTpeProcessing.set(false);
+      component.addition = { ...mockAddition, totalTTC: 0, items: [] };
+      component.envoyerAuTpe();
+      expect(paymentTerminalServiceSpy.initiatePayment).not.toHaveBeenCalled();
+    });
+
+    it('should handle immediate approved transaction and submit settlement with TPE metadata', () => {
+      const approvedTx: any = {
+        transactionId: 'tx-app-01',
+        status: 'APPROVED',
+        authorizationCode: 'AUTH-1234',
+        terminalId: 'POS01',
+        cardBrand: 'VISA',
+        maskedPan: '************4242',
+        sequenceNumber: '000123'
+      };
+      paymentTerminalServiceSpy.initiatePayment.and.returnValue(of(approvedTx));
+
+      component.envoyerAuTpe(false);
+
+      expect(paymentTerminalServiceSpy.initiatePayment).toHaveBeenCalledWith(jasmine.objectContaining({
+        amount: 28.0,
+        targetRole: 'BAR',
+        tableNumber: 'Table 1'
+      }));
+      expect(component.isTpeProcessing()).toBeFalse();
+      expect(dashboardServiceSpy.encaisserTable).toHaveBeenCalledWith(1, jasmine.objectContaining({
+        tpeAutorisation: 'AUTH-1234',
+        tpeTerminalId: 'POS01',
+        tpeCardBrand: 'VISA',
+        tpeMaskedPan: '************4242',
+        tpeSequence: '000123'
+      }));
+    });
+
+    it('should handle immediate declined transaction and record error message', () => {
+      const declinedTx: any = {
+        transactionId: 'tx-dec-01',
+        status: 'DECLINED',
+        message: 'Insufficient funds'
+      };
+      paymentTerminalServiceSpy.initiatePayment.and.returnValue(of(declinedTx));
+
+      component.envoyerAuTpe(false);
+
+      expect(component.isTpeProcessing()).toBeFalse();
+      expect(component.tpeErrorMessage()).toBe('Insufficient funds');
+      expect(dashboardServiceSpy.encaisserTable).not.toHaveBeenCalled();
+    });
+
+    it('should handle asynchronous WebSocket broadcast updates for pending transactions', () => {
+      const pendingTx: any = {
+        transactionId: 'tx-wait-01',
+        status: 'WAITING_CARD',
+        message: 'Please insert card'
+      };
+      const approvedTx: any = {
+        transactionId: 'tx-wait-01',
+        status: 'APPROVED',
+        authorizationCode: 'AUTH-8888',
+        terminalId: 'POS01',
+        cardBrand: 'MASTERCARD',
+        maskedPan: '************9999',
+        sequenceNumber: '000456'
+      };
+
+      paymentTerminalServiceSpy.initiatePayment.and.returnValue(of(pendingTx));
+      paymentTerminalServiceSpy.watchPayment.and.returnValue(of(approvedTx));
+
+      component.envoyerAuTpe(false);
+
+      expect(paymentTerminalServiceSpy.watchPayment).toHaveBeenCalledWith('tx-wait-01');
+      expect(dashboardServiceSpy.encaisserTable).toHaveBeenCalled();
+    });
+
+    it('should handle asynchronous WebSocket broadcast update to DECLINED status', () => {
+      const pendingTx: any = {
+        transactionId: 'tx-wait-02',
+        status: 'PROCESSING'
+      };
+      const failedTx: any = {
+        transactionId: 'tx-wait-02',
+        status: 'FAILED',
+        message: 'Chip read error'
+      };
+
+      paymentTerminalServiceSpy.initiatePayment.and.returnValue(of(pendingTx));
+      paymentTerminalServiceSpy.watchPayment.and.returnValue(of(failedTx));
+
+      component.envoyerAuTpe(false);
+
+      expect(component.isTpeProcessing()).toBeFalse();
+      expect(component.tpeErrorMessage()).toBe('Chip read error');
+    });
+
+    it('should handle HTTP error during initiatePayment gracefully', () => {
+      paymentTerminalServiceSpy.initiatePayment.and.returnValue(throwError(() => ({
+        error: { message: 'Terminal offline' }
+      })));
+
+      component.envoyerAuTpe(false);
+
+      expect(component.isTpeProcessing()).toBeFalse();
+      expect(component.tpeErrorMessage()).toBe('Terminal offline');
+    });
+
+    it('should cancel active TPE payment transaction and reset signals', () => {
+      paymentTerminalServiceSpy.cancelPayment.and.returnValue(of({} as any));
+      component.activeTpeTransaction.set({ transactionId: 'tx-to-cancel' } as any);
+      component.isTpeProcessing.set(true);
+
+      component.annulerTpe();
+
+      expect(paymentTerminalServiceSpy.cancelPayment).toHaveBeenCalledWith('tx-to-cancel');
+      expect(component.isTpeProcessing()).toBeFalse();
+      expect(component.activeTpeTransaction()).toBeNull();
+    });
+
+    it('should handle part payment via TPE when isPart is true', () => {
+      const mockPart: SplitResultDTO = {
+        factureId: 50,
+        nomConvive: 'Bob',
+        items: [],
+        sousTotal: 10.0,
+        totalAvecPourboire: 10.0
+      };
+      component.reglerPart(0, mockPart);
+      component.partPaymentMode = 'CARTE';
+
+      const approvedTx: any = {
+        transactionId: 'tx-part-01',
+        status: 'APPROVED',
+        authorizationCode: 'AUTH-PART-1',
+        terminalId: 'POS01',
+        cardBrand: 'CB',
+        maskedPan: '************1234',
+        sequenceNumber: '000789'
+      };
+      paymentTerminalServiceSpy.initiatePayment.and.returnValue(of(approvedTx));
+
+      component.envoyerAuTpe(true);
+
+      expect(component.isTpeProcessing()).toBeFalse();
+      expect(component.partStates[0]?.reglee).toBeTrue();
+      expect(component.partStates[0]?.tpeAutorisation).toBe('AUTH-PART-1');
     });
   });
 });

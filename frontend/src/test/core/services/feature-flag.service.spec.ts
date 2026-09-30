@@ -30,6 +30,7 @@ describe('FeatureFlagService', () => {
     suppliersManagement: true,
     inventoryAudit: true,
     mysteryRoulette: true,
+    paymentTerminal: true,
   };
 
   beforeEach(() => {
@@ -148,6 +149,7 @@ describe('FeatureFlagService', () => {
       suppliersManagement: false,
       inventoryAudit: false,
       mysteryRoulette: false,
+      paymentTerminal: false,
     };
 
     wsSubject.next({ body: JSON.stringify(wsUpdate) });

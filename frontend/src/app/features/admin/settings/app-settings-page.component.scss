@@ -2474,4 +2474,621 @@ ion-col {
   }
 }
 
+/* ==========================================================================
+   TAB 7: HARDWARE & NETWORK PERIPHERALS (ESC/POS PRINTERS & CONCERT IP TPES)
+   ========================================================================== */
+
+.hardware-tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hardware-hero-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 24px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 12%, var(--background-surface-1)) 0%, var(--background-surface-1) 100%);
+  border: 1px solid color-mix(in srgb, var(--primary) 25%, var(--border-medium));
+  border-radius: var(--radius-lg, 14px);
+  box-shadow: var(--shadow-sm);
+
+  .hardware-hero-icon-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md, 10px);
+    background: color-mix(in srgb, var(--primary) 18%, transparent);
+    color: var(--primary);
+    font-size: 1.6rem;
+    flex-shrink: 0;
+  }
+
+  .hardware-hero-content {
+    flex: 1;
+
+    .hardware-hero-title {
+      margin: 0 0 4px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .hardware-hero-desc {
+      margin: 0;
+      font-size: 0.86rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+  }
+}
+
+.hardware-card {
+  margin-bottom: 20px;
+
+  .hardware-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-medium);
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+
+      .card-title {
+        margin: 0;
+      }
+    }
+  }
+
+  .device-count-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--primary) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+    color: var(--primary);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .add-device-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: var(--radius-md, 8px);
+    background: var(--primary);
+    border: 1px solid var(--primary);
+    color: var(--text-on-accent, #ffffff);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent);
+    transition: all 0.2s ease;
+
+    ion-icon {
+      font-size: 1.15rem;
+    }
+
+    &:hover {
+      background: var(--primary-shade, var(--primary));
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 40%, transparent);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  .section-lead {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    margin: 4px 0 16px;
+    line-height: 1.5;
+  }
+}
+
+.hardware-global-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+
+  .hardware-toggle-item {
+    flex: 1;
+    min-width: 280px;
+    margin-bottom: 0;
+  }
+
+  .hardware-port-box {
+    width: 200px;
+    min-width: 160px;
+  }
+}
+
+.drawer-diagnostic-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 10px);
+  margin-bottom: 18px;
+
+  .drawer-card-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    min-width: 260px;
+
+    .drawer-icon-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md, 8px);
+      background: color-mix(in srgb, var(--semantic-success) 14%, transparent);
+      color: var(--semantic-success);
+      font-size: 1.35rem;
+      flex-shrink: 0;
+    }
+
+    .drawer-content {
+      .drawer-title {
+        margin: 0 0 2px;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      .drawer-desc {
+        margin: 0;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        line-height: 1.35;
+      }
+    }
+  }
+
+  .drawer-card-actions {
+    flex-shrink: 0;
+  }
+}
+
+.tpe-toggles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+
+  .hardware-toggle-item {
+    margin-bottom: 0;
+  }
+}
+
+.hardware-global-config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+
+  .field-item {
+    margin-bottom: 0;
+  }
+}
+
+.section-divider {
+  height: 1px;
+  background: var(--border-medium);
+  margin: 20px 0;
+}
+
+/* Configured Devices Grid & Cards */
+.configured-devices-container {
+  width: 100%;
+}
+
+.empty-devices-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--background-surface-2);
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-lg, 12px);
+  gap: 14px;
+
+  .empty-icon-circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+    color: var(--primary);
+    font-size: 1.8rem;
+  }
+
+  .empty-text {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    max-width: 380px;
+  }
+}
+
+.devices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 18px;
+}
+
+.device-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg, 12px);
+  padding: 16px;
+  gap: 14px;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--primary) 50%, var(--border-medium));
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--primary) 8%, transparent);
+  }
+
+  &.device-disabled {
+    opacity: 0.65;
+    background: color-mix(in srgb, var(--background-surface-2) 60%, var(--background-bg-0));
+    border-style: dashed;
+  }
+
+  .device-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-subtle, var(--border-medium));
+
+    .device-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .device-badge-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: var(--radius-md, 8px);
+      background: color-mix(in srgb, var(--primary) 16%, transparent);
+      color: var(--primary);
+      font-size: 1.15rem;
+      flex-shrink: 0;
+
+      &[data-role='BAR'] {
+        background: color-mix(in srgb, var(--semantic-info) 18%, transparent);
+        color: var(--semantic-info);
+      }
+      &[data-role='KITCHEN'] {
+        background: color-mix(in srgb, var(--semantic-warning) 18%, transparent);
+        color: var(--semantic-warning);
+      }
+      &[data-role='CASH_DESK'],
+      &[data-role='REGISTER'] {
+        background: color-mix(in srgb, var(--semantic-success) 18%, transparent);
+        color: var(--semantic-success);
+      }
+      &[data-role='SNACK'] {
+        background: color-mix(in srgb, var(--semantic-danger) 18%, transparent);
+        color: var(--semantic-danger);
+      }
+      &[data-role='TERRACE'] {
+        background: color-mix(in srgb, var(--semantic-warning) 22%, transparent);
+        color: var(--semantic-warning);
+      }
+      &[data-role='FLOOR'] {
+        background: color-mix(in srgb, var(--primary) 20%, transparent);
+        color: var(--primary);
+      }
+    }
+
+    .device-name-input {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm, 6px);
+      padding: 4px 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: var(--border-medium);
+        background: var(--background-surface-1);
+      }
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: var(--background-surface-1);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 25%, transparent);
+      }
+    }
+
+    .device-header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+
+      ion-toggle {
+        --track-background: var(--background-surface-3);
+        --track-background-checked: var(--primary);
+      }
+
+      .btn-delete-device {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-sm, 6px);
+        background: transparent;
+        border: 1px solid transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        ion-icon {
+          font-size: 1.15rem;
+        }
+
+        &:hover {
+          color: var(--semantic-danger);
+          background: color-mix(in srgb, var(--semantic-danger) 12%, transparent);
+          border-color: color-mix(in srgb, var(--semantic-danger) 25%, transparent);
+        }
+      }
+    }
+  }
+
+  .device-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .device-form-row {
+      display: flex;
+      gap: 10px;
+
+      .field-item {
+        flex: 1;
+        margin-bottom: 0;
+        min-width: 0;
+      }
+
+      .field-port {
+        flex: 0 0 85px;
+      }
+
+      .field-paper {
+        flex: 0 0 100px;
+      }
+
+      .field-terminal-id {
+        flex: 0 0 80px;
+      }
+
+      .field-timeout {
+        flex: 0 0 80px;
+      }
+    }
+
+    .device-toggle-subrow {
+      padding-top: 4px;
+
+      .toggle-drawer-wrapper {
+        ion-toggle {
+          --track-background: var(--background-surface-3);
+          --track-background-checked: var(--primary);
+          font-size: 0.82rem;
+          color: var(--text-secondary);
+
+          .drawer-toggle-text {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-right: 8px;
+          }
+        }
+      }
+    }
+  }
+
+  .device-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-subtle, var(--border-medium));
+    margin-top: auto;
+
+    .diagnostic-pill {
+      display: flex;
+      align-items: center;
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 0.76rem;
+        font-weight: 600;
+
+        ion-icon {
+          font-size: 0.95rem;
+        }
+
+        &.status-success {
+          background: color-mix(in srgb, var(--semantic-success) 15%, transparent);
+          color: var(--semantic-success);
+          border: 1px solid color-mix(in srgb, var(--semantic-success) 30%, transparent);
+        }
+
+        &.status-error {
+          background: color-mix(in srgb, var(--semantic-danger) 15%, transparent);
+          color: var(--semantic-danger);
+          border: 1px solid color-mix(in srgb, var(--semantic-danger) 30%, transparent);
+          cursor: help;
+        }
+
+        &.status-neutral {
+          background: color-mix(in srgb, var(--text-muted) 15%, transparent);
+          color: var(--text-secondary);
+          border: 1px solid var(--border-medium);
+
+          .neutral-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-muted);
+          }
+        }
+      }
+    }
+
+    .btn-test-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius-md, 8px);
+      background: var(--background-surface-1);
+      border: 1px solid var(--border-medium);
+      color: var(--text-primary);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      ion-icon {
+        font-size: 1rem;
+        color: var(--primary);
+      }
+
+      ion-spinner {
+        width: 14px;
+        height: 14px;
+      }
+
+      &:hover:not(:disabled) {
+        background: color-mix(in srgb, var(--primary) 12%, var(--background-surface-1));
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+
+      &:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+/* Custom Field Labels & Inputs for Dynamic Hardware Cards */
+.custom-field-label {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.custom-text-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm, 6px);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+
+  &:hover {
+    border-color: var(--border-subtle, var(--border-medium));
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 20%, transparent);
+    background: var(--background-surface-1);
+  }
+}
+
+.custom-select-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm, 6px);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  option {
+    background: var(--background-surface-1);
+    color: var(--text-primary);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 20%, transparent);
+  }
+}
+
+
 

@@ -87,6 +87,11 @@ export interface FactureReglement {
   typeSplit: TypeSplitValue;
   items?: SplitItem[];
   dateReglement?: string;
+  tpeAutorisation?: string;
+  tpeTerminalId?: string;
+  tpeCardBrand?: string;
+  tpeMaskedPan?: string;
+  tpeSequence?: string;
 }
 
 export interface EncaisserPartRequest {
@@ -99,6 +104,11 @@ export interface EncaisserPartRequest {
   modePaiement: string;
   typeSplit: TypeSplitValue;
   items?: SplitItem[];
+  tpeAutorisation?: string;
+  tpeTerminalId?: string;
+  tpeCardBrand?: string;
+  tpeMaskedPan?: string;
+  tpeSequence?: string;
 }
 
 export interface Facture {
@@ -115,6 +125,11 @@ export interface Facture {
   dateReglement?: string;
   reglee: boolean;
   modePaiement?: string;
+  tpeAutorisation?: string;
+  tpeTerminalId?: string;
+  tpeCardBrand?: string;
+  tpeMaskedPan?: string;
+  tpeSequence?: string;
   notes?: string;
   serveurNom?: string;
   items: FactureItem[];

@@ -32,8 +32,38 @@ public record FactureResponseDTO(
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
     Long barTabId,
-    String barTabNom
+    String barTabNom,
+    String tpeAutorisation,
+    String tpeTerminalId,
+    String tpeCardBrand,
+    String tpeMaskedPan,
+    String tpeSequence
 ) {
+    public FactureResponseDTO(
+        Long id,
+        Long tableId,
+        Integer tableNumero,
+        String numero,
+        BigDecimal total,
+        BigDecimal totalHT,
+        BigDecimal totalVAT,
+        BigDecimal pourboire,
+        BigDecimal totalTTC,
+        LocalDateTime dateFacture,
+        LocalDateTime dateReglement,
+        boolean reglee,
+        String modePaiement,
+        String notes,
+        List<FactureItemResponseDTO> items,
+        List<FactureReglementDTO> reglements,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
+        Long barTabId,
+        String barTabNom
+    ) {
+        this(id, tableId, tableNumero, numero, total, totalHT, totalVAT, pourboire, totalTTC, dateFacture, dateReglement, reglee, modePaiement, notes, items, reglements, createdAt, updatedAt, barTabId, barTabNom, null, null, null, null, null);
+    }
+
     public FactureResponseDTO(
         Long id,
         Long tableId,
@@ -54,7 +84,7 @@ public record FactureResponseDTO(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
-        this(id, tableId, tableNumero, numero, total, totalHT, totalVAT, pourboire, totalTTC, dateFacture, dateReglement, reglee, modePaiement, notes, items, reglements, createdAt, updatedAt, null, null);
+        this(id, tableId, tableNumero, numero, total, totalHT, totalVAT, pourboire, totalTTC, dateFacture, dateReglement, reglee, modePaiement, notes, items, reglements, createdAt, updatedAt, null, null, null, null, null, null, null);
     }
 
     /**
@@ -90,7 +120,12 @@ public record FactureResponseDTO(
             f.getCreatedAt(),
             f.getUpdatedAt(),
             f.getBarTab() != null ? f.getBarTab().getId() : null,
-            f.getBarTab() != null ? f.getBarTab().getNom() : null
+            f.getBarTab() != null ? f.getBarTab().getNom() : null,
+            f.getTpeAutorisation(),
+            f.getTpeTerminalId(),
+            f.getTpeCardBrand(),
+            f.getTpeMaskedPan(),
+            f.getTpeSequence()
         );
     }
 }

@@ -7,7 +7,7 @@ import { AppSettingsPageComponent } from '../../../../app/features/admin/setting
 import { LegalComponent } from '../../../../app/features/legal/legal.component';
 import { EtablissementService } from '../../../../app/core/services/etablissement.service';
 import { EstablishmentConfig } from '../../../../app/core/models/establishment-config.model';
-import { AppSettingsService, DEFAULT_DISCOUNT_TIERS } from '../../../../app/core/services/app-settings.service';
+import { AppSettingsService, DEFAULT_DISCOUNT_TIERS, DEFAULT_STORAGE_LOCATIONS } from '../../../../app/core/services/app-settings.service';
 import { AppSettings } from '../../../../app/core/models/app-settings.model';
 import { ThemeService, DEFAULT_FIGMA_PALETTE, THEME_PRESETS } from '../../../../app/core/services/theme.service';
 import { PrinterService } from '../../../../app/core/services/printer.service';
@@ -18,6 +18,19 @@ import { OnboardingService } from '../../../../app/core/services/onboarding.serv
 import { FeatureFlagService } from '../../../../app/core/services/feature-flag.service';
 import { RouletteService } from '../../../../app/core/services/roulette.service';
 import { ESTABLISHMENT_PRESETS, EstablishmentPresetType } from '../../../../app/core/models/establishment-module.model';
+import { PaymentTerminalService } from '../../../../app/core/services/payment-terminal.service';
+import { TpePublicConfig } from '../../../../app/core/models/tpe.model';
+
+const mockTpePublicConfig: TpePublicConfig = {
+  enabled: true,
+  simulatorEnabled: true,
+  barIpConfigured: true,
+  floorIpConfigured: false,
+  port: 8888,
+  terminalId: 'TEST-01',
+  timeoutSeconds: 30,
+  terminalsJson: '[]'
+};
 
 describe('AppSettingsPageComponent', () => {
   let component: AppSettingsPageComponent;
@@ -35,6 +48,7 @@ describe('AppSettingsPageComponent', () => {
   let alertCtrlSpy: jasmine.SpyObj<AlertController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let routerSpy: jasmine.SpyObj<Router>;
+  let paymentTerminalServiceSpy: jasmine.SpyObj<PaymentTerminalService>;
 
   const mockEtab: EstablishmentConfig = {
     id: 1,
@@ -83,10 +97,19 @@ describe('AppSettingsPageComponent', () => {
     etabServiceSpy.updateConfig.and.returnValue(of(mockEtab));
     etabServiceSpy.getTimeZones.and.returnValue(of(['Europe/Paris', 'UTC', 'America/New_York']));
 
-    appSettingsServiceSpy = jasmine.createSpyObj('AppSettingsService', ['getSettings', 'updateSettings', 'applyTokens', 'getDiscountTiers', 'saveDiscountTiersLocally']);
+    appSettingsServiceSpy = jasmine.createSpyObj('AppSettingsService', [
+      'getSettings',
+      'updateSettings',
+      'applyTokens',
+      'getDiscountTiers',
+      'saveDiscountTiersLocally',
+      'getStorageLocations',
+      'saveStorageLocationsLocally',
+    ]);
     appSettingsServiceSpy.getSettings.and.returnValue(of(mockAppSettings));
     appSettingsServiceSpy.updateSettings.and.returnValue(of(mockAppSettings));
     appSettingsServiceSpy.getDiscountTiers.and.returnValue([...DEFAULT_DISCOUNT_TIERS]);
+    appSettingsServiceSpy.getStorageLocations.and.returnValue([...DEFAULT_STORAGE_LOCATIONS]);
 
     printerServiceSpy = jasmine.createSpyObj('PrinterService', [
       'getStatus',
@@ -109,6 +132,14 @@ describe('AppSettingsPageComponent', () => {
       success: true,
       message: 'Cash drawer opened',
       durationMs: 10,
+    }));
+    printerServiceSpy.testConnection.and.returnValue(of({
+      role: 'BAR',
+      ip: '192.168.1.101',
+      port: 9100,
+      success: true,
+      message: 'OK',
+      durationMs: 15,
     }));
 
     appUpdateServiceSpy = jasmine.createSpyObj('AppUpdateService', ['checkNewerRelease', 'presentUpdateModal'], {
@@ -183,12 +214,37 @@ describe('AppSettingsPageComponent', () => {
       suppliersManagement: true,
       inventoryAudit: true,
       mysteryRoulette: true,
+      paymentTerminal: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
 
     rouletteServiceSpy = jasmine.createSpyObj('RouletteService', ['getDisplayPin', 'regenerateDisplayPin']);
     rouletteServiceSpy.getDisplayPin.and.returnValue(of({ pin: '7777', establishmentId: 1 }));
     rouletteServiceSpy.regenerateDisplayPin.and.returnValue(of({ pin: '4321', establishmentId: 1 }));
+
+    paymentTerminalServiceSpy = jasmine.createSpyObj('PaymentTerminalService', [
+      'initiatePayment',
+      'cancelPayment',
+      'getStatus',
+      'watchTransaction',
+      'watchPayment',
+      'testConnection',
+      'getConfig',
+      'getPreferredTerminalRole',
+      'setPreferredTerminalRole'
+    ], {
+      paymentEvents$: of(),
+      preferredRole: 'BAR'
+    });
+    paymentTerminalServiceSpy.getConfig.and.returnValue(of(mockTpePublicConfig));
+    paymentTerminalServiceSpy.testConnection.and.returnValue(of({
+      role: 'BAR',
+      ip: '192.168.1.50',
+      port: 8888,
+      success: true,
+      message: 'TPE connected successfully',
+      durationMs: 42
+    }));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -210,6 +266,7 @@ describe('AppSettingsPageComponent', () => {
         { provide: FeatureFlagService, useValue: featureFlagServiceSpy },
         { provide: RouletteService, useValue: rouletteServiceSpy },
         { provide: PrinterService, useValue: printerServiceSpy },
+        { provide: PaymentTerminalService, useValue: paymentTerminalServiceSpy },
         { provide: AppUpdateService, useValue: appUpdateServiceSpy },
         { provide: ThemeService, useValue: themeServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
@@ -812,6 +869,7 @@ describe('AppSettingsPageComponent', () => {
         suppliersManagement: true,
         inventoryAudit: true,
         mysteryRoulette: true,
+        paymentTerminal: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -835,6 +893,7 @@ describe('AppSettingsPageComponent', () => {
         suppliersManagement: false,
         inventoryAudit: false,
         mysteryRoulette: false,
+        paymentTerminal: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -851,6 +910,7 @@ describe('AppSettingsPageComponent', () => {
         suppliersManagement: false,
         inventoryAudit: false,
         mysteryRoulette: false,
+        paymentTerminal: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });
@@ -899,6 +959,7 @@ describe('AppSettingsPageComponent', () => {
         suppliersManagement: false,
         inventoryAudit: false,
         mysteryRoulette: false,
+        paymentTerminal: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -1277,6 +1338,324 @@ describe('AppSettingsPageComponent', () => {
       expect(rouletteServiceSpy.regenerateDisplayPin).toHaveBeenCalled();
       expect(component.roulettePin()).toBe('4321');
       expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+  });
+
+  describe('Hardware and Network Peripherals Management', () => {
+    it('should add and remove ESC/POS printers dynamically', () => {
+      const initialCount = component.configuredPrinters().length;
+      component.addPrinter();
+      expect(component.configuredPrinters()).toHaveSize(initialCount + 1);
+      expect(component.appSettingsForm.dirty).toBeTrue();
+
+      const added = component.configuredPrinters()[component.configuredPrinters().length - 1];
+      component.removePrinter(added.id);
+      expect(component.configuredPrinters()).toHaveSize(initialCount);
+    });
+
+    it('should test printer connection and record test result', () => {
+      const testPrinter = {
+        id: 'p-test',
+        name: 'Test Printer',
+        role: 'BAR' as const,
+        ip: '192.168.1.101',
+        port: 9100,
+        paperWidth: 80 as const,
+        openCashDrawer: false,
+        enabled: true
+      };
+
+      component.testConfiguredPrinter(testPrinter);
+      expect(printerServiceSpy.testConnection).toHaveBeenCalledWith({
+        ip: '192.168.1.101',
+        port: 9100,
+        role: 'BAR'
+      });
+      expect(component.printerTestResults()['p-test']).toBeDefined();
+      expect(component.printerTestResults()['p-test'].success).toBeTrue();
+    });
+
+    it('should add and remove TPE terminals dynamically', () => {
+      const initialCount = component.configuredTpeTerminals().length;
+      component.addTpeTerminal();
+      expect(component.configuredTpeTerminals()).toHaveSize(initialCount + 1);
+      expect(component.appSettingsForm.dirty).toBeTrue();
+
+      const added = component.configuredTpeTerminals()[component.configuredTpeTerminals().length - 1];
+      component.removeTpeTerminal(added.id);
+      expect(component.configuredTpeTerminals()).toHaveSize(initialCount);
+    });
+
+    it('should test TPE connection and record test result', () => {
+      const testTpe = {
+        id: 't-test',
+        name: 'Test TPE',
+        role: 'BAR' as const,
+        ip: '192.168.1.50',
+        port: 8888,
+        terminalId: 'POS01',
+        timeoutSeconds: 30,
+        enabled: true
+      };
+
+      component.testConfiguredTpe(testTpe);
+      expect(paymentTerminalServiceSpy.testConnection).toHaveBeenCalledWith(jasmine.objectContaining({
+        ip: '192.168.1.50',
+        port: 8888,
+        terminalId: 'POS01'
+      }));
+      expect(component.tpeTestResults()['t-test']).toBeDefined();
+      expect(component.tpeTestResults()['t-test'].success).toBeTrue();
+    });
+
+    it('should update printer properties and mark form dirty', () => {
+      component.configuredPrinters.set([{
+        id: 'p-up',
+        name: 'Initial Printer',
+        role: 'BAR',
+        ip: '192.168.1.10',
+        port: 9100,
+        paperWidth: 80,
+        openCashDrawer: false,
+        enabled: true
+      }]);
+
+      component.updatePrinter('p-up', 'name', 'Renamed Printer');
+      expect(component.configuredPrinters()[0].name).toBe('Renamed Printer');
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+
+    it('should ignore testConfiguredPrinter when IP is blank', () => {
+      component.testConfiguredPrinter({
+        id: 'p-blank',
+        name: 'Blank Printer',
+        role: 'BAR',
+        ip: '',
+        port: 9100,
+        paperWidth: 80,
+        openCashDrawer: false,
+        enabled: true
+      });
+      expect(printerServiceSpy.testConnection).not.toHaveBeenCalled();
+    });
+
+    it('should handle failure and error response during testConfiguredPrinter', () => {
+      printerServiceSpy.testConnection.and.returnValue(throwError(() => ({ error: { message: 'Connection refused' } })));
+
+      component.testConfiguredPrinter({
+        id: 'p-err',
+        name: 'Failing Printer',
+        role: 'BAR',
+        ip: '192.168.1.200',
+        port: 9100,
+        paperWidth: 80,
+        openCashDrawer: false,
+        enabled: true
+      });
+
+      expect(component.printerTestResults()['p-err']).toBeDefined();
+      expect(component.printerTestResults()['p-err'].success).toBeFalse();
+    });
+
+    it('should update TPE terminal properties and mark form dirty', () => {
+      component.configuredTpeTerminals.set([{
+        id: 't-up',
+        name: 'Initial TPE',
+        role: 'BAR',
+        ip: '192.168.1.20',
+        port: 8888,
+        terminalId: '01',
+        timeoutSeconds: 30,
+        enabled: true
+      }]);
+
+      component.updateTpeTerminal('t-up', 'name', 'Renamed TPE');
+      expect(component.configuredTpeTerminals()[0].name).toBe('Renamed TPE');
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+
+    it('should ignore testConfiguredTpe when IP is blank', () => {
+      component.testConfiguredTpe({
+        id: 't-blank',
+        name: 'Blank TPE',
+        role: 'BAR',
+        ip: '',
+        port: 8888,
+        terminalId: '01',
+        timeoutSeconds: 30,
+        enabled: true
+      });
+      expect(paymentTerminalServiceSpy.testConnection).not.toHaveBeenCalled();
+    });
+
+    it('should handle failure and error response during testConfiguredTpe', () => {
+      paymentTerminalServiceSpy.testConnection.and.returnValue(throwError(() => ({ error: { message: 'Timeout' } })));
+
+      component.testConfiguredTpe({
+        id: 't-err',
+        name: 'Failing TPE',
+        role: 'BAR',
+        ip: '192.168.1.201',
+        port: 8888,
+        terminalId: '01',
+        timeoutSeconds: 30,
+        enabled: true
+      });
+
+      expect(component.tpeTestResults()['t-err']).toBeDefined();
+      expect(component.tpeTestResults()['t-err'].success).toBeFalse();
+    });
+
+    it('should serialize configured printers and TPEs in saveAll() payload', fakeAsync(() => {
+      component.configuredPrinters.set([{
+        id: 'p-custom',
+        name: 'Custom Printer',
+        role: 'BAR',
+        ip: '192.168.1.111',
+        port: 9100,
+        paperWidth: 80,
+        openCashDrawer: false,
+        enabled: true
+      }]);
+
+      component.configuredTpeTerminals.set([{
+        id: 't-custom',
+        name: 'Custom TPE',
+        role: 'BAR',
+        ip: '192.168.1.222',
+        port: 8888,
+        terminalId: 'POS99',
+        timeoutSeconds: 45,
+        enabled: true
+      }]);
+
+      component.saveAll();
+      tick();
+
+      expect(appSettingsServiceSpy.updateSettings).toHaveBeenCalledWith(jasmine.objectContaining({
+        barPrinterIp: '192.168.1.111',
+        tpeBarIp: '192.168.1.222',
+        printersJson: jasmine.stringContaining('p-custom'),
+        tpeTerminalsJson: jasmine.stringContaining('t-custom')
+      }));
+    }));
+
+    it('should trigger cash drawer diagnostic opening', () => {
+      component.testCashDrawer();
+      expect(printerServiceSpy.openCashDrawer).toHaveBeenCalled();
+    });
+
+    it('should test legacy TPE connection by role with success response', () => {
+      component.appSettingsForm.patchValue({
+        tpeBarIp: '192.168.1.50',
+        tpePort: 8888,
+        tpeTerminalId: 'POS01'
+      });
+      paymentTerminalServiceSpy.testConnection.and.returnValue(of({
+        success: true,
+        ip: '192.168.1.50',
+        port: 8888,
+        terminalId: 'POS01',
+        message: 'Connected',
+        responseTimeMs: 25
+      }));
+
+      component.testTpeConnection('BAR');
+
+      expect(paymentTerminalServiceSpy.testConnection).toHaveBeenCalledWith({
+        ip: '192.168.1.50',
+        port: 8888,
+        terminalId: 'POS01'
+      });
+      expect(component.isTestingTpe['BAR']).toBeFalse();
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    it('should handle legacy TPE test connection with business failure response', () => {
+      component.appSettingsForm.patchValue({
+        tpeBarIp: '192.168.1.50',
+        tpePort: 8888,
+        tpeTerminalId: 'POS01'
+      });
+      paymentTerminalServiceSpy.testConnection.and.returnValue(of({
+        success: false,
+        ip: '192.168.1.50',
+        port: 8888,
+        terminalId: 'POS01',
+        message: 'Terminal busy'
+      }));
+
+      component.testTpeConnection('BAR');
+
+      expect(component.isTestingTpe['BAR']).toBeFalse();
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    it('should handle legacy TPE test connection HTTP error', () => {
+      component.appSettingsForm.patchValue({
+        tpeBarIp: '192.168.1.50',
+        tpePort: 8888,
+        tpeTerminalId: 'POS01'
+      });
+      paymentTerminalServiceSpy.testConnection.and.returnValue(throwError(() => new Error('Connection refused')));
+
+      component.testTpeConnection('BAR');
+
+      expect(component.isTestingTpe['BAR']).toBeFalse();
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    it('should return early when testing legacy TPE connection if IP is empty', () => {
+      component.appSettingsForm.patchValue({
+        tpeFloorIp: ''
+      });
+      paymentTerminalServiceSpy.testConnection.calls.reset();
+
+      component.testTpeConnection('FLOOR');
+
+      expect(paymentTerminalServiceSpy.testConnection).not.toHaveBeenCalled();
+    });
+
+    it('should resolve printers and TPE terminals from custom serialized JSON', () => {
+      const customPrinters = [{
+        id: 'p-json-1',
+        name: 'JSON Printer',
+        role: 'BAR' as const,
+        ip: '192.168.1.88',
+        port: 9100,
+        paperWidth: 80 as const,
+        openCashDrawer: false,
+        enabled: true
+      }];
+      const customTpe = [{
+        id: 't-json-1',
+        name: 'JSON TPE',
+        role: 'BAR' as const,
+        ip: '192.168.1.89',
+        port: 8888,
+        terminalId: 'POS88',
+        timeoutSeconds: 30,
+        enabled: true
+      }];
+
+      const resolvedPrinters = (component as unknown as { resolvePrinters: (s: unknown) => unknown[] })
+        .resolvePrinters({ printersJson: JSON.stringify(customPrinters) });
+      const resolvedTpe = (component as unknown as { resolveTpeTerminals: (s: unknown) => unknown[] })
+        .resolveTpeTerminals({ tpeTerminalsJson: JSON.stringify(customTpe) });
+
+      expect(resolvedPrinters).toHaveSize(1);
+      expect(resolvedPrinters[0]).toEqual(customPrinters[0]);
+      expect(resolvedTpe).toHaveSize(1);
+      expect(resolvedTpe[0]).toEqual(customTpe[0]);
+    });
+
+    it('should handle settings load error and fallback to default peripheral lists', () => {
+      appSettingsServiceSpy.getSettings.and.returnValue(throwError(() => new Error('Network error')));
+
+      (component as unknown as { loadAllSettings: () => void }).loadAllSettings();
+
+      expect(component.configuredPrinters().length).toBeGreaterThan(0);
+      expect(component.configuredTpeTerminals().length).toBeGreaterThan(0);
     });
   });
 });

@@ -665,6 +665,18 @@
                             </div>
                           }
                         </div>
+
+                        <!-- Module 13: PAYMENT_TERMINAL -->
+                        <div class="threshold-row" data-testid="module-row-payment-terminal">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="card-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_PAYMENT_TERMINAL_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="paymentTerminal" data-testid="toggle-module-payment-terminal"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_PAYMENT_TERMINAL_DESC' | transloco }}</p>
+                        </div>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -954,6 +966,26 @@
                                 </span>
                               </div>
                               <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_ROULETTE' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 13. Terminaux de Paiement (TPE) -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('paymentTerminal')"
+                            [class.node-inactive]="!isModuleControlActive('paymentTerminal')"
+                            data-testid="preview-node-payment-terminal">
+                            <div class="node-icon-box">
+                              <ion-icon name="card-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_PAYMENT_TERMINAL_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('paymentTerminal')">
+                                  {{ (isModuleControlActive('paymentTerminal') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_PAYMENT_TERMINAL' | transloco }}</span>
                             </div>
                           </div>
                         </div>
@@ -1999,12 +2031,11 @@
                           <label class="toggle-title" for="wifi-enabled-toggle">{{ 'SETTINGS.QR_WIFI_ENABLED_LABEL' | transloco }}</label>
                           <span class="toggle-desc">{{ 'SETTINGS.QR_WIFI_ENABLED_HINT' | transloco }}</span>
                         </div>
-                        <input
+                        <ion-toggle
                           id="wifi-enabled-toggle"
-                          type="checkbox"
                           formControlName="wifiEnabled"
-                          class="switch-input"
-                          data-testid="toggle-wifi-enabled" />
+                          data-testid="toggle-wifi-enabled">
+                        </ion-toggle>
                       </div>
 
                       @if (appSettingsForm.get('wifiEnabled')?.value) {
@@ -2054,12 +2085,11 @@
                           <label class="toggle-title" for="table-session-validation-toggle">{{ 'SETTINGS.QR_SESSION_VALIDATION_LABEL' | transloco }}</label>
                           <span class="toggle-desc">{{ 'SETTINGS.QR_SESSION_VALIDATION_HINT' | transloco }}</span>
                         </div>
-                        <input
+                        <ion-toggle
                           id="table-session-validation-toggle"
-                          type="checkbox"
                           formControlName="tableSessionValidationEnabled"
-                          class="switch-input"
-                          data-testid="toggle-table-session-validation" />
+                          data-testid="toggle-table-session-validation">
+                        </ion-toggle>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -2122,161 +2152,501 @@
       <!-- TAB 7: Imprimantes Réseau ESC/POS         -->
       <!-- ========================================== -->
       @if (activeTab === 'printers') {
-        <section class="tab-panel" data-testid="panel-printers">
+        <section class="tab-panel hardware-tab-panel" data-testid="panel-printers">
           <form [formGroup]="appSettingsForm" class="settings-form">
-            <ion-grid>
-              <ion-row>
-                <!-- Colonne Gauche: Activation & Ports & Postes -->
-                <ion-col size="12" sizeLg="7">
-                  <ion-card class="settings-card">
-                    <ion-card-header>
-                      <ion-card-title class="card-title">
-                        <ion-icon name="print-outline" class="title-icon"></ion-icon>
-                        {{ 'SETTINGS.PRINTERS_TITLE' | transloco }}
-                      </ion-card-title>
-                    </ion-card-header>
-                    <ion-card-content>
-                      <p class="section-lead">{{ 'SETTINGS.PRINTERS_SUBTITLE' | transloco }}</p>
 
-                      <!-- Activation Globale -->
-                      <div class="field-item checkbox-field">
-                        <label class="checkbox-label" for="directPrintingEnabled">
-                          <input
-                            type="checkbox"
-                            id="directPrintingEnabled"
-                            formControlName="directPrintingEnabled"
-                            data-testid="toggle-direct-printing" />
-                          <span class="checkbox-custom"></span>
-                          <div class="checkbox-text">
-                            <strong>{{ 'SETTINGS.DIRECT_PRINTING_ENABLE' | transloco }}</strong>
-                            <p class="field-hint">{{ 'SETTINGS.DIRECT_PRINTING_DESC' | transloco }}</p>
+            <!-- Hero Banner Hardware & Peripherals -->
+            <div class="hardware-hero-banner" data-testid="hardware-hero-banner">
+              <div class="hardware-hero-icon-box">
+                <ion-icon name="hardware-chip-outline"></ion-icon>
+              </div>
+              <div class="hardware-hero-content">
+                <h3 class="hardware-hero-title">{{ 'SETTINGS.HARDWARE_HERO_TITLE' | transloco }}</h3>
+                <p class="hardware-hero-desc">{{ 'SETTINGS.HARDWARE_HERO_DESC' | transloco }}</p>
+              </div>
+            </div>
+
+            <!-- SECTION 1: ESC/POS NETWORK PRINTERS & CASH DRAWER -->
+            <ion-card class="settings-card hardware-card" data-testid="card-settings-printers">
+              <ion-card-header class="hardware-card-header">
+                <div class="header-left">
+                  <ion-card-title class="card-title">
+                    <ion-icon name="print-outline" class="title-icon"></ion-icon>
+                    <span>{{ 'SETTINGS.PRINTERS_TITLE' | transloco }}</span>
+                  </ion-card-title>
+                  <span class="device-count-pill" data-testid="pill-printers-count">
+                    {{ 'SETTINGS.HARDWARE_DEVICES_COUNT' | transloco: { count: configuredPrinters().length } }}
+                  </span>
+                </div>
+                <div class="header-actions">
+                  <button
+                    type="button"
+                    class="add-device-btn"
+                    (click)="addPrinter()"
+                    data-testid="btn-add-printer">
+                    <ion-icon name="add-outline"></ion-icon>
+                    <span>{{ 'SETTINGS.BTN_ADD_PRINTER' | transloco }}</span>
+                  </button>
+                </div>
+              </ion-card-header>
+
+              <ion-card-content>
+                <p class="section-lead">{{ 'SETTINGS.PRINTERS_SUBTITLE' | transloco }}</p>
+
+                <!-- Global Direct Printing Activation & TCP Port -->
+                <div class="hardware-global-row">
+                  <div class="toggle-row-box hardware-toggle-item">
+                    <div class="toggle-info">
+                      <label class="toggle-title" for="direct-printing-toggle">{{ 'SETTINGS.DIRECT_PRINTING_ENABLE' | transloco }}</label>
+                      <span class="toggle-desc">{{ 'SETTINGS.DIRECT_PRINTING_DESC' | transloco }}</span>
+                    </div>
+                    <ion-toggle
+                      id="direct-printing-toggle"
+                      formControlName="directPrintingEnabled"
+                      data-testid="toggle-direct-printing">
+                    </ion-toggle>
+                  </div>
+
+                  <div class="hardware-port-box">
+                    <app-input-field
+                      formControlName="printerPort"
+                      type="number"
+                      [label]="'SETTINGS.PRINTER_PORT' | transloco"
+                      [helperText]="'SETTINGS.PRINTER_PORT_HINT' | transloco"
+                      placeholder="9100"
+                      [required]="true"
+                      data-testid="input-printer-port">
+                    </app-input-field>
+                  </div>
+                </div>
+
+                <!-- Dedicated Physical Cash Drawer Sub-block -->
+                <div class="drawer-diagnostic-card" data-testid="card-drawer-diagnostic">
+                  <div class="drawer-card-left">
+                    <div class="drawer-icon-box">
+                      <ion-icon name="cash-outline"></ion-icon>
+                    </div>
+                    <div class="drawer-content">
+                      <h4 class="drawer-title">{{ 'SETTINGS.DRAWER_SECTION_TITLE' | transloco }}</h4>
+                      <p class="drawer-desc">{{ 'SETTINGS.DRAWER_SECTION_DESC' | transloco }}</p>
+                    </div>
+                  </div>
+                  <div class="drawer-card-actions">
+                    <app-action-button
+                      type="button"
+                      variant="secondary"
+                      [loading]="isTestingPrinter['drawer']"
+                      [disabled]="isTestingPrinter['drawer']"
+                      (btnClick)="testCashDrawer()"
+                      data-testid="btn-test-cash-drawer">
+                      <ion-icon name="hardware-chip-outline" slot="start"></ion-icon>
+                      {{ 'SETTINGS.TEST_DRAWER_BTN' | transloco }}
+                    </app-action-button>
+                  </div>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <!-- Dynamic Printers List -->
+                <div class="configured-devices-container">
+                  @if (configuredPrinters().length === 0) {
+                    <div class="empty-devices-card" data-testid="empty-printers">
+                      <div class="empty-icon-circle">
+                        <ion-icon name="print-outline"></ion-icon>
+                      </div>
+                      <p class="empty-text">{{ 'SETTINGS.NO_PRINTERS_CONFIGURED' | transloco }}</p>
+                      <button type="button" class="add-device-btn" (click)="addPrinter()">
+                        <ion-icon name="add-outline"></ion-icon>
+                        <span>{{ 'SETTINGS.BTN_ADD_PRINTER' | transloco }}</span>
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="devices-grid">
+                      @for (printer of configuredPrinters(); track printer.id; let idx = $index) {
+                        <div class="device-card" [class.device-disabled]="!printer.enabled" [attr.data-testid]="'card-printer-' + printer.id">
+                          <div class="device-card-header">
+                            <div class="device-title-wrap">
+                              <div class="device-badge-icon" [attr.data-role]="printer.role">
+                                <ion-icon [name]="printer.role === 'BAR' ? 'beer-outline' : (printer.role === 'KITCHEN' ? 'restaurant-outline' : (printer.role === 'CASH_DESK' ? 'cash-outline' : (printer.role === 'SNACK' ? 'flame-outline' : 'print-outline')))"></ion-icon>
+                              </div>
+                              <label [for]="'input-printer-name-' + printer.id" class="sr-only">{{ 'SETTINGS.DEVICE_NAME' | transloco }}</label>
+                              <input
+                                type="text"
+                                [id]="'input-printer-name-' + printer.id"
+                                class="device-name-input"
+                                [value]="printer.name"
+                                (input)="updatePrinter(printer.id, 'name', $any($event.target).value)"
+                                [placeholder]="'SETTINGS.DEVICE_NAME' | transloco"
+                                [attr.data-testid]="'input-printer-name-' + printer.id" />
+                            </div>
+                            <div class="device-header-controls">
+                              <ion-toggle
+                                [checked]="printer.enabled"
+                                (ionChange)="updatePrinter(printer.id, 'enabled', $event.detail.checked)"
+                                [attr.data-testid]="'toggle-printer-enabled-' + printer.id">
+                              </ion-toggle>
+                              <button
+                                type="button"
+                                class="btn-delete-device"
+                                (click)="removePrinter(printer.id)"
+                                [title]="'SETTINGS.DEVICE_ACTION_DELETE' | transloco"
+                                [attr.data-testid]="'btn-delete-printer-' + printer.id">
+                                <ion-icon name="trash-outline"></ion-icon>
+                              </button>
+                            </div>
                           </div>
-                        </label>
-                      </div>
 
-                      <!-- Port TCP Standard -->
-                      <div class="field-item">
-                        <app-input-field
-                          formControlName="printerPort"
-                          type="number"
-                          [label]="'SETTINGS.PRINTER_PORT' | transloco"
-                          [helperText]="'SETTINGS.PRINTER_PORT_HINT' | transloco"
-                          placeholder="9100"
-                          [required]="true"
-                          data-testid="input-printer-port">
-                        </app-input-field>
-                      </div>
+                          <div class="device-card-body">
+                            <div class="device-form-row">
+                              <div class="field-item">
+                                <label [for]="'input-printer-ip-' + printer.id" class="custom-field-label">{{ 'SETTINGS.DEVICE_IP' | transloco }} *</label>
+                                <input
+                                  type="text"
+                                  [id]="'input-printer-ip-' + printer.id"
+                                  class="custom-text-input"
+                                  [value]="printer.ip"
+                                  (input)="updatePrinter(printer.id, 'ip', $any($event.target).value)"
+                                  placeholder="192.168.1.101"
+                                  [attr.data-testid]="'input-printer-ip-' + printer.id" />
+                              </div>
+                              <div class="field-item field-port">
+                                <label [for]="'input-printer-port-' + printer.id" class="custom-field-label">{{ 'SETTINGS.DEVICE_PORT' | transloco }}</label>
+                                <input
+                                  type="number"
+                                  [id]="'input-printer-port-' + printer.id"
+                                  class="custom-text-input"
+                                  [value]="printer.port"
+                                  (input)="updatePrinter(printer.id, 'port', +$any($event.target).value)"
+                                  placeholder="9100"
+                                  [attr.data-testid]="'input-printer-port-' + printer.id" />
+                              </div>
+                            </div>
 
-                      <div class="form-section-title">{{ 'SETTINGS.BAR_PRINTER_TITLE' | transloco }}</div>
-                      <div class="printer-row-flex">
-                        <div class="printer-input-grow">
-                          <app-input-field
-                            formControlName="barPrinterIp"
-                            [label]="'SETTINGS.BAR_PRINTER_IP' | transloco"
-                            [helperText]="'SETTINGS.BAR_PRINTER_HINT' | transloco"
-                            placeholder="192.168.1.101"
-                            data-testid="input-bar-printer-ip">
-                          </app-input-field>
+                            <div class="device-form-row">
+                              <div class="field-item">
+                                <label [for]="'select-printer-role-' + printer.id" class="custom-field-label">{{ 'SETTINGS.DEVICE_ROLE' | transloco }}</label>
+                                <select
+                                  [id]="'select-printer-role-' + printer.id"
+                                  class="custom-select-input"
+                                  [value]="printer.role"
+                                  (change)="updatePrinter(printer.id, 'role', $any($event.target).value)"
+                                  [attr.data-testid]="'select-printer-role-' + printer.id">
+                                  @for (opt of printerRoleOptions; track opt.value) {
+                                    <option [value]="opt.value">{{ opt.label }}</option>
+                                  }
+                                </select>
+                              </div>
+                              <div class="field-item field-paper">
+                                <label [for]="'select-printer-paper-' + printer.id" class="custom-field-label">{{ 'SETTINGS.PAPER_WIDTH' | transloco }}</label>
+                                <select
+                                  [id]="'select-printer-paper-' + printer.id"
+                                  class="custom-select-input"
+                                  [value]="printer.paperWidth"
+                                  (change)="updatePrinter(printer.id, 'paperWidth', +$any($event.target).value)"
+                                  [attr.data-testid]="'select-printer-paper-' + printer.id">
+                                  @for (choice of paperWidthChoices; track choice.value) {
+                                    <option [value]="choice.value">{{ choice.label }}</option>
+                                  }
+                                </select>
+                              </div>
+                            </div>
+
+                            <div class="device-toggle-subrow">
+                              <div class="toggle-drawer-wrapper">
+                                <ion-toggle
+                                  [checked]="printer.openCashDrawer"
+                                  (ionChange)="updatePrinter(printer.id, 'openCashDrawer', $event.detail.checked)"
+                                  [attr.data-testid]="'toggle-printer-drawer-' + printer.id">
+                                  <span class="drawer-toggle-text">{{ 'SETTINGS.DRAWER_KICK_ON_PRINT' | transloco }}</span>
+                                </ion-toggle>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="device-card-footer">
+                            <div class="diagnostic-pill">
+                              @if (printerTestResults()[printer.id]) {
+                                @if (printerTestResults()[printer.id].success) {
+                                  <span class="status-pill status-success">
+                                    <ion-icon name="checkmark-circle-outline"></ion-icon>
+                                    {{ 'SETTINGS.STATUS_CONNECTED' | transloco }}
+                                  </span>
+                                } @else {
+                                  <span class="status-pill status-error" [title]="printerTestResults()[printer.id].message">
+                                    <ion-icon name="alert-circle-outline"></ion-icon>
+                                    {{ 'SETTINGS.STATUS_ERROR' | transloco }}
+                                  </span>
+                                }
+                              } @else {
+                                <span class="status-pill status-neutral">
+                                  <span class="neutral-dot"></span>
+                                  {{ 'SETTINGS.STATUS_NOT_TESTED' | transloco }}
+                                </span>
+                              }
+                            </div>
+
+                            <button
+                              type="button"
+                              class="btn-test-action"
+                              [disabled]="!printer.ip || isTestingPrinter[printer.id]"
+                              (click)="testConfiguredPrinter(printer)"
+                              [attr.data-testid]="'btn-test-printer-' + printer.id">
+                              @if (isTestingPrinter[printer.id]) {
+                                <ion-spinner name="crescent"></ion-spinner>
+                              } @else {
+                                <ion-icon name="print-outline"></ion-icon>
+                              }
+                              <span>{{ 'SETTINGS.TEST_PRINT_BTN' | transloco }}</span>
+                            </button>
+                          </div>
                         </div>
-                        <div class="printer-action-btn-wrap">
-                          <app-action-button
-                            type="button"
-                            variant="secondary"
-                            [loading]="isTestingPrinter['BAR']"
-                            [disabled]="!appSettingsForm.get('barPrinterIp')?.value || isTestingPrinter['BAR']"
-                            (btnClick)="testPrint('BAR')"
-                            data-testid="btn-test-bar-printer">
-                            <ion-icon name="print-outline" slot="start"></ion-icon>
-                            {{ 'SETTINGS.TEST_PRINT_BTN' | transloco }}
-                          </app-action-button>
-                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </ion-card-content>
+            </ion-card>
+
+            <!-- SECTION 2: PAYMENT TERMINALS (TPE / CONCERT IP) -->
+            <ion-card class="settings-card hardware-card" data-testid="card-settings-tpe">
+              <ion-card-header class="hardware-card-header">
+                <div class="header-left">
+                  <ion-card-title class="card-title">
+                    <ion-icon name="card-outline" class="title-icon"></ion-icon>
+                    <span>{{ 'SETTINGS.TPE_TITLE' | transloco }}</span>
+                  </ion-card-title>
+                  <span class="device-count-pill" data-testid="pill-tpe-count">
+                    {{ 'SETTINGS.HARDWARE_DEVICES_COUNT' | transloco: { count: configuredTpeTerminals().length } }}
+                  </span>
+                </div>
+                <div class="header-actions">
+                  <button
+                    type="button"
+                    class="add-device-btn"
+                    (click)="addTpeTerminal()"
+                    data-testid="btn-add-tpe">
+                    <ion-icon name="add-outline"></ion-icon>
+                    <span>{{ 'SETTINGS.BTN_ADD_TPE' | transloco }}</span>
+                  </button>
+                </div>
+              </ion-card-header>
+
+              <ion-card-content>
+                <p class="section-lead">{{ 'SETTINGS.TPE_SUBTITLE' | transloco }}</p>
+
+                <!-- Network TPE & Simulator Toggles -->
+                <div class="tpe-toggles-grid">
+                  <div class="toggle-row-box hardware-toggle-item">
+                    <div class="toggle-info">
+                      <label class="toggle-title" for="tpe-enabled-toggle">{{ 'SETTINGS.TPE_ENABLE_LABEL' | transloco }}</label>
+                      <span class="toggle-desc">{{ 'SETTINGS.TPE_ENABLE_HINT' | transloco }}</span>
+                    </div>
+                    <ion-toggle
+                      id="tpe-enabled-toggle"
+                      formControlName="tpeEnabled"
+                      data-testid="toggle-tpe-enabled">
+                    </ion-toggle>
+                  </div>
+
+                  <div class="toggle-row-box hardware-toggle-item">
+                    <div class="toggle-info">
+                      <label class="toggle-title" for="tpe-sim-toggle">{{ 'SETTINGS.TPE_SIMULATOR_LABEL' | transloco }}</label>
+                      <span class="toggle-desc">{{ 'SETTINGS.TPE_SIMULATOR_HINT' | transloco }}</span>
+                    </div>
+                    <ion-toggle
+                      id="tpe-sim-toggle"
+                      formControlName="tpeSimulatorEnabled"
+                      data-testid="toggle-tpe-simulator-enabled">
+                    </ion-toggle>
+                  </div>
+                </div>
+
+                <!-- Global TPE Parameters (Port & Timeout) -->
+                <div class="hardware-global-config-grid">
+                  <div class="field-item">
+                    <app-input-field
+                      formControlName="tpePort"
+                      type="number"
+                      [label]="'SETTINGS.TPE_PORT' | transloco"
+                      [helperText]="'SETTINGS.TPE_PORT_HINT' | transloco"
+                      placeholder="8888"
+                      [required]="true"
+                      data-testid="input-tpe-port">
+                    </app-input-field>
+                  </div>
+
+                  <div class="field-item">
+                    <app-input-field
+                      formControlName="tpeTimeoutSeconds"
+                      type="number"
+                      [label]="'SETTINGS.TPE_TIMEOUT' | transloco"
+                      [helperText]="'SETTINGS.TPE_TIMEOUT_HINT' | transloco"
+                      placeholder="45"
+                      data-testid="input-tpe-timeout">
+                    </app-input-field>
+                  </div>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <!-- Dynamic TPE Terminals List -->
+                <div class="configured-devices-container">
+                  @if (configuredTpeTerminals().length === 0) {
+                    <div class="empty-devices-card" data-testid="empty-tpe">
+                      <div class="empty-icon-circle">
+                        <ion-icon name="card-outline"></ion-icon>
                       </div>
+                      <p class="empty-text">{{ 'SETTINGS.NO_TPE_CONFIGURED' | transloco }}</p>
+                      <button type="button" class="add-device-btn" (click)="addTpeTerminal()">
+                        <ion-icon name="add-outline"></ion-icon>
+                        <span>{{ 'SETTINGS.BTN_ADD_TPE' | transloco }}</span>
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="devices-grid">
+                      @for (terminal of configuredTpeTerminals(); track terminal.id; let idx = $index) {
+                        <div class="device-card" [class.device-disabled]="!terminal.enabled" [attr.data-testid]="'card-tpe-' + terminal.id">
+                          <div class="device-card-header">
+                            <div class="device-title-wrap">
+                              <div class="device-badge-icon" [attr.data-role]="terminal.role">
+                                <ion-icon [name]="terminal.role === 'BAR' ? 'beer-outline' : (terminal.role === 'FLOOR' ? 'walk-outline' : (terminal.role === 'REGISTER' ? 'cash-outline' : (terminal.role === 'TERRACE' ? 'sunny-outline' : 'card-outline')))"></ion-icon>
+                              </div>
+                              <label [for]="'input-tpe-name-' + terminal.id" class="sr-only">{{ 'SETTINGS.DEVICE_NAME' | transloco }}</label>
+                              <input
+                                type="text"
+                                [id]="'input-tpe-name-' + terminal.id"
+                                class="device-name-input"
+                                [value]="terminal.name"
+                                (input)="updateTpeTerminal(terminal.id, 'name', $any($event.target).value)"
+                                [placeholder]="'SETTINGS.DEVICE_NAME' | transloco"
+                                [attr.data-testid]="'input-tpe-name-' + terminal.id" />
+                            </div>
+                            <div class="device-header-controls">
+                              <ion-toggle
+                                [checked]="terminal.enabled"
+                                (ionChange)="updateTpeTerminal(terminal.id, 'enabled', $event.detail.checked)"
+                                [attr.data-testid]="'toggle-tpe-enabled-' + terminal.id">
+                              </ion-toggle>
+                              <button
+                                type="button"
+                                class="btn-delete-device"
+                                (click)="removeTpeTerminal(terminal.id)"
+                                [title]="'SETTINGS.DEVICE_ACTION_DELETE' | transloco"
+                                [attr.data-testid]="'btn-delete-tpe-' + terminal.id">
+                                <ion-icon name="trash-outline"></ion-icon>
+                              </button>
+                            </div>
+                          </div>
 
-                      <div class="form-section-title">{{ 'SETTINGS.KITCHEN_PRINTER_TITLE' | transloco }}</div>
-                      <div class="printer-row-flex">
-                        <div class="printer-input-grow">
-                          <app-input-field
-                            formControlName="kitchenPrinterIp"
-                            [label]="'SETTINGS.KITCHEN_PRINTER_IP' | transloco"
-                            [helperText]="'SETTINGS.KITCHEN_PRINTER_HINT' | transloco"
-                            placeholder="192.168.1.102"
-                            data-testid="input-kitchen-printer-ip">
-                          </app-input-field>
+                          <div class="device-card-body">
+                            <div class="device-form-row">
+                              <div class="field-item">
+                                <label [for]="'input-tpe-ip-' + terminal.id" class="custom-field-label">{{ 'SETTINGS.DEVICE_IP' | transloco }} *</label>
+                                <input
+                                  type="text"
+                                  [id]="'input-tpe-ip-' + terminal.id"
+                                  class="custom-text-input"
+                                  [value]="terminal.ip"
+                                  (input)="updateTpeTerminal(terminal.id, 'ip', $any($event.target).value)"
+                                  placeholder="192.168.1.150"
+                                  [attr.data-testid]="'input-tpe-ip-' + terminal.id" />
+                              </div>
+                              <div class="field-item field-port">
+                                <label [for]="'input-tpe-port-' + terminal.id" class="custom-field-label">{{ 'SETTINGS.DEVICE_PORT' | transloco }}</label>
+                                <input
+                                  type="number"
+                                  [id]="'input-tpe-port-' + terminal.id"
+                                  class="custom-text-input"
+                                  [value]="terminal.port"
+                                  (input)="updateTpeTerminal(terminal.id, 'port', +$any($event.target).value)"
+                                  placeholder="8888"
+                                  [attr.data-testid]="'input-tpe-port-' + terminal.id" />
+                              </div>
+                            </div>
+
+                            <div class="device-form-row">
+                              <div class="field-item">
+                                <label [for]="'select-tpe-role-' + terminal.id" class="custom-field-label">{{ 'SETTINGS.DEVICE_ROLE' | transloco }}</label>
+                                <select
+                                  [id]="'select-tpe-role-' + terminal.id"
+                                  class="custom-select-input"
+                                  [value]="terminal.role"
+                                  (change)="updateTpeTerminal(terminal.id, 'role', $any($event.target).value)"
+                                  [attr.data-testid]="'select-tpe-role-' + terminal.id">
+                                  @for (opt of tpeRoleOptions; track opt.value) {
+                                    <option [value]="opt.value">{{ opt.label }}</option>
+                                  }
+                                </select>
+                              </div>
+                              <div class="field-item field-terminal-id">
+                                <label [for]="'input-tpe-terminal-id-' + terminal.id" class="custom-field-label">{{ 'SETTINGS.TPE_TERMINAL_ID' | transloco }}</label>
+                                <input
+                                  type="text"
+                                  [id]="'input-tpe-terminal-id-' + terminal.id"
+                                  class="custom-text-input"
+                                  [value]="terminal.terminalId"
+                                  (input)="updateTpeTerminal(terminal.id, 'terminalId', $any($event.target).value)"
+                                  placeholder="01"
+                                  [attr.data-testid]="'input-tpe-terminal-id-' + terminal.id" />
+                              </div>
+                              <div class="field-item field-timeout">
+                                <label [for]="'input-tpe-timeout-' + terminal.id" class="custom-field-label">{{ 'SETTINGS.TPE_TIMEOUT' | transloco }}</label>
+                                <input
+                                  type="number"
+                                  [id]="'input-tpe-timeout-' + terminal.id"
+                                  class="custom-text-input"
+                                  [value]="terminal.timeoutSeconds"
+                                  (input)="updateTpeTerminal(terminal.id, 'timeoutSeconds', +$any($event.target).value)"
+                                  placeholder="45"
+                                  [attr.data-testid]="'input-tpe-timeout-' + terminal.id" />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="device-card-footer">
+                            <div class="diagnostic-pill">
+                              @if (tpeTestResults()[terminal.id]) {
+                                @if (tpeTestResults()[terminal.id].success) {
+                                  <span class="status-pill status-success">
+                                    <ion-icon name="checkmark-circle-outline"></ion-icon>
+                                    {{ 'SETTINGS.STATUS_CONNECTED' | transloco }}
+                                  </span>
+                                } @else {
+                                  <span class="status-pill status-error" [title]="tpeTestResults()[terminal.id].message">
+                                    <ion-icon name="alert-circle-outline"></ion-icon>
+                                    {{ 'SETTINGS.STATUS_ERROR' | transloco }}
+                                  </span>
+                                }
+                              } @else {
+                                <span class="status-pill status-neutral">
+                                  <span class="neutral-dot"></span>
+                                  {{ 'SETTINGS.STATUS_NOT_TESTED' | transloco }}
+                                </span>
+                              }
+                            </div>
+
+                            <button
+                              type="button"
+                              class="btn-test-action"
+                              [disabled]="!terminal.ip || isTestingTpe[terminal.id]"
+                              (click)="testConfiguredTpe(terminal)"
+                              [attr.data-testid]="'btn-test-tpe-' + terminal.id">
+                              @if (isTestingTpe[terminal.id]) {
+                                <ion-spinner name="crescent"></ion-spinner>
+                              } @else {
+                                <ion-icon name="card-outline"></ion-icon>
+                              }
+                              <span>{{ 'SETTINGS.TEST_TPE_BTN' | transloco }}</span>
+                            </button>
+                          </div>
                         </div>
-                        <div class="printer-action-btn-wrap">
-                          <app-action-button
-                            type="button"
-                            variant="secondary"
-                            [loading]="isTestingPrinter['KITCHEN']"
-                            [disabled]="!appSettingsForm.get('kitchenPrinterIp')?.value || isTestingPrinter['KITCHEN']"
-                            (btnClick)="testPrint('KITCHEN')"
-                            data-testid="btn-test-kitchen-printer">
-                            <ion-icon name="print-outline" slot="start"></ion-icon>
-                            {{ 'SETTINGS.TEST_PRINT_BTN' | transloco }}
-                          </app-action-button>
-                        </div>
-                      </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </ion-card-content>
+            </ion-card>
 
-                      <div class="form-section-title">{{ 'SETTINGS.CASH_DESK_PRINTER_TITLE' | transloco }}</div>
-                      <div class="printer-row-flex">
-                        <div class="printer-input-grow">
-                          <app-input-field
-                            formControlName="cashDeskPrinterIp"
-                            [label]="'SETTINGS.CASH_DESK_PRINTER_IP' | transloco"
-                            [helperText]="'SETTINGS.CASH_DESK_PRINTER_HINT' | transloco"
-                            placeholder="192.168.1.103"
-                            data-testid="input-cash-desk-printer-ip">
-                          </app-input-field>
-                        </div>
-                        <div class="printer-action-btn-wrap">
-                          <app-action-button
-                            type="button"
-                            variant="secondary"
-                            [loading]="isTestingPrinter['CASH_DESK']"
-                            [disabled]="!appSettingsForm.get('cashDeskPrinterIp')?.value || isTestingPrinter['CASH_DESK']"
-                            (btnClick)="testPrint('CASH_DESK')"
-                            data-testid="btn-test-cash-desk-printer">
-                            <ion-icon name="print-outline" slot="start"></ion-icon>
-                            {{ 'SETTINGS.TEST_PRINT_BTN' | transloco }}
-                          </app-action-button>
-                        </div>
-                      </div>
-
-                    </ion-card-content>
-                  </ion-card>
-                </ion-col>
-
-                <!-- Colonne Droite: Tiroir-caisse & Diagnostic / Aide -->
-                <ion-col size="12" sizeLg="5">
-                  <ion-card class="settings-card">
-                    <ion-card-header>
-                      <ion-card-title class="card-title">
-                        <ion-icon name="hardware-chip-outline" class="title-icon"></ion-icon>
-                        {{ 'SETTINGS.TEST_DRAWER_TITLE' | transloco }}
-                      </ion-card-title>
-                    </ion-card-header>
-                    <ion-card-content>
-                      <p class="field-hint">
-                        {{ 'SETTINGS.PRINTER_ONLINE_HINT' | transloco }}
-                      </p>
-
-                      <div class="drawer-test-box">
-                        <app-action-button
-                          type="button"
-                          variant="primary"
-                          [loading]="isTestingPrinter['drawer']"
-                          [disabled]="!appSettingsForm.get('cashDeskPrinterIp')?.value || isTestingPrinter['drawer']"
-                          (btnClick)="testCashDrawer()"
-                          data-testid="btn-test-cash-drawer">
-                          <ion-icon name="hardware-chip-outline" slot="start"></ion-icon>
-                          {{ 'SETTINGS.TEST_DRAWER_BTN' | transloco }}
-                        </app-action-button>
-                      </div>
-                    </ion-card-content>
-                  </ion-card>
-                </ion-col>
-              </ion-row>
-            </ion-grid>
           </form>
         </section>
       }

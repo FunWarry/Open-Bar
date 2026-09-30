@@ -229,6 +229,9 @@ public class EstablishmentConfigService {
         if (request.mysteryRoulette() != null) {
             config.setModuleEnabled(EstablishmentModule.MYSTERY_ROULETTE, request.mysteryRoulette());
         }
+        if (request.paymentTerminal() != null) {
+            config.setModuleEnabled(EstablishmentModule.PAYMENT_TERMINAL, request.paymentTerminal());
+        }
     }
 
     private void applyLegalInfoUpdates(EstablishmentConfig config, EstablishmentConfigUpdateRequest request) {

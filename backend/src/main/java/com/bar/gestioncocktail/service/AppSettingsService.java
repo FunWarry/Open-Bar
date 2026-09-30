@@ -68,6 +68,7 @@ public class AppSettingsService {
         applyWifiAndQr(current, request);
         applyVatAndMargins(current, request);
         applyPrinters(current, request);
+        applyTpe(current, request);
 
         AppSettings saved = appSettingsRepository.save(current);
         String tz = (timeService != null && timeService.getZoneId() != null)
@@ -190,6 +191,36 @@ public class AppSettingsService {
         }
         if (request.directPrintingEnabled() != null) {
             current.setDirectPrintingEnabled(request.directPrintingEnabled());
+        }
+        if (request.printersJson() != null) {
+            current.setPrintersJson(request.printersJson());
+        }
+    }
+
+    private void applyTpe(AppSettings current, AppSettingsUpdateRequest request) {
+        if (request.tpeEnabled() != null) {
+            current.setTpeEnabled(request.tpeEnabled());
+        }
+        if (request.tpeSimulatorEnabled() != null) {
+            current.setTpeSimulatorEnabled(request.tpeSimulatorEnabled());
+        }
+        if (request.tpeBarIp() != null) {
+            current.setTpeBarIp(request.tpeBarIp().trim());
+        }
+        if (request.tpeFloorIp() != null) {
+            current.setTpeFloorIp(request.tpeFloorIp().trim());
+        }
+        if (request.tpePort() != null) {
+            current.setTpePort(request.tpePort());
+        }
+        if (request.tpeTerminalId() != null) {
+            current.setTpeTerminalId(request.tpeTerminalId().trim());
+        }
+        if (request.tpeTimeoutSeconds() != null) {
+            current.setTpeTimeoutSeconds(request.tpeTimeoutSeconds());
+        }
+        if (request.tpeTerminalsJson() != null) {
+            current.setTpeTerminalsJson(request.tpeTerminalsJson());
         }
     }
 

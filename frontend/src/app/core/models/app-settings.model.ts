@@ -50,11 +50,58 @@ export interface AppSettings {
   cashDeskPrinterIp?: string;
   printerPort?: number;
   directPrintingEnabled?: boolean;
+  tpeEnabled?: boolean;
+  tpeSimulatorEnabled?: boolean;
+  tpeBarIp?: string;
+  tpeFloorIp?: string;
+  tpePort?: number;
+  tpeTerminalId?: string;
+  tpeTimeoutSeconds?: number;
   cashDenominationsJson?: string;
   discountTiersJson?: string;
   storageLocationsJson?: string;
+  printersJson?: string;
+  tpeTerminalsJson?: string;
   timeZone?: string;
   updatedAt: string | null;
 }
 
 export type AppSettingsUpdateRequest = Omit<AppSettings, 'id' | 'updatedAt'>;
+
+/**
+ * Functional role assigned to a network ESC/POS printer.
+ */
+export type ConfiguredPrinterRole = 'BAR' | 'KITCHEN' | 'CASH_DESK' | 'SNACK' | 'PASS' | 'OTHER';
+
+/**
+ * Dynamic configuration for an individual ESC/POS network ticket or kitchen printer.
+ */
+export interface ConfiguredPrinter {
+  id: string;
+  name: string;
+  ip: string;
+  port: number;
+  role: ConfiguredPrinterRole;
+  paperWidth: 80 | 58;
+  openCashDrawer?: boolean;
+  enabled: boolean;
+}
+
+/**
+ * Station role assigned to a Concert / CB IP payment terminal (TPE).
+ */
+export type ConfiguredTpeRole = 'BAR' | 'FLOOR' | 'REGISTER' | 'TERRACE' | 'OTHER';
+
+/**
+ * Dynamic configuration for an individual Concert / CB IP payment terminal (TPE).
+ */
+export interface ConfiguredTpeTerminal {
+  id: string;
+  name: string;
+  ip: string;
+  port: number;
+  terminalId: string;
+  role: ConfiguredTpeRole;
+  timeoutSeconds: number;
+  enabled: boolean;
+}

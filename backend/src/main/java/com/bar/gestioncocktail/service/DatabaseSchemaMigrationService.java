@@ -95,6 +95,9 @@ public class DatabaseSchemaMigrationService implements ApplicationRunner {
                 )
             """);
 
+            jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS printers_json TEXT");
+            jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS tpe_terminals_json TEXT");
+
             log.info("Baseline schema check completed.");
         } catch (Exception e) {
             log.warn("Schema migration notice: {}", e.getMessage());

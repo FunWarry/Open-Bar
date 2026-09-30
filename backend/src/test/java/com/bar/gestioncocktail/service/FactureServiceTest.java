@@ -21,8 +21,10 @@ import com.bar.gestioncocktail.repository.TableRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -2062,5 +2064,77 @@ class FactureServiceTest {
         assertThat(tab.getSettledAt()).isNotNull();
         assertThat(cmd.getStatut()).isEqualTo(CommandeStatut.REGLEE);
         verify(barTabRepository).save(tab);
+    }
+
+    @Test
+    @DisplayName("encaisserTab saves TPE transaction metadata when provided in request")
+    void encaisserTab_withTpeMetadata_persistsOnFacture() {
+        Facture fact = new Facture();
+        fact.setId(20L);
+        fact.setTotalTTC(new BigDecimal("25.00"));
+        fact.setReglee(false);
+
+        com.bar.gestioncocktail.model.BarTab barTab = new com.bar.gestioncocktail.model.BarTab();
+        barTab.setId(200L);
+        barTab.setStatut(com.bar.gestioncocktail.model.BarTabStatus.ACTIVE);
+        fact.setBarTab(barTab);
+
+        when(barTabRepository.findById(200L)).thenReturn(Optional.of(barTab));
+        when(factureRepository.findByBarTab(barTab)).thenReturn(List.of(fact));
+        when(factureRepository.save(any(Facture.class))).thenAnswer(i -> i.getArgument(0));
+        when(commandeRepository.findByBarTab(barTab)).thenReturn(List.of());
+
+        EncaissementRequestDTO request = new EncaissementRequestDTO(
+                "CARTE", BigDecimal.ZERO, null, null, new BigDecimal("25.00"), "Paid via TPE", true, null,
+                "AUTH-9988", "POS-BAR", "MASTERCARD", "************5678", "000042"
+        );
+
+        factureService.encaisserTab(200L, request);
+
+        ArgumentCaptor<Facture> captor = ArgumentCaptor.forClass(Facture.class);
+        verify(factureRepository).save(captor.capture());
+        Facture saved = captor.getValue();
+
+        assertThat(saved.getTpeAutorisation()).isEqualTo("AUTH-9988");
+        assertThat(saved.getTpeTerminalId()).isEqualTo("POS-BAR");
+        assertThat(saved.getTpeCardBrand()).isEqualTo("MASTERCARD");
+        assertThat(saved.getTpeMaskedPan()).isEqualTo("************5678");
+        assertThat(saved.getTpeSequence()).isEqualTo("000042");
+    }
+
+    @Test
+    @DisplayName("encaisserPart saves TPE transaction metadata on reglement")
+    void encaisserPart_withTpeMetadata_persistsOnReglement() {
+        Facture fact = new Facture();
+        fact.setId(30L);
+        fact.setTotalTTC(new BigDecimal("50.00"));
+        fact.setReglee(false);
+
+        com.bar.gestioncocktail.model.BarTab barTab = new com.bar.gestioncocktail.model.BarTab();
+        barTab.setId(300L);
+        barTab.setStatut(com.bar.gestioncocktail.model.BarTabStatus.ACTIVE);
+        fact.setBarTab(barTab);
+
+        when(factureRepository.findById(30L)).thenReturn(Optional.of(fact));
+        when(factureReglementRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(30L)).thenReturn(List.of());
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest 1", 1, 2, new BigDecimal("25.00"), BigDecimal.ZERO, new BigDecimal("25.00"), "CARTE", "EGAL", List.of(),
+                "AUTH-7711", "TPE-FLOOR", "VISA", "************1111", "000099"
+        );
+
+        factureService.encaisserPart(30L, req);
+
+        org.mockito.ArgumentCaptor<com.bar.gestioncocktail.model.FactureReglement> captor =
+                org.mockito.ArgumentCaptor.forClass(com.bar.gestioncocktail.model.FactureReglement.class);
+        verify(factureReglementRepository).save(captor.capture());
+        com.bar.gestioncocktail.model.FactureReglement saved = captor.getValue();
+
+        assertThat(saved.getTpeAutorisation()).isEqualTo("AUTH-7711");
+        assertThat(saved.getTpeTerminalId()).isEqualTo("TPE-FLOOR");
+        assertThat(saved.getTpeCardBrand()).isEqualTo("VISA");
+        assertThat(saved.getTpeMaskedPan()).isEqualTo("************1111");
+        assertThat(saved.getTpeSequence()).isEqualTo("000099");
     }
 }

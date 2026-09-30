@@ -78,6 +78,11 @@ import {
   closeOutline,
   giftOutline,
   clipboardOutline,
+  cardOutline,
+  trashOutline,
+  addOutline,
+  flameOutline,
+  walkOutline,
 } from 'ionicons/icons';
 import { HappyHourConfigComponent } from './components/happy-hour-config/happy-hour-config.component';
 import { LegalComponent, LegalTab } from '../../legal/legal.component';
@@ -88,7 +93,16 @@ import { EtablissementService } from '../../../core/services/etablissement.servi
 import { RouletteService } from '../../../core/services/roulette.service';
 import { EstablishmentConfig } from '../../../core/models/establishment-config.model';
 import { AppSettingsService, DEFAULT_DISCOUNT_TIERS, DEFAULT_STORAGE_LOCATIONS } from '../../../core/services/app-settings.service';
-import { AppSettings, CurrencyPosition, DiscountTier, UnitSystem } from '../../../core/models/app-settings.model';
+import {
+  AppSettings,
+  CurrencyPosition,
+  DiscountTier,
+  UnitSystem,
+  ConfiguredPrinter,
+  ConfiguredPrinterRole,
+  ConfiguredTpeTerminal,
+  ConfiguredTpeRole,
+} from '../../../core/models/app-settings.model';
 import {
   CashDenomination,
   DEFAULT_EUR_DENOMINATIONS,
@@ -119,6 +133,8 @@ import {
   EstablishmentPresetType,
 } from '../../../core/models/establishment-module.model';
 import { FeatureFlagService } from '../../../core/services/feature-flag.service';
+import { PaymentTerminalService } from '../../../core/services/payment-terminal.service';
+import { TpeTerminalRole } from '../../../core/models/tpe.model';
 /**
  * Active configuration tab on the admin settings page.
  */
@@ -278,6 +294,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   private readonly printerService = inject(PrinterService);
   private readonly appUpdateService = inject(AppUpdateService);
   private readonly rouletteService = inject(RouletteService);
+  private readonly paymentTerminalService = inject(PaymentTerminalService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
@@ -293,6 +310,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   updateCheckSuccess = true;
 
   isTestingPrinter: Record<string, boolean> = {};
+  isTestingTpe: Record<string, boolean> = {};
 
   /** Demonstration invoice used to preview realistic thermal receipt in real time. */
   readonly demoFacture: Facture = {
@@ -366,6 +384,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     suppliersManagement: true,
     inventoryAudit: true,
     mysteryRoulette: true,
+    paymentTerminal: true,
   };
   initialThemeMode: AppTheme = 'dark';
   initialColors: CustomThemeColors = { ...DEFAULT_FIGMA_PALETTE };
@@ -393,6 +412,36 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   // Configured storage and service locations (zones de stockage & service pour inventaire)
   configuredStorageLocations = signal<string[]>([...DEFAULT_STORAGE_LOCATIONS]);
   newStorageLocationName = '';
+
+  // Configured ESC/POS network thermal printers
+  configuredPrinters = signal<ConfiguredPrinter[]>([]);
+  printerTestResults = signal<Record<string, { success: boolean; message: string; latency?: number }>>({});
+
+  // Configured Concert / CB IP payment terminals (TPEs)
+  configuredTpeTerminals = signal<ConfiguredTpeTerminal[]>([]);
+  tpeTestResults = signal<Record<string, { success: boolean; message: string; latency?: number }>>({});
+
+  readonly printerRoleOptions: SearchableOption<ConfiguredPrinterRole>[] = [
+    { value: 'BAR', label: 'Poste Bar (Boissons)' },
+    { value: 'KITCHEN', label: 'Poste Cuisine (Plats & Snacks)' },
+    { value: 'CASH_DESK', label: 'Caisse & Tiroir (Tickets clients)' },
+    { value: 'SNACK', label: 'Poste Snack / Grill' },
+    { value: 'PASS', label: 'Pass & Envoi' },
+    { value: 'OTHER', label: 'Autre / Polyvalent' },
+  ];
+
+  readonly tpeRoleOptions: SearchableOption<ConfiguredTpeRole>[] = [
+    { value: 'BAR', label: 'Poste Bar (Fixe)' },
+    { value: 'FLOOR', label: 'Mobile Salle & Terrasse' },
+    { value: 'REGISTER', label: 'Caisse Principale' },
+    { value: 'TERRACE', label: 'Terrasse Extérieure' },
+    { value: 'OTHER', label: 'Mobile / Polyvalent' },
+  ];
+
+  readonly paperWidthChoices: { value: 80 | 58; label: string }[] = [
+    { value: 80, label: '80 mm (Standard)' },
+    { value: 58, label: '58 mm (Compact)' },
+  ];
 
   readonly modulePresets: { type: Exclude<EstablishmentPresetType, 'CUSTOM'>; labelKey: string; icon: string; descKey: string }[] = [
     { type: 'BAR', labelKey: 'SETTINGS.MODULES_PRESET_BAR', icon: 'beer-outline', descKey: 'SETTINGS.MODULES_PRESET_BAR_DESC' },
@@ -525,6 +574,11 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       closeOutline,
       giftOutline,
       clipboardOutline,
+      cardOutline,
+      trashOutline,
+      addOutline,
+      flameOutline,
+      walkOutline,
     });
     this.initForms();
   }
@@ -663,6 +717,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       suppliersManagement: [true],
       inventoryAudit: [true],
       mysteryRoulette: [true],
+      paymentTerminal: [true],
     });
 
     this.etabForm = this.fb.group({
@@ -716,6 +771,13 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       cashDeskPrinterIp: ['', [Validators.pattern(/^(\d{1,3}\.){3}\d{1,3}$/)]],
       printerPort: [9100, [Validators.min(1), Validators.max(65535)]],
       directPrintingEnabled: [false],
+      tpeEnabled: [false],
+      tpeSimulatorEnabled: [false],
+      tpeBarIp: ['', [Validators.pattern(/^(\d{1,3}\.){3}\d{1,3}$/)]],
+      tpeFloorIp: ['', [Validators.pattern(/^(\d{1,3}\.){3}\d{1,3}$/)]],
+      tpePort: [8888, [Validators.min(1), Validators.max(65535)]],
+      tpeTerminalId: ['POS01', [Validators.maxLength(50)]],
+      tpeTimeoutSeconds: [90, [Validators.min(5), Validators.max(300)]],
     }, { validators: [thresholdPriorityValidator, marginThresholdPriorityValidator] });
 
     const currentColors = this.themeService.currentCustomColors;
@@ -783,10 +845,14 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
             this.configuredDenominations.set(this.resolveDenominations(appSettings));
             this.configuredDiscountTiers.set(this.resolveDiscountTiers(appSettings));
             this.configuredStorageLocations.set(this.resolveStorageLocations(appSettings));
+            this.configuredPrinters.set(this.resolvePrinters(appSettings));
+            this.configuredTpeTerminals.set(this.resolveTpeTerminals(appSettings));
           } else {
             this.configuredDenominations.set([...DEFAULT_EUR_DENOMINATIONS]);
             this.configuredDiscountTiers.set(this.appSettingsService.getDiscountTiers());
             this.configuredStorageLocations.set(this.appSettingsService.getStorageLocations());
+            this.configuredPrinters.set(this.resolvePrinters(null));
+            this.configuredTpeTerminals.set(this.resolveTpeTerminals(null));
           }
 
           if (modules) {
@@ -806,6 +872,175 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
           this.cdr.markForCheck();
         },
       });
+  }
+
+  // --- Dynamic Printers Management ---
+
+  addPrinter(): void {
+    const newId = 'printer-' + Date.now();
+    const count = this.configuredPrinters().length + 1;
+    const newPrinter: ConfiguredPrinter = {
+      id: newId,
+      name: `${this.translocoService.translate('SETTINGS.DEFAULT_NEW_PRINTER_NAME')} #${count}`,
+      ip: '',
+      port: Number(this.appSettingsForm.get('printerPort')?.value) || 9100,
+      role: 'BAR',
+      paperWidth: 80,
+      openCashDrawer: false,
+      enabled: true,
+    };
+    this.configuredPrinters.update(list => [...list, newPrinter]);
+    this.appSettingsForm.markAsDirty();
+  }
+
+  removePrinter(id: string): void {
+    this.configuredPrinters.update(list => list.filter(p => p.id !== id));
+    this.appSettingsForm.markAsDirty();
+  }
+
+  updatePrinter(id: string, field: keyof ConfiguredPrinter, value: any): void {
+    this.configuredPrinters.update(list =>
+      list.map(p => (p.id === id ? { ...p, [field]: value } : p))
+    );
+    this.appSettingsForm.markAsDirty();
+  }
+
+  testConfiguredPrinter(printer: ConfiguredPrinter): void {
+    if (!printer.ip?.trim()) {
+      void this.showToast(this.translocoService.translate('SETTINGS.PRINTER_NOT_CONFIGURED'), 'warning');
+      return;
+    }
+    const id = printer.id;
+    this.isTestingPrinter[id] = true;
+    const role: PrinterRole = (printer.role === 'BAR' || printer.role === 'KITCHEN' || printer.role === 'CASH_DESK') ? printer.role : 'BAR';
+    this.printerService.testConnection({
+      ip: printer.ip.trim(),
+      port: printer.port || 9100,
+      role
+    }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res) => {
+        this.isTestingPrinter[id] = false;
+        this.printerTestResults.update(r => ({
+          ...r,
+          [id]: { success: res.success, message: res.message, latency: res.durationMs }
+        }));
+        if (res.success) {
+          void this.showToast(
+            this.translocoService.translate('SETTINGS.PRINTER_TEST_SUCCESS', { role: printer.name, ip: printer.ip }),
+            'success'
+          );
+        } else {
+          void this.showToast(
+            this.translocoService.translate('SETTINGS.PRINTER_TEST_FAILED', { role: printer.name, error: res.message }),
+            'danger'
+          );
+        }
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.isTestingPrinter[id] = false;
+        this.printerTestResults.update(r => ({
+          ...r,
+          [id]: { success: false, message: err?.error?.message || 'Error' }
+        }));
+        void this.showToast(
+          this.translocoService.translate('SETTINGS.PRINTER_TEST_FAILED', { role: printer.name, error: err?.message || 'Error' }),
+          'danger'
+        );
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  // --- Dynamic TPE Terminals Management ---
+
+  addTpeTerminal(): void {
+    const newId = 'tpe-' + Date.now();
+    const count = this.configuredTpeTerminals().length + 1;
+    const newTpe: ConfiguredTpeTerminal = {
+      id: newId,
+      name: `${this.translocoService.translate('SETTINGS.DEFAULT_NEW_TPE_NAME')} #${count}`,
+      ip: '',
+      port: Number(this.appSettingsForm.get('tpePort')?.value) || 8888,
+      terminalId: String(count).padStart(2, '0'),
+      role: 'BAR',
+      timeoutSeconds: Number(this.appSettingsForm.get('tpeTimeoutSeconds')?.value) || 45,
+      enabled: true,
+    };
+    this.configuredTpeTerminals.update(list => [...list, newTpe]);
+    this.appSettingsForm.markAsDirty();
+  }
+
+  removeTpeTerminal(id: string): void {
+    this.configuredTpeTerminals.update(list => list.filter(t => t.id !== id));
+    this.appSettingsForm.markAsDirty();
+  }
+
+  updateTpeTerminal(id: string, field: keyof ConfiguredTpeTerminal, value: any): void {
+    this.configuredTpeTerminals.update(list =>
+      list.map(t => (t.id === id ? { ...t, [field]: value } : t))
+    );
+    this.appSettingsForm.markAsDirty();
+  }
+
+  testConfiguredTpe(terminal: ConfiguredTpeTerminal): void {
+    if (!terminal.ip?.trim()) {
+      void this.showToast(this.translocoService.translate('SETTINGS.PRINTER_NOT_CONFIGURED'), 'warning');
+      return;
+    }
+    const id = terminal.id;
+    this.isTestingTpe[id] = true;
+    const role: TpeTerminalRole = (terminal.role === 'BAR' || terminal.role === 'FLOOR') ? terminal.role : 'BAR';
+    this.paymentTerminalService.testConnection({
+      ip: terminal.ip.trim(),
+      port: terminal.port || 8888,
+      terminalId: terminal.terminalId || '01',
+      timeoutSeconds: terminal.timeoutSeconds || 45,
+      role
+    }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res) => {
+        this.isTestingTpe[id] = false;
+        const isOk = !!(res.success || res.connected || res.reachable);
+        this.tpeTestResults.update(r => ({
+          ...r,
+          [id]: { success: isOk, message: res.message, latency: res.latencyMs || res.responseTimeMs }
+        }));
+        if (isOk) {
+          void this.showToast(
+            this.translocoService.translate('SETTINGS.TPE_TEST_SUCCESS', {
+              role: terminal.name,
+              ip: terminal.ip,
+              responseTimeMs: res.latencyMs || res.responseTimeMs || 0
+            }),
+            'success'
+          );
+        } else {
+          void this.showToast(
+            this.translocoService.translate('SETTINGS.TPE_TEST_FAILED', {
+              role: terminal.name,
+              error: res.message || 'Error'
+            }),
+            'warning'
+          );
+        }
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.isTestingTpe[id] = false;
+        this.tpeTestResults.update(r => ({
+          ...r,
+          [id]: { success: false, message: err?.error?.message || 'Error' }
+        }));
+        void this.showToast(
+          this.translocoService.translate('SETTINGS.TPE_TEST_FAILED', {
+            role: terminal.name,
+            error: err?.message || 'Error'
+          }),
+          'danger'
+        );
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   /**
@@ -954,6 +1189,94 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       return this.appSettingsService.getStorageLocations();
     }
     return [...DEFAULT_STORAGE_LOCATIONS];
+  }
+
+  /**
+   * Resolves configured ESC/POS network receipt & kitchen printers from serialized JSON or builds defaults.
+   */
+  private resolvePrinters(settings?: Partial<AppSettings> | null): ConfiguredPrinter[] {
+    if (settings?.printersJson) {
+      try {
+        const parsed = JSON.parse(settings.printersJson);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch {
+        // Fallback to legacy printer values
+      }
+    }
+    const defaultPort = settings?.printerPort || 9100;
+    return [
+      {
+        id: 'printer-bar',
+        name: this.translocoService.translate('SETTINGS.PRINTER_ROLE_BAR'),
+        ip: settings?.barPrinterIp || '',
+        port: defaultPort,
+        role: 'BAR',
+        paperWidth: 80,
+        openCashDrawer: false,
+        enabled: true,
+      },
+      {
+        id: 'printer-kitchen',
+        name: this.translocoService.translate('SETTINGS.PRINTER_ROLE_KITCHEN'),
+        ip: settings?.kitchenPrinterIp || '',
+        port: defaultPort,
+        role: 'KITCHEN',
+        paperWidth: 80,
+        openCashDrawer: false,
+        enabled: true,
+      },
+      {
+        id: 'printer-cash-desk',
+        name: this.translocoService.translate('SETTINGS.PRINTER_ROLE_CASH_DESK'),
+        ip: settings?.cashDeskPrinterIp || '',
+        port: defaultPort,
+        role: 'CASH_DESK',
+        paperWidth: 80,
+        openCashDrawer: true,
+        enabled: true,
+      },
+    ];
+  }
+
+  /**
+   * Resolves configured Concert / CB IP payment terminals (TPEs) from serialized JSON or builds defaults.
+   */
+  private resolveTpeTerminals(settings?: Partial<AppSettings> | null): ConfiguredTpeTerminal[] {
+    if (settings?.tpeTerminalsJson) {
+      try {
+        const parsed = JSON.parse(settings.tpeTerminalsJson);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch {
+        // Fallback to legacy TPE values
+      }
+    }
+    const defaultPort = settings?.tpePort || 8888;
+    return [
+      {
+        id: 'tpe-bar',
+        name: this.translocoService.translate('SETTINGS.TPE_ROLE_BAR'),
+        ip: settings?.tpeBarIp || '',
+        port: defaultPort,
+        terminalId: settings?.tpeTerminalId || '01',
+        role: 'BAR',
+        timeoutSeconds: settings?.tpeTimeoutSeconds || 45,
+        enabled: true,
+      },
+      {
+        id: 'tpe-floor',
+        name: this.translocoService.translate('SETTINGS.TPE_ROLE_FLOOR'),
+        ip: settings?.tpeFloorIp || '',
+        port: defaultPort,
+        terminalId: '02',
+        role: 'FLOOR',
+        timeoutSeconds: 60,
+        enabled: true,
+      },
+    ];
   }
 
   // --- Cadence Presets ---
@@ -1466,6 +1789,8 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       this.appSettingsForm.markAsPristine();
       this.configuredDenominations.set(this.resolveDenominations(this.initialAppSettingsValue));
       this.configuredDiscountTiers.set(this.resolveDiscountTiers(this.initialAppSettingsValue));
+      this.configuredPrinters.set(this.resolvePrinters(this.initialAppSettingsValue));
+      this.configuredTpeTerminals.set(this.resolveTpeTerminals(this.initialAppSettingsValue));
     }
     if (this.initialColors) {
       this.colorForm.patchValue(this.initialColors);
@@ -1508,12 +1833,29 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       this.appSettingsService.saveDiscountTiersLocally(this.configuredDiscountTiers());
     }
 
+    const printers = this.configuredPrinters();
+    const tpes = this.configuredTpeTerminals();
+
+    const primaryBarPrinter = printers.find(p => p.enabled && p.role === 'BAR');
+    const primaryKitchenPrinter = printers.find(p => p.enabled && p.role === 'KITCHEN');
+    const primaryCashDeskPrinter = printers.find(p => p.enabled && p.role === 'CASH_DESK');
+
+    const primaryBarTpe = tpes.find(t => t.enabled && t.role === 'BAR');
+    const primaryFloorTpe = tpes.find(t => t.enabled && t.role === 'FLOOR');
+
     const etabPayload = this.etabForm.value;
     const appSettingsPayload = {
       ...this.appSettingsForm.value,
       primaryColor: colors.primary,
       primaryColorStrong: this.darkenHex(colors.primary, 15),
       establishmentName: etabPayload.legalName || this.appSettingsForm.value.establishmentName || 'OpenBar',
+      barPrinterIp: primaryBarPrinter?.ip || '',
+      kitchenPrinterIp: primaryKitchenPrinter?.ip || '',
+      cashDeskPrinterIp: primaryCashDeskPrinter?.ip || '',
+      tpeBarIp: primaryBarTpe?.ip || '',
+      tpeFloorIp: primaryFloorTpe?.ip || '',
+      printersJson: JSON.stringify(printers),
+      tpeTerminalsJson: JSON.stringify(tpes),
       cashDenominationsJson: JSON.stringify(this.configuredDenominations()),
       discountTiersJson: JSON.stringify(this.configuredDiscountTiers()),
       storageLocationsJson: JSON.stringify(this.configuredStorageLocations()),
@@ -1627,14 +1969,17 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       !!current.cashDrawer === target.cashDrawer &&
       !!current.barTabs === target.barTabs &&
       !!current.cocktailLibrary === target.cocktailLibrary &&
-      !!current.suppliersManagement === target.suppliersManagement
+      !!current.suppliersManagement === target.suppliersManagement &&
+      !!current.inventoryAudit === target.inventoryAudit &&
+      !!current.mysteryRoulette === target.mysteryRoulette &&
+      !!current.paymentTerminal === target.paymentTerminal
     );
   }
 
   /**
    * Total count of available modular capabilities.
    */
-  readonly totalModulesCount = 10;
+  readonly totalModulesCount = 13;
 
   /**
    * Computes the number of currently active modules in modulesForm.
@@ -1731,6 +2076,59 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
             'danger'
           );
         },
+      });
+  }
+
+  /**
+   * Tests the TCP/IP network connection to the payment terminal (TPE) configured for the specified role.
+   *
+   * @param role TPE role ('BAR' | 'FLOOR')
+   */
+  testTpeConnection(role: 'BAR' | 'FLOOR'): void {
+    const ipControlName = role === 'BAR' ? 'tpeBarIp' : 'tpeFloorIp';
+    const ip = this.appSettingsForm.get(ipControlName)?.value;
+    const port = this.appSettingsForm.get('tpePort')?.value || 8888;
+    const terminalId = this.appSettingsForm.get('tpeTerminalId')?.value || 'POS01';
+    if (!ip) {
+      return;
+    }
+    this.isTestingTpe[role] = true;
+    this.paymentTerminalService.testConnection({ ip, port, terminalId })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.isTestingTpe[role] = false;
+          if (res.success) {
+            void this.showToast(
+              this.translocoService.translate('SETTINGS.TPE_TEST_SUCCESS', {
+                role: role === 'BAR' ? 'Bar' : 'Salle',
+                ip: res.ip || ip,
+                responseTimeMs: res.responseTimeMs ?? 0
+              }),
+              'success'
+            );
+          } else {
+            void this.showToast(
+              this.translocoService.translate('SETTINGS.TPE_TEST_FAILED', {
+                role: role === 'BAR' ? 'Bar' : 'Salle',
+                error: res.message || 'Error'
+              }),
+              'warning'
+            );
+          }
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.isTestingTpe[role] = false;
+          void this.showToast(
+            this.translocoService.translate('SETTINGS.TPE_TEST_FAILED', {
+              role: role === 'BAR' ? 'Bar' : 'Salle',
+              error: err?.message || 'Error'
+            }),
+            'danger'
+          );
+          this.cdr.markForCheck();
+        }
       });
   }
 

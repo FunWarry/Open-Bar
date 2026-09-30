@@ -17,6 +17,7 @@ import com.bar.gestioncocktail.model.EstablishmentConfig;
  * @param suppliersManagement Whether beverage and produce supplier management, purchase orders, and PAMP calculation are enabled
  * @param inventoryAudit      Whether periodic physical inventory audit (stocktake) and shrinkage reconciliation are enabled
  * @param mysteryRoulette     Whether mystery drink roulette wheel gamification is enabled
+ * @param paymentTerminal     Whether physical card payment terminal (TPE) integration is enabled
  */
 public record EstablishmentModulesDTO(
         boolean cuisineKds,
@@ -30,8 +31,25 @@ public record EstablishmentModulesDTO(
         boolean cocktailLibrary,
         boolean suppliersManagement,
         boolean inventoryAudit,
-        boolean mysteryRoulette
+        boolean mysteryRoulette,
+        boolean paymentTerminal
 ) {
+    public EstablishmentModulesDTO(
+            boolean cuisineKds,
+            boolean happyHour,
+            boolean employeeManagement,
+            boolean floorPlan,
+            boolean qrClientOrdering,
+            boolean stockTracking,
+            boolean cashDrawer,
+            boolean barTabs,
+            boolean cocktailLibrary,
+            boolean suppliersManagement,
+            boolean inventoryAudit,
+            boolean mysteryRoulette
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, true);
+    }
     public EstablishmentModulesDTO(
             boolean cuisineKds,
             boolean happyHour,
@@ -124,7 +142,8 @@ public record EstablishmentModulesDTO(
                 config.getModuleCocktailLibraryEnabled() == null || config.getModuleCocktailLibraryEnabled(),
                 config.getModuleSuppliersManagementEnabled() == null || config.getModuleSuppliersManagementEnabled(),
                 config.getModuleInventoryAuditEnabled() == null || config.getModuleInventoryAuditEnabled(),
-                config.getModuleMysteryRouletteEnabled() == null || config.getModuleMysteryRouletteEnabled()
+                config.getModuleMysteryRouletteEnabled() == null || config.getModuleMysteryRouletteEnabled(),
+                config.getModulePaymentTerminalEnabled() == null || config.getModulePaymentTerminalEnabled()
         );
     }
 
@@ -134,6 +153,6 @@ public record EstablishmentModulesDTO(
      * @return New instance with all flags set to true
      */
     public static EstablishmentModulesDTO defaultEnabled() {
-        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true, true, true, true, true);
+        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true, true, true, true, true, true);
     }
 }

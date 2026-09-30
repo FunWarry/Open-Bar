@@ -11,7 +11,7 @@ import {
 import {addIcons} from 'ionicons';
 import {
   menu, beerOutline, receipt, restaurant, nutrition, shieldCheckmark,
-  logOut, chevronDown, person
+  logOut, chevronDown, person, people, calendar
 } from 'ionicons/icons';
 import {RouterLink, RouterLinkActive} from '@angular/router';
 import {AsyncPipe} from '@angular/common';
@@ -38,7 +38,7 @@ export class HeaderComponent {
 
   constructor(private readonly store: Store) {
     this.currentUser$ = this.store.select(selectCurrentUser);
-    addIcons({menu, beerOutline, receipt, restaurant, nutrition, shieldCheckmark, logOut, chevronDown, person});
+    addIcons({menu, beerOutline, receipt, restaurant, nutrition, shieldCheckmark, logOut, chevronDown, person, people, calendar});
   }
 
 
