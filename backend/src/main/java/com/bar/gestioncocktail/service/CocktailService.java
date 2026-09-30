@@ -625,25 +625,25 @@ public class CocktailService {
             cocktail.setIngredients(new ArrayList<>());
         }
         cocktail.getIngredients().clear();
-        for (CocktailRecipeStep step : steps) {
-            if (step.getStepType() == RecipeStepType.INGREDIENT && step.getIngredient() != null) {
-                CocktailIngredient ci = new CocktailIngredient();
-                ci.setCocktail(cocktail);
-                ci.setIngredient(step.getIngredient());
-                ci.setQuantite(step.getQuantite() != null ? step.getQuantite() : BigDecimal.ZERO);
-                ci.setCreatedAt(timeService.now());
-                ci.setUpdatedAt(timeService.now());
-                cocktail.getIngredients().add(ci);
-            }
-        }
+        List<CocktailIngredient> ingredients = steps.stream()
+                .filter(step -> step.getStepType() == RecipeStepType.INGREDIENT && step.getIngredient() != null)
+                .map(step -> {
+                    CocktailIngredient ci = new CocktailIngredient();
+                    ci.setCocktail(cocktail);
+                    ci.setIngredient(step.getIngredient());
+                    ci.setQuantite(step.getQuantite() != null ? step.getQuantite() : BigDecimal.ZERO);
+                    ci.setCreatedAt(timeService.now());
+                    ci.setUpdatedAt(timeService.now());
+                    return ci;
+                })
+                .toList();
+        cocktail.getIngredients().addAll(ingredients);
     }
 
     private List<CocktailVariante> mapVariantes(Cocktail cocktail, List<CocktailVarianteRequestDTO> varianteDtos) {
-        List<CocktailVariante> variantes = new ArrayList<>();
-        for (CocktailVarianteRequestDTO dto : varianteDtos) {
-            variantes.add(mapSingleVariante(cocktail, dto));
-        }
-        return variantes;
+        return varianteDtos.stream()
+                .map(dto -> mapSingleVariante(cocktail, dto))
+                .toList();
     }
 
     private CocktailVariante mapSingleVariante(Cocktail cocktail, CocktailVarianteRequestDTO dto) {
