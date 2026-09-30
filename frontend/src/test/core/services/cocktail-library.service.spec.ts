@@ -51,14 +51,14 @@ describe('CocktailLibraryService', () => {
     });
     service = TestBed.inject(CocktailLibraryService);
     httpMock = TestBed.inject(HttpTestingController);
-    localStorage.removeItem('openbar_wheel_cache_library');
-    localStorage.removeItem('openbar_wheel_cache_establishment');
+    localStorage.removeItem('openbar_cocktail_wheel_library');
+    localStorage.removeItem('openbar_cocktail_wheel_establishment');
   });
 
   afterEach(() => {
     httpMock.verify();
-    localStorage.removeItem('openbar_wheel_cache_library');
-    localStorage.removeItem('openbar_wheel_cache_establishment');
+    localStorage.removeItem('openbar_cocktail_wheel_library');
+    localStorage.removeItem('openbar_cocktail_wheel_establishment');
   });
 
   it('should fetch library cocktails with no query params', () => {
@@ -122,9 +122,11 @@ describe('CocktailLibraryService', () => {
 
   it('should fetch and cache connection wheel data from backend API with scope', () => {
     const mockWheelData: any = {
-      nodes: [{ id: 'ing_1', name: 'Rhum' }],
-      edges: [{ source: 'ing_1', target: 'ing_2', weight: 5 }],
-      categories: ['dark_liquor']
+      categories: {
+        dark_liquor: { label: 'Dark liquor', labelFr: 'Spiritueux bruns', short: 'Dark', shortFr: 'Bruns', color: '#7e3b34' }
+      },
+      nodes: [{ id: 'ing_1', label: 'Rhum', group: 'dark_liquor', sourceIndex: 0, count: 1 }],
+      edges: [{ a: 'ing_1', b: 'ing_2', count: 5 }]
     };
 
     let result: any;
@@ -140,9 +142,11 @@ describe('CocktailLibraryService', () => {
 
   it('should fall back to local assets if backend API fails for LIBRARY scope', () => {
     const mockWheelData: any = {
-      nodes: [{ id: 'ing_fallback', name: 'Gin' }],
-      edges: [],
-      categories: ['light_liquor']
+      categories: {
+        light_liquor: { label: 'Light liquor', labelFr: 'Spiritueux blancs', short: 'Light', shortFr: 'Blancs', color: '#b5705c' }
+      },
+      nodes: [{ id: 'ing_fallback', label: 'Gin', group: 'light_liquor', sourceIndex: 0, count: 1 }],
+      edges: []
     };
 
     let fallbackResult: any;
@@ -161,11 +165,13 @@ describe('CocktailLibraryService', () => {
 
   it('should fall back to localStorage cached data if network request fails', () => {
     const cachedData: any = {
-      nodes: [{ id: 'ing_cached', name: 'Vodka' }],
-      edges: [],
-      categories: ['light_liquor']
+      categories: {
+        light_liquor: { label: 'Light liquor', labelFr: 'Spiritueux blancs', short: 'Light', shortFr: 'Blancs', color: '#b5705c' }
+      },
+      nodes: [{ id: 'ing_cached', label: 'Vodka', group: 'light_liquor', sourceIndex: 0, count: 1 }],
+      edges: []
     };
-    localStorage.setItem('openbar_wheel_cache_establishment', JSON.stringify(cachedData));
+    localStorage.setItem('openbar_cocktail_wheel_establishment', JSON.stringify(cachedData));
 
     let result: any;
     service.getWheelData('ESTABLISHMENT').subscribe(data => result = data);
