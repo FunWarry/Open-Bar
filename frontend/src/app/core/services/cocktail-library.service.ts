@@ -72,7 +72,12 @@ export class CocktailLibraryService {
     const cached = localStorage.getItem(cacheKey);
     if (!cached) return null;
     try {
-      return JSON.parse(cached) as CocktailConnectionWheelData;
+      const parsed = JSON.parse(cached) as CocktailConnectionWheelData;
+      if (!parsed || !Array.isArray(parsed.nodes) || parsed.nodes.length === 0) {
+        localStorage.removeItem(cacheKey);
+        return null;
+      }
+      return parsed;
     } catch {
       return null;
     }
@@ -93,7 +98,7 @@ export class CocktailLibraryService {
     const params = new HttpParams().set('scope', scope);
     return this.http.get<CocktailConnectionWheelData>(`${this.api}/wheel`, { params }).pipe(
       tap((data: CocktailConnectionWheelData) => {
-        if (data && typeof localStorage !== 'undefined') {
+        if (data && Array.isArray(data.nodes) && data.nodes.length > 0 && typeof localStorage !== 'undefined') {
           try {
             localStorage.setItem(cacheKey, JSON.stringify(data));
           } catch {
