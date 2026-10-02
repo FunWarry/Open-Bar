@@ -68,3 +68,4 @@ frontend/reports/
 *.crt
 *.key
 *.pem
+/data/
