@@ -11,15 +11,19 @@ Application de gestion de bar en temps réel : prise de commandes (serveurs), pr
 | Backend    | Spring Boot                  | **4.1.1**   |
 | Runtime    | Java                         | 22 (épinglé — Lombok incompatible JDK 23+) |
 | Doc API    | Springdoc OpenAPI (Swagger UI) | 3.1.0       |
-| BDD        | PostgreSQL                   | —           |
+| BDD        | PostgreSQL                   | 15 / 16     |
 | ORM        | JPA / Hibernate + Lombok     | 1.18.34     |
 | Sécurité   | Spring Security + JWT custom | JJWT 0.13.0 (4h expiration & session timeout) |
 | Sanitisation| Jsoup (HTML / XSS clean)     | 1.23.2      |
-| Temps réel | WebSocket STOMP              | via Spring  |
+| Temps réel | WebSocket STOMP              | via Spring (11 topics) |
+| TPE / Cartes| Protocole Concert IP         | Socket TCP :8888 |
+| Impression | ESC/POS direct socket        | Socket TCP :9100 |
 | PDF        | OpenPDF                      | 2.0.3       |
-| Frontend   | Angular                      | 22          |
-| UI         | Ionic                        | 9.0.4       |
+| Frontend   | Angular                      | **22.2.0**  |
+| UI         | Ionic                        | **9.0.5**   |
 | State      | NgRx (store + effects)       | 22          |
+| Canvas 2D  | Konva.js                     | **10.7.0**  |
+| i18n       | Transloco                    | **8.4.0**   |
 | HTTP       | RxJS / HttpClient            | 7.8         |
 
 ### Stack cible (décisions actées)
@@ -40,6 +44,12 @@ flowchart LR
         T2["🍸 Tablette Barman"]
         T3["💻 PC Manager"]
         T4["📱 Smartphone Client (QR Code)"]
+        T5["📺 Écran Roulette TV (:4200/roulette-display)"]
+    end
+
+    subgraph Peripheriques ["Périphériques Réseau Local"]
+        TPE["💳 Terminal TPE (Concert IP :8888)"]
+        ESC["🖨️ Imprimante Reçus ESC/POS (:9100)"]
     end
 
     subgraph Server ["Serveur Local (Raspberry Pi 5 / Mini-PC)"]
@@ -55,6 +65,8 @@ flowchart LR
     Nginx -->|"Fichiers statiques"| PWA
     Nginx -->|"/api & /ws"| Backend
     Backend --> Postgres
+    Backend -->|"Concert IP socket"| TPE
+    Backend -->|"ESC/POS socket TCP"| ESC
     Postgres -.-> Backup
     Backend -.-> Logrotate
     Nginx -.-> Logrotate
@@ -65,9 +77,10 @@ flowchart LR
 | UI composants        | Ionic 9+ (Angular Material abandonné) |
 | Offline/résilience   | Angular PWA (`@angular/service-worker`)|
 | Build natif          | ~~Capacitor~~ — **abandonné**         |
-| Canvas plan de salle | Konva.js                              |
-| i18n                 | Transloco (`@jsverse/transloco`)      |
+| Canvas plan de salle | Konva.js (10.7.0)                     |
+| i18n                 | Transloco (`@jsverse/transloco` 8.4.0)|
 | Impression tickets   | ESC/POS direct socket (LAN TCP :9100) |
+| Monétique TPE        | Protocole Concert IP socket (LAN TCP :8888) |
 | Reverse Proxy & TLS  | Nginx (HTTPS :443, SAN certs, HTTP :80 redirect, camera header) |
 | Sauvegardes BDD      | Scheduled Docker container + rotation |
 | Déploiement prod     | Docker Compose sur mini-PC local (réseau bar) |
@@ -126,12 +139,16 @@ Pattern strict : **Controller → Service → Repository**
 
 ```
 src/main/java/com/bar/gestioncocktail/
-├── config/          # SecurityConfig, WebSocketConfig, JwtProperties
-├── controller/      # REST endpoints
-├── service/         # Logique métier
+├── config/          # SecurityConfig, WebSocketConfig, JwtProperties, AsyncConfig
+├── controller/      # REST endpoints (@Tag OpenAPI, @PreAuthorize systématique)
+├── service/         # Logique métier (@Transactional sur writes)
 ├── repository/      # Spring Data JPA
-├── model/           # Entités JPA (@Data Lombok)
-├── dto/             # LoginRequest/LoginResponse
+├── model/           # Entités JPA (@Data Lombok, @PrePersist/@PreUpdate)
+├── dto/             # Java records immuables avec static from(Entity e)
+├── event/           # Domain events (OrderCreatedEvent, InvoiceSettledEvent...)
+├── listener/        # Listeners asynchrones (@Async)
+├── tpe/             # ConcertSocketClient, TpeTransactionHandler (protocole Concert IP)
+├── printer/         # EscPosFormatter, EscPosSocketClient (protocole ESC/POS TCP 9100)
 └── security/        # JwtAuthenticationFilter, JwtAuthorizationFilter, JwtTokenProvider
 ```
 
@@ -139,26 +156,30 @@ src/main/java/com/bar/gestioncocktail/
 
 ```mermaid
 flowchart TD
-    subgraph UsersDomain ["👥 Utilisateurs & Équipe"]
+    subgraph UsersDomain ["👥 Utilisateurs, Rôles & Shifts"]
         USERS["users"] -->|"1:N"| USER_ROLES["user_roles"]
         USERS -->|"1:N"| AUDIT_LOGS["audit_logs"]
+        USERS -->|"1:N"| EMPLOYEE_SHIFTS["employee_shifts"]
     end
 
-    subgraph SalleDomain ["🪑 Salle & Tables"]
+    subgraph SalleDomain ["🪑 Salle, Tables & Ardoises"]
         ZONES["zones"] -->|"1:N"| TABLES["tables"]
         USERS -.->|"serveur_id"| TABLES
         TABLES -->|"1:N"| TABLE_SESSIONS["table_sessions (QR client)"]
         TABLES -->|"1:N"| TABLE_APPELS["table_appels (Appels serveur)"]
-        TABLES -->|"1:N"| TABLE_CART_ITEMS["table_cart_items (Panier table)"]
+        TABLES -->|"1:N"| TABLE_CART_ITEMS["table_cart_items (Panier partagé)"]
+        BAR_TABS["bar_tabs (Ardoises comptoir)"] -->|"1:N"| BAR_TAB_ITEMS["bar_tab_items"]
+        BAR_TABS -.->|"optionnel"| TABLES
     end
 
-    subgraph CommandesDomain ["🍸 Commandes & Service"]
+    subgraph CommandesDomain ["🍸 Commandes & Préparation"]
         TABLES -->|"1:N"| COMMANDES["commandes"]
         COMMANDES -->|"1:N"| COMMANDE_ITEMS["commande_items"]
         TABLE_CART_ITEMS -.->|"checkout"| COMMANDES
+        BAR_TABS -.->|"facturation"| COMMANDES
     end
 
-    subgraph MixologieDomain ["🍹 Catalogue & Mixologie"]
+    subgraph MixologieDomain ["🍹 Catalogue, Recettes & Roulettes"]
         COCKTAILS["cocktails"] -->|"1:N"| COMMANDE_ITEMS
         COCKTAILS -->|"1:N"| COCKTAIL_VARIANTES["cocktail_variantes"]
         COCKTAILS -->|"1:N"| COCKTAIL_INGREDIENTS["cocktail_ingredients"]
@@ -168,12 +189,24 @@ flowchart TD
         COCKTAIL_VARIANTE_INGREDIENTS -->|"N:1"| INGREDIENTS["ingredients"]
         COCKTAIL_INGREDIENTS -->|"N:1"| INGREDIENTS
         COMMANDE_ITEMS -.->|"variante"| COCKTAIL_VARIANTES
+        ROULETTE["roulettes (Mystery Drink)"] -.->|"sélectionne"| COCKTAILS
     end
 
-    subgraph FacturationDomain ["💳 Facturation & Règlements"]
+    subgraph StocksDomain ["📦 Stocks, Inventaires & Achats"]
+        INGREDIENTS -->|"1:N"| STOCK_MOVEMENTS["stock_movements"]
+        FOURNISSEURS["fournisseurs"] -->|"1:N"| COMMANDES_FOURNISSEURS["commandes_fournisseurs"]
+        COMMANDES_FOURNISSEURS -->|"1:N"| COMMANDE_FOURNISSEUR_LIGNES["lignes (PAMP recalcul)"]
+        INVENTAIRES_PHYSIQUES["inventaires_physiques"] -->|"1:N"| INVENTAIRE_LIGNES["inventaire_lignes (jauges visuelles)"]
+        INVENTAIRE_LIGNES -->|"rapprochement"| INGREDIENTS
+    end
+
+    subgraph FacturationDomain ["💳 Caisse, Facturation & Règlements"]
         TABLES -->|"1:N"| FACTURES["factures"]
+        BAR_TABS -.->|"règlement"| FACTURES
         FACTURES -->|"1:N"| FACTURE_ITEMS["facture_items"]
         FACTURES -->|"1:N"| FACTURE_REGLEMENTS["facture_reglements (Splits)"]
+        TIROIR_CAISSE["tiroirs_caisse (Fond & X-Report)"] -->|"1:N"| MOUVEMENTS_CAISSE["mouvements_caisse"]
+        TERMINAUX_PAIEMENT["terminaux_paiement (TPE Concert IP)"] -.->|"déclenche"| FACTURE_REGLEMENTS
     end
 ```
 
@@ -183,12 +216,12 @@ flowchart TD
 
 | Rôle | Nature | Permissions clés |
 |------|-------------|-----------------|
-| `ADMIN` | Maintenance technique uniquement — pas un rôle métier bar | CRUD users, tout |
-| `MANAGER` | Supervision bar (rôle métier principal) | Lire commandes/tables/factures, annuler commandes, toggler disponibilité cocktails |
-| `SERVEUR` | Prise de commande, suivi tables | Créer/annuler commandes, définir priorité items |
-| `BARMAN` | Préparation commandes, stocks, cocktails | Changer statut commandes, CRUD cocktails/ingrédients/stocks |
+| `ADMIN` | Maintenance technique uniquement — pas un rôle métier bar | CRUD users, modules, reset, tout |
+| `MANAGER` | Supervision bar (rôle métier principal) | Clôture Z-Report, audit stocks, achats fournisseurs, stats, annuler commandes |
+| `SERVEUR` | Prise de commande, suivi tables, ardoises | Créer/annuler commandes, ardoises (tabs), régler additions, splits |
+| `BARMAN` | Préparation commandes, stocks, cocktails | Changer statut commandes (KDS bar), CRUD cocktails/variantes, inventaire physique |
 
-Guards : `AuthGuard` (toute route authentifiée), `RoleGuard` (paramétrable via `route.data.roles`), `AdminGuard` (ADMIN uniquement).
+Guards : `AuthGuard` (toute route authentifiée), `RoleGuard` (paramétrable via `route.data.roles`), `AdminGuard` (ADMIN uniquement), `ModuleGuard` (feature flag actif requis).
 NgRx selectors : `selectIsAdmin`, `selectIsManager`, `selectIsBarman`.
 
 ## Cycle de vie d'une commande
@@ -206,19 +239,39 @@ flowchart LR
     D -.->|Cancel| X
 ```
 
-Timestamps auto-remplis dans `CommandeService.changerStatut()` :
-- `datePreparation` ← EN_PREPARATION
-- `dateLivraison` ← PRET (⚠ bug : devrait être sur LIVREE)
-- `dateReglement` ← REGLEE
-
 ## WebSocket (STOMP)
 
-Topics disponibles :
-- `/topic/commandes` — nouvelles commandes
-- `/topic/commandes/{id}` — changement de statut
-- `/topic/tables` — occupation/libération
-- `/topic/stock/alerte` — stock faible
-- `/topic/establishment/modules` — synchronisation temps réel des feature flags / modules actifs
+11 topics interactifs disponibles sur l'endpoint `/ws` :
+- `/topic/commandes` — nouvelles commandes et mises à jour globales
+- `/topic/commandes/{id}` — changements d'état d'une commande ciblée
+- `/topic/tables` — occupation, déplacement et libération de table
+- `/topic/stock/alerte` — alertes de réapprovisionnement et stocks critiques
+- `/topic/establishment/modules` — synchronisation en direct des modules activés/désactivés
+- `/topic/bar-tabs` — création, mise à jour d'articles et encaissement des ardoises comptoir
+- `/topic/inventory-audits` — sessions d'inventaire physique et réconciliation
+- `/topic/serveur/appels` — notifications d'appel serveur et demandes d'addition QR
+- `/topic/table/{id}/appels` — acquittement d'appel pour une table
+- `/topic/tables/{id}/cart` — synchronisation du panier collaboratif temps réel
+- `/topic/tpe/{terminalId}` — retour de transaction monétique TPE (Concert IP)
+
+Service frontend : `websocket.service.ts` / `feature-flag.service.ts`
+
+## Les 10 Modules Plug-and-Play
+
+OpenBar est architecturé sous forme de plugins activables/désactivables à chaud par établissement :
+
+| Code Module | Nom & Rôle | Dépendances |
+|-------------|------------|-------------|
+| `CUISINE_KDS` | Écran de préparation cuisine séparé du bar | — |
+| `HAPPY_HOUR` | Tarification dynamique et créneaux horaires | — |
+| `EMPLOYEE_MANAGEMENT` | Planning, shifts, pointage et rôles équipe | — |
+| `FLOOR_PLAN` | Plan de salle interactif vectoriel (Konva.js) | — |
+| `QR_CLIENT_ORDERING` | Commande en ligne sur smartphone client sans app | `FLOOR_PLAN` |
+| `STOCK_TRACKING` | Suivi des stocks en centilitres et déstockage auto | — |
+| `BAR_TABS` | Ardoises clients au comptoir sans table assignée | — |
+| `COCKTAIL_LIBRARY` | Base de connaissances mixologie, verres & arômes | — |
+| `INVENTORY_AUDIT` | Inventaire physique périodique & jauges visuelles | `STOCK_TRACKING` |
+| `MYSTERY_ROULETTE` | Roue de découverte cocktail aléatoire & TV display | `COCKTAIL_LIBRARY` |
 
 Service frontend : `websocket.service.ts` / `feature-flag.service.ts`
 
@@ -382,9 +435,18 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 20 septembre 2026 — PR #509 (#508) : Intégration du catalogue cocktails dans l'onglet commande serveur avec mode sélection, gestion des recettes variantes, refonte moderne du modal ticket de préparation bar (`ModalComponent`, boxshadows adaptatifs, boutons Ionic unifiés)
+> Dernière mise à jour : 3 octobre 2026 — Version 0.8.0 : Bar Tabs sans table (#538/#539), Intégration TPE Concert IP (:8888), Inventaire physique périodique & jauges visuelles, Roue des arômes & variantes cocktails, Mystery Drink Roulette & TV Display, Achats fournisseurs & WAC/PAMP, Tiroir-caisse & X-report, Impression ESC/POS directe (TCP 9100).
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
+| Bar Tabs & Ardoises Comptoir sans Table (#538 / #539) | ✅ | ✅ | ✅ |
+| Intégration TPE Concert IP Socket Direct (:8888) | ✅ | ✅ | ✅ |
+| Inventaire Physique Périodique & Jauges Visuelles Bouteille | ✅ | ✅ | ✅ |
+| Roue des Arômes & Saveurs Cocktails Interactive | — | ✅ | ✅ |
+| Mystery Drink Roulette & Écran TV Déporté (/roulette-display) | ✅ | ✅ | ✅ |
+| Commandes Fournisseurs, Réceptions BL & Recalcul PAMP / WAC | ✅ | ✅ | ✅ |
+| Gestion Tiroir-Caisse, Mouvements Espèces & X-Report | ✅ | ✅ | ✅ |
+| Impression Thermique ESC/POS Directe (TCP 9100) | ✅ | ✅ | ✅ |
+| Expiration Automatique de Session (4h) & Modal d'Alerte | ✅ | ✅ | ✅ |
 | Catalogue Cocktails dans Prise de Commande Serveur, Variantes & Modal Ticket Bar (#508 / #509) | ✅ | ✅ | ✅ |
 | Standardisation et Sécurisation des Exports CSV (RFC 4180, Injections, BOM UTF-8) (#444 / #486) | ✅ | ✅ | ✅ |
 | Configuration Dependabot (Maven, npm, GitHub Actions) (#336) | ✅ | ✅ | ✅ |

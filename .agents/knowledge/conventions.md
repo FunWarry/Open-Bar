@@ -58,7 +58,7 @@ class XxxIntegrationTest extends BaseIntegrationTest {
 
 ---
 
-## Frontend Conventions (Angular 20 + Ionic)
+## Frontend Conventions (Angular 22 + Ionic 9)
 
 ### Feature-based Structure
 ```

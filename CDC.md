@@ -1,6 +1,6 @@
 # 🍹 OpenBar — Cahier des charges
 
-> Application de gestion de bar en temps réel · Ippon Technologies · Mai 2026
+> Application de gestion de bar en temps réel · Version 0.8.0 · Octobre 2026
 
 ---
 
@@ -11,63 +11,72 @@
 3. [Rôles utilisateurs](#3-rôles-utilisateurs)
 4. [Modèle de données](#4-modèle-de-données)
 5. [WebSocket STOMP](#5-websocket-stomp)
-6. [Fonctionnalités](#6-fonctionnalités)
+6. [Fonctionnalités & 10 Modules Plug-and-Play](#6-fonctionnalités--10-modules-plug-and-play)
 7. [Design System Figma](#7-design-system-figma)
-8. [Dette technique](#8-dette-technique)
-9. [Roadmap](#9-roadmap)
+8. [Dette technique & Assurance Qualité](#8-dette-technique--assurance-qualité)
+9. [Roadmap & Réalisations](#9-roadmap)
 10. [Conventions de code](#10-conventions-de-code)
 11. [Décisions actées](#11-décisions-actées)
-12. [Prochaine session](#13-prochaine-session--priorités)
 
 ---
 
 ## 1. Contexte et objectifs
 
-OpenBar digitalise et fluidifie l'ensemble du cycle opérationnel d'un bar : prise de commande → préparation → service → facturation, avec communication temps réel entre les acteurs.
+OpenBar digitalise et fluidifie l'ensemble du cycle opérationnel d'un bar : prise de commande → préparation → service → facturation, avec communication temps réel entre les acteurs, 100% en réseau local, sans abonnement cloud récurrent et sans dépendance à Internet.
 
 ### Problème adressé
 
 - Coordination inefficace entre serveurs et barmans (tickets papier, appels oraux)
-- Absence de visibilité temps réel sur l'état des commandes
-- Gestion manuelle des stocks
-- Aucun outil de supervision pour les managers (stats, plan de salle)
-- Facturation longue et source d'erreurs
+- Vulnérabilité critique aux pannes Internet des solutions SaaS cloud
+- Erreurs de caisse et double saisie des montants sur les terminaux bancaires (TPE)
+- Absence de visibilité temps réel sur l'état des commandes et le délai d'attente
+- Gestion manuelle des stocks et absence d'inventaire physique fiable
+- Coûts exorbitants d'abonnement au terminal et commissions cachées
+- Facturation longue, complexe et gestion fastidieuse du partage de l'addition
 
 ### Solution
 
-Application web multi-rôles avec WebSocket pour la communication temps réel entre les 3 profils : serveurs, barmans et managers/admins.
+Système d'exploitation complet pour bar et restaurant sur réseau local, avec WebSocket pour la communication temps réel (< 50ms) entre serveurs, barmans, cuisine, caisse et clients, liaison directe TPE par protocole Concert IP, et modularité totale.
 
 ---
 
 ## 2. Stack technique
 
-#### Stack actuelle (code existant)
+#### Stack actuelle (code existant v0.8.0)
 
 | Couche | Technologie | Version | Notes |
 |--------|-------------|---------|-------|
-| Backend | Spring Boot | **4.0.6** | Runtime Java 22 (épinglé — Lombok 1.18.34 incompatible JDK 23+) |
-| Documentation API | Springdoc OpenAPI | 2.8.9 | Swagger UI sur `/swagger-ui.html` |
-| Base de données | PostgreSQL | — | Via Docker Compose |
-| ORM | JPA / Hibernate + Lombok | 1.18.34 | `@Data` sur entités, `@PrePersist`/`@PreUpdate` |
-| Sécurité | Spring Security + JWT | JJWT 0.12.6 | Filter custom, `JWT_SECRET` env var requise |
-| Temps réel | WebSocket STOMP | via Spring | 4 topics actifs |
-| PDF | OpenPDF | 2.0.3 | Export factures |
-| Frontend | Angular | 20 | Standalone components |
-| UI | Ionic | 8.8.11 | Angular Material abandonné |
-| State management | NgRx | 20 | Auth uniquement |
-| HTTP | RxJS / HttpClient | 7.8 | — |
+| Backend | Spring Boot | **4.1.1** | Runtime Java 22 (épinglé — Lombok 1.18.34 incompatible JDK 23+) |
+| Documentation API | Springdoc OpenAPI | **3.1.1** | Swagger UI interactif sur `/swagger-ui.html` |
+| Base de données | PostgreSQL | **15 / 16** | ACID, persistance sur volume Docker dédié |
+| ORM | JPA / Hibernate + Lombok | 1.18.34 | Entités Java, DTOs Java Records avec `from(Entity)` |
+| Sécurité | Spring Security + JWT | JJWT **0.13.0** | Filtres custom, rotation refresh tokens, timeout 4h |
+| Assainissement HTML | Jsoup | 1.23.2 | Nettoyage XSS global sur tous les DTOs textuels |
+| Temps réel | WebSocket STOMP | via Spring | 11 topics actifs |
+| PDF | OpenPDF | 2.0.3 | Factures A4, Z-Reports scellés, fiches de stocktake |
+| QR Code | ZXing | 3.5.4 | Génération matricielle PNG et chevalets vectoriels |
+| Frontend | Angular | **22.2.0** | Standalone components, Signals, routing lazy-loaded |
+| UI | Ionic | **9.0.5** | Mobile/tablet-first, Angular Material abandonné |
+| State management | NgRx | **22.0.1** | Auth store uniquement (état métier en services + signals) |
+| i18n | Transloco | **8.4.0** | 100% translatable, parité stricte FR/EN |
+| Canvas 2D | Konva.js | **10.7.0** | Plan de salle vectoriel réactif avec grille magnétique |
+| Offline Store | IndexedDB (`idb`) | **8.0.3** | File d'attente locale serveur avec purge auto |
+| Protocole TPE | Client Socket TCP brut | Natif Java | Protocole Concert standard CB IP port 8888 |
+| Impression Réseau | ESC/POS TCP Socket | Natif Java | Port brut 9100, protocole CP850, impulsion tiroir-caisse |
 
 #### Décisions architecturales actées
 
 | Décision | Choix | Raison |
 |----------|-------| -------|
-| UI composants | **Ionic 8.8.11** (Angular Material abandonné) | Mobile/tablet-first pour écrans de bar |
+| UI composants | **Ionic 9.0.5** (Angular Material abandonné) | Mobile/tablet-first pour écrans tactiles de bar |
 | Déploiement | **PWA + Service Worker** (Capacitor abandonné) | Réseau WiFi local du bar — App Store inutile |
-| Build natif | ~~Capacitor~~ **abandonné** | PWA suffit en réseau local, zéro friction |
-| Canvas plan de salle | **Konva.js** | Canvas 2D libre, drag & drop, rotation |
-| Documentation API | **Springdoc OpenAPI 2.8.9** | Swagger UI interactif sur `/swagger-ui.html` pour synchronisation Front/Back |
-| Documentation Code | **JavaDoc + TSDoc** | JavaDoc obligatoire sur services/DTOs/controllers backend, TSDoc sur services/guards/interceptors/NgRx frontend |
-| i18n | **Transloco** (`@jsverse/transloco`) | Lazy loading natif, meilleur support Angular 20 |
+| Build natif | ~~Capacitor~~ **abandonné** | PWA suffit en réseau local, zéro friction d'installation |
+| Canvas plan de salle | **Konva.js 10.7.0** | Canvas 2D libre, drag & drop, rotation, snap magnétique |
+| Terminaux TPE | **Protocole Concert IP (LAN)** | Envoi direct du montant sur le TPE sans saisie manuelle |
+| Impression tickets | **ESC/POS TCP 9100 brut** | Zéro spooler OS / CUPS, impression ultra-rapide |
+| Documentation API | **Springdoc OpenAPI 3.1.1** | Swagger UI interactif pour synchronisation front/back |
+| Documentation Code | **JavaDoc + TSDoc** | JavaDoc obligatoire backend, TSDoc obligatoire frontend |
+| i18n | **Transloco** (`@jsverse/transloco`) | Lazy loading natif, typage strict, parité FR/EN |
 | Déploiement prod | **Nginx sur mini-PC local** (Raspberry Pi 5) | Réseau WiFi du bar, zéro dépendance internet |
 
 > **PWA locale** : L'app tourne sur le réseau WiFi du bar. La coupure internet n'a aucun impact. Service Worker cache l'app shell (cache-first) et rejoue les requêtes POST/PUT en attente à la reconnexion WiFi.
@@ -142,6 +151,8 @@ flowchart TD
     subgraph UsersDomain ["👥 Utilisateurs & Équipe"]
         USERS["users"] -->|"1:N"| USER_ROLES["user_roles"]
         USERS -->|"1:N"| AUDIT_LOGS["audit_logs"]
+        USERS -->|"1:N"| EMPLOYEE_SHIFTS["employee_shifts"]
+        EMPLOYEE_SHIFTS -->|"1:N"| SHIFT_AUDIT_LOGS["shift_audit_logs"]
     end
 
     subgraph SalleDomain ["🪑 Salle & Tables"]
@@ -152,36 +163,55 @@ flowchart TD
         TABLES -->|"1:N"| TABLE_CART_ITEMS["table_cart_items (Panier table)"]
     end
 
-    subgraph CommandesDomain ["🍸 Commandes & Service"]
+    subgraph CommandesDomain ["🍸 Commandes & Ardoises"]
         TABLES -->|"1:N"| COMMANDES["commandes"]
+        BAR_TABS["bar_tabs (Ardoises comptoir)"] -->|"1:N"| COMMANDES
         COMMANDES -->|"1:N"| COMMANDE_ITEMS["commande_items"]
         TABLE_CART_ITEMS -.->|"checkout"| COMMANDES
     end
 
     subgraph MixologieDomain ["🍹 Catalogue & Mixologie"]
         COCKTAILS["cocktails"] -->|"1:N"| COMMANDE_ITEMS
-        COCKTAILS -->|"1:N"| COCKTAIL_VARIANTES["cocktail_variantes"]
+        COCKTAILS -->|"1:N"| COCKTAIL_VARIANTES["cocktail_variants"]
         COCKTAILS -->|"1:N"| COCKTAIL_INGREDIENTS["cocktail_ingredients"]
         COCKTAILS -->|"N:1"| GLASSWARE["glassware"]
         
-        COCKTAIL_VARIANTES -->|"1:N"| COCKTAIL_VARIANTE_INGREDIENTS["cocktail_variante_ingredients"]
+        COCKTAILS -.->|"chord graph"| ESTABLISHMENT_WHEEL["establishment_connection_wheel"]
+        COCKTAILS -.->|"animation"| ROULETTE["mystery_drink_roulette"]
+        
+        COCKTAIL_VARIANTES -->|"1:N"| COCKTAIL_VARIANTE_INGREDIENTS["cocktail_variant_ingredients"]
         COCKTAIL_VARIANTE_INGREDIENTS -->|"N:1"| INGREDIENTS["ingredients"]
         COCKTAIL_INGREDIENTS -->|"N:1"| INGREDIENTS
         COMMANDE_ITEMS -.->|"variante"| COCKTAIL_VARIANTES
     end
 
-    subgraph FacturationDomain ["💳 Facturation & Règlements"]
+    subgraph AchatsStocksDomain ["📦 Achats, Stocks & Inventaire"]
+        SUPPLIERS["suppliers"] -->|"1:N"| PURCHASE_ORDERS["purchase_orders"]
+        PURCHASE_ORDERS -->|"1:N"| PURCHASE_ORDER_ITEMS["purchase_order_items"]
+        PURCHASE_ORDERS -->|"1:N"| PURCHASE_ORDER_DELIVERIES["purchase_order_deliveries (BL)"]
+        PURCHASE_ORDER_DELIVERIES -->|"1:N"| PURCHASE_ORDER_DELIVERY_ITEMS["delivery_items"]
+        
+        INGREDIENTS -->|"1:N"| STOCK_MOVEMENTS["stock_movements (Pertes / Démarque)"]
+        INGREDIENTS -->|"1:N"| INVENTORY_ITEMS["inventory_audit_items"]
+        
+        INVENTORY_SESSIONS["inventory_audit_sessions"] -->|"1:N"| INVENTORY_ITEMS
+        INVENTORY_ITEMS -->|"1:N"| INVENTORY_COUNTS["inventory_location_counts"]
+    end
+
+    subgraph FacturationDomain ["💳 Caisse, Facturation & TPE"]
         TABLES -->|"1:N"| FACTURES["factures"]
+        BAR_TABS -->|"1:N"| FACTURES
         FACTURES -->|"1:N"| FACTURE_ITEMS["facture_items"]
-        FACTURES -->|"1:N"| FACTURE_REGLEMENTS["facture_reglements (Splits)"]
+        FACTURES -->|"1:N"| FACTURE_REGLEMENTS["facture_reglements (Splits & TPE)"]
+        
+        CASH_DRAWER_SESSIONS["cash_drawer_sessions (Tiroir)"] -->|"1:N"| CASH_MOVEMENTS["cash_drawer_movements"]
+        DAILY_CASH_CLOSURES["daily_cash_closures (Z-Report)"] -->|"1:N"| FACTURES
+        
+        FACTURE_REGLEMENTS -.->|"Concert IP"| PAYMENT_TERMINALS["payment_terminals (TPE)"]
     end
 ```
 
-*Configuration singleton* : `app_settings` (personnalisation admin, devises, anti-fraude, pas de relation directe).
-
-> **Plan de salle** : les zones sont des polygones libres (coordonnées JSON), pas des rectangles. Les tables ont des formes rondes ou carrées, librement repositionnables et redimensionnables via Konva.js.
->
-> **QR code** : chaque table a un QR code permanent lié à `table.id`. Le scan crée une `TableSession` avec un token temporaire. L'interface client est non authentifiée, ultra-légère, indépendante du bundle staff.
+*Configuration singleton* : `app_settings` (personnalisation admin, devises, unités, terminaux TPE, imprimantes réseau ESC/POS, seuils de marge).
 
 ### Cycle de vie d'une commande
 
@@ -200,86 +230,75 @@ flowchart LR
 
 | Statut | Timestamp auto | Acteur | Transition depuis |
 |--------|---------------|--------|-------------------|
-| `EN_ATTENTE` | — | Serveur (création) | — (initial) |
-| `EN_PREPARATION` | `datePreparation` | Barman | EN_ATTENTE |
-| `PRET` | `dateLivraison` ⚠️ | Barman | EN_PREPARATION |
-| `LIVREE` | — | Serveur | PRET |
-| `REGLEE` | `dateReglement` | Manager / Serveur | LIVREE |
-| `ANNULEE` | — | N'importe quel rôle | Tout statut |
-
-> ⚠️ **Bug** : `dateLivraison` est set sur `PRET` au lieu de `LIVREE` dans `CommandeService.changerStatut()`.
+| `EN_ATTENTE` | — | Serveur / Client QR (création) | — (initial) |
+| `EN_PREPARATION` | `datePreparation` | Barman / Cuisinier KDS | EN_ATTENTE |
+| `PRET` | `datePret` | Barman / Cuisinier KDS | EN_PREPARATION |
+| `LIVREE` | `dateLivraison` | Serveur | PRET |
+| `REGLEE` | `dateReglement` | Manager / Serveur (Split, TPE, Cash) | LIVREE |
+| `ANNULEE` | — | N'importe quel rôle autorisé | Tout statut |
 
 ---
 
-## 5. WebSocket STOMP
+## 5. WebSocket STOMP (11 Topics Actifs)
 
-| Topic | Événement | Consommateurs |
-|-------|-----------|---------------|
-| `/topic/commandes` | Nouvelle commande créée | Barman, Manager |
-| `/topic/commandes/{id}` | Changement de statut | Barman, Serveur, Manager |
-| `/topic/tables` | Occupation / libération table | Serveur, Manager |
-| `/topic/stock/alerte` | Stock faible détecté | Barman, Manager |
-
-Service frontend : `websocket.service.ts` — ✅ pleinement implémenté (RxStomp, reconnexion automatique, JWT header). `NotificationService` abonné aux 4 topics, toasts + panneau historique dans la navbar.
+| Topic | Événement & Rôle | Consommateurs |
+|-------|------------------|---------------|
+| `/topic/commandes` | Nouvelle commande créée ou mise à jour globale | Barman, Serveur, Manager |
+| `/topic/commandes/{id}` | Changement de statut sur commande spécifique | Barman, Serveur, Client QR |
+| `/topic/tables` | Occupation, déplacement ou libération d'une table | Serveur, Manager |
+| `/topic/stock/alerte` | Alerte critique ou warning sur seuil d'ingrédient | Barman, Manager |
+| `/topic/serveur/appels` | Appel serveur ou demande d'addition client QR | Serveurs, Managers |
+| `/topic/table/{id}/appels` | Acquittement d'un appel par le serveur en salle | Client QR à la table |
+| `/topic/tables/{id}/cart` | Synchro temps réel panier collaboratif multi-convives | Convives de la table |
+| `/topic/preparation/bar` | Nouvel article affecté au poste bar | Barmans (Comptoir) |
+| `/topic/preparation/kitchen` | Nouvel article affecté au poste cuisine | Cuisiniers (Écran KDS) |
+| `/topic/establishment/modules`| Toggle à chaud des modules d'établissement | Tous les postes connectés |
+| `/topic/bar-tabs` | Ouverture, transfert, mise à jour ou clôture d'ardoise | Barman, Serveur, Manager |
+| `/topic/inventory-audits` | Démarrage, comptage ou finalisation de stocktake | Barman, Manager |
 
 ---
 
-## 6. Fonctionnalités
+## 6. Fonctionnalités & 10 Modules Plug-and-Play
 
-> Légende frontend : ✅ complet et connecté à l'API · ⚠️ squelette (composant existe, pas de service HTTP) · ❌ inexistant
+OpenBar est conçu sous une architecture modulaire stricte où chaque capacité métier peut être activée ou désactivée à chaud par établissement :
 
-| Feature | Backend | Frontend | Tests | Design Figma | Priorité |
-|---------|---------|----------|-------|--------------|----------|
-| Auth JWT | ✅ | ✅ | ✅ | ✅ | — |
-| Refresh token JWT (rotation) | ✅ | ✅ | ✅ | — | — |
-| Gestion users (admin) | ✅ | ✅ | ✅ | ✅ | — |
-| Rôle MANAGER + BARMAN (ex-BARMEN) | ✅ | ✅ | ✅ | — | — |
-| DTOs de sortie backend | ✅ | — | ✅ | — | — |
-| GlobalExceptionHandler + error interceptor | ✅ | ✅ | ✅ | — | — |
-| **Cocktails CRUD (liste + formulaire)** | ✅ | ✅ | ✅ | ✅ designé | — |
-| **Saisonnalité cocktails** | ✅ | ✅ | ✅ | ❌ | — |
-| **Ingrédients CRUD** | ✅ | ✅ | ✅ | ✅ | — |
-| **Tables CRUD** | ✅ | ✅ | ✅ | ✅ | — |
-| **Commandes (liste + détail + kanban barman moderne #292)** | ✅ | ✅ | ✅ | ✅ | — |
-| Déstockage auto à la commande | ✅ | — | ✅ | — | — |
-| **Stock — vue rapide (shift)** | ✅ | ✅ | ✅ | ✅ | — |
-| **Stock — vue globale (gestion complète)** | ✅ | ✅ | ✅ | ✅ designé | — |
-| Plan de salle (manager) | ✅ | ✅ | ✅ | ✅ | — |
-| **Vue Serveur — Plan de salle (lecture)** | ✅ | ✅ | ✅ | ✅ designé | — |
-| **Vue Serveur — Détail table + side panel** | ✅ | ✅ | ✅ | ✅ designé | — |
-| **Vue Serveur — Nouvelle commande** | ✅ | ✅ | ✅ | ✅ designé | — |
-| **Vue Serveur — Suivi commandes (kanban)** | ✅ | ✅ | ✅ | ✅ designé | — |
-| **Login** | ✅ | ✅ | ✅ | ✅ designé | — |
-| **Register / Create user** | ✅ | ✅ | ✅ | ✅ designé | — |
-| **Profile / Mon compte** | ✅ | ✅ | ✅ | ✅ designé | — |
-| **404 / Error page** | — | ✅ | ✅ | ✅ designé | — |
-| **Loading / Splash screen** | — | ✅ | ✅ | ✅ designé | — |
-| WebSocketService | ✅ | ✅ | ✅ | — | — |
-| **Notifications temps réel (toasts + panneau)** | ✅ | ✅ | ✅ | ✅ | — |
-| **Alertes stock (bannière barman)** | ✅ | ✅ | ✅ | ✅ | — |
-| **Factures (liste + détail + règlement)** | ✅ | ✅ | ✅ | ✅ | — |
-| **Export PDF factures** | ✅ | ✅ | ✅ | ✅ | — |
-| **Division d'addition (split égal + par article)** | ✅ | ✅ | ✅ | ✅ | — |
-| **Dashboard Manager / statistiques** | ✅ | ✅ | ✅ | ✅ | — |
-| Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ | ✅ | — |
-| QR code commande client (#184/#225) | ✅ | ✅ | ✅ | ✅ designé | — |
-| Scanner QR Code Client (Figma 636:988) (#225) | — | ✅ | ✅ | ✅ designé | — |
-| Facturation Vue Récap Journée (#227) | ✅ | ✅ | ✅ | ✅ designé | — |
-| Facturation Règlement Post-Split (#228) | ✅ | ✅ | ✅ | ✅ designé | — |
-| Écran Onboarding Flow par Rôle (#229) | — | ✅ | ✅ | ✅ designé | — |
-| Composant EmptyState Réutilisable (#230) | — | ✅ | ✅ | ✅ designé | — |
-| Vue Barman Ingrédients Mode Grille (#231) | — | ✅ | ✅ | ✅ designé | — |
-| Manager Shifts Employés & Pagination (#232) | ✅ | ✅ | ✅ | ✅ designé | — |
-| Manager Planning Hebdomadaire (#233) | ✅ | ✅ | ✅ | ✅ designé | — |
-| Profil Section Préférences & Notifications (#234) | — | ✅ | ✅ | ✅ designé | — |
-| Facturation Champ Pourboire (#235) | ✅ | ✅ | ✅ | ✅ designé | — |
-| Variantes cocktails & Déduction auto stocks (#185) | ✅ | ✅ | ✅ | — | — |
-| Transfert table & Fusion factures (#186) | ✅ | ✅ | ✅ | ✅ designé | — |
-| Service Broadcast STOMP (#187) | ✅ | — | ✅ | — | — |
-| Documentation OpenAPI / JavaDoc / TSDoc (#192) | ✅ | ✅ | ✅ | — | — |
-| **Design system — tokens (couleurs/espacement/rayons)** | — | ✅ implémenté (#152) | ✅ | ✅ | — |
-| **Personnalisation admin (branding)** | ✅ | ✅ | ✅ | ✅ | — |
-| **Architecture modulaire & Feature flags (#405)** | ✅ | ✅ | ✅ | ✅ designé | — |
+### Tableau des 10 Modules Activables
+
+| Module | Code Enum | Rôle Opérationnel | Statut |
+|--------|-----------|-------------------|:------:|
+| 🍳 **Cuisine & KDS** | `CUISINE_KDS` | Routage automatique des postes et écran d'affichage cuisine `/kitchen` | ✅ Validé |
+| 🎉 **Happy Hour** | `HAPPY_HOUR` | Moteur de promotions et tarifications dynamiques par plages horaires | ✅ Validé |
+| 👥 **Équipe & Shifts** | `EMPLOYEE_MANAGEMENT` | Plannings d'équipe, gestion des shifts et replay temporel d'audit | ✅ Validé |
+| 🪑 **Plan de Salle** | `FLOOR_PLAN` | Plan 2D Konva.js vectoriel avec magnétisme 50cm et état en direct | ✅ Validé |
+| 📲 **Commande QR** | `QR_CLIENT_ORDERING` | Carte digitale client, panier collaboratif et appel serveur | ✅ Validé |
+| 📦 **Gestion Stocks** | `STOCK_TRACKING` | Déstockage automatique au centilitre et journal des pertes/démarque | ✅ Validé |
+| 🧾 **Ardoises (Bar Tabs)** | `BAR_TABS` | Comptes ouverts au comptoir sans table obligatoire et transferts | ✅ Validé |
+| 📚 **Bibliothèque Cocktails** | `COCKTAIL_LIBRARY` | Catalogue 80+ recettes officielles IBA et importateur intelligent | ✅ Validé |
+| 📋 **Inventaire Physique** | `INVENTORY_AUDIT` | Sessions de stocktake, jaugeage bouteilles, fiches PDF et réconciliation | ✅ Validé |
+| 🎲 **Roulette Mystère** | `MYSTERY_ROULETTE` | Roulette interactive gamifiée, écran TV déporté `/roulette-display` | ✅ Validé |
+
+### Fonctionnalités Majeures de la Plateforme (v0.8.0)
+
+| Domaine | Fonctionnalité | Backend | Frontend | Tests |
+|---------|----------------|:-------:|:--------:|:-----:|
+| **Paiements** | **Intégration TPE Bancaire Directe (Protocole Concert IP #454/#532)** | ✅ | ✅ | ✅ |
+| **Mixologie** | **Roue des Accords de Saveurs Dual-Scope & Variantes (#533/#534/#539)** | ✅ | ✅ | ✅ |
+| **Mixologie** | **Cocktail Sunburst Flavor Explorer (#511)** | ✅ | ✅ | ✅ |
+| **Mixologie** | **Catalogue Recettes avec Badges Emojis 🍋🍓🥛 & Taux ABV (#506/#508)** | ✅ | ✅ | ✅ |
+| **Animation** | **Roulette Cocktail Mystère Gamifiée & Écran TV Déporté (#460/#521)** | ✅ | ✅ | ✅ |
+| **Stocks** | **Inventaire Physique de Cave & Jaugeage Visuel Bouteilles (#457/#520)** | ✅ | ✅ | ✅ |
+| **Stocks** | **Achats Fournisseurs, Réceptions BL & Recalcul PAMP/WAC (#453/#515)** | ✅ | ✅ | ✅ |
+| **Stocks** | **Préparations Maison (Crafted) avec Cascade de Déstockage (#518/#519)** | ✅ | ✅ | ✅ |
+| **Caisse** | **Ardoises Clients & Comptes Ouverts au Comptoir Bar Tabs (#452/#493)** | ✅ | ✅ | ✅ |
+| **Caisse** | **Cycle de Tiroir-Caisse, Fond d'Ouverture & X-Report (#450/#491)** | ✅ | ✅ | ✅ |
+| **Caisse** | **Division d'Addition Chirurgicale FactureSplitComponent (#494/#495)** | ✅ | ✅ | ✅ |
+| **Fiscalité** | **Clôture Journalière Z-Report Scellée SHA-256 & Export FEC (#359)** | ✅ | ✅ | ✅ |
+| **Impression** | **Impression Réseau Directe ESC/POS TCP :9100 & Impulsion Tiroir (#360)** | ✅ | ✅ | ✅ |
+| **Salle** | **Plan de Salle 2D Konva.js Haute Précision & Snap Magnétique (#291/#297)** | ✅ | ✅ | ✅ |
+| **Comptoir** | **Kanban Barman STOMP & Mode Rush Batching Tournées (#355)** | ✅ | ✅ | ✅ |
+| **Client QR** | **Panier Collaboratif Multi-Convives & Anti-Fraude (#365/#366)** | ✅ | ✅ | ✅ |
+| **Sécurité** | **Déconnexion Automatique Sécurisée 4h & Warning Dialog (#498/#499)** | ✅ | ✅ | ✅ |
+| **UI System** | **Composants Génériques Card & StatCard, Thème Adaptatif (#526/#528)** | — | ✅ | ✅ |
 
 > Légende tests : ✅ tests écrits et passants · ⚠️ tests partiels · ❌ aucun test · — non applicable
 > Dernière mise à jour : 7 septembre 2026 (Ticket #405 — Architecture modulaire & feature flags d'établissement)
