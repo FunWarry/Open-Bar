@@ -316,4 +316,52 @@ class ReservationIntegrationTest extends BaseIntegrationTest {
 
         assertThat(reservationRepository.findById(reservationId)).isEmpty();
     }
+
+    @Test
+    @DisplayName("updateReservation_nominal_success")
+    void updateReservation_nominal_success() throws Exception {
+        ReservationCreateRequest booking = new ReservationCreateRequest(
+                "Helen Mirren",
+                "+33622334455",
+                "helen@example.com",
+                targetDate,
+                LocalTime.of(18, 30),
+                60,
+                2,
+                null,
+                ReservationStatut.CONFIRMED,
+                testTableId
+        );
+
+        String responseJson = mockMvc.perform(post("/api/reservations")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(booking)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        Long reservationId = objectMapper.readTree(responseJson).get("id").asLong();
+
+        ReservationUpdateRequest updateRequest = new ReservationUpdateRequest(
+                "Helen Mirren",
+                "+33622334455",
+                "helen.updated@example.com",
+                targetDate,
+                LocalTime.of(18, 30),
+                90,
+                3,
+                "Table near the bar requested",
+                ReservationStatut.CONFIRMED,
+                testTableId
+        );
+
+        mockMvc.perform(put("/api/reservations/" + reservationId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("helen.updated@example.com"))
+                .andExpect(jsonPath("$.nombrePersonnes").value(3))
+                .andExpect(jsonPath("$.dureeMinutes").value(90));
+    }
 }
