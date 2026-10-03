@@ -74,9 +74,10 @@ describe('CocktailListComponent', () => {
     storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
     storeSpy.select.and.returnValue(of(false));
 
-    const mockLibraryService = jasmine.createSpyObj('CocktailLibraryService', ['getWheelData', 'getCachedWheelData']);
+    const mockLibraryService = jasmine.createSpyObj('CocktailLibraryService', ['getWheelData', 'getCachedWheelData', 'getLibraryCocktails']);
     mockLibraryService.getCachedWheelData.and.returnValue(null);
     mockLibraryService.getWheelData.and.returnValue(of({ categories: {}, nodes: [], edges: [] }));
+    mockLibraryService.getLibraryCocktails.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [CocktailListComponent, RouterTestingModule, getTranslocoTestingModule()],

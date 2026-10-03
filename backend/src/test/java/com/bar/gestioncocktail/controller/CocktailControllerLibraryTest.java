@@ -3,6 +3,7 @@ package com.bar.gestioncocktail.controller;
 import com.bar.gestioncocktail.dto.CocktailLibraryImportRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailLibraryImportResultDTO;
 import com.bar.gestioncocktail.dto.CocktailLibraryItemDTO;
+import com.bar.gestioncocktail.dto.CocktailWheelDTO;
 import com.bar.gestioncocktail.service.CocktailLibraryService;
 import com.bar.gestioncocktail.service.CocktailService;
 import com.bar.gestioncocktail.service.MarginCalculationService;
@@ -125,16 +126,16 @@ class CocktailControllerLibraryTest {
     @Test
     @DisplayName("GET /api/cocktails/library/wheel - should delegate to CocktailLibraryService and return wheel graph node")
     void shouldGetLibraryWheel() {
-        com.fasterxml.jackson.databind.node.ObjectNode mockNode = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode();
-        mockNode.put("status", "ok");
+        CocktailWheelDTO.ConnectionWheelDTO mockWheel = new CocktailWheelDTO.ConnectionWheelDTO(
+                Collections.emptyMap(), Collections.emptyList(), Collections.emptyList()
+        );
 
-        when(cocktailLibraryService.getWheelData()).thenReturn(mockNode);
+        when(cocktailLibraryService.getWheelData()).thenReturn(mockWheel);
 
-        ResponseEntity<com.fasterxml.jackson.databind.JsonNode> response = cocktailController.getLibraryWheel(null);
+        ResponseEntity<CocktailWheelDTO.ConnectionWheelDTO> response = cocktailController.getLibraryWheel(null);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().get("status").asText()).isEqualTo("ok");
+        assertThat(response.getBody()).isSameAs(mockWheel);
 
         verify(cocktailLibraryService, times(1)).getWheelData();
     }
@@ -142,46 +143,48 @@ class CocktailControllerLibraryTest {
     @Test
     @DisplayName("GET /api/cocktails/library/wheel with scope - should delegate to CocktailLibraryService with scope")
     void shouldGetLibraryWheelWithScope() {
-        com.fasterxml.jackson.databind.node.ObjectNode mockNode = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode();
-        mockNode.put("scope", "ESTABLISHMENT");
+        CocktailWheelDTO.ConnectionWheelDTO mockWheel = new CocktailWheelDTO.ConnectionWheelDTO(
+                Collections.emptyMap(), Collections.emptyList(), Collections.emptyList()
+        );
 
-        when(cocktailLibraryService.getWheelData("ESTABLISHMENT")).thenReturn(mockNode);
+        when(cocktailLibraryService.getWheelData("ESTABLISHMENT")).thenReturn(mockWheel);
 
-        ResponseEntity<com.fasterxml.jackson.databind.JsonNode> response = cocktailController.getLibraryWheel("ESTABLISHMENT");
+        ResponseEntity<CocktailWheelDTO.ConnectionWheelDTO> response = cocktailController.getLibraryWheel("ESTABLISHMENT");
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().get("scope").asText()).isEqualTo("ESTABLISHMENT");
+        assertThat(response.getBody()).isSameAs(mockWheel);
         verify(cocktailLibraryService, times(1)).getWheelData("ESTABLISHMENT");
     }
 
     @Test
     @DisplayName("getLibraryWheel no-arg overload should delegate to null scope")
     void shouldGetLibraryWheelNoArg() {
-        com.fasterxml.jackson.databind.node.ObjectNode mockNode = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode();
-        mockNode.put("status", "default");
+        CocktailWheelDTO.ConnectionWheelDTO mockWheel = new CocktailWheelDTO.ConnectionWheelDTO(
+                Collections.emptyMap(), Collections.emptyList(), Collections.emptyList()
+        );
 
-        when(cocktailLibraryService.getWheelData()).thenReturn(mockNode);
+        when(cocktailLibraryService.getWheelData()).thenReturn(mockWheel);
 
-        ResponseEntity<com.fasterxml.jackson.databind.JsonNode> response = cocktailController.getLibraryWheel();
+        ResponseEntity<CocktailWheelDTO.ConnectionWheelDTO> response = cocktailController.getLibraryWheel();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).isSameAs(mockWheel);
         verify(cocktailLibraryService, times(1)).getWheelData();
     }
 
     @Test
     @DisplayName("GET /api/cocktails/wheel - should delegate to getEstablishmentWheel")
     void shouldGetEstablishmentWheel() {
-        com.fasterxml.jackson.databind.node.ObjectNode mockNode = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode();
-        mockNode.put("status", "establishment");
+        CocktailWheelDTO.ConnectionWheelDTO mockWheel = new CocktailWheelDTO.ConnectionWheelDTO(
+                Collections.emptyMap(), Collections.emptyList(), Collections.emptyList()
+        );
 
-        when(cocktailLibraryService.getWheelData("ESTABLISHMENT")).thenReturn(mockNode);
+        when(cocktailLibraryService.getWheelData("ESTABLISHMENT")).thenReturn(mockWheel);
 
-        ResponseEntity<com.fasterxml.jackson.databind.JsonNode> response = cocktailController.getEstablishmentWheel("ESTABLISHMENT");
+        ResponseEntity<CocktailWheelDTO.ConnectionWheelDTO> response = cocktailController.getEstablishmentWheel("ESTABLISHMENT");
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).isSameAs(mockWheel);
         verify(cocktailLibraryService, times(1)).getWheelData("ESTABLISHMENT");
     }
 }

@@ -181,4 +181,13 @@ describe('CocktailLibraryService', () => {
 
     expect(result).toEqual(cachedData);
   });
+
+  it('should purge and ignore corrupt cached data with missing or empty nodes', () => {
+    const corruptData: any = { array: false, bigDecimal: false, containerNode: true };
+    localStorage.setItem('openbar_cocktail_wheel_library', JSON.stringify(corruptData));
+
+    const result = service.getCachedWheelData('LIBRARY');
+    expect(result).toBeNull();
+    expect(localStorage.getItem('openbar_cocktail_wheel_library')).toBeNull();
+  });
 });

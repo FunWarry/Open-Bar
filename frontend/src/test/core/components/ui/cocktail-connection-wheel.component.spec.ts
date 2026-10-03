@@ -5,6 +5,7 @@ import {
   CocktailPartnerItem
 } from '../../../../app/core/components/ui/cocktail-connection-wheel/cocktail-connection-wheel.component';
 import { CocktailLibraryService } from '../../../../app/core/services/cocktail-library.service';
+import { CocktailService } from '../../../../app/core/services/cocktail.service';
 import { CocktailConnectionWheelData } from '../../../../app/core/models/cocktail-library.model';
 import { getTranslocoTestingModule } from '../../../transloco-testing.module';
 
@@ -12,6 +13,7 @@ describe('CocktailConnectionWheelComponent', () => {
   let component: CocktailConnectionWheelComponent;
   let fixture: ComponentFixture<CocktailConnectionWheelComponent>;
   let mockLibraryService: jasmine.SpyObj<CocktailLibraryService>;
+  let mockCocktailService: jasmine.SpyObj<CocktailService>;
 
   const mockWheelData: CocktailConnectionWheelData = {
     categories: {
@@ -38,9 +40,17 @@ describe('CocktailConnectionWheelComponent', () => {
   };
 
   beforeEach(async () => {
-    mockLibraryService = jasmine.createSpyObj<CocktailLibraryService>('CocktailLibraryService', ['getWheelData', 'getCachedWheelData']);
+    mockLibraryService = jasmine.createSpyObj<CocktailLibraryService>('CocktailLibraryService', [
+      'getWheelData',
+      'getCachedWheelData',
+      'getLibraryCocktails'
+    ]);
     mockLibraryService.getCachedWheelData.and.returnValue(null);
     mockLibraryService.getWheelData.and.returnValue(of(mockWheelData));
+    mockLibraryService.getLibraryCocktails.and.returnValue(of([]));
+
+    mockCocktailService = jasmine.createSpyObj<CocktailService>('CocktailService', ['getAll']);
+    mockCocktailService.getAll.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -48,7 +58,8 @@ describe('CocktailConnectionWheelComponent', () => {
         getTranslocoTestingModule()
       ],
       providers: [
-        { provide: CocktailLibraryService, useValue: mockLibraryService }
+        { provide: CocktailLibraryService, useValue: mockLibraryService },
+        { provide: CocktailService, useValue: mockCocktailService }
       ]
     }).compileComponents();
 
@@ -355,6 +366,22 @@ describe('CocktailConnectionWheelComponent', () => {
       component.onScopeChange('LIBRARY');
       expect(component.currentScope()).toBe('LIBRARY');
       expect(mockLibraryService.getWheelData).toHaveBeenCalledWith('LIBRARY');
+    });
+
+    it('should display explicit or dynamic count badges for scopes', () => {
+      component.libraryCount = 1916;
+      component.establishmentCount = 42;
+      fixture.detectChanges();
+
+      expect(component.displayedLibraryCount()).toBe(1916);
+      expect(component.displayedEstablishmentCount()).toBe(42);
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const libCount = compiled.querySelector('[data-testid="wheel-scope-library-count"]');
+      const estCount = compiled.querySelector('[data-testid="wheel-scope-establishment-count"]');
+
+      expect(libCount?.textContent?.trim()).toBe('1916');
+      expect(estCount?.textContent?.trim()).toBe('42');
     });
   });
 });

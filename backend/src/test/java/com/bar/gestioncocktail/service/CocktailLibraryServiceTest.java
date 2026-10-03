@@ -3,10 +3,12 @@ package com.bar.gestioncocktail.service;
 import com.bar.gestioncocktail.dto.CocktailLibraryImportRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailLibraryImportResultDTO;
 import com.bar.gestioncocktail.dto.CocktailLibraryItemDTO;
+import com.bar.gestioncocktail.dto.CocktailWheelDTO;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.CocktailIngredientRepository;
 import com.bar.gestioncocktail.repository.CocktailRepository;
+import com.bar.gestioncocktail.repository.CocktailVarianteRepository;
 import com.bar.gestioncocktail.repository.GlasswareRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +54,9 @@ class CocktailLibraryServiceTest {
     @Mock
     private CocktailWheelService cocktailWheelService;
 
+    @Mock
+    private CocktailVarianteRepository cocktailVarianteRepository;
+
     private CocktailLibraryService cocktailLibraryService;
     private final AtomicLong idGenerator = new AtomicLong(100);
 
@@ -65,7 +70,8 @@ class CocktailLibraryServiceTest {
                 cocktailIngredientRepository,
                 glasswareRepository,
                 establishmentConfigService,
-                cocktailWheelService
+                cocktailWheelService,
+                cocktailVarianteRepository
         );
         cocktailLibraryService.initLibrary();
 
@@ -318,14 +324,16 @@ class CocktailLibraryServiceTest {
     @Test
     @DisplayName("getWheelData should load wheel JSON resource and delegate to CocktailWheelService")
     void getWheelData_successAndCaching() {
-        com.fasterxml.jackson.databind.JsonNode mockNode = new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode();
-        when(cocktailWheelService.getWheelData(CocktailWheelScope.LIBRARY)).thenReturn(mockNode);
+        CocktailWheelDTO.ConnectionWheelDTO mockWheel = new CocktailWheelDTO.ConnectionWheelDTO(
+                Collections.emptyMap(), Collections.emptyList(), Collections.emptyList()
+        );
+        when(cocktailWheelService.getWheelData(CocktailWheelScope.LIBRARY)).thenReturn(mockWheel);
 
-        com.fasterxml.jackson.databind.JsonNode wheel1 = cocktailLibraryService.getWheelData();
-        com.fasterxml.jackson.databind.JsonNode wheel2 = cocktailLibraryService.getWheelData();
+        CocktailWheelDTO.ConnectionWheelDTO wheel1 = cocktailLibraryService.getWheelData();
+        CocktailWheelDTO.ConnectionWheelDTO wheel2 = cocktailLibraryService.getWheelData();
 
-        assertThat(wheel1).isSameAs(mockNode);
-        assertThat(wheel2).isSameAs(mockNode);
+        assertThat(wheel1).isSameAs(mockWheel);
+        assertThat(wheel2).isSameAs(mockWheel);
         verify(establishmentConfigService, times(2)).checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
         verify(cocktailWheelService, times(2)).getWheelData(CocktailWheelScope.LIBRARY);
     }
@@ -333,15 +341,17 @@ class CocktailLibraryServiceTest {
     @Test
     @DisplayName("getWheelData with scope string should delegate to CocktailWheelService with parsed scope")
     void getWheelData_withScopeString_success() {
-        com.fasterxml.jackson.databind.JsonNode mockNode = new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode();
-        when(cocktailWheelService.getWheelData(CocktailWheelScope.ESTABLISHMENT)).thenReturn(mockNode);
-        when(cocktailWheelService.getWheelData(CocktailWheelScope.LIBRARY)).thenReturn(mockNode);
+        CocktailWheelDTO.ConnectionWheelDTO mockWheel = new CocktailWheelDTO.ConnectionWheelDTO(
+                Collections.emptyMap(), Collections.emptyList(), Collections.emptyList()
+        );
+        when(cocktailWheelService.getWheelData(CocktailWheelScope.ESTABLISHMENT)).thenReturn(mockWheel);
+        when(cocktailWheelService.getWheelData(CocktailWheelScope.LIBRARY)).thenReturn(mockWheel);
 
-        com.fasterxml.jackson.databind.JsonNode wheelEst = cocktailLibraryService.getWheelData("ESTABLISHMENT");
-        com.fasterxml.jackson.databind.JsonNode wheelLib = cocktailLibraryService.getWheelData("LIBRARY");
+        CocktailWheelDTO.ConnectionWheelDTO wheelEst = cocktailLibraryService.getWheelData("ESTABLISHMENT");
+        CocktailWheelDTO.ConnectionWheelDTO wheelLib = cocktailLibraryService.getWheelData("LIBRARY");
 
-        assertThat(wheelEst).isSameAs(mockNode);
-        assertThat(wheelLib).isSameAs(mockNode);
+        assertThat(wheelEst).isSameAs(mockWheel);
+        assertThat(wheelLib).isSameAs(mockWheel);
         verify(establishmentConfigService, times(2)).checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
         verify(cocktailWheelService, times(1)).getWheelData(CocktailWheelScope.ESTABLISHMENT);
         verify(cocktailWheelService, times(1)).getWheelData(CocktailWheelScope.LIBRARY);
@@ -356,6 +366,32 @@ class CocktailLibraryServiceTest {
         assertThatThrownBy(() -> cocktailLibraryService.getWheelData())
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Module disabled");
+    }
+
+    @Test
+    @DisplayName("Should attach recipe variation as variant when base cocktail exists in catalog")
+    void shouldAttachVariationAsVariantWhenBaseCocktailExists() {
+        Cocktail baseCocktail = new Cocktail();
+        baseCocktail.setId(42L);
+        baseCocktail.setNom("Moscow Mule");
+        baseCocktail.setPrix(BigDecimal.valueOf(10.00));
+
+        when(cocktailRepository.findByNomIgnoreCase("Moscow Mule")).thenReturn(Optional.of(baseCocktail));
+        when(cocktailVarianteRepository.findByCocktail(baseCocktail)).thenReturn(Collections.emptyList());
+
+        CocktailLibraryImportRequestDTO request = new CocktailLibraryImportRequestDTO(
+                null,
+                List.of("London Mule")
+        );
+
+        CocktailLibraryImportResultDTO result = cocktailLibraryService.importCocktails(request);
+
+        assertThat(result.importedCount()).isEqualTo(1);
+        ArgumentCaptor<CocktailVariante> captor = ArgumentCaptor.forClass(CocktailVariante.class);
+        verify(cocktailVarianteRepository, times(1)).save(captor.capture());
+        CocktailVariante savedVariant = captor.getValue();
+        assertThat(savedVariant.getNom()).isEqualTo("London Mule");
+        assertThat(savedVariant.getCocktail()).isEqualTo(baseCocktail);
     }
 }
 
