@@ -31,6 +31,7 @@ import {
 } from 'ionicons/icons';
 import { EmptyStateComponent } from '../empty-state/empty-state.component';
 import { CocktailLibraryService } from '../../../services/cocktail-library.service';
+import { CocktailService } from '../../../services/cocktail.service';
 import {
   CocktailConnectionWheelData,
   CocktailWheelNode,
@@ -119,6 +120,7 @@ interface RawChordItem {
 })
 export class CocktailConnectionWheelComponent implements OnInit {
   private readonly libraryService = inject(CocktailLibraryService);
+  private readonly cocktailService = inject(CocktailService);
   private readonly transloco = inject(TranslocoService);
   protected readonly elementRef = inject(ElementRef);
 
@@ -130,6 +132,50 @@ export class CocktailConnectionWheelComponent implements OnInit {
 
   /** Whether to show the scope switcher control pills. */
   @Input() showScopeToggle = true;
+
+  private readonly _libraryCount = signal<number | null | undefined>(undefined);
+
+  /** Explicit recipe count in the library catalog (if provided by parent). */
+  @Input()
+  set libraryCount(value: number | null | undefined) {
+    this._libraryCount.set(value);
+  }
+  get libraryCount(): number | null | undefined {
+    return this._libraryCount();
+  }
+
+  private readonly _establishmentCount = signal<number | null | undefined>(undefined);
+
+  /** Explicit recipe count in the establishment catalog (if provided by parent). */
+  @Input()
+  set establishmentCount(value: number | null | undefined) {
+    this._establishmentCount.set(value);
+  }
+  get establishmentCount(): number | null | undefined {
+    return this._establishmentCount();
+  }
+
+  /** Internal counts when not explicitly supplied by parent. */
+  readonly internalLibraryCount = signal<number | null>(null);
+  readonly internalEstablishmentCount = signal<number | null>(null);
+
+  /** Displayed library cocktail count badge. */
+  readonly displayedLibraryCount = computed<number | null>(() => {
+    const count = this._libraryCount();
+    if (count !== undefined && count !== null) {
+      return count;
+    }
+    return this.internalLibraryCount();
+  });
+
+  /** Displayed establishment cocktail count badge. */
+  readonly displayedEstablishmentCount = computed<number | null>(() => {
+    const count = this._establishmentCount();
+    if (count !== undefined && count !== null) {
+      return count;
+    }
+    return this.internalEstablishmentCount();
+  });
 
   /** Event emitted when user selects a pair of ingredients to explore recipes. */
   @Output() readonly pairSelected = new EventEmitter<{ ingredientA: string; ingredientB: string; count: number }>();
@@ -195,12 +241,18 @@ export class CocktailConnectionWheelComponent implements OnInit {
   });
 
   /** Dropdown options for connection threshold. */
-  readonly limitOptions = computed<SearchableOption[]>(() => [
-    { value: 100, label: this.transloco.translate('COCKTAIL_WHEEL.LIMIT_100') },
-    { value: 250, label: this.transloco.translate('COCKTAIL_WHEEL.LIMIT_250') },
-    { value: 500, label: this.transloco.translate('COCKTAIL_WHEEL.LIMIT_500') },
-    { value: 999999, label: this.transloco.translate('COCKTAIL_WHEEL.LIMIT_ALL') }
-  ]);
+  readonly limitOptions = computed<SearchableOption[]>(() => {
+    const totalEdges = this.rawData()?.edges?.length;
+    const baseLabel = this.transloco.translate('COCKTAIL_WHEEL.LIMIT_ALL');
+    const allLabel = totalEdges ? `${baseLabel} (${totalEdges})` : baseLabel;
+
+    return [
+      { value: 100, label: this.transloco.translate('COCKTAIL_WHEEL.LIMIT_100') },
+      { value: 250, label: this.transloco.translate('COCKTAIL_WHEEL.LIMIT_250') },
+      { value: 500, label: this.transloco.translate('COCKTAIL_WHEEL.LIMIT_500') },
+      { value: 999999, label: allLabel }
+    ];
+  });
 
   /** Filtered graph data restricted to top connections. */
   readonly filteredGraph = computed(() => {
@@ -406,6 +458,22 @@ export class CocktailConnectionWheelComponent implements OnInit {
     if (this.defaultLimit) {
       this.connectionLimit.set(this.defaultLimit);
     }
+    if (this.libraryCount === undefined || this.libraryCount === null) {
+      if (typeof this.libraryService?.getLibraryCocktails === 'function') {
+        this.libraryService.getLibraryCocktails().subscribe({
+          next: (items) => this.internalLibraryCount.set(items?.length ?? 0),
+          error: () => this.internalLibraryCount.set(null)
+        });
+      }
+    }
+    if (this.establishmentCount === undefined || this.establishmentCount === null) {
+      if (typeof this.cocktailService?.getAll === 'function') {
+        this.cocktailService.getAll().subscribe({
+          next: (items) => this.internalEstablishmentCount.set(items?.length ?? 0),
+          error: () => this.internalEstablishmentCount.set(null)
+        });
+      }
+    }
     this.loadGraphData();
   }
 
@@ -446,6 +514,11 @@ export class CocktailConnectionWheelComponent implements OnInit {
       this.currentScope.set(scope);
       this.clearSelection();
       this.searchQuery.set('');
+      if (scope === 'ESTABLISHMENT' && this.connectionLimit() > 250) {
+        this.connectionLimit.set(100);
+      } else if (scope === 'LIBRARY' && this.connectionLimit() < 500) {
+        this.connectionLimit.set(500);
+      }
       this.loadGraphData();
     }
   }
@@ -1137,6 +1210,30 @@ export class CocktailConnectionWheelComponent implements OnInit {
   }
 
   /**
+   * Resolves display label for category perimeter arc, falling back to short code when angle is tight.
+   */
+  private resolveCategoryLabel(meta: CocktailWheelCategory, angleSpan: number, isFrench: boolean): string {
+    const full = isFrench && meta.labelFr ? meta.labelFr : meta.label;
+    const short = isFrench && meta.shortFr ? meta.shortFr : (meta.short || full);
+    return angleSpan < 0.28 ? short : full;
+  }
+
+  /**
+   * Calculates radial distance for category label to avoid overlapping neighboring categories.
+   */
+  private resolveCategoryRadius(
+    midAngle: number,
+    prevMidAngle: number,
+    currentToggle: boolean
+  ): { radius: number; nextToggle: boolean } {
+    if (Math.abs(midAngle - prevMidAngle) < 0.22) {
+      const nextToggle = !currentToggle;
+      return { radius: nextToggle ? 426 : 396, nextToggle };
+    }
+    return { radius: 408, nextToggle: false };
+  }
+
+  /**
    * Builds perimeter family arcs using modern Array.prototype.at().
    */
   private buildLayoutFamilies(
@@ -1144,6 +1241,9 @@ export class CocktailConnectionWheelComponent implements OnInit {
     layoutNodes: CocktailWheelLayoutNode[],
     isFrench: boolean
   ): CocktailWheelLayoutFamily[] {
+    let prevMidAngle = -999;
+    let radiusToggle = false;
+
     return Object.entries(categories).flatMap(([catId, meta]) => {
       const catNodes = layoutNodes.filter(n => n.group === catId);
       if (catNodes.length === 0) return [];
@@ -1152,15 +1252,21 @@ export class CocktailConnectionWheelComponent implements OnInit {
       const lastNode = catNodes.at(-1);
       const endAngle = lastNode ? lastNode.segment.endAngle : startAngle;
       const midAngle = (startAngle + endAngle) / 2;
+      const angleSpan = endAngle - startAngle;
+
+      const labelText = this.resolveCategoryLabel(meta, angleSpan, isFrench);
+      const { radius, nextToggle } = this.resolveCategoryRadius(midAngle, prevMidAngle, radiusToggle);
+      radiusToggle = nextToggle;
+      prevMidAngle = midAngle;
 
       return [{
         id: catId,
         ...meta,
-        label: isFrench && meta.labelFr ? meta.labelFr : meta.label,
+        label: labelText,
         short: isFrench && meta.shortFr ? meta.shortFr : meta.short,
         count: catNodes.length,
         arc: this.generateArcPath(startAngle, endAngle, 375),
-        position: this.radialCoords(midAngle, 408)
+        position: this.radialCoords(midAngle, radius)
       }];
     });
   }

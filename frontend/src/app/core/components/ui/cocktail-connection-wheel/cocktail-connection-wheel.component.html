@@ -24,6 +24,9 @@
               data-testid="wheel-scope-library-btn">
               <ion-icon name="library-outline"></ion-icon>
               <span>{{ 'COCKTAIL_WHEEL.SCOPE_LIBRARY' | transloco }}</span>
+              @if (displayedLibraryCount() !== null && displayedLibraryCount() !== undefined) {
+                <span class="scope-count-badge" data-testid="wheel-scope-library-count">{{ displayedLibraryCount() }}</span>
+              }
             </button>
             <button
               type="button"
@@ -33,6 +36,9 @@
               data-testid="wheel-scope-establishment-btn">
               <ion-icon name="wine-outline"></ion-icon>
               <span>{{ 'COCKTAIL_WHEEL.SCOPE_ESTABLISHMENT' | transloco }}</span>
+              @if (displayedEstablishmentCount() !== null && displayedEstablishmentCount() !== undefined) {
+                <span class="scope-count-badge" data-testid="wheel-scope-establishment-count">{{ displayedEstablishmentCount() }}</span>
+              }
             </button>
           </div>
         </div>

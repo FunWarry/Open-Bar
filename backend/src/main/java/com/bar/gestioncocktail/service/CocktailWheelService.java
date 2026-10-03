@@ -8,7 +8,6 @@ import com.bar.gestioncocktail.model.CocktailWheelScope;
 import com.bar.gestioncocktail.model.EstablishmentModule;
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.repository.CocktailRepository;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +38,6 @@ public class CocktailWheelService {
     private static final Logger log = LoggerFactory.getLogger(CocktailWheelService.class);
     private static final String DEFAULT_CATEGORY = "other";
     private static final String CATEGORY_LIQUEURS = "Liqueurs";
-    private static final String FIELD_NODES = "nodes";
     private static final String ESTABLISHMENT_WHEEL_FILE = "data/establishment_connection_wheel.json";
     private static final String LIBRARY_WHEEL_RESOURCE = "data/cocktail_connection_wheel.json";
 
@@ -64,8 +62,8 @@ public class CocktailWheelService {
     private final ObjectMapper objectMapper;
     private final EstablishmentConfigService establishmentConfigService;
 
-    private final AtomicReference<JsonNode> libraryWheelCache = new AtomicReference<>();
-    private final AtomicReference<JsonNode> establishmentWheelCache = new AtomicReference<>();
+    private final AtomicReference<CocktailWheelDTO.ConnectionWheelDTO> libraryWheelCache = new AtomicReference<>();
+    private final AtomicReference<CocktailWheelDTO.ConnectionWheelDTO> establishmentWheelCache = new AtomicReference<>();
 
     private static Integer addCounts(Integer a, Integer b) {
         return (a == null ? 0 : a) + (b == null ? 0 : b);
@@ -91,9 +89,9 @@ public class CocktailWheelService {
      * Retrieves the chord connection wheel dataset for the specified scope.
      *
      * @param scope Scope of the connection wheel (LIBRARY or ESTABLISHMENT)
-     * @return JsonNode containing connection wheel graph data
+     * @return ConnectionWheelDTO containing connection wheel graph data
      */
-    public JsonNode getWheelData(CocktailWheelScope scope) {
+    public CocktailWheelDTO.ConnectionWheelDTO getWheelData(CocktailWheelScope scope) {
         if (scope == CocktailWheelScope.LIBRARY) {
             establishmentConfigService.checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
             return getLibraryWheelData();
@@ -105,10 +103,10 @@ public class CocktailWheelService {
      * Retrieves the connection wheel dataset for the master cocktail library.
      * Uses in-memory cache with fallback to embedded classpath asset.
      *
-     * @return JsonNode containing library chord graph
+     * @return ConnectionWheelDTO containing library chord graph
      */
-    public synchronized JsonNode getLibraryWheelData() {
-        JsonNode cached = libraryWheelCache.get();
+    public synchronized CocktailWheelDTO.ConnectionWheelDTO getLibraryWheelData() {
+        CocktailWheelDTO.ConnectionWheelDTO cached = libraryWheelCache.get();
         if (cached != null) {
             return cached;
         }
@@ -117,7 +115,7 @@ public class CocktailWheelService {
             ClassPathResource resource = new ClassPathResource(LIBRARY_WHEEL_RESOURCE);
             if (resource.exists()) {
                 try (InputStream is = resource.getInputStream()) {
-                    JsonNode node = objectMapper.readTree(is);
+                    CocktailWheelDTO.ConnectionWheelDTO node = objectMapper.readValue(is, CocktailWheelDTO.ConnectionWheelDTO.class);
                     libraryWheelCache.set(node);
                     return node;
                 }
@@ -131,18 +129,17 @@ public class CocktailWheelService {
                 Collections.emptyList(),
                 Collections.emptyList()
         );
-        JsonNode emptyNode = objectMapper.valueToTree(emptyWheel);
-        libraryWheelCache.set(emptyNode);
-        return emptyNode;
+        libraryWheelCache.set(emptyWheel);
+        return emptyWheel;
     }
 
     /**
      * Dynamically generates and caches the connection wheel graph from cocktail library templates.
      *
      * @param items List of cocktail library item templates
-     * @return Generated JsonNode dataset
+     * @return Generated ConnectionWheelDTO dataset
      */
-    public synchronized JsonNode generateLibraryWheel(List<CocktailLibraryItemDTO> items) {
+    public synchronized CocktailWheelDTO.ConnectionWheelDTO generateLibraryWheel(List<CocktailLibraryItemDTO> items) {
         if (items == null || items.isEmpty()) {
             return getLibraryWheelData();
         }
@@ -186,11 +183,10 @@ public class CocktailWheelService {
                 pairCooccurrences
         );
 
-        JsonNode generated = objectMapper.valueToTree(wheelDto);
-        libraryWheelCache.set(generated);
+        libraryWheelCache.set(wheelDto);
         log.info("Dynamically generated library connection wheel: {} nodes, {} edges across {} recipes.",
                 wheelDto.nodes().size(), wheelDto.edges().size(), items.size());
-        return generated;
+        return wheelDto;
     }
 
     /**
@@ -205,16 +201,16 @@ public class CocktailWheelService {
      * Retrieves the connection wheel dataset for the establishment catalog.
      * Loads from in-memory cache, persistent cache file, or regenerates from repository.
      *
-     * @return JsonNode containing establishment chord graph
+     * @return ConnectionWheelDTO containing establishment chord graph
      */
-    public synchronized JsonNode getEstablishmentWheelData() {
-        JsonNode cached = establishmentWheelCache.get();
+    public synchronized CocktailWheelDTO.ConnectionWheelDTO getEstablishmentWheelData() {
+        CocktailWheelDTO.ConnectionWheelDTO cached = establishmentWheelCache.get();
         if (cached != null) {
             return cached;
         }
 
-        JsonNode fromFile = loadWheelFromFile(ESTABLISHMENT_WHEEL_FILE);
-        if (fromFile != null && fromFile.has(FIELD_NODES) && fromFile.get(FIELD_NODES).isArray() && !fromFile.get(FIELD_NODES).isEmpty()) {
+        CocktailWheelDTO.ConnectionWheelDTO fromFile = loadWheelFromFile(ESTABLISHMENT_WHEEL_FILE);
+        if (fromFile != null && fromFile.nodes() != null && !fromFile.nodes().isEmpty()) {
             establishmentWheelCache.set(fromFile);
             return fromFile;
         }
@@ -225,9 +221,9 @@ public class CocktailWheelService {
     /**
      * Dynamically regenerates, updates in-memory cache, and persists the establishment connection wheel dataset.
      *
-     * @return Regenerated JsonNode dataset
+     * @return Regenerated ConnectionWheelDTO dataset
      */
-    public synchronized JsonNode regenerateEstablishmentWheel() {
+    public synchronized CocktailWheelDTO.ConnectionWheelDTO regenerateEstablishmentWheel() {
         List<Cocktail> cocktails;
         try {
             cocktails = cocktailRepository.findAllWithIngredients();
@@ -276,12 +272,11 @@ public class CocktailWheelService {
                 pairCooccurrences
         );
 
-        JsonNode generated = objectMapper.valueToTree(wheelDto);
-        establishmentWheelCache.set(generated);
-        saveWheelToFile(generated, ESTABLISHMENT_WHEEL_FILE);
+        establishmentWheelCache.set(wheelDto);
+        saveWheelToFile(wheelDto, ESTABLISHMENT_WHEEL_FILE);
         log.info("Regenerated establishment cocktail connection wheel: {} nodes, {} edges across {} cocktails.",
                 wheelDto.nodes().size(), wheelDto.edges().size(), cocktails.size());
-        return generated;
+        return wheelDto;
     }
 
     private void registerPairs(List<String> distinctIds, Map<String, Integer> pairCooccurrences) {
@@ -376,23 +371,23 @@ public class CocktailWheelService {
         return WHEEL_CATEGORIES.containsKey(normalized) ? normalized : DEFAULT_CATEGORY;
     }
 
-    private synchronized void saveWheelToFile(JsonNode node, String filePath) {
+    private synchronized void saveWheelToFile(CocktailWheelDTO.ConnectionWheelDTO wheelDto, String filePath) {
         try {
             Path path = Paths.get(filePath);
             if (path.getParent() != null && !Files.exists(path.getParent())) {
                 Files.createDirectories(path.getParent());
             }
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), node);
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), wheelDto);
         } catch (IOException e) {
             log.warn("Could not persist establishment connection wheel to file '{}': {}", filePath, e.getMessage());
         }
     }
 
-    private synchronized JsonNode loadWheelFromFile(String filePath) {
+    private synchronized CocktailWheelDTO.ConnectionWheelDTO loadWheelFromFile(String filePath) {
         try {
             File file = new File(filePath);
             if (file.exists() && file.isFile() && file.length() > 0) {
-                return objectMapper.readTree(file);
+                return objectMapper.readValue(file, CocktailWheelDTO.ConnectionWheelDTO.class);
             }
         } catch (IOException e) {
             log.warn("Could not read persistent connection wheel from file '{}': {}", filePath, e.getMessage());

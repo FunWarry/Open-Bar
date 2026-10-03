@@ -197,6 +197,26 @@
           color: var(--text-contrast, #ffffff);
           font-weight: 600;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+          .scope-count-badge {
+            background: rgba(255, 255, 255, 0.22);
+            color: var(--text-contrast, #ffffff);
+          }
+        }
+
+        .scope-count-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 20px;
+          height: 18px;
+          padding: 0 6px;
+          border-radius: var(--radius-full, 9999px);
+          font-size: 11px;
+          font-weight: 700;
+          background: var(--background-surface-2);
+          color: var(--text-secondary);
+          transition: all 0.2s ease;
         }
       }
     }

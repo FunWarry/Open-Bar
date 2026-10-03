@@ -1,7 +1,7 @@
 {
   "titre": "Base de Données Cocktails & Bar OpenBar",
   "description": "Export complet et professionnel des 99 cocktails, bières, vins, softs et snacks avec recettes pas à pas, verres, photos et ingrédients.",
-  "nombre_total_cocktails": 99,
+  "nombre_total_cocktails": 98,
   "cocktails": [
     {
       "id": 1,
@@ -5687,179 +5687,6 @@
         "FRUITY",
         "SOUR",
         "SWEET"
-      ]
-    },
-    {
-      "id": 45,
-      "nom": "London Mule",
-      "materiel": {
-        "ustensiles": "Au verre",
-        "verre": "Métale",
-        "specification": "Rien",
-        "image_verre": "/assets/images/verres/tasse_cuivre.png"
-      },
-      "economie": {
-        "cout_total_eur": 3.58,
-        "marge_pourcent": "75%",
-        "prix_de_vente_eur": 9
-      },
-      "media": {
-        "photo_url": "assets/images/verres/tasse_cuivre.png"
-      },
-      "ingredients": [
-        {
-          "nom": "Jus de Citron vert",
-          "quantite": 2,
-          "unite": "cl",
-          "cout_eur": 0.35,
-          "allergens": [],
-          "category": "juices"
-        },
-        {
-          "nom": "Ginger Ale",
-          "quantite": 6,
-          "unite": "cl",
-          "cout_eur": 0.35,
-          "allergens": [],
-          "category": "mixers"
-        },
-        {
-          "nom": "Ginger Beer",
-          "quantite": 6,
-          "unite": "cl",
-          "cout_eur": 0.35,
-          "allergens": [],
-          "category": "mixers"
-        },
-        {
-          "nom": "Gin",
-          "quantite": 4,
-          "unite": "cl",
-          "cout_eur": 0.12,
-          "allergens": [],
-          "category": "light_liquor"
-        },
-        {
-          "nom": "Vodka",
-          "quantite": 4,
-          "unite": "cl",
-          "cout_eur": 1.143,
-          "allergens": [],
-          "category": "light_liquor"
-        },
-        {
-          "nom": "Rhum Blanc (agricole)",
-          "quantite": 4,
-          "unite": "cl",
-          "cout_eur": 1.143,
-          "allergens": [],
-          "category": "light_liquor"
-        },
-        {
-          "nom": "Tequila",
-          "quantite": 4,
-          "unite": "cl",
-          "cout_eur": 0.12,
-          "allergens": [],
-          "category": "light_liquor"
-        }
-      ],
-      "recette_resume_etapes": [
-        "Remplir une timbale en métal de glaçons.",
-        "Verser les ingrédients.",
-        "Mélanger doucement."
-      ],
-      "recette_ultra_detaillee": [
-        {
-          "etape": 1,
-          "action": "AJOUTER_INGREDIENT",
-          "ingredient": "Jus de Citron vert",
-          "quantite": 2,
-          "unite": "cl",
-          "cible": "AJOUTER_INGREDIENT",
-          "description": "Verser 2 cl de Jus de Citron vert dans la tasse en cuivre (mule)."
-        },
-        {
-          "etape": 2,
-          "action": "AJOUTER_INGREDIENT",
-          "ingredient": "Gin",
-          "quantite": 4,
-          "unite": "cl",
-          "cible": "AJOUTER_INGREDIENT",
-          "description": "Verser 4 cl de Gin dans la tasse en cuivre (mule)."
-        },
-        {
-          "etape": 3,
-          "action": "AJOUTER_INGREDIENT",
-          "ingredient": "Vodka",
-          "quantite": 4,
-          "unite": "cl",
-          "cible": "AJOUTER_INGREDIENT",
-          "description": "Verser 4 cl de Vodka dans la tasse en cuivre (mule)."
-        },
-        {
-          "etape": 4,
-          "action": "AJOUTER_INGREDIENT",
-          "ingredient": "Rhum Blanc (agricole)",
-          "quantite": 4,
-          "unite": "cl",
-          "cible": "AJOUTER_INGREDIENT",
-          "description": "Verser 4 cl de Rhum Blanc (agricole) dans la tasse en cuivre (mule)."
-        },
-        {
-          "etape": 5,
-          "action": "AJOUTER_INGREDIENT",
-          "ingredient": "Tequila",
-          "quantite": 4,
-          "unite": "cl",
-          "cible": "AJOUTER_INGREDIENT",
-          "description": "Verser 4 cl de Tequila dans la tasse en cuivre (mule)."
-        },
-        {
-          "etape": 6,
-          "action": "GLACE",
-          "cible": "GLACE",
-          "description": "Remplir généreusement la tasse en cuivre (mule) de glaçons frais jusqu'au bord."
-        },
-        {
-          "etape": 7,
-          "action": "TOP_UP",
-          "ingredient": "Ginger Ale",
-          "cible": "TOP_UP",
-          "description": "Compléter délicatement de Ginger Beer bien fraîche."
-        },
-        {
-          "etape": 8,
-          "action": "TOP_UP",
-          "ingredient": "Ginger Beer",
-          "cible": "TOP_UP",
-          "description": "Compléter délicatement de Ginger Beer bien fraîche."
-        },
-        {
-          "etape": 9,
-          "action": "MELANGER",
-          "cible": "MELANGER",
-          "description": "Remuer très délicatement de bas en haut avec la cuillère de bar pour intégrer les ingrédients sans briser l'effervescence."
-        },
-        {
-          "etape": 10,
-          "action": "GARNIR",
-          "cible": "GARNIR",
-          "description": "Déposer la garniture soignée et servir immédiatement bien frais."
-        }
-      ],
-      "categorie": "ALCOOLISE",
-      "degre_alcool_pct": 15,
-      "temps_preparation_sec": 45,
-      "tags": [
-        "Alcoolisé"
-      ],
-      "variantes": [],
-      "flavor_profiles": [
-        "FRUITY",
-        "SOUR",
-        "SPICY",
-        "HERBAL"
       ]
     },
     {
@@ -12369,6 +12196,14 @@
           "multiplicateur_ingredient": 1,
           "disponible": true,
           "instructions": "Remplacer la vodka par du Bourbon"
+        },
+        {
+          "nom": "Virgin Mule (Sans alcool)",
+          "description": "Version sans alcool rafraîchissante au ginger beer et citron vert",
+          "prix_supplement": -1.5,
+          "multiplicateur_ingredient": 1,
+          "disponible": true,
+          "instructions": "Remplacer la vodka par un trait d eau gazeuse et ginger beer"
         }
       ],
       "flavor_profiles": [

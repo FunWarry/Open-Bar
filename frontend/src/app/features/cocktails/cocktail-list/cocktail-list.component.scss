@@ -1108,3 +1108,92 @@ app-cocktail-matcher-bar {
   box-shadow: var(--elev-1);
 }
 
+.figma-variant-indicator-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-pill, 999px);
+  padding: 4px 10px;
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  ion-icon {
+    font-size: 0.85rem;
+  }
+
+  &:hover {
+    background: var(--background-surface-3);
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: var(--elev-1);
+  }
+}
+
+.view-variants-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-pill, 999px);
+  padding: 6px 12px;
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  ion-icon {
+    font-size: 0.9rem;
+    color: var(--primary);
+  }
+
+  &:hover {
+    background: var(--background-surface-3);
+    border-color: var(--primary);
+    color: var(--primary);
+    box-shadow: var(--elev-1);
+  }
+}
+
+.list-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+.list-variant-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-pill, 999px);
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+
+  ion-icon {
+    font-size: 0.8rem;
+  }
+
+  &:hover {
+    background: var(--background-surface-3);
+    border-color: var(--primary);
+  }
+}
+

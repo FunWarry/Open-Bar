@@ -3,6 +3,7 @@ package com.bar.gestioncocktail.controller;
 import com.bar.gestioncocktail.dto.CocktailFacetsDTO;
 import com.bar.gestioncocktail.dto.CocktailRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailResponseDTO;
+import com.bar.gestioncocktail.dto.CocktailWheelDTO;
 import com.bar.gestioncocktail.dto.SaisonnaliteRequest;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailCategorie;
@@ -27,6 +28,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -298,16 +300,13 @@ class CocktailControllerTest {
     @Test
     @DisplayName("getLibraryWheel - retrieves precomputed connection wheel graph data")
     void getLibraryWheel_success() {
-        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-        com.fasterxml.jackson.databind.node.ObjectNode node = mapper.createObjectNode();
-        node.put("status", "ok");
-        when(cocktailLibraryService.getWheelData()).thenReturn(node);
+        CocktailWheelDTO.ConnectionWheelDTO wheelDto = mock(CocktailWheelDTO.ConnectionWheelDTO.class);
+        when(cocktailLibraryService.getWheelData()).thenReturn(wheelDto);
 
-        ResponseEntity<com.fasterxml.jackson.databind.JsonNode> response = cocktailController.getLibraryWheel(null);
+        ResponseEntity<CocktailWheelDTO.ConnectionWheelDTO> response = cocktailController.getLibraryWheel(null);
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().get("status").asText()).isEqualTo("ok");
+        assertThat(response.getBody()).isNotNull().isSameAs(wheelDto);
     }
 
     @Test
@@ -339,4 +338,3 @@ class CocktailControllerTest {
         verify(cocktailLibraryService).loadLibrary();
     }
 }
-

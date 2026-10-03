@@ -266,8 +266,9 @@
                   [class.no-picture]="!showPictures"
                   [class.unavailable]="!cocktail.disponible"
                   [class.selection-mode]="selectionMode"
+                  [class.has-variants]="cocktail.variantes && cocktail.variantes.length > 0"
                   [active]="cocktail.disponible"
-                  [clickable]="selectionMode && cocktail.disponible"
+                  [clickable]="cocktail.disponible"
                   [accentColor]="'none'"
                   [padding]="'none'"
                   [elevation]="'sm'"
@@ -275,9 +276,9 @@
                   [showFooter]="false"
                   [attr.data-testid]="'cocktail-card-' + cocktail.id"
                   [customClass]="!cocktail.disponible ? 'unavailable' : ''"
-                  (cardClick)="selectionMode ? onSelectCocktail(cocktail) : null"
-                  [attr.tabindex]="selectionMode ? 0 : null"
-                  [attr.role]="selectionMode ? 'button' : null">
+                  (cardClick)="onCardClick(cocktail)"
+                  [attr.tabindex]="cocktail.disponible ? 0 : null"
+                  [attr.role]="'button'">
                   <div card-content class="figma-card-inner">
                     @if (showPictures) {
                       <div class="figma-card-image-area">
@@ -296,6 +297,17 @@
                           <span class="dot-indicator" [style.background-color]="getCategoryDotColor(cocktail.categorie)"></span>
                           {{ ('COCKTAILS.CATEGORIES.' + cocktail.categorie) | transloco }}
                         </span>
+                        @if (cocktail.variantes && cocktail.variantes.length > 0) {
+                          <button
+                            type="button"
+                            class="figma-variant-indicator-btn"
+                            (click)="openVariantViewer(cocktail); $event.stopPropagation()"
+                            [attr.data-testid]="'variant-pill-' + cocktail.id"
+                            [title]="'COCKTAILS.VIEW_VARIANTS' | transloco">
+                            <ion-icon name="git-branch-outline"></ion-icon>
+                            <span>{{ getFilteredVariants(cocktail).length }} {{ 'COCKTAILS.VARIANTS_LABEL' | transloco }}</span>
+                          </button>
+                        }
                         @if (!cocktail.disponible) {
                           <span class="figma-alert-pill critical" data-testid="badge-cocktail-unavailable">⚠️ {{ 'COCKTAILS.UNAVAILABLE' | transloco }}</span>
                         }
@@ -305,7 +317,7 @@
                       </div>
 
                       @if (!selectionMode && (isAdmin$ | async)) {
-                        <button class="figma-edit-btn" [attr.data-testid]="'edit-cocktail-btn-' + cocktail.id" (click)="onEdit(cocktail)" (keydown.enter)="onEdit(cocktail)" [attr.aria-label]="'COCKTAILS.EDIT_COCKTAIL_LABEL' | transloco">
+                        <button class="figma-edit-btn" [attr.data-testid]="'edit-cocktail-btn-' + cocktail.id" (click)="onEdit(cocktail); $event.stopPropagation()" (keydown.enter)="onEdit(cocktail); $event.stopPropagation()" [attr.aria-label]="'COCKTAILS.EDIT_COCKTAIL_LABEL' | transloco">
                           <ion-icon name="create"></ion-icon>
                         </button>
                       }
@@ -444,7 +456,19 @@
                     </ion-thumbnail>
                   }
                   <ion-label>
-                    <h3>{{ cocktail.nom }}</h3>
+                    <div class="list-title-row">
+                      <h3>{{ cocktail.nom }}</h3>
+                      @if (cocktail.variantes && cocktail.variantes.length > 0) {
+                        <button
+                          type="button"
+                          class="list-variant-pill-btn"
+                          (click)="openVariantViewer(cocktail); $event.stopPropagation()"
+                          [attr.data-testid]="'list-variant-btn-' + cocktail.id">
+                          <ion-icon name="git-branch-outline"></ion-icon>
+                          <span>{{ cocktail.variantes.length }} {{ 'COCKTAILS.VARIANTS_LABEL' | transloco }}</span>
+                        </button>
+                      }
+                    </div>
                     <p><strong>{{ ('COCKTAILS.CATEGORIES.' + cocktail.categorie) | transloco }}</strong> — {{ getIngredientsText(cocktail) }}</p>
                     @if (getCocktailAllergens(cocktail).length > 0) {
                       <p class="list-allergens-text">
@@ -544,6 +568,7 @@
         <app-cocktail-connection-wheel
           [scope]="'ESTABLISHMENT'"
           [showScopeToggle]="true"
+          [establishmentCount]="cocktails.length"
           (pairSelected)="onWheelPairSelected($event)"
           (exploreCocktails)="onWheelExploreCocktails($event)">
         </app-cocktail-connection-wheel>

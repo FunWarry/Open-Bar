@@ -2,10 +2,10 @@ package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.CocktailLibraryItemDTO;
 import com.bar.gestioncocktail.dto.CocktailLibraryItemDTO.CocktailLibraryIngredientDTO;
+import com.bar.gestioncocktail.dto.CocktailWheelDTO;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.CocktailRepository;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,10 +59,10 @@ class CocktailWheelServiceTest {
     @Test
     @DisplayName("getWheelData for LIBRARY scope should check module capability and return wheel data")
     void getWheelData_libraryScope_success() {
-        JsonNode result = cocktailWheelService.getWheelData(CocktailWheelScope.LIBRARY);
+        CocktailWheelDTO.ConnectionWheelDTO result = cocktailWheelService.getWheelData(CocktailWheelScope.LIBRARY);
 
         assertThat(result).isNotNull();
-        assertThat(result.has("categories")).isTrue();
+        assertThat(result.categories()).isNotEmpty();
         verify(establishmentConfigService, times(1)).checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
     }
 
@@ -100,22 +100,21 @@ class CocktailWheelServiceTest {
                 "Shake", 85, true, "Sour", null
         );
 
-        JsonNode wheel = cocktailWheelService.generateLibraryWheel(List.of(mojito, daiquiri));
+        CocktailWheelDTO.ConnectionWheelDTO wheel = cocktailWheelService.generateLibraryWheel(List.of(mojito, daiquiri));
 
         assertThat(wheel).isNotNull();
-        JsonNode nodes = wheel.get("nodes");
-        JsonNode edges = wheel.get("edges");
+        List<CocktailWheelDTO.NodeDTO> nodes = wheel.nodes();
+        List<CocktailWheelDTO.EdgeDTO> edges = wheel.edges();
 
-        assertThat(nodes).isNotNull();
-        assertThat(nodes.size()).isEqualTo(3);
+        assertThat(nodes).isNotNull().hasSize(3);
 
         // Rum and Lime should both have count 2, Mint should have count 1
         boolean foundRum = false;
-        for (JsonNode n : nodes) {
-            if ("white rum".equals(n.get("id").asText())) {
+        for (CocktailWheelDTO.NodeDTO n : nodes) {
+            if ("white rum".equals(n.id())) {
                 foundRum = true;
-                assertThat(n.get("count").asInt()).isEqualTo(2);
-                assertThat(n.get("group").asText()).isEqualTo("light_liquor");
+                assertThat(n.count()).isEqualTo(2);
+                assertThat(n.group()).isEqualTo("light_liquor");
             }
         }
         assertThat(foundRum).isTrue();
@@ -123,12 +122,12 @@ class CocktailWheelServiceTest {
         // Edge between White Rum and Lime Juice should have count 2
         assertThat(edges).isNotNull();
         boolean foundRumLimeEdge = false;
-        for (JsonNode e : edges) {
-            String a = e.get("a").asText();
-            String b = e.get("b").asText();
+        for (CocktailWheelDTO.EdgeDTO e : edges) {
+            String a = e.a();
+            String b = e.b();
             if ((a.equals("lime juice") && b.equals("white rum")) || (a.equals("white rum") && b.equals("lime juice"))) {
                 foundRumLimeEdge = true;
-                assertThat(e.get("count").asInt()).isEqualTo(2);
+                assertThat(e.count()).isEqualTo(2);
             }
         }
         assertThat(foundRumLimeEdge).isTrue();
@@ -163,22 +162,22 @@ class CocktailWheelServiceTest {
 
         when(cocktailRepository.findAllWithIngredients()).thenReturn(List.of(cocktail1));
 
-        JsonNode wheel = cocktailWheelService.getWheelData(CocktailWheelScope.ESTABLISHMENT);
+        CocktailWheelDTO.ConnectionWheelDTO wheel = cocktailWheelService.getWheelData(CocktailWheelScope.ESTABLISHMENT);
 
         assertThat(wheel).isNotNull();
-        JsonNode nodes = wheel.get("nodes");
-        JsonNode edges = wheel.get("edges");
+        List<CocktailWheelDTO.NodeDTO> nodes = wheel.nodes();
+        List<CocktailWheelDTO.EdgeDTO> edges = wheel.edges();
 
-        assertThat(nodes.size()).isEqualTo(2);
-        assertThat(edges.size()).isEqualTo(1);
-        assertThat(edges.get(0).get("count").asInt()).isEqualTo(1);
+        assertThat(nodes).hasSize(2);
+        assertThat(edges).hasSize(1);
+        assertThat(edges.get(0).count()).isEqualTo(1);
     }
 
     @Test
     @DisplayName("generateLibraryWheel with null or empty list falls back to library wheel data")
     void generateLibraryWheel_nullOrEmpty_fallsBackToLibraryWheel() {
-        JsonNode resultNull = cocktailWheelService.generateLibraryWheel(null);
-        JsonNode resultEmpty = cocktailWheelService.generateLibraryWheel(Collections.emptyList());
+        CocktailWheelDTO.ConnectionWheelDTO resultNull = cocktailWheelService.generateLibraryWheel(null);
+        CocktailWheelDTO.ConnectionWheelDTO resultEmpty = cocktailWheelService.generateLibraryWheel(Collections.emptyList());
 
         assertThat(resultNull).isNotNull();
         assertThat(resultEmpty).isNotNull();
@@ -191,7 +190,7 @@ class CocktailWheelServiceTest {
         when(cocktailRepository.findAllWithIngredients()).thenThrow(new RuntimeException("Query error"));
         when(cocktailRepository.findAll()).thenReturn(Collections.emptyList());
 
-        JsonNode wheel = cocktailWheelService.regenerateEstablishmentWheel();
+        CocktailWheelDTO.ConnectionWheelDTO wheel = cocktailWheelService.regenerateEstablishmentWheel();
 
         assertThat(wheel).isNotNull();
         verify(cocktailRepository, times(1)).findAll();
@@ -224,12 +223,12 @@ class CocktailWheelServiceTest {
         cocktail.setIngredients(new ArrayList<>(List.of(ci1, ci2)));
         when(cocktailRepository.findAllWithIngredients()).thenReturn(List.of(cocktail));
 
-        JsonNode wheel = cocktailWheelService.regenerateEstablishmentWheel();
+        CocktailWheelDTO.ConnectionWheelDTO wheel = cocktailWheelService.regenerateEstablishmentWheel();
 
         assertThat(wheel).isNotNull();
-        JsonNode nodes = wheel.get("nodes");
-        assertThat(nodes.size()).isEqualTo(1);
-        assertThat(nodes.get(0).get("group").asText()).isEqualTo("other");
+        List<CocktailWheelDTO.NodeDTO> nodes = wheel.nodes();
+        assertThat(nodes).hasSize(1);
+        assertThat(nodes.get(0).group()).isEqualTo("other");
     }
 
     @Test
@@ -260,9 +259,9 @@ class CocktailWheelServiceTest {
 
         cocktailWheelService.clearCaches();
 
-        JsonNode fromFile = cocktailWheelService.getEstablishmentWheelData();
+        CocktailWheelDTO.ConnectionWheelDTO fromFile = cocktailWheelService.getEstablishmentWheelData();
         assertThat(fromFile).isNotNull();
-        assertThat(fromFile.get("nodes").size()).isEqualTo(2);
+        assertThat(fromFile.nodes()).hasSize(2);
     }
 }
 

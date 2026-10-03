@@ -5,9 +5,11 @@ import com.bar.gestioncocktail.dto.CocktailLibraryImportResultDTO;
 import com.bar.gestioncocktail.dto.CocktailLibraryItemDTO;
 import com.bar.gestioncocktail.dto.CocktailLibraryItemDTO.CocktailLibraryIngredientDTO;
 import com.bar.gestioncocktail.dto.CocktailLibraryItemDTO.CocktailLibraryRecipeStepDTO;
+import com.bar.gestioncocktail.dto.CocktailWheelDTO;
 import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.CocktailIngredientRepository;
 import com.bar.gestioncocktail.repository.CocktailRepository;
+import com.bar.gestioncocktail.repository.CocktailVarianteRepository;
 import com.bar.gestioncocktail.repository.GlasswareRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
@@ -55,6 +57,7 @@ public class CocktailLibraryService {
     private final GlasswareRepository glasswareRepository;
     private final EstablishmentConfigService establishmentConfigService;
     private final CocktailWheelService cocktailWheelService;
+    private final CocktailVarianteRepository cocktailVarianteRepository;
     private final ObjectMapper objectMapper;
 
     private final List<CocktailLibraryItemDTO> libraryItems = new ArrayList<>();
@@ -70,6 +73,7 @@ public class CocktailLibraryService {
      * @param glasswareRepository          Repository for glassware presets
      * @param establishmentConfigService   Service for establishment capability toggles
      * @param cocktailWheelService         Service for dynamic flavor and chord wheel generation
+     * @param cocktailVarianteRepository   Repository for cocktail variants and custom recipe options
      */
     public CocktailLibraryService(
             CocktailRepository cocktailRepository,
@@ -77,13 +81,15 @@ public class CocktailLibraryService {
             CocktailIngredientRepository cocktailIngredientRepository,
             GlasswareRepository glasswareRepository,
             EstablishmentConfigService establishmentConfigService,
-            CocktailWheelService cocktailWheelService) {
+            CocktailWheelService cocktailWheelService,
+            CocktailVarianteRepository cocktailVarianteRepository) {
         this.cocktailRepository = cocktailRepository;
         this.ingredientRepository = ingredientRepository;
         this.cocktailIngredientRepository = cocktailIngredientRepository;
         this.glasswareRepository = glasswareRepository;
         this.establishmentConfigService = establishmentConfigService;
         this.cocktailWheelService = cocktailWheelService;
+        this.cocktailVarianteRepository = cocktailVarianteRepository;
         this.objectMapper = JsonMapper.builder()
                 .enable(JsonReadFeature.ALLOW_NON_NUMERIC_NUMBERS)
                 .build();
@@ -143,7 +149,7 @@ public class CocktailLibraryService {
      * @return JsonNode containing connection wheel data
      */
     @Transactional(readOnly = true)
-    public JsonNode getWheelData() {
+    public CocktailWheelDTO.ConnectionWheelDTO getWheelData() {
         establishmentConfigService.checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
         return cocktailWheelService.getWheelData(CocktailWheelScope.LIBRARY);
     }
@@ -152,10 +158,10 @@ public class CocktailLibraryService {
      * Retrieves the interactive connection wheel dataset for the specified scope.
      *
      * @param scope Scope identifier (e.g. "LIBRARY" or "ESTABLISHMENT")
-     * @return JsonNode containing connection wheel data
+     * @return ConnectionWheelDTO containing connection wheel data
      */
     @Transactional(readOnly = true)
-    public JsonNode getWheelData(String scope) {
+    public CocktailWheelDTO.ConnectionWheelDTO getWheelData(String scope) {
         establishmentConfigService.checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
         CocktailWheelScope wheelScope = CocktailWheelScope.fromString(scope);
         return cocktailWheelService.getWheelData(wheelScope);
@@ -213,7 +219,15 @@ public class CocktailLibraryService {
         List<Glassware> allGlassware = glasswareRepository.findAll();
         ImportStats stats = new ImportStats();
 
-        for (CocktailLibraryItemDTO template : targets) {
+        List<CocktailLibraryItemDTO> sortedTargets = targets.stream()
+                .sorted((a, b) -> {
+                    boolean aIsVar = a.variationOf() != null && !a.variationOf().isBlank();
+                    boolean bIsVar = b.variationOf() != null && !b.variationOf().isBlank();
+                    return Boolean.compare(aIsVar, bIsVar);
+                })
+                .toList();
+
+        for (CocktailLibraryItemDTO template : sortedTargets) {
             importSingleTemplateCocktail(template, allGlassware, stats);
         }
 
@@ -239,6 +253,10 @@ public class CocktailLibraryService {
             CocktailLibraryItemDTO template,
             List<Glassware> allGlassware,
             ImportStats stats) {
+        if (tryImportAsVariant(template, stats)) {
+            return;
+        }
+
         if (cocktailRepository.findByNomIgnoreCase(template.nom().trim()).isPresent()) {
             stats.skippedCount++;
             stats.skippedCocktails.add(template.nom());
@@ -258,6 +276,49 @@ public class CocktailLibraryService {
         cocktailRepository.save(savedCocktail);
         stats.importedCount++;
         stats.importedCocktails.add(savedCocktail.getNom());
+    }
+
+    private boolean tryImportAsVariant(CocktailLibraryItemDTO template, ImportStats stats) {
+        if (template.variationOf() == null || template.variationOf().isBlank()) {
+            return false;
+        }
+        Optional<Cocktail> baseCocktailOpt = cocktailRepository.findByNomIgnoreCase(template.variationOf().trim());
+        if (baseCocktailOpt.isEmpty()) {
+            return false;
+        }
+        Cocktail baseCocktail = baseCocktailOpt.get();
+        List<CocktailVariante> existingVariants = cocktailVarianteRepository.findByCocktail(baseCocktail);
+        boolean variantExists = existingVariants.stream()
+                .anyMatch(v -> v.getNom().equalsIgnoreCase(template.nom().trim()));
+        if (variantExists) {
+            stats.skippedCount++;
+            stats.skippedCocktails.add(template.nom());
+            return true;
+        }
+
+        CocktailVariante variante = new CocktailVariante();
+        variante.setCocktail(baseCocktail);
+        variante.setNom(template.nom().trim());
+        variante.setDescription(template.description());
+        variante.setInstructions(template.instructions());
+        variante.setDisponible(true);
+
+        BigDecimal basePrice = baseCocktail.getPrix() != null ? baseCocktail.getPrix() : BigDecimal.ZERO;
+        BigDecimal templatePrice = template.prix() != null ? template.prix() : basePrice;
+        variante.setPrixSupplement(templatePrice.subtract(basePrice).max(BigDecimal.ZERO));
+
+        if (template.recipeSteps() != null && !template.recipeSteps().isEmpty()) {
+            try {
+                variante.setRecipeStepsJson(objectMapper.writeValueAsString(template.recipeSteps()));
+            } catch (Exception e) {
+                log.warn("Failed to serialize recipe steps for variant {}", template.nom(), e);
+            }
+        }
+
+        cocktailVarianteRepository.save(variante);
+        stats.importedCount++;
+        stats.importedCocktails.add(template.nom() + " (variante de " + baseCocktail.getNom() + ")");
+        return true;
     }
 
     private List<CocktailIngredient> linkTemplateIngredients(
