@@ -3,47 +3,12 @@
 }
 
 .reservation-modal-dialog {
-  --width: min(860px, 95vw);
-  --max-width: 860px;
-  --height: min(860px, 90vh);
-  --max-height: 90vh;
-  --border-radius: 16px;
+  --width: min(1080px, 96vw);
+  --max-width: 1080px;
+  --height: min(900px, 94vh);
+  --max-height: 94vh;
+  --border-radius: 18px;
   --background: var(--background-surface-1);
-}
-
-.modal-header {
-  background: var(--background-surface-1);
-  border-bottom: 1px solid var(--border-medium);
-
-  ion-toolbar {
-    --background: transparent;
-    --color: var(--text-primary);
-  }
-
-  .modal-title {
-    font-size: 1.15rem;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
-
-  .close-btn {
-    --color: var(--text-muted);
-    font-size: 1.3rem;
-
-    &:hover {
-      --color: var(--text-primary);
-    }
-  }
-}
-
-.modal-content {
-  --background: var(--background-bg-0);
-  --padding-top: 20px;
-  --padding-bottom: 24px;
-  --padding-start: 24px;
-  --padding-end: 24px;
-  --overflow: auto;
-  overflow-y: auto;
 }
 
 .reservation-form {
@@ -56,7 +21,7 @@
   background: var(--background-surface-1);
   border: 1px solid var(--border-medium);
   border-radius: 12px;
-  padding: 16px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -139,7 +104,7 @@
 .grid-2-cols {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 14px;
 
   @media (max-width: 540px) {
     grid-template-columns: 1fr;
@@ -149,7 +114,7 @@
 .grid-3-cols {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px;
+  gap: 14px;
 
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
@@ -230,22 +195,16 @@
   }
 }
 
-.modal-footer {
-  background: var(--background-surface-1);
-  border-top: 1px solid var(--border-medium);
-  padding: 14px 24px;
-}
-
 .modal-actions-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding: 0;
+  width: 100%;
 
   button {
     border: none;
     border-radius: 8px;
-    padding: 10px 22px;
+    padding: 10px 24px;
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;

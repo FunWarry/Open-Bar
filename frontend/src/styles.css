@@ -883,12 +883,17 @@ ion-modal.modal-lg,
 ion-modal.openbar-modal-lg,
 ion-modal.openbar-modal-payment,
 ion-modal.purchase-order-modal-container,
-ion-modal.reservation-modal-dialog,
 ion-modal.shifts-modal-dialog,
 ion-modal.commande-detail-modal-container {
   --width: min(880px, 96vw);
   --height: min(860px, 92vh);
   --max-height: 92vh;
+}
+
+ion-modal.reservation-modal-dialog {
+  --width: min(1080px, 96vw);
+  --height: min(900px, 94vh);
+  --max-height: 94vh;
 }
 
 ion-modal.ingredient-form-modal-container {

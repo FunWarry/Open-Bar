@@ -1,19 +1,11 @@
 <ion-modal [isOpen]="isOpen" (didDismiss)="close()" class="reservation-modal-dialog">
   <ng-template>
-    <ion-header class="ion-no-border modal-header">
-      <ion-toolbar>
-        <ion-title class="modal-title">
-          {{ (reservationToEdit ? 'RESERVATIONS.MODAL_EDIT_TITLE' : 'RESERVATIONS.MODAL_CREATE_TITLE') | transloco }}
-        </ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="close()" (keyup.enter)="close()" aria-label="Fermer" class="close-btn" data-testid="btn-close-reservation-modal">
-            <ion-icon name="close-outline"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-content class="modal-content" [fullscreen]="false">
+    <app-modal
+      [title]="(reservationToEdit ? 'RESERVATIONS.MODAL_EDIT_TITLE' : 'RESERVATIONS.MODAL_CREATE_TITLE') | transloco"
+      icon="calendar-outline"
+      size="xl"
+      (dismiss)="close()"
+    >
       <form id="reservationForm" [formGroup]="reservationForm" (ngSubmit)="saveReservation()" class="reservation-form">
         <!-- Customer Info Section -->
         <div class="form-section">
@@ -235,10 +227,9 @@
           </div>
         </div>
       </form>
-    </ion-content>
 
-    <ion-footer class="ion-no-border modal-footer">
-      <div class="modal-actions-footer">
+      <!-- Pinned Footer Actions Slot -->
+      <div slot="footer" class="modal-actions-footer">
         <button
           type="button"
           class="btn-secondary"
@@ -255,6 +246,6 @@
           {{ (reservationToEdit ? 'COMMON.UPDATE' : 'COMMON.CONFIRM') | transloco }}
         </button>
       </div>
-    </ion-footer>
+    </app-modal>
   </ng-template>
 </ion-modal>

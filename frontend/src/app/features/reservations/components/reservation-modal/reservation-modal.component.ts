@@ -12,17 +12,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import {
-  IonButton,
-  IonButtons,
-  IonContent,
-  IonFooter,
-  IonHeader,
-  IonIcon,
-  IonModal,
-  IonTitle,
-  IonToolbar,
-} from '@ionic/angular';
+import { IonIcon, IonModal } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import {
@@ -46,6 +36,7 @@ import {
 } from '../../../../core/models/reservation.model';
 import { TableBar } from '../../../../core/models/table.model';
 import { ReservationService } from '../../../../core/services/reservation.service';
+import { ModalComponent } from '../../../../core/components/ui/modal/modal.component';
 import {
   SearchableOption,
   SearchableSelectComponent,
@@ -64,14 +55,8 @@ import {
     ReactiveFormsModule,
     TranslocoPipe,
     IonModal,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
-    IonButton,
     IonIcon,
-    IonContent,
-    IonFooter,
+    ModalComponent,
     SearchableSelectComponent,
   ],
   templateUrl: './reservation-modal.component.html',
