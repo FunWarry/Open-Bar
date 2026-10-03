@@ -4269,6 +4269,22 @@
       "LUNCH": "Service Midi (11h30 - 15h30)",
       "DINNER": "Service Soir (18h30 - 23h30)"
     },
+    "CLICK_TO_BOOK": "Cliquer pour réserver",
+    "MANAGE_SHIFTS": "Gérer les shifts",
+    "SHIFTS_MODAL_TITLE": "Configuration des shifts & services",
+    "SHIFTS_MODAL_SUBTITLE": "Définissez et personnalisez les plages horaires de service de votre établissement.",
+    "SHIFTS_CONFIGURED": "Shifts de service configurés",
+    "SHIFTS_RESET_DEFAULTS": "Réinitialiser les créneaux",
+    "SHIFT_NAME": "Nom du shift / service",
+    "SHIFT_START": "Heure de début",
+    "SHIFT_END": "Heure de fin",
+    "SHIFT_INTERVAL": "Intervalle créneaux",
+    "SHIFTS_ADD_NEW": "Ajouter un nouveau shift",
+    "SHIFT_NAME_PLACEHOLDER": "Ex: Brunch, Afterwork, Soirée, Nuit",
+    "SHIFTS_ADD_BTN": "Ajouter ce shift",
+    "ACTION_COPY": "Copier la réservation",
+    "ACTION_PASTE": "Coller la réservation",
+    "ACTION_DUPLICATE": "Dupliquer (+1h)",
     "TABLES": {
       "ALL": "Toutes les tables",
       "UNASSIGNED": "Non assignée"

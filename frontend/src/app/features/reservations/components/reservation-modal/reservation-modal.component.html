@@ -130,19 +130,15 @@
             </div>
 
             <div class="input-group">
-              <label for="res-duree" class="field-label">{{ 'RESERVATIONS.DURATION' | transloco }} *</label>
-              <div class="input-wrapper">
-                <select
-                  id="res-duree"
-                  formControlName="dureeMinutes"
-                  (change)="checkTableAvailability()"
-                  class="form-select"
-                  data-testid="select-reservation-duration">
-                  @for (opt of durationOptions; track opt.value) {
-                    <option [value]="opt.value">{{ opt.label }}</option>
-                  }
-                </select>
-              </div>
+              <label class="field-label">{{ 'RESERVATIONS.DURATION' | transloco }} *</label>
+              <app-searchable-select
+                formControlName="dureeMinutes"
+                [options]="durationSelectOptions"
+                [searchable]="false"
+                [clearable]="false"
+                (selectionChange)="onDurationSelected($event)"
+                testId="select-reservation-duration">
+              </app-searchable-select>
             </div>
           </div>
 
@@ -165,18 +161,15 @@
             </div>
 
             <div class="input-group">
-              <label for="res-statut" class="field-label">{{ 'RESERVATIONS.STATUS' | transloco }} *</label>
-              <div class="input-wrapper">
-                <select
-                  id="res-statut"
-                  formControlName="statut"
-                  class="form-select"
-                  data-testid="select-reservation-status">
-                  @for (st of statusOptions; track st) {
-                    <option [value]="st">{{ ('RESERVATIONS.STATUS_' + st) | transloco }}</option>
-                  }
-                </select>
-              </div>
+              <label class="field-label">{{ 'RESERVATIONS.STATUS' | transloco }} *</label>
+              <app-searchable-select
+                formControlName="statut"
+                [options]="statusSelectOptions"
+                [searchable]="false"
+                [clearable]="false"
+                (selectionChange)="onStatusSelected($event)"
+                testId="select-reservation-status">
+              </app-searchable-select>
             </div>
           </div>
         </div>
@@ -189,22 +182,17 @@
           </h3>
 
           <div class="input-group">
-            <label for="res-table" class="field-label">{{ 'RESERVATIONS.ASSIGNED_TABLE' | transloco }}</label>
-            <div class="input-wrapper">
-              <select
-                id="res-table"
-                formControlName="tableId"
-                (change)="checkTableAvailability()"
-                class="form-select"
-                data-testid="select-reservation-table">
-                <option [ngValue]="null">{{ 'RESERVATIONS.TABLE_UNASSIGNED' | transloco }}</option>
-                @for (t of tables; track t.id) {
-                  <option [value]="t.id">
-                    {{ 'RESERVATIONS.TABLE_LABEL' | transloco: { number: t.numero, capacity: t.capacite, zone: t.zone } }}
-                  </option>
-                }
-              </select>
-            </div>
+            <label class="field-label">{{ 'RESERVATIONS.ASSIGNED_TABLE' | transloco }}</label>
+            <app-searchable-select
+              formControlName="tableId"
+              [options]="tableSelectOptions"
+              [searchable]="true"
+              [clearable]="true"
+              placeholder="{{ 'RESERVATIONS.TABLE_UNASSIGNED' | transloco }}"
+              searchPlaceholder="Rechercher une table..."
+              (selectionChange)="onTableSelected($event)"
+              testId="select-reservation-table">
+            </app-searchable-select>
           </div>
 
           <!-- Availability Check Feedback -->

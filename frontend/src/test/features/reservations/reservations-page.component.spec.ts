@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { of, Subject } from 'rxjs';
-import { AlertController, ModalController, ToastController } from '@ionic/angular';
+import { ActionSheetController, AlertController, ModalController, ToastController } from '@ionic/angular';
 import { ReservationsPageComponent } from '../../../app/features/reservations/reservations-page.component';
 import { ReservationService } from '../../../app/core/services/reservation.service';
 import { TableService } from '../../../app/core/services/table.service';
@@ -63,10 +63,12 @@ describe('ReservationsPageComponent', () => {
       'getReservations',
       'updateStatut',
       'seatReservation',
+      'createReservation',
     ]);
     reservationServiceSpy.getReservations.and.returnValue(of(mockReservations));
     reservationServiceSpy.updateStatut.and.returnValue(of({ ...mockReservations[0], statut: 'CANCELLED' }));
     reservationServiceSpy.seatReservation.and.returnValue(of({ ...mockReservations[0], statut: 'SEATED' }));
+    reservationServiceSpy.createReservation.and.returnValue(of(mockReservations[0]));
 
     tableServiceSpy = jasmine.createSpyObj('TableService', ['getAll']);
     tableServiceSpy.getAll.and.returnValue(of(mockTables));
@@ -89,6 +91,9 @@ describe('ReservationsPageComponent', () => {
       onWillDismiss: () => Promise.resolve({ data: { seated: true } }),
     } as any));
 
+    const actionSheetCtrlSpy = jasmine.createSpyObj('ActionSheetController', ['create']);
+    actionSheetCtrlSpy.create.and.returnValue(Promise.resolve({ present: () => Promise.resolve() } as any));
+
     await TestBed.configureTestingModule({
       imports: [
         ReservationsPageComponent,
@@ -103,6 +108,7 @@ describe('ReservationsPageComponent', () => {
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: AlertController, useValue: alertCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
+        { provide: ActionSheetController, useValue: actionSheetCtrlSpy },
       ],
     }).compileComponents();
 
@@ -163,5 +169,36 @@ describe('ReservationsPageComponent', () => {
     expect(component.viewMode()).toBe('LIST');
     component.viewMode.set('TIMELINE');
     expect(component.viewMode()).toBe('TIMELINE');
+  });
+
+  it('copies a reservation to clipboard and pastes it onto a table slot', () => {
+    const resToCopy = mockReservations[0];
+    component.copyReservation(resToCopy);
+    expect(component.copiedReservation()).toBe(resToCopy);
+
+    reservationServiceSpy.createReservation.and.returnValue(of({
+      ...resToCopy,
+      id: 99,
+      tableId: 20,
+      heureReservation: '20:00',
+    }));
+
+    component.pasteReservation(20, '20:00');
+    expect(reservationServiceSpy.createReservation).toHaveBeenCalled();
+  });
+
+  it('opens new reservation modal on slot click', () => {
+    component.onSlotClick(10, '19:30');
+    expect(component.isModalOpen).toBeTrue();
+    expect(component.newReservationInitialTableId).toBe(10);
+    expect(component.newReservationInitialTime).toBe('19:30');
+  });
+
+  it('opens and closes the restaurant shifts modal', () => {
+    component.openShiftsModal();
+    expect(component.isShiftsModalOpen).toBeTrue();
+
+    component.onShiftsModalClose();
+    expect(component.isShiftsModalOpen).toBeFalse();
   });
 });

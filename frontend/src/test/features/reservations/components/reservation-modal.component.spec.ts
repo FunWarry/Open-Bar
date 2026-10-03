@@ -86,6 +86,22 @@ describe('ReservationModalComponent', () => {
     expect(component.reservationToEdit).toBeTruthy();
   });
 
+  it('pre-fills all form fields dynamically when reservationToEdit changes and isOpen is true', () => {
+    component.isOpen = true;
+    component.reservationToEdit = mockReservation;
+    component.populateForm();
+
+    expect(component.reservationForm.get('nomClient')?.value).toBe('Jean Dupont');
+    expect(component.reservationForm.get('telephone')?.value).toBe('+33612345678');
+    expect(component.reservationForm.get('email')?.value).toBe('jean.dupont@email.fr');
+    expect(component.reservationForm.get('dateReservation')?.value).toBe('2026-08-15');
+    expect(component.reservationForm.get('heureReservation')?.value).toBe('19:30');
+    expect(component.reservationForm.get('dureeMinutes')?.value).toBe(90);
+    expect(component.reservationForm.get('nombrePersonnes')?.value).toBe(2);
+    expect(component.reservationForm.get('tableId')?.value).toBe(10);
+    expect(component.reservationForm.get('statut')?.value).toBe('CONFIRMED');
+  });
+
   it('calls createReservation on valid form submit', () => {
     spyOn(component.reservationSaved, 'emit');
 

@@ -12,11 +12,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import {
+  ActionSheetController,
   IonContent,
   IonHeader,
   IonIcon,
   IonSpinner,
   IonToolbar,
+  ToastController,
 } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
@@ -24,14 +26,20 @@ import {
   addOutline,
   calendarOutline,
   callOutline,
+  checkmarkCircleOutline,
   chevronBackOutline,
   chevronForwardOutline,
+  clipboardOutline,
   closeCircleOutline,
+  closeOutline,
+  copyOutline,
   createOutline,
   documentTextOutline,
+  duplicateOutline,
   filterOutline,
   gridOutline,
   listOutline,
+  optionsOutline,
   peopleOutline,
   personOutline,
   refreshOutline,
@@ -41,7 +49,11 @@ import {
   trashOutline,
 } from 'ionicons/icons';
 import { Subject, takeUntil } from 'rxjs';
-import { Reservation, ReservationStatut } from '../../core/models/reservation.model';
+import {
+  Reservation,
+  ReservationCreateRequest,
+  ReservationStatut,
+} from '../../core/models/reservation.model';
 import { TableBar } from '../../core/models/table.model';
 import { ReservationService } from '../../core/services/reservation.service';
 import { TableService } from '../../core/services/table.service';
@@ -50,16 +62,19 @@ import { SearchBarComponent } from '../../core/components/ui/search-bar/search-b
 import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
 import { CardComponent, CardAccentColor } from '../../core/components/ui/card/card.component';
 import { ReservationModalComponent } from './components/reservation-modal/reservation-modal.component';
-
-/** Service shift segmentation filter type. */
-export type ServiceShift = 'ALL' | 'LUNCH' | 'DINNER';
+import {
+  RestaurantServiceShift,
+  RestaurantShiftService,
+} from '../../core/services/restaurant-shift.service';
+import { RestaurantShiftsModalComponent } from './components/restaurant-shifts-modal/restaurant-shifts-modal.component';
 
 /** View layout presentation mode. */
 export type ViewLayoutMode = 'TIMELINE' | 'LIST';
 
 /**
  * Main Table Reservation Book page allowing staff to browse bookings across timeline/list,
- * create/edit bookings, and seat patrons.
+ * create/edit bookings directly on the calendar, copy/paste bookings, configure service shifts,
+ * and seat patrons in real time.
  */
 @Component({
   selector: 'app-reservations-page',
@@ -78,6 +93,7 @@ export type ViewLayoutMode = 'TIMELINE' | 'LIST';
     EmptyStateComponent,
     CardComponent,
     ReservationModalComponent,
+    RestaurantShiftsModalComponent,
   ],
   templateUrl: './reservations-page.component.html',
   styleUrls: ['./reservations-page.component.scss'],
@@ -86,6 +102,9 @@ export type ViewLayoutMode = 'TIMELINE' | 'LIST';
 export class ReservationsPageComponent implements OnInit, OnDestroy {
   private readonly reservationService = inject(ReservationService);
   private readonly tableService = inject(TableService);
+  private readonly restaurantShiftService = inject(RestaurantShiftService);
+  private readonly actionSheetCtrl = inject(ActionSheetController);
+  private readonly toastCtrl = inject(ToastController);
   private readonly ws = inject(WebSocketService, { optional: true });
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -93,7 +112,8 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
 
   // State signals
   readonly selectedDate = signal<string>(new Date().toISOString().substring(0, 10));
-  readonly selectedShift = signal<ServiceShift>('ALL');
+  readonly selectedShift = signal<string>('ALL');
+  readonly selectedShiftId = this.selectedShift;
   readonly viewMode = signal<ViewLayoutMode>('TIMELINE');
   readonly searchQuery = signal<string>('');
   readonly selectedStatusFilter = signal<'ALL' | ReservationStatut>('ALL');
@@ -101,18 +121,32 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
   readonly tables = signal<TableBar[]>([]);
   readonly isLoading = signal<boolean>(false);
 
+  // Configured restaurant shifts
+  readonly configuredShifts = this.restaurantShiftService.shifts;
+
+  // Clipboard for copy & paste
+  readonly copiedReservation = signal<Reservation | null>(null);
+
   // Modal controls
   isModalOpen = false;
+  isShiftsModalOpen = false;
   reservationToEdit: Reservation | null = null;
   newReservationInitialTableId: number | null = null;
   newReservationInitialTime: string | null = null;
+
+  // Active shift object if not 'ALL'
+  readonly activeShift = computed(() => {
+    const shiftId = this.selectedShift();
+    if (shiftId === 'ALL') return null;
+    return this.configuredShifts().find((s) => s.id === shiftId) || null;
+  });
 
   // Filtered reservations
   readonly filteredReservations = computed(() => {
     let list = this.reservations();
     const query = this.searchQuery().trim().toLowerCase();
     const status = this.selectedStatusFilter();
-    const shift = this.selectedShift();
+    const shift = this.activeShift();
 
     if (query) {
       list = list.filter(
@@ -127,15 +161,12 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
       list = list.filter((r) => r.statut === status);
     }
 
-    if (shift === 'LUNCH') {
+    if (shift) {
+      const shiftStartMin = this.timeToMinutes(shift.startTime);
+      const shiftEndMin = this.timeToMinutes(shift.endTime);
       list = list.filter((r) => {
-        const h = this.parseHour(r.heureReservation);
-        return h >= 11 && h < 16;
-      });
-    } else if (shift === 'DINNER') {
-      list = list.filter((r) => {
-        const h = this.parseHour(r.heureReservation);
-        return h >= 18;
+        const rMin = this.timeToMinutes(r.heureReservation);
+        return rMin >= shiftStartMin && rMin <= shiftEndMin;
       });
     }
 
@@ -162,30 +193,48 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
     this.filteredReservations().filter((r) => !r.tableId)
   );
 
-  // Timeline slots configuration based on shift
+  // Timeline slots configuration based on active shift or full day
   readonly timelineConfig = computed(() => {
-    const shift = this.selectedShift();
-    if (shift === 'LUNCH') {
+    const shift = this.activeShift();
+    if (shift) {
+      const startMinutes = this.timeToMinutes(shift.startTime);
+      const endMinutes = this.timeToMinutes(shift.endTime);
+      const step = shift.stepMinutes || 30;
+      const slots: string[] = [];
+      for (let m = startMinutes; m < endMinutes; m += step) {
+        slots.push(this.minutesToTime(m));
+      }
       return {
-        startMinutes: 11 * 60 + 30, // 11:30
-        endMinutes: 15 * 60 + 30, // 15:30
-        stepMinutes: 30,
-        slots: ['11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00'],
-      };
-    } else if (shift === 'DINNER') {
-      return {
-        startMinutes: 18 * 60 + 30, // 18:30
-        endMinutes: 23 * 60 + 30, // 23:30
-        stepMinutes: 30,
-        slots: ['18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00'],
+        startMinutes,
+        endMinutes,
+        stepMinutes: step,
+        slots,
       };
     }
-    // ALL Day: 11:30 to 23:30
+
+    // ALL Day: calculate overall range across configured shifts
+    const allShifts = this.configuredShifts();
+    let minStart = 11 * 60 + 30; // 11:30 default
+    let maxEnd = 23 * 60 + 30; // 23:30 default
+
+    if (allShifts.length > 0) {
+      const shiftStarts = allShifts.map((s) => this.timeToMinutes(s.startTime));
+      const shiftEnds = allShifts.map((s) => this.timeToMinutes(s.endTime));
+      minStart = Math.min(...shiftStarts);
+      maxEnd = Math.max(...shiftEnds);
+    }
+
+    const step = 60; // 1h step on full day overview
+    const slots: string[] = [];
+    for (let m = minStart; m < maxEnd; m += step) {
+      slots.push(this.minutesToTime(m));
+    }
+
     return {
-      startMinutes: 11 * 60 + 30,
-      endMinutes: 23 * 60 + 30,
-      stepMinutes: 60,
-      slots: ['11:30', '12:30', '13:30', '14:30', '15:30', '16:30', '17:30', '18:30', '19:30', '20:30', '21:30', '22:30'],
+      startMinutes: minStart,
+      endMinutes: maxEnd,
+      stepMinutes: step,
+      slots,
     };
   });
 
@@ -209,6 +258,12 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
       documentTextOutline,
       createOutline,
       closeCircleOutline,
+      optionsOutline,
+      copyOutline,
+      clipboardOutline,
+      duplicateOutline,
+      checkmarkCircleOutline,
+      closeOutline,
     });
   }
 
@@ -229,7 +284,6 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
   loadTables(): void {
     this.tableService.getAll().subscribe({
       next: (t) => {
-        // Sort tables naturally by number
         const sorted = [...t].sort((a, b) => (a.numero || 0) - (b.numero || 0));
         this.tables.set(sorted);
         this.cdr.markForCheck();
@@ -284,8 +338,8 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  setShift(shift: ServiceShift): void {
-    this.selectedShift.set(shift);
+  setShift(shiftId: string): void {
+    this.selectedShift.set(shiftId);
   }
 
   setViewMode(mode: ViewLayoutMode): void {
@@ -326,13 +380,239 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  onReservationSaved(saved: Reservation): void {
+  onReservationSaved(_saved: Reservation): void {
     this.loadReservations();
   }
 
+  // ─── Shift Management Modal Controls ──────────────────────────
+
+  openShiftsModal(): void {
+    this.isShiftsModalOpen = true;
+    this.cdr.markForCheck();
+  }
+
+  onShiftsModalClose(): void {
+    this.isShiftsModalOpen = false;
+    this.cdr.markForCheck();
+  }
+
+  onShiftsUpdated(_shifts: RestaurantServiceShift[]): void {
+    this.cdr.markForCheck();
+  }
+
+  // ─── Interactive Calendar Track Clicking & Context Menu ────────
+
   /**
-   * 1-Click action to seat guests on their assigned table.
+   * Direct click on an empty timeline slot cell to create a booking for this table & hour.
+   *
+   * @param tableId Physical table ID
+   * @param slotTime Clicked slot hour string (e.g. '19:30')
    */
+  onSlotClick(tableId: number, slotTime: string): void {
+    this.openNewReservationModal(tableId, slotTime);
+  }
+
+  /**
+   * Right-click context menu on a timeline slot.
+   */
+  async onSlotContextMenu(event: MouseEvent, table: TableBar, slotTime: string): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const buttons: any[] = [
+      {
+        text: 'Nouvelle réservation',
+        icon: 'add-outline',
+        handler: () => {
+          this.openNewReservationModal(table.id, slotTime);
+        },
+      },
+    ];
+
+    if (this.copiedReservation()) {
+      const copied = this.copiedReservation()!;
+      buttons.push({
+        text: `Coller la réservation (${copied.nomClient})`,
+        icon: 'clipboard-outline',
+        handler: () => {
+          this.pasteReservation(table.id, slotTime);
+        },
+      });
+    }
+
+    buttons.push({
+      text: 'Annuler',
+      icon: 'close-outline',
+      role: 'cancel',
+    });
+
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: `Table ${table.numero} à ${slotTime}`,
+      buttons,
+    });
+    await actionSheet.present();
+  }
+
+  /**
+   * Right-click context menu on an existing booking block.
+   */
+  async onReservationContextMenu(event: MouseEvent, res: Reservation, table?: TableBar): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const buttons: any[] = [
+      {
+        text: 'Modifier la réservation',
+        icon: 'create-outline',
+        handler: () => {
+          this.openEditModal(res);
+        },
+      },
+      {
+        text: 'Copier la réservation',
+        icon: 'copy-outline',
+        handler: () => {
+          this.copyReservation(res);
+        },
+      },
+    ];
+
+    if (this.copiedReservation() && res.tableId) {
+      buttons.push({
+        text: 'Coller le créneau copié',
+        icon: 'clipboard-outline',
+        handler: () => {
+          this.pasteReservation(res.tableId!, res.heureReservation);
+        },
+      });
+    }
+
+    buttons.push({
+      text: 'Dupliquer (+1h)',
+      icon: 'duplicate-outline',
+      handler: () => {
+        this.duplicateReservation(res);
+      },
+    });
+
+    if (res.statut !== 'SEATED' && res.statut !== 'CANCELLED' && res.tableId) {
+      buttons.push({
+        text: 'Installer les clients',
+        icon: 'restaurant-outline',
+        handler: () => {
+          this.seatReservation(res);
+        },
+      });
+    }
+
+    if (res.statut !== 'CANCELLED' && res.statut !== 'SEATED') {
+      buttons.push({
+        text: 'Annuler la réservation',
+        icon: 'close-circle-outline',
+        handler: () => {
+          this.cancelReservation(res);
+        },
+      });
+    }
+
+    buttons.push(
+      {
+        text: 'Supprimer définitivement',
+        icon: 'trash-outline',
+        role: 'destructive',
+        handler: () => {
+          this.deleteReservation(res);
+        },
+      },
+      {
+        text: 'Fermer',
+        icon: 'close-outline',
+        role: 'cancel',
+      }
+    );
+
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: `${res.nomClient} (${res.nombrePersonnes} pers) - ${res.heureReservation}`,
+      buttons,
+    });
+    await actionSheet.present();
+  }
+
+  /**
+   * Copies a reservation into clipboard.
+   */
+  copyReservation(res: Reservation): void {
+    this.copiedReservation.set(res);
+    void this.showToast(
+      `Réservation de ${res.nomClient} (${res.heureReservation}) copiée dans le presse-papier`,
+      'success'
+    );
+  }
+
+  /**
+   * Pastes the copied reservation into target table and slot time.
+   */
+  pasteReservation(tableId: number, slotTime: string): void {
+    const copied = this.copiedReservation();
+    if (!copied) {
+      void this.showToast('Aucune réservation dans le presse-papier', 'warning');
+      return;
+    }
+
+    const req: ReservationCreateRequest = {
+      nomClient: copied.nomClient,
+      telephone: copied.telephone,
+      email: copied.email,
+      dateReservation: this.selectedDate(),
+      heureReservation: slotTime,
+      dureeMinutes: copied.dureeMinutes || 90,
+      nombrePersonnes: copied.nombrePersonnes || 2,
+      notes: copied.notes ? `${copied.notes} (Copié)` : 'Copié depuis le planning',
+      statut: 'CONFIRMED',
+      tableId: tableId || null,
+    };
+
+    this.reservationService.createReservation(req).subscribe({
+      next: (created) => {
+        this.loadReservations();
+        void this.showToast(`Réservation collée pour ${created.nomClient} à ${slotTime}`, 'success');
+      },
+      error: () => {
+        void this.showToast('Impossible de coller la réservation sur ce créneau.', 'danger');
+      },
+    });
+  }
+
+  /**
+   * Duplicates reservation 1 hour after on same table.
+   */
+  duplicateReservation(res: Reservation): void {
+    const startMin = this.timeToMinutes(res.heureReservation);
+    const newTime = this.minutesToTime(startMin + 60);
+
+    const req: ReservationCreateRequest = {
+      nomClient: `${res.nomClient} (Copie)`,
+      telephone: res.telephone,
+      email: res.email,
+      dateReservation: res.dateReservation,
+      heureReservation: newTime,
+      dureeMinutes: res.dureeMinutes || 90,
+      nombrePersonnes: res.nombrePersonnes || 2,
+      notes: res.notes,
+      statut: 'CONFIRMED',
+      tableId: res.tableId,
+    };
+
+    this.reservationService.createReservation(req).subscribe({
+      next: () => {
+        this.loadReservations();
+        void this.showToast(`Réservation dupliquée à ${newTime}`, 'success');
+      },
+    });
+  }
+
+  // ─── Actions & Lifecycle ─────────────────────────────────────────
+
   seatReservation(reservation: Reservation): void {
     this.reservationService.seatReservation(reservation.id).subscribe({
       next: () => {
@@ -342,27 +622,18 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Cancels a reservation.
-   */
   cancelReservation(reservation: Reservation): void {
     this.reservationService.updateStatut(reservation.id, 'CANCELLED').subscribe({
       next: () => this.loadReservations(),
     });
   }
 
-  /**
-   * Deletes a reservation permanently.
-   */
   deleteReservation(reservation: Reservation): void {
     this.reservationService.deleteReservation(reservation.id).subscribe({
       next: () => this.loadReservations(),
     });
   }
 
-  /**
-   * Navigates to the interactive Konva floor plan.
-   */
   goToFloorPlan(): void {
     void this.router.navigate(['/plan-salle']);
   }
@@ -375,19 +646,18 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
 
   getReservationStyle(res: Reservation): Record<string, string> {
     const config = this.timelineConfig();
-    const totalMinutes = config.endMinutes - config.startMinutes;
+    const totalMinutes = Math.max(1, config.endMinutes - config.startMinutes);
 
     const startH = this.parseHour(res.heureReservation);
     const startM = this.parseMinute(res.heureReservation);
     const resStartMinutes = startH * 60 + startM;
     const duration = res.dureeMinutes || 90;
 
-    // Constrain within timeline boundaries
     const clampedStart = Math.max(config.startMinutes, Math.min(config.endMinutes, resStartMinutes));
     const clampedEnd = Math.max(config.startMinutes, Math.min(config.endMinutes, resStartMinutes + duration));
 
     const left = ((clampedStart - config.startMinutes) / totalMinutes) * 100;
-    const width = Math.max(3, ((clampedEnd - clampedStart) / totalMinutes) * 100);
+    const width = Math.max(4, ((clampedEnd - clampedStart) / totalMinutes) * 100);
 
     return {
       left: `${left}%`,
@@ -428,6 +698,18 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  private timeToMinutes(timeStr: string): number {
+    if (!timeStr) return 0;
+    const parts = timeStr.split(':');
+    return (Number.parseInt(parts[0], 10) || 0) * 60 + (Number.parseInt(parts[1], 10) || 0);
+  }
+
+  private minutesToTime(totalMinutes: number): string {
+    const h = Math.floor(totalMinutes / 60) % 24;
+    const m = totalMinutes % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  }
+
   private parseHour(timeStr: string): number {
     if (!timeStr) return 0;
     const parts = timeStr.split(':');
@@ -438,6 +720,16 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
     if (!timeStr) return 0;
     const parts = timeStr.split(':');
     return parts.length > 1 ? Number.parseInt(parts[1], 10) || 0 : 0;
+  }
+
+  private async showToast(message: string, color: 'success' | 'warning' | 'danger'): Promise<void> {
+    const toast = await this.toastCtrl.create({
+      message,
+      duration: 2500,
+      color,
+      position: 'bottom',
+    });
+    await toast.present();
   }
 
   private initWebSocket(): void {

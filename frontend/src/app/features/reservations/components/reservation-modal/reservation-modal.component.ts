@@ -5,8 +5,10 @@ import {
   EventEmitter,
   inject,
   Input,
+  OnChanges,
   OnInit,
   Output,
+  SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -43,10 +45,15 @@ import {
 } from '../../../../core/models/reservation.model';
 import { TableBar } from '../../../../core/models/table.model';
 import { ReservationService } from '../../../../core/services/reservation.service';
+import {
+  SearchableOption,
+  SearchableSelectComponent,
+} from '../../../../core/components/ui/searchable-select/searchable-select.component';
 
 /**
  * Modal dialog component for creating or editing a table reservation.
- * Includes party size validation, live table availability checks, and customer autocomplete.
+ * Includes party size validation, live table availability checks, customer autocomplete,
+ * and design system searchable select dropdowns.
  */
 @Component({
   selector: 'app-reservation-modal',
@@ -63,12 +70,13 @@ import { ReservationService } from '../../../../core/services/reservation.servic
     IonButton,
     IonIcon,
     IonContent,
+    SearchableSelectComponent,
   ],
   templateUrl: './reservation-modal.component.html',
   styleUrls: ['./reservation-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ReservationModalComponent implements OnInit {
+export class ReservationModalComponent implements OnInit, OnChanges {
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly reservationService = inject(ReservationService);
@@ -91,22 +99,40 @@ export class ReservationModalComponent implements OnInit {
   customerSuggestions: Reservation[] = [];
   showSuggestions = false;
 
-  readonly durationOptions = [
-    { label: '45 min', value: 45 },
-    { label: '1h00', value: 60 },
-    { label: '1h30 (défaut)', value: 90 },
-    { label: '2h00', value: 120 },
-    { label: '2h30', value: 150 },
-    { label: '3h00', value: 180 },
+  readonly durationSelectOptions: SearchableOption<number>[] = [
+    { value: 45, label: '45 min' },
+    { value: 60, label: '1h00' },
+    { value: 90, label: '1h30 (défaut)' },
+    { value: 120, label: '2h00' },
+    { value: 150, label: '2h30' },
+    { value: 180, label: '3h00' },
+    { value: 240, label: '4h00' },
   ];
 
-  readonly statusOptions: ReservationStatut[] = [
-    'CONFIRMED',
-    'PENDING',
-    'SEATED',
-    'CANCELLED',
-    'NO_SHOW',
+  readonly statusSelectOptions: SearchableOption<ReservationStatut>[] = [
+    { value: 'CONFIRMED', label: 'Confirmée', badge: 'Confirmée', badgeType: 'primary' },
+    { value: 'PENDING', label: 'En attente', badge: 'En attente', badgeType: 'warning' },
+    { value: 'SEATED', label: 'Installée', badge: 'Installée', badgeType: 'success' },
+    { value: 'CANCELLED', label: 'Annulée', badge: 'Annulée', badgeType: 'danger' },
+    { value: 'NO_SHOW', label: 'No-Show', badge: 'No-Show', badgeType: 'neutral' },
   ];
+
+  get tableSelectOptions(): SearchableOption<number | null>[] {
+    const defaultOpt: SearchableOption<number | null> = {
+      value: null,
+      label: 'Sans table assignée',
+      badge: 'Libre',
+      badgeType: 'neutral',
+    };
+    const tableOpts: SearchableOption<number | null>[] = (this.tables || []).map((t) => ({
+      value: t.id,
+      label: `Table ${t.numero} (${t.capacite} pers - ${t.zone})`,
+      badge: `${t.capacite} pers`,
+      badgeType: t.occupee ? 'warning' : 'success',
+      subLabel: t.zone,
+    }));
+    return [defaultOpt, ...tableOpts];
+  }
 
   constructor() {
     addIcons({
@@ -127,8 +153,22 @@ export class ReservationModalComponent implements OnInit {
     this.initForm();
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (
+      changes['isOpen'] ||
+      changes['reservationToEdit'] ||
+      changes['initialDate'] ||
+      changes['initialTime'] ||
+      changes['initialTableId']
+    ) {
+      if (this.isOpen) {
+        this.populateForm();
+      }
+    }
+  }
+
   /**
-   * Initializes the reactive form with default or edited reservation values.
+   * Initializes the reactive form structure.
    */
   initForm(): void {
     const today = new Date().toISOString().substring(0, 10);
@@ -162,14 +202,68 @@ export class ReservationModalComponent implements OnInit {
   }
 
   /**
+   * Populates form fields with existing reservation or default new values.
+   */
+  populateForm(): void {
+    if (!this.reservationForm) {
+      this.initForm();
+      return;
+    }
+
+    const today = new Date().toISOString().substring(0, 10);
+
+    if (this.reservationToEdit) {
+      this.reservationForm.patchValue({
+        nomClient: this.reservationToEdit.nomClient,
+        telephone: this.reservationToEdit.telephone || '',
+        email: this.reservationToEdit.email || '',
+        dateReservation: this.reservationToEdit.dateReservation,
+        heureReservation: this.formatTimeForInput(this.reservationToEdit.heureReservation),
+        dureeMinutes: this.reservationToEdit.dureeMinutes || 90,
+        nombrePersonnes: this.reservationToEdit.nombrePersonnes || 2,
+        tableId: this.reservationToEdit.tableId ?? null,
+        notes: this.reservationToEdit.notes || '',
+        statut: this.reservationToEdit.statut || 'CONFIRMED',
+      });
+      if (this.reservationToEdit.tableId) {
+        this.checkTableAvailability();
+      } else {
+        this.availabilityCheck = null;
+      }
+    } else {
+      this.reservationForm.patchValue({
+        nomClient: '',
+        telephone: '',
+        email: '',
+        dateReservation: this.initialDate || today,
+        heureReservation: this.initialTime || '19:30',
+        dureeMinutes: 90,
+        nombrePersonnes: 2,
+        tableId: this.initialTableId ?? null,
+        notes: '',
+        statut: 'CONFIRMED',
+      });
+      if (this.initialTableId) {
+        this.checkTableAvailability();
+      } else {
+        this.availabilityCheck = null;
+      }
+    }
+
+    this.reservationForm.markAsPristine();
+    this.reservationForm.markAsUntouched();
+    this.cdr.markForCheck();
+  }
+
+  /**
    * Evaluates table availability for the selected slot and party size.
    */
   checkTableAvailability(): void {
-    const tableId = this.reservationForm.get('tableId')?.value;
-    const date = this.reservationForm.get('dateReservation')?.value;
-    const heure = this.reservationForm.get('heureReservation')?.value;
-    const dureeMinutes = this.reservationForm.get('dureeMinutes')?.value || 90;
-    const nombrePersonnes = this.reservationForm.get('nombrePersonnes')?.value || 1;
+    const tableId = this.reservationForm?.get('tableId')?.value;
+    const date = this.reservationForm?.get('dateReservation')?.value;
+    const heure = this.reservationForm?.get('heureReservation')?.value;
+    const dureeMinutes = this.reservationForm?.get('dureeMinutes')?.value || 90;
+    const nombrePersonnes = this.reservationForm?.get('nombrePersonnes')?.value || 1;
 
     if (!tableId || !date || !heure) {
       this.availabilityCheck = null;
@@ -199,6 +293,25 @@ export class ReservationModalComponent implements OnInit {
           this.cdr.markForCheck();
         },
       });
+  }
+
+  onTableSelected(option: SearchableOption<number | null> | null): void {
+    const val = option ? option.value : null;
+    this.reservationForm.get('tableId')?.setValue(val);
+    this.checkTableAvailability();
+  }
+
+  onDurationSelected(option: SearchableOption<number> | null): void {
+    if (option) {
+      this.reservationForm.get('dureeMinutes')?.setValue(option.value);
+      this.checkTableAvailability();
+    }
+  }
+
+  onStatusSelected(option: SearchableOption<ReservationStatut> | null): void {
+    if (option) {
+      this.reservationForm.get('statut')?.setValue(option.value);
+    }
   }
 
   /**

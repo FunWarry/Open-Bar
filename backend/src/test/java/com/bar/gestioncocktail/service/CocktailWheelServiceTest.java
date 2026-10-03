@@ -42,7 +42,11 @@ class CocktailWheelServiceTest {
 
     @BeforeEach
     void setUpTest() {
-        new java.io.File(TEST_WHEEL_FILE).delete();
+        try {
+            java.nio.file.Files.deleteIfExists(java.nio.file.Path.of(TEST_WHEEL_FILE));
+        } catch (java.io.IOException ignored) {
+            // Ignored in test setup
+        }
         ObjectMapper jsonMapper = new ObjectMapper();
         cocktailWheelService = new CocktailWheelService(
                 cocktailRepository,
@@ -53,12 +57,16 @@ class CocktailWheelServiceTest {
 
     @AfterEach
     void cleanUpTestFile() {
-        new java.io.File(TEST_WHEEL_FILE).delete();
+        try {
+            java.nio.file.Files.deleteIfExists(java.nio.file.Path.of(TEST_WHEEL_FILE));
+        } catch (java.io.IOException ignored) {
+            // Ignored in test cleanup
+        }
     }
 
     @Test
     @DisplayName("getWheelData for LIBRARY scope should check module capability and return wheel data")
-    void getWheelData_libraryScope_success() {
+    void getWheelDataLibraryScopeSuccess() {
         CocktailWheelDTO.ConnectionWheelDTO result = cocktailWheelService.getWheelData(CocktailWheelScope.LIBRARY);
 
         assertThat(result).isNotNull();
@@ -68,7 +76,7 @@ class CocktailWheelServiceTest {
 
     @Test
     @DisplayName("getWheelData for LIBRARY scope should throw exception when module is disabled")
-    void getWheelData_libraryScope_disabledModule_throws() {
+    void getWheelDataLibraryScopeDisabledModuleThrows() {
         doThrow(new BusinessException("Cocktail library module disabled"))
                 .when(establishmentConfigService).checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
 
@@ -79,7 +87,7 @@ class CocktailWheelServiceTest {
 
     @Test
     @DisplayName("generateLibraryWheel should compute node frequency and co-occurrence edges")
-    void generateLibraryWheel_computesNodesAndEdges() {
+    void generateLibraryWheelComputesNodesAndEdges() {
         CocktailLibraryIngredientDTO ingRum = new CocktailLibraryIngredientDTO("White Rum", BigDecimal.valueOf(5), "cl", "light_liquor", BigDecimal.valueOf(40), BigDecimal.ONE, Collections.emptyList(), true);
         CocktailLibraryIngredientDTO ingLime = new CocktailLibraryIngredientDTO("Lime Juice", BigDecimal.valueOf(3), "cl", "nonalcoholic", BigDecimal.ZERO, BigDecimal.valueOf(0.5), Collections.emptyList(), true);
         CocktailLibraryIngredientDTO ingMint = new CocktailLibraryIngredientDTO("Mint", BigDecimal.valueOf(6), "leaves", "spices", BigDecimal.ZERO, BigDecimal.valueOf(0.2), Collections.emptyList(), true);
@@ -135,7 +143,7 @@ class CocktailWheelServiceTest {
 
     @Test
     @DisplayName("getWheelData for ESTABLISHMENT scope should regenerate from repository when cache is empty")
-    void getWheelData_establishmentScope_generatesFromRepository() {
+    void getWheelDataEstablishmentScopeGeneratesFromRepository() {
         Cocktail cocktail1 = new Cocktail();
         cocktail1.setId(1L);
         cocktail1.setNom("Gin Tonic");
@@ -175,7 +183,7 @@ class CocktailWheelServiceTest {
 
     @Test
     @DisplayName("generateLibraryWheel with null or empty list falls back to library wheel data")
-    void generateLibraryWheel_nullOrEmpty_fallsBackToLibraryWheel() {
+    void generateLibraryWheelNullOrEmptyFallsBackToLibraryWheel() {
         CocktailWheelDTO.ConnectionWheelDTO resultNull = cocktailWheelService.generateLibraryWheel(null);
         CocktailWheelDTO.ConnectionWheelDTO resultEmpty = cocktailWheelService.generateLibraryWheel(Collections.emptyList());
 
@@ -186,7 +194,7 @@ class CocktailWheelServiceTest {
 
     @Test
     @DisplayName("regenerateEstablishmentWheel should fall back to findAll when findAllWithIngredients throws")
-    void regenerateEstablishmentWheel_queryFails_fallsBackToFindAll() {
+    void regenerateEstablishmentWheelQueryFailsFallsBackToFindAll() {
         when(cocktailRepository.findAllWithIngredients()).thenThrow(new RuntimeException("Query error"));
         when(cocktailRepository.findAll()).thenReturn(Collections.emptyList());
 
@@ -198,7 +206,7 @@ class CocktailWheelServiceTest {
 
     @Test
     @DisplayName("regenerateEstablishmentWheel handles null ingredient names and unknown category fallback")
-    void regenerateEstablishmentWheel_handlesEdgeCaseIngredients() {
+    void regenerateEstablishmentWheelHandlesEdgeCaseIngredients() {
         Cocktail cocktail = new Cocktail();
         cocktail.setId(2L);
         cocktail.setNom("Exotic");
@@ -233,7 +241,7 @@ class CocktailWheelServiceTest {
 
     @Test
     @DisplayName("getEstablishmentWheelData should read from persistent file when present")
-    void getEstablishmentWheelData_readsFromFile() {
+    void getEstablishmentWheelDataReadsFromFile() {
         Cocktail cocktail = new Cocktail();
         cocktail.setId(1L);
         cocktail.setNom("Mojito");

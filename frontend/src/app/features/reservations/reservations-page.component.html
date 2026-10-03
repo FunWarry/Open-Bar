@@ -126,7 +126,7 @@
 
     <!-- Controls Bar: Service Shift Filter & View Mode Toggle -->
     <div class="controls-bar">
-      <!-- Service Shift Tabs -->
+      <!-- Service Shift Tabs & Options Button -->
       <div class="shift-tabs-group" data-testid="shift-filter-group">
         <button
           type="button"
@@ -136,21 +136,28 @@
           data-testid="tab-shift-all">
           {{ 'RESERVATIONS.SHIFT_ALL' | transloco }}
         </button>
+
+        @for (shift of configuredShifts(); track shift.id) {
+          <button
+            type="button"
+            class="shift-pill"
+            [class.active]="selectedShift() === shift.id"
+            (click)="setShift(shift.id)"
+            [attr.data-testid]="'tab-shift-' + shift.id"
+            [title]="shift.startTime + ' — ' + shift.endTime">
+            {{ shift.name }}
+          </button>
+        }
+
+        <!-- Manage Shifts Button -->
         <button
           type="button"
-          class="shift-pill"
-          [class.active]="selectedShift() === 'LUNCH'"
-          (click)="setShift('LUNCH')"
-          data-testid="tab-shift-lunch">
-          {{ 'RESERVATIONS.SHIFT_LUNCH' | transloco }}
-        </button>
-        <button
-          type="button"
-          class="shift-pill"
-          [class.active]="selectedShift() === 'DINNER'"
-          (click)="setShift('DINNER')"
-          data-testid="tab-shift-dinner">
-          {{ 'RESERVATIONS.SHIFT_DINNER' | transloco }}
+          class="shift-config-btn"
+          (click)="openShiftsModal()"
+          [title]="'RESERVATIONS.MANAGE_SHIFTS' | transloco"
+          data-testid="btn-open-shifts-modal">
+          <ion-icon name="options-outline"></ion-icon>
+          <span>{{ 'RESERVATIONS.MANAGE_SHIFTS' | transloco }}</span>
         </button>
       </div>
 
@@ -202,6 +209,7 @@
                   type="button"
                   class="unassigned-chip"
                   (click)="openEditModal(unres)"
+                  (contextmenu)="onReservationContextMenu($event, unres)"
                   data-testid="chip-unassigned-booking">
                   <span class="chip-name">{{ unres.nomClient }}</span>
                   <span class="chip-guests">{{ unres.nombrePersonnes }}p</span>
@@ -235,7 +243,8 @@
                 <button
                   type="button"
                   class="table-info-cell"
-                  (click)="openNewReservationModal(t.id)">
+                  (click)="openNewReservationModal(t.id)"
+                  [title]="'Cliquer pour réserver Table ' + t.numero">
                   <div class="table-num-pill" [class.occupied]="t.occupee">
                     T{{ t.numero }}
                   </div>
@@ -245,16 +254,25 @@
                   </div>
                 </button>
 
-                <!-- Right Timeline Track with Booking Blocks -->
+                <!-- Right Timeline Track with Interactive Slots & Booking Blocks -->
                 <div class="table-track-cell">
-                  <!-- Hour markers background lines -->
-                  <div class="track-bg-lines">
+                  <!-- Interactive slots row for 1-click booking and right-click menu -->
+                  <div class="track-slots-row">
                     @for (slot of timelineConfig().slots; track slot) {
-                      <div class="track-line"></div>
+                      <div
+                        class="track-slot-cell"
+                        (click)="onSlotClick(t.id, slot)"
+                        (contextmenu)="onSlotContextMenu($event, t, slot)"
+                        [attr.data-testid]="'slot-t' + t.numero + '-' + slot"
+                        [title]="('RESERVATIONS.CLICK_TO_BOOK' | transloco) + ' Table ' + t.numero + ' à ' + slot">
+                        <span class="slot-add-indicator">
+                          <ion-icon name="add-outline"></ion-icon>
+                        </span>
+                      </div>
                     }
                   </div>
 
-                  <!-- Booking Blocks -->
+                  <!-- Booking Blocks with Dynamic Status Color -->
                   @for (res of getReservationsForTable(t.id); track res.id) {
                     <button
                       type="button"
@@ -262,12 +280,14 @@
                       [ngStyle]="getReservationStyle(res)"
                       [ngClass]="getStatusClass(res.statut)"
                       (click)="openEditModal(res); $event.stopPropagation()"
+                      (contextmenu)="onReservationContextMenu($event, res, t)"
                       [attr.data-testid]="'booking-block-' + res.id"
-                      [title]="res.nomClient + ' (' + res.nombrePersonnes + ' pers) - ' + res.heureReservation">
+                      [title]="res.nomClient + ' (' + res.nombrePersonnes + ' pers) - ' + res.heureReservation + ' - Clic droit pour copier/options'">
+                      <div class="status-accent-stripe"></div>
                       <div class="block-content">
                         <span class="block-client">{{ res.nomClient }}</span>
                         <span class="block-party">{{ res.nombrePersonnes }}p</span>
-                        <span class="block-status-tag">{{ ('RESERVATIONS.STATUS_' + res.statut) | transloco }}</span>
+                        <span class="block-status-pill">{{ ('RESERVATIONS.STATUS_' + res.statut) | transloco }}</span>
                       </div>
                     </button>
                   }
@@ -481,4 +501,11 @@
     (modalClose)="onModalClose()"
     (reservationSaved)="onReservationSaved($event)">
   </app-reservation-modal>
+
+  <!-- Restaurant Shifts Configuration Modal -->
+  <app-restaurant-shifts-modal
+    [isOpen]="isShiftsModalOpen"
+    (modalClose)="onShiftsModalClose()"
+    (shiftsUpdated)="onShiftsUpdated($event)">
+  </app-restaurant-shifts-modal>
 </ion-content>

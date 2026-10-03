@@ -4269,6 +4269,22 @@
       "LUNCH": "Lunch shift (11:30 - 15:30)",
       "DINNER": "Dinner shift (18:30 - 23:30)"
     },
+    "CLICK_TO_BOOK": "Click to book",
+    "MANAGE_SHIFTS": "Manage shifts",
+    "SHIFTS_MODAL_TITLE": "Service Shifts Configuration",
+    "SHIFTS_MODAL_SUBTITLE": "Configure and customize your establishment's service time windows.",
+    "SHIFTS_CONFIGURED": "Configured service shifts",
+    "SHIFTS_RESET_DEFAULTS": "Reset to defaults",
+    "SHIFT_NAME": "Shift / service name",
+    "SHIFT_START": "Start time",
+    "SHIFT_END": "End time",
+    "SHIFT_INTERVAL": "Slot interval",
+    "SHIFTS_ADD_NEW": "Add a new shift",
+    "SHIFT_NAME_PLACEHOLDER": "Ex: Brunch, Afterwork, Night",
+    "SHIFTS_ADD_BTN": "Add this shift",
+    "ACTION_COPY": "Copy reservation",
+    "ACTION_PASTE": "Paste reservation",
+    "ACTION_DUPLICATE": "Duplicate (+1h)",
     "TABLES": {
       "ALL": "All tables",
       "UNASSIGNED": "Unassigned"
