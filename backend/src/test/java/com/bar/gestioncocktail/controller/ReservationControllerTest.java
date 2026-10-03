@@ -22,6 +22,7 @@ import org.springframework.security.core.Authentication;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -49,7 +50,7 @@ class ReservationControllerTest {
     private ReservationController reservationController;
 
     private ReservationDTO mockReservationDTO;
-    private final LocalDate targetDate = LocalDate.of(2026, 8, 15);
+    private final LocalDate targetDate = LocalDate.of(2026, Month.AUGUST, 15);
 
     @BeforeEach
     void setUp() {

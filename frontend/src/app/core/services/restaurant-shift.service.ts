@@ -84,14 +84,13 @@ export class RestaurantShiftService {
    * @returns Created RestaurantServiceShift with generated id
    */
   addShift(shift: Omit<RestaurantServiceShift, 'id'>): RestaurantServiceShift {
-    const randomSuffix = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID().substring(0, 8) : Date.now().toString(36);
-    const newId = `shift_${Date.now()}_${randomSuffix}`;
+    const current = this.getShifts();
+    const newId = `shift_${Date.now()}_${current.length + 1}`;
     const created: RestaurantServiceShift = {
       ...shift,
       id: newId,
       stepMinutes: shift.stepMinutes || 30,
     };
-    const current = this.getShifts();
     this.saveShifts([...current, created]);
     return created;
   }
