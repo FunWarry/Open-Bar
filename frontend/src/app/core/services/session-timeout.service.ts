@@ -88,7 +88,7 @@ export class SessionTimeoutService {
       });
     }
 
-    this.showToast(this.transloco.translate('SESSION.EXTENDED_SUCCESS'), 'success');
+    void this.showToast(this.transloco.translate('SESSION.EXTENDED_SUCCESS'), 'success');
   }
 
   /**
@@ -132,7 +132,7 @@ export class SessionTimeoutService {
 
     const remaining = Number(expiryStr) - Date.now();
     if (remaining <= 0) {
-      this.expireSession();
+      void this.expireSession();
     } else {
       this.startMonitoring();
     }
@@ -156,12 +156,12 @@ export class SessionTimeoutService {
     const remainingMs = this.getRemainingTimeMs();
 
     if (remainingMs <= 0) {
-      this.expireSession();
+      void this.expireSession();
       return;
     }
 
     if (remainingMs <= this.WARNING_THRESHOLD_MS && !this.isWarningModalOpen) {
-      this.presentWarningModal(Math.floor(remainingMs / 1000));
+      void this.presentWarningModal(Math.floor(remainingMs / 1000));
     }
   }
 
@@ -184,7 +184,7 @@ export class SessionTimeoutService {
     if (data?.action === 'extend') {
       this.extendSession();
     } else if (data?.action === 'logout' || data?.action === 'expired') {
-      this.expireSession();
+      void this.expireSession();
     }
   }
 
