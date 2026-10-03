@@ -1,11 +1,24 @@
-<ion-modal [isOpen]="isOpen" (didDismiss)="close()" class="reservation-modal-dialog">
+<ion-modal [isOpen]="isOpen" (didDismiss)="close()" class="reservation-modal-dialog" data-testid="reservation-modal">
   <ng-template>
     <app-modal
       [title]="(reservationToEdit ? 'RESERVATIONS.MODAL_EDIT_TITLE' : 'RESERVATIONS.MODAL_CREATE_TITLE') | transloco"
       icon="calendar-outline"
       size="xl"
+      [showCloseButton]="false"
       (dismiss)="close()"
     >
+      <button
+        slot="header-actions"
+        type="button"
+        class="modal-close-btn"
+        (click)="close()"
+        (keyup.enter)="close()"
+        [attr.aria-label]="'COMMON.CLOSE' | transloco"
+        data-testid="btn-close-modal"
+      >
+        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      </button>
+
       <form id="reservationForm" [formGroup]="reservationForm" (ngSubmit)="saveReservation()" class="reservation-form">
         <!-- Customer Info Section -->
         <div class="form-section">
@@ -242,7 +255,7 @@
           form="reservationForm"
           class="btn-primary"
           [disabled]="reservationForm.invalid || isSaving || (availabilityCheck && !availabilityCheck.available)"
-          data-testid="btn-save-reservation">
+          data-testid="btn-submit-reservation">
           {{ (reservationToEdit ? 'COMMON.UPDATE' : 'COMMON.CONFIRM') | transloco }}
         </button>
       </div>

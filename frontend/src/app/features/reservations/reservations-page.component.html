@@ -80,7 +80,7 @@
 </ion-header>
 
 <ion-content class="reservations-content" [fullscreen]="false">
-  <div class="content-wrapper">
+  <div class="content-wrapper" data-testid="reservations-page-container">
     <!-- Stat Cards Overview -->
     <div class="metrics-grid" data-testid="metrics-overview">
       <div class="metric-card">
@@ -89,7 +89,7 @@
         </div>
         <div class="metric-info">
           <span class="metric-label">{{ 'RESERVATIONS.METRIC_TOTAL_BOOKINGS' | transloco }}</span>
-          <span class="metric-val" data-testid="metric-total-bookings">{{ totalBookingsCount() }}</span>
+          <span class="metric-val" data-testid="metric-today-count">{{ totalBookingsCount() }}</span>
         </div>
       </div>
 
@@ -99,7 +99,7 @@
         </div>
         <div class="metric-info">
           <span class="metric-label">{{ 'RESERVATIONS.METRIC_TOTAL_GUESTS' | transloco }}</span>
-          <span class="metric-val" data-testid="metric-total-guests">{{ totalGuestsCount() }}</span>
+          <span class="metric-val" data-testid="metric-covers-count">{{ totalGuestsCount() }}</span>
         </div>
       </div>
 
@@ -384,8 +384,8 @@
                 [headerDivider]="'solid'"
                 [footerDivider]="'solid'"
                 [padding]="'md'"
-                [attr.data-testid]="'card-reservation-' + booking.id"
-                [testId]="'card-reservation-' + booking.id">
+                [attr.data-testid]="'row-reservation-' + booking.id"
+                [testId]="'row-reservation-' + booking.id">
 
                 <!-- Card Header -->
                 <div card-header class="reservation-card-header">
