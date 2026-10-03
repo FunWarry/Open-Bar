@@ -74,7 +74,7 @@ class ReservationIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("createReservation_nominal_success")
-    void createReservation_nominal_success() throws Exception {
+    void createReservationNominalSuccess() throws Exception {
         ReservationCreateRequest request = new ReservationCreateRequest(
                 "Alice Dupont",
                 "+33612345678",
@@ -105,7 +105,7 @@ class ReservationIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("createReservation_overlapConflict_returns400")
-    void createReservation_overlapConflict_returns400() throws Exception {
+    void createReservationOverlapConflictReturns400() throws Exception {
         // 1. Create first booking: 19:30 to 21:00 on testTable
         ReservationCreateRequest first = new ReservationCreateRequest(
                 "Bob Martin",
@@ -150,7 +150,7 @@ class ReservationIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("checkAvailability_detectsConflictAndCapacity")
-    void checkAvailability_detectsConflictAndCapacity() throws Exception {
+    void checkAvailabilityDetectsConflictAndCapacity() throws Exception {
         // 1. Initial check: table 99 (capacity 4) should be available for party of 2
         mockMvc.perform(get("/api/reservations/check-availability")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken())
@@ -160,8 +160,8 @@ class ReservationIntegrationTest extends BaseIntegrationTest {
                         .param("dureeMinutes", "90")
                         .param("nombrePersonnes", "2"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.disponible").value(true))
-                .andExpect(jsonPath("$.capaciteSuffisante").value(true));
+                .andExpect(jsonPath("$.available").value(true))
+                .andExpect(jsonPath("$.capacitySufficient").value(true));
 
         // 2. Create reservation
         ReservationCreateRequest booking = new ReservationCreateRequest(
@@ -191,13 +191,13 @@ class ReservationIntegrationTest extends BaseIntegrationTest {
                         .param("dureeMinutes", "90")
                         .param("nombrePersonnes", "2"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.disponible").value(false))
+                .andExpect(jsonPath("$.available").value(false))
                 .andExpect(jsonPath("$.message").isNotEmpty());
     }
 
     @Test
     @DisplayName("seatReservation_transitionsStatusAndOccupiesTable")
-    void seatReservation_transitionsStatusAndOccupiesTable() throws Exception {
+    void seatReservationTransitionsStatusAndOccupiesTable() throws Exception {
         // 1. Create confirmed reservation
         ReservationCreateRequest booking = new ReservationCreateRequest(
                 "Eva Green",
@@ -234,7 +234,7 @@ class ReservationIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("updateStatut_lifecycleTransitions")
-    void updateStatut_lifecycleTransitions() throws Exception {
+    void updateStatutLifecycleTransitions() throws Exception {
         ReservationCreateRequest booking = new ReservationCreateRequest(
                 "Frank Sinatra",
                 "+33699887766",
@@ -274,14 +274,14 @@ class ReservationIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("security_unauthenticated_returns401")
-    void security_unauthenticated_returns401() throws Exception {
+    void securityUnauthenticatedReturns401() throws Exception {
         mockMvc.perform(get("/api/reservations"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     @DisplayName("deleteReservation_accessControl_serveurForbidden_managerAllowed")
-    void deleteReservation_accessControl_serveurForbidden_managerAllowed() throws Exception {
+    void deleteReservationAccessControlServeurForbiddenManagerAllowed() throws Exception {
         ReservationCreateRequest booking = new ReservationCreateRequest(
                 "Grace Hopper",
                 "+33611112222",
@@ -319,7 +319,7 @@ class ReservationIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("updateReservation_nominal_success")
-    void updateReservation_nominal_success() throws Exception {
+    void updateReservationNominalSuccess() throws Exception {
         ReservationCreateRequest booking = new ReservationCreateRequest(
                 "Helen Mirren",
                 "+33622334455",
