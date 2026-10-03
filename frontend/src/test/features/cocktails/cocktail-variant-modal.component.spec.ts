@@ -78,28 +78,28 @@ describe('CocktailVariantModalComponent', () => {
 
   describe('Filtering Behavior', () => {
     it('should display only filtered variants when activeFilterSummary is set and showAllVariants is false', () => {
-      expect(component.displayedVariants.length).toBe(1);
+      expect(component.displayedVariants).toHaveSize(1);
       expect(component.displayedVariants[0].nom).toBe('Virgin Mule');
       expect(component.hiddenVariantsCount).toBe(1);
     });
 
     it('should display all variants when activeFilterSummary is empty', () => {
       component.activeFilterSummary = '';
-      expect(component.displayedVariants.length).toBe(2);
+      expect(component.displayedVariants).toHaveSize(2);
       expect(component.hiddenVariantsCount).toBe(1);
     });
 
     it('should toggle showAllVariants and reveal all available variants', () => {
       expect(component.showAllVariants).toBeFalse();
-      expect(component.displayedVariants.length).toBe(1);
+      expect(component.displayedVariants).toHaveSize(1);
 
       component.toggleShowAll();
       expect(component.showAllVariants).toBeTrue();
-      expect(component.displayedVariants.length).toBe(2);
+      expect(component.displayedVariants).toHaveSize(2);
 
       component.toggleShowAll();
       expect(component.showAllVariants).toBeFalse();
-      expect(component.displayedVariants.length).toBe(1);
+      expect(component.displayedVariants).toHaveSize(1);
     });
   });
 
