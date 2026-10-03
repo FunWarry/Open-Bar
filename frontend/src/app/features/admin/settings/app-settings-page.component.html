@@ -677,6 +677,18 @@
                           </div>
                           <p class="threshold-desc">{{ 'SETTINGS.MODULE_PAYMENT_TERMINAL_DESC' | transloco }}</p>
                         </div>
+
+                        <!-- Module 14: TABLE_RESERVATIONS -->
+                        <div class="threshold-row" data-testid="module-row-table-reservations">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="calendar-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_TABLE_RESERVATIONS_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="tableReservations" data-testid="toggle-module-table-reservations"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_TABLE_RESERVATIONS_DESC' | transloco }}</p>
+                        </div>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -986,6 +998,26 @@
                                 </span>
                               </div>
                               <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_PAYMENT_TERMINAL' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 14. Carnet de Réservations de Table -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('tableReservations')"
+                            [class.node-inactive]="!isModuleControlActive('tableReservations')"
+                            data-testid="preview-node-table-reservations">
+                            <div class="node-icon-box">
+                              <ion-icon name="calendar-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_TABLE_RESERVATIONS_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('tableReservations')">
+                                  {{ (isModuleControlActive('tableReservations') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_TABLE_RESERVATIONS' | transloco }}</span>
                             </div>
                           </div>
                         </div>

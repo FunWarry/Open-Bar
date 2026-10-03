@@ -25,6 +25,7 @@ const DEFAULT_MODULES: EstablishmentModules = {
   inventoryAudit: true,
   mysteryRoulette: true,
   paymentTerminal: true,
+  tableReservations: true,
 };
 
 /**
@@ -84,6 +85,9 @@ export class FeatureFlagService implements OnDestroy {
   /** Computed signal for PAYMENT_TERMINAL capability status. */
   readonly paymentTerminalEnabled = computed(() => this.modules().paymentTerminal);
 
+  /** Computed signal for TABLE_RESERVATIONS capability status. */
+  readonly tableReservationsEnabled = computed(() => this.modules().tableReservations);
+
   constructor() {
     this.initWebSocketSubscription();
     this.loadModules().subscribe();
@@ -129,6 +133,8 @@ export class FeatureFlagService implements OnDestroy {
         return current.mysteryRoulette;
       case EstablishmentModule.PAYMENT_TERMINAL:
         return current.paymentTerminal;
+      case EstablishmentModule.TABLE_RESERVATIONS:
+        return current.tableReservations;
       default:
         return true;
     }
@@ -231,6 +237,21 @@ export class FeatureFlagService implements OnDestroy {
         break;
       case EstablishmentModule.COCKTAIL_LIBRARY:
         current.cocktailLibrary = enabled;
+        break;
+      case EstablishmentModule.SUPPLIERS_MANAGEMENT:
+        current.suppliersManagement = enabled;
+        break;
+      case EstablishmentModule.INVENTORY_AUDIT:
+        current.inventoryAudit = enabled;
+        break;
+      case EstablishmentModule.MYSTERY_ROULETTE:
+        current.mysteryRoulette = enabled;
+        break;
+      case EstablishmentModule.PAYMENT_TERMINAL:
+        current.paymentTerminal = enabled;
+        break;
+      case EstablishmentModule.TABLE_RESERVATIONS:
+        current.tableReservations = enabled;
         break;
     }
     return this.updateModules(current);

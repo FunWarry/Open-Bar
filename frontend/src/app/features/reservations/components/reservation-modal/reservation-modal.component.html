@@ -1,0 +1,270 @@
+<ion-modal [isOpen]="isOpen" (didDismiss)="close()" class="reservation-modal-dialog">
+  <ng-template>
+    <ion-header class="ion-no-border modal-header">
+      <ion-toolbar>
+        <ion-title class="modal-title">
+          {{ (reservationToEdit ? 'RESERVATIONS.MODAL_EDIT_TITLE' : 'RESERVATIONS.MODAL_CREATE_TITLE') | transloco }}
+        </ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="close()" (keyup.enter)="close()" aria-label="Fermer" class="close-btn" data-testid="btn-close-reservation-modal">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="modal-content" [fullscreen]="false">
+      <form [formGroup]="reservationForm" (ngSubmit)="saveReservation()" class="reservation-form">
+        <!-- Customer Info Section -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <ion-icon name="person-outline"></ion-icon>
+            {{ 'RESERVATIONS.SECTION_CUSTOMER' | transloco }}
+          </h3>
+
+          <div class="input-group customer-name-group">
+            <label for="res-nom-client" class="field-label">
+              {{ 'RESERVATIONS.CUSTOMER_NAME' | transloco }} *
+            </label>
+            <div class="input-wrapper">
+              <ion-icon name="person-outline" class="input-icon"></ion-icon>
+              <input
+                id="res-nom-client"
+                type="text"
+                formControlName="nomClient"
+                (input)="onCustomerNameInput()"
+                placeholder="{{ 'RESERVATIONS.CUSTOMER_NAME_PLACEHOLDER' | transloco }}"
+                class="form-input"
+                data-testid="input-reservation-customer-name"
+                autocomplete="off"
+              />
+            </div>
+
+            <!-- Autocomplete Suggestions Dropdown -->
+            @if (showSuggestions && customerSuggestions.length > 0) {
+              <ul class="suggestions-list" data-testid="list-customer-suggestions">
+                @for (sug of customerSuggestions; track sug.id) {
+                  <li class="suggestion-item">
+                    <button
+                      type="button"
+                      class="suggestion-btn"
+                      (click)="selectSuggestion(sug)">
+                      <span class="sug-name">{{ sug.nomClient }}</span>
+                      @if (sug.telephone) {
+                        <span class="sug-phone">{{ sug.telephone }}</span>
+                      }
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+
+          <div class="grid-2-cols">
+            <div class="input-group">
+              <label for="res-telephone" class="field-label">{{ 'RESERVATIONS.PHONE' | transloco }}</label>
+              <div class="input-wrapper">
+                <ion-icon name="call-outline" class="input-icon"></ion-icon>
+                <input
+                  id="res-telephone"
+                  type="tel"
+                  formControlName="telephone"
+                  placeholder="{{ 'RESERVATIONS.PHONE_PLACEHOLDER' | transloco }}"
+                  class="form-input"
+                  data-testid="input-reservation-phone"
+                />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="res-email" class="field-label">{{ 'RESERVATIONS.EMAIL' | transloco }}</label>
+              <div class="input-wrapper">
+                <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+                <input
+                  id="res-email"
+                  type="email"
+                  formControlName="email"
+                  placeholder="{{ 'RESERVATIONS.EMAIL_PLACEHOLDER' | transloco }}"
+                  class="form-input"
+                  data-testid="input-reservation-email"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Schedule & Party Size Section -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <ion-icon name="calendar-outline"></ion-icon>
+            {{ 'RESERVATIONS.SECTION_SCHEDULE' | transloco }}
+          </h3>
+
+          <div class="grid-3-cols">
+            <div class="input-group">
+              <label for="res-date" class="field-label">{{ 'RESERVATIONS.DATE' | transloco }} *</label>
+              <div class="input-wrapper">
+                <input
+                  id="res-date"
+                  type="date"
+                  formControlName="dateReservation"
+                  (change)="checkTableAvailability()"
+                  class="form-input"
+                  data-testid="input-reservation-date"
+                />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="res-heure" class="field-label">{{ 'RESERVATIONS.TIME' | transloco }} *</label>
+              <div class="input-wrapper">
+                <input
+                  id="res-heure"
+                  type="time"
+                  formControlName="heureReservation"
+                  (change)="checkTableAvailability()"
+                  class="form-input"
+                  data-testid="input-reservation-time"
+                />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="res-duree" class="field-label">{{ 'RESERVATIONS.DURATION' | transloco }} *</label>
+              <div class="input-wrapper">
+                <select
+                  id="res-duree"
+                  formControlName="dureeMinutes"
+                  (change)="checkTableAvailability()"
+                  class="form-select"
+                  data-testid="select-reservation-duration">
+                  @for (opt of durationOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2-cols">
+            <div class="input-group">
+              <label for="res-personnes" class="field-label">{{ 'RESERVATIONS.GUESTS_COUNT' | transloco }} *</label>
+              <div class="input-wrapper">
+                <ion-icon name="people-outline" class="input-icon"></ion-icon>
+                <input
+                  id="res-personnes"
+                  type="number"
+                  min="1"
+                  max="100"
+                  formControlName="nombrePersonnes"
+                  (change)="checkTableAvailability()"
+                  class="form-input"
+                  data-testid="input-reservation-guests"
+                />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="res-statut" class="field-label">{{ 'RESERVATIONS.STATUS' | transloco }} *</label>
+              <div class="input-wrapper">
+                <select
+                  id="res-statut"
+                  formControlName="statut"
+                  class="form-select"
+                  data-testid="select-reservation-status">
+                  @for (st of statusOptions; track st) {
+                    <option [value]="st">{{ ('RESERVATIONS.STATUS_' + st) | transloco }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table Assignment Section -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <ion-icon name="time-outline"></ion-icon>
+            {{ 'RESERVATIONS.SECTION_TABLE' | transloco }}
+          </h3>
+
+          <div class="input-group">
+            <label for="res-table" class="field-label">{{ 'RESERVATIONS.ASSIGNED_TABLE' | transloco }}</label>
+            <div class="input-wrapper">
+              <select
+                id="res-table"
+                formControlName="tableId"
+                (change)="checkTableAvailability()"
+                class="form-select"
+                data-testid="select-reservation-table">
+                <option [ngValue]="null">{{ 'RESERVATIONS.TABLE_UNASSIGNED' | transloco }}</option>
+                @for (t of tables; track t.id) {
+                  <option [value]="t.id">
+                    {{ 'RESERVATIONS.TABLE_LABEL' | transloco: { number: t.numero, capacity: t.capacite, zone: t.zone } }}
+                  </option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <!-- Availability Check Feedback -->
+          @if (reservationForm.get('tableId')?.value && availabilityCheck) {
+            <div
+              class="availability-banner"
+              [class.available]="availabilityCheck.available && availabilityCheck.capacitySufficient"
+              [class.warning]="availabilityCheck.available && !availabilityCheck.capacitySufficient"
+              [class.conflict]="!availabilityCheck.available"
+              data-testid="banner-availability-feedback">
+              @if (availabilityCheck.available && availabilityCheck.capacitySufficient) {
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+                <span>{{ 'RESERVATIONS.AVAILABILITY_OK' | transloco }}</span>
+              } @else if (availabilityCheck.available && !availabilityCheck.capacitySufficient) {
+                <ion-icon name="warning-outline"></ion-icon>
+                <span>{{ 'RESERVATIONS.AVAILABILITY_CAPACITY_WARN' | transloco }}</span>
+              } @else {
+                <ion-icon name="alert-circle-outline"></ion-icon>
+                <span>{{ 'RESERVATIONS.AVAILABILITY_CONFLICT' | transloco }}</span>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Special Requests / Notes Section -->
+        <div class="form-section">
+          <h3 class="section-title">{{ 'RESERVATIONS.SECTION_NOTES' | transloco }}</h3>
+          <div class="input-group">
+            <label for="res-notes" class="field-label sr-only">
+              {{ 'RESERVATIONS.SECTION_NOTES' | transloco }}
+            </label>
+            <textarea
+              id="res-notes"
+              rows="3"
+              formControlName="notes"
+              placeholder="{{ 'RESERVATIONS.NOTES_PLACEHOLDER' | transloco }}"
+              class="form-textarea"
+              data-testid="textarea-reservation-notes"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions-footer">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="close()"
+            data-testid="btn-cancel-reservation">
+            {{ 'COMMON.CANCEL' | transloco }}
+          </button>
+          <button
+            type="submit"
+            class="btn-primary"
+            [disabled]="reservationForm.invalid || isSaving || (availabilityCheck && !availabilityCheck.available)"
+            data-testid="btn-save-reservation">
+            {{ (reservationToEdit ? 'COMMON.UPDATE' : 'COMMON.CONFIRM') | transloco }}
+          </button>
+        </div>
+      </form>
+    </ion-content>
+  </ng-template>
+</ion-modal>

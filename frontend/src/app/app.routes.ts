@@ -208,6 +208,14 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
 
+  // Table Reservations Book
+  {
+    path: 'reservations',
+    loadComponent: () => import('./features/reservations/reservations-page.component').then(m => m.ReservationsPageComponent),
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.TABLE_RESERVATIONS }
+  },
+
   // Profile & Theme
   {
     path: 'profile',

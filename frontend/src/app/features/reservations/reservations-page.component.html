@@ -1,0 +1,460 @@
+<ion-header class="ion-no-border reservations-header">
+  <ion-toolbar>
+    <div class="header-container">
+      <div class="header-title-group">
+        <h1 class="page-title">{{ 'RESERVATIONS.PAGE_TITLE' | transloco }}</h1>
+        <p class="page-subtitle">{{ 'RESERVATIONS.PAGE_SUBTITLE' | transloco }}</p>
+      </div>
+
+      <!-- Date Navigator & Quick Actions -->
+      <div class="header-actions">
+        <div class="date-navigator" data-testid="date-navigator">
+          <button
+            type="button"
+            class="nav-arrow-btn"
+            (click)="changeDate(-1)"
+            [title]="'COMMON.PREVIOUS' | transloco"
+            data-testid="btn-prev-date">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+          </button>
+
+          <label for="reservation-date-input" class="sr-only">
+            {{ 'RESERVATIONS.FILTER_DATE' | transloco }}
+          </label>
+          <input
+            id="reservation-date-input"
+            type="date"
+            [value]="selectedDate()"
+            (change)="onDateChange($event)"
+            class="date-picker-input"
+            data-testid="input-calendar-date"
+          />
+
+          <button
+            type="button"
+            class="nav-arrow-btn"
+            (click)="changeDate(1)"
+            [title]="'COMMON.NEXT' | transloco"
+            data-testid="btn-next-date">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </button>
+
+          <button
+            type="button"
+            class="today-btn"
+            (click)="setToday()"
+            data-testid="btn-today-date">
+            {{ 'RESERVATIONS.TODAY' | transloco }}
+          </button>
+        </div>
+
+        <button
+          type="button"
+          class="action-btn-secondary"
+          (click)="goToFloorPlan()"
+          data-testid="btn-goto-floor-plan">
+          <ion-icon name="grid-outline"></ion-icon>
+          <span>{{ 'RESERVATIONS.FLOOR_PLAN_VIEW' | transloco }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="action-btn-secondary refresh-btn"
+          (click)="loadReservations()"
+          [title]="'COMMON.REFRESH' | transloco"
+          data-testid="btn-refresh-reservations">
+          <ion-icon name="refresh-outline"></ion-icon>
+        </button>
+
+        <button
+          type="button"
+          class="action-btn-primary"
+          (click)="openNewReservationModal()"
+          data-testid="btn-new-reservation">
+          <ion-icon name="add-outline"></ion-icon>
+          <span>{{ 'RESERVATIONS.NEW_RESERVATION' | transloco }}</span>
+        </button>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="reservations-content" [fullscreen]="false">
+  <div class="content-wrapper">
+    <!-- Stat Cards Overview -->
+    <div class="metrics-grid" data-testid="metrics-overview">
+      <div class="metric-card">
+        <div class="metric-icon primary">
+          <ion-icon name="calendar-outline"></ion-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-label">{{ 'RESERVATIONS.METRIC_TOTAL_BOOKINGS' | transloco }}</span>
+          <span class="metric-val" data-testid="metric-total-bookings">{{ totalBookingsCount() }}</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon info">
+          <ion-icon name="people-outline"></ion-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-label">{{ 'RESERVATIONS.METRIC_TOTAL_GUESTS' | transloco }}</span>
+          <span class="metric-val" data-testid="metric-total-guests">{{ totalGuestsCount() }}</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon success">
+          <ion-icon name="restaurant-outline"></ion-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-label">{{ 'RESERVATIONS.METRIC_SEATED' | transloco }}</span>
+          <span class="metric-val" data-testid="metric-seated">{{ seatedCount() }}</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon warning">
+          <ion-icon name="time-outline"></ion-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-label">{{ 'RESERVATIONS.METRIC_PENDING' | transloco }}</span>
+          <span class="metric-val" data-testid="metric-pending">{{ confirmedPendingCount() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls Bar: Service Shift Filter & View Mode Toggle -->
+    <div class="controls-bar">
+      <!-- Service Shift Tabs -->
+      <div class="shift-tabs-group" data-testid="shift-filter-group">
+        <button
+          type="button"
+          class="shift-pill"
+          [class.active]="selectedShift() === 'ALL'"
+          (click)="setShift('ALL')"
+          data-testid="tab-shift-all">
+          {{ 'RESERVATIONS.SHIFT_ALL' | transloco }}
+        </button>
+        <button
+          type="button"
+          class="shift-pill"
+          [class.active]="selectedShift() === 'LUNCH'"
+          (click)="setShift('LUNCH')"
+          data-testid="tab-shift-lunch">
+          {{ 'RESERVATIONS.SHIFT_LUNCH' | transloco }}
+        </button>
+        <button
+          type="button"
+          class="shift-pill"
+          [class.active]="selectedShift() === 'DINNER'"
+          (click)="setShift('DINNER')"
+          data-testid="tab-shift-dinner">
+          {{ 'RESERVATIONS.SHIFT_DINNER' | transloco }}
+        </button>
+      </div>
+
+      <!-- View Mode Buttons (Timeline vs List) -->
+      <div class="view-mode-toggle" data-testid="view-mode-toggle">
+        <button
+          type="button"
+          class="mode-btn"
+          [class.active]="viewMode() === 'TIMELINE'"
+          (click)="setViewMode('TIMELINE')"
+          data-testid="btn-view-timeline"
+          [title]="'RESERVATIONS.VIEW_TIMELINE' | transloco">
+          <ion-icon name="grid-outline"></ion-icon>
+          <span>{{ 'RESERVATIONS.VIEW_TIMELINE' | transloco }}</span>
+        </button>
+        <button
+          type="button"
+          class="mode-btn"
+          [class.active]="viewMode() === 'LIST'"
+          (click)="setViewMode('LIST')"
+          data-testid="btn-view-list"
+          [title]="'RESERVATIONS.VIEW_LIST' | transloco">
+          <ion-icon name="list-outline"></ion-icon>
+          <span>{{ 'RESERVATIONS.VIEW_LIST' | transloco }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    @if (isLoading()) {
+      <div class="loading-container">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+      </div>
+    }
+
+    <!-- ─── VIEW 1 : TIMELINE GRID ──────────────────────────────────────── -->
+    @if (!isLoading() && viewMode() === 'TIMELINE') {
+      <div class="timeline-container" data-testid="timeline-view-container">
+        <!-- Unassigned Bookings Strip -->
+        @if (unassignedReservations().length > 0) {
+          <div class="unassigned-strip" data-testid="unassigned-strip">
+            <div class="unassigned-header">
+              <span class="unassigned-badge">{{ unassignedReservations().length }}</span>
+              <span class="unassigned-title">{{ 'RESERVATIONS.UNASSIGNED_STRIP_TITLE' | transloco }}</span>
+            </div>
+            <div class="unassigned-chips-row">
+              @for (unres of unassignedReservations(); track unres.id) {
+                <button
+                  type="button"
+                  class="unassigned-chip"
+                  (click)="openEditModal(unres)"
+                  data-testid="chip-unassigned-booking">
+                  <span class="chip-name">{{ unres.nomClient }}</span>
+                  <span class="chip-guests">{{ unres.nombrePersonnes }}p</span>
+                  <span class="chip-time">{{ unres.heureReservation }}</span>
+                  <span class="assign-action">{{ 'RESERVATIONS.ASSIGN_TABLE_BTN' | transloco }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Interactive Schedule Grid -->
+        <div class="grid-scroll-wrapper">
+          <div class="timeline-grid">
+            <!-- Header Row with Time Slots -->
+            <div class="grid-header-row">
+              <div class="table-col-header">
+                {{ 'RESERVATIONS.GRID_TABLE_COL' | transloco }}
+              </div>
+              <div class="slots-container">
+                @for (slot of timelineConfig().slots; track slot) {
+                  <div class="time-slot-header">{{ slot }}</div>
+                }
+              </div>
+            </div>
+
+            <!-- Table Rows -->
+            @for (t of tables(); track t.id) {
+              <div class="grid-table-row" [attr.data-testid]="'timeline-row-table-' + t.numero">
+                <!-- Left Table Info Cell -->
+                <button
+                  type="button"
+                  class="table-info-cell"
+                  (click)="openNewReservationModal(t.id)">
+                  <div class="table-num-pill" [class.occupied]="t.occupee">
+                    T{{ t.numero }}
+                  </div>
+                  <div class="table-meta">
+                    <span class="table-cap">{{ t.capacite }} pers</span>
+                    <span class="table-zone">{{ t.zone }}</span>
+                  </div>
+                </button>
+
+                <!-- Right Timeline Track with Booking Blocks -->
+                <div class="table-track-cell">
+                  <!-- Hour markers background lines -->
+                  <div class="track-bg-lines">
+                    @for (slot of timelineConfig().slots; track slot) {
+                      <div class="track-line"></div>
+                    }
+                  </div>
+
+                  <!-- Booking Blocks -->
+                  @for (res of getReservationsForTable(t.id); track res.id) {
+                    <button
+                      type="button"
+                      class="booking-block"
+                      [ngStyle]="getReservationStyle(res)"
+                      [ngClass]="getStatusClass(res.statut)"
+                      (click)="openEditModal(res); $event.stopPropagation()"
+                      [attr.data-testid]="'booking-block-' + res.id"
+                      [title]="res.nomClient + ' (' + res.nombrePersonnes + ' pers) - ' + res.heureReservation">
+                      <div class="block-content">
+                        <span class="block-client">{{ res.nomClient }}</span>
+                        <span class="block-party">{{ res.nombrePersonnes }}p</span>
+                        <span class="block-status-tag">{{ ('RESERVATIONS.STATUS_' + res.statut) | transloco }}</span>
+                      </div>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (tables().length === 0) {
+              <div class="p-4 text-center">
+                <p>{{ 'RESERVATIONS.NO_TABLES_FOUND' | transloco }}</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ─── VIEW 2 : LIST & CARD VIEW ──────────────────────────────────── -->
+    @if (!isLoading() && viewMode() === 'LIST') {
+      <div class="list-view-container" data-testid="list-view-container">
+        <!-- Search and Filter Bar -->
+        <div class="list-filter-bar">
+          <div class="search-input-col">
+            <app-search-bar
+              [placeholder]="'RESERVATIONS.SEARCH_PLACEHOLDER' | transloco"
+              [value]="searchQuery()"
+              (searchChange)="onSearchChange($event)"
+              data-testid="search-reservations">
+            </app-search-bar>
+          </div>
+
+          <!-- Status Filter Chips -->
+          <div class="status-filter-chips" data-testid="status-chips-filter">
+            <button
+              type="button"
+              class="status-chip"
+              [class.active]="selectedStatusFilter() === 'ALL'"
+              (click)="setStatusFilter('ALL')"
+              data-testid="chip-status-all">
+              {{ 'COMMON.ALL' | transloco }}
+            </button>
+            <button
+              type="button"
+              class="status-chip confirmed"
+              [class.active]="selectedStatusFilter() === 'CONFIRMED'"
+              (click)="setStatusFilter('CONFIRMED')"
+              data-testid="chip-status-confirmed">
+              {{ 'RESERVATIONS.STATUS_CONFIRMED' | transloco }}
+            </button>
+            <button
+              type="button"
+              class="status-chip pending"
+              [class.active]="selectedStatusFilter() === 'PENDING'"
+              (click)="setStatusFilter('PENDING')"
+              data-testid="chip-status-pending">
+              {{ 'RESERVATIONS.STATUS_PENDING' | transloco }}
+            </button>
+            <button
+              type="button"
+              class="status-chip seated"
+              [class.active]="selectedStatusFilter() === 'SEATED'"
+              (click)="setStatusFilter('SEATED')"
+              data-testid="chip-status-seated">
+              {{ 'RESERVATIONS.STATUS_SEATED' | transloco }}
+            </button>
+            <button
+              type="button"
+              class="status-chip cancelled"
+              [class.active]="selectedStatusFilter() === 'CANCELLED'"
+              (click)="setStatusFilter('CANCELLED')"
+              data-testid="chip-status-cancelled">
+              {{ 'RESERVATIONS.STATUS_CANCELLED' | transloco }}
+            </button>
+            <button
+              type="button"
+              class="status-chip noshow"
+              [class.active]="selectedStatusFilter() === 'NO_SHOW'"
+              (click)="setStatusFilter('NO_SHOW')"
+              data-testid="chip-status-noshow">
+              {{ 'RESERVATIONS.STATUS_NO_SHOW' | transloco }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Bookings Cards Grid -->
+        @if (filteredReservations().length > 0) {
+          <div class="bookings-cards-grid">
+            @for (booking of filteredReservations(); track booking.id) {
+              <div class="booking-card" [attr.data-testid]="'card-reservation-' + booking.id">
+                <div class="card-top-row">
+                  <div class="customer-block">
+                    <span class="customer-name">{{ booking.nomClient }}</span>
+                    @if (booking.telephone) {
+                      <span class="customer-phone">{{ booking.telephone }}</span>
+                    }
+                  </div>
+                  <span class="status-pill" [ngClass]="getStatusClass(booking.statut)">
+                    {{ ('RESERVATIONS.STATUS_' + booking.statut) | transloco }}
+                  </span>
+                </div>
+
+                <div class="card-details-row">
+                  <div class="detail-badge time">
+                    <ion-icon name="time-outline"></ion-icon>
+                    <span>{{ booking.heureReservation }} ({{ booking.dureeMinutes }} min)</span>
+                  </div>
+                  <div class="detail-badge party">
+                    <ion-icon name="people-outline"></ion-icon>
+                    <span>{{ booking.nombrePersonnes }} {{ 'RESERVATIONS.GUESTS_UNIT' | transloco }}</span>
+                  </div>
+                  <div class="detail-badge table" [class.unassigned]="!booking.tableNumero">
+                    <ion-icon name="restaurant-outline"></ion-icon>
+                    <span>
+                      {{ booking.tableNumero ? ('Table ' + booking.tableNumero) : ('RESERVATIONS.TABLE_UNASSIGNED' | transloco) }}
+                    </span>
+                  </div>
+                </div>
+
+                @if (booking.notes) {
+                  <p class="card-notes">{{ booking.notes }}</p>
+                }
+
+                <div class="card-actions-row">
+                  @if (booking.statut !== 'SEATED' && booking.statut !== 'CANCELLED' && booking.tableId) {
+                    <button
+                      type="button"
+                      class="btn-seat"
+                      (click)="seatReservation(booking)"
+                      data-testid="btn-card-seat">
+                      <ion-icon name="restaurant-outline"></ion-icon>
+                      <span>{{ 'RESERVATIONS.ACTION_SEAT_GUESTS' | transloco }}</span>
+                    </button>
+                  }
+
+                  <button
+                    type="button"
+                    class="btn-edit"
+                    (click)="openEditModal(booking)"
+                    data-testid="btn-card-edit">
+                    {{ 'COMMON.EDIT' | transloco }}
+                  </button>
+
+                  @if (booking.statut !== 'CANCELLED' && booking.statut !== 'SEATED') {
+                    <button
+                      type="button"
+                      class="btn-cancel"
+                      (click)="cancelReservation(booking)"
+                      data-testid="btn-card-cancel">
+                      {{ 'COMMON.CANCEL' | transloco }}
+                    </button>
+                  }
+
+                  <button
+                    type="button"
+                    class="btn-delete"
+                    (click)="deleteReservation(booking)"
+                    [title]="'COMMON.DELETE' | transloco"
+                    data-testid="btn-card-delete">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <app-empty-state
+            icon="calendar-outline"
+            [title]="'RESERVATIONS.EMPTY_TITLE' | transloco"
+            [subtitle]="'RESERVATIONS.EMPTY_SUBTITLE' | transloco"
+            [actionLabel]="'RESERVATIONS.NEW_RESERVATION' | transloco"
+            (actionClick)="openNewReservationModal()"
+            data-testid="empty-state-reservations">
+          </app-empty-state>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Reservation Create / Edit Modal -->
+  <app-reservation-modal
+    [isOpen]="isModalOpen"
+    [reservationToEdit]="reservationToEdit"
+    [initialDate]="selectedDate()"
+    [initialTime]="newReservationInitialTime || undefined"
+    [initialTableId]="newReservationInitialTableId"
+    [tables]="tables()"
+    (modalClose)="onModalClose()"
+    (reservationSaved)="onReservationSaved($event)">
+  </app-reservation-modal>
+</ion-content>

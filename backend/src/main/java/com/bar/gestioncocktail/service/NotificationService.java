@@ -27,6 +27,7 @@ public class NotificationService {
     private static final String TOPIC_SERVEUR_APPELS_ACQUITTE = "/topic/serveur/appels/acquitte";
     private static final String TOPIC_ESTABLISHMENT_MODULES = "/topic/establishment/modules";
     private static final String TOPIC_BAR_TABS = "/topic/bar-tabs";
+    private static final String TOPIC_RESERVATIONS = "/topic/reservations";
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -205,6 +206,16 @@ public class NotificationService {
     public void notifierAppelAcquitte(Object payload) {
         messagingTemplate.convertAndSend(TOPIC_SERVEUR_APPELS, payload);
         messagingTemplate.convertAndSend(TOPIC_SERVEUR_APPELS_ACQUITTE, payload);
+    }
+
+    /**
+     * Broadcasts table reservation creation, updates, seating, or cancellation.
+     *
+     * @param reservation Updated reservation DTO
+     */
+    public void notifierReservationMiseAJour(com.bar.gestioncocktail.dto.ReservationDTO reservation) {
+        messagingTemplate.convertAndSend(TOPIC_RESERVATIONS, reservation);
+        messagingTemplate.convertAndSend(TOPIC_TABLES, reservation);
     }
 
     /**

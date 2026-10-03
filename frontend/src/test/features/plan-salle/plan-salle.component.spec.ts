@@ -10,6 +10,7 @@ import { PlanSalleComponent } from '../../../app/features/plan-salle/plan-salle.
 import { PlanSalleService } from '../../../app/features/plan-salle/services/plan-salle.service';
 import { TableService } from '../../../app/core/services/table.service';
 import { NotificationService, AppNotification } from '../../../app/core/services/notification.service';
+import { ReservationService } from '../../../app/core/services/reservation.service';
 import { TableBar } from '../../../app/core/models/table.model';
 import { TablePosition } from '../../../app/features/plan-salle/models/table-position.model';
 
@@ -35,6 +36,7 @@ describe('PlanSalleComponent', () => {
   let planSalleServiceSpy: jasmine.SpyObj<PlanSalleService>;
   let etageServiceSpy: jasmine.SpyObj<EtageService>;
   let zoneServiceSpy: jasmine.SpyObj<ZoneService>;
+  let reservationServiceSpy: jasmine.SpyObj<ReservationService>;
   let notifSpy: jasmine.SpyObj<NotificationService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
@@ -71,6 +73,9 @@ describe('PlanSalleComponent', () => {
     zoneServiceSpy.create.and.callFake(z => of({ id: 2, nom: 'NOUVELLE', etage: 'RDC', ...z } as any));
     zoneServiceSpy.delete.and.returnValue(of(void 0));
 
+    reservationServiceSpy = jasmine.createSpyObj('ReservationService', ['getUpcoming', 'seat']);
+    reservationServiceSpy.getUpcoming.and.returnValue(of([]));
+
     notifSpy = jasmine.createSpyObj('NotificationService', ['onNotification', 'onStockAlert']);
     notifSpy.onNotification.and.returnValue(notif$.asObservable());
     notifSpy.onStockAlert.and.returnValue(EMPTY);
@@ -92,6 +97,7 @@ describe('PlanSalleComponent', () => {
         { provide: PlanSalleService,    useValue: planSalleServiceSpy },
         { provide: EtageService,        useValue: etageServiceSpy },
         { provide: ZoneService,         useValue: zoneServiceSpy },
+        { provide: ReservationService,  useValue: reservationServiceSpy },
         { provide: NotificationService, useValue: notifSpy },
         { provide: ToastController,     useValue: toastCtrlSpy },
         { provide: ModalController,     useValue: modalCtrlSpy },

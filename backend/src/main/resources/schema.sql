@@ -568,6 +568,7 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     module_inventory_audit_enabled BOOLEAN DEFAULT true,
     module_mystery_roulette_enabled BOOLEAN DEFAULT true,
     module_payment_terminal_enabled BOOLEAN DEFAULT true,
+    module_table_reservations_enabled BOOLEAN DEFAULT true,
     roulette_price_cocktail DECIMAL(10,2) DEFAULT 7.50,
     roulette_price_mocktail DECIMAL(10,2) DEFAULT 5.50,
     roulette_stock_bias VARCHAR(30) DEFAULT 'BALANCED',
@@ -904,3 +905,24 @@ CREATE TABLE IF NOT EXISTS roulette_wheel_sectors (
 
 CREATE INDEX IF NOT EXISTS idx_roulette_sectors_active ON roulette_wheel_sectors(active);
 CREATE INDEX IF NOT EXISTS idx_roulette_sectors_display_order ON roulette_wheel_sectors(display_order);
+
+-- 19. Table Reservations
+CREATE TABLE IF NOT EXISTS reservations (
+    id BIGSERIAL PRIMARY KEY,
+    nom_client VARCHAR(100) NOT NULL,
+    telephone VARCHAR(50),
+    email VARCHAR(150),
+    date_reservation DATE NOT NULL,
+    heure_reservation TIME NOT NULL,
+    duree_minutes INTEGER NOT NULL DEFAULT 90,
+    nombre_personnes INTEGER NOT NULL CHECK (nombre_personnes >= 1),
+    notes TEXT,
+    statut VARCHAR(30) NOT NULL DEFAULT 'CONFIRMED' CHECK (statut IN ('PENDING', 'CONFIRMED', 'SEATED', 'CANCELLED', 'NO_SHOW')),
+    table_id BIGINT REFERENCES tables(id) ON DELETE SET NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_reservations_date ON reservations(date_reservation);
+CREATE INDEX IF NOT EXISTS idx_reservations_table ON reservations(table_id);
+CREATE INDEX IF NOT EXISTS idx_reservations_statut ON reservations(statut);

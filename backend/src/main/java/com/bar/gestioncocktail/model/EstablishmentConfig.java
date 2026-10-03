@@ -138,6 +138,9 @@ public class EstablishmentConfig {
     @Column(name = "module_payment_terminal_enabled")
     private Boolean modulePaymentTerminalEnabled = true;
 
+    @Column(name = "module_table_reservations_enabled")
+    private Boolean moduleTableReservationsEnabled = true;
+
     @Column(name = "roulette_price_cocktail", precision = 10, scale = 2)
     private BigDecimal roulettePriceCocktail = new BigDecimal("7.50");
 
@@ -422,6 +425,14 @@ public class EstablishmentConfig {
         this.modulePaymentTerminalEnabled = modulePaymentTerminalEnabled;
     }
 
+    public Boolean getModuleTableReservationsEnabled() {
+        return this.moduleTableReservationsEnabled;
+    }
+
+    public void setModuleTableReservationsEnabled(Boolean moduleTableReservationsEnabled) {
+        this.moduleTableReservationsEnabled = moduleTableReservationsEnabled;
+    }
+
     public BigDecimal getRoulettePriceCocktail() {
         return this.roulettePriceCocktail != null ? this.roulettePriceCocktail : new BigDecimal("7.50");
     }
@@ -504,6 +515,7 @@ public class EstablishmentConfig {
             case INVENTORY_AUDIT -> isEnabledOrDefault(this.moduleStockTrackingEnabled) && isEnabledOrDefault(this.moduleInventoryAuditEnabled);
             case MYSTERY_ROULETTE -> isEnabledOrDefault(this.moduleMysteryRouletteEnabled);
             case PAYMENT_TERMINAL -> isEnabledOrDefault(this.modulePaymentTerminalEnabled);
+            case TABLE_RESERVATIONS -> isEnabledOrDefault(this.moduleTableReservationsEnabled);
             default -> true;
         };
     }
@@ -562,6 +574,9 @@ public class EstablishmentConfig {
             case PAYMENT_TERMINAL:
                 this.modulePaymentTerminalEnabled = enabled;
                 break;
+            case TABLE_RESERVATIONS:
+                this.moduleTableReservationsEnabled = enabled;
+                break;
             default:
                 break;
         }
@@ -612,6 +627,7 @@ public class EstablishmentConfig {
                 ", moduleBarTabsEnabled=" + moduleBarTabsEnabled +
                 ", moduleCocktailLibraryEnabled=" + moduleCocktailLibraryEnabled +
                 ", moduleSuppliersManagementEnabled=" + moduleSuppliersManagementEnabled +
+                ", moduleTableReservationsEnabled=" + moduleTableReservationsEnabled +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

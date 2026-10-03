@@ -116,6 +116,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                 || destination.startsWith("/topic/barman")
                 || destination.startsWith("/topic/serveur")
                 || destination.startsWith("/topic/stock")
-                || destination.startsWith("/topic/schedule");
+                || destination.startsWith("/topic/schedule")
+                || destination.startsWith("/topic/reservations");
     }
 }

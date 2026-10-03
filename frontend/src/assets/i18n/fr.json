@@ -418,6 +418,7 @@
     "SETTINGS": "Paramètres",
     "EMPLOYEES": "Personnel & Shifts",
     "SCHEDULE": "Planning Semaine",
+    "RESERVATIONS": "Réservations",
     "TOPBAR": {
       "PAGE_TITLES": {
         "HOME": "Accueil",
@@ -437,7 +438,8 @@
         "UNKNOWN": "OpenBar",
         "KITCHEN": "Écran Cuisine (KDS)",
         "PURCHASES": "Achats & Fournisseurs",
-        "INVENTORY": "Inventaire physique"
+        "INVENTORY": "Inventaire physique",
+        "RESERVATIONS": "Cahier de réservations"
       },
       "ROLE_LABELS": {
         "ADMIN": "Admin",
@@ -3385,6 +3387,9 @@
     "MODULE_PAYMENT_TERMINAL_TITLE": "Terminaux de Paiement (TPE)",
     "MODULE_PAYMENT_TERMINAL_DESC": "Connexion directe aux terminaux bancaires réseau (protocole Concert / IP) pour déclencher les paiements sans saisie manuelle.",
     "MODULES_ROUTE_PAYMENT_TERMINAL": "Intégration TPE réseau (Caisse & Salle)",
+    "MODULE_TABLE_RESERVATIONS_TITLE": "Carnet de Réservations de Tables",
+    "MODULE_TABLE_RESERVATIONS_DESC": "Gestion des créneaux horaires midi et soir, assignation aux tables du plan de salle, détection des chevauchements et installation en un clic.",
+    "MODULES_ROUTE_TABLE_RESERVATIONS": "/reservations (Cahier de réservations)",
     "TPE_TITLE": "Configuration des Terminaux de Paiement (TPE / Concert IP)",
     "TPE_SUBTITLE": "Liez vos terminaux bancaires CB réseau (Ingenico, Verifone, Pax) en socket TCP IP local pour envoyer directement les montants et valider les encaissements.",
     "TPE_ENABLE_LABEL": "Activer l'encaissement direct par TPE réseau",
@@ -4190,5 +4195,88 @@
     "PAYMENT_TIMEOUT": "Délai d'attente dépassé sur le terminal.",
     "PAYMENT_CANCELLED": "Transaction annulée par l'opérateur.",
     "TERMINAL_OFFLINE": "Le terminal de paiement est inaccessible sur le réseau local."
+  },
+  "RESERVATIONS": {
+    "TITLE": "Cahier de Réservations",
+    "SUBTITLE": "Planification des créneaux, gestion des convives et assignation aux tables",
+    "NEW_RESERVATION": "Nouvelle réservation",
+    "STATS": {
+      "TOTAL": "Total réservations",
+      "CONFIRMED": "Confirmées",
+      "SEATED": "Installées",
+      "COVERS": "Couverts attendus"
+    },
+    "SEARCH_PLACEHOLDER": "Rechercher par client, téléphone...",
+    "SHIFTS": {
+      "ALL": "Tous les services",
+      "LUNCH": "Service Midi (11h30 - 15h30)",
+      "DINNER": "Service Soir (18h30 - 23h30)"
+    },
+    "TABLES": {
+      "ALL": "Toutes les tables",
+      "UNASSIGNED": "Non assignée"
+    },
+    "VIEWS": {
+      "TIMELINE": "Frise chronologique",
+      "TABLE": "Liste détaillée"
+    },
+    "EMPTY_TITLE": "Aucune réservation",
+    "EMPTY_MESSAGE": "Aucune réservation trouvée pour cette date et ces critères.",
+    "SLOT": "Créneau",
+    "GUEST": "Client",
+    "PARTY_SIZE": "Couverts",
+    "TABLE": "Table",
+    "STATUS": "Statut",
+    "ACTIONS": "Actions",
+    "SEAT_GUESTS": "Installer",
+    "STATUSES": {
+      "PENDING": "En attente",
+      "CONFIRMED": "Confirmée",
+      "SEATED": "Installée",
+      "CANCELLED": "Annulée",
+      "NO_SHOW": "Non venu (No-Show)"
+    },
+    "TOASTS": {
+      "LOAD_ERROR": "Erreur lors du chargement des réservations",
+      "CREATE_SUCCESS": "Réservation enregistrée avec succès",
+      "UPDATE_SUCCESS": "Réservation mise à jour avec succès",
+      "CANCEL_SUCCESS": "Réservation annulée",
+      "SEAT_SUCCESS": "Clients installés à la table avec succès",
+      "STATUS_SUCCESS": "Statut de réservation mis à jour",
+      "SAVE_ERROR": "Erreur lors de l'enregistrement de la réservation"
+    },
+    "CONFIRM_CANCEL_TITLE": "Annuler la réservation",
+    "CONFIRM_CANCEL_MESSAGE": "Voulez-vous vraiment annuler la réservation de {{name}} ?",
+    "MODAL": {
+      "TITLE_NEW": "Nouvelle réservation",
+      "TITLE_EDIT": "Modifier la réservation",
+      "CUSTOMER_INFO": "Coordonnées du client",
+      "CLIENT_NAME": "Nom du client",
+      "CLIENT_PHONE": "Numéro de téléphone",
+      "CLIENT_EMAIL": "Email (optionnel)",
+      "DATE_TIME": "Date et heure de réservation",
+      "PARTY_SIZE": "Nombre de couverts",
+      "DURATION": "Durée prévue (minutes)",
+      "ASSIGNED_TABLE": "Table assignée",
+      "NO_TABLE": "Aucune table (à assigner plus tard)",
+      "STATUS": "Statut",
+      "NOTES": "Notes / Demandes particulières (allergies, placement...)",
+      "CONFLICT_WARNING": "Attention : cette table a déjà une réservation sur ce créneau horaire !",
+      "CAPACITY_WARNING": "Attention : le nombre de couverts ({{covers}}) dépasse la capacité de la table ({{capacity}} pers) !"
+    },
+    "QUICK_SEAT": {
+      "TITLE": "Installer les clients",
+      "RESERVATION_FOR": "Réservation pour {{name}}",
+      "COVERS": "{{count}} couverts",
+      "TIME": "Prévue à {{time}}",
+      "SPECIAL_NOTES": "Notes / Régimes",
+      "ASSIGNED_TABLE": "Table assignée",
+      "TABLE_CAPACITY": "Capacité : {{capacity}} pers",
+      "TABLE_OCCUPIED_WARNING": "Attention : cette table est actuellement marquée occupée.",
+      "ACTION_SEAT": "Confirmer l'installation",
+      "CANCEL": "Fermer",
+      "SEAT_SUCCESS": "Clients installés à la table #{{numero}} !",
+      "SEAT_ERROR": "Erreur lors de l'installation des clients"
+    }
   }
 }

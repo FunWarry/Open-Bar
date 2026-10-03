@@ -418,6 +418,7 @@
     "SETTINGS": "Settings",
     "EMPLOYEES": "Staff & Shifts",
     "SCHEDULE": "Weekly Schedule",
+    "RESERVATIONS": "Reservations",
     "TOPBAR": {
       "PAGE_TITLES": {
         "HOME": "Home",
@@ -437,7 +438,8 @@
         "UNKNOWN": "OpenBar",
         "KITCHEN": "Kitchen Display (KDS)",
         "PURCHASES": "Purchases & Suppliers",
-        "INVENTORY": "Physical Inventory"
+        "INVENTORY": "Physical Inventory",
+        "RESERVATIONS": "Table Reservations Book"
       },
       "ROLE_LABELS": {
         "ADMIN": "Admin",
@@ -3385,6 +3387,9 @@
     "MODULE_PAYMENT_TERMINAL_TITLE": "Payment Terminals (TPE)",
     "MODULE_PAYMENT_TERMINAL_DESC": "Direct connection to network card payment terminals (Concert / IP protocol) to trigger card payments without manual typing.",
     "MODULES_ROUTE_PAYMENT_TERMINAL": "Network TPE integration (Bar & Floor)",
+    "MODULE_TABLE_RESERVATIONS_TITLE": "Table Reservations Book",
+    "MODULE_TABLE_RESERVATIONS_DESC": "Manage lunch and dinner booking slots, floor plan table assignments, overlap conflict detection, and 1-click guest seating.",
+    "MODULES_ROUTE_TABLE_RESERVATIONS": "/reservations (Reservations book)",
     "TPE_TITLE": "Payment Terminals Configuration (TPE / Concert IP)",
     "TPE_SUBTITLE": "Link your local network EMV card payment terminals (Ingenico, Verifone, Pax) over TCP IP to directly dispatch amounts and capture card approvals.",
     "TPE_ENABLE_LABEL": "Enable direct payment via network TPE",
@@ -4190,5 +4195,88 @@
     "PAYMENT_TIMEOUT": "Transaction timed out on the terminal.",
     "PAYMENT_CANCELLED": "Transaction cancelled by operator.",
     "TERMINAL_OFFLINE": "The payment terminal is unreachable on the local network."
+  },
+  "RESERVATIONS": {
+    "TITLE": "Table Reservations Book",
+    "SUBTITLE": "Schedule time slots, manage guest party sizes, and assign floor plan tables",
+    "NEW_RESERVATION": "New reservation",
+    "STATS": {
+      "TOTAL": "Total bookings",
+      "CONFIRMED": "Confirmed",
+      "SEATED": "Seated",
+      "COVERS": "Expected covers"
+    },
+    "SEARCH_PLACEHOLDER": "Search by guest, phone...",
+    "SHIFTS": {
+      "ALL": "All shifts",
+      "LUNCH": "Lunch shift (11:30 - 15:30)",
+      "DINNER": "Dinner shift (18:30 - 23:30)"
+    },
+    "TABLES": {
+      "ALL": "All tables",
+      "UNASSIGNED": "Unassigned"
+    },
+    "VIEWS": {
+      "TIMELINE": "Timeline",
+      "TABLE": "Detailed list"
+    },
+    "EMPTY_TITLE": "No reservations",
+    "EMPTY_MESSAGE": "No reservations found for this date and criteria.",
+    "SLOT": "Slot",
+    "GUEST": "Guest",
+    "PARTY_SIZE": "Covers",
+    "TABLE": "Table",
+    "STATUS": "Status",
+    "ACTIONS": "Actions",
+    "SEAT_GUESTS": "Seat Guests",
+    "STATUSES": {
+      "PENDING": "Pending",
+      "CONFIRMED": "Confirmed",
+      "SEATED": "Seated",
+      "CANCELLED": "Cancelled",
+      "NO_SHOW": "No Show"
+    },
+    "TOASTS": {
+      "LOAD_ERROR": "Error loading reservations",
+      "CREATE_SUCCESS": "Reservation created successfully",
+      "UPDATE_SUCCESS": "Reservation updated successfully",
+      "CANCEL_SUCCESS": "Reservation cancelled",
+      "SEAT_SUCCESS": "Guests seated successfully at table",
+      "STATUS_SUCCESS": "Reservation status updated",
+      "SAVE_ERROR": "Error saving reservation"
+    },
+    "CONFIRM_CANCEL_TITLE": "Cancel Reservation",
+    "CONFIRM_CANCEL_MESSAGE": "Are you sure you want to cancel the reservation for {{name}}?",
+    "MODAL": {
+      "TITLE_NEW": "New Reservation",
+      "TITLE_EDIT": "Edit Reservation",
+      "CUSTOMER_INFO": "Guest Information",
+      "CLIENT_NAME": "Guest Name",
+      "CLIENT_PHONE": "Phone Number",
+      "CLIENT_EMAIL": "Email (optional)",
+      "DATE_TIME": "Reservation Date & Time",
+      "PARTY_SIZE": "Number of Covers",
+      "DURATION": "Estimated Duration (minutes)",
+      "ASSIGNED_TABLE": "Assigned Table",
+      "NO_TABLE": "No table (assign later)",
+      "STATUS": "Status",
+      "NOTES": "Notes / Special Requests (allergies, seating preference...)",
+      "CONFLICT_WARNING": "Warning: this table already has an active booking during this time slot!",
+      "CAPACITY_WARNING": "Warning: party size ({{covers}}) exceeds table capacity ({{capacity}} guests)!"
+    },
+    "QUICK_SEAT": {
+      "TITLE": "Seat Guests",
+      "RESERVATION_FOR": "Reservation for {{name}}",
+      "COVERS": "{{count}} covers",
+      "TIME": "Booked for {{time}}",
+      "SPECIAL_NOTES": "Notes / Dietary",
+      "ASSIGNED_TABLE": "Assigned Table",
+      "TABLE_CAPACITY": "Capacity: {{capacity}} pers",
+      "TABLE_OCCUPIED_WARNING": "Warning: this table is currently marked as occupied.",
+      "ACTION_SEAT": "Confirm Seating",
+      "CANCEL": "Close",
+      "SEAT_SUCCESS": "Guests seated at table #{{numero}}!",
+      "SEAT_ERROR": "Error seating guests"
+    }
   }
 }

@@ -26,6 +26,9 @@ import { NotificationService } from '../../core/services/notification.service';
 import { EtageService, EtageBar } from '../../core/services/etage.service';
 import { ZoneService, ZoneBar } from '../../core/services/zone.service';
 import { PlanSalleService } from './services/plan-salle.service';
+import { ReservationService } from '../../core/services/reservation.service';
+import { Reservation } from '../../core/models/reservation.model';
+import { ReservationQuickSeatModalComponent } from '../reservations/components/reservation-quick-seat-modal/reservation-quick-seat-modal.component';
 import { selectIsAdmin } from '../../core/store/auth.selectors';
 import { TableBar } from '../../core/models/table.model';
 import { TablePosition, ZoneArea } from './models/table-position.model';
@@ -129,6 +132,9 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Magnetic Edge-to-Edge and Alignment Snapping active flag. Default true. */
   isMagnetSnapEnabled = true;
 
+  /** Upcoming reservations mapped by assigned table ID. */
+  upcomingReservationsByTableId = new Map<number, Reservation>();
+
   private stage!: Konva.Stage;
   private layer!: Konva.Layer;
   private zoneLayer!: Konva.Layer;
@@ -146,6 +152,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly planSalleService: PlanSalleService,
     private readonly etageService: EtageService,
     private readonly zoneService: ZoneService,
+    private readonly reservationService: ReservationService,
     private readonly notifService: NotificationService,
     private readonly store: Store,
     private readonly ngZone: NgZone,
@@ -175,7 +182,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     this.notifService.onNotification()
       .pipe(takeUntil(this.destroy$))
       .subscribe(notif => {
-        if (notif.type === 'table' || notif.type === 'commande') {
+        if (notif.type === 'table' || notif.type === 'commande' || notif.type === 'reservation') {
           this.charger();
         }
       });
@@ -191,19 +198,28 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
           positions: this.planSalleService.getPositions(),
           etages: this.etageService.getAll().pipe(catchError(() => EMPTY)),
           zones: this.zoneService.getAll().pipe(catchError(() => EMPTY)),
+          upcomingReservations: this.reservationService.getUpcoming(60).pipe(catchError(() => of([]))),
         }).pipe(
           catchError(() => {
             this.isLoading = false;
             this.cdr.detectChanges();
-            this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.LOAD_ERROR')), duration: 3000, color: 'danger' })
-              .then(t => t.present());
+            void this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.LOAD_ERROR')), duration: 3000, color: 'danger' })
+              .then(t => void t.present());
             return EMPTY;
           }),
         )),
         takeUntil(this.destroy$),
       )
-      .subscribe(({ tables, positions, etages, zones }) => {
+      .subscribe(({ tables, positions, etages, zones, upcomingReservations }) => {
         this.tables = tables;
+        this.upcomingReservationsByTableId.clear();
+        if (upcomingReservations) {
+          upcomingReservations.forEach((r: Reservation) => {
+            if (r.tableId && r.statut !== 'SEATED' && r.statut !== 'CANCELLED' && r.statut !== 'NO_SHOW') {
+              this.upcomingReservationsByTableId.set(r.tableId, r);
+            }
+          });
+        }
         this.positions.clear();
         positions.forEach(p => {
           const rawForme = (p.shape as string) || '';
@@ -1287,7 +1303,8 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private couleurTableInfo(table: TableBar): { mainColor: string; fillColor: string } {
-    if (table.reservee) {
+    const hasUpcoming = this.upcomingReservationsByTableId.has(table.id);
+    if (table.reservee || hasUpcoming) {
       return { mainColor: '#9b8af2', fillColor: 'rgba(155, 138, 242, 0.16)' };
     }
     if (!table.occupee) {
@@ -1365,6 +1382,33 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     group.add(forme, labelGroup);
 
+    // Visual badge if table has an upcoming reservation within 60 mins
+    if (this.upcomingReservationsByTableId.has(table.id)) {
+      const badgeGroup = new Konva.Group({
+        x: W / 2 - 20,
+        y: -H / 2 - 8,
+        name: 'reservation-badge',
+        listening: false,
+      });
+      const badgeBg = new Konva.Rect({
+        width: 24,
+        height: 18,
+        fill: '#9b8af2',
+        cornerRadius: 4,
+        shadowColor: '#000000',
+        shadowBlur: 4,
+        shadowOpacity: 0.3,
+      });
+      const badgeText = new Konva.Text({
+        text: '📅',
+        fontSize: 11,
+        x: 4,
+        y: 3,
+      });
+      badgeGroup.add(badgeBg, badgeText);
+      group.add(badgeGroup);
+    }
+
     group.on('mouseenter', () => {
       if (this.stage && this.isEditMode && this.selectedTable?.id === table.id) {
         this.stage.draggable(false);
@@ -1377,8 +1421,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     group.on('click tap', (e) => {
       if (e) e.cancelBubble = true;
-      if (!this.isEditMode) return;
-      this.ngZone.run(() => this.onClickTable(table, group));
+      void this.ngZone.run(() => this.onClickTable(table, group));
     });
 
     let startW = pos.width || DEFAULT_TABLE_SIZE;
@@ -1418,11 +1461,11 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
           if (this.selectedTable?.id === targetTableId) {
             this.selectedTable = { ...this.selectedTable, zone: detectedZone.nom };
           }
-          this.toastCtrl.create({
+          void this.toastCtrl.create({
             message: `Table #${table.numero} réaffectée à la zone "${detectedZone.nom}"`,
             duration: 2500,
             color: 'info',
-          }).then(t => t.present());
+          }).then(t => void t.present());
         });
       }
 
@@ -1576,21 +1619,21 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
   toggleGridSnap() {
     this.isGridSnapEnabled = !this.isGridSnapEnabled;
     this.cdr.detectChanges();
-    this.toastCtrl.create({
+    void this.toastCtrl.create({
       message: this.isGridSnapEnabled ? 'Alignement Grille (50 cm) activé' : 'Alignement Grille désactivé (déplacement libre)',
       duration: 1500,
       color: 'info',
-    }).then(t => t.present());
+    }).then(t => void t.present());
   }
 
   toggleMagnetSnap() {
     this.isMagnetSnapEnabled = !this.isMagnetSnapEnabled;
     this.cdr.detectChanges();
-    this.toastCtrl.create({
+    void this.toastCtrl.create({
       message: this.isMagnetSnapEnabled ? 'Aimantation bord à bord activée' : 'Aimantation bord à bord désactivée',
       duration: 1500,
       color: 'info',
-    }).then(t => t.present());
+    }).then(t => void t.present());
   }
 
   /** Magnet snapping to grid and adjacent tables. */
@@ -1733,6 +1776,10 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (!this.isEditMode) {
+      const upcoming = this.upcomingReservationsByTableId.get(table.id);
+      if (upcoming) {
+        await this.ouvrirModalQuickSeat(upcoming, table);
+      }
       return;
     }
 
@@ -1762,6 +1809,28 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     this.zoneShapes.forEach(g => g.draggable(false));
     this.cdr.detectChanges();
     this.ngZone.runOutsideAngular(() => this.dessinerZones());
+  }
+
+  /**
+   * Opens the quick-seat modal for an upcoming reservation on a table.
+   * @param reservation The upcoming reservation.
+   * @param table The target table.
+   */
+  async ouvrirModalQuickSeat(reservation: Reservation, table: TableBar): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: ReservationQuickSeatModalComponent,
+      componentProps: {
+        reservation,
+        table,
+      },
+      cssClass: 'quick-seat-modal-container',
+    });
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+    if (data?.seated) {
+      this.charger();
+    }
   }
 
   onLiveUpdateZone(updatedZone: ZoneArea) {
@@ -1927,12 +1996,12 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
         this.cdr.detectChanges();
         this.ngZone.runOutsideAngular(() => this.dessinerZones());
 
-        this.toastCtrl.create({ message: `Zone "${zone.nom}" enregistrée avec succès`, duration: 2000, color: 'success' })
-          .then(t => t.present());
+        void this.toastCtrl.create({ message: `Zone "${zone.nom}" enregistrée avec succès`, duration: 2000, color: 'success' })
+          .then(t => void t.present());
       },
       error: () => {
-        this.toastCtrl.create({ message: `Erreur lors de l'enregistrement de la zone "${zone.nom}"`, duration: 3000, color: 'danger' })
-          .then(t => t.present());
+        void this.toastCtrl.create({ message: `Erreur lors de l'enregistrement de la zone "${zone.nom}"`, duration: 3000, color: 'danger' })
+          .then(t => void t.present());
       },
     });
   }
@@ -1957,12 +2026,12 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
         this.cdr.detectChanges();
         this.ngZone.runOutsideAngular(() => this.dessinerZones());
 
-        this.toastCtrl.create({ message: 'Zone supprimée du plan', duration: 2000, color: 'warning' })
-          .then(t => t.present());
+        void this.toastCtrl.create({ message: 'Zone supprimée du plan', duration: 2000, color: 'warning' })
+          .then(t => void t.present());
       },
       error: () => {
-        this.toastCtrl.create({ message: 'Erreur lors de la suppression de la zone', duration: 3000, color: 'danger' })
-          .then(t => t.present());
+        void this.toastCtrl.create({ message: 'Erreur lors de la suppression de la zone', duration: 3000, color: 'danger' })
+          .then(t => void t.present());
       },
     });
   }
@@ -2001,11 +2070,11 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cdr.detectChanges();
     this.ngZone.runOutsideAngular(() => this.dessinerTables());
 
-    this.toastCtrl.create({
+    void this.toastCtrl.create({
       message: `Nouvelle Table #${nextNum} ajoutée au plan (${this.selectedFloor})`,
       duration: 2500,
       color: 'success',
-    }).then(t => t.present());
+    }).then(t => void t.present());
   }
 
   pivoterTableSelectionnee() {
@@ -2042,11 +2111,11 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     this.fusionSourceTable = table;
     this.isFusionMode = true;
     this.closeSidePanel();
-    this.toastCtrl.create({
+    void this.toastCtrl.create({
       message: `Mode Fusion : Cliquez sur la table destination pour fusionner avec la Table #${table.numero}`,
       duration: 5000,
       color: 'primary',
-    }).then(t => t.present());
+    }).then(t => void t.present());
   }
 
   annulerFusion() {
@@ -2070,11 +2139,11 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
       this.isFusionMode = false;
       this.fusionSourceTable = null;
       this.applyFilters();
-      this.toastCtrl.create({
+      void this.toastCtrl.create({
         message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.TABLES_MERGED', { src: source.numero, target: target.numero })),
         duration: 3000,
         color: 'success',
-      }).then(t => t.present());
+      }).then(t => void t.present());
       this.ngZone.runOutsideAngular(() => this.dessinerTables());
     } else {
       this.isFusionMode = false;
@@ -2148,12 +2217,12 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
         this.applyFilters();
         this.cdr.detectChanges();
         this.ngZone.runOutsideAngular(() => this.dessinerTables());
-        this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.TABLE_SAVED', { num: tableToSave.numero })), duration: 2000, color: 'success' })
-          .then(t => t.present());
+        void this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.TABLE_SAVED', { num: tableToSave.numero })), duration: 2000, color: 'success' })
+          .then(t => void t.present());
       },
       error: () => {
-        this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.SAVE_ERROR')), duration: 3000, color: 'danger' })
-          .then(t => t.present());
+        void this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.SAVE_ERROR')), duration: 3000, color: 'danger' })
+          .then(t => void t.present());
       }
     });
   }
@@ -2182,12 +2251,12 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
       next: () => {
         this.hasUnsavedChanges = false;
         this.cdr.detectChanges();
-        this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.TABLE_DELETED')), duration: 2000, color: 'warning' })
-          .then(t => t.present());
+        void this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.TABLE_DELETED')), duration: 2000, color: 'warning' })
+          .then(t => void t.present());
       },
       error: () => {
-        this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.TABLE_DELETED_LOCAL')), duration: 2000, color: 'warning' })
-          .then(t => t.present());
+        void this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.TABLE_DELETED_LOCAL')), duration: 2000, color: 'warning' })
+          .then(t => void t.present());
       }
     });
   }
@@ -2230,13 +2299,13 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
       ).subscribe({
         next: () => {
           this.hasUnsavedChanges = false;
-          this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.CHANGES_SAVED')), duration: 2000, color: 'success' })
-            .then(t => t.present());
+          void this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.CHANGES_SAVED')), duration: 2000, color: 'success' })
+            .then(t => void t.present());
           this.ngZone.runOutsideAngular(() => this.dessinerTables());
         },
         error: () => {
-          this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.SAVE_ERROR')), duration: 3000, color: 'danger' })
-            .then(t => t.present());
+          void this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.SAVE_ERROR')), duration: 3000, color: 'danger' })
+            .then(t => void t.present());
         }
       });
     }
@@ -2323,12 +2392,12 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
         this.sauvegarderZonesLocales();
         this.hasUnsavedChanges = false;
         this.cdr.detectChanges();
-        this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.PLAN_SAVED')), duration: 2000, color: 'success' })
-          .then(t => t.present());
+        void this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.PLAN_SAVED')), duration: 2000, color: 'success' })
+          .then(t => void t.present());
       },
       error: () => {
-        this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.PLAN_SAVE_ERROR')), duration: 3000, color: 'danger' })
-          .then(t => t.present());
+        void this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.PLAN_SAVE_ERROR')), duration: 3000, color: 'danger' })
+          .then(t => void t.present());
       },
     });
   }

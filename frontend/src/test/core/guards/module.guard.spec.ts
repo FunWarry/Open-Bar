@@ -36,6 +36,7 @@ describe('ModuleGuard', () => {
     inventoryAudit: true,
     mysteryRoulette: true,
     paymentTerminal: true,
+    tableReservations: true,
   };
 
   beforeEach(() => {

@@ -31,6 +31,7 @@ describe('FeatureFlagService', () => {
     inventoryAudit: true,
     mysteryRoulette: true,
     paymentTerminal: true,
+    tableReservations: true,
   };
 
   beforeEach(() => {
@@ -150,6 +151,7 @@ describe('FeatureFlagService', () => {
       inventoryAudit: false,
       mysteryRoulette: false,
       paymentTerminal: false,
+      tableReservations: false,
     };
 
     wsSubject.next({ body: JSON.stringify(wsUpdate) });
