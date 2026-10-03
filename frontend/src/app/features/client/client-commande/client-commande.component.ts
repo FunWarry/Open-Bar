@@ -1,11 +1,11 @@
-import { Component, OnInit, OnDestroy, inject, signal, effect, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, effect, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { ToastController, IonIcon } from '@ionic/angular';
+import { ToastController, ModalController, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   funnelOutline,
@@ -30,7 +30,8 @@ import {
   shieldCheckmarkOutline,
   hourglassOutline,
   checkmarkCircleOutline,
-  alertCircleOutline
+  alertCircleOutline,
+  sparklesOutline
 } from 'ionicons/icons';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { CocktailService } from '../../../core/services/cocktail.service';
@@ -47,6 +48,10 @@ import { SearchBarComponent } from '../../../core/components/ui/search-bar/searc
 import { ProductCardComponent } from '../../../core/components/ui/product-card/product-card.component';
 import { CocktailMatcherBarComponent, CocktailMatcherFilters } from '../../../core/components/ui/cocktail-matcher-bar/cocktail-matcher-bar.component';
 import { TableAssistanceBarComponent } from '../components/table-assistance-bar/table-assistance-bar.component';
+import { FeatureFlagService } from '../../../core/services/feature-flag.service';
+import { EstablishmentModule } from '../../../core/models/establishment-module.model';
+import { RouletteSpinResult } from '../../../core/models/roulette.model';
+import { RouletteModalComponent } from '../components/roulette-modal/roulette-modal.component';
 
 /**
  * Navigation steps for the customer QR order lifecycle.
@@ -64,6 +69,7 @@ export type ClientCommandeStep = 'table' | 'menu' | 'recap';
   templateUrl: './client-commande.component.html',
   styleUrls: ['./client-commande.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     FormsModule,
@@ -89,6 +95,8 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   readonly tableCartService = inject(TableCartService);
   private readonly webSocketService = inject(WebSocketService, { optional: true });
   private readonly toastCtrl = inject(ToastController);
+  private readonly modalCtrl = inject(ModalController, { optional: true });
+  private readonly featureFlagService = inject(FeatureFlagService, { optional: true });
   private readonly translocoService = inject(TranslocoService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
@@ -179,7 +187,8 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
       shieldCheckmarkOutline,
       hourglassOutline,
       checkmarkCircleOutline,
-      alertCircleOutline
+      alertCircleOutline,
+      sparklesOutline
     });
 
     effect(() => {
@@ -191,7 +200,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
         !this.isSubmitting
       ) {
         this.previousSubmittedOrderId = cart.submittedOrderId;
-        this.notifyOrderSubmittedByPeer(cart.submittedBy, cart.submittedOrderId);
+        void this.notifyOrderSubmittedByPeer(cart.submittedBy, cart.submittedOrderId);
       }
     });
   }
@@ -494,7 +503,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
                 this.isJoinRejected.set(false);
                 this.initTableCart();
                 this.loadCocktails();
-                this.toastCtrl.create({
+                void this.toastCtrl.create({
                   message: this.translocoService.translate('CLIENT.JOIN_APPROVAL_ACCEPT_BTN'),
                   duration: 3000,
                   color: 'success'
@@ -926,6 +935,88 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * Checks whether the mystery roulette module is enabled for the establishment.
+   */
+  get isMysteryRouletteEnabled(): boolean {
+    return this.featureFlagService ? this.featureFlagService.isModuleEnabled(EstablishmentModule.MYSTERY_ROULETTE) : true;
+  }
+
+  /**
+   * Opens the interactive Mystery Drink Roulette modal for this table.
+   */
+  async openRouletteModal(): Promise<void> {
+    if (!this.modalCtrl) return;
+    const tableId = this.tableNumero ? Number(this.tableNumero) : null;
+    const modal = await this.modalCtrl.create({
+      component: RouletteModalComponent,
+      componentProps: {
+        tableId,
+        guestSessionId: this.tableCartService.getOrCreateGuestSessionId(),
+        guestName: this.tableCartService.getGuestName() || 'Guest'
+      },
+      cssClass: 'roulette-custom-modal'
+    });
+
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.action === 'ADD_TO_CART' && data.result) {
+      const win: RouletteSpinResult = data.result;
+      if (win.cocktailId && this.tableNumero) {
+        this.addMysteryCocktailToCart(win);
+      } else {
+        const toast = await this.toastCtrl.create({
+          message: `🎁 ${win.rewardText || win.cocktailNom}`,
+          duration: 3500,
+          color: 'success'
+        });
+        await toast.present();
+      }
+    }
+  }
+
+  private addMysteryCocktailToCart(win: RouletteSpinResult): void {
+    if (!this.tableNumero || !win.cocktailId) return;
+
+    if (!this.tableCartService.hasGuestName()) {
+      this.openNicknamePrompt();
+      return;
+    }
+
+    const guestSessionId = this.tableCartService.getOrCreateGuestSessionId();
+    const guestName = this.tableCartService.getGuestName() || 'Guest';
+
+    this.tableCartService
+      .addItem(this.tableNumero, {
+        guestSessionId,
+        guestName,
+        cocktailId: win.cocktailId,
+        quantite: 1,
+        notes: '[Mystery Drink 🎲] ' + win.cocktailNom,
+        isMysteryDrink: true,
+        prixOverride: win.prix
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: async () => {
+          const toast = await this.toastCtrl.create({
+            message: `🎉 ${win.cocktailNom} (${win.prix} €) ajouté à votre commande !`,
+            duration: 3000,
+            color: 'success'
+          });
+          await toast.present();
+        },
+        error: async (err: { error?: { message?: string } }) => {
+          const toast = await this.toastCtrl.create({
+            message: err?.error?.message || 'Error adding mystery drink to cart',
+            duration: 3000,
+            color: 'danger'
+          });
+          await toast.present();
+        }
+      });
+  }
+
   removeFromCart(cocktailId: number): void {
     if (!this.tableNumero) return;
 
@@ -1040,7 +1131,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
           });
           await toast.present();
           const orderId = res.commandeId || (res as any).id;
-          this.router.navigate(['/client/suivi', orderId]);
+          void this.router.navigate(['/client/suivi', orderId]);
         },
 
         error: async (err: { status?: number; error?: { message?: string } }) => {
@@ -1070,7 +1161,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
             {
               text: this.translocoService.translate('CLIENT.ORDER_NOW'),
               handler: () => {
-                this.router.navigate(['/client/suivi', orderId]);
+                void this.router.navigate(['/client/suivi', orderId]);
               }
             }
           ]
@@ -1078,7 +1169,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
     });
     await toast.present();
     if (orderId && this.step === 'recap') {
-      this.router.navigate(['/client/suivi', orderId]);
+      void this.router.navigate(['/client/suivi', orderId]);
     }
   }
 }

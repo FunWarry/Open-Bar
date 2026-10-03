@@ -19,10 +19,10 @@
 | Runtime | Java | 22 (pinned) | Lombok 1.18.34 incompatible with JDK 23+ compiler internals |
 | Database | PostgreSQL | — | Managed via Docker Compose |
 | ORM | JPA/Hibernate + Lombok `@Data` | via Spring | |
-| Security | Spring Security + custom JWT | JJWT 0.13.0 | Requires `JWT_SECRET` (≥ 32 characters) |
+| Security | Spring Security + custom JWT | JJWT 0.13.0 | Requires `JWT_SECRET` (≥ 32 characters). 4-hour lifespan (`14400000 ms`) with frontend session auto-disconnect & extension reminder prompt |
 | Real-time | WebSocket STOMP | via Spring | 5 active topics |
 | Frontend | Angular | 22 | |
-| UI | Ionic | 9.0.3 | Angular Material abandoned |
+| UI | Ionic | 9.0.4 | Angular Material abandoned |
 | State | NgRx (store + effects) | 22 | **Auth only** — domain state uses services + signals |
 | HTTP | RxJS / HttpClient | 7.8 | |
 | i18n | Transloco (`@jsverse/transloco`) | — | All user-visible text must use `{{ 'KEY' | transloco }}` |
@@ -136,6 +136,8 @@ flowchart TD
         COCKTAIL_VARIANTES -->|"1:N"| COCKTAIL_VARIANTE_INGREDIENTS["cocktail_variante_ingredients"]
         COCKTAIL_VARIANTE_INGREDIENTS -->|"N:1"| INGREDIENTS["ingredients"]
         COCKTAIL_INGREDIENTS -->|"N:1"| INGREDIENTS
+        INGREDIENTS -->|"1:N crafted"| INGREDIENT_CONFECTION_SOURCES["ingredient_confection_sources"]
+        INGREDIENT_CONFECTION_SOURCES -->|"N:1 source"| INGREDIENTS
         COCKTAIL_RECIPE_STEPS -->|"N:1"| RECIPE_STEP_TEMPLATES["recipe_step_templates"]
         COCKTAIL_RECIPE_STEPS -.->|"consumes"| INGREDIENTS
         COMMANDE_ITEMS -.->|"variant"| COCKTAIL_VARIANTES
@@ -149,22 +151,43 @@ flowchart TD
         FACTURES -->|"1:N"| FACTURE_REGLEMENTS["facture_reglements (Splits)"]
         CASH_DRAWER_SESSIONS["cash_drawer_sessions (Till Sessions)"] -->|"1:N"| CASH_MOVEMENTS["cash_movements (Cash in / drop / paid out)"]
         CASH_DRAWER_SESSIONS -.->|"closing"| DAILY_CASH_CLOSURES["daily_cash_closures (Rapports Z)"]
+        BAR_TABS["bar_tabs (Customer Running Ledgers)"] -->|"1:N"| COMMANDES
+        BAR_TABS -->|"1:1"| FACTURES
     end
 
-    subgraph StockDomain ["📦 Stock & Waste Tracking"]
+    subgraph StockDomain ["📦 Stock, Purchasing & Waste Tracking"]
         INGREDIENTS -->|"1:N"| STOCK_MOVEMENTS["stock_movements (Waste / Loss / Shrinkage)"]
         USERS -.->|"reported_by"| STOCK_MOVEMENTS
+        SUPPLIERS["suppliers (Fournisseurs)"] -->|"1:N"| PURCHASE_ORDERS["purchase_orders (Bons de commande)"]
+        PURCHASE_ORDERS -->|"1:N"| PURCHASE_ORDER_ITEMS["purchase_order_items"]
+        PURCHASE_ORDER_ITEMS -->|"N:1"| INGREDIENTS
+        PURCHASE_ORDERS -->|"1:N"| PURCHASE_ORDER_DELIVERIES["purchase_order_deliveries (Bons de livraison)"]
+        PURCHASE_ORDER_DELIVERIES -->|"1:N"| PURCHASE_ORDER_DELIVERY_ITEMS["purchase_order_delivery_items"]
+        PURCHASE_ORDER_DELIVERY_ITEMS -->|"N:1"| INGREDIENTS
+        INVENTORY_AUDIT_SESSIONS["inventory_audit_sessions (Physical Stocktakes)"] -->|"1:N"| INVENTORY_AUDIT_ITEMS["inventory_audit_items"]
+        INVENTORY_AUDIT_ITEMS -->|"N:1"| INGREDIENTS
+        INVENTORY_AUDIT_ITEMS -->|"1:N"| INVENTORY_AUDIT_LOCATION_COUNTS["inventory_audit_location_counts"]
     end
 ```
 
 *Standalone configuration & logging tables*:
+- `suppliers` : Supplier contacts and delivery terms (`name`, `contact_name`, `email`, `phone`, `address`, `notes`, `active`)
+- `purchase_orders` : Purchase orders placed with suppliers (`supplier_id`, `reference`, `status: DRAFT|ORDERED|PARTIALLY_DELIVERED|DELIVERED|CANCELLED`, `total_ht`, `expected_delivery_date`, `created_at`)
+- `purchase_order_items` : Line items on purchase orders (`purchase_order_id`, `ingredient_id`, `package_quantity`, `package_price_ht`, `line_total_ht`, `delivered_quantity`)
+- `purchase_order_deliveries` : Goods reception delivery slips / BL (`purchase_order_id`, `delivery_reference`, `delivery_date`, `notes`, `received_by`)
+- `purchase_order_delivery_items` : Goods reception delivery items (`delivery_id`, `ingredient_id`, `package_quantity`, `package_price_ht`)
+- `inventory_audit_sessions` : Periodic physical stocktake sessions (`reference_code`, `title`, `status: IN_PROGRESS|FINALIZED|CANCELLED`, `target_storage_area`, `target_category`, `created_by`, `finalized_by`, `started_at`, `finalized_at`, `notes`, `theoretical_total_value_ht`, `actual_total_value_ht`, `net_variance_value_ht`)
+- `inventory_audit_items` : Item lines per counted ingredient in an audit (`session_id`, `ingredient_id`, `theoretical_quantity`, `actual_quantity`, `variance_quantity`, `unit_cost_ht`, `theoretical_value_ht`, `actual_value_ht`, `variance_value_ht`, `variance_percentage`, `notes`, `reconciled`)
+- `inventory_audit_location_counts` : Granular multi-location counts and partial bottle gauging entries per item (`audit_item_id`, `location_name`, `full_units_count`, `partial_volume`, `gauge_fraction`, `total_counted_quantity`, `counted_by`, `counted_at`, `notes`)
+- `bar_tabs` : Customer running ledgers and bar tabs (`nom`, `client_reference`, `caution_montant`, `notes`, `statut: ACTIVE|SETTLED|TRANSFERRED|CANCELLED`, `serveur_id`, `date_ouverture`, `date_cloture`)
 - `cash_drawer_sessions` : Daily till opening sessions per operational date (`session_date`, `opened_at`, `closed_at`, `opened_by`, `closed_by`, `opening_float`, `status: OPEN|CLOSED`, `opening_denominations_json`, `notes`)
 - `cash_movements` : Intra-day cash movements (`session_id`, `type: CASH_IN|CASH_DROP|PAID_OUT`, `amount`, `reason`, `receipt_reference`, `user_id`, `created_at`)
 - `daily_cash_closures` : End-of-day certified Z-reports with SHA-256 seal (`date_cloture`, `numero_cloture`, `ca_total_ttc`, `fec_export`, `reconciliation`)
 - `establishment_closures` : Exceptional closures and recurring holidays
 - `shift_presets` : Predefined shift templates (duration, breaks)
 - `week_schedule_publications` : Publication log of employee schedules
-- `app_settings` : Global establishment settings singleton (currency, anti-fraud toggles, legal data, margin alert thresholds target/warning, default VAT rate, direct ESC/POS printer IPs for bar, kitchen, cash desk, port 9100, and toggle)
+- `app_settings` : Global establishment settings singleton (currency, anti-fraud toggles, legal data, margin alert thresholds target/warning, default VAT rate, direct ESC/POS printer IPs & dynamic JSON array configuration for bar, kitchen, cash desk on port 9100, Concert IP / CB payment terminal TCP client configuration and dynamic JSON array, and toggles)
+- `tpe_terminals` : Handled via Concert IP protocol over local network (`ConcertSocketClient`, `PaymentTerminalService`, `/api/tpe`); stores transaction metadata on `factures` and `facture_reglements` (`tpe_autorisation`, `tpe_terminal_id`, `tpe_card_brand`, `tpe_masked_pan`, `tpe_sequence`)
 - `happy_hour_rules`, `happy_hour_days`, `happy_hour_categories`, `happy_hour_cocktails` : Promotional Happy Hour & dynamic schedule-based pricing rule engine
 - `stock_movements` : Audit log of stock losses, breakages, expired ingredients, spills, staff tastings, and shrinkage (`ingredient_id`, `quantity`, `unit`, `reason`, `reported_by`, `cost`, `notes`, `recorded_at`)
 
@@ -176,7 +199,7 @@ flowchart TD
 |------|-------------|-----------------|
 | `ADMIN` | Technical maintenance & setup | User CRUD, full system access, app settings |
 | `MANAGER` | Bar supervision (primary business role) | Analytics, order cancellation, stock toggle, shift & schedule management |
-| `SERVEUR` | Order intake & table service | Create/cancel orders, table tracking, personal shift view, table billing/encaissement, table call acknowledgement |
+| `SERVEUR` | Order intake & table service | Create/cancel orders, table tracking, personal shift view, table billing/encaissement, table call acknowledgement, bar tabs management |
 | `BARMAN` | Drink preparation & stock | Order status progression, cocktail/ingredient recipe view, stock outage toggles |
 
 **NgRx Selectors**: `selectIsAdmin`, `selectIsManager`, `selectIsBarman`, `selectIsAuthenticated`, `selectCurrentUser`
@@ -207,6 +230,7 @@ flowchart LR
 | `/topic/commandes` | New order created / order updated |
 | `/topic/commandes/{id}` | Order status changed |
 | `/topic/tables` | Table occupied / liberated / updated |
+| `/topic/bar-tabs` | Bar tab opened / updated / transferred / settled |
 | `/topic/stock/alerte` | Low stock alert triggered |
 | `/topic/schedule-publications` | Team schedule published |
 | `/topic/serveur/appels` | Table assistance / bill request alert triggered |
@@ -219,9 +243,9 @@ flowchart LR
 
 ---
 
-## Modular Capability Flags & Feature Switches (#405)
+## Modular Capability Flags & Feature Switches (#405 / #450 / #452 / #449)
 
-Establishment features are decoupled into 6 switchable capabilities:
+Establishment features are decoupled into 9 switchable capabilities:
 
 | Capability | Module Enum | Controlled Areas & Endpoints |
 |---|---|---|
@@ -231,12 +255,15 @@ Establishment features are decoupled into 6 switchable capabilities:
 | **2D Floor Plan** | `FLOOR_PLAN` | `/plan-salle`, Konva 2D interactive plan editor, server plan display mode |
 | **Patron QR Ordering** | `QR_CLIENT_ORDERING` | `/client/commande`, `/client/table/:token`, collaborative table cart, QR endpoints |
 | **Stock Tracking** | `STOCK_TRACKING` | `/ingredients`, stock decrement on prep, shrinkage/waste logging, ruptures modal |
+| **Cash Drawer (Caisse)** | `CASH_DRAWER` | `/factures/caisse`, till sessions, cash-in/drop/paid-out, X/Z reports |
+| **Bar Tabs (Ardoises)** | `BAR_TABS` | `/serveur/ardoises`, running customer tabs without table requirement, tab settlement |
+| **Cocktail Library Import** | `COCKTAIL_LIBRARY` | `/cocktails` (import button & catalog wizard), `/setup` (menu population step), `/api/cocktails/library` |
 
 ### Establishment Presets
-- **BAR**: CUISINE_KDS ❌, HAPPY_HOUR ✅, EMPLOYEE_MANAGEMENT ✅, FLOOR_PLAN ✅, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅
-- **RESTAURANT**: All 6 capabilities enabled ✅
-- **FOOD_TRUCK**: CUISINE_KDS ❌, HAPPY_HOUR ❌, EMPLOYEE_MANAGEMENT ❌, FLOOR_PLAN ❌, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅
-- **NIGHTCLUB**: CUISINE_KDS ❌, HAPPY_HOUR ✅, EMPLOYEE_MANAGEMENT ✅, FLOOR_PLAN ❌, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅
+- **BAR**: CUISINE_KDS ❌, HAPPY_HOUR ✅, EMPLOYEE_MANAGEMENT ✅, FLOOR_PLAN ✅, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅, CASH_DRAWER ✅, BAR_TABS ✅, COCKTAIL_LIBRARY ✅
+- **RESTAURANT**: All 9 capabilities enabled ✅
+- **FOOD_TRUCK**: CUISINE_KDS ❌, HAPPY_HOUR ❌, EMPLOYEE_MANAGEMENT ❌, FLOOR_PLAN ❌, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅, CASH_DRAWER ✅, BAR_TABS ❌, COCKTAIL_LIBRARY ✅
+- **NIGHTCLUB**: CUISINE_KDS ❌, HAPPY_HOUR ✅, EMPLOYEE_MANAGEMENT ✅, FLOOR_PLAN ❌, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅, CASH_DRAWER ✅, BAR_TABS ✅, COCKTAIL_LIBRARY ✅
 
 ### Enforcing Mechanisms
 - **Backend Service Guards**: Explicit `BusinessException` thrown if disabled module endpoint is invoked.
@@ -320,6 +347,39 @@ OpenBar provides live tracking of recipe Cost of Goods Sold (COGS), gross margin
   - `target_gross_margin_percentage`: Target margin threshold (default 70%), triggering healthy status badges (`HEALTHY` / green).
   - `warning_gross_margin_percentage`: Warning threshold (default 50%), triggering warning badges (`WARNING` / orange) or critical alerts (`CRITICAL` / red when below warning).
 - **Manager Dashboard & Catalog Integration**: Visual margin health badges (`MarginHealthBadgeComponent`), live COGS and gross profit KPI cards in `DashboardManagerComponent`, real-time margin computation during cocktail creation/edition (`CocktailFormComponent`).
+
+---
+
+## Supplier Purchasing, Delivery Receipts (BL) & PAMP (Weighted Average Cost)
+
+OpenBar incorporates a complete procurement cycle directly connected to ingredient stock management and menu costing:
+
+- **Packaging & Purchasing Units**:
+  - `purchase_unit`: The unit under which the item is purchased (e.g. `BOTTLE`, `CAN`, `BOX`, `KEG`, `PACK`, `KG`, `L`).
+  - `packaging_capacity`: The quantity of base unit contained per package (e.g. 1 bottle of Gin = 0.70 L or 70 cl; 1 pack of beer = 24 bottles).
+  - `packaging_price_ht`: Supplier price per packaging unit excluding VAT.
+- **Conversion Engine in Order Destocking**:
+  - `UnitConversionService` standardizes units dynamically across volume, mass, and item counts (`slice` = 0.125 unit / 1/8th).
+  - When customer orders are prepared and validated (`CommandeService`), recipe ingredient portions are converted into the ingredient's inventory base unit and deducted accurately without unit mismatches.
+- **Weighted Average Cost (PAMP / WAC)**:
+  - Upon goods intake from a delivery receipt (`POST /api/purchases/orders/{id}/deliveries`), the ingredient inventory is incremented by the delivered quantity converted to base units:
+    $$\Delta Q = \text{packagesDelivered} \times \text{packagingCapacity}$$
+  - The unit cost is updated using the standard weighted average formula:
+    $$\text{PAMP}_{\text{new}} = \frac{Q_{\text{current}} \times C_{\text{current}} + \Delta Q \times C_{\text{incoming}}}{Q_{\text{current}} + \Delta Q}$$
+  - If initial stock was zero or negative, the incoming unit price directly establishes the new baseline PAMP.
+- **Endpoints**:
+
+| Method | URL | Roles | Description |
+|--------|-----|-------|-------------|
+| `GET` | `/api/suppliers` | BARMAN, MANAGER, ADMIN | List all registered suppliers |
+| `POST` | `/api/suppliers` | MANAGER, ADMIN | Create a new supplier profile |
+| `PUT` | `/api/suppliers/{id}` | MANAGER, ADMIN | Update supplier profile |
+| `DELETE` | `/api/suppliers/{id}` | MANAGER, ADMIN | Soft-delete/deactivate supplier |
+| `GET` | `/api/purchases/orders` | BARMAN, MANAGER, ADMIN | List purchase orders with status filter |
+| `POST` | `/api/purchases/orders` | MANAGER, ADMIN | Create a new purchase order |
+| `PUT` | `/api/purchases/orders/{id}` | MANAGER, ADMIN | Update draft purchase order |
+| `PUT` | `/api/purchases/orders/{id}/status` | MANAGER, ADMIN | Update purchase order lifecycle status |
+| `POST` | `/api/purchases/orders/{id}/deliveries` | BARMAN, MANAGER, ADMIN | Record goods delivery slip (BL), intake inventory, and recalculate PAMP |
 
 ---
 

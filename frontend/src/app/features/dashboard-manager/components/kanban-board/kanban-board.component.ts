@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
 import { IonBadge } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -14,6 +14,7 @@ import { MiniCommandeCardComponent } from '../mini-commande-card/mini-commande-c
   standalone: true,
   imports: [IonBadge, TranslocoPipe, MiniCommandeCardComponent],
   templateUrl: './kanban-board.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./kanban-board.component.scss'],
 })
 export class KanbanBoardComponent {

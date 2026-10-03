@@ -44,6 +44,9 @@ public class CommandeItem {
     private String notes;
     private boolean prioritaire = false;
 
+    @Column(name = "is_mystery_drink")
+    private Boolean isMysteryDrink = false;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "station", length = 30)
     private PreparationStation station;

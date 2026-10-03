@@ -24,6 +24,10 @@ public class Commande {
     private TableEntity table;
 
     @ManyToOne
+    @JoinColumn(name = "bar_tab_id", nullable = true)
+    private BarTab barTab;
+
+    @ManyToOne
     @JoinColumn(name = "serveur_id", nullable = true)
     private User serveur;
 

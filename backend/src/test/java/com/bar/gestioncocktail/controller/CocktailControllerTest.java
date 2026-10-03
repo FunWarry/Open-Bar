@@ -3,6 +3,7 @@ package com.bar.gestioncocktail.controller;
 import com.bar.gestioncocktail.dto.CocktailFacetsDTO;
 import com.bar.gestioncocktail.dto.CocktailRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailResponseDTO;
+import com.bar.gestioncocktail.dto.CocktailWheelDTO;
 import com.bar.gestioncocktail.dto.SaisonnaliteRequest;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailCategorie;
@@ -27,6 +28,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +40,9 @@ class CocktailControllerTest {
 
     @Mock
     private com.bar.gestioncocktail.service.MarginCalculationService marginCalculationService;
+
+    @Mock
+    private com.bar.gestioncocktail.service.CocktailLibraryService cocktailLibraryService;
 
     @InjectMocks
     private CocktailController cocktailController;
@@ -271,5 +276,65 @@ class CocktailControllerTest {
         assertThat(response.getBody().get(0).disponible()).isFalse();
         verify(cocktailService).setDisponibiliteBatch(List.of(1L), false);
     }
-}
 
+    @Test
+    @DisplayName("getLibraryCocktails - retrieves filtered library recipes")
+    void getLibraryCocktails_success() {
+        com.bar.gestioncocktail.dto.CocktailLibraryItemDTO item = new com.bar.gestioncocktail.dto.CocktailLibraryItemDTO(
+                "lib_1", "Old Fashioned", "Classic bourbon cocktail", "ALCOOLISE", "IBA_CLASSICS", "BOURBON",
+                true, new BigDecimal("10.00"), new BigDecimal("32.0"), false, true, true,
+                "Old Fashioned", "assets/images/verres/verre_old_fashioned.png", "assets/images/verres/verre_old_fashioned.png",
+                List.of("BITTER", "SWEET"), List.of(), 90, List.of("whiskey"), List.of(), List.of(), "Stir with ice",
+                85, true, null, null
+        );
+        when(cocktailLibraryService.getLibrary(null, null, null, null, null)).thenReturn(List.of(item));
+
+        ResponseEntity<List<com.bar.gestioncocktail.dto.CocktailLibraryItemDTO>> response =
+                cocktailController.getLibraryCocktails(null, null, null, null, null);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).nom()).isEqualTo("Old Fashioned");
+    }
+
+    @Test
+    @DisplayName("getLibraryWheel - retrieves precomputed connection wheel graph data")
+    void getLibraryWheel_success() {
+        CocktailWheelDTO.ConnectionWheelDTO wheelDto = mock(CocktailWheelDTO.ConnectionWheelDTO.class);
+        when(cocktailLibraryService.getWheelData()).thenReturn(wheelDto);
+
+        ResponseEntity<CocktailWheelDTO.ConnectionWheelDTO> response = cocktailController.getLibraryWheel(null);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull().isSameAs(wheelDto);
+    }
+
+    @Test
+    @DisplayName("importLibraryCocktails - imports selected library recipes into active catalog")
+    void importLibraryCocktails_success() {
+        com.bar.gestioncocktail.dto.CocktailLibraryImportRequestDTO req =
+                new com.bar.gestioncocktail.dto.CocktailLibraryImportRequestDTO(List.of("lib_1"), null);
+        com.bar.gestioncocktail.dto.CocktailLibraryImportResultDTO result =
+                new com.bar.gestioncocktail.dto.CocktailLibraryImportResultDTO(
+                        1, 0, 3, 1, List.of("Old Fashioned"), List.of(), "Imported successfully"
+                );
+        when(cocktailLibraryService.importCocktails(req)).thenReturn(result);
+
+        ResponseEntity<com.bar.gestioncocktail.dto.CocktailLibraryImportResultDTO> response =
+                cocktailController.importLibraryCocktails(req);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().importedCount()).isEqualTo(1);
+        assertThat(response.getBody().importedCocktails()).contains("Old Fashioned");
+    }
+
+    @Test
+    @DisplayName("reloadLibraryCatalog - reloads library templates from resource")
+    void reloadLibraryCatalog_success() {
+        ResponseEntity<Void> response = cocktailController.reloadLibraryCatalog();
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(cocktailLibraryService).loadLibrary();
+    }
+}

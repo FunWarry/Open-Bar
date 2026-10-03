@@ -91,6 +91,7 @@
   --thermal-paper-divider: #222222;
   --thermal-paper-warning: #d97706;
   --thermal-paper-success: #059669;
+  --thermal-receipt-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
 
   /* OpenBar DS — Types boissons/plats */
   --types-snacks: #0051ff;
@@ -101,6 +102,18 @@
   --types-cocktail: #ff8800;
   --types-mocktail: #ff0000;
   --types-beer: #ffd900;
+
+  /* OpenBar DS — Sunburst Proportions Palette */
+  --sunburst-dark-liquor: #a8423f;
+  --sunburst-light-liquor: #d97d64;
+  --sunburst-liqueurs: #b85d89;
+  --sunburst-wine-beer: #8c537d;
+  --sunburst-juices: #3f9bbd;
+  --sunburst-mixers: #7a82c4;
+  --sunburst-fruits: #d4a73b;
+  --sunburst-herbs: #4e9e7c;
+  --sunburst-bitters: #8f7236;
+  --sunburst-other: #968c85;
 
   /* OpenBar DS — Saisonnalité */
   --season-inseason: #2eac48;
@@ -308,6 +321,7 @@ body.light-theme,
   --card-item-bg: #ffffff;
   --card-item-border: #e2e8f0;
   --card-item-shadow: var(--shadow-sm);
+  --thermal-receipt-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   --card-header-border: #f1f5f9;
   --input-bg: var(--surface-2);
   --input-border: #cbd5e1;

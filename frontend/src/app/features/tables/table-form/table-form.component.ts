@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, OnDestroy } from '@angular/core';
+import { Component, OnInit, Input, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -42,6 +42,7 @@ import { ConfirmDeleteModalComponent } from '../../../core/components/ui/confirm
   templateUrl: './table-form.component.html',
   styleUrls: ['./table-form.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonIcon,
     IonSpinner,
@@ -125,7 +126,7 @@ export class TableFormComponent implements OnInit, OnDestroy {
 
     const idFromRoute = this.route?.snapshot?.params?.['id'];
     if (idFromRoute && Number.isNaN(+idFromRoute)) {
-      this.router.navigate(['/404']);
+      void this.router.navigate(['/404']);
       return;
     }
     const targetId = this.tableId ?? (idFromRoute ? +idFromRoute : (this.table?.id ?? null));
@@ -152,10 +153,10 @@ export class TableFormComponent implements OnInit, OnDestroy {
                   duration: 3000,
                   color: 'danger'
                 });
-                toast.present();
+                await toast.present();
                 return;
               }
-              this.router.navigate(['/404']);
+              await this.router.navigate(['/404']);
             }
           });
       }
@@ -208,6 +209,27 @@ export class TableFormComponent implements OnInit, OnDestroy {
     this.tableForm.patchValue({ zone: opt ? opt.value : '' });
   }
 
+  private showToast(message: string, color: 'success' | 'danger'): void {
+    void this.toastCtrl.create({
+      message,
+      duration: color === 'danger' ? 3500 : 2500,
+      color
+    }).then(t => void t.present());
+  }
+
+  private async dismissOrNavigate(data?: any): Promise<void> {
+    try {
+      const topModal = await this.modalCtrl.getTop();
+      if (topModal) {
+        await this.modalCtrl.dismiss(data);
+        return;
+      }
+    } catch {
+      // Fallback to route
+    }
+    await this.router.navigate(['/tables']);
+  }
+
   /** Submits the form: calls create or update depending on the mode. */
   onSubmit(): void {
     if (this.tableForm.invalid || this.isSubmitting) return;
@@ -231,33 +253,12 @@ export class TableFormComponent implements OnInit, OnDestroy {
           const successMsg = this.isEditMode
             ? this.transloco.translate('TABLES.UPDATED_SUCCESS')
             : this.transloco.translate('TABLES.CREATED_SUCCESS');
-
-          const toast = await this.toastCtrl.create({
-            message: successMsg,
-            duration: 2500,
-            color: 'success'
-          });
-          toast.present();
-
-          try {
-            const topModal = await this.modalCtrl.getTop();
-            if (topModal) {
-              await this.modalCtrl.dismiss({ action: 'saved', table: savedTable });
-              return;
-            }
-          } catch {
-            // Fallback to route
-          }
-          this.router.navigate(['/tables']);
+          this.showToast(successMsg, 'success');
+          await this.dismissOrNavigate({ action: 'saved', table: savedTable });
         },
-        error: async (err) => {
+        error: (err) => {
           const errMsg = err?.error?.message || this.transloco.translate('TABLES.SAVE_ERROR');
-          const toast = await this.toastCtrl.create({
-            message: errMsg,
-            duration: 3500,
-            color: 'danger'
-          });
-          toast.present();
+          this.showToast(errMsg, 'danger');
         }
       });
   }
@@ -304,32 +305,12 @@ export class TableFormComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$), finalize(() => (this.isSubmitting = false)))
       .subscribe({
         next: async () => {
-          const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('TABLES.DELETE_SUCCESS'),
-            duration: 2500,
-            color: 'success'
-          });
-          toast.present();
-
-          try {
-            const topModal = await this.modalCtrl.getTop();
-            if (topModal) {
-              await this.modalCtrl.dismiss({ action: 'deleted', tableId });
-              return;
-            }
-          } catch {
-            // Fallback
-          }
-          this.router.navigate(['/tables']);
+          this.showToast(this.transloco.translate('TABLES.DELETE_SUCCESS'), 'success');
+          await this.dismissOrNavigate({ action: 'deleted', tableId });
         },
-        error: async (err) => {
+        error: (err) => {
           const errMsg = err?.error?.message || this.transloco.translate('TABLES.DELETE_ERROR');
-          const toast = await this.toastCtrl.create({
-            message: errMsg,
-            duration: 3500,
-            color: 'danger'
-          });
-          toast.present();
+          this.showToast(errMsg, 'danger');
         }
       });
   }
@@ -345,6 +326,6 @@ export class TableFormComponent implements OnInit, OnDestroy {
     } catch {
       // Fallback
     }
-    this.router.navigate(['/tables']);
+    await this.router.navigate(['/tables']);
   }
 }

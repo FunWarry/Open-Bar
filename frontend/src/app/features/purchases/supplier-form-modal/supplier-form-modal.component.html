@@ -1,0 +1,127 @@
+<div class="supplier-modal-wrapper" data-testid="supplier-form-modal">
+  <header class="modal-header">
+    <div class="header-main-group">
+      <div class="icon-badge">
+        <ion-icon name="business-outline" class="badge-icon"></ion-icon>
+      </div>
+      <div class="header-text">
+        <h2 class="modal-title">
+          {{ (supplier ? 'SUPPLIERS.EDIT_TITLE' : 'SUPPLIERS.CREATE_TITLE') | transloco }}
+        </h2>
+        <span class="modal-subtitle">
+          {{ (supplier ? 'SUPPLIERS.EDIT_SUBTITLE' : 'SUPPLIERS.CREATE_SUBTITLE') | transloco }}
+        </span>
+      </div>
+    </div>
+    <button
+      type="button"
+      class="close-icon-btn"
+      (click)="onCancel()"
+      [attr.aria-label]="'COMMON.CLOSE' | transloco"
+      data-testid="supplier-close-btn"
+    >
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-form">
+    <div class="modal-body">
+      <div class="form-row-2">
+        <app-input-field
+          formControlName="nom"
+          [label]="'SUPPLIERS.NAME' | transloco"
+          [required]="true"
+          placeholder="Ex: Distillerie des Alpes"
+          testId="supplier-input-nom"
+          [errorMessage]="(form.get('nom')?.touched && form.get('nom')?.invalid) ? ('COMMON.ERROR_REQUIRED' | transloco) : undefined"
+        ></app-input-field>
+
+        <app-input-field
+          formControlName="contactNom"
+          [label]="'SUPPLIERS.CONTACT_PERSON' | transloco"
+          placeholder="Ex: Jean Dupont"
+          testId="supplier-input-contact"
+        ></app-input-field>
+      </div>
+
+      <div class="form-row-2">
+        <app-input-field
+          formControlName="email"
+          type="email"
+          [label]="'SUPPLIERS.EMAIL' | transloco"
+          placeholder="contact@fournisseur.fr"
+          testId="supplier-input-email"
+          [errorMessage]="(form.get('email')?.touched && form.get('email')?.hasError('email')) ? ('COMMON.ERROR_EMAIL' | transloco) : undefined"
+        ></app-input-field>
+
+        <app-input-field
+          formControlName="telephone"
+          type="tel"
+          [label]="'SUPPLIERS.PHONE' | transloco"
+          placeholder="+33 4 50 12 34 56"
+          testId="supplier-input-phone"
+        ></app-input-field>
+      </div>
+
+      <app-input-field
+        formControlName="adresse"
+        [label]="'SUPPLIERS.ADDRESS' | transloco"
+        placeholder="10 Rue de la Brasserie"
+        testId="supplier-input-adresse"
+      ></app-input-field>
+
+      <div class="form-row-2">
+        <app-input-field
+          formControlName="codePostal"
+          [label]="'SUPPLIERS.POSTAL_CODE' | transloco"
+          placeholder="74000"
+          testId="supplier-input-postal"
+        ></app-input-field>
+
+        <app-input-field
+          formControlName="ville"
+          [label]="'SUPPLIERS.CITY' | transloco"
+          placeholder="Annecy"
+          testId="supplier-input-ville"
+        ></app-input-field>
+      </div>
+
+      <app-input-field
+        formControlName="siret"
+        [label]="'SUPPLIERS.SIRET' | transloco"
+        placeholder="12345678900012"
+        testId="supplier-input-siret"
+      ></app-input-field>
+
+      <div class="field-item">
+        <label for="supplier-form-notes-field" class="field-label">{{ 'SUPPLIERS.NOTES' | transloco }}</label>
+        <textarea
+          id="supplier-form-notes-field"
+          formControlName="notes"
+          class="field-textarea"
+          rows="3"
+          [placeholder]="'SUPPLIERS.NOTES_PLACEHOLDER' | transloco"
+          data-testid="supplier-input-notes"
+        ></textarea>
+      </div>
+
+      <div class="toggle-row">
+        <app-toggle-switch
+          formControlName="actif"
+          [label]="'SUPPLIERS.ACTIVE_LABEL' | transloco"
+          testId="supplier-toggle-active"
+        ></app-toggle-switch>
+      </div>
+    </div>
+
+    <footer class="modal-footer">
+      <button type="button" class="btn-cancel" (click)="onCancel()" data-testid="supplier-cancel-btn">
+        {{ 'COMMON.CANCEL' | transloco }}
+      </button>
+      <button type="submit" class="btn-submit" [disabled]="form.invalid" data-testid="supplier-submit-btn">
+        <ion-icon name="save-outline"></ion-icon>
+        <span>{{ 'COMMON.SAVE' | transloco }}</span>
+      </button>
+    </footer>
+  </form>
+</div>

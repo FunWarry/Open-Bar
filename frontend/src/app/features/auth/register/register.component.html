@@ -64,7 +64,7 @@
       <div class="field">
         <label for="role-select">{{ 'AUTH.REGISTER.ROLE_LABEL' | transloco }}</label>
         <ion-item class="role-select-item" lines="none">
-          <ion-select id="role-select" formControlName="role" required interface="popover" [placeholder]="'AUTH.REGISTER.ROLE_PLACEHOLDER' | transloco">
+          <ion-select id="role-select" formControlName="role" interface="popover" [placeholder]="'AUTH.REGISTER.ROLE_PLACEHOLDER' | transloco">
             @for (role of roles; track role) {
               <ion-select-option [value]="role">
                 {{ 'SHIFTS.FILTERS.' + role | transloco }}

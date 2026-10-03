@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -39,6 +39,7 @@ import { TranslocoModule } from '@jsverse/transloco';
     IonButtons
 ],
   templateUrl: './day-closure-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./day-closure-modal.component.css']
 })
 export class DayClosureModalComponent implements OnInit {
@@ -102,11 +103,11 @@ export class DayClosureModalComponent implements OnInit {
   }
 
   dismiss(): void {
-    this.modalCtrl.dismiss(null);
+    void this.modalCtrl.dismiss(null);
   }
 
   saveClosure(): void {
-    this.modalCtrl.dismiss({
+    void this.modalCtrl.dismiss({
       action: 'close',
       startDate: this.startDate || this.dateISO,
       endDate: this.isDateRange && this.endDate ? this.endDate : undefined,
@@ -116,7 +117,7 @@ export class DayClosureModalComponent implements OnInit {
   }
 
   reopenDay(): void {
-    this.modalCtrl.dismiss({
+    void this.modalCtrl.dismiss({
       action: 'reopen'
     });
   }

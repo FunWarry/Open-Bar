@@ -3,7 +3,7 @@
     @if (avatarUrl) {
       <img [src]="avatarUrl" [alt]="name || 'User Avatar'" />
     } @else {
-      <div class="avatar-fallback" [style.backgroundColor]="roleColor">
+      <div class="avatar-fallback" [style.background-color]="roleColor">
         <span>{{ initials }}</span>
       </div>
     }

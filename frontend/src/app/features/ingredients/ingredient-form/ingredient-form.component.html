@@ -17,87 +17,207 @@
 <ion-content class="modal-content-container">
   <form [formGroup]="ingredientForm" (ngSubmit)="onSubmit()" data-testid="ingredient-form" class="ingredient-form">
 
-    <app-input-field
-      formControlName="nom"
-      [label]="'INGREDIENTS.NAME' | transloco"
-      [placeholder]="'INGREDIENTS.NAME_PLACEHOLDER' | transloco"
-      icon="cube-outline"
-      [required]="canEdit"
-      [errorMessage]="ingredientForm.get('nom')?.hasError('required') && ingredientForm.get('nom')?.touched ? ('INGREDIENTS.NAME_REQUIRED' | transloco) : ''"
-      testId="ingredient-name-input">
-    </app-input-field>
+    <div class="form-row-2col">
+      <app-input-field
+        formControlName="nom"
+        [label]="'INGREDIENTS.NAME' | transloco"
+        [placeholder]="'INGREDIENTS.NAME_PLACEHOLDER' | transloco"
+        icon="cube-outline"
+        [required]="canEdit"
+        [errorMessage]="ingredientForm.get('nom')?.hasError('required') && ingredientForm.get('nom')?.touched ? ('INGREDIENTS.NAME_REQUIRED' | transloco) : ''"
+        testId="ingredient-name-input">
+      </app-input-field>
 
-    <div class="select-field-group">
-      <span class="field-label" id="unit-select-label">{{ 'INGREDIENTS.UNIT' | transloco }} @if (canEdit) { <span class="required-star">*</span> }</span>
-      <div class="select-input-wrapper">
-        <ion-icon name="scale-outline" class="select-icon"></ion-icon>
-        <ion-select
-          formControlName="uniteMesure"
-          [placeholder]="'INGREDIENTS.SELECT_UNIT' | transloco"
-          [cancelText]="'COMMON.CANCEL' | transloco"
-          [okText]="'COMMON.CONFIRM' | transloco"
-          [interfaceOptions]="{ header: ('INGREDIENTS.UNIT' | transloco) }"
-          aria-labelledby="unit-select-label"
-          data-testid="ingredient-unit-select">
-          @for (unit of unitOptions; track unit.value) {
-            <ion-select-option [value]="unit.value">{{ unit.label }}</ion-select-option>
-          }
-        </ion-select>
+      <div class="select-field-group">
+        <app-searchable-select
+          formControlName="category"
+          [label]="'INGREDIENTS.CATEGORY' | transloco"
+          [placeholder]="'INGREDIENTS.SELECT_CATEGORY' | transloco"
+          [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+          [options]="categoryOptions"
+          [required]="canEdit"
+          [clearable]="false"
+          [enableSearch]="true"
+          testId="ingredient-category-select">
+        </app-searchable-select>
+        @if (ingredientForm.get('category')?.hasError('required') && ingredientForm.get('category')?.touched) {
+          <p class="error-hint">{{ 'INGREDIENTS.CATEGORY_REQUIRED' | transloco }}</p>
+        }
       </div>
-      @if (ingredientForm.get('uniteMesure')?.hasError('required') && ingredientForm.get('uniteMesure')?.touched) {
-        <p class="error-hint">{{ 'INGREDIENTS.UNIT_REQUIRED' | transloco }}</p>
+    </div>
+
+    <div class="form-row-2col">
+      <div class="select-field-group">
+        <app-searchable-select
+          formControlName="uniteMesure"
+          [label]="'INGREDIENTS.UNIT' | transloco"
+          [placeholder]="'INGREDIENTS.SELECT_UNIT' | transloco"
+          [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+          [options]="unitOptions"
+          [required]="canEdit"
+          [clearable]="false"
+          [enableSearch]="true"
+          testId="ingredient-unit-select">
+        </app-searchable-select>
+        @if (ingredientForm.get('uniteMesure')?.hasError('required') && ingredientForm.get('uniteMesure')?.touched) {
+          <p class="error-hint">{{ 'INGREDIENTS.UNIT_REQUIRED' | transloco }}</p>
+        }
+      </div>
+
+      <app-input-field
+        formControlName="degreAlcool"
+        type="number"
+        [min]="0"
+        [max]="100"
+        step="0.1"
+        [label]="('INGREDIENTS.ALCOHOL_DEGREE_LABEL' | transloco) + ' (% ABV)'"
+        placeholder="0.0"
+        icon="wine-outline"
+        [required]="false"
+        [errorMessage]="ingredientForm.get('degreAlcool')?.invalid && ingredientForm.get('degreAlcool')?.touched ? ('INGREDIENTS.ALCOHOL_DEGREE_ERROR' | transloco) : ''"
+        testId="ingredient-alcohol-degree-input">
+      </app-input-field>
+    </div>
+
+    <div class="form-row-2col">
+      <app-input-field
+        formControlName="quantiteStock"
+        type="number"
+        [label]="'INGREDIENTS.STOCK_QTY' | transloco"
+        placeholder="0"
+        icon="layers-outline"
+        [required]="canEdit"
+        [errorMessage]="ingredientForm.get('quantiteStock')?.hasError('min') && ingredientForm.get('quantiteStock')?.touched ? ('INGREDIENTS.STOCK_MIN_ERROR' | transloco) : ''"
+        testId="ingredient-stock-input">
+      </app-input-field>
+
+      <app-input-field
+        formControlName="seuilAlerte"
+        type="number"
+        [label]="'INGREDIENTS.SEUIL_ALERTE' | transloco"
+        placeholder="5"
+        icon="warning-outline"
+        [required]="canEdit"
+        [errorMessage]="ingredientForm.get('seuilAlerte')?.hasError('min') && ingredientForm.get('seuilAlerte')?.touched ? ('INGREDIENTS.SEUIL_MIN_ERROR' | transloco) : ''"
+        testId="ingredient-threshold-input">
+      </app-input-field>
+    </div>
+
+    <div class="form-row-2col">
+      <app-input-field
+        formControlName="prixUnitaire"
+        type="number"
+        [label]="('COCKTAIL.COST_UNIT' | transloco) + ' (€)'"
+        [placeholder]="'COCKTAIL.COST_UNIT_PRICE_HINT' | transloco"
+        icon="cash-outline"
+        [required]="false"
+        testId="ingredient-cost-input">
+      </app-input-field>
+
+      <app-input-field
+        formControlName="purchaseUnit"
+        type="text"
+        [label]="'INGREDIENTS.PURCHASE_UNIT_LABEL' | transloco"
+        [placeholder]="'INGREDIENTS.PURCHASE_UNIT_PLACEHOLDER' | transloco"
+        icon="cube-outline"
+        [required]="false"
+        testId="ingredient-purchase-unit-input">
+      </app-input-field>
+    </div>
+
+    <div class="form-row-2col">
+      <app-input-field
+        formControlName="packagingCapacity"
+        type="number"
+        [label]="'INGREDIENTS.PACKAGING_CAPACITY_LABEL' | transloco"
+        placeholder="1"
+        icon="scale-outline"
+        [required]="false"
+        testId="ingredient-packaging-capacity-input">
+      </app-input-field>
+
+      <app-input-field
+        formControlName="packagingPriceHt"
+        type="number"
+        [label]="('INGREDIENTS.PACKAGING_PRICE_LABEL' | transloco) + ' (€)'"
+        placeholder="0.00"
+        icon="cash-outline"
+        [required]="false"
+        testId="ingredient-packaging-price-input">
+      </app-input-field>
+    </div>
+
+    <!-- Barcode / QR Code & Default Supplier -->
+    <div class="form-row-2col">
+      <div class="barcode-input-row">
+        <app-input-field
+          formControlName="codeBarre"
+          [label]="'INGREDIENTS.FORM.BARCODE' | transloco"
+          [placeholder]="'INGREDIENTS.FORM.BARCODE_PLACEHOLDER' | transloco"
+          icon="barcode-outline"
+          [required]="false"
+          testId="ingredient-barcode-input">
+        </app-input-field>
+        @if (canEdit) {
+          <button
+            type="button"
+            class="btn-scan-action"
+            (click)="scanBarcode()"
+            [attr.aria-label]="'INGREDIENTS.FORM.SCAN_BARCODE' | transloco"
+            data-testid="ingredient-scan-btn">
+            <ion-icon name="barcode-outline"></ion-icon>
+            <span>{{ 'INGREDIENTS.FORM.SCAN_BARCODE' | transloco }}</span>
+          </button>
+        }
+      </div>
+
+      @if (suppliersManagementEnabled()) {
+        <div class="field-item">
+          <app-searchable-select
+            formControlName="defaultSupplierId"
+            [label]="'INGREDIENTS.FORM.DEFAULT_SUPPLIER' | transloco"
+            [placeholder]="'INGREDIENTS.FORM.SELECT_SUPPLIER' | transloco"
+            [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+            [options]="supplierOptions"
+            [required]="false"
+            [clearable]="true"
+            [enableSearch]="true"
+            testId="ingredient-supplier-select">
+          </app-searchable-select>
+        </div>
       }
     </div>
 
-    <app-input-field
-      formControlName="quantiteStock"
-      type="number"
-      [label]="'INGREDIENTS.STOCK_QTY' | transloco"
-      placeholder="0"
-      icon="layers-outline"
-      [required]="canEdit"
-      [errorMessage]="ingredientForm.get('quantiteStock')?.hasError('min') && ingredientForm.get('quantiteStock')?.touched ? ('INGREDIENTS.STOCK_MIN_ERROR' | transloco) : ''"
-      testId="ingredient-stock-input">
-    </app-input-field>
-
-    <app-input-field
-      formControlName="seuilAlerte"
-      type="number"
-      [label]="'INGREDIENTS.SEUIL_ALERTE' | transloco"
-      placeholder="5"
-      icon="warning-outline"
-      [required]="canEdit"
-      [errorMessage]="ingredientForm.get('seuilAlerte')?.hasError('min') && ingredientForm.get('seuilAlerte')?.touched ? ('INGREDIENTS.SEUIL_MIN_ERROR' | transloco) : ''"
-      testId="ingredient-threshold-input">
-    </app-input-field>
-
-    <app-input-field
-      formControlName="prixUnitaire"
-      type="number"
-      [label]="('COCKTAIL.COST_UNIT' | transloco) + ' (€)'"
-      [placeholder]="'COCKTAIL.COST_UNIT_PRICE_HINT' | transloco"
-      icon="cash-outline"
-      [required]="false"
-      testId="ingredient-cost-input">
-    </app-input-field>
-
-    <app-input-field
-      formControlName="degreAlcool"
-      type="number"
-      [label]="('INGREDIENTS.ALCOHOL_DEGREE_LABEL' | transloco) + ' (% ABV)'"
-      placeholder="0.0"
-      icon="wine-outline"
-      [required]="false"
-      testId="ingredient-alcohol-degree-input">
-    </app-input-field>
-
-    <div class="dietary-toggle-field">
-      <label class="dietary-check-item" data-testid="ingredient-is-vegan-label">
-        <input type="checkbox" formControlName="isVegan" [disabled]="!canEdit" data-testid="ingredient-is-vegan-checkbox" />
-        <span>🌱 {{ 'COCKTAIL.VEGAN_LABEL' | transloco }}</span>
-      </label>
+    <!-- Dietary Preference: Vegan -->
+    <div class="dietary-field-group">
+      <span class="field-label">{{ 'CLIENT_QR.MATCHER_DIETARY' | transloco }}</span>
+      <div class="dietary-chips-row">
+        <button
+          type="button"
+          class="dietary-chip-btn"
+          [class.active]="ingredientForm.get('isVegan')?.value"
+          [class.selected]="ingredientForm.get('isVegan')?.value"
+          [class.locked-disabled]="isVeganLockedFalse"
+          [disabled]="!canEdit || isVeganLockedFalse"
+          (click)="toggleVegan()"
+          [attr.title]="isVeganLockedFalse ? ('INGREDIENTS.CONFECTION.VEGAN_LOCKED_TOOLTIP' | transloco) : null"
+          data-testid="ingredient-is-vegan-btn">
+          <span class="chip-emoji">🌱</span>
+          <span class="chip-label">{{ 'COCKTAIL.VEGAN_LABEL' | transloco }}</span>
+          @if (isVeganLockedFalse) {
+            <ion-icon name="lock-closed-outline" class="inherited-lock-icon"></ion-icon>
+          }
+        </button>
+      </div>
+      @if (isVeganLockedFalse) {
+        <p class="dietary-locked-hint">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <span>{{ 'INGREDIENTS.CONFECTION.VEGAN_LOCKED_NOTICE' | transloco }}</span>
+        </p>
+      }
     </div>
 
+    <!-- Allergens -->
     <div class="allergens-field-group">
       <span class="field-label">{{ 'INGREDIENTS.ALLERGENS_LABEL' | transloco }}</span>
       <p class="field-hint">{{ 'INGREDIENTS.ALLERGENS_HINT' | transloco }}</p>
@@ -106,18 +226,209 @@
           <button
             type="button"
             class="allergen-chip-btn"
+            [class.active]="isAllergenSelected(allergen.key)"
             [class.selected]="isAllergenSelected(allergen.key)"
-            [disabled]="!canEdit"
+            [class.inherited]="isAllergenInherited(allergen.key)"
+            [disabled]="!canEdit || isAllergenInherited(allergen.key)"
             (click)="toggleAllergen(allergen.key)"
+            [attr.title]="isAllergenInherited(allergen.key) ? ('INGREDIENTS.CONFECTION.ALLERGEN_INHERITED_TOOLTIP' | transloco) : null"
             [attr.data-testid]="'allergen-chip-' + allergen.key.toLowerCase()">
-            <ion-icon [name]="allergen.icon" class="chip-icon"></ion-icon>
+            @if (allergen.emoji) {
+              <span class="chip-emoji">{{ allergen.emoji }}</span>
+            } @else {
+              <ion-icon [name]="allergen.icon" class="chip-icon"></ion-icon>
+            }
             <span class="chip-label">{{ allergen.labelKey | transloco }}</span>
-            @if (isAllergenSelected(allergen.key)) {
-              <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
+            @if (isAllergenInherited(allergen.key)) {
+              <ion-icon name="lock-closed-outline" class="inherited-lock-icon"></ion-icon>
             }
           </button>
         }
       </div>
+      @if (hasInheritedAllergens) {
+        <div class="inherited-notice" data-testid="inherited-allergens-notice">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          <span>{{ 'INGREDIENTS.CONFECTION.ALLERGENS_INHERITED_NOTICE' | transloco }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Confection Section -->
+    <div class="confection-section" [class.is-crafted-active]="ingredientForm.get('isCrafted')?.value" data-testid="confection-section">
+      <!-- Master Toggle Header Card -->
+      <div class="confection-header-card">
+        <div class="confection-header-left">
+          <div class="confection-icon-badge">
+            <ion-icon name="flask-outline"></ion-icon>
+          </div>
+          <div class="confection-header-text">
+            <h3 class="confection-title">{{ 'INGREDIENTS.CONFECTION.TITLE' | transloco }}</h3>
+            <p class="confection-subtitle">{{ 'INGREDIENTS.CONFECTION.HINT' | transloco }}</p>
+          </div>
+        </div>
+        <app-toggle-switch
+          formControlName="isCrafted"
+          [disabled]="!canEdit"
+          (checkedChange)="onIsCraftedChange($event)"
+          data-testid="ingredient-is-crafted-toggle">
+        </app-toggle-switch>
+      </div>
+
+      @if (ingredientForm.get('isCrafted')?.value) {
+        <div class="confection-builder" data-testid="confection-builder">
+
+          <!-- isPurchasable option card -->
+          <div class="confection-purchasable-card">
+            <div class="purchasable-content-left">
+              <div class="purchasable-icon-wrap">
+                <ion-icon name="cart-outline"></ion-icon>
+              </div>
+              <div class="purchasable-text-wrap">
+                <span class="purchasable-title">{{ 'INGREDIENTS.CONFECTION.ALSO_PURCHASABLE' | transloco }}</span>
+                <p class="purchasable-hint">{{ 'INGREDIENTS.CONFECTION.PURCHASABLE_HINT' | transloco }}</p>
+              </div>
+            </div>
+            <app-toggle-switch
+              formControlName="isPurchasable"
+              [disabled]="!canEdit"
+              data-testid="ingredient-is-purchasable-toggle">
+            </app-toggle-switch>
+          </div>
+
+          <!-- Dynamic Behavior Notice -->
+          @if (ingredientForm.get('isPurchasable')?.value) {
+            <div class="confection-notice notice-info">
+              <ion-icon name="information-circle-outline"></ion-icon>
+              <span>{{ 'INGREDIENTS.CONFECTION.PURCHASABLE_ACTIVE_NOTICE' | transloco }}</span>
+            </div>
+          } @else {
+            <div class="confection-notice notice-warning">
+              <ion-icon name="cube-outline"></ion-icon>
+              <span>{{ 'INGREDIENTS.CONFECTION.NOT_PURCHASABLE_NOTICE' | transloco }}</span>
+            </div>
+          }
+
+          <!-- Sources Section Title Bar -->
+          <div class="confection-sources-title-bar">
+            <div class="sources-title-group">
+              <ion-icon name="layers-outline"></ion-icon>
+              <h4 class="sources-title">{{ 'INGREDIENTS.CONFECTION.SOURCES_TITLE' | transloco }}</h4>
+            </div>
+            <span class="sources-count-badge">
+              {{ 'INGREDIENTS.CONFECTION.SOURCES_COUNT' | transloco : { count: confectionSources.length } }}
+            </span>
+          </div>
+
+          <!-- Sources List -->
+          <div class="confection-sources-list" formArrayName="confectionSources">
+            @for (sourceGroup of confectionSources.controls; track $index; let i = $index) {
+              <div class="confection-source-card" [formGroupName]="i" [attr.data-testid]="'confection-source-row-' + i">
+                <!-- Source Card Header -->
+                <div class="source-card-header">
+                  <div class="source-card-badge">
+                    <span class="source-badge-number">#{{ i + 1 }}</span>
+                    <span class="source-badge-label">{{ 'INGREDIENTS.CONFECTION.SOURCE_INGREDIENT' | transloco }}</span>
+                  </div>
+                  @if (canEdit) {
+                    <button
+                      type="button"
+                      class="btn-remove-source"
+                      (click)="removeConfectionSource(i)"
+                      (keydown.enter)="removeConfectionSource(i)"
+                      [attr.aria-label]="'COMMON.DELETE' | transloco"
+                      [attr.data-testid]="'confection-remove-source-' + i">
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                  }
+                </div>
+
+                <!-- Source Card Fields Grid -->
+                <div class="source-card-fields-grid">
+                  <div class="source-field-ingredient">
+                    <app-searchable-select
+                      formControlName="sourceIngredientId"
+                      [label]="'INGREDIENTS.CONFECTION.SOURCE_INGREDIENT' | transloco"
+                      [placeholder]="'INGREDIENTS.CONFECTION.SELECT_SOURCE' | transloco"
+                      [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+                      [options]="sourceIngredientOptions"
+                      [required]="canEdit"
+                      [enableSearch]="true"
+                      (selectionChange)="onSourceSelectionChange(i, $event)"
+                      [attr.data-testid]="'confection-source-ingredient-' + i">
+                    </app-searchable-select>
+                  </div>
+
+                  <div class="source-field-ratio">
+                    <app-input-field
+                      formControlName="yieldRatio"
+                      [label]="'INGREDIENTS.CONFECTION.YIELD_RATIO' | transloco"
+                      [placeholder]="'INGREDIENTS.CONFECTION.YIELD_RATIO_PLACEHOLDER' | transloco"
+                      type="number"
+                      icon="scale-outline"
+                      [required]="canEdit"
+                      [attr.data-testid]="'confection-yield-ratio-' + i">
+                    </app-input-field>
+                  </div>
+
+                  <div class="source-field-unit">
+                    <app-searchable-select
+                      formControlName="yieldUnit"
+                      [label]="'INGREDIENTS.CONFECTION.YIELD_UNIT' | transloco"
+                      [placeholder]="'INGREDIENTS.CONFECTION.SELECT_UNIT' | transloco"
+                      [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+                      [options]="yieldUnitOptions"
+                      [clearable]="true"
+                      [enableSearch]="true"
+                      [attr.data-testid]="'confection-yield-unit-' + i">
+                    </app-searchable-select>
+                  </div>
+                </div>
+
+                <!-- Dynamic Yield Explanation Footer -->
+                <div class="source-card-explanation">
+                  <ion-icon name="help-circle-outline"></ion-icon>
+                  <span>{{ getYieldExplanation(sourceGroup) }}</span>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Empty State when 0 sources -->
+          @if (confectionSources.length === 0) {
+            <div class="confection-empty-state" data-testid="confection-empty-state">
+              <div class="empty-icon-badge">
+                <ion-icon name="flask-outline"></ion-icon>
+              </div>
+              <h5 class="empty-title">{{ 'INGREDIENTS.CONFECTION.NO_SOURCES_TITLE' | transloco }}</h5>
+              <p class="empty-hint">{{ 'INGREDIENTS.CONFECTION.NO_SOURCES_HINT' | transloco }}</p>
+              @if (canEdit) {
+                <button
+                  type="button"
+                  class="btn-add-first-source"
+                  (click)="addConfectionSource()"
+                  (keydown.enter)="addConfectionSource()"
+                  data-testid="confection-add-first-source-btn">
+                  <ion-icon name="add-circle-outline"></ion-icon>
+                  <span>{{ 'INGREDIENTS.CONFECTION.ADD_SOURCE' | transloco }}</span>
+                </button>
+              }
+            </div>
+          }
+
+          <!-- Add Source Button when list not empty -->
+          @if (canEdit && confectionSources.length > 0) {
+            <button
+              type="button"
+              class="btn-add-source-dashed"
+              (click)="addConfectionSource()"
+              (keydown.enter)="addConfectionSource()"
+              data-testid="confection-add-source-btn">
+              <ion-icon name="add-circle-outline"></ion-icon>
+              <span>{{ 'INGREDIENTS.CONFECTION.ADD_SOURCE' | transloco }}</span>
+            </button>
+          }
+        </div>
+      }
     </div>
 
     <div class="form-actions">

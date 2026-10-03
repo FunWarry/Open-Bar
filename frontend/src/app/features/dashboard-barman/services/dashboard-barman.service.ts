@@ -201,19 +201,31 @@ export class DashboardBarmanService {
     for (const cmd of allOrders) {
       if (!cmd.items || cmd.items.length === 0) continue;
 
-      const orderCreatedTime = cmd.dateCommande ? new Date(cmd.dateCommande).getTime() : now;
-      const diff = now - orderCreatedTime;
-      const isOrderUrgent = Boolean(
-        cmd.prioritaire ||
-        (cmd.statut === 'EN_ATTENTE' && diff >= alertThresholdMs && diff < 2 * 60 * 60 * 1000)
-      );
+      const isOrderUrgent = this.isBatchOrderUrgent(cmd, now, alertThresholdMs);
       if (urgentOnly && !isOrderUrgent) continue;
 
-      const tableName = cmd.tableNom || (cmd.tableNumero ? `Table ${cmd.tableNumero}` : `Commande #${cmd.id}`);
+      const tableName = this.resolveBatchTableName(cmd);
       this.processCmdItems(batchMap, cmd, tableName, isOrderUrgent, stationFilter, query, now);
     }
 
     return this.finalizeAndSortBatches(Array.from(batchMap.values()));
+  }
+
+  private isBatchOrderUrgent(cmd: CommandeView, now: number, alertThresholdMs: number): boolean {
+    const orderCreatedTime = cmd.dateCommande ? new Date(cmd.dateCommande).getTime() : now;
+    const diff = now - orderCreatedTime;
+    return Boolean(
+      cmd.prioritaire ||
+      (cmd.statut === 'EN_ATTENTE' && diff >= alertThresholdMs && diff < 2 * 60 * 60 * 1000)
+    );
+  }
+
+  private resolveBatchTableName(cmd: CommandeView): string {
+    if (cmd.tableNom) return cmd.tableNom;
+    if (cmd.tableNumero && cmd.barTabNom) return `Table ${cmd.tableNumero} • ${cmd.barTabNom}`;
+    if (cmd.tableNumero) return `Table ${cmd.tableNumero}`;
+    if (cmd.barTabNom) return `${cmd.barTabNom} (Bar)`;
+    return `Commande #${cmd.id}`;
   }
 
   private processCmdItems(

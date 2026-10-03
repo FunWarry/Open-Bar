@@ -9,12 +9,13 @@
   gap: var(--space-5, 20px);
 }
 
-/* ─── Profile & preferences cards ─── */
+/* ─── Profile, preferences & PIN cards ─── */
 .profile-card,
 .preferences-card,
-.info-card {
-  background: var(--surface-1, #1a1a2e);
-  border: 1px solid var(--border-medium, #2e3450);
+.info-card,
+.roulette-pin-card {
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
   border-radius: 12px;
   margin: 0;
 }
@@ -41,17 +42,17 @@
 .section-label {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-secondary, #a4add0);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   white-space: nowrap;
-  font-family: var(--font, 'Inter', sans-serif);
+  font-family: inherit;
 }
 
 .separator-line {
   flex: 1;
   height: 1px;
-  background: var(--bg-0, #0f0f1a);
+  background: var(--border-subtle);
 }
 
 /* ─── Form layout ─── */
@@ -68,7 +69,7 @@
   justify-content: space-between;
   gap: var(--space-4, 16px);
   padding: 12px 0;
-  border-bottom: 1px solid var(--border-medium, #2e3450);
+  border-bottom: 1px solid var(--border-medium);
 }
 
 .pref-row:last-of-type {
@@ -82,39 +83,243 @@
 .pref-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  min-width: 0;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 220px;
 }
 
 .pref-label {
   font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary, #eceefb);
-  font-family: var(--font, 'Inter', sans-serif);
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: normal;
+  word-break: normal;
+  font-family: inherit;
 }
 
 .pref-description {
   font-size: 12px;
-  color: var(--text-secondary, #a4add0);
-  font-family: var(--font, 'Inter', sans-serif);
+  color: var(--text-secondary);
+  white-space: normal;
+  word-break: normal;
+  font-family: inherit;
 }
 
-/* ─── Language select ─── */
-.lang-select {
-  --background: var(--bg-0, #0f0f1a);
-  --color: var(--text-primary, #eceefb);
-  --border-color: var(--border-medium, #2e3450);
-  --padding-start: 12px;
-  --padding-end: 12px;
-  --padding-top: 8px;
-  --padding-bottom: 8px;
-  border: 1px solid var(--border-medium, #2e3450);
+/* ─── Language select wrapper ─── */
+.pref-select-wrap {
+  width: 200px;
+  min-width: 170px;
+  max-width: 240px;
+  flex-shrink: 0;
+}
+
+/* ─── Theme Mode Selector ─── */
+.pref-row--theme {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3, 12px);
+}
+
+.theme-buttons-row {
+  display: flex;
+  gap: var(--space-2, 8px);
+  width: 100%;
+}
+
+.theme-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2, 8px);
+  padding: 10px 14px;
+  background: var(--background-bg-0);
+  border: 1px solid var(--border-medium);
   border-radius: 8px;
-  min-width: 140px;
-  background: var(--bg-0, #0f0f1a);
-  font-size: 14px;
-  font-family: var(--font, 'Inter', sans-serif);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.theme-btn:hover {
+  background: var(--background-surface-2);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.theme-btn.active {
+  background: var(--primary);
+  color: var(--text-contrast);
+  border-color: var(--primary);
+  font-weight: 600;
+}
+
+.theme-btn ion-icon {
+  font-size: 16px;
+}
+
+.theme-studio-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: var(--space-2, 8px);
+  padding-top: var(--space-2, 8px);
+  border-top: 1px dashed var(--border-medium);
+}
+
+.theme-studio-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.theme-studio-btn:hover {
+  background: var(--background-surface-1);
+  border-color: var(--primary);
+}
+
+.theme-page-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.theme-page-link:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.profile-inline-theme-studio {
+  width: 100%;
+  margin-top: var(--space-4, 16px);
+  padding-top: var(--space-4, 16px);
+  border-top: 1px solid var(--border-medium);
+}
+
+/* ─── Roulette TV PIN Card ─── */
+.pin-card-header {
+  padding-bottom: var(--space-2, 8px);
+}
+
+.pin-card-header-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+}
+
+.pin-header-icon {
+  font-size: 24px;
+  color: var(--primary);
+}
+
+.pin-card-description {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 0;
+  margin-bottom: var(--space-4, 16px);
+  line-height: 1.5;
+}
+
+.pin-display-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4, 16px);
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  background: var(--background-bg-0);
+  border: 1px solid var(--border-medium);
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+
+.pin-badge-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.pin-badge {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 6px;
+  color: var(--primary);
+  background: var(--background-surface-2);
+  padding: 6px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-medium);
+  box-shadow: 0 0 16px var(--primary-glow);
+}
+
+.pin-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  flex-wrap: wrap;
+}
+
+.pin-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.pin-action-btn:hover {
+  background: var(--background-surface-2);
+  border-color: var(--border-strong);
+}
+
+.pin-action-btn.btn-regenerate:hover {
+  color: var(--semantic-warning);
+}
+
+.pin-action-btn.btn-open-display {
+  background: var(--primary);
+  color: var(--text-contrast);
+  border-color: var(--primary);
+}
+
+.pin-action-btn.btn-open-display:hover {
+  opacity: 0.9;
+}
+
+.pin-action-btn ion-icon.spinning {
+  animation: spin-icon 1s linear infinite;
+}
+
+@keyframes spin-icon {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* ─── Account info card ─── */
@@ -128,16 +333,16 @@
 .label {
   font-weight: 500;
   min-width: 180px;
-  color: var(--text-secondary, #a4add0);
+  color: var(--text-secondary);
   font-size: 13px;
-  font-family: var(--font, 'Inter', sans-serif);
+  font-family: inherit;
 }
 
 .value {
   flex: 1;
-  color: var(--text-primary, #eceefb);
+  color: var(--text-primary);
   font-size: 13px;
-  font-family: var(--font, 'Inter', sans-serif);
+  font-family: inherit;
 }
 
 .roles-list {

@@ -20,8 +20,10 @@ import { TableCardComponent } from '../../../app/features/dashboard-serveur/comp
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 import { ZoneService } from '../../../app/core/services/zone.service';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
+import { Cocktail } from '../../../app/core/models/cocktail.model';
 import { PlanSalleService } from '../../../app/features/plan-salle/services/plan-salle.service';
 import { HappyHourService } from '../../../app/core/services/happy-hour.service';
+import { FactureService } from '../../../app/features/factures/services/facture.service';
 import { provideMockStore } from '@ngrx/store/testing';
 
 import { provideIonicAngular } from '@ionic/angular';
@@ -48,6 +50,7 @@ describe('DashboardServeurComponent', () => {
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let happyHourServiceSpy: jasmine.SpyObj<HappyHourService>;
+  let factureServiceSpy: jasmine.SpyObj<FactureService>;
   let notification$: Subject<AppNotification>;
 
   const mockTables: TableView[] = [
@@ -100,8 +103,9 @@ describe('DashboardServeurComponent', () => {
     zoneServiceSpy = jasmine.createSpyObj('ZoneService', ['getAll']);
     zoneServiceSpy.getAll.and.returnValue(of([]));
 
-    cocktailServiceSpy = jasmine.createSpyObj('CocktailService', ['getAll']);
+    cocktailServiceSpy = jasmine.createSpyObj('CocktailService', ['getAll', 'getFacets', 'toggleDisponibilite', 'delete']);
     cocktailServiceSpy.getAll.and.returnValue(of([]));
+    cocktailServiceSpy.getFacets.and.returnValue(of(null as any));
 
     planSalleServiceSpy = jasmine.createSpyObj('PlanSalleService', ['getPositions']);
     planSalleServiceSpy.getPositions.and.returnValue(of([]));
@@ -144,6 +148,9 @@ describe('DashboardServeurComponent', () => {
     });
     offlineOrderServiceSpy.syncPendingOrders.and.returnValue(Promise.resolve({ synced: 1, failed: 0 }));
 
+    factureServiceSpy = jasmine.createSpyObj('FactureService', ['genererFactureTable', 'genererFactureTab']);
+    factureServiceSpy.genererFactureTable.and.returnValue(of({ id: 99, tableId: 1, tableNumero: 1, numero: 'FAC-001', total: 20 } as any));
+
     await TestBed.configureTestingModule({
       imports: [
         DashboardServeurComponent,
@@ -171,6 +178,7 @@ describe('DashboardServeurComponent', () => {
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: HappyHourService, useValue: happyHourServiceSpy },
+        { provide: FactureService, useValue: factureServiceSpy },
       ],
     }).compileComponents();
 
@@ -1167,5 +1175,206 @@ describe('DashboardServeurComponent', () => {
       component.setDisplayMode('PLAN');
       expect(component.displayMode).toBe('PLAN');
     });
+
+    it('ouvrirSplitTable() opens encaissement modal with initialTab "split"', fakeAsync(() => {
+      spyOn(component, 'ouvrirEncaissement');
+      component.ouvrirSplitTable(mockTables[0]);
+      tick();
+      expect(component.ouvrirEncaissement).toHaveBeenCalledWith(mockTables[0], 'split');
+    }));
+
+    it('ouvrirSplitFacture() opens split modal and reloads tables if settled', fakeAsync(() => {
+      const mockFacture = { id: 99, tableId: 1, numero: 'FAC-001' } as any;
+      (modalCtrlSpy.create as jasmine.Spy).and.returnValue(Promise.resolve({
+        present: jasmine.createSpy('present'),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: { settled: true } }))
+      } as any));
+
+      component.ouvrirSplitFacture(mockFacture);
+      tick();
+
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
+      expect(dashboardServiceSpy.getAllTables).toHaveBeenCalled();
+    }));
+
+    it('onSelectionner() handles action "split" and calls ouvrirSplitTable', fakeAsync(() => {
+      (modalCtrlSpy.create as jasmine.Spy).and.returnValue(Promise.resolve({
+        present: jasmine.createSpy('present'),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+          data: { action: 'split', table: mockTables[0] }
+        }))
+      } as any));
+      spyOn(component, 'ouvrirSplitTable');
+
+      component.onSelectionner(mockTables[0]);
+      tick();
+
+      expect(component.ouvrirSplitTable).toHaveBeenCalledWith(mockTables[0]);
+    }));
+
+    it('ouvrirEncaissement() opens split modal when dismissed with action open_split', fakeAsync(() => {
+      const mockFacture = { id: 77, numero: 'FAC-77' } as any;
+      (modalCtrlSpy.create as jasmine.Spy).and.returnValue(Promise.resolve({
+        present: jasmine.createSpy('present'),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+          data: { action: 'open_split', facture: mockFacture }
+        }))
+      } as any));
+      spyOn(component, 'ouvrirSplitFacture');
+
+      component.ouvrirEncaissement(mockTables[0]);
+      tick();
+
+      expect(component.ouvrirSplitFacture).toHaveBeenCalledWith(mockFacture);
+    }));
+
+    it('onSettleTab() opens split modal when dismissed with action open_split', fakeAsync(() => {
+      const mockFacture = { id: 88, numero: 'FAC-88' } as any;
+      const mockTab = { id: 10, nom: 'Tab 10' } as any;
+      (modalCtrlSpy.create as jasmine.Spy).and.returnValue(Promise.resolve({
+        present: jasmine.createSpy('present'),
+        onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({
+          data: { action: 'open_split', facture: mockFacture }
+        }))
+      } as any));
+      spyOn(component, 'ouvrirSplitFacture').and.returnValue(Promise.resolve());
+
+      component.onSettleTab(mockTab);
+      tick();
+
+      expect(component.ouvrirSplitFacture).toHaveBeenCalledWith(mockFacture);
+    }));
+
+    it('onOrderForTab() initializes cart with bar tab details and switches to catalogue', () => {
+      const mockTab = {
+        id: 77,
+        nom: 'VIP Martin',
+        tableOriginaleId: 14,
+        tableOriginaleNumero: 8,
+      } as any;
+
+      component.onOrderForTab(mockTab);
+
+      expect(component.cart.barTabId).toBe(77);
+      expect(component.cart.barTabNom).toBe('VIP Martin');
+      expect(component.cart.tableId).toBe(14);
+      expect(component.cart.tableNumero).toBe(8);
+      expect(component.activeTab).toBe('commande');
+    });
+
+    it('onOrderForTab() handles bar tab without attached physical table', () => {
+      const mockTabDirect = {
+        id: 78,
+        nom: 'Comptoir Direct',
+      } as any;
+
+      component.onOrderForTab(mockTabDirect);
+
+      expect(component.cart.barTabId).toBe(78);
+      expect(component.cart.barTabNom).toBe('Comptoir Direct');
+      expect(component.cart.tableId).toBeNull();
+      expect(component.cart.tableNumero).toBeUndefined();
+      expect(component.activeTab).toBe('commande');
+    });
+  });
+
+  describe('onCocktailSelected() and Variant Selection Flow (#508)', () => {
+    const mockCocktailWithoutVariants: Cocktail = {
+      id: 50,
+      nom: 'Gin Tonic Classic',
+      prix: 9.0,
+      categorie: 'ALCOOLISE',
+      disponible: true,
+      description: 'Gin premium, tonic',
+      saisonnier: false,
+      variantes: [],
+      ingredients: [],
+      createdAt: '',
+      updatedAt: '',
+    };
+
+    const mockCocktailWithVariants: Cocktail = {
+      id: 51,
+      nom: 'Mojito Havana',
+      prix: 8.5,
+      categorie: 'ALCOOLISE',
+      disponible: true,
+      description: 'Rhum, menthe, citron',
+      saisonnier: false,
+      variantes: [
+        { id: 201, nom: 'Virgin Mojito', prixSupplement: -1.5, disponible: true },
+        { id: 202, nom: 'Pitcher 1L', prixSupplement: 15.5, disponible: true },
+      ],
+      ingredients: [],
+      createdAt: '',
+      updatedAt: '',
+    };
+
+    it('adds directly to cart when cocktail has no variants', fakeAsync(() => {
+      component.cart = { tableId: 1, items: [] };
+
+      component.onCocktailSelected(mockCocktailWithoutVariants);
+      tick();
+
+      expect(component.cart.items).toHaveSize(1);
+      expect(component.cart.items[0].boissonId).toBe(50);
+      expect(component.cart.items[0].nom).toBe('Gin Tonic Classic');
+      expect(component.cart.items[0].prix).toBe(9.0);
+      expect(component.cart.items[0].varianteNom).toBeUndefined();
+      expect(modalCtrlSpy.create).not.toHaveBeenCalled();
+    }));
+
+    const setupVariantModal = (role: string, selectedVariant: any) => {
+      const mockModal = {
+        present: jasmine.createSpy('present'),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(
+          Promise.resolve({
+            role,
+            data: selectedVariant ? { selectedVariant } : null,
+          })
+        ),
+      };
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
+    };
+
+    it('opens VariantSelectionModalComponent when cocktail has available variants', fakeAsync(() => {
+      component.cart = { tableId: 1, items: [] };
+      setupVariantModal('confirm', { id: 201, nom: 'Virgin Mojito', prix: 7.0 });
+
+      component.onCocktailSelected(mockCocktailWithVariants);
+      tick();
+
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
+      expect(component.cart.items).toHaveSize(1);
+      expect(component.cart.items[0].boissonId).toBe(51);
+      expect(component.cart.items[0].varianteId).toBe(201);
+      expect(component.cart.items[0].varianteNom).toBe('Virgin Mojito');
+      expect(component.cart.items[0].prix).toBe(7.0);
+    }));
+
+    it('adds standard recipe when standard variant option is selected in modal', fakeAsync(() => {
+      component.cart = { tableId: 1, items: [] };
+      setupVariantModal('confirm', { id: undefined, nom: 'Mojito Havana (Standard)', prix: 8.5 });
+
+      component.onCocktailSelected(mockCocktailWithVariants);
+      tick();
+
+      expect(component.cart.items).toHaveSize(1);
+      expect(component.cart.items[0].boissonId).toBe(51);
+      expect(component.cart.items[0].varianteId).toBeUndefined();
+      expect(component.cart.items[0].varianteNom).toBeUndefined();
+      expect(component.cart.items[0].prix).toBe(8.5);
+    }));
+
+    it('does not add to cart when variant modal is cancelled', fakeAsync(() => {
+      component.cart = { tableId: 1, items: [] };
+      setupVariantModal('cancel', null);
+
+      component.onCocktailSelected(mockCocktailWithVariants);
+      tick();
+
+      expect(component.cart.items).toHaveSize(0);
+    }));
   });
 });
+

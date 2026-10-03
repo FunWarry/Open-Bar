@@ -22,6 +22,30 @@ export type FlavorProfile =
   | 'SPICY'
   | 'HERBAL';
 
+/**
+ * Visual configuration for a flavor profile chip.
+ */
+export interface FlavorProfileConfig {
+  key: FlavorProfile;
+  labelKey: string;
+  icon: string;
+  emoji: string;
+  badgeClass: string;
+}
+
+/**
+ * Standard flavor profile items with icons, emojis, and styling classes.
+ */
+export const DEFAULT_FLAVOR_CONFIGS: readonly FlavorProfileConfig[] = [
+  { key: 'FRUITY', labelKey: 'COCKTAIL.FLAVOR_FRUITY', icon: 'water-outline', emoji: '🍓', badgeClass: 'flavor-fruity' },
+  { key: 'SMOKY', labelKey: 'COCKTAIL.FLAVOR_SMOKY', icon: 'cloud-outline', emoji: '💨', badgeClass: 'flavor-smoky' },
+  { key: 'SWEET', labelKey: 'COCKTAIL.FLAVOR_SWEET', icon: 'sparkles-outline', emoji: '🍯', badgeClass: 'flavor-sweet' },
+  { key: 'SOUR', labelKey: 'COCKTAIL.FLAVOR_SOUR', icon: 'water-outline', emoji: '🍋', badgeClass: 'flavor-sour' },
+  { key: 'BITTER', labelKey: 'COCKTAIL.FLAVOR_BITTER', icon: 'wine-outline', emoji: '☕', badgeClass: 'flavor-bitter' },
+  { key: 'SPICY', labelKey: 'COCKTAIL.FLAVOR_SPICY', icon: 'flame-outline', emoji: '🌶️', badgeClass: 'flavor-spicy' },
+  { key: 'HERBAL', labelKey: 'COCKTAIL.FLAVOR_HERBAL', icon: 'leaf-outline', emoji: '🌿', badgeClass: 'flavor-herbal' },
+] as const;
+
 export interface CocktailFacets {
   flavorCounts: Record<FlavorProfile, number>;
   mocktailsCount: number;

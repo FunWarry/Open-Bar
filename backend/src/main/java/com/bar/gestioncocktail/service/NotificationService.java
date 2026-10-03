@@ -26,6 +26,7 @@ public class NotificationService {
     private static final String TOPIC_SERVEUR_APPELS = "/topic/serveur/appels";
     private static final String TOPIC_SERVEUR_APPELS_ACQUITTE = "/topic/serveur/appels/acquitte";
     private static final String TOPIC_ESTABLISHMENT_MODULES = "/topic/establishment/modules";
+    private static final String TOPIC_BAR_TABS = "/topic/bar-tabs";
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -136,6 +137,15 @@ public class NotificationService {
     }
 
     /**
+     * Broadcasts customer bar tab lifecycle mutations over /topic/bar-tabs.
+     *
+     * @param payload Bar tab event or DTO payload
+     */
+    public void notifierBarTabMisAJour(Object payload) {
+        messagingTemplate.convertAndSend(TOPIC_BAR_TABS, payload);
+    }
+
+    /**
      * Broadcasts an order status transition notification.
      *
      * @param commandeId    Order identifier
@@ -200,17 +210,7 @@ public class NotificationService {
     /**
      * Payload DTO for order status transition WebSocket events.
      */
-    public static class CommandeStatutNotification {
-        private final Long commandeId;
-        private final CommandeStatut ancienStatut;
-        private final CommandeStatut nouveauStatut;
-
-        public CommandeStatutNotification(Long commandeId, CommandeStatut ancienStatut, CommandeStatut nouveauStatut) {
-            this.commandeId = commandeId;
-            this.ancienStatut = ancienStatut;
-            this.nouveauStatut = nouveauStatut;
-        }
-
+    public record CommandeStatutNotification(Long commandeId, CommandeStatut ancienStatut, CommandeStatut nouveauStatut) {
         public Long getCommandeId() {
             return commandeId;
         }
@@ -227,17 +227,7 @@ public class NotificationService {
     /**
      * Payload DTO for ingredient low stock alerts.
      */
-    public static class StockAlerteNotification {
-        private final Long ingredientId;
-        private final String nomIngredient;
-        private final double quantiteRestante;
-
-        public StockAlerteNotification(Long ingredientId, String nomIngredient, double quantiteRestante) {
-            this.ingredientId = ingredientId;
-            this.nomIngredient = nomIngredient;
-            this.quantiteRestante = quantiteRestante;
-        }
-
+    public record StockAlerteNotification(Long ingredientId, String nomIngredient, double quantiteRestante) {
         public Long getIngredientId() {
             return ingredientId;
         }

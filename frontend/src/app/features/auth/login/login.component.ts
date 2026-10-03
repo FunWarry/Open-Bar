@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
@@ -22,6 +22,7 @@ import { ActionButtonComponent } from '../../../core/components/ui/action-button
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ReactiveFormsModule,
     TranslocoModule,
@@ -56,7 +57,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       next: (status) => {
         if (!status.initialized) {
           this.authService.logout();
-          this.router.navigate(['/setup']);
+          void this.router.navigate(['/setup']);
           return;
         }
         this.checkExistingAuth();
@@ -89,9 +90,9 @@ export class LoginComponent implements OnInit, OnDestroy {
       .subscribe((user) => {
         const userKey = user?.id ? String(user.id) : (user?.roles?.[0] || 'CLIENT');
         if (!this.onboardingService.isCompleted(userKey)) {
-          this.router.navigate(['/onboarding']);
+          void this.router.navigate(['/onboarding']);
         } else {
-          this.router.navigate(['/app-home']);
+          void this.router.navigate(['/app-home']);
         }
       });
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Optional, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, Optional, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, combineLatest, of, interval } from 'rxjs';
@@ -17,11 +17,13 @@ import {
 import { addIcons } from 'ionicons';
 import {
   home, settings, personCircle, person, logOut, chevronDown,
-  notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline, globeOutline
+  notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline, globeOutline,
+  moonOutline, sunnyOutline
 } from 'ionicons/icons';
 import { AsyncPipe, UpperCasePipe } from '@angular/common';
 import * as AuthActions from '../../store/auth.actions';
 import { User } from '../../models/user.model';
+import { ThemeService } from '../../services/theme.service';
 
 /** Map from URL prefix to translation key for page titles. */
 const ROUTE_TITLE_MAP: Record<string, string> = {
@@ -40,6 +42,8 @@ const ROUTE_TITLE_MAP: Record<string, string> = {
   '/manager': 'NAV.TOPBAR.PAGE_TITLES.MANAGER',
   '/cocktails': 'NAV.TOPBAR.PAGE_TITLES.COCKTAILS',
   '/ingredients': 'NAV.TOPBAR.PAGE_TITLES.INGREDIENTS',
+  '/purchases': 'NAV.TOPBAR.PAGE_TITLES.PURCHASES',
+  '/inventory': 'NAV.TOPBAR.PAGE_TITLES.INVENTORY',
   '/commandes': 'NAV.TOPBAR.PAGE_TITLES.COMMANDES',
   '/tables': 'NAV.TOPBAR.PAGE_TITLES.TABLES',
   '/factures': 'NAV.TOPBAR.PAGE_TITLES.FACTURES',
@@ -71,6 +75,7 @@ const ROLE_COLORS: Record<string, string> = {
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonPopover, IonList, IonItem, IonLabel, IonBadge,
@@ -115,11 +120,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
     public readonly languageService: LanguageService,
     private readonly popoverCtrl: PopoverController,
     private readonly transloco: TranslocoService,
+    @Optional() public readonly themeService?: ThemeService,
     @Optional() private readonly router?: Router,
   ) {
     addIcons({
       home, settings, personCircle, person, logOut, chevronDown,
       notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline, globeOutline,
+      moonOutline, sunnyOutline
     });
 
     this.isAdmin$ = this.store.select(selectIsAdmin);

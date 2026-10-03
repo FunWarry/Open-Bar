@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -77,6 +77,7 @@ export interface CartItem {
     SearchBarComponent, IonSelect, IonSelectOption,
   ],
   templateUrl: './nouvelle-commande.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./nouvelle-commande.component.scss'],
 })
 export class NouvelleCommandeComponent implements OnInit, OnDestroy {
@@ -206,7 +207,7 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
@@ -427,8 +428,8 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
             duration: 2000,
             color: 'success',
           });
-          toast.present();
-          this.router.navigate(['/serveur']);
+          await toast.present();
+          await this.router.navigate(['/serveur']);
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
@@ -436,7 +437,7 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }

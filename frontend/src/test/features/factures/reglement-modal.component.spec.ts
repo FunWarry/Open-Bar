@@ -201,4 +201,80 @@ describe('ReglementModalComponent', () => {
   it('should return currency symbol from appSettingsService', () => {
     expect(component.currencySymbol).toBe('€');
   });
+
+  it('calculates percentage and fixed discountAmount correctly and updates totalWithTip', () => {
+    component.initialTotal = 100.00;
+    component.setDiscountMode('percent');
+    component.discountPercent = 20;
+    expect(component.discountAmount).toBe(20.00);
+    expect(component.totalWithTip).toBe(80.00);
+
+    component.setDiscountMode('fixed');
+    component.discountFixed = 15;
+    expect(component.discountAmount).toBe(15.00);
+    expect(component.totalWithTip).toBe(85.00);
+
+    component.setDiscountMode('none');
+    expect(component.discountAmount).toBe(0);
+    expect(component.totalWithTip).toBe(100.00);
+  });
+
+  it('calculates smartNextBill correctly for various amounts', () => {
+    component.initialTotal = 12.50;
+    expect(component.smartNextBill).toBe(20);
+
+    component.initialTotal = 55.00;
+    expect(component.smartNextBill).toBe(100);
+
+    component.initialTotal = 255.00;
+    expect(component.smartNextBill).toBe(260);
+
+    component.initialTotal = 0;
+    expect(component.smartNextBill).toBe(10);
+  });
+
+  it('adds cash increments correctly', () => {
+    component.initialTotal = 30.00;
+    component.receivedAmount = 30.00;
+    component.addCashIncrement(10);
+    expect(component.receivedAmount).toBe(40.00);
+  });
+
+  it('imprimerRecu() invokes window.print()', () => {
+    spyOn(window, 'print');
+    component.imprimerRecu();
+    expect(window.print).toHaveBeenCalled();
+  });
+
+  it('telechargerPdf() opens PDF when factureId is present', () => {
+    spyOn(window, 'open');
+    component.factureId = 123;
+    component.telechargerPdf();
+    expect(window.open).toHaveBeenCalledWith(jasmine.stringMatching(/123\/pdf/), '_blank');
+  });
+
+  it('confirmPayment() dismisses with discount and table release payload', () => {
+    component.initialTotal = 50.00;
+    component.canLibererTable = true;
+    component.setDiscountMode('percent');
+    component.discountPercent = 10;
+    component.libererTable = true;
+
+    component.confirmPayment();
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(jasmine.objectContaining({
+      remisePourcentage: 10,
+      libererTable: true
+    }));
+  });
+
+  it('confirmPayment() includes remiseMontant when discountMode is fixed', () => {
+    component.initialTotal = 50.00;
+    component.setDiscountMode('fixed');
+    component.discountFixed = 5.00;
+
+    component.confirmPayment();
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(jasmine.objectContaining({
+      remiseMontant: 5.00
+    }));
+  });
 });

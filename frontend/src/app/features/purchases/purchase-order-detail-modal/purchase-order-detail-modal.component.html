@@ -1,0 +1,204 @@
+<div class="order-detail-modal-wrapper" data-testid="purchase-order-detail-modal">
+  <!-- Modal Header -->
+  <header class="modal-header">
+    <div class="header-main-group">
+      <div class="icon-badge">
+        <ion-icon name="document-text-outline" class="badge-icon"></ion-icon>
+      </div>
+      <div class="header-text">
+        <div class="title-with-badge">
+          <h2 class="modal-title" data-testid="order-detail-title">{{ order.numeroCommande }}</h2>
+          <span class="status-badge" [attr.data-status]="order.status" data-testid="order-detail-status-badge">
+            {{ ('PURCHASES.STATUS.' + order.status) | transloco }}
+          </span>
+        </div>
+        <span class="modal-subtitle">
+          <ion-icon name="business-outline"></ion-icon>
+          {{ order.supplierNom }}
+        </span>
+      </div>
+    </div>
+    <button
+      type="button"
+      class="close-icon-btn"
+      (click)="onClose()"
+      [attr.aria-label]="'COMMON.CLOSE' | transloco"
+      data-testid="order-detail-close-btn"
+    >
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </header>
+
+  <!-- Modal Body -->
+  <div class="modal-body">
+    <!-- General Information Card -->
+    <section class="info-card">
+      <div class="card-grid">
+        <div class="info-block">
+          <span class="info-label">{{ 'PURCHASES.DATE_ORDERED' | transloco }}</span>
+          <span class="info-value">{{ order.dateCommande ? (order.dateCommande | date:'mediumDate') : '-' }}</span>
+        </div>
+        <div class="info-block">
+          <span class="info-label">{{ 'PURCHASES.DELIVERY_DATE_EXPECTED' | transloco }}</span>
+          <span class="info-value">{{ order.dateLivraisonPrevue ? (order.dateLivraisonPrevue | date:'mediumDate') : '-' }}</span>
+        </div>
+        @if (order.dateLivraisonReelle) {
+          <div class="info-block">
+            <span class="info-label">{{ 'PURCHASES.DATE_RECEIVED_REAL' | transloco }}</span>
+            <span class="info-value">{{ order.dateLivraisonReelle | date:'mediumDate' }}</span>
+          </div>
+        }
+        @if (order.referenceFactureFournisseur) {
+          <div class="info-block">
+            <span class="info-label">{{ 'PURCHASES.SUPPLIER_INVOICE_REF' | transloco }}</span>
+            <span class="info-value font-mono">{{ order.referenceFactureFournisseur }}</span>
+          </div>
+        }
+      </div>
+
+      @if (order.notes) {
+        <div class="notes-block">
+          <span class="info-label">{{ 'PURCHASES.NOTES' | transloco }}</span>
+          <p class="notes-text">{{ order.notes }}</p>
+        </div>
+      }
+    </section>
+
+    <!-- Ordered Items List -->
+    <section class="items-section">
+      <div class="section-header">
+        <div class="section-title-group">
+          <ion-icon name="cube-outline"></ion-icon>
+          <h3>{{ 'PURCHASES.ITEMS_TITLE' | transloco }}</h3>
+        </div>
+        <span class="items-badge">{{ order.items.length }}</span>
+      </div>
+
+      <div class="items-table-wrapper">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>{{ 'PURCHASES.INGREDIENT' | transloco }}</th>
+              <th class="text-right">{{ 'PURCHASES.QUANTITY_ORDERED' | transloco }}</th>
+              <th class="text-right">{{ 'PURCHASES.QUANTITY_RECEIVED' | transloco }}</th>
+              <th class="text-right">{{ 'PURCHASES.UNIT_PRICE_HT' | transloco }}</th>
+              <th class="text-right">{{ 'PURCHASES.VAT_RATE' | transloco }}</th>
+              <th class="text-right">{{ 'PURCHASES.TOTAL_TTC' | transloco }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of order.items; track (item.id || item.ingredientId)) {
+              <tr [attr.data-testid]="'order-item-row-' + item.ingredientId">
+                <td class="col-name">
+                  <span class="item-name">{{ item.ingredientNom || ('#' + item.ingredientId) }}</span>
+                  @if (item.ingredientUnite) {
+                    <span class="item-unit">({{ item.ingredientUnite }})</span>
+                  }
+                </td>
+                <td class="text-right col-qty-ordered font-mono">
+                  {{ item.quantiteCommandee }}
+                </td>
+                <td class="text-right col-qty-received font-mono">
+                  <span class="qty-received-badge" [class.received-complete]="item.quantiteRecue && item.quantiteRecue >= item.quantiteCommandee">
+                    {{ item.quantiteRecue ?? 0 }} / {{ item.quantiteCommandee }}
+                  </span>
+                </td>
+                <td class="text-right font-mono">{{ item.prixUnitaireHt | number:'1.2-2' }} €</td>
+                <td class="text-right font-mono">{{ item.tauxTva ?? 20 }}%</td>
+                <td class="text-right col-total font-mono font-bold">
+                  {{ (item.montantTtc ?? (item.quantiteCommandee * item.prixUnitaireHt * (1 + (item.tauxTva ?? 20) / 100))) | number:'1.2-2' }} €
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Financial Totals Summary -->
+    <section class="totals-summary-card">
+      <div class="total-row">
+        <span class="total-label">{{ 'PURCHASES.TOTAL_HT' | transloco }}</span>
+        <span class="total-value font-mono">{{ order.totalHt | number:'1.2-2' }} €</span>
+      </div>
+      <div class="total-row">
+        <span class="total-label">{{ 'PURCHASES.TOTAL_TVA' | transloco }}</span>
+        <span class="total-value font-mono">{{ order.totalTva | number:'1.2-2' }} €</span>
+      </div>
+      <div class="total-row grand-total">
+        <span class="total-label">{{ 'PURCHASES.TOTAL_TTC' | transloco }}</span>
+        <span class="total-value font-mono highlight">{{ order.totalTtc | number:'1.2-2' }} €</span>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal Footer Actions -->
+  <footer class="modal-footer">
+    <div class="footer-actions-left">
+      @if (order.status !== 'DRAFT' && order.status !== 'CANCELLED') {
+        <button
+          type="button"
+          class="btn-action btn-pdf"
+          (click)="onDownloadPdf()"
+          data-testid="order-detail-pdf-btn"
+        >
+          <ion-icon name="download-outline"></ion-icon>
+          <span>{{ 'PURCHASES.ACTION_DOWNLOAD_PDF' | transloco }}</span>
+        </button>
+      }
+    </div>
+
+    <div class="footer-actions-right">
+      @if (order.status === 'DRAFT') {
+        <button
+          type="button"
+          class="btn-action btn-edit-order"
+          (click)="onEdit()"
+          data-testid="order-detail-edit-btn"
+        >
+          <ion-icon name="create-outline"></ion-icon>
+          <span>{{ 'COMMON.EDIT' | transloco }}</span>
+        </button>
+        <button
+          type="button"
+          class="btn-action btn-cancel-order"
+          (click)="onCancelOrder()"
+          data-testid="order-detail-cancel-btn"
+        >
+          <ion-icon name="close-circle-outline"></ion-icon>
+          <span>{{ 'COMMON.CANCEL' | transloco }}</span>
+        </button>
+        <button
+          type="button"
+          class="btn-action btn-send-order"
+          (click)="onSend()"
+          data-testid="order-detail-send-btn"
+        >
+          <ion-icon name="send-outline"></ion-icon>
+          <span>{{ 'PURCHASES.ACTION_SEND' | transloco }}</span>
+        </button>
+      }
+
+      @if (order.status === 'ORDERED' || order.status === 'PARTIALLY_RECEIVED') {
+        <button
+          type="button"
+          class="btn-action btn-receive-order"
+          (click)="onReceive()"
+          data-testid="order-detail-receive-btn"
+        >
+          <ion-icon name="checkmark-done-outline"></ion-icon>
+          <span>{{ 'PURCHASES.ACTION_RECEIVE' | transloco }}</span>
+        </button>
+      }
+
+      <button
+        type="button"
+        class="btn-action btn-close"
+        (click)="onClose()"
+        data-testid="order-detail-dismiss-btn"
+      >
+        <span>{{ 'COMMON.CLOSE' | transloco }}</span>
+      </button>
+    </div>
+  </footer>
+</div>

@@ -7,7 +7,7 @@ import { Store } from '@ngrx/store';
 import { of, BehaviorSubject, throwError } from 'rxjs';
 import { LoginComponent } from '../../../app/features/auth/login/login.component';
 import { login } from '../../../app/core/store/auth.actions';
-import { selectAuthError, selectIsAuthenticated, selectCurrentUser } from '../../../app/core/store/auth.selectors';
+import { selectAuthError, selectCurrentUser } from '../../../app/core/store/auth.selectors';
 import { SetupService } from '../../../app/core/services/setup.service';
 import { OnboardingService } from '../../../app/core/services/onboarding.service';
 

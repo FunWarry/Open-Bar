@@ -48,14 +48,46 @@ public record EncaissementRequestDTO(
     Boolean libererTable,
 
     @Schema(description = "Specific order IDs to settle (optional)")
-    List<Long> commandeIds
+    List<Long> commandeIds,
+
+    @Schema(description = "Payment terminal authorization code (if settled via TPE)", example = "AUTH-891023")
+    String tpeAutorisation,
+
+    @Schema(description = "Payment terminal identifier", example = "TPE-01")
+    String tpeTerminalId,
+
+    @Schema(description = "Payment card brand/scheme", example = "VISA")
+    String tpeCardBrand,
+
+    @Schema(description = "Masked card number PAN", example = "************4242")
+    String tpeMaskedPan,
+
+    @Schema(description = "TPE transaction sequence number / STAN", example = "000123")
+    String tpeSequence
 ) {
+    /**
+     * Backwards-compatible 8-parameter constructor before TPE fields were added.
+     */
+    public EncaissementRequestDTO(
+            String modePaiement,
+            BigDecimal pourboire,
+            BigDecimal remiseMontant,
+            BigDecimal remisePourcentage,
+            BigDecimal montantRecu,
+            String notes,
+            Boolean libererTable,
+            List<Long> commandeIds
+    ) {
+        this(modePaiement, pourboire, remiseMontant, remisePourcentage, montantRecu, notes, libererTable, commandeIds, null, null, null, null, null);
+    }
+
     /**
      * Helper returning whether the table should be released, defaulting to true if not specified.
      *
      * @return true if the table should be marked free
      */
     public boolean shouldLibererTable() {
-        return libererTable == null || Boolean.TRUE.equals(libererTable);
+        return !Boolean.FALSE.equals(libererTable);
     }
 }
+

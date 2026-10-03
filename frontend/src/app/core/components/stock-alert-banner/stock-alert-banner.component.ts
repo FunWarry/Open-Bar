@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -13,6 +13,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   standalone: true,
   imports: [TranslocoPipe],
   templateUrl: './stock-alert-banner.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./stock-alert-banner.component.scss'],
 })
 export class StockAlertBannerComponent implements OnInit, OnDestroy {

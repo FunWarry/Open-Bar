@@ -52,6 +52,21 @@ public class FactureReglement {
     @Column(name = "items_json", columnDefinition = "TEXT")
     private String itemsJson;
 
+    @Column(name = "tpe_autorisation", length = 50)
+    private String tpeAutorisation;
+
+    @Column(name = "tpe_terminal_id", length = 50)
+    private String tpeTerminalId;
+
+    @Column(name = "tpe_card_brand", length = 50)
+    private String tpeCardBrand;
+
+    @Column(name = "tpe_masked_pan", length = 50)
+    private String tpeMaskedPan;
+
+    @Column(name = "tpe_sequence", length = 50)
+    private String tpeSequence;
+
     @Column(name = "date_reglement", nullable = false)
     private LocalDateTime dateReglement;
 

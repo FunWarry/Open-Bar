@@ -26,6 +26,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import com.bar.gestioncocktail.dto.SplitMontantsRequest;
@@ -48,6 +49,10 @@ import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.UserRepository;
 
+import com.bar.gestioncocktail.model.BarTab;
+import com.bar.gestioncocktail.model.BarTabStatus;
+import com.bar.gestioncocktail.repository.BarTabRepository;
+
 import java.security.MessageDigest;
 import java.time.Year;
 import java.util.EnumMap;
@@ -65,6 +70,9 @@ public class FactureService {
     private static final String NOT_FOUND_PREFIX = "Invoice not found: ";
     private static final String ENTITY_FACTURE = "Invoice";
     private static final String DEFAULT_GUEST_PREFIX = "Guest ";
+    private static final String INVOICE_NUMBER_FORMAT = "FAC-%d-%05d";
+    private static final String TABLE_NOT_FOUND_PREFIX = "Table not found with id: ";
+    private static final String BAR_TAB_NOT_FOUND_PREFIX = "Bar tab not found with id: ";
 
     private final FactureRepository factureRepository;
     private final TableRepository tableRepository;
@@ -80,6 +88,8 @@ public class FactureService {
     private final DailyCashClosureRepository dailyCashClosureRepository;
     private final com.bar.gestioncocktail.repository.CashDrawerSessionRepository cashDrawerSessionRepository;
     private final EstablishmentConfigService establishmentConfigService;
+    private final BarTabRepository barTabRepository;
+    private final NotificationService notificationService;
 
     @org.springframework.beans.factory.annotation.Autowired
     public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
@@ -90,7 +100,9 @@ public class FactureService {
             HappyHourService happyHourService,
             DailyCashClosureRepository dailyCashClosureRepository,
             com.bar.gestioncocktail.repository.CashDrawerSessionRepository cashDrawerSessionRepository,
-            EstablishmentConfigService establishmentConfigService) {
+            EstablishmentConfigService establishmentConfigService,
+            BarTabRepository barTabRepository,
+            NotificationService notificationService) {
         this.factureRepository = factureRepository;
         this.tableRepository = tableRepository;
         this.commandeRepository = commandeRepository;
@@ -105,6 +117,8 @@ public class FactureService {
         this.dailyCashClosureRepository = dailyCashClosureRepository;
         this.cashDrawerSessionRepository = cashDrawerSessionRepository;
         this.establishmentConfigService = establishmentConfigService;
+        this.barTabRepository = barTabRepository;
+        this.notificationService = notificationService;
     }
 
     private void checkTillOpenedIfCashPayment(String modePaiement, java.time.LocalDate date) {
@@ -193,7 +207,7 @@ public class FactureService {
 
         // Sequentially format FAC-YYYY-NNNNN
         long countThisYear = factureRepository.count() + 1;
-        facture.setNumero(String.format("FAC-%d-%05d", currentYear, countThisYear));
+        facture.setNumero(String.format(INVOICE_NUMBER_FORMAT, currentYear, countThisYear));
 
         // Calculate HT, VAT, and TTC for each item
         BigDecimal totalHT = BigDecimal.ZERO;
@@ -409,7 +423,7 @@ public class FactureService {
     @Transactional(readOnly = true)
     public TableAdditionResponseDTO getTableAddition(Long tableId) {
         TableEntity table = tableRepository.findById(tableId)
-                .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + tableId));
+                .orElseThrow(() -> new ResourceNotFoundException(TABLE_NOT_FOUND_PREFIX + tableId));
 
         List<Commande> allCommandes = commandeRepository.findByTable(table);
         List<Commande> activeCommandes = filterActiveOrders(allCommandes, null);
@@ -438,12 +452,10 @@ public class FactureService {
             totalArticles += item.quantite();
         }
 
-        List<Long> commandeIds = new ArrayList<>();
-        for (Commande c : activeCommandes) {
-            if (c.getId() != null) {
-                commandeIds.add(c.getId());
-            }
-        }
+        List<Long> commandeIds = activeCommandes.stream()
+                .filter(c -> c != null && c.getId() != null)
+                .map(c -> c.getId())
+                .toList();
 
         return new TableAdditionResponseDTO(
                 table.getId(),
@@ -476,7 +488,7 @@ public class FactureService {
         checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
         checkTillOpenedIfCashPayment(request.modePaiement(), java.time.LocalDate.now(timeService.getZoneId()));
         TableEntity table = tableRepository.findById(tableId)
-                .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + tableId));
+                .orElseThrow(() -> new ResourceNotFoundException(TABLE_NOT_FOUND_PREFIX + tableId));
 
         List<Commande> allCommandes = commandeRepository.findByTable(table);
         List<Commande> activeCommandes = filterActiveOrders(allCommandes, request.commandeIds());
@@ -498,6 +510,13 @@ public class FactureService {
         if (request.notes() != null && !request.notes().isBlank()) {
             facture.setNotes(request.notes());
         }
+        if (request.tpeAutorisation() != null) {
+            facture.setTpeAutorisation(request.tpeAutorisation());
+            facture.setTpeTerminalId(request.tpeTerminalId());
+            facture.setTpeCardBrand(request.tpeCardBrand());
+            facture.setTpeMaskedPan(request.tpeMaskedPan());
+            facture.setTpeSequence(request.tpeSequence());
+        }
 
         Facture savedFacture = factureRepository.save(facture);
 
@@ -510,6 +529,213 @@ public class FactureService {
 
         auditLogService.logAction(null, "ENCAISSEMENT_TABLE", ENTITY_FACTURE, savedFacture.getId(),
                 "Encaissement table " + table.getNumero() + " (" + request.modePaiement() + " - " + netTTC + " €)", null);
+
+        return FactureResponseDTO.from(savedFacture);
+    }
+
+    /**
+     * Generates or retrieves an unpaid pending invoice for an occupied table based on its active orders.
+     * If an unpaid invoice already exists, it is synchronized with any new active order items.
+     *
+     * @param tableId Table identifier
+     * @return FactureResponseDTO representing the pending invoice
+     */
+    @Transactional
+    public FactureResponseDTO genererFactureTable(Long tableId) {
+        TableEntity table = tableRepository.findById(tableId)
+                .orElseThrow(() -> new ResourceNotFoundException(TABLE_NOT_FOUND_PREFIX + tableId));
+
+        List<Commande> allCommandes = commandeRepository.findByTable(table);
+        List<Commande> activeCommandes = filterActiveOrders(allCommandes, null);
+
+        List<Facture> facturesTable = factureRepository.findByTable(table);
+        Optional<Facture> unpaidFacture = findUnpaidFacture(facturesTable);
+
+        if (activeCommandes.isEmpty() && unpaidFacture.isEmpty()) {
+            throw new BusinessException("No active orders to bill for table " + table.getNumero());
+        }
+
+        Facture facture = unpaidFacture.orElseGet(() -> createNewFactureForTable(table, activeCommandes));
+        computeAndSetInvoiceTaxTotals(facture);
+        facture.setTotalTTC(facture.getTotal());
+        Facture savedFacture = factureRepository.save(facture);
+
+        auditLogService.logAction(null, "GENERATE_INVOICE_TABLE", ENTITY_FACTURE, savedFacture.getId(),
+                "Generated pending invoice " + savedFacture.getNumero() + " for table " + table.getNumero(), null);
+
+        return FactureResponseDTO.from(savedFacture);
+    }
+
+    /**
+     * Generates or retrieves an unpaid pending invoice for an active bar tab based on its active orders.
+     *
+     * @param tabId Bar tab identifier
+     * @return FactureResponseDTO representing the pending invoice
+     */
+    @Transactional
+    public FactureResponseDTO genererFactureTab(Long tabId) {
+        if (establishmentConfigService != null) {
+            establishmentConfigService.checkModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.BAR_TABS);
+        }
+        BarTab tab = barTabRepository.findById(tabId)
+                .orElseThrow(() -> new ResourceNotFoundException(BAR_TAB_NOT_FOUND_PREFIX + tabId));
+
+        List<Commande> allCommandes = commandeRepository.findByBarTab(tab);
+        List<Commande> activeCommandes = filterActiveOrders(allCommandes, null);
+
+        List<Facture> facturesTab = factureRepository.findByBarTab(tab);
+        Optional<Facture> unpaidFacture = findUnpaidFacture(facturesTab);
+
+        if (activeCommandes.isEmpty() && unpaidFacture.isEmpty()) {
+            throw new BusinessException("No active orders to bill for bar tab " + tab.getNom());
+        }
+
+        Facture facture = unpaidFacture.orElseGet(() -> createNewFactureForTab(tab, activeCommandes));
+        computeAndSetInvoiceTaxTotals(facture);
+        facture.setTotalTTC(facture.getTotal());
+        Facture savedFacture = factureRepository.save(facture);
+
+        auditLogService.logAction(null, "GENERATE_INVOICE_TAB", ENTITY_FACTURE, savedFacture.getId(),
+                "Generated pending invoice " + savedFacture.getNumero() + " for bar tab " + tab.getNom(), null);
+
+        return FactureResponseDTO.from(savedFacture);
+    }
+
+    /**
+     * Computes the detailed bill summary for a given bar tab based on its active orders.
+     *
+     * @param tabId Bar tab identifier
+     * @return TableAdditionResponseDTO containing aggregated items, tax breakdown, and totals for the bar tab
+     */
+    @Transactional(readOnly = true)
+    public TableAdditionResponseDTO getTabAddition(Long tabId) {
+        if (establishmentConfigService != null) {
+            establishmentConfigService.checkModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.BAR_TABS);
+        }
+        BarTab tab = barTabRepository.findById(tabId)
+                .orElseThrow(() -> new ResourceNotFoundException(BAR_TAB_NOT_FOUND_PREFIX + tabId));
+
+        List<Commande> allCommandes = commandeRepository.findByBarTab(tab);
+        List<Commande> activeCommandes = filterActiveOrders(allCommandes, null);
+
+        List<Facture> facturesTab = factureRepository.findByBarTab(tab);
+        Optional<Facture> unpaidFacture = findUnpaidFacture(facturesTab);
+
+        String serveurNom = tab.getServeur() != null ? (tab.getServeur().getPrenom() + " " + tab.getServeur().getNom()).trim() : null;
+        List<TableAdditionItemDTO> items = buildAdditionItemList(activeCommandes, unpaidFacture);
+
+        BigDecimal totalHT = BigDecimal.ZERO;
+        BigDecimal totalVAT = BigDecimal.ZERO;
+        BigDecimal totalTTC = BigDecimal.ZERO;
+        int totalArticles = 0;
+
+        for (TableAdditionItemDTO item : items) {
+            if (item.priceHT() != null) {
+                totalHT = totalHT.add(item.priceHT());
+            }
+            if (item.vatAmount() != null) {
+                totalVAT = totalVAT.add(item.vatAmount());
+            }
+            if (item.total() != null) {
+                totalTTC = totalTTC.add(item.total());
+            }
+            totalArticles += item.quantite();
+        }
+
+        List<Long> commandeIds = activeCommandes.stream()
+                .filter(c -> c != null && c.getId() != null)
+                .map(c -> c.getId())
+                .toList();
+
+        return new TableAdditionResponseDTO(
+                null,
+                null,
+                tab.getClientReference() != null ? tab.getClientReference() : "Bar Tab",
+                tab.getServeur() != null ? tab.getServeur().getId() : null,
+                serveurNom,
+                tab.getOpenedAt(),
+                items,
+                commandeIds,
+                totalHT,
+                totalVAT,
+                totalTTC,
+                totalArticles,
+                unpaidFacture.isPresent(),
+                unpaidFacture.isPresent() ? unpaidFacture.get().getId() : null,
+                tab.getId(),
+                tab.getNom()
+        );
+    }
+
+    /**
+     * Settles and closes a bar tab's bill: generates or updates invoice, applies discounts/tips,
+     * updates order statuses to REGLEE, marks the bar tab as SETTLED, and broadcasts STOMP events.
+     *
+     * @param tabId Bar tab identifier
+     * @param request Encaissement request payload
+     * @return FactureResponseDTO of the settled invoice
+     */
+    @Transactional
+    public FactureResponseDTO encaisserTab(Long tabId, EncaissementRequestDTO request) {
+        if (establishmentConfigService != null) {
+            establishmentConfigService.checkModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.BAR_TABS);
+        }
+        checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
+        checkTillOpenedIfCashPayment(request.modePaiement(), java.time.LocalDate.now(timeService.getZoneId()));
+        BarTab tab = barTabRepository.findById(tabId)
+                .orElseThrow(() -> new ResourceNotFoundException(BAR_TAB_NOT_FOUND_PREFIX + tabId));
+
+        if (tab.getStatut() != BarTabStatus.ACTIVE) {
+            throw new BusinessException("Bar tab is not active (current status: " + tab.getStatut() + ")");
+        }
+
+        List<Commande> allCommandes = commandeRepository.findByBarTab(tab);
+        List<Commande> activeCommandes = filterActiveOrders(allCommandes, request.commandeIds());
+
+        List<Facture> facturesTab = factureRepository.findByBarTab(tab);
+        Optional<Facture> unpaidFacture = findUnpaidFacture(facturesTab);
+
+        if (activeCommandes.isEmpty() && unpaidFacture.isEmpty()) {
+            throw new BusinessException("No active orders to checkout for bar tab " + tab.getNom());
+        }
+
+        Facture facture = unpaidFacture.orElseGet(() -> createNewFactureForTab(tab, activeCommandes));
+        computeAndSetInvoiceTaxTotals(facture);
+        BigDecimal netTTC = applyDiscountAndTip(facture, request);
+
+        facture.setReglee(true);
+        facture.setModePaiement(request.modePaiement());
+        facture.setDateReglement(LocalDateTime.now(timeService.getZoneId()));
+        if (request.notes() != null && !request.notes().isBlank()) {
+            facture.setNotes(request.notes());
+        }
+        if (request.tpeAutorisation() != null) {
+            facture.setTpeAutorisation(request.tpeAutorisation());
+            facture.setTpeTerminalId(request.tpeTerminalId());
+            facture.setTpeCardBrand(request.tpeCardBrand());
+            facture.setTpeMaskedPan(request.tpeMaskedPan());
+            facture.setTpeSequence(request.tpeSequence());
+        }
+
+        Facture savedFacture = factureRepository.save(facture);
+
+        markOrdersAsSettled(activeCommandes);
+
+        tab.setStatut(BarTabStatus.SETTLED);
+        tab.setSettledAt(LocalDateTime.now(timeService.getZoneId()));
+        tab.setTotal(netTTC);
+        barTabRepository.save(tab);
+
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new InvoiceSettledEvent(savedFacture, null, activeCommandes, false));
+        }
+
+        if (notificationService != null) {
+            notificationService.notifierBarTabMisAJour(com.bar.gestioncocktail.dto.BarTabResponseDTO.from(tab));
+        }
+
+        auditLogService.logAction(null, "ENCAISSEMENT_BAR_TAB", ENTITY_FACTURE, savedFacture.getId(),
+                "Encaissement ardoise " + tab.getNom() + " (" + request.modePaiement() + " - " + netTTC + " €)", null);
 
         return FactureResponseDTO.from(savedFacture);
     }
@@ -622,7 +848,28 @@ public class FactureService {
 
         int currentYear = Year.now(timeService.getZoneId()).getValue();
         long countThisYear = factureRepository.count() + 1;
-        facture.setNumero(String.format("FAC-%d-%05d", currentYear, countThisYear));
+        facture.setNumero(String.format(INVOICE_NUMBER_FORMAT, currentYear, countThisYear));
+
+        List<FactureItem> factureItems = new ArrayList<>();
+        for (Commande cmd : activeCommandes) {
+            if (cmd.getItems() != null) {
+                for (CommandeItem ci : cmd.getItems()) {
+                    factureItems.add(buildFactureItemFromCommandeItem(ci, facture));
+                }
+            }
+        }
+        facture.setItems(factureItems);
+        return facture;
+    }
+
+    private Facture createNewFactureForTab(BarTab tab, List<Commande> activeCommandes) {
+        Facture facture = new Facture();
+        facture.setBarTab(tab);
+        facture.setDateFacture(LocalDateTime.now(timeService.getZoneId()));
+
+        int currentYear = Year.now(timeService.getZoneId()).getValue();
+        long countThisYear = factureRepository.count() + 1;
+        facture.setNumero(String.format(INVOICE_NUMBER_FORMAT, currentYear, countThisYear));
 
         List<FactureItem> factureItems = new ArrayList<>();
         for (Commande cmd : activeCommandes) {
@@ -1030,13 +1277,9 @@ public class FactureService {
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_PREFIX + factureId));
 
         Map<Long, FactureItem> itemsIndex = buildInvoiceItemsIndex(facture);
-        List<SplitResultDTO> result = new ArrayList<>();
-
-        for (com.bar.gestioncocktail.dto.SplitPartRequest part : request.parts()) {
-            result.add(createSplitResultForGuest(factureId, part, itemsIndex));
-        }
-
-        return result;
+        return request.parts().stream()
+                .map(part -> createSplitResultForGuest(factureId, part, itemsIndex))
+                .toList();
     }
 
     /**
@@ -1178,6 +1421,8 @@ public class FactureService {
             reglement.setItemsJson("[]");
         }
 
+        populateTpeFields(reglement, request);
+
         com.bar.gestioncocktail.model.FactureReglement saved = factureReglementRepository.save(reglement);
         if (facture.getReglements() == null) {
             facture.setReglements(new ArrayList<>());
@@ -1227,16 +1472,40 @@ public class FactureService {
 
             if (facture.getTable() != null) {
                 TableEntity table = facture.getTable();
+                List<Commande> allCommandes = commandeRepository.findByTable(table);
+                List<Commande> activeCommandes = filterActiveOrders(allCommandes, null);
+                markOrdersAsSettled(activeCommandes);
+
                 table.setOccupee(false);
                 table.setServeurId(null);
                 table.setDateLiberation(LocalDateTime.now(timeService.getZoneId()));
                 tableRepository.save(table);
                 if (eventPublisher != null) {
                     eventPublisher.publishEvent(new TableLiberatedEvent(table));
+                    eventPublisher.publishEvent(new InvoiceSettledEvent(facture, table, activeCommandes, true));
                 }
+            } else if (facture.getBarTab() != null) {
+                BarTab tab = facture.getBarTab();
+                List<Commande> allCommandes = commandeRepository.findByBarTab(tab);
+                List<Commande> activeCommandes = filterActiveOrders(allCommandes, null);
+                markOrdersAsSettled(activeCommandes);
+
+                tab.setStatut(BarTabStatus.SETTLED);
+                tab.setSettledAt(LocalDateTime.now(timeService.getZoneId()));
+                barTabRepository.save(tab);
             }
             auditLogService.logAction(null, "FACTURE_SETTLED_SPLIT", ENTITY_FACTURE, factureId,
                     "Invoice " + facture.getNumero() + " settled via split parts (" + allReglements.size() + " parts)", null);
+        }
+    }
+
+    private void populateTpeFields(com.bar.gestioncocktail.model.FactureReglement reglement, com.bar.gestioncocktail.dto.EncaisserPartRequest request) {
+        if (request.tpeAutorisation() != null) {
+            reglement.setTpeAutorisation(request.tpeAutorisation());
+            reglement.setTpeTerminalId(request.tpeTerminalId());
+            reglement.setTpeCardBrand(request.tpeCardBrand());
+            reglement.setTpeMaskedPan(request.tpeMaskedPan());
+            reglement.setTpeSequence(request.tpeSequence());
         }
     }
 
@@ -1698,30 +1967,26 @@ public class FactureService {
 
     private List<com.bar.gestioncocktail.dto.PaymentModeSummaryDTO> buildPaymentModeSummaries(
             Map<String, BigDecimal> modeTotals, Map<String, Long> modeCounts) {
-        List<com.bar.gestioncocktail.dto.PaymentModeSummaryDTO> list = new ArrayList<>();
-        for (Map.Entry<String, BigDecimal> entry : modeTotals.entrySet()) {
-            list.add(new com.bar.gestioncocktail.dto.PaymentModeSummaryDTO(
-                entry.getKey(),
-                modeCounts.get(entry.getKey()),
-                entry.getValue()
-            ));
-        }
-        return list;
+        return modeTotals.entrySet().stream()
+                .map(entry -> new com.bar.gestioncocktail.dto.PaymentModeSummaryDTO(
+                        entry.getKey(),
+                        modeCounts.get(entry.getKey()),
+                        entry.getValue()
+                ))
+                .toList();
     }
 
     private List<VatSummaryDTO> buildVatSummaries(Map<VatRate, BigDecimal> baseHTMap,
                                                   Map<VatRate, BigDecimal> vatAmountMap,
                                                   Map<VatRate, BigDecimal> totalTTCMap) {
-        List<VatSummaryDTO> list = new ArrayList<>();
-        for (VatRate rate : VatRate.values()) {
-            list.add(new VatSummaryDTO(
-                rate.getLabel(),
-                baseHTMap.get(rate),
-                vatAmountMap.get(rate),
-                totalTTCMap.get(rate)
-            ));
-        }
-        return list;
+        return Arrays.stream(VatRate.values())
+                .map(rate -> new VatSummaryDTO(
+                        rate.getLabel(),
+                        baseHTMap.get(rate),
+                        vatAmountMap.get(rate),
+                        totalTTCMap.get(rate)
+                ))
+                .toList();
     }
 
     private BigDecimal resolveFactureTTC(Facture f) {

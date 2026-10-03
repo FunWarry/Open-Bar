@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ModalController, ToastController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { RupturesModalComponent } from '../../../app/features/dashboard-barman/components/ruptures-modal/ruptures-modal.component';

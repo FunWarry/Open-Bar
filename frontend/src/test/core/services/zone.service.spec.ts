@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { ZoneService, ZoneBar } from '../../../app/core/services/zone.service';
 import { environment } from '../../../environments/environment';
 
@@ -25,7 +25,7 @@ describe('ZoneService', () => {
     TestBed.configureTestingModule({
       providers: [
         ZoneService,
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
       ],
     });

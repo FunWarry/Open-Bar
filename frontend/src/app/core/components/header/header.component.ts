@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
 import {User} from '../../models/user.model';
@@ -11,7 +11,7 @@ import {
 import {addIcons} from 'ionicons';
 import {
   menu, beerOutline, receipt, restaurant, nutrition, shieldCheckmark,
-  logOut, chevronDown, person
+  logOut, chevronDown, person, people, calendar
 } from 'ionicons/icons';
 import {RouterLink, RouterLinkActive} from '@angular/router';
 import {AsyncPipe} from '@angular/common';
@@ -26,6 +26,7 @@ import * as AuthActions from '../../store/auth.actions';
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonMenu, IonMenuButton, IonContent, IonList, IonItem, IonLabel,
@@ -37,7 +38,7 @@ export class HeaderComponent {
 
   constructor(private readonly store: Store) {
     this.currentUser$ = this.store.select(selectCurrentUser);
-    addIcons({menu, beerOutline, receipt, restaurant, nutrition, shieldCheckmark, logOut, chevronDown, person});
+    addIcons({menu, beerOutline, receipt, restaurant, nutrition, shieldCheckmark, logOut, chevronDown, person, people, calendar});
   }
 
 

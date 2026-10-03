@@ -164,9 +164,10 @@ describe('SidebarComponent', () => {
       expect(adminItems.some(i => i.route === '/admin/audit-logs')).toBeFalse();
     });
 
-    it('should include barman routes for BARMAN role', () => {
+    it('should include barman and serveur routes for BARMAN role', () => {
       const mainItems = component.getNavItemsForUser(mockBarmanUser, 'main');
       expect(mainItems.some(i => i.route === '/barman')).toBeTrue();
+      expect(mainItems.some(i => i.route === '/serveur')).toBeTrue();
     });
 
     it('should return empty array when user is null', () => {

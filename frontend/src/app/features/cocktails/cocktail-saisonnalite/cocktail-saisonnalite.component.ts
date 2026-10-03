@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -54,6 +54,7 @@ const MONTH_KEYS = [
     ActionButtonComponent
 ],
   templateUrl: './cocktail-saisonnalite.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./cocktail-saisonnalite.component.scss'],
 })
 export class CocktailSaisonnaliteComponent implements OnInit {

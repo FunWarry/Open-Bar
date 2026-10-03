@@ -1,6 +1,7 @@
 import {
   Component, OnInit, AfterViewInit, OnDestroy, HostListener,
   ElementRef, ViewChild, NgZone, ChangeDetectorRef,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, forkJoin, EMPTY, of } from 'rxjs';
@@ -65,6 +66,7 @@ const GRID_SNAP_SIZE = 50; // 50cm grid snap (0.5m grid tiles)
     TableSidePanelComponent,
   ],
   templateUrl: './plan-salle.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./plan-salle.component.scss'],
 })
 export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {

@@ -4,6 +4,7 @@ import com.bar.gestioncocktail.dto.AppSettingsResponseDTO;
 import com.bar.gestioncocktail.dto.AppSettingsUpdateRequest;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.AppSettings;
+import com.bar.gestioncocktail.model.CurrencyPosition;
 import com.bar.gestioncocktail.model.DefaultTheme;
 import com.bar.gestioncocktail.repository.AppSettingsRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +36,9 @@ class AppSettingsServiceTest {
 
     @Mock
     QrCodeService qrCodeService;
+
+    @Mock
+    com.bar.gestioncocktail.service.TimeService timeService;
 
     @InjectMocks
     AppSettingsService appSettingsService;
@@ -352,7 +356,7 @@ class AppSettingsServiceTest {
         String denominationsJson = "[{\"key\":\"500e\",\"label\":\"500 €\",\"value\":500,\"type\":\"bill\"}]";
         AppSettingsUpdateRequest req = new AppSettingsUpdateRequest(
             "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
-            "EUR", "€", null, 3, 5, 10, null, null, null, null, false, false,
+            "EUR", "€", CurrencyPosition.AFTER, 3, 5, 10, null, null, null, null, false, false,
             null, null, null, null, null, null, 9100, false, denominationsJson
         );
 
@@ -360,4 +364,99 @@ class AppSettingsServiceTest {
 
         assertThat(updated.getCashDenominationsJson()).isEqualTo(denominationsJson);
     }
+
+    @Test
+    @DisplayName("updateSettings persists unitSystem, volumeUnit, and weightUnit")
+    void updateSettings_persistsUnitSystemAndUnits() {
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+        when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        AppSettingsUpdateRequest req = new AppSettingsUpdateRequest(
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
+            "USD", "$", CurrencyPosition.BEFORE,
+            com.bar.gestioncocktail.model.UnitSystem.IMPERIAL_US, "fl oz", "oz",
+            3, 5, 10, null, null, null, null, false, false,
+            null, null, null, null, null, null, 9100, false, null
+        );
+
+        AppSettings updated = appSettingsService.updateSettings(req);
+
+        assertThat(updated.getUnitSystem()).isEqualTo(com.bar.gestioncocktail.model.UnitSystem.IMPERIAL_US);
+        assertThat(updated.getVolumeUnit()).isEqualTo("fl oz");
+        assertThat(updated.getWeightUnit()).isEqualTo("oz");
+    }
+
+    @Test
+    @DisplayName("updateSettings ignores null or blank unit fields preserving existing values")
+    void updateSettings_blankUnitFields_preservesExisting() {
+        existing.setUnitSystem(com.bar.gestioncocktail.model.UnitSystem.METRIC_ML);
+        existing.setVolumeUnit("ml");
+        existing.setWeightUnit("g");
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+        when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        AppSettingsUpdateRequest req = new AppSettingsUpdateRequest(
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
+            "USD", "$", CurrencyPosition.BEFORE,
+            null, "  ", "",
+            3, 5, 10, null, null, null, null, false, false,
+            null, null, null, null, null, null, 9100, false, null
+        );
+
+        AppSettings updated = appSettingsService.updateSettings(req);
+
+        assertThat(updated.getUnitSystem()).isEqualTo(com.bar.gestioncocktail.model.UnitSystem.METRIC_ML);
+        assertThat(updated.getVolumeUnit()).isEqualTo("ml");
+        assertThat(updated.getWeightUnit()).isEqualTo("g");
+    }
+
+    @Test
+    @DisplayName("updateSettings updates storageLocationsJson successfully")
+    void updateSettings_updatesStorageLocations() {
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+        when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        String customLocations = "[\"Comptoir\", \"Terrasse VIP\", \"Cave\"]";
+        AppSettingsUpdateRequest req = new AppSettingsUpdateRequest(
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
+            "EUR", "€", CurrencyPosition.AFTER,
+            com.bar.gestioncocktail.model.UnitSystem.METRIC_CL, "cl", "g",
+            3, 5, 10, null, null, null, null, false, false,
+            null, null, null, null, null, null, 9100, false, null,
+            customLocations
+        );
+
+        AppSettings updated = appSettingsService.updateSettings(req);
+
+        assertThat(updated.getStorageLocationsJson()).isEqualTo(customLocations);
+    }
+
+    @Test
+    @DisplayName("updateSettings persists printersJson and tpeTerminalsJson dynamically")
+    void updateSettings_hardwarePeripheralsJson_persistedSuccessfully() {
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+        when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        String printersJson = "[{\"id\":\"p1\",\"name\":\"Bar Printer\",\"role\":\"BAR\",\"ip\":\"192.168.1.101\",\"port\":9100,\"paperWidth\":\"80mm\",\"enabled\":true}]";
+        String tpeJson = "[{\"id\":\"t1\",\"name\":\"Bar TPE\",\"role\":\"BAR\",\"ip\":\"192.168.1.50\",\"port\":8888,\"terminalId\":\"POS01\",\"timeoutSeconds\":30,\"enabled\":true}]";
+
+        AppSettingsUpdateRequest req = new AppSettingsUpdateRequest(
+                "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
+                "EUR", "€", CurrencyPosition.AFTER,
+                com.bar.gestioncocktail.model.UnitSystem.METRIC_CL, "cl", "g",
+                3, 5, 10,
+                null, null, null, null, false, false,
+                null, null, null,
+                "192.168.1.101", null, null, 9100, true,
+                null, null, true, false, "192.168.1.50", null, 8888, "POS01", 30,
+                printersJson, tpeJson
+        );
+
+        AppSettings updated = appSettingsService.updateSettings(req);
+
+        assertThat(updated.getPrintersJson()).isEqualTo(printersJson);
+        assertThat(updated.getTpeTerminalsJson()).isEqualTo(tpeJson);
+        verify(appSettingsRepository).save(any(AppSettings.class));
+    }
 }
+

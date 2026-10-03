@@ -1,22 +1,40 @@
+import { signal } from '@angular/core';
 import { TestBed, ComponentFixture, fakeAsync, tick } from '@angular/core/testing';
 import { ModalController, ToastController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
+import { provideMockStore } from '@ngrx/store/testing';
 import { EncaissementModalComponent } from '../../../app/features/dashboard-serveur/components/encaissement-modal/encaissement-modal.component';
 import {
   DashboardServeurService,
   TableAdditionResponse,
   TableAdditionItem
 } from '../../../app/features/dashboard-serveur/services/dashboard-serveur.service';
-import { FactureService } from '../../../app/features/factures/services/facture.service';
+import { FactureService, SplitResultDTO } from '../../../app/features/factures/services/facture.service';
+import { BarTabService } from '../../../app/core/services/bar-tab.service';
+import { BarTab } from '../../../app/core/models/bar-tab.model';
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { AppSettingsService } from '../../../app/core/services/app-settings.service';
+import { PaymentTerminalService } from '../../../app/core/services/payment-terminal.service';
+import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
+import { TpePublicConfig } from '../../../app/core/models/tpe.model';
 import {
   DEFAULT_EUR_DENOMINATIONS,
   DEFAULT_USD_DENOMINATIONS,
   DEFAULT_CHF_DENOMINATIONS,
   DEFAULT_JPY_DENOMINATIONS
 } from '../../../app/core/models/cash-denomination.model';
+
+const mockTpePublicConfig: TpePublicConfig = {
+  enabled: true,
+  simulatorEnabled: true,
+  barIpConfigured: true,
+  floorIpConfigured: false,
+  port: 8888,
+  terminalId: 'TEST-01',
+  timeoutSeconds: 30,
+  terminalsJson: '[]'
+};
 
 describe('EncaissementModalComponent', () => {
   let component: EncaissementModalComponent;
@@ -27,6 +45,9 @@ describe('EncaissementModalComponent', () => {
   let toastSpy: { present: jasmine.Spy };
   let dashboardServiceSpy: jasmine.SpyObj<DashboardServeurService>;
   let factureServiceSpy: jasmine.SpyObj<FactureService>;
+  let barTabServiceSpy: jasmine.SpyObj<BarTabService>;
+  let paymentTerminalServiceSpy: jasmine.SpyObj<PaymentTerminalService>;
+  let featureFlagServiceSpy: jasmine.SpyObj<FeatureFlagService>;
 
   const mockTable: TableView = {
     id: 1,
@@ -99,7 +120,29 @@ describe('EncaissementModalComponent', () => {
       reglee: true
     } as any));
 
-    factureServiceSpy = jasmine.createSpyObj('FactureService', ['getFacturesByTable']);
+    factureServiceSpy = jasmine.createSpyObj('FactureService', ['getFacturesByTable', 'genererFactureTable', 'genererFactureTab']);
+    barTabServiceSpy = jasmine.createSpyObj('BarTabService', ['getTabAddition', 'encaisserTab']);
+
+    paymentTerminalServiceSpy = jasmine.createSpyObj('PaymentTerminalService', [
+      'initiatePayment',
+      'cancelPayment',
+      'getStatus',
+      'watchTransaction',
+      'watchPayment',
+      'testConnection',
+      'getConfig',
+      'getPreferredTerminalRole',
+      'setPreferredTerminalRole'
+    ], {
+      paymentEvents$: of()
+    });
+    paymentTerminalServiceSpy.preferredRole = 'BAR';
+    paymentTerminalServiceSpy.getConfig.and.returnValue(of(mockTpePublicConfig));
+
+    featureFlagServiceSpy = jasmine.createSpyObj('FeatureFlagService', ['isModuleEnabled'], {
+      paymentTerminalEnabled: signal(true),
+      cashDrawerEnabled: signal(true)
+    });
 
     TestBed.configureTestingModule({
       imports: [
@@ -110,10 +153,14 @@ describe('EncaissementModalComponent', () => {
         })
       ],
       providers: [
+        provideMockStore({ initialState: { auth: { user: null, token: null } } }),
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: DashboardServeurService, useValue: dashboardServiceSpy },
-        { provide: FactureService, useValue: factureServiceSpy }
+        { provide: FactureService, useValue: factureServiceSpy },
+        { provide: BarTabService, useValue: barTabServiceSpy },
+        { provide: PaymentTerminalService, useValue: paymentTerminalServiceSpy },
+        { provide: FeatureFlagService, useValue: featureFlagServiceSpy }
       ]
     }).compileComponents();
 
@@ -352,27 +399,20 @@ describe('EncaissementModalComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 
-  it('should settle an individual split part via ReglementModalComponent and finalize if all paid', fakeAsync(() => {
+  it('should settle an individual split part in-modal and finalize if all paid', fakeAsync(() => {
     component.addition = mockAddition;
     component.splitMode = 'egal';
     component.nombreConvives = 2;
     component.calculerSplitEgal();
 
-    const mockModal = {
-      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
-      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
-        data: {
-          modePaiement: 'CARTE',
-          pourboire: 1.0,
-          montantRecu: 15.0,
-          monnaieRendue: 0,
-          totalTotal: 15.0
-        }
-      }))
-    };
-    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
-
     component.reglerPart(0, component.splitResults[0]);
+    expect(component.settlingPartIndex).toBe(0);
+    expect(component.settlingPart).toBe(component.splitResults[0]);
+
+    component.partPaymentMode = 'CARTE';
+    component.setPartTipMode('custom');
+    component.partCustomTip = 1.0;
+    component.validerReglementPart();
     tick();
 
     expect(component.partStates[0].reglee).toBeTrue();
@@ -405,5 +445,593 @@ describe('EncaissementModalComponent', () => {
 
   it('should return currency symbol from appSettingsService', () => {
     expect(component.currencySymbol).toBe('€');
+  });
+
+  it('onPaymentTabChange("split") switches paymentTab to split and calculates equal split without dismissing modal', () => {
+    component.addition = mockAddition;
+    component.onPaymentTabChange('split');
+
+    expect(component.paymentTab).toBe('split');
+    expect(component.splitResults).toHaveSize(2);
+    expect(modalCtrlSpy.dismiss).not.toHaveBeenCalled();
+  });
+
+  it('definirNombreConvives() updates guest count and recalculates equal split', () => {
+    component.addition = mockAddition;
+    component.definirNombreConvives(4);
+
+    expect(component.nombreConvives).toBe(4);
+    expect(component.splitResults).toHaveSize(4);
+    expect(component.splitResults[0].sousTotal).toBe(7.0); // 28 / 4
+  });
+
+  it('calculerSplitLibre() correctly calculates custom amounts for guests', () => {
+    component.addition = mockAddition;
+    component.customAmountGuests = [
+      { nom: 'Alice', montant: 13 },
+      { nom: 'Bob', montant: 15 }
+    ];
+
+    expect(component.isCustomAmountValid).toBeTrue();
+    component.calculerSplitLibre();
+
+    expect(component.splitResults).toHaveSize(2);
+    expect(component.splitResults[0].nomConvive).toBe('Alice');
+    expect(component.splitResults[0].sousTotal).toBe(13);
+    expect(component.splitResults[1].nomConvive).toBe('Bob');
+    expect(component.splitResults[1].sousTotal).toBe(15);
+  });
+
+  it('calculerSplitPourcentage() correctly calculates percentage splits', () => {
+    component.addition = mockAddition;
+    component.customPercentageGuests = [
+      { nom: 'Alice', pourcentage: 60 },
+      { nom: 'Bob', pourcentage: 40 }
+    ];
+
+    expect(component.isCustomPercentageValid).toBeTrue();
+    component.calculerSplitPourcentage();
+
+    expect(component.splitResults).toHaveSize(2);
+    expect(component.splitResults[0].sousTotal).toBe(16.8); // 28 * 0.60
+    expect(component.splitResults[1].sousTotal).toBe(11.2); // 28 * 0.40
+  });
+
+  it('distributePercentagesEqually() divides 100% equally among guests', () => {
+    component.customPercentageGuests = [
+      { nom: 'A', pourcentage: null },
+      { nom: 'B', pourcentage: null },
+      { nom: 'C', pourcentage: null }
+    ];
+
+    component.distributePercentagesEqually();
+
+    expect(component.customPercentageGuests[0].pourcentage).toBe(33.33);
+    expect(component.customPercentageGuests[1].pourcentage).toBe(33.33);
+    expect(component.customPercentageGuests[2].pourcentage).toBe(33.34);
+    expect(component.isCustomPercentageValid).toBeTrue();
+  });
+
+  it('onPaymentTabChange("single") switches paymentTab to single', () => {
+    component.paymentTab = 'split';
+    component.onPaymentTabChange('single');
+    expect(component.paymentTab).toBe('single');
+  });
+
+  describe('Custom Tip and Discount Tiers', () => {
+    beforeEach(() => {
+      component.addition = mockAddition; // totalTTC: 28.0
+    });
+
+    it('calculates custom percentage tip correctly', () => {
+      component.setTipMode('custom_percent');
+      component.customTipPercent = 10;
+      // 10% of 28.0 = 2.80
+      expect(component.pourboire).toBe(2.8);
+      expect(component.totalNetAPayer).toBe(30.8);
+    });
+
+    it('applies percentage discount tier correctly', () => {
+      const tier = { id: 'staff', label: 'Équipier', type: 'percent' as const, value: 50 };
+      component.applyDiscountTier(tier);
+
+      expect(component.selectedTierId).toBe('staff');
+      expect(component.discountMode).toBe('percent');
+      expect(component.discountAmount).toBe(14.0); // 50% of 28.0
+      expect(component.totalNetAPayer).toBe(14.0);
+    });
+
+    it('applies fixed discount tier correctly', () => {
+      const tier = { id: 'vip', label: 'VIP', type: 'fixed' as const, value: 10 };
+      component.applyDiscountTier(tier);
+
+      expect(component.selectedTierId).toBe('vip');
+      expect(component.discountMode).toBe('fixed');
+      expect(component.discountAmount).toBe(10.0);
+      expect(component.totalNetAPayer).toBe(18.0);
+    });
+  });
+
+  describe('Item Assignment (Par article)', () => {
+    beforeEach(() => {
+      component.addition = mockAddition; // item 101: 18.0, item 102: 10.0
+      component.convives = [{ nom: 'Alice' }, { nom: 'Bob' }];
+    });
+
+    it('assigns item to a guest and computes assigned total and count', () => {
+      component.assignItemToGuest(101, 0); // Alice gets Mojito (18€)
+      component.assignItemToGuest(102, 1); // Bob gets Piña Colada (10€)
+
+      expect(component.getGuestAssignedTotal(0)).toBe(18.0);
+      expect(component.getGuestAssignedCount(0)).toBe(1);
+      expect(component.getGuestAssignedTotal(1)).toBe(10.0);
+      expect(component.getGuestAssignedCount(1)).toBe(1);
+      expect(component.totalAssignedItemsAmount).toBe(28.0);
+      expect(component.unassignedItemsRemainder).toBe(0);
+    });
+
+    it('allows unassigning an item', () => {
+      component.assignItemToGuest(101, 0);
+      expect(component.getGuestAssignedCount(0)).toBe(1);
+
+      component.assignItemToGuest(101, undefined);
+      expect(component.getGuestAssignedCount(0)).toBe(0);
+      expect(component.unassignedItemsRemainder).toBe(28.0);
+    });
+
+    it('assigns and unassigns individual units between guests', () => {
+      // Mojito has 2 units (9€ each). Assign 1 unit to Alice (0) and 1 unit to Bob (1)
+      component.assignOneUnitToGuest(0, 101);
+      expect(component.getGuestTotal(0)).toBe(9.0);
+      expect(component.getUnassignedCount(101)).toBe(1);
+
+      component.assignOneUnitToGuest(1, 101);
+      expect(component.getGuestTotal(1)).toBe(9.0);
+      expect(component.getUnassignedCount(101)).toBe(0);
+
+      // Unassign 1 unit from Alice
+      component.unassignOneUnitFromGuest(0, 101);
+      expect(component.getGuestTotal(0)).toBe(0);
+      expect(component.getUnassignedCount(101)).toBe(1);
+    });
+
+    it('removes all units of an item from a guest', () => {
+      component.assignOneUnitToGuest(0, 101);
+      component.assignOneUnitToGuest(0, 101);
+      expect(component.getGuestTotal(0)).toBe(18.0);
+
+      component.removeAllUnitsOfItemFromGuest(0, 101);
+      expect(component.getGuestTotal(0)).toBe(0);
+      expect(component.getUnassignedCount(101)).toBe(2);
+    });
+
+    it('validates allItemsAssigned and calculates split selection', () => {
+      expect(component.allItemsAssigned).toBeFalse();
+
+      // Assign all units: 2x Mojito to Alice, 1x Piña Colada to Bob
+      component.assignOneUnitToGuest(0, 101);
+      component.assignOneUnitToGuest(0, 101);
+      component.assignOneUnitToGuest(1, 102);
+
+      expect(component.allItemsAssigned).toBeTrue();
+      expect(component.availableAdditionItems).toHaveSize(0);
+
+      component.calculerSplitSelection();
+      expect(component.splitResults).toHaveSize(2);
+      expect(component.splitResults[0].nomConvive).toBe('Alice');
+      expect(component.splitResults[0].sousTotal).toBe(18.0);
+      expect(component.splitResults[1].nomConvive).toBe('Bob');
+      expect(component.splitResults[1].sousTotal).toBe(10.0);
+    });
+  });
+
+  describe('In-modal Part Settlement Flow', () => {
+    const mockPart: SplitResultDTO = {
+      factureId: 50,
+      nomConvive: 'Alice',
+      items: [],
+      sousTotal: 14.0,
+      totalAvecPourboire: 14.0
+    };
+
+    beforeEach(() => {
+      component.addition = mockAddition;
+      component.splitResults = [mockPart];
+    });
+
+    it('reglerPart() initiates part settlement mode', () => {
+      component.reglerPart(0, mockPart);
+
+      expect(component.settlingPartIndex).toBe(0);
+      expect(component.settlingPart).toBe(mockPart);
+      expect(component.partPaymentMode).toBe('CARTE');
+      expect(component.partTotalNetAPayer).toBe(14.0);
+    });
+
+    it('annulerReglementPart() exits part settlement mode without settling', () => {
+      component.reglerPart(0, mockPart);
+      component.annulerReglementPart();
+
+      expect(component.settlingPartIndex).toBeNull();
+      expect(component.settlingPart).toBeNull();
+    });
+
+    it('validerReglementPart() settles the part and updates partStates', () => {
+      component.reglerPart(0, mockPart);
+      component.partPaymentMode = 'CARTE';
+      component.setPartTipMode('10pct'); // 10% of 14 = 1.40
+      expect(component.partTotalNetAPayer).toBe(15.4);
+
+      component.validerReglementPart();
+
+      expect(component.partStates[0].reglee).toBeTrue();
+      expect(component.partStates[0].modePaiement).toBe('CARTE');
+      expect(component.partStates[0].pourboire).toBe(1.4);
+      expect(component.settlingPart).toBeNull();
+    });
+
+    it('computes cash suggestions and change for part settlement', () => {
+      component.reglerPart(0, mockPart);
+      component.partPaymentMode = 'ESPECES';
+      component.definirPartMontantRecu(20);
+
+      expect(component.isPartMontantRecuSuffisant).toBeTrue();
+      expect(component.partMonnaieARendre).toBe(6.0); // 20 - 14
+    });
+
+    it('computes financial breakdown with discounts and tips for part settlement', () => {
+      const part20: SplitResultDTO = {
+        factureId: 50,
+        nomConvive: 'Bob',
+        items: [],
+        sousTotal: 20.0,
+        totalAvecPourboire: 20.0
+      };
+      component.reglerPart(0, part20);
+
+      // Initial subtotal
+      expect(component.partSubTotal).toBe(20.0);
+      expect(component.partDiscountAmount).toBe(0);
+      expect(component.partDiscountLabel).toBe('');
+      expect(component.partNetBeforeTip).toBe(20.0);
+      expect(component.partPourboire).toBe(0);
+      expect(component.partTipLabel).toBe('');
+      expect(component.partTotalNetAPayer).toBe(20.0);
+
+      // Apply 10% commercial discount
+      component.partDiscountMode = 'percent';
+      component.partDiscountPercent = 10;
+      expect(component.partDiscountAmount).toBe(2.0);
+      expect(component.partDiscountLabel).toBe('-10%');
+      expect(component.partNetBeforeTip).toBe(18.0);
+
+      // Apply 10% tip on net before tip (18.0 * 0.10 = 1.80)
+      component.setPartTipMode('10pct');
+      expect(component.partPourboire).toBe(1.80);
+      expect(component.partTipLabel).toBe('+10%');
+      expect(component.partTotalNetAPayer).toBe(19.80);
+    });
+
+    it('formats partTipLabel and partDiscountLabel correctly for various modes', () => {
+      component.reglerPart(0, mockPart);
+
+      // Tip labels
+      component.setPartTipMode('5pct');
+      expect(component.partTipLabel).toBe('+5%');
+      component.setPartTipMode('15pct');
+      expect(component.partTipLabel).toBe('+15%');
+      component.setPartTipMode('custom_percent');
+      component.partCustomTipPercent = 12;
+      expect(component.partTipLabel).toBe('+12%');
+      component.setPartTipMode('custom');
+      component.partCustomTip = 3;
+      expect(component.partTipLabel).toContain('+3');
+
+      // Discount labels
+      component.partDiscountMode = 'fixed';
+      component.partDiscountFixed = 5;
+      expect(component.partDiscountLabel).toContain('-5');
+
+      component.discountTiers = [{ id: 'staff', label: 'Équipier', type: 'percent' as const, value: 50 }];
+      component.applyPartDiscountTier(component.discountTiers[0]);
+      expect(component.partDiscountLabel).toContain('Équipier');
+      expect(component.partDiscountLabel).toContain('-50%');
+    });
+
+    it('formats single payment discountLabel and tipLabel correctly', () => {
+      component.addition = mockAddition;
+      component.tipMode = '10pct';
+      expect(component.tipLabel).toBe('+10%');
+
+      component.tipMode = 'custom_percent';
+      component.customTipPercent = 8;
+      expect(component.tipLabel).toBe('+8%');
+
+      component.discountMode = 'percent';
+      component.discountPercent = 15;
+      expect(component.discountLabel).toBe('-15%');
+      expect(component.netTotalBeforeTip).toBe(23.8);
+
+      component.discountMode = 'fixed';
+      component.discountFixed = 3;
+      expect(component.discountLabel).toContain('-3');
+
+      component.discountMode = 'none';
+      expect(component.discountLabel).toBe('');
+
+      component.tipMode = '5pct';
+      expect(component.tipLabel).toBe('+5%');
+
+      component.tipMode = '15pct';
+      expect(component.tipLabel).toBe('+15%');
+
+      component.tipMode = 'custom';
+      component.customTip = 4;
+      expect(component.tipLabel).toContain('+4');
+    });
+
+    it('exercises itemAssignments and guests getters and setters', () => {
+      component.addition = mockAddition;
+      component.convives = [{ nom: 'Guest A' }, { nom: 'Guest B' }];
+      expect(component.guests).toEqual([{ name: 'Guest A' }, { name: 'Guest B' }]);
+
+      component.guests = [{ name: 'Guest X' }, { name: 'Guest Y' }];
+      expect(component.convives).toEqual([{ nom: 'Guest X' }, { nom: 'Guest Y' }]);
+
+      component.unitAssignments = { '101_0': 0, '102_0': 1 };
+      expect(component.itemAssignments).toEqual({ 101: 0, 102: 1 });
+
+      component.itemAssignments = { 101: 1 };
+      expect(component.unitAssignments['101_0']).toBe(1);
+    });
+
+    it('exercises split modes free amount and percentages', () => {
+      component.addition = mockAddition; // 28.0
+      // Libre
+      component.addCustomAmountGuest();
+      expect(component.customAmountGuests).toHaveSize(3);
+      component.customAmountGuests[0].montant = 10;
+      component.assignRemainingToGuest(1);
+      expect(component.customAmountGuests[1].montant).toBe(18);
+      component.removeCustomAmountGuest(2);
+      expect(component.customAmountGuests).toHaveSize(2);
+
+      // Pourcentage
+      component.addCustomPercentageGuest();
+      expect(component.customPercentageGuests).toHaveSize(3);
+      component.customPercentageGuests[0].pourcentage = 40;
+      component.assignRemainingPercentageToGuest(1);
+      expect(component.customPercentageGuests[1].pourcentage).toBe(60);
+      component.removeCustomPercentageGuest(2);
+      expect(component.customPercentageGuests).toHaveSize(2);
+    });
+
+    it('exercises item split edge cases and removal', () => {
+      component.addition = mockAddition;
+      component.convives = [{ nom: 'A' }, { nom: 'B' }, { nom: 'C' }];
+      component.unitAssignments = { '101_0': 1, '102_0': 2 };
+
+      // Removing guest at index 1 shifts assignments for guest 2 down to 1
+      component.removeConvive(1);
+      expect(component.convives).toHaveSize(2);
+      expect(component.unitAssignments['101_0']).toBeUndefined();
+      expect(component.unitAssignments['102_0']).toBe(1);
+
+      expect(component.getGuestName(0)).toBe('A');
+      expect(component.totalUnassignedCount).toBeGreaterThan(0);
+      expect(component.availableAdditionItems.length).toBeGreaterThan(0);
+      expect(component.allItemsAssigned).toBeFalse();
+    });
+
+    it('exercises cash operations and exact amount in part settlement', () => {
+      component.reglerPart(0, mockPart);
+      component.partPaymentMode = 'ESPECES';
+      component.definirPartMontantExact();
+      expect(component.partMontantRecu).toBe(component.partTotalNetAPayer);
+
+      component.ajouterPartEspeces(5);
+      expect(component.partMontantRecu).toBe(component.partTotalNetAPayer + 5);
+
+      const suggestions = component.partBilletSuggestions;
+      expect(suggestions).toBeDefined();
+
+      component.setPartDiscountMode('fixed');
+      component.partDiscountFixed = 2;
+      expect(component.partDiscountAmount).toBe(2);
+
+      component.setPartDiscountMode('none');
+      expect(component.partDiscountAmount).toBe(0);
+
+      const fixedTier = { id: 'promo', label: 'Promo 5€', type: 'fixed' as const, value: 5 };
+      component.applyPartDiscountTier(fixedTier);
+      expect(component.partDiscountMode).toBe('fixed');
+      expect(component.partDiscountAmount).toBe(5);
+    });
+
+    it('supports settling a bar tab and reflects tab labels and details', () => {
+      const mockTab: BarTab = {
+        id: 77,
+        nom: 'Comptoir VIP',
+        clientReference: 'CARD-VIP',
+        statut: 'ACTIVE',
+        openedAt: '2026-09-18T20:00:00',
+        total: 25.0,
+        activeOrdersCount: 1,
+        itemsCount: 2,
+      };
+      component.tab = mockTab;
+      component.table = undefined;
+      component.addition = mockAddition;
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.textContent).toContain('Comptoir VIP');
+      expect(el.textContent).toContain('CARD-VIP');
+    });
+  });
+
+  describe('Payment Terminal (TPE) Integration', () => {
+    beforeEach(() => {
+      component.addition = mockAddition;
+      component.modePaiement = 'CARTE';
+    });
+
+    it('should set preferred TPE role on service and signal', () => {
+      component.setPreferredTpeRole('FLOOR');
+      expect(paymentTerminalServiceSpy.preferredRole).toBe('FLOOR');
+      expect(component.preferredTpeRole()).toBe('FLOOR');
+    });
+
+    it('should ignore envoyerAuTpe when already processing or amount <= 0', () => {
+      component.isTpeProcessing.set(true);
+      component.envoyerAuTpe();
+      expect(paymentTerminalServiceSpy.initiatePayment).not.toHaveBeenCalled();
+
+      component.isTpeProcessing.set(false);
+      component.addition = { ...mockAddition, totalTTC: 0, items: [] };
+      component.envoyerAuTpe();
+      expect(paymentTerminalServiceSpy.initiatePayment).not.toHaveBeenCalled();
+    });
+
+    it('should handle immediate approved transaction and submit settlement with TPE metadata', () => {
+      const approvedTx: any = {
+        transactionId: 'tx-app-01',
+        status: 'APPROVED',
+        authorizationCode: 'AUTH-1234',
+        terminalId: 'POS01',
+        cardBrand: 'VISA',
+        maskedPan: '************4242',
+        sequenceNumber: '000123'
+      };
+      paymentTerminalServiceSpy.initiatePayment.and.returnValue(of(approvedTx));
+
+      component.envoyerAuTpe(false);
+
+      expect(paymentTerminalServiceSpy.initiatePayment).toHaveBeenCalledWith(jasmine.objectContaining({
+        amount: 28.0,
+        targetRole: 'BAR',
+        tableNumber: 'Table 1'
+      }));
+      expect(component.isTpeProcessing()).toBeFalse();
+      expect(dashboardServiceSpy.encaisserTable).toHaveBeenCalledWith(1, jasmine.objectContaining({
+        tpeAutorisation: 'AUTH-1234',
+        tpeTerminalId: 'POS01',
+        tpeCardBrand: 'VISA',
+        tpeMaskedPan: '************4242',
+        tpeSequence: '000123'
+      }));
+    });
+
+    it('should handle immediate declined transaction and record error message', () => {
+      const declinedTx: any = {
+        transactionId: 'tx-dec-01',
+        status: 'DECLINED',
+        message: 'Insufficient funds'
+      };
+      paymentTerminalServiceSpy.initiatePayment.and.returnValue(of(declinedTx));
+
+      component.envoyerAuTpe(false);
+
+      expect(component.isTpeProcessing()).toBeFalse();
+      expect(component.tpeErrorMessage()).toBe('Insufficient funds');
+      expect(dashboardServiceSpy.encaisserTable).not.toHaveBeenCalled();
+    });
+
+    it('should handle asynchronous WebSocket broadcast updates for pending transactions', () => {
+      const pendingTx: any = {
+        transactionId: 'tx-wait-01',
+        status: 'WAITING_CARD',
+        message: 'Please insert card'
+      };
+      const approvedTx: any = {
+        transactionId: 'tx-wait-01',
+        status: 'APPROVED',
+        authorizationCode: 'AUTH-8888',
+        terminalId: 'POS01',
+        cardBrand: 'MASTERCARD',
+        maskedPan: '************9999',
+        sequenceNumber: '000456'
+      };
+
+      paymentTerminalServiceSpy.initiatePayment.and.returnValue(of(pendingTx));
+      paymentTerminalServiceSpy.watchPayment.and.returnValue(of(approvedTx));
+
+      component.envoyerAuTpe(false);
+
+      expect(paymentTerminalServiceSpy.watchPayment).toHaveBeenCalledWith('tx-wait-01');
+      expect(dashboardServiceSpy.encaisserTable).toHaveBeenCalled();
+    });
+
+    it('should handle asynchronous WebSocket broadcast update to DECLINED status', () => {
+      const pendingTx: any = {
+        transactionId: 'tx-wait-02',
+        status: 'PROCESSING'
+      };
+      const failedTx: any = {
+        transactionId: 'tx-wait-02',
+        status: 'FAILED',
+        message: 'Chip read error'
+      };
+
+      paymentTerminalServiceSpy.initiatePayment.and.returnValue(of(pendingTx));
+      paymentTerminalServiceSpy.watchPayment.and.returnValue(of(failedTx));
+
+      component.envoyerAuTpe(false);
+
+      expect(component.isTpeProcessing()).toBeFalse();
+      expect(component.tpeErrorMessage()).toBe('Chip read error');
+    });
+
+    it('should handle HTTP error during initiatePayment gracefully', () => {
+      paymentTerminalServiceSpy.initiatePayment.and.returnValue(throwError(() => ({
+        error: { message: 'Terminal offline' }
+      })));
+
+      component.envoyerAuTpe(false);
+
+      expect(component.isTpeProcessing()).toBeFalse();
+      expect(component.tpeErrorMessage()).toBe('Terminal offline');
+    });
+
+    it('should cancel active TPE payment transaction and reset signals', () => {
+      paymentTerminalServiceSpy.cancelPayment.and.returnValue(of({} as any));
+      component.activeTpeTransaction.set({ transactionId: 'tx-to-cancel' } as any);
+      component.isTpeProcessing.set(true);
+
+      component.annulerTpe();
+
+      expect(paymentTerminalServiceSpy.cancelPayment).toHaveBeenCalledWith('tx-to-cancel');
+      expect(component.isTpeProcessing()).toBeFalse();
+      expect(component.activeTpeTransaction()).toBeNull();
+    });
+
+    it('should handle part payment via TPE when isPart is true', () => {
+      const mockPart: SplitResultDTO = {
+        factureId: 50,
+        nomConvive: 'Bob',
+        items: [],
+        sousTotal: 10.0,
+        totalAvecPourboire: 10.0
+      };
+      component.reglerPart(0, mockPart);
+      component.partPaymentMode = 'CARTE';
+
+      const approvedTx: any = {
+        transactionId: 'tx-part-01',
+        status: 'APPROVED',
+        authorizationCode: 'AUTH-PART-1',
+        terminalId: 'POS01',
+        cardBrand: 'CB',
+        maskedPan: '************1234',
+        sequenceNumber: '000789'
+      };
+      paymentTerminalServiceSpy.initiatePayment.and.returnValue(of(approvedTx));
+
+      component.envoyerAuTpe(true);
+
+      expect(component.isTpeProcessing()).toBeFalse();
+      expect(component.partStates[0]?.reglee).toBeTrue();
+      expect(component.partStates[0]?.tpeAutorisation).toBe('AUTH-PART-1');
+    });
   });
 });

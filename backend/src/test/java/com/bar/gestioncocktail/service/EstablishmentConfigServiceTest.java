@@ -46,7 +46,7 @@ class EstablishmentConfigServiceTest {
     }
 
     @Test
-    void getConfig_retourneInstanceExistanteOuParDefaut() {
+    void getConfigRetourneInstanceExistanteOuParDefaut() {
         when(repository.findById(1L)).thenReturn(Optional.of(config));
 
         EstablishmentConfig result = service.getConfig();
@@ -56,7 +56,7 @@ class EstablishmentConfigServiceTest {
     }
 
     @Test
-    void updateConfig_avecSiretValide_metAJourConfiguration() {
+    void updateConfigAvecSiretValideMetAJourConfiguration() {
         when(repository.findById(1L)).thenReturn(Optional.of(config));
         when(repository.save(any(EstablishmentConfig.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -81,7 +81,7 @@ class EstablishmentConfigServiceTest {
     }
 
     @Test
-    void updateConfig_avecTicketFormatValide80mm_metAJourFormat() {
+    void updateConfigAvecTicketFormatValide80mmMetAJourFormat() {
         when(repository.findById(1L)).thenReturn(Optional.of(config));
         when(repository.save(any(EstablishmentConfig.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -100,7 +100,7 @@ class EstablishmentConfigServiceTest {
     }
 
     @Test
-    void updateConfig_avecSiretInvalide_leveBusinessException() {
+    void updateConfigAvecSiretInvalideLeveBusinessException() {
         // Invalid Luhn SIRET
         EstablishmentConfigUpdateRequest request = new EstablishmentConfigUpdateRequest(
             "Nom", "SARL", "12345678900000", "Paris", "B 123",
@@ -115,7 +115,7 @@ class EstablishmentConfigServiceTest {
     }
 
     @Test
-    void getModulesDTO_retourneModulesValides() {
+    void getModulesDTORetourneModulesValides() {
         when(repository.findById(1L)).thenReturn(Optional.of(config));
 
         var modules = service.getModulesDTO();
@@ -126,7 +126,7 @@ class EstablishmentConfigServiceTest {
     }
 
     @Test
-    void updateModules_metAJourEtNotifieWebSocket() {
+    void updateModulesMetAJourEtNotifieWebSocket() {
         when(repository.findById(1L)).thenReturn(Optional.of(config));
         when(repository.save(any(EstablishmentConfig.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -143,7 +143,7 @@ class EstablishmentConfigServiceTest {
     }
 
     @Test
-    void getConfig_avecSiretInvalideEnBase_corrigeAutomatiquementSiret() {
+    void getConfigAvecSiretInvalideEnBaseCorrigeAutomatiquementSiret() {
         EstablishmentConfig legacyConfig = new EstablishmentConfig();
         legacyConfig.setId(1L);
         legacyConfig.setSiret("12345678900010"); // Invalid Luhn
@@ -157,7 +157,7 @@ class EstablishmentConfigServiceTest {
     }
 
     @Test
-    void updateModules_avecNullRequest_retourneModulesActuelsSansSauvegarde() {
+    void updateModulesAvecNullRequestRetourneModulesActuelsSansSauvegarde() {
         when(repository.findById(1L)).thenReturn(Optional.of(config));
 
         var result = service.updateModules(null);
@@ -167,7 +167,7 @@ class EstablishmentConfigServiceTest {
     }
 
     @Test
-    void isModuleEnabled_verifieTousLesModules() {
+    void isModuleEnabledVerifieTousLesModules() {
         when(repository.findById(1L)).thenReturn(Optional.of(config));
 
         assertThat(service.isModuleEnabled(EstablishmentModule.CUISINE_KDS)).isTrue();
@@ -183,7 +183,7 @@ class EstablishmentConfigServiceTest {
     }
 
     @Test
-    void checkModuleEnabled_lanceBusinessExceptionSiDesactive() {
+    void checkModuleEnabledLanceBusinessExceptionSiDesactive() {
         config.setModuleFloorPlanEnabled(false);
         when(repository.findById(1L)).thenReturn(Optional.of(config));
 
@@ -194,5 +194,28 @@ class EstablishmentConfigServiceTest {
         // When enabled, must not throw
         config.setModuleHappyHourEnabled(true);
         service.checkModuleEnabled(EstablishmentModule.HAPPY_HOUR);
+    }
+
+    @Test
+    void updateRouletteDisplayPinMetAJourCodePinEtSauvegarde() {
+        when(repository.findById(1L)).thenReturn(Optional.of(config));
+        when(repository.save(any(EstablishmentConfig.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        EstablishmentConfig result = service.updateRouletteDisplayPin("4321");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getRouletteDisplayPin()).isEqualTo("4321");
+        verify(repository).save(config);
+    }
+
+    @Test
+    void isModuleEnabledMysteryRouletteVerifieActivationEtDesactivation() {
+        when(repository.findById(1L)).thenReturn(Optional.of(config));
+
+        config.setModuleMysteryRouletteEnabled(true);
+        assertThat(service.isModuleEnabled(EstablishmentModule.MYSTERY_ROULETTE)).isTrue();
+
+        config.setModuleMysteryRouletteEnabled(false);
+        assertThat(service.isModuleEnabled(EstablishmentModule.MYSTERY_ROULETTE)).isFalse();
     }
 }

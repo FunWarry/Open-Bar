@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -30,6 +30,7 @@ export type QrModalMode = 'ORDER' | 'WIFI';
   templateUrl: './table-qr-modal.component.html',
   styleUrls: ['./table-qr-modal.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonIcon,
     IonSpinner,
@@ -305,6 +306,6 @@ export class TableQrModalComponent implements OnInit, OnDestroy {
   }
 
   dismiss(): void {
-    this.modalCtrl.dismiss();
+    void this.modalCtrl.dismiss();
   }
 }

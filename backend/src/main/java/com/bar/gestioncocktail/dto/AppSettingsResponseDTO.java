@@ -3,6 +3,7 @@ package com.bar.gestioncocktail.dto;
 import com.bar.gestioncocktail.model.AppSettings;
 import com.bar.gestioncocktail.model.CurrencyPosition;
 import com.bar.gestioncocktail.model.DefaultTheme;
+import com.bar.gestioncocktail.model.UnitSystem;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
  * @param currencyCode ISO 4217 currency code (e.g. EUR, USD, GBP, CHF)
  * @param currencySymbol Currency symbol (e.g. €, $, £, CHF)
  * @param currencyPosition Display position of the currency symbol relative to amounts (BEFORE or AFTER)
+ * @param unitSystem Measurement unit system (METRIC_CL, METRIC_ML, IMPERIAL_US)
  * @param tempsAlerteWarningMinutes Order warning alert threshold in minutes
  * @param tempsAlerteCommandeMinutes Order urgent alert threshold in minutes
  * @param tempsAlerteCritiqueCommandeMinutes Order critical alert threshold in minutes
@@ -31,6 +33,10 @@ import java.time.LocalDateTime;
  * @param defaultVatRate Default VAT rate percentage for menu prices
  * @param targetGrossMarginPercentage Target high margin percentage threshold
  * @param warningGrossMarginPercentage Warning low margin percentage threshold
+ * @param storageLocationsJson Serialized JSON list of inventory storage and service locations
+ * @param printersJson Serialized JSON list of configured network ESC/POS printers
+ * @param tpeTerminalsJson Serialized JSON list of configured Concert IP payment terminals
+ * @param timeZone Establishment active timezone ID
  * @param updatedAt Last modification timestamp
  */
 @Schema(description = "Visual, operational, currency, and QR/Wi-Fi configuration data of the establishment")
@@ -44,6 +50,9 @@ public record AppSettingsResponseDTO(
     String currencyCode,
     String currencySymbol,
     CurrencyPosition currencyPosition,
+    UnitSystem unitSystem,
+    String volumeUnit,
+    String weightUnit,
     Integer tempsAlerteWarningMinutes,
     Integer tempsAlerteCommandeMinutes,
     Integer tempsAlerteCritiqueCommandeMinutes,
@@ -62,10 +71,159 @@ public record AppSettingsResponseDTO(
     Integer printerPort,
     Boolean directPrintingEnabled,
     String cashDenominationsJson,
+    String storageLocationsJson,
+    Boolean tpeEnabled,
+    Boolean tpeSimulatorEnabled,
+    String tpeBarIp,
+    String tpeFloorIp,
+    Integer tpePort,
+    String tpeTerminalId,
+    Integer tpeTimeoutSeconds,
+    String printersJson,
+    String tpeTerminalsJson,
+    String timeZone,
     LocalDateTime updatedAt
 ) {
+    /** Default fallback timezone identifier. */
+    public static final String DEFAULT_TIMEZONE = "SYSTEM";
+
     /**
-     * Backwards-compatible 26-parameter constructor defaulting cashDenominationsJson to null.
+     * Backwards-compatible 35-parameter constructor before TPE configuration was introduced.
+     */
+    public AppSettingsResponseDTO(
+            Long id, String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            String volumeUnit, String weightUnit,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity,
+            Boolean wifiEnabled, Boolean tableSessionValidationEnabled,
+            BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
+            BigDecimal warningGrossMarginPercentage, String barPrinterIp,
+            String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
+            Boolean directPrintingEnabled, String cashDenominationsJson,
+            String storageLocationsJson, String timeZone, LocalDateTime updatedAt) {
+        this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem != null ? unitSystem : UnitSystem.METRIC_CL,
+                volumeUnit != null ? volumeUnit : "cl", weightUnit != null ? weightUnit : "g",
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
+                cashDenominationsJson, storageLocationsJson,
+                false, true, null, null, 8888, "01", 45,
+                timeZone != null ? timeZone : DEFAULT_TIMEZONE, updatedAt);
+    }
+
+    /**
+     * Backwards-compatible 32-parameter constructor defaulting storageLocationsJson to null.
+     */
+    public AppSettingsResponseDTO(
+            Long id, String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            String volumeUnit, String weightUnit,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity,
+            Boolean wifiEnabled, Boolean tableSessionValidationEnabled,
+            BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
+            BigDecimal warningGrossMarginPercentage, String barPrinterIp,
+            String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
+            Boolean directPrintingEnabled, String cashDenominationsJson,
+            String timeZone, LocalDateTime updatedAt) {
+        this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem != null ? unitSystem : UnitSystem.METRIC_CL,
+                volumeUnit != null ? volumeUnit : "cl", weightUnit != null ? weightUnit : "g",
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
+                cashDenominationsJson, null, timeZone != null ? timeZone : DEFAULT_TIMEZONE, updatedAt);
+    }
+
+    /**
+     * Backwards-compatible 30-parameter constructor defaulting volumeUnit to cl, weightUnit to g, and storageLocationsJson to null.
+     */
+    public AppSettingsResponseDTO(
+            Long id, String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity,
+            Boolean wifiEnabled, Boolean tableSessionValidationEnabled,
+            BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
+            BigDecimal warningGrossMarginPercentage, String barPrinterIp,
+            String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
+            Boolean directPrintingEnabled, String cashDenominationsJson,
+            String timeZone, LocalDateTime updatedAt) {
+        this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem != null ? unitSystem : UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
+                cashDenominationsJson, null, timeZone != null ? timeZone : DEFAULT_TIMEZONE, updatedAt);
+    }
+
+    /**
+     * Backwards-compatible 28-parameter constructor defaulting timeZone to SYSTEM.
+     */
+    public AppSettingsResponseDTO(
+            Long id, String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity,
+            Boolean wifiEnabled, Boolean tableSessionValidationEnabled,
+            BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
+            BigDecimal warningGrossMarginPercentage, String barPrinterIp,
+            String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
+            Boolean directPrintingEnabled, String cashDenominationsJson,
+            LocalDateTime updatedAt) {
+        this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem != null ? unitSystem : UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
+                cashDenominationsJson, DEFAULT_TIMEZONE, updatedAt);
+    }
+
+    /**
+     * Backwards-compatible 27-parameter constructor defaulting unitSystem to METRIC_CL and timeZone to SYSTEM.
+     */
+    public AppSettingsResponseDTO(
+            Long id, String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity,
+            Boolean wifiEnabled, Boolean tableSessionValidationEnabled,
+            BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
+            BigDecimal warningGrossMarginPercentage, String barPrinterIp,
+            String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
+            Boolean directPrintingEnabled, String cashDenominationsJson,
+            LocalDateTime updatedAt) {
+        this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes,
+                tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
+                cashDenominationsJson, DEFAULT_TIMEZONE, updatedAt);
+    }
+
+    /**
+     * Backwards-compatible 26-parameter constructor defaulting cashDenominationsJson to null and timeZone to SYSTEM.
      */
     public AppSettingsResponseDTO(
             Long id, String primaryColor, String primaryColorStrong, String logoUrl,
@@ -80,16 +238,18 @@ public record AppSettingsResponseDTO(
             String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
             Boolean directPrintingEnabled, LocalDateTime updatedAt) {
         this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
-                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
+                currencyCode, currencySymbol, currencyPosition, UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes,
                 tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
                 wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
                 defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
                 barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
-                null, updatedAt);
+                null, DEFAULT_TIMEZONE, updatedAt);
     }
 
     /**
-     * Backwards-compatible 22-parameter constructor defaulting printer settings to null/false and cash denominations to null.
+     * Backwards-compatible 22-parameter constructor defaulting printer settings to null/false, cash denominations to null, and timeZone to SYSTEM.
      */
     public AppSettingsResponseDTO(
             Long id, String primaryColor, String primaryColorStrong, String logoUrl,
@@ -102,24 +262,62 @@ public record AppSettingsResponseDTO(
             BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
             BigDecimal warningGrossMarginPercentage, LocalDateTime updatedAt) {
         this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
-                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
+                currencyCode, currencySymbol, currencyPosition, UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes,
                 tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
                 wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
                 defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
-                null, null, null, 9100, false, null, updatedAt);
+                null, null, null, 9100, false, null, DEFAULT_TIMEZONE, updatedAt);
     }
 
     /**
-     * Converts an {@link AppSettings} entity into a response DTO.
+     * Backwards-compatible constructor without printersJson and tpeTerminalsJson.
+     */
+    public AppSettingsResponseDTO(
+            Long id, String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            String volumeUnit, String weightUnit,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity,
+            Boolean wifiEnabled, Boolean tableSessionValidationEnabled,
+            BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
+            BigDecimal warningGrossMarginPercentage, String barPrinterIp,
+            String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
+            Boolean directPrintingEnabled, String cashDenominationsJson,
+            String storageLocationsJson, Boolean tpeEnabled, Boolean tpeSimulatorEnabled,
+            String tpeBarIp, String tpeFloorIp, Integer tpePort,
+            String tpeTerminalId, Integer tpeTimeoutSeconds,
+            String timeZone, LocalDateTime updatedAt
+    ) {
+        this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem, volumeUnit, weightUnit,
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes,
+                clientBaseUrl, wifiSsid, wifiPassword, wifiSecurity, wifiEnabled,
+                tableSessionValidationEnabled, defaultVatRate, targetGrossMarginPercentage,
+                warningGrossMarginPercentage, barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp,
+                printerPort, directPrintingEnabled, cashDenominationsJson, storageLocationsJson,
+                tpeEnabled, tpeSimulatorEnabled, tpeBarIp, tpeFloorIp, tpePort, tpeTerminalId,
+                tpeTimeoutSeconds, null, null, timeZone, updatedAt);
+    }
+
+    /**
+     * Converts an {@link AppSettings} entity into a response DTO with an explicit active timezone.
      *
      * @param s Source entity
+     * @param timeZone Active establishment timezone ID (e.g. 'Europe/Paris' or 'SYSTEM')
      * @return Response DTO
      */
-    public static AppSettingsResponseDTO from(AppSettings s) {
+    public static AppSettingsResponseDTO from(AppSettings s, String timeZone) {
         return new AppSettingsResponseDTO(
             s.getId(), s.getPrimaryColor(), s.getPrimaryColorStrong(),
             s.getLogoUrl(), s.getEstablishmentName(), s.getDefaultTheme(),
             s.getCurrencyCode(), s.getCurrencySymbol(), s.getCurrencyPosition(),
+            s.getUnitSystem() != null ? s.getUnitSystem() : UnitSystem.METRIC_CL,
+            s.getVolumeUnit() != null ? s.getVolumeUnit() : "cl",
+            s.getWeightUnit() != null ? s.getWeightUnit() : "g",
             s.getTempsAlerteWarningMinutes(),
             s.getTempsAlerteCommandeMinutes(), s.getTempsAlerteCritiqueCommandeMinutes(),
             s.getClientBaseUrl(),
@@ -137,8 +335,29 @@ public record AppSettingsResponseDTO(
             s.getPrinterPort() != null ? s.getPrinterPort() : 9100,
             Boolean.TRUE.equals(s.getDirectPrintingEnabled()),
             s.getCashDenominationsJson(),
+            s.getStorageLocationsJson(),
+            Boolean.TRUE.equals(s.getTpeEnabled()),
+            s.getTpeSimulatorEnabled() == null || s.getTpeSimulatorEnabled(),
+            s.getTpeBarIp(),
+            s.getTpeFloorIp(),
+            s.getTpePort() != null ? s.getTpePort() : 8888,
+            s.getTpeTerminalId() != null ? s.getTpeTerminalId() : "01",
+            s.getTpeTimeoutSeconds() != null ? s.getTpeTimeoutSeconds() : 45,
+            s.getPrintersJson(),
+            s.getTpeTerminalsJson(),
+            timeZone != null ? timeZone : DEFAULT_TIMEZONE,
             s.getUpdatedAt()
         );
+    }
+
+    /**
+     * Converts an {@link AppSettings} entity into a response DTO defaulting timezone to SYSTEM.
+     *
+     * @param s Source entity
+     * @return Response DTO
+     */
+    public static AppSettingsResponseDTO from(AppSettings s) {
+        return from(s, DEFAULT_TIMEZONE);
     }
 }
 

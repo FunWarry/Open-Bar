@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -8,7 +8,8 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import {
   IonContent, IonButton,
-  IonRefresher, IonRefresherContent, IonIcon, IonSpinner, IonProgressBar, ToastController
+  IonRefresher, IonRefresherContent, IonIcon, IonSpinner, IonProgressBar,
+  ToastController, ModalController
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -18,16 +19,20 @@ import {
   gridOutline, listOutline, arrowForwardOutline, copyOutline, cardOutline,
   walletOutline, restaurantOutline, statsChartOutline, checkmarkDoneCircleOutline,
   downloadOutline, alertCircleOutline, swapVerticalOutline, checkmarkOutline,
-  closeCircleOutline
+  closeCircleOutline, addCircleOutline
 } from 'ionicons/icons';
 
 import { FactureService } from '../services/facture.service';
 import { Facture } from '../models/facture.model';
+import { NouvelleFactureModalComponent, NouvelleFactureModalResult } from '../nouvelle-facture-modal/nouvelle-facture-modal.component';
+import { FactureSplitComponent } from '../facture-split/facture-split.component';
 import { environment } from '../../../../environments/environment';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+import { StatCardComponent } from '../../../core/components/ui/stat-card/stat-card.component';
+import { CardComponent, CardAccentColor } from '../../../core/components/ui/card/card.component';
 /**
  * Filter options for invoice list queries.
  */
@@ -95,14 +100,32 @@ export const getOperationalMonthString = getMonthString;
     TranslocoModule,
     IonContent, SearchBarComponent, IonButton,
     IonRefresher, IonRefresherContent, IonIcon, IonSpinner, IonProgressBar,
-    SearchableSelectComponent, ActionButtonComponent
+    SearchableSelectComponent,
+    ActionButtonComponent,
+    StatCardComponent,
+    CardComponent,
   ],
   templateUrl: './facture-list.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./facture-list.component.scss'],
 })
 export class FactureListComponent implements OnInit, OnDestroy {
+  /**
+   * Resolves semantic accent color for invoice settlement status.
+   */
+  getFactureAccentColor(facture: Facture): CardAccentColor {
+    return facture.reglee ? 'success' : 'warning';
+  }
+
+  /**
+   * Navigates to invoice detail page.
+   */
+  navigateToDetail(factureId: number): void {
+    void this.router.navigate(['/factures', factureId]);
+  }
   private readonly factureService = inject(FactureService);
   private readonly toastCtrl = inject(ToastController);
+  private readonly modalCtrl = inject(ModalController);
   private readonly transloco = inject(TranslocoService);
   private readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
@@ -130,7 +153,7 @@ export class FactureListComponent implements OnInit, OnDestroy {
       gridOutline, listOutline, arrowForwardOutline, copyOutline, cardOutline,
       walletOutline, restaurantOutline, statsChartOutline, checkmarkDoneCircleOutline,
       downloadOutline, alertCircleOutline, swapVerticalOutline, checkmarkOutline,
-      closeCircleOutline
+      closeCircleOutline, addCircleOutline
     });
   }
 
@@ -170,7 +193,32 @@ export class FactureListComponent implements OnInit, OnDestroy {
    * Navigates to the daily recap and cash register closure (Z-Report) page.
    */
   goToRecap(): void {
-    this.router.navigate(['/factures/recap']);
+    void this.router.navigate(['/factures/recap']);
+  }
+
+  /**
+   * Opens the modal allowing staff to select an active occupied table and generate its invoice.
+   */
+  async ouvrirModalNouvelleFacture(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: NouvelleFactureModalComponent,
+      cssClass: 'nouvelle-facture-modal-container'
+    });
+    await modal.present();
+    const { data } = await modal.onWillDismiss<NouvelleFactureModalResult>();
+
+    if (data?.action === 'created' && data.facture) {
+      this.charger();
+      if (data.openSplit) {
+        const splitModal = await this.modalCtrl.create({
+          component: FactureSplitComponent,
+          componentProps: { facture: data.facture, factureId: data.facture.id }
+        });
+        await splitModal.present();
+        await splitModal.onWillDismiss();
+        this.charger();
+      }
+    }
   }
 
   /**

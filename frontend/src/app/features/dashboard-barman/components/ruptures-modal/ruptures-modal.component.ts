@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin } from 'rxjs';
@@ -71,6 +71,7 @@ import { SearchBarComponent } from '../../../../core/components/ui/search-bar/se
     IonBadge
 ],
   templateUrl: './ruptures-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./ruptures-modal.component.scss']
 })
 export class RupturesModalComponent implements OnInit, OnDestroy {
@@ -133,7 +134,7 @@ export class RupturesModalComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger'
           });
-          toast.present();
+          await toast.present();
         }
       });
   }
@@ -199,11 +200,11 @@ export class RupturesModalComponent implements OnInit, OnDestroy {
           const msg = cocktail.disponible
             ? this.transloco.translate('BARMAN_DASHBOARD.COCKTAIL_AVAILABLE', { name: cocktail.nom })
             : this.transloco.translate('BARMAN_DASHBOARD.COCKTAIL_OUT_OF_STOCK', { name: cocktail.nom });
-          this.showToast(msg, cocktail.disponible ? 'success' : 'warning');
+          void this.showToast(msg, cocktail.disponible ? 'success' : 'warning');
         },
         error: () => {
           cocktail.disponible = previousState;
-          this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger');
+          void this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger');
         }
       });
   }
@@ -280,7 +281,7 @@ export class RupturesModalComponent implements OnInit, OnDestroy {
       .subscribe({
         next: updated => {
           ingredient.quantiteStock = updated.quantiteStock;
-          this.showToast(
+          void this.showToast(
             this.transloco.translate('BARMAN_DASHBOARD.STOCK_UPDATED', {
               name: ingredient.nom,
               stock: validStock,
@@ -290,7 +291,7 @@ export class RupturesModalComponent implements OnInit, OnDestroy {
           );
         },
         error: () => {
-          this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger');
+          void this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger');
         }
       });
   }
@@ -301,7 +302,7 @@ export class RupturesModalComponent implements OnInit, OnDestroy {
       duration: 2000,
       color
     });
-    toast.present();
+    await toast.present();
   }
 
   /**
@@ -326,6 +327,6 @@ export class RupturesModalComponent implements OnInit, OnDestroy {
   }
 
   dismiss(): void {
-    this.modalCtrl.dismiss();
+    void this.modalCtrl.dismiss();
   }
 }

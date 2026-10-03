@@ -1,0 +1,370 @@
+<ion-content class="ion-padding inventory-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadSessions($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="inventory-container">
+    <!-- Header -->
+    <div class="inventory-header-card">
+      <div class="header-main-row">
+        <div class="title-with-badge">
+          <div class="title-icon-box">
+            <ion-icon name="clipboard-outline"></ion-icon>
+          </div>
+          <div>
+            <h1 class="page-title">{{ 'INVENTORY.PAGE_TITLE' | transloco }}</h1>
+            <p class="page-subtitle">{{ 'INVENTORY.PAGE_SUBTITLE' | transloco }}</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <app-action-button
+            variant="secondary"
+            size="medium"
+            icon="refresh-outline"
+            (btnClick)="loadSessions()"
+            testId="btn-refresh-sessions"
+            data-testid="btn-refresh-sessions">
+            {{ 'COMMON.REFRESH' | transloco }}
+          </app-action-button>
+
+          <app-action-button
+            variant="primary"
+            size="medium"
+            icon="add-outline"
+            (btnClick)="openCreateModal()"
+            testId="btn-new-audit"
+            data-testid="btn-new-audit">
+            {{ 'INVENTORY.NEW_AUDIT_BTN' | transloco }}
+          </app-action-button>
+        </div>
+      </div>
+
+      <!-- KPI Stat Cards Grid -->
+      <ion-grid class="stats-grid">
+        <ion-row>
+          <ion-col size="12" sizeSm="6" sizeLg="3">
+            <app-stat-card
+              [title]="'INVENTORY.KPI_TOTAL_AUDITS' | transloco"
+              [value]="totalAuditsCount()"
+              icon="clipboard-outline"
+              color="primary"
+              testId="kpi-total-audits">
+            </app-stat-card>
+          </ion-col>
+          <ion-col size="12" sizeSm="6" sizeLg="3">
+            <app-stat-card
+              [title]="'INVENTORY.KPI_ACTIVE_SESSIONS' | transloco"
+              [value]="activeSessionsCount()"
+              icon="time-outline"
+              color="warning"
+              testId="kpi-active-audits">
+            </app-stat-card>
+          </ion-col>
+          <ion-col size="12" sizeSm="6" sizeLg="3">
+            <app-stat-card
+              [title]="'INVENTORY.KPI_NET_VARIANCE' | transloco"
+              [value]="(totalNetVarianceHt() >= 0 ? '+' : '') + (totalNetVarianceHt() | number:'1.2-2') + ' €'"
+              icon="trending-up-outline"
+              [color]="totalNetVarianceHt() >= 0 ? 'success' : 'danger'"
+              testId="kpi-net-variance">
+            </app-stat-card>
+          </ion-col>
+          <ion-col size="12" sizeSm="6" sizeLg="3">
+            <app-stat-card
+              [title]="'INVENTORY.KPI_TOTAL_SHRINKAGE' | transloco"
+              [value]="(totalShrinkageLossHt() | number:'1.2-2') + ' €'"
+              icon="trending-down-outline"
+              color="danger"
+              testId="kpi-shrinkage-loss">
+            </app-stat-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+
+    <!-- Filters & Search Toolbar -->
+    <div class="toolbar-card">
+      <div class="status-tabs" role="tablist">
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeFilter() === 'ALL'"
+          (click)="setFilter('ALL')"
+          data-testid="tab-filter-all">
+          {{ 'INVENTORY.TAB_ALL' | transloco }}
+          <span class="tab-count">{{ sessions().length }}</span>
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeFilter() === 'IN_PROGRESS'"
+          (click)="setFilter('IN_PROGRESS')"
+          data-testid="tab-filter-in-progress">
+          {{ 'INVENTORY.TAB_IN_PROGRESS' | transloco }}
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeFilter() === 'DRAFT'"
+          (click)="setFilter('DRAFT')"
+          data-testid="tab-filter-draft">
+          {{ 'INVENTORY.TAB_DRAFT' | transloco }}
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeFilter() === 'FINALIZED'"
+          (click)="setFilter('FINALIZED')"
+          data-testid="tab-filter-finalized">
+          {{ 'INVENTORY.TAB_FINALIZED' | transloco }}
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeFilter() === 'CANCELLED'"
+          (click)="setFilter('CANCELLED')"
+          data-testid="tab-filter-cancelled">
+          {{ 'INVENTORY.TAB_CANCELLED' | transloco }}
+        </button>
+      </div>
+
+      <div class="search-box">
+        <app-search-bar
+          [placeholder]="'INVENTORY.SEARCH_PLACEHOLDER' | transloco"
+          [value]="searchQuery()"
+          (searchChange)="onSearch($event)"
+          testId="inventory-search-bar"
+          data-testid="inventory-search-bar">
+        </app-search-bar>
+      </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <span>{{ 'COMMON.LOADING' | transloco }}</span>
+      </div>
+    } @else if (filteredSessions().length === 0) {
+      <!-- Empty State -->
+      <app-empty-state
+        icon="clipboard-outline"
+        [title]="'INVENTORY.EMPTY_SESSIONS_TITLE' | transloco"
+        [subtitle]="'INVENTORY.EMPTY_SESSIONS_DESC' | transloco"
+        [actionLabel]="'INVENTORY.NEW_AUDIT_BTN' | transloco"
+        (actionClick)="openCreateModal()"
+        data-testid="inventory-empty-state">
+      </app-empty-state>
+    } @else {
+      <!-- Session Cards Grid -->
+      <div class="sessions-list" data-testid="inventory-sessions-list">
+        @for (session of filteredSessions(); track session.id) {
+          <app-card
+            [accentColor]="getSessionAccentColor(session.status)"
+            [headerDivider]="'dashed'"
+            [footerDivider]="'dashed'"
+            [clickable]="true"
+            [padding]="'md'"
+            [testId]="'session-card-' + session.id"
+            (cardClick)="openSession(session)">
+
+            <div card-header class="card-top-row">
+              <div class="ref-and-title">
+                <span class="session-ref">{{ session.referenceCode }}</span>
+                <h3 class="session-title">
+                  <span class="session-title-text">{{ session.title }}</span>
+                </h3>
+              </div>
+              <ion-badge [color]="getStatusBadgeColor(session.status)" class="status-badge" [attr.data-testid]="'badge-status-' + session.id">
+                {{ 'INVENTORY.STATUS_' + session.status | transloco }}
+              </ion-badge>
+            </div>
+
+            <div card-content class="card-body-content">
+              <!-- Metadata Pills -->
+              <div class="meta-row">
+                <div class="meta-item">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <span>{{ session.createdAt | date:'short' }}</span>
+                </div>
+                @if (session.createdByUsername) {
+                  <div class="meta-item">
+                    <ion-icon name="person-outline"></ion-icon>
+                    <span>{{ session.createdByUsername }}</span>
+                  </div>
+                }
+                @if (session.storageLocationScope) {
+                  <div class="meta-item">
+                    <ion-icon name="location-outline"></ion-icon>
+                    <span>{{ formatLocationScope(session.storageLocationScope) }}</span>
+                  </div>
+                }
+                @if (session.categoryScope) {
+                  <div class="meta-item">
+                    <ion-icon name="layers-outline"></ion-icon>
+                    <span>{{ formatCategoryScope(session.categoryScope) }}</span>
+                  </div>
+                }
+              </div>
+
+              @if (session.notes) {
+                <p class="session-notes">{{ session.notes }}</p>
+              }
+
+              <!-- Progress Bar -->
+              <div class="progress-section">
+                <div class="progress-label-row">
+                  <span class="progress-title">{{ 'INVENTORY.CARD_PROGRESS' | transloco }}</span>
+                  <span class="progress-count">
+                    {{ 'INVENTORY.CARD_ITEMS_COUNTED' | transloco:{ counted: session.countedItemsCount, total: session.totalItemsCount } }}
+                  </span>
+                </div>
+                <ion-progress-bar
+                  [value]="getProgress(session)"
+                  [color]="session.status === 'FINALIZED' ? 'success' : 'primary'"
+                  class="session-progress-bar">
+                </ion-progress-bar>
+              </div>
+
+              <!-- Financial Summary Matrix (3 equal columns) -->
+              <div class="financial-summary-row">
+                <div class="summary-col">
+                  <span class="summary-label">{{ 'INVENTORY.CARD_THEO_VAL' | transloco }}</span>
+                  <span class="summary-value">{{ session.totalTheoreticalValueHt | number:'1.2-2' }} €</span>
+                </div>
+                <div class="summary-col">
+                  <span class="summary-label">{{ 'INVENTORY.CARD_COUNTED_VAL' | transloco }}</span>
+                  <span class="summary-value">{{ session.totalCountedValueHt | number:'1.2-2' }} €</span>
+                </div>
+                <div class="summary-col" [class.loss]="session.totalVarianceValueHt < 0" [class.gain]="session.totalVarianceValueHt > 0">
+                  <span class="summary-label">{{ 'INVENTORY.CARD_VARIANCE_VAL' | transloco }}</span>
+                  <span class="summary-value font-bold">
+                    {{ (session.totalVarianceValueHt >= 0 ? '+' : '') + (session.totalVarianceValueHt | number:'1.2-2') }} €
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Actions Footer -->
+            <div card-footer class="card-footer-actions">
+              <div class="export-btns">
+                <button
+                  type="button"
+                  class="icon-action-btn"
+                  title="PDF"
+                  (click)="$event.stopPropagation(); exportPdf(session, $event)"
+                  [attr.data-testid]="'btn-export-pdf-' + session.id">
+                  <ion-icon name="document-text-outline"></ion-icon>
+                  <span>PDF</span>
+                </button>
+                <button
+                  type="button"
+                  class="icon-action-btn"
+                  title="CSV"
+                  (click)="$event.stopPropagation(); exportCsv(session, $event)"
+                  [attr.data-testid]="'btn-export-csv-' + session.id">
+                  <ion-icon name="download-outline"></ion-icon>
+                  <span>CSV</span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                class="navigate-btn"
+                (click)="$event.stopPropagation(); openSession(session)"
+                [attr.data-testid]="'btn-open-session-' + session.id">
+                <span class="nav-text">
+                  {{ (session.status === 'FINALIZED' ? 'INVENTORY.BTN_VIEW_REPORT' : 'INVENTORY.BTN_CONTINUE_COUNT') | transloco }}
+                </span>
+                <ion-icon name="chevron-forward-outline"></ion-icon>
+              </button>
+            </div>
+          </app-card>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Creation Modal -->
+  <ion-modal [isOpen]="isCreateModalOpen()" (didDismiss)="closeCreateModal()" class="create-audit-modal">
+    @if (isCreateModalOpen()) {
+      <app-modal
+        [title]="'INVENTORY.CREATE_MODAL_TITLE' | transloco"
+        [subtitle]="'INVENTORY.CREATE_MODAL_SUBTITLE' | transloco"
+        icon="clipboard-outline"
+        size="md"
+        (dismiss)="closeCreateModal()">
+        
+        <form [formGroup]="createForm" (ngSubmit)="submitCreate()" id="createAuditForm" class="modal-form">
+          <div class="form-row">
+            <app-input-field
+              formControlName="title"
+              [label]="('INVENTORY.FIELD_TITLE' | transloco) + ' *'"
+              [placeholder]="'INVENTORY.FIELD_TITLE_PLACEHOLDER' | transloco"
+              icon="create-outline"
+              [required]="true"
+              testId="input-audit-title">
+            </app-input-field>
+          </div>
+
+          <div class="form-row">
+            <app-searchable-select
+              formControlName="storageLocationScope"
+              [label]="'INVENTORY.FIELD_LOCATION_SCOPE' | transloco"
+              [options]="storageLocationSelectOptions()"
+              [placeholder]="'INVENTORY.FIELD_LOCATION_SCOPE' | transloco"
+              testId="select-location-scope">
+            </app-searchable-select>
+          </div>
+
+          <div class="form-row">
+            <app-searchable-select
+              formControlName="categoryFilter"
+              [label]="'INVENTORY.FIELD_CATEGORY_FILTER' | transloco"
+              [options]="categorySelectOptions()"
+              [placeholder]="'INVENTORY.FIELD_CATEGORY_FILTER' | transloco"
+              testId="select-category-filter">
+            </app-searchable-select>
+          </div>
+
+          <div class="form-row">
+            <label class="dropdown-label" for="audit-notes">{{ 'INVENTORY.FIELD_NOTES' | transloco }}</label>
+            <textarea
+              id="audit-notes"
+              class="notes-textarea"
+              rows="3"
+              formControlName="notes"
+              [placeholder]="'INVENTORY.FIELD_NOTES_PLACEHOLDER' | transloco"
+              data-testid="textarea-audit-notes">
+            </textarea>
+          </div>
+        </form>
+
+        <div slot="footer" class="modal-actions-footer">
+          <app-action-button
+            variant="secondary"
+            size="medium"
+            (btnClick)="closeCreateModal()"
+            testId="btn-cancel-create"
+            data-testid="btn-cancel-create">
+            {{ 'COMMON.CANCEL' | transloco }}
+          </app-action-button>
+
+          <app-action-button
+            variant="primary"
+            size="medium"
+            type="submit"
+            [disabled]="createForm.invalid || isCreating()"
+            [loading]="isCreating()"
+            icon="checkmark-circle-outline"
+            (btnClick)="submitCreate()"
+            testId="btn-submit-create-audit"
+            data-testid="btn-submit-create-audit">
+            {{ 'INVENTORY.BTN_START_AUDIT' | transloco }}
+          </app-action-button>
+        </div>
+      </app-modal>
+    }
+  </ion-modal>
+</ion-content>

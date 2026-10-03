@@ -71,8 +71,8 @@ public class TableAppelController {
      * @return Updated table alert response DTO
      */
     @PostMapping("/{tableId:\\d+}/appels/{id:\\d+}/acquitter")
-    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Acknowledge table alert (SERVEUR/MANAGER/ADMIN)", description = "Marks a table call as attended and clears active status.")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN') or hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Acknowledge table alert (SERVEUR/BARMAN/MANAGER/ADMIN)", description = "Marks a table call as attended and clears active status.")
     @ApiResponse(responseCode = "200", description = "Alert acknowledged successfully")
     @ApiResponse(responseCode = "404", description = "Table or alert not found")
     public ResponseEntity<TableAppelResponseDTO> acquitterAppel(
@@ -91,8 +91,8 @@ public class TableAppelController {
      * @return List of acknowledged alert DTOs
      */
     @PostMapping("/{tableId:\\d+}/appels/acquitter-tous")
-    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Acknowledge all alerts for a table (SERVEUR/MANAGER/ADMIN)", description = "Clears all active alerts for the table in one action.")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN') or hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Acknowledge all alerts for a table (SERVEUR/BARMAN/MANAGER/ADMIN)", description = "Clears all active alerts for the table in one action.")
     @ApiResponse(responseCode = "200", description = "All alerts acknowledged")
     @ApiResponse(responseCode = "404", description = "Table not found")
     public ResponseEntity<List<TableAppelResponseDTO>> acquitterTousAppels(

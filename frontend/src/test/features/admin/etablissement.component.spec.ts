@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideIonicAngular } from '@ionic/angular';
 import { ToastController } from '@ionic/angular';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { EtablissementComponent, siretLuhnValidator } from '../../../app/features/admin/etablissement/etablissement.component';
 import { EtablissementService } from '../../../app/core/services/etablissement.service';
 import { EstablishmentConfig } from '../../../app/core/models/establishment-config.model';
@@ -76,7 +76,7 @@ describe('EtablissementComponent', () => {
     expect(siretLuhnValidator(shortControl)).toEqual({ invalidSiretFormat: true });
   });
 
-  it('onSave() should call updateConfig() si le formulaire est valide', () => {
+  it('onSave() should call updateConfig() when form is valid', () => {
     component.configForm.patchValue({
       legalName: 'OpenBar SARL',
       siret: '73282932000074',
@@ -92,7 +92,7 @@ describe('EtablissementComponent', () => {
     }));
   });
 
-  it('onSave() ne should pas soumettre si le formulaire est invalide', () => {
+  it('onSave() should not submit when form is invalid', () => {
     component.configForm.patchValue({
       siret: 'invalid_siret',
     });
@@ -100,5 +100,29 @@ describe('EtablissementComponent', () => {
     component.onSave();
 
     expect(etablissementServiceSpy.updateConfig).not.toHaveBeenCalled();
+  });
+
+  it('onSave() should show error toast when update fails', () => {
+    etablissementServiceSpy.updateConfig.and.returnValue(throwError(() => new Error('Server error')));
+    component.configForm.patchValue({
+      legalName: 'OpenBar SARL',
+      siret: '73282932000074',
+      tvaNumber: 'FR12732829320',
+      address: '12 Rue du Bar',
+      ticketFormat: '58mm',
+    });
+
+    component.onSave();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+    expect(component.isSaving).toBeFalse();
+  });
+
+  it('loadConfig() should show error toast when service fails', () => {
+    etablissementServiceSpy.getConfig.and.returnValue(throwError(() => new Error('Load failed')));
+
+    component.loadConfig();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   });
 });

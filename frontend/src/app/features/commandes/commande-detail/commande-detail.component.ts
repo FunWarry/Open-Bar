@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
@@ -27,6 +27,7 @@ import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
   templateUrl: './commande-detail.component.html',
   styleUrls: ['./commande-detail.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonContent, IonBadge, IonButton, IonIcon, IonSpinner,
     CurrencyPipe, DatePipe, TranslocoPipe,
@@ -54,7 +55,7 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (Number.isNaN(this.commandeId)) {
-      this.router.navigate(['/404']);
+      void this.router.navigate(['/404']);
       return;
     }
     this.isLoading = true;
@@ -63,7 +64,7 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
       .subscribe({
         next: commande => (this.commande = commande),
         error: () => {
-          this.router.navigate(['/404']);
+          void this.router.navigate(['/404']);
         },
       });
   }
@@ -112,7 +113,7 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'warning',
           });
-          toast.present();
+          await toast.present();
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
@@ -120,12 +121,12 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
 
   onBack(): void {
-    this.router.navigate(['/commandes']);
+    void this.router.navigate(['/commandes']);
   }
 }

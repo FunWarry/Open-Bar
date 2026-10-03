@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -39,6 +39,7 @@ import { CashDrawerOpenRequest, CashDrawerSession } from '../../../core/models/c
     IonSpinner
   ],
   templateUrl: './cash-opening-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./cash-opening-modal.component.scss']
 })
 export class CashOpeningModalComponent implements OnInit {
@@ -135,16 +136,16 @@ export class CashOpeningModalComponent implements OnInit {
     };
 
     this.cashDrawerService.openDrawer(request).subscribe({
-      next: session => {
+      next: async session => {
         this.isSubmitting = false;
         this.createdSession = session;
-        this.showToast(this.transloco.translate('CASH_DRAWER.OPENING_SUCCESS'));
-        this.modalCtrl.dismiss({ opened: true, session });
+        await this.showToast(this.transloco.translate('CASH_DRAWER.OPENING_SUCCESS'));
+        await this.modalCtrl.dismiss({ opened: true, session });
       },
-      error: err => {
+      error: async err => {
         this.isSubmitting = false;
         const msg = err?.error?.message || this.transloco.translate('CASH_DRAWER.OPENING_ERROR');
-        this.showToast(msg, 'danger');
+        await this.showToast(msg, 'danger');
       }
     });
   }
@@ -154,13 +155,13 @@ export class CashOpeningModalComponent implements OnInit {
    */
   printSlip(sessionId: number): void {
     this.cashDrawerService.printTillOpeningSlip(sessionId).subscribe({
-      next: () => this.showToast(this.transloco.translate('CASH_DRAWER.PRINT_SUCCESS')),
-      error: () => this.showToast(this.transloco.translate('CASH_DRAWER.PRINT_ERROR'), 'danger')
+      next: async () => { await this.showToast(this.transloco.translate('CASH_DRAWER.PRINT_SUCCESS')); },
+      error: async () => { await this.showToast(this.transloco.translate('CASH_DRAWER.PRINT_ERROR'), 'danger'); }
     });
   }
 
   cancel(): void {
-    this.modalCtrl.dismiss(null);
+    void this.modalCtrl.dismiss(null);
   }
 
   private async showToast(message: string, color: 'success' | 'danger' = 'success'): Promise<void> {

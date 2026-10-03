@@ -53,6 +53,13 @@
           <span class="pill-label">{{ 'FACTURES.INITIAL_TOTAL' | transloco }} :</span>
           <strong class="pill-value">{{ initialTotal | appCurrency }}</strong>
         </div>
+        @if (discountAmount > 0) {
+          <div class="detail-pill discount-pill" data-testid="reglement-discount-badge">
+            <ion-icon name="pricetag-outline"></ion-icon>
+            <span class="pill-label">{{ 'FACTURES.DISCOUNT_LABEL' | transloco }}</span>
+            <strong class="pill-value">-{{ discountAmount | appCurrency }}</strong>
+          </div>
+        }
         @if (tip > 0) {
           <div class="detail-pill tip-pill" data-testid="reglement-tip-badge">
             <ion-icon name="heart-outline"></ion-icon>
@@ -133,10 +140,127 @@
             </div>
           }
         </button>
+
+        <!-- Chèques Vacances -->
+        <button
+          type="button"
+          class="method-tile"
+          [class.active]="paymentMethod === 'CHEQUES_VACANCES'"
+          (click)="selectPaymentMethod('CHEQUES_VACANCES')"
+          data-testid="reglement-method-holiday">
+          <div class="tile-icon-box holiday-icon">
+            <ion-icon name="document-text-outline"></ion-icon>
+          </div>
+          <div class="tile-label-box">
+            <span class="method-name">{{ 'FACTURES.HOLIDAY_VOUCHER' | transloco }}</span>
+            <span class="method-desc">{{ 'FACTURES.HOLIDAY_VOUCHER_DESC' | transloco }}</span>
+          </div>
+          @if (paymentMethod === 'CHEQUES_VACANCES') {
+            <div class="tile-check-indicator">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+            </div>
+          }
+        </button>
+
+        <!-- Autre mode -->
+        <button
+          type="button"
+          class="method-tile"
+          [class.active]="paymentMethod === 'AUTRE'"
+          (click)="selectPaymentMethod('AUTRE')"
+          data-testid="reglement-method-autre">
+          <div class="tile-icon-box other-icon">
+            <ion-icon name="pricetag-outline"></ion-icon>
+          </div>
+          <div class="tile-label-box">
+            <span class="method-name">{{ 'FACTURES.OTHER_METHOD' | transloco }}</span>
+            <span class="method-desc">{{ 'FACTURES.OTHER_METHOD_DESC' | transloco }}</span>
+          </div>
+          @if (paymentMethod === 'AUTRE') {
+            <div class="tile-check-indicator">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+            </div>
+          }
+        </button>
       </div>
     </div>
 
-    <!-- ── 3. Tip Selection ────────────────────────────────────────── -->
+    <!-- ── 3. Commercial Discount / Remise ─────────────────────────── -->
+    @if (allowDiscount) {
+      <div class="section-container">
+        <div class="section-header">
+          <ion-icon name="pricetag-outline" class="section-icon discount-icon-color"></ion-icon>
+          <h2 class="section-heading">{{ 'FACTURES.COMMERCIAL_DISCOUNT' | transloco }}</h2>
+          <span class="section-badge-optional">{{ 'FACTURES.OPTIONAL' | transloco }}</span>
+        </div>
+
+        <div class="chips-row" data-testid="discount-mode-segment">
+          <button
+            type="button"
+            class="option-chip"
+            [class.active]="discountMode === 'none'"
+            (click)="setDiscountMode('none')"
+            data-testid="discount-chip-none">
+            {{ 'FACTURES.NO_DISCOUNT' | transloco }}
+          </button>
+          <button
+            type="button"
+            class="option-chip"
+            [class.active]="discountMode === 'percent'"
+            (click)="setDiscountMode('percent')"
+            data-testid="discount-chip-percent">
+            {{ 'FACTURES.DISCOUNT_PERCENT' | transloco }}
+          </button>
+          <button
+            type="button"
+            class="option-chip"
+            [class.active]="discountMode === 'fixed'"
+            (click)="setDiscountMode('fixed')"
+            data-testid="discount-chip-fixed">
+            {{ 'FACTURES.DISCOUNT_FIXED' | transloco }}
+          </button>
+        </div>
+
+        @if (discountMode === 'percent') {
+          <div class="custom-input-box" data-testid="discount-percent-box">
+            <div class="input-with-currency">
+              <label for="discount-percent-field" class="sr-only">{{ 'ENCAISSEMENT.DISCOUNT_PERCENT_LABEL' | transloco }}</label>
+              <input
+                type="number"
+                id="discount-percent-field"
+                min="0"
+                max="100"
+                step="1"
+                [(ngModel)]="discountPercent"
+                placeholder="10"
+                class="custom-tip-input"
+                data-testid="discount-percent-input" />
+              <span class="unit">%</span>
+            </div>
+          </div>
+        }
+
+        @if (discountMode === 'fixed') {
+          <div class="custom-input-box" data-testid="discount-fixed-box">
+            <div class="input-with-currency">
+              <label for="discount-fixed-field" class="sr-only">{{ 'ENCAISSEMENT.DISCOUNT_FIXED_LABEL' | transloco }}</label>
+              <input
+                type="number"
+                id="discount-fixed-field"
+                min="0"
+                step="0.50"
+                [(ngModel)]="discountFixed"
+                placeholder="5.00"
+                class="custom-tip-input"
+                data-testid="discount-fixed-input" />
+              <span class="unit">{{ currencySymbol }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── 4. Tip Selection ────────────────────────────────────────── -->
     <div class="section-container">
       <div class="section-header">
         <ion-icon name="heart-outline" class="section-icon heart-icon-color"></ion-icon>
@@ -220,111 +344,173 @@
                 [attr.aria-label]="'FACTURES.CUSTOM_TIP_LABEL' | transloco"
                 class="custom-tip-input"
                 data-testid="custom-tip-input" />
-                <span class="unit">{{ currencySymbol }}</span>
-              </div>
-              <button type="button" class="btn-step" (click)="adjustCustomTip(1)" [attr.aria-label]="'FACTURES.INCREASE_TIP' | transloco">
-                <ion-icon name="add-outline"></ion-icon>
-              </button>
+              <span class="unit">{{ currencySymbol }}</span>
             </div>
-            <div class="quick-step-pills">
-              <button type="button" class="quick-pill" (click)="adjustCustomTip(1)">+{{ 1 | appCurrency }}</button>
-              <button type="button" class="quick-pill" (click)="adjustCustomTip(2)">+{{ 2 | appCurrency }}</button>
-              <button type="button" class="quick-pill" (click)="adjustCustomTip(5)">+{{ 5 | appCurrency }}</button>
-            </div>
+            <button type="button" class="btn-step" (click)="adjustCustomTip(1)" [attr.aria-label]="'FACTURES.INCREASE_TIP' | transloco">
+              <ion-icon name="add-outline"></ion-icon>
+            </button>
           </div>
-        }
-      </div>
+          <div class="quick-step-pills">
+            <button type="button" class="quick-pill" (click)="adjustCustomTip(1)">+{{ 1 | appCurrency }}</button>
+            <button type="button" class="quick-pill" (click)="adjustCustomTip(2)">+{{ 2 | appCurrency }}</button>
+            <button type="button" class="quick-pill" (click)="adjustCustomTip(5)">+{{ 5 | appCurrency }}</button>
+          </div>
+        </div>
+      }
+    </div>
 
-      <!-- ── 4. Cash Calculator (Espèces only) ───────────────────────── -->
-      @if (paymentMethod === 'ESPECES') {
-        <div class="section-container cash-calculator-section">
-          <div class="section-header">
-            <ion-icon name="cash-outline" class="section-icon cash-icon-color"></ion-icon>
-            <h2 class="section-heading">{{ 'FACTURES.CASH_CHANGE_CALCULATOR' | transloco }}</h2>
-          </div>
-          <div class="cash-input-wrap">
-            <label for="cash-received-field" class="input-sublabel">{{ 'FACTURES.AMOUNT_RECEIVED' | transloco }}</label>
-            <div class="banknotes-quick-bar">
+    <!-- ── 5. Cash Calculator (Espèces only) ───────────────────────── -->
+    @if (paymentMethod === 'ESPECES') {
+      <div class="section-container cash-calculator-section">
+        <div class="section-header">
+          <ion-icon name="cash-outline" class="section-icon cash-icon-color"></ion-icon>
+          <h2 class="section-heading">{{ 'FACTURES.CASH_CHANGE_CALCULATOR' | transloco }}</h2>
+        </div>
+        <div class="cash-input-wrap">
+          <label for="cash-received-field" class="input-sublabel">{{ 'FACTURES.AMOUNT_RECEIVED' | transloco }}</label>
+          <div class="banknotes-quick-bar">
+            <button
+              type="button"
+              class="banknote-btn exact-btn"
+              (click)="setExactCash()"
+              data-testid="cash-exact-btn">
+              {{ 'FACTURES.EXACT_CASH' | transloco }}
+            </button>
+            <button
+              type="button"
+              class="banknote-btn suggestion-btn"
+              [class.selected]="receivedAmount === smartNextBill"
+              (click)="setCashAmount(smartNextBill)"
+              data-testid="cash-suggest-btn">
+              {{ smartNextBill | appCurrency:0:0 }}
+            </button>
+            @for (note of cashPresets; track note) {
               <button
                 type="button"
-                class="banknote-btn exact-btn"
-                (click)="setExactCash()"
-                data-testid="cash-exact-btn">
-                {{ 'FACTURES.EXACT_CASH' | transloco }}
+                class="banknote-btn"
+                [class.selected]="receivedAmount === note"
+                (click)="setCashAmount(note)"
+                [attr.data-testid]="'cash-preset-' + note">
+                {{ note | appCurrency:0:0 }}
               </button>
-              @for (note of cashPresets; track note) {
-                <button
-                  type="button"
-                  class="banknote-btn"
-                  [class.selected]="receivedAmount === note"
-                  (click)="setCashAmount(note)"
-                  [attr.data-testid]="'cash-preset-' + note">
-                  {{ note | appCurrency:0:0 }}
-                </button>
-              }
+            }
+          </div>
+
+          <!-- Cash Increments Bar (+5€, +10€, +20€) -->
+          <div class="increments-bar">
+            @for (inc of cashIncrements; track inc) {
+              <button
+                type="button"
+                class="inc-btn"
+                (click)="addCashIncrement(inc)"
+                [attr.data-testid]="'cash-inc-' + inc">
+                +{{ inc | appCurrency:0:0 }}
+              </button>
+            }
+          </div>
+
+          <div class="custom-received-input-row">
+            <input
+              type="number"
+              id="cash-received-field"
+              min="0"
+              step="1.00"
+              [(ngModel)]="receivedAmount"
+              [placeholder]="'FACTURES.CASH_RECEIVED_PLACEHOLDER' | transloco"
+              [attr.aria-label]="'FACTURES.AMOUNT_RECEIVED' | transloco"
+              class="cash-received-field"
+              data-testid="cash-received-input" />
+            <span class="field-unit">{{ currencySymbol }}</span>
+          </div>
+        </div>
+
+        <!-- Change Return Display -->
+        <div
+          class="change-result-card"
+          [class.is-success]="changeToReturn > 0"
+          [class.is-insufficient]="!isReceivedAmountSufficient"
+          [class.is-exact]="isReceivedAmountSufficient && changeToReturn === 0">
+          @if (!isReceivedAmountSufficient) {
+            <div class="change-alert alert-insufficient" data-testid="cash-insufficient-warning">
+              <ion-icon name="close-outline"></ion-icon>
+              <span>
+                {{ 'FACTURES.INSUFFICIENT_AMOUNT' | transloco:{ missing: ((totalWithTip - (receivedAmount || 0)) | appCurrency) } }}
+              </span>
             </div>
-            <div class="custom-received-input-row">
-              <input
-                type="number"
-                id="cash-received-field"
-                min="0"
-                step="1.00"
-                [(ngModel)]="receivedAmount"
-                [placeholder]="'FACTURES.CASH_RECEIVED_PLACEHOLDER' | transloco"
-                [attr.aria-label]="'FACTURES.AMOUNT_RECEIVED' | transloco"
-                class="cash-received-field"
-                data-testid="cash-received-input" />
-                <span class="field-unit">{{ currencySymbol }}</span>
+          }
+          @if (isReceivedAmountSufficient && changeToReturn > 0) {
+            <div class="change-alert alert-return" data-testid="cash-change-amount">
+              <div class="return-text">
+                <span class="return-label">{{ 'FACTURES.CHANGE_TO_RETURN' | transloco }}</span>
+                <strong class="return-val">{{ changeToReturn | appCurrency }}</strong>
+              </div>
+              <div class="return-icon-box">
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
               </div>
             </div>
-            <!-- Change Return Display -->
-            <div
-              class="change-result-card"
-              [class.is-success]="changeToReturn > 0"
-              [class.is-insufficient]="!isReceivedAmountSufficient"
-              [class.is-exact]="isReceivedAmountSufficient && changeToReturn === 0">
-              @if (!isReceivedAmountSufficient) {
-                <div class="change-alert alert-insufficient" data-testid="cash-insufficient-warning">
-                  <ion-icon name="close-outline"></ion-icon>
-                  <span>
-                    {{ 'FACTURES.INSUFFICIENT_AMOUNT' | transloco:{ missing: ((totalWithTip - (receivedAmount || 0)) | appCurrency) } }}
-                  </span>
-                </div>
-              }
-              @if (isReceivedAmountSufficient && changeToReturn > 0) {
-                <div class="change-alert alert-return" data-testid="cash-change-amount">
-                  <div class="return-text">
-                    <span class="return-label">{{ 'FACTURES.CHANGE_TO_RETURN' | transloco }}</span>
-                    <strong class="return-val">{{ changeToReturn | appCurrency }}</strong>
-                  </div>
-                  <div class="return-icon-box">
-                    <ion-icon name="checkmark-circle-outline"></ion-icon>
-                  </div>
-                </div>
-              }
-              @if (isReceivedAmountSufficient && changeToReturn === 0 && receivedAmount !== null) {
-                <div class="change-alert alert-exact">
-                  <ion-icon name="checkmark-circle-outline"></ion-icon>
-                  <span>{{ 'FACTURES.EXACT_AMOUNT_RECEIVED' | transloco }}</span>
-                </div>
-              }
+          }
+          @if (isReceivedAmountSufficient && changeToReturn === 0 && receivedAmount !== null) {
+            <div class="change-alert alert-exact">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <span>{{ 'FACTURES.EXACT_AMOUNT_RECEIVED' | transloco }}</span>
             </div>
-          </div>
-        }
-
+          }
+        </div>
       </div>
-    </ion-content>
+    }
 
-    <!-- ── 5. Modal Footer Action ───────────────────────────────────── -->
-    <ion-footer class="ion-no-border payment-modal-footer">
-      <ion-button
-        expand="block"
-        class="btn-confirm-payment"
-        [disabled]="!isReceivedAmountSufficient"
-        (click)="confirmPayment()"
-        (keydown.enter)="confirmPayment()"
-        data-testid="confirm-payment-btn">
-        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-        <span>{{ 'FACTURES.CONFIRM_PAYMENT' | transloco:{ amount: (totalWithTip | appCurrency) } }}</span>
-      </ion-button>
-    </ion-footer>
+    <!-- ── 6. Table Liberation Checkbox ────────────────────────────── -->
+    @if (canLibererTable) {
+      <div class="table-release-box" data-testid="table-release-box">
+        <app-checkbox-field
+          [(ngModel)]="libererTable"
+          [label]="'FACTURES.RELEASE_TABLE' | transloco"
+          testId="cb-liberer-table">
+        </app-checkbox-field>
+      </div>
+    }
+
+    <!-- ── 7. Secondary Print & PDF Actions ────────────────────────── -->
+    @if (showPrintActions) {
+      <div class="secondary-actions-row" data-testid="print-actions-row">
+        <ion-button
+          fill="outline"
+          color="medium"
+          size="small"
+          (click)="imprimerRecu()"
+          (keydown.enter)="imprimerRecu()"
+          (keyup.enter)="imprimerRecu()"
+          data-testid="btn-print-receipt">
+          <ion-icon name="print-outline" slot="start"></ion-icon>
+          {{ 'FACTURES.PRINT_RECEIPT' | transloco }}
+        </ion-button>
+        <ion-button
+          fill="outline"
+          color="primary"
+          size="small"
+          (click)="telechargerPdf()"
+          (keydown.enter)="telechargerPdf()"
+          (keyup.enter)="telechargerPdf()"
+          data-testid="btn-download-pdf">
+          <ion-icon name="download-outline" slot="start"></ion-icon>
+          {{ 'FACTURES.DOWNLOAD_PDF' | transloco }}
+        </ion-button>
+      </div>
+    }
+
+  </div>
+</ion-content>
+
+<!-- ── 8. Modal Footer Action ───────────────────────────────────── -->
+<ion-footer class="ion-no-border payment-modal-footer">
+  <ion-button
+    expand="block"
+    class="btn-confirm-payment"
+    [disabled]="!isReceivedAmountSufficient"
+    (click)="confirmPayment()"
+    (keydown.enter)="confirmPayment()"
+    data-testid="confirm-payment-btn">
+    <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+    <span>{{ 'FACTURES.CONFIRM_PAYMENT' | transloco:{ amount: (totalWithTip | appCurrency) } }}</span>
+  </ion-button>
+</ion-footer>

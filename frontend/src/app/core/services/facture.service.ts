@@ -42,7 +42,7 @@ export class FactureService {
 
   /**
    * Creates a new invoice.
-   * @param facture Invoice payload
+   * @param tableId Table identifier
    * @returns Observable emitting created invoice
    */
   create(tableId: number): Observable<Facture> {
@@ -71,9 +71,8 @@ export class FactureService {
 
   /**
    * Settles and marks an invoice as paid.
-   * @param id Invoice identifier
-   * @param modePaiement Payment method used
-   * @param pourboire Optional tip amount
+   * @param factureId Invoice identifier
+   * @param reglement Settlement payload
    * @returns Observable emitting settled invoice
    */
   regler(factureId: number, reglement: ReglementRequest): Observable<Facture> {
@@ -82,7 +81,7 @@ export class FactureService {
 
   /**
    * Adds a tip to an invoice.
-   * @param id Invoice identifier
+   * @param factureId Invoice identifier
    * @param pourboire Tip amount
    * @returns Observable emitting updated invoice
    */

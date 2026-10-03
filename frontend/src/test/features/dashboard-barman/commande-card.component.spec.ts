@@ -194,13 +194,13 @@ describe('CommandeCardComponent', () => {
     expect(emitted[0].id).toBe(1);
   });
 
-  it('openDetails opens TableDetailModalComponent with table data', async () => {
+  it('openDetails opens CommandeDetailModalComponent with order data', async () => {
     await component.openDetails();
     expect(modalCtrlSpy.create).toHaveBeenCalledWith(
       jasmine.objectContaining({
         component: jasmine.anything(),
         componentProps: jasmine.objectContaining({
-          table: jasmine.objectContaining({ nom: 'Table 1' }),
+          commandeId: 1,
         }),
       })
     );
@@ -226,13 +226,16 @@ describe('CommandeCardComponent', () => {
     component.ngOnDestroy();
   }));
 
-  it('renders priority chip when commande is prioritaire', () => {
+  it('renders priority chip when commande is prioritaire without duplicating urgent status badge', () => {
     fixture.componentRef.setInput('commande', makeCommande({ prioritaire: true }));
     fixture.detectChanges();
 
     const chipEl = fixture.nativeElement.querySelector('[data-testid="priority-chip"]');
     expect(chipEl).toBeTruthy();
     expect(chipEl.textContent).toContain('URGENT');
+
+    const duplicateUrgentBadge = fixture.nativeElement.querySelector('[data-testid="status-badge-urgent"]');
+    expect(duplicateUrgentBadge).toBeNull();
   });
 
   it('renders server name and print button in card header without collision', () => {

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { IonIcon, IonSpinner } from '@ionic/angular';
 /**
@@ -18,6 +18,7 @@ export type ButtonSize = 'small' | 'medium' | 'large';
   standalone: true,
   imports: [IonIcon, IonSpinner, NgClass],
   templateUrl: './action-button.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./action-button.component.css']
 })
 export class ActionButtonComponent {

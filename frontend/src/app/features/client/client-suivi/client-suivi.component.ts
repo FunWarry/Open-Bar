@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -20,6 +20,7 @@ import { TableAssistanceBarComponent } from '../components/table-assistance-bar/
   templateUrl: './client-suivi.component.html',
   styleUrls: ['./client-suivi.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     RouterLink,
     AppCurrencyPipe,
@@ -47,7 +48,7 @@ export class ClientSuiviComponent implements OnInit, OnDestroy {
         this.loadCommande(id);
         this.subscribeWebSocket(id);
       } else {
-        this.router.navigate(['/404']);
+        void this.router.navigate(['/404']);
       }
     });
   }
@@ -69,7 +70,7 @@ export class ClientSuiviComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.isLoading = false;
-          this.router.navigate(['/404']);
+          void this.router.navigate(['/404']);
         }
       });
   }

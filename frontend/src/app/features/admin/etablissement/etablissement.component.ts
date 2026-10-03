@@ -1,9 +1,9 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { CurrencyPipe } from '@angular/common';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonInput, IonSelect, IonSelectOption, IonButton, IonIcon,
@@ -42,6 +42,7 @@ export function siretLuhnValidator(control: AbstractControl): ValidationErrors |
   templateUrl: './etablissement.component.html',
   styleUrls: ['./etablissement.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ReactiveFormsModule,
     CurrencyPipe,
@@ -55,6 +56,7 @@ export class EtablissementComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly etablissementService = inject(EtablissementService);
   private readonly toastCtrl = inject(ToastController);
+  private readonly transloco = inject(TranslocoService);
   private readonly destroy$ = new Subject<void>();
 
   configForm!: FormGroup;
@@ -128,13 +130,12 @@ export class EtablissementComponent implements OnInit, OnDestroy {
             this.configForm.patchValue(config);
           }
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Erreur lors du chargement des données légales',
+        error: () => {
+          void this.toastCtrl.create({
+            message: this.transloco.translate('ETABLISSEMENT.LOAD_ERROR'),
             duration: 3000,
             color: 'danger',
-          });
-          toast.present();
+          }).then(t => void t.present());
         },
       });
   }
@@ -154,22 +155,20 @@ export class EtablissementComponent implements OnInit, OnDestroy {
         finalize(() => (this.isSaving = false))
       )
       .subscribe({
-        next: async (updated) => {
+        next: (updated) => {
           this.configForm.patchValue(updated);
-          const toast = await this.toastCtrl.create({
-            message: 'Paramètres légaux enregistrés avec succès',
+          void this.toastCtrl.create({
+            message: this.transloco.translate('ETABLISSEMENT.SAVE_SUCCESS'),
             duration: 3000,
             color: 'success',
-          });
-          toast.present();
+          }).then(t => void t.present());
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Échec de l\'enregistrement des paramètres',
+        error: () => {
+          void this.toastCtrl.create({
+            message: this.transloco.translate('ETABLISSEMENT.SAVE_ERROR_GENERIC'),
             duration: 3000,
             color: 'danger',
-          });
-          toast.present();
+          }).then(t => void t.present());
         },
       });
   }

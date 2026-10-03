@@ -56,6 +56,7 @@ public class CocktailService {
     private final TimeService timeService;
     private final FileUploadService fileUploadService;
     private final NotificationService notificationService;
+    private final CocktailWheelService cocktailWheelService;
 
     /**
      * Constructs the service injecting required dependencies.
@@ -68,6 +69,7 @@ public class CocktailService {
      * @param timeService Time service provider
      * @param fileUploadService File upload management service
      * @param notificationService Notification service for WebSocket broadcasts
+     * @param cocktailWheelService Dynamic connection wheel generation service
      */
     public CocktailService(
         CocktailRepository cocktailRepository,
@@ -77,7 +79,8 @@ public class CocktailService {
         GlasswareRepository glasswareRepository,
         TimeService timeService,
         FileUploadService fileUploadService,
-        NotificationService notificationService
+        NotificationService notificationService,
+        CocktailWheelService cocktailWheelService
     ) {
         this.cocktailRepository = cocktailRepository;
         this.commandeItemRepository = commandeItemRepository;
@@ -87,6 +90,7 @@ public class CocktailService {
         this.timeService = timeService;
         this.fileUploadService = fileUploadService;
         this.notificationService = notificationService;
+        this.cocktailWheelService = cocktailWheelService;
     }
 
     /**
@@ -110,6 +114,7 @@ public class CocktailService {
         cocktail.setUpdatedAt(timeService.now());
         Cocktail saved = cocktailRepository.save(cocktail);
         notificationService.notifierCocktailMisAJour(saved);
+        cocktailWheelService.regenerateEstablishmentWheel();
         return saved;
     }
 
@@ -142,6 +147,7 @@ public class CocktailService {
 
         Cocktail saved = cocktailRepository.save(cocktail);
         notificationService.notifierCocktailMisAJour(saved);
+        cocktailWheelService.regenerateEstablishmentWheel();
         return CocktailResponseDTO.from(saved);
     }
 
@@ -155,6 +161,7 @@ public class CocktailService {
         cocktail.setUpdatedAt(timeService.now());
         Cocktail saved = cocktailRepository.save(cocktail);
         notificationService.notifierCocktailMisAJour(saved);
+        cocktailWheelService.regenerateEstablishmentWheel();
         return saved;
     }
 
@@ -215,6 +222,7 @@ public class CocktailService {
 
         Cocktail saved = cocktailRepository.save(cocktail);
         notificationService.notifierCocktailMisAJour(saved);
+        cocktailWheelService.regenerateEstablishmentWheel();
         return CocktailResponseDTO.from(saved);
     }
 
@@ -617,25 +625,25 @@ public class CocktailService {
             cocktail.setIngredients(new ArrayList<>());
         }
         cocktail.getIngredients().clear();
-        for (CocktailRecipeStep step : steps) {
-            if (step.getStepType() == RecipeStepType.INGREDIENT && step.getIngredient() != null) {
-                CocktailIngredient ci = new CocktailIngredient();
-                ci.setCocktail(cocktail);
-                ci.setIngredient(step.getIngredient());
-                ci.setQuantite(step.getQuantite() != null ? step.getQuantite() : BigDecimal.ZERO);
-                ci.setCreatedAt(timeService.now());
-                ci.setUpdatedAt(timeService.now());
-                cocktail.getIngredients().add(ci);
-            }
-        }
+        List<CocktailIngredient> ingredients = steps.stream()
+                .filter(step -> step.getStepType() == RecipeStepType.INGREDIENT && step.getIngredient() != null)
+                .map(step -> {
+                    CocktailIngredient ci = new CocktailIngredient();
+                    ci.setCocktail(cocktail);
+                    ci.setIngredient(step.getIngredient());
+                    ci.setQuantite(step.getQuantite() != null ? step.getQuantite() : BigDecimal.ZERO);
+                    ci.setCreatedAt(timeService.now());
+                    ci.setUpdatedAt(timeService.now());
+                    return ci;
+                })
+                .toList();
+        cocktail.getIngredients().addAll(ingredients);
     }
 
     private List<CocktailVariante> mapVariantes(Cocktail cocktail, List<CocktailVarianteRequestDTO> varianteDtos) {
-        List<CocktailVariante> variantes = new ArrayList<>();
-        for (CocktailVarianteRequestDTO dto : varianteDtos) {
-            variantes.add(mapSingleVariante(cocktail, dto));
-        }
-        return variantes;
+        return varianteDtos.stream()
+                .map(dto -> mapSingleVariante(cocktail, dto))
+                .toList();
     }
 
     private CocktailVariante mapSingleVariante(Cocktail cocktail, CocktailVarianteRequestDTO dto) {
@@ -788,6 +796,7 @@ public class CocktailService {
     public void deleteCocktail(Long id) {
         cocktailRepository.deleteById(id);
         notificationService.notifierCocktailSupprime(id);
+        cocktailWheelService.regenerateEstablishmentWheel();
     }
 
     /**

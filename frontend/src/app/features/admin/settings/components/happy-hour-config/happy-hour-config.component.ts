@@ -5,6 +5,7 @@ import {
   inject,
   signal,
   computed,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule, SlicePipe } from '@angular/common';
 import {
@@ -68,6 +69,7 @@ import {
   templateUrl: './happy-hour-config.component.html',
   styleUrls: ['./happy-hour-config.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -432,7 +434,7 @@ export class HappyHourConfigComponent implements OnInit, OnDestroy {
   }
 
   onSimulationCocktailSelect(opt: SearchableOption<number> | null): void {
-    if (opt && opt.value !== null && opt.value !== undefined) {
+    if (opt?.value !== null && opt?.value !== undefined) {
       this.simulationCocktailId.set(Number(opt.value));
       this.runSimulation();
     }

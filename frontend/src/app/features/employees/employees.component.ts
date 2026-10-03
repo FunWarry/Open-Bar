@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -43,6 +43,7 @@ export interface EmployeeSummary {
   templateUrl: './employees.component.html',
   styleUrls: ['./employees.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     RouterModule,
@@ -75,7 +76,7 @@ export class EmployeesComponent implements OnInit {
    * Navigates to the shift presets management page.
    */
   goToShiftPresets(): void {
-    this.router.navigate(['/manager/shift-presets']);
+    void this.router.navigate(['/manager/shift-presets']);
   }
 
   loading = true;

@@ -425,7 +425,7 @@
                       <app-ticket-receipt
                         [facture]="demoFacture"
                         [establishmentConfig]="currentEtabConfig"
-                        [ticketFormat]="etabForm.get('ticketFormat')?.value">
+                        [ticketFormat]="$safeNavigationMigration(etabForm.get('ticketFormat')?.value)">
                       </app-ticket-receipt>
                     </ion-card-content>
                   </ion-card>
@@ -578,6 +578,104 @@
                             <ion-toggle formControlName="cashDrawer" data-testid="toggle-module-cash-drawer"></ion-toggle>
                           </div>
                           <p class="threshold-desc">{{ 'SETTINGS.MODULE_CASH_DRAWER_DESC' | transloco }}</p>
+                        </div>
+
+                        <!-- Module 8: BAR_TABS -->
+                        <div class="threshold-row" data-testid="module-row-bar-tabs">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="receipt-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_BAR_TABS_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="barTabs" data-testid="toggle-module-bar-tabs"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_BAR_TABS_DESC' | transloco }}</p>
+                        </div>
+
+                        <!-- Module 9: COCKTAIL_LIBRARY -->
+                        <div class="threshold-row" data-testid="module-row-cocktail-library">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="library-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_COCKTAIL_LIBRARY_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="cocktailLibrary" data-testid="toggle-module-cocktail-library"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_COCKTAIL_LIBRARY_DESC' | transloco }}</p>
+                        </div>
+
+                        <!-- Module 10: SUPPLIERS_MANAGEMENT -->
+                        <div class="threshold-row" data-testid="module-row-suppliers-management">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="cart-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_SUPPLIERS_MANAGEMENT_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="suppliersManagement" data-testid="toggle-module-suppliers-management"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_SUPPLIERS_MANAGEMENT_DESC' | transloco }}</p>
+                        </div>
+
+                        <!-- Module 11: INVENTORY_AUDIT -->
+                        <div class="threshold-row" data-testid="module-row-inventory-audit">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="clipboard-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_INVENTORY_AUDIT_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="inventoryAudit" data-testid="toggle-module-inventory-audit"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_INVENTORY_AUDIT_DESC' | transloco }}</p>
+                        </div>
+
+                        <!-- Module 12: MYSTERY_ROULETTE -->
+                        <div class="threshold-row" data-testid="module-row-mystery-roulette">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="sparkles-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_MYSTERY_ROULETTE_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="mysteryRoulette" data-testid="toggle-module-mystery-roulette"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_MYSTERY_ROULETTE_DESC' | transloco }}</p>
+
+                          @if (modulesForm.get('mysteryRoulette')?.value) {
+                            <div class="roulette-pin-setting-box" data-testid="roulette-pin-setting-box">
+                              <div class="pin-info-row">
+                                <div class="pin-labels">
+                                  <span class="pin-title">{{ 'ROULETTE.STAFF_PIN_LABEL' | transloco }}</span>
+                                  <span class="pin-desc">{{ 'ROULETTE.STAFF_PIN_HINT' | transloco }}</span>
+                                </div>
+                                <div class="pin-display-badge" data-testid="badge-roulette-display-pin">
+                                  <code>{{ roulettePin() }}</code>
+                                </div>
+                              </div>
+                              <ion-button
+                                size="small"
+                                fill="outline"
+                                color="warning"
+                                (click)="confirmRegenerateRoulettePin()"
+                                (keyup.enter)="confirmRegenerateRoulettePin()"
+                                [disabled]="isRegeneratingPin()"
+                                data-testid="btn-regenerate-roulette-pin"
+                              >
+                                <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                                {{ 'ROULETTE.REGENERATE_PIN' | transloco }}
+                              </ion-button>
+                            </div>
+                          }
+                        </div>
+
+                        <!-- Module 13: PAYMENT_TERMINAL -->
+                        <div class="threshold-row" data-testid="module-row-payment-terminal">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="card-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_PAYMENT_TERMINAL_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="paymentTerminal" data-testid="toggle-module-payment-terminal"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_PAYMENT_TERMINAL_DESC' | transloco }}</p>
                         </div>
                       </div>
                     </ion-card-content>
@@ -770,6 +868,126 @@
                               <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_CASH_DRAWER' | transloco }}</span>
                             </div>
                           </div>
+
+                          <!-- 8. Ardoises & Comptes Clients -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('barTabs')"
+                            [class.node-inactive]="!isModuleControlActive('barTabs')"
+                            data-testid="preview-node-bar-tabs">
+                            <div class="node-icon-box">
+                              <ion-icon name="receipt-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_BAR_TABS_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('barTabs')">
+                                  {{ (isModuleControlActive('barTabs') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_BAR_TABS' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 9. Bibliothèque de Cocktails & Recettes -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('cocktailLibrary')"
+                            [class.node-inactive]="!isModuleControlActive('cocktailLibrary')"
+                            data-testid="preview-node-cocktail-library">
+                            <div class="node-icon-box">
+                              <ion-icon name="library-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_COCKTAIL_LIBRARY_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('cocktailLibrary')">
+                                  {{ (isModuleControlActive('cocktailLibrary') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_COCKTAIL_LIBRARY' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 10. Fournisseurs, Commandes & Réceptions PAMP -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('suppliersManagement')"
+                            [class.node-inactive]="!isModuleControlActive('suppliersManagement')"
+                            data-testid="preview-node-suppliers-management">
+                            <div class="node-icon-box">
+                              <ion-icon name="cart-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_SUPPLIERS_MANAGEMENT_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('suppliersManagement')">
+                                  {{ (isModuleControlActive('suppliersManagement') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_PURCHASES' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 11. Inventaire Physique & Démarque -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('inventoryAudit')"
+                            [class.node-inactive]="!isModuleControlActive('inventoryAudit')"
+                            data-testid="preview-node-inventory-audit">
+                            <div class="node-icon-box">
+                              <ion-icon name="clipboard-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_INVENTORY_AUDIT_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('inventoryAudit')">
+                                  {{ (isModuleControlActive('inventoryAudit') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_INVENTORY' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 12. Roue Mystère & Anti-Gaspillage -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('mysteryRoulette')"
+                            [class.node-inactive]="!isModuleControlActive('mysteryRoulette')"
+                            data-testid="preview-node-mystery-roulette">
+                            <div class="node-icon-box">
+                              <ion-icon name="sparkles-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_MYSTERY_ROULETTE_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('mysteryRoulette')">
+                                  {{ (isModuleControlActive('mysteryRoulette') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_ROULETTE' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 13. Terminaux de Paiement (TPE) -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('paymentTerminal')"
+                            [class.node-inactive]="!isModuleControlActive('paymentTerminal')"
+                            data-testid="preview-node-payment-terminal">
+                            <div class="node-icon-box">
+                              <ion-icon name="card-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_PAYMENT_TERMINAL_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('paymentTerminal')">
+                                  {{ (isModuleControlActive('paymentTerminal') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_PAYMENT_TERMINAL' | transloco }}</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
@@ -866,9 +1084,9 @@
                               type="range"
                               min="1"
                               max="30"
-                              [value]="appSettingsForm.get('tempsAlerteWarningMinutes')?.value"
+                              [value]="$safeNavigationMigration(appSettingsForm.get('tempsAlerteWarningMinutes')?.value)"
                               (input)="onThresholdChange('warning', $any($event.target).value)"
-                              [style.background]="getSliderTrackBackground('warning', appSettingsForm.get('tempsAlerteWarningMinutes')?.value, 1, 30)"
+                              [style.background]="getSliderTrackBackground('warning', $safeNavigationMigration(appSettingsForm.get('tempsAlerteWarningMinutes')?.value), 1, 30)"
                               class="range-slider warning-slider"
                               data-testid="slider-warning" />
                           </div>
@@ -892,9 +1110,9 @@
                               type="range"
                               min="2"
                               max="45"
-                              [value]="appSettingsForm.get('tempsAlerteCommandeMinutes')?.value"
+                              [value]="$safeNavigationMigration(appSettingsForm.get('tempsAlerteCommandeMinutes')?.value)"
                               (input)="onThresholdChange('urgent', $any($event.target).value)"
-                              [style.background]="getSliderTrackBackground('urgent', appSettingsForm.get('tempsAlerteCommandeMinutes')?.value, 2, 45)"
+                              [style.background]="getSliderTrackBackground('urgent', $safeNavigationMigration(appSettingsForm.get('tempsAlerteCommandeMinutes')?.value), 2, 45)"
                               class="range-slider urgent-slider"
                               data-testid="slider-urgent" />
                           </div>
@@ -918,9 +1136,9 @@
                               type="range"
                               min="3"
                               max="60"
-                              [value]="appSettingsForm.get('tempsAlerteCritiqueCommandeMinutes')?.value"
+                              [value]="$safeNavigationMigration(appSettingsForm.get('tempsAlerteCritiqueCommandeMinutes')?.value)"
                               (input)="onThresholdChange('critical', $any($event.target).value)"
-                              [style.background]="getSliderTrackBackground('critical', appSettingsForm.get('tempsAlerteCritiqueCommandeMinutes')?.value, 3, 60)"
+                              [style.background]="getSliderTrackBackground('critical', $safeNavigationMigration(appSettingsForm.get('tempsAlerteCritiqueCommandeMinutes')?.value), 3, 60)"
                               class="range-slider critical-slider"
                               data-testid="slider-critical" />
                           </div>
@@ -1243,7 +1461,147 @@
                 </ion-col>
               </ion-row>
 
-              <!-- Row 3: Coupures et Pièces de Caisse (Détail de Comptage) -->
+              <!-- Row 3: Système d'unités de mesure & Procurement -->
+              <ion-row>
+                <ion-col size="12" sizeLg="7">
+                  <ion-card class="settings-card" data-testid="card-unit-systems">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="nutrition-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.UNIT_SYSTEM_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="block-desc">{{ 'SETTINGS.UNIT_SYSTEM_SUBTITLE' | transloco }}</p>
+
+                      <!-- Quick Unit System Presets -->
+                      <div class="currency-presets-box">
+                        <span class="presets-title">{{ 'SETTINGS.UNIT_SYSTEM_PRESETS' | transloco }}</span>
+                        <div class="currency-chips">
+                          @for (p of unitPresets; track p.key) {
+                            <button
+                              type="button"
+                              class="currency-chip"
+                              [class.active]="appSettingsForm.get('unitSystem')?.value === p.key"
+                              (click)="applyUnitPreset(p)"
+                              [attr.data-testid]="'unit-preset-btn-' + p.key">
+                              {{ p.labelKey | transloco }}
+                            </button>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Granular Selectors: Liquid / Volume & Solid / Weight -->
+                      <div class="unit-selectors-grid">
+                        <div class="unit-selector-item">
+                          <div class="unit-selector-label">
+                            <ion-icon name="beer-outline"></ion-icon>
+                            <span>{{ 'SETTINGS.UNIT_SYSTEM_VOLUME_LABEL' | transloco }}</span>
+                          </div>
+                          <div class="position-buttons">
+                            @for (vOpt of volumeUnitChoices; track vOpt.value) {
+                              <button
+                                type="button"
+                                class="pos-btn"
+                                [class.active]="appSettingsForm.get('volumeUnit')?.value === vOpt.value"
+                                (click)="setVolumeUnit(vOpt.value)"
+                                [attr.data-testid]="'vol-unit-btn-' + vOpt.value">
+                                {{ vOpt.value }}
+                              </button>
+                            }
+                          </div>
+                          <span class="unit-selector-hint">{{ 'SETTINGS.UNIT_SYSTEM_VOLUME_HINT' | transloco }}</span>
+                        </div>
+
+                        <div class="unit-selector-item">
+                          <div class="unit-selector-label">
+                            <ion-icon name="speedometer-outline"></ion-icon>
+                            <span>{{ 'SETTINGS.UNIT_SYSTEM_WEIGHT_LABEL' | transloco }}</span>
+                          </div>
+                          <div class="position-buttons">
+                            @for (wOpt of weightUnitChoices; track wOpt.value) {
+                              <button
+                                type="button"
+                                class="pos-btn"
+                                [class.active]="appSettingsForm.get('weightUnit')?.value === wOpt.value"
+                                (click)="setWeightUnit(wOpt.value)"
+                                [attr.data-testid]="'weight-unit-btn-' + wOpt.value">
+                                {{ wOpt.value }}
+                              </button>
+                            }
+                          </div>
+                          <span class="unit-selector-hint">{{ 'SETTINGS.UNIT_SYSTEM_WEIGHT_HINT' | transloco }}</span>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+
+                <!-- Live Unit Previews -->
+                <ion-col size="12" sizeLg="5">
+                  <ion-card class="settings-card preview-card" data-testid="card-units-preview">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="sparkles-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.UNIT_PREVIEW_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="preview-instructions">{{ 'SETTINGS.UNIT_PREVIEW_DESC' | transloco }}</p>
+
+                      <!-- Recipe preview -->
+                      <div class="unit-preview-group">
+                        <span class="unit-preview-heading">
+                          <ion-icon name="restaurant-outline"></ion-icon>
+                          {{ 'SETTINGS.UNIT_PREVIEW_RECIPES' | transloco }} (Mojito Signature)
+                        </span>
+                        <div class="price-previews-list">
+                          <div class="preview-price-item">
+                            <span>Rhum Blanc :</span>
+                            <strong class="unit-val" data-testid="preview-vol-rhum">{{ formatSampleVolume(5) }}</strong>
+                          </div>
+                          <div class="preview-price-item">
+                            <span>Jus de Citron Vert :</span>
+                            <strong class="unit-val" data-testid="preview-vol-lime">{{ formatSampleVolume(3) }}</strong>
+                          </div>
+                          <div class="preview-price-item">
+                            <span>Sucre roux :</span>
+                            <strong class="unit-val" data-testid="preview-weight-sugar">{{ formatSampleWeight(10) }}</strong>
+                          </div>
+                          <div class="preview-price-item">
+                            <span>Feuilles de Menthe :</span>
+                            <strong class="unit-val">8 feuilles</strong>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Packaging preview -->
+                      <div class="unit-preview-group" style="margin-top: 14px;">
+                        <span class="unit-preview-heading">
+                          <ion-icon name="briefcase-outline"></ion-icon>
+                          {{ 'SETTINGS.UNIT_PREVIEW_PACKAGING' | transloco }}
+                        </span>
+                        <div class="price-previews-list">
+                          <div class="preview-price-item">
+                            <span>Format Bouteille Standard :</span>
+                            <strong class="unit-val" data-testid="preview-pack-bottle">{{ formatSampleVolume(70) }}</strong>
+                          </div>
+                          <div class="preview-price-item">
+                            <span>Menthe fraîche (fournisseur) :</span>
+                            <strong class="unit-val">Botte (≈ 50 feuilles)</strong>
+                          </div>
+                          <div class="preview-price-item">
+                            <span>Conditionnement Glaçons / Citrons :</span>
+                            <strong class="unit-val" data-testid="preview-pack-ice">{{ formatSampleWeight(1000) }}</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+
+              <!-- Row 4: Coupures et Pièces de Caisse (Détail de Comptage) -->
               <ion-row>
                 <ion-col size="12">
                   <ion-card class="settings-card" data-testid="card-cash-denominations">
@@ -1386,6 +1744,232 @@
                   </ion-card>
                 </ion-col>
               </ion-row>
+
+              <!-- Row 5: Paliers de Remise Commerciale & Gestes -->
+              <ion-row>
+                <ion-col size="12">
+                  <ion-card class="settings-card" data-testid="card-discount-tiers">
+                    <ion-card-header>
+                      <div class="card-header-flex">
+                        <ion-card-title class="card-title">
+                          <ion-icon name="gift-outline" class="title-icon"></ion-icon>
+                          {{ 'SETTINGS.DISCOUNT_TIERS_TITLE' | transloco }}
+                        </ion-card-title>
+                        <button
+                          type="button"
+                          class="reset-denoms-btn"
+                          (click)="resetDiscountTiersToDefault()"
+                          data-testid="btn-reset-discount-tiers">
+                          <ion-icon name="refresh-outline"></ion-icon>
+                          <span>{{ 'SETTINGS.RESET_DISCOUNT_TIERS' | transloco }}</span>
+                        </button>
+                      </div>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="block-desc">{{ 'SETTINGS.DISCOUNT_TIERS_SUBTITLE' | transloco }}</p>
+
+                      <!-- Discount Tiers Group -->
+                      <div class="discount-tiers-group">
+                        <div class="discount-group-header">
+                          <div class="discount-group-header-left">
+                            <ion-icon name="pricetag-outline" class="discount-group-icon"></ion-icon>
+                            <span class="discount-group-title">{{ 'SETTINGS.DISCOUNT_TIERS_TITLE' | transloco }}</span>
+                          </div>
+                          <span class="count-pill" data-testid="discount-tiers-count">{{ configuredDiscountTiers().length }}</span>
+                        </div>
+
+                        <!-- Configured Tiers List -->
+                        <div class="discount-tiers-grid" data-testid="discount-tiers-list">
+                          @for (tier of configuredDiscountTiers(); track tier.id) {
+                            <div class="discount-tier-chip" [class.percent-tier]="tier.type === 'percent'" [class.fixed-tier]="tier.type === 'fixed'" [attr.data-testid]="'discount-tier-' + tier.id">
+                              <span class="discount-type-badge">{{ tier.type === 'percent' ? '%' : (appSettingsForm.get('currencySymbol')?.value || '€') }}</span>
+                              <div class="discount-info">
+                                <span class="discount-label">{{ tier.label }}</span>
+                                <span class="discount-value-pill">-{{ tier.value }}{{ tier.type === 'percent' ? '%' : (' ' + (appSettingsForm.get('currencySymbol')?.value || '€')) }}</span>
+                              </div>
+                              <button
+                                type="button"
+                                class="delete-discount-btn"
+                                (click)="removeDiscountTier(tier.id)"
+                                [attr.title]="'COMMON.DELETE' | transloco"
+                                [attr.data-testid]="'delete-tier-' + tier.id">
+                                <ion-icon name="close-outline"></ion-icon>
+                              </button>
+                            </div>
+                          }
+                          @if (configuredDiscountTiers().length === 0) {
+                            <div class="empty-tiers-note">{{ 'SETTINGS.NO_DISCOUNT_TIERS_CONFIGURED' | transloco }}</div>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Add Custom Tier Form -->
+                      <div class="add-discount-tier-card" data-testid="add-discount-tier-box">
+                        <h4 class="add-tier-heading">
+                          <ion-icon name="add-circle-outline"></ion-icon>
+                          {{ 'SETTINGS.ADD_DISCOUNT_TIER' | transloco }}
+                        </h4>
+                        <div class="add-tier-fields">
+                          <div class="tier-type-toggle">
+                            <button
+                              type="button"
+                              class="type-btn"
+                              [class.active]="newDiscountTierType === 'percent'"
+                              (click)="newDiscountTierType = 'percent'"
+                              data-testid="select-tier-type-percent">
+                              % {{ 'FACTURES.DISCOUNT_PERCENT' | transloco }}
+                            </button>
+                            <button
+                              type="button"
+                              class="type-btn"
+                              [class.active]="newDiscountTierType === 'fixed'"
+                              (click)="newDiscountTierType = 'fixed'"
+                              data-testid="select-tier-type-fixed">
+                              {{ appSettingsForm.get('currencySymbol')?.value || '€' }} {{ 'FACTURES.DISCOUNT_FIXED' | transloco }}
+                            </button>
+                          </div>
+
+                          <div class="tier-input-wrapper label-input">
+                            <label for="input-new-tier-label" class="sr-only">{{ 'SETTINGS.TIER_LABEL' | transloco }}</label>
+                            <input
+                              id="input-new-tier-label"
+                              type="text"
+                              [(ngModel)]="newDiscountTierLabel"
+                              [ngModelOptions]="{standalone: true}"
+                              [placeholder]="'SETTINGS.TIER_LABEL_PLACEHOLDER' | transloco"
+                              class="custom-tier-input"
+                              data-testid="input-new-tier-label"
+                            />
+                          </div>
+
+                          <div class="tier-input-wrapper val-input">
+                            <label for="input-new-tier-val" class="sr-only">{{ 'SETTINGS.TIER_VALUE' | transloco }}</label>
+                            <input
+                              id="input-new-tier-val"
+                              type="number"
+                              step="1"
+                              min="1"
+                              [(ngModel)]="newDiscountTierValue"
+                              [ngModelOptions]="{standalone: true}"
+                              [placeholder]="'50'"
+                              class="custom-tier-input"
+                              data-testid="input-new-tier-value"
+                              (keyup.enter)="addDiscountTier()"
+                            />
+                            <span class="tier-currency-affix">{{ newDiscountTierType === 'percent' ? '%' : (appSettingsForm.get('currencySymbol')?.value || '€') }}</span>
+                          </div>
+
+                          <button
+                            type="button"
+                            class="add-tier-btn"
+                            (click)="addDiscountTier()"
+                            [disabled]="!newDiscountTierLabel.trim() || !newDiscountTierValue || newDiscountTierValue <= 0"
+                            data-testid="btn-add-discount-tier">
+                            <ion-icon name="add-circle-outline"></ion-icon>
+                            <span>{{ 'COMMON.ADD' | transloco }}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+
+              <!-- Row 6: Zones & Emplacements de Stockage & Service (Inventaires) -->
+              <ion-row>
+                <ion-col size="12">
+                  <ion-card class="settings-card" data-testid="card-storage-locations">
+                    <ion-card-header>
+                      <div class="card-header-flex">
+                        <ion-card-title class="card-title">
+                          <ion-icon name="grid-outline" class="title-icon"></ion-icon>
+                          {{ 'SETTINGS.STORAGE_LOCATIONS_TITLE' | transloco }}
+                        </ion-card-title>
+                        <button
+                          type="button"
+                          class="reset-denoms-btn"
+                          (click)="resetStorageLocationsToDefault()"
+                          data-testid="btn-reset-storage-locations">
+                          <ion-icon name="refresh-outline"></ion-icon>
+                          <span>{{ 'SETTINGS.RESET_STORAGE_LOCATIONS' | transloco }}</span>
+                        </button>
+                      </div>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="block-desc">{{ 'SETTINGS.STORAGE_LOCATIONS_SUBTITLE' | transloco }}</p>
+
+                      <!-- Storage Locations Group -->
+                      <div class="discount-tiers-group">
+                        <div class="discount-group-header">
+                          <div class="discount-group-header-left">
+                            <ion-icon name="business-outline" class="discount-group-icon"></ion-icon>
+                            <span class="discount-group-title">{{ 'SETTINGS.STORAGE_LOCATIONS_LIST_TITLE' | transloco }}</span>
+                          </div>
+                          <span class="count-pill" data-testid="storage-locations-count">{{ configuredStorageLocations().length }}</span>
+                        </div>
+
+                        <!-- Configured Locations List -->
+                        <div class="discount-tiers-grid" data-testid="storage-locations-list">
+                          @for (loc of configuredStorageLocations(); track loc) {
+                            <div class="discount-tier-chip" data-testid="storage-location-chip">
+                              <span class="discount-type-badge">
+                                <ion-icon name="wine-outline"></ion-icon>
+                              </span>
+                              <div class="discount-info">
+                                <span class="discount-label font-bold">{{ loc }}</span>
+                              </div>
+                              <button
+                                type="button"
+                                class="delete-discount-btn"
+                                (click)="removeStorageLocation(loc)"
+                                [attr.title]="'COMMON.DELETE' | transloco"
+                                [attr.data-testid]="'delete-location-' + loc">
+                                <ion-icon name="close-outline"></ion-icon>
+                              </button>
+                            </div>
+                          }
+                          @if (configuredStorageLocations().length === 0) {
+                            <div class="empty-tiers-note">{{ 'SETTINGS.NO_STORAGE_LOCATIONS_CONFIGURED' | transloco }}</div>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Add Storage Location Form -->
+                      <div class="add-discount-tier-card" data-testid="add-storage-location-box">
+                        <h4 class="add-tier-heading">
+                          <ion-icon name="add-circle-outline"></ion-icon>
+                          {{ 'SETTINGS.ADD_STORAGE_LOCATION' | transloco }}
+                        </h4>
+                        <div class="add-tier-fields">
+                          <div class="tier-input-wrapper label-input" style="flex: 1;">
+                            <label for="input-new-storage-loc" class="sr-only">{{ 'SETTINGS.STORAGE_LOCATION_NAME_LABEL' | transloco }}</label>
+                            <input
+                              id="input-new-storage-loc"
+                              type="text"
+                              [(ngModel)]="newStorageLocationName"
+                              [ngModelOptions]="{standalone: true}"
+                              [placeholder]="'SETTINGS.STORAGE_LOCATION_PLACEHOLDER' | transloco"
+                              class="custom-tier-input"
+                              data-testid="input-new-storage-location"
+                              (keyup.enter)="addStorageLocation()"
+                            />
+                          </div>
+
+                          <button
+                            type="button"
+                            class="add-tier-btn"
+                            (click)="addStorageLocation()"
+                            [disabled]="!newStorageLocationName.trim()"
+                            data-testid="btn-add-storage-location">
+                            <ion-icon name="add-circle-outline"></ion-icon>
+                            <span>{{ 'COMMON.ADD' | transloco }}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
             </ion-grid>
           </form>
         </section>
@@ -1396,248 +1980,7 @@
       <!-- ========================================== -->
       @if (activeTab === 'theme') {
         <section class="tab-panel" data-testid="panel-theme">
-          <ion-grid>
-            <ion-row>
-              <!-- Colonne Gauche : Formulaire & Controls -->
-              <ion-col size="12" sizeLg="7">
-                <ion-card class="settings-card">
-                  <ion-card-header>
-                    <ion-card-title class="card-title">
-                      <ion-icon name="color-palette-outline" class="title-icon"></ion-icon>
-                      {{ 'THEME_CUSTOMIZER.TITLE' | transloco }}
-                    </ion-card-title>
-                  </ion-card-header>
-                  <ion-card-content>
-                    <!-- Mode Selector -->
-                    <div class="theme-mode-section">
-                      <h4 class="sub-title">{{ 'THEME_CUSTOMIZER.MODE_TITLE' | transloco }}</h4>
-                      <div class="mode-buttons-row">
-                        <button
-                          type="button"
-                          class="theme-mode-btn"
-                          [class.active]="activeTheme === 'dark'"
-                          (click)="onSetThemeMode('dark')"
-                          data-testid="theme-mode-dark">
-                          <ion-icon name="moon-outline"></ion-icon>
-                          {{ 'THEME_CUSTOMIZER.MODE_DARK' | transloco }}
-                        </button>
-                        <button
-                          type="button"
-                          class="theme-mode-btn"
-                          [class.active]="activeTheme === 'light'"
-                          (click)="onSetThemeMode('light')"
-                          data-testid="theme-mode-light">
-                          <ion-icon name="sunny-outline"></ion-icon>
-                          {{ 'THEME_CUSTOMIZER.MODE_LIGHT' | transloco }}
-                        </button>
-                        <button
-                          type="button"
-                          class="theme-mode-btn"
-                          [class.active]="activeTheme === 'system'"
-                          (click)="onSetThemeMode('system')"
-                          data-testid="theme-mode-system">
-                          <ion-icon name="desktop-outline"></ion-icon>
-                          {{ 'THEME_CUSTOMIZER.MODE_SYSTEM' | transloco }}
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Presets -->
-                    <div class="theme-presets-section">
-                      <h4 class="sub-title">{{ 'THEME_CUSTOMIZER.PRESETS' | transloco }}</h4>
-                      <div class="theme-presets-grid">
-                        @for (preset of presets; track preset.key) {
-                          <button
-                            type="button"
-                            class="theme-preset-chip"
-                            [class.active]="isPresetActive(preset.key)"
-                            (click)="onApplyPreset(preset.key)"
-                            [attr.data-testid]="'preset-theme-' + preset.key">
-                            <span class="preset-color-dot" [style.background-color]="preset.colors.primary"></span>
-                            <span>{{ preset.name }}</span>
-                          </button>
-                        }
-                      </div>
-                    </div>
-
-                    <!-- HSL Auto-Generator Box -->
-                    <div class="auto-gen-box">
-                      <div class="gen-info">
-                        <h4>{{ 'THEME_CUSTOMIZER.AUTO_GEN_TITLE' | transloco }}</h4>
-                        <p>{{ 'THEME_CUSTOMIZER.AUTO_GEN_DESC' | transloco }}</p>
-                      </div>
-                      <app-action-button
-                        type="button"
-                        variant="secondary"
-                        icon="sparkles-outline"
-                        (btnClick)="onAutoGeneratePalette()"
-                        testId="btn-auto-gen-hsl">
-                        {{ 'THEME_CUSTOMIZER.AUTO_GENERATE' | transloco }}
-                      </app-action-button>
-                    </div>
-
-                    <!-- Formulaire Détaillé des Couleurs -->
-                    <form [formGroup]="colorForm" class="color-form">
-                      <!-- Primary Color -->
-                      <h4 class="sub-title" style="margin-top: 16px;">{{ 'THEME_CUSTOMIZER.PRIMARY_ACCENT' | transloco }}</h4>
-                      <div class="color-picker-row">
-                        <label for="input-primary" class="color-label">{{ 'THEME_CUSTOMIZER.PRIMARY_ACCENT_LABEL' | transloco }}</label>
-                        <div class="color-input-wrapper">
-                          <input
-                            type="color"
-                            id="input-primary"
-                            formControlName="primary"
-                            class="color-picker-input"
-                            data-testid="picker-primary" />
-                          <input
-                            type="text"
-                            id="text-primary"
-                            [attr.aria-label]="'THEME_CUSTOMIZER.HEX_PRIMARY' | transloco"
-                            formControlName="primary"
-                            class="hex-text-input" />
-                        </div>
-                      </div>
-
-                      <!-- Backgrounds Dark & Light -->
-                      <h4 class="sub-title" style="margin-top: 16px;">{{ 'THEME_CUSTOMIZER.BACKGROUNDS_SURFACES_TITLE' | transloco }}</h4>
-                      <div class="color-pickers-grid">
-                        <div class="color-picker-item">
-                          <label for="input-bgDark" class="color-label">{{ 'THEME_CUSTOMIZER.BACKGROUND_DARK' | transloco }}</label>
-                          <div class="color-input-wrapper">
-                            <input type="color" id="input-bgDark" formControlName="bgDark" class="color-picker-input" data-testid="picker-bgDark" />
-                            <input type="text" id="text-bgDark" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_BG_DARK' | transloco" formControlName="bgDark" class="hex-text-input" />
-                          </div>
-                        </div>
-
-                        <div class="color-picker-item">
-                          <label for="input-surfaceDark" class="color-label">{{ 'THEME_CUSTOMIZER.SURFACE_DARK' | transloco }}</label>
-                          <div class="color-input-wrapper">
-                            <input type="color" id="input-surfaceDark" formControlName="surfaceDark" class="color-picker-input" data-testid="picker-surfaceDark" />
-                            <input type="text" id="text-surfaceDark" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_SURFACE_DARK' | transloco" formControlName="surfaceDark" class="hex-text-input" />
-                          </div>
-                        </div>
-
-                        <div class="color-picker-item">
-                          <label for="input-bgLight" class="color-label">{{ 'THEME_CUSTOMIZER.BACKGROUND_LIGHT' | transloco }}</label>
-                          <div class="color-input-wrapper">
-                            <input type="color" id="input-bgLight" formControlName="bgLight" class="color-picker-input" data-testid="picker-bgLight" />
-                            <input type="text" id="text-bgLight" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_BG_LIGHT' | transloco" formControlName="bgLight" class="hex-text-input" />
-                          </div>
-                        </div>
-
-                        <div class="color-picker-item">
-                          <label for="input-surfaceLight" class="color-label">{{ 'THEME_CUSTOMIZER.SURFACE_LIGHT' | transloco }}</label>
-                          <div class="color-input-wrapper">
-                            <input type="color" id="input-surfaceLight" formControlName="surfaceLight" class="color-picker-input" data-testid="picker-surfaceLight" />
-                            <input type="text" id="text-surfaceLight" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_SURFACE_LIGHT' | transloco" formControlName="surfaceLight" class="hex-text-input" />
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Couleurs des Rôles -->
-                      <h4 class="sub-title" style="margin-top: 16px;">{{ 'THEME_CUSTOMIZER.ROLE_COLORS_TITLE' | transloco }}</h4>
-                      <div class="color-pickers-grid">
-                        <div class="color-picker-item">
-                          <label for="input-roleAdmin" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_ADMIN' | transloco }}</label>
-                          <div class="color-input-wrapper">
-                            <input type="color" id="input-roleAdmin" formControlName="roleAdmin" class="color-picker-input" data-testid="picker-roleAdmin" />
-                            <input type="text" id="text-roleAdmin" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_ROLE_ADMIN' | transloco" formControlName="roleAdmin" class="hex-text-input" />
-                          </div>
-                        </div>
-
-                        <div class="color-picker-item">
-                          <label for="input-roleManager" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_MANAGER' | transloco }}</label>
-                          <div class="color-input-wrapper">
-                            <input type="color" id="input-roleManager" formControlName="roleManager" class="color-picker-input" data-testid="picker-roleManager" />
-                            <input type="text" id="text-roleManager" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_ROLE_MANAGER' | transloco" formControlName="roleManager" class="hex-text-input" />
-                          </div>
-                        </div>
-
-                        <div class="color-picker-item">
-                          <label for="input-roleServeur" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_SERVEUR' | transloco }}</label>
-                          <div class="color-input-wrapper">
-                            <input type="color" id="input-roleServeur" formControlName="roleServeur" class="color-picker-input" data-testid="picker-roleServeur" />
-                            <input type="text" id="text-roleServeur" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_ROLE_SERVEUR' | transloco" formControlName="roleServeur" class="hex-text-input" />
-                          </div>
-                        </div>
-
-                        <div class="color-picker-item">
-                          <label for="input-roleBarman" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_BARMAN' | transloco }}</label>
-                          <div class="color-input-wrapper">
-                            <input type="color" id="input-roleBarman" formControlName="roleBarman" class="color-picker-input" data-testid="picker-roleBarman" />
-                            <input type="text" id="text-roleBarman" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_ROLE_BARMAN' | transloco" formControlName="roleBarman" class="hex-text-input" />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="theme-reset-row">
-                        <app-action-button
-                          type="button"
-                          variant="ghost"
-                          icon="refresh-outline"
-                          (btnClick)="onResetToDefaultTheme()"
-                          testId="btn-reset-default-theme">
-                          {{ 'THEME_CUSTOMIZER.RESET_DEFAULT' | transloco }}
-                        </app-action-button>
-                      </div>
-                    </form>
-                  </ion-card-content>
-                </ion-card>
-              </ion-col>
-
-              <!-- Colonne Droite : Preview Panel Réel en Direct -->
-              <ion-col size="12" sizeLg="5">
-                <ion-card class="settings-card preview-panel-card" data-testid="live-preview-card">
-                  <ion-card-header>
-                    <ion-card-title class="card-title">
-                      <ion-icon name="sparkles-outline" class="title-icon"></ion-icon>
-                      {{ 'THEME_CUSTOMIZER.LIVE_PREVIEW' | transloco }}
-                      <span class="live-badge">{{ 'THEME_CUSTOMIZER.LIVE_RENDER_BADGE' | transloco }}</span>
-                    </ion-card-title>
-                  </ion-card-header>
-                  <ion-card-content>
-                    <!-- Badges de rôles -->
-                    <div class="preview-section">
-                      <h4>{{ 'THEME_CUSTOMIZER.ROLE_BADGES_PREVIEW' | transloco }}</h4>
-                      <div class="roles-preview-row">
-                        <app-role-badge [role]="'ADMIN'"></app-role-badge>
-                        <app-role-badge [role]="'MANAGER'"></app-role-badge>
-                        <app-role-badge [role]="'SERVEUR'"></app-role-badge>
-                        <app-role-badge [role]="'BARMAN'"></app-role-badge>
-                      </div>
-                    </div>
-
-                    <!-- Boutons d'actions et variantes -->
-                    <div class="preview-section">
-                      <h4>{{ 'THEME_CUSTOMIZER.ACTION_BUTTONS_PREVIEW' | transloco }}</h4>
-                      <div class="buttons-preview-row">
-                        <app-action-button variant="primary">{{ 'THEME_CUSTOMIZER.PRIMARY_BTN' | transloco }}</app-action-button>
-                        <app-action-button variant="secondary">{{ 'THEME_CUSTOMIZER.SECONDARY_BTN' | transloco }}</app-action-button>
-                        <app-action-button variant="ghost">{{ 'THEME_CUSTOMIZER.GHOST_BTN' | transloco }}</app-action-button>
-                      </div>
-                    </div>
-
-                    <!-- Badges de statut de commandes -->
-                    <div class="preview-section">
-                      <h4>{{ 'THEME_CUSTOMIZER.ORDER_STATUS_PREVIEW' | transloco }}</h4>
-                      <div class="status-preview-row">
-                        <app-status-badge status="EN_ATTENTE"></app-status-badge>
-                        <app-status-badge status="EN_PREPARATION"></app-status-badge>
-                        <app-status-badge status="PRET"></app-status-badge>
-                      </div>
-                    </div>
-
-                    <!-- Échantillon interactif Carte Produit -->
-                    <div class="preview-sample-box">
-                      <div class="sample-title">{{ 'THEME_CUSTOMIZER.CARD_PREVIEW' | transloco }}</div>
-                      <div class="sample-desc">{{ 'THEME_CUSTOMIZER.SAMPLE_PRODUCT' | transloco }}</div>
-                      <div class="sample-bar"></div>
-                    </div>
-                  </ion-card-content>
-                </ion-card>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
+          <app-theme-customizer></app-theme-customizer>
         </section>
       }
 
@@ -1688,12 +2031,11 @@
                           <label class="toggle-title" for="wifi-enabled-toggle">{{ 'SETTINGS.QR_WIFI_ENABLED_LABEL' | transloco }}</label>
                           <span class="toggle-desc">{{ 'SETTINGS.QR_WIFI_ENABLED_HINT' | transloco }}</span>
                         </div>
-                        <input
+                        <ion-toggle
                           id="wifi-enabled-toggle"
-                          type="checkbox"
                           formControlName="wifiEnabled"
-                          class="switch-input"
-                          data-testid="toggle-wifi-enabled" />
+                          data-testid="toggle-wifi-enabled">
+                        </ion-toggle>
                       </div>
 
                       @if (appSettingsForm.get('wifiEnabled')?.value) {
@@ -1743,12 +2085,11 @@
                           <label class="toggle-title" for="table-session-validation-toggle">{{ 'SETTINGS.QR_SESSION_VALIDATION_LABEL' | transloco }}</label>
                           <span class="toggle-desc">{{ 'SETTINGS.QR_SESSION_VALIDATION_HINT' | transloco }}</span>
                         </div>
-                        <input
+                        <ion-toggle
                           id="table-session-validation-toggle"
-                          type="checkbox"
                           formControlName="tableSessionValidationEnabled"
-                          class="switch-input"
-                          data-testid="toggle-table-session-validation" />
+                          data-testid="toggle-table-session-validation">
+                        </ion-toggle>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -1811,161 +2152,501 @@
       <!-- TAB 7: Imprimantes Réseau ESC/POS         -->
       <!-- ========================================== -->
       @if (activeTab === 'printers') {
-        <section class="tab-panel" data-testid="panel-printers">
+        <section class="tab-panel hardware-tab-panel" data-testid="panel-printers">
           <form [formGroup]="appSettingsForm" class="settings-form">
-            <ion-grid>
-              <ion-row>
-                <!-- Colonne Gauche: Activation & Ports & Postes -->
-                <ion-col size="12" sizeLg="7">
-                  <ion-card class="settings-card">
-                    <ion-card-header>
-                      <ion-card-title class="card-title">
-                        <ion-icon name="print-outline" class="title-icon"></ion-icon>
-                        {{ 'SETTINGS.PRINTERS_TITLE' | transloco }}
-                      </ion-card-title>
-                    </ion-card-header>
-                    <ion-card-content>
-                      <p class="section-lead">{{ 'SETTINGS.PRINTERS_SUBTITLE' | transloco }}</p>
 
-                      <!-- Activation Globale -->
-                      <div class="field-item checkbox-field">
-                        <label class="checkbox-label" for="directPrintingEnabled">
-                          <input
-                            type="checkbox"
-                            id="directPrintingEnabled"
-                            formControlName="directPrintingEnabled"
-                            data-testid="toggle-direct-printing" />
-                          <span class="checkbox-custom"></span>
-                          <div class="checkbox-text">
-                            <strong>{{ 'SETTINGS.DIRECT_PRINTING_ENABLE' | transloco }}</strong>
-                            <p class="field-hint">{{ 'SETTINGS.DIRECT_PRINTING_DESC' | transloco }}</p>
+            <!-- Hero Banner Hardware & Peripherals -->
+            <div class="hardware-hero-banner" data-testid="hardware-hero-banner">
+              <div class="hardware-hero-icon-box">
+                <ion-icon name="hardware-chip-outline"></ion-icon>
+              </div>
+              <div class="hardware-hero-content">
+                <h3 class="hardware-hero-title">{{ 'SETTINGS.HARDWARE_HERO_TITLE' | transloco }}</h3>
+                <p class="hardware-hero-desc">{{ 'SETTINGS.HARDWARE_HERO_DESC' | transloco }}</p>
+              </div>
+            </div>
+
+            <!-- SECTION 1: ESC/POS NETWORK PRINTERS & CASH DRAWER -->
+            <ion-card class="settings-card hardware-card" data-testid="card-settings-printers">
+              <ion-card-header class="hardware-card-header">
+                <div class="header-left">
+                  <ion-card-title class="card-title">
+                    <ion-icon name="print-outline" class="title-icon"></ion-icon>
+                    <span>{{ 'SETTINGS.PRINTERS_TITLE' | transloco }}</span>
+                  </ion-card-title>
+                  <span class="device-count-pill" data-testid="pill-printers-count">
+                    {{ 'SETTINGS.HARDWARE_DEVICES_COUNT' | transloco: { count: configuredPrinters().length } }}
+                  </span>
+                </div>
+                <div class="header-actions">
+                  <button
+                    type="button"
+                    class="add-device-btn"
+                    (click)="addPrinter()"
+                    data-testid="btn-add-printer">
+                    <ion-icon name="add-outline"></ion-icon>
+                    <span>{{ 'SETTINGS.BTN_ADD_PRINTER' | transloco }}</span>
+                  </button>
+                </div>
+              </ion-card-header>
+
+              <ion-card-content>
+                <p class="section-lead">{{ 'SETTINGS.PRINTERS_SUBTITLE' | transloco }}</p>
+
+                <!-- Global Direct Printing Activation & TCP Port -->
+                <div class="hardware-global-row">
+                  <div class="toggle-row-box hardware-toggle-item">
+                    <div class="toggle-info">
+                      <label class="toggle-title" for="direct-printing-toggle">{{ 'SETTINGS.DIRECT_PRINTING_ENABLE' | transloco }}</label>
+                      <span class="toggle-desc">{{ 'SETTINGS.DIRECT_PRINTING_DESC' | transloco }}</span>
+                    </div>
+                    <ion-toggle
+                      id="direct-printing-toggle"
+                      formControlName="directPrintingEnabled"
+                      data-testid="toggle-direct-printing">
+                    </ion-toggle>
+                  </div>
+
+                  <div class="hardware-port-box">
+                    <app-input-field
+                      formControlName="printerPort"
+                      type="number"
+                      [label]="'SETTINGS.PRINTER_PORT' | transloco"
+                      [helperText]="'SETTINGS.PRINTER_PORT_HINT' | transloco"
+                      placeholder="9100"
+                      [required]="true"
+                      data-testid="input-printer-port">
+                    </app-input-field>
+                  </div>
+                </div>
+
+                <!-- Dedicated Physical Cash Drawer Sub-block -->
+                <div class="drawer-diagnostic-card" data-testid="card-drawer-diagnostic">
+                  <div class="drawer-card-left">
+                    <div class="drawer-icon-box">
+                      <ion-icon name="cash-outline"></ion-icon>
+                    </div>
+                    <div class="drawer-content">
+                      <h4 class="drawer-title">{{ 'SETTINGS.DRAWER_SECTION_TITLE' | transloco }}</h4>
+                      <p class="drawer-desc">{{ 'SETTINGS.DRAWER_SECTION_DESC' | transloco }}</p>
+                    </div>
+                  </div>
+                  <div class="drawer-card-actions">
+                    <app-action-button
+                      type="button"
+                      variant="secondary"
+                      [loading]="isTestingPrinter['drawer']"
+                      [disabled]="isTestingPrinter['drawer']"
+                      (btnClick)="testCashDrawer()"
+                      data-testid="btn-test-cash-drawer">
+                      <ion-icon name="hardware-chip-outline" slot="start"></ion-icon>
+                      {{ 'SETTINGS.TEST_DRAWER_BTN' | transloco }}
+                    </app-action-button>
+                  </div>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <!-- Dynamic Printers List -->
+                <div class="configured-devices-container">
+                  @if (configuredPrinters().length === 0) {
+                    <div class="empty-devices-card" data-testid="empty-printers">
+                      <div class="empty-icon-circle">
+                        <ion-icon name="print-outline"></ion-icon>
+                      </div>
+                      <p class="empty-text">{{ 'SETTINGS.NO_PRINTERS_CONFIGURED' | transloco }}</p>
+                      <button type="button" class="add-device-btn" (click)="addPrinter()">
+                        <ion-icon name="add-outline"></ion-icon>
+                        <span>{{ 'SETTINGS.BTN_ADD_PRINTER' | transloco }}</span>
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="devices-grid">
+                      @for (printer of configuredPrinters(); track printer.id; let idx = $index) {
+                        <div class="device-card" [class.device-disabled]="!printer.enabled" [attr.data-testid]="'card-printer-' + printer.id">
+                          <div class="device-card-header">
+                            <div class="device-title-wrap">
+                              <div class="device-badge-icon" [attr.data-role]="printer.role">
+                                <ion-icon [name]="printer.role === 'BAR' ? 'beer-outline' : (printer.role === 'KITCHEN' ? 'restaurant-outline' : (printer.role === 'CASH_DESK' ? 'cash-outline' : (printer.role === 'SNACK' ? 'flame-outline' : 'print-outline')))"></ion-icon>
+                              </div>
+                              <label [for]="'input-printer-name-' + printer.id" class="sr-only">{{ 'SETTINGS.DEVICE_NAME' | transloco }}</label>
+                              <input
+                                type="text"
+                                [id]="'input-printer-name-' + printer.id"
+                                class="device-name-input"
+                                [value]="printer.name"
+                                (input)="updatePrinter(printer.id, 'name', $any($event.target).value)"
+                                [placeholder]="'SETTINGS.DEVICE_NAME' | transloco"
+                                [attr.data-testid]="'input-printer-name-' + printer.id" />
+                            </div>
+                            <div class="device-header-controls">
+                              <ion-toggle
+                                [checked]="printer.enabled"
+                                (ionChange)="updatePrinter(printer.id, 'enabled', $event.detail.checked)"
+                                [attr.data-testid]="'toggle-printer-enabled-' + printer.id">
+                              </ion-toggle>
+                              <button
+                                type="button"
+                                class="btn-delete-device"
+                                (click)="removePrinter(printer.id)"
+                                [title]="'SETTINGS.DEVICE_ACTION_DELETE' | transloco"
+                                [attr.data-testid]="'btn-delete-printer-' + printer.id">
+                                <ion-icon name="trash-outline"></ion-icon>
+                              </button>
+                            </div>
                           </div>
-                        </label>
-                      </div>
 
-                      <!-- Port TCP Standard -->
-                      <div class="field-item">
-                        <app-input-field
-                          formControlName="printerPort"
-                          type="number"
-                          [label]="'SETTINGS.PRINTER_PORT' | transloco"
-                          [helperText]="'SETTINGS.PRINTER_PORT_HINT' | transloco"
-                          placeholder="9100"
-                          [required]="true"
-                          data-testid="input-printer-port">
-                        </app-input-field>
-                      </div>
+                          <div class="device-card-body">
+                            <div class="device-form-row">
+                              <div class="field-item">
+                                <label [for]="'input-printer-ip-' + printer.id" class="custom-field-label">{{ 'SETTINGS.DEVICE_IP' | transloco }} *</label>
+                                <input
+                                  type="text"
+                                  [id]="'input-printer-ip-' + printer.id"
+                                  class="custom-text-input"
+                                  [value]="printer.ip"
+                                  (input)="updatePrinter(printer.id, 'ip', $any($event.target).value)"
+                                  placeholder="192.168.1.101"
+                                  [attr.data-testid]="'input-printer-ip-' + printer.id" />
+                              </div>
+                              <div class="field-item field-port">
+                                <label [for]="'input-printer-port-' + printer.id" class="custom-field-label">{{ 'SETTINGS.DEVICE_PORT' | transloco }}</label>
+                                <input
+                                  type="number"
+                                  [id]="'input-printer-port-' + printer.id"
+                                  class="custom-text-input"
+                                  [value]="printer.port"
+                                  (input)="updatePrinter(printer.id, 'port', +$any($event.target).value)"
+                                  placeholder="9100"
+                                  [attr.data-testid]="'input-printer-port-' + printer.id" />
+                              </div>
+                            </div>
 
-                      <div class="form-section-title">{{ 'SETTINGS.BAR_PRINTER_TITLE' | transloco }}</div>
-                      <div class="printer-row-flex">
-                        <div class="printer-input-grow">
-                          <app-input-field
-                            formControlName="barPrinterIp"
-                            [label]="'SETTINGS.BAR_PRINTER_IP' | transloco"
-                            [helperText]="'SETTINGS.BAR_PRINTER_HINT' | transloco"
-                            placeholder="192.168.1.101"
-                            data-testid="input-bar-printer-ip">
-                          </app-input-field>
+                            <div class="device-form-row">
+                              <div class="field-item">
+                                <label [for]="'select-printer-role-' + printer.id" class="custom-field-label">{{ 'SETTINGS.DEVICE_ROLE' | transloco }}</label>
+                                <select
+                                  [id]="'select-printer-role-' + printer.id"
+                                  class="custom-select-input"
+                                  [value]="printer.role"
+                                  (change)="updatePrinter(printer.id, 'role', $any($event.target).value)"
+                                  [attr.data-testid]="'select-printer-role-' + printer.id">
+                                  @for (opt of printerRoleOptions; track opt.value) {
+                                    <option [value]="opt.value">{{ opt.label }}</option>
+                                  }
+                                </select>
+                              </div>
+                              <div class="field-item field-paper">
+                                <label [for]="'select-printer-paper-' + printer.id" class="custom-field-label">{{ 'SETTINGS.PAPER_WIDTH' | transloco }}</label>
+                                <select
+                                  [id]="'select-printer-paper-' + printer.id"
+                                  class="custom-select-input"
+                                  [value]="printer.paperWidth"
+                                  (change)="updatePrinter(printer.id, 'paperWidth', +$any($event.target).value)"
+                                  [attr.data-testid]="'select-printer-paper-' + printer.id">
+                                  @for (choice of paperWidthChoices; track choice.value) {
+                                    <option [value]="choice.value">{{ choice.label }}</option>
+                                  }
+                                </select>
+                              </div>
+                            </div>
+
+                            <div class="device-toggle-subrow">
+                              <div class="toggle-drawer-wrapper">
+                                <ion-toggle
+                                  [checked]="printer.openCashDrawer"
+                                  (ionChange)="updatePrinter(printer.id, 'openCashDrawer', $event.detail.checked)"
+                                  [attr.data-testid]="'toggle-printer-drawer-' + printer.id">
+                                  <span class="drawer-toggle-text">{{ 'SETTINGS.DRAWER_KICK_ON_PRINT' | transloco }}</span>
+                                </ion-toggle>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="device-card-footer">
+                            <div class="diagnostic-pill">
+                              @if (printerTestResults()[printer.id]) {
+                                @if (printerTestResults()[printer.id].success) {
+                                  <span class="status-pill status-success">
+                                    <ion-icon name="checkmark-circle-outline"></ion-icon>
+                                    {{ 'SETTINGS.STATUS_CONNECTED' | transloco }}
+                                  </span>
+                                } @else {
+                                  <span class="status-pill status-error" [title]="printerTestResults()[printer.id].message">
+                                    <ion-icon name="alert-circle-outline"></ion-icon>
+                                    {{ 'SETTINGS.STATUS_ERROR' | transloco }}
+                                  </span>
+                                }
+                              } @else {
+                                <span class="status-pill status-neutral">
+                                  <span class="neutral-dot"></span>
+                                  {{ 'SETTINGS.STATUS_NOT_TESTED' | transloco }}
+                                </span>
+                              }
+                            </div>
+
+                            <button
+                              type="button"
+                              class="btn-test-action"
+                              [disabled]="!printer.ip || isTestingPrinter[printer.id]"
+                              (click)="testConfiguredPrinter(printer)"
+                              [attr.data-testid]="'btn-test-printer-' + printer.id">
+                              @if (isTestingPrinter[printer.id]) {
+                                <ion-spinner name="crescent"></ion-spinner>
+                              } @else {
+                                <ion-icon name="print-outline"></ion-icon>
+                              }
+                              <span>{{ 'SETTINGS.TEST_PRINT_BTN' | transloco }}</span>
+                            </button>
+                          </div>
                         </div>
-                        <div class="printer-action-btn-wrap">
-                          <app-action-button
-                            type="button"
-                            variant="secondary"
-                            [loading]="isTestingPrinter['BAR']"
-                            [disabled]="!appSettingsForm.get('barPrinterIp')?.value || isTestingPrinter['BAR']"
-                            (btnClick)="testPrint('BAR')"
-                            data-testid="btn-test-bar-printer">
-                            <ion-icon name="print-outline" slot="start"></ion-icon>
-                            {{ 'SETTINGS.TEST_PRINT_BTN' | transloco }}
-                          </app-action-button>
-                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </ion-card-content>
+            </ion-card>
+
+            <!-- SECTION 2: PAYMENT TERMINALS (TPE / CONCERT IP) -->
+            <ion-card class="settings-card hardware-card" data-testid="card-settings-tpe">
+              <ion-card-header class="hardware-card-header">
+                <div class="header-left">
+                  <ion-card-title class="card-title">
+                    <ion-icon name="card-outline" class="title-icon"></ion-icon>
+                    <span>{{ 'SETTINGS.TPE_TITLE' | transloco }}</span>
+                  </ion-card-title>
+                  <span class="device-count-pill" data-testid="pill-tpe-count">
+                    {{ 'SETTINGS.HARDWARE_DEVICES_COUNT' | transloco: { count: configuredTpeTerminals().length } }}
+                  </span>
+                </div>
+                <div class="header-actions">
+                  <button
+                    type="button"
+                    class="add-device-btn"
+                    (click)="addTpeTerminal()"
+                    data-testid="btn-add-tpe">
+                    <ion-icon name="add-outline"></ion-icon>
+                    <span>{{ 'SETTINGS.BTN_ADD_TPE' | transloco }}</span>
+                  </button>
+                </div>
+              </ion-card-header>
+
+              <ion-card-content>
+                <p class="section-lead">{{ 'SETTINGS.TPE_SUBTITLE' | transloco }}</p>
+
+                <!-- Network TPE & Simulator Toggles -->
+                <div class="tpe-toggles-grid">
+                  <div class="toggle-row-box hardware-toggle-item">
+                    <div class="toggle-info">
+                      <label class="toggle-title" for="tpe-enabled-toggle">{{ 'SETTINGS.TPE_ENABLE_LABEL' | transloco }}</label>
+                      <span class="toggle-desc">{{ 'SETTINGS.TPE_ENABLE_HINT' | transloco }}</span>
+                    </div>
+                    <ion-toggle
+                      id="tpe-enabled-toggle"
+                      formControlName="tpeEnabled"
+                      data-testid="toggle-tpe-enabled">
+                    </ion-toggle>
+                  </div>
+
+                  <div class="toggle-row-box hardware-toggle-item">
+                    <div class="toggle-info">
+                      <label class="toggle-title" for="tpe-sim-toggle">{{ 'SETTINGS.TPE_SIMULATOR_LABEL' | transloco }}</label>
+                      <span class="toggle-desc">{{ 'SETTINGS.TPE_SIMULATOR_HINT' | transloco }}</span>
+                    </div>
+                    <ion-toggle
+                      id="tpe-sim-toggle"
+                      formControlName="tpeSimulatorEnabled"
+                      data-testid="toggle-tpe-simulator-enabled">
+                    </ion-toggle>
+                  </div>
+                </div>
+
+                <!-- Global TPE Parameters (Port & Timeout) -->
+                <div class="hardware-global-config-grid">
+                  <div class="field-item">
+                    <app-input-field
+                      formControlName="tpePort"
+                      type="number"
+                      [label]="'SETTINGS.TPE_PORT' | transloco"
+                      [helperText]="'SETTINGS.TPE_PORT_HINT' | transloco"
+                      placeholder="8888"
+                      [required]="true"
+                      data-testid="input-tpe-port">
+                    </app-input-field>
+                  </div>
+
+                  <div class="field-item">
+                    <app-input-field
+                      formControlName="tpeTimeoutSeconds"
+                      type="number"
+                      [label]="'SETTINGS.TPE_TIMEOUT' | transloco"
+                      [helperText]="'SETTINGS.TPE_TIMEOUT_HINT' | transloco"
+                      placeholder="45"
+                      data-testid="input-tpe-timeout">
+                    </app-input-field>
+                  </div>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <!-- Dynamic TPE Terminals List -->
+                <div class="configured-devices-container">
+                  @if (configuredTpeTerminals().length === 0) {
+                    <div class="empty-devices-card" data-testid="empty-tpe">
+                      <div class="empty-icon-circle">
+                        <ion-icon name="card-outline"></ion-icon>
                       </div>
+                      <p class="empty-text">{{ 'SETTINGS.NO_TPE_CONFIGURED' | transloco }}</p>
+                      <button type="button" class="add-device-btn" (click)="addTpeTerminal()">
+                        <ion-icon name="add-outline"></ion-icon>
+                        <span>{{ 'SETTINGS.BTN_ADD_TPE' | transloco }}</span>
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="devices-grid">
+                      @for (terminal of configuredTpeTerminals(); track terminal.id; let idx = $index) {
+                        <div class="device-card" [class.device-disabled]="!terminal.enabled" [attr.data-testid]="'card-tpe-' + terminal.id">
+                          <div class="device-card-header">
+                            <div class="device-title-wrap">
+                              <div class="device-badge-icon" [attr.data-role]="terminal.role">
+                                <ion-icon [name]="terminal.role === 'BAR' ? 'beer-outline' : (terminal.role === 'FLOOR' ? 'walk-outline' : (terminal.role === 'REGISTER' ? 'cash-outline' : (terminal.role === 'TERRACE' ? 'sunny-outline' : 'card-outline')))"></ion-icon>
+                              </div>
+                              <label [for]="'input-tpe-name-' + terminal.id" class="sr-only">{{ 'SETTINGS.DEVICE_NAME' | transloco }}</label>
+                              <input
+                                type="text"
+                                [id]="'input-tpe-name-' + terminal.id"
+                                class="device-name-input"
+                                [value]="terminal.name"
+                                (input)="updateTpeTerminal(terminal.id, 'name', $any($event.target).value)"
+                                [placeholder]="'SETTINGS.DEVICE_NAME' | transloco"
+                                [attr.data-testid]="'input-tpe-name-' + terminal.id" />
+                            </div>
+                            <div class="device-header-controls">
+                              <ion-toggle
+                                [checked]="terminal.enabled"
+                                (ionChange)="updateTpeTerminal(terminal.id, 'enabled', $event.detail.checked)"
+                                [attr.data-testid]="'toggle-tpe-enabled-' + terminal.id">
+                              </ion-toggle>
+                              <button
+                                type="button"
+                                class="btn-delete-device"
+                                (click)="removeTpeTerminal(terminal.id)"
+                                [title]="'SETTINGS.DEVICE_ACTION_DELETE' | transloco"
+                                [attr.data-testid]="'btn-delete-tpe-' + terminal.id">
+                                <ion-icon name="trash-outline"></ion-icon>
+                              </button>
+                            </div>
+                          </div>
 
-                      <div class="form-section-title">{{ 'SETTINGS.KITCHEN_PRINTER_TITLE' | transloco }}</div>
-                      <div class="printer-row-flex">
-                        <div class="printer-input-grow">
-                          <app-input-field
-                            formControlName="kitchenPrinterIp"
-                            [label]="'SETTINGS.KITCHEN_PRINTER_IP' | transloco"
-                            [helperText]="'SETTINGS.KITCHEN_PRINTER_HINT' | transloco"
-                            placeholder="192.168.1.102"
-                            data-testid="input-kitchen-printer-ip">
-                          </app-input-field>
+                          <div class="device-card-body">
+                            <div class="device-form-row">
+                              <div class="field-item">
+                                <label [for]="'input-tpe-ip-' + terminal.id" class="custom-field-label">{{ 'SETTINGS.DEVICE_IP' | transloco }} *</label>
+                                <input
+                                  type="text"
+                                  [id]="'input-tpe-ip-' + terminal.id"
+                                  class="custom-text-input"
+                                  [value]="terminal.ip"
+                                  (input)="updateTpeTerminal(terminal.id, 'ip', $any($event.target).value)"
+                                  placeholder="192.168.1.150"
+                                  [attr.data-testid]="'input-tpe-ip-' + terminal.id" />
+                              </div>
+                              <div class="field-item field-port">
+                                <label [for]="'input-tpe-port-' + terminal.id" class="custom-field-label">{{ 'SETTINGS.DEVICE_PORT' | transloco }}</label>
+                                <input
+                                  type="number"
+                                  [id]="'input-tpe-port-' + terminal.id"
+                                  class="custom-text-input"
+                                  [value]="terminal.port"
+                                  (input)="updateTpeTerminal(terminal.id, 'port', +$any($event.target).value)"
+                                  placeholder="8888"
+                                  [attr.data-testid]="'input-tpe-port-' + terminal.id" />
+                              </div>
+                            </div>
+
+                            <div class="device-form-row">
+                              <div class="field-item">
+                                <label [for]="'select-tpe-role-' + terminal.id" class="custom-field-label">{{ 'SETTINGS.DEVICE_ROLE' | transloco }}</label>
+                                <select
+                                  [id]="'select-tpe-role-' + terminal.id"
+                                  class="custom-select-input"
+                                  [value]="terminal.role"
+                                  (change)="updateTpeTerminal(terminal.id, 'role', $any($event.target).value)"
+                                  [attr.data-testid]="'select-tpe-role-' + terminal.id">
+                                  @for (opt of tpeRoleOptions; track opt.value) {
+                                    <option [value]="opt.value">{{ opt.label }}</option>
+                                  }
+                                </select>
+                              </div>
+                              <div class="field-item field-terminal-id">
+                                <label [for]="'input-tpe-terminal-id-' + terminal.id" class="custom-field-label">{{ 'SETTINGS.TPE_TERMINAL_ID' | transloco }}</label>
+                                <input
+                                  type="text"
+                                  [id]="'input-tpe-terminal-id-' + terminal.id"
+                                  class="custom-text-input"
+                                  [value]="terminal.terminalId"
+                                  (input)="updateTpeTerminal(terminal.id, 'terminalId', $any($event.target).value)"
+                                  placeholder="01"
+                                  [attr.data-testid]="'input-tpe-terminal-id-' + terminal.id" />
+                              </div>
+                              <div class="field-item field-timeout">
+                                <label [for]="'input-tpe-timeout-' + terminal.id" class="custom-field-label">{{ 'SETTINGS.TPE_TIMEOUT' | transloco }}</label>
+                                <input
+                                  type="number"
+                                  [id]="'input-tpe-timeout-' + terminal.id"
+                                  class="custom-text-input"
+                                  [value]="terminal.timeoutSeconds"
+                                  (input)="updateTpeTerminal(terminal.id, 'timeoutSeconds', +$any($event.target).value)"
+                                  placeholder="45"
+                                  [attr.data-testid]="'input-tpe-timeout-' + terminal.id" />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="device-card-footer">
+                            <div class="diagnostic-pill">
+                              @if (tpeTestResults()[terminal.id]) {
+                                @if (tpeTestResults()[terminal.id].success) {
+                                  <span class="status-pill status-success">
+                                    <ion-icon name="checkmark-circle-outline"></ion-icon>
+                                    {{ 'SETTINGS.STATUS_CONNECTED' | transloco }}
+                                  </span>
+                                } @else {
+                                  <span class="status-pill status-error" [title]="tpeTestResults()[terminal.id].message">
+                                    <ion-icon name="alert-circle-outline"></ion-icon>
+                                    {{ 'SETTINGS.STATUS_ERROR' | transloco }}
+                                  </span>
+                                }
+                              } @else {
+                                <span class="status-pill status-neutral">
+                                  <span class="neutral-dot"></span>
+                                  {{ 'SETTINGS.STATUS_NOT_TESTED' | transloco }}
+                                </span>
+                              }
+                            </div>
+
+                            <button
+                              type="button"
+                              class="btn-test-action"
+                              [disabled]="!terminal.ip || isTestingTpe[terminal.id]"
+                              (click)="testConfiguredTpe(terminal)"
+                              [attr.data-testid]="'btn-test-tpe-' + terminal.id">
+                              @if (isTestingTpe[terminal.id]) {
+                                <ion-spinner name="crescent"></ion-spinner>
+                              } @else {
+                                <ion-icon name="card-outline"></ion-icon>
+                              }
+                              <span>{{ 'SETTINGS.TEST_TPE_BTN' | transloco }}</span>
+                            </button>
+                          </div>
                         </div>
-                        <div class="printer-action-btn-wrap">
-                          <app-action-button
-                            type="button"
-                            variant="secondary"
-                            [loading]="isTestingPrinter['KITCHEN']"
-                            [disabled]="!appSettingsForm.get('kitchenPrinterIp')?.value || isTestingPrinter['KITCHEN']"
-                            (btnClick)="testPrint('KITCHEN')"
-                            data-testid="btn-test-kitchen-printer">
-                            <ion-icon name="print-outline" slot="start"></ion-icon>
-                            {{ 'SETTINGS.TEST_PRINT_BTN' | transloco }}
-                          </app-action-button>
-                        </div>
-                      </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </ion-card-content>
+            </ion-card>
 
-                      <div class="form-section-title">{{ 'SETTINGS.CASH_DESK_PRINTER_TITLE' | transloco }}</div>
-                      <div class="printer-row-flex">
-                        <div class="printer-input-grow">
-                          <app-input-field
-                            formControlName="cashDeskPrinterIp"
-                            [label]="'SETTINGS.CASH_DESK_PRINTER_IP' | transloco"
-                            [helperText]="'SETTINGS.CASH_DESK_PRINTER_HINT' | transloco"
-                            placeholder="192.168.1.103"
-                            data-testid="input-cash-desk-printer-ip">
-                          </app-input-field>
-                        </div>
-                        <div class="printer-action-btn-wrap">
-                          <app-action-button
-                            type="button"
-                            variant="secondary"
-                            [loading]="isTestingPrinter['CASH_DESK']"
-                            [disabled]="!appSettingsForm.get('cashDeskPrinterIp')?.value || isTestingPrinter['CASH_DESK']"
-                            (btnClick)="testPrint('CASH_DESK')"
-                            data-testid="btn-test-cash-desk-printer">
-                            <ion-icon name="print-outline" slot="start"></ion-icon>
-                            {{ 'SETTINGS.TEST_PRINT_BTN' | transloco }}
-                          </app-action-button>
-                        </div>
-                      </div>
-
-                    </ion-card-content>
-                  </ion-card>
-                </ion-col>
-
-                <!-- Colonne Droite: Tiroir-caisse & Diagnostic / Aide -->
-                <ion-col size="12" sizeLg="5">
-                  <ion-card class="settings-card">
-                    <ion-card-header>
-                      <ion-card-title class="card-title">
-                        <ion-icon name="hardware-chip-outline" class="title-icon"></ion-icon>
-                        {{ 'SETTINGS.TEST_DRAWER_TITLE' | transloco }}
-                      </ion-card-title>
-                    </ion-card-header>
-                    <ion-card-content>
-                      <p class="field-hint">
-                        {{ 'SETTINGS.PRINTER_ONLINE_HINT' | transloco }}
-                      </p>
-
-                      <div class="drawer-test-box">
-                        <app-action-button
-                          type="button"
-                          variant="primary"
-                          [loading]="isTestingPrinter['drawer']"
-                          [disabled]="!appSettingsForm.get('cashDeskPrinterIp')?.value || isTestingPrinter['drawer']"
-                          (btnClick)="testCashDrawer()"
-                          data-testid="btn-test-cash-drawer">
-                          <ion-icon name="hardware-chip-outline" slot="start"></ion-icon>
-                          {{ 'SETTINGS.TEST_DRAWER_BTN' | transloco }}
-                        </app-action-button>
-                      </div>
-                    </ion-card-content>
-                  </ion-card>
-                </ion-col>
-              </ion-row>
-            </ion-grid>
           </form>
         </section>
       }

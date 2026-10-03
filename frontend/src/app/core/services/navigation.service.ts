@@ -77,11 +77,11 @@ export class NavigationService {
           this.store.select(selectIsAdmin).pipe(
             take(1),
             map(() => {
-              this.router.navigate(['/app-home']).then();
+              void this.router.navigate(['/app-home']);
             })
           ).subscribe();
         } else {
-          this.router.navigate(['/auth/login']).then();
+          void this.router.navigate(['/auth/login']);
         }
       })
     ).subscribe();
@@ -91,14 +91,24 @@ export class NavigationService {
    * Navigates to the authentication login view.
    */
   navigateToLogin(): void {
-    this.router.navigate(['/auth/login']).then();
+    this.ngZone.run(() => {
+      this.router.navigate(['/auth/login']).then(navigated => {
+        if (!navigated && typeof window !== 'undefined' && !window.location.pathname.includes('/auth/login')) {
+          window.location.href = '/auth/login';
+        }
+      }).catch(() => {
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/auth/login')) {
+          window.location.href = '/auth/login';
+        }
+      });
+    });
   }
 
   /**
    * Navigates to the user registration view.
    */
   navigateToRegister(): void {
-    this.router.navigate(['/auth/register']).then();
+    void this.router.navigate(['/auth/register']);
   }
 
   /**
@@ -109,9 +119,9 @@ export class NavigationService {
       take(1),
       map(isAdmin => {
         if (isAdmin) {
-          this.router.navigate(['/admin']).then();
+          void this.router.navigate(['/admin']);
         } else {
-          this.router.navigate(['/app-home']).then();
+          void this.router.navigate(['/app-home']);
         }
       })
     ).subscribe();
@@ -125,9 +135,9 @@ export class NavigationService {
       take(1),
       map(isAuthenticated => {
         if (isAuthenticated) {
-          this.router.navigate(['/profile']).then();
+          void this.router.navigate(['/profile']);
         } else {
-          this.router.navigate(['/auth/login']).then();
+          void this.router.navigate(['/auth/login']);
         }
       })
     ).subscribe();

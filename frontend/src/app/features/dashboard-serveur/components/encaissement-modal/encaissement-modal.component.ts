@@ -1,12 +1,12 @@
-import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, OnInit, OnDestroy, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonContent, IonSpinner, IonBadge, IonSegment, IonSegmentButton,
-  IonItem, IonLabel, IonInput, IonCheckbox, IonProgressBar,
+  IonItem, IonLabel, IonInput, IonProgressBar,
   ModalController, ToastController
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -14,11 +14,15 @@ import {
   closeOutline, cardOutline, cashOutline, walletOutline, printOutline,
   downloadOutline, peopleOutline, restaurantOutline, checkmarkCircleOutline,
   timeOutline, addOutline, removeOutline, pricetagOutline, receiptOutline,
-  heartOutline, alertCircleOutline, refreshOutline, documentTextOutline
+  heartOutline, alertCircleOutline, refreshOutline, documentTextOutline,
+  arrowBackOutline, pieChartOutline, personOutline, trashOutline,
+  arrowDownCircleOutline, calculatorOutline, sparklesOutline, listOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 import { AppSettingsService } from '../../../../core/services/app-settings.service';
+import { DiscountTier } from '../../../../core/models/app-settings.model';
+import { CheckboxFieldComponent } from '../../../../core/components/ui/checkbox-field/checkbox-field.component';
 import { TableView } from '../../models/table-view.model';
 import {
   DashboardServeurService,
@@ -27,25 +31,46 @@ import {
   EncaissementRequest
 } from '../../services/dashboard-serveur.service';
 import { FactureService, SplitResultDTO } from '../../../factures/services/facture.service';
-import { ReglementModalComponent, ReglementModalResult } from '../../../factures/reglement-modal/reglement-modal.component';
 import { Facture } from '../../../factures/models/facture.model';
 import { environment } from '../../../../../environments/environment';
+import { BarTab } from '../../../../core/models/bar-tab.model';
+import { BarTabService } from '../../../../core/services/bar-tab.service';
+import { PaymentTerminalService } from '../../../../core/services/payment-terminal.service';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
+import { TpePaymentRequestDTO, TpePaymentResponseDTO, TpeTerminalRole } from '../../../../core/models/tpe.model';
 
 /**
  * Encaissement and table payment modal component for server and manager dashboards.
  * Supports complete bill breakdown, single payment with cash calculator and tip/discount,
- * equal and item-based split payment workflows, thermal receipt printing, and PDF download.
+ * equal, custom amount, custom percentage, and item-based split payment workflows,
+ * thermal receipt printing, and PDF download.
  */
+/** Available tip selection modes */
+export type EncaissementTipMode = 'none' | '5pct' | '10pct' | '15pct' | 'custom' | 'custom_percent';
+
+/** Available discount selection modes */
+export type EncaissementDiscountMode = 'none' | 'percent' | 'fixed';
+
+/** Available split modes */
+export type EncaissementSplitMode = 'egal' | 'libre' | 'pourcentage' | 'selection';
+
+/** Main encaissement tabs */
+export type EncaissementTab = 'single' | 'split';
+
 @Component({
   selector: 'app-encaissement-modal',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, AppCurrencyPipe, TranslocoModule,
+    DatePipe,
+    FormsModule,
+    AppCurrencyPipe,
+    TranslocoModule,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonContent, IonSpinner, IonBadge, IonSegment, IonSegmentButton,
-    IonItem, IonLabel, IonInput, IonCheckbox, IonProgressBar
+    IonItem, IonLabel, IonInput, IonProgressBar, CheckboxFieldComponent
   ],
   templateUrl: './encaissement-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./encaissement-modal.component.scss']
 })
 export class EncaissementModalComponent implements OnInit, OnDestroy {
@@ -55,8 +80,14 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
     return this.appSettingsService.currencySymbol;
   }
 
-  /** The target table to settle */
-  @Input({ required: true }) table!: TableView;
+  /** The target table to settle (if settling a table) */
+  @Input() table?: TableView;
+
+  /** The target bar tab to settle (if settling a bar tab) */
+  @Input() tab?: BarTab;
+
+  /** Starting payment tab ('single' | 'split') */
+  @Input() initialTab: EncaissementTab = 'single';
 
   /** Active addition data loaded from backend */
   addition: TableAdditionResponse | null = null;
@@ -65,49 +96,146 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   errorMessage: string | null = null;
 
   /** Main payment mode: single payment vs split payment */
-  paymentTab: 'single' | 'split' = 'single';
+  paymentTab: EncaissementTab = 'single';
 
   // --- Mode Paiement Unique ---
   modePaiement: string = 'CARTE';
-  tipMode: 'none' | '5pct' | '10pct' | 'custom' = 'none';
+  tipMode: EncaissementTipMode = 'none';
   customTip = 0;
-  discountMode: 'none' | 'percent' | 'fixed' = 'none';
+  customTipPercent = 0;
+  discountMode: EncaissementDiscountMode = 'none';
   discountPercent = 0;
   discountFixed = 0;
+  selectedTierId: string | null = null;
+  discountTiers: DiscountTier[] = [];
   montantRecu: number | null = null;
   libererTable = true;
   notes = '';
 
   // --- Mode Division / Split ---
-  splitMode: 'egal' | 'selection' = 'egal';
+  splitMode: EncaissementSplitMode = 'egal';
+  readonly guestPresets = [2, 3, 4, 5, 6];
   nombreConvives = 2;
   convives: { nom: string }[] = [{ nom: '' }, { nom: '' }];
-  itemAssignments: { [itemId: number]: number } = {};
+  /** Map storing guest index assigned to each unit key (e.g. "101_0", "101_1"). */
+  unitAssignments: { [unitKey: string]: number } = {};
+
+  /** Compatibility accessor for legacy tests and bindings. */
+  get itemAssignments(): { [itemId: number]: number } {
+    const map: { [itemId: number]: number } = {};
+    if (this.addition?.items) {
+      for (const item of this.addition.items) {
+        if (this.unitAssignments[`${item.itemId}_0`] !== undefined) {
+          map[item.itemId] = this.unitAssignments[`${item.itemId}_0`];
+        }
+      }
+    }
+    return map;
+  }
+  set itemAssignments(val: { [itemId: number]: number }) {
+    if (val && this.addition?.items) {
+      Object.keys(val).forEach(id => {
+        const itemId = +id;
+        const gIdx = val[itemId];
+        const item = this.addition?.items?.find(i => i.itemId === itemId);
+        const qte = item?.quantite || 1;
+        for (let u = 0; u < qte; u++) {
+          this.unitAssignments[`${itemId}_${u}`] = gIdx;
+        }
+      });
+    }
+  }
+
+  get guests(): { name: string }[] {
+    return this.convives.map(c => ({ name: c.nom }));
+  }
+  set guests(val: { name: string }[]) {
+    this.convives = val.map(g => ({ nom: g.name }));
+  }
+
   splitResults: SplitResultDTO[] = [];
   isLoadingSplit = false;
   splitError: string | null = null;
-  partStates: { [guestIndex: number]: { reglee: boolean; modePaiement: string; pourboire?: number; totalPaid: number } } = {};
+  partStates: {
+    [guestIndex: number]: {
+      reglee: boolean;
+      modePaiement: string;
+      pourboire?: number;
+      totalPaid: number;
+      tpeAutorisation?: string;
+      tpeTerminalId?: string;
+      tpeCardBrand?: string;
+      tpeMaskedPan?: string;
+      tpeSequence?: string;
+    };
+  } = {};
+
+  // Part settling state (in-modal settlement)
+  settlingPartIndex: number | null = null;
+  settlingPart: SplitResultDTO | null = null;
+  partPaymentMode: string = 'CARTE';
+  partTipMode: EncaissementTipMode = 'none';
+  partCustomTip = 0;
+  partCustomTipPercent = 0;
+  partDiscountMode: EncaissementDiscountMode = 'none';
+  partDiscountPercent = 0;
+  partDiscountFixed = 0;
+  partSelectedTierId: string | null = null;
+  partMontantRecu: number | null = null;
+
+  // Prix libre
+  customAmountGuests: { nom: string; montant: number | null }[] = [
+    { nom: '', montant: null },
+    { nom: '', montant: null }
+  ];
+
+  // Pourcentage
+  customPercentageGuests: { nom: string; pourcentage: number | null }[] = [
+    { nom: '', pourcentage: null },
+    { nom: '', pourcentage: null }
+  ];
 
   /** Generated invoice once settled */
   settledFacture: Facture | null = null;
 
   private readonly dashboardService = inject(DashboardServeurService);
   private readonly factureService = inject(FactureService);
+  private readonly barTabService = inject(BarTabService, { optional: true });
+  private readonly paymentTerminalService = inject(PaymentTerminalService);
+  private readonly featureFlagService = inject(FeatureFlagService);
   private readonly modalCtrl = inject(ModalController);
   private readonly toastCtrl = inject(ToastController);
   private readonly transloco = inject(TranslocoService);
   private readonly destroy$ = new Subject<void>();
 
+  readonly paymentTerminalEnabled = this.featureFlagService.paymentTerminalEnabled;
+  readonly activeTpeTransaction = signal<TpePaymentResponseDTO | null>(null);
+  readonly isTpeProcessing = signal<boolean>(false);
+  readonly tpeErrorMessage = signal<string | null>(null);
+  readonly preferredTpeRole = signal<TpeTerminalRole>(this.paymentTerminalService.preferredRole);
+  tpeMetadata: {
+    tpeAutorisation?: string;
+    tpeTerminalId?: string;
+    tpeCardBrand?: string;
+    tpeMaskedPan?: string;
+    tpeSequence?: string;
+  } = {};
+
   constructor() {
+    this.discountTiers = this.appSettingsService.getDiscountTiers();
     addIcons({
       closeOutline, cardOutline, cashOutline, walletOutline, printOutline,
       downloadOutline, peopleOutline, restaurantOutline, checkmarkCircleOutline,
       timeOutline, addOutline, removeOutline, pricetagOutline, receiptOutline,
-      heartOutline, alertCircleOutline, refreshOutline, documentTextOutline
+      heartOutline, alertCircleOutline, refreshOutline, documentTextOutline,
+      arrowBackOutline, pieChartOutline, personOutline, trashOutline,
+      arrowDownCircleOutline, calculatorOutline, sparklesOutline, listOutline
     });
   }
 
   ngOnInit(): void {
+    this.paymentTab = this.initialTab || 'single';
+    this.discountTiers = this.appSettingsService.getDiscountTiers();
     this.chargerAddition();
   }
 
@@ -122,15 +250,31 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   chargerAddition(): void {
     this.isLoading = true;
     this.errorMessage = null;
-    this.dashboardService.getTableAddition(this.table.id)
+
+    let addition$: Observable<TableAdditionResponse> | null = null;
+    if (this.tab && this.barTabService) {
+      addition$ = this.barTabService.getTabAddition(this.tab.id);
+    } else if (this.table) {
+      addition$ = this.dashboardService.getTableAddition(this.table.id);
+    }
+
+    if (!addition$) {
+      this.isLoading = false;
+      return;
+    }
+
+    addition$
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => (this.isLoading = false))
       )
       .subscribe({
-        next: data => {
+        next: (data: TableAdditionResponse) => {
           this.addition = data;
           this.montantRecu = null;
+          if (this.paymentTab === 'split' && this.splitResults.length === 0) {
+            this.calculerSplitEgal();
+          }
         },
         error: () => {
           this.errorMessage = this.transloco.translate('ENCAISSEMENT.ERROR_LOADING_BILL');
@@ -173,6 +317,10 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
         return Math.round(this.netTotalBeforeTip * 0.05 * 100) / 100;
       case '10pct':
         return Math.round(this.netTotalBeforeTip * 0.10 * 100) / 100;
+      case '15pct':
+        return Math.round(this.netTotalBeforeTip * 0.15 * 100) / 100;
+      case 'custom_percent':
+        return Math.round(this.netTotalBeforeTip * (this.customTipPercent || 0) / 100 * 100) / 100;
       case 'custom':
         return Math.max(0, this.customTip || 0);
       case 'none':
@@ -183,6 +331,128 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
 
   get totalNetAPayer(): number {
     return Math.round((this.netTotalBeforeTip + this.pourboire) * 100) / 100;
+  }
+
+  get discountLabel(): string {
+    if (this.selectedTierId) {
+      const tier = this.discountTiers.find(t => t.id === this.selectedTierId);
+      if (tier) {
+        return `${tier.label} (-${tier.value}${tier.type === 'percent' ? '%' : this.currencySymbol})`;
+      }
+    }
+    if (this.discountMode === 'percent' && this.discountPercent > 0) {
+      return `-${this.discountPercent}%`;
+    }
+    if (this.discountMode === 'fixed' && this.discountFixed > 0) {
+      return `-${this.discountFixed} ${this.currencySymbol}`;
+    }
+    return '';
+  }
+
+  get tipLabel(): string {
+    switch (this.tipMode) {
+      case '5pct':
+        return '+5%';
+      case '10pct':
+        return '+10%';
+      case '15pct':
+        return '+15%';
+      case 'custom_percent':
+        return `+${this.customTipPercent || 0}%`;
+      case 'custom':
+        return `+${this.customTip || 0} ${this.currencySymbol}`;
+      default:
+        return '';
+    }
+  }
+
+  // --- Financial Calculations (Part Settlement) ---
+
+  get partSubTotal(): number {
+    return this.settlingPart?.sousTotal || 0;
+  }
+
+  get partDiscountAmount(): number {
+    if (this.partDiscountMode === 'percent') {
+      const pct = Math.max(0, Math.min(100, this.partDiscountPercent || 0));
+      return Math.round((this.partSubTotal * pct / 100) * 100) / 100;
+    }
+    if (this.partDiscountMode === 'fixed') {
+      return Math.min(this.partSubTotal, Math.max(0, this.partDiscountFixed || 0));
+    }
+    return 0;
+  }
+
+  get partDiscountLabel(): string {
+    if (this.partSelectedTierId) {
+      const tier = this.discountTiers.find(t => t.id === this.partSelectedTierId);
+      if (tier) {
+        return `${tier.label} (-${tier.value}${tier.type === 'percent' ? '%' : this.currencySymbol})`;
+      }
+    }
+    if (this.partDiscountMode === 'percent' && this.partDiscountPercent > 0) {
+      return `-${this.partDiscountPercent}%`;
+    }
+    if (this.partDiscountMode === 'fixed' && this.partDiscountFixed > 0) {
+      return `-${this.partDiscountFixed} ${this.currencySymbol}`;
+    }
+    return '';
+  }
+
+  get partNetBeforeTip(): number {
+    return Math.max(0, Math.round((this.partSubTotal - this.partDiscountAmount) * 100) / 100);
+  }
+
+  get partPourboire(): number {
+    switch (this.partTipMode) {
+      case '5pct':
+        return Math.round(this.partNetBeforeTip * 0.05 * 100) / 100;
+      case '10pct':
+        return Math.round(this.partNetBeforeTip * 0.10 * 100) / 100;
+      case '15pct':
+        return Math.round(this.partNetBeforeTip * 0.15 * 100) / 100;
+      case 'custom_percent':
+        return Math.round(this.partNetBeforeTip * (this.partCustomTipPercent || 0) / 100 * 100) / 100;
+      case 'custom':
+        return Math.max(0, this.partCustomTip || 0);
+      default:
+        return 0;
+    }
+  }
+
+  get partTipLabel(): string {
+    switch (this.partTipMode) {
+      case '5pct':
+        return '+5%';
+      case '10pct':
+        return '+10%';
+      case '15pct':
+        return '+15%';
+      case 'custom_percent':
+        return `+${this.partCustomTipPercent || 0}%`;
+      case 'custom':
+        return `+${this.partCustomTip || 0} ${this.currencySymbol}`;
+      default:
+        return '';
+    }
+  }
+
+  get partTotalNetAPayer(): number {
+    return Math.round((this.partNetBeforeTip + this.partPourboire) * 100) / 100;
+  }
+
+  get partMonnaieARendre(): number {
+    if (this.partPaymentMode !== 'ESPECES' || !this.partMontantRecu) {
+      return 0;
+    }
+    return Math.max(0, Math.round((this.partMontantRecu - this.partTotalNetAPayer) * 100) / 100);
+  }
+
+  get isPartMontantRecuSuffisant(): boolean {
+    if (this.partPaymentMode !== 'ESPECES') {
+      return true;
+    }
+    return (this.partMontantRecu || 0) >= this.partTotalNetAPayer;
   }
 
   get monnaieARendre(): number {
@@ -325,19 +595,192 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
     this.definirMontantRecu(this.totalNetAPayer);
   }
 
-  setTipMode(mode: 'none' | '5pct' | '10pct' | 'custom'): void {
+  setTipMode(mode: EncaissementTipMode): void {
     this.tipMode = mode;
     if (mode !== 'custom') {
       this.customTip = 0;
     }
+    if (mode !== 'custom_percent') {
+      this.customTipPercent = 0;
+    }
   }
 
-  setDiscountMode(mode: 'none' | 'percent' | 'fixed'): void {
+  setPartTipMode(mode: EncaissementTipMode): void {
+    this.partTipMode = mode;
+    if (mode !== 'custom') {
+      this.partCustomTip = 0;
+    }
+    if (mode !== 'custom_percent') {
+      this.partCustomTipPercent = 0;
+    }
+  }
+
+  applyDiscountTier(tier: DiscountTier): void {
+    this.selectedTierId = tier.id;
+    if (tier.type === 'percent') {
+      this.discountMode = 'percent';
+      this.discountPercent = tier.value;
+      this.discountFixed = 0;
+    } else {
+      this.discountMode = 'fixed';
+      this.discountFixed = tier.value;
+      this.discountPercent = 0;
+    }
+  }
+
+  applyPartDiscountTier(tier: DiscountTier): void {
+    this.partSelectedTierId = tier.id;
+    if (tier.type === 'percent') {
+      this.partDiscountMode = 'percent';
+      this.partDiscountPercent = tier.value;
+      this.partDiscountFixed = 0;
+    } else {
+      this.partDiscountMode = 'fixed';
+      this.partDiscountFixed = tier.value;
+      this.partDiscountPercent = 0;
+    }
+  }
+
+  setDiscountMode(mode: EncaissementDiscountMode): void {
     this.discountMode = mode;
+    this.selectedTierId = null;
     if (mode === 'none') {
       this.discountPercent = 0;
       this.discountFixed = 0;
     }
+  }
+
+  setPartDiscountMode(mode: EncaissementDiscountMode): void {
+    this.partDiscountMode = mode;
+    this.partSelectedTierId = null;
+    if (mode === 'none') {
+      this.partDiscountPercent = 0;
+      this.partDiscountFixed = 0;
+    }
+  }
+
+  definirPartMontantRecu(montant: number): void {
+    this.partMontantRecu = Math.round(montant * 100) / 100;
+  }
+
+  definirPartMontantExact(): void {
+    this.definirPartMontantRecu(this.partTotalNetAPayer);
+  }
+
+  ajouterPartEspeces(montant: number): void {
+    const current = this.partMontantRecu || 0;
+    this.partMontantRecu = Math.round((current + montant) * 100) / 100;
+  }
+
+  get partBilletSuggestions(): number[] {
+    const total = this.partTotalNetAPayer;
+    if (total <= 0) return [];
+    const allBills = this.appSettingsService.getCashDenominations()
+      .filter(d => d.type === 'bill')
+      .map(d => d.value);
+    const standardBills = allBills.length > 0 ? allBills : [5, 10, 20, 50, 100];
+    const larger = standardBills.filter(b => b > total).sort((a, b) => a - b);
+    return larger.slice(0, 3);
+  }
+
+  // --- Payment Terminal (TPE) Integration ---
+
+  /**
+   * Updates preferred TPE station routing role.
+   *
+   * @param role Target TPE station role (BAR or FLOOR)
+   */
+  setPreferredTpeRole(role: TpeTerminalRole): void {
+    this.paymentTerminalService.preferredRole = role;
+    this.preferredTpeRole.set(role);
+  }
+
+  /**
+   * Initiates payment on network payment terminal (TPE) via Concert IP protocol.
+   *
+   * @param isPart Whether the transaction is for a split part or the single bill
+   */
+  envoyerAuTpe(isPart: boolean = false): void {
+    if (this.isTpeProcessing()) return;
+
+    const amount = isPart ? this.partTotalNetAPayer : this.totalNetAPayer;
+    if (amount <= 0) return;
+
+    this.isTpeProcessing.set(true);
+    this.tpeErrorMessage.set(null);
+
+    const targetRole = this.preferredTpeRole();
+    const req: TpePaymentRequestDTO = {
+      amount: Math.round(amount * 100) / 100,
+      targetRole: targetRole,
+      tableNumber: this.table?.nom || (this.tab?.nom ?? 'Bar'),
+      invoiceId: this.addition?.existingFactureId,
+    };
+
+    this.paymentTerminalService.initiatePayment(req)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (initialRes) => {
+          this.activeTpeTransaction.set(initialRes);
+          if (initialRes.status === 'APPROVED') {
+            this.handleTpeApproved(initialRes, isPart);
+            return;
+          }
+          if (['DECLINED', 'CANCELLED', 'FAILED', 'TIMEOUT'].includes(initialRes.status)) {
+            this.isTpeProcessing.set(false);
+            this.tpeErrorMessage.set(initialRes.message || this.transloco.translate('TPE.TRANSACTION_FAILED'));
+            return;
+          }
+
+          // Listen for asynchronous STOMP WebSocket broadcast updates
+          this.paymentTerminalService.watchPayment(initialRes.transactionId)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((updated: TpePaymentResponseDTO) => {
+              this.activeTpeTransaction.set(updated);
+              if (updated.status === 'APPROVED') {
+                this.handleTpeApproved(updated, isPart);
+              } else if (['DECLINED', 'CANCELLED', 'FAILED', 'TIMEOUT'].includes(updated.status)) {
+                this.isTpeProcessing.set(false);
+                this.tpeErrorMessage.set(updated.message || this.transloco.translate('TPE.TRANSACTION_FAILED'));
+              }
+            });
+        },
+        error: (err) => {
+          this.isTpeProcessing.set(false);
+          const msg = err?.error?.message || err?.message || this.transloco.translate('TPE.TRANSACTION_FAILED');
+          this.tpeErrorMessage.set(msg);
+        }
+      });
+  }
+
+  private handleTpeApproved(res: TpePaymentResponseDTO, isPart: boolean): void {
+    this.isTpeProcessing.set(false);
+    this.tpeMetadata = {
+      tpeAutorisation: res.authorizationCode,
+      tpeTerminalId: res.terminalId,
+      tpeCardBrand: res.cardBrand,
+      tpeMaskedPan: res.maskedPan,
+      tpeSequence: res.sequenceNumber
+    };
+    if (isPart) {
+      void this.validerReglementPart();
+    } else {
+      this.validerEncaissement();
+    }
+  }
+
+  /**
+   * Cancels active TPE payment transaction on the physical terminal.
+   */
+  annulerTpe(): void {
+    const tx = this.activeTpeTransaction();
+    if (tx?.transactionId) {
+      this.paymentTerminalService.cancelPayment(tx.transactionId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe();
+    }
+    this.isTpeProcessing.set(false);
+    this.activeTpeTransaction.set(null);
   }
 
   // --- Settlement Submission ---
@@ -361,29 +804,48 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
       montantRecu: this.modePaiement === 'ESPECES' && this.montantRecu ? this.montantRecu : undefined,
       notes: this.notes.trim() || undefined,
       libererTable: this.libererTable,
-      commandeIds: this.addition.commandeIds
+      commandeIds: this.addition.commandeIds,
+      tpeAutorisation: this.tpeMetadata.tpeAutorisation,
+      tpeTerminalId: this.tpeMetadata.tpeTerminalId,
+      tpeCardBrand: this.tpeMetadata.tpeCardBrand,
+      tpeMaskedPan: this.tpeMetadata.tpeMaskedPan,
+      tpeSequence: this.tpeMetadata.tpeSequence
     };
+    this.tpeMetadata = {};
 
-    this.dashboardService.encaisserTable(this.table.id, req)
+    let settlement$: Observable<Facture> | null = null;
+    if (this.tab && this.barTabService) {
+      settlement$ = this.barTabService.encaisserTab(this.tab.id, req);
+    } else if (this.table) {
+      settlement$ = this.dashboardService.encaisserTable(this.table.id, req);
+    }
+
+    if (!settlement$) {
+      this.isSubmitting = false;
+      return;
+    }
+
+    settlement$
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => (this.isSubmitting = false))
       )
       .subscribe({
-        next: async (facture) => {
+        next: async (facture: Facture) => {
           this.settledFacture = facture;
+          const targetName = this.tab ? this.tab.nom : (this.table?.nom || `Table ${this.table?.id}`);
           const toast = await this.toastCtrl.create({
             message: this.transloco.translate('ENCAISSEMENT.SUCCESS_TOAST', {
               numero: facture.numero,
-              table: this.table.nom || this.table.id
+              table: targetName
             }),
             duration: 3000,
             color: 'success'
           });
           await toast.present();
-          this.modalCtrl.dismiss({ action: 'settled', facture });
+          await this.modalCtrl.dismiss({ action: 'settled', facture });
         },
-        error: async (err) => {
+        error: async (err: { error?: { message?: string } }) => {
           const msg = err?.error?.message || this.transloco.translate('ENCAISSEMENT.ERROR_SETTLEMENT');
           const toast = await this.toastCtrl.create({
             message: msg,
@@ -395,10 +857,28 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * Handles payment tab switching: stays within modal and calculates split if needed.
+   *
+   * @param tab Target payment mode tab ('single' | 'split')
+   */
+  onPaymentTabChange(tab: 'single' | 'split'): void {
+    this.paymentTab = tab;
+    if (tab === 'split' && this.splitResults.length === 0 && this.addition) {
+      this.calculerSplitEgal();
+    }
+  }
+
   // --- Split Addition Mode ---
+
+  definirNombreConvives(count: number): void {
+    this.nombreConvives = count;
+    this.calculerSplitEgal();
+  }
 
   ajusterConvives(delta: number): void {
     this.nombreConvives = Math.max(2, Math.min(20, this.nombreConvives + delta));
+    this.calculerSplitEgal();
   }
 
   addConvive(): void {
@@ -409,18 +889,24 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
 
   removeConvive(index: number): void {
     this.convives.splice(index, 1);
-    Object.keys(this.itemAssignments).forEach(id => {
-      const itemId = +id;
-      if (this.itemAssignments[itemId] === index) {
-        delete this.itemAssignments[itemId];
-      } else if (this.itemAssignments[itemId] > index) {
-        this.itemAssignments[itemId]--;
+    Object.keys(this.unitAssignments).forEach(key => {
+      if (this.unitAssignments[key] === index) {
+        delete this.unitAssignments[key];
+      } else if (this.unitAssignments[key] > index) {
+        this.unitAssignments[key]--;
       }
     });
   }
 
   conviveNom(index: number): string {
-    return this.convives[index]?.nom?.trim() || `Convive ${index + 1}`;
+    const custom = this.convives[index]?.nom?.trim();
+    if (custom) return custom;
+    const translated = this.transloco.translate('SPLIT.GUEST_PLACEHOLDER', { number: index + 1 });
+    return (translated && !translated.startsWith('SPLIT.')) ? translated : `Convive ${index + 1}`;
+  }
+
+  getGuestName(index: number): string {
+    return this.conviveNom(index);
   }
 
   calculerSplitEgal(): void {
@@ -447,31 +933,310 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
     this.isLoadingSplit = false;
   }
 
+  // ─── Mode Prix Libre ────────────────────────────────────────────────────────
+  addCustomAmountGuest(): void {
+    if (this.customAmountGuests.length < 20) {
+      this.customAmountGuests.push({ nom: '', montant: null });
+    }
+  }
+
+  removeCustomAmountGuest(index: number): void {
+    if (this.customAmountGuests.length > 2) {
+      this.customAmountGuests.splice(index, 1);
+    }
+  }
+
+  getCustomAmountGuestNom(index: number): string {
+    return this.customAmountGuests[index]?.nom?.trim() || `Convive ${index + 1}`;
+  }
+
+  get totalCustomAmountAllocated(): number {
+    return Math.round(this.customAmountGuests.reduce((sum, g) => sum + (Number(g.montant) || 0), 0) * 100) / 100;
+  }
+
+  get customAmountRemainder(): number {
+    return Math.round((this.subTotalTTC - this.totalCustomAmountAllocated) * 100) / 100;
+  }
+
+  get isCustomAmountValid(): boolean {
+    return Math.abs(this.customAmountRemainder) <= 0.05 &&
+      this.customAmountGuests.length >= 2 &&
+      this.customAmountGuests.every(g => (Number(g.montant) || 0) > 0);
+  }
+
+  assignRemainingToGuest(index: number): void {
+    const otherSum = this.customAmountGuests.reduce((sum, g, i) => i === index ? sum : sum + (Number(g.montant) || 0), 0);
+    const remainder = Math.max(0, Math.round((this.subTotalTTC - otherSum) * 100) / 100);
+    this.customAmountGuests[index].montant = remainder;
+  }
+
+  calculerSplitLibre(): void {
+    if (!this.isCustomAmountValid) return;
+    this.isLoadingSplit = true;
+    this.splitError = null;
+    this.partStates = {};
+
+    this.splitResults = this.customAmountGuests.map((g, i) => ({
+      factureId: this.addition?.existingFactureId || 0,
+      nomConvive: this.getCustomAmountGuestNom(i),
+      items: [],
+      sousTotal: Number(g.montant) || 0,
+      totalAvecPourboire: Number(g.montant) || 0
+    }));
+    this.isLoadingSplit = false;
+  }
+
+  // ─── Mode Pourcentage ────────────────────────────────────────────────────────
+  addCustomPercentageGuest(): void {
+    if (this.customPercentageGuests.length < 20) {
+      this.customPercentageGuests.push({ nom: '', pourcentage: null });
+    }
+  }
+
+  removeCustomPercentageGuest(index: number): void {
+    if (this.customPercentageGuests.length > 2) {
+      this.customPercentageGuests.splice(index, 1);
+    }
+  }
+
+  getCustomPercentageGuestNom(index: number): string {
+    return this.customPercentageGuests[index]?.nom?.trim() || `Convive ${index + 1}`;
+  }
+
+  get totalCustomPercentage(): number {
+    return Math.round(this.customPercentageGuests.reduce((sum, g) => sum + (Number(g.pourcentage) || 0), 0) * 100) / 100;
+  }
+
+  get customPercentageRemainder(): number {
+    return Math.round((100 - this.totalCustomPercentage) * 100) / 100;
+  }
+
+  get isCustomPercentageValid(): boolean {
+    return Math.abs(this.customPercentageRemainder) <= 0.05 &&
+      this.customPercentageGuests.length >= 2 &&
+      this.customPercentageGuests.every(g => (Number(g.pourcentage) || 0) > 0);
+  }
+
+  distributePercentagesEqually(): void {
+    const count = this.customPercentageGuests.length;
+    if (count === 0) return;
+    const basePct = Math.floor((100 / count) * 100) / 100;
+    let sum = 0;
+    for (let i = 0; i < count - 1; i++) {
+      this.customPercentageGuests[i].pourcentage = basePct;
+      sum += basePct;
+    }
+    this.customPercentageGuests[count - 1].pourcentage = Math.round((100 - sum) * 100) / 100;
+  }
+
+  assignRemainingPercentageToGuest(index: number): void {
+    const otherSum = this.customPercentageGuests.reduce((sum, g, i) => i === index ? sum : sum + (Number(g.pourcentage) || 0), 0);
+    this.customPercentageGuests[index].pourcentage = Math.max(0, Math.round((100 - otherSum) * 100) / 100);
+  }
+
+  calculerSplitPourcentage(): void {
+    if (!this.isCustomPercentageValid) return;
+    this.isLoadingSplit = true;
+    this.splitError = null;
+    this.partStates = {};
+
+    this.splitResults = this.customPercentageGuests.map((g, i) => {
+      const pct = Number(g.pourcentage) || 0;
+      const part = Math.round((this.subTotalTTC * pct / 100) * 100) / 100;
+      return {
+        factureId: this.addition?.existingFactureId || 0,
+        nomConvive: `${this.getCustomPercentageGuestNom(i)} (${pct}%)`,
+        items: [],
+        sousTotal: part,
+        totalAvecPourboire: part
+      };
+    });
+    this.isLoadingSplit = false;
+  }
+
+  get splitUnits(): { key: string; itemId: number; description: string; unitIndex: number; totalUnits: number; unitLabel: string; prixUnitaire: number }[] {
+    if (!this.addition?.items) return [];
+    const units: { key: string; itemId: number; description: string; unitIndex: number; totalUnits: number; unitLabel: string; prixUnitaire: number }[] = [];
+    for (const item of this.addition.items) {
+      const qte = item.quantite || 1;
+      const desc = item.cocktailNom + (item.varianteNom ? ` (${item.varianteNom})` : '');
+      for (let u = 0; u < qte; u++) {
+        units.push({
+          key: `${item.itemId}_${u}`,
+          itemId: item.itemId,
+          description: desc,
+          unitIndex: u,
+          totalUnits: qte,
+          unitLabel: qte > 1 ? `${desc} (${u + 1}/${qte})` : desc,
+          prixUnitaire: item.prixUnitaire
+        });
+      }
+    }
+    return units;
+  }
+
+  get allItemsAssigned(): boolean {
+    const units = this.splitUnits;
+    if (!units.length) return false;
+    return units.every(u => this.unitAssignments[u.key] !== undefined);
+  }
+
+  get tousItemsAssignes(): boolean {
+    return this.allItemsAssigned;
+  }
+
+  getUnassignedCount(itemId: number): number {
+    const units = this.splitUnits.filter(u => u.itemId === itemId);
+    let assigned = 0;
+    for (const u of units) {
+      if (this.unitAssignments[u.key] !== undefined) {
+        assigned++;
+      }
+    }
+    return Math.max(0, units.length - assigned);
+  }
+
+  get totalUnassignedCount(): number {
+    if (!this.addition?.items) return 0;
+    return this.addition.items.reduce((sum, item) => sum + this.getUnassignedCount(item.itemId), 0);
+  }
+
+  get availableAdditionItems(): (TableAdditionItem & { description: string; remaining: number })[] {
+    if (!this.addition?.items) return [];
+    return this.addition.items
+      .map(item => ({
+        ...item,
+        description: item.cocktailNom + (item.varianteNom ? ` (${item.varianteNom})` : ''),
+        remaining: this.getUnassignedCount(item.itemId)
+      }))
+      .filter(item => item.remaining > 0);
+  }
+
+  get availableInvoiceItems(): (TableAdditionItem & { description: string; remaining: number })[] {
+    return this.availableAdditionItems;
+  }
+
+  getAssignedItemsForGuest(guestIndex: number): { itemId: number; description: string; unitPrice: number; count: number; total: number }[] {
+    if (!this.addition?.items) return [];
+    const result: { itemId: number; description: string; unitPrice: number; count: number; total: number }[] = [];
+    for (const item of this.addition.items) {
+      let count = 0;
+      const qte = item.quantite || 1;
+      for (let u = 0; u < qte; u++) {
+        if (this.unitAssignments[`${item.itemId}_${u}`] === guestIndex) {
+          count++;
+        }
+      }
+      if (count > 0) {
+        const desc = item.cocktailNom + (item.varianteNom ? ` (${item.varianteNom})` : '');
+        result.push({
+          itemId: item.itemId,
+          description: desc,
+          unitPrice: item.prixUnitaire,
+          count,
+          total: Math.round(count * item.prixUnitaire * 100) / 100
+        });
+      }
+    }
+    return result;
+  }
+
+  getGuestTotal(guestIndex: number): number {
+    return Math.round(this.getAssignedItemsForGuest(guestIndex).reduce((sum, item) => sum + item.total, 0) * 100) / 100;
+  }
+
+  getGuestAssignedTotal(guestIndex: number): number {
+    return this.getGuestTotal(guestIndex);
+  }
+
+  getGuestAssignedCount(guestIndex: number): number {
+    return this.getAssignedItemsForGuest(guestIndex).length;
+  }
+
+  assignOneUnitToGuest(guestIndex: number, itemId: number): void {
+    const item = this.addition?.items?.find(i => i.itemId === itemId);
+    if (!item) return;
+    const qte = item.quantite || 1;
+    for (let u = 0; u < qte; u++) {
+      const key = `${itemId}_${u}`;
+      if (this.unitAssignments[key] === undefined) {
+        this.unitAssignments[key] = guestIndex;
+        break;
+      }
+    }
+  }
+
+  unassignOneUnitFromGuest(guestIndex: number, itemId: number): void {
+    const item = this.addition?.items?.find(i => i.itemId === itemId);
+    if (!item) return;
+    const qte = item.quantite || 1;
+    for (let u = qte - 1; u >= 0; u--) {
+      const key = `${itemId}_${u}`;
+      if (this.unitAssignments[key] === guestIndex) {
+        delete this.unitAssignments[key];
+        break;
+      }
+    }
+  }
+
+  removeAllUnitsOfItemFromGuest(guestIndex: number, itemId: number): void {
+    const item = this.addition?.items?.find(i => i.itemId === itemId);
+    if (!item) return;
+    const qte = item.quantite || 1;
+    for (let u = 0; u < qte; u++) {
+      const key = `${itemId}_${u}`;
+      if (this.unitAssignments[key] === guestIndex) {
+        delete this.unitAssignments[key];
+      }
+    }
+  }
+
+  assignItemToGuest(itemId: number, guestIndex: number | undefined): void {
+    const item = this.addition?.items?.find(i => i.itemId === itemId);
+    if (!item) return;
+    const qte = item.quantite || 1;
+    for (let u = 0; u < qte; u++) {
+      const key = `${itemId}_${u}`;
+      if (guestIndex === undefined) {
+        delete this.unitAssignments[key];
+      } else {
+        this.unitAssignments[key] = guestIndex;
+      }
+    }
+  }
+
+  get totalAssignedItemsAmount(): number {
+    return Math.round(this.convives.reduce((sum, _, idx) => sum + this.getGuestTotal(idx), 0) * 100) / 100;
+  }
+
+  get unassignedItemsRemainder(): number {
+    return Math.max(0, Math.round((this.subTotalTTC - this.totalAssignedItemsAmount) * 100) / 100);
+  }
+
   calculerSplitSelection(): void {
     if (!this.addition) return;
     this.isLoadingSplit = true;
     this.splitError = null;
     this.partStates = {};
 
-    const items = this.addition.items || [];
     const results: SplitResultDTO[] = [];
 
     this.convives.forEach((_, i) => {
-      const assignedItems = items.filter(item => this.itemAssignments[item.itemId] === i);
-      const subTotal = assignedItems.reduce((acc, it) => acc + it.total, 0);
+      const assignedItems = this.getAssignedItemsForGuest(i);
+      const subTotal = Math.round(assignedItems.reduce((acc, it) => acc + it.total, 0) * 100) / 100;
       if (assignedItems.length > 0) {
         results.push({
           factureId: this.addition?.existingFactureId || 0,
           nomConvive: this.conviveNom(i),
           items: assignedItems.map(it => ({
             itemId: it.itemId,
-            description: it.cocktailNom + (it.varianteNom ? ` (${it.varianteNom})` : ''),
-            quantite: it.quantite,
-            prixUnitaire: it.prixUnitaire,
+            description: it.description,
+            quantite: it.count,
+            prixUnitaire: it.unitPrice,
             total: it.total
           })),
-          sousTotal: Math.round(subTotal * 100) / 100,
-          totalAvecPourboire: Math.round(subTotal * 100) / 100
+          sousTotal: subTotal,
+          totalAvecPourboire: subTotal
         });
       }
     });
@@ -504,33 +1269,54 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
     return this.splitResults.length > 0 && this.splitResults.every((_, i) => !!this.partStates[i]?.reglee);
   }
 
-  async reglerPart(index: number, part: SplitResultDTO): Promise<void> {
+  reglerPart(index: number, part: SplitResultDTO): void {
     if (this.partStates[index]?.reglee) return;
+    this.settlingPartIndex = index;
+    this.settlingPart = part;
+    this.partPaymentMode = 'CARTE';
+    this.partTipMode = 'none';
+    this.partCustomTip = 0;
+    this.partCustomTipPercent = 0;
+    this.partDiscountMode = 'none';
+    this.partDiscountPercent = 0;
+    this.partDiscountFixed = 0;
+    this.partSelectedTierId = null;
+    this.partMontantRecu = null;
+  }
 
-    const modal = await this.modalCtrl.create({
-      component: ReglementModalComponent,
-      componentProps: {
-        totalInitial: part.sousTotal,
-        nomPart: part.nomConvive
-      }
-    });
+  annulerReglementPart(): void {
+    this.settlingPartIndex = null;
+    this.settlingPart = null;
+  }
 
-    await modal.present();
-    const { data } = await modal.onWillDismiss<ReglementModalResult>();
-
-    if (!data) return;
+  async validerReglementPart(): Promise<void> {
+    if (!this.settlingPart || this.settlingPartIndex === null) return;
+    const index = this.settlingPartIndex;
+    const part = this.settlingPart;
 
     this.partStates[index] = {
       reglee: true,
-      modePaiement: data.modePaiement,
-      pourboire: data.pourboire,
-      totalPaid: data.totalTotal
+      modePaiement: this.partPaymentMode,
+      pourboire: this.partPourboire,
+      totalPaid: this.partTotalNetAPayer,
+      tpeAutorisation: this.tpeMetadata.tpeAutorisation,
+      tpeTerminalId: this.tpeMetadata.tpeTerminalId,
+      tpeCardBrand: this.tpeMetadata.tpeCardBrand,
+      tpeMaskedPan: this.tpeMetadata.tpeMaskedPan,
+      tpeSequence: this.tpeMetadata.tpeSequence
     };
+    this.tpeMetadata = {};
+
+    const guestName = part.nomConvive;
+    const mode = this.partPaymentMode;
+
+    this.settlingPart = null;
+    this.settlingPartIndex = null;
 
     const toast = await this.toastCtrl.create({
       message: this.transloco.translate('ENCAISSEMENT.PART_SETTLED_SUCCESS', {
-        nom: part.nomConvive,
-        mode: data.modePaiement
+        nom: guestName,
+        mode: mode
       }),
       duration: 2000,
       color: 'success'
@@ -551,8 +1337,17 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
       commandeIds: this.addition?.commandeIds
     };
 
-    this.dashboardService.encaisserTable(this.table.id, req).subscribe({
-      next: async (facture) => {
+    let settlement$: Observable<Facture> | null = null;
+    if (this.tab && this.barTabService) {
+      settlement$ = this.barTabService.encaisserTab(this.tab.id, req);
+    } else if (this.table) {
+      settlement$ = this.dashboardService.encaisserTable(this.table.id, req);
+    }
+
+    if (!settlement$) return;
+
+    settlement$.subscribe({
+      next: async (facture: Facture) => {
         this.settledFacture = facture;
         const toast = await this.toastCtrl.create({
           message: this.transloco.translate('ENCAISSEMENT.ALL_PARTS_SETTLED_SUCCESS'),
@@ -560,7 +1355,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
           color: 'success'
         });
         await toast.present();
-        this.modalCtrl.dismiss({ action: 'settled', facture });
+        await this.modalCtrl.dismiss({ action: 'settled', facture });
       },
       error: async () => {
         const toast = await this.toastCtrl.create({
@@ -587,7 +1382,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   }
 
   fermer(): void {
-    this.modalCtrl.dismiss();
+    void this.modalCtrl.dismiss();
   }
 
   trackByItemId(_index: number, item: TableAdditionItem): number {

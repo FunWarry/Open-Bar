@@ -1,0 +1,239 @@
+:host {
+  display: block;
+}
+
+.roulette-toolbar {
+  --background: var(--background-surface-1, #1e293b);
+  --color: var(--text-primary, #ffffff);
+  border-bottom: 1px solid var(--border-medium, rgba(255, 255, 255, 0.1));
+
+  .toolbar-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 12px;
+
+    .title-sparkle-icon {
+      font-size: 1.25rem;
+      color: var(--semantic-warning, #f59e0b);
+    }
+
+    ion-title {
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+  }
+}
+
+.roulette-content {
+  --background: var(--background-bg-0, #0f172a);
+  --color: var(--text-primary, #ffffff);
+}
+
+.loading-state-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 16px;
+  gap: 16px;
+
+  .loading-text {
+    font-size: 0.95rem;
+    color: var(--text-secondary, #94a3b8);
+  }
+}
+
+.roulette-modal-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  gap: 16px;
+}
+
+.roulette-header-promo {
+  text-align: center;
+  width: 100%;
+
+  .promo-badge-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 6px;
+
+    .mystery-badge {
+      font-size: 0.85rem;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .price-highlight {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--primary, #3b82f6);
+    }
+  }
+
+  .promo-subtitle {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--text-secondary, #94a3b8);
+  }
+}
+
+.categories-filter-bar {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 6px;
+
+  .filter-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted, #64748b);
+  }
+
+  .chips-scroll-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    ion-chip {
+      margin: 0;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--background-surface-1, #1e293b);
+      color: var(--text-secondary, #94a3b8);
+      border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.1));
+      transition: all 0.2s ease;
+
+      &.active-chip {
+        background: var(--primary, #3b82f6);
+        color: var(--primary-contrast, #ffffff);
+        border-color: var(--primary, #3b82f6);
+        box-shadow: 0 4px 12px var(--primary-shadow, rgba(59, 130, 246, 0.3));
+      }
+
+      &.disabled-chip {
+        opacity: 0.5;
+        pointer-events: none;
+      }
+    }
+  }
+}
+
+.wheel-stage-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.winning-reveal-card {
+  width: 100%;
+  background: var(--background-surface-1, #1e293b);
+  border: 1px solid var(--border-highlight, rgba(245, 158, 11, 0.4));
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+
+  .win-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .win-check-icon {
+      font-size: 2rem;
+      color: var(--semantic-success, #10b981);
+    }
+
+    .win-titles {
+      flex: 1;
+
+      .win-eyebrow {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--semantic-warning, #f59e0b);
+      }
+
+      .win-name {
+        margin: 2px 0 0 0;
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--text-primary, #ffffff);
+      }
+    }
+
+    .win-price-tag {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary, #3b82f6);
+      background: var(--background-surface-2, rgba(255, 255, 255, 0.05));
+      padding: 4px 10px;
+      border-radius: 8px;
+    }
+  }
+
+  .win-description {
+    margin: 10px 0 0 0;
+    font-size: 0.88rem;
+    color: var(--text-secondary, #94a3b8);
+    line-height: 1.4;
+  }
+
+  .win-reward-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 6px 12px;
+    background: var(--background-surface-2, rgba(245, 158, 11, 0.15));
+    border: 1px solid var(--semantic-warning, #f59e0b);
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--semantic-warning, #f59e0b);
+  }
+
+  .win-card-actions {
+    margin-top: 14px;
+
+    .add-cart-action-btn {
+      --background: var(--primary, #3b82f6);
+      --border-radius: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}

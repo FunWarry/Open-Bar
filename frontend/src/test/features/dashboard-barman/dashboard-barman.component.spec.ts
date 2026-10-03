@@ -12,6 +12,7 @@ import { AppSettingsService } from '../../../app/core/services/app-settings.serv
 import { SoundService } from '../../../app/core/services/sound.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { CommandeService } from '../../../app/core/services/commande.service';
+import { RouletteService } from '../../../app/core/services/roulette.service';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('DashboardBarmanComponent', () => {
@@ -147,7 +148,14 @@ describe('DashboardBarmanComponent', () => {
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: AppSettingsService, useValue: settingsServiceSpy },
         { provide: SoundService, useValue: soundServiceSpy },
-        { provide: CommandeService, useValue: commandeServiceSpy }
+        { provide: CommandeService, useValue: commandeServiceSpy },
+        {
+          provide: RouletteService,
+          useValue: {
+            getDisplayPin: () => of({ pin: '7777' }),
+            watchEvents: () => EMPTY
+          }
+        }
       ]
     }).compileComponents();
 
@@ -760,6 +768,53 @@ describe('DashboardBarmanComponent', () => {
       component.activeCriticalStockAlert = null;
       await component.openCriticalStockImpactModal();
       expect(modalCtrlSpy.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('filtrerCommandes with bar tabs and search queries', () => {
+    it('matches bar tab names and formatted table strings', () => {
+      const cmds: CommandeView[] = [
+        {
+          id: 1,
+          tableNumero: 5,
+          barTabNom: 'VIP Dupont',
+          statut: 'EN_ATTENTE',
+          items: [{ id: 1, cocktailId: 10, cocktailNom: 'Mojito', quantite: 1, prioritaire: false }],
+        } as any,
+        {
+          id: 2,
+          barTabNom: 'Comptoir Direct',
+          statut: 'EN_ATTENTE',
+          items: [{ id: 2, cocktailId: 20, cocktailNom: 'Negroni', quantite: 1, prioritaire: false }],
+        } as any,
+        {
+          id: 3,
+          statut: 'EN_ATTENTE',
+          items: [{ id: 3, cocktailId: 30, cocktailNom: 'Bière', quantite: 1, prioritaire: false }],
+        } as any,
+      ];
+
+      component.commandesEnAttente = cmds;
+      component.searchQuery = 'Dupont';
+      expect(component.filteredCommandesEnAttente).toHaveSize(1);
+      expect(component.filteredCommandesEnAttente[0].id).toBe(1);
+
+      component.searchQuery = 'Comptoir';
+      expect(component.filteredCommandesEnAttente).toHaveSize(1);
+      expect(component.filteredCommandesEnAttente[0].id).toBe(2);
+
+      component.searchQuery = 'Bar';
+      expect(component.filteredCommandesEnAttente.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe('direct order taking button', () => {
+    it('should render take order button with link to /serveur and tab=commande query param', () => {
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const takeOrderBtn = compiled.querySelector('[data-testid="barman-take-order-btn"]');
+      expect(takeOrderBtn).toBeTruthy();
+      expect(takeOrderBtn?.getAttribute('routerLink')).toBe('/serveur');
     });
   });
 });

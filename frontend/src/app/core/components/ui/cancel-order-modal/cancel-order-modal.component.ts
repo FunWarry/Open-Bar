@@ -1,4 +1,4 @@
-import { Component, Input, inject, signal, computed } from '@angular/core';
+import { Component, Input, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -41,6 +41,7 @@ export interface CancelOrderModalResult {
   templateUrl: './cancel-order-modal.component.html',
   styleUrl: './cancel-order-modal.component.scss',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     TranslocoPipe,
@@ -150,7 +151,7 @@ export class CancelOrderModalComponent {
 
   /** Dismisses modal without cancelling. */
   dismissCancel(): void {
-    this.modalCtrl.dismiss({ confirmed: false }, 'cancel');
+    void this.modalCtrl.dismiss({ confirmed: false }, 'cancel');
   }
 
   /** Confirms order cancellation and returns payload with reason. */
@@ -162,7 +163,7 @@ export class CancelOrderModalComponent {
       ? `${reasonTranslated} (${this.customReason().trim()})`
       : reasonTranslated;
 
-    this.modalCtrl.dismiss({
+    void this.modalCtrl.dismiss({
       confirmed: true,
       reason: finalReason
     } satisfies CancelOrderModalResult, 'confirm');

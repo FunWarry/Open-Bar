@@ -1,0 +1,128 @@
+.roulette-wheel-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 0 auto;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.canvas-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px auto;
+  user-select: none;
+}
+
+.wheel-pointer {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.6));
+  pointer-events: none;
+
+  .pointer-pin {
+    width: 14px;
+    height: 14px;
+    background: radial-gradient(circle, #fef08a 0%, #d97706 70%, #78350f 100%);
+    border-radius: 50%;
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+    border: 1.5px solid #ffffff;
+    z-index: 12;
+  }
+
+  .pointer-arrow {
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 30px solid #ef4444;
+    position: relative;
+    z-index: 11;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: -28px;
+      left: -11px;
+      width: 0;
+      height: 0;
+      border-left: 11px solid transparent;
+      border-right: 11px solid transparent;
+      border-top: 22px solid #fde047;
+    }
+  }
+}
+
+canvas {
+  display: block;
+  border-radius: 50%;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+.wheel-action-bar {
+  margin-top: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.spin-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--border-selected) 100%);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 30px;
+  padding: 14px 32px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(108, 127, 232, 0.4);
+  transition: all 0.25s ease;
+
+  ion-icon {
+    font-size: 1.3rem;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(108, 127, 232, 0.6);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

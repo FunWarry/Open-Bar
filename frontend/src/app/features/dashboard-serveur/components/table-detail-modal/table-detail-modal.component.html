@@ -6,7 +6,7 @@
       </div>
       <div class="header-titles">
         <ion-title class="modal-title">
-          {{ table.nom }}
+          {{ tableNomAffiche }}
         </ion-title>
         @if (table.zone) {
           <span class="zone-badge">{{ table.zone }}</span>
@@ -121,14 +121,7 @@
                   <span class="id-hash">#</span>{{ cmd.id }}
                 </div>
                 <div class="order-status-badge">
-                  <ion-badge [color]="statutColor(cmd.statut)">
-                    {{ statutTranslocoKey(cmd.statut) | transloco }}
-                  </ion-badge>
-                  @if (cmd.prioritaire) {
-                    <ion-badge color="danger" class="urgent-badge" [attr.data-testid]="'badge-urgent-' + cmd.id">
-                      ⚡ {{ 'COMMANDES.PRIORITE' | transloco }}
-                    </ion-badge>
-                  }
+                  <app-status-badge [status]="cmd.statut" [prioritary]="cmd.prioritaire"></app-status-badge>
                 </div>
                 <div class="order-header-total">
                   {{ getCommandeTotal(cmd) | currency:'EUR':'symbol':'1.2-2' }}
@@ -242,6 +235,18 @@
       data-testid="btn-encaisser-modal">
       <ion-icon name="card-outline" slot="start"></ion-icon>
       {{ 'TABLE_MODAL.PAY_BILL' | transloco }}
+    </ion-button>
+
+    <ion-button
+      expand="block"
+      fill="outline"
+      color="primary"
+      (click)="diviserAddition()"
+      (keydown.enter)="diviserAddition()"
+      class="btn-footer btn-split"
+      data-testid="btn-split-modal">
+      <ion-icon name="people-outline" slot="start"></ion-icon>
+      {{ 'TABLE_MODAL.SPLIT_BILL' | transloco }}
     </ion-button>
   }
 

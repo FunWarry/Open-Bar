@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.StreamSupport;
 
 /**
  * Service responsible for automatically seeding a rich, complete demonstration dataset
@@ -42,6 +43,7 @@ public class SampleDataSeederService {
     private static final Logger log = LoggerFactory.getLogger(SampleDataSeederService.class);
     private static final String DATASET_PATH = "data/demo_dataset.json";
     private static final String KEY_ROLES = "roles";
+    private static final String KEY_EMAIL = "email";
     private static final String KEY_SERVEUR_USERNAME = "serveurUsername";
     private static final String KEY_NOTES = "notes";
     private static final String KEY_REASON = "reason";
@@ -63,6 +65,8 @@ public class SampleDataSeederService {
     private static final String SCRIPT_TAG = "<script>";
     private static final String KEY_TEST = "Test";
     private static final String KEY_STATUT = "statut";
+    private static final String KEY_CLIENT_REFERENCE = "clientReference";
+    private static final String KEY_CAUTION_MONTANT = "cautionMontant";
     private static final String KEY_DISCREPANCY_REASON = "discrepancyReason";
     private static final String KEY_DAYS_AGO = "daysAgo";
     private static final String KEY_CLOSED_BY_USERNAME = "closedByUsername";
@@ -70,6 +74,14 @@ public class SampleDataSeederService {
     private static final String KEY_OPENING_FLOAT = "openingFloat";
     private static final String KEY_OPENING_DENOMINATIONS = "openingDenominations";
     private static final String KEY_MOVEMENTS = "movements";
+    private static final String KEY_PURCHASE_UNIT = "purchaseUnit";
+    private static final String KEY_PACKAGING_CAPACITY = "packagingCapacity";
+    private static final String KEY_PRIX_UNITAIRE = "prixUnitaire";
+    private static final String KEY_CATEGORY = "category";
+    private static final String KEY_UNITE_MESURE = "uniteMesure";
+    private static final String KEY_PACKAGING_PRICE_HT = "packagingPriceHt";
+    private static final String KEY_COCKTAIL_NOM = "cocktailNom";
+    private static final String KEY_REWARD_TEXT = "rewardText";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -101,6 +113,10 @@ public class SampleDataSeederService {
     private final DailyCashClosureRepository dailyCashClosureRepository;
     private final CashDrawerSessionRepository cashDrawerSessionRepository;
     private final CashMovementRepository cashMovementRepository;
+    private final BarTabRepository barTabRepository;
+    private final SupplierRepository supplierRepository;
+    private final PurchaseOrderRepository purchaseOrderRepository;
+    private final RouletteWheelSectorRepository rouletteWheelSectorRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -137,7 +153,11 @@ public class SampleDataSeederService {
             @org.springframework.beans.factory.annotation.Autowired(required = false) StockMovementRepository stockMovementRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) DailyCashClosureRepository dailyCashClosureRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) CashDrawerSessionRepository cashDrawerSessionRepository,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) CashMovementRepository cashMovementRepository) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) CashMovementRepository cashMovementRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) BarTabRepository barTabRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) SupplierRepository supplierRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) PurchaseOrderRepository purchaseOrderRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) RouletteWheelSectorRepository rouletteWheelSectorRepository) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -168,6 +188,10 @@ public class SampleDataSeederService {
         this.dailyCashClosureRepository = dailyCashClosureRepository;
         this.cashDrawerSessionRepository = cashDrawerSessionRepository;
         this.cashMovementRepository = cashMovementRepository;
+        this.barTabRepository = barTabRepository;
+        this.supplierRepository = supplierRepository;
+        this.purchaseOrderRepository = purchaseOrderRepository;
+        this.rouletteWheelSectorRepository = rouletteWheelSectorRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -384,6 +408,7 @@ public class SampleDataSeederService {
             if (!cocktails.isEmpty()) {
                 safelyInTransaction(() -> seedOrdersFromJson(root.get("orders"), usersMap, tablesMap, cocktails), "seedOrders");
                 safelyInTransaction(() -> seedTableCartItemsFromJson(root.get("table_cart_items"), tablesMap, cocktails), "seedTableCartItems");
+                safelyInTransaction(() -> seedRouletteWheelSectorsFromJson(root.get("roulette_wheel_sectors"), cocktails), "seedRouletteWheelSectors");
             }
             safelyInTransaction(() -> seedHappyHourRulesFromJson(root.get("happy_hour_rules"), cocktails), "seedHappyHourRules");
             safelyInTransaction(() -> seedInvoicesFromJson(root.get("invoices"), tablesMap), "seedInvoices");
@@ -391,6 +416,8 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedStockMovementsFromJson(root.get("stock_movements"), usersMap), "seedStockMovements");
             safelyInTransaction(() -> seedDailyCashClosuresFromJson(root.get("daily_cash_closures"), usersMap), "seedDailyCashClosures");
             safelyInTransaction(() -> seedCashDrawerSessionsFromJson(root.get("cash_drawer_sessions"), usersMap), "seedCashDrawerSessions");
+            safelyInTransaction(() -> seedBarTabsFromJson(root.get("bar_tabs"), usersMap), "seedBarTabs");
+            safelyInTransaction(() -> seedSuppliersAndOrdersFromJson(root.get("suppliers"), root.get("purchase_orders"), usersMap), "seedSuppliersAndOrders");
 
         } catch (Exception e) {
             log.error("Failed to seed demo dataset from JSON file '{}'", DATASET_PATH, e);
@@ -432,7 +459,7 @@ public class SampleDataSeederService {
 
         for (JsonNode uNode : usersNode) {
             String username = uNode.get("username").asText();
-            String email = uNode.get("email").asText();
+            String email = uNode.get(KEY_EMAIL).asText();
             String password = extractPasswordFromJson(uNode);
             String nom = uNode.get("nom").asText();
             String prenom = uNode.get("prenom").asText();
@@ -728,19 +755,77 @@ public class SampleDataSeederService {
     }
 
     private void seedStockAdjustmentsFromJson(JsonNode adjustmentsNode) {
-        if (adjustmentsNode == null || !adjustmentsNode.isArray()) return;
+        if (adjustmentsNode == null || !adjustmentsNode.isArray()) {
+            return;
+        }
+
+        sanitizeDirtyProsceco();
 
         for (JsonNode aNode : adjustmentsNode) {
-            String ingName = aNode.get("nom").asText();
-            BigDecimal stock = new BigDecimal(aNode.get("quantiteStock").asText());
-            BigDecimal seuil = new BigDecimal(aNode.get("seuilAlerte").asText());
+            applySingleStockAdjustment(aNode);
+        }
+    }
 
-            ingredientRepository.findByNomIgnoreCase(ingName).ifPresent(ing -> {
-                ing.setQuantiteStock(stock);
-                ing.setSeuilAlerte(seuil);
-                ingredientRepository.save(ing);
-                log.trace("Stock adjustment applied: {} -> {} (seuil: {})", ingName, stock, seuil);
-            });
+    private void sanitizeDirtyProsceco() {
+        Optional<Ingredient> dirtyProsceco = ingredientRepository.findByNomIgnoreCase("Prosceco");
+        if (dirtyProsceco.isEmpty()) {
+            return;
+        }
+        Ingredient prosceco = dirtyProsceco.get();
+        Optional<Ingredient> realProsecco = ingredientRepository.findByNomIgnoreCase("Prosecco");
+        if (realProsecco.isPresent()) {
+            ingredientRepository.delete(prosceco);
+        } else {
+            prosceco.setNom("Prosecco");
+            prosceco.setUniteMesure("cl");
+            ingredientRepository.save(prosceco);
+        }
+    }
+
+    private void applySingleStockAdjustment(JsonNode aNode) {
+        String ingName = aNode.get("nom").asText();
+        BigDecimal stock = new BigDecimal(aNode.get("quantiteStock").asText());
+        BigDecimal seuil = new BigDecimal(aNode.get("seuilAlerte").asText());
+
+        Ingredient ing = ingredientRepository.findByNomIgnoreCase(ingName)
+                .orElseGet(() -> createDefaultAdjustmentIngredient(ingName, stock, seuil));
+
+        ing.setQuantiteStock(stock);
+        ing.setSeuilAlerte(seuil);
+        updateIngredientPackagingAndPricing(ing, aNode);
+        ingredientRepository.save(ing);
+        log.trace("Stock adjustment applied: {} -> {} (seuil: {}, category: {}, purchaseUnit: {})",
+                ingName, stock, seuil, ing.getCategory(), ing.getPurchaseUnit());
+    }
+
+    private Ingredient createDefaultAdjustmentIngredient(String name, BigDecimal stock, BigDecimal seuil) {
+        Ingredient newIng = new Ingredient();
+        newIng.setNom(name);
+        newIng.setUniteMesure("cl");
+        newIng.setQuantiteStock(stock);
+        newIng.setSeuilAlerte(seuil);
+        newIng.setPrixUnitaire(BigDecimal.valueOf(1.0));
+        return newIng;
+    }
+
+    private void updateIngredientPackagingAndPricing(Ingredient ing, JsonNode aNode) {
+        if (aNode.hasNonNull(KEY_CATEGORY) && !aNode.get(KEY_CATEGORY).asText().isBlank()) {
+            ing.setCategory(aNode.get(KEY_CATEGORY).asText().trim());
+        }
+        if (aNode.hasNonNull(KEY_UNITE_MESURE)) {
+            ing.setUniteMesure(aNode.get(KEY_UNITE_MESURE).asText().trim());
+        }
+        if (aNode.hasNonNull(KEY_PURCHASE_UNIT)) {
+            ing.setPurchaseUnit(aNode.get(KEY_PURCHASE_UNIT).asText().trim());
+        }
+        if (aNode.hasNonNull(KEY_PACKAGING_CAPACITY)) {
+            ing.setPackagingCapacity(new BigDecimal(aNode.get(KEY_PACKAGING_CAPACITY).asText()));
+        }
+        if (aNode.hasNonNull(KEY_PACKAGING_PRICE_HT)) {
+            ing.setPackagingPriceHt(new BigDecimal(aNode.get(KEY_PACKAGING_PRICE_HT).asText()));
+        }
+        if (aNode.hasNonNull(KEY_PRIX_UNITAIRE)) {
+            ing.setPrixUnitaire(new BigDecimal(aNode.get(KEY_PRIX_UNITAIRE).asText()));
         }
     }
 
@@ -908,6 +993,8 @@ public class SampleDataSeederService {
 
         if (invNode.has(KEY_REGLEMENTS) && invNode.get(KEY_REGLEMENTS).isArray() && savedFacture.getReglements().isEmpty()) {
             seedInvoiceReglements(savedFacture, invNode.get(KEY_REGLEMENTS), invoiceTime);
+        } else if (savedFacture.isReglee() && savedFacture.getReglements().isEmpty()) {
+            seedSingleGlobalReglement(savedFacture, invoiceTime);
         }
     }
 
@@ -959,6 +1046,31 @@ public class SampleDataSeederService {
         savedFacture.setReglements(reglementsList);
     }
 
+    /**
+     * Seeds a single global settlement for a finalized invoice marked as settled without split breakdown.
+     *
+     * @param savedFacture persisted invoice entity
+     * @param invoiceTime  timestamp when the invoice was issued
+     */
+    private void seedSingleGlobalReglement(Facture savedFacture, LocalDateTime invoiceTime) {
+        FactureReglement fr = new FactureReglement();
+        fr.setFacture(savedFacture);
+        fr.setNomConvive("Client");
+        fr.setPartIndex(1);
+        fr.setTotalParts(1);
+        fr.setMontant(savedFacture.getTotal());
+        BigDecimal tip = savedFacture.getPourboire() != null ? savedFacture.getPourboire() : BigDecimal.ZERO;
+        fr.setPourboire(tip);
+        fr.setTotalRegle(savedFacture.getTotal().add(tip));
+        fr.setModePaiement(savedFacture.getModePaiement() != null ? savedFacture.getModePaiement() : "CB");
+        fr.setTypeSplit("GLOBAL");
+        fr.setDateReglement(savedFacture.getDateReglement() != null ? savedFacture.getDateReglement() : invoiceTime.plusMinutes(35));
+        factureReglementRepository.save(fr);
+        List<FactureReglement> list = new ArrayList<>();
+        list.add(fr);
+        savedFacture.setReglements(list);
+    }
+
     private void seedAvoirsCreditFromJson(JsonNode avoirsNode) {
         if (avoirsNode == null || !avoirsNode.isArray()) return;
 
@@ -991,7 +1103,7 @@ public class SampleDataSeederService {
             for (JsonNode itemNode : itemsNode) {
                 String description = itemNode.get(KEY_DESCRIPTION).asText();
                 int quantite = itemNode.get(KEY_QUANTITE).asInt();
-                BigDecimal prixUnitaire = new BigDecimal(itemNode.get("prixUnitaire").asText());
+                BigDecimal prixUnitaire = new BigDecimal(itemNode.get(KEY_PRIX_UNITAIRE).asText());
                 BigDecimal itemTotal = prixUnitaire.multiply(BigDecimal.valueOf(quantite));
 
                 VatRate vatRate = resolveInvoiceItemVatRate(description);
@@ -1092,10 +1204,9 @@ public class SampleDataSeederService {
             return;
         }
 
-        List<CocktailRecipeStep> steps = new ArrayList<>();
-        for (JsonNode stepNode : stepsNode) {
-            steps.add(buildSingleRecipeStep(cocktail, stepNode, templatesMap));
-        }
+        List<CocktailRecipeStep> steps = StreamSupport.stream(stepsNode.spliterator(), false)
+                .map(stepNode -> buildSingleRecipeStep(cocktail, stepNode, templatesMap))
+                .toList();
         if (cocktail.getRecipeSteps() != null) {
             cocktail.getRecipeSteps().clear();
             cocktail.getRecipeSteps().addAll(steps);
@@ -1126,8 +1237,9 @@ public class SampleDataSeederService {
             step.setDurationSeconds(stepNode.get("durationSeconds").asInt());
         }
         if (stepNode.has("ingredientName")) {
-            String ingName = stepNode.get("ingredientName").asText();
-            Ingredient ing = ingredientRepository.findByNomIgnoreCase(ingName).orElse(null);
+            String ingName = stepNode.get("ingredientName").asText().trim();
+            step.setActionTitle(ingName);
+            Ingredient ing = resolveIngredientForStep(cocktail, ingName);
             step.setIngredient(ing);
         }
         if (stepNode.has("templateName")) {
@@ -1138,6 +1250,81 @@ public class SampleDataSeederService {
         step.setCreatedAt(timeService.now());
         step.setUpdatedAt(timeService.now());
         return step;
+    }
+
+    private Ingredient resolveIngredientForStep(Cocktail cocktail, String ingName) {
+        if (ingName == null || ingName.isBlank()) {
+            return null;
+        }
+        String cleanName = ingName.trim();
+        Optional<Ingredient> exact = ingredientRepository.findByNomIgnoreCase(cleanName);
+        if (exact.isPresent()) {
+            return exact.get();
+        }
+
+        // Search within parent cocktail's existing ingredients first
+        if (cocktail != null && cocktail.getIngredients() != null) {
+            for (CocktailIngredient ci : cocktail.getIngredients()) {
+                if (ci.getIngredient() != null && isIngredientFuzzyMatch(cleanName, ci.getIngredient().getNom())) {
+                    return ci.getIngredient();
+                }
+            }
+        }
+
+        // Search across all ingredients in repository
+        List<Ingredient> all = ingredientRepository.findAll();
+        for (Ingredient candidate : all) {
+            if (candidate.getNom() != null && isIngredientFuzzyMatch(cleanName, candidate.getNom())) {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private static final String FUZZY_MENTHE = "menthe";
+
+    private static final String[][] FUZZY_INGREDIENT_PAIRS = {
+        {"prose", "prosc"},
+        {"apero", "apero"},
+        {"kahlua", "kahlua"},
+        {"cointreau", "cointreau"},
+        {FUZZY_MENTHE, FUZZY_MENTHE},
+        {"angostura", "angostura"},
+        {"cranber", "cramber"},
+        {"ananas", "ananas"},
+        {"coco", "coco"},
+        {"citron", "citron"},
+        {"sucre", "cassonade"},
+        {"vermouth", "martini"},
+        {"whisky", "whisky"}
+    };
+
+    private boolean isIngredientFuzzyMatch(String target, String candidate) {
+        if (target == null || candidate == null) return false;
+        String t = normalizeIngredientString(target);
+        String c = normalizeIngredientString(candidate);
+        if (t.equals(c) || t.contains(c) || c.contains(t)) {
+            return true;
+        }
+        return matchesFuzzyKeywordPair(t, c);
+    }
+
+    private boolean matchesFuzzyKeywordPair(String t, String c) {
+        for (String[] pair : FUZZY_INGREDIENT_PAIRS) {
+            boolean direct = t.contains(pair[0]) && c.contains(pair[1]);
+            boolean inverse = t.contains(pair[1]) && c.contains(pair[0]);
+            if (direct || inverse) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String normalizeIngredientString(String input) {
+        if (input == null) return "";
+        String normalized = java.text.Normalizer.normalize(input, java.text.Normalizer.Form.NFD);
+        return normalized.replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]", "");
     }
 
     private void seedTableAppelsFromJson(JsonNode appelsNode, Map<Integer, TableEntity> tablesMap) {
@@ -1227,7 +1414,7 @@ public class SampleDataSeederService {
                 table = tableRepository.findByNumero(tableNumero).orElse(null);
             }
 
-            String cocktailNom = itemNode.path("cocktailNom").asText("Mojito");
+            String cocktailNom = itemNode.path(KEY_COCKTAIL_NOM).asText("Mojito");
             Cocktail cocktail = findCocktailByName(cocktails, cocktailNom);
 
             if (table != null && cocktail != null) {
@@ -1250,8 +1437,14 @@ public class SampleDataSeederService {
 
     private void seedSettingsAndConfig() {
         if (!appSettingsRepository.existsById(AppSettings.SINGLETON_ID)) {
-            appSettingsRepository.save(new AppSettings());
-            log.info("Seeded default AppSettings singleton.");
+            AppSettings defaultSettings = new AppSettings();
+            defaultSettings.setTpeEnabled(true);
+            defaultSettings.setTpeSimulatorEnabled(true);
+            defaultSettings.setTpePort(8888);
+            defaultSettings.setTpeTerminalId("01");
+            defaultSettings.setTpeTimeoutSeconds(45);
+            appSettingsRepository.save(defaultSettings);
+            log.info("Seeded default AppSettings singleton with TPE configuration.");
         }
         EstablishmentConfig config = establishmentConfigRepository.findById(EstablishmentConfig.SINGLETON_ID)
                 .orElseGet(() -> {
@@ -1265,8 +1458,73 @@ public class SampleDataSeederService {
         if (config.getModuleFloorPlanEnabled() == null) config.setModuleFloorPlanEnabled(true);
         if (config.getModuleQrClientOrderingEnabled() == null) config.setModuleQrClientOrderingEnabled(true);
         if (config.getModuleStockTrackingEnabled() == null) config.setModuleStockTrackingEnabled(true);
+        if (config.getModuleCashDrawerEnabled() == null) config.setModuleCashDrawerEnabled(true);
+        if (config.getModuleBarTabsEnabled() == null) config.setModuleBarTabsEnabled(true);
+        if (config.getModuleCocktailLibraryEnabled() == null) config.setModuleCocktailLibraryEnabled(true);
+        if (config.getModuleSuppliersManagementEnabled() == null) config.setModuleSuppliersManagementEnabled(true);
+        if (config.getModuleInventoryAuditEnabled() == null) config.setModuleInventoryAuditEnabled(true);
+        if (config.getModuleMysteryRouletteEnabled() == null) config.setModuleMysteryRouletteEnabled(true);
+        if (config.getModulePaymentTerminalEnabled() == null) config.setModulePaymentTerminalEnabled(true);
         establishmentConfigRepository.save(config);
         log.info("Seeded default EstablishmentConfig singleton with modular capabilities.");
+    }
+
+    private void seedRouletteWheelSectorsFromJson(JsonNode sectorsNode, List<Cocktail> cocktails) {
+        if (sectorsNode == null || !sectorsNode.isArray() || rouletteWheelSectorRepository == null || rouletteWheelSectorRepository.count() > 0) {
+            return;
+        }
+
+        Map<String, Cocktail> cocktailMap = buildCocktailMap(cocktails);
+        LocalDateTime now = timeService.now();
+        List<RouletteWheelSector> toSave = StreamSupport.stream(sectorsNode.spliterator(), false)
+                .map(node -> parseRouletteWheelSector(node, cocktailMap, now))
+                .toList();
+        rouletteWheelSectorRepository.saveAll(toSave);
+        log.info("Seeded {} roulette wheel sectors from demo dataset.", toSave.size());
+    }
+
+    private RouletteWheelSector parseRouletteWheelSector(JsonNode node, Map<String, Cocktail> cocktailMap, LocalDateTime now) {
+        RouletteWheelSector sector = new RouletteWheelSector();
+        sector.setLabel(node.path("label").asText("Cocktail Mystère"));
+        sector.setPrizeType(RoulettePrizeType.valueOf(node.path("prizeType").asText("COCKTAIL")));
+        bindSectorCocktail(sector, node, cocktailMap);
+        bindSectorReward(sector, node);
+        bindSectorPricing(sector, node);
+        sector.setColorHex(node.path("colorHex").asText("#10b981"));
+        sector.setIconName(node.path("iconName").asText("wine-outline"));
+        sector.setProbabilityWeight(node.path("probabilityWeight").asInt(2));
+        sector.setActive(node.path("active").asBoolean(true));
+        sector.setDisplayOrder(node.path("displayOrder").asInt(0));
+        sector.setCreatedAt(now);
+        sector.setUpdatedAt(now);
+        return sector;
+    }
+
+    private void bindSectorCocktail(RouletteWheelSector sector, JsonNode node, Map<String, Cocktail> cocktailMap) {
+        if (!node.has(KEY_COCKTAIL_NOM)) return;
+        Cocktail c = cocktailMap.get(node.path(KEY_COCKTAIL_NOM).asText().toLowerCase().trim());
+        if (c != null) {
+            sector.setCocktail(c);
+            if (sector.getPrix() == null && c.getPrix() != null) {
+                sector.setPrix(c.getPrix());
+            }
+        }
+    }
+
+    private void bindSectorReward(RouletteWheelSector sector, JsonNode node) {
+        if (node.has(KEY_REWARD_TEXT)) {
+            sector.setRewardText(node.path(KEY_REWARD_TEXT).asText());
+        } else if (node.has("customRewardText")) {
+            sector.setRewardText(node.path("customRewardText").asText());
+        }
+    }
+
+    private void bindSectorPricing(RouletteWheelSector sector, JsonNode node) {
+        if (node.has(KEY_PRIX_UNITAIRE)) {
+            sector.setPrix(new BigDecimal(node.path(KEY_PRIX_UNITAIRE).asText()));
+        } else if (node.has("prix")) {
+            sector.setPrix(new BigDecimal(node.path("prix").asText()));
+        }
     }
 
     private void seedHappyHourRulesFromJson(JsonNode rulesNode, List<Cocktail> cocktails) {
@@ -1280,11 +1538,10 @@ public class SampleDataSeederService {
         }
 
         Map<String, Cocktail> cocktailMap = buildCocktailMap(cocktails);
-        List<HappyHourRule> toSave = new ArrayList<>();
         LocalDateTime now = timeService.now();
-        for (JsonNode ruleNode : rulesNode) {
-            toSave.add(parseHappyHourRule(ruleNode, cocktailMap, now));
-        }
+        List<HappyHourRule> toSave = StreamSupport.stream(rulesNode.spliterator(), false)
+                .map(ruleNode -> parseHappyHourRule(ruleNode, cocktailMap, now))
+                .toList();
 
         happyHourRuleRepository.saveAll(toSave);
         log.info("Successfully seeded {} Happy Hour promotional rules from demo dataset.", toSave.size());
@@ -1551,5 +1808,295 @@ public class SampleDataSeederService {
             m.setTimestamp(timestamp);
             cashMovementRepository.save(m);
         }
+    }
+
+    private void seedBarTabsFromJson(JsonNode tabsNode, Map<String, User> usersMap) {
+        if (tabsNode == null || !tabsNode.isArray() || barTabRepository == null) {
+            return;
+        }
+        if (barTabRepository.count() > 0) {
+            log.info("Bar tabs already seeded ({} records). Skipping.", barTabRepository.count());
+            return;
+        }
+        log.info("Seeding {} bar tabs from demo dataset...", tabsNode.size());
+        for (JsonNode tNode : tabsNode) {
+            BarTab tab = createBarTabFromJson(tNode, usersMap);
+            barTabRepository.save(tab);
+        }
+    }
+
+    private BarTab createBarTabFromJson(JsonNode tNode, Map<String, User> usersMap) {
+        String nom = tNode.get("nom").asText();
+        String ref = tNode.has(KEY_CLIENT_REFERENCE) && !tNode.get(KEY_CLIENT_REFERENCE).isNull()
+                ? tNode.get(KEY_CLIENT_REFERENCE).asText() : null;
+        String notes = tNode.has(KEY_NOTES) && !tNode.get(KEY_NOTES).isNull()
+                ? tNode.get(KEY_NOTES).asText() : null;
+        BigDecimal caution = tNode.has(KEY_CAUTION_MONTANT) && !tNode.get(KEY_CAUTION_MONTANT).isNull()
+                ? new BigDecimal(tNode.get(KEY_CAUTION_MONTANT).asText()) : null;
+        BarTabStatus status = BarTabStatus.valueOf(tNode.get(KEY_STATUT).asText());
+        long minutesAgo = tNode.has(KEY_MINUTES_AGO) ? tNode.get(KEY_MINUTES_AGO).asLong() : 45;
+        LocalDateTime openedAt = timeService.now().minusMinutes(minutesAgo);
+
+        String serveurUsername = tNode.has(KEY_SERVEUR_USERNAME) ? tNode.get(KEY_SERVEUR_USERNAME).asText() : "serveur1";
+        User serveur = usersMap.get(serveurUsername);
+
+        BarTab tab = new BarTab();
+        tab.setNom(nom);
+        tab.setClientReference(ref);
+        tab.setNotes(notes);
+        tab.setCautionMontant(caution);
+        tab.setStatut(status);
+        tab.setServeur(serveur);
+        tab.setOpenedAt(openedAt);
+        if (status == BarTabStatus.SETTLED) {
+            tab.setSettledAt(timeService.now().minusMinutes(10));
+        }
+        return tab;
+    }
+
+    private void seedSuppliersAndOrdersFromJson(JsonNode suppliersNode, JsonNode ordersNode, Map<String, User> usersMap) {
+        if (supplierRepository == null || purchaseOrderRepository == null) {
+            return;
+        }
+
+        Map<String, Supplier> savedSuppliers = seedSuppliers(suppliersNode);
+        linkIngredientsToSuppliersAndBarcodes(savedSuppliers);
+        if (purchaseOrderRepository.count() == 0) {
+            seedPurchaseOrders(ordersNode, savedSuppliers, usersMap);
+        }
+    }
+
+    private Map<String, Supplier> seedSuppliers(JsonNode suppliersNode) {
+        Map<String, Supplier> savedSuppliers = new HashMap<>();
+        for (Supplier s : supplierRepository.findAll()) {
+            savedSuppliers.put(s.getNom(), s);
+        }
+        if (suppliersNode == null || !suppliersNode.isArray()) {
+            return savedSuppliers;
+        }
+        for (JsonNode sNode : suppliersNode) {
+            String name = sNode.get("nom").asText();
+            if (!savedSuppliers.containsKey(name)) {
+                Supplier s = createSupplierFromNode(sNode);
+                Supplier saved = supplierRepository.save(s);
+                savedSuppliers.put(saved.getNom(), saved);
+            }
+        }
+        log.info("Seeded/verified {} total suppliers in database.", savedSuppliers.size());
+        return savedSuppliers;
+    }
+
+    private Supplier createSupplierFromNode(JsonNode sNode) {
+        Supplier s = new Supplier();
+        s.setNom(sNode.get("nom").asText());
+        if (sNode.hasNonNull("contactNom")) s.setContactNom(sNode.get("contactNom").asText());
+        if (sNode.hasNonNull(KEY_EMAIL)) s.setEmail(sNode.get(KEY_EMAIL).asText());
+        if (sNode.hasNonNull("telephone")) s.setTelephone(sNode.get("telephone").asText());
+
+        String address = buildSupplierAddress(sNode);
+        if (!address.isBlank()) s.setAdresse(address);
+
+        if (sNode.hasNonNull(KEY_NOTES)) s.setNotes(sNode.get(KEY_NOTES).asText());
+        if (sNode.hasNonNull("conditionsPaiement")) s.setConditionsPaiement(sNode.get("conditionsPaiement").asText());
+        if (sNode.hasNonNull("actif")) s.setActif(sNode.get("actif").asBoolean());
+        return s;
+    }
+
+    private String buildSupplierAddress(JsonNode sNode) {
+        StringBuilder sb = new StringBuilder();
+        if (sNode.hasNonNull("adresse")) sb.append(sNode.get("adresse").asText());
+        if (sNode.hasNonNull("codePostal")) {
+            if (!sb.isEmpty()) sb.append(", ");
+            sb.append(sNode.get("codePostal").asText());
+        }
+        if (sNode.hasNonNull("ville")) {
+            if (!sb.isEmpty()) sb.append(" ");
+            sb.append(sNode.get("ville").asText());
+        }
+        if (sNode.hasNonNull("pays")) {
+            if (!sb.isEmpty()) sb.append(", ");
+            sb.append(sNode.get("pays").asText());
+        }
+        return sb.toString();
+    }
+
+    private void seedPurchaseOrders(JsonNode ordersNode, Map<String, Supplier> savedSuppliers, Map<String, User> usersMap) {
+        if (ordersNode == null || !ordersNode.isArray()) {
+            return;
+        }
+        log.info("Seeding {} purchase orders from demo dataset...", ordersNode.size());
+        User creator = usersMap.getOrDefault("admin", usersMap.values().stream().findFirst().orElse(null));
+        int orderSeq = 1;
+        for (JsonNode poNode : ordersNode) {
+            PurchaseOrder po = createPurchaseOrderFromNode(poNode, savedSuppliers, creator, orderSeq++);
+            if (po != null) {
+                purchaseOrderRepository.save(po);
+            }
+        }
+    }
+
+    private PurchaseOrder createPurchaseOrderFromNode(JsonNode poNode, Map<String, Supplier> savedSuppliers, User creator, int orderSeq) {
+        String supNom = poNode.get("supplierNom").asText();
+        Supplier sup = savedSuppliers.get(supNom);
+        if (sup == null) {
+            sup = savedSuppliers.values().stream().findFirst().orElse(null);
+        }
+        if (sup == null) return null;
+
+        PurchaseOrder po = new PurchaseOrder();
+        po.setReference(String.format("CMD-2026-%03d", orderSeq));
+        po.setSupplier(sup);
+        po.setStatut(parsePurchaseOrderStatus(poNode.hasNonNull(KEY_STATUT) ? poNode.get(KEY_STATUT).asText() : "DRAFT"));
+
+        String notes = poNode.hasNonNull(KEY_NOTES) ? poNode.get(KEY_NOTES).asText() : "";
+        if (poNode.hasNonNull("referenceFactureFournisseur")) {
+            String invRef = poNode.get("referenceFactureFournisseur").asText();
+            notes = notes.isBlank() ? "Facture/BL: " + invRef : notes + " (Facture/BL: " + invRef + ")";
+        }
+        if (!notes.isBlank()) {
+            po.setNotes(notes);
+        }
+
+        long daysAgo = poNode.hasNonNull(KEY_DAYS_AGO) ? poNode.get(KEY_DAYS_AGO).asLong() : 2;
+        po.setDateCommande(timeService.now().minusDays(daysAgo));
+        po.setDateLivraisonPrevue(timeService.now().plusDays(2));
+        if (po.getStatut() == PurchaseOrderStatus.RECEIVED) {
+            po.setDateReception(timeService.now().minusDays(1));
+        }
+        po.setCreatedBy(creator);
+
+        List<PurchaseOrderItem> items = parsePurchaseOrderItems(po, poNode.get(KEY_ITEMS));
+        calculateOrderTotals(po, items);
+        return po;
+    }
+
+    private void calculateOrderTotals(PurchaseOrder po, List<PurchaseOrderItem> items) {
+        BigDecimal totalHt = BigDecimal.ZERO;
+        BigDecimal totalTva = BigDecimal.ZERO;
+        BigDecimal totalTtc = BigDecimal.ZERO;
+        for (PurchaseOrderItem item : items) {
+            BigDecimal lineHt = item.getPrixUnitaireHt().multiply(item.getQuantiteCommandee()).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal lineTva = lineHt.multiply(item.getTauxTva()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            totalHt = totalHt.add(lineHt);
+            totalTva = totalTva.add(lineTva);
+            totalTtc = totalTtc.add(lineHt.add(lineTva));
+        }
+        po.setTotalHt(totalHt);
+        po.setTotalTva(totalTva);
+        po.setTotalTtc(totalTtc);
+        po.setItems(items);
+    }
+
+    private PurchaseOrderStatus parsePurchaseOrderStatus(String statusStr) {
+        if (statusStr == null) return PurchaseOrderStatus.DRAFT;
+        return switch (statusStr.toUpperCase()) {
+            case "RECU", "RECEIVED", "LIVREE" -> PurchaseOrderStatus.RECEIVED;
+            case "COMMANDE", "COMMANDEE", "ORDERED" -> PurchaseOrderStatus.ORDERED;
+            case "PARTIELLEMENT_LIVREE", "PARTIALLY_RECEIVED" -> PurchaseOrderStatus.PARTIALLY_RECEIVED;
+            case "ANNULEE", "CANCELLED" -> PurchaseOrderStatus.CANCELLED;
+            case "BROUILLON", "DRAFT" -> PurchaseOrderStatus.DRAFT;
+            default -> {
+                try {
+                    yield PurchaseOrderStatus.valueOf(statusStr.toUpperCase());
+                } catch (IllegalArgumentException _) {
+                    yield PurchaseOrderStatus.DRAFT;
+                }
+            }
+        };
+    }
+
+    private List<PurchaseOrderItem> parsePurchaseOrderItems(PurchaseOrder po, JsonNode itemsNode) {
+        List<PurchaseOrderItem> items = new ArrayList<>();
+        if (itemsNode == null || !itemsNode.isArray()) return items;
+
+        for (JsonNode itNode : itemsNode) {
+            String ingNom = itNode.get("ingredientNom").asText();
+            BigDecimal unitPrice = new BigDecimal(itNode.get("prixUnitaireHt").asText());
+            Ingredient ing = findOrCreateIngredient(ingNom, unitPrice);
+
+            PurchaseOrderItem item = new PurchaseOrderItem();
+            item.setPurchaseOrder(po);
+            item.setIngredient(ing);
+            item.setQuantiteCommandee(new BigDecimal(itNode.get("quantiteCommandee").asText()));
+            item.setQuantiteRecue(new BigDecimal(itNode.get("quantiteRecue").asText()));
+            item.setPrixUnitaireHt(unitPrice);
+            item.setTauxTva(new BigDecimal(itNode.get("tauxTva").asText()));
+            if (itNode.hasNonNull(KEY_PURCHASE_UNIT)) {
+                item.setPurchaseUnit(itNode.get(KEY_PURCHASE_UNIT).asText());
+            } else if (ing.getPurchaseUnit() != null) {
+                item.setPurchaseUnit(ing.getPurchaseUnit());
+            }
+            if (itNode.hasNonNull(KEY_PACKAGING_CAPACITY)) {
+                item.setPackagingCapacity(new BigDecimal(itNode.get(KEY_PACKAGING_CAPACITY).asText()));
+            } else if (ing.getPackagingCapacity() != null) {
+                item.setPackagingCapacity(ing.getPackagingCapacity());
+            }
+            items.add(item);
+        }
+        return items;
+    }
+
+    private Optional<Ingredient> findIngredient(String query) {
+        if (query == null || query.isBlank()) return Optional.empty();
+        String q = query.trim().toLowerCase();
+        Optional<Ingredient> exact = ingredientRepository.findByNomIgnoreCase(query.trim());
+        if (exact.isPresent()) return exact;
+
+        List<Ingredient> all = ingredientRepository.findAll();
+        for (Ingredient ing : all) {
+            if (ing.getNom().equalsIgnoreCase(query.trim())) return Optional.of(ing);
+        }
+        for (Ingredient ing : all) {
+            String nom = ing.getNom().toLowerCase();
+            if (nom.contains(q) || q.contains(nom)) {
+                return Optional.of(ing);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Ingredient findOrCreateIngredient(String ingNom, BigDecimal unitPrice) {
+        Optional<Ingredient> opt = findIngredient(ingNom);
+        if (opt.isPresent()) {
+            return opt.get();
+        }
+        Ingredient newIng = new Ingredient();
+        newIng.setNom(ingNom);
+        newIng.setUniteMesure("cl");
+        newIng.setQuantiteStock(new BigDecimal("100.0"));
+        newIng.setSeuilAlerte(new BigDecimal("20.0"));
+        newIng.setPrixUnitaire(unitPrice != null ? unitPrice : new BigDecimal("10.00"));
+        newIng.setPurchaseUnit("Bouteille 70cl");
+        newIng.setPackagingCapacity(BigDecimal.valueOf(70.0));
+        newIng.setPackagingPriceHt(unitPrice != null ? unitPrice : new BigDecimal("10.00"));
+        return ingredientRepository.save(newIng);
+    }
+
+    private void linkIngredientsToSuppliersAndBarcodes(Map<String, Supplier> savedSuppliers) {
+        Supplier distAlpes = savedSuppliers.get("Distillerie des Alpes");
+        Supplier grossiste = savedSuppliers.get("Grossiste Boissons Rhône");
+
+        Map<String, String> barcodes = Map.of(
+                "Rhum", "3256220148521",
+                "Gin", "3256220148538",
+                "Vodka", "3256220148545",
+                "Sirop", "3123456789012",
+                "Citron", "3123456789029"
+        );
+
+        barcodes.forEach((name, barcode) -> {
+            Optional<Ingredient> opt = findIngredient(name);
+            if (opt.isPresent()) {
+                Ingredient ing = opt.get();
+                ing.setCodeBarre(barcode);
+                String lower = name.toLowerCase();
+                if (lower.contains("rhum") || lower.contains("gin") || lower.contains("vodka")) {
+                    if (distAlpes != null) ing.setDefaultSupplier(distAlpes);
+                } else if (grossiste != null) {
+                    ing.setDefaultSupplier(grossiste);
+                }
+                ingredientRepository.save(ing);
+            }
+        });
     }
 }

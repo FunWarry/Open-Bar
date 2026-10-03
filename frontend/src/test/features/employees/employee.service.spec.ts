@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { EmployeeService } from '../../../app/features/employees/services/employee.service';
 import { environment } from '../../../environments/environment';
 
@@ -13,7 +13,7 @@ describe('EmployeeService', () => {
     TestBed.configureTestingModule({
       providers: [
         EmployeeService,
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
       ],
     });

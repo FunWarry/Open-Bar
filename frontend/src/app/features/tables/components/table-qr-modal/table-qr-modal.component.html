@@ -7,7 +7,7 @@
       </div>
       <div class="header-text">
         <h2 class="modal-title" data-testid="table-qr-title">
-          {{ (activeMode === 'WIFI' ? 'TABLES.QR_TAB_WIFI' : 'TABLES.QR_CODE_TITLE') | transloco: { ssid: settings?.wifiSsid } }}
+          {{ (activeMode === 'WIFI' ? 'TABLES.QR_TAB_WIFI' : 'TABLES.QR_CODE_TITLE') | transloco: { ssid: $safeNavigationMigration(settings?.wifiSsid) } }}
         </h2>
         <div class="modal-meta-tags">
           <span class="meta-tag table-tag">
@@ -76,7 +76,7 @@
           } @else if (previewUrl) {
             <img
               [src]="previewUrl"
-              [alt]="activeMode === 'WIFI' ? ('TABLES.QR_WIFI_ALT' | transloco: { ssid: settings?.wifiSsid }) : ('TABLES.QR_ALT' | transloco: { numero: table.numero })"
+              [alt]="activeMode === 'WIFI' ? ('TABLES.QR_WIFI_ALT' | transloco: { ssid: $safeNavigationMigration(settings?.wifiSsid) }) : ('TABLES.QR_ALT' | transloco: { numero: table.numero })"
               class="qr-image"
               data-testid="table-qr-image" />
           }

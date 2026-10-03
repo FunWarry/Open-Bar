@@ -1,6 +1,7 @@
 import {
   Component, OnInit, OnDestroy, AfterViewInit,
   ElementRef, ViewChild, NgZone, ChangeDetectorRef, inject,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -23,11 +24,17 @@ import {
   waterOutline, beerOutline, fastFoodOutline, searchOutline,
   addOutline, removeOutline, locateOutline,
 } from 'ionicons/icons';
+import { tableRestaurantOutline } from '../../core/icons/custom-icons';
 import { CocktailService } from '../../core/services/cocktail.service';
+import { Cocktail } from '../../core/models/cocktail.model';
+import { CocktailListComponent } from '../cocktails/cocktail-list/cocktail-list.component';
 import { HappyHourService } from '../../core/services/happy-hour.service';
 import { ZoneService, ZoneBar } from '../../core/services/zone.service';
 import { TableDetailModalComponent } from './components/table-detail-modal/table-detail-modal.component';
 import { EncaissementModalComponent } from './components/encaissement-modal/encaissement-modal.component';
+import { Facture } from '../factures/models/facture.model';
+import { FactureService } from '../factures/services/facture.service';
+import { FactureSplitComponent } from '../factures/facture-split/facture-split.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { DashboardServeurService, EtageItem, ZoneItem } from './services/dashboard-serveur.service';
@@ -41,6 +48,7 @@ import { PlanSalleService } from '../plan-salle/services/plan-salle.service';
 import { Commande } from '../../core/models/commande.model';
 import { OfflineOrderService } from '../../core/services/offline-order.service';
 import { FeatureFlagService } from '../../core/services/feature-flag.service';
+import { generateSafeUUID } from '../../core/utils/uuid.util';
 
 import { Store } from '@ngrx/store';
 import { selectCurrentUser } from '../../core/store/auth.selectors';
@@ -57,9 +65,12 @@ const PLAN_COLS = 5;
 
 import { MobileTableCardComponent } from './components/mobile-table-card/mobile-table-card.component';
 import { BottomNavigationComponent, ServeurTab } from './components/bottom-navigation/bottom-navigation.component';
-import { ProductCardComponent, ProductItem } from './components/product-card/product-card.component';
+import { ProductItem, ProductVariant } from './components/product-card/product-card.component';
 import { CartDrawerComponent } from './components/cart-drawer/cart-drawer.component';
 import { CartModel, CartItemModel } from './models/cart.model';
+import { BarTabsListComponent } from './components/bar-tabs-list/bar-tabs-list.component';
+import { BarTabService } from '../../core/services/bar-tab.service';
+import { BarTab } from '../../core/models/bar-tab.model';
 /**
  * View mode for the server dashboard (grid, list, kanban).
  */
@@ -99,13 +110,15 @@ import { SearchBarComponent } from '../../core/components/ui/search-bar/search-b
     IonIcon,
     MobileTableCardComponent,
     BottomNavigationComponent,
-    ProductCardComponent,
     CartDrawerComponent,
     CommandeListComponent,
     SearchableSelectComponent,
     SearchBarComponent,
+    BarTabsListComponent,
+    CocktailListComponent,
   ],
   templateUrl: './dashboard-serveur.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./dashboard-serveur.component.scss'],
 })
 export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -132,6 +145,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   productSearchQuery = '';
   selectedAllergens: string[] = [];
   canSeeLowStock = false;
+  currentUser: any = null;
 
   readonly availableAllergens: readonly { key: string; labelKey: string; icon: string }[] = [
     { key: 'LAIT', labelKey: 'COCKTAILS.ALLERGENS.LAIT', icon: 'nutrition-outline' },
@@ -191,6 +205,9 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   readonly offlineService = inject(OfflineOrderService);
   private readonly featureFlagService = inject(FeatureFlagService);
   readonly floorPlanEnabled = this.featureFlagService.floorPlanEnabled;
+  readonly barTabService = inject(BarTabService);
+  readonly barTabsEnabled = this.featureFlagService.barTabsEnabled;
+  private readonly factureService = inject(FactureService);
 
   constructor(
     private readonly service: DashboardServeurService,
@@ -215,7 +232,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       checkmarkCircleOutline, closeCircleOutline, peopleOutline, wineOutline,
       nutritionOutline, eggOutline, leafOutline, sparklesOutline, flameOutline,
       waterOutline, beerOutline, fastFoodOutline, searchOutline,
-      addOutline, removeOutline, locateOutline,
+      addOutline, removeOutline, locateOutline, tableRestaurantOutline,
     });
   }
 
@@ -250,12 +267,16 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         if (params['tab'] === 'suivi' || params['tab'] === 'kanban') {
           this.activeTab = 'suivi';
           this.cdr.detectChanges();
+        } else if (params['tab'] === 'tabs' || params['tab'] === 'ardoises') {
+          this.activeTab = 'tabs';
+          this.cdr.detectChanges();
         }
       });
 
     this.store.select(selectCurrentUser)
       .pipe(takeUntil(this.destroy$))
       .subscribe(user => {
+        this.currentUser = user;
         this.canSeeLowStock = user?.roles?.some(r => r === 'BARMAN' || r === 'MANAGER' || r === 'ADMIN') ?? false;
         this.cdr.detectChanges();
       });
@@ -372,11 +393,11 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         this.filtrer();
       },
       error: () => {
-        this.toastCtrl.create({
+        void this.toastCtrl.create({
           message: 'Erreur lors du chargement des tables',
           duration: 3000,
           color: 'danger',
-        }).then(t => t.present());
+        }).then(t => void t.present());
       },
     });
   }
@@ -399,11 +420,11 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
           this.filtrer();
         },
         error: () => {
-          this.toastCtrl.create({
+          void this.toastCtrl.create({
             message: 'Erreur lors du chargement des tables',
             duration: 3000,
             color: 'danger',
-          }).then(t => t.present());
+          }).then(t => void t.present());
         },
       });
   }
@@ -1362,7 +1383,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       });
 
       group.on('click tap', () => {
-        this.ngZone.run(() => this.onSelectionner(table));
+        this.ngZone.run(() => void this.onSelectionner(table));
       });
 
       this.layer!.add(group);
@@ -1447,7 +1468,9 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     if (data?.action === 'liberer') {
       this.onLiberer(data.tableId);
     } else if (data?.action === 'encaisser') {
-      this.ouvrirEncaissement(data.table || table);
+      void this.ouvrirEncaissement(data.table || table);
+    } else if (data?.action === 'split') {
+      void this.ouvrirSplitTable(data.table || table);
     }
   }
 
@@ -1455,11 +1478,12 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
    * Opens the full table encaissement and payment modal.
    *
    * @param table Target table to settle.
+   * @param initialTab Starting payment tab ('single' | 'split').
    */
-  async ouvrirEncaissement(table: TableView) {
+  async ouvrirEncaissement(table: TableView, initialTab: 'single' | 'split' = 'single') {
     const modal = await this.modalCtrl.create({
       component: EncaissementModalComponent,
-      componentProps: { table },
+      componentProps: { table, initialTab },
       cssClass: 'encaissement-modal-container',
       enterAnimation: fastModalEnterAnimation,
       leaveAnimation: fastModalLeaveAnimation,
@@ -1468,33 +1492,62 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     const { data } = await modal.onWillDismiss();
     if (data?.action === 'settled') {
       this.chargerTables();
+    } else if (data?.action === 'open_split' && data?.facture) {
+      await this.ouvrirSplitFacture(data.facture);
     }
+  }
+
+  /**
+   * Opens the unified split settlement modal for an invoice.
+   *
+   * @param facture Invoice to split and settle.
+   */
+  async ouvrirSplitFacture(facture: Facture): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: FactureSplitComponent,
+      componentProps: { facture, factureId: facture.id },
+      cssClass: 'facture-split-modal-container',
+      enterAnimation: fastModalEnterAnimation,
+      leaveAnimation: fastModalLeaveAnimation,
+    });
+    await modal.present();
+    const { data } = await modal.onWillDismiss();
+    if (data?.settled) {
+      this.chargerTables();
+    }
+  }
+
+  /**
+   * Directly opens in-place table bill split without intermediate popups.
+   *
+   * @param table Target table
+   */
+  async ouvrirSplitTable(table: TableView): Promise<void> {
+    await this.ouvrirEncaissement(table, 'split');
   }
 
   naviguerKanban() {
     this.activeTab = 'suivi';
   }
 
-  async onLiberer(tableId: number) {
+  onLiberer(tableId: number): void {
     this.service.libererTable(tableId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async () => {
+        next: () => {
           this.chargerTables();
-          const toast = await this.toastCtrl.create({
+          void this.toastCtrl.create({
             message: 'Table libérée',
             duration: 2000,
             color: 'success',
-          });
-          toast.present();
+          }).then(t => void t.present());
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
+        error: () => {
+          void this.toastCtrl.create({
             message: 'Impossible de libérer la table',
             duration: 3000,
             color: 'danger',
-          });
-          toast.present();
+          }).then(t => void t.present());
         },
       });
   }
@@ -1503,7 +1556,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
    * Directly marks a free table as occupied from its card.
    * @param table Target table
    */
-  async onOccupyTable(table: TableView): Promise<void> {
+  onOccupyTable(table: TableView): void {
     this.service.occuperTable(table.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -1533,7 +1586,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
    * Directly frees an occupied table with no active orders from its card.
    * @param table Target table
    */
-  async onFreeTable(table: TableView): Promise<void> {
+  onFreeTable(table: TableView): void {
     this.service.libererTable(table.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -1693,6 +1746,71 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     this.pushItemToCart(product, undefined, product.prix);
   }
 
+  /**
+   * Handles cocktail selection from the embedded cocktail catalog in the order-taking tab.
+   * If the cocktail has variants, prompts the waiter to pick a variant (or the standard recipe)
+   * before adding the item to the order cart.
+   *
+   * @param cocktail - Selected cocktail from the catalog
+   */
+  async onCocktailSelected(cocktail: Cocktail): Promise<void> {
+    const productItem: ProductItem = {
+      id: cocktail.id,
+      nom: cocktail.nom,
+      prix: cocktail.prix,
+      categorie: cocktail.categorie,
+      disponible: cocktail.disponible,
+      description: cocktail.ingredients && cocktail.ingredients.length > 0
+        ? cocktail.ingredients.map(i => i.ingredientNom).join(' · ')
+        : (cocktail.description || ''),
+      image: cocktail.imageUrl,
+    };
+
+    const availableVariants = (cocktail.variantes || []).filter(v => v.disponible !== false);
+
+    if (availableVariants.length > 0) {
+      const standardOption: ProductVariant = {
+        id: undefined,
+        nom: `${cocktail.nom} (${this.translocoService.translate('SERVEUR.NO_VARIANTE') || 'Standard'})`,
+        prix: cocktail.prix,
+      };
+      const variantsForModal: ProductVariant[] = [
+        standardOption,
+        ...availableVariants.map(v => ({
+          id: v.id,
+          nom: v.nom,
+          prix: Number((cocktail.prix + (v.prixSupplement || 0)).toFixed(2)),
+        })),
+      ];
+
+      const modal = await this.modalCtrl.create({
+        component: VariantSelectionModalComponent,
+        componentProps: {
+          product: {
+            ...productItem,
+            variantes: variantsForModal,
+          },
+        },
+      });
+      await modal.present();
+      const { data, role } = await modal.onWillDismiss();
+      if (role === 'confirm' && data?.selectedVariant) {
+        const isStandard = data.selectedVariant.id === undefined;
+        this.pushItemToCart(
+          productItem,
+          isStandard ? undefined : data.selectedVariant.nom,
+          data.selectedVariant.prix,
+          undefined,
+          undefined,
+          data.selectedVariant.id,
+        );
+      }
+      return;
+    }
+
+    this.pushItemToCart(productItem, undefined, cocktail.prix);
+  }
+
   async onCustomizeProduct(product: ProductItem) {
     let varianteNom: string | undefined;
     let varianteId: number | undefined;
@@ -1827,14 +1945,16 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     this.chargerTables();
   }
 
-  async onSubmitCart() {
-    if (!this.cart.tableId || this.cart.items.length === 0 || this.isSubmitting) return;
+  onSubmitCart(): void {
+    if ((!this.cart.tableId && !this.cart.barTabId) || this.cart.items.length === 0 || this.isSubmitting) return;
 
     this.isSubmitting = true;
     this.cdr.detectChanges();
 
-    const targetTableId = this.cart.tableId;
+    const targetTableId = this.cart.tableId ?? undefined;
     const targetTableNumero = this.cart.tableNumero ?? targetTableId;
+    const targetBarTabId = this.cart.barTabId ?? undefined;
+    const targetBarTabNom = this.cart.barTabNom;
     const itemsToSubmit = [...this.cart.items];
     const generalNote = this.cart.noteGenerale;
 
@@ -1860,12 +1980,14 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       };
     });
 
-    const clientRequestId = crypto.randomUUID();
+    const clientRequestId = generateSafeUUID();
 
     this.service.createCommande({
       tableId: targetTableId,
+      barTabId: targetBarTabId,
       notes: generalNote,
       items: mappedItems,
+      serveurId: this.currentUser?.id,
       clientRequestId,
     })
       .pipe(
@@ -1877,9 +1999,10 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       )
       .subscribe({
         next: async () => {
+          const targetDisplay = targetBarTabNom || `la Table #${targetTableNumero}`;
           const message = this.translocoService.translate('SERVEUR.ORDER_SENT_SUCCESS', {
-            table: targetTableNumero,
-          }) || `Commande envoyée pour la Table #${targetTableNumero}`;
+            table: targetDisplay,
+          }) || `Commande envoyée pour ${targetDisplay}`;
 
           const toast = await this.toastCtrl.create({
             message,
@@ -1890,6 +2013,9 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
           this.cart = { tableId: null, items: [] };
           this.chargerTables();
+          if (targetBarTabId) {
+            this.barTabService.loadTabs().subscribe();
+          }
         },
         error: async (err) => {
           console.error('[DashboardServeur] Error submitting cart order:', err);
@@ -1909,6 +2035,37 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
   onClearCart() {
     this.cart = { tableId: null, items: [] };
+  }
+
+  onOrderForTab(tab: BarTab) {
+    this.cart = {
+      tableId: tab.tableOriginaleId ?? null,
+      tableNumero: tab.tableOriginaleNumero ?? undefined,
+      barTabId: tab.id,
+      barTabNom: tab.nom,
+      items: [],
+    };
+    this.activeTab = 'commande';
+    this.cdr.detectChanges();
+  }
+
+  async onSettleTab(tab: BarTab): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: EncaissementModalComponent,
+      componentProps: { tab },
+      cssClass: 'encaissement-modal-container',
+      enterAnimation: fastModalEnterAnimation,
+      leaveAnimation: fastModalLeaveAnimation,
+    });
+    void modal.onDidDismiss().then(async (result) => {
+      if (result.data?.action === 'settled') {
+        this.barTabService.loadTabs().subscribe();
+      } else if (result.data?.action === 'open_split' && result.data?.facture) {
+        await this.ouvrirSplitFacture(result.data.facture);
+        this.barTabService.loadTabs().subscribe();
+      }
+    });
+    await modal.present();
   }
 
   onRefresh(event: { target?: { complete: () => void } }) {

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -48,6 +48,7 @@ export interface EditableOrderItem {
     SearchableSelectComponent,
   ],
   templateUrl: './edit-commande-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./edit-commande-modal.component.scss'],
 })
 export class EditCommandeModalComponent implements OnInit {
@@ -166,7 +167,7 @@ export class EditCommandeModalComponent implements OnInit {
     if (this.items[index].quantite > 1) {
       this.items[index].quantite -= 1;
     } else {
-      this.removeItem(index);
+      void this.removeItem(index);
     }
   }
 
@@ -281,7 +282,7 @@ export class EditCommandeModalComponent implements OnInit {
           color: 'success',
         });
         await toast.present();
-        this.modalCtrl.dismiss({ updated: true, commande: updated });
+        await this.modalCtrl.dismiss({ updated: true, commande: updated });
       },
       error: async () => {
         this.isSubmitting = false;
@@ -296,6 +297,6 @@ export class EditCommandeModalComponent implements OnInit {
   }
 
   dismiss(): void {
-    this.modalCtrl.dismiss();
+    void this.modalCtrl.dismiss();
   }
 }

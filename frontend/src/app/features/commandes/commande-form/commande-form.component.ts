@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonButton, IonNote, IonSelect, IonSelectOption } from '@ionic/angular';
@@ -16,6 +16,7 @@ import { TableBar } from '../../../core/models/table.model';
   templateUrl: './commande-form.component.html',
   styleUrls: ['./commande-form.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonItem, IonLabel, IonButton, IonNote,
@@ -60,17 +61,15 @@ export class CommandeFormComponent implements OnInit {
   onSubmit(): void {
     if (this.commandeForm.invalid) return;
     this.commandeService.create(this.commandeForm.value).subscribe({
-      next: async () => {
-        const toast = await this.toastCtrl.create({ message: String(this.transloco.translate('MESSAGES.ORDER_CREATED') || 'Commande créée'), duration: 3000, color: 'success' });
-        toast.present();
-        this.router.navigate(['/commandes']);
+      next: () => {
+        void this.toastCtrl.create({ message: String(this.transloco.translate('MESSAGES.ORDER_CREATED') || 'Commande créée'), duration: 3000, color: 'success' }).then(t => void t.present());
+        void this.router.navigate(['/commandes']);
       },
-      error: async () => {
-        const toast = await this.toastCtrl.create({ message: String(this.transloco.translate('ERRORS.SERVER') || 'Erreur lors de la création'), duration: 3000, color: 'danger' });
-        toast.present();
+      error: () => {
+        void this.toastCtrl.create({ message: String(this.transloco.translate('ERRORS.SERVER') || 'Erreur lors de la création'), duration: 3000, color: 'danger' }).then(t => void t.present());
       },
     });
   }
 
-  onCancel(): void { this.router.navigate(['/commandes']); }
+  onCancel(): void { void this.router.navigate(['/commandes']); }
 }

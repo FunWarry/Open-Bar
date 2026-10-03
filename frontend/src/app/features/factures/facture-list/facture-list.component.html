@@ -50,12 +50,22 @@
         </app-action-button>
 
         <app-action-button
-          variant="primary"
+          variant="secondary"
           icon="stats-chart-outline"
           (btnClick)="goToRecap()"
           testId="hero-zreport-btn"
           data-testid="hero-zreport-btn">
           {{ t('FACTURES.STATS.RECAP_BTN') }}
+        </app-action-button>
+
+        <app-action-button
+          variant="primary"
+          icon="add-circle-outline"
+          (btnClick)="ouvrirModalNouvelleFacture()"
+          [title]="t('FACTURES.ACTIONS.NEW_INVOICE')"
+          testId="factures-new-invoice-btn"
+          data-testid="factures-new-invoice-btn">
+          {{ t('FACTURES.ACTIONS.NEW_INVOICE') }}
         </app-action-button>
       </div>
     </header>
@@ -63,49 +73,43 @@
     <!-- KPI Summary Metrics Grid -->
     <section class="kpi-grid" data-testid="factures-kpi-grid">
       <!-- Total Revenue (CA) -->
-      <div class="kpi-card ca-card" data-testid="kpi-total-ca">
-        <div class="kpi-icon-wrapper">
-          <ion-icon name="cash-outline"></ion-icon>
-        </div>
-        <div class="kpi-body">
-          <span class="kpi-number">{{ totalCA | appCurrency }}</span>
-          <span class="kpi-title">{{ t('FACTURES.STATS.TOTAL_CA') }}</span>
-          <div class="kpi-subtext">
-            <span class="sub-settled">{{ t('FACTURES.STATS.TOTAL_SETTLED_LABEL') }}: {{ totalSettledCA | appCurrency }}</span>
-          </div>
-        </div>
-      </div>
+      <app-stat-card
+        layout="horizontal"
+        color="success"
+        icon="cash-outline"
+        [value]="totalCA | appCurrency"
+        [title]="t('FACTURES.STATS.TOTAL_CA')"
+        [subtext]="t('FACTURES.STATS.TOTAL_SETTLED_LABEL') + ': ' + (totalSettledCA | appCurrency)"
+        subtextClass="sub-settled"
+        testId="kpi-total-ca">
+      </app-stat-card>
 
       <!-- Total Invoices Issued -->
-      <div class="kpi-card count-card" data-testid="kpi-factures-count">
-        <div class="kpi-icon-wrapper">
-          <ion-icon name="document-text-outline"></ion-icon>
-        </div>
-        <div class="kpi-body">
-          <span class="kpi-number">{{ periodFilteredFactures.length }}</span>
-          <span class="kpi-title">{{ t('FACTURES.STATS.TOTAL_COUNT') }}</span>
-          <div class="kpi-subtext">
-            <span>{{ settledCount }} {{ t('FACTURES.FILTERS.SETTLED') | lowercase }} • {{ pendingCount }} {{ t('FACTURES.FILTERS.PENDING') | lowercase }}</span>
-          </div>
-        </div>
-      </div>
+      <app-stat-card
+        layout="horizontal"
+        color="purple"
+        icon="document-text-outline"
+        [value]="periodFilteredFactures.length"
+        [title]="t('FACTURES.STATS.TOTAL_COUNT')"
+        [subtext]="settledCount + ' ' + (t('FACTURES.FILTERS.SETTLED') | lowercase) + ' • ' + pendingCount + ' ' + (t('FACTURES.FILTERS.PENDING') | lowercase)"
+        testId="kpi-factures-count">
+      </app-stat-card>
 
       <!-- Settlement Rate -->
-      <div class="kpi-card rate-card" data-testid="kpi-settled-rate">
-        <div class="kpi-icon-wrapper">
-          <ion-icon name="checkmark-done-circle-outline"></ion-icon>
+      <app-stat-card
+        layout="horizontal"
+        color="warning"
+        icon="checkmark-done-circle-outline"
+        [title]="t('FACTURES.STATS.SETTLED_RATE')"
+        testId="kpi-settled-rate">
+        <div stat-value class="rate-top">
+          <span class="kpi-number">{{ settledRate }}%</span>
+          <span class="rate-fraction">({{ settledCount }}/{{ periodFilteredFactures.length }})</span>
         </div>
-        <div class="kpi-body">
-          <div class="rate-top">
-            <span class="kpi-number">{{ settledRate }}%</span>
-            <span class="rate-fraction">({{ settledCount }}/{{ periodFilteredFactures.length }})</span>
-          </div>
-          <span class="kpi-title">{{ t('FACTURES.STATS.SETTLED_RATE') }}</span>
-          <div class="rate-progress-box">
-            <ion-progress-bar [value]="settledRatio" color="warning" class="kpi-progress"></ion-progress-bar>
-          </div>
+        <div stat-footer class="rate-progress-box">
+          <ion-progress-bar [value]="settledRatio" color="warning" class="kpi-progress"></ion-progress-bar>
         </div>
-      </div>
+      </app-stat-card>
     </section>
 
     <!-- Operational Period Selector Bar -->
@@ -319,15 +323,18 @@
       @if (viewMode === 'grid') {
         <section class="invoices-grid" data-testid="factures-grid-container">
           @for (facture of filteredFactures; track trackById($index, facture)) {
-            <article
-              class="invoice-card"
-              [class.card-settled]="facture.reglee"
-              [class.card-pending]="!facture.reglee"
-              [routerLink]="['/factures', facture.id]"
+            <app-card
+              [accentColor]="getFactureAccentColor(facture)"
+              [clickable]="true"
+              [headerDivider]="'dashed'"
+              [footerDivider]="'none'"
+              [padding]="'md'"
+              [testId]="'invoice-card-' + facture.id"
+              (cardClick)="navigateToDetail(facture.id)"
               data-testid="invoice-card-item">
 
               <!-- Card Header -->
-              <div class="card-top">
+              <div card-header class="card-top">
                 <div class="invoice-num-group">
                   <button
                     type="button"
@@ -366,7 +373,7 @@
               </div>
 
               <!-- Card Middle -->
-              <div class="card-middle">
+              <div card-content class="card-middle">
                 <div class="amount-hero-box">
                   <span class="amount-val">{{ (facture.totalTTC ?? facture.total) | appCurrency }}</span>
                   <span class="amount-tax-label">{{ t('FACTURES.TTC_LABEL') }}</span>
@@ -395,7 +402,7 @@
               </div>
 
               <!-- Card Bottom Actions -->
-              <div class="card-bottom">
+              <div card-footer class="card-bottom">
                 <div class="quick-card-actions">
                   <button
                     type="button"
@@ -413,7 +420,7 @@
                   <ion-icon name="chevron-forward-outline" class="detail-arrow"></ion-icon>
                 </div>
               </div>
-            </article>
+            </app-card>
           }
         </section>
       } @else {

@@ -1,11 +1,11 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { printOutline, receiptOutline, hardwareChipOutline } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
-import { Facture, FactureItem, FactureReglement } from '../models/facture.model';
+import { Facture, FactureItem, FactureReglement, TypeSplit } from '../models/facture.model';
 import { EstablishmentConfig } from '../../../core/models/establishment-config.model';
 import { EtablissementService } from '../../../core/services/etablissement.service';
 import { PrinterService } from '../../../core/services/printer.service';
@@ -19,6 +19,7 @@ import { PrinterService } from '../../../core/services/printer.service';
   standalone: true,
   imports: [CommonModule, IonIcon, TranslocoModule, AppCurrencyPipe],
   templateUrl: './ticket-receipt.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./ticket-receipt.component.scss'],
 })
 export class TicketReceiptComponent implements OnInit {
@@ -87,7 +88,7 @@ export class TicketReceiptComponent implements OnInit {
 
   get splitPartItems(): { description: string; quantite: number; prixUnitaire: number; total: number }[] {
     if (!this.reglement) return [];
-    if (this.reglement.typeSplit === 'SELECTION' && this.reglement.items && this.reglement.items.length > 0) {
+    if (this.reglement.typeSplit === TypeSplit.SELECTION && this.reglement.items && this.reglement.items.length > 0) {
       return this.reglement.items;
     }
     return [{
@@ -174,20 +175,20 @@ export class TicketReceiptComponent implements OnInit {
     if (!this.facture?.id || !this.printerService) return;
     this.isDirectPrinting = true;
     this.printerService.printInvoiceReceipt(this.facture.id, openCashDrawer).subscribe({
-      next: (result) => {
+      next: async (result) => {
         this.isDirectPrinting = false;
         if (result.success) {
-          this.showToast(this.translocoService.translate('FACTURES.DIRECT_RECEIPT_SUCCESS'), 'success');
+          await this.showToast(this.translocoService.translate('FACTURES.DIRECT_RECEIPT_SUCCESS'), 'success');
         } else {
-          this.showToast(
+          await this.showToast(
             this.translocoService.translate('FACTURES.DIRECT_RECEIPT_FAILED', { error: result.message }),
             'warning'
           );
         }
       },
-      error: (err) => {
+      error: async (err) => {
         this.isDirectPrinting = false;
-        this.showToast(
+        await this.showToast(
           this.translocoService.translate('FACTURES.DIRECT_RECEIPT_FAILED', { error: err?.message || 'Error' }),
           'danger'
         );

@@ -1,3 +1,10 @@
-<ion-badge [color]="badgeColor" class="status-badge" [attr.data-testid]="testId">
-  {{ label }}
-</ion-badge>
+<div class="status-badge-container" [attr.data-testid]="testId">
+  <ion-badge [color]="statusBadgeColor" class="status-badge" [attr.data-testid]="testId + '-pill'">
+    {{ statusLabel }}
+  </ion-badge>
+  @if (prioritary && status !== 'PRIORITAIRE') {
+    <ion-badge color="danger" class="urgent-badge" [attr.data-testid]="testId + '-urgent'">
+      ⚡ {{ priorityLabel }}
+    </ion-badge>
+  }
+</div>

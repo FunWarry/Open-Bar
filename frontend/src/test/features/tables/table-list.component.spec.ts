@@ -1,4 +1,4 @@
-import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
@@ -272,4 +272,40 @@ describe('TableListComponent', () => {
     const qrButtons = compiled.querySelectorAll('[data-testid^="table-card-qr-btn"]');
     expect(qrButtons).toHaveSize(0);
   });
+
+  it('onToggleStatus handles error with toast', fakeAsync(() => {
+    serviceSpy.liberer.and.returnValue(throwError(() => new Error('Error')));
+    serviceSpy.occuper.and.returnValue(throwError(() => new Error('Error')));
+    component.onToggleStatus({ ...mockTables[1], occupee: true });
+    tick();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+    expect(mockToast.present).toHaveBeenCalled();
+  }));
+
+  it('charger handles error with toast', fakeAsync(() => {
+    serviceSpy.getAll.and.returnValue(throwError(() => new Error('Load failed')));
+    component.charger();
+    tick();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+    expect(mockToast.present).toHaveBeenCalled();
+  }));
+
+  it('onDelete handles error with toast', fakeAsync(() => {
+    serviceSpy.delete.and.returnValue(throwError(() => new Error('Delete error')));
+    component.onDelete(mockTables[0]);
+    tick();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  it('onView handles modal dismiss with edit action', fakeAsync(() => {
+    spyOn(component, 'onEdit');
+    modalCtrlSpy.create.and.returnValue(Promise.resolve({
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { action: 'edit', table: mockTables[0] } }))
+    } as any));
+
+    component.onView(mockTables[0]);
+    tick();
+    expect(component.onEdit).toHaveBeenCalledWith(mockTables[0]);
+  }));
 });

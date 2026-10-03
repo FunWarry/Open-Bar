@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
 import {
   ModalController,
@@ -33,6 +33,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
     TranslocoPipe
 ],
   templateUrl: './transfert-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./transfert-modal.component.scss'],
 })
 export class TransfertModalComponent implements OnInit {
@@ -75,13 +76,13 @@ export class TransfertModalComponent implements OnInit {
    * @param targetTable Selected table entity.
    */
   selectionnerTable(targetTable: TableBar): void {
-    this.modalCtrl.dismiss({ targetTableId: targetTable.id, targetTableNumero: targetTable.numero });
+    void this.modalCtrl.dismiss({ targetTableId: targetTable.id, targetTableNumero: targetTable.numero });
   }
 
   /**
    * Closes the transfer dialog without making changes.
    */
   fermer(): void {
-    this.modalCtrl.dismiss(null);
+    void this.modalCtrl.dismiss(null);
   }
 }

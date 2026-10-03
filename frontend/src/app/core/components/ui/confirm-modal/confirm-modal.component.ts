@@ -1,4 +1,4 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, Input, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { IonIcon, ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -46,6 +46,7 @@ export interface ConfirmModalResult {
   templateUrl: './confirm-modal.component.html',
   styleUrls: ['./confirm-modal.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonIcon,
     TranslocoPipe

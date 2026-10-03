@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
@@ -26,6 +26,8 @@ import { EditCommandeModalComponent } from '../edit-commande-modal/edit-commande
 import { CancelOrderModalComponent } from '../../../../core/components/ui/cancel-order-modal/cancel-order-modal.component';
 import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../core/utils/modal-animation.utils';
 
+import { StatusBadgeComponent } from '../../../../core/components/ui/status-badge/status-badge.component';
+
 /**
  * Redesigned modal displaying active orders for a specific table with rich card layouts,
  * status badges, item breakdowns, bill summary, and actions for modification, transfer, and cancellation.
@@ -38,8 +40,10 @@ import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../co
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
     IonContent, IonBadge, IonIcon, IonSpinner, IonFooter,
     TranslocoPipe,
+    StatusBadgeComponent,
   ],
   templateUrl: './table-detail-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./table-detail-modal.component.scss'],
 })
 export class TableDetailModalComponent implements OnInit {
@@ -81,7 +85,21 @@ export class TableDetailModalComponent implements OnInit {
     this.chargerAppels();
   }
 
+  /**
+   * Sanitized table title ensuring no 'Table null' or undefined placeholders are displayed.
+   */
+  get tableNomAffiche(): string {
+    if (!this.table?.nom || this.table.nom === 'Table null' || this.table.nom === 'Table undefined') {
+      return this.table?.id ? `Table ${this.table.id}` : 'Table';
+    }
+    return this.table.nom;
+  }
+
   chargerAppels(): void {
+    if (!this.table?.id) {
+      this.activeAppels = [];
+      return;
+    }
     this.tableAppelService.getAppelsActifsPourTable(this.table.id).subscribe({
       next: (appels) => {
         this.activeAppels = (appels ?? []).filter(a => a.statut === 'EN_ATTENTE');
@@ -90,6 +108,7 @@ export class TableDetailModalComponent implements OnInit {
   }
 
   acquitterAppel(appelId: number): void {
+    if (!this.table?.id) return;
     this.tableAppelService.acquitterAppel(this.table.id, appelId).subscribe({
       next: async () => {
         this.activeAppels = this.activeAppels.filter(a => a.id !== appelId);
@@ -104,6 +123,10 @@ export class TableDetailModalComponent implements OnInit {
   }
 
   chargerCommandes(): void {
+    if (!this.table?.id) {
+      this.commandes = [];
+      return;
+    }
     this.isLoading = true;
     this.service.getCommandesByTable(this.table.id)
       .pipe(finalize(() => (this.isLoading = false)))
@@ -239,20 +262,27 @@ export class TableDetailModalComponent implements OnInit {
   }
 
   nouvelleCommande(): void {
-    this.modalCtrl.dismiss();
-    this.router.navigate(['/serveur'], { queryParams: { tableId: this.table.id } });
+    void this.modalCtrl.dismiss();
+    void this.router.navigate(['/serveur'], { queryParams: { tableId: this.table.id } });
   }
 
   encaisser(): void {
-    this.modalCtrl.dismiss({ action: 'encaisser', table: this.table });
+    void this.modalCtrl.dismiss({ action: 'encaisser', table: this.table });
+  }
+
+  /**
+   * Dismisses the modal requesting split payment for this table.
+   */
+  diviserAddition(): void {
+    void this.modalCtrl.dismiss({ action: 'split', table: this.table });
   }
 
   liberer(): void {
-    this.modalCtrl.dismiss({ action: 'liberer', tableId: this.table.id });
+    void this.modalCtrl.dismiss({ action: 'liberer', tableId: this.table.id });
   }
 
   fermer(): void {
-    this.modalCtrl.dismiss();
+    void this.modalCtrl.dismiss();
   }
 
   getCommandeTotal(cmd: Commande | null | undefined): number {

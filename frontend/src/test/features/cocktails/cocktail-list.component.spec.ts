@@ -2,14 +2,15 @@ import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
-import { provideIonicAngular } from '@ionic/angular';
-import { ToastController } from '@ionic/angular';
+import { provideIonicAngular, ToastController, ModalController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { Subject, of, throwError } from 'rxjs';
 import { CocktailListComponent } from '../../../app/features/cocktails/cocktail-list/cocktail-list.component';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
-import { Cocktail, CocktailCategorie } from '../../../app/core/models/cocktail.model';
+import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
+import { CocktailLibraryService } from '../../../app/core/services/cocktail-library.service';
+import { Cocktail, CocktailCategorie, CocktailVariante } from '../../../app/core/models/cocktail.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 const makeC = (id: number, nom: string, disponible = true, categorie: CocktailCategorie = 'ALCOOLISE'): Cocktail => ({
@@ -42,6 +43,8 @@ describe('CocktailListComponent', () => {
   let serviceSpy: jasmine.SpyObj<CocktailService>;
   let wsSpy: jasmine.SpyObj<WebSocketService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let modalCtrlSpy: jasmine.SpyObj<ModalController>;
+  let modalSpy: jasmine.SpyObj<HTMLIonModalElement>;
   let storeSpy: jasmine.SpyObj<Store>;
   let router: Router;
   let wsCocktailSubject: Subject<any>;
@@ -70,8 +73,20 @@ describe('CocktailListComponent', () => {
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
+    modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onWillDismiss']);
+    modalSpy.present.and.returnValue(Promise.resolve());
+    modalSpy.onWillDismiss.and.returnValue(Promise.resolve({ data: null, role: 'cancel' } as any));
+
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalSpy as any));
+
     storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
     storeSpy.select.and.returnValue(of(false));
+
+    const mockLibraryService = jasmine.createSpyObj('CocktailLibraryService', ['getWheelData', 'getCachedWheelData', 'getLibraryCocktails']);
+    mockLibraryService.getCachedWheelData.and.returnValue(null);
+    mockLibraryService.getWheelData.and.returnValue(of({ categories: {}, nodes: [], edges: [] }));
+    mockLibraryService.getLibraryCocktails.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [CocktailListComponent, RouterTestingModule, getTranslocoTestingModule()],
@@ -81,6 +96,8 @@ describe('CocktailListComponent', () => {
         { provide: CocktailService, useValue: serviceSpy },
         { provide: WebSocketService, useValue: wsSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: ModalController, useValue: modalCtrlSpy },
+        { provide: CocktailLibraryService, useValue: mockLibraryService },
       ],
     }).compileComponents();
 
@@ -529,5 +546,357 @@ describe('CocktailListComponent', () => {
     expect(toggleBtn.classList.contains('active')).toBeFalse();
     expect(component.filteredCocktails).toHaveSize(2);
   }));
+
+  // --- Selection Mode & Embedded Behavior (#508) ---
+
+  it('in selectionMode, hides add cocktail button in header even for admins', fakeAsync(() => {
+    storeSpy.select.and.returnValue(of(true));
+    component.selectionMode = true;
+    component.charger();
+    tick();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const addBtn = compiled.querySelector('[data-testid="cocktail-add-btn"]');
+    expect(addBtn).toBeNull();
+  }));
+
+  it('in selectionMode, hides edit button, delete button and availability slider, and shows selection add button', fakeAsync(() => {
+    storeSpy.select.and.returnValue(of(true));
+    component.selectionMode = true;
+    component.charger();
+    tick();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const editBtn = compiled.querySelector('[data-testid="edit-cocktail-btn-1"]');
+    const deleteBtn = compiled.querySelector('[data-testid="delete-cocktail-btn-1"]');
+    const toggleDispoBtn = compiled.querySelector('[data-testid="toggle-dispo-btn-1"]');
+    const selectBtn = compiled.querySelector('[data-testid="select-cocktail-btn-1"]');
+
+    expect(editBtn).toBeNull();
+    expect(deleteBtn).toBeNull();
+    expect(toggleDispoBtn).toBeNull();
+    expect(selectBtn).toBeTruthy();
+  }));
+
+  it('in selectionMode, emits cocktailSelect when an available cocktail is selected', fakeAsync(() => {
+    component.selectionMode = true;
+    component.charger();
+    tick();
+    fixture.detectChanges();
+
+    spyOn(component.cocktailSelect, 'emit');
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const selectBtn = compiled.querySelector('[data-testid="select-cocktail-btn-1"]') as HTMLButtonElement;
+    expect(selectBtn).toBeTruthy();
+
+    selectBtn.click();
+    tick();
+
+    expect(component.cocktailSelect.emit).toHaveBeenCalledWith(jasmine.objectContaining({ id: 1, nom: 'Mojito' }));
+  }));
+
+  it('in selectionMode, does not emit cocktailSelect when an unavailable cocktail is clicked', fakeAsync(() => {
+    component.selectionMode = true;
+    component.charger();
+    tick();
+    fixture.detectChanges();
+
+    spyOn(component.cocktailSelect, 'emit');
+
+    const unavailableCocktail = mockCocktails.find(c => !c.disponible)!;
+    component.onSelectCocktail(unavailableCocktail);
+
+    expect(component.cocktailSelect.emit).not.toHaveBeenCalled();
+  }));
+
+  it('when hideHeaderTitle is true, renders compact embedded count instead of full title block', fakeAsync(() => {
+    component.hideHeaderTitle = true;
+    component.charger();
+    tick();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const pageTitle = compiled.querySelector('.page-title');
+    const embeddedCount = compiled.querySelector('.title-with-count.embedded-mode');
+
+    expect(pageTitle).toBeNull();
+    expect(embeddedCount).toBeTruthy();
+  }));
+
+  it('isLibraryModuleEnabled returns flag from featureFlagService', () => {
+    const ffService = TestBed.inject(FeatureFlagService);
+    spyOn(ffService, 'isModuleEnabled').and.returnValue(true);
+    expect(component.isLibraryModuleEnabled).toBeTrue();
+  });
+
+  it('openLibraryImportModal navigates to /cocktails/library route', () => {
+    const router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+
+    component.openLibraryImportModal();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/cocktails', 'library']);
+  });
+
+  describe('Connection Wheel View Mode', () => {
+    it('renders connection wheel section when viewMode is wheel', fakeAsync(() => {
+      component.viewMode = 'wheel';
+      component.isLoading = false;
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const wheelSection = compiled.querySelector('[data-testid="cocktails-page-wheel-section"]');
+      expect(wheelSection).toBeTruthy();
+    }));
+
+    it('onWheelPairSelected sets search query and switches viewMode to grid', () => {
+      component.viewMode = 'wheel';
+      component.onWheelPairSelected({ ingredientA: 'Gin', ingredientB: 'Vermouth', count: 12 });
+
+      expect(component.searchQuery).toBe('Gin Vermouth');
+      expect(component.viewMode).toBe('grid');
+    });
+
+    it('onWheelExploreCocktails sets search query and switches viewMode to grid', () => {
+      component.viewMode = 'wheel';
+      component.onWheelExploreCocktails({ ingredients: ['Bourbon', 'Bitters', 'Simple Syrup'] });
+
+      expect(component.searchQuery).toBe('Bourbon Bitters Simple Syrup');
+      expect(component.viewMode).toBe('grid');
+    });
+  });
+
+  describe('Variant and Catalog Filtering', () => {
+    const baseCocktail: Cocktail = {
+      ...mockCocktails[0],
+      variantes: [
+        {
+          id: 101,
+          nom: 'Virgin Mojito Custom',
+          description: 'Sans alcool rafraîchissant',
+          prixSupplement: 0,
+          disponible: true,
+          ingredients: [
+            { id: 1, ingredientId: 20, ingredientNom: 'Limonade', quantite: 10, unite: 'cl', allergens: ['SULFITES'] }
+          ]
+        },
+        {
+          id: 102,
+          nom: 'Spicy Passion Mule',
+          description: 'Twist épicé au piment',
+          prixSupplement: 1.5,
+          disponible: true,
+          ingredients: []
+        },
+        {
+          id: 103,
+          nom: 'Archived Variant',
+          description: 'Indisponible',
+          prixSupplement: 2.0,
+          disponible: false,
+          ingredients: []
+        }
+      ]
+    };
+
+    it('isVariantNonAlcoholic detects virgin/mocktail keywords', () => {
+      expect(component.isVariantNonAlcoholic({ nom: 'Virgin Mule' } as CocktailVariante)).toBeTrue();
+      expect(component.isVariantNonAlcoholic({ nom: 'Cocktail 0.0%', description: 'Sans alcool' } as CocktailVariante)).toBeTrue();
+      expect(component.isVariantNonAlcoholic({ nom: 'Tropical Mocktail', instructions: 'Shake well' } as CocktailVariante)).toBeTrue();
+      expect(component.isVariantNonAlcoholic({ nom: 'London Mule', description: 'With Gin' } as CocktailVariante)).toBeFalse();
+    });
+
+    it('getVariantAllergens returns allergens from variant ingredients or falls back to cocktail allergens', () => {
+      const variantWithAllergens = baseCocktail.variantes![0];
+      const allergens = component.getVariantAllergens(baseCocktail, variantWithAllergens);
+      expect(allergens).toEqual(['SULFITES']);
+
+      const variantWithoutIngredients = baseCocktail.variantes![1];
+      const fallbackAllergens = component.getVariantAllergens(baseCocktail, variantWithoutIngredients);
+      expect(fallbackAllergens).toEqual([]);
+    });
+
+    it('doesVariantMatchFilters matches search on variant name, description or cocktail name', () => {
+      const variant = baseCocktail.variantes![0];
+      component.searchQuery = 'virgin';
+      expect(component.doesVariantMatchFilters(baseCocktail, variant)).toBeTrue();
+
+      component.searchQuery = 'rafraîchissant';
+      expect(component.doesVariantMatchFilters(baseCocktail, variant)).toBeTrue();
+
+      component.searchQuery = 'mojito';
+      expect(component.doesVariantMatchFilters(baseCocktail, variant)).toBeTrue();
+
+      component.searchQuery = 'unknownxyz';
+      expect(component.doesVariantMatchFilters(baseCocktail, variant)).toBeFalse();
+    });
+
+    it('doesVariantMatchFilters filters by category correctly', () => {
+      const virginVariant = baseCocktail.variantes![0];
+      const alcoholicVariant = baseCocktail.variantes![1];
+
+      component.searchQuery = '';
+      component.selectedCategory = 'ALL';
+      expect(component.doesVariantMatchFilters(baseCocktail, virginVariant)).toBeTrue();
+      expect(component.doesVariantMatchFilters(baseCocktail, alcoholicVariant)).toBeTrue();
+
+      component.selectedCategory = 'SANS_ALCOOL';
+      expect(component.doesVariantMatchFilters(baseCocktail, virginVariant)).toBeTrue();
+      expect(component.doesVariantMatchFilters(baseCocktail, alcoholicVariant)).toBeFalse();
+
+      component.selectedCategory = 'ALCOOLISE';
+      expect(component.doesVariantMatchFilters(baseCocktail, alcoholicVariant)).toBeTrue();
+    });
+
+    it('doesVariantMatchFilters filters by dietary and allergens', () => {
+      const virginVariant = baseCocktail.variantes![0];
+      const alcoholicVariant = baseCocktail.variantes![1];
+      component.searchQuery = '';
+      component.selectedCategory = 'ALL';
+
+      component.matcherMocktail = true;
+      expect(component.doesVariantMatchFilters(baseCocktail, virginVariant)).toBeTrue();
+      expect(component.doesVariantMatchFilters(baseCocktail, alcoholicVariant)).toBeFalse();
+      component.matcherMocktail = false;
+
+      component.selectedAllergens = ['SULFITES'];
+      expect(component.doesVariantMatchFilters(baseCocktail, virginVariant)).toBeFalse();
+      expect(component.doesVariantMatchFilters(baseCocktail, alcoholicVariant)).toBeTrue();
+      component.selectedAllergens = [];
+    });
+
+    it('getFilteredVariants returns only available variants satisfying filters', () => {
+      expect(component.getFilteredVariants({ ...mockCocktails[0], variantes: [] })).toEqual([]);
+
+      component.searchQuery = '';
+      component.selectedCategory = 'ALL';
+      const filtered = component.getFilteredVariants(baseCocktail);
+      expect(filtered).toHaveSize(2);
+      expect(filtered.map(v => v.id)).toEqual([101, 102]);
+    });
+
+    it('getActiveFilterSummary formats filter keys nicely', () => {
+      expect(component.getActiveFilterSummary()).toBe('');
+
+      component.selectedCategory = 'SANS_ALCOOL';
+      component.selectedAllergens = ['GLUTEN'];
+      component.matcherMocktail = true;
+      component.matcherVegan = true;
+      component.matcherGlutenFree = true;
+      component.matcherLowAbv = true;
+      component.selectedFlavors = ['FRUITY' as any];
+      component.searchQuery = 'Mule';
+
+      const summary = component.getActiveFilterSummary();
+      expect(summary).toContain('Sans alcool');
+      expect(summary).toContain('Gluten');
+      expect(summary).toContain('Fruité');
+      expect(summary).toContain('"Mule"');
+
+      // Reset
+      component.selectedCategory = 'ALL';
+      component.selectedAllergens = [];
+      component.matcherMocktail = false;
+      component.matcherVegan = false;
+      component.matcherGlutenFree = false;
+      component.matcherLowAbv = false;
+      component.selectedFlavors = [];
+      component.searchQuery = '';
+    });
+
+    it('openVariantViewer presents modal and emits cocktailSelect with variant price when confirmed', fakeAsync(() => {
+      spyOn(component.cocktailSelect, 'emit');
+      component.selectionMode = true;
+
+      modalSpy.onWillDismiss.and.returnValue(Promise.resolve({
+        role: 'confirm',
+        data: {
+          confirmed: true,
+          selectedVariant: baseCocktail.variantes![1]
+        }
+      } as any));
+
+      void component.openVariantViewer(baseCocktail);
+      tick();
+
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
+      expect(modalSpy.present).toHaveBeenCalled();
+      expect(component.cocktailSelect.emit).toHaveBeenCalledWith(jasmine.objectContaining({
+        nom: 'Spicy Passion Mule',
+        prix: 9.5
+      }));
+    }));
+
+    it('openVariantViewer emits base cocktail when confirmed with null variant in selectionMode', fakeAsync(() => {
+      spyOn(component.cocktailSelect, 'emit');
+      component.selectionMode = true;
+
+      modalSpy.onWillDismiss.and.returnValue(Promise.resolve({
+        role: 'confirm',
+        data: {
+          confirmed: true,
+          selectedVariant: null
+        }
+      } as any));
+
+      void component.openVariantViewer(baseCocktail);
+      tick();
+
+      expect(component.cocktailSelect.emit).toHaveBeenCalledWith(baseCocktail);
+    }));
+
+    it('openVariantViewer does not emit when modal is dismissed with cancel role', fakeAsync(() => {
+      spyOn(component.cocktailSelect, 'emit');
+      component.selectionMode = true;
+
+      modalSpy.onWillDismiss.and.returnValue(Promise.resolve({
+        role: 'cancel',
+        data: null
+      } as any));
+
+      void component.openVariantViewer(baseCocktail);
+      tick();
+
+      expect(component.cocktailSelect.emit).not.toHaveBeenCalled();
+    }));
+
+    it('onCardClick delegates to openVariantViewer when cocktail has variants', () => {
+      spyOn(component, 'openVariantViewer');
+      component.onCardClick(baseCocktail);
+      expect(component.openVariantViewer).toHaveBeenCalledWith(baseCocktail);
+    });
+
+    it('onCardClick delegates to onSelectCocktail when cocktail has no variants and selectionMode is true', () => {
+      spyOn(component, 'onSelectCocktail');
+      component.selectionMode = true;
+      const simpleCocktail = { ...mockCocktails[0], variantes: [] };
+      component.onCardClick(simpleCocktail);
+      expect(component.onSelectCocktail).toHaveBeenCalledWith(simpleCocktail);
+    });
+
+    it('onCardClick ignores click if cocktail is unavailable', () => {
+      spyOn(component, 'openVariantViewer');
+      spyOn(component, 'onSelectCocktail');
+      const unavailable = { ...baseCocktail, disponible: false };
+      component.onCardClick(unavailable);
+      expect(component.openVariantViewer).not.toHaveBeenCalled();
+      expect(component.onSelectCocktail).not.toHaveBeenCalled();
+    });
+
+    it('filteredCocktails includes cocktail when variant matches search even if base cocktail does not', () => {
+      component.cocktails = [baseCocktail];
+      component.searchQuery = 'Spicy Passion';
+      component.filtre = 'tous';
+      component.selectedCategory = 'ALL';
+
+      const results = component.filteredCocktails;
+      expect(results).toHaveSize(1);
+      expect(results[0].nom).toBe('Mojito');
+    });
+  });
 });
+
 

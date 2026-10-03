@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader, IonToolbar, IonButtons, IonButton, IonIcon,
@@ -12,6 +12,7 @@ import {
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
+import { StatCardComponent } from '../../../core/components/ui/stat-card/stat-card.component';
 import { CashDrawerService } from '../../../core/services/cash-drawer.service';
 import { XReport } from '../../../core/models/cash-drawer.model';
 
@@ -34,9 +35,11 @@ import { XReport } from '../../../core/models/cash-drawer.model';
     IonContent,
     IonFooter,
     IonSpinner,
-    IonBadge
+    IonBadge,
+    StatCardComponent
   ],
   templateUrl: './x-report-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./x-report-modal.component.scss']
 })
 export class XReportModalComponent implements OnInit {
@@ -83,7 +86,7 @@ export class XReportModalComponent implements OnInit {
         this.cdr.markForCheck();
         this.cdr.detectChanges();
         const msg = err?.error?.message || this.transloco.translate('CASH_DRAWER.X_REPORT_LOAD_ERROR');
-        this.showToast(msg, 'danger');
+        void this.showToast(msg, 'danger');
       }
     });
   }
@@ -100,15 +103,15 @@ export class XReportModalComponent implements OnInit {
         this.isPrinting = false;
         this.cdr.markForCheck();
         if (res.success) {
-          this.showToast(this.transloco.translate('CASH_DRAWER.PRINT_SUCCESS'));
+          void this.showToast(this.transloco.translate('CASH_DRAWER.PRINT_SUCCESS'));
         } else {
-          this.showToast(res.message || this.transloco.translate('CASH_DRAWER.PRINT_ERROR'), 'danger');
+          void this.showToast(res.message || this.transloco.translate('CASH_DRAWER.PRINT_ERROR'), 'danger');
         }
       },
       error: () => {
         this.isPrinting = false;
         this.cdr.markForCheck();
-        this.showToast(this.transloco.translate('CASH_DRAWER.PRINT_ERROR'), 'danger');
+        void this.showToast(this.transloco.translate('CASH_DRAWER.PRINT_ERROR'), 'danger');
       }
     });
   }
@@ -133,18 +136,18 @@ export class XReportModalComponent implements OnInit {
         a.click();
         a.remove();
         window.URL.revokeObjectURL(url);
-        this.showToast(this.transloco.translate('CASH_DRAWER.PDF_DOWNLOAD_SUCCESS'));
+        void this.showToast(this.transloco.translate('CASH_DRAWER.PDF_DOWNLOAD_SUCCESS'));
       },
       error: () => {
         this.isDownloadingPdf = false;
         this.cdr.markForCheck();
-        this.showToast(this.transloco.translate('CASH_DRAWER.PDF_DOWNLOAD_ERROR'), 'danger');
+        void this.showToast(this.transloco.translate('CASH_DRAWER.PDF_DOWNLOAD_ERROR'), 'danger');
       }
     });
   }
 
   cancel(): void {
-    this.modalCtrl.dismiss(null);
+    void this.modalCtrl.dismiss(null);
   }
 
   /**

@@ -65,6 +65,9 @@ class CocktailServiceTest {
     @Mock
     NotificationService notificationService;
 
+    @Mock
+    CocktailWheelService cocktailWheelService;
+
     @InjectMocks
     CocktailService cocktailService;
 

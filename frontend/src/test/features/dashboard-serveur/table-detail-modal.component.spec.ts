@@ -398,4 +398,31 @@ describe('TableDetailModalComponent', () => {
     ];
     expect(component.calculerTotalActif()).toBe(22.0);
   });
+
+  it('diviserAddition() dismisses modal with action "split" and table', () => {
+    component.diviserAddition();
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({
+      action: 'split',
+      table: mockTable
+    });
+  });
+
+  it('tableNomAffiche returns clean fallback and never "Table null"', () => {
+    component.table = { ...mockTable, nom: 'Table null', id: 5 };
+    expect(component.tableNomAffiche).toBe('Table 5');
+
+    component.table = { ...mockTable, nom: '', id: 8 };
+    expect(component.tableNomAffiche).toBe('Table 8');
+
+    component.table = { ...mockTable, nom: 'Terrasse 3', id: 3 };
+    expect(component.tableNomAffiche).toBe('Terrasse 3');
+  });
+
+  it('chargerCommandes does not call service if table id is missing or zero', () => {
+    dashboardServiceSpy.getCommandesByTable.calls.reset();
+    component.table = { ...mockTable, id: 0 };
+    component.chargerCommandes();
+    expect(dashboardServiceSpy.getCommandesByTable).not.toHaveBeenCalled();
+    expect(component.commandes).toEqual([]);
+  });
 });

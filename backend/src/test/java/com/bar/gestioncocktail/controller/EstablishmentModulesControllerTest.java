@@ -32,7 +32,7 @@ class EstablishmentModulesControllerTest {
     @Test
     @DisplayName("getModules - returns current modules DTO with HTTP 200")
     void getModules_returnsModulesDTO() {
-        EstablishmentModulesDTO dto = new EstablishmentModulesDTO(true, false, true, false, true, false, true);
+        EstablishmentModulesDTO dto = new EstablishmentModulesDTO(true, false, true, false, true, false, true, true);
         when(establishmentConfigService.getModulesDTO()).thenReturn(dto);
 
         ResponseEntity<EstablishmentModulesDTO> response = controller.getModules();
@@ -42,6 +42,7 @@ class EstablishmentModulesControllerTest {
         assertThat(response.getBody().cuisineKds()).isTrue();
         assertThat(response.getBody().happyHour()).isFalse();
         assertThat(response.getBody().cashDrawer()).isTrue();
+        assertThat(response.getBody().barTabs()).isTrue();
         verify(establishmentConfigService).getModulesDTO();
     }
 
@@ -49,9 +50,9 @@ class EstablishmentModulesControllerTest {
     @DisplayName("updateModules - delegates to service and returns updated DTO with HTTP 200")
     void updateModules_delegatesToService() {
         EstablishmentModulesUpdateRequest request = new EstablishmentModulesUpdateRequest(
-                false, true, false, true, false, true, true
+                false, true, false, true, false, true, true, true
         );
-        EstablishmentModulesDTO updated = new EstablishmentModulesDTO(false, true, false, true, false, true, true);
+        EstablishmentModulesDTO updated = new EstablishmentModulesDTO(false, true, false, true, false, true, true, true);
         when(establishmentConfigService.updateModules(any(EstablishmentModulesUpdateRequest.class))).thenReturn(updated);
 
         ResponseEntity<EstablishmentModulesDTO> response = controller.updateModules(request);
@@ -61,6 +62,7 @@ class EstablishmentModulesControllerTest {
         assertThat(response.getBody().cuisineKds()).isFalse();
         assertThat(response.getBody().happyHour()).isTrue();
         assertThat(response.getBody().cashDrawer()).isTrue();
+        assertThat(response.getBody().barTabs()).isTrue();
         verify(establishmentConfigService).updateModules(request);
     }
 }

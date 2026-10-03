@@ -1,4 +1,4 @@
-import { Component, Input, forwardRef } from '@angular/core';
+import { Component, Input, forwardRef, ChangeDetectionStrategy } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { IonIcon } from '@ionic/angular';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
@@ -12,6 +12,7 @@ import { BaseControlValueAccessor } from '../base-control-value-accessor';
   imports: [IonIcon],
   templateUrl: './password-input.component.html',
   styleUrls: ['./password-input.component.css'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

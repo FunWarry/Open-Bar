@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -18,6 +18,7 @@ import { ActionButtonComponent } from '../../../core/components/ui/action-button
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonItem,
     IonSelect,

@@ -9,6 +9,12 @@ export enum EstablishmentModule {
   QR_CLIENT_ORDERING = 'QR_CLIENT_ORDERING',
   STOCK_TRACKING = 'STOCK_TRACKING',
   CASH_DRAWER = 'CASH_DRAWER',
+  BAR_TABS = 'BAR_TABS',
+  COCKTAIL_LIBRARY = 'COCKTAIL_LIBRARY',
+  SUPPLIERS_MANAGEMENT = 'SUPPLIERS_MANAGEMENT',
+  INVENTORY_AUDIT = 'INVENTORY_AUDIT',
+  MYSTERY_ROULETTE = 'MYSTERY_ROULETTE',
+  PAYMENT_TERMINAL = 'PAYMENT_TERMINAL',
 }
 
 /**
@@ -22,6 +28,12 @@ export interface EstablishmentModules {
   qrClientOrdering: boolean;
   stockTracking: boolean;
   cashDrawer: boolean;
+  barTabs: boolean;
+  cocktailLibrary: boolean;
+  suppliersManagement: boolean;
+  inventoryAudit: boolean;
+  mysteryRoulette: boolean;
+  paymentTerminal: boolean;
 }
 
 /**
@@ -41,6 +53,12 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     qrClientOrdering: true,
     stockTracking: true,
     cashDrawer: true,
+    barTabs: true,
+    cocktailLibrary: true,
+    suppliersManagement: true,
+    inventoryAudit: true,
+    mysteryRoulette: true,
+    paymentTerminal: true,
   },
   RESTAURANT: {
     cuisineKds: true,
@@ -50,6 +68,12 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     qrClientOrdering: true,
     stockTracking: true,
     cashDrawer: true,
+    barTabs: true,
+    cocktailLibrary: true,
+    suppliersManagement: true,
+    inventoryAudit: true,
+    mysteryRoulette: true,
+    paymentTerminal: true,
   },
   FOOD_TRUCK: {
     cuisineKds: true,
@@ -59,6 +83,12 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     qrClientOrdering: true,
     stockTracking: true,
     cashDrawer: true,
+    barTabs: false,
+    cocktailLibrary: true,
+    suppliersManagement: false,
+    inventoryAudit: false,
+    mysteryRoulette: false,
+    paymentTerminal: true,
   },
   NIGHTCLUB: {
     cuisineKds: false,
@@ -68,5 +98,11 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     qrClientOrdering: false,
     stockTracking: true,
     cashDrawer: true,
+    barTabs: true,
+    cocktailLibrary: true,
+    suppliersManagement: true,
+    inventoryAudit: true,
+    mysteryRoulette: true,
+    paymentTerminal: true,
   },
 };

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { Subject } from 'rxjs';
@@ -32,6 +32,7 @@ const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
   templateUrl: './personnalisation.component.html',
   styleUrls: ['./personnalisation.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ReactiveFormsModule,
     TranslocoModule,
@@ -134,7 +135,7 @@ export class PersonnalisationComponent implements OnInit, OnDestroy {
       this.colorForm.patchValue(generated);
       this.themeService.setCustomColors(generated);
 
-      this.presentToast('Palette générée automatiquement avec succès !', 'success');
+      void this.presentToast('Palette générée automatiquement avec succès !', 'success');
     }
   }
 
@@ -145,7 +146,7 @@ export class PersonnalisationComponent implements OnInit, OnDestroy {
     this.themeService.resetToDefaultColors();
     const defaults = this.themeService.currentCustomColors;
     this.colorForm.patchValue(defaults);
-    this.presentToast('Couleurs réinitialisées aux valeurs Figma par défaut.', 'info');
+    void this.presentToast('Couleurs réinitialisées aux valeurs Figma par défaut.', 'info');
   }
 
   /**

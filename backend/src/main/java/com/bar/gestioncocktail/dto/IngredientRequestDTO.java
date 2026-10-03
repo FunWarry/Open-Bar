@@ -2,6 +2,7 @@ package com.bar.gestioncocktail.dto;
 
 import com.bar.gestioncocktail.model.Allergen;
 import com.bar.gestioncocktail.model.Ingredient;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,6 +11,7 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -64,12 +66,128 @@ public record IngredientRequestDTO(
     Set<Allergen> allergens,
 
     @DecimalMin(value = "0.0", message = "Alcohol degree cannot be negative")
+    @DecimalMax(value = "100.0", message = "Alcohol degree cannot exceed 100%")
     BigDecimal degreAlcool,
 
-    Boolean isVegan
+    Boolean isVegan,
+
+    @Size(max = 50, message = "Category cannot exceed 50 characters")
+    String category,
+
+    Long defaultSupplierId,
+
+    @Size(max = 100, message = "Barcode cannot exceed 100 characters")
+    String codeBarre,
+
+    @Size(max = 50, message = "Purchase unit cannot exceed 50 characters")
+    String purchaseUnit,
+
+    @DecimalMin(value = "0.001", message = "Packaging capacity must be positive")
+    BigDecimal packagingCapacity,
+
+    @DecimalMin(value = "0.0", message = "Packaging price cannot be negative")
+    BigDecimal packagingPriceHt,
+
+    Boolean isCrafted,
+
+    Boolean isPurchasable,
+
+    List<ConfectionSourceRequest> confectionSources
 ) {
+    public static final String DEFAULT_CATEGORY = "other";
+
     /**
-     * Backward-compatible constructor without degreAlcool and isVegan.
+     * Backward-compatible constructor without packaging fields.
+     */
+    public IngredientRequestDTO(
+        String nom,
+        String uniteMesure,
+        BigDecimal quantiteStock,
+        BigDecimal seuilAlerte,
+        String numeroLot,
+        LocalDateTime datePeremption,
+        BigDecimal prixUnitaire,
+        BigDecimal unitCost,
+        String fournisseur,
+        String notes,
+        Set<Allergen> allergens,
+        BigDecimal degreAlcool,
+        Boolean isVegan,
+        String category,
+        Long defaultSupplierId,
+        String codeBarre
+    ) {
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, defaultSupplierId, codeBarre, null, null, null, null, null, null);
+    }
+
+    /**
+     * Backward-compatible constructor with defaultSupplierId and without codeBarre and packaging fields.
+     */
+    public IngredientRequestDTO(
+        String nom,
+        String uniteMesure,
+        BigDecimal quantiteStock,
+        BigDecimal seuilAlerte,
+        String numeroLot,
+        LocalDateTime datePeremption,
+        BigDecimal prixUnitaire,
+        BigDecimal unitCost,
+        String fournisseur,
+        String notes,
+        Set<Allergen> allergens,
+        BigDecimal degreAlcool,
+        Boolean isVegan,
+        String category,
+        Long defaultSupplierId
+    ) {
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, defaultSupplierId, null, null, null, null, null, null, null);
+    }
+
+    /**
+     * Backward-compatible constructor without defaultSupplierId and codeBarre.
+     */
+    public IngredientRequestDTO(
+        String nom,
+        String uniteMesure,
+        BigDecimal quantiteStock,
+        BigDecimal seuilAlerte,
+        String numeroLot,
+        LocalDateTime datePeremption,
+        BigDecimal prixUnitaire,
+        BigDecimal unitCost,
+        String fournisseur,
+        String notes,
+        Set<Allergen> allergens,
+        BigDecimal degreAlcool,
+        Boolean isVegan,
+        String category
+    ) {
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, category, null, null);
+    }
+
+    /**
+     * Backward-compatible constructor without category.
+     */
+    public IngredientRequestDTO(
+        String nom,
+        String uniteMesure,
+        BigDecimal quantiteStock,
+        BigDecimal seuilAlerte,
+        String numeroLot,
+        LocalDateTime datePeremption,
+        BigDecimal prixUnitaire,
+        BigDecimal unitCost,
+        String fournisseur,
+        String notes,
+        Set<Allergen> allergens,
+        BigDecimal degreAlcool,
+        Boolean isVegan
+    ) {
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, degreAlcool, isVegan, DEFAULT_CATEGORY);
+    }
+
+    /**
+     * Backward-compatible constructor without degreAlcool, isVegan, and category.
      */
     public IngredientRequestDTO(
         String nom,
@@ -84,7 +202,7 @@ public record IngredientRequestDTO(
         String notes,
         Set<Allergen> allergens
     ) {
-        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, BigDecimal.ZERO, true);
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, allergens, BigDecimal.ZERO, true, DEFAULT_CATEGORY);
     }
 
     /**
@@ -102,7 +220,7 @@ public record IngredientRequestDTO(
         String fournisseur,
         String notes
     ) {
-        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, Set.of(), BigDecimal.ZERO, true);
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, unitCost, fournisseur, notes, Set.of(), BigDecimal.ZERO, true, DEFAULT_CATEGORY);
     }
 
     /**
@@ -119,7 +237,7 @@ public record IngredientRequestDTO(
         String fournisseur,
         String notes
     ) {
-        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, null, fournisseur, notes, Set.of(), BigDecimal.ZERO, true);
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, null, fournisseur, notes, Set.of(), BigDecimal.ZERO, true, DEFAULT_CATEGORY);
     }
 
     /**
@@ -142,6 +260,19 @@ public record IngredientRequestDTO(
         ingredient.setAllergens(allergens != null ? allergens : new HashSet<>());
         ingredient.setDegreAlcool(degreAlcool != null ? degreAlcool : BigDecimal.ZERO);
         ingredient.setIsVegan(isVegan == null || isVegan);
+        ingredient.setCategory(category != null && !category.isBlank() ? category : DEFAULT_CATEGORY);
+        ingredient.setCodeBarre(codeBarre);
+        ingredient.setPurchaseUnit(purchaseUnit);
+        BigDecimal cap = (packagingCapacity != null && packagingCapacity.compareTo(BigDecimal.ZERO) > 0)
+                ? packagingCapacity
+                : BigDecimal.ONE;
+        ingredient.setPackagingCapacity(cap);
+        ingredient.setPackagingPriceHt(packagingPriceHt);
+        ingredient.setIsCrafted(isCrafted != null && isCrafted);
+        ingredient.setIsPurchasable(isPurchasable == null || isPurchasable);
+        if (effectiveCost == null && packagingPriceHt != null) {
+            ingredient.setPrixUnitaire(packagingPriceHt.divide(cap, 4, java.math.RoundingMode.HALF_UP));
+        }
         return ingredient;
     }
 }

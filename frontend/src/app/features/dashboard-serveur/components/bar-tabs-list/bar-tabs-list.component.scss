@@ -1,0 +1,98 @@
+.bar-tabs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.tabs-header-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg, 14px);
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  box-shadow: var(--shadow-card);
+}
+
+.stats-and-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tabs-stats-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  font-size: 0.85rem;
+  color: var(--text-primary);
+
+  ion-icon {
+    font-size: 1rem;
+    color: var(--primary);
+  }
+
+  &.total-balance {
+    strong {
+      color: var(--semantic-success);
+    }
+  }
+}
+
+.actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .refresh-btn {
+    --color: var(--text-secondary);
+    margin: 0;
+    height: 36px;
+  }
+
+  .new-tab-btn {
+    --border-radius: 8px;
+    font-weight: 600;
+    margin: 0;
+    height: 36px;
+  }
+}
+
+.search-bar-row {
+  width: 100%;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+.empty-state-wrapper {
+  padding: 32px 16px;
+}
+
+.tabs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+
+  @media (min-width: 992px) {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}

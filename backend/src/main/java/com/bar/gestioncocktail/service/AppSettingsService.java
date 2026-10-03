@@ -5,6 +5,7 @@ import com.bar.gestioncocktail.dto.AppSettingsUpdateRequest;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.AppSettings;
 import com.bar.gestioncocktail.repository.AppSettingsRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,21 +20,26 @@ public class AppSettingsService {
     private final AppSettingsRepository appSettingsRepository;
     private final NotificationService notificationService;
     private final QrCodeService qrCodeService;
+    private final TimeService timeService;
 
     /**
-     * Constructs the service with settings repository, notification service, and QR code service dependencies.
+     * Constructs the service with settings repository, notification service, QR code service, and time service dependencies.
      *
      * @param appSettingsRepository JPA settings repository
      * @param notificationService Notification service for STOMP broadcasting
      * @param qrCodeService QR code generation service
+     * @param timeService Application time service for active timezone resolution
      */
+    @Autowired
     public AppSettingsService(
             AppSettingsRepository appSettingsRepository,
             NotificationService notificationService,
-            QrCodeService qrCodeService) {
+            QrCodeService qrCodeService,
+            TimeService timeService) {
         this.appSettingsRepository = appSettingsRepository;
         this.notificationService = notificationService;
         this.qrCodeService = qrCodeService;
+        this.timeService = timeService;
     }
 
     /**
@@ -62,9 +68,13 @@ public class AppSettingsService {
         applyWifiAndQr(current, request);
         applyVatAndMargins(current, request);
         applyPrinters(current, request);
+        applyTpe(current, request);
 
         AppSettings saved = appSettingsRepository.save(current);
-        notificationService.notifierParametresMisAJour(AppSettingsResponseDTO.from(saved));
+        String tz = (timeService != null && timeService.getZoneId() != null)
+                ? timeService.getZoneId().getId()
+                : AppSettingsResponseDTO.DEFAULT_TIMEZONE;
+        notificationService.notifierParametresMisAJour(AppSettingsResponseDTO.from(saved, tz));
         return saved;
     }
 
@@ -88,8 +98,20 @@ public class AppSettingsService {
         if (request.currencyPosition() != null) {
             current.setCurrencyPosition(request.currencyPosition());
         }
+        if (request.unitSystem() != null) {
+            current.setUnitSystem(request.unitSystem());
+        }
+        if (request.volumeUnit() != null && !request.volumeUnit().isBlank()) {
+            current.setVolumeUnit(request.volumeUnit().trim());
+        }
+        if (request.weightUnit() != null && !request.weightUnit().isBlank()) {
+            current.setWeightUnit(request.weightUnit().trim());
+        }
         if (request.cashDenominationsJson() != null) {
             current.setCashDenominationsJson(request.cashDenominationsJson());
+        }
+        if (request.storageLocationsJson() != null) {
+            current.setStorageLocationsJson(request.storageLocationsJson());
         }
     }
 
@@ -169,6 +191,36 @@ public class AppSettingsService {
         }
         if (request.directPrintingEnabled() != null) {
             current.setDirectPrintingEnabled(request.directPrintingEnabled());
+        }
+        if (request.printersJson() != null) {
+            current.setPrintersJson(request.printersJson());
+        }
+    }
+
+    private void applyTpe(AppSettings current, AppSettingsUpdateRequest request) {
+        if (request.tpeEnabled() != null) {
+            current.setTpeEnabled(request.tpeEnabled());
+        }
+        if (request.tpeSimulatorEnabled() != null) {
+            current.setTpeSimulatorEnabled(request.tpeSimulatorEnabled());
+        }
+        if (request.tpeBarIp() != null) {
+            current.setTpeBarIp(request.tpeBarIp().trim());
+        }
+        if (request.tpeFloorIp() != null) {
+            current.setTpeFloorIp(request.tpeFloorIp().trim());
+        }
+        if (request.tpePort() != null) {
+            current.setTpePort(request.tpePort());
+        }
+        if (request.tpeTerminalId() != null) {
+            current.setTpeTerminalId(request.tpeTerminalId().trim());
+        }
+        if (request.tpeTimeoutSeconds() != null) {
+            current.setTpeTimeoutSeconds(request.tpeTimeoutSeconds());
+        }
+        if (request.tpeTerminalsJson() != null) {
+            current.setTpeTerminalsJson(request.tpeTerminalsJson());
         }
     }
 

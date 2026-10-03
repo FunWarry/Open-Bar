@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
@@ -61,6 +61,7 @@ export const EURO_DENOMINATIONS: CashDenomination[] = DEFAULT_EUR_DENOMINATIONS;
     IonSpinner
 ],
   templateUrl: './cloture-caisse-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./cloture-caisse-modal.component.scss']
 })
 export class ClotureCaisseModalComponent implements OnInit, OnDestroy {
@@ -230,7 +231,7 @@ export class ClotureCaisseModalComponent implements OnInit, OnDestroy {
       this.currentStep = 3;
     } else if (this.currentStep === 3) {
       if (this.hasDiscrepancy && (!this.discrepancyReason || this.discrepancyReason.trim().length < 3)) {
-        this.showToast(this.transloco.translate('CLOTURE.DISCREPANCY_REASON_REQUIRED'), 'warning');
+        void this.showToast(this.transloco.translate('CLOTURE.DISCREPANCY_REASON_REQUIRED'), 'warning');
         return;
       }
       this.currentStep = 4;
@@ -263,18 +264,18 @@ export class ClotureCaisseModalComponent implements OnInit, OnDestroy {
     };
 
     this.factureService.cloturerCaisse(request).subscribe({
-      next: (closure: DailyCashClosure) => {
+      next: async (closure: DailyCashClosure) => {
         this.isSubmitting = false;
         this.createdClosure = closure;
         this.currentStep = 5;
         this.cdr.markForCheck();
-        this.showToast(this.transloco.translate('CLOTURE.SUCCESS_MESSAGE'), 'success');
+        await this.showToast(this.transloco.translate('CLOTURE.SUCCESS_MESSAGE'), 'success');
       },
-      error: (err: any) => {
+      error: async (err: any) => {
         this.isSubmitting = false;
         this.cdr.markForCheck();
         const msg = err.error?.message || this.transloco.translate('CLOTURE.ERROR_SUBMIT');
-        this.showToast(msg, 'danger');
+        await this.showToast(msg, 'danger');
       }
     });
   }
@@ -286,15 +287,15 @@ export class ClotureCaisseModalComponent implements OnInit, OnDestroy {
     if (!this.createdClosure) return;
     this.isPrinting = true;
     this.printerService.printZReport(this.createdClosure.id).subscribe({
-      next: res => {
+      next: async res => {
         this.isPrinting = false;
         const key = res.success ? 'CLOTURE.PRINT_SUCCESS' : 'CLOTURE.PRINT_FAILED';
         const color = res.success ? 'success' : 'warning';
-        this.showToast(this.transloco.translate(key), color);
+        await this.showToast(this.transloco.translate(key), color);
       },
-      error: () => {
+      error: async () => {
         this.isPrinting = false;
-        this.showToast(this.transloco.translate('CLOTURE.PRINT_FAILED'), 'danger');
+        await this.showToast(this.transloco.translate('CLOTURE.PRINT_FAILED'), 'danger');
       }
     });
   }
@@ -306,14 +307,14 @@ export class ClotureCaisseModalComponent implements OnInit, OnDestroy {
     if (!this.createdClosure) return;
     this.isDownloadingPdf = true;
     this.factureService.downloadZReportPdf(this.createdClosure.id).subscribe({
-      next: (blob: Blob) => {
+      next: async (blob: Blob) => {
         this.isDownloadingPdf = false;
         this.triggerFileDownload(blob, `ticket-z-${this.createdClosure?.closureNumber}.pdf`);
-        this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_PDF_SUCCESS'), 'success');
+        await this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_PDF_SUCCESS'), 'success');
       },
-      error: () => {
+      error: async () => {
         this.isDownloadingPdf = false;
-        this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_PDF_ERROR'), 'danger');
+        await this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_PDF_ERROR'), 'danger');
       }
     });
   }
@@ -325,14 +326,14 @@ export class ClotureCaisseModalComponent implements OnInit, OnDestroy {
     if (!this.createdClosure) return;
     this.isExportingFec = true;
     this.factureService.downloadFecExport(this.createdClosure.id).subscribe({
-      next: (blob: Blob) => {
+      next: async (blob: Blob) => {
         this.isExportingFec = false;
         this.triggerFileDownload(blob, `FEC-${this.createdClosure?.closureNumber}.txt`);
-        this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_FEC_SUCCESS'), 'success');
+        await this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_FEC_SUCCESS'), 'success');
       },
-      error: () => {
+      error: async () => {
         this.isExportingFec = false;
-        this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_FEC_ERROR'), 'danger');
+        await this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_FEC_ERROR'), 'danger');
       }
     });
   }
@@ -340,10 +341,10 @@ export class ClotureCaisseModalComponent implements OnInit, OnDestroy {
   /**
    * Copies cryptographic hash to clipboard.
    */
-  copySealHash(): void {
+  async copySealHash(): Promise<void> {
     if (this.createdClosure?.sha256Hash) {
-      navigator.clipboard.writeText(this.createdClosure.sha256Hash);
-      this.showToast(this.transloco.translate('CLOTURE.HASH_COPIED'), 'success');
+      await navigator.clipboard.writeText(this.createdClosure.sha256Hash);
+      await this.showToast(this.transloco.translate('CLOTURE.HASH_COPIED'), 'success');
     }
   }
 
@@ -351,7 +352,7 @@ export class ClotureCaisseModalComponent implements OnInit, OnDestroy {
    * Closes modal returning result.
    */
   dismiss(closed = false): void {
-    this.modalCtrl.dismiss({ closed, closure: this.createdClosure });
+    void this.modalCtrl.dismiss({ closed, closure: this.createdClosure });
   }
 
   private triggerFileDownload(blob: Blob, filename: string): void {

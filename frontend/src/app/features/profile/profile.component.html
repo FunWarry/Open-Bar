@@ -3,8 +3,8 @@
     <ion-card-header class="profile-header">
       <div class="avatar-wrapper">
         <app-user-avatar
-          [name]="currentUser?.username"
-          [role]="$any(currentUser?.roles?.[0])"
+          [name]="$safeNavigationMigration(currentUser?.username)"
+          [role]="$any($safeNavigationMigration(currentUser?.roles?.[0]))"
           size="large">
         </app-user-avatar>
       </div>
@@ -139,21 +139,22 @@
         <div class="separator-line"></div>
       </div>
 
-      <!-- Language selector -->
+      <!-- Language selector with app-searchable-select -->
       <div class="pref-row pref-row--lang" data-testid="pref-row-language">
         <div class="pref-info">
           <span class="pref-label">{{ 'PROFILE.PREF_LANGUAGE_LABEL' | transloco }}</span>
           <span class="pref-description">{{ 'PROFILE.PREF_LANGUAGE_DESC' | transloco }}</span>
         </div>
-        <ion-select
-          class="lang-select"
-          [value]="selectedLanguage"
-          interface="popover"
-          (ionChange)="onLanguageChange($any($event.detail.value))"
-          data-testid="pref-select-language">
-          <ion-select-option value="fr">🇫🇷 Français</ion-select-option>
-          <ion-select-option value="en">🇬🇧 English</ion-select-option>
-        </ion-select>
+        <div class="pref-select-wrap">
+          <app-searchable-select
+            [options]="languageOptions"
+            [ngModel]="selectedLanguage"
+            (ngModelChange)="onLanguageChange($any($event))"
+            [searchable]="false"
+            [clearable]="false"
+            testId="pref-select-language">
+          </app-searchable-select>
+        </div>
       </div>
 
       <!-- Onboarding tutorial restart row -->
@@ -171,8 +172,129 @@
           🚀 {{ 'PROFILE.RESTART_ONBOARDING_BTN' | transloco }}
         </app-action-button>
       </div>
+
+      <div class="section-separator" style="margin-top: 16px;">
+        <span class="section-label">{{ 'PROFILE.SECTION_THEME' | transloco }}</span>
+        <div class="separator-line"></div>
+      </div>
+
+      <!-- Theme selector buttons & Studio Access -->
+      <div class="pref-row pref-row--theme" data-testid="pref-row-theme">
+        <div class="pref-info">
+          <span class="pref-label">{{ 'PROFILE.SECTION_THEME' | transloco }}</span>
+          <span class="pref-description">{{ 'THEME.TOGGLE' | transloco }}</span>
+        </div>
+        <div class="theme-buttons-row">
+          <button
+            type="button"
+            class="theme-btn"
+            [class.active]="currentTheme === 'dark'"
+            (click)="onSetThemeMode('dark')"
+            (keyup.enter)="onSetThemeMode('dark')"
+            data-testid="profile-theme-dark-btn">
+            <ion-icon name="moon-outline"></ion-icon>
+            <span>{{ 'THEME.DARK' | transloco }}</span>
+          </button>
+          <button
+            type="button"
+            class="theme-btn"
+            [class.active]="currentTheme === 'light'"
+            (click)="onSetThemeMode('light')"
+            (keyup.enter)="onSetThemeMode('light')"
+            data-testid="profile-theme-light-btn">
+            <ion-icon name="sunny-outline"></ion-icon>
+            <span>{{ 'THEME.LIGHT' | transloco }}</span>
+          </button>
+          <button
+            type="button"
+            class="theme-btn"
+            [class.active]="currentTheme === 'system'"
+            (click)="onSetThemeMode('system')"
+            (keyup.enter)="onSetThemeMode('system')"
+            data-testid="profile-theme-system-btn">
+            <ion-icon name="laptop-outline"></ion-icon>
+            <span>{{ 'THEME.SYSTEM' | transloco }}</span>
+          </button>
+        </div>
+
+        <div class="theme-studio-toggle-row">
+          <button
+            type="button"
+            class="theme-studio-btn"
+            (click)="toggleThemeStudio()"
+            (keyup.enter)="toggleThemeStudio()"
+            data-testid="profile-toggle-theme-studio-btn">
+            <ion-icon name="color-palette-outline"></ion-icon>
+            <span>{{ 'THEME_CUSTOMIZER.EXPAND_STUDIO' | transloco }}</span>
+            <ion-icon [name]="showThemeStudio ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+          </button>
+
+          <a routerLink="/theme" class="theme-page-link" data-testid="profile-open-theme-page-link">
+            <ion-icon name="open-outline"></ion-icon>
+            <span>{{ 'THEME_CUSTOMIZER.OPEN_FULL_PAGE' | transloco }}</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Inline Theme Customizer Studio -->
+      @if (showThemeStudio) {
+        <div class="profile-inline-theme-studio" data-testid="profile-inline-theme-studio">
+          <app-theme-customizer></app-theme-customizer>
+        </div>
+      }
     </ion-card-content>
   </ion-card>
+
+  <!-- Roulette TV Display PIN card (Staff broadcast) -->
+  @if (featureFlagService.mysteryRouletteEnabled()) {
+    <ion-card class="roulette-pin-card" data-testid="profile-roulette-pin-card">
+      <ion-card-header class="pin-card-header">
+        <div class="pin-card-header-wrap">
+          <ion-icon name="tv-outline" class="pin-header-icon" aria-hidden="true"></ion-icon>
+          <ion-card-title>{{ 'ROULETTE.TV_PIN_CARD_TITLE' | transloco }}</ion-card-title>
+        </div>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="pin-card-description">{{ 'ROULETTE.TV_PIN_CARD_DESC' | transloco }}</p>
+        <div class="pin-display-banner" data-testid="profile-roulette-pin-display">
+          <div class="pin-badge-wrap">
+            <span class="pin-badge" data-testid="profile-roulette-pin-value">{{ roulettePin }}</span>
+          </div>
+          <div class="pin-actions">
+            <button
+              type="button"
+              class="pin-action-btn"
+              (click)="copyPin()"
+              (keyup.enter)="copyPin()"
+              [title]="'ROULETTE.COPY_PIN' | transloco"
+              data-testid="profile-copy-pin-btn">
+              <ion-icon name="copy-outline"></ion-icon>
+              <span>{{ 'ROULETTE.COPY_PIN' | transloco }}</span>
+            </button>
+            <button
+              type="button"
+              class="pin-action-btn btn-regenerate"
+              [disabled]="isRegeneratingPin"
+              (click)="regenerateRoulettePin()"
+              (keyup.enter)="regenerateRoulettePin()"
+              [title]="'ROULETTE.REGENERATE_PIN' | transloco"
+              data-testid="profile-regenerate-pin-btn">
+              <ion-icon name="refresh-outline" [class.spinning]="isRegeneratingPin"></ion-icon>
+              <span>{{ 'ROULETTE.REGENERATE_PIN' | transloco }}</span>
+            </button>
+            <a
+              routerLink="/roulette-display"
+              target="_blank"
+              class="pin-action-btn btn-open-display"
+              data-testid="profile-open-display-link">
+              <ion-icon name="open-outline"></ion-icon>
+              <span>{{ 'ROULETTE.OPEN_TV_DISPLAY' | transloco }}</span>
+            </a>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  }
 
   <!-- Account info card -->
   <ion-card class="info-card">
@@ -190,11 +312,11 @@
       </div>
       <div class="info-item">
         <span class="label">{{ 'PROFILE.CREATED_AT' | transloco }}</span>
-        <span class="value">{{ currentUser?.createdAt | date:'dd/MM/yyyy' }}</span>
+        <span class="value">{{ $safeNavigationMigration(currentUser?.createdAt) | date:'dd/MM/yyyy' }}</span>
       </div>
       <div class="info-item">
         <span class="label">{{ 'PROFILE.UPDATED_AT' | transloco }}</span>
-        <span class="value">{{ currentUser?.updatedAt | date:'dd/MM/yyyy' }}</span>
+        <span class="value">{{ $safeNavigationMigration(currentUser?.updatedAt) | date:'dd/MM/yyyy' }}</span>
       </div>
     </ion-card-content>
   </ion-card>

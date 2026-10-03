@@ -24,6 +24,56 @@ export interface SplitItem {
   total: number;
 }
 
+export interface TableAdditionItem {
+  itemId: number;
+  commandeId: number;
+  cocktailId?: number;
+  cocktailNom: string;
+  varianteNom?: string;
+  quantite: number;
+  prixUnitaire: number;
+  total: number;
+  priceHT: number;
+  vatAmount: number;
+  vatRate: string;
+  isHappyHour?: boolean;
+  basePrice?: number;
+}
+
+export interface TableAdditionResponse {
+  tableId: number;
+  tableNumero: number;
+  zone: string;
+  serveurId?: number;
+  serveurNom?: string;
+  dateOccupation?: string;
+  items: TableAdditionItem[];
+  commandeIds: number[];
+  totalHT: number;
+  totalVAT: number;
+  totalTTC: number;
+  nombreArticles: number;
+  hasUnpaidFacture: boolean;
+  existingFactureId?: number;
+}
+
+/**
+ * Invoice split calculation & settlement strategies.
+ */
+export enum TypeSplit {
+  EGAL = 'EGAL',
+  SELECTION = 'SELECTION',
+  MONTANT_LIBRE = 'MONTANT_LIBRE',
+  POURCENTAGE = 'POURCENTAGE',
+  SOLDE = 'SOLDE',
+  GLOBAL = 'GLOBAL',
+}
+
+/**
+ * Type alias accepting either TypeSplit enum members or their string literal values.
+ */
+export type TypeSplitValue = TypeSplit | `${TypeSplit}`;
+
 export interface FactureReglement {
   id?: number;
   factureId: number;
@@ -34,9 +84,14 @@ export interface FactureReglement {
   pourboire?: number;
   totalRegle: number;
   modePaiement: string;
-  typeSplit: 'EGAL' | 'SELECTION' | 'MONTANT_LIBRE' | 'POURCENTAGE';
+  typeSplit: TypeSplitValue;
   items?: SplitItem[];
   dateReglement?: string;
+  tpeAutorisation?: string;
+  tpeTerminalId?: string;
+  tpeCardBrand?: string;
+  tpeMaskedPan?: string;
+  tpeSequence?: string;
 }
 
 export interface EncaisserPartRequest {
@@ -47,8 +102,13 @@ export interface EncaisserPartRequest {
   pourboire?: number;
   totalRegle: number;
   modePaiement: string;
-  typeSplit: 'EGAL' | 'SELECTION' | 'MONTANT_LIBRE' | 'POURCENTAGE';
+  typeSplit: TypeSplitValue;
   items?: SplitItem[];
+  tpeAutorisation?: string;
+  tpeTerminalId?: string;
+  tpeCardBrand?: string;
+  tpeMaskedPan?: string;
+  tpeSequence?: string;
 }
 
 export interface Facture {
@@ -65,6 +125,11 @@ export interface Facture {
   dateReglement?: string;
   reglee: boolean;
   modePaiement?: string;
+  tpeAutorisation?: string;
+  tpeTerminalId?: string;
+  tpeCardBrand?: string;
+  tpeMaskedPan?: string;
+  tpeSequence?: string;
   notes?: string;
   serveurNom?: string;
   items: FactureItem[];

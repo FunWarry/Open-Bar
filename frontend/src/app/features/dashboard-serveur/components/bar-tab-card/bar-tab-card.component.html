@@ -1,0 +1,120 @@
+<app-card
+  class="bar-tab-card"
+  [customClass]="'bar-tab-card'"
+  [accentColor]="accentColor"
+  [clickable]="false"
+  [headerDivider]="'dashed'"
+  [footerDivider]="'dashed'"
+  [padding]="'none'"
+  [attr.data-testid]="'bar-tab-card-' + tab.id"
+  [testId]="'bar-tab-card-' + tab.id">
+
+  <!-- Card Header -->
+  <div card-header class="card-header">
+    <!-- Row 1: Icon, Title & Caution Badge -->
+    <div class="header-title-row">
+      <div class="tab-identity">
+        <div class="tab-icon-box">
+          <ion-icon name="receipt-outline" class="tab-icon" aria-hidden="true"></ion-icon>
+        </div>
+        <h3 class="tab-name" [attr.data-testid]="'tab-name-' + tab.id" [title]="tab.nom">
+          {{ tab.nom }}
+        </h3>
+      </div>
+
+      @if (tab.cautionMontant && tab.cautionMontant > 0) {
+        <span class="meta-chip caution-chip" [attr.data-testid]="'tab-caution-' + tab.id" [title]="'TABS.CAUTION_TITLE' | transloco">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+          <span>{{ tab.cautionMontant | appCurrency }}</span>
+        </span>
+      }
+    </div>
+
+    <!-- Row 2: Metadata strip (elapsed time, active orders) & Client Reference -->
+    <div class="header-meta-row">
+      <div class="tab-meta-strip">
+        <span class="elapsed-time" [attr.data-testid]="'tab-elapsed-' + tab.id">
+          <ion-icon name="time-outline"></ion-icon>
+          <span>{{ 'TABS.LABEL_SINCE' | transloco: { duration: elapsedFormatted } }}</span>
+        </span>
+        <span class="meta-separator">•</span>
+        <span class="orders-count">
+          <ion-icon name="restaurant-outline"></ion-icon>
+          <span>{{ (tab.activeOrdersCount > 1 ? 'TABS.CARD_ORDER_COUNT_PLURAL' : 'TABS.CARD_ORDER_COUNT') | transloco: { count: tab.activeOrdersCount || 0 } }}</span>
+        </span>
+      </div>
+
+      @if (tab.clientReference) {
+        <span class="meta-chip ref-chip" [attr.data-testid]="'tab-ref-' + tab.id" [title]="tab.clientReference">
+          <ion-icon name="card-outline"></ion-icon>
+          <span>{{ tab.clientReference }}</span>
+        </span>
+      }
+    </div>
+  </div>
+
+  <!-- Card Body / Content -->
+  <div card-content class="card-body">
+    <!-- Balance Row -->
+    <div class="balance-box">
+      <div class="balance-label-group">
+        <span class="balance-sublabel">{{ 'TABS.LABEL_TOTAL' | transloco }}</span>
+        <span class="balance-indicator-dot"></span>
+      </div>
+      <span class="balance-value" [attr.data-testid]="'tab-total-' + tab.id">
+        {{ (tab.total || 0) | appCurrency }}
+      </span>
+    </div>
+
+    <!-- Notes -->
+    @if (tab.notes) {
+      <div class="notes-box" [attr.data-testid]="'tab-notes-' + tab.id">
+        <ion-icon name="chatbubble-ellipses-outline" class="notes-icon"></ion-icon>
+        <p class="tab-notes-text">{{ tab.notes }}</p>
+      </div>
+    }
+  </div>
+
+  <!-- Action Buttons (Clean 2-tier layout) in Card Footer -->
+  <div card-footer class="card-actions-layout">
+    <div class="primary-actions-row">
+      <button
+        type="button"
+        class="action-btn btn-order"
+        [attr.data-testid]="'btn-tab-add-order-' + tab.id"
+        (click)="addOrder.emit(tab)">
+        <ion-icon name="add-outline"></ion-icon>
+        <span>{{ 'TABS.CARD_BTN_ADD_ORDER' | transloco }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="action-btn btn-settle"
+        [attr.data-testid]="'btn-tab-settle-' + tab.id"
+        (click)="settle.emit(tab)">
+        <ion-icon name="cash-outline"></ion-icon>
+        <span>{{ 'TABS.CARD_BTN_SETTLE' | transloco }}</span>
+      </button>
+    </div>
+
+    <div class="secondary-actions-row">
+      <button
+        type="button"
+        class="action-btn btn-transfer"
+        [attr.data-testid]="'btn-tab-transfer-' + tab.id"
+        (click)="transfer.emit(tab)">
+        <ion-icon name="swap-horizontal-outline"></ion-icon>
+        <span>{{ 'TABS.CARD_BTN_TRANSFER' | transloco }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="action-btn btn-details"
+        [attr.data-testid]="'btn-tab-details-' + tab.id"
+        (click)="viewDetails.emit(tab)">
+        <ion-icon name="eye-outline"></ion-icon>
+        <span>{{ 'TABS.CARD_BTN_DETAILS' | transloco }}</span>
+      </button>
+    </div>
+  </div>
+</app-card>

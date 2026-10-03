@@ -1,5 +1,5 @@
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { ModalController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { TransfertModalComponent } from '../../../app/features/dashboard-serveur/components/transfert-modal/transfert-modal.component';

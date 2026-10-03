@@ -15,7 +15,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service for managing legal establishment configuration parameters and modular capability flags.
+ * Service for managing legal establishment configuration parameters and modular
+ * capability flags.
  */
 @Service
 public class EstablishmentConfigService {
@@ -24,20 +25,24 @@ public class EstablishmentConfigService {
     private final NotificationService notificationService;
 
     /**
-     * Constructs EstablishmentConfigService with repository and real-time notification service.
+     * Constructs EstablishmentConfigService with repository and real-time
+     * notification service.
      *
-     * @param establishmentConfigRepository Repository for establishment config persistence
+     * @param establishmentConfigRepository Repository for establishment config
+     *                                      persistence
      * @param notificationService           Service for STOMP WebSocket broadcasts
      */
     public EstablishmentConfigService(EstablishmentConfigRepository establishmentConfigRepository,
-                                      @Lazy NotificationService notificationService) {
+            @Lazy NotificationService notificationService) {
         this.establishmentConfigRepository = establishmentConfigRepository;
         this.notificationService = notificationService;
     }
 
     /**
-     * Retrieves existing configuration entity or creates standard singleton instance if not found.
-     * Uses REQUIRES_NEW propagation so potential query errors do not abort outer caller transactions.
+     * Retrieves existing configuration entity or creates standard singleton
+     * instance if not found.
+     * Uses REQUIRES_NEW propagation so potential query errors do not abort outer
+     * caller transactions.
      *
      * @return current {@link EstablishmentConfig}
      */
@@ -48,11 +53,11 @@ public class EstablishmentConfigService {
 
     private EstablishmentConfig getConfigInternal() {
         EstablishmentConfig config = establishmentConfigRepository.findById(EstablishmentConfig.SINGLETON_ID)
-            .orElseGet(() -> {
-                EstablishmentConfig newConfig = new EstablishmentConfig();
-                newConfig.setId(EstablishmentConfig.SINGLETON_ID);
-                return establishmentConfigRepository.save(newConfig);
-            });
+                .orElseGet(() -> {
+                    EstablishmentConfig newConfig = new EstablishmentConfig();
+                    newConfig.setId(EstablishmentConfig.SINGLETON_ID);
+                    return establishmentConfigRepository.save(newConfig);
+                });
 
         if (config.getSiret() == null || !SiretLuhnValidator.isValidSiret(config.getSiret())) {
             config.setSiret("73282932000074");
@@ -76,7 +81,8 @@ public class EstablishmentConfigService {
     }
 
     /**
-     * Checks if a given capability module is currently enabled for the establishment.
+     * Checks if a given capability module is currently enabled for the
+     * establishment.
      *
      * @param module Capability module to check
      * @return True if enabled, false otherwise (defaults to true if module is null)
@@ -90,7 +96,8 @@ public class EstablishmentConfigService {
     }
 
     /**
-     * Asserts that a given capability module is enabled, otherwise throwing a {@link BusinessException}.
+     * Asserts that a given capability module is enabled, otherwise throwing a
+     * {@link BusinessException}.
      *
      * @param module Module to verify
      * @throws BusinessException if the capability module is disabled
@@ -103,7 +110,8 @@ public class EstablishmentConfigService {
     }
 
     /**
-     * Retrieves the current configuration status of all modular establishment capabilities.
+     * Retrieves the current configuration status of all modular establishment
+     * capabilities.
      *
      * @return {@link EstablishmentModulesDTO}
      */
@@ -113,7 +121,8 @@ public class EstablishmentConfigService {
     }
 
     /**
-     * Updates modular capabilities configuration and broadcasts the update over WebSocket.
+     * Updates modular capabilities configuration and broadcasts the update over
+     * WebSocket.
      *
      * @param request Update payload with desired module states
      * @return Updated modules DTO
@@ -134,6 +143,19 @@ public class EstablishmentConfigService {
     }
 
     /**
+     * Updates the 4-digit PIN code used to unlock the roulette display TV screen.
+     *
+     * @param newPin 4-digit PIN code
+     * @return updated EstablishmentConfig
+     */
+    @Transactional
+    public EstablishmentConfig updateRouletteDisplayPin(String newPin) {
+        EstablishmentConfig config = getConfigInternal();
+        config.setRouletteDisplayPin(newPin);
+        return establishmentConfigRepository.save(config);
+    }
+
+    /**
      * Updates legal establishment configuration with Luhn validation on SIRET.
      *
      * @param request the request containing updated fields
@@ -141,7 +163,8 @@ public class EstablishmentConfigService {
      */
     @Transactional
     public EstablishmentConfigDTO updateConfig(EstablishmentConfigUpdateRequest request) {
-        if (request.siret() != null && !request.siret().isBlank() && !SiretLuhnValidator.isValidSiret(request.siret())) {
+        if (request.siret() != null && !request.siret().isBlank()
+                && !SiretLuhnValidator.isValidSiret(request.siret())) {
             throw new BusinessException("The specified SIRET number is invalid (Luhn checksum failed)");
         }
 
@@ -170,39 +193,106 @@ public class EstablishmentConfigService {
         if (request == null) {
             return;
         }
-        if (request.cuisineKds() != null) config.setModuleKitchenKdsEnabled(request.cuisineKds());
-        if (request.happyHour() != null) config.setModuleHappyHourEnabled(request.happyHour());
-        if (request.employeeManagement() != null) config.setModuleEmployeeManagementEnabled(request.employeeManagement());
-        if (request.floorPlan() != null) config.setModuleFloorPlanEnabled(request.floorPlan());
-        if (request.qrClientOrdering() != null) config.setModuleQrClientOrderingEnabled(request.qrClientOrdering());
-        if (request.stockTracking() != null) config.setModuleStockTrackingEnabled(request.stockTracking());
-        if (request.cashDrawer() != null) config.setModuleCashDrawerEnabled(request.cashDrawer());
+        if (request.cuisineKds() != null) {
+            config.setModuleEnabled(EstablishmentModule.CUISINE_KDS, request.cuisineKds());
+        }
+        if (request.happyHour() != null) {
+            config.setModuleEnabled(EstablishmentModule.HAPPY_HOUR, request.happyHour());
+        }
+        if (request.employeeManagement() != null) {
+            config.setModuleEnabled(EstablishmentModule.EMPLOYEE_MANAGEMENT, request.employeeManagement());
+        }
+        if (request.floorPlan() != null) {
+            config.setModuleEnabled(EstablishmentModule.FLOOR_PLAN, request.floorPlan());
+        }
+        if (request.qrClientOrdering() != null) {
+            config.setModuleEnabled(EstablishmentModule.QR_CLIENT_ORDERING, request.qrClientOrdering());
+        }
+        if (request.stockTracking() != null) {
+            config.setModuleEnabled(EstablishmentModule.STOCK_TRACKING, request.stockTracking());
+        }
+        if (request.cashDrawer() != null) {
+            config.setModuleEnabled(EstablishmentModule.CASH_DRAWER, request.cashDrawer());
+        }
+        if (request.barTabs() != null) {
+            config.setModuleEnabled(EstablishmentModule.BAR_TABS, request.barTabs());
+        }
+        if (request.cocktailLibrary() != null) {
+            config.setModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY, request.cocktailLibrary());
+        }
+        if (request.suppliersManagement() != null) {
+            config.setModuleEnabled(EstablishmentModule.SUPPLIERS_MANAGEMENT, request.suppliersManagement());
+        }
+        if (request.inventoryAudit() != null) {
+            config.setModuleEnabled(EstablishmentModule.INVENTORY_AUDIT, request.inventoryAudit());
+        }
+        if (request.mysteryRoulette() != null) {
+            config.setModuleEnabled(EstablishmentModule.MYSTERY_ROULETTE, request.mysteryRoulette());
+        }
+        // Toggle payment terminal module if explicitly provided in update request
+        if (request.paymentTerminal() != null) {
+            config.setModuleEnabled(EstablishmentModule.PAYMENT_TERMINAL, request.paymentTerminal());
+        }
     }
 
     private void applyLegalInfoUpdates(EstablishmentConfig config, EstablishmentConfigUpdateRequest request) {
-        if (request.legalName() != null) config.setLegalName(request.legalName());
-        if (request.legalForm() != null) config.setLegalForm(request.legalForm());
-        if (request.siret() != null) config.setSiret(request.siret());
-        if (request.rcsCity() != null) config.setRcsCity(request.rcsCity());
-        if (request.rcsNumber() != null) config.setRcsNumber(request.rcsNumber());
-        if (request.tvaNumber() != null) config.setTvaNumber(request.tvaNumber());
-        if (request.codeApe() != null) config.setCodeApe(request.codeApe());
-        if (request.capitalSocial() != null) config.setCapitalSocial(request.capitalSocial());
+        if (request.legalName() != null) {
+            config.setLegalName(request.legalName());
+        }
+        if (request.legalForm() != null) {
+            config.setLegalForm(request.legalForm());
+        }
+        if (request.siret() != null) {
+            config.setSiret(request.siret());
+        }
+        if (request.rcsCity() != null) {
+            config.setRcsCity(request.rcsCity());
+        }
+        if (request.rcsNumber() != null) {
+            config.setRcsNumber(request.rcsNumber());
+        }
+        if (request.tvaNumber() != null) {
+            config.setTvaNumber(request.tvaNumber());
+        }
+        if (request.codeApe() != null) {
+            config.setCodeApe(request.codeApe());
+        }
+        if (request.capitalSocial() != null) {
+            config.setCapitalSocial(request.capitalSocial());
+        }
     }
 
     private void applyContactAndPolicyUpdates(EstablishmentConfig config, EstablishmentConfigUpdateRequest request) {
-        if (request.address() != null) config.setAddress(request.address());
-        if (request.country() != null) config.setCountry(request.country());
-        if (request.language() != null) config.setLanguage(request.language());
-        if (request.phone() != null) config.setPhone(request.phone());
-        if (request.email() != null) config.setEmail(request.email());
-        if (request.paymentTerms() != null) config.setPaymentTerms(request.paymentTerms());
-        if (request.discountPolicy() != null) config.setDiscountPolicy(request.discountPolicy());
-        if (request.latePaymentRate() != null) config.setLatePaymentRate(request.latePaymentRate());
+        if (request.address() != null) {
+            config.setAddress(request.address());
+        }
+        if (request.country() != null) {
+            config.setCountry(request.country());
+        }
+        if (request.language() != null) {
+            config.setLanguage(request.language());
+        }
+        if (request.phone() != null) {
+            config.setPhone(request.phone());
+        }
+        if (request.email() != null) {
+            config.setEmail(request.email());
+        }
+        if (request.paymentTerms() != null) {
+            config.setPaymentTerms(request.paymentTerms());
+        }
+        if (request.discountPolicy() != null) {
+            config.setDiscountPolicy(request.discountPolicy());
+        }
+        if (request.latePaymentRate() != null) {
+            config.setLatePaymentRate(request.latePaymentRate());
+        }
     }
 
     private void applyTicketFormatUpdate(EstablishmentConfig config, String ticketFormat) {
-        if (ticketFormat == null) return;
+        if (ticketFormat == null) {
+            return;
+        }
         String fmt = ticketFormat.trim().toLowerCase();
         if ("80mm".equals(fmt) || "58mm".equals(fmt)) {
             config.setTicketFormat(fmt);
@@ -210,7 +300,9 @@ public class EstablishmentConfigService {
     }
 
     private void applyTimeZoneUpdate(EstablishmentConfig config, String timeZone) {
-        if (timeZone == null) return;
+        if (timeZone == null) {
+            return;
+        }
         String tz = timeZone.trim();
         if (!tz.equalsIgnoreCase("SYSTEM") && !tz.isBlank()) {
             try {

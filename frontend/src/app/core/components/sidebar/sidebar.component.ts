@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
@@ -10,8 +10,10 @@ import {
   homeOutline, restaurantOutline, gridOutline, beerOutline,
   statsChartOutline, receiptOutline, wineOutline, cardOutline,
   nutritionOutline, settingsOutline, documentTextOutline, chevronBackOutline,
-  chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline
+  chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline,
+  libraryOutline, cartOutline, clipboardOutline
 } from 'ionicons/icons';
+import { tableRestaurantOutline } from '../../icons/custom-icons';
 import { selectCurrentUser } from '../../store/auth.selectors';
 import * as AuthActions from '../../store/auth.actions';
 import { User } from '../../models/user.model';
@@ -40,7 +42,7 @@ export interface NavItemDef {
 /** Predefined navigation items matching all OpenBar application views. */
 export const SIDEBAR_NAV_ITEMS: NavItemDef[] = [
   { id: 'nav-home', route: '/app-home', icon: 'home-outline', labelKey: 'NAV.HOME', section: 'main' },
-  { id: 'nav-serveur', route: '/serveur', icon: 'restaurant-outline', labelKey: 'NAV.SERVEUR', roles: ['SERVEUR', 'ADMIN', 'MANAGER'], section: 'main' },
+  { id: 'nav-serveur', route: '/serveur', icon: 'restaurant-outline', labelKey: 'NAV.SERVEUR', roles: ['SERVEUR', 'BARMAN', 'ADMIN', 'MANAGER'], section: 'main' },
   { id: 'nav-plan-salle', route: '/plan-salle', icon: 'grid-outline', labelKey: 'NAV.PLAN_SALLE', roles: ['MANAGER', 'ADMIN', 'SERVEUR'], requiredModule: EstablishmentModule.FLOOR_PLAN, section: 'main' },
   { id: 'nav-barman', route: '/barman', icon: 'beer-outline', labelKey: 'NAV.BARMAN', roles: ['BARMAN', 'ADMIN', 'MANAGER'], section: 'main' },
   { id: 'nav-kitchen', route: '/kitchen', icon: 'restaurant-outline', labelKey: 'NAV.KITCHEN', roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS, section: 'main' },
@@ -49,9 +51,11 @@ export const SIDEBAR_NAV_ITEMS: NavItemDef[] = [
   { id: 'nav-schedule', route: '/manager/schedule', icon: 'calendar-outline', labelKey: 'NAV.SCHEDULE', roles: ['MANAGER', 'ADMIN'], requiredModule: EstablishmentModule.EMPLOYEE_MANAGEMENT, section: 'main' },
   { id: 'nav-cocktails', route: '/cocktails', icon: 'wine-outline', labelKey: 'NAV.COCKTAILS', section: 'main' },
   { id: 'nav-commandes', route: '/commandes', icon: 'receipt-outline', labelKey: 'NAV.COMMANDES', section: 'main' },
-  { id: 'nav-tables', route: '/tables', icon: 'restaurant-outline', labelKey: 'NAV.TABLES', section: 'main' },
-  { id: 'nav-factures', route: '/factures', icon: 'card-outline', labelKey: 'NAV.FACTURES', roles: ['MANAGER', 'ADMIN', 'SERVEUR'], section: 'main' },
+  { id: 'nav-tables', route: '/tables', icon: 'table-restaurant-outline', labelKey: 'NAV.TABLES', section: 'main' },
+  { id: 'nav-factures', route: '/factures', icon: 'card-outline', labelKey: 'NAV.FACTURES', roles: ['MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN'], section: 'main' },
   { id: 'nav-ingredients', route: '/ingredients', icon: 'nutrition-outline', labelKey: 'NAV.INGREDIENTS', roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.STOCK_TRACKING, section: 'admin' },
+  { id: 'nav-purchases', route: '/purchases', icon: 'cart-outline', labelKey: 'NAV.PURCHASES', roles: ['ADMIN', 'MANAGER'], requiredModule: EstablishmentModule.SUPPLIERS_MANAGEMENT, section: 'admin' },
+  { id: 'nav-inventory', route: '/inventory', icon: 'clipboard-outline', labelKey: 'NAV.INVENTORY', roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.INVENTORY_AUDIT, section: 'admin' },
   { id: 'nav-users', route: '/admin/users', icon: 'people-outline', labelKey: 'NAV.USERS', roles: ['ADMIN'], section: 'admin' },
   { id: 'nav-admin', route: '/admin', icon: 'settings-outline', labelKey: 'NAV.ADMIN', roles: ['ADMIN'], section: 'admin' },
   { id: 'nav-audit-logs', route: '/admin/audit-logs', icon: 'document-text-outline', labelKey: 'NAV.AUDIT_LOGS', roles: ['ADMIN'], section: 'admin' },
@@ -81,6 +85,7 @@ const ROLE_COLORS: Record<string, string> = {
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonIcon,
     RouterLink, RouterLinkActive, AsyncPipe, TranslocoPipe,
@@ -106,7 +111,8 @@ export class SidebarComponent implements OnDestroy {
       homeOutline, restaurantOutline, gridOutline, beerOutline,
       statsChartOutline, receiptOutline, wineOutline, cardOutline,
       nutritionOutline, settingsOutline, documentTextOutline, chevronBackOutline,
-      chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline
+      chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline,
+      libraryOutline, tableRestaurantOutline, cartOutline, clipboardOutline
     });
 
     this.currentUser$ = this.store.select(selectCurrentUser);

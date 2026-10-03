@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin, interval, Subscription } from 'rxjs';
@@ -42,6 +42,7 @@ import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-
 import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
 import { SoundService } from '../../core/services/sound.service';
 import { WebSocketService } from '../../core/services/websocket.service';
+import { AppSettingsService } from '../../core/services/app-settings.service';
 import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
 
 /**
@@ -75,11 +76,15 @@ import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
     ActionButtonComponent
 ],
   templateUrl: './kds-kitchen.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./kds-kitchen.component.scss']
 })
 export class KdsKitchenComponent implements OnInit, OnDestroy {
   commandes: CommandeView[] = [];
   activeFilter: 'ACTIVE' | 'ALL' | 'READY' = 'ACTIVE';
+
+  private readonly appSettingsService = inject(AppSettingsService);
+  currentTime = this.appSettingsService.getNowInEstablishmentTime();
 
   private readonly destroy$ = new Subject<void>();
   private timerSub?: Subscription;
@@ -159,10 +164,12 @@ export class KdsKitchenComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.currentTime = this.appSettingsService.getNowInEstablishmentTime();
     this.chargerCommandes();
 
-    // Elapsed timer tick every second
+    // Elapsed timer tick every second aligned with establishment timezone
     this.timerSub = interval(1000).subscribe(() => {
+      this.currentTime = this.appSettingsService.getNowInEstablishmentTime();
       this.cdr.markForCheck();
     });
 
@@ -232,13 +239,8 @@ export class KdsKitchenComponent implements OnInit, OnDestroy {
           }
           this.cdr.markForCheck();
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('KDS.LOAD_ERROR'),
-            duration: 3000,
-            color: 'danger'
-          });
-          toast.present();
+        error: () => {
+          this.showToast(this.transloco.translate('KDS.LOAD_ERROR'), 'danger');
         }
       });
   }
@@ -319,20 +321,19 @@ export class KdsKitchenComponent implements OnInit, OnDestroy {
     if (!dateString) return '00:00';
     const start = new Date(dateString).getTime();
     if (Number.isNaN(start)) return '00:00';
-    const diff = Math.max(0, Date.now() - start);
+    const diff = Math.max(0, this.currentTime - start);
     const totalSeconds = Math.floor(diff / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   }
 
-  private async showToast(message: string, color: 'success' | 'danger' | 'primary' = 'primary'): Promise<void> {
-    const toast = await this.toastCtrl.create({
+  private showToast(message: string, color: 'success' | 'danger' | 'primary' = 'primary'): void {
+    void this.toastCtrl.create({
       message,
       duration: 2500,
       position: 'bottom',
       color
-    });
-    await toast.present();
+    }).then(t => void t.present());
   }
 }

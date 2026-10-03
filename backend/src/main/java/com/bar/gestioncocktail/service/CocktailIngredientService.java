@@ -78,19 +78,18 @@ public class CocktailIngredientService {
      *
      * @param cocktailIngredient The cocktail ingredient association
      * @param quantite           The new dosage quantity
-     * @return The updated cocktail ingredient entity
      */
-
     public void updateQuantite(CocktailIngredient cocktailIngredient, BigDecimal quantite) {
         cocktailIngredient.setQuantite(quantite);
         cocktailIngredientRepository.save(cocktailIngredient);
     }
-/**
-     * Removes a cocktail ingredient association by its identifier.
-     *
-     * @param id Identifier of the cocktail ingredient association
-     */
 
+    /**
+     * Removes a cocktail ingredient association by its cocktail and ingredient.
+     *
+     * @param cocktail   The cocktail entity
+     * @param ingredient The ingredient entity
+     */
     public void deleteCocktailIngredient(Cocktail cocktail, Ingredient ingredient) {
         cocktailIngredientRepository.deleteByCocktailAndIngredient(cocktail, ingredient);
     }

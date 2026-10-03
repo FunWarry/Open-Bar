@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ModalController } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular';
 import { VariantRecipeModalComponent } from '../../../app/features/cocktails/components/variant-recipe-modal/variant-recipe-modal.component';
 import {
   CocktailVariante,
@@ -28,7 +28,7 @@ const mockBaseRecipeSteps: CocktailRecipeStep[] = [
     ingredientNom: 'Lime Juice',
     quantite: 3,
     unite: 'cl',
-    customText: '',
+    customText: 'Presser frais',
   },
   {
     stepOrder: 3,
@@ -37,7 +37,7 @@ const mockBaseRecipeSteps: CocktailRecipeStep[] = [
     templateName: 'Shaker vigoureusement',
     actionType: 'SHAKE',
     durationSeconds: 15,
-    customText: 'Avec des glaçons',
+    customText: 'Avec des glacons',
   },
 ];
 
@@ -46,7 +46,7 @@ const mockCatalogIngredients: Ingredient[] = [
     id: 10,
     nom: 'White Rum',
     uniteMesure: 'cl',
-    quantiteStock: 100,
+    quantiteStock: 50,
     seuilAlerte: 10,
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z',
@@ -55,8 +55,8 @@ const mockCatalogIngredients: Ingredient[] = [
     id: 11,
     nom: 'Lime Juice',
     uniteMesure: 'cl',
-    quantiteStock: 50,
-    seuilAlerte: 5,
+    quantiteStock: 100,
+    seuilAlerte: 20,
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z',
   },
@@ -91,13 +91,21 @@ const mockCatalogTemplates: RecipeStepTemplate[] = [
 describe('VariantRecipeModalComponent', () => {
   let component: VariantRecipeModalComponent;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
+  let toastCtrlSpy: jasmine.SpyObj<ToastController>;
 
   beforeEach(async () => {
-    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss', 'create']);
+    toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+    toastCtrlSpy.create.and.resolveTo({
+      present: () => Promise.resolve(),
+    } as any);
 
     await TestBed.configureTestingModule({
       imports: [VariantRecipeModalComponent, getTranslocoTestingModule()],
-      providers: [{ provide: ModalController, useValue: modalCtrlSpy }],
+      providers: [
+        { provide: ModalController, useValue: modalCtrlSpy },
+        { provide: ToastController, useValue: toastCtrlSpy },
+      ],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(VariantRecipeModalComponent);
@@ -432,5 +440,44 @@ describe('VariantRecipeModalComponent', () => {
 
   it('should return currency symbol from appSettingsService', () => {
     expect(component.currencySymbol).toBe('€');
+  });
+
+  it('should open create ingredient modal and do nothing if dismissed with cancel', async () => {
+    const modalElementSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onDidDismiss']);
+    modalElementSpy.present.and.resolveTo();
+    modalElementSpy.onDidDismiss.and.resolveTo({ role: 'cancel', data: null });
+    modalCtrlSpy.create.and.resolveTo(modalElementSpy);
+
+    const initialLen = component.availableIngredientsList().length;
+    await component.openCreateIngredientModal(0);
+
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(modalElementSpy.present).toHaveBeenCalled();
+    expect(component.availableIngredientsList()).toHaveSize(initialLen);
+  });
+
+  it('should open create ingredient modal and update availableIngredientsList and selected step if saved', async () => {
+    component.ngOnInit();
+    const newIngredient: Ingredient = {
+      id: 99,
+      nom: 'Sirop de Grenadine',
+      uniteMesure: 'cl',
+      quantiteStock: 10,
+      seuilAlerte: 2,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z',
+    };
+    const modalElementSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onDidDismiss']);
+    modalElementSpy.present.and.resolveTo();
+    modalElementSpy.onDidDismiss.and.resolveTo({ role: 'saved', data: newIngredient });
+    modalCtrlSpy.create.and.resolveTo(modalElementSpy);
+
+    await component.openCreateIngredientModal(0);
+
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(component.availableIngredientsList().some((i) => i.id === 99)).toBeTrue();
+    expect(component.recipeSteps[0].ingredientId).toBe(99);
+    expect(component.recipeSteps[0].ingredientNom).toBe('Sirop de Grenadine');
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
   });
 });

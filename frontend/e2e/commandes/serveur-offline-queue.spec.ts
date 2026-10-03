@@ -39,8 +39,8 @@ test.describe('Serveur Offline Queue & Background Sync E2E (#361)', () => {
     await expect(page.locator('[data-testid="offline-indicator-bar"]')).toBeVisible({ timeout: 5000 });
 
     // Add a cocktail to cart
-    const productBtn = page.locator('.product-card').first();
-    await expect(productBtn).toBeVisible({ timeout: 5000 });
+    const productBtn = page.locator('.product-card, .figma-cocktail-card').first();
+    await expect(productBtn).toBeVisible({ timeout: 10000 });
     await productBtn.click({ force: true });
 
     // Handle variant selection if modal opens

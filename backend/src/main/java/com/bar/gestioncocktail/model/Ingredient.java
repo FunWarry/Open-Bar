@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.time.LocalDateTime;
 /**
  * JPA entity representing an inventory ingredient, bottle, or raw consumable with stock thresholds.
@@ -44,6 +46,11 @@ public class Ingredient {
     private LocalDateTime datePeremption;
     private BigDecimal prixUnitaire;
     private String fournisseur;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "supplier_id")
+    private Supplier defaultSupplier;
+
     private String notes;
 
     @Column(name = "degre_alcool", precision = 5, scale = 2)
@@ -58,8 +65,52 @@ public class Ingredient {
     @Column(name = "allergen", length = 50)
     private java.util.Set<Allergen> allergens = new java.util.HashSet<>();
 
+    public static final String DEFAULT_CATEGORY = "other";
+
+    @Column(name = "category", length = 50)
+    private String category = DEFAULT_CATEGORY;
+
+    @Column(name = "purchase_unit", length = 50)
+    private String purchaseUnit;
+
+    @Column(name = "packaging_capacity", precision = 10, scale = 3)
+    private BigDecimal packagingCapacity = BigDecimal.ONE;
+
+    @Column(name = "packaging_price_ht", precision = 10, scale = 2)
+    private BigDecimal packagingPriceHt;
+
+    @Column(name = "code_barre", unique = true, length = 100)
+    private String codeBarre;
+
+    @Column(name = "is_crafted")
+    private Boolean isCrafted = false;
+
+    @Column(name = "is_purchasable")
+    private Boolean isPurchasable = true;
+
+    @OneToMany(mappedBy = "craftedIngredient", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<IngredientConfectionSource> confectionSources = new ArrayList<>();
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    /**
+     * Gets the mixology family category of this ingredient.
+     *
+     * @return mixology category string (defaults to DEFAULT_CATEGORY if null)
+     */
+    public String getCategory() {
+        return category != null && !category.isBlank() ? category : DEFAULT_CATEGORY;
+    }
+
+    /**
+     * Sets the mixology family category of this ingredient.
+     *
+     * @param category category identifier to set
+     */
+    public void setCategory(String category) {
+        this.category = (category != null && !category.isBlank()) ? category : DEFAULT_CATEGORY;
+    }
 
     /**
      * Gets the alcohol degree percentage (ABV) of this ingredient.
@@ -131,6 +182,123 @@ public class Ingredient {
      */
     public void setUnitCost(BigDecimal unitCost) {
         this.prixUnitaire = unitCost;
+    }
+
+    /**
+     * Gets the default supplier for this ingredient.
+     *
+     * @return default supplier entity or null
+     */
+    public Supplier getDefaultSupplier() {
+        return defaultSupplier;
+    }
+
+    /**
+     * Sets the default supplier for this ingredient.
+     *
+     * @param defaultSupplier supplier to associate
+     */
+    public void setDefaultSupplier(Supplier defaultSupplier) {
+        this.defaultSupplier = defaultSupplier;
+    }
+
+    /**
+     * Gets the barcode or QR code associated with this bottle or consumable.
+     *
+     * @return barcode string (EAN-13, QR code, etc.)
+     */
+    public String getCodeBarre() {
+        return codeBarre;
+    }
+
+    /**
+     * Sets the barcode or QR code associated with this bottle or consumable.
+     *
+     * @param codeBarre barcode string to associate
+     */
+    public void setCodeBarre(String codeBarre) {
+        this.codeBarre = (codeBarre != null && !codeBarre.isBlank()) ? codeBarre.trim() : null;
+    }
+
+    /**
+     * Gets the effective packaging capacity in stock unit, falling back to 1.0 if not specified.
+     *
+     * @return packaging conversion capacity
+     */
+    public BigDecimal getEffectivePackagingCapacity() {
+        return (packagingCapacity != null && packagingCapacity.compareTo(BigDecimal.ZERO) > 0)
+                ? packagingCapacity
+                : BigDecimal.ONE;
+    }
+
+    /**
+     * Gets the effective packaging unit label, falling back to stock unit if not specified.
+     *
+     * @return packaging unit label
+     */
+    public String getEffectivePurchaseUnit() {
+        if (purchaseUnit != null && !purchaseUnit.isBlank()) {
+            return purchaseUnit.trim();
+        }
+        if (uniteMesure != null && !uniteMesure.isBlank()) {
+            return uniteMesure.trim();
+        }
+        return "u";
+    }
+
+    /**
+     * Gets whether this ingredient is crafted (confectionné) on-site from source ingredients.
+     *
+     * @return true if crafted, false if raw/purchased
+     */
+    public Boolean getIsCrafted() {
+        return isCrafted != null && isCrafted;
+    }
+
+    /**
+     * Sets whether this ingredient is crafted on-site.
+     *
+     * @param isCrafted crafted status to assign
+     */
+    public void setIsCrafted(Boolean isCrafted) {
+        this.isCrafted = isCrafted;
+    }
+
+    /**
+     * Gets whether this ingredient can be directly purchased from suppliers.
+     * Crafted ingredients may or may not be purchasable (e.g., bottled lemon juice vs fresh-squeezed).
+     *
+     * @return true if purchasable, false if only obtainable through confection
+     */
+    public Boolean getIsPurchasable() {
+        return isPurchasable == null || isPurchasable;
+    }
+
+    /**
+     * Sets whether this ingredient can be directly purchased.
+     *
+     * @param isPurchasable purchasable status to assign
+     */
+    public void setIsPurchasable(Boolean isPurchasable) {
+        this.isPurchasable = isPurchasable;
+    }
+
+    /**
+     * Gets the confection source mappings for this crafted ingredient.
+     *
+     * @return list of confection source mappings
+     */
+    public List<IngredientConfectionSource> getConfectionSources() {
+        return confectionSources != null ? confectionSources : new ArrayList<>();
+    }
+
+    /**
+     * Sets the confection source mappings for this crafted ingredient.
+     *
+     * @param confectionSources list of confection source mappings
+     */
+    public void setConfectionSources(List<IngredientConfectionSource> confectionSources) {
+        this.confectionSources = confectionSources != null ? confectionSources : new ArrayList<>();
     }
 
     @PrePersist

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Subject } from 'rxjs';
@@ -79,6 +79,7 @@ export interface CurrencyPreset {
     IonRange
 ],
   templateUrl: './order-timers-settings.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./order-timers-settings.component.scss']
 })
 export class OrderTimersSettingsComponent implements OnInit, OnDestroy {

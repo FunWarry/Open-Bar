@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
@@ -28,6 +28,7 @@ import { CashMovementModalComponent } from '../cash-movement-modal/cash-movement
 import { XReportModalComponent } from '../x-report-modal/x-report-modal.component';
 import { CashDrawerService } from '../../../core/services/cash-drawer.service';
 import { FeatureFlagService } from '../../../core/services/feature-flag.service';
+import { StatCardComponent } from '../../../core/components/ui/stat-card/stat-card.component';
 
 /**
  * Daily Sales Closing Summary component (Z-Report) for Managers in OpenBar (Figma 628:1096).
@@ -39,11 +40,12 @@ import { FeatureFlagService } from '../../../core/services/feature-flag.service'
   templateUrl: './facture-recap-journee.component.html',
   styleUrls: ['./facture-recap-journee.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule, FormsModule, TranslocoModule, AppCurrencyPipe,
     IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonGrid, IonRow, IonCol, IonBadge, IonIcon, IonButton, IonSpinner,
-    IonRefresher, IonRefresherContent,
+    IonRefresher, IonRefresherContent, StatCardComponent
   ],
 })
 export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
@@ -120,7 +122,7 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         }
       });
 
@@ -233,12 +235,12 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
         finalize(() => (this.isExporting = false))
       )
       .subscribe({
-        next: async (blob: Blob) => {
+        next: (blob: Blob) => {
           this.triggerBlobDownload(blob, `recap-caisse-${this.selectedDate}.pdf`);
-          this.showToast(this.transloco.translate('RECAP.EXPORT_SUCCESS'), 'success');
+          void this.showToast(this.transloco.translate('RECAP.EXPORT_SUCCESS'), 'success');
         },
-        error: async () => {
-          this.showToast(this.transloco.translate('RECAP.EXPORT_ERROR'), 'danger');
+        error: () => {
+          void this.showToast(this.transloco.translate('RECAP.EXPORT_ERROR'), 'danger');
         }
       });
   }
@@ -258,9 +260,9 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
         next: res => {
           const key = res.success ? 'CLOTURE.PRINT_SUCCESS' : 'CLOTURE.PRINT_FAILED';
           const color = res.success ? 'success' : 'warning';
-          this.showToast(this.transloco.translate(key), color);
+          void this.showToast(this.transloco.translate(key), color);
         },
-        error: () => this.showToast(this.transloco.translate('CLOTURE.PRINT_FAILED'), 'danger')
+        error: () => { void this.showToast(this.transloco.translate('CLOTURE.PRINT_FAILED'), 'danger'); }
       });
   }
 
@@ -278,9 +280,9 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
       .subscribe({
         next: blob => {
           this.triggerBlobDownload(blob, `ticket-z-${this.currentClosure?.closureNumber}.pdf`);
-          this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_PDF_SUCCESS'), 'success');
+          void this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_PDF_SUCCESS'), 'success');
         },
-        error: () => this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_PDF_ERROR'), 'danger')
+        error: () => { void this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_PDF_ERROR'), 'danger'); }
       });
   }
 
@@ -298,9 +300,9 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
       .subscribe({
         next: blob => {
           this.triggerBlobDownload(blob, `FEC-${this.currentClosure?.closureNumber}.txt`);
-          this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_FEC_SUCCESS'), 'success');
+          void this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_FEC_SUCCESS'), 'success');
         },
-        error: () => this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_FEC_ERROR'), 'danger')
+        error: () => { void this.showToast(this.transloco.translate('CLOTURE.DOWNLOAD_FEC_ERROR'), 'danger'); }
       });
   }
 
@@ -309,8 +311,8 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
    */
   copySealHash(): void {
     if (this.currentClosure?.sha256Hash) {
-      navigator.clipboard.writeText(this.currentClosure.sha256Hash);
-      this.showToast(this.transloco.translate('CLOTURE.HASH_COPIED'), 'success');
+      void navigator.clipboard.writeText(this.currentClosure.sha256Hash);
+      void this.showToast(this.transloco.translate('CLOTURE.HASH_COPIED'), 'success');
     }
   }
 

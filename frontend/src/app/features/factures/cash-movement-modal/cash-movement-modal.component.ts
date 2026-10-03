@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -40,6 +40,7 @@ import { CashMovementRequest, CashMovementType } from '../../../core/models/cash
     IonSpinner
   ],
   templateUrl: './cash-movement-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./cash-movement-modal.component.scss']
 })
 export class CashMovementModalComponent implements OnInit {
@@ -128,21 +129,21 @@ export class CashMovementModalComponent implements OnInit {
     };
 
     this.cashDrawerService.recordMovement(request).subscribe({
-      next: movement => {
+      next: async movement => {
         this.isSubmitting = false;
-        this.showToast(this.transloco.translate('CASH_DRAWER.MOVEMENT_SUCCESS'));
-        this.modalCtrl.dismiss({ movement });
+        await this.showToast(this.transloco.translate('CASH_DRAWER.MOVEMENT_SUCCESS'));
+        await this.modalCtrl.dismiss({ movement });
       },
-      error: err => {
+      error: async err => {
         this.isSubmitting = false;
         const msg = err?.error?.message || this.transloco.translate('CASH_DRAWER.MOVEMENT_ERROR');
-        this.showToast(msg, 'danger');
+        await this.showToast(msg, 'danger');
       }
     });
   }
 
   cancel(): void {
-    this.modalCtrl.dismiss(null);
+    void this.modalCtrl.dismiss(null);
   }
 
   private async showToast(message: string, color: 'success' | 'danger' = 'success'): Promise<void> {

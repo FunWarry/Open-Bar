@@ -5,35 +5,13 @@ test.describe('Cocktail Flavor Profile Matcher & Dietary Filter Engine E2E', () 
   test.beforeEach(async ({ page }) => {
     await setupMockApi(page);
 
-    // Mock facets API endpoint
-    await page.route('**/api/cocktails/facets**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          flavorCounts: {
-            FRUITY: 8,
-            SMOKY: 2,
-            SWEET: 6,
-            SOUR: 4,
-            BITTER: 3,
-            SPICY: 2,
-            HERBAL: 5,
-          },
-          mocktailsCount: 4,
-          veganCount: 10,
-          glutenFreeCount: 9,
-          lowAbvCount: 3,
-          minAlcoholLevel: 0,
-          maxAlcoholLevel: 25,
-          totalAvailable: 15,
-        }),
-      });
-    });
-
     // Mock cocktails catalog with flavor profiles and dietary flags
     await page.route('**/api/cocktails**', async (route) => {
-      if (route.request().method() === 'GET' && !route.request().url().includes('/facets') && !route.request().url().includes('/matcher')) {
+      if (route.request().url().includes('/facets') || route.request().url().includes('/matcher')) {
+        await route.fallback();
+        return;
+      }
+      if (route.request().method() === 'GET') {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -79,9 +57,35 @@ test.describe('Cocktail Flavor Profile Matcher & Dietary Filter Engine E2E', () 
             },
           ]),
         });
-      } else {
-        await route.continue();
+        return;
       }
+      await route.fallback();
+    });
+
+    // Mock facets API endpoint (registered after cocktails route so it takes precedence)
+    await page.route('**/api/cocktails/facets**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          flavorCounts: {
+            FRUITY: 8,
+            SMOKY: 2,
+            SWEET: 6,
+            SOUR: 4,
+            BITTER: 3,
+            SPICY: 2,
+            HERBAL: 5,
+          },
+          mocktailsCount: 4,
+          veganCount: 10,
+          glutenFreeCount: 9,
+          lowAbvCount: 3,
+          minAlcoholLevel: 0,
+          maxAlcoholLevel: 25,
+          totalAvailable: 15,
+        }),
+      });
     });
   });
 

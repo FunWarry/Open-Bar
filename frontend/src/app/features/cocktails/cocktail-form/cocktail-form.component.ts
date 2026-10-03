@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, effect } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, effect, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -19,6 +19,7 @@ import {
   IonIcon,
 } from '@ionic/angular';
 import { VariantRecipeModalComponent } from '../components/variant-recipe-modal/variant-recipe-modal.component';
+import { IngredientFormComponent } from '../../ingredients/ingredient-form/ingredient-form.component';
 import { addIcons } from 'ionicons';
 import {
   calendarOutline,
@@ -78,6 +79,7 @@ import {
   Cocktail,
   CocktailIngredientItem,
   FlavorProfile,
+  DEFAULT_FLAVOR_CONFIGS,
 } from '../../../core/models/cocktail.model';
 import { Ingredient } from '../../../core/models/ingredient.model';
 import { Glassware } from '../../../core/models/glassware.model';
@@ -118,6 +120,7 @@ export interface BarEquipmentItem {
   templateUrl: './cocktail-form.component.html',
   styleUrls: ['./cocktail-form.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     IonCard,
@@ -281,15 +284,7 @@ export class CocktailFormComponent implements OnInit {
   selectedFlavors = signal<FlavorProfile[]>([]);
 
   /** Available flavor profiles with labels and icons. */
-  readonly availableFlavors: { key: FlavorProfile; labelKey: string; icon: string }[] = [
-    { key: 'FRUITY', labelKey: 'COCKTAIL.FLAVOR_FRUITY', icon: 'water-outline' },
-    { key: 'SMOKY', labelKey: 'COCKTAIL.FLAVOR_SMOKY', icon: 'cloud-outline' },
-    { key: 'SWEET', labelKey: 'COCKTAIL.FLAVOR_SWEET', icon: 'sparkles-outline' },
-    { key: 'SOUR', labelKey: 'COCKTAIL.FLAVOR_SOUR', icon: 'water-outline' },
-    { key: 'BITTER', labelKey: 'COCKTAIL.FLAVOR_BITTER', icon: 'wine-outline' },
-    { key: 'SPICY', labelKey: 'COCKTAIL.FLAVOR_SPICY', icon: 'flame-outline' },
-    { key: 'HERBAL', labelKey: 'COCKTAIL.FLAVOR_HERBAL', icon: 'leaf-outline' },
-  ];
+  readonly availableFlavors = DEFAULT_FLAVOR_CONFIGS;
 
   cocktailForm: FormGroup = this.fb.group({
     name: ['', Validators.required],
@@ -775,7 +770,7 @@ export class CocktailFormComponent implements OnInit {
       this.isEditMode = true;
       this.cocktailId = +id;
       if (Number.isNaN(this.cocktailId)) {
-        this.router.navigate(['/404']);
+        void this.router.navigate(['/404']);
         return;
       }
       this.cocktailService.getById(this.cocktailId).subscribe({
@@ -852,7 +847,7 @@ export class CocktailFormComponent implements OnInit {
           }
         },
         error: () => {
-          this.router.navigate(['/404']);
+          void this.router.navigate(['/404']);
         },
       });
     }
@@ -1167,6 +1162,7 @@ export class CocktailFormComponent implements OnInit {
 
     const modal = await this.modalCtrl.create({
       component: VariantRecipeModalComponent,
+      cssClass: 'modal-xl',
       componentProps: {
         variante: existingVal,
         baseCocktailName: this.cocktailForm.get('name')?.value || '',
@@ -1376,6 +1372,41 @@ export class CocktailFormComponent implements OnInit {
       });
   }
 
+  /**
+   * Opens the ingredient creation modal in real-time.
+   * On successful creation, updates ingredientsList and auto-selects the new ingredient in the specified step.
+   *
+   * @param stepIndex Optional index of the recipe step to auto-select into.
+   */
+  async openCreateIngredientModal(stepIndex?: number): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: IngredientFormComponent,
+      cssClass: 'modal-lg openbar-modal-lg ingredient-form-modal-container',
+      componentProps: {
+        ingredient: null,
+        canEdit: true,
+      },
+    });
+
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss();
+    if (role === 'saved' && data?.id) {
+      const created = data as Ingredient;
+      this.ingredientsList.update((list) => {
+        const exists = list.some((i) => i.id === created.id);
+        return exists ? list.map((i) => (i.id === created.id ? created : i)) : [...list, created];
+      });
+
+      if (stepIndex != null && stepIndex >= 0 && stepIndex < this.recipeStepsArray.length) {
+        const group = this.recipeStepsArray.at(stepIndex) as FormGroup;
+        this.onIngredientSelected(created.id, group);
+        this.recipeVersion.update((v) => v + 1);
+      }
+
+      this.showToast(this.transloco.translate('INGREDIENTS.CREATED_SUCCESS'));
+    }
+  }
+
   getActionIcon(actionType: string | undefined | null): string {
     switch (actionType) {
       case 'SHAKE':
@@ -1441,9 +1472,8 @@ export class CocktailFormComponent implements OnInit {
     this.showToast(this.transloco.translate('COMMON.SUCCESS'));
   }
 
-  private async showToast(message: string, color = 'success'): Promise<void> {
-    const toast = await this.toastCtrl.create({ message, duration: 3000, color });
-    await toast.present();
+  private showToast(message: string, color = 'success'): void {
+    void this.toastCtrl.create({ message, duration: 3000, color }).then(t => void t.present());
   }
 
   // --- Final Form Submission ---
@@ -1536,7 +1566,7 @@ export class CocktailFormComponent implements OnInit {
       .subscribe({
         next: () => {
           this.showToast(this.transloco.translate('COMMON.SUCCESS'));
-          this.router.navigate(['/cocktails']);
+          void this.router.navigate(['/cocktails']);
         },
         error: () => this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger'),
       });

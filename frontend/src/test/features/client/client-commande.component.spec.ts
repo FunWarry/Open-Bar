@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ToastController } from '@ionic/angular';
+import { ToastController, ModalController } from '@ionic/angular';
 import { of, throwError, Subject } from 'rxjs';
 import { signal, computed } from '@angular/core';
 import { ClientCommandeComponent } from '../../../app/features/client/client-commande/client-commande.component';
@@ -13,6 +13,8 @@ import { TableCartService } from '../../../app/core/services/table-cart.service'
 import { TableSessionResponse } from '../../../app/core/models/table-session.model';
 import { TableCart, TableCartItem } from '../../../app/core/models/table-cart.model';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
+import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
+import { EstablishmentModule } from '../../../app/core/models/establishment-module.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { Cocktail } from '../../../app/core/models/cocktail.model';
 import { Router } from '@angular/router';
@@ -26,6 +28,8 @@ describe('ClientCommandeComponent', () => {
   let tableSessionServiceSpy: jasmine.SpyObj<TableSessionService>;
   let websocketServiceSpy: jasmine.SpyObj<WebSocketService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let modalCtrlSpy: jasmine.SpyObj<ModalController>;
+  let featureFlagServiceSpy: jasmine.SpyObj<FeatureFlagService>;
   let tableCartServiceMock: any;
   let cocktailWsSubject: Subject<any>;
   let cocktailSupprimeWsSubject: Subject<any>;
@@ -92,6 +96,9 @@ describe('ClientCommandeComponent', () => {
     tableSessionServiceSpy.respondToJoinRequest.and.returnValue(of({ id: 1, tableId: 4, applicantSessionId: 'guest-peer', applicantName: 'Peer', status: 'APPROVED', sessionToken: 'tok-peer' }));
     tableSessionServiceSpy.getPendingJoinRequests.and.returnValue(of([]));
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
+    featureFlagServiceSpy = jasmine.createSpyObj('FeatureFlagService', ['isModuleEnabled']);
+    featureFlagServiceSpy.isModuleEnabled.and.returnValue(true);
     websocketServiceSpy = jasmine.createSpyObj('WebSocketService', ['watch']);
     cocktailWsSubject = new Subject<any>();
     cocktailSupprimeWsSubject = new Subject<any>();
@@ -181,7 +188,9 @@ describe('ClientCommandeComponent', () => {
         { provide: TableSessionService, useValue: tableSessionServiceSpy },
         { provide: TableCartService, useValue: tableCartServiceMock },
         { provide: WebSocketService, useValue: websocketServiceSpy },
-        { provide: ToastController, useValue: toastCtrlSpy }
+        { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: ModalController, useValue: modalCtrlSpy },
+        { provide: FeatureFlagService, useValue: featureFlagServiceSpy }
       ]
     }).compileComponents();
 
@@ -1066,4 +1075,134 @@ describe('ClientCommandeComponent', () => {
       expect(component.isJoinRejected()).toBeTrue();
     }));
   });
+
+  describe('Mystery Drink Roulette Integration', () => {
+    beforeEach(() => {
+      component.tableNumero = 4;
+      fixture.detectChanges();
+    });
+
+    it('should determine whether roulette is enabled via featureFlagService', () => {
+      featureFlagServiceSpy.isModuleEnabled.and.returnValue(true);
+      expect(component.isMysteryRouletteEnabled).toBeTrue();
+
+      featureFlagServiceSpy.isModuleEnabled.and.returnValue(false);
+      expect(component.isMysteryRouletteEnabled).toBeFalse();
+    });
+
+    it('should open roulette modal with tableId and guest info, and add won cocktail to cart', fakeAsync(async () => {
+      const mockModal = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onDidDismiss']);
+      mockModal.present.and.returnValue(Promise.resolve());
+      mockModal.onDidDismiss.and.returnValue(Promise.resolve({
+        data: {
+          action: 'ADD_TO_CART',
+          result: {
+            cocktailId: 10,
+            cocktailNom: 'Cosmo Mystère',
+            prix: 7.5
+          }
+        }
+      }));
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal));
+      tableCartServiceMock.hasGuestName.and.returnValue(true);
+      tableCartServiceMock.addItem.and.returnValue(of(mockCart));
+
+      await component.openRouletteModal();
+      tick();
+
+      expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+        componentProps: jasmine.objectContaining({
+          tableId: 4,
+          guestSessionId: 'guest-me',
+          guestName: 'Alex'
+        })
+      }));
+      expect(mockModal.present).toHaveBeenCalled();
+      expect(tableCartServiceMock.addItem).toHaveBeenCalledWith(4, jasmine.objectContaining({
+        cocktailId: 10,
+        quantite: 1,
+        notes: '[Mystery Drink 🎲] Cosmo Mystère',
+        isMysteryDrink: true,
+        prixOverride: 7.5
+      }));
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+        color: 'success'
+      }));
+    }));
+
+    it('should prompt for nickname if not set when won cocktail is added to cart', fakeAsync(async () => {
+      const mockModal = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onDidDismiss']);
+      mockModal.present.and.returnValue(Promise.resolve());
+      mockModal.onDidDismiss.and.returnValue(Promise.resolve({
+        data: {
+          action: 'ADD_TO_CART',
+          result: {
+            cocktailId: 12,
+            cocktailNom: 'Gin Surprise',
+            prix: 8.0
+          }
+        }
+      }));
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal));
+      tableCartServiceMock.hasGuestName.and.returnValue(false);
+      spyOn(component, 'openNicknamePrompt');
+
+      await component.openRouletteModal();
+      tick();
+
+      expect(component.openNicknamePrompt).toHaveBeenCalled();
+      expect(tableCartServiceMock.addItem).not.toHaveBeenCalled();
+    }));
+
+    it('should display non-cocktail reward toast when result has rewardText but no cocktailId', fakeAsync(async () => {
+      const mockModal = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onDidDismiss']);
+      mockModal.present.and.returnValue(Promise.resolve());
+      mockModal.onDidDismiss.and.returnValue(Promise.resolve({
+        data: {
+          action: 'ADD_TO_CART',
+          result: {
+            rewardText: 'Tournée offerte par le barman !'
+          }
+        }
+      }));
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal));
+
+      await component.openRouletteModal();
+      tick();
+
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+        message: jasmine.stringMatching('Tournée offerte'),
+        color: 'success'
+      }));
+    }));
+
+    it('should display error toast when adding mystery drink to cart fails', fakeAsync(async () => {
+      const mockModal = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onDidDismiss']);
+      mockModal.present.and.returnValue(Promise.resolve());
+      mockModal.onDidDismiss.and.returnValue(Promise.resolve({
+        data: {
+          action: 'ADD_TO_CART',
+          result: {
+            cocktailId: 15,
+            cocktailNom: 'Rupture Drink',
+            prix: 9.0
+          }
+        }
+      }));
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal));
+      tableCartServiceMock.hasGuestName.and.returnValue(true);
+      tableCartServiceMock.addItem.and.returnValue(throwError(() => ({
+        error: { message: 'Stock épuisé pour ce cocktail' }
+      })));
+
+      await component.openRouletteModal();
+      tick();
+
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+        message: 'Stock épuisé pour ce cocktail',
+        color: 'danger'
+      }));
+    }));
+  });
 });
+

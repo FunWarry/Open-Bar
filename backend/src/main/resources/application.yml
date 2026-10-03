@@ -18,17 +18,19 @@ spring:
   security:
     jwt:
       secret: "${JWT_SECRET:test_openbar_default_secret_key_minimum_32_chars_long}"
-      expiration: 86400000 # 24h
+      expiration: 14400000 # 4h
 
 openbar:
+  database:
+    wait-for-connection: ${OPENBAR_WAIT_FOR_DB:true}
+    poll-interval-seconds: ${OPENBAR_DB_POLL_INTERVAL:5}
+    report-interval-seconds: ${OPENBAR_DB_REPORT_INTERVAL:60}
+    max-wait-seconds: ${OPENBAR_DB_MAX_WAIT_SECONDS:900}
   cors:
     allowed-origin-patterns: ${OPENBAR_CORS_ALLOWED_ORIGINS:*}
 
 server:
   port: 8080
-  error:
-    include-stacktrace: never
-    include-message: never
 
 springdoc:
   api-docs:
@@ -41,4 +43,6 @@ springdoc:
 logging:
   file:
     path: ${LOG_PATH:target/logs}
+  level:
+    org.hibernate.orm.jdbc.warn: ERROR
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, forkJoin } from 'rxjs';
@@ -32,6 +32,8 @@ import { ConfirmDeleteModalComponent } from '../../../core/components/ui/confirm
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
+import { StatCardComponent } from '../../../core/components/ui/stat-card/stat-card.component';
+import { CardComponent } from '../../../core/components/ui/card/card.component';
 /**
  * Sorting options for table list overview.
  */
@@ -65,12 +67,13 @@ export interface GroupedTables {
   templateUrl: './table-list.component.html',
   styleUrls: ['./table-list.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule, FormsModule,
     IonContent, IonIcon, IonButton,
     IonRefresher, IonRefresherContent, IonSpinner, SearchBarComponent,
     AsyncPipe, NgTemplateOutlet, TranslocoPipe,
-    SearchableSelectComponent,
+    SearchableSelectComponent, StatCardComponent, CardComponent,
   ],
 })
 export class TableListComponent implements OnInit, OnDestroy {
@@ -152,7 +155,7 @@ export class TableListComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger'
           });
-          toast.present();
+          await toast.present();
         },
       });
   }
@@ -461,7 +464,7 @@ export class TableListComponent implements OnInit, OnDestroy {
           duration: 3000,
           color: 'danger'
         });
-        toast.present();
+        await toast.present();
       }
     });
   }
@@ -498,7 +501,7 @@ export class TableListComponent implements OnInit, OnDestroy {
     await modal.present();
     const { data } = await modal.onDidDismiss();
     if (data?.action === 'edit') {
-      this.onEdit(data.table || t);
+      void this.onEdit(data.table || t);
     } else if (data?.action === 'deleted') {
       this.charger();
     }
@@ -564,7 +567,7 @@ export class TableListComponent implements OnInit, OnDestroy {
             duration: 2500,
             color: 'success'
           });
-          toast.present();
+          await toast.present();
           this.charger();
         },
         error: async (err) => {
@@ -574,7 +577,7 @@ export class TableListComponent implements OnInit, OnDestroy {
             duration: 3500,
             color: 'danger'
           });
-          toast.present();
+          await toast.present();
         }
       });
   }

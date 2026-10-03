@@ -1,0 +1,106 @@
+<div class="barcode-scanner-wrapper" data-testid="barcode-scanner-modal">
+  <!-- Header -->
+  <header class="modal-header">
+    <div class="header-main-group">
+      <div class="icon-badge">
+        <ion-icon name="barcode-outline" class="badge-icon"></ion-icon>
+        <span class="icon-pulse-ring"></span>
+      </div>
+      <div class="header-text">
+        <h2 class="modal-title">{{ title | transloco }}</h2>
+        <span class="modal-subtitle">{{ subtitle | transloco }}</span>
+      </div>
+    </div>
+    <button
+      type="button"
+      class="close-icon-btn"
+      (click)="cancel()"
+      [attr.aria-label]="'COMMON.CLOSE' | transloco"
+      data-testid="scanner-close-btn"
+    >
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </header>
+
+  <!-- Body -->
+  <div class="modal-body">
+    <!-- Camera Viewport / Reticle Area -->
+    <div class="scanner-viewport-container">
+      <video #videoElement class="camera-video" playsinline muted autoplay></video>
+
+      @if (cameraActive()) {
+        <div class="viewfinder-overlay">
+          <div class="target-box">
+            <div class="reticle-corner top-left"></div>
+            <div class="reticle-corner top-right"></div>
+            <div class="reticle-corner bottom-left"></div>
+            <div class="reticle-corner bottom-right"></div>
+            <div class="laser-beam"></div>
+          </div>
+          <p class="target-hint">{{ (itemHint || 'SCANNER.VIEWFINDER_HINT') | transloco }}</p>
+
+          @if (hasTorch()) {
+            <button
+              type="button"
+              class="torch-toggle-btn"
+              [class.active]="torchActive()"
+              (click)="toggleTorch()"
+              data-testid="scanner-torch-btn"
+            >
+              <ion-icon [name]="torchActive() ? 'flash-off-outline' : 'flash-outline'"></ion-icon>
+              <span>{{ (torchActive() ? 'SCANNER.TORCH_OFF' : 'SCANNER.TORCH_ON') | transloco }}</span>
+            </button>
+          }
+        </div>
+      } @else if (cameraError()) {
+        <div class="camera-error-banner" data-testid="scanner-camera-error">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <p>{{ cameraError()! | transloco }}</p>
+        </div>
+      } @else {
+        <div class="camera-loading-state">
+          <ion-icon name="camera-outline"></ion-icon>
+          <span>{{ 'SCANNER.INITIALIZING_CAMERA' | transloco }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Manual Entry Section (Fallback or Direct Entry) -->
+    <div class="manual-entry-section">
+      <div class="manual-entry-header">
+        <ion-icon name="keypad-outline"></ion-icon>
+        <label for="barcode-manual-input-field" class="manual-label">{{ 'SCANNER.MANUAL_ENTRY_LABEL' | transloco }}</label>
+      </div>
+
+      <div class="manual-input-group">
+        <input
+          id="barcode-manual-input-field"
+          type="text"
+          class="manual-input"
+          [ngModel]="manualCode()"
+          (ngModelChange)="manualCode.set($event)"
+          (keyup.enter)="submitManual()"
+          [placeholder]="'SCANNER.MANUAL_ENTRY_PLACEHOLDER' | transloco"
+          data-testid="barcode-manual-input"
+        />
+        <button
+          type="button"
+          class="manual-submit-btn"
+          [disabled]="!manualCode().trim()"
+          (click)="submitManual()"
+          data-testid="barcode-manual-submit"
+        >
+          <ion-icon name="checkmark-outline"></ion-icon>
+          <span>{{ 'COMMON.SUBMIT' | transloco }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="modal-footer">
+    <button type="button" class="btn-cancel" (click)="cancel()" data-testid="scanner-cancel-btn">
+      {{ 'COMMON.CANCEL' | transloco }}
+    </button>
+  </footer>
+</div>

@@ -21,6 +21,7 @@ export interface CreateAdminRequest {
   password: string;
   nom?: string;
   prenom?: string;
+  initialCocktailIds?: string[];
 }
 
 /**

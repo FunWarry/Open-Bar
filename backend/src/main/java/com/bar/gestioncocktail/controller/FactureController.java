@@ -77,7 +77,7 @@ public class FactureController {
      * @return List of registered invoices
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "List all invoices (SERVEUR/MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Invoices retrieved")
     public ResponseEntity<List<FactureResponseDTO>> getAllFactures() {
@@ -92,7 +92,7 @@ public class FactureController {
      * @return DTO of the created invoice
      */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "Create an invoice (SERVEUR/MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Invoice created successfully")
     public ResponseEntity<FactureResponseDTO> createFacture(@Valid @RequestBody FactureRequestDTO request) {
@@ -138,7 +138,7 @@ public class FactureController {
      * @return Found invoice DTO
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "Get invoice by ID")
     @ApiResponse(responseCode = "200", description = "Invoice found")
     @ApiResponse(responseCode = "404", description = "Invoice not found")
@@ -157,7 +157,7 @@ public class FactureController {
      * @return List of table invoices
      */
     @GetMapping("/table/{tableId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "List invoices for a table")
     @ApiResponse(responseCode = "200", description = "Table invoices retrieved")
     public ResponseEntity<List<FactureResponseDTO>> getFacturesByTable(
@@ -175,7 +175,7 @@ public class FactureController {
      * @return DTO containing item breakdown, pre-tax subtotal, VAT breakdown, and total TTC
      */
     @GetMapping("/table/{tableId}/addition")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "Get table bill summary", description = "Calculates complete table bill breakdown (items, pre-tax subtotal, VAT breakdown, total TTC).")
     @ApiResponse(responseCode = "200", description = "Bill summary calculated successfully")
     @ApiResponse(responseCode = "404", description = "Table not found")
@@ -192,7 +192,7 @@ public class FactureController {
      * @return Generated and settled official invoice DTO
      */
     @PostMapping("/table/{tableId}/encaisser")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "Settle and checkout table", description = "Records table payment, issues official invoice, marks orders as settled, and frees table.")
     @ApiResponse(responseCode = "200", description = "Table checked out and invoice issued successfully")
     @ApiResponse(responseCode = "400", description = "Validation error or no active orders")
@@ -204,6 +204,40 @@ public class FactureController {
     }
 
     /**
+     * Generates or retrieves an unpaid pending invoice for an active table.
+     *
+     * @param tableId Table identifier
+     * @return Generated or existing pending invoice DTO
+     */
+    @PostMapping("/table/{tableId}/generer")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
+    @Operation(summary = "Generate or retrieve pending invoice for table", description = "Creates or returns an unpaid invoice with tax breakdown from active orders.")
+    @ApiResponse(responseCode = "200", description = "Invoice generated or retrieved successfully")
+    @ApiResponse(responseCode = "400", description = "No active orders on table")
+    @ApiResponse(responseCode = "404", description = "Table not found")
+    public ResponseEntity<FactureResponseDTO> genererFactureTable(
+            @Parameter(description = "Table ID") @PathVariable Long tableId) {
+        return ResponseEntity.ok(factureService.genererFactureTable(tableId));
+    }
+
+    /**
+     * Generates or retrieves an unpaid pending invoice for an active bar tab.
+     *
+     * @param tabId Bar tab identifier
+     * @return Generated or existing pending invoice DTO
+     */
+    @PostMapping("/tab/{tabId}/generer")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
+    @Operation(summary = "Generate or retrieve pending invoice for bar tab", description = "Creates or returns an unpaid invoice with tax breakdown from active bar tab orders.")
+    @ApiResponse(responseCode = "200", description = "Invoice generated or retrieved successfully")
+    @ApiResponse(responseCode = "400", description = "No active orders on bar tab")
+    @ApiResponse(responseCode = "404", description = "Bar tab not found")
+    public ResponseEntity<FactureResponseDTO> genererFactureTab(
+            @Parameter(description = "Bar tab ID") @PathVariable Long tabId) {
+        return ResponseEntity.ok(factureService.genererFactureTab(tabId));
+    }
+
+    /**
      * Filters invoices within a date range.
      *
      * @param debut Start date and time
@@ -211,7 +245,7 @@ public class FactureController {
      * @return List of matching invoices
      */
     @GetMapping("/date")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "List invoices in date range")
     @ApiResponse(responseCode = "200", description = "Invoices retrieved")
     public ResponseEntity<List<FactureResponseDTO>> getFacturesByDate(
@@ -229,7 +263,7 @@ public class FactureController {
      * @return Updated invoice DTO
      */
     @PostMapping("/{id}/items")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "Add an item line to an invoice")
     @ApiResponse(responseCode = "200", description = "Item line added")
     public ResponseEntity<FactureResponseDTO> ajouterItem(
@@ -246,7 +280,7 @@ public class FactureController {
      * @return Updated invoice DTO
      */
     @DeleteMapping("/{id}/items/{itemId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "Remove an item line from an invoice")
     @ApiResponse(responseCode = "200", description = "Item line removed")
     public ResponseEntity<FactureResponseDTO> retirerItem(
@@ -264,7 +298,7 @@ public class FactureController {
      * @return Settled invoice DTO
      */
     @PostMapping("/{id}/regler")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "Record invoice payment settlement", description = "Marks invoice as settled and liberates table when appropriate.")
     @ApiResponse(responseCode = "200", description = "Settlement completed")
     public ResponseEntity<FactureResponseDTO> reglerFacture(
@@ -281,7 +315,7 @@ public class FactureController {
      * @return Binary PDF file as byte array
      */
     @GetMapping("/{id}/pdf")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "Download invoice as PDF", description = "Generates a PDF document compliant with legal standards (VAT, SIRET, sequential numbering).")
     @ApiResponse(responseCode = "200", description = "PDF generated")
     @ApiResponse(responseCode = "404", description = "Invoice not found")
@@ -304,7 +338,7 @@ public class FactureController {
      * @return Breakdown results
      */
     @PostMapping("/{id}/split/egal")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "Split bill equally", description = "Calculates equal subtotal per guest.")
     @ApiResponse(responseCode = "200", description = "Equal split calculated")
     public ResponseEntity<List<SplitResultDTO>> splitEgal(
@@ -321,7 +355,7 @@ public class FactureController {
      * @return Detailed split results
      */
     @PostMapping("/{id}/split/selection")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "Split bill by item selection", description = "Enables each guest to pay for their specific selected items.")
     @ApiResponse(responseCode = "200", description = "Custom split calculated")
     public ResponseEntity<List<SplitResultDTO>> splitParSelection(
@@ -338,7 +372,7 @@ public class FactureController {
      * @return Detailed split results
      */
     @PostMapping("/{id}/split/montants")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "Split bill by custom amounts", description = "Allocates custom monetary amounts per guest.")
     @ApiResponse(responseCode = "200", description = "Custom amount split calculated")
     public ResponseEntity<List<SplitResultDTO>> splitParMontants(
@@ -355,7 +389,7 @@ public class FactureController {
      * @return Detailed split results
      */
     @PostMapping("/{id}/split/pourcentages")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "Split bill by percentage", description = "Allocates percentages per guest that sum to 100%.")
     @ApiResponse(responseCode = "200", description = "Percentage split calculated")
     public ResponseEntity<List<SplitResultDTO>> splitParPourcentages(
@@ -372,7 +406,7 @@ public class FactureController {
      * @return Saved settlement DTO
      */
     @PostMapping("/{id}/split/encaisser")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "Record individual split share payment", description = "Saves guest payment details, items consumed, and tips. Marks invoice settled if completed.")
     @ApiResponse(responseCode = "200", description = "Split share settlement recorded")
     public ResponseEntity<com.bar.gestioncocktail.dto.FactureReglementDTO> encaisserPart(
@@ -388,7 +422,7 @@ public class FactureController {
      * @return List of settlement records
      */
     @GetMapping("/{id}/reglements")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "Get all recorded split settlements", description = "Returns full breakdown of guest payments and itemized receipts for this invoice.")
     @ApiResponse(responseCode = "200", description = "Settlement records retrieved")
     public ResponseEntity<List<com.bar.gestioncocktail.dto.FactureReglementDTO>> getReglements(@PathVariable Long id) {
@@ -402,7 +436,7 @@ public class FactureController {
      * @return Newly merged invoice DTO
      */
     @PostMapping("/merge")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "Merge multiple invoices into one", description = "Combines several sub-bills or table checks.")
     @ApiResponse(responseCode = "200", description = "Invoices merged")
     public ResponseEntity<FactureResponseDTO> fusionnerFactures(@Valid @RequestBody MergeFacturesRequestDTO request) {

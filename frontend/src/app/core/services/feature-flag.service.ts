@@ -19,6 +19,12 @@ const DEFAULT_MODULES: EstablishmentModules = {
   qrClientOrdering: true,
   stockTracking: true,
   cashDrawer: true,
+  barTabs: true,
+  cocktailLibrary: true,
+  suppliersManagement: true,
+  inventoryAudit: true,
+  mysteryRoulette: true,
+  paymentTerminal: true,
 };
 
 /**
@@ -60,6 +66,24 @@ export class FeatureFlagService implements OnDestroy {
   /** Computed signal for CASH_DRAWER capability status. */
   readonly cashDrawerEnabled = computed(() => this.modules().cashDrawer);
 
+  /** Computed signal for BAR_TABS capability status. */
+  readonly barTabsEnabled = computed(() => this.modules().barTabs);
+
+  /** Computed signal for COCKTAIL_LIBRARY capability status. */
+  readonly cocktailLibraryEnabled = computed(() => this.modules().cocktailLibrary);
+
+  /** Computed signal for SUPPLIERS_MANAGEMENT capability status. */
+  readonly suppliersManagementEnabled = computed(() => this.modules().suppliersManagement);
+
+  /** Computed signal for INVENTORY_AUDIT capability status. */
+  readonly inventoryAuditEnabled = computed(() => this.modules().inventoryAudit && this.modules().stockTracking);
+
+  /** Computed signal for MYSTERY_ROULETTE capability status. */
+  readonly mysteryRouletteEnabled = computed(() => this.modules().mysteryRoulette);
+
+  /** Computed signal for PAYMENT_TERMINAL capability status. */
+  readonly paymentTerminalEnabled = computed(() => this.modules().paymentTerminal);
+
   constructor() {
     this.initWebSocketSubscription();
     this.loadModules().subscribe();
@@ -93,6 +117,18 @@ export class FeatureFlagService implements OnDestroy {
         return current.stockTracking;
       case EstablishmentModule.CASH_DRAWER:
         return current.cashDrawer;
+      case EstablishmentModule.BAR_TABS:
+        return current.barTabs;
+      case EstablishmentModule.COCKTAIL_LIBRARY:
+        return current.cocktailLibrary;
+      case EstablishmentModule.SUPPLIERS_MANAGEMENT:
+        return current.suppliersManagement;
+      case EstablishmentModule.INVENTORY_AUDIT:
+        return current.inventoryAudit && current.stockTracking;
+      case EstablishmentModule.MYSTERY_ROULETTE:
+        return current.mysteryRoulette;
+      case EstablishmentModule.PAYMENT_TERMINAL:
+        return current.paymentTerminal;
       default:
         return true;
     }
@@ -189,6 +225,12 @@ export class FeatureFlagService implements OnDestroy {
         break;
       case EstablishmentModule.CASH_DRAWER:
         current.cashDrawer = enabled;
+        break;
+      case EstablishmentModule.BAR_TABS:
+        current.barTabs = enabled;
+        break;
+      case EstablishmentModule.COCKTAIL_LIBRARY:
+        current.cocktailLibrary = enabled;
         break;
     }
     return this.updateModules(current);

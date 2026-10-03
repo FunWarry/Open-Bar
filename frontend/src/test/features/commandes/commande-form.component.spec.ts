@@ -4,7 +4,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ToastController } from '@ionic/angular';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { CommandeFormComponent } from '../../../app/features/commandes/commande-form/commande-form.component';
 import { CommandeService } from '../../../app/core/services/commande.service';
 import { TableService } from '../../../app/core/services/table.service';
@@ -121,5 +121,20 @@ describe('CommandeFormComponent', () => {
     ctrl?.setValue('');
     expect(ctrl?.valid).toBeFalse();
     expect(ctrl?.errors?.['required']).toBeTrue();
+  });
+
+  it('onSubmit() displays error toast if creation fails', async () => {
+    commandeServiceSpy.create.and.returnValue(throwError(() => new Error('Server error')));
+    component.commandeForm.get('tableId')?.setValue(2);
+    component.onSubmit();
+    await Promise.resolve();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(
+      jasmine.objectContaining({ color: 'danger', duration: 3000 })
+    );
+  });
+
+  it('onCancel() navigates to /commandes', () => {
+    component.onCancel();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/commandes']);
   });
 });

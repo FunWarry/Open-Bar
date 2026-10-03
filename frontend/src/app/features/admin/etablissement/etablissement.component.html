@@ -54,7 +54,7 @@
                 <div class="form-section-title">{{ 'ETABLISSEMENT.SECTION_LEGAL_IDS' | transloco }}</div>
 
                 <ion-input
-                  label="{{ 'ETABLISSEMENT.SIRET' | transloco }} * (14 chiffres)"
+                  label="{{ 'ETABLISSEMENT.SIRET' | transloco }} * ({{ 'ETABLISSEMENT.SIRET_HINT' | transloco }})"
                   labelPlacement="stacked"
                   fill="outline"
                   formControlName="siret"
@@ -87,7 +87,7 @@
                   </ion-input>
 
                   <ion-input
-                    label="N° RCS"
+                    label="{{ 'ETABLISSEMENT.RCS_NUMBER' | transloco }}"
                     labelPlacement="stacked"
                     fill="outline"
                     formControlName="rcsNumber"
@@ -155,7 +155,7 @@
                   </ion-input>
 
                   <ion-input
-                    label="Email"
+                    label="{{ 'ETABLISSEMENT.EMAIL' | transloco }}"
                     labelPlacement="stacked"
                     fill="outline"
                     formControlName="email"
@@ -253,23 +253,23 @@
           <ion-card-content>
             <div class="receipt-preview" data-testid="receipt-preview-box">
               <div class="header-bold">{{ configForm.get('legalName')?.value || 'OPEN BAR SARL' }} {{ configForm.get('legalForm')?.value }}</div>
-              <div>Capital : {{ configForm.get('capitalSocial')?.value | currency:'EUR':'symbol':'1.2-2' }}</div>
+              <div>{{ 'ETABLISSEMENT.CAPITAL' | transloco }} : {{ $safeNavigationMigration(configForm.get('capitalSocial')?.value) | currency:'EUR':'symbol':'1.2-2' }}</div>
               <div>{{ configForm.get('address')?.value || '12 Rue du Bar, 75001 Paris' }}</div>
-              <div>{{ 'ETABLISSEMENT.PHONE' | transloco }} : {{ configForm.get('phone')?.value || '+33123456789' }}</div>
-              <div>SIRET : {{ configForm.get('siret')?.value || '73282932000074' }}</div>
-              <div>TVA : {{ configForm.get('tvaNumber')?.value || 'FR12123456789' }}</div>
-              <div>RCS {{ configForm.get('rcsCity')?.value }} {{ configForm.get('rcsNumber')?.value }} — APE : {{ configForm.get('codeApe')?.value }}</div>
+              <div>{{ 'ETABLISSEMENT.PHONE_LABEL' | transloco }} : {{ configForm.get('phone')?.value || '+33123456789' }}</div>
+              <div>{{ 'ETABLISSEMENT.SIRET_LABEL' | transloco }} : {{ configForm.get('siret')?.value || '73282932000074' }}</div>
+              <div>{{ 'ETABLISSEMENT.VAT_LABEL' | transloco }} : {{ configForm.get('tvaNumber')?.value || 'FR12123456789' }}</div>
+              <div>RCS {{ configForm.get('rcsCity')?.value }} {{ configForm.get('rcsNumber')?.value }} — {{ 'ETABLISSEMENT.APE_LABEL' | transloco }} : {{ configForm.get('codeApe')?.value }}</div>
               <hr />
               <div class="header-bold">{{ 'ETABLISSEMENT.DEMO_RECEIPT_TITLE' | transloco }}</div>
-              <div>1x Mojito (TVA 20%) — 9,50 €</div>
-              <div>1x Planche Tapas (TVA 10%) — 14,00 €</div>
+              <div>{{ 'ETABLISSEMENT.DEMO_ITEM_1' | transloco }}</div>
+              <div>{{ 'ETABLISSEMENT.DEMO_ITEM_2' | transloco }}</div>
               <hr />
-              <div>{{ 'FACTURES.TOTAL_HT' | transloco }} : 20,08 €</div>
-              <div>TVA (10%) : 1,27 € | TVA (20%) : 1,58 €</div>
-              <div class="header-bold">{{ 'FACTURES.TOTAL_TTC' | transloco }} : 23,50 €</div>
+              <div>{{ 'FACTURES.TOTAL_HT' | transloco }} : {{ 'ETABLISSEMENT.DEMO_TOTAL_HT_VALUE' | transloco }}</div>
+              <div>{{ 'ETABLISSEMENT.DEMO_VAT_DETAILS' | transloco }}</div>
+              <div class="header-bold">{{ 'FACTURES.TOTAL_TTC' | transloco }} : {{ 'ETABLISSEMENT.DEMO_TOTAL_TTC_VALUE' | transloco }}</div>
               <hr />
-              <div style="font-size:10px">{{ configForm.get('paymentTerms')?.value }}</div>
-              <div style="font-size:10px">{{ configForm.get('discountPolicy')?.value }}</div>
+              <div class="legal-notice">{{ configForm.get('paymentTerms')?.value || ('ETABLISSEMENT.DEFAULT_PAYMENT_TERMS' | transloco) }}</div>
+              <div class="legal-notice">{{ configForm.get('discountPolicy')?.value || ('ETABLISSEMENT.DEFAULT_DISCOUNT_POLICY' | transloco) }}</div>
             </div>
           </ion-card-content>
         </ion-card>

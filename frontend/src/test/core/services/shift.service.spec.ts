@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { ShiftService } from '../../../app/core/services/shift.service';
 import { EmployeeShift, EmployeeShiftRequest, ShiftAuditLog, ShiftPreset, TypeShift, TypePoste } from '../../../app/core/models/shift.model';
 import { environment } from '../../../environments/environment';
@@ -45,7 +45,7 @@ describe('ShiftService', () => {
     TestBed.configureTestingModule({
       providers: [
         ShiftService,
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
       ],
     });

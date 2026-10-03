@@ -119,6 +119,11 @@
   margin: 10px 0;
 }
 
+.receipt-preview .legal-notice {
+  font-size: 10px;
+  color: var(--text-secondary, #a4add0);
+}
+
 @media (max-width: 600px) {
   .form-row-2 {
     grid-template-columns: 1fr;

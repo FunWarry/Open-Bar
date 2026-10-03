@@ -9,16 +9,15 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Objects;
 
 /**
  * Singleton entity storing legal establishment configuration (SIRET, TVA, RCS, address).
  */
-@Data
 @Entity
 @Table(name = "establishment_config")
 public class EstablishmentConfig {
@@ -121,11 +120,365 @@ public class EstablishmentConfig {
     @Column(name = "module_cash_drawer_enabled")
     private Boolean moduleCashDrawerEnabled = true;
 
+    @Column(name = "module_bar_tabs_enabled")
+    private Boolean moduleBarTabsEnabled = true;
+
+    @Column(name = "module_cocktail_library_enabled")
+    private Boolean moduleCocktailLibraryEnabled = true;
+
+    @Column(name = "module_suppliers_management_enabled")
+    private Boolean moduleSuppliersManagementEnabled = true;
+
+    @Column(name = "module_inventory_audit_enabled")
+    private Boolean moduleInventoryAuditEnabled = true;
+
+    @Column(name = "module_mystery_roulette_enabled")
+    private Boolean moduleMysteryRouletteEnabled = true;
+
+    @Column(name = "module_payment_terminal_enabled")
+    private Boolean modulePaymentTerminalEnabled = true;
+
+    @Column(name = "roulette_price_cocktail", precision = 10, scale = 2)
+    private BigDecimal roulettePriceCocktail = new BigDecimal("7.50");
+
+    @Column(name = "roulette_price_mocktail", precision = 10, scale = 2)
+    private BigDecimal roulettePriceMocktail = new BigDecimal("5.50");
+
+    @Column(name = "roulette_stock_bias", length = 30)
+    private String rouletteStockBias = "BALANCED";
+
+    @Column(name = "roulette_sound_profile", length = 30)
+    private String rouletteSoundProfile = "CSGO";
+
+    @Column(name = "roulette_display_pin", length = 10)
+    private String rouletteDisplayPin = "7777";
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    /**
+     * Default no-arg constructor required by JPA.
+     */
+    public EstablishmentConfig() {
+        // Default constructor required by JPA specification
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getLegalName() {
+        return legalName;
+    }
+
+    public void setLegalName(String legalName) {
+        this.legalName = legalName;
+    }
+
+    public String getLegalForm() {
+        return legalForm;
+    }
+
+    public void setLegalForm(String legalForm) {
+        this.legalForm = legalForm;
+    }
+
+    public String getSiret() {
+        return siret;
+    }
+
+    public void setSiret(String siret) {
+        this.siret = siret;
+    }
+
+    public String getRcsCity() {
+        return rcsCity;
+    }
+
+    public void setRcsCity(String rcsCity) {
+        this.rcsCity = rcsCity;
+    }
+
+    public String getRcsNumber() {
+        return rcsNumber;
+    }
+
+    public void setRcsNumber(String rcsNumber) {
+        this.rcsNumber = rcsNumber;
+    }
+
+    public String getTvaNumber() {
+        return tvaNumber;
+    }
+
+    public void setTvaNumber(String tvaNumber) {
+        this.tvaNumber = tvaNumber;
+    }
+
+    public String getCodeApe() {
+        return codeApe;
+    }
+
+    public void setCodeApe(String codeApe) {
+        this.codeApe = codeApe;
+    }
+
+    public BigDecimal getCapitalSocial() {
+        return capitalSocial;
+    }
+
+    public void setCapitalSocial(BigDecimal capitalSocial) {
+        this.capitalSocial = capitalSocial;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPaymentTerms() {
+        return paymentTerms;
+    }
+
+    public void setPaymentTerms(String paymentTerms) {
+        this.paymentTerms = paymentTerms;
+    }
+
+    public String getDiscountPolicy() {
+        return discountPolicy;
+    }
+
+    public void setDiscountPolicy(String discountPolicy) {
+        this.discountPolicy = discountPolicy;
+    }
+
+    public BigDecimal getLatePaymentRate() {
+        return latePaymentRate;
+    }
+
+    public void setLatePaymentRate(BigDecimal latePaymentRate) {
+        this.latePaymentRate = latePaymentRate;
+    }
+
+    public String getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
+    }
+
+    public String getTicketFormat() {
+        return ticketFormat;
+    }
+
+    public void setTicketFormat(String ticketFormat) {
+        this.ticketFormat = ticketFormat;
+    }
+
+    public Boolean getModuleKitchenKdsEnabled() {
+        return moduleKitchenKdsEnabled;
+    }
+
+    public void setModuleKitchenKdsEnabled(Boolean moduleKitchenKdsEnabled) {
+        this.moduleKitchenKdsEnabled = moduleKitchenKdsEnabled;
+    }
+
+    public Boolean getModuleHappyHourEnabled() {
+        return moduleHappyHourEnabled;
+    }
+
+    public void setModuleHappyHourEnabled(Boolean moduleHappyHourEnabled) {
+        this.moduleHappyHourEnabled = moduleHappyHourEnabled;
+    }
+
+    public Boolean getModuleEmployeeManagementEnabled() {
+        return moduleEmployeeManagementEnabled;
+    }
+
+    public void setModuleEmployeeManagementEnabled(Boolean moduleEmployeeManagementEnabled) {
+        this.moduleEmployeeManagementEnabled = moduleEmployeeManagementEnabled;
+    }
+
+    public Boolean getModuleFloorPlanEnabled() {
+        return moduleFloorPlanEnabled;
+    }
+
+    public void setModuleFloorPlanEnabled(Boolean moduleFloorPlanEnabled) {
+        this.moduleFloorPlanEnabled = moduleFloorPlanEnabled;
+    }
+
+    public Boolean getModuleQrClientOrderingEnabled() {
+        return moduleQrClientOrderingEnabled;
+    }
+
+    public void setModuleQrClientOrderingEnabled(Boolean moduleQrClientOrderingEnabled) {
+        this.moduleQrClientOrderingEnabled = moduleQrClientOrderingEnabled;
+    }
+
+    public Boolean getModuleStockTrackingEnabled() {
+        return moduleStockTrackingEnabled;
+    }
+
+    public void setModuleStockTrackingEnabled(Boolean moduleStockTrackingEnabled) {
+        this.moduleStockTrackingEnabled = moduleStockTrackingEnabled;
+    }
+
+    public Boolean getModuleCashDrawerEnabled() {
+        return moduleCashDrawerEnabled;
+    }
+
+    public void setModuleCashDrawerEnabled(Boolean moduleCashDrawerEnabled) {
+        this.moduleCashDrawerEnabled = moduleCashDrawerEnabled;
+    }
+
+    public Boolean getModuleBarTabsEnabled() {
+        return moduleBarTabsEnabled;
+    }
+
+    public void setModuleBarTabsEnabled(Boolean moduleBarTabsEnabled) {
+        this.moduleBarTabsEnabled = moduleBarTabsEnabled;
+    }
+
+    public Boolean getModuleCocktailLibraryEnabled() {
+        return this.moduleCocktailLibraryEnabled;
+    }
+
+    public void setModuleCocktailLibraryEnabled(Boolean moduleCocktailLibraryEnabled) {
+        this.moduleCocktailLibraryEnabled = moduleCocktailLibraryEnabled;
+    }
+
+    public Boolean getModuleSuppliersManagementEnabled() {
+        return this.moduleSuppliersManagementEnabled;
+    }
+
+    public void setModuleSuppliersManagementEnabled(Boolean moduleSuppliersManagementEnabled) {
+        this.moduleSuppliersManagementEnabled = moduleSuppliersManagementEnabled;
+    }
+
+    public Boolean getModuleInventoryAuditEnabled() {
+        return this.moduleInventoryAuditEnabled;
+    }
+
+    public void setModuleInventoryAuditEnabled(Boolean moduleInventoryAuditEnabled) {
+        this.moduleInventoryAuditEnabled = moduleInventoryAuditEnabled;
+    }
+
+    public Boolean getModuleMysteryRouletteEnabled() {
+        return this.moduleMysteryRouletteEnabled;
+    }
+
+    public void setModuleMysteryRouletteEnabled(Boolean moduleMysteryRouletteEnabled) {
+        this.moduleMysteryRouletteEnabled = moduleMysteryRouletteEnabled;
+    }
+
+    public Boolean getModulePaymentTerminalEnabled() {
+        return this.modulePaymentTerminalEnabled;
+    }
+
+    public void setModulePaymentTerminalEnabled(Boolean modulePaymentTerminalEnabled) {
+        this.modulePaymentTerminalEnabled = modulePaymentTerminalEnabled;
+    }
+
+    public BigDecimal getRoulettePriceCocktail() {
+        return this.roulettePriceCocktail != null ? this.roulettePriceCocktail : new BigDecimal("7.50");
+    }
+
+    public void setRoulettePriceCocktail(BigDecimal roulettePriceCocktail) {
+        this.roulettePriceCocktail = roulettePriceCocktail;
+    }
+
+    public BigDecimal getRoulettePriceMocktail() {
+        return this.roulettePriceMocktail != null ? this.roulettePriceMocktail : new BigDecimal("5.50");
+    }
+
+    public void setRoulettePriceMocktail(BigDecimal roulettePriceMocktail) {
+        this.roulettePriceMocktail = roulettePriceMocktail;
+    }
+
+    public String getRouletteStockBias() {
+        return this.rouletteStockBias != null ? this.rouletteStockBias : "BALANCED";
+    }
+
+    public void setRouletteStockBias(String rouletteStockBias) {
+        this.rouletteStockBias = rouletteStockBias;
+    }
+
+    public String getRouletteSoundProfile() {
+        return this.rouletteSoundProfile != null ? this.rouletteSoundProfile : "CSGO";
+    }
+
+    public void setRouletteSoundProfile(String rouletteSoundProfile) {
+        this.rouletteSoundProfile = rouletteSoundProfile;
+    }
+
+    public String getRouletteDisplayPin() {
+        return this.rouletteDisplayPin != null && !this.rouletteDisplayPin.isBlank()
+                ? this.rouletteDisplayPin
+                : "7777";
+    }
+
+    public void setRouletteDisplayPin(String rouletteDisplayPin) {
+        this.rouletteDisplayPin = rouletteDisplayPin;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
     /**
      * Checks whether a specific establishment module is currently active.
@@ -138,14 +491,25 @@ public class EstablishmentConfig {
             return true;
         }
         return switch (module) {
-            case CUISINE_KDS -> Boolean.TRUE.equals(this.moduleKitchenKdsEnabled);
-            case HAPPY_HOUR -> Boolean.TRUE.equals(this.moduleHappyHourEnabled);
-            case EMPLOYEE_MANAGEMENT -> Boolean.TRUE.equals(this.moduleEmployeeManagementEnabled);
-            case FLOOR_PLAN -> Boolean.TRUE.equals(this.moduleFloorPlanEnabled);
-            case QR_CLIENT_ORDERING -> Boolean.TRUE.equals(this.moduleQrClientOrderingEnabled);
-            case STOCK_TRACKING -> Boolean.TRUE.equals(this.moduleStockTrackingEnabled);
-            case CASH_DRAWER -> Boolean.TRUE.equals(this.moduleCashDrawerEnabled);
+            case CUISINE_KDS -> isEnabledOrDefault(this.moduleKitchenKdsEnabled);
+            case HAPPY_HOUR -> isEnabledOrDefault(this.moduleHappyHourEnabled);
+            case EMPLOYEE_MANAGEMENT -> isEnabledOrDefault(this.moduleEmployeeManagementEnabled);
+            case FLOOR_PLAN -> isEnabledOrDefault(this.moduleFloorPlanEnabled);
+            case QR_CLIENT_ORDERING -> isEnabledOrDefault(this.moduleQrClientOrderingEnabled);
+            case STOCK_TRACKING -> isEnabledOrDefault(this.moduleStockTrackingEnabled);
+            case CASH_DRAWER -> isEnabledOrDefault(this.moduleCashDrawerEnabled);
+            case BAR_TABS -> isEnabledOrDefault(this.moduleBarTabsEnabled);
+            case COCKTAIL_LIBRARY -> isEnabledOrDefault(this.moduleCocktailLibraryEnabled);
+            case SUPPLIERS_MANAGEMENT -> isEnabledOrDefault(this.moduleSuppliersManagementEnabled);
+            case INVENTORY_AUDIT -> isEnabledOrDefault(this.moduleStockTrackingEnabled) && isEnabledOrDefault(this.moduleInventoryAuditEnabled);
+            case MYSTERY_ROULETTE -> isEnabledOrDefault(this.moduleMysteryRouletteEnabled);
+            case PAYMENT_TERMINAL -> isEnabledOrDefault(this.modulePaymentTerminalEnabled);
+            default -> true;
         };
+    }
+
+    private static boolean isEnabledOrDefault(Boolean flag) {
+        return flag == null || flag;
     }
 
     /**
@@ -159,14 +523,98 @@ public class EstablishmentConfig {
             return;
         }
         switch (module) {
-            case CUISINE_KDS -> this.moduleKitchenKdsEnabled = enabled;
-            case HAPPY_HOUR -> this.moduleHappyHourEnabled = enabled;
-            case EMPLOYEE_MANAGEMENT -> this.moduleEmployeeManagementEnabled = enabled;
-            case FLOOR_PLAN -> this.moduleFloorPlanEnabled = enabled;
-            case QR_CLIENT_ORDERING -> this.moduleQrClientOrderingEnabled = enabled;
-            case STOCK_TRACKING -> this.moduleStockTrackingEnabled = enabled;
-            case CASH_DRAWER -> this.moduleCashDrawerEnabled = enabled;
+            case CUISINE_KDS:
+                this.moduleKitchenKdsEnabled = enabled;
+                break;
+            case HAPPY_HOUR:
+                this.moduleHappyHourEnabled = enabled;
+                break;
+            case EMPLOYEE_MANAGEMENT:
+                this.moduleEmployeeManagementEnabled = enabled;
+                break;
+            case FLOOR_PLAN:
+                this.moduleFloorPlanEnabled = enabled;
+                break;
+            case QR_CLIENT_ORDERING:
+                this.moduleQrClientOrderingEnabled = enabled;
+                break;
+            case STOCK_TRACKING:
+                this.moduleStockTrackingEnabled = enabled;
+                break;
+            case CASH_DRAWER:
+                this.moduleCashDrawerEnabled = enabled;
+                break;
+            case BAR_TABS:
+                this.moduleBarTabsEnabled = enabled;
+                break;
+            case COCKTAIL_LIBRARY:
+                this.moduleCocktailLibraryEnabled = enabled;
+                break;
+            case SUPPLIERS_MANAGEMENT:
+                this.moduleSuppliersManagementEnabled = enabled;
+                break;
+            case INVENTORY_AUDIT:
+                this.moduleInventoryAuditEnabled = enabled;
+                break;
+            case MYSTERY_ROULETTE:
+                this.moduleMysteryRouletteEnabled = enabled;
+                break;
+            case PAYMENT_TERMINAL:
+                this.modulePaymentTerminalEnabled = enabled;
+                break;
+            default:
+                break;
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EstablishmentConfig that = (EstablishmentConfig) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "EstablishmentConfig{" +
+                "id=" + id +
+                ", legalName='" + legalName + '\'' +
+                ", legalForm='" + legalForm + '\'' +
+                ", siret='" + siret + '\'' +
+                ", rcsCity='" + rcsCity + '\'' +
+                ", rcsNumber='" + rcsNumber + '\'' +
+                ", tvaNumber='" + tvaNumber + '\'' +
+                ", codeApe='" + codeApe + '\'' +
+                ", capitalSocial=" + capitalSocial +
+                ", address='" + address + '\'' +
+                ", country='" + country + '\'' +
+                ", language='" + language + '\'' +
+                ", phone='" + phone + '\'' +
+                ", email='" + email + '\'' +
+                ", paymentTerms='" + paymentTerms + '\'' +
+                ", discountPolicy='" + discountPolicy + '\'' +
+                ", latePaymentRate=" + latePaymentRate +
+                ", timeZone='" + timeZone + '\'' +
+                ", ticketFormat='" + ticketFormat + '\'' +
+                ", moduleKitchenKdsEnabled=" + moduleKitchenKdsEnabled +
+                ", moduleHappyHourEnabled=" + moduleHappyHourEnabled +
+                ", moduleEmployeeManagementEnabled=" + moduleEmployeeManagementEnabled +
+                ", moduleFloorPlanEnabled=" + moduleFloorPlanEnabled +
+                ", moduleQrClientOrderingEnabled=" + moduleQrClientOrderingEnabled +
+                ", moduleStockTrackingEnabled=" + moduleStockTrackingEnabled +
+                ", moduleCashDrawerEnabled=" + moduleCashDrawerEnabled +
+                ", moduleBarTabsEnabled=" + moduleBarTabsEnabled +
+                ", moduleCocktailLibraryEnabled=" + moduleCocktailLibraryEnabled +
+                ", moduleSuppliersManagementEnabled=" + moduleSuppliersManagementEnabled +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 
     @PrePersist

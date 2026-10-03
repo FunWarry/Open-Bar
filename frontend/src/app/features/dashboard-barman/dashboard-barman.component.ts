@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
-
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -40,7 +40,9 @@ import {
   sparklesOutline,
   layersOutline,
   checkmarkCircleOutline,
-  eyeOutline
+  eyeOutline,
+  tvOutline,
+  addCircleOutline
 } from 'ionicons/icons';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
 import { CommandeCardComponent } from './components/commande-card/commande-card.component';
@@ -60,6 +62,7 @@ import { Cocktail } from '../../core/models/cocktail.model';
 import { Ingredient } from '../../core/models/ingredient.model';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { FeatureFlagService } from '../../core/services/feature-flag.service';
+import { RouletteService } from '../../core/services/roulette.service';
 
 /**
  * Dashboard Barman Component managing the real-time preparation Kanban board.
@@ -91,9 +94,11 @@ import { FeatureFlagService } from '../../core/services/feature-flag.service';
     IonSegmentButton,
     CommandeCardComponent,
     EmptyStateComponent,
-    RecipeSidePanelComponent
+    RecipeSidePanelComponent,
+    RouterLink
 ],
   templateUrl: './dashboard-barman.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./dashboard-barman.component.scss']
 })
 export class DashboardBarmanComponent implements OnInit, OnDestroy {
@@ -128,14 +133,16 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   private readonly modalCtrl = inject(ModalController);
   private readonly notificationService = inject(NotificationService);
   private readonly settingsService = inject(AppSettingsService);
-  private readonly featureFlagService = inject(FeatureFlagService);
+  public readonly featureFlagService = inject(FeatureFlagService);
   private readonly soundService = inject(SoundService);
   private readonly transloco = inject(TranslocoService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly wsService = inject(WebSocketService);
+  private readonly rouletteService = inject(RouletteService, { optional: true });
 
   readonly cuisineKdsEnabled = this.featureFlagService.cuisineKdsEnabled;
   activeViewMode: 'tickets' | 'batch' = 'tickets';
+  roulettePin = '7777';
 
   constructor() {
     addIcons({
@@ -154,7 +161,9 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       sparklesOutline,
       layersOutline,
       checkmarkCircleOutline,
-      eyeOutline
+      eyeOutline,
+      tvOutline,
+      addCircleOutline
     });
   }
 
@@ -288,6 +297,35 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
 
     this.chargerCommandes();
 
+    if (this.featureFlagService.mysteryRouletteEnabled() && this.rouletteService) {
+      this.rouletteService.getDisplayPin()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (res) => {
+            if (res?.pin) {
+              this.roulettePin = res.pin;
+              this.cdr.markForCheck();
+            }
+          },
+          error: () => {}
+        });
+
+      this.rouletteService.watchEvents()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(evt => {
+          if (evt?.eventType === 'PIN_REVOKED') {
+            this.rouletteService?.getDisplayPin()
+              .pipe(takeUntil(this.destroy$))
+              .subscribe(res => {
+                if (res?.pin) {
+                  this.roulettePin = res.pin;
+                  this.cdr.markForCheck();
+                }
+              });
+          }
+        });
+    }
+
     this.notificationService
       .onNotification()
       .pipe(takeUntil(this.destroy$))
@@ -393,7 +431,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger'
           });
-          toast.present();
+          await toast.present();
         }
       });
   }
@@ -407,47 +445,63 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
     const alertThresholdMs = (this.tempsAlerteCommandeMinutes || 5) * 60 * 1000;
 
     return commandes.filter(cmd => {
-      // Urgent filter
-      if (this.urgentOnly) {
-        const isPrioritaire = Boolean(cmd.prioritaire);
-        const diff = cmd.dateCommande ? now - new Date(cmd.dateCommande).getTime() : 0;
-        const isPendingDelayed =
-          cmd.statut === 'EN_ATTENTE' &&
-          diff >= alertThresholdMs &&
-          diff < 2 * 60 * 60 * 1000;
-        const isUrgent = isPrioritaire || isPendingDelayed;
-        if (!isUrgent) return false;
+      if (this.urgentOnly && !this.isCommandUrgent(cmd, now, alertThresholdMs)) {
+        return false;
       }
-
-      // Station filter
-      if (this.stationFilter !== 'ALL') {
-        const hasStationItem = cmd.items?.some(item => {
-          const itemStation = item.station || 'BAR';
-          if (this.stationFilter === 'KITCHEN') {
-            return itemStation === 'KITCHEN' || itemStation === 'SNACK';
-          }
-          return itemStation === this.stationFilter;
-        });
-        if (!hasStationItem) return false;
+      if (this.stationFilter !== 'ALL' && !this.matchesStation(cmd)) {
+        return false;
       }
-
-      // Search term filter
-      if (!q) return true;
-
-      const tableName = cmd.tableNom || (cmd.tableNumero ? `Table ${cmd.tableNumero}` : '');
-      const matchesTable = tableName.toLowerCase().includes(q) || String(cmd.tableNumero || '').includes(q);;
-      const matchesId = String(cmd.id).includes(q);
-      const matchesServer =
-        cmd.serveurNom?.toLowerCase().includes(q) ||
-        cmd.serveurUsername?.toLowerCase().includes(q);
-      const matchesItems = cmd.items?.some(item =>
-        item.cocktailNom.toLowerCase().includes(q) ||
-        item.varianteNom?.toLowerCase().includes(q) ||
-        item.notes?.toLowerCase().includes(q)
-      );
-
-      return Boolean(matchesTable || matchesId || matchesServer || matchesItems);
+      if (q && !this.matchesCommandSearch(cmd, q)) {
+        return false;
+      }
+      return true;
     });
+  }
+
+  private isCommandUrgent(cmd: CommandeView, now: number, alertThresholdMs: number): boolean {
+    const isPrioritaire = Boolean(cmd.prioritaire);
+    const diff = cmd.dateCommande ? now - new Date(cmd.dateCommande).getTime() : 0;
+    const isPendingDelayed =
+      cmd.statut === 'EN_ATTENTE' &&
+      diff >= alertThresholdMs &&
+      diff < 2 * 60 * 60 * 1000;
+    return isPrioritaire || isPendingDelayed;
+  }
+
+  private matchesStation(cmd: CommandeView): boolean {
+    return Boolean(cmd.items?.some(item => {
+      const itemStation = item.station || 'BAR';
+      if (this.stationFilter === 'KITCHEN') {
+        return itemStation === 'KITCHEN' || itemStation === 'SNACK';
+      }
+      return itemStation === this.stationFilter;
+    }));
+  }
+
+  private resolveCommandTableName(cmd: CommandeView): string {
+    if (cmd.tableNom) return cmd.tableNom;
+    if (cmd.tableNumero && cmd.barTabNom) return `Table ${cmd.tableNumero} • ${cmd.barTabNom}`;
+    if (cmd.tableNumero) return `Table ${cmd.tableNumero}`;
+    if (cmd.barTabNom) return `${cmd.barTabNom} (Bar)`;
+    return 'Bar';
+  }
+
+  private matchesCommandSearch(cmd: CommandeView, q: string): boolean {
+    const tableName = this.resolveCommandTableName(cmd);
+    const matchesTable = tableName.toLowerCase().includes(q) ||
+      String(cmd.tableNumero || '').includes(q) ||
+      (cmd.barTabNom?.toLowerCase().includes(q) ?? false);
+    const matchesId = String(cmd.id).includes(q);
+    const matchesServer =
+      cmd.serveurNom?.toLowerCase().includes(q) ||
+      cmd.serveurUsername?.toLowerCase().includes(q);
+    const matchesItems = cmd.items?.some(item =>
+      item.cocktailNom.toLowerCase().includes(q) ||
+      item.varianteNom?.toLowerCase().includes(q) ||
+      item.notes?.toLowerCase().includes(q)
+    );
+
+    return Boolean(matchesTable || matchesId || matchesServer || matchesItems);
   }
 
   /**
@@ -458,7 +512,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
     const msg = state
       ? this.transloco.translate('BARMAN_DASHBOARD.SOUND_ALERTS_ENABLED')
       : this.transloco.translate('BARMAN_DASHBOARD.SOUND_ALERTS_DISABLED');
-    this.showToast(msg, 'primary');
+    void this.showToast(msg, 'primary');
   }
 
   /**
@@ -518,7 +572,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
     const modal = await this.modalCtrl.create({
       component: BarTicketPrintComponent,
       componentProps: { commande: cmd },
-      cssClass: 'bar-ticket-modal-container'
+      cssClass: 'modal-md bar-ticket-modal-container'
     });
     await modal.present();
   }
@@ -545,10 +599,10 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
           if (event.statut === 'PRET') {
             this.soundService.playOrderReadySound();
           }
-          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATED_SUCCESS'), 'success');
+          void this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATED_SUCCESS'), 'success');
         },
         error: () => {
-          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATE_ERROR'), 'danger');
+          void this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATE_ERROR'), 'danger');
         }
       });
   }
@@ -627,13 +681,13 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.chargerCommandes();
-          this.showToast(
+          void this.showToast(
             this.transloco.translate('BARMAN_DASHBOARD.BATCH_STARTED_SUCCESS', { name: batch.cocktailNom }),
             'primary'
           );
         },
         error: () => {
-          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.BATCH_ACTION_ERROR'), 'danger');
+          void this.showToast(this.transloco.translate('BARMAN_DASHBOARD.BATCH_ACTION_ERROR'), 'danger');
         }
       });
   }
@@ -655,13 +709,13 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
         next: () => {
           this.chargerCommandes();
           this.soundService.playOrderReadySound();
-          this.showToast(
+          void this.showToast(
             this.transloco.translate('BARMAN_DASHBOARD.BATCH_COMPLETED_SUCCESS', { name: batch.cocktailNom }),
             'success'
           );
         },
         error: () => {
-          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.BATCH_ACTION_ERROR'), 'danger');
+          void this.showToast(this.transloco.translate('BARMAN_DASHBOARD.BATCH_ACTION_ERROR'), 'danger');
         }
       });
   }
@@ -698,6 +752,6 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       duration: 2000,
       color
     });
-    toast.present();
+    await toast.present();
   }
 }

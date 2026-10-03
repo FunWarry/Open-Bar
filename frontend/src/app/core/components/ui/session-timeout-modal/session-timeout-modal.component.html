@@ -1,0 +1,58 @@
+<ion-header class="modal-header ion-no-border">
+  <ion-toolbar class="modal-toolbar">
+    <div class="header-content" slot="start">
+      <div class="header-icon-badge">
+        <ion-icon name="time-outline"></ion-icon>
+      </div>
+      <ion-title class="modal-title">
+        {{ 'SESSION.TIMEOUT_WARNING_TITLE' | transloco }}
+      </ion-title>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-content ion-padding">
+  <div class="session-modal-body">
+    <div class="warning-icon-wrapper">
+      <div class="warning-icon-circle">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+      </div>
+    </div>
+
+    <div class="countdown-card" data-testid="session-countdown-badge">
+      <span class="countdown-label">{{ 'SESSION.TIMEOUT_WARNING_DESC' | transloco }}</span>
+      <span class="countdown-timer">{{ remainingFormatted }}</span>
+    </div>
+
+    <p class="explanation-text">
+      {{ 'SESSION.TIMEOUT_EXPLANATION' | transloco }}
+    </p>
+  </div>
+</ion-content>
+
+<ion-footer class="modal-footer ion-no-border">
+  <div class="footer-actions-wrapper">
+    <ion-button
+      expand="block"
+      color="primary"
+      class="btn-extend"
+      (click)="onExtend()"
+      (keydown.enter)="onExtend()"
+      data-testid="btn-extend-session">
+      <ion-icon name="refresh-outline" slot="start"></ion-icon>
+      {{ 'SESSION.EXTEND_BTN' | transloco }}
+    </ion-button>
+
+    <ion-button
+      expand="block"
+      fill="outline"
+      color="danger"
+      class="btn-logout"
+      (click)="onLogout()"
+      (keydown.enter)="onLogout()"
+      data-testid="btn-logout-session">
+      <ion-icon name="log-out-outline" slot="start"></ion-icon>
+      {{ 'SESSION.LOGOUT_BTN' | transloco }}
+    </ion-button>
+  </div>
+</ion-footer>

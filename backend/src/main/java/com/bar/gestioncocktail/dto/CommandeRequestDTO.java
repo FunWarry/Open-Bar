@@ -5,7 +5,6 @@ import com.bar.gestioncocktail.model.CommandeItem;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.User;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
@@ -15,7 +14,8 @@ import java.util.List;
 /**
  * Request DTO for creating or updating an order.
  *
- * @param tableId         Identifier of the table for this order
+ * @param tableId         Optional identifier of the table for this order (if table-bound)
+ * @param barTabId        Optional identifier of the customer bar tab (if running ledger)
  * @param serveurId       Optional identifier of the waiter
  * @param notes           Optional notes for the order
  * @param pourboire       Optional tip amount
@@ -23,8 +23,9 @@ import java.util.List;
  * @param items           Optional initial list of items to associate with the order
  */
 public record CommandeRequestDTO(
-    @NotNull(message = "Table is required")
     Long tableId,
+
+    Long barTabId,
 
     Long serveurId,
 
@@ -38,7 +39,14 @@ public record CommandeRequestDTO(
     List<@Valid CommandeItemRequestDTO> items
 ) {
     /**
-     * Backward compatibility constructor without clientRequestId and items.
+     * Backward compatibility constructor with tableId, without barTabId.
+     */
+    public CommandeRequestDTO(Long tableId, Long serveurId, String notes, BigDecimal pourboire, String clientRequestId, List<@Valid CommandeItemRequestDTO> items) {
+        this(tableId, null, serveurId, notes, pourboire, clientRequestId, items);
+    }
+
+    /**
+     * Backward compatibility constructor without clientRequestId, items, and barTabId.
      *
      * @param tableId   Identifier of the table
      * @param serveurId Optional identifier of the waiter
@@ -46,7 +54,7 @@ public record CommandeRequestDTO(
      * @param pourboire Optional tip amount
      */
     public CommandeRequestDTO(Long tableId, Long serveurId, String notes, BigDecimal pourboire) {
-        this(tableId, serveurId, notes, pourboire, null, null);
+        this(tableId, null, serveurId, notes, pourboire, null, null);
     }
 
     /**
@@ -60,6 +68,11 @@ public record CommandeRequestDTO(
             TableEntity table = new TableEntity();
             table.setId(tableId);
             commande.setTable(table);
+        }
+        if (barTabId != null) {
+            com.bar.gestioncocktail.model.BarTab tab = new com.bar.gestioncocktail.model.BarTab();
+            tab.setId(barTabId);
+            commande.setBarTab(tab);
         }
         if (serveurId != null) {
             User serveur = new User();

@@ -1,0 +1,74 @@
+<div
+  class="app-card-container"
+  [class.clickable]="clickable && active"
+  [class.inactive]="!active"
+  [class.has-accent]="!!resolvedAccentColor"
+  [class.accent-left]="accentPosition === 'left' && !!resolvedAccentColor"
+  [class.accent-full]="accentPosition === 'full' && !!resolvedAccentColor"
+  [class.accent-top]="accentPosition === 'top' && !!resolvedAccentColor"
+  [class.padding-none]="padding === 'none'"
+  [class.padding-sm]="padding === 'sm'"
+  [class.padding-md]="padding === 'md'"
+  [class.padding-lg]="padding === 'lg'"
+  [class.elevation-none]="elevation === 'none'"
+  [class.elevation-sm]="elevation === 'sm'"
+  [class.elevation-md]="elevation === 'md'"
+  [class.elevation-lg]="elevation === 'lg'"
+  [ngClass]="customClass"
+  [style.--card-bg]="resolvedBackground"
+  [style.--card-accent-color]="resolvedAccentColor"
+  [style.--card-accent-width]="accentWidth"
+  [attr.data-testid]="testId"
+  [attr.role]="clickable && active ? 'button' : null"
+  [attr.tabindex]="clickable && active ? 0 : null"
+  [attr.aria-disabled]="!active ? 'true' : null"
+  (click)="onCardClick($event)"
+  (keydown)="onKeyDown($event)">
+
+  <!-- Accessible indicator for screen readers & testing -->
+  @if (resolvedAccentColor) {
+    <span class="card-accent-marker" aria-hidden="true" data-testid="card-accent-strip"></span>
+  }
+
+  <div class="card-inner">
+    <!-- Header Section -->
+    @if (showHeader) {
+      <header class="card-section card-header" data-testid="card-header-section">
+        <ng-content select="[card-header]"></ng-content>
+      </header>
+    }
+
+    <!-- Divider: Header -> Content -->
+    @if (showHeader && headerDivider !== 'none') {
+      <div
+        class="card-divider"
+        [class.divider-solid]="headerDivider === 'solid'"
+        [class.divider-dashed]="headerDivider === 'dashed'"
+        aria-hidden="true"
+        data-testid="card-header-divider"></div>
+    }
+
+    <!-- Content / Body Section -->
+    <div class="card-section card-body" data-testid="card-body-section">
+      <ng-content select="[card-content], [card-body]"></ng-content>
+      <ng-content></ng-content>
+    </div>
+
+    <!-- Divider: Content -> Footer -->
+    @if (showFooter && footerDivider !== 'none') {
+      <div
+        class="card-divider"
+        [class.divider-solid]="footerDivider === 'solid'"
+        [class.divider-dashed]="footerDivider === 'dashed'"
+        aria-hidden="true"
+        data-testid="card-footer-divider"></div>
+    }
+
+    <!-- Footer Section -->
+    @if (showFooter) {
+      <footer class="card-section card-footer" data-testid="card-footer-section">
+        <ng-content select="[card-footer]"></ng-content>
+      </footer>
+    }
+  </div>
+</div>

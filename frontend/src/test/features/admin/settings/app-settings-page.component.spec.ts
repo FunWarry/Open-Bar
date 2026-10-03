@@ -7,7 +7,7 @@ import { AppSettingsPageComponent } from '../../../../app/features/admin/setting
 import { LegalComponent } from '../../../../app/features/legal/legal.component';
 import { EtablissementService } from '../../../../app/core/services/etablissement.service';
 import { EstablishmentConfig } from '../../../../app/core/models/establishment-config.model';
-import { AppSettingsService } from '../../../../app/core/services/app-settings.service';
+import { AppSettingsService, DEFAULT_DISCOUNT_TIERS, DEFAULT_STORAGE_LOCATIONS } from '../../../../app/core/services/app-settings.service';
 import { AppSettings } from '../../../../app/core/models/app-settings.model';
 import { ThemeService, DEFAULT_FIGMA_PALETTE, THEME_PRESETS } from '../../../../app/core/services/theme.service';
 import { PrinterService } from '../../../../app/core/services/printer.service';
@@ -16,7 +16,21 @@ import { AppUpdateService } from '../../../../app/core/services/app-update.servi
 import { AuthService } from '../../../../app/core/services/auth.service';
 import { OnboardingService } from '../../../../app/core/services/onboarding.service';
 import { FeatureFlagService } from '../../../../app/core/services/feature-flag.service';
+import { RouletteService } from '../../../../app/core/services/roulette.service';
 import { ESTABLISHMENT_PRESETS, EstablishmentPresetType } from '../../../../app/core/models/establishment-module.model';
+import { PaymentTerminalService } from '../../../../app/core/services/payment-terminal.service';
+import { TpePublicConfig } from '../../../../app/core/models/tpe.model';
+
+const mockTpePublicConfig: TpePublicConfig = {
+  enabled: true,
+  simulatorEnabled: true,
+  barIpConfigured: true,
+  floorIpConfigured: false,
+  port: 8888,
+  terminalId: 'TEST-01',
+  timeoutSeconds: 30,
+  terminalsJson: '[]'
+};
 
 describe('AppSettingsPageComponent', () => {
   let component: AppSettingsPageComponent;
@@ -24,6 +38,7 @@ describe('AppSettingsPageComponent', () => {
   let etabServiceSpy: jasmine.SpyObj<EtablissementService>;
   let appSettingsServiceSpy: jasmine.SpyObj<AppSettingsService>;
   let featureFlagServiceSpy: jasmine.SpyObj<FeatureFlagService>;
+  let rouletteServiceSpy: jasmine.SpyObj<RouletteService>;
   let themeServiceSpy: jasmine.SpyObj<ThemeService>;
   let printerServiceSpy: jasmine.SpyObj<PrinterService>;
   let appUpdateServiceSpy: jasmine.SpyObj<AppUpdateService>;
@@ -33,6 +48,7 @@ describe('AppSettingsPageComponent', () => {
   let alertCtrlSpy: jasmine.SpyObj<AlertController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let routerSpy: jasmine.SpyObj<Router>;
+  let paymentTerminalServiceSpy: jasmine.SpyObj<PaymentTerminalService>;
 
   const mockEtab: EstablishmentConfig = {
     id: 1,
@@ -81,9 +97,19 @@ describe('AppSettingsPageComponent', () => {
     etabServiceSpy.updateConfig.and.returnValue(of(mockEtab));
     etabServiceSpy.getTimeZones.and.returnValue(of(['Europe/Paris', 'UTC', 'America/New_York']));
 
-    appSettingsServiceSpy = jasmine.createSpyObj('AppSettingsService', ['getSettings', 'updateSettings', 'applyTokens']);
+    appSettingsServiceSpy = jasmine.createSpyObj('AppSettingsService', [
+      'getSettings',
+      'updateSettings',
+      'applyTokens',
+      'getDiscountTiers',
+      'saveDiscountTiersLocally',
+      'getStorageLocations',
+      'saveStorageLocationsLocally',
+    ]);
     appSettingsServiceSpy.getSettings.and.returnValue(of(mockAppSettings));
     appSettingsServiceSpy.updateSettings.and.returnValue(of(mockAppSettings));
+    appSettingsServiceSpy.getDiscountTiers.and.returnValue([...DEFAULT_DISCOUNT_TIERS]);
+    appSettingsServiceSpy.getStorageLocations.and.returnValue([...DEFAULT_STORAGE_LOCATIONS]);
 
     printerServiceSpy = jasmine.createSpyObj('PrinterService', [
       'getStatus',
@@ -106,6 +132,14 @@ describe('AppSettingsPageComponent', () => {
       success: true,
       message: 'Cash drawer opened',
       durationMs: 10,
+    }));
+    printerServiceSpy.testConnection.and.returnValue(of({
+      role: 'BAR',
+      ip: '192.168.1.101',
+      port: 9100,
+      success: true,
+      message: 'OK',
+      durationMs: 15,
     }));
 
     appUpdateServiceSpy = jasmine.createSpyObj('AppUpdateService', ['checkNewerRelease', 'presentUpdateModal'], {
@@ -175,8 +209,42 @@ describe('AppSettingsPageComponent', () => {
       qrClientOrdering: true,
       stockTracking: true,
       cashDrawer: true,
+      barTabs: true,
+      cocktailLibrary: true,
+      suppliersManagement: true,
+      inventoryAudit: true,
+      mysteryRoulette: true,
+      paymentTerminal: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
+
+    rouletteServiceSpy = jasmine.createSpyObj('RouletteService', ['getDisplayPin', 'regenerateDisplayPin']);
+    rouletteServiceSpy.getDisplayPin.and.returnValue(of({ pin: '7777', establishmentId: 1 }));
+    rouletteServiceSpy.regenerateDisplayPin.and.returnValue(of({ pin: '4321', establishmentId: 1 }));
+
+    paymentTerminalServiceSpy = jasmine.createSpyObj('PaymentTerminalService', [
+      'initiatePayment',
+      'cancelPayment',
+      'getStatus',
+      'watchTransaction',
+      'watchPayment',
+      'testConnection',
+      'getConfig',
+      'getPreferredTerminalRole',
+      'setPreferredTerminalRole'
+    ], {
+      paymentEvents$: of(),
+      preferredRole: 'BAR'
+    });
+    paymentTerminalServiceSpy.getConfig.and.returnValue(of(mockTpePublicConfig));
+    paymentTerminalServiceSpy.testConnection.and.returnValue(of({
+      role: 'BAR',
+      ip: '192.168.1.50',
+      port: 8888,
+      success: true,
+      message: 'TPE connected successfully',
+      durationMs: 42
+    }));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -196,7 +264,9 @@ describe('AppSettingsPageComponent', () => {
         { provide: EtablissementService, useValue: etabServiceSpy },
         { provide: AppSettingsService, useValue: appSettingsServiceSpy },
         { provide: FeatureFlagService, useValue: featureFlagServiceSpy },
+        { provide: RouletteService, useValue: rouletteServiceSpy },
         { provide: PrinterService, useValue: printerServiceSpy },
+        { provide: PaymentTerminalService, useValue: paymentTerminalServiceSpy },
         { provide: AppUpdateService, useValue: appUpdateServiceSpy },
         { provide: ThemeService, useValue: themeServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
@@ -550,6 +620,22 @@ describe('AppSettingsPageComponent', () => {
     expect(component.appSettingsForm.get('defaultVatRate')?.value).toBe(0);
   });
 
+  it('should apply unit system presets correctly', () => {
+    component.applyUnitPreset(component.unitPresets[0]);
+    expect(component.appSettingsForm.get('unitSystem')?.value).toBe('METRIC_CL');
+    expect(component.appSettingsForm.get('volumeUnit')?.value).toBe('cl');
+    expect(component.appSettingsForm.get('weightUnit')?.value).toBe('g');
+
+    component.applyUnitPreset(component.unitPresets[1]);
+    expect(component.appSettingsForm.get('unitSystem')?.value).toBe('METRIC_ML');
+    expect(component.appSettingsForm.get('volumeUnit')?.value).toBe('ml');
+
+    component.applyUnitPreset(component.unitPresets[2]);
+    expect(component.appSettingsForm.get('unitSystem')?.value).toBe('IMPERIAL_US');
+    expect(component.appSettingsForm.get('volumeUnit')?.value).toBe('fl oz');
+    expect(component.appSettingsForm.get('weightUnit')?.value).toBe('oz');
+  });
+
   it('should compute simulated selling price HT, margin amount, percentage and badge', () => {
     component.appSettingsForm.patchValue({
       defaultVatRate: 20,
@@ -778,6 +864,12 @@ describe('AppSettingsPageComponent', () => {
         qrClientOrdering: true,
         stockTracking: true,
         cashDrawer: true,
+        barTabs: true,
+        cocktailLibrary: true,
+        suppliersManagement: true,
+        inventoryAudit: true,
+        mysteryRoulette: true,
+        paymentTerminal: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -796,6 +888,12 @@ describe('AppSettingsPageComponent', () => {
         qrClientOrdering: true,
         stockTracking: true,
         cashDrawer: false,
+        barTabs: false,
+        cocktailLibrary: false,
+        suppliersManagement: false,
+        inventoryAudit: false,
+        mysteryRoulette: false,
+        paymentTerminal: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -807,6 +905,12 @@ describe('AppSettingsPageComponent', () => {
         qrClientOrdering: false,
         stockTracking: false,
         cashDrawer: false,
+        barTabs: false,
+        cocktailLibrary: false,
+        suppliersManagement: false,
+        inventoryAudit: false,
+        mysteryRoulette: false,
+        paymentTerminal: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });
@@ -850,6 +954,12 @@ describe('AppSettingsPageComponent', () => {
         qrClientOrdering: false,
         stockTracking: false,
         cashDrawer: false,
+        barTabs: false,
+        cocktailLibrary: false,
+        suppliersManagement: false,
+        inventoryAudit: false,
+        mysteryRoulette: false,
+        paymentTerminal: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -1083,6 +1193,469 @@ describe('AppSettingsPageComponent', () => {
       spyOn(component, 'qrClientOrderingEnabled').and.returnValue(false);
       component.selectTab('qr');
       expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+    });
+  });
+
+  describe('Measurement Unit Systems & Discount Tiers', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+    });
+
+    it('should initialize with default METRIC_CL unit system and cl/g units', () => {
+      expect(component.appSettingsForm.get('unitSystem')?.value).toBe('METRIC_CL');
+      expect(component.appSettingsForm.get('volumeUnit')?.value).toBe('cl');
+      expect(component.appSettingsForm.get('weightUnit')?.value).toBe('g');
+      expect(component.currentVolumeUnit).toBe('cl');
+      expect(component.currentWeightUnit).toBe('g');
+    });
+
+    it('should apply METRIC_ML preset and update controls', () => {
+      const mlPreset = component.unitPresets.find(p => p.key === 'METRIC_ML')!;
+      component.applyUnitPreset(mlPreset);
+
+      expect(component.appSettingsForm.get('unitSystem')?.value).toBe('METRIC_ML');
+      expect(component.appSettingsForm.get('volumeUnit')?.value).toBe('ml');
+      expect(component.appSettingsForm.get('weightUnit')?.value).toBe('g');
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+
+    it('should apply IMPERIAL_US preset and update controls', () => {
+      const usPreset = component.unitPresets.find(p => p.key === 'IMPERIAL_US')!;
+      component.applyUnitPreset(usPreset);
+
+      expect(component.appSettingsForm.get('unitSystem')?.value).toBe('IMPERIAL_US');
+      expect(component.appSettingsForm.get('volumeUnit')?.value).toBe('fl oz');
+      expect(component.appSettingsForm.get('weightUnit')?.value).toBe('oz');
+    });
+
+    it('should apply CUSTOM preset without altering current volume and weight units', () => {
+      const customPreset = component.unitPresets.find(p => p.key === 'CUSTOM')!;
+      component.applyUnitPreset(customPreset);
+
+      expect(component.appSettingsForm.get('unitSystem')?.value).toBe('CUSTOM');
+    });
+
+    it('should switch to CUSTOM when volume and weight units do not match standard presets', () => {
+      component.setVolumeUnit('l');
+      expect(component.appSettingsForm.get('unitSystem')?.value).toBe('CUSTOM');
+
+      component.setVolumeUnit('cl');
+      component.setWeightUnit('g');
+      expect(component.appSettingsForm.get('unitSystem')?.value).toBe('METRIC_CL');
+    });
+
+    it('should correctly format sample volume in various units', () => {
+      component.setVolumeUnit('cl');
+      expect(component.formatSampleVolume(5)).toBe('5 cl');
+
+      component.setVolumeUnit('ml');
+      expect(component.formatSampleVolume(5)).toBe('50 ml');
+
+      component.setVolumeUnit('fl oz');
+      expect(component.formatSampleVolume(5)).toContain('fl oz');
+
+      component.setVolumeUnit('l');
+      expect(component.formatSampleVolume(70)).toBe('0.70 L');
+    });
+
+    it('should correctly format sample weight in various units', () => {
+      component.setWeightUnit('g');
+      expect(component.formatSampleWeight(100)).toBe('100 g');
+
+      component.setWeightUnit('kg');
+      expect(component.formatSampleWeight(1000)).toBe('1.00 kg');
+
+      component.setWeightUnit('oz');
+      expect(component.formatSampleWeight(28.35)).toContain('oz');
+
+      component.setWeightUnit('lb');
+      expect(component.formatSampleWeight(453.6)).toContain('lb');
+    });
+
+    it('should add a custom discount tier and reset input fields', () => {
+      const initialCount = component.configuredDiscountTiers().length;
+      component.newDiscountTierLabel = 'Test VIP';
+      component.newDiscountTierType = 'percent';
+      component.newDiscountTierValue = 35;
+
+      component.addDiscountTier();
+
+      expect(component.configuredDiscountTiers()).toHaveSize(initialCount + 1);
+      const added = component.configuredDiscountTiers().find(t => t.label === 'Test VIP');
+      expect(added).toBeDefined();
+      expect(added?.value).toBe(35);
+      expect(added?.type).toBe('percent');
+      expect(component.newDiscountTierLabel).toBe('');
+      expect(component.newDiscountTierValue).toBeNull();
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+
+    it('should not add a discount tier when label or value is invalid', () => {
+      const initialCount = component.configuredDiscountTiers().length;
+      component.newDiscountTierLabel = '   ';
+      component.newDiscountTierValue = 10;
+      component.addDiscountTier();
+      expect(component.configuredDiscountTiers()).toHaveSize(initialCount);
+
+      component.newDiscountTierLabel = 'Valid';
+      component.newDiscountTierValue = 0;
+      component.addDiscountTier();
+      expect(component.configuredDiscountTiers()).toHaveSize(initialCount);
+    });
+
+    it('should remove a discount tier by id', () => {
+      const tiers = component.configuredDiscountTiers();
+      const toRemove = tiers[0];
+      component.removeDiscountTier(toRemove.id);
+
+      expect(component.configuredDiscountTiers().some(t => t.id === toRemove.id)).toBeFalse();
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+
+    it('should reset discount tiers to defaults', () => {
+      component.configuredDiscountTiers.set([]);
+      expect(component.configuredDiscountTiers()).toHaveSize(0);
+
+      component.resetDiscountTiersToDefault();
+      expect(component.configuredDiscountTiers().length).toBeGreaterThan(0);
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+  });
+
+  describe('Roulette TV PIN Management', () => {
+    it('should load roulette PIN on init', () => {
+      expect(rouletteServiceSpy.getDisplayPin).toHaveBeenCalled();
+      expect(component.roulettePin()).toBe('7777');
+    });
+
+    it('should prompt alert before regenerating PIN', async () => {
+      await component.confirmRegenerateRoulettePin();
+      expect(alertCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    it('should regenerate PIN and show success toast', () => {
+      component.regenerateRoulettePin();
+      expect(rouletteServiceSpy.regenerateDisplayPin).toHaveBeenCalled();
+      expect(component.roulettePin()).toBe('4321');
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+  });
+
+  describe('Hardware and Network Peripherals Management', () => {
+    it('should add and remove ESC/POS printers dynamically', () => {
+      const initialCount = component.configuredPrinters().length;
+      component.addPrinter();
+      expect(component.configuredPrinters()).toHaveSize(initialCount + 1);
+      expect(component.appSettingsForm.dirty).toBeTrue();
+
+      const added = component.configuredPrinters()[component.configuredPrinters().length - 1];
+      component.removePrinter(added.id);
+      expect(component.configuredPrinters()).toHaveSize(initialCount);
+    });
+
+    it('should test printer connection and record test result', () => {
+      const testPrinter = {
+        id: 'p-test',
+        name: 'Test Printer',
+        role: 'BAR' as const,
+        ip: '192.168.1.101',
+        port: 9100,
+        paperWidth: 80 as const,
+        openCashDrawer: false,
+        enabled: true
+      };
+
+      component.testConfiguredPrinter(testPrinter);
+      expect(printerServiceSpy.testConnection).toHaveBeenCalledWith({
+        ip: '192.168.1.101',
+        port: 9100,
+        role: 'BAR'
+      });
+      expect(component.printerTestResults()['p-test']).toBeDefined();
+      expect(component.printerTestResults()['p-test'].success).toBeTrue();
+    });
+
+    it('should add and remove TPE terminals dynamically', () => {
+      const initialCount = component.configuredTpeTerminals().length;
+      component.addTpeTerminal();
+      expect(component.configuredTpeTerminals()).toHaveSize(initialCount + 1);
+      expect(component.appSettingsForm.dirty).toBeTrue();
+
+      const added = component.configuredTpeTerminals()[component.configuredTpeTerminals().length - 1];
+      component.removeTpeTerminal(added.id);
+      expect(component.configuredTpeTerminals()).toHaveSize(initialCount);
+    });
+
+    it('should test TPE connection and record test result', () => {
+      const testTpe = {
+        id: 't-test',
+        name: 'Test TPE',
+        role: 'BAR' as const,
+        ip: '192.168.1.50',
+        port: 8888,
+        terminalId: 'POS01',
+        timeoutSeconds: 30,
+        enabled: true
+      };
+
+      component.testConfiguredTpe(testTpe);
+      expect(paymentTerminalServiceSpy.testConnection).toHaveBeenCalledWith(jasmine.objectContaining({
+        ip: '192.168.1.50',
+        port: 8888,
+        terminalId: 'POS01'
+      }));
+      expect(component.tpeTestResults()['t-test']).toBeDefined();
+      expect(component.tpeTestResults()['t-test'].success).toBeTrue();
+    });
+
+    it('should update printer properties and mark form dirty', () => {
+      component.configuredPrinters.set([{
+        id: 'p-up',
+        name: 'Initial Printer',
+        role: 'BAR',
+        ip: '192.168.1.10',
+        port: 9100,
+        paperWidth: 80,
+        openCashDrawer: false,
+        enabled: true
+      }]);
+
+      component.updatePrinter('p-up', 'name', 'Renamed Printer');
+      expect(component.configuredPrinters()[0].name).toBe('Renamed Printer');
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+
+    it('should ignore testConfiguredPrinter when IP is blank', () => {
+      component.testConfiguredPrinter({
+        id: 'p-blank',
+        name: 'Blank Printer',
+        role: 'BAR',
+        ip: '',
+        port: 9100,
+        paperWidth: 80,
+        openCashDrawer: false,
+        enabled: true
+      });
+      expect(printerServiceSpy.testConnection).not.toHaveBeenCalled();
+    });
+
+    it('should handle failure and error response during testConfiguredPrinter', () => {
+      printerServiceSpy.testConnection.and.returnValue(throwError(() => ({ error: { message: 'Connection refused' } })));
+
+      component.testConfiguredPrinter({
+        id: 'p-err',
+        name: 'Failing Printer',
+        role: 'BAR',
+        ip: '192.168.1.200',
+        port: 9100,
+        paperWidth: 80,
+        openCashDrawer: false,
+        enabled: true
+      });
+
+      expect(component.printerTestResults()['p-err']).toBeDefined();
+      expect(component.printerTestResults()['p-err'].success).toBeFalse();
+    });
+
+    it('should update TPE terminal properties and mark form dirty', () => {
+      component.configuredTpeTerminals.set([{
+        id: 't-up',
+        name: 'Initial TPE',
+        role: 'BAR',
+        ip: '192.168.1.20',
+        port: 8888,
+        terminalId: '01',
+        timeoutSeconds: 30,
+        enabled: true
+      }]);
+
+      component.updateTpeTerminal('t-up', 'name', 'Renamed TPE');
+      expect(component.configuredTpeTerminals()[0].name).toBe('Renamed TPE');
+      expect(component.appSettingsForm.dirty).toBeTrue();
+    });
+
+    it('should ignore testConfiguredTpe when IP is blank', () => {
+      component.testConfiguredTpe({
+        id: 't-blank',
+        name: 'Blank TPE',
+        role: 'BAR',
+        ip: '',
+        port: 8888,
+        terminalId: '01',
+        timeoutSeconds: 30,
+        enabled: true
+      });
+      expect(paymentTerminalServiceSpy.testConnection).not.toHaveBeenCalled();
+    });
+
+    it('should handle failure and error response during testConfiguredTpe', () => {
+      paymentTerminalServiceSpy.testConnection.and.returnValue(throwError(() => ({ error: { message: 'Timeout' } })));
+
+      component.testConfiguredTpe({
+        id: 't-err',
+        name: 'Failing TPE',
+        role: 'BAR',
+        ip: '192.168.1.201',
+        port: 8888,
+        terminalId: '01',
+        timeoutSeconds: 30,
+        enabled: true
+      });
+
+      expect(component.tpeTestResults()['t-err']).toBeDefined();
+      expect(component.tpeTestResults()['t-err'].success).toBeFalse();
+    });
+
+    it('should serialize configured printers and TPEs in saveAll() payload', fakeAsync(() => {
+      component.configuredPrinters.set([{
+        id: 'p-custom',
+        name: 'Custom Printer',
+        role: 'BAR',
+        ip: '192.168.1.111',
+        port: 9100,
+        paperWidth: 80,
+        openCashDrawer: false,
+        enabled: true
+      }]);
+
+      component.configuredTpeTerminals.set([{
+        id: 't-custom',
+        name: 'Custom TPE',
+        role: 'BAR',
+        ip: '192.168.1.222',
+        port: 8888,
+        terminalId: 'POS99',
+        timeoutSeconds: 45,
+        enabled: true
+      }]);
+
+      component.saveAll();
+      tick();
+
+      expect(appSettingsServiceSpy.updateSettings).toHaveBeenCalledWith(jasmine.objectContaining({
+        barPrinterIp: '192.168.1.111',
+        tpeBarIp: '192.168.1.222',
+        printersJson: jasmine.stringContaining('p-custom'),
+        tpeTerminalsJson: jasmine.stringContaining('t-custom')
+      }));
+    }));
+
+    it('should trigger cash drawer diagnostic opening', () => {
+      component.testCashDrawer();
+      expect(printerServiceSpy.openCashDrawer).toHaveBeenCalled();
+    });
+
+    it('should test legacy TPE connection by role with success response', () => {
+      component.appSettingsForm.patchValue({
+        tpeBarIp: '192.168.1.50',
+        tpePort: 8888,
+        tpeTerminalId: 'POS01'
+      });
+      paymentTerminalServiceSpy.testConnection.and.returnValue(of({
+        success: true,
+        ip: '192.168.1.50',
+        port: 8888,
+        terminalId: 'POS01',
+        message: 'Connected',
+        responseTimeMs: 25
+      }));
+
+      component.testTpeConnection('BAR');
+
+      expect(paymentTerminalServiceSpy.testConnection).toHaveBeenCalledWith({
+        ip: '192.168.1.50',
+        port: 8888,
+        terminalId: 'POS01'
+      });
+      expect(component.isTestingTpe['BAR']).toBeFalse();
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    it('should handle legacy TPE test connection with business failure response', () => {
+      component.appSettingsForm.patchValue({
+        tpeBarIp: '192.168.1.50',
+        tpePort: 8888,
+        tpeTerminalId: 'POS01'
+      });
+      paymentTerminalServiceSpy.testConnection.and.returnValue(of({
+        success: false,
+        ip: '192.168.1.50',
+        port: 8888,
+        terminalId: 'POS01',
+        message: 'Terminal busy'
+      }));
+
+      component.testTpeConnection('BAR');
+
+      expect(component.isTestingTpe['BAR']).toBeFalse();
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    it('should handle legacy TPE test connection HTTP error', () => {
+      component.appSettingsForm.patchValue({
+        tpeBarIp: '192.168.1.50',
+        tpePort: 8888,
+        tpeTerminalId: 'POS01'
+      });
+      paymentTerminalServiceSpy.testConnection.and.returnValue(throwError(() => new Error('Connection refused')));
+
+      component.testTpeConnection('BAR');
+
+      expect(component.isTestingTpe['BAR']).toBeFalse();
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    it('should return early when testing legacy TPE connection if IP is empty', () => {
+      component.appSettingsForm.patchValue({
+        tpeFloorIp: ''
+      });
+      paymentTerminalServiceSpy.testConnection.calls.reset();
+
+      component.testTpeConnection('FLOOR');
+
+      expect(paymentTerminalServiceSpy.testConnection).not.toHaveBeenCalled();
+    });
+
+    it('should resolve printers and TPE terminals from custom serialized JSON', () => {
+      const customPrinters = [{
+        id: 'p-json-1',
+        name: 'JSON Printer',
+        role: 'BAR' as const,
+        ip: '192.168.1.88',
+        port: 9100,
+        paperWidth: 80 as const,
+        openCashDrawer: false,
+        enabled: true
+      }];
+      const customTpe = [{
+        id: 't-json-1',
+        name: 'JSON TPE',
+        role: 'BAR' as const,
+        ip: '192.168.1.89',
+        port: 8888,
+        terminalId: 'POS88',
+        timeoutSeconds: 30,
+        enabled: true
+      }];
+
+      const resolvedPrinters = (component as unknown as { resolvePrinters: (s: unknown) => unknown[] })
+        .resolvePrinters({ printersJson: JSON.stringify(customPrinters) });
+      const resolvedTpe = (component as unknown as { resolveTpeTerminals: (s: unknown) => unknown[] })
+        .resolveTpeTerminals({ tpeTerminalsJson: JSON.stringify(customTpe) });
+
+      expect(resolvedPrinters).toHaveSize(1);
+      expect(resolvedPrinters[0]).toEqual(customPrinters[0]);
+      expect(resolvedTpe).toHaveSize(1);
+      expect(resolvedTpe[0]).toEqual(customTpe[0]);
+    });
+
+    it('should handle settings load error and fallback to default peripheral lists', () => {
+      appSettingsServiceSpy.getSettings.and.returnValue(throwError(() => new Error('Network error')));
+
+      (component as unknown as { loadAllSettings: () => void }).loadAllSettings();
+
+      expect(component.configuredPrinters().length).toBeGreaterThan(0);
+      expect(component.configuredTpeTerminals().length).toBeGreaterThan(0);
     });
   });
 });

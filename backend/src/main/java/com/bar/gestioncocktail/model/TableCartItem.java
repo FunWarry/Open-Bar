@@ -18,13 +18,7 @@ import java.time.ZoneId;
  */
 @Data
 @Entity
-@Table(name = "table_cart_items", indexes = {
-        @Index(name = "idx_table_cart_items_table_id", columnList = "table_id"),
-        @Index(name = "idx_table_cart_items_guest", columnList = "table_id, guest_session_id")
-})
-/**
- * JPA entity representing a drink item placed into a collaborative table cart before order validation.
- */
+@Table(name = "table_cart_items")
 public class TableCartItem {
 
     @Id
@@ -59,6 +53,12 @@ public class TableCartItem {
     @Size(max = 500, message = "Notes cannot exceed 500 characters")
     @Column(name = "notes", length = 500)
     private String notes;
+
+    @Column(name = "is_mystery_drink")
+    private Boolean isMysteryDrink = false;
+
+    @Column(name = "prix_override", precision = 10, scale = 2)
+    private java.math.BigDecimal prixOverride;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -22,6 +22,7 @@ export type ToastSeverity = 'success' | 'warning' | 'danger' | 'info';
   standalone: true,
   imports: [IonIcon],
   templateUrl: './toast.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./toast.component.css'],
 })
 export class ToastComponent {

@@ -41,5 +41,41 @@ public enum EstablishmentModule {
      * Physical cash drawer management lifecycle: daily opening float, cash movements (in/drop/paid out),
      * and intermediate X-reports.
      */
-    CASH_DRAWER
+    CASH_DRAWER,
+
+    /**
+     * Customer bar tabs and running ledgers without mandatory physical table assignment,
+     * supporting drink accumulation across the evening, table-tab transfers, and unified settlement.
+     */
+    BAR_TABS,
+
+    /**
+     * Standard cocktail & ingredient library import wizard with preconfigured recipes,
+     * IBA classics, glassware, flavor profiles, and automatic inventory deduplication.
+     */
+    COCKTAIL_LIBRARY,
+
+    /**
+     * Beverage and produce supplier management, purchase orders, incoming delivery (BL) check-in intake,
+     * automatic stock replenishment, and live Weighted Average Unit Cost (PAMP / WAC) recalculation.
+     */
+    SUPPLIERS_MANAGEMENT,
+
+    /**
+     * Periodic physical inventory audit (Stocktake), storage room counting sheets,
+     * theoretical vs physical variance matrix, and automated shrinkage adjustment.
+     */
+    INVENTORY_AUDIT,
+
+    /**
+     * Mystery Drink roulette wheel gamification for patrons and bartender overstock depletion.
+     */
+    MYSTERY_ROULETTE,
+
+    /**
+     * Physical payment terminal (TPE) LAN integration via Concert / CB IP protocol,
+     * automated card payment amount dispatch, and card authorization auditing.
+     */
+    PAYMENT_TERMINAL
 }
+

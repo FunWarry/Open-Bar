@@ -122,5 +122,30 @@ describe('CocktailMatcherBarComponent', () => {
     const mocktailBtn = fixture.nativeElement.querySelector('[data-testid="matcher-dietary-mocktail"]');
     expect(mocktailBtn).toBeNull();
   });
+
+  it('should render flavor chips with distinct badgeClass and count badge for high contrast', () => {
+    const fruityBtn = fixture.nativeElement.querySelector('[data-testid="matcher-flavor-FRUITY"]');
+    expect(fruityBtn).toBeTruthy();
+    expect(fruityBtn.classList.contains('flavor-fruity')).toBeTrue();
+    expect(fruityBtn.classList.contains('flavor-chip')).toBeTrue();
+
+    const countBadge = fruityBtn.querySelector('.count-badge');
+    expect(countBadge).toBeTruthy();
+    expect(countBadge.textContent.trim()).toBe('5');
+  });
+
+  it('should render flavor chips with intuitive emojis including lemon for sour', () => {
+    const sourBtn = fixture.nativeElement.querySelector('[data-testid="matcher-flavor-SOUR"]');
+    expect(sourBtn).toBeTruthy();
+    const sourEmoji = sourBtn.querySelector('.chip-emoji');
+    expect(sourEmoji).toBeTruthy();
+    expect(sourEmoji.textContent.trim()).toBe('🍋');
+
+    const fruityBtn = fixture.nativeElement.querySelector('[data-testid="matcher-flavor-FRUITY"]');
+    expect(fruityBtn).toBeTruthy();
+    const fruityEmoji = fruityBtn.querySelector('.chip-emoji');
+    expect(fruityEmoji).toBeTruthy();
+    expect(fruityEmoji.textContent.trim()).toBe('🍓');
+  });
 });
 

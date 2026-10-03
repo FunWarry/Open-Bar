@@ -41,11 +41,11 @@ public class Cocktail {
     private CocktailCategorie categorie;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "vat_rate", nullable = false)
+    @Column(name = "vat_rate", length = 20, nullable = false)
     private VatRate vatRate = VatRate.TWENTY;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "station", nullable = false)
+    @Column(name = "station", length = 30, nullable = false)
     private PreparationStation station = PreparationStation.BAR;
 
     private boolean disponible = true;

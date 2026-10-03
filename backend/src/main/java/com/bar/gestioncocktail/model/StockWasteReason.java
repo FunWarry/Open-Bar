@@ -27,5 +27,15 @@ public enum StockWasteReason {
     /**
      * Preparation errors, spills, or remade cocktails.
      */
-    ERREUR_PREPARATION
+    ERREUR_PREPARATION,
+
+    /**
+     * Shrinkage and negative inventory variance recorded on physical stock audit finalization.
+     */
+    INVENTORY_ADJUSTMENT,
+
+    /**
+     * Positive inventory surplus recorded on physical stock audit finalization.
+     */
+    INVENTORY_SURPLUS
 }

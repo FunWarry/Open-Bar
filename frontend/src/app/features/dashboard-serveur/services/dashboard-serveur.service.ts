@@ -67,7 +67,13 @@ export interface EncaissementRequest {
   notes?: string;
   libererTable?: boolean;
   commandeIds?: number[];
+  tpeAutorisation?: string;
+  tpeTerminalId?: string;
+  tpeCardBrand?: string;
+  tpeMaskedPan?: string;
+  tpeSequence?: string;
 }
+
 
 export interface ModifierCommandeItemRequest {
   id?: number;

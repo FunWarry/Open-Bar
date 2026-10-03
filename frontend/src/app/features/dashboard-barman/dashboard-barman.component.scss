@@ -157,6 +157,37 @@ ion-header {
   border: none !important;
   overflow: hidden;
 
+  &.btn-new-order {
+    --background: var(--semantic-success, #34c77b);
+    --color: var(--text-on-accent, #ffffff);
+    --border-radius: var(--radius-pill, 999px);
+    --border-width: 0px;
+    color: var(--text-on-accent, #ffffff) !important;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    box-shadow: var(--shadow-sm, 0 2px 6px rgba(0, 0, 0, 0.2));
+    transition: all 0.2s ease;
+
+    ion-icon {
+      font-size: 1.15rem;
+      margin-right: 6px;
+      color: var(--text-on-accent, #ffffff) !important;
+    }
+
+    .btn-text {
+      color: var(--text-on-accent, #ffffff) !important;
+      display: none;
+      @media (min-width: 640px) {
+        display: inline;
+      }
+    }
+
+    &:hover {
+      --background: color-mix(in srgb, var(--semantic-success) 85%, #000000);
+      filter: brightness(0.95);
+    }
+  }
+
   &.btn-ruptures {
     --background: var(--semantic-danger, #e5604f);
     --color: var(--text-on-accent, #ffffff);
@@ -185,6 +216,43 @@ ion-header {
     &:hover {
       --background: color-mix(in srgb, var(--semantic-danger) 85%, #000000);
       filter: brightness(0.95);
+    }
+  }
+
+  &.btn-roulette-tv {
+    --background: var(--background-surface-2);
+    --color: var(--primary);
+    --border-radius: var(--radius-pill, 999px);
+    --border-width: 1px;
+    --border-style: solid;
+    --border-color: var(--primary);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: 0 0 10px var(--primary-glow);
+    transition: all 0.2s ease;
+
+    ion-icon {
+      font-size: 1.1rem;
+      margin-right: 6px;
+      color: var(--primary);
+    }
+
+    .btn-text {
+      color: var(--primary);
+      display: none;
+      @media (min-width: 640px) {
+        display: inline;
+      }
+    }
+
+    &:hover {
+      --background: var(--primary);
+      --color: var(--text-contrast);
+
+      ion-icon,
+      .btn-text {
+        color: var(--text-contrast) !important;
+      }
     }
   }
 
@@ -568,7 +636,7 @@ ion-header {
         align-items: center;
         justify-content: center;
         background: var(--semantic-warning);
-        color: #000000;
+        color: var(--background-bg-0);
         font-size: 0.72rem;
         font-weight: 800;
         min-width: 18px;
@@ -724,7 +792,7 @@ ion-header {
 }
 
 .batch-col {
-  background: var(--background-surface-1);
+  background: var(--background-surface-2, var(--background-bg-1));
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg, 14px);
   padding: 16px;
@@ -816,9 +884,9 @@ ion-header {
 }
 
 .batch-card {
-  background: var(--background-surface-2);
+  background: var(--card-bg, var(--background-surface-1));
   border: 1px solid var(--border-medium);
-  border-radius: var(--radius-md, 12px);
+  border-radius: var(--radius-card, 14px);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -827,21 +895,22 @@ ion-header {
               box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
               border-color 0.2s ease;
   position: relative;
+  box-shadow: var(--shadow-sm);
 
   &:hover {
     transform: translateY(-2px);
     border-color: color-mix(in srgb, var(--primary) 40%, var(--border-medium));
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--shadow-md, 0 4px 14px rgba(0, 0, 0, 0.12));
   }
 
   &--urgent {
     border-left: 4px solid var(--semantic-danger) !important;
-    background: color-mix(in srgb, var(--semantic-danger) 4%, var(--background-surface-2));
+    background: var(--card-bg, var(--background-surface-1));
   }
 
   &--active {
     border-left: 4px solid var(--semantic-info) !important;
-    background: color-mix(in srgb, var(--semantic-info) 4%, var(--background-surface-2));
+    background: var(--card-bg, var(--background-surface-1));
   }
 
   .batch-card-header {

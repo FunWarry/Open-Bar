@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {TranslocoPipe} from '@jsverse/transloco';
 
 /**
@@ -9,6 +9,7 @@ import {TranslocoPipe} from '@jsverse/transloco';
   templateUrl: './footer.component.html',
   styleUrls: ['./footer.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslocoPipe]
 })
 export class FooterComponent {

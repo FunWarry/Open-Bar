@@ -204,5 +204,60 @@ class CocktailDataSeederServiceTest {
         seederService.ensureFlavorProfilesPopulated();
         verify(cocktailRepository, never()).save(any());
     }
-}
 
+    @Test
+    @DisplayName("seedCocktailsIfEmpty falls back to cocktail ingredients when ingredientRepository does not have ingredient")
+    void seedCocktailsIfEmpty_fallsBackToCocktailIngredients() {
+        when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
+        when(cocktailRepository.count()).thenReturn(0L);
+        when(glasswareRepository.findAll()).thenReturn(List.of());
+        when(cocktailRepository.findByNomIgnoreCase(anyString())).thenReturn(Optional.empty());
+
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(inv -> {
+            Cocktail c = inv.getArgument(0);
+            Ingredient ing = new Ingredient();
+            ing.setNom("Rhum blanc");
+            CocktailIngredient ci = new CocktailIngredient();
+            ci.setIngredient(ing);
+            c.setIngredients(List.of(ci));
+            return c;
+        });
+
+        seederService.seedCocktailsIfEmpty();
+
+        verify(cocktailRepository, atLeastOnce()).save(any(Cocktail.class));
+    }
+
+    @Test
+    @DisplayName("ensureIngredientCategoriesPopulated skips when ingredientRepository is empty")
+    void ensureIngredientCategoriesPopulated_skipsWhenEmpty() {
+        when(ingredientRepository.findAll()).thenReturn(List.of());
+        seederService.ensureIngredientCategoriesPopulated();
+        verify(ingredientRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("ensureIngredientCategoriesPopulated populates category for ingredients with null or other category")
+    void ensureIngredientCategoriesPopulated_populatesCategory() {
+        Ingredient ing1 = new Ingredient();
+        ing1.setId(1L);
+        ing1.setNom("Rhum blanc");
+        ing1.setCategory(null);
+
+        Ingredient ing2 = new Ingredient();
+        ing2.setId(2L);
+        ing2.setNom("Menthe");
+        ing2.setCategory("other");
+
+        Ingredient ing3 = new Ingredient();
+        ing3.setId(3L);
+        ing3.setNom(null);
+
+        when(ingredientRepository.findAll()).thenReturn(List.of(ing1, ing2, ing3));
+        when(ingredientRepository.save(any(Ingredient.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        seederService.ensureIngredientCategoriesPopulated();
+
+        verify(ingredientRepository, atLeastOnce()).save(any(Ingredient.class));
+    }
+}

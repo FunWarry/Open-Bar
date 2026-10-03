@@ -70,6 +70,24 @@ CREATE TABLE IF NOT EXISTS cocktail_flavor_profiles (
     PRIMARY KEY (cocktail_id, flavor_profile)
 );
 
+-- Suppliers (Beverages, Produce & Inventory Goods)
+CREATE TABLE IF NOT EXISTS suppliers (
+    id BIGSERIAL PRIMARY KEY,
+    nom VARCHAR(255) NOT NULL,
+    contact_nom VARCHAR(150),
+    email VARCHAR(150),
+    telephone VARCHAR(50),
+    adresse VARCHAR(500),
+    conditions_paiement VARCHAR(100),
+    notes TEXT,
+    actif BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_suppliers_actif ON suppliers(actif);
+CREATE INDEX IF NOT EXISTS idx_suppliers_nom ON suppliers(nom);
+
 CREATE TABLE IF NOT EXISTS ingredients (
     id BIGSERIAL PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
@@ -78,15 +96,26 @@ CREATE TABLE IF NOT EXISTS ingredients (
     unite_mesure VARCHAR(20) NOT NULL,
     seuil_alerte DECIMAL(10,2),
     fournisseur VARCHAR(100),
+    supplier_id BIGINT REFERENCES suppliers(id) ON DELETE SET NULL,
+    code_barre VARCHAR(100) UNIQUE,
     numero_lot VARCHAR(100),
     date_peremption TIMESTAMP,
     prix_unitaire DECIMAL(10,4) DEFAULT 0,
     degre_alcool DECIMAL(5,2) DEFAULT 0.0,
     is_vegan BOOLEAN DEFAULT true,
+    category VARCHAR(50) DEFAULT 'other',
+    purchase_unit VARCHAR(50),
+    packaging_capacity DECIMAL(10,3) DEFAULT 1.000,
+    packaging_price_ht DECIMAL(10,2),
+    is_crafted BOOLEAN DEFAULT false,
+    is_purchasable BOOLEAN DEFAULT true,
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_ingredients_supplier_id ON ingredients(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_ingredients_code_barre ON ingredients(code_barre);
 
 CREATE TABLE IF NOT EXISTS ingredient_allergens (
     ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
@@ -95,6 +124,19 @@ CREATE TABLE IF NOT EXISTS ingredient_allergens (
 );
 
 CREATE INDEX IF NOT EXISTS idx_ingredient_allergens_ingredient_id ON ingredient_allergens(ingredient_id);
+
+CREATE TABLE IF NOT EXISTS ingredient_confection_sources (
+    id BIGSERIAL PRIMARY KEY,
+    crafted_ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+    source_ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+    yield_ratio DECIMAL(10,4) NOT NULL,
+    yield_unit VARCHAR(20),
+    notes TEXT,
+    UNIQUE(crafted_ingredient_id, source_ingredient_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_confection_sources_crafted ON ingredient_confection_sources(crafted_ingredient_id);
+CREATE INDEX IF NOT EXISTS idx_confection_sources_source ON ingredient_confection_sources(source_ingredient_id);
 
 CREATE TABLE IF NOT EXISTS cocktail_ingredients (
     id BIGSERIAL PRIMARY KEY,
@@ -217,16 +259,16 @@ CREATE TABLE IF NOT EXISTS table_appels (
     id BIGSERIAL PRIMARY KEY,
     table_id BIGINT NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
     type VARCHAR(30) NOT NULL,
-    statut VARCHAR(30) NOT NULL DEFAULT 'EN_ATTENTE',
-    commentaire VARCHAR(255),
-    acquitte_par VARCHAR(100),
+    status VARCHAR(30) NOT NULL DEFAULT 'EN_ATTENTE',
+    comment VARCHAR(255),
+    acknowledged_by VARCHAR(100),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    acquitte_at TIMESTAMP
+    acknowledged_at TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_table_appels_table_statut ON table_appels(table_id, statut);
-CREATE INDEX IF NOT EXISTS idx_table_appels_statut ON table_appels(statut);
+CREATE INDEX IF NOT EXISTS idx_table_appels_table_status ON table_appels(table_id, status);
+CREATE INDEX IF NOT EXISTS idx_table_appels_status ON table_appels(status);
 
 CREATE TABLE IF NOT EXISTS table_sessions (
     id BIGSERIAL PRIMARY KEY,
@@ -267,6 +309,8 @@ CREATE TABLE IF NOT EXISTS table_cart_items (
     cocktail_variante_id BIGINT REFERENCES cocktail_variantes(id) ON DELETE SET NULL,
     quantite INTEGER NOT NULL DEFAULT 1 CHECK (quantite > 0),
     notes VARCHAR(500),
+    is_mystery_drink BOOLEAN DEFAULT false,
+    prix_override DECIMAL(10,2),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -274,10 +318,31 @@ CREATE TABLE IF NOT EXISTS table_cart_items (
 CREATE INDEX IF NOT EXISTS idx_table_cart_items_table_id ON table_cart_items(table_id);
 CREATE INDEX IF NOT EXISTS idx_table_cart_items_guest ON table_cart_items(table_id, guest_session_id);
 
--- 5. Orders & Items
+-- 5. Customer Bar Tabs & Running Ledgers
+CREATE TABLE IF NOT EXISTS bar_tabs (
+    id BIGSERIAL PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    client_reference VARCHAR(100),
+    notes TEXT,
+    caution_montant DECIMAL(10,2) DEFAULT 0.00,
+    statut VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
+    serveur_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    table_originale_id BIGINT REFERENCES tables(id) ON DELETE SET NULL,
+    opened_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    settled_at TIMESTAMP,
+    total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_bar_tabs_statut ON bar_tabs(statut);
+CREATE INDEX IF NOT EXISTS idx_bar_tabs_serveur ON bar_tabs(serveur_id);
+
+-- 6. Orders & Items
 CREATE TABLE IF NOT EXISTS commandes (
     id BIGSERIAL PRIMARY KEY,
     table_id BIGINT REFERENCES tables(id) ON DELETE SET NULL,
+    bar_tab_id BIGINT REFERENCES bar_tabs(id) ON DELETE SET NULL,
     serveur_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
     tracking_token VARCHAR(255) UNIQUE,
     statut VARCHAR(20) NOT NULL,
@@ -300,6 +365,7 @@ CREATE INDEX IF NOT EXISTS idx_commandes_client_request_id ON commandes(client_r
 CREATE INDEX IF NOT EXISTS idx_commandes_statut ON commandes(statut);
 CREATE INDEX IF NOT EXISTS idx_commandes_table_id ON commandes(table_id);
 CREATE INDEX IF NOT EXISTS idx_commandes_date_commande ON commandes(date_commande);
+CREATE INDEX IF NOT EXISTS idx_commandes_bar_tab ON commandes(bar_tab_id);
 
 CREATE TABLE IF NOT EXISTS commande_items (
     id BIGSERIAL PRIMARY KEY,
@@ -310,6 +376,7 @@ CREATE TABLE IF NOT EXISTS commande_items (
     prix_unitaire DECIMAL(10,2) NOT NULL,
     notes TEXT,
     prioritaire BOOLEAN DEFAULT false,
+    is_mystery_drink BOOLEAN DEFAULT false,
     station VARCHAR(30) DEFAULT 'BAR',
     statut VARCHAR(30) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -321,10 +388,11 @@ CREATE INDEX IF NOT EXISTS idx_commande_items_statut ON commande_items(statut);
 CREATE INDEX IF NOT EXISTS idx_commande_items_commande_id ON commande_items(commande_id);
 CREATE INDEX IF NOT EXISTS idx_commande_items_cocktail_id ON commande_items(cocktail_id);
 
--- 6. Billing, Invoices, Items & Credit Notes
+-- 7. Billing, Invoices, Items & Credit Notes
 CREATE TABLE IF NOT EXISTS factures (
     id BIGSERIAL PRIMARY KEY,
     table_id BIGINT REFERENCES tables(id) ON DELETE SET NULL,
+    bar_tab_id BIGINT REFERENCES bar_tabs(id) ON DELETE SET NULL,
     numero VARCHAR(50) UNIQUE NOT NULL,
     total DECIMAL(10,2) NOT NULL,
     pourboire DECIMAL(10,2) DEFAULT 0,
@@ -338,6 +406,11 @@ CREATE TABLE IF NOT EXISTS factures (
     archived_pdf_path VARCHAR(500),
     pdf_hash VARCHAR(64),
     mode_paiement VARCHAR(50),
+    tpe_autorisation VARCHAR(50),
+    tpe_terminal_id VARCHAR(50),
+    tpe_card_brand VARCHAR(50),
+    tpe_masked_pan VARCHAR(50),
+    tpe_sequence VARCHAR(50),
     notes TEXT,
     date_facture TIMESTAMP,
     date_emission TIMESTAMP,
@@ -349,6 +422,7 @@ CREATE TABLE IF NOT EXISTS factures (
 CREATE INDEX IF NOT EXISTS idx_factures_table_id ON factures(table_id);
 CREATE INDEX IF NOT EXISTS idx_factures_reglee ON factures(reglee);
 CREATE INDEX IF NOT EXISTS idx_factures_date_facture ON factures(date_facture);
+CREATE INDEX IF NOT EXISTS idx_factures_bar_tab ON factures(bar_tab_id);
 
 CREATE TABLE IF NOT EXISTS facture_items (
     id BIGSERIAL PRIMARY KEY,
@@ -367,8 +441,6 @@ CREATE TABLE IF NOT EXISTS facture_items (
 );
 
 CREATE INDEX IF NOT EXISTS idx_facture_items_facture_id ON facture_items(facture_id);
-ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS notes TEXT;
-ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS guest_name VARCHAR(100);
 
 CREATE TABLE IF NOT EXISTS facture_reglements (
     id BIGSERIAL PRIMARY KEY,
@@ -380,6 +452,11 @@ CREATE TABLE IF NOT EXISTS facture_reglements (
     pourboire DECIMAL(10,2) DEFAULT 0,
     total_regle DECIMAL(10,2) NOT NULL,
     mode_paiement VARCHAR(50) NOT NULL,
+    tpe_autorisation VARCHAR(50),
+    tpe_terminal_id VARCHAR(50),
+    tpe_card_brand VARCHAR(50),
+    tpe_masked_pan VARCHAR(50),
+    tpe_sequence VARCHAR(50),
     type_split VARCHAR(20) NOT NULL DEFAULT 'EGAL',
     items_json TEXT,
     date_reglement TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -424,6 +501,9 @@ CREATE TABLE IF NOT EXISTS app_settings (
     currency_code VARCHAR(3) NOT NULL,
     currency_symbol VARCHAR(10) NOT NULL,
     currency_position VARCHAR(10) NOT NULL,
+    unit_system VARCHAR(20) DEFAULT 'METRIC_CL',
+    volume_unit VARCHAR(20) DEFAULT 'cl',
+    weight_unit VARCHAR(20) DEFAULT 'g',
     temps_alerte_warning_minutes INTEGER NOT NULL,
     temps_alerte_commande_minutes INTEGER NOT NULL,
     temps_alerte_critique_commande_minutes INTEGER NOT NULL,
@@ -441,7 +521,17 @@ CREATE TABLE IF NOT EXISTS app_settings (
     cash_desk_printer_ip VARCHAR(100),
     printer_port INTEGER DEFAULT 9100,
     direct_printing_enabled BOOLEAN DEFAULT false,
+    tpe_enabled BOOLEAN DEFAULT false,
+    tpe_simulator_enabled BOOLEAN DEFAULT true,
+    tpe_bar_ip VARCHAR(100),
+    tpe_floor_ip VARCHAR(100),
+    tpe_port INTEGER DEFAULT 8888,
+    tpe_terminal_id VARCHAR(50) DEFAULT '01',
+    tpe_timeout_seconds INTEGER DEFAULT 45,
     cash_denominations_json TEXT,
+    storage_locations_json TEXT DEFAULT '["Bar Principal", "Arrière-bar", "Cave à vins & Spiritueux", "Chambre froide fûts"]',
+    printers_json TEXT,
+    tpe_terminals_json TEXT,
     updated_at TIMESTAMP
 );
 
@@ -472,6 +562,17 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     module_qr_client_ordering_enabled BOOLEAN DEFAULT true,
     module_stock_tracking_enabled BOOLEAN DEFAULT true,
     module_cash_drawer_enabled BOOLEAN DEFAULT true,
+    module_bar_tabs_enabled BOOLEAN DEFAULT true,
+    module_cocktail_library_enabled BOOLEAN DEFAULT true,
+    module_suppliers_management_enabled BOOLEAN DEFAULT true,
+    module_inventory_audit_enabled BOOLEAN DEFAULT true,
+    module_mystery_roulette_enabled BOOLEAN DEFAULT true,
+    module_payment_terminal_enabled BOOLEAN DEFAULT true,
+    roulette_price_cocktail DECIMAL(10,2) DEFAULT 7.50,
+    roulette_price_mocktail DECIMAL(10,2) DEFAULT 5.50,
+    roulette_stock_bias VARCHAR(30) DEFAULT 'BALANCED',
+    roulette_sound_profile VARCHAR(30) DEFAULT 'CSGO',
+    roulette_display_pin VARCHAR(10) DEFAULT '7777',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -649,12 +750,157 @@ CREATE TABLE IF NOT EXISTS cash_movements (
 
 CREATE INDEX IF NOT EXISTS idx_cash_movements_session ON cash_movements(session_id);
 CREATE INDEX IF NOT EXISTS idx_cash_movements_date ON cash_movements(movement_date);
-CREATE INDEX IF NOT EXISTS idx_cash_movements_type ON cash_movements(type);
+-- 15. Purchase Orders, Goods Delivery (BL) & PAMP
+CREATE TABLE IF NOT EXISTS purchase_orders (
+    id BIGSERIAL PRIMARY KEY,
+    reference VARCHAR(50) NOT NULL UNIQUE,
+    supplier_id BIGINT NOT NULL REFERENCES suppliers(id) ON DELETE RESTRICT,
+    date_commande TIMESTAMP NOT NULL,
+    date_livraison_prevue TIMESTAMP,
+    date_reception TIMESTAMP,
+    statut VARCHAR(30) NOT NULL DEFAULT 'DRAFT',
+    notes TEXT,
+    total_ht DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    total_tva DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    total_ttc DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    created_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
--- Idempotent column migrations
-ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS degre_alcool DECIMAL(5,2) DEFAULT 0.0;
-ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS is_vegan BOOLEAN DEFAULT true;
-ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_cash_drawer_enabled BOOLEAN DEFAULT true;
-ALTER TABLE daily_cash_closures ADD COLUMN IF NOT EXISTS total_cash_in DECIMAL(10,2) DEFAULT 0.00;
-ALTER TABLE daily_cash_closures ADD COLUMN IF NOT EXISTS total_cash_out DECIMAL(10,2) DEFAULT 0.00;
-ALTER TABLE daily_cash_closures ADD COLUMN IF NOT EXISTS cash_movements_json TEXT;
+CREATE INDEX IF NOT EXISTS idx_purchase_orders_supplier ON purchase_orders(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_purchase_orders_statut ON purchase_orders(statut);
+CREATE INDEX IF NOT EXISTS idx_purchase_orders_date_commande ON purchase_orders(date_commande);
+
+CREATE TABLE IF NOT EXISTS purchase_order_items (
+    id BIGSERIAL PRIMARY KEY,
+    purchase_order_id BIGINT NOT NULL REFERENCES purchase_orders(id) ON DELETE CASCADE,
+    ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE RESTRICT,
+    quantite_commandee DECIMAL(10,2) NOT NULL,
+    quantite_recue DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    prix_unitaire_ht DECIMAL(10,2) NOT NULL,
+    taux_tva DECIMAL(5,2) NOT NULL DEFAULT 20.00,
+    purchase_unit VARCHAR(50),
+    packaging_capacity DECIMAL(10,3) DEFAULT 1.000
+);
+
+CREATE INDEX IF NOT EXISTS idx_po_items_po_id ON purchase_order_items(purchase_order_id);
+CREATE INDEX IF NOT EXISTS idx_po_items_ingredient ON purchase_order_items(ingredient_id);
+
+CREATE TABLE IF NOT EXISTS purchase_order_deliveries (
+    id BIGSERIAL PRIMARY KEY,
+    purchase_order_id BIGINT NOT NULL REFERENCES purchase_orders(id) ON DELETE CASCADE,
+    date_reception TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    bon_livraison_ref VARCHAR(100),
+    received_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    notes TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_po_deliveries_order ON purchase_order_deliveries(purchase_order_id);
+
+CREATE TABLE IF NOT EXISTS purchase_order_delivery_items (
+    id BIGSERIAL PRIMARY KEY,
+    delivery_id BIGINT NOT NULL REFERENCES purchase_order_deliveries(id) ON DELETE CASCADE,
+    ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE RESTRICT,
+    quantite_recue DECIMAL(10,2) NOT NULL,
+    prix_unitaire_ht DECIMAL(10,2) NOT NULL,
+    ancien_pamp DECIMAL(10,4),
+    nouveau_pamp DECIMAL(10,4) NOT NULL,
+    purchase_unit VARCHAR(50),
+    packaging_capacity DECIMAL(10,3) DEFAULT 1.000,
+    stock_quantity_received DECIMAL(10,3)
+);
+
+CREATE INDEX IF NOT EXISTS idx_po_delivery_items_delivery ON purchase_order_delivery_items(delivery_id);
+CREATE INDEX IF NOT EXISTS idx_po_delivery_items_ingredient ON purchase_order_delivery_items(ingredient_id);
+
+-- 16. Periodic Physical Inventory Audit & Variance Reconciliation
+CREATE TABLE IF NOT EXISTS inventory_audit_sessions (
+    id BIGSERIAL PRIMARY KEY,
+    reference_code VARCHAR(50) NOT NULL UNIQUE,
+    title VARCHAR(255) NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'DRAFT',
+    storage_location_scope VARCHAR(100) DEFAULT 'ALL',
+    category_scope VARCHAR(50),
+    created_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    finalized_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    started_at TIMESTAMP,
+    finalized_at TIMESTAMP,
+    notes TEXT,
+    total_theoretical_value_ht DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    total_counted_value_ht DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    total_variance_value_ht DECIMAL(12,2) NOT NULL DEFAULT 0.00
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_sessions_status ON inventory_audit_sessions(status);
+CREATE INDEX IF NOT EXISTS idx_audit_sessions_created_at ON inventory_audit_sessions(created_at);
+
+CREATE TABLE IF NOT EXISTS inventory_audit_items (
+    id BIGSERIAL PRIMARY KEY,
+    session_id BIGINT NOT NULL REFERENCES inventory_audit_sessions(id) ON DELETE CASCADE,
+    ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE RESTRICT,
+    theoretical_quantity DECIMAL(10,3) NOT NULL DEFAULT 0.000,
+    counted_quantity DECIMAL(10,3),
+    variance_quantity DECIMAL(10,3) NOT NULL DEFAULT 0.000,
+    unit_cost_ht DECIMAL(10,4) NOT NULL DEFAULT 0.0000,
+    theoretical_value_ht DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    counted_value_ht DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    variance_value_ht DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    notes TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_items_session_id ON inventory_audit_items(session_id);
+CREATE INDEX IF NOT EXISTS idx_audit_items_ingredient_id ON inventory_audit_items(ingredient_id);
+
+CREATE TABLE IF NOT EXISTS inventory_audit_location_counts (
+    id BIGSERIAL PRIMARY KEY,
+    audit_item_id BIGINT NOT NULL REFERENCES inventory_audit_items(id) ON DELETE CASCADE,
+    storage_location VARCHAR(100) NOT NULL DEFAULT 'Main Bar',
+    full_containers_count INTEGER NOT NULL DEFAULT 0,
+    partial_quantity DECIMAL(10,3) NOT NULL DEFAULT 0.000,
+    counted_quantity DECIMAL(10,3) NOT NULL DEFAULT 0.000,
+    notes TEXT,
+    counted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    counted_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_loc_counts_item_id ON inventory_audit_location_counts(audit_item_id);
+CREATE INDEX IF NOT EXISTS idx_audit_loc_counts_location ON inventory_audit_location_counts(storage_location);
+
+-- Stock Movements & Waste Tracking
+CREATE TABLE IF NOT EXISTS stock_movements (
+    id BIGSERIAL PRIMARY KEY,
+    ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+    quantity DECIMAL(10,2) NOT NULL,
+    unit VARCHAR(50) NOT NULL,
+    reason VARCHAR(50) NOT NULL CHECK (reason IN ('CASSE', 'PEREMPTION', 'OFFERT_PATRON', 'DEGUSTATION_STAFF', 'ERREUR_PREPARATION', 'INVENTORY_ADJUSTMENT', 'INVENTORY_SURPLUS')),
+    reported_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    notes TEXT,
+    cost DECIMAL(10,2) DEFAULT 0.00,
+    recorded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_stock_movements_ingredient ON stock_movements(ingredient_id);
+CREATE INDEX IF NOT EXISTS idx_stock_movements_recorded_at ON stock_movements(recorded_at);
+
+-- 18. Mystery Drink Roulette & Wheel Sectors
+CREATE TABLE IF NOT EXISTS roulette_wheel_sectors (
+    id BIGSERIAL PRIMARY KEY,
+    label VARCHAR(100) NOT NULL,
+    prize_type VARCHAR(30) NOT NULL,
+    cocktail_id BIGINT REFERENCES cocktails(id) ON DELETE SET NULL,
+    reward_text VARCHAR(255),
+    prix DECIMAL(10,2),
+    color_hex VARCHAR(30),
+    icon_name VARCHAR(50),
+    probability_weight INTEGER NOT NULL DEFAULT 1,
+    active BOOLEAN NOT NULL DEFAULT true,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_roulette_sectors_active ON roulette_wheel_sectors(active);
+CREATE INDEX IF NOT EXISTS idx_roulette_sectors_display_order ON roulette_wheel_sectors(display_order);

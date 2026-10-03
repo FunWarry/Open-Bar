@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { FactureService } from '../../../app/core/services/facture.service';
 import { environment } from '../../../environments/environment';
 import { Facture, ReglementRequest } from '../../../app/core/models/facture.model';
@@ -30,7 +30,7 @@ describe('FactureService', () => {
     TestBed.configureTestingModule({
       providers: [
         FactureService,
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
       ],
     });

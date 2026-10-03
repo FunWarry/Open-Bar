@@ -674,5 +674,187 @@ class PdfServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("cannot be null");
     }
+
+    @Test
+    void generatePurchaseOrderPdf_validOrderFrench_generatesValidPdf() {
+        Supplier supplier = new Supplier();
+        supplier.setNom("Brasserie du Mont-Blanc");
+        supplier.setContactNom("Sylvain Favre");
+        supplier.setEmail("contact@montblanc.fr");
+        supplier.setTelephone("+33 4 50 00 00 00");
+        supplier.setAdresse("125 Rue des Brasseurs, Annecy");
+        supplier.setConditionsPaiement("30 jours fin de mois");
+
+        Ingredient ing = new Ingredient();
+        ing.setNom("Bière Blanche");
+        ing.setUniteMesure("Bouteille");
+
+        PurchaseOrderItem item = new PurchaseOrderItem();
+        item.setIngredient(ing);
+        item.setQuantiteCommandee(BigDecimal.valueOf(24));
+        item.setQuantiteRecue(BigDecimal.ZERO);
+        item.setPrixUnitaireHt(BigDecimal.valueOf(2.50));
+        item.setTauxTva(BigDecimal.valueOf(20.0));
+
+        PurchaseOrder order = new PurchaseOrder();
+        order.setReference("BC-2026-0001");
+        order.setSupplier(supplier);
+        order.setStatut(PurchaseOrderStatus.ORDERED);
+        order.setDateCommande(LocalDateTime.of(2026, Month.SEPTEMBER, 20, 10, 0));
+        order.setDateLivraisonPrevue(LocalDateTime.of(2026, Month.SEPTEMBER, 22, 14, 0));
+        order.setNotes("Livraison par quai arrière.");
+        order.setTotalHt(BigDecimal.valueOf(60.00));
+        order.setTotalTva(BigDecimal.valueOf(12.00));
+        order.setTotalTtc(BigDecimal.valueOf(72.00));
+        order.setItems(List.of(item));
+
+        byte[] pdf = pdfService.generatePurchaseOrderPdf(order);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generatePurchaseOrderPdf_englishLocaleAndMinimalDetails_generatesValidPdf() {
+        EstablishmentConfig config = new EstablishmentConfig();
+        config.setLegalName("OpenBar English Pub");
+        config.setLanguage("en");
+        when(establishmentConfigService.getConfig()).thenReturn(config);
+
+        PurchaseOrder order = new PurchaseOrder();
+        order.setReference("PO-2026-9999");
+        order.setStatut(PurchaseOrderStatus.DRAFT);
+        order.setItems(new ArrayList<>());
+
+        byte[] pdf = pdfService.generatePurchaseOrderPdf(order);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generatePurchaseOrderPdf_withNullOrder_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> pdfService.generatePurchaseOrderPdf(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("cannot be null");
+    }
+
+    @Test
+    void generateInventoryAuditPdf_withNullSession_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> pdfService.generateInventoryAuditPdf(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("cannot be null");
+    }
+
+    @Test
+    void generateInventoryAuditPdf_frenchLocaleWithDiscrepancies_generatesValidPdf() {
+        EstablishmentConfig config = new EstablishmentConfig();
+        config.setLegalName("Bar Central");
+        config.setLanguage("fr");
+        config.setAddress("12 Rue de la Paix");
+        config.setPhone("+33 1 23 45 67 89");
+        when(establishmentConfigService.getConfig()).thenReturn(config);
+
+        InventoryAuditSession session = new InventoryAuditSession();
+        session.setId(42L);
+        session.setReferenceCode("INV-20260927-042");
+        session.setTitle("Inventaire Mensuel Cave");
+        session.setStatus(InventoryAuditStatus.FINALIZED);
+        session.setStorageLocationScope("Cave");
+        session.setCategoryScope("Alcools");
+        session.setCreatedAt(LocalDateTime.of(2026, Month.SEPTEMBER, 27, 9, 0));
+        session.setFinalizedAt(LocalDateTime.of(2026, Month.SEPTEMBER, 27, 12, 0));
+        session.setTotalTheoreticalValueHt(BigDecimal.valueOf(5000.00));
+        session.setTotalCountedValueHt(BigDecimal.valueOf(4800.00));
+        session.setTotalVarianceValueHt(BigDecimal.valueOf(-200.00));
+
+        User manager = new User();
+        manager.setNom("Lemoine");
+        manager.setPrenom("Claire");
+        manager.setUsername("claire");
+        session.setCreatedBy(manager);
+        session.setFinalizedBy(manager);
+
+        Ingredient ing1 = new Ingredient();
+        ing1.setId(1L);
+        ing1.setNom("Vodka Premium");
+        ing1.setUniteMesure("cl");
+        ing1.setCategory("Spirits");
+
+        InventoryAuditItem itemLoss = new InventoryAuditItem();
+        itemLoss.setId(101L);
+        itemLoss.setIngredient(ing1);
+        itemLoss.setTheoreticalQuantity(BigDecimal.valueOf(140.0));
+        itemLoss.setCountedQuantity(BigDecimal.valueOf(100.0));
+        itemLoss.setVarianceQuantity(BigDecimal.valueOf(-40.0));
+        itemLoss.setUnitCostHt(BigDecimal.valueOf(25.00));
+        itemLoss.setTheoreticalValueHt(BigDecimal.valueOf(3500.00));
+        itemLoss.setCountedValueHt(BigDecimal.valueOf(2500.00));
+        itemLoss.setVarianceValueHt(BigDecimal.valueOf(-1000.00));
+
+        Ingredient ing2 = new Ingredient();
+        ing2.setId(2L);
+        ing2.setNom("Gin Bio");
+        ing2.setUniteMesure("cl");
+        ing2.setCategory("Spirits");
+
+        InventoryAuditItem itemSurplus = new InventoryAuditItem();
+        itemSurplus.setId(102L);
+        itemSurplus.setIngredient(ing2);
+        itemSurplus.setTheoreticalQuantity(BigDecimal.valueOf(70.0));
+        itemSurplus.setCountedQuantity(BigDecimal.valueOf(105.0));
+        itemSurplus.setVarianceQuantity(BigDecimal.valueOf(35.0));
+        itemSurplus.setUnitCostHt(BigDecimal.valueOf(20.00));
+        itemSurplus.setTheoreticalValueHt(BigDecimal.valueOf(1400.00));
+        itemSurplus.setCountedValueHt(BigDecimal.valueOf(2100.00));
+        itemSurplus.setVarianceValueHt(BigDecimal.valueOf(700.00));
+
+        Ingredient ing3 = new Ingredient();
+        ing3.setId(3L);
+        ing3.setNom("Sirop Orgeat");
+        ing3.setUniteMesure("cl");
+        ing3.setCategory("Syrup");
+
+        InventoryAuditItem itemEqual = new InventoryAuditItem();
+        itemEqual.setId(103L);
+        itemEqual.setIngredient(ing3);
+        itemEqual.setTheoreticalQuantity(BigDecimal.valueOf(100.0));
+        itemEqual.setCountedQuantity(BigDecimal.valueOf(100.0));
+        itemEqual.setVarianceQuantity(BigDecimal.ZERO);
+        itemEqual.setUnitCostHt(BigDecimal.valueOf(1.00));
+        itemEqual.setTheoreticalValueHt(BigDecimal.valueOf(100.00));
+        itemEqual.setCountedValueHt(BigDecimal.valueOf(100.00));
+        itemEqual.setVarianceValueHt(BigDecimal.ZERO);
+
+        session.setItems(List.of(itemLoss, itemSurplus, itemEqual));
+
+        byte[] pdf = pdfService.generateInventoryAuditPdf(session);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generateInventoryAuditPdf_englishLocaleAndMinimalData_generatesValidPdf() {
+        EstablishmentConfig config = new EstablishmentConfig();
+        config.setLegalName("Pub London");
+        config.setLanguage("en");
+        when(establishmentConfigService.getConfig()).thenReturn(config);
+
+        InventoryAuditSession session = new InventoryAuditSession();
+        session.setReferenceCode("INV-EN-001");
+        session.setTitle("Draft Inventory");
+        session.setStatus(InventoryAuditStatus.DRAFT);
+        session.setItems(new ArrayList<>());
+
+        byte[] pdf = pdfService.generateInventoryAuditPdf(session);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
 }
 

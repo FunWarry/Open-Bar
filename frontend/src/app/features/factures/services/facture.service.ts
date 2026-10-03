@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { Facture, FactureReglement, EncaisserPartRequest } from '../models/facture.model';
+import { Facture, FactureReglement, EncaisserPartRequest, TableAdditionResponse } from '../models/facture.model';
 /**
  * Line item data transfer representation for bill splitting calculations.
  */
@@ -100,5 +100,35 @@ export class FactureService {
    */
   getReglements(factureId: number): Observable<FactureReglement[]> {
     return this.http.get<FactureReglement[]>(`${this.apiUrl}/${factureId}/reglements`);
+  }
+
+  /**
+   * Generates or retrieves an unpaid pending invoice for an occupied table from its active orders.
+   *
+   * @param tableId Target table ID
+   * @returns Observable of generated or existing pending Facture
+   */
+  genererFactureTable(tableId: number): Observable<Facture> {
+    return this.http.post<Facture>(`${this.apiUrl}/table/${tableId}/generer`, {});
+  }
+
+  /**
+   * Generates or retrieves an unpaid pending invoice for an active bar tab from its active orders.
+   *
+   * @param tabId Target bar tab ID
+   * @returns Observable of generated or existing pending Facture
+   */
+  genererFactureTab(tabId: number): Observable<Facture> {
+    return this.http.post<Facture>(`${this.apiUrl}/tab/${tabId}/generer`, {});
+  }
+
+  /**
+   * Calculates the detailed bill breakdown for an occupied table.
+   *
+   * @param tableId Target table ID
+   * @returns Observable of TableAdditionResponse
+   */
+  getTableAddition(tableId: number): Observable<TableAdditionResponse> {
+    return this.http.get<TableAdditionResponse>(`${this.apiUrl}/table/${tableId}/addition`);
   }
 }

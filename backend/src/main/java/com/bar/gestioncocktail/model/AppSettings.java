@@ -70,6 +70,20 @@ public class AppSettings {
     @Column(name = "currency_position", nullable = false, length = 10)
     private CurrencyPosition currencyPosition = CurrencyPosition.AFTER;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "unit_system", length = 20)
+    private UnitSystem unitSystem = UnitSystem.METRIC_CL;
+
+    @NotBlank(message = "Volume unit is required")
+    @Size(max = 20, message = "Volume unit cannot exceed 20 characters")
+    @Column(name = "volume_unit", length = 20)
+    private String volumeUnit = "cl";
+
+    @NotBlank(message = "Weight unit is required")
+    @Size(max = 20, message = "Weight unit cannot exceed 20 characters")
+    @Column(name = "weight_unit", length = 20)
+    private String weightUnit = "g";
+
     @jakarta.validation.constraints.NotNull(message = "Order warning alert time is required")
     @jakarta.validation.constraints.Min(value = 1, message = "Warning alert time must be at least 1 minute")
     @jakarta.validation.constraints.Max(value = 120, message = "Warning alert time cannot exceed 120 minutes")
@@ -114,19 +128,19 @@ public class AppSettings {
     @NotNull(message = "Default VAT rate is required")
     @DecimalMin(value = "0.0", message = "VAT rate cannot be negative")
     @DecimalMax(value = "100.0", message = "VAT rate cannot exceed 100%")
-    @Column(name = "default_vat_rate", nullable = false)
+    @Column(name = "default_vat_rate")
     private BigDecimal defaultVatRate = new BigDecimal("20.00");
 
     @NotNull(message = "Target gross margin percentage is required")
     @DecimalMin(value = "1.0", message = "Target margin must be at least 1%")
     @DecimalMax(value = "100.0", message = "Target margin cannot exceed 100%")
-    @Column(name = "target_gross_margin_percentage", nullable = false)
+    @Column(name = "target_gross_margin_percentage")
     private BigDecimal targetGrossMarginPercentage = new BigDecimal("70.00");
 
     @NotNull(message = "Warning gross margin percentage is required")
     @DecimalMin(value = "0.0", message = "Warning margin cannot be negative")
     @DecimalMax(value = "100.0", message = "Warning margin cannot exceed 100%")
-    @Column(name = "warning_gross_margin_percentage", nullable = false)
+    @Column(name = "warning_gross_margin_percentage")
     private BigDecimal warningGrossMarginPercentage = new BigDecimal("50.00");
 
     @Size(max = 100, message = "Bar printer IP cannot exceed 100 characters")
@@ -149,14 +163,108 @@ public class AppSettings {
     @Column(name = "direct_printing_enabled")
     private Boolean directPrintingEnabled = false;
 
+    @Column(name = "tpe_enabled")
+    private Boolean tpeEnabled = false;
+
+    @Column(name = "tpe_simulator_enabled")
+    private Boolean tpeSimulatorEnabled = true;
+
+    @Size(max = 100, message = "Bar TPE IP cannot exceed 100 characters")
+    @Column(name = "tpe_bar_ip", length = 100)
+    private String tpeBarIp;
+
+    @Size(max = 100, message = "Floor TPE IP cannot exceed 100 characters")
+    @Column(name = "tpe_floor_ip", length = 100)
+    private String tpeFloorIp;
+
+    @jakarta.validation.constraints.Min(value = 1, message = "TPE port must be at least 1")
+    @jakarta.validation.constraints.Max(value = 65535, message = "TPE port cannot exceed 65535")
+    @Column(name = "tpe_port")
+    private Integer tpePort = 8888;
+
+    @Size(max = 50, message = "TPE terminal ID cannot exceed 50 characters")
+    @Column(name = "tpe_terminal_id", length = 50)
+    private String tpeTerminalId = "01";
+
+    @jakarta.validation.constraints.Min(value = 5, message = "TPE timeout must be at least 5 seconds")
+    @jakarta.validation.constraints.Max(value = 300, message = "TPE timeout cannot exceed 300 seconds")
+    @Column(name = "tpe_timeout_seconds")
+    private Integer tpeTimeoutSeconds = 45;
+
     /**
      * Serialized JSON configuration of physical banknotes and coins used for cash drawer counting.
      */
     @Column(name = "cash_denominations_json", columnDefinition = "TEXT")
     private String cashDenominationsJson;
 
+    /**
+     * Serialized JSON configuration of inventory storage and service locations (zones de stockage & service).
+     */
+    @Column(name = "storage_locations_json", columnDefinition = "TEXT")
+    private String storageLocationsJson = "[\"Bar Principal\", \"Arrière-bar\", \"Cave à vins & Spiritueux\", \"Chambre froide fûts\"]";
+
+    /**
+     * Serialized JSON configuration of ESC/POS network receipt and kitchen printers.
+     */
+    @Column(name = "printers_json", columnDefinition = "TEXT")
+    private String printersJson;
+
+    /**
+     * Serialized JSON configuration of Concert / CB IP payment terminals (TPEs).
+     */
+    @Column(name = "tpe_terminals_json", columnDefinition = "TEXT")
+    private String tpeTerminalsJson;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public UnitSystem getUnitSystem() {
+        return unitSystem != null ? unitSystem : UnitSystem.METRIC_CL;
+    }
+
+    public String getVolumeUnit() {
+        return (volumeUnit != null && !volumeUnit.isBlank()) ? volumeUnit : "cl";
+    }
+
+    public String getWeightUnit() {
+        return (weightUnit != null && !weightUnit.isBlank()) ? weightUnit : "g";
+    }
+
+    public BigDecimal getDefaultVatRate() {
+        return defaultVatRate != null ? defaultVatRate : new BigDecimal("20.00");
+    }
+
+    public BigDecimal getTargetGrossMarginPercentage() {
+        return targetGrossMarginPercentage != null ? targetGrossMarginPercentage : new BigDecimal("70.00");
+    }
+
+    public BigDecimal getWarningGrossMarginPercentage() {
+        return warningGrossMarginPercentage != null ? warningGrossMarginPercentage : new BigDecimal("50.00");
+    }
+
+    public String getPrintersJson() {
+        return printersJson;
+    }
+
+    public void setPrintersJson(String printersJson) {
+        this.printersJson = printersJson;
+    }
+
+    public String getTpeTerminalsJson() {
+        return tpeTerminalsJson;
+    }
+
+    public void setTpeTerminalsJson(String tpeTerminalsJson) {
+        this.tpeTerminalsJson = tpeTerminalsJson;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
     @PrePersist
     @PreUpdate

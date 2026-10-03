@@ -1,0 +1,132 @@
+.modal-header {
+  --background: var(--background-surface-1);
+  border-bottom: 1px solid var(--border-subtle);
+
+  .modal-toolbar {
+    --background: transparent;
+    padding: 8px 16px;
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .header-icon-badge {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-md, 8px);
+        background: var(--semantic-warning-light, rgba(245, 158, 11, 0.15));
+        color: var(--semantic-warning);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+      }
+
+      .modal-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        padding: 0;
+      }
+    }
+  }
+}
+
+.modal-content {
+  --background: var(--background-surface-0, var(--background-bg-0));
+
+  .session-modal-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 16px 8px;
+    gap: 16px;
+
+    .warning-icon-wrapper {
+      .warning-icon-circle {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: var(--semantic-warning-light, rgba(245, 158, 11, 0.12));
+        color: var(--semantic-warning);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        animation: pulseWarning 2s infinite ease-in-out;
+      }
+    }
+
+    .countdown-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 24px;
+      border-radius: var(--radius-lg, 12px);
+      background: var(--background-surface-1);
+      border: 1px solid var(--border-medium);
+      width: 100%;
+      max-width: 320px;
+
+      .countdown-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+      }
+
+      .countdown-timer {
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: 2px;
+        font-variant-numeric: tabular-nums;
+        color: var(--semantic-warning);
+      }
+    }
+
+    .explanation-text {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      margin: 0;
+      max-width: 360px;
+    }
+  }
+}
+
+.modal-footer {
+  --background: var(--background-surface-1);
+  border-top: 1px solid var(--border-subtle);
+  padding: 12px 16px;
+
+  .footer-actions-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+
+    .btn-extend {
+      --border-radius: var(--radius-md, 8px);
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .btn-logout {
+      --border-radius: var(--radius-md, 8px);
+      font-weight: 600;
+      margin: 0;
+    }
+  }
+}
+
+@keyframes pulseWarning {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 var(--semantic-warning-light, rgba(245, 158, 11, 0.4));
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px transparent;
+  }
+}

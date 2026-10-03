@@ -22,6 +22,10 @@ public class Facture {
     @JoinColumn(name = "table_id", nullable = true)
     private TableEntity table;
 
+    @ManyToOne
+    @JoinColumn(name = "bar_tab_id", nullable = true)
+    private BarTab barTab;
+
     @OneToMany(mappedBy = "facture", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<FactureItem> items = new ArrayList<>();
 
@@ -67,6 +71,22 @@ public class Facture {
 
     @Column(name = "mode_paiement")
     private String modePaiement;
+
+    @Column(name = "tpe_autorisation", length = 50)
+    private String tpeAutorisation;
+
+    @Column(name = "tpe_terminal_id", length = 50)
+    private String tpeTerminalId;
+
+    @Column(name = "tpe_card_brand", length = 50)
+    private String tpeCardBrand;
+
+    @Column(name = "tpe_masked_pan", length = 50)
+    private String tpeMaskedPan;
+
+    @Column(name = "tpe_sequence", length = 50)
+    private String tpeSequence;
+
     private String notes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -83,5 +103,21 @@ public class Facture {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 } 

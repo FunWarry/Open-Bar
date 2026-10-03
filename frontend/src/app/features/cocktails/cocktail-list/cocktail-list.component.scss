@@ -264,7 +264,7 @@
 
     &.active {
       background: var(--primary);
-      color: #ffffff;
+      color: var(--text-on-accent);
       font-weight: 700;
       box-shadow: 0 2px 10px rgba(108, 127, 232, 0.45);
     }
@@ -374,7 +374,7 @@
 
   &.active {
     background: var(--primary);
-    color: #ffffff;
+    color: var(--text-on-accent);
     border-color: var(--primary);
     box-shadow: 0 2px 10px rgba(108, 127, 232, 0.35);
   }
@@ -428,6 +428,13 @@
   white-space: nowrap;
   transition: all 0.2s ease;
 
+  .allergen-pill-emoji {
+    font-size: 0.9rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+  }
+
   &:hover {
     background: rgba(229, 96, 79, 0.15);
     color: var(--semantic-danger);
@@ -463,7 +470,7 @@
 
   &:hover {
     background: var(--semantic-danger);
-    color: #ffffff;
+    color: var(--text-on-accent);
   }
 }
 
@@ -510,20 +517,15 @@ app-cocktail-matcher-bar {
 }
 
 .figma-cocktail-card {
-  background: var(--background-surface-1);
-  border: 1px solid var(--border-medium);
-  border-radius: 14px;
-  overflow: hidden;
+  display: block;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--elev-1);
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+  width: 100%;
 
-  &:hover {
-    transform: translateY(-2px);
-    border-color: var(--primary);
-    box-shadow: var(--elev-2);
+  .figma-card-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
   }
 
   &.no-picture {
@@ -532,9 +534,6 @@ app-cocktail-matcher-bar {
 
   /* Unavailable / Grayscale Dimmed State (High Contrast against active cards) */
   &.unavailable {
-    background: var(--state-unavailable-bg);
-    border: 1.5px dashed var(--state-unavailable-border);
-    box-shadow: none;
 
     .figma-card-image-area img {
       filter: grayscale(1);
@@ -721,7 +720,7 @@ app-cocktail-matcher-bar {
 
   &:hover {
     background: var(--primary);
-    color: #ffffff;
+    color: var(--text-on-accent);
     border-color: var(--primary);
     box-shadow: 0 4px 12px rgba(108, 127, 232, 0.4);
     transform: translateY(-1px) scale(1.05);
@@ -837,7 +836,7 @@ app-cocktail-matcher-bar {
     }
 
     .slider-knob {
-      background: #ffffff;
+      background: var(--text-on-accent);
       transform: translateX(14px);
     }
 
@@ -870,10 +869,8 @@ app-cocktail-matcher-bar {
 }
 
 .cocktail-list-card {
-  background: var(--background-surface-1);
-  border: 1px solid var(--border-medium);
-  border-radius: 14px;
-  box-shadow: var(--elev-1);
+  display: block;
+  width: 100%;
 }
 
 .cocktail-list-item {
@@ -1009,3 +1006,194 @@ app-cocktail-matcher-bar {
     border: 1px solid var(--primary);
   }
 }
+
+/* ── Embedded Selection Mode (Waiter Order Taking) ── */
+.title-with-count.embedded-mode {
+  display: flex;
+  align-items: center;
+}
+
+.figma-cocktail-card.selection-mode {
+  cursor: pointer;
+
+  &:hover .app-card-container {
+    border-color: var(--primary);
+    box-shadow: var(--elev-2);
+    transform: translateY(-3px);
+  }
+
+  &.unavailable {
+    cursor: not-allowed;
+
+    &:hover .app-card-container {
+      transform: none;
+      border-color: var(--state-unavailable-border);
+      box-shadow: none;
+    }
+  }
+}
+
+.cocktail-list-item.selection-mode {
+  cursor: pointer;
+
+  &:hover {
+    --background: var(--background-surface-2);
+  }
+
+  &.unavailable {
+    cursor: not-allowed;
+
+    &:hover {
+      --background: transparent;
+    }
+  }
+}
+
+.selection-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary);
+  color: var(--text-on-accent);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-pill, 999px);
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--elev-1);
+
+  ion-icon {
+    font-size: 1rem;
+  }
+
+  &:hover:not(:disabled) {
+    background: var(--primary-strong, var(--primary));
+    transform: scale(1.03);
+    box-shadow: var(--elev-2);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+    background: var(--background-surface-3);
+    border-color: var(--border-medium);
+    color: var(--text-muted);
+  }
+
+  &.list-mode {
+    padding: 6px 12px;
+    font-size: 0.775rem;
+  }
+}
+
+.list-selection-wrapper {
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+}
+
+.cocktail-wheel-section {
+  margin-top: 1rem;
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg, 16px);
+  padding: 1.5rem;
+  box-shadow: var(--elev-1);
+}
+
+.figma-variant-indicator-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-pill, 999px);
+  padding: 4px 10px;
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  ion-icon {
+    font-size: 0.85rem;
+  }
+
+  &:hover {
+    background: var(--background-surface-3);
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: var(--elev-1);
+  }
+}
+
+.view-variants-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-pill, 999px);
+  padding: 6px 12px;
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  ion-icon {
+    font-size: 0.9rem;
+    color: var(--primary);
+  }
+
+  &:hover {
+    background: var(--background-surface-3);
+    border-color: var(--primary);
+    color: var(--primary);
+    box-shadow: var(--elev-1);
+  }
+}
+
+.list-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+.list-variant-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-pill, 999px);
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+
+  ion-icon {
+    font-size: 0.8rem;
+  }
+
+  &:hover {
+    background: var(--background-surface-3);
+    border-color: var(--primary);
+  }
+}
+

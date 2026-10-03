@@ -3,6 +3,7 @@ import {
   HttpClient,
   provideHttpClient,
   withInterceptors,
+  withXhr
 } from '@angular/common/http';
 import {
   HttpTestingController,
@@ -46,7 +47,7 @@ describe('offlineSyncInterceptor', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(withInterceptors([offlineSyncInterceptor])),
+        provideHttpClient(withXhr(), withInterceptors([offlineSyncInterceptor])),
         provideHttpClientTesting(),
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: TranslocoService, useValue: translocoSpy },

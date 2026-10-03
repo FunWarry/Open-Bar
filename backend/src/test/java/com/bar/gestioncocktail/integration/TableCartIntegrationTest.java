@@ -27,22 +27,27 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests multi-guest item additions, real-time shared cart view, quantity updates,
  * consolidated order submission to the bar, and cart purging upon table liberation.
  */
+
 class TableCartIntegrationTest extends BaseIntegrationTest {
 
-    @Autowired
-    private TableRepository tableRepository;
+    private final TableRepository tableRepository;
+    private final TableCartItemRepository tableCartItemRepository;
+    private final CocktailRepository cocktailRepository;
+    private final IngredientRepository ingredientRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
-    private TableCartItemRepository tableCartItemRepository;
-
-    @Autowired
-    private CocktailRepository cocktailRepository;
-
-    @Autowired
-    private IngredientRepository ingredientRepository;
-
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    TableCartIntegrationTest(TableRepository tableRepository,
+                             TableCartItemRepository tableCartItemRepository,
+                             CocktailRepository cocktailRepository,
+                             IngredientRepository ingredientRepository,
+                             ApplicationEventPublisher eventPublisher) {
+        this.tableRepository = tableRepository;
+        this.tableCartItemRepository = tableCartItemRepository;
+        this.cocktailRepository = cocktailRepository;
+        this.ingredientRepository = ingredientRepository;
+        this.eventPublisher = eventPublisher;
+    }
 
     private Long tableId;
     private Long cocktailId;

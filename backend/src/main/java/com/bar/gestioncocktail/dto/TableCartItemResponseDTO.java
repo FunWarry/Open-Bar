@@ -47,6 +47,26 @@ public record TableCartItemResponseDTO(
         String notes,
 
         @Schema(description = "Timestamp when added")
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+
+        @Schema(description = "Whether this drink is a won mystery drink", example = "true")
+        boolean isMysteryDrink
 ) {
+    public TableCartItemResponseDTO(
+            Long id,
+            String guestSessionId,
+            String guestName,
+            Long cocktailId,
+            String cocktailNom,
+            String cocktailImageUrl,
+            Long varianteId,
+            String varianteNom,
+            int quantite,
+            BigDecimal prixUnitaire,
+            BigDecimal totalLigne,
+            String notes,
+            LocalDateTime createdAt
+    ) {
+        this(id, guestSessionId, guestName, cocktailId, cocktailNom, cocktailImageUrl, varianteId, varianteNom, quantite, prixUnitaire, totalLigne, notes, createdAt, false);
+    }
 }

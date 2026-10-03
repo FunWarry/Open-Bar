@@ -54,6 +54,8 @@ class CommandeServiceTest {
     @Mock
     TableRepository tableRepository;
     @Mock
+    com.bar.gestioncocktail.repository.UserRepository userRepository;
+    @Mock
     ApplicationEventPublisher eventPublisher;
     @Spy
     TimeService timeService = new TimeService(null);
@@ -1058,6 +1060,258 @@ class CommandeServiceTest {
         assertThat(result.getItems().get(0).getStation()).isEqualTo(PreparationStation.BAR);
         assertThat(result.getItems().get(0).getStatut()).isEqualTo(CommandeStatut.EN_ATTENTE);
         verify(commandeRepository).save(cmdWithItems);
+    }
+
+    @Test
+    @DisplayName("createCommande - assigns authenticated user as server when no server is provided")
+    void createCommande_withoutServer_assignsAuthenticatedUser() {
+        org.springframework.security.core.Authentication auth = mock(org.springframework.security.core.Authentication.class);
+        when(auth.isAuthenticated()).thenReturn(true);
+        when(auth.getName()).thenReturn("admin");
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+
+        User adminUser = new User();
+        adminUser.setId(1L);
+        adminUser.setUsername("admin");
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(adminUser));
+
+        Commande cmd = new Commande();
+        Commande result = commandeService.createCommande(cmd);
+
+        assertThat(result.getServeur()).isNotNull();
+        assertThat(result.getServeur().getUsername()).isEqualTo("admin");
+
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    @DisplayName("createCommande - resolves full user when server ID is provided without username")
+    void createCommande_withServerIdOnly_resolvesUserEntity() {
+        User serverStub = new User();
+        serverStub.setId(42L);
+
+        User fullServer = new User();
+        fullServer.setId(42L);
+        fullServer.setUsername("serveur1");
+        when(userRepository.findById(42L)).thenReturn(Optional.of(fullServer));
+
+        Commande cmd = new Commande();
+        cmd.setServeur(serverStub);
+
+        Commande result = commandeService.createCommande(cmd);
+
+        assertThat(result.getServeur()).isNotNull();
+        assertThat(result.getServeur().getUsername()).isEqualTo("serveur1");
+    }
+
+    @Test
+    @DisplayName("createCommande - resolves server from table when order server is null and table has assigned server")
+    void createCommande_withTableServer_resolvesServerFromTable() {
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+
+        TableEntity table = new TableEntity();
+        table.setId(15L);
+        table.setServeurId(99L);
+        when(tableRepository.findById(15L)).thenReturn(Optional.of(table));
+
+        User tableServer = new User();
+        tableServer.setId(99L);
+        tableServer.setUsername("tableServeur");
+        when(userRepository.findById(99L)).thenReturn(Optional.of(tableServer));
+
+        Commande cmd = new Commande();
+        cmd.setTable(table);
+
+        Commande result = commandeService.createCommande(cmd);
+
+        assertThat(result.getServeur()).isNotNull();
+        assertThat(result.getServeur().getUsername()).isEqualTo("tableServeur");
+    }
+
+    @Test
+    @DisplayName("destockerIngredients - with crafted purchasable ingredient drains own stock first and cascades remainder to sources")
+    void destockerIngredients_withCraftedPurchasableIngredient_drainsOwnStockFirstAndCascades() {
+        Ingredient rawLemon = new Ingredient();
+        rawLemon.setId(101L);
+        rawLemon.setNom("Citron frais");
+        rawLemon.setQuantiteStock(new BigDecimal("10.00"));
+        rawLemon.setSeuilAlerte(new BigDecimal("2.00"));
+
+        Ingredient craftedJuice = new Ingredient();
+        craftedJuice.setId(102L);
+        craftedJuice.setNom("Jus de citron maison");
+        craftedJuice.setIsCrafted(true);
+        craftedJuice.setIsPurchasable(true);
+        craftedJuice.setQuantiteStock(new BigDecimal("5.00"));
+        craftedJuice.setSeuilAlerte(new BigDecimal("10.00"));
+
+        IngredientConfectionSource sourceMapping = new IngredientConfectionSource();
+        sourceMapping.setId(1L);
+        sourceMapping.setCraftedIngredient(craftedJuice);
+        sourceMapping.setSourceIngredient(rawLemon);
+        sourceMapping.setYieldRatio(new BigDecimal("3.00"));
+        craftedJuice.setConfectionSources(List.of(sourceMapping));
+
+        Cocktail sourCocktail = new Cocktail();
+        sourCocktail.setId(50L);
+        CocktailIngredient ci = new CocktailIngredient();
+        ci.setIngredient(craftedJuice);
+        ci.setQuantite(new BigDecimal("11.00"));
+        sourCocktail.setIngredients(List.of(ci));
+
+        CommandeItem orderItem = new CommandeItem();
+        orderItem.setCocktail(sourCocktail);
+        orderItem.setQuantite(1);
+
+        Commande cmd = new Commande();
+        cmd.setId(500L);
+        cmd.setStatut(CommandeStatut.EN_ATTENTE);
+        cmd.setItems(new ArrayList<>(List.of(orderItem)));
+
+        when(commandeRepository.findById(500L)).thenReturn(Optional.of(cmd));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(i -> i.getArgument(0));
+        when(ingredientRepository.findById(101L)).thenReturn(Optional.of(rawLemon));
+
+        commandeService.changerStatut(500L, CommandeStatut.EN_PREPARATION);
+
+        assertThat(craftedJuice.getQuantiteStock()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(rawLemon.getQuantiteStock()).isEqualByComparingTo(new BigDecimal("8.0000"));
+        verify(ingredientRepository, atLeastOnce()).save(craftedJuice);
+        verify(ingredientRepository, atLeastOnce()).save(rawLemon);
+    }
+
+    @Test
+    @DisplayName("destockerIngredients - with crafted non-purchasable ingredient cascades entire quantity to sources")
+    void destockerIngredients_withCraftedNonPurchasable_cascadesAllToSources() {
+        Ingredient rawMint = new Ingredient();
+        rawMint.setId(201L);
+        rawMint.setNom("Menthe bouquet");
+        rawMint.setQuantiteStock(new BigDecimal("50.00"));
+
+        Ingredient craftedSyrup = new Ingredient();
+        craftedSyrup.setId(202L);
+        craftedSyrup.setNom("Sirop de menthe maison");
+        craftedSyrup.setIsCrafted(true);
+        craftedSyrup.setIsPurchasable(false);
+        craftedSyrup.setQuantiteStock(BigDecimal.ZERO);
+
+        IngredientConfectionSource source = new IngredientConfectionSource();
+        source.setId(2L);
+        source.setCraftedIngredient(craftedSyrup);
+        source.setSourceIngredient(rawMint);
+        source.setYieldRatio(new BigDecimal("2.00"));
+        craftedSyrup.setConfectionSources(List.of(source));
+
+        Cocktail mojito = new Cocktail();
+        mojito.setId(60L);
+        CocktailIngredient ci = new CocktailIngredient();
+        ci.setIngredient(craftedSyrup);
+        ci.setQuantite(new BigDecimal("6.00"));
+        mojito.setIngredients(List.of(ci));
+
+        CommandeItem itemMojito = new CommandeItem();
+        itemMojito.setCocktail(mojito);
+        itemMojito.setQuantite(1);
+
+        Commande cmd = new Commande();
+        cmd.setId(600L);
+        cmd.setStatut(CommandeStatut.EN_ATTENTE);
+        cmd.setItems(new ArrayList<>(List.of(itemMojito)));
+
+        when(commandeRepository.findById(600L)).thenReturn(Optional.of(cmd));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(i -> i.getArgument(0));
+        when(ingredientRepository.findById(201L)).thenReturn(Optional.of(rawMint));
+
+        commandeService.changerStatut(600L, CommandeStatut.EN_PREPARATION);
+
+        assertThat(rawMint.getQuantiteStock()).isEqualByComparingTo(new BigDecimal("47.0000"));
+        verify(ingredientRepository).save(rawMint);
+    }
+
+    @Test
+    @DisplayName("annulerCommande - reincrements stock for crafted non-purchasable ingredients via sources")
+    void annulerCommande_reincrementsCraftedIngredientsViaSources() {
+        Ingredient rawOrange = new Ingredient();
+        rawOrange.setId(301L);
+        rawOrange.setNom("Orange");
+        rawOrange.setQuantiteStock(new BigDecimal("10.00"));
+
+        Ingredient craftedJuice = new Ingredient();
+        craftedJuice.setId(302L);
+        craftedJuice.setNom("Jus d orange presse");
+        craftedJuice.setIsCrafted(true);
+        craftedJuice.setIsPurchasable(false);
+
+        IngredientConfectionSource source = new IngredientConfectionSource();
+        source.setId(3L);
+        source.setCraftedIngredient(craftedJuice);
+        source.setSourceIngredient(rawOrange);
+        source.setYieldRatio(new BigDecimal("2.00"));
+        craftedJuice.setConfectionSources(List.of(source));
+
+        Cocktail mimosa = new Cocktail();
+        mimosa.setId(70L);
+        CocktailIngredient ci = new CocktailIngredient();
+        ci.setIngredient(craftedJuice);
+        ci.setQuantite(new BigDecimal("4.00"));
+        mimosa.setIngredients(List.of(ci));
+
+        CommandeItem itemMimosa = new CommandeItem();
+        itemMimosa.setCocktail(mimosa);
+        itemMimosa.setQuantite(1);
+
+        Commande cmd = new Commande();
+        cmd.setId(999L);
+        cmd.setStatut(CommandeStatut.EN_PREPARATION);
+        cmd.setDatePreparation(LocalDateTime.now());
+        cmd.setItems(new ArrayList<>(List.of(itemMimosa)));
+
+        when(ingredientRepository.findById(301L)).thenReturn(Optional.of(rawOrange));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(i -> i.getArgument(0));
+
+        commandeService.annulerCommande(cmd);
+
+        assertThat(rawOrange.getQuantiteStock()).isEqualByComparingTo(new BigDecimal("12.0000"));
+        verify(ingredientRepository).save(rawOrange);
+    }
+
+    @Test
+    @DisplayName("annulerCommande - reincrements own stock when crafted ingredient is purchasable")
+    void annulerCommande_reincrementsPurchasableCraftedStock() {
+        Ingredient craftedBottled = new Ingredient();
+        craftedBottled.setId(401L);
+        craftedBottled.setNom("Limonade Artisanale");
+        craftedBottled.setIsCrafted(true);
+        craftedBottled.setIsPurchasable(true);
+        craftedBottled.setQuantiteStock(new BigDecimal("5.00"));
+
+        IngredientConfectionSource dummySource = new IngredientConfectionSource();
+        dummySource.setId(4L);
+        craftedBottled.setConfectionSources(List.of(dummySource));
+
+        Cocktail fizz = new Cocktail();
+        fizz.setId(80L);
+        CocktailIngredient ci = new CocktailIngredient();
+        ci.setIngredient(craftedBottled);
+        ci.setQuantite(new BigDecimal("2.00"));
+        fizz.setIngredients(List.of(ci));
+
+        CommandeItem itemFizz = new CommandeItem();
+        itemFizz.setCocktail(fizz);
+        itemFizz.setQuantite(1);
+
+        Commande cmd = new Commande();
+        cmd.setId(888L);
+        cmd.setStatut(CommandeStatut.EN_PREPARATION);
+        cmd.setDatePreparation(LocalDateTime.now());
+        cmd.setItems(new ArrayList<>(List.of(itemFizz)));
+
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(i -> i.getArgument(0));
+
+        commandeService.annulerCommande(cmd);
+
+        assertThat(craftedBottled.getQuantiteStock()).isEqualByComparingTo(new BigDecimal("7.00"));
+        verify(ingredientRepository).save(craftedBottled);
     }
 }
 

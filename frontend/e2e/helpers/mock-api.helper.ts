@@ -1,12 +1,31 @@
 import { Page } from '@playwright/test';
 
 /**
+ * Generates a valid Base64-encoded mock JWT with a long expiration timestamp for E2E tests.
+ */
+export function createMockJwt(roles: string[] = ['ADMIN']): string {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64');
+  const exp = Math.floor(Date.now() / 1000) + 86400 * 30; // 30 days
+  const payload = Buffer.from(JSON.stringify({ sub: 'admin', roles, exp })).toString('base64');
+  return `${header}.${payload}.mock-signature`;
+}
+
+/**
  * Sets up Playwright route mocking for all OpenBar REST endpoints.
  * Ensures fast, 100% isolated and deterministic E2E execution without external database dependency.
  *
  * @param page Playwright page instance
  */
 export async function setupMockApi(page: Page): Promise<void> {
+  // Mock WebSocket connection to provide clean STOMP handshake and prevent dev server proxy ECONNREFUSED
+  await page.routeWebSocket(/(?:\/api)?\/ws/, (ws) => {
+    ws.onMessage((message) => {
+      if (typeof message === 'string' && message.startsWith('CONNECT')) {
+        ws.send('CONNECTED\nversion:1.2\nheart-beat:0,0\n\n\0');
+      }
+    });
+  });
+
   await page.route('**/api/settings**', async (route) => {
     if (route.request().method() === 'PUT') {
       const body = route.request().postDataJSON() || {};
@@ -83,7 +102,116 @@ export async function setupMockApi(page: Page): Promise<void> {
         qrClientOrdering: true,
         stockTracking: true,
         cashDrawer: true,
+        barTabs: true,
+        cocktailLibrary: true,
+        suppliersManagement: true,
+        inventoryAudit: true,
       }),
+    });
+  });
+
+  // Cocktail library routes
+  await page.route('**/api/cocktails/library/import', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        importedCount: 2,
+        skippedCount: 0,
+        newIngredientsCount: 4,
+        reusedIngredientsCount: 1,
+        importedCocktails: ['Mojito', 'Virgin Mojito'],
+        skippedCocktails: [],
+        message: 'Imported 2 cocktails successfully',
+      }),
+    });
+  });
+
+  await page.route('**/api/cocktails/library**', async (route) => {
+    if (route.request().url().includes('/library/import')) {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 'lib_1',
+          nom: 'Mojito',
+          description: 'Classic Cuban highball with fresh mint and rum',
+          categorie: 'ALCOOLISE',
+          libraryCategory: 'IBA_CLASSICS',
+          baseSpirit: 'RUM',
+          ibaOfficial: true,
+          prix: 9.5,
+          alcoholLevel: 12.0,
+          isMocktail: false,
+          isVegan: true,
+          isGlutenFree: true,
+          glassware: 'Tumbler',
+          glasswareImage: 'assets/images/verres/verre_tumbler.png',
+          imageUrl: 'assets/images/verres/verre_tumbler.png',
+          flavorProfiles: ['HERBAL', 'SOUR'],
+          allergens: [],
+          preparationTimeSeconds: 60,
+          tags: ['classic', 'rum'],
+          ingredients: [
+            {
+              nom: 'Rhum Blanc',
+              quantite: 5,
+              unite: 'cl',
+              degreAlcool: 40,
+              coutUnitaire: 0.8,
+              allergens: [],
+              isVegan: true,
+            }
+          ],
+          recipeSteps: [
+            {
+              stepOrder: 1,
+              stepType: 'CUSTOM_TEXT',
+              actionTitle: 'Muddle',
+              customText: 'Muddle mint leaves with sugar and lime'
+            }
+          ],
+          instructions: 'Muddle and build in glass',
+        },
+        {
+          id: 'lib_2',
+          nom: 'Virgin Mojito',
+          description: 'Non-alcoholic refreshing mint and lime cooler',
+          categorie: 'SANS_ALCOOL',
+          libraryCategory: 'MOCKTAILS',
+          baseSpirit: 'NON_ALCOHOLIC',
+          ibaOfficial: false,
+          prix: 6.5,
+          alcoholLevel: 0.0,
+          isMocktail: true,
+          isVegan: true,
+          isGlutenFree: true,
+          glassware: 'Tumbler',
+          glasswareImage: 'assets/images/verres/verre_tumbler.png',
+          imageUrl: 'assets/images/verres/verre_tumbler.png',
+          flavorProfiles: ['HERBAL', 'SWEET'],
+          allergens: [],
+          preparationTimeSeconds: 45,
+          tags: ['mocktail', 'virgin'],
+          ingredients: [
+            {
+              nom: 'Menthe Fraiche',
+              quantite: 8,
+              unite: 'feuilles',
+              degreAlcool: 0,
+              coutUnitaire: 0.1,
+              allergens: [],
+              isVegan: true,
+            }
+          ],
+          recipeSteps: [],
+          instructions: 'Muddle and top with soda water',
+        }
+      ]),
     });
   });
 
@@ -356,10 +484,21 @@ export async function setupMockApi(page: Page): Promise<void> {
         email: `${username || 'admin'}@openbar.fr`,
         roles,
         enabled: true,
-        token: 'mock-jwt-token-e2e',
+        token: createMockJwt(roles),
         refreshToken: 'mock-refresh-token-e2e',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+      }),
+    });
+  });
+
+  await page.route('**/api/auth/refresh', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        accessToken: createMockJwt(),
+        refreshToken: 'mock-refresh-token-e2e',
       }),
     });
   });
@@ -377,7 +516,36 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
+  await page.route('**/api/cocktails/facets**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        flavorCounts: {
+          FRUITY: 8,
+          SMOKY: 2,
+          SWEET: 6,
+          SOUR: 4,
+          BITTER: 3,
+          SPICY: 2,
+          HERBAL: 5,
+        },
+        mocktailsCount: 4,
+        veganCount: 10,
+        glutenFreeCount: 9,
+        lowAbvCount: 3,
+        minAlcoholLevel: 0,
+        maxAlcoholLevel: 25,
+        totalAvailable: 15,
+      }),
+    });
+  });
+
   await page.route('**/api/cocktails**', async (route) => {
+    if (route.request().url().includes('/facets')) {
+      await route.fallback();
+      return;
+    }
     if (route.request().method() === 'POST') {
       const body = route.request().postDataJSON();
       await route.fulfill({
@@ -1278,6 +1446,10 @@ export async function setupMockApi(page: Page): Promise<void> {
     floorPlan: true,
     qrClientOrdering: true,
     stockTracking: true,
+    cashDrawer: true,
+    barTabs: true,
+    cocktailLibrary: true,
+    suppliersManagement: true,
   };
 
   await page.route('**/api/establishment/modules**', async (route) => {
@@ -1357,6 +1529,636 @@ export async function setupMockApi(page: Page): Promise<void> {
         latePaymentRate: 0.12,
         ticketFormat: '80mm',
         timeZone: 'Europe/Paris',
+      }),
+    });
+  });
+
+  await page.route('**/api/bar-tabs**', async (route) => {
+    const method = route.request().method();
+    const url = route.request().url();
+
+    if (url.includes('/addition')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          tabId: 1,
+          tabNom: 'Client VIP - Dupont',
+          referenceClient: 'CB-9921',
+          totalHT: 15.0,
+          totalVAT: 3.0,
+          totalTTC: 18.0,
+          totalArticles: 2,
+          hasUnpaidFacture: false,
+          commandeIds: [101],
+          items: [
+            {
+              cocktailNom: 'Mojito Passion',
+              quantite: 2,
+              prixUnitaire: 9.0,
+              total: 18.0,
+              vatRate: 20.0,
+              vatAmount: 3.0,
+              priceHT: 15.0,
+            },
+          ],
+        }),
+      });
+      return;
+    }
+
+    if (url.includes('/encaisser')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 501,
+          numero: 'FAC-2026-00042',
+          total: 18.0,
+          totalHT: 15.0,
+          totalVAT: 3.0,
+          totalTTC: 18.0,
+          pourboire: 0,
+          dateFacture: new Date().toISOString(),
+          dateReglement: new Date().toISOString(),
+          reglee: true,
+          modePaiement: 'CARTE',
+          barTabId: 1,
+          barTabNom: 'Client VIP - Dupont',
+          items: [],
+          reglements: [],
+        }),
+      });
+      return;
+    }
+
+    if (method === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 99,
+          nom: body.nom || 'Nouvelle Ardoise',
+          clientReference: body.clientReference || null,
+          notes: body.notes || null,
+          cautionMontant: body.cautionMontant || 0,
+          statut: 'ACTIVE',
+          serveurId: 1,
+          serveurNom: 'Admin',
+          openedAt: new Date().toISOString(),
+          total: 0,
+          activeOrdersCount: 0,
+          itemsCount: 0,
+        }),
+      });
+      return;
+    }
+
+    // Default GET: list active tabs
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          nom: 'Client VIP - Dupont',
+          clientReference: 'CB-9921',
+          notes: 'Client habituel au comptoir',
+          cautionMontant: 50.0,
+          statut: 'ACTIVE',
+          serveurId: 1,
+          serveurNom: 'Admin',
+          openedAt: new Date(Date.now() - 3600000).toISOString(),
+          total: 18.0,
+          activeOrdersCount: 1,
+          itemsCount: 2,
+        },
+      ]),
+    });
+  });
+
+  // Mock suppliers endpoints
+  await page.route('**/api/suppliers/active', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          nom: 'Brasserie du Mont-Blanc',
+          contactNom: 'Sylvain Favre',
+          email: 'contact@montblanc.fr',
+          telephone: '+33 4 50 00 00 00',
+          adresse: '125 Rue des Brasseurs',
+          codePostal: '74000',
+          ville: 'Annecy',
+          siret: '43920192800025',
+          actif: true
+        }
+      ]),
+    });
+  });
+
+  await page.route('**/api/suppliers/migrate-legacy', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(3),
+    });
+  });
+
+  await page.route('**/api/suppliers**', async (route) => {
+    const url = route.request().url();
+    if (url.includes('/active') || url.includes('/migrate-legacy')) {
+      return route.fallback();
+    }
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 3,
+          ...body,
+          actif: body.actif ?? true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }),
+      });
+      return;
+    }
+    if (route.request().method() === 'PUT') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          ...body,
+          updatedAt: new Date().toISOString()
+        }),
+      });
+      return;
+    }
+    if (route.request().method() === 'DELETE') {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          nom: 'Brasserie du Mont-Blanc',
+          contactNom: 'Sylvain Favre',
+          email: 'contact@montblanc.fr',
+          telephone: '+33 4 50 00 00 00',
+          adresse: '125 Rue des Brasseurs',
+          codePostal: '74000',
+          ville: 'Annecy',
+          siret: '43920192800025',
+          actif: true
+        },
+        {
+          id: 2,
+          nom: 'Distillerie des Alpes',
+          contactNom: 'Marc Veyrat',
+          email: 'marc@alpes.fr',
+          telephone: '+33 4 79 00 00 00',
+          adresse: '48 Chemin des Alambics',
+          codePostal: '73000',
+          ville: 'Chambéry',
+          siret: '51283920100018',
+          actif: true
+        }
+      ]),
+    });
+  });
+
+  // Mock purchase orders endpoints
+  await page.route('**/api/purchase-orders/*/pdf', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/pdf',
+      body: Buffer.from('%PDF-1.4 mock purchase order pdf'),
+    });
+  });
+
+  await page.route('**/api/purchase-orders/*/send', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 1,
+        numeroCommande: 'BC-2026-0001',
+        status: 'COMMANDEE',
+        dateCommande: new Date().toISOString()
+      }),
+    });
+  });
+
+  await page.route('**/api/purchase-orders/*/receive', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          ingredientId: 1,
+          ingredientNom: 'Rhum Blanc',
+          ancienPamp: 12.0,
+          nouveauPamp: 13.5,
+          dernierPrixAchat: 15.0,
+          variationPourcentage: 25.0,
+          alerteHausse: true
+        }
+      ]),
+    });
+  });
+
+  await page.route('**/api/purchase-orders/*/cancel', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 1,
+        numeroCommande: 'BC-2026-0001',
+        status: 'ANNULEE'
+      }),
+    });
+  });
+
+  await page.route('**/api/purchase-orders**', async (route) => {
+    const url = route.request().url();
+    if (url.includes('/send') || url.includes('/receive') || url.includes('/cancel') || url.includes('/pdf')) {
+      return route.fallback();
+    }
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 99,
+          numeroCommande: 'BC-2026-0099',
+          supplierId: body.supplierId || 1,
+          supplierNom: 'Brasserie du Mont-Blanc',
+          status: 'BROUILLON',
+          totalHt: 100.0,
+          totalTva: 20.0,
+          totalTtc: 120.0,
+          items: body.items || [],
+          createdAt: new Date().toISOString()
+        }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          numeroCommande: 'BC-2026-0001',
+          supplierId: 1,
+          supplierNom: 'Brasserie du Mont-Blanc',
+          status: 'COMMANDEE',
+          dateCommande: '2026-09-20T10:00:00',
+          dateLivraisonPrevue: '2026-09-25',
+          totalHt: 250.0,
+          totalTva: 50.0,
+          totalTtc: 300.0,
+          items: [
+            {
+              id: 1,
+              ingredientId: 1,
+              ingredientNom: 'Rhum Blanc',
+              quantiteCommandee: 10,
+              quantiteRecue: 0,
+              prixUnitaireHt: 15.0,
+              tauxTva: 20.0,
+              montantHt: 150.0,
+              montantTtc: 180.0
+            }
+          ],
+          createdAt: '2026-09-20T10:00:00'
+        }
+      ]),
+    });
+  });
+
+  await page.route('**/api/establishment/modules**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        cuisineKds: true,
+        happyHour: true,
+        employeeManagement: true,
+        floorPlan: true,
+        qrClientOrdering: true,
+        stockTracking: true,
+        cashDrawer: true,
+        barTabs: true,
+        cocktailLibrary: true,
+        suppliersManagement: true,
+        inventoryAudit: true,
+      }),
+    });
+  });
+
+  await page.route('**/api/inventory-audits**', async (route) => {
+    const url = route.request().url();
+    const method = route.request().method();
+
+    if (url.includes('/export/pdf')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/pdf',
+        body: Buffer.from('%PDF-1.4\n%EOF'),
+      });
+      return;
+    }
+
+    if (url.includes('/export/csv')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'text/csv',
+        body: 'Reference;Title;Status\nINV-2026-001;Audit;IN_PROGRESS\n',
+      });
+      return;
+    }
+
+    if (url.includes('/summary')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totalTheoreticalValueHt: 8050,
+          totalCountedValueHt: 7175,
+          totalVarianceValueHt: -875,
+          totalShrinkageValueHt: 875,
+          totalSurplusValueHt: 0,
+          totalItemsAudited: 2,
+          itemsWithVarianceCount: 1,
+          varianceValueByCategory: { alcohol: -875 },
+          countedValueByLocation: { 'Bar Principal': 2800 },
+        }),
+      });
+      return;
+    }
+
+    if (url.includes('/finalize') && method === 'POST') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          referenceCode: 'INV-2026-001',
+          title: 'Inventaire Mensuel Alcools',
+          status: 'FINALIZED',
+          storageLocationScope: 'ALL',
+          categoryScope: 'alcohol',
+          createdByUsername: 'admin',
+          createdAt: new Date().toISOString(),
+          totalTheoreticalValueHt: 8050,
+          totalCountedValueHt: 7175,
+          totalVarianceValueHt: -875,
+          totalItemsCount: 2,
+          countedItemsCount: 2,
+          items: [],
+        }),
+      });
+      return;
+    }
+
+    if (method === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 99,
+          referenceCode: 'INV-2026-0099',
+          title: body.title || 'Nouvel Inventaire',
+          status: 'IN_PROGRESS',
+          storageLocationScope: body.storageLocationScope || 'ALL',
+          categoryScope: body.categoryScope || null,
+          createdByUsername: 'admin',
+          createdAt: new Date().toISOString(),
+          totalTheoreticalValueHt: 5000,
+          totalCountedValueHt: 0,
+          totalVarianceValueHt: 0,
+          totalItemsCount: 5,
+          countedItemsCount: 0,
+          items: [],
+        }),
+      });
+      return;
+    }
+
+    if (/\/api\/inventory-audits\/\d+$/.exec(url)) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          referenceCode: 'INV-2026-001',
+          title: 'Inventaire Mensuel Alcools',
+          status: 'IN_PROGRESS',
+          storageLocationScope: 'ALL',
+          categoryScope: 'alcohol',
+          createdByUsername: 'admin',
+          createdAt: '2026-09-20T10:00:00',
+          totalTheoreticalValueHt: 8050,
+          totalCountedValueHt: 7175,
+          totalVarianceValueHt: -875,
+          totalItemsCount: 2,
+          countedItemsCount: 1,
+          items: [
+            {
+              id: 10,
+              ingredientId: 1,
+              ingredientNom: 'Rhum Blanc',
+              ingredientUnite: 'cl',
+              ingredientCategory: 'alcohol',
+              packagingCapacity: 70,
+              theoreticalQuantity: 140,
+              countedQuantity: 140,
+              varianceQuantity: 0,
+              unitCostHt: 20,
+              theoreticalValueHt: 2800,
+              countedValueHt: 2800,
+              varianceValueHt: 0,
+              notes: '',
+              locationCounts: [
+                {
+                  id: 101,
+                  auditItemId: 10,
+                  storageLocation: 'Bar Principal',
+                  fullContainersCount: 2,
+                  partialQuantity: 0,
+                  countedQuantity: 140,
+                },
+              ],
+            },
+            {
+              id: 11,
+              ingredientId: 2,
+              ingredientNom: 'Gin Artisanal',
+              ingredientUnite: 'cl',
+              ingredientCategory: 'alcohol',
+              packagingCapacity: 70,
+              theoreticalQuantity: 210,
+              countedQuantity: 175,
+              varianceQuantity: -35,
+              unitCostHt: 25,
+              theoreticalValueHt: 5250,
+              countedValueHt: 4375,
+              varianceValueHt: -875,
+              notes: 'Écart constaté',
+              locationCounts: [],
+            },
+          ],
+        }),
+      });
+      return;
+    }
+
+    // Default: list of sessions
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          referenceCode: 'INV-2026-001',
+          title: 'Inventaire Mensuel Alcools',
+          status: 'IN_PROGRESS',
+          storageLocationScope: 'ALL',
+          categoryScope: 'alcohol',
+          createdByUsername: 'admin',
+          createdAt: '2026-09-20T10:00:00',
+          totalTheoreticalValueHt: 8050,
+          totalCountedValueHt: 7175,
+          totalVarianceValueHt: -875,
+          totalItemsCount: 2,
+          countedItemsCount: 1,
+        },
+      ]),
+    });
+  });
+
+  // Mock Establishment Capability Modules
+  await page.route('**/api/establishment/modules**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        cuisineKds: true,
+        happyHour: true,
+        employeeManagement: true,
+        floorPlan: true,
+        qrClientOrdering: true,
+        stockTracking: true,
+        cashDrawer: true,
+        barTabs: true,
+        cocktailLibrary: true,
+        suppliersManagement: true,
+        inventoryAudit: true,
+        mysteryRoulette: true,
+      }),
+    });
+  });
+
+  // Mock Roulette TV PIN and Staff Administration
+  await page.route('**/api/roulette/pin**', async (route) => {
+    if (route.request().method() === 'POST') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ pin: '8888', establishmentId: 1 }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ pin: '7777', establishmentId: 1 }),
+    });
+  });
+
+  // Mock Public Roulette Config, Spin, and PIN Verification
+  await page.route('**/api/public/roulette/**', async (route) => {
+    const url = route.request().url();
+    if (url.includes('/verify-pin')) {
+      const body = route.request().postDataJSON() || {};
+      const valid = body.pin === '7777';
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ valid, establishmentId: 1, message: valid ? 'PIN valid' : 'PIN invalid' }),
+      });
+      return;
+    }
+
+    if (url.includes('/spin')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          spinId: 'spin-mock-1',
+          sectorId: 1,
+          label: 'Mojito Mystère',
+          cocktailId: 1,
+          cocktailNom: 'Mojito',
+          price: 9.50,
+          discountApplied: false,
+          animationDurationSeconds: 4,
+          winAngleDegrees: 45,
+          addedToCart: true,
+          isCustomReward: false,
+          shooterColorHex: null,
+        }),
+      });
+      return;
+    }
+
+    // Default: config
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        active: true,
+        price: 9.50,
+        spiritCategories: ['ALL', 'RUM', 'GIN', 'VODKA', 'MOCKTAIL'],
+        sectors: [
+          {
+            id: 1,
+            label: 'Mojito Mystère',
+            prizeType: 'COCKTAIL',
+            cocktailId: 1,
+            cocktailNom: 'Mojito',
+            prix: 9.50,
+            displayOrder: 1,
+            active: true,
+            probabilityWeight: 5,
+            colorHex: '#6C7FE8',
+          },
+          {
+            id: 2,
+            label: 'Virgin Colada',
+            prizeType: 'COCKTAIL',
+            cocktailId: 2,
+            cocktailNom: 'Virgin Colada',
+            prix: 7.00,
+            displayOrder: 2,
+            active: true,
+            probabilityWeight: 4,
+            colorHex: '#34C77B',
+          },
+        ],
       }),
     });
   });

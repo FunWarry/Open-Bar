@@ -30,6 +30,12 @@ describe('ModuleGuard', () => {
     qrClientOrdering: true,
     stockTracking: true,
     cashDrawer: true,
+    barTabs: true,
+    cocktailLibrary: true,
+    suppliersManagement: true,
+    inventoryAudit: true,
+    mysteryRoulette: true,
+    paymentTerminal: true,
   };
 
   beforeEach(() => {

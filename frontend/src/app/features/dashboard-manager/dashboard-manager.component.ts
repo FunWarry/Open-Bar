@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, timer } from 'rxjs';
 import { switchMap, takeUntil } from 'rxjs/operators';
@@ -96,6 +96,7 @@ import { AppCurrencyPipe } from '../../core/pipes/app-currency.pipe';
     AppCurrencyPipe,
   ],
   templateUrl: './dashboard-manager.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./dashboard-manager.component.scss'],
 })
 export class DashboardManagerComponent implements OnInit, OnDestroy {

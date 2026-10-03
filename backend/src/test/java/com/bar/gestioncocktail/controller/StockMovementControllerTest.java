@@ -21,6 +21,7 @@ import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +69,7 @@ class StockMovementControllerTest {
         sampleMovement.setReason(StockWasteReason.CASSE);
         sampleMovement.setReportedBy(user);
         sampleMovement.setCost(new BigDecimal("22.00"));
-        sampleMovement.setRecordedAt(LocalDateTime.of(2026, 9, 6, 14, 30));
+        sampleMovement.setRecordedAt(LocalDateTime.of(2026, Month.SEPTEMBER, 6, 14, 30));
         sampleMovement.setNotes("Bouteille cassée en préparation");
     }
 

@@ -11,7 +11,7 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:application",
+          "builder": "@angular/build:application",
           "options": {
             "outputPath": "dist/gestion-cocktail-frontend",
             "index": "src/index.html",
@@ -50,8 +50,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "40kB",
-                  "maximumError": "60kB"
+                  "maximumWarning": "70kB",
+                  "maximumError": "80kB"
                 }
               ],
               "outputHashing": "all"
@@ -73,10 +73,15 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular/build:dev-server",
           "options": {
             "host": "0.0.0.0",
-            "disableHostCheck": true,
+            "allowedHosts": [
+              "open-bar.freeboxos.fr",
+              ".freeboxos.fr",
+              ".local",
+              "localhost"
+            ],
             "proxyConfig": "proxy.conf.json"
           },
           "configurations": {

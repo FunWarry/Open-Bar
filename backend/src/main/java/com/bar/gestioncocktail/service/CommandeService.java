@@ -12,6 +12,7 @@ import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeItem;
 import com.bar.gestioncocktail.model.CommandeStatut;
 import com.bar.gestioncocktail.model.Ingredient;
+import com.bar.gestioncocktail.model.IngredientConfectionSource;
 import com.bar.gestioncocktail.model.PreparationStation;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.User;
@@ -65,6 +66,7 @@ public class CommandeService {
     private final TimeService timeService;
     private final HappyHourService happyHourService;
     private final EstablishmentConfigService establishmentConfigService;
+    private final com.bar.gestioncocktail.repository.UserRepository userRepository;
 
     public CommandeService(
             CommandeRepository commandeRepository,
@@ -77,7 +79,8 @@ public class CommandeService {
             ApplicationEventPublisher eventPublisher,
             TimeService timeService,
             HappyHourService happyHourService,
-            EstablishmentConfigService establishmentConfigService) {
+            EstablishmentConfigService establishmentConfigService,
+            com.bar.gestioncocktail.repository.UserRepository userRepository) {
         this.commandeRepository = commandeRepository;
         this.commandeItemRepository = commandeItemRepository;
         this.ingredientRepository = ingredientRepository;
@@ -89,6 +92,7 @@ public class CommandeService {
         this.timeService = timeService;
         this.happyHourService = happyHourService;
         this.establishmentConfigService = establishmentConfigService;
+        this.userRepository = userRepository;
     }
 /**
      * Retrieves all orders registered in the system.
@@ -195,6 +199,8 @@ public class CommandeService {
 
         applyDynamicPricingAndCalculateTotal(commande, now);
 
+        resolveOrderServer(commande);
+
         Commande saved = commandeRepository.save(commande);
         updateTableOccupancyOnOrderCreation(saved);
         if (eventPublisher != null) {
@@ -202,6 +208,39 @@ public class CommandeService {
         }
         notifyOrderUpdated(saved);
         return saved;
+    }
+
+    /**
+     * Automatically resolves and assigns the server for a newly created order.
+     * Checks explicitly provided server ID, then authenticated user (admin/manager/server),
+     * and finally falls back to the server assigned to the physical table.
+     *
+     * @param commande the order to enrich with server details
+     */
+    private void resolveOrderServer(Commande commande) {
+        if (commande.getServeur() != null && commande.getServeur().getId() != null && commande.getServeur().getUsername() == null) {
+            userRepository.findById(commande.getServeur().getId()).ifPresent(commande::setServeur);
+        }
+
+        if (commande.getServeur() == null || commande.getServeur().getId() == null) {
+            try {
+                org.springframework.security.core.Authentication auth =
+                        org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+                if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+                    userRepository.findByUsername(auth.getName()).ifPresent(commande::setServeur);
+                }
+            } catch (Exception e) {
+                log.debug("Could not resolve authenticated user for order creation: {}", e.getMessage());
+            }
+        }
+
+        if (commande.getServeur() == null && commande.getTable() != null && commande.getTable().getId() != null) {
+            tableRepository.findById(commande.getTable().getId()).ifPresent(t -> {
+                if (t.getServeurId() != null) {
+                    userRepository.findById(t.getServeurId()).ifPresent(commande::setServeur);
+                }
+            });
+        }
     }
 
     private void initializeOrderItems(Commande commande) {
@@ -585,30 +624,88 @@ public class CommandeService {
         }
     }
 
+    /**
+     * Decrements stock for a single ingredient.
+     * For crafted ingredients, deducts own stock first then cascades to sources.
+     *
+     * @param ingredientId    ID of the ingredient to destock
+     * @param quantityNeeded  Quantity to deduct (in the ingredient's stock unit)
+     * @param ingredientsMap  Pre-loaded ingredient cache to avoid redundant DB queries
+     */
     private void destockerSingleIngredient(Long ingredientId, BigDecimal quantityNeeded, Map<Long, Ingredient> ingredientsMap) {
-        Ingredient ingredient = ingredientsMap.get(ingredientId);
-        if (ingredient == null) {
-            ingredient = ingredientRepository.findById(ingredientId).orElse(null);
-        }
+        Ingredient ingredient = resolveIngredient(ingredientId, ingredientsMap);
         if (ingredient == null) {
             return;
         }
-        BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock() : BigDecimal.ZERO;
-        BigDecimal rawNouveauStock = currentStock.subtract(quantityNeeded);
-        boolean stockNegatif = rawNouveauStock.compareTo(BigDecimal.ZERO) < 0;
-        BigDecimal nouveauStock = rawNouveauStock.max(BigDecimal.ZERO);
-        ingredient.setQuantiteStock(nouveauStock);
-        ingredient.setUpdatedAt(timeService.now());
-        ingredientRepository.save(ingredient);
+        if (Boolean.TRUE.equals(ingredient.getIsCrafted()) && !ingredient.getConfectionSources().isEmpty()) {
+            destockerCrafted(ingredient, quantityNeeded, ingredientsMap);
+        } else {
+            destockerDirect(ingredient, quantityNeeded);
+        }
+    }
 
+    /**
+     * Handles stock deduction for a crafted ingredient:
+     * drains own stock first (if purchasable), then cascades remainder to sources.
+     */
+    private void destockerCrafted(Ingredient ingredient, BigDecimal quantityNeeded, Map<Long, Ingredient> ingredientsMap) {
+        BigDecimal ownDeduction = deductOwnStockIfPurchasable(ingredient, quantityNeeded);
+        BigDecimal remaining = quantityNeeded.subtract(ownDeduction);
+        if (remaining.compareTo(BigDecimal.ZERO) > 0) {
+            cascadeDeductToSources(ingredient.getConfectionSources(), remaining, ingredientsMap);
+        }
+    }
+
+    /**
+     * Deducts from the ingredient's own stock if it is purchasable and has stock.
+     *
+     * @return the amount actually deducted from own stock
+     */
+    private BigDecimal deductOwnStockIfPurchasable(Ingredient ingredient, BigDecimal quantityNeeded) {
+        BigDecimal currentStock = effectiveStock(ingredient);
+        if (!Boolean.TRUE.equals(ingredient.getIsPurchasable()) || currentStock.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal deduction = currentStock.min(quantityNeeded);
+        BigDecimal newStock = currentStock.subtract(deduction).max(BigDecimal.ZERO);
+        saveIngredientStock(ingredient, newStock);
+        publishStockAlertIfNeeded(ingredient, newStock);
+        return deduction;
+    }
+
+    /** Cascades a quantity deduction to all valid confection sources. */
+    private void cascadeDeductToSources(List<IngredientConfectionSource> sources, BigDecimal remaining, Map<Long, Ingredient> ingredientsMap) {
+        for (IngredientConfectionSource source : sources) {
+            if (isValidSource(source)) {
+                BigDecimal sourceQty = remaining.divide(source.getYieldRatio(), 4, java.math.RoundingMode.HALF_UP);
+                destockerSingleIngredient(source.getSourceIngredient().getId(), sourceQty, ingredientsMap);
+            }
+        }
+    }
+
+    /** Performs a simple direct stock deduction for a non-crafted ingredient. */
+    private void destockerDirect(Ingredient ingredient, BigDecimal quantityNeeded) {
+        BigDecimal currentStock = effectiveStock(ingredient);
+        BigDecimal newStock = currentStock.subtract(quantityNeeded).max(BigDecimal.ZERO);
+        saveIngredientStock(ingredient, newStock);
+        publishStockAlertIfNeeded(ingredient, newStock);
+    }
+
+    /**
+     * Publishes a stock alert event if the ingredient's stock has fallen at or below the alert threshold.
+     *
+     * @param ingredient  The ingredient to check
+     * @param stock       Current stock level after deduction
+     */
+    private void publishStockAlertIfNeeded(Ingredient ingredient, BigDecimal stock) {
         if (ingredient.getSeuilAlerte() != null
-                && (nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0 || stockNegatif)
+                && stock.compareTo(ingredient.getSeuilAlerte()) <= 0
                 && eventPublisher != null) {
             try {
                 eventPublisher.publishEvent(new StockAlertEvent(
                         ingredient.getId(),
                         ingredient.getNom(),
-                        nouveauStock.doubleValue()));
+                        stock.doubleValue()));
             } catch (Exception ex) {
                 log.warn("Failed to publish StockAlertEvent: {}", ex.getMessage());
             }
@@ -620,20 +717,79 @@ public class CommandeService {
         Map<Long, Ingredient> ingredientsMap = mepIngredients(commande);
 
         for (Map.Entry<Long, BigDecimal> entry : quantitesParIngredient.entrySet()) {
-            Ingredient ingredient = ingredientsMap.get(entry.getKey());
-            if (ingredient == null) {
-                ingredient = ingredientRepository.findById(entry.getKey()).orElse(null);
-            }
-            if (ingredient == null) {
-                continue;
-            }
-            BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock()
-                    : BigDecimal.ZERO;
-            BigDecimal nouveauStock = currentStock.add(entry.getValue());
-            ingredient.setQuantiteStock(nouveauStock);
-            ingredient.setUpdatedAt(timeService.now());
-            ingredientRepository.save(ingredient);
+            reincrementerSingleIngredient(entry.getKey(), entry.getValue(), ingredientsMap);
         }
+    }
+
+    /**
+     * Restores stock for a single ingredient on order cancellation.
+     * For crafted purchasable ingredients, restores own stock.
+     * For crafted non-purchasable, cascades restoration to sources.
+     *
+     * @param ingredientId    ID of the ingredient
+     * @param quantityToAdd   Quantity to restore
+     * @param ingredientsMap  Pre-loaded ingredient cache
+     */
+    private void reincrementerSingleIngredient(Long ingredientId, BigDecimal quantityToAdd, Map<Long, Ingredient> ingredientsMap) {
+        Ingredient ingredient = resolveIngredient(ingredientId, ingredientsMap);
+        if (ingredient == null) {
+            return;
+        }
+        if (Boolean.TRUE.equals(ingredient.getIsCrafted()) && !ingredient.getConfectionSources().isEmpty()) {
+            reincrementerCrafted(ingredient, quantityToAdd, ingredientsMap);
+        } else {
+            saveIngredientStock(ingredient, effectiveStock(ingredient).add(quantityToAdd));
+        }
+    }
+
+    /**
+     * Handles stock restoration for a crafted ingredient:
+     * adds back to own stock if purchasable, or cascades to sources otherwise.
+     */
+    private void reincrementerCrafted(Ingredient ingredient, BigDecimal quantityToAdd, Map<Long, Ingredient> ingredientsMap) {
+        if (Boolean.TRUE.equals(ingredient.getIsPurchasable())) {
+            saveIngredientStock(ingredient, effectiveStock(ingredient).add(quantityToAdd));
+        } else {
+            cascadeAddToSources(ingredient.getConfectionSources(), quantityToAdd, ingredientsMap);
+        }
+    }
+
+    /** Cascades a quantity restoration to all valid confection sources. */
+    private void cascadeAddToSources(List<IngredientConfectionSource> sources, BigDecimal quantityToAdd, Map<Long, Ingredient> ingredientsMap) {
+        for (IngredientConfectionSource source : sources) {
+            if (isValidSource(source)) {
+                BigDecimal sourceQty = quantityToAdd.divide(source.getYieldRatio(), 4, java.math.RoundingMode.HALF_UP);
+                reincrementerSingleIngredient(source.getSourceIngredient().getId(), sourceQty, ingredientsMap);
+            }
+        }
+    }
+
+    /** Returns the effective stock quantity for an ingredient, defaulting to ZERO if null. */
+    private BigDecimal effectiveStock(Ingredient ingredient) {
+        return ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock() : BigDecimal.ZERO;
+    }
+
+    /** Saves the updated stock level for an ingredient. */
+    private void saveIngredientStock(Ingredient ingredient, BigDecimal newStock) {
+        ingredient.setQuantiteStock(newStock);
+        ingredient.setUpdatedAt(timeService.now());
+        ingredientRepository.save(ingredient);
+    }
+
+    /** Resolves an ingredient from cache or DB; returns null if not found. */
+    private Ingredient resolveIngredient(Long ingredientId, Map<Long, Ingredient> ingredientsMap) {
+        Ingredient ingredient = ingredientsMap.get(ingredientId);
+        if (ingredient == null) {
+            ingredient = ingredientRepository.findById(ingredientId).orElse(null);
+        }
+        return ingredient;
+    }
+
+    /** Checks whether a confection source mapping is valid for use in stock deduction/restoration. */
+    private boolean isValidSource(IngredientConfectionSource source) {
+        return source.getSourceIngredient() != null
+                && source.getYieldRatio() != null
+                && source.getYieldRatio().compareTo(BigDecimal.ZERO) > 0;
     }
 
     private Map<Long, BigDecimal> calculerQuantitesIngredients(Commande commande) {
@@ -664,7 +820,12 @@ public class CommandeService {
         for (CocktailVarianteIngredient cvi : item.getVariante().getIngredients()) {
             Ingredient ingredient = cvi.getIngredient();
             if (ingredient != null && ingredient.getId() != null && cvi.getQuantite() != null) {
-                BigDecimal qte = cvi.getQuantite().multiply(BigDecimal.valueOf(item.getQuantite()));
+                BigDecimal convertedQty = UnitConversionService.convert(
+                        cvi.getQuantite(),
+                        cvi.getUnite(),
+                        ingredient.getUniteMesure()
+                );
+                BigDecimal qte = convertedQty.multiply(BigDecimal.valueOf(item.getQuantite()));
                 BigDecimal existent = quantites.get(ingredient.getId());
                 quantites.put(ingredient.getId(), existent != null ? existent.add(qte) : qte);
             }
@@ -705,7 +866,12 @@ public class CommandeService {
             BigDecimal mult) {
         Ingredient ingredient = ci.getIngredient();
         if (ingredient != null && ingredient.getId() != null && ci.getQuantite() != null) {
-            BigDecimal qte = ci.getQuantite()
+            BigDecimal convertedQty = UnitConversionService.convert(
+                    ci.getQuantite(),
+                    ci.getUnite(),
+                    ingredient.getUniteMesure()
+            );
+            BigDecimal qte = convertedQty
                     .multiply(BigDecimal.valueOf(item.getQuantite()))
                     .multiply(mult);
             BigDecimal existent = quantites.get(ingredient.getId());

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -38,6 +38,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.css',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     SearchBarComponent,
@@ -226,13 +227,12 @@ export class UserListComponent implements OnInit {
     }
   }
 
-  private async showToast(message: string, color: 'success' | 'danger' | 'warning'): Promise<void> {
-    const toast = await this.toastCtrl.create({
+  private showToast(message: string, color: 'success' | 'danger' | 'warning'): void {
+    void this.toastCtrl.create({
       message,
       duration: 3000,
       color,
       position: 'bottom'
-    });
-    await toast.present();
+    }).then(t => void t.present());
   }
 }

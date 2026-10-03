@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -59,6 +59,7 @@ import { SearchableSelectComponent, SearchableOption } from '../../../core/compo
   templateUrl: './employee-shift-modal.component.html',
   styleUrls: ['./employee-shift-modal.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     TranslocoModule,
@@ -575,11 +576,11 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
     if (data?.confirmed) {
       this.shiftService.deleteShift(shift.id).subscribe({
         next: () => {
-          this.toastCtrl.create({
+          void this.toastCtrl.create({
             message: this.transloco.translate('SHIFTS.DELETE_SUCCESS'),
             duration: 2000,
             color: 'success'
-          }).then(t => t.present());
+          }).then(t => void t.present());
           if (this.openInEditMode || this.openInCreateMode) {
             this.dismiss();
             return;
@@ -588,11 +589,11 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
           this.loadShifts();
         },
         error: () => {
-          this.toastCtrl.create({
+          void this.toastCtrl.create({
             message: this.transloco.translate('COMMON.ERROR'),
             duration: 3000,
             color: 'danger'
-          }).then(t => t.present());
+          }).then(t => void t.present());
         }
       });
     }
@@ -622,7 +623,7 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
   }
 
   dismiss(): void {
-    this.modalCtrl.dismiss();
+    void this.modalCtrl.dismiss();
   }
 
   getShiftBadgeColor(type: TypeShift): string {

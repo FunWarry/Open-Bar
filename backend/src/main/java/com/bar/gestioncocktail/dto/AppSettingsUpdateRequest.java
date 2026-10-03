@@ -2,6 +2,7 @@ package com.bar.gestioncocktail.dto;
 
 import com.bar.gestioncocktail.model.CurrencyPosition;
 import com.bar.gestioncocktail.model.DefaultTheme;
+import com.bar.gestioncocktail.model.UnitSystem;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,6 +20,7 @@ import jakarta.validation.constraints.Size;
  * @param currencyCode ISO 4217 3-letter currency code (e.g. EUR, USD, GBP, CHF)
  * @param currencySymbol Currency symbol (e.g. €, $, £, CHF)
  * @param currencyPosition Display position of the currency symbol (BEFORE or AFTER)
+ * @param unitSystem Measurement unit system (METRIC_CL, METRIC_ML, IMPERIAL_US)
  * @param tempsAlerteWarningMinutes Order warning alert threshold in minutes
  * @param tempsAlerteCommandeMinutes Order urgent alert threshold in minutes
  * @param tempsAlerteCritiqueCommandeMinutes Order critical alert threshold in minutes
@@ -56,6 +58,14 @@ public record AppSettingsUpdateRequest(
     String currencySymbol,
 
     CurrencyPosition currencyPosition,
+
+    UnitSystem unitSystem,
+
+    @Size(max = 20, message = "Volume unit cannot exceed 20 characters")
+    String volumeUnit,
+
+    @Size(max = 20, message = "Weight unit cannot exceed 20 characters")
+    String weightUnit,
 
     @jakarta.validation.constraints.Min(value = 1, message = "Warning alert time must be at least 1 minute")
     @jakarta.validation.constraints.Max(value = 120, message = "Warning alert time cannot exceed 120 minutes")
@@ -113,10 +123,186 @@ public record AppSettingsUpdateRequest(
 
     Boolean directPrintingEnabled,
 
-    String cashDenominationsJson
+    String cashDenominationsJson,
+
+    String storageLocationsJson,
+
+    Boolean tpeEnabled,
+
+    Boolean tpeSimulatorEnabled,
+
+    @Size(max = 100, message = "Bar TPE IP cannot exceed 100 characters")
+    String tpeBarIp,
+
+    @Size(max = 100, message = "Floor TPE IP cannot exceed 100 characters")
+    String tpeFloorIp,
+
+    @jakarta.validation.constraints.Min(value = 1, message = "TPE port must be at least 1")
+    @jakarta.validation.constraints.Max(value = 65535, message = "TPE port cannot exceed 65535")
+    Integer tpePort,
+
+    @Size(max = 50, message = "TPE terminal ID cannot exceed 50 characters")
+    String tpeTerminalId,
+
+    @jakarta.validation.constraints.Min(value = 5, message = "TPE timeout must be at least 5 seconds")
+    @jakarta.validation.constraints.Max(value = 300, message = "TPE timeout cannot exceed 300 seconds")
+    Integer tpeTimeoutSeconds,
+
+    String printersJson,
+
+    String tpeTerminalsJson
 ) {
+
     /**
-     * Backwards-compatible 25-parameter constructor defaulting cashDenominationsJson to null.
+     * Backwards-compatible 37-parameter constructor before printersJson/tpeTerminalsJson.
+     */
+    public AppSettingsUpdateRequest(
+            String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            String volumeUnit, String weightUnit,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled,
+            Boolean tableSessionValidationEnabled, java.math.BigDecimal defaultVatRate,
+            java.math.BigDecimal targetGrossMarginPercentage, java.math.BigDecimal warningGrossMarginPercentage,
+            String barPrinterIp, String kitchenPrinterIp, String cashDeskPrinterIp,
+            Integer printerPort, Boolean directPrintingEnabled, String cashDenominationsJson,
+            String storageLocationsJson, Boolean tpeEnabled, Boolean tpeSimulatorEnabled,
+            String tpeBarIp, String tpeFloorIp, Integer tpePort,
+            String tpeTerminalId, Integer tpeTimeoutSeconds
+    ) {
+        this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem, volumeUnit, weightUnit,
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes,
+                clientBaseUrl, wifiSsid, wifiPassword, wifiSecurity, wifiEnabled,
+                tableSessionValidationEnabled, defaultVatRate, targetGrossMarginPercentage,
+                warningGrossMarginPercentage, barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp,
+                printerPort, directPrintingEnabled, cashDenominationsJson, storageLocationsJson,
+                tpeEnabled, tpeSimulatorEnabled, tpeBarIp, tpeFloorIp, tpePort, tpeTerminalId,
+                tpeTimeoutSeconds, null, null);
+    }
+    /**
+     * Backwards-compatible 30-parameter constructor before TPE configuration was introduced.
+     */
+    public AppSettingsUpdateRequest(
+            String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            String volumeUnit, String weightUnit,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled,
+            Boolean tableSessionValidationEnabled, java.math.BigDecimal defaultVatRate,
+            java.math.BigDecimal targetGrossMarginPercentage, java.math.BigDecimal warningGrossMarginPercentage,
+            String barPrinterIp, String kitchenPrinterIp, String cashDeskPrinterIp,
+            Integer printerPort, Boolean directPrintingEnabled, String cashDenominationsJson,
+            String storageLocationsJson) {
+        this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem, volumeUnit, weightUnit,
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes,
+                clientBaseUrl, wifiSsid, wifiPassword, wifiSecurity, wifiEnabled,
+                tableSessionValidationEnabled, defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
+                cashDenominationsJson, storageLocationsJson,
+                null, null, null, null, null, null, null);
+    }
+
+    /**
+     * Backwards-compatible 29-parameter constructor defaulting storageLocationsJson to null.
+     */
+    public AppSettingsUpdateRequest(
+            String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            String volumeUnit, String weightUnit,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled,
+            Boolean tableSessionValidationEnabled, java.math.BigDecimal defaultVatRate,
+            java.math.BigDecimal targetGrossMarginPercentage, java.math.BigDecimal warningGrossMarginPercentage,
+            String barPrinterIp, String kitchenPrinterIp, String cashDeskPrinterIp,
+            Integer printerPort, Boolean directPrintingEnabled, String cashDenominationsJson) {
+        this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem, volumeUnit, weightUnit,
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes,
+                clientBaseUrl, wifiSsid, wifiPassword, wifiSecurity, wifiEnabled,
+                tableSessionValidationEnabled, defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled,
+                cashDenominationsJson, null);
+    }
+
+    /**
+     * Backwards-compatible 27-parameter constructor with unitSystem, defaulting volumeUnit and weightUnit to cl and g.
+     */
+    public AppSettingsUpdateRequest(
+            String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled,
+            Boolean tableSessionValidationEnabled, java.math.BigDecimal defaultVatRate,
+            java.math.BigDecimal targetGrossMarginPercentage, java.math.BigDecimal warningGrossMarginPercentage,
+            String barPrinterIp, String kitchenPrinterIp, String cashDeskPrinterIp,
+            Integer printerPort, Boolean directPrintingEnabled, String cashDenominationsJson) {
+        this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem != null ? unitSystem : UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled, cashDenominationsJson);
+    }
+
+    /**
+     * Backwards-compatible 26-parameter constructor with cashDenominationsJson, defaulting unitSystem to METRIC_CL, volumeUnit to cl, and weightUnit to g.
+     */
+    public AppSettingsUpdateRequest(
+            String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled,
+            Boolean tableSessionValidationEnabled, java.math.BigDecimal defaultVatRate,
+            java.math.BigDecimal targetGrossMarginPercentage, java.math.BigDecimal warningGrossMarginPercentage,
+            String barPrinterIp, String kitchenPrinterIp, String cashDeskPrinterIp,
+            Integer printerPort, Boolean directPrintingEnabled, String cashDenominationsJson) {
+        this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled, cashDenominationsJson);
+    }
+
+    /**
+     * Backwards-compatible 26-parameter constructor with unitSystem defaulting cashDenominationsJson to null.
+     */
+    public AppSettingsUpdateRequest(
+            String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled,
+            Boolean tableSessionValidationEnabled, java.math.BigDecimal defaultVatRate,
+            java.math.BigDecimal targetGrossMarginPercentage, java.math.BigDecimal warningGrossMarginPercentage,
+            String barPrinterIp, String kitchenPrinterIp, String cashDeskPrinterIp,
+            Integer printerPort, Boolean directPrintingEnabled) {
+        this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem != null ? unitSystem : UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled, null);
+    }
+
+    /**
+     * Backwards-compatible 25-parameter constructor defaulting cashDenominationsJson to null and unitSystem to METRIC_CL.
      */
     public AppSettingsUpdateRequest(
             String primaryColor, String primaryColorStrong, String logoUrl,
@@ -130,8 +316,9 @@ public record AppSettingsUpdateRequest(
             String barPrinterIp, String kitchenPrinterIp, String cashDeskPrinterIp,
             Integer printerPort, Boolean directPrintingEnabled) {
         this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
-                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
-                tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                currencyCode, currencySymbol, currencyPosition, UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
                 wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
                 defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
                 barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp, printerPort, directPrintingEnabled, null);
@@ -150,7 +337,9 @@ public record AppSettingsUpdateRequest(
             Boolean tableSessionValidationEnabled, java.math.BigDecimal defaultVatRate,
             java.math.BigDecimal targetGrossMarginPercentage, java.math.BigDecimal warningGrossMarginPercentage) {
         this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
-                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
+                currencyCode, currencySymbol, currencyPosition, UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes,
                 tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
                 wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
                 defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
@@ -169,7 +358,9 @@ public record AppSettingsUpdateRequest(
             String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled,
             Boolean tableSessionValidationEnabled) {
         this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
-                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
+                currencyCode, currencySymbol, currencyPosition, UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes,
                 tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
                 wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
                 null, null, null, null, null, null, 9100, false, null);
@@ -186,7 +377,9 @@ public record AppSettingsUpdateRequest(
             Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
             String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled) {
         this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
-                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
+                currencyCode, currencySymbol, currencyPosition, UnitSystem.METRIC_CL,
+                "cl", "g",
+                tempsAlerteWarningMinutes,
                 tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
                 wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, false, null, null, null,
                 null, null, null, 9100, false, null);

@@ -30,8 +30,8 @@ test.describe('Serveur Order Creation E2E Flow', () => {
     await expect(page.locator('app-cart-drawer')).toBeVisible({ timeout: 10000 });
 
     // Click to add a product
-    const productBtn = page.locator('.product-card').first();
-    await expect(productBtn).toBeVisible({ timeout: 5000 });
+    const productBtn = page.locator('.product-card, .figma-cocktail-card').first();
+    await expect(productBtn).toBeVisible({ timeout: 10000 });
     await productBtn.click({ force: true });
 
     // If variant selection modal appears, select the first variant

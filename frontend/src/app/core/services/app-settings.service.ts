@@ -2,9 +2,29 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AppSettings, AppSettingsUpdateRequest } from '../models/app-settings.model';
+import { AppSettings, AppSettingsUpdateRequest, DiscountTier } from '../models/app-settings.model';
 import { CashDenomination, getDefaultDenominationsForCurrency } from '../models/cash-denomination.model';
 import { WebSocketService } from './websocket.service';
+
+/**
+ * Standard default commercial discount tiers for bar operations.
+ */
+export const DEFAULT_DISCOUNT_TIERS: DiscountTier[] = [
+  { id: 'equipier', label: 'Équipier', type: 'percent', value: 50 },
+  { id: 'vip', label: 'VIP', type: 'percent', value: 20 },
+  { id: 'commercial', label: 'Geste commercial', type: 'percent', value: 10 },
+  { id: 'offert', label: 'Offert (100%)', type: 'percent', value: 100 }
+];
+
+/**
+ * Standard default inventory storage and service locations for bar operations.
+ */
+export const DEFAULT_STORAGE_LOCATIONS: string[] = [
+  'Bar Principal',
+  'Arrière-bar',
+  'Cave à vins & Spiritueux',
+  'Chambre froide fûts'
+];
 
 /**
  * Service managing establishment branding, customization, and operational alert thresholds.
@@ -36,7 +56,7 @@ export class AppSettingsService {
     return this.currentSettings?.currencySymbol || '€';
   }
 
-  /** Current configured establishment currency symbol position (default: 'AFTER'). */
+  /** Current configured establishment currency position (default: 'AFTER'). */
   get currencyPosition(): 'BEFORE' | 'AFTER' {
     return this.currentSettings?.currencyPosition || 'AFTER';
   }
@@ -54,6 +74,31 @@ export class AppSettingsService {
   /** Current warning gross profit margin threshold percentage (default: 50.0). */
   get warningGrossMarginPercentage(): number {
     return this.currentSettings?.warningGrossMarginPercentage ?? 50.0;
+  }
+
+  /** Current configured establishment timezone ID (e.g. 'Europe/Paris', default: 'SYSTEM'). */
+  get timeZone(): string {
+    return this.currentSettings?.timeZone || 'SYSTEM';
+  }
+
+  /**
+   * Calculates the current timestamp in milliseconds aligned with the establishment's configured timezone.
+   * If the timezone is 'SYSTEM' or unsupported, falls back gracefully to client browser Date.now().
+   *
+   * @returns Millisecond timestamp in the establishment timezone
+   */
+  getNowInEstablishmentTime(): number {
+    const tz = this.timeZone;
+    if (!tz || tz === 'SYSTEM') {
+      return Date.now();
+    }
+    try {
+      const nowInTzStr = new Date().toLocaleString('en-US', { timeZone: tz });
+      const parsed = new Date(nowInTzStr).getTime();
+      return Number.isNaN(parsed) ? Date.now() : parsed;
+    } catch {
+      return Date.now();
+    }
   }
 
   /**
@@ -76,6 +121,63 @@ export class AppSettingsService {
       }
     }
     return getDefaultDenominationsForCurrency(this.currencyCode, this.currencySymbol, this.currencyPosition);
+  }
+
+  /**
+   * Retrieves configured commercial discount tiers for rapid point-of-sale discounts.
+   * If custom JSON is stored in settings or localStorage, parses and returns it.
+   * Otherwise falls back to DEFAULT_DISCOUNT_TIERS.
+   *
+   * @returns Array of discount tiers
+   */
+  getDiscountTiers(): DiscountTier[] {
+    const json = this.currentSettings?.discountTiersJson || localStorage.getItem('openbar_discount_tiers');
+    if (json && typeof json === 'string' && json.trim().length > 0) {
+      try {
+        const parsed = JSON.parse(json);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch (err) {
+        console.warn('Failed to parse discountTiersJson, falling back to defaults:', err);
+      }
+    }
+    return [...DEFAULT_DISCOUNT_TIERS];
+  }
+
+  /**
+   * Persists configured commercial discount tiers to local cache.
+   *
+   * @param tiers Array of discount tiers to save
+   */
+  saveDiscountTiersLocally(tiers: DiscountTier[]): void {
+    try {
+      localStorage.setItem('openbar_discount_tiers', JSON.stringify(tiers));
+    } catch {
+      // LocalStorage fallback protection
+    }
+  }
+
+  /**
+   * Retrieves configured storage and service locations for physical inventory audits.
+   * If custom JSON is stored in settings, parses and returns it.
+   * Otherwise falls back to DEFAULT_STORAGE_LOCATIONS.
+   *
+   * @returns Array of storage location names
+   */
+  getStorageLocations(): string[] {
+    const json = this.currentSettings?.storageLocationsJson;
+    if (json && typeof json === 'string' && json.trim().length > 0) {
+      try {
+        const parsed = JSON.parse(json);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.filter((loc): loc is string => typeof loc === 'string' && loc.trim().length > 0);
+        }
+      } catch (err) {
+        console.warn('Failed to parse storageLocationsJson, falling back to defaults:', err);
+      }
+    }
+    return [...DEFAULT_STORAGE_LOCATIONS];
   }
 
   /**

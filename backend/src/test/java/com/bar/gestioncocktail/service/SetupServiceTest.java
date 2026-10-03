@@ -34,12 +34,14 @@ class SetupServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private CocktailLibraryService cocktailLibraryService;
+
     @Spy
     private TimeService timeService = new TimeService(null);
 
     @InjectMocks
     private SetupService setupService;
-
 
     private CreateAdminRequestDTO validRequest;
 
@@ -129,5 +131,26 @@ class SetupServiceTest {
             .hasMessageContaining("already in use");
 
         verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void createInitialAdmin_withInitialCocktails_importsCocktailsSuccessfully() {
+        CreateAdminRequestDTO requestWithCocktails = new CreateAdminRequestDTO(
+                "superadmin", "admin@bar.com", "Secret123!", "Admin", "Super", java.util.List.of("lib_1", "lib_2")
+        );
+
+        when(userRepository.count()).thenReturn(0L);
+        when(userRepository.existsByUsername(requestWithCocktails.username())).thenReturn(false);
+        when(userRepository.existsByEmail(requestWithCocktails.email())).thenReturn(false);
+        when(passwordEncoder.encode(requestWithCocktails.password())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User u = invocation.getArgument(0);
+            u.setId(1L);
+            return u;
+        });
+
+        setupService.createInitialAdmin(requestWithCocktails);
+
+        verify(cocktailLibraryService).importCocktails(any(com.bar.gestioncocktail.dto.CocktailLibraryImportRequestDTO.class));
     }
 }

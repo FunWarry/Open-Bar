@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, EMPTY } from 'rxjs';
@@ -35,6 +35,7 @@ import { environment } from '../../../../environments/environment';
     IonContent, IonIcon, IonSpinner, AppCurrencyPipe
   ],
   templateUrl: './facture-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./facture-detail.component.scss'],
 })
 export class FactureDetailComponent implements OnInit, OnDestroy {
@@ -63,7 +64,7 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
       switchMap(params => {
         const id = Number(params.get('id'));
         if (Number.isNaN(id)) {
-          this.router.navigate(['/404']);
+          void this.router.navigate(['/404']);
           return EMPTY;
         }
         return this.factureService.getFactureById(id);
@@ -71,7 +72,7 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: f => this.facture = f,
-      error: () => this.router.navigate(['/404'])
+      error: () => void this.router.navigate(['/404'])
     });
 
     this.etablissementService.getConfig()
@@ -255,7 +256,7 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
             duration: 2000,
             color: 'success'
           });
-          toast.present();
+          await toast.present();
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
@@ -263,7 +264,7 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
             duration: 3000,
             color: 'danger'
           });
-          toast.present();
+          await toast.present();
         },
       });
   }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './core/components/navbar/navbar.component';
 import { SidebarComponent } from './core/components/sidebar/sidebar.component';
@@ -8,6 +8,7 @@ import { NotificationService } from './core/services/notification.service';
 import { LanguageService } from './core/services/language.service';
 import { ThemeService } from './core/services/theme.service';
 import { AppUpdateService } from './core/services/app-update.service';
+import { SessionTimeoutService } from './core/services/session-timeout.service';
 import { filter, map, combineLatest, startWith, Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { selectIsAuthenticated } from './core/store/auth.selectors';
@@ -30,10 +31,12 @@ import * as allIcons from 'ionicons/icons';
     RouterOutlet, NavbarComponent, SidebarComponent, NotificationPanelComponent,
     AsyncPipe, UpperCasePipe, TranslocoModule, IonIcon
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class AppComponent implements OnInit {
   showNavbar$: Observable<boolean>;
+  showUnauthLangBtn$: Observable<boolean>;
 
   constructor(
     private readonly router: Router,
@@ -42,7 +45,8 @@ export class AppComponent implements OnInit {
     public readonly languageService: LanguageService,
     private readonly store: Store,
     private readonly themeService: ThemeService,
-    private readonly appUpdateService: AppUpdateService
+    private readonly appUpdateService: AppUpdateService,
+    private readonly sessionTimeoutService: SessionTimeoutService
   ) {
     addIcons(allIcons);
     const isAuth$ = this.store.select(selectIsAuthenticated);
@@ -72,9 +76,22 @@ export class AppComponent implements OnInit {
     this.showNavbar$ = combineLatest([isAuth$, isStandaloneRoute$]).pipe(
       map(([isAuth, isStandalone]) => isAuth && !isStandalone)
     );
+
+    const isDisplayRoute = (url: string): boolean => url.includes('/roulette-display');
+    const isInitialDisplayRoute = isDisplayRoute(initialUrl);
+
+    this.showUnauthLangBtn$ = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      map((event: any) => {
+        const url = event.urlAfterRedirects || event.url;
+        return !isDisplayRoute(url);
+      }),
+      startWith(!isInitialDisplayRoute)
+    );
   }
 
   ngOnInit() {
+    this.sessionTimeoutService.init();
     this.appSettingsService.getSettings().subscribe({
       error: () => { /* Preserve default design system settings if the backend API is unreachable */ },
     });

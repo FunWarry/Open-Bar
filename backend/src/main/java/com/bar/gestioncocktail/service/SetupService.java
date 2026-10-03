@@ -23,11 +23,17 @@ public class SetupService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TimeService timeService;
+    private final CocktailLibraryService cocktailLibraryService;
 
-    public SetupService(UserRepository userRepository, PasswordEncoder passwordEncoder, TimeService timeService) {
+    public SetupService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            TimeService timeService,
+            CocktailLibraryService cocktailLibraryService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.timeService = timeService;
+        this.cocktailLibraryService = cocktailLibraryService;
     }
 /**
      * Checks whether an administrator account is already registered.
@@ -73,6 +79,18 @@ public class SetupService {
         admin.setUpdatedAt(timeService.now());
 
         User savedAdmin = userRepository.save(admin);
+
+        if (request.initialCocktailIds() != null && !request.initialCocktailIds().isEmpty()) {
+            try {
+                cocktailLibraryService.importCocktails(
+                        new com.bar.gestioncocktail.dto.CocktailLibraryImportRequestDTO(request.initialCocktailIds()));
+            } catch (Exception e) {
+                // Log and continue rather than failing admin provisioning
+                org.slf4j.LoggerFactory.getLogger(SetupService.class)
+                        .warn("Initial cocktail library import during setup encountered an issue", e);
+            }
+        }
+
         return UserResponseDTO.from(savedAdmin);
     }
 }

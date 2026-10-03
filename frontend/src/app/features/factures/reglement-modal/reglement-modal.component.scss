@@ -245,6 +245,19 @@
           color: var(--semantic-success);
         }
       }
+
+      &.discount-pill {
+        border-color: var(--semantic-warning);
+
+        ion-icon {
+          color: var(--semantic-warning);
+        }
+
+        .pill-label,
+        .pill-value {
+          color: var(--semantic-warning);
+        }
+      }
     }
   }
 }
@@ -274,6 +287,10 @@
       &.cash-icon-color {
         color: var(--semantic-success);
       }
+
+      &.discount-icon-color {
+        color: var(--semantic-warning);
+      }
     }
 
     .section-heading {
@@ -299,7 +316,7 @@
 /* ── 2. Payment Methods Grid ────────────────────────────────────── */
 .payment-methods-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 10px;
 
   @media (max-width: 480px) {
@@ -323,7 +340,7 @@
     outline: none;
 
     &:hover {
-      border-color: var(--primary-light, #6366f1);
+      border-color: var(--primary);
       transform: translateY(-2px);
     }
 
@@ -354,6 +371,14 @@
 
       &.ticket-icon {
         color: var(--semantic-warning);
+      }
+
+      &.holiday-icon {
+        color: var(--primary);
+      }
+
+      &.other-icon {
+        color: var(--semantic-info);
       }
     }
 
@@ -575,7 +600,7 @@
 
         &:hover {
           background: var(--primary);
-          color: #ffffff;
+          color: var(--text-on-accent);
         }
       }
     }
@@ -687,7 +712,7 @@
   .btn-confirm-payment {
     --background: var(--semantic-success);
     --background-hover: var(--semantic-success);
-    --color: #ffffff;
+    --color: var(--text-on-accent);
     --border-radius: var(--radius-md, 12px);
     --box-shadow: var(--shadow-glow-success);
     height: 50px;
@@ -709,5 +734,99 @@
     }
   }
 }
+
+/* ── Discount & Options Chips ────────────────────────────────────── */
+.chips-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  .option-chip {
+    flex: 1;
+    min-width: 90px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md, 10px);
+    background: var(--modal-surface-2);
+    border: 1px solid var(--modal-border);
+    color: var(--modal-text-secondary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    outline: none;
+
+    &:hover {
+      background: var(--modal-surface-3);
+      color: var(--modal-text-main);
+    }
+
+    &.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--primary-contrast, #ffffff);
+    }
+  }
+}
+
+.suggestion-btn {
+  border-color: var(--semantic-warning) !important;
+  color: var(--semantic-warning) !important;
+  font-weight: 700 !important;
+}
+
+.increments-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+
+  .inc-btn {
+    flex: 1;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm, 6px);
+    background: var(--modal-surface-2);
+    border: 1px solid var(--modal-border);
+    color: var(--modal-text-main);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--modal-surface-3);
+      border-color: var(--primary);
+    }
+  }
+}
+
+.table-release-box {
+  background: var(--modal-surface);
+  border: 1px solid var(--modal-border);
+  border-radius: var(--radius-md, 10px);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+
+  .cb-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--modal-text-main);
+    margin-left: 8px;
+  }
+}
+
+.secondary-actions-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 4px;
+
+  ion-button {
+    flex: 1;
+    --border-radius: var(--radius-md, 10px);
+    font-weight: 600;
+  }
+}
+
 
 

@@ -6,6 +6,7 @@ import com.bar.gestioncocktail.model.AppSettings;
 import com.bar.gestioncocktail.model.DefaultTheme;
 import com.bar.gestioncocktail.service.AppSettingsService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,6 +27,9 @@ class AppSettingsControllerTest {
 
     @Mock
     AppSettingsService appSettingsService;
+
+    @Mock
+    com.bar.gestioncocktail.service.TimeService timeService;
 
     @InjectMocks
     AppSettingsController appSettingsController;
@@ -48,7 +52,8 @@ class AppSettingsControllerTest {
     }
 
     @Test
-    void getSettings_delegatesToServiceAndReturnsDTO() {
+    @DisplayName("getSettings delegates to service and returns DTO")
+    void getSettingsDelegatesToServiceAndReturnsDto() {
         when(appSettingsService.getSettings()).thenReturn(settings);
 
         ResponseEntity<AppSettingsResponseDTO> response = appSettingsController.getSettings();
@@ -63,7 +68,8 @@ class AppSettingsControllerTest {
     }
 
     @Test
-    void updateSettings_delegatesToServiceWithRequestAndReturnsUpdatedDTO() {
+    @DisplayName("updateSettings delegates to service with request and returns updated DTO")
+    void updateSettingsDelegatesToServiceWithRequestAndReturnsUpdatedDto() {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
             "#ff0000", "#cc0000", "https://example.com/new-logo.png", "The Test Bar", DefaultTheme.DARK,
             "USD", "$", com.bar.gestioncocktail.model.CurrencyPosition.BEFORE,
@@ -111,7 +117,8 @@ class AppSettingsControllerTest {
     }
 
     @Test
-    void getWifiQrCode_png_returnsImageBytes() {
+    @DisplayName("getWifiQrCode with PNG returns image bytes")
+    void getWifiQrCodePngReturnsImageBytes() {
         when(appSettingsService.generateWifiQrCode("PNG", 300)).thenReturn(new byte[]{10, 20, 30});
 
         ResponseEntity<byte[]> response = appSettingsController.getWifiQrCode("PNG", 300);
@@ -123,7 +130,8 @@ class AppSettingsControllerTest {
     }
 
     @Test
-    void getWifiQrCode_svg_returnsSvgBytes() {
+    @DisplayName("getWifiQrCode with SVG returns svg bytes")
+    void getWifiQrCodeSvgReturnsSvgBytes() {
         when(appSettingsService.generateWifiQrCode("SVG", 250)).thenReturn("<svg></svg>".getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
         ResponseEntity<byte[]> response = appSettingsController.getWifiQrCode("SVG", 250);

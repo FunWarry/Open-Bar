@@ -58,6 +58,42 @@ public record TableAppelResponseDTO(
         LocalDateTime acquitteAt
 ) {
     /**
+     * Alias for call status in English.
+     *
+     * @return call status
+     */
+    public TableAppelStatut status() {
+        return statut;
+    }
+
+    /**
+     * Alias for patron comment in English.
+     *
+     * @return patron comment
+     */
+    public String comment() {
+        return commentaire;
+    }
+
+    /**
+     * Alias for staff member who acknowledged in English.
+     *
+     * @return acknowledging staff username
+     */
+    public String acknowledgedBy() {
+        return acquittePar;
+    }
+
+    /**
+     * Alias for acknowledgement timestamp in English.
+     *
+     * @return acknowledgement timestamp
+     */
+    public LocalDateTime acknowledgedAt() {
+        return acquitteAt;
+    }
+
+    /**
      * Maps a {@link TableAppel} entity to its corresponding response DTO.
      *
      * @param entity Table alert entity

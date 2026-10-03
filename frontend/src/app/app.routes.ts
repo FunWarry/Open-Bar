@@ -51,6 +51,21 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'profile',
+    loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'parametres',
+    redirectTo: '/profile',
+    pathMatch: 'full'
+  },
+  {
+    path: 'user/settings',
+    redirectTo: '/profile',
+    pathMatch: 'full'
+  },
+  {
     path: 'auth/login',
     loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
   },
@@ -87,6 +102,28 @@ export const routes: Routes = [
     data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.STOCK_TRACKING }
   },
 
+  // Supplier purchases, delivery receipts and PAMP recalculation
+  {
+    path: 'purchases',
+    loadComponent: () => import('./features/purchases/purchases-page.component').then(m => m.PurchasesPageComponent),
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER'], requiredModule: EstablishmentModule.SUPPLIERS_MANAGEMENT }
+  },
+
+  // Physical inventory audits, variance reconciliation & shrinkage
+  {
+    path: 'inventory',
+    loadComponent: () => import('./features/inventory/inventory-sessions/inventory-sessions.component').then(m => m.InventorySessionsComponent),
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.INVENTORY_AUDIT }
+  },
+  {
+    path: 'inventory/:id',
+    loadComponent: () => import('./features/inventory/inventory-counting-sheet/inventory-counting-sheet.component').then(m => m.InventoryCountingSheetComponent),
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.INVENTORY_AUDIT }
+  },
+
   // Cocktails
   {
     path: 'cocktails',
@@ -104,6 +141,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/cocktails/cocktail-form/cocktail-form.component').then(m => m.CocktailFormComponent),
     canActivate: [AuthGuard, RoleGuard],
     data: {roles: ['ADMIN']}
+  },
+  {
+    path: 'cocktails/library',
+    loadComponent: () => import('./features/cocktails/components/cocktail-library-modal/cocktail-library-modal.component').then(m => m.CocktailLibraryModalComponent),
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.COCKTAIL_LIBRARY }
   },
 
   // Orders (English routes + legacy /commandes redirects)
@@ -165,11 +208,26 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
 
-  // Profile & Admin
+  // Profile & Theme
   {
     path: 'profile',
     loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'theme',
+    loadComponent: () => import('./features/theme/theme-page.component').then(m => m.ThemePageComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'settings/theme',
+    redirectTo: '/theme',
+    pathMatch: 'full'
+  },
+  {
+    path: 'parametres/theme',
+    redirectTo: '/theme',
+    pathMatch: 'full'
   },
   {
     path: 'admin',
@@ -260,7 +318,7 @@ export const routes: Routes = [
     path: 'waiter',
     loadComponent: () => import('./features/dashboard-serveur/dashboard-serveur.component').then(m => m.DashboardServeurComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['SERVEUR', 'MANAGER', 'ADMIN'] }
+    data: { roles: ['SERVEUR', 'BARMAN', 'MANAGER', 'ADMIN'] }
   },
   {
     path: 'waiter/new-order',
@@ -280,7 +338,7 @@ export const routes: Routes = [
     path: 'serveur',
     loadComponent: () => import('./features/dashboard-serveur/dashboard-serveur.component').then(m => m.DashboardServeurComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['SERVEUR', 'MANAGER', 'ADMIN'] }
+    data: { roles: ['SERVEUR', 'BARMAN', 'MANAGER', 'ADMIN'] }
   },
   {
     path: 'serveur/nouvelle-commande',
@@ -377,7 +435,7 @@ export const routes: Routes = [
     path: 'invoices',
     loadComponent: () => import('./features/factures/facture-list/facture-list.component').then(m => m.FactureListComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN'] }
   },
   {
     path: 'invoices/recap',
@@ -389,19 +447,19 @@ export const routes: Routes = [
     path: 'invoices/:id/split',
     loadComponent: () => import('./features/factures/facture-split/facture-split.component').then(m => m.FactureSplitComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN'] }
   },
   {
     path: 'invoices/:id',
     loadComponent: () => import('./features/factures/facture-detail/facture-detail.component').then(m => m.FactureDetailComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN'] }
   },
   {
     path: 'factures',
     loadComponent: () => import('./features/factures/facture-list/facture-list.component').then(m => m.FactureListComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN'] }
   },
   {
     path: 'factures/recap',
@@ -413,13 +471,13 @@ export const routes: Routes = [
     path: 'factures/:id/split',
     loadComponent: () => import('./features/factures/facture-split/facture-split.component').then(m => m.FactureSplitComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN'] }
   },
   {
     path: 'factures/:id',
     loadComponent: () => import('./features/factures/facture-detail/facture-detail.component').then(m => m.FactureDetailComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN'] }
   },
 
   // Client QR & Ordering
@@ -454,6 +512,14 @@ export const routes: Routes = [
   {
     path: 'client/tracking/:id',
     redirectTo: route => `/client/suivi/${route.params['id']}`
+  },
+
+  // Mystery Drink Roulette Display Screen (Big TV / Bar Tablets)
+  {
+    path: 'roulette-display',
+    loadComponent: () => import('./features/roulette-display/roulette-display.component').then(m => m.RouletteDisplayComponent),
+    canActivate: [ModuleGuard],
+    data: { requiredModule: EstablishmentModule.MYSTERY_ROULETTE }
   },
 
   // Onboarding & Fallback

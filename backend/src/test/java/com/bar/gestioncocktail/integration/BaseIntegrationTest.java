@@ -44,8 +44,8 @@ public abstract class BaseIntegrationTest {
     static {
         try {
             postgres.start();
-        } catch (Exception _) {
-            // Optional start if DB is pre-provisioned in test environment
+        } catch (Exception ex) {
+            org.slf4j.LoggerFactory.getLogger(BaseIntegrationTest.class).debug("Postgres container start skipped or deferred: {}", ex.getMessage());
         }
     }
 
@@ -66,22 +66,28 @@ public abstract class BaseIntegrationTest {
         registry.add("spring.security.jwt.secret", () -> "test_openbar_default_secret_key_minimum_32_chars_long");
         registry.add("spring.security.jwt.expiration", () -> "86400000");
         registry.add("JWT_SECRET", () -> "test_openbar_default_secret_key_minimum_32_chars_long");
+        registry.add("openbar.database.wait-for-connection", () -> "false");
     }
 
-    @Autowired
     protected WebApplicationContext webApplicationContext;
-
-    @Autowired
     protected ObjectMapper objectMapper;
-
-    @Autowired
     protected JwtTokenProvider jwtTokenProvider;
-
-    @Autowired
     protected UserRepository userRepository;
+    protected PasswordEncoder passwordEncoder;
 
     @Autowired
-    protected PasswordEncoder passwordEncoder;
+    void setDependencies(
+            WebApplicationContext webApplicationContext,
+            ObjectMapper objectMapper,
+            JwtTokenProvider jwtTokenProvider,
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder) {
+        this.webApplicationContext = webApplicationContext;
+        this.objectMapper = objectMapper;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     protected MockMvc mockMvc;
 

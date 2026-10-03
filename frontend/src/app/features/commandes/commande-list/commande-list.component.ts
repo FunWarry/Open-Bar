@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
@@ -41,12 +41,14 @@ import { SearchBarComponent } from '../../../core/components/ui/search-bar/searc
   templateUrl: './commande-list.component.html',
   styleUrls: ['./commande-list.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonContent, IonCard, IonCardHeader, IonCardContent,
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
     IonSpinner, SearchBarComponent, IonToggle, IonChip,
     FormsModule, CurrencyPipe, DatePipe, TranslocoPipe, CommandeCardComponent,
+    RouterLink,
   ],
 })
 export class CommandeListComponent implements OnInit, OnDestroy {
@@ -179,15 +181,18 @@ export class CommandeListComponent implements OnInit, OnDestroy {
           this.commandes = commandes;
           this.appliquerFiltre();
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Erreur lors du chargement des commandes',
-            duration: 3000,
-            color: 'danger',
-          });
-          toast.present();
+        error: () => {
+          this.showToast('Erreur lors du chargement des commandes', 'danger');
         },
       });
+  }
+
+  private showToast(message: string, color: 'success' | 'warning' | 'danger'): void {
+    void this.toastCtrl.create({
+      message,
+      duration: color === 'danger' ? 3000 : 2000,
+      color,
+    }).then(t => void t.present());
   }
 
   /**
@@ -275,22 +280,12 @@ export class CommandeListComponent implements OnInit, OnDestroy {
     this.commandeService.changerStatut(commande.id, nextStatut)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Statut de la commande mis à jour',
-            duration: 2000,
-            color: 'success',
-          });
-          toast.present();
+        next: () => {
+          this.showToast('Statut de la commande mis à jour', 'success');
           this.charger();
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Erreur lors du changement de statut',
-            duration: 3000,
-            color: 'danger',
-          });
-          toast.present();
+        error: () => {
+          this.showToast('Erreur lors du changement de statut', 'danger');
         },
       });
   }
@@ -306,22 +301,12 @@ export class CommandeListComponent implements OnInit, OnDestroy {
     this.commandeService.annuler(c.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Commande annulée avec succès',
-            duration: 2000,
-            color: 'warning',
-          });
-          toast.present();
+        next: () => {
+          this.showToast('Commande annulée avec succès', 'warning');
           this.charger();
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Impossible d\'annuler cette commande',
-            duration: 3000,
-            color: 'danger',
-          });
-          toast.present();
+        error: () => {
+          this.showToast('Impossible d\'annuler cette commande', 'danger');
         },
       });
   }
@@ -340,7 +325,7 @@ export class CommandeListComponent implements OnInit, OnDestroy {
     });
 
     document.body.classList.add('modal-open');
-    modal.onDidDismiss().then(result => {
+    void modal.onDidDismiss().then(result => {
       document.body.classList.remove('modal-open');
       if (result.data) {
         this.charger();

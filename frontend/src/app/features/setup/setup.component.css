@@ -146,6 +146,84 @@
 }
 
 .legal-link:hover {
-  color: var(--primary-strong, #5a68d6);
+  color: var(--primary-strong, var(--primary));
+}
+
+.setup-card.wide-card {
+  max-width: 960px;
+  padding: var(--space-6, 24px);
+}
+
+.step-indicator-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--primary-glow);
+  color: var(--primary);
+  border: 1px solid var(--border-medium);
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: var(--space-2, 8px);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.skip-to-finish-btn {
+  margin-top: 10px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: color 0.2s ease;
+}
+
+.skip-to-finish-btn:hover:not(:disabled) {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+.skip-to-finish-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.catalog-step-header {
+  text-align: center;
+  margin-bottom: var(--space-4, 16px);
+  position: relative;
+}
+
+.back-link-btn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.back-link-btn:hover {
+  color: var(--primary);
+  background: var(--background-surface-2);
+}
+
+.embedded-library-wrapper {
+  height: 600px;
+  max-height: 70vh;
+  border: 1px solid var(--border-medium);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
 }
 

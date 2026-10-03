@@ -5,6 +5,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 import { TableView } from '../../models/table-view.model';
 import { TableAppel } from '../../../../core/models/table-appel.model';
+import { CardComponent, CardAccentColor } from '../../../../core/components/ui/card/card.component';
 
 import { addIcons } from 'ionicons';
 import {
@@ -20,7 +21,7 @@ import {
 @Component({
   selector: 'app-mobile-table-card',
   standalone: true,
-  imports: [IonIcon, TranslocoPipe, AppCurrencyPipe],
+  imports: [IonIcon, TranslocoPipe, AppCurrencyPipe, CardComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './mobile-table-card.component.html',
   styleUrls: ['./mobile-table-card.component.scss'],
@@ -77,5 +78,16 @@ export class MobileTableCardComponent {
     if (this.waitTimeMinutes >= 20) return 'wait-danger';
     if (this.waitTimeMinutes >= 10) return 'wait-warning';
     return 'wait-normal';
+  }
+
+  /**
+   * Left accent border color for generic card integration.
+   */
+  get accentColor(): CardAccentColor | null {
+    if (!this.table?.occupee) return null;
+    if (this.waitTimeMinutes >= 20) return 'danger';
+    if (this.waitTimeMinutes >= 10) return 'warning';
+    if (this.waitTimeMinutes > 0) return 'success';
+    return 'warning';
   }
 }

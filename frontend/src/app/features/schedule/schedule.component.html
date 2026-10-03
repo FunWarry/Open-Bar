@@ -177,7 +177,7 @@
         <div class="comparison-mode-banner" data-testid="comparison-mode-banner">
           <div class="banner-info">
             <span class="banner-title">📊 {{ 'SHIFTS.DIFF.BANNER_TITLE' | transloco }}</span>
-            <span class="banner-desc">{{ 'SHIFTS.DIFF.BANNER_DESC' | transloco : { date: (publication?.publishedAt | date:'dd/MM HH:mm'), user: publication?.publishedBy } }}</span>
+            <span class="banner-desc">{{ 'SHIFTS.DIFF.BANNER_DESC' | transloco : { date: ($safeNavigationMigration(publication?.publishedAt) | date:'dd/MM HH:mm'), user: $safeNavigationMigration(publication?.publishedBy) } }}</span>
           </div>
           <div class="banner-stats">
             @if (diffAddedCount > 0) {
@@ -421,7 +421,7 @@
                         }
                         @if (diff.status === 'MODIFIED') {
                           <span class="diff-badge-modified">
-                            {{ 'SHIFTS.DIFF.WAS' | transloco: { start: diff.publishedShift?.heureDebut, end: diff.publishedShift?.heureFin } }}
+                            {{ 'SHIFTS.DIFF.WAS' | transloco: { start: $safeNavigationMigration(diff.publishedShift?.heureDebut), end: $safeNavigationMigration(diff.publishedShift?.heureFin) } }}
                           </span>
                         }
                       </div>

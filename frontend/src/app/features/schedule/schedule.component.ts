@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonSpinner,
@@ -86,6 +86,7 @@ export interface ShiftDiffInfo {
     ActionButtonComponent
   ],
   templateUrl: './schedule.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./schedule.component.scss']
 })
 export class ScheduleComponent implements OnInit, OnDestroy {
@@ -514,11 +515,11 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   exportScheduleCsv(): void {
     const sched = this.displaySchedule;
     if (!sched?.employees?.length) {
-      this.toastCtrl.create({
+      void this.toastCtrl.create({
         message: this.translocoService.translate('CSV_EXPORT.NO_DATA'),
         duration: 2500,
         color: 'warning'
-      }).then(t => t.present());
+      }).then(t => void t.present());
       return;
     }
 
@@ -552,11 +553,11 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     }
 
     if (flatShifts.length === 0) {
-      this.toastCtrl.create({
+      void this.toastCtrl.create({
         message: this.translocoService.translate('CSV_EXPORT.NO_DATA'),
         duration: 2500,
         color: 'warning'
-      }).then(t => t.present());
+      }).then(t => void t.present());
       return;
     }
 
@@ -719,12 +720,12 @@ export class ScheduleComponent implements OnInit, OnDestroy {
    * Publishes the current week's planning via REST and shows a confirmation toast.
    * Triggers a STOMP broadcast to all connected users.
    */
-  async publishSchedule(): Promise<void> {
+  publishSchedule(): void {
     const weekStartISO = this.formatDateIso(this.currentWeekStart);
     this.publicationService.publishWeek(weekStartISO)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async (pub) => {
+        next: (pub) => {
           // 1. Reload the schedule first so calculateScheduleDifferences
           //    compares the fresh snapshot against the fresh shifts
           this.scheduleService.getWeekSchedule(this.currentWeekStart)
@@ -963,7 +964,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     if (event.button !== 0 || this.isReplayMode) return; // Left-click only, disabled in replay
     if (shift.isClosed) {
       if (!this.isDeleteMode) {
-        this.showClosedDayNotice(shift);
+        void this.showClosedDayNotice(shift);
       }
       return;
     }
@@ -1084,7 +1085,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       this.toggleDeleteMode();
     } else if ((this.isDeleteKey(event.key) || event.key === 'Enter') && this.selectedShiftIds.size > 0) {
       event.preventDefault();
-      this.confirmBulkDelete();
+      void this.confirmBulkDelete();
     }
   }
 
@@ -1092,10 +1093,10 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     if (!this.hoveredCell) return;
     if (event.key === 'c' || event.key === 'C') {
       event.preventDefault();
-      this.copyShift(this.hoveredCell.shift);
+      void this.copyShift(this.hoveredCell.shift);
     } else if (event.key === 'v' || event.key === 'V') {
       event.preventDefault();
-      this.pasteShift(this.hoveredCell.emp, this.hoveredCell.shift);
+      void this.pasteShift(this.hoveredCell.emp, this.hoveredCell.shift);
     }
   }
 
@@ -1107,7 +1108,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     const shiftId = this.hoveredCell?.shift.rawShift?.id;
     if (shiftId) {
       event.preventDefault();
-      this.confirmDeleteShift(shiftId);
+      void this.confirmDeleteShift(shiftId);
     }
   }
 
@@ -1221,11 +1222,11 @@ export class ScheduleComponent implements OnInit, OnDestroy {
    */
   onCellClick(emp: EmployeeScheduleRow, shift: ShiftCell): void {
     if (this.isReplayMode) {
-      this.toastCtrl.create({
+      void this.toastCtrl.create({
         message: this.translocoService.translate('SHIFTS.REPLAY.READ_ONLY_NOTICE'),
         duration: 2500,
         color: 'warning'
-      }).then((t) => t.present());
+      }).then((t) => void t.present());
       return;
     }
 
@@ -1239,7 +1240,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     }
 
     if (shift.isClosed) {
-      this.showClosedDayNotice(shift);
+      void this.showClosedDayNotice(shift);
       return;
     }
 
@@ -1250,10 +1251,10 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
     if (!shift.startTime) {
       // Empty cell: open creation form pre-filled with the employee and date
-      this.openCreateShiftModal(emp, shift.date);
+      void this.openCreateShiftModal(emp, shift.date);
     } else {
       // Cell with shift: open edit modal directly for this shift
-      this.openEditShiftModal(emp, shift);
+      void this.openEditShiftModal(emp, shift);
     }
   }
 
@@ -1264,7 +1265,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
    * @param emp - The employee schedule row that was clicked.
    */
   onEmployeeHeaderClick(emp: EmployeeScheduleRow): void {
-    this.openEmployeeModalForUser(emp.employeeId);
+    void this.openEmployeeModalForUser(emp.employeeId);
   }
 
   /**
@@ -1387,7 +1388,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
    */
   async openActionSheet(emp: EmployeeScheduleRow, shift: ShiftCell): Promise<void> {
     if (shift.isClosed) {
-      this.showClosedDayNotice(shift);
+      await this.showClosedDayNotice(shift);
       return;
     }
 
@@ -1400,7 +1401,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
           text: 'Modifier le créneau',
           icon: 'create-outline',
           handler: () => {
-            this.openEditShiftModal(emp, shift);
+            void this.openEditShiftModal(emp, shift);
           }
         },
         {
@@ -1414,7 +1415,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
           text: 'Copier le créneau',
           icon: 'copy-outline',
           handler: () => {
-            this.copyShift(shift);
+            void this.copyShift(shift);
           }
         }
       );
@@ -1424,7 +1425,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
           text: 'Coller le créneau copié',
           icon: 'clipboard-outline',
           handler: () => {
-            this.pasteShift(emp, shift);
+            void this.pasteShift(emp, shift);
           }
         });
       }
@@ -1434,7 +1435,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
           text: 'Menu navigateur standard (Shift + Clic droit)',
           icon: 'globe-outline',
           handler: () => {
-            this.showBrowserMenuNotice();
+            void this.showBrowserMenuNotice();
           }
         },
         {
@@ -1442,7 +1443,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
           icon: 'trash-outline',
           role: 'destructive',
           handler: () => {
-            this.confirmDeleteShift(shiftId);
+            void this.confirmDeleteShift(shiftId);
           }
         }
       );
@@ -1452,7 +1453,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
           text: 'Coller le créneau copié',
           icon: 'clipboard-outline',
           handler: () => {
-            this.pasteShift(emp, shift);
+            void this.pasteShift(emp, shift);
           }
         });
       }
@@ -1461,7 +1462,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
         text: 'Nouveau créneau',
         icon: 'add-outline',
         handler: () => {
-          this.openCreateShiftModal(emp, shift.date);
+          void this.openCreateShiftModal(emp, shift.date);
         }
       });
     }
@@ -1483,12 +1484,12 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   onContextMenu(event: MouseEvent, emp: EmployeeScheduleRow, shift: ShiftCell): void {
     if (event.shiftKey || this.isReplayMode) return;
     event.preventDefault();
-    this.openActionSheet(emp, shift);
+    void this.openActionSheet(emp, shift);
   }
 
   async copyShift(shift: ShiftCell): Promise<void> {
     if (shift.isClosed) {
-      this.showClosedDayNotice(shift);
+      await this.showClosedDayNotice(shift);
       return;
     }
     if (!shift.rawShift) {
@@ -1512,7 +1513,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
   async pasteShift(emp: EmployeeScheduleRow, targetCell: ShiftCell): Promise<void> {
     if (targetCell.isClosed) {
-      this.showClosedDayNotice(targetCell);
+      await this.showClosedDayNotice(targetCell);
       return;
     }
     if (!this.copiedShift) {
@@ -1575,7 +1576,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     const nextDateIso = `${year}-${month}-${dayNum}`;
 
     if (this.schedule?.closedDays?.[nextDateIso]) {
-      this.showClosedDayNotice({ isClosed: true, closureReason: this.schedule.closedDays[nextDateIso], date: nextDateIso } as ShiftCell);
+      void this.showClosedDayNotice({ isClosed: true, closureReason: this.schedule.closedDays[nextDateIso], date: nextDateIso } as ShiftCell);
       return;
     }
 

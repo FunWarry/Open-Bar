@@ -595,10 +595,43 @@
         flex-direction: column;
         gap: 0.35rem;
 
+        .field-label,
         label {
-          font-size: 0.8rem;
+          display: block;
+          font-size: 0.825rem;
           font-weight: 600;
           color: var(--text-secondary);
+        }
+
+        .field-label-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.5rem;
+
+          .btn-inline-new-ing {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: var(--background-surface-3);
+            border: 1px solid var(--border-light);
+            color: var(--primary-light);
+            padding: 0.15rem 0.55rem;
+            border-radius: var(--radius-pill, 999px);
+            font-size: 0.725rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+
+            ion-icon {
+              font-size: 0.85rem;
+            }
+
+            &:hover {
+              background: var(--primary-strong);
+              color: var(--text-on-accent);
+            }
+          }
         }
       }
 
