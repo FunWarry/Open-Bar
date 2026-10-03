@@ -76,7 +76,7 @@ export class SessionTimeoutService {
     localStorage.setItem(this.SESSION_EXPIRY_KEY, String(now + durationMs));
 
     if (this.warningModal) {
-      this.warningModal.dismiss({ action: 'dismissed' });
+      void this.warningModal.dismiss({ action: 'dismissed' });
       this.warningModal = null;
     }
     this.isWarningModalOpen = false;
