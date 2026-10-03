@@ -271,4 +271,140 @@ class ReservationServiceTest {
         assertThat(results).hasSize(1);
         assertThat(results.get(0).nomClient()).isEqualTo("Dupont");
     }
+
+    @Test
+    @DisplayName("getCustomerSuggestions: returns empty list for short or null query")
+    void getCustomerSuggestions_shortQuery_returnsEmpty() {
+        assertThat(reservationService.getCustomerSuggestions(null)).isEmpty();
+        assertThat(reservationService.getCustomerSuggestions(" ")).isEmpty();
+        assertThat(reservationService.getCustomerSuggestions("a")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("getReservationsByDate: returns reservations for specified date or defaults to today")
+    void getReservationsByDate_returnsList() {
+        when(reservationRepository.findByDateReservationOrderByHeureReservationAsc(testDate))
+                .thenReturn(List.of(reservation1));
+
+        List<ReservationDTO> results = reservationService.getReservationsByDate(testDate);
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).nomClient()).isEqualTo("Dupont");
+
+        List<ReservationDTO> defaultDateResults = reservationService.getReservationsByDate(null);
+        assertThat(defaultDateResults).isNotNull();
+    }
+
+    @Test
+    @DisplayName("getReservations: filters by customer search query")
+    void getReservations_withSearch_returnsFiltered() {
+        when(reservationRepository.searchByCustomerInfo("Dupont"))
+                .thenReturn(List.of(reservation1));
+
+        List<ReservationDTO> results = reservationService.getReservations(null, null, ReservationStatut.CONFIRMED, "Dupont");
+        assertThat(results).hasSize(1);
+
+        List<ReservationDTO> filteredOut = reservationService.getReservations(null, null, ReservationStatut.CANCELLED, "Dupont");
+        assertThat(filteredOut).isEmpty();
+    }
+
+    @Test
+    @DisplayName("getReservations: filters by date range and status without search")
+    void getReservations_withDateRange_returnsFiltered() {
+        when(reservationRepository.findByDateReservationBetweenOrderByDateReservationAscHeureReservationAsc(testDate, testDate))
+                .thenReturn(List.of(reservation1));
+
+        List<ReservationDTO> results = reservationService.getReservations(testDate, testDate, null, null);
+        assertThat(results).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("getReservationById: returns DTO or throws ResourceNotFoundException")
+    void getReservationById_scenarios() {
+        when(reservationRepository.findById(100L)).thenReturn(Optional.of(reservation1));
+        when(reservationRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThat(reservationService.getReservationById(100L)).isNotNull();
+
+        assertThatThrownBy(() -> reservationService.getReservationById(999L))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("createReservation: successfully creates reservation without assigned table")
+    void createReservation_withoutTable_success() {
+        ReservationCreateRequest request = new ReservationCreateRequest(
+                "Martin", "+33611223344", "martin@test.fr",
+                testDate, testTime, 60, 2, "Window seat", ReservationStatut.CONFIRMED, null
+        );
+
+        Reservation savedReservation = new Reservation("Martin", "+33611223344", "martin@test.fr", testDate, testTime, 60, 2);
+        savedReservation.setId(101L);
+        when(reservationRepository.save(any(Reservation.class))).thenReturn(savedReservation);
+
+        ReservationDTO result = reservationService.createReservation(request);
+        assertThat(result).isNotNull();
+        assertThat(result.nomClient()).isEqualTo("Martin");
+        verify(notificationService).notifierReservationMiseAJour(any());
+    }
+
+    @Test
+    @DisplayName("updateReservation: throws ResourceNotFoundException when reservation or table not found")
+    void updateReservation_notFoundScenarios() {
+        ReservationUpdateRequest request = new ReservationUpdateRequest(
+                "Unknown", null, null, testDate, testTime, 90, 2, null, ReservationStatut.CONFIRMED, 999L
+        );
+
+        when(reservationRepository.findById(999L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> reservationService.updateReservation(999L, request))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        when(reservationRepository.findById(100L)).thenReturn(Optional.of(reservation1));
+        when(tableRepository.findById(999L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> reservationService.updateReservation(100L, request))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("updateStatut: throws ResourceNotFoundException when reservation missing")
+    void updateStatut_notFound_throwsException() {
+        when(reservationRepository.findById(999L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> reservationService.updateStatut(999L, ReservationStatut.SEATED))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("seatReservation: handles occupied table and serveur user logging")
+    void seatReservation_tableAlreadyOccupied_andWithServeur() {
+        table1.setOccupee(true);
+        when(reservationRepository.findById(100L)).thenReturn(Optional.of(reservation1));
+        when(reservationRepository.save(any(Reservation.class))).thenReturn(reservation1);
+        when(userRepository.findById(5L)).thenReturn(Optional.empty());
+
+        ReservationDTO result = reservationService.seatReservation(100L, 5L);
+        assertThat(result).isNotNull();
+        verify(tableService, never()).occuperTable(any(), any());
+    }
+
+    @Test
+    @DisplayName("deleteReservation: throws ResourceNotFoundException when missing")
+    void deleteReservation_notFound_throwsException() {
+        when(reservationRepository.findById(999L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> reservationService.deleteReservation(999L))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("getUpcomingReservationForTable & getUpcomingReservations: return upcoming bookings")
+    void upcomingReservations_scenarios() {
+        when(reservationRepository.findByTableIdAndDateReservation(eq(10L), any(LocalDate.class)))
+                .thenReturn(List.of(reservation1));
+        when(reservationRepository.findByDateReservationOrderByHeureReservationAsc(any(LocalDate.class)))
+                .thenReturn(List.of(reservation1));
+
+        Optional<ReservationDTO> upcoming = reservationService.getUpcomingReservationForTable(10L, 120);
+        assertThat(upcoming).isNotNull();
+
+        List<ReservationDTO> allUpcoming = reservationService.getUpcomingReservations(120);
+        assertThat(allUpcoming).isNotNull();
+    }
 }

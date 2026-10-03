@@ -64,11 +64,15 @@ describe('ReservationsPageComponent', () => {
       'updateStatut',
       'seatReservation',
       'createReservation',
+      'updateReservation',
+      'deleteReservation',
     ]);
     reservationServiceSpy.getReservations.and.returnValue(of(mockReservations));
     reservationServiceSpy.updateStatut.and.returnValue(of({ ...mockReservations[0], statut: 'CANCELLED' }));
     reservationServiceSpy.seatReservation.and.returnValue(of({ ...mockReservations[0], statut: 'SEATED' }));
     reservationServiceSpy.createReservation.and.returnValue(of(mockReservations[0]));
+    reservationServiceSpy.updateReservation.and.returnValue(of(mockReservations[0]));
+    reservationServiceSpy.deleteReservation.and.returnValue(of(undefined as unknown as void));
 
     tableServiceSpy = jasmine.createSpyObj('TableService', ['getAll']);
     tableServiceSpy.getAll.and.returnValue(of(mockTables));
@@ -200,5 +204,93 @@ describe('ReservationsPageComponent', () => {
 
     component.onShiftsModalClose();
     expect(component.isShiftsModalOpen).toBeFalse();
+  });
+
+  it('changes selected date with changeDate() and onDateChange()', () => {
+    component.selectedDate.set('2026-08-15');
+    component.changeDate(1);
+    expect(component.selectedDate()).toBe('2026-08-16');
+
+    component.changeDate(-2);
+    expect(component.selectedDate()).toBe('2026-08-14');
+
+    const fakeEvent = { target: { value: '2026-09-01' } } as unknown as Event;
+    component.onDateChange(fakeEvent);
+    expect(component.selectedDate()).toBe('2026-09-01');
+  });
+
+  it('handles search query and status filtering', () => {
+    component.searchQuery.set('Jean');
+    component.selectedStatusFilter.set('CONFIRMED');
+
+    expect(component.filteredReservations()).toHaveSize(1);
+    expect(component.filteredReservations()[0].nomClient).toBe('Jean Dupont');
+
+    component.selectedStatusFilter.set('SEATED');
+    expect(component.filteredReservations()).toHaveSize(0);
+  });
+
+  it('provides status color classes, card accents, and timeline positioning styles', () => {
+    expect(component.getStatusClass('CONFIRMED')).toContain('confirmed');
+    expect(component.getStatusClass('SEATED')).toContain('seated');
+    expect(component.getStatusClass('CANCELLED')).toContain('cancelled');
+    expect(component.getStatusClass('PENDING')).toContain('pending');
+
+    expect(component.getCardAccentColor('CONFIRMED')).toBe('purple');
+    expect(component.getCardAccentColor('SEATED')).toBe('success');
+    expect(component.getCardAccentColor('CANCELLED')).toBe('danger');
+
+    const style = component.getReservationStyle(mockReservations[0]);
+    expect(style['left']).toBeDefined();
+    expect(style['width']).toBeDefined();
+  });
+
+  it('filters reservations for a specific table', () => {
+    const table1Res = component.getReservationsForTable(10);
+    expect(table1Res).toHaveSize(1);
+    expect(table1Res[0].nomClient).toBe('Jean Dupont');
+
+    const table99Res = component.getReservationsForTable(99);
+    expect(table99Res).toHaveSize(0);
+  });
+
+  it('duplicates a reservation with duplicateReservation()', () => {
+    reservationServiceSpy.createReservation.and.returnValue(of({
+      ...mockReservations[0],
+      id: 88,
+      nomClient: 'Jean Dupont (Copie)',
+    }));
+
+    component.duplicateReservation(mockReservations[0]);
+    expect(reservationServiceSpy.createReservation).toHaveBeenCalled();
+  });
+
+  it('handles context menu opening for reservation and slot', async () => {
+    const fakeEvent = {
+      preventDefault: jasmine.createSpy('preventDefault'),
+      stopPropagation: jasmine.createSpy('stopPropagation'),
+      clientX: 150,
+      clientY: 250,
+    } as unknown as MouseEvent;
+
+    await component.onReservationContextMenu(fakeEvent, mockReservations[0]);
+    expect(fakeEvent.preventDefault).toHaveBeenCalled();
+
+    await component.onSlotContextMenu(fakeEvent, mockTables[0], '14:00');
+    expect(fakeEvent.preventDefault).toHaveBeenCalled();
+  });
+
+  it('cancels and deletes a reservation', () => {
+    component.cancelReservation(mockReservations[0]);
+    expect(reservationServiceSpy.updateStatut).toHaveBeenCalledWith(1, 'CANCELLED');
+
+    component.deleteReservation(mockReservations[0]);
+    expect(reservationServiceSpy.deleteReservation).toHaveBeenCalledWith(1);
+  });
+
+  it('handles onReservationSaved callback', () => {
+    spyOn(component, 'loadReservations');
+    component.onReservationSaved(mockReservations[0]);
+    expect(component.loadReservations).toHaveBeenCalled();
   });
 });

@@ -154,7 +154,7 @@ describe('ReservationModalComponent', () => {
     component.onCustomerNameInput();
 
     expect(reservationServiceSpy.getSuggestions).toHaveBeenCalledWith('Je');
-    expect(component.customerSuggestions.length).toBe(1);
+    expect(component.customerSuggestions).toHaveSize(1);
     expect(component.showSuggestions).toBeTrue();
   });
 
@@ -165,7 +165,7 @@ describe('ReservationModalComponent', () => {
     component.reservationForm.patchValue({ nomClient: 'J' });
     component.onCustomerNameInput();
 
-    expect(component.customerSuggestions.length).toBe(0);
+    expect(component.customerSuggestions).toHaveSize(0);
     expect(component.showSuggestions).toBeFalse();
   });
 
