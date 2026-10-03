@@ -16,7 +16,7 @@ import {
   add, create, trash, leafOutline, toggle, toggleOutline, gridOutline, listOutline,
   search, imageOutline, image, wineOutline, nutritionOutline, eggOutline,
   funnelOutline, closeCircleOutline, alertCircleOutline,
-  checkmarkCircle, optionsOutline, addCircleOutline, libraryOutline
+  checkmarkCircle, optionsOutline, addCircleOutline, libraryOutline, gitBranchOutline
 } from 'ionicons/icons';
 import { AsyncPipe, CurrencyPipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -26,7 +26,8 @@ import { WebSocketService } from '../../../core/services/websocket.service';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
 import { FeatureFlagService } from '../../../core/services/feature-flag.service';
 import { EstablishmentModule } from '../../../core/models/establishment-module.model';
-import { Cocktail, CocktailFacets, FlavorProfile } from '../../../core/models/cocktail.model';
+import { Cocktail, CocktailFacets, CocktailVariante, FlavorProfile } from '../../../core/models/cocktail.model';
+import { CocktailVariantModalComponent, CocktailVariantModalResult } from '../components/cocktail-variant-modal/cocktail-variant-modal.component';
 import { CardComponent } from '../../../core/components/ui/card/card.component';
 import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { CocktailMatcherBarComponent, CocktailMatcherFilters } from '../../../core/components/ui/cocktail-matcher-bar/cocktail-matcher-bar.component';
@@ -126,7 +127,9 @@ export class CocktailListComponent implements OnInit, OnDestroy {
       addCircleOutline,
       'add-circle-outline': addCircleOutline,
       libraryOutline,
-      'library-outline': libraryOutline
+      'library-outline': libraryOutline,
+      gitBranchOutline,
+      'git-branch-outline': gitBranchOutline
     });
   }
 
@@ -361,40 +364,222 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Checks whether a cocktail is already subsumed as a variant in another cocktail of the catalog.
+   * Prevents duplicate standalone cards when a cocktail is already a variant of a parent drink.
+   */
+  isSubsumedAsVariant(cocktail: Cocktail): boolean {
+    const cNom = cocktail.nom.toLowerCase().trim();
+    return this.cocktails.some(parent => {
+      if (parent.id === cocktail.id) return false;
+      return (parent.variantes || []).some(v => {
+        const vNom = v.nom.toLowerCase().trim();
+        const baseVNom = vNom.replace(/\s*\([^)]*\)/, '').trim();
+        return vNom.includes(cNom) || cNom === baseVNom;
+      });
+    });
+  }
+
+  /**
    * Returns filtered cocktails array based on search query, category, allergen exclusion, flavor profiles, and availability status filters.
+   * Cocktails with variants remain unique and match if either the base drink or any of its variants satisfies active filters.
    */
   get filteredCocktails(): Cocktail[] {
     const query = this.searchQuery.toLowerCase().trim();
     return this.cocktails.filter(c => {
-      const matchesSearch = !query ||
-        c.nom.toLowerCase().includes(query) ||
-        (c.description?.toLowerCase()?.includes(query) ?? false);
-
-      const matchesCategory = this.selectedCategory === 'ALL' || c.categorie === this.selectedCategory;
-
-      let matchesStatus = true;
-      if (this.filtre === 'disponibles') matchesStatus = c.disponible;
-      else if (this.filtre === 'indisponibles') matchesStatus = !c.disponible;
-
-      let matchesAllergens = true;
-      if (this.selectedAllergens.length > 0) {
-        const cocktailAllergens = this.getCocktailAllergens(c);
-        matchesAllergens = !this.selectedAllergens.some(a => cocktailAllergens.includes(a));
+      if (this.isSubsumedAsVariant(c)) {
+        return false;
       }
-
-      let matchesDietary = true;
-      if (this.matcherMocktail && !c.isMocktail && c.categorie !== 'SANS_ALCOOL') matchesDietary = false;
-      if (this.matcherVegan && !c.isVegan) matchesDietary = false;
-      if (this.matcherGlutenFree && !c.isGlutenFree) matchesDietary = false;
-      if (this.matcherLowAbv && ((c.alcoholLevel ?? 0) <= 0 || (c.alcoholLevel ?? 0) > 10.0)) matchesDietary = false;
-
-      let matchesFlavors = true;
-      if (this.selectedFlavors.length > 0) {
-        matchesFlavors = !!(c.flavorProfiles && this.selectedFlavors.some(f => c.flavorProfiles!.includes(f)));
-      }
-
-      return matchesSearch && matchesCategory && matchesStatus && matchesAllergens && matchesDietary && matchesFlavors;
+      return this.doesCocktailOrVariantsMatch(c, query);
     });
+  }
+
+  private matchesAvailabilityStatus(c: Cocktail): boolean {
+    if (this.filtre === 'disponibles') return c.disponible;
+    if (this.filtre === 'indisponibles') return !c.disponible;
+    return true;
+  }
+
+  private baseMatchesDietary(c: Cocktail): boolean {
+    if (this.matcherMocktail && !c.isMocktail && c.categorie !== 'SANS_ALCOOL') return false;
+    if (this.matcherVegan && !c.isVegan) return false;
+    if (this.matcherGlutenFree && !c.isGlutenFree) return false;
+    const abv = c.alcoholLevel ?? 0;
+    return !this.matcherLowAbv || (abv > 0 && abv <= 10.0);
+  }
+
+  private baseSatisfiesAll(c: Cocktail, query: string): boolean {
+    const matchesSearch = !query ||
+      c.nom.toLowerCase().includes(query) ||
+      (c.description?.toLowerCase()?.includes(query) ?? false);
+
+    const matchesCategory = this.selectedCategory === 'ALL' || c.categorie === this.selectedCategory;
+
+    const matchesAllergens = this.selectedAllergens.length === 0 ||
+      !this.selectedAllergens.some(a => this.getCocktailAllergens(c).includes(a));
+
+    const matchesFlavors = this.selectedFlavors.length === 0 ||
+      (c.flavorProfiles?.some(f => this.selectedFlavors.includes(f)) ?? false);
+
+    return matchesSearch && matchesCategory && matchesAllergens && this.baseMatchesDietary(c) && matchesFlavors;
+  }
+
+  /**
+   * Evaluates if a cocktail or any of its variants matches all currently active filter criteria.
+   */
+  private doesCocktailOrVariantsMatch(c: Cocktail, query: string): boolean {
+    if (!this.matchesAvailabilityStatus(c)) return false;
+    if (this.baseSatisfiesAll(c, query)) return true;
+    return c.variantes?.some(v => v.disponible !== false && this.doesVariantMatchFilters(c, v)) ?? false;
+  }
+
+  private matchesVariantSearch(cocktail: Cocktail, variant: CocktailVariante, query: string): boolean {
+    if (!query) return true;
+    return variant.nom.toLowerCase().includes(query) ||
+      (variant.description?.toLowerCase()?.includes(query) ?? false) ||
+      cocktail.nom.toLowerCase().includes(query);
+  }
+
+  private matchesVariantCategory(cocktail: Cocktail, variant: CocktailVariante): boolean {
+    if (this.selectedCategory === 'ALL') return true;
+    const isVirgin = this.isVariantNonAlcoholic(variant);
+    if (this.selectedCategory === 'SANS_ALCOOL') {
+      return isVirgin || cocktail.categorie === 'SANS_ALCOOL';
+    }
+    if (this.selectedCategory === 'ALCOOLISE') {
+      return !isVirgin || cocktail.categorie !== 'SANS_ALCOOL';
+    }
+    return cocktail.categorie === this.selectedCategory;
+  }
+
+  private matchesVariantDietary(cocktail: Cocktail, variant: CocktailVariante): boolean {
+    if (this.matcherMocktail) {
+      const isVirgin = this.isVariantNonAlcoholic(variant);
+      if (!isVirgin && !cocktail.isMocktail && cocktail.categorie !== 'SANS_ALCOOL') {
+        return false;
+      }
+    }
+    if (this.selectedAllergens.length > 0) {
+      const variantAllergens = this.getVariantAllergens(cocktail, variant);
+      if (this.selectedAllergens.some(a => variantAllergens.includes(a))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether a specific variant satisfies the active catalog filters.
+   */
+  doesVariantMatchFilters(cocktail: Cocktail, variant: CocktailVariante): boolean {
+    const query = this.searchQuery.toLowerCase().trim();
+    return this.matchesVariantSearch(cocktail, variant, query) &&
+      this.matchesVariantCategory(cocktail, variant) &&
+      this.matchesVariantDietary(cocktail, variant);
+  }
+
+  /**
+   * Detects whether a variant recipe represents a non-alcoholic mocktail.
+   */
+  isVariantNonAlcoholic(variant: CocktailVariante): boolean {
+    const text = `${variant.nom} ${variant.description || ''} ${variant.instructions || ''}`.toLowerCase();
+    return text.includes('sans alcool') || text.includes('virgin') || text.includes('mocktail') || text.includes('0.0%') || text.includes('non-alcoholic');
+  }
+
+  /**
+   * Resolves allergen keys associated with a variant.
+   */
+  getVariantAllergens(cocktail: Cocktail, variant: CocktailVariante): string[] {
+    const allergens = new Set<string>();
+    if (variant.ingredients && variant.ingredients.length > 0) {
+      for (const item of variant.ingredients) {
+        if (Array.isArray(item.allergens)) {
+          for (const a of item.allergens) {
+            allergens.add(String(a));
+          }
+        }
+      }
+    } else {
+      return this.getCocktailAllergens(cocktail);
+    }
+    return Array.from(allergens);
+  }
+
+  /**
+   * Returns variants of a cocktail that satisfy all currently active filters.
+   */
+  getFilteredVariants(cocktail: Cocktail): CocktailVariante[] {
+    if (!cocktail.variantes || cocktail.variantes.length === 0) return [];
+    return cocktail.variantes.filter(v => v.disponible !== false && this.doesVariantMatchFilters(cocktail, v));
+  }
+
+  /**
+   * Generates a concise summary string of active catalog filter criteria.
+   */
+  getActiveFilterSummary(): string {
+    const parts: string[] = [];
+    if (this.selectedCategory !== 'ALL') {
+      parts.push(this.transloco.translate('COCKTAILS.CATEGORIES.' + this.selectedCategory));
+    }
+    if (this.selectedAllergens.length > 0) {
+      parts.push(this.selectedAllergens.map(a => this.transloco.translate('COCKTAILS.ALLERGENS.' + a)).join(', '));
+    }
+    if (this.matcherMocktail) parts.push(this.transloco.translate('CLIENT_QR.MATCHER_MOCKTAIL'));
+    if (this.matcherVegan) parts.push(this.transloco.translate('CLIENT_QR.MATCHER_VEGAN'));
+    if (this.matcherGlutenFree) parts.push(this.transloco.translate('CLIENT_QR.MATCHER_GLUTEN_FREE'));
+    if (this.matcherLowAbv) parts.push(this.transloco.translate('CLIENT_QR.MATCHER_LOW_ABV'));
+    if (this.selectedFlavors.length > 0) {
+      parts.push(this.selectedFlavors.map(f => this.transloco.translate('COCKTAIL.FLAVOR_' + f)).join(', '));
+    }
+    if (this.searchQuery.trim()) {
+      parts.push(`"${this.searchQuery.trim()}"`);
+    }
+    return parts.join(' · ');
+  }
+
+  /**
+   * Opens the variant viewer/selection modal displaying variants matching active filters.
+   */
+  async openVariantViewer(cocktail: Cocktail): Promise<void> {
+    const filteredVars = this.getFilteredVariants(cocktail);
+    const modal = await this.modalCtrl.create({
+      component: CocktailVariantModalComponent,
+      componentProps: {
+        cocktail,
+        filteredVariants: filteredVars,
+        selectionMode: this.selectionMode,
+        activeFilterSummary: this.getActiveFilterSummary(),
+      },
+      cssClass: 'cocktail-variant-modal-container',
+    });
+    await modal.present();
+
+    const { data, role } = await modal.onWillDismiss<CocktailVariantModalResult>();
+    if (role === 'confirm' && data?.confirmed) {
+      if (this.selectionMode) {
+        if (data.selectedVariant) {
+          const variantCocktail: Cocktail = {
+            ...cocktail,
+            nom: data.selectedVariant.nom,
+            prix: Number((cocktail.prix + (data.selectedVariant.prixSupplement || 0)).toFixed(2)),
+          };
+          this.cocktailSelect.emit(variantCocktail);
+        } else {
+          this.cocktailSelect.emit(cocktail);
+        }
+      }
+    }
+  }
+
+  /**
+   * Handles clicking on a cocktail card in both catalog viewing and ordering selection modes.
+   */
+  onCardClick(cocktail: Cocktail): void {
+    if (!cocktail?.disponible) return;
+    if (cocktail.variantes && cocktail.variantes.length > 0) {
+      void this.openVariantViewer(cocktail);
+    } else if (this.selectionMode) {
+      this.onSelectCocktail(cocktail);
+    }
   }
 
   isHorsSaison(cocktail: Cocktail): boolean {

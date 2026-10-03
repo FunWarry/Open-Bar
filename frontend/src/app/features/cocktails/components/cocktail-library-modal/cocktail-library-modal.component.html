@@ -947,6 +947,7 @@
       <div class="wheel-tab-wrapper" data-testid="library-wheel-view">
         <app-cocktail-connection-wheel
           [defaultLimit]="500"
+          [libraryCount]="allCocktails().length"
           (pairSelected)="onWheelPairSelected($event)"
           (exploreCocktails)="onWheelExploreCocktails($event)">
         </app-cocktail-connection-wheel>

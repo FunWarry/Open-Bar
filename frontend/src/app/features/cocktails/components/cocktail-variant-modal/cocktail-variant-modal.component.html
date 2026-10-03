@@ -1,0 +1,182 @@
+<ion-header class="ion-no-border variant-modal-header" data-testid="cocktail-variant-modal-header">
+  <ion-toolbar class="variant-toolbar">
+    <div class="header-content">
+      <div class="header-icon-circle">
+        <ion-icon name="git-branch-outline"></ion-icon>
+      </div>
+      <div class="header-titles">
+        <ion-title class="modal-main-title">
+          {{ selectionMode ? ('SERVEUR.SELECT_VARIANTE' | transloco) : ('COCKTAILS.VARIANTS_MODAL_TITLE' | transloco) }}
+        </ion-title>
+        <p class="modal-subtitle">{{ cocktail.nom }}</p>
+      </div>
+    </div>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()" (keydown.enter)="dismiss()" [attr.aria-label]="'COMMON.CLOSE' | transloco" data-testid="btn-close-variant-modal">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="variant-modal-content ion-padding" data-testid="cocktail-variant-modal-content">
+  <!-- Active Filter Notification Banner -->
+  @if (activeFilterSummary && !showAllVariants) {
+    <div class="filter-notice-banner" data-testid="variant-filter-notice-banner">
+      <div class="notice-icon">
+        <ion-icon name="funnel-outline"></ion-icon>
+      </div>
+      <div class="notice-text">
+        <span class="notice-title">{{ 'COCKTAILS.VARIANTS_FILTERED_NOTICE' | transloco }}:</span>
+        <span class="notice-filters">{{ activeFilterSummary }}</span>
+      </div>
+      @if (hiddenVariantsCount > 0) {
+        <button
+          type="button"
+          class="btn-toggle-hidden"
+          (click)="toggleShowAll()"
+          data-testid="btn-show-all-variants">
+          {{ 'COCKTAILS.VARIANTS_SHOW_ALL' | transloco:{ count: hiddenVariantsCount } }}
+        </button>
+      }
+    </div>
+  }
+
+  @if (showAllVariants && hiddenVariantsCount > 0) {
+    <div class="filter-notice-banner showing-all" data-testid="variant-showing-all-banner">
+      <div class="notice-icon">
+        <ion-icon name="sparkles-outline"></ion-icon>
+      </div>
+      <div class="notice-text">
+        <span>{{ 'COCKTAILS.VARIANTS_SHOWING_ALL_NOTICE' | transloco }}</span>
+      </div>
+      <button
+        type="button"
+        class="btn-toggle-hidden"
+        (click)="toggleShowAll()"
+        data-testid="btn-reapply-filters">
+        {{ 'COCKTAILS.VARIANTS_REAPPLY_FILTERS' | transloco }}
+      </button>
+    </div>
+  }
+
+  <!-- Section: Standard Base Recipe Option -->
+  <div class="variant-group-section">
+    <div class="section-label">
+      <ion-icon name="sparkles-outline"></ion-icon>
+      <span>{{ 'COCKTAILS.STANDARD_RECIPE_LABEL' | transloco }}</span>
+    </div>
+
+    <div
+      class="variant-card standard-card"
+      [class.selectable]="selectionMode"
+      [attr.data-testid]="'variant-card-standard-' + cocktail.id">
+      <div class="variant-card-body">
+        <div class="variant-header-row">
+          <div class="variant-name-group">
+            <h3 class="variant-title">{{ cocktail.nom }} ({{ 'COCKTAILS.STANDARD_VERSION' | transloco }})</h3>
+            <span class="standard-pill">{{ 'COCKTAILS.BASE_RECIPE' | transloco }}</span>
+          </div>
+          <div class="variant-price-group">
+            <span class="variant-price">{{ cocktail.prix | appCurrency }}</span>
+            <span class="supplement-badge neutral">{{ 'COCKTAILS.VARIANTS_STANDARD_PRICE' | transloco }}</span>
+          </div>
+        </div>
+
+        @if (cocktail.description) {
+          <p class="variant-description">{{ cocktail.description }}</p>
+        }
+
+        @if (selectionMode) {
+          <div class="variant-action-row">
+            <button
+              type="button"
+              class="btn-select-variant"
+              (click)="selectOption(null); $event.stopPropagation()"
+              [attr.data-testid]="'btn-select-standard-' + cocktail.id">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <span>{{ 'COMMON.SELECT' | transloco }}</span>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Section: Variants List -->
+  <div class="variant-group-section">
+    <div class="section-label">
+      <ion-icon name="git-branch-outline"></ion-icon>
+      <span>{{ 'COCKTAILS.AVAILABLE_VARIANTS_LABEL' | transloco }} ({{ displayedVariants.length }})</span>
+    </div>
+
+    @if (displayedVariants.length === 0) {
+      <div class="empty-variants-state" data-testid="empty-filtered-variants-state">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <p>{{ 'COCKTAILS.NO_VARIANTS_MATCH_FILTERS' | transloco }}</p>
+        <button
+          type="button"
+          class="btn-show-all-empty"
+          (click)="toggleShowAll()"
+          data-testid="btn-show-all-empty">
+          {{ 'COCKTAILS.VARIANTS_SHOW_ALL' | transloco:{ count: (cocktail.variantes || []).length } }}
+        </button>
+      </div>
+    } @else {
+      <div class="variants-cards-grid">
+        @for (variant of displayedVariants; track variant.id || variant.nom) {
+          <div
+            class="variant-card"
+            [class.selectable]="selectionMode"
+            [class.unavailable]="!variant.disponible"
+            [attr.data-testid]="'variant-card-' + (variant.id || variant.nom)">
+            <div class="variant-card-body">
+              <div class="variant-header-row">
+                <div class="variant-name-group">
+                  <h3 class="variant-title">{{ variant.nom }}</h3>
+                  @if (!variant.disponible) {
+                    <span class="unavailable-pill">{{ 'COCKTAILS.UNAVAILABLE' | transloco }}</span>
+                  }
+                </div>
+                <div class="variant-price-group">
+                  <span class="variant-price">{{ getEffectivePrice(variant) | appCurrency }}</span>
+                  <span
+                    class="supplement-badge"
+                    [class.positive]="(variant.prixSupplement || 0) > 0"
+                    [class.negative]="(variant.prixSupplement || 0) < 0"
+                    [class.neutral]="!variant.prixSupplement || variant.prixSupplement === 0">
+                    {{ getSupplementLabel(variant) }}
+                  </span>
+                </div>
+              </div>
+
+              @if (variant.description) {
+                <p class="variant-description">{{ variant.description }}</p>
+              }
+
+              @if (variant.instructions) {
+                <div class="variant-instructions-box">
+                  <span class="instructions-label">{{ 'COCKTAILS.INSTRUCTIONS' | transloco }}:</span>
+                  <span class="instructions-text">{{ variant.instructions }}</span>
+                </div>
+              }
+
+              @if (selectionMode && variant.disponible) {
+                <div class="variant-action-row">
+                  <button
+                    type="button"
+                    class="btn-select-variant"
+                    (click)="selectOption(variant); $event.stopPropagation()"
+                    [attr.data-testid]="'btn-select-variant-' + (variant.id || variant.nom)">
+                    <ion-icon name="checkmark-circle-outline"></ion-icon>
+                    <span>{{ 'COMMON.SELECT' | transloco }}</span>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</ion-content>
