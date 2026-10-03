@@ -20,13 +20,15 @@
 | Database | PostgreSQL | — | Managed via Docker Compose |
 | ORM | JPA/Hibernate + Lombok `@Data` | via Spring | |
 | Security | Spring Security + custom JWT | JJWT 0.13.0 | Requires `JWT_SECRET` (≥ 32 characters). 4-hour lifespan (`14400000 ms`) with frontend session auto-disconnect & extension reminder prompt |
-| Real-time | WebSocket STOMP | via Spring | 5 active topics |
-| Frontend | Angular | 22 | |
-| UI | Ionic | 9.0.4 | Angular Material abandoned |
+| Real-time | WebSocket STOMP | via Spring | 11 active topics |
+| TPE / Monétique | Protocole Concert IP | Socket TCP :8888 | Communication directe avec terminaux carte sans cloud |
+| Impression | ESC/POS direct socket | Socket TCP :9100 | Format binaire CP850 pour imprimantes thermiques 80mm/58mm |
+| Frontend | Angular | 22.2.0 | |
+| UI | Ionic | 9.0.5 | Angular Material abandoned |
 | State | NgRx (store + effects) | 22 | **Auth only** — domain state uses services + signals |
 | HTTP | RxJS / HttpClient | 7.8 | |
-| i18n | Transloco (`@jsverse/transloco`) | — | All user-visible text must use `{{ 'KEY' | transloco }}` |
-| Canvas | Konva.js | — | Interactive 2D floor plan |
+| i18n | Transloco (`@jsverse/transloco`) | 8.4.0 | All user-visible text must use `{{ 'KEY' | transloco }}` |
+| Canvas | Konva.js | 10.7.0 | Interactive 2D floor plan |
 | PDF | OpenPDF | 2.0.3 | Legal invoices, receipts, and table stand sheets |
 | QR Codes | ZXing | 3.5.4 | High-contrast QR matrix generation (PNG, SVG, Wi-Fi standard schema) |
 | CSV Exports | RFC 4180 + BOM UTF-8 | — | Backend `CsvUtils` (formula injection defense) + frontend `CsvExportService` |

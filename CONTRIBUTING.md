@@ -31,10 +31,10 @@ Before working on code, ensure your environment meets the project prerequisites:
 | Component | Technology | Version | Notes |
 |-----------|------------|---------|-------|
 | Backend | Spring Boot | 4.1.1 | Java 22 (pinned — Lombok breaks on JDK 23+) |
-| Frontend | Angular | 20 | Ionic 8.8.11 (no Angular Material) |
-| State | NgRx 20 / Signals | — | Auth store in NgRx; feature state in Signals/Services |
-| i18n | Transloco | — | 100% translation parity in `fr.json` and `en.json` |
-| Database | PostgreSQL | 16+ | Local Docker container or Raspberry Pi |
+| Frontend | Angular | 22.2.0 | Ionic 9.0.5 (no Angular Material) |
+| State | NgRx 22 / Signals | — | Auth store in NgRx; feature state in Signals/Services |
+| i18n | Transloco | 8.4.0 | 100% translation parity in `fr.json` and `en.json` |
+| Database | PostgreSQL | 15 / 16 | Local Docker container or Raspberry Pi |
 
 ---
 
