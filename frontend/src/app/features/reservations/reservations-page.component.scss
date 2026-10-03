@@ -548,12 +548,17 @@
       .track-slot-cell {
         flex: 1;
         height: 100%;
+        background: transparent;
+        border: none;
         border-right: 1px dashed rgba(255, 255, 255, 0.06);
+        padding: 0;
         cursor: pointer;
         position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-family: inherit;
+        color: inherit;
         transition: background 0.15s ease;
 
         &:last-child {

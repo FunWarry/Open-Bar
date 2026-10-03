@@ -259,7 +259,8 @@
                   <!-- Interactive slots row for 1-click booking and right-click menu -->
                   <div class="track-slots-row">
                     @for (slot of timelineConfig().slots; track slot) {
-                      <div
+                      <button
+                        type="button"
                         class="track-slot-cell"
                         (click)="onSlotClick(t.id, slot)"
                         (contextmenu)="onSlotContextMenu($event, t, slot)"
@@ -268,7 +269,7 @@
                         <span class="slot-add-indicator">
                           <ion-icon name="add-outline"></ion-icon>
                         </span>
-                      </div>
+                      </button>
                     }
                   </div>
 

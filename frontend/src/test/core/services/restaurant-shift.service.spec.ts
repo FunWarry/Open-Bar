@@ -22,7 +22,7 @@ describe('RestaurantShiftService', () => {
 
   it('initializes with default shifts (Lunch & Dinner)', () => {
     const shifts = service.getShifts();
-    expect(shifts.length).toBe(DEFAULT_RESTAURANT_SHIFTS.length);
+    expect(shifts).toHaveSize(DEFAULT_RESTAURANT_SHIFTS.length);
     expect(shifts[0].id).toBe('LUNCH');
     expect(shifts[1].id).toBe('DINNER');
   });
@@ -39,7 +39,7 @@ describe('RestaurantShiftService', () => {
     expect(newShift.name).toBe('Brunch');
 
     const shifts = service.getShifts();
-    expect(shifts.length).toBe(3);
+    expect(shifts).toHaveSize(3);
     expect(shifts.some((s: RestaurantServiceShift) => s.name === 'Brunch')).toBeTrue();
   });
 
@@ -53,13 +53,13 @@ describe('RestaurantShiftService', () => {
   it('deletes a shift while preserving at least one', () => {
     service.deleteShift('LUNCH');
     let shifts = service.getShifts();
-    expect(shifts.length).toBe(1);
+    expect(shifts).toHaveSize(1);
     expect(shifts[0].id).toBe('DINNER');
 
     // Attempting to delete the last shift should be prevented
     service.deleteShift('DINNER');
     shifts = service.getShifts();
-    expect(shifts.length).toBe(1);
+    expect(shifts).toHaveSize(1);
   });
 
   it('resets shifts to system defaults', () => {
@@ -69,11 +69,11 @@ describe('RestaurantShiftService', () => {
       endTime: '19:00',
       stepMinutes: 15,
     });
-    expect(service.getShifts().length).toBe(3);
+    expect(service.getShifts()).toHaveSize(3);
 
     service.resetToDefaults();
     const defaults = service.getShifts();
-    expect(defaults.length).toBe(2);
+    expect(defaults).toHaveSize(2);
     expect(defaults[0].id).toBe('LUNCH');
   });
 });

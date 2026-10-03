@@ -44,7 +44,7 @@ class CocktailWheelServiceTest {
     void setUpTest() {
         try {
             java.nio.file.Files.deleteIfExists(java.nio.file.Path.of(TEST_WHEEL_FILE));
-        } catch (java.io.IOException ignored) {
+        } catch (java.io.IOException _) {
             // Ignored in test setup
         }
         ObjectMapper jsonMapper = new ObjectMapper();
@@ -59,7 +59,7 @@ class CocktailWheelServiceTest {
     void cleanUpTestFile() {
         try {
             java.nio.file.Files.deleteIfExists(java.nio.file.Path.of(TEST_WHEEL_FILE));
-        } catch (java.io.IOException ignored) {
+        } catch (java.io.IOException _) {
             // Ignored in test cleanup
         }
     }

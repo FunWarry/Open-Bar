@@ -6,7 +6,12 @@
           {{ 'RESERVATIONS.SHIFTS_MODAL_TITLE' | transloco }}
         </ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="close()" aria-label="Fermer" class="close-btn" data-testid="btn-close-shifts-modal">
+          <ion-button
+            (click)="close()"
+            (keyup.enter)="close()"
+            aria-label="Fermer"
+            class="close-btn"
+            data-testid="btn-close-shifts-modal">
             <ion-icon name="close-outline"></ion-icon>
           </ion-button>
         </ion-buttons>
@@ -44,8 +49,9 @@
                   <form [formGroup]="editForm" (ngSubmit)="saveEdit(shift.id)" class="edit-shift-form">
                     <div class="form-row">
                       <div class="form-group flex-2">
-                        <label class="form-label">{{ 'RESERVATIONS.SHIFT_NAME' | transloco }} *</label>
+                        <label [for]="'edit-shift-name-' + shift.id" class="form-label">{{ 'RESERVATIONS.SHIFT_NAME' | transloco }} *</label>
                         <input
+                          [id]="'edit-shift-name-' + shift.id"
                           type="text"
                           formControlName="name"
                           class="form-input"
@@ -54,8 +60,9 @@
                         />
                       </div>
                       <div class="form-group flex-1">
-                        <label class="form-label">{{ 'RESERVATIONS.SHIFT_START' | transloco }} *</label>
+                        <label [for]="'edit-shift-start-' + shift.id" class="form-label">{{ 'RESERVATIONS.SHIFT_START' | transloco }} *</label>
                         <input
+                          [id]="'edit-shift-start-' + shift.id"
                           type="time"
                           formControlName="startTime"
                           class="form-input"
@@ -63,8 +70,9 @@
                         />
                       </div>
                       <div class="form-group flex-1">
-                        <label class="form-label">{{ 'RESERVATIONS.SHIFT_END' | transloco }} *</label>
+                        <label [for]="'edit-shift-end-' + shift.id" class="form-label">{{ 'RESERVATIONS.SHIFT_END' | transloco }} *</label>
                         <input
+                          [id]="'edit-shift-end-' + shift.id"
                           type="time"
                           formControlName="endTime"
                           class="form-input"
@@ -72,8 +80,12 @@
                         />
                       </div>
                       <div class="form-group flex-1">
-                        <label class="form-label">{{ 'RESERVATIONS.SHIFT_INTERVAL' | transloco }}</label>
-                        <select formControlName="stepMinutes" class="form-select" data-testid="select-edit-shift-step">
+                        <label [for]="'edit-shift-step-' + shift.id" class="form-label">{{ 'RESERVATIONS.SHIFT_INTERVAL' | transloco }}</label>
+                        <select
+                          [id]="'edit-shift-step-' + shift.id"
+                          formControlName="stepMinutes"
+                          class="form-select"
+                          data-testid="select-edit-shift-step">
                           @for (opt of stepOptions; track opt.value) {
                             <option [value]="opt.value">{{ opt.label }}</option>
                           }

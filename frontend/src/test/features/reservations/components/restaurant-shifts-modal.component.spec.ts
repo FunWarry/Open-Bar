@@ -68,7 +68,7 @@ describe('RestaurantShiftsModalComponent', () => {
 
     const countBefore = component.shiftsList.length;
     component.addNewShift();
-    expect(component.shiftsList.length).toBe(countBefore);
+    expect(component.shiftsList).toHaveSize(countBefore);
   });
 
   it('edits a shift and saves updates', () => {
@@ -92,7 +92,7 @@ describe('RestaurantShiftsModalComponent', () => {
   it('deletes a shift and emits updated list', () => {
     spyOn(component.shiftsUpdated, 'emit');
     // Ensure we have at least 2 shifts
-    expect(component.shiftsList.length).toBe(2);
+    expect(component.shiftsList).toHaveSize(2);
 
     const shiftToDelete = component.shiftsList[0];
     component.deleteShift(shiftToDelete);
@@ -103,7 +103,7 @@ describe('RestaurantShiftsModalComponent', () => {
 
   it('resets shifts to defaults when requested', () => {
     component.resetDefaults();
-    expect(component.shiftsList.length).toBe(2);
+    expect(component.shiftsList).toHaveSize(2);
     expect(component.shiftsList[0].name).toBe('Midi');
   });
 

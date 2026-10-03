@@ -130,7 +130,7 @@
             </div>
 
             <div class="input-group">
-              <label class="field-label">{{ 'RESERVATIONS.DURATION' | transloco }} *</label>
+              <span class="field-label">{{ 'RESERVATIONS.DURATION' | transloco }} *</span>
               <app-searchable-select
                 formControlName="dureeMinutes"
                 [options]="durationSelectOptions"
@@ -161,7 +161,7 @@
             </div>
 
             <div class="input-group">
-              <label class="field-label">{{ 'RESERVATIONS.STATUS' | transloco }} *</label>
+              <span class="field-label">{{ 'RESERVATIONS.STATUS' | transloco }} *</span>
               <app-searchable-select
                 formControlName="statut"
                 [options]="statusSelectOptions"
@@ -182,7 +182,7 @@
           </h3>
 
           <div class="input-group">
-            <label class="field-label">{{ 'RESERVATIONS.ASSIGNED_TABLE' | transloco }}</label>
+            <span class="field-label">{{ 'RESERVATIONS.ASSIGNED_TABLE' | transloco }}</span>
             <app-searchable-select
               formControlName="tableId"
               [options]="tableSelectOptions"
