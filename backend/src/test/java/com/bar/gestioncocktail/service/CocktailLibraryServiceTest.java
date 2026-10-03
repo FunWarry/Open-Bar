@@ -392,6 +392,61 @@ class CocktailLibraryServiceTest {
         CocktailVariante savedVariant = captor.getValue();
         assertThat(savedVariant.getNom()).isEqualTo("London Mule");
         assertThat(savedVariant.getCocktail()).isEqualTo(baseCocktail);
+        assertThat(savedVariant.getRecipeStepsJson()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Should skip variation import when variant already exists for the base cocktail")
+    void shouldSkipVariationWhenAlreadyExists() {
+        Cocktail baseCocktail = new Cocktail();
+        baseCocktail.setId(42L);
+        baseCocktail.setNom("Moscow Mule");
+        baseCocktail.setPrix(BigDecimal.valueOf(10.00));
+
+        CocktailVariante existing = new CocktailVariante();
+        existing.setNom("London Mule");
+
+        when(cocktailRepository.findByNomIgnoreCase("Moscow Mule")).thenReturn(Optional.of(baseCocktail));
+        when(cocktailVarianteRepository.findByCocktail(baseCocktail)).thenReturn(List.of(existing));
+
+        CocktailLibraryImportRequestDTO request = new CocktailLibraryImportRequestDTO(
+                null,
+                List.of("London Mule")
+        );
+
+        CocktailLibraryImportResultDTO result = cocktailLibraryService.importCocktails(request);
+
+        assertThat(result.importedCount()).isZero();
+        assertThat(result.skippedCount()).isEqualTo(1);
+        verify(cocktailVarianteRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should fall back to standalone import when base cocktail is not found for variation")
+    void shouldFallbackToStandaloneImportWhenBaseCocktailNotFound() {
+        when(cocktailRepository.findByNomIgnoreCase("Moscow Mule")).thenReturn(Optional.empty());
+        when(cocktailRepository.findByNomIgnoreCase("London Mule")).thenReturn(Optional.empty());
+
+        Glassware glassware = new Glassware();
+        glassware.setId(10L);
+        glassware.setNom("Mug Cuivre");
+        when(glasswareRepository.findAll()).thenReturn(List.of(glassware));
+
+        Cocktail saved = new Cocktail();
+        saved.setId(100L);
+        saved.setNom("London Mule");
+        when(cocktailRepository.save(any(Cocktail.class))).thenReturn(saved);
+
+        CocktailLibraryImportRequestDTO request = new CocktailLibraryImportRequestDTO(
+                null,
+                List.of("London Mule")
+        );
+
+        CocktailLibraryImportResultDTO result = cocktailLibraryService.importCocktails(request);
+
+        assertThat(result.importedCount()).isEqualTo(1);
+        verify(cocktailRepository, atLeastOnce()).save(any(Cocktail.class));
+        verify(cocktailVarianteRepository, never()).save(any());
     }
 }
 
