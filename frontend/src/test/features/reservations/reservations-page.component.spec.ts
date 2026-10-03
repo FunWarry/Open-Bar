@@ -6,6 +6,7 @@ import { ReservationsPageComponent } from '../../../app/features/reservations/re
 import { ReservationService } from '../../../app/core/services/reservation.service';
 import { TableService } from '../../../app/core/services/table.service';
 import { NotificationService } from '../../../app/core/services/notification.service';
+import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { Reservation } from '../../../app/core/models/reservation.model';
 import { TableBar } from '../../../app/core/models/table.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
@@ -16,6 +17,7 @@ describe('ReservationsPageComponent', () => {
   let reservationServiceSpy: jasmine.SpyObj<ReservationService>;
   let tableServiceSpy: jasmine.SpyObj<TableService>;
   let notifServiceSpy: jasmine.SpyObj<NotificationService>;
+  let wsServiceSpy: jasmine.SpyObj<WebSocketService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let alertCtrlSpy: jasmine.SpyObj<AlertController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
@@ -72,6 +74,9 @@ describe('ReservationsPageComponent', () => {
     notifServiceSpy = jasmine.createSpyObj('NotificationService', ['onNotification']);
     notifServiceSpy.onNotification.and.returnValue(new Subject<any>().asObservable());
 
+    wsServiceSpy = jasmine.createSpyObj('WebSocketService', ['watch']);
+    wsServiceSpy.watch.and.returnValue(new Subject<any>().asObservable());
+
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve({ present: () => Promise.resolve() } as any));
 
@@ -94,6 +99,7 @@ describe('ReservationsPageComponent', () => {
         { provide: ReservationService, useValue: reservationServiceSpy },
         { provide: TableService, useValue: tableServiceSpy },
         { provide: NotificationService, useValue: notifServiceSpy },
+        { provide: WebSocketService, useValue: wsServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: AlertController, useValue: alertCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },

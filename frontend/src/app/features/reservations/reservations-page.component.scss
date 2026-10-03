@@ -653,164 +653,218 @@
 
 .bookings-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 16px;
 }
 
-.booking-card {
-  background: var(--background-surface-1);
-  border: 1px solid var(--border-medium);
-  border-radius: 12px;
-  padding: 16px;
+.reservation-card-wrapper {
+  display: block;
+  height: 100%;
+}
+
+.reservation-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+
+  .customer-block {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+
+    .customer-name {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .customer-phone {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+
+      ion-icon {
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  .status-pill {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+
+    &.status-confirmed {
+      background: rgba(var(--primary-rgb, 127, 86, 217), 0.15);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+
+    &.status-pending {
+      background: rgba(var(--semantic-warning-rgb, 240, 163, 59), 0.15);
+      color: var(--semantic-warning);
+      border: 1px solid var(--semantic-warning);
+    }
+
+    &.status-seated {
+      background: rgba(var(--semantic-success-rgb, 47, 191, 107), 0.15);
+      color: var(--semantic-success);
+      border: 1px solid var(--semantic-success);
+    }
+
+    &.status-cancelled {
+      background: rgba(var(--semantic-danger-rgb, 239, 68, 68), 0.15);
+      color: var(--semantic-danger);
+      border: 1px solid var(--semantic-danger);
+    }
+
+    &.status-noshow {
+      background: var(--background-surface-2);
+      color: var(--text-muted);
+      border: 1px solid var(--border-medium);
+    }
+  }
+}
+
+.reservation-card-body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: transform 0.15s ease, border-color 0.15s ease;
-
-  &:hover {
-    border-color: var(--primary);
-    transform: translateY(-2px);
-  }
-
-  .card-top-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 8px;
-
-    .customer-block {
-      display: flex;
-      flex-direction: column;
-
-      .customer-name {
-        font-size: 1.05rem;
-        font-weight: 600;
-        color: var(--text-primary);
-      }
-
-      .customer-phone {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-      }
-    }
-
-    .status-pill {
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 20px;
-      text-transform: uppercase;
-
-      &.status-confirmed {
-        background: rgba(var(--primary-rgb, 127, 86, 217), 0.15);
-        color: var(--primary);
-      }
-
-      &.status-pending {
-        background: rgba(var(--semantic-warning-rgb, 240, 163, 59), 0.15);
-        color: var(--semantic-warning);
-      }
-
-      &.status-seated {
-        background: rgba(var(--semantic-success-rgb, 47, 191, 107), 0.15);
-        color: var(--semantic-success);
-      }
-
-      &.status-cancelled {
-        background: rgba(var(--semantic-danger-rgb, 239, 68, 68), 0.15);
-        color: var(--semantic-danger);
-      }
-
-      &.status-noshow {
-        background: rgba(120, 120, 120, 0.15);
-        color: var(--text-muted);
-      }
-    }
-  }
+  width: 100%;
 
   .card-details-row {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+    align-items: center;
 
     .detail-badge {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       font-size: 0.82rem;
-      font-weight: 500;
+      font-weight: 600;
       background: var(--background-surface-2);
-      color: var(--text-secondary);
-      padding: 4px 10px;
-      border-radius: 6px;
+      color: var(--text-primary);
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-medium);
 
       ion-icon {
         font-size: 0.95rem;
+        color: var(--text-secondary);
       }
 
       &.unassigned {
         color: var(--semantic-warning);
+        border-color: rgba(var(--semantic-warning-rgb, 240, 163, 59), 0.4);
+        background: rgba(var(--semantic-warning-rgb, 240, 163, 59), 0.1);
+
+        ion-icon {
+          color: var(--semantic-warning);
+        }
       }
     }
   }
 
   .card-notes {
     margin: 0;
-    font-size: 0.85rem;
-    color: var(--text-muted);
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 0.83rem;
+    color: var(--text-secondary);
     font-style: italic;
-    white-space: pre-wrap;
+    background: var(--background-surface-2);
+    padding: 8px 10px;
+    border-radius: 6px;
+
+    ion-icon {
+      font-size: 0.95rem;
+      color: var(--primary);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
   }
+}
+
+.reservation-card-footer {
+  width: 100%;
 
   .card-actions-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 4px;
+    width: 100%;
+    flex-wrap: wrap;
 
     button {
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 0.82rem;
       font-weight: 600;
+      font-family: inherit;
       cursor: pointer;
-      transition: filter 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 7px 12px;
+      transition: filter 0.15s ease, transform 0.15s ease;
 
       &:hover {
-        filter: brightness(1.15);
+        filter: brightness(1.12);
+        transform: translateY(-1px);
+      }
+
+      ion-icon {
+        font-size: 1rem;
       }
     }
 
     .btn-seat {
-      display: flex;
-      align-items: center;
-      gap: 5px;
       background: var(--semantic-success);
       color: var(--primary-contrast);
-      padding: 6px 12px;
     }
 
     .btn-edit {
       background: var(--background-surface-2);
       color: var(--text-primary);
-      padding: 6px 12px;
+      border: 1px solid var(--border-medium);
     }
 
     .btn-cancel {
       background: rgba(var(--semantic-danger-rgb, 239, 68, 68), 0.12);
       color: var(--semantic-danger);
-      padding: 6px 12px;
+      border: 1px solid rgba(var(--semantic-danger-rgb, 239, 68, 68), 0.3);
     }
 
     .btn-delete {
       background: transparent;
       color: var(--text-muted);
-      padding: 6px 8px;
+      padding: 7px 8px;
       margin-left: auto;
 
       &:hover {
         color: var(--semantic-danger);
+        background: rgba(var(--semantic-danger-rgb, 239, 68, 68), 0.1);
       }
     }
   }
 }
+

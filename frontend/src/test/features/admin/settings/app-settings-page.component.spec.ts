@@ -896,6 +896,7 @@ describe('AppSettingsPageComponent', () => {
         inventoryAudit: false,
         mysteryRoulette: false,
         paymentTerminal: false,
+        tableReservations: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -913,6 +914,7 @@ describe('AppSettingsPageComponent', () => {
         inventoryAudit: false,
         mysteryRoulette: false,
         paymentTerminal: false,
+        tableReservations: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });

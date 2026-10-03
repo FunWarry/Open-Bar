@@ -23,8 +23,12 @@ import { addIcons } from 'ionicons';
 import {
   addOutline,
   calendarOutline,
+  callOutline,
   chevronBackOutline,
   chevronForwardOutline,
+  closeCircleOutline,
+  createOutline,
+  documentTextOutline,
   filterOutline,
   gridOutline,
   listOutline,
@@ -44,6 +48,7 @@ import { TableService } from '../../core/services/table.service';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
 import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
+import { CardComponent, CardAccentColor } from '../../core/components/ui/card/card.component';
 import { ReservationModalComponent } from './components/reservation-modal/reservation-modal.component';
 
 /** Service shift segmentation filter type. */
@@ -71,6 +76,7 @@ export type ViewLayoutMode = 'TIMELINE' | 'LIST';
     IonSpinner,
     SearchBarComponent,
     EmptyStateComponent,
+    CardComponent,
     ReservationModalComponent,
   ],
   templateUrl: './reservations-page.component.html',
@@ -199,6 +205,10 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
       filterOutline,
       searchOutline,
       trashOutline,
+      callOutline,
+      documentTextOutline,
+      createOutline,
+      closeCircleOutline,
     });
   }
 
@@ -399,6 +409,22 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
         return 'status-noshow';
       default:
         return 'status-default';
+    }
+  }
+
+  getCardAccentColor(statut: ReservationStatut): CardAccentColor {
+    switch (statut) {
+      case 'CONFIRMED':
+        return 'purple';
+      case 'PENDING':
+        return 'warning';
+      case 'SEATED':
+        return 'success';
+      case 'CANCELLED':
+        return 'danger';
+      case 'NO_SHOW':
+      default:
+        return 'none';
     }
   }
 

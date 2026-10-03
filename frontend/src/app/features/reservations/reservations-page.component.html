@@ -356,12 +356,25 @@
         @if (filteredReservations().length > 0) {
           <div class="bookings-cards-grid">
             @for (booking of filteredReservations(); track booking.id) {
-              <div class="booking-card" [attr.data-testid]="'card-reservation-' + booking.id">
-                <div class="card-top-row">
+              <app-card
+                class="reservation-card-wrapper"
+                [customClass]="'reservation-card'"
+                [accentColor]="getCardAccentColor(booking.statut)"
+                [headerDivider]="'solid'"
+                [footerDivider]="'solid'"
+                [padding]="'md'"
+                [attr.data-testid]="'card-reservation-' + booking.id"
+                [testId]="'card-reservation-' + booking.id">
+
+                <!-- Card Header -->
+                <div card-header class="reservation-card-header">
                   <div class="customer-block">
-                    <span class="customer-name">{{ booking.nomClient }}</span>
+                    <h3 class="customer-name" [title]="booking.nomClient">{{ booking.nomClient }}</h3>
                     @if (booking.telephone) {
-                      <span class="customer-phone">{{ booking.telephone }}</span>
+                      <span class="customer-phone">
+                        <ion-icon name="call-outline"></ion-icon>
+                        <span>{{ booking.telephone }}</span>
+                      </span>
                     }
                   </div>
                   <span class="status-pill" [ngClass]="getStatusClass(booking.statut)">
@@ -369,67 +382,78 @@
                   </span>
                 </div>
 
-                <div class="card-details-row">
-                  <div class="detail-badge time">
-                    <ion-icon name="time-outline"></ion-icon>
-                    <span>{{ booking.heureReservation }} ({{ booking.dureeMinutes }} min)</span>
-                  </div>
-                  <div class="detail-badge party">
-                    <ion-icon name="people-outline"></ion-icon>
-                    <span>{{ booking.nombrePersonnes }} {{ 'RESERVATIONS.GUESTS_UNIT' | transloco }}</span>
-                  </div>
-                  <div class="detail-badge table" [class.unassigned]="!booking.tableNumero">
-                    <ion-icon name="restaurant-outline"></ion-icon>
-                    <span>
-                      {{ booking.tableNumero ? ('Table ' + booking.tableNumero) : ('RESERVATIONS.TABLE_UNASSIGNED' | transloco) }}
-                    </span>
-                  </div>
-                </div>
-
-                @if (booking.notes) {
-                  <p class="card-notes">{{ booking.notes }}</p>
-                }
-
-                <div class="card-actions-row">
-                  @if (booking.statut !== 'SEATED' && booking.statut !== 'CANCELLED' && booking.tableId) {
-                    <button
-                      type="button"
-                      class="btn-seat"
-                      (click)="seatReservation(booking)"
-                      data-testid="btn-card-seat">
+                <!-- Card Content -->
+                <div card-content class="reservation-card-body">
+                  <div class="card-details-row">
+                    <div class="detail-badge time">
+                      <ion-icon name="time-outline"></ion-icon>
+                      <span>{{ booking.heureReservation }} ({{ booking.dureeMinutes }} min)</span>
+                    </div>
+                    <div class="detail-badge party">
+                      <ion-icon name="people-outline"></ion-icon>
+                      <span>{{ booking.nombrePersonnes }} {{ 'RESERVATIONS.GUESTS_UNIT' | transloco }}</span>
+                    </div>
+                    <div class="detail-badge table" [class.unassigned]="!booking.tableNumero">
                       <ion-icon name="restaurant-outline"></ion-icon>
-                      <span>{{ 'RESERVATIONS.ACTION_SEAT_GUESTS' | transloco }}</span>
-                    </button>
+                      <span>
+                        {{ booking.tableNumero ? ('Table ' + booking.tableNumero) : ('RESERVATIONS.TABLE_UNASSIGNED' | transloco) }}
+                      </span>
+                    </div>
+                  </div>
+
+                  @if (booking.notes) {
+                    <p class="card-notes">
+                      <ion-icon name="document-text-outline"></ion-icon>
+                      <span>{{ booking.notes }}</span>
+                    </p>
                   }
+                </div>
 
-                  <button
-                    type="button"
-                    class="btn-edit"
-                    (click)="openEditModal(booking)"
-                    data-testid="btn-card-edit">
-                    {{ 'COMMON.EDIT' | transloco }}
-                  </button>
+                <!-- Card Footer Actions -->
+                <div card-footer class="reservation-card-footer">
+                  <div class="card-actions-row">
+                    @if (booking.statut !== 'SEATED' && booking.statut !== 'CANCELLED' && booking.tableId) {
+                      <button
+                        type="button"
+                        class="btn-seat"
+                        (click)="seatReservation(booking)"
+                        data-testid="btn-card-seat">
+                        <ion-icon name="restaurant-outline"></ion-icon>
+                        <span>{{ 'RESERVATIONS.ACTION_SEAT_GUESTS' | transloco }}</span>
+                      </button>
+                    }
 
-                  @if (booking.statut !== 'CANCELLED' && booking.statut !== 'SEATED') {
                     <button
                       type="button"
-                      class="btn-cancel"
-                      (click)="cancelReservation(booking)"
-                      data-testid="btn-card-cancel">
-                      {{ 'COMMON.CANCEL' | transloco }}
+                      class="btn-edit"
+                      (click)="openEditModal(booking)"
+                      data-testid="btn-card-edit">
+                      <ion-icon name="create-outline"></ion-icon>
+                      <span>{{ 'COMMON.EDIT' | transloco }}</span>
                     </button>
-                  }
 
-                  <button
-                    type="button"
-                    class="btn-delete"
-                    (click)="deleteReservation(booking)"
-                    [title]="'COMMON.DELETE' | transloco"
-                    data-testid="btn-card-delete">
-                    <ion-icon name="trash-outline"></ion-icon>
-                  </button>
+                    @if (booking.statut !== 'CANCELLED' && booking.statut !== 'SEATED') {
+                      <button
+                        type="button"
+                        class="btn-cancel"
+                        (click)="cancelReservation(booking)"
+                        data-testid="btn-card-cancel">
+                        <ion-icon name="close-circle-outline"></ion-icon>
+                        <span>{{ 'COMMON.CANCEL' | transloco }}</span>
+                      </button>
+                    }
+
+                    <button
+                      type="button"
+                      class="btn-delete"
+                      (click)="deleteReservation(booking)"
+                      [title]="'COMMON.DELETE' | transloco"
+                      data-testid="btn-card-delete">
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </app-card>
             }
           </div>
         } @else {
