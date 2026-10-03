@@ -3,9 +3,9 @@
 }
 
 .reservation-modal-dialog {
-  --width: 92%;
-  --max-width: 640px;
-  --height: auto;
+  --width: min(860px, 95vw);
+  --max-width: 860px;
+  --height: min(860px, 90vh);
   --max-height: 90vh;
   --border-radius: 16px;
   --background: var(--background-surface-1);
@@ -38,10 +38,12 @@
 
 .modal-content {
   --background: var(--background-bg-0);
-  --padding-top: 16px;
+  --padding-top: 20px;
   --padding-bottom: 24px;
-  --padding-start: 20px;
-  --padding-end: 20px;
+  --padding-start: 24px;
+  --padding-end: 24px;
+  --overflow: auto;
+  overflow-y: auto;
 }
 
 .reservation-form {
@@ -228,17 +230,23 @@
   }
 }
 
+.modal-footer {
+  background: var(--background-surface-1);
+  border-top: 1px solid var(--border-medium);
+  padding: 14px 24px;
+}
+
 .modal-actions-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding-top: 12px;
+  padding: 0;
 
   button {
     border: none;
     border-radius: 8px;
-    padding: 10px 20px;
-    font-size: 0.9rem;
+    padding: 10px 22px;
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
     transition: filter 0.2s ease, opacity 0.2s ease;

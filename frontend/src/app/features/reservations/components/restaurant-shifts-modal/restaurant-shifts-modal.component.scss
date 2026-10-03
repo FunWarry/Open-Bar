@@ -1,8 +1,8 @@
 .shifts-modal-dialog {
-  --width: 680px;
-  --max-width: 95vw;
-  --height: auto;
-  --max-height: 85vh;
+  --width: min(720px, 95vw);
+  --max-width: 720px;
+  --height: min(780px, 88vh);
+  --max-height: 88vh;
   --border-radius: 16px;
   --background: var(--background-surface-1);
 }

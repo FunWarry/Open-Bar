@@ -14,7 +14,7 @@
     </ion-header>
 
     <ion-content class="modal-content" [fullscreen]="false">
-      <form [formGroup]="reservationForm" (ngSubmit)="saveReservation()" class="reservation-form">
+      <form id="reservationForm" [formGroup]="reservationForm" (ngSubmit)="saveReservation()" class="reservation-form">
         <!-- Customer Info Section -->
         <div class="form-section">
           <h3 class="section-title">
@@ -234,25 +234,27 @@
             ></textarea>
           </div>
         </div>
-
-        <!-- Actions -->
-        <div class="modal-actions-footer">
-          <button
-            type="button"
-            class="btn-secondary"
-            (click)="close()"
-            data-testid="btn-cancel-reservation">
-            {{ 'COMMON.CANCEL' | transloco }}
-          </button>
-          <button
-            type="submit"
-            class="btn-primary"
-            [disabled]="reservationForm.invalid || isSaving || (availabilityCheck && !availabilityCheck.available)"
-            data-testid="btn-save-reservation">
-            {{ (reservationToEdit ? 'COMMON.UPDATE' : 'COMMON.CONFIRM') | transloco }}
-          </button>
-        </div>
       </form>
     </ion-content>
+
+    <ion-footer class="ion-no-border modal-footer">
+      <div class="modal-actions-footer">
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="close()"
+          data-testid="btn-cancel-reservation">
+          {{ 'COMMON.CANCEL' | transloco }}
+        </button>
+        <button
+          type="submit"
+          form="reservationForm"
+          class="btn-primary"
+          [disabled]="reservationForm.invalid || isSaving || (availabilityCheck && !availabilityCheck.available)"
+          data-testid="btn-save-reservation">
+          {{ (reservationToEdit ? 'COMMON.UPDATE' : 'COMMON.CONFIRM') | transloco }}
+        </button>
+      </div>
+    </ion-footer>
   </ng-template>
 </ion-modal>
