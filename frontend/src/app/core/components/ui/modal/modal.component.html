@@ -29,7 +29,7 @@
           (click)="onDismiss()"
           (keyup.enter)="onDismiss()"
           [attr.aria-label]="'COMMON.CLOSE' | transloco"
-          data-testid="app-modal-close-btn"
+          [attr.data-testid]="closeButtonTestId || 'app-modal-close-btn'"
         >
           <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
         </button>

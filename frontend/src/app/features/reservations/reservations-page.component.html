@@ -244,7 +244,7 @@
                   type="button"
                   class="table-info-cell"
                   (click)="openNewReservationModal(t.id)"
-                  [title]="'Cliquer pour réserver Table ' + t.numero">
+                  [title]="'RESERVATIONS.TOOLTIPS.CLICK_TO_BOOK_TABLE' | transloco: { number: t.numero }">
                   <div class="table-num-pill" [class.occupied]="t.occupee">
                     T{{ t.numero }}
                   </div>
@@ -283,7 +283,7 @@
                       (click)="openEditModal(res); $event.stopPropagation()"
                       (contextmenu)="onReservationContextMenu($event, res, t)"
                       [attr.data-testid]="'booking-block-' + res.id"
-                      [title]="res.nomClient + ' (' + res.nombrePersonnes + ' pers) - ' + res.heureReservation + ' - Clic droit pour copier/options'">
+                      [title]="'RESERVATIONS.TOOLTIPS.BOOKING_BLOCK' | transloco: { name: res.nomClient, count: res.nombrePersonnes, time: res.heureReservation }">
                       <div class="status-accent-stripe"></div>
                       <div class="block-content">
                         <span class="block-client">{{ res.nomClient }}</span>

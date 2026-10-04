@@ -4,21 +4,9 @@
       [title]="(reservationToEdit ? 'RESERVATIONS.MODAL_EDIT_TITLE' : 'RESERVATIONS.MODAL_CREATE_TITLE') | transloco"
       icon="calendar-outline"
       size="xl"
-      [showCloseButton]="false"
+      closeButtonTestId="btn-close-modal"
       (dismiss)="close()"
     >
-      <button
-        slot="header-actions"
-        type="button"
-        class="modal-close-btn"
-        (click)="close()"
-        (keyup.enter)="close()"
-        [attr.aria-label]="'COMMON.CLOSE' | transloco"
-        data-testid="btn-close-modal"
-      >
-        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
-      </button>
-
       <form id="reservationForm" [formGroup]="reservationForm" (ngSubmit)="saveReservation()" class="reservation-form">
         <!-- Customer Info Section -->
         <div class="form-section">
@@ -194,7 +182,7 @@
               [searchable]="true"
               [clearable]="true"
               placeholder="{{ 'RESERVATIONS.TABLE_UNASSIGNED' | transloco }}"
-              searchPlaceholder="Rechercher une table..."
+              [searchPlaceholder]="'RESERVATIONS.SEARCH_TABLE_PLACEHOLDER' | transloco"
               (selectionChange)="onTableSelected($event)"
               testId="select-reservation-table">
             </app-searchable-select>

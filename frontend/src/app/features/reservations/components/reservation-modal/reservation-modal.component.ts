@@ -13,7 +13,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IonIcon, IonModal } from '@ionic/angular';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import {
   alertCircleOutline,
@@ -67,6 +67,7 @@ export class ReservationModalComponent implements OnInit, OnChanges {
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly reservationService = inject(ReservationService);
+  private readonly translocoService = inject(TranslocoService);
 
   @Input() isOpen = false;
   @Input() reservationToEdit?: Reservation | null = null;
@@ -86,35 +87,47 @@ export class ReservationModalComponent implements OnInit, OnChanges {
   customerSuggestions: Reservation[] = [];
   showSuggestions = false;
 
-  readonly durationSelectOptions: SearchableOption<number>[] = [
-    { value: 45, label: '45 min' },
-    { value: 60, label: '1h00' },
-    { value: 90, label: '1h30 (défaut)' },
-    { value: 120, label: '2h00' },
-    { value: 150, label: '2h30' },
-    { value: 180, label: '3h00' },
-    { value: 240, label: '4h00' },
-  ];
+  get durationSelectOptions(): SearchableOption<number>[] {
+    const defaultSuffix = this.translocoService.translate('RESERVATIONS.DURATION_DEFAULT_SUFFIX');
+    return [
+      { value: 45, label: '45 min' },
+      { value: 60, label: '1h00' },
+      { value: 90, label: `1h30${defaultSuffix}` },
+      { value: 120, label: '2h00' },
+      { value: 150, label: '2h30' },
+      { value: 180, label: '3h00' },
+      { value: 240, label: '4h00' },
+    ];
+  }
 
-  readonly statusSelectOptions: SearchableOption<ReservationStatut>[] = [
-    { value: 'CONFIRMED', label: 'Confirmée', badge: 'Confirmée', badgeType: 'primary' },
-    { value: 'PENDING', label: 'En attente', badge: 'En attente', badgeType: 'warning' },
-    { value: 'SEATED', label: 'Installée', badge: 'Installée', badgeType: 'success' },
-    { value: 'CANCELLED', label: 'Annulée', badge: 'Annulée', badgeType: 'danger' },
-    { value: 'NO_SHOW', label: 'No-Show', badge: 'No-Show', badgeType: 'neutral' },
-  ];
+  get statusSelectOptions(): SearchableOption<ReservationStatut>[] {
+    const confirmed = this.translocoService.translate('RESERVATIONS.STATUS_CONFIRMED');
+    const pending = this.translocoService.translate('RESERVATIONS.STATUS_PENDING');
+    const seated = this.translocoService.translate('RESERVATIONS.STATUS_SEATED');
+    const cancelled = this.translocoService.translate('RESERVATIONS.STATUS_CANCELLED');
+    const noShow = this.translocoService.translate('RESERVATIONS.STATUS_NO_SHOW');
+
+    return [
+      { value: 'CONFIRMED', label: confirmed, badge: confirmed, badgeType: 'primary' },
+      { value: 'PENDING', label: pending, badge: pending, badgeType: 'warning' },
+      { value: 'SEATED', label: seated, badge: seated, badgeType: 'success' },
+      { value: 'CANCELLED', label: cancelled, badge: cancelled, badgeType: 'danger' },
+      { value: 'NO_SHOW', label: noShow, badge: noShow, badgeType: 'neutral' },
+    ];
+  }
 
   get tableSelectOptions(): SearchableOption<number | null>[] {
     const defaultOpt: SearchableOption<number | null> = {
       value: null,
-      label: 'Sans table assignée',
-      badge: 'Libre',
+      label: this.translocoService.translate('RESERVATIONS.TABLE_UNASSIGNED_OPTION'),
+      badge: this.translocoService.translate('RESERVATIONS.TABLE_FREE_BADGE'),
       badgeType: 'neutral',
     };
+    const guestsUnit = this.translocoService.translate('RESERVATIONS.GUESTS_UNIT');
     const tableOpts: SearchableOption<number | null>[] = (this.tables || []).map((t) => ({
       value: t.id,
-      label: `Table ${t.numero} (${t.capacite} pers - ${t.zone})`,
-      badge: `${t.capacite} pers`,
+      label: `Table ${t.numero} (${t.capacite} ${guestsUnit} - ${t.zone})`,
+      badge: `${t.capacite} ${guestsUnit}`,
       badgeType: t.occupee ? 'warning' : 'success',
       subLabel: t.zone,
     }));

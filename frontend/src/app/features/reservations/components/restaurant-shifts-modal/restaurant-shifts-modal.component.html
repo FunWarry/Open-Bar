@@ -9,7 +9,7 @@
           <ion-button
             (click)="close()"
             (keyup.enter)="close()"
-            aria-label="Fermer"
+            [attr.aria-label]="'COMMON.CLOSE' | transloco"
             class="close-btn"
             data-testid="btn-close-shifts-modal">
             <ion-icon name="close-outline"></ion-icon>
@@ -55,7 +55,7 @@
                           type="text"
                           formControlName="name"
                           class="form-input"
-                          placeholder="Ex: Afterwork"
+                          placeholder="{{ 'RESERVATIONS.SHIFT_NAME_PLACEHOLDER' | transloco }}"
                           data-testid="input-edit-shift-name"
                         />
                       </div>

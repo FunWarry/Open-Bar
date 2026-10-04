@@ -20,7 +20,7 @@ import {
   IonToolbar,
   ToastController,
 } from '@ionic/angular';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import {
   addOutline,
@@ -107,6 +107,7 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
   private readonly toastCtrl = inject(ToastController);
   private readonly ws = inject(WebSocketService, { optional: true });
   private readonly router = inject(Router);
+  private readonly translocoService = inject(TranslocoService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
@@ -421,7 +422,7 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
 
     const buttons: any[] = [
       {
-        text: 'Nouvelle réservation',
+        text: this.translocoService.translate('RESERVATIONS.CONTEXT_MENU.NEW_RESERVATION'),
         icon: 'add-outline',
         handler: () => {
           this.openNewReservationModal(table.id, slotTime);
@@ -432,7 +433,7 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
     if (this.copiedReservation()) {
       const copied = this.copiedReservation()!;
       buttons.push({
-        text: `Coller la réservation (${copied.nomClient})`,
+        text: this.translocoService.translate('RESERVATIONS.CONTEXT_MENU.PASTE_RESERVATION', { name: copied.nomClient }),
         icon: 'clipboard-outline',
         handler: () => {
           this.pasteReservation(table.id, slotTime);
@@ -441,13 +442,13 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
     }
 
     buttons.push({
-      text: 'Annuler',
+      text: this.translocoService.translate('COMMON.CANCEL'),
       icon: 'close-outline',
       role: 'cancel',
     });
 
     const actionSheet = await this.actionSheetCtrl.create({
-      header: `Table ${table.numero} à ${slotTime}`,
+      header: this.translocoService.translate('RESERVATIONS.CONTEXT_MENU.HEADER_SLOT', { table: table.numero, time: slotTime }),
       buttons,
     });
     await actionSheet.present();
@@ -462,14 +463,14 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
 
     const buttons: any[] = [
       {
-        text: 'Modifier la réservation',
+        text: this.translocoService.translate('RESERVATIONS.CONTEXT_MENU.EDIT_RESERVATION'),
         icon: 'create-outline',
         handler: () => {
           this.openEditModal(res);
         },
       },
       {
-        text: 'Copier la réservation',
+        text: this.translocoService.translate('RESERVATIONS.CONTEXT_MENU.COPY_RESERVATION'),
         icon: 'copy-outline',
         handler: () => {
           this.copyReservation(res);
@@ -479,7 +480,7 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
 
     if (this.copiedReservation() && res.tableId) {
       buttons.push({
-        text: 'Coller le créneau copié',
+        text: this.translocoService.translate('RESERVATIONS.CONTEXT_MENU.PASTE_SLOT'),
         icon: 'clipboard-outline',
         handler: () => {
           this.pasteReservation(res.tableId!, res.heureReservation);
@@ -488,7 +489,7 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
     }
 
     buttons.push({
-      text: 'Dupliquer (+1h)',
+      text: this.translocoService.translate('RESERVATIONS.CONTEXT_MENU.DUPLICATE_RESERVATION'),
       icon: 'duplicate-outline',
       handler: () => {
         this.duplicateReservation(res);
@@ -497,7 +498,7 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
 
     if (res.statut !== 'SEATED' && res.statut !== 'CANCELLED' && res.tableId) {
       buttons.push({
-        text: 'Installer les clients',
+        text: this.translocoService.translate('RESERVATIONS.CONTEXT_MENU.SEAT_GUESTS'),
         icon: 'restaurant-outline',
         handler: () => {
           this.seatReservation(res);
@@ -507,7 +508,7 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
 
     if (res.statut !== 'CANCELLED' && res.statut !== 'SEATED') {
       buttons.push({
-        text: 'Annuler la réservation',
+        text: this.translocoService.translate('RESERVATIONS.CONTEXT_MENU.CANCEL_RESERVATION'),
         icon: 'close-circle-outline',
         handler: () => {
           this.cancelReservation(res);
@@ -517,7 +518,7 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
 
     buttons.push(
       {
-        text: 'Supprimer définitivement',
+        text: this.translocoService.translate('RESERVATIONS.CONTEXT_MENU.DELETE_PERMANENT'),
         icon: 'trash-outline',
         role: 'destructive',
         handler: () => {
@@ -525,7 +526,7 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
         },
       },
       {
-        text: 'Fermer',
+        text: this.translocoService.translate('COMMON.CLOSE'),
         icon: 'close-outline',
         role: 'cancel',
       }
@@ -544,7 +545,10 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
   copyReservation(res: Reservation): void {
     this.copiedReservation.set(res);
     void this.showToast(
-      `Réservation de ${res.nomClient} (${res.heureReservation}) copiée dans le presse-papier`,
+      this.translocoService.translate('RESERVATIONS.TOASTS.COPIED_SUCCESS', {
+        name: res.nomClient,
+        time: res.heureReservation,
+      }),
       'success'
     );
   }
@@ -555,7 +559,7 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
   pasteReservation(tableId: number, slotTime: string): void {
     const copied = this.copiedReservation();
     if (!copied) {
-      void this.showToast('Aucune réservation dans le presse-papier', 'warning');
+      void this.showToast(this.translocoService.translate('RESERVATIONS.TOASTS.CLIPBOARD_EMPTY'), 'warning');
       return;
     }
 
@@ -575,10 +579,16 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
     this.reservationService.createReservation(req).subscribe({
       next: (created) => {
         this.loadReservations();
-        void this.showToast(`Réservation collée pour ${created.nomClient} à ${slotTime}`, 'success');
+        void this.showToast(
+          this.translocoService.translate('RESERVATIONS.TOASTS.PASTED_SUCCESS', {
+            name: created.nomClient,
+            time: slotTime,
+          }),
+          'success'
+        );
       },
       error: () => {
-        void this.showToast('Impossible de coller la réservation sur ce créneau.', 'danger');
+        void this.showToast(this.translocoService.translate('RESERVATIONS.TOASTS.PASTED_ERROR'), 'danger');
       },
     });
   }
@@ -606,7 +616,10 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
     this.reservationService.createReservation(req).subscribe({
       next: () => {
         this.loadReservations();
-        void this.showToast(`Réservation dupliquée à ${newTime}`, 'success');
+        void this.showToast(
+          this.translocoService.translate('RESERVATIONS.TOASTS.DUPLICATED_SUCCESS', { time: newTime }),
+          'success'
+        );
       },
     });
   }
