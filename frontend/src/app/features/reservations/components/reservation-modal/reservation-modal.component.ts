@@ -16,6 +16,7 @@ import { IonIcon, IonModal } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import {
+  addOutline,
   alertCircleOutline,
   calendarOutline,
   checkmarkCircleOutline,
@@ -27,6 +28,7 @@ import {
   peopleOutline,
   personOutline,
   callOutline,
+  removeOutline,
   restaurantOutline,
   timeOutline,
   warningOutline,
@@ -41,7 +43,7 @@ import {
 import { TableBar } from '../../../../core/models/table.model';
 import { ReservationService } from '../../../../core/services/reservation.service';
 import { PlanSalleService } from '../../../plan-salle/services/plan-salle.service';
-import { TablePosition } from '../../../plan-salle/models/table-position.model';
+import { TablePosition, ZoneArea } from '../../../plan-salle/models/table-position.model';
 import { ModalComponent } from '../../../../core/components/ui/modal/modal.component';
 import {
   SearchableOption,
@@ -98,6 +100,8 @@ export class ReservationModalComponent implements OnInit, OnChanges {
   selectedFloorPlanZone = 'ALL';
   dayReservations: Reservation[] = [];
   tablePositions: TablePosition[] = [];
+  zoneAreas: ZoneArea[] = [];
+  floorPlanZoom = 1.0;
 
   get floorPlanZones(): string[] {
     const zones = new Set<string>();
@@ -112,6 +116,117 @@ export class ReservationModalComponent implements OnInit, OnChanges {
       return this.tables || [];
     }
     return (this.tables || []).filter((t) => t.zone === this.selectedFloorPlanZone);
+  }
+
+  get filteredZoneAreas(): ZoneArea[] {
+    if (!this.zoneAreas || this.zoneAreas.length === 0) return [];
+    if (this.selectedFloorPlanZone === 'ALL') {
+      return this.zoneAreas;
+    }
+    return this.zoneAreas.filter(
+      (z) => z.nom?.trim().toLowerCase() === this.selectedFloorPlanZone.trim().toLowerCase()
+    );
+  }
+
+  /**
+   * Retrieves the 2D spatial position and geometry of a table on the floor plan canvas.
+   */
+  getTablePosition(table: TableBar): TablePosition {
+    const existing = this.tablePositions.find((p) => p.tableId === table.id);
+    if (existing) {
+      return {
+        ...existing,
+        width: existing.width || 90,
+        height: existing.height || 90,
+        rotation: existing.rotation || 0,
+        shape: existing.shape || 'rect',
+      };
+    }
+    const idx = (this.tables || []).findIndex((t) => t.id === table.id);
+    const validIdx = Math.max(0, idx);
+    const col = validIdx % 4;
+    const row = Math.floor(validIdx / 4);
+    return {
+      tableId: table.id,
+      x: 120 + col * 160,
+      y: 120 + row * 160,
+      width: 90,
+      height: 90,
+      rotation: 0,
+      shape: 'rect',
+      floor: table.etage || 'RDC',
+      zone: table.zone,
+    };
+  }
+
+  /**
+   * Converts polygon vertices array to SVG points attribute string.
+   */
+  formatPolygonPoints(points?: number[]): string {
+    if (!points || points.length < 4) return '';
+    const pts: string[] = [];
+    for (let i = 0; i < points.length; i += 2) {
+      pts.push(`${points[i]},${points[i + 1]}`);
+    }
+    return pts.join(' ');
+  }
+
+  /**
+   * Computes dynamic SVG viewBox enclosing all visible tables and zone boundaries.
+   */
+  get floorPlanViewBox(): string {
+    const tables = this.filteredFloorPlanTables;
+    const zones = this.filteredZoneAreas;
+
+    let minX = Number.POSITIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+
+    zones.forEach((z) => {
+      minX = Math.min(minX, z.x);
+      minY = Math.min(minY, z.y);
+      maxX = Math.max(maxX, z.x + (z.width || 400));
+      maxY = Math.max(maxY, z.y + (z.height || 280));
+    });
+
+    tables.forEach((t) => {
+      const pos = this.getTablePosition(t);
+      const w = pos.width || 90;
+      const h = pos.height || 90;
+      minX = Math.min(minX, pos.x - w / 2);
+      minY = Math.min(minY, pos.y - h / 2);
+      maxX = Math.max(maxX, pos.x + w / 2);
+      maxY = Math.max(maxY, pos.y + h / 2);
+    });
+
+    if (!Number.isFinite(minX)) minX = 0;
+    if (!Number.isFinite(minY)) minY = 0;
+    if (!Number.isFinite(maxX)) maxX = 800;
+    if (!Number.isFinite(maxY)) maxY = 600;
+
+    const pad = 60;
+    const x = Math.max(0, Math.round(minX - pad));
+    const y = Math.max(0, Math.round(minY - pad));
+    const w = Math.max(400, Math.round(maxX - minX + pad * 2));
+    const h = Math.max(300, Math.round(maxY - minY + pad * 2));
+
+    return `${x} ${y} ${w} ${h}`;
+  }
+
+  zoomFloorPlanIn(): void {
+    this.floorPlanZoom = Math.min(2.0, Math.round((this.floorPlanZoom + 0.15) * 100) / 100);
+    this.cdr.markForCheck();
+  }
+
+  zoomFloorPlanOut(): void {
+    this.floorPlanZoom = Math.max(0.6, Math.round((this.floorPlanZoom - 0.15) * 100) / 100);
+    this.cdr.markForCheck();
+  }
+
+  resetFloorPlanZoom(): void {
+    this.floorPlanZoom = 1.0;
+    this.cdr.markForCheck();
   }
 
   get durationSelectOptions(): SearchableOption<number>[] {
@@ -163,6 +278,8 @@ export class ReservationModalComponent implements OnInit, OnChanges {
 
   constructor() {
     addIcons({
+      addOutline,
+      removeOutline,
       closeOutline,
       personOutline,
       callOutline,
@@ -302,16 +419,28 @@ export class ReservationModalComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Loads table physical positions for the floor plan.
+   * Loads table physical positions and zone boundary layouts for the floor plan.
    */
   loadFloorPlanData(): void {
-    if (typeof this.planSalleService?.getPositions !== 'function') return;
-    this.planSalleService.getPositions().subscribe({
-      next: (positions) => {
-        this.tablePositions = positions;
-        this.cdr.markForCheck();
-      },
-    });
+    if (typeof this.planSalleService?.getPositions === 'function') {
+      this.planSalleService.getPositions().subscribe({
+        next: (positions) => {
+          this.tablePositions = positions || [];
+          this.cdr.markForCheck();
+        },
+      });
+    }
+
+    try {
+      const stored = localStorage.getItem('openbar_zone_areas');
+      if (stored) {
+        this.zoneAreas = JSON.parse(stored);
+      } else {
+        this.zoneAreas = [];
+      }
+    } catch {
+      this.zoneAreas = [];
+    }
   }
 
   /**

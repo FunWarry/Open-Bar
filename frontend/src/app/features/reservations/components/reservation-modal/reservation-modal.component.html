@@ -244,33 +244,147 @@
                 <span class="legend-badge selected"><span class="dot"></span> {{ 'RESERVATIONS.FLOOR_PLAN_STATUS_SELECTED' | transloco }}</span>
               </div>
 
-              <!-- Interactive Tables Visual Grid -->
-              <div class="tables-visual-grid" data-testid="tables-visual-grid">
-                @for (t of filteredFloorPlanTables; track t.id) {
-                  @let slotInfo = getTableSlotStatus(t);
+              <!-- 2D Spatial Floor Plan Viewport at Instant T -->
+              <div class="floor-plan-viewport-wrapper" data-testid="floor-plan-viewport-wrapper">
+                <!-- Floating Zoom & Reset Navigation Controls -->
+                <div class="floor-plan-zoom-controls" data-testid="floor-plan-zoom-controls">
                   <button
                     type="button"
-                    class="table-visual-card"
-                    [class.is-selected]="slotInfo.status === 'SELECTED'"
-                    [class.is-available]="slotInfo.status === 'AVAILABLE'"
-                    [class.is-warning]="slotInfo.status === 'CAPACITY_WARNING'"
-                    [class.is-occupied]="slotInfo.status === 'OCCUPIED'"
-                    [disabled]="slotInfo.status === 'OCCUPIED'"
-                    (click)="selectTableFromFloorPlan(t)"
-                    [attr.data-testid]="'table-visual-card-' + t.id">
-                    <div class="card-table-number">
-                      <span class="table-prefix">T</span>
-                      <span class="table-num">{{ t.numero }}</span>
-                    </div>
-                    <div class="card-table-meta">
-                      <span class="card-cap">{{ t.capacite }} {{ 'RESERVATIONS.GUESTS_UNIT' | transloco }}</span>
-                      <span class="card-zone">{{ t.zone }}</span>
-                    </div>
-                    <div class="card-status-pill">
-                      {{ slotInfo.label }}
-                    </div>
+                    class="zoom-ctrl-btn"
+                    (click)="zoomFloorPlanIn()"
+                    [title]="'PLAN_SALLE_PAGE.ZOOM_IN' | transloco"
+                    data-testid="btn-floor-plan-zoom-in">
+                    <ion-icon name="add-outline"></ion-icon>
                   </button>
-                }
+                  <button
+                    type="button"
+                    class="zoom-level-pill"
+                    (click)="resetFloorPlanZoom()"
+                    [title]="'PLAN_SALLE_PAGE.RESET_VIEW' | transloco"
+                    data-testid="btn-floor-plan-zoom-reset">
+                    {{ (floorPlanZoom * 100) | number:'1.0-0' }}%
+                  </button>
+                  <button
+                    type="button"
+                    class="zoom-ctrl-btn"
+                    (click)="zoomFloorPlanOut()"
+                    [title]="'PLAN_SALLE_PAGE.ZOOM_OUT' | transloco"
+                    data-testid="btn-floor-plan-zoom-out">
+                    <ion-icon name="remove-outline"></ion-icon>
+                  </button>
+                </div>
+
+                <!-- Scrollable Blueprint Floor Plan Canvas -->
+                <div class="svg-canvas-scroll-container" data-testid="tables-visual-grid">
+                  <svg
+                    class="floor-plan-svg"
+                    [attr.viewBox]="floorPlanViewBox"
+                    [style.transform]="'scale(' + floorPlanZoom + ')'"
+                    data-testid="floor-plan-svg-canvas">
+
+                    <!-- Background Zone Areas Layer -->
+                    <g class="zones-layer" data-testid="zones-layer">
+                      @for (z of filteredZoneAreas; track z.id) {
+                        @if (z.shapeType === 'polygon' && z.points && z.points.length >= 6) {
+                          <polygon
+                            [attr.points]="formatPolygonPoints(z.points)"
+                            [attr.transform]="'translate(' + z.x + ',' + z.y + ')'"
+                            class="zone-svg-polygon"
+                            [style.stroke]="z.couleur || 'var(--primary)'"
+                            [style.fill]="(z.couleur || 'var(--primary)')"
+                          />
+                        } @else {
+                          <rect
+                            [attr.x]="z.x"
+                            [attr.y]="z.y"
+                            [attr.width]="z.width"
+                            [attr.height]="z.height"
+                            rx="16"
+                            ry="16"
+                            class="zone-svg-rect"
+                            [style.stroke]="z.couleur || 'var(--primary)'"
+                            [style.fill]="(z.couleur || 'var(--primary)')"
+                          />
+                        }
+                        <text
+                          [attr.x]="z.x + (z.labelX ?? 14)"
+                          [attr.y]="z.y + (z.labelY ?? 22)"
+                          class="zone-svg-label"
+                          [style.fill]="z.couleur || 'var(--primary)'">
+                          📍 {{ z.nom | uppercase }}
+                        </text>
+                      }
+                    </g>
+
+                    <!-- Interactive Spatial Tables Layer -->
+                    <g class="tables-layer" data-testid="tables-layer">
+                      @for (t of filteredFloorPlanTables; track t.id) {
+                        @let pos = getTablePosition(t);
+                        @let slotInfo = getTableSlotStatus(t);
+                        <g
+                          class="svg-table-node"
+                          [class.is-selected]="slotInfo.status === 'SELECTED'"
+                          [class.is-available]="slotInfo.status === 'AVAILABLE'"
+                          [class.is-warning]="slotInfo.status === 'CAPACITY_WARNING'"
+                          [class.is-occupied]="slotInfo.status === 'OCCUPIED'"
+                          [attr.transform]="'translate(' + pos.x + ',' + pos.y + ') rotate(' + (pos.rotation || 0) + ')'"
+                          (click)="selectTableFromFloorPlan(t)"
+                          (keydown.enter)="selectTableFromFloorPlan(t)"
+                          [attr.data-testid]="'table-visual-card-' + t.id"
+                          tabindex="0"
+                          role="button"
+                          [attr.aria-label]="'Table ' + t.numero + ' - ' + slotInfo.label">
+
+                          <title>Table {{ t.numero }} ({{ t.capacite }} {{ 'RESERVATIONS.GUESTS_UNIT' | transloco }} - {{ t.zone }})&#10;{{ slotInfo.label }}</title>
+
+                          <!-- Geometry Shape (Circle / Rectangle) -->
+                          @if (pos.shape === 'circle') {
+                            <ellipse
+                              cx="0"
+                              cy="0"
+                              [attr.rx]="(pos.width || 90) / 2"
+                              [attr.ry]="(pos.height || 90) / 2"
+                              class="table-shape-geom"
+                            />
+                          } @else {
+                            <rect
+                              [attr.x]="-(pos.width || 90) / 2"
+                              [attr.y]="-(pos.height || 90) / 2"
+                              [attr.width]="pos.width || 90"
+                              [attr.height]="pos.height || 90"
+                              rx="16"
+                              ry="16"
+                              class="table-shape-geom"
+                            />
+                          }
+
+                          <!-- Un-rotated Horizontal Text Content (Keeps text 0° horizontal regardless of table rotation) -->
+                          <g [attr.transform]="'rotate(' + (-(pos.rotation || 0)) + ')'" class="table-text-group">
+                            <text class="table-svg-num" x="0" y="-7">T{{ t.numero }}</text>
+                            <text class="table-svg-cap" x="0" y="8">{{ t.capacite }} {{ 'RESERVATIONS.GUESTS_UNIT' | transloco }}</text>
+
+                            @if (slotInfo.status === 'SELECTED') {
+                              <g transform="translate(0, 23)">
+                                <rect x="-34" y="-8" width="68" height="15" rx="7" class="status-badge-bg selected" />
+                                <text class="table-svg-badge" x="0" y="3">✓ {{ 'RESERVATIONS.FLOOR_PLAN_STATUS_SELECTED' | transloco }}</text>
+                              </g>
+                            } @else if (slotInfo.status === 'OCCUPIED') {
+                              <g transform="translate(0, 23)">
+                                <rect x="-28" y="-8" width="56" height="15" rx="7" class="status-badge-bg occupied" />
+                                <text class="table-svg-badge" x="0" y="3">{{ 'RESERVATIONS.FLOOR_PLAN_STATUS_OCCUPIED' | transloco }}</text>
+                              </g>
+                            } @else if (slotInfo.status === 'CAPACITY_WARNING') {
+                              <g transform="translate(0, 23)">
+                                <rect x="-28" y="-8" width="56" height="15" rx="7" class="status-badge-bg warning" />
+                                <text class="table-svg-badge" x="0" y="3">{{ 'RESERVATIONS.FLOOR_PLAN_STATUS_CAPACITY_WARN' | transloco }}</text>
+                              </g>
+                            }
+                          </g>
+                        </g>
+                      }
+                    </g>
+                  </svg>
+                </div>
               </div>
             </div>
           }
