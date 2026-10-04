@@ -251,6 +251,20 @@
   }
 }
 
+app-searchable-select {
+  width: 100%;
+
+  ::ng-deep .select-trigger {
+    min-height: 38px;
+    height: 38px;
+    padding: 0 10px;
+    font-size: 0.88rem;
+    border-radius: 8px;
+    background: var(--background-surface-1);
+    border: 1px solid var(--border-medium);
+  }
+}
+
 .add-btn-wrapper {
   display: flex;
   justify-content: flex-end;

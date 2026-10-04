@@ -17,6 +17,7 @@ import {
   IonModal,
   IonTitle,
   IonToolbar,
+  ModalController,
 } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
@@ -56,15 +57,21 @@ import { ReservationService } from '../../../../core/services/reservation.servic
 export class ReservationQuickSeatModalComponent {
   private readonly reservationService = inject(ReservationService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly modalCtrl = inject(ModalController, { optional: true });
 
   @Input() isOpen = false;
   @Input() reservation?: Reservation | null = null;
   @Input() tableNumero?: number | null = null;
+  @Input() table?: { id?: number; numero?: number } | null = null;
 
   @Output() modalClose = new EventEmitter<void>();
   @Output() seated = new EventEmitter<Reservation>();
 
   isSeating = false;
+
+  get displayTableNumero(): number | string {
+    return this.tableNumero ?? this.table?.numero ?? this.reservation?.tableNumero ?? '';
+  }
 
   constructor() {
     addIcons({
@@ -92,6 +99,7 @@ export class ReservationQuickSeatModalComponent {
       next: (updated) => {
         this.isSeating = false;
         this.seated.emit(updated);
+        void this.modalCtrl?.dismiss({ seated: true, reservation: updated });
         this.close();
       },
       error: () => {
@@ -104,5 +112,6 @@ export class ReservationQuickSeatModalComponent {
   close(): void {
     this.isOpen = false;
     this.modalClose.emit();
+    void this.modalCtrl?.dismiss({ seated: false });
   }
 }

@@ -3,10 +3,10 @@
     <ion-header class="ion-no-border modal-header">
       <ion-toolbar>
         <ion-title class="modal-title">
-          {{ 'RESERVATIONS.QUICK_SEAT_TITLE' | transloco: { number: tableNumero || reservation?.tableNumero } }}
+          {{ 'RESERVATIONS.QUICK_SEAT_TITLE' | transloco: { number: displayTableNumero } }}
         </ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="close()" (keyup.enter)="close()" aria-label="Fermer" class="close-btn" data-testid="btn-close-quick-seat">
+          <ion-button (click)="close()" (keyup.enter)="close()" [attr.aria-label]="'COMMON.CLOSE' | transloco" class="close-btn" data-testid="btn-close-quick-seat">
             <ion-icon name="close-outline"></ion-icon>
           </ion-button>
         </ion-buttons>

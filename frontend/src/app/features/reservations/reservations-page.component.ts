@@ -13,11 +13,8 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import {
   ActionSheetController,
-  IonContent,
-  IonHeader,
   IonIcon,
   IonSpinner,
-  IonToolbar,
   ToastController,
 } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -39,6 +36,7 @@ import {
   filterOutline,
   gridOutline,
   listOutline,
+  mapOutline,
   optionsOutline,
   peopleOutline,
   personOutline,
@@ -69,7 +67,7 @@ import {
 import { RestaurantShiftsModalComponent } from './components/restaurant-shifts-modal/restaurant-shifts-modal.component';
 
 /** View layout presentation mode. */
-export type ViewLayoutMode = 'TIMELINE' | 'LIST';
+export type ViewLayoutMode = 'TIMELINE' | 'LIST' | 'FLOOR_PLAN';
 
 /**
  * Main Table Reservation Book page allowing staff to browse bookings across timeline/list,
@@ -84,9 +82,6 @@ export type ViewLayoutMode = 'TIMELINE' | 'LIST';
     FormsModule,
     RouterModule,
     TranslocoPipe,
-    IonHeader,
-    IonToolbar,
-    IonContent,
     IonIcon,
     IonSpinner,
     SearchBarComponent,
@@ -248,6 +243,7 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
       addOutline,
       gridOutline,
       listOutline,
+      mapOutline,
       peopleOutline,
       timeOutline,
       personOutline,
@@ -648,7 +644,82 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
   }
 
   goToFloorPlan(): void {
-    void this.router.navigate(['/plan-salle']);
+    void this.router.navigate(['/plan-salle'], {
+      queryParams: {
+        date: this.selectedDate(),
+        time: this.selectedInstantT(),
+      },
+    });
+  }
+
+  // ─── Instant T Floor Plan Controls ──────────────────────────
+
+  selectedInstantT = signal<string>('19:30');
+
+  setInstantT(time: string): void {
+    this.selectedInstantT.set(time);
+  }
+
+  setInstantTNow(): void {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    this.selectedInstantT.set(`${h}:${m}`);
+  }
+
+  onInstantTChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    if (target?.value) {
+      this.selectedInstantT.set(target.value);
+    }
+  }
+
+  getTableInstantTStatus(table: TableBar): {
+    status: 'AVAILABLE' | 'RESERVED' | 'SEATED';
+    reservation?: Reservation;
+    label: string;
+  } {
+    const instantMin = this.timeToMinutes(this.selectedInstantT());
+    const dayRes = this.reservations();
+
+    const matchedRes = dayRes.find((r) => {
+      if (r.tableId !== table.id) return false;
+      if (r.statut === 'CANCELLED' || r.statut === 'NO_SHOW') return false;
+
+      const rStart = this.timeToMinutes(r.heureReservation);
+      const rEnd = rStart + (r.dureeMinutes || 90);
+
+      return instantMin >= rStart && instantMin < rEnd;
+    });
+
+    if (!matchedRes) {
+      return {
+        status: 'AVAILABLE',
+        label: this.translocoService.translate('RESERVATIONS.FLOOR_PLAN_STATUS_AVAILABLE'),
+      };
+    }
+
+    if (matchedRes.statut === 'SEATED') {
+      return {
+        status: 'SEATED',
+        reservation: matchedRes,
+        label: `${matchedRes.nomClient} (${matchedRes.nombrePersonnes} pers)`,
+      };
+    }
+
+    return {
+      status: 'RESERVED',
+      reservation: matchedRes,
+      label: `${matchedRes.nomClient} (${matchedRes.nombrePersonnes} pers)`,
+    };
+  }
+
+  openNewReservationForTableAtInstantT(tableId: number): void {
+    this.openNewReservationModal(tableId, this.selectedInstantT());
+  }
+
+  seatWalkInAtTableAtInstantT(tableId: number): void {
+    this.openNewReservationModal(tableId, this.selectedInstantT());
   }
 
   // ─── Timeline Calculation Helpers ──────────────────────────

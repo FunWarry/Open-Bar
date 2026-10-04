@@ -39,6 +39,8 @@ describe('ReservationModalComponent', () => {
       'getSuggestions',
       'createReservation',
       'updateReservation',
+      'getReservations',
+      'seatReservation',
     ]);
     reservationServiceSpy.checkAvailability.and.returnValue(of({
       available: true,
@@ -51,6 +53,8 @@ describe('ReservationModalComponent', () => {
     ]));
     reservationServiceSpy.createReservation.and.returnValue(of(mockReservation));
     reservationServiceSpy.updateReservation.and.returnValue(of(mockReservation));
+    reservationServiceSpy.getReservations.and.returnValue(of([]));
+    reservationServiceSpy.seatReservation.and.returnValue(of(mockReservation));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -223,5 +227,75 @@ describe('ReservationModalComponent', () => {
     spyOn(component.modalClose, 'emit');
     component.close();
     expect(component.modalClose.emit).toHaveBeenCalled();
+  });
+
+  it('toggles the interactive floor plan picker', () => {
+    expect(component.showFloorPlanPicker).toBeFalse();
+    component.toggleFloorPlanPicker();
+    expect(component.showFloorPlanPicker).toBeTrue();
+    expect(reservationServiceSpy.getReservations).toHaveBeenCalled();
+
+    component.toggleFloorPlanPicker();
+    expect(component.showFloorPlanPicker).toBeFalse();
+  });
+
+  it('selects table from floor plan and verifies availability', () => {
+    component.tables = mockTables;
+    component.selectTableFromFloorPlan(mockTables[0]);
+    expect(component.reservationForm.get('tableId')?.value).toBe(10);
+    expect(reservationServiceSpy.checkAvailability).toHaveBeenCalled();
+  });
+
+  it('computes table slot status accurately at instant T', () => {
+    component.tables = mockTables;
+    component.dayReservations = [
+      {
+        id: 99,
+        nomClient: 'Alice',
+        tableId: 10,
+        dateReservation: '2026-08-15',
+        heureReservation: '19:00',
+        dureeMinutes: 90,
+        nombrePersonnes: 2,
+        statut: 'CONFIRMED',
+        createdAt: '',
+        updatedAt: '',
+      },
+    ];
+
+    component.reservationForm.patchValue({
+      heureReservation: '19:30',
+      dureeMinutes: 60,
+      nombrePersonnes: 2,
+      tableId: null,
+    });
+
+    const statusOccupied = component.getTableSlotStatus(mockTables[0]);
+    expect(statusOccupied.status).toBe('OCCUPIED');
+
+    const statusAvailable = component.getTableSlotStatus(mockTables[1]);
+    expect(statusAvailable.status).toBe('AVAILABLE');
+  });
+
+  it('saves and immediately seats guests when saveAndSeatReservation is triggered', () => {
+    spyOn(component.reservationSaved, 'emit');
+    spyOn(component, 'close');
+
+    component.reservationForm.patchValue({
+      nomClient: 'Claire Delacroix',
+      tableId: 10,
+      dateReservation: '2026-08-15',
+      heureReservation: '20:00',
+      dureeMinutes: 90,
+      nombrePersonnes: 2,
+      statut: 'CONFIRMED',
+    });
+
+    component.saveAndSeatReservation();
+
+    expect(reservationServiceSpy.createReservation).toHaveBeenCalled();
+    expect(reservationServiceSpy.seatReservation).toHaveBeenCalledWith(mockReservation.id);
+    expect(component.reservationSaved.emit).toHaveBeenCalled();
+    expect(component.close).toHaveBeenCalled();
   });
 });

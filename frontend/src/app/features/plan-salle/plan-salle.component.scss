@@ -88,6 +88,16 @@
         background: var(--background-surface-3, #2a3050);
       }
 
+      &.reservations-link-btn {
+        background: rgba(108, 127, 232, 0.15);
+        color: var(--primary-light, #aab4f3);
+        border-color: rgba(108, 127, 232, 0.4);
+
+        &:hover {
+          background: rgba(108, 127, 232, 0.28);
+        }
+      }
+
       &.zone-manage-btn {
         background: rgba(108, 127, 232, 0.15);
         color: var(--primary-light, #aab4f3);
@@ -105,13 +115,13 @@
       }
 
       &.save-btn {
-        background: #1b8245;
-        color: #ffffff;
+        background: var(--semantic-success);
+        color: var(--text-on-accent);
         border: none;
         box-shadow: 0 4px 12px rgba(27, 130, 69, 0.35);
 
         &:hover {
-          background: #146936;
+          filter: brightness(0.9);
         }
       }
     }
@@ -224,6 +234,153 @@
       }
     }
   }
+
+  .instant-t-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+    flex-wrap: wrap;
+
+    .mode-toggles {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .mode-switch-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: var(--radius-pill, 999px);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid var(--border-medium, #2e3450);
+        background: var(--background-surface-2, #21263f);
+        color: var(--text-secondary, #a4add0);
+        transition: all 0.15s ease;
+
+        .live-indicator {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: var(--semantic-success, #2fbf6b);
+          box-shadow: 0 0 6px rgba(47, 191, 107, 0.6);
+        }
+
+        ion-icon {
+          font-size: 0.95rem;
+        }
+
+        &:hover {
+          color: var(--text-primary, #eceefb);
+          border-color: var(--primary, #6c7fe8);
+        }
+
+        &.active {
+          background: rgba(155, 138, 242, 0.18);
+          border-color: var(--role-admin, #9b8af2);
+          color: var(--role-admin, #9b8af2);
+          font-weight: 700;
+        }
+      }
+    }
+
+    .instant-t-inputs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+
+      .t-input {
+        background: var(--background-surface-2, #21263f);
+        border: 1px solid var(--border-medium, #2e3450);
+        border-radius: 8px;
+        color: var(--text-primary, #eceefb);
+        padding: 4px 8px;
+        font-size: 0.82rem;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.15s ease;
+
+        &:focus {
+          border-color: var(--primary, #6c7fe8);
+        }
+      }
+
+      .time-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--text-secondary, #a4add0);
+
+        ion-icon {
+          font-size: 0.95rem;
+          color: var(--primary, #6c7fe8);
+        }
+      }
+
+      .btn-instant-now {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        border: 1px solid var(--border-medium, #2e3450);
+        background: var(--background-surface-2, #21263f);
+        color: var(--text-secondary, #a4add0);
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        ion-icon {
+          font-size: 0.9rem;
+        }
+
+        &:hover {
+          color: var(--text-primary, #eceefb);
+          border-color: var(--primary, #6c7fe8);
+        }
+      }
+
+      .preset-slots {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-wrap: wrap;
+
+        .slot-pill {
+          padding: 3px 8px;
+          border-radius: 6px;
+          border: 1px solid var(--border-medium, #2e3450);
+          background: var(--background-surface-2, #21263f);
+          color: var(--text-secondary, #a4add0);
+          font-size: 0.75rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s ease;
+
+          &:hover {
+            color: var(--text-primary, #eceefb);
+            border-color: var(--primary, #6c7fe8);
+          }
+
+          &.active {
+            background: var(--primary, #6c7fe8);
+            border-color: var(--primary, #6c7fe8);
+            color: var(--text-on-accent, #ffffff);
+            font-weight: 700;
+          }
+        }
+      }
+    }
+  }
 }
 
 // ─── Canvas Wrapper ────────────────────────────────────────────────────────────
@@ -251,12 +408,12 @@
     gap: 12px;
     padding: 10px 20px;
     border-radius: var(--radius-pill, 999px);
-    background: #3b4cb8;
+    background: var(--primary);
     border: 1px solid var(--primary-light, #aab4f3);
-    color: #ffffff;
+    color: var(--text-on-accent);
     font-size: 0.85rem;
     font-weight: 700;
-    box-shadow: 0 8px 24px rgba(59, 76, 184, 0.4);
+    box-shadow: 0 8px 24px rgba(var(--primary-rgb, 108, 127, 232), 0.4);
     backdrop-filter: blur(8px);
 
     ion-icon {
@@ -266,15 +423,15 @@
     .btn-cancel-fusion {
       padding: 4px 12px;
       border-radius: var(--radius-pill, 999px);
-      background: #ffffff;
+      background: var(--background-surface-1);
       border: none;
-      color: #3b4cb8;
+      color: var(--primary);
       font-size: 0.78rem;
       font-weight: 700;
       cursor: pointer;
 
       &:hover {
-        background: #eceefb;
+        background: var(--background-surface-2);
       }
     }
   }

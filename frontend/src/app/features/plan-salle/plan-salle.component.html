@@ -7,6 +7,16 @@
       </div>
 
       <div class="header-actions">
+        <button
+          type="button"
+          class="action-btn reservations-link-btn"
+          (click)="naviguerVersReservations()"
+          [title]="'PLAN_SALLE_PAGE.GOTO_RESERVATIONS' | transloco"
+          data-testid="btn-goto-reservations">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>{{ 'PLAN_SALLE_PAGE.GOTO_RESERVATIONS' | transloco }}</span>
+        </button>
+
         @if (isAdmin) {
           <button
             type="button"
@@ -116,6 +126,79 @@
       <div class="legend-item"><span class="dot dot-occupee"></span><span>{{ 'PLAN_SALLE_PAGE.STATUS.OCCUPEE' | transloco }}</span></div>
       <div class="legend-item"><span class="dot dot-payment"></span><span>{{ 'PLAN_SALLE_PAGE.STATUS.PAYMENT_PENDING' | transloco }}</span></div>
       <div class="legend-item"><span class="dot dot-reservee"></span><span>{{ 'PLAN_SALLE_PAGE.STATUS.RESERVEE' | transloco }}</span></div>
+    </div>
+
+    <!-- Instant T / Reservation Timeline Control Row -->
+    <div class="instant-t-row" data-testid="plan-instant-t-row">
+      <div class="mode-toggles">
+        <button
+          type="button"
+          class="mode-switch-btn"
+          [class.active]="!isInstantTMode"
+          (click)="setInstantTMode(false)"
+          data-testid="btn-mode-live">
+          <span class="live-indicator"></span>
+          <span>{{ 'PLAN_SALLE_PAGE.LIVE_MODE' | transloco }}</span>
+        </button>
+        <button
+          type="button"
+          class="mode-switch-btn"
+          [class.active]="isInstantTMode"
+          (click)="setInstantTMode(true)"
+          data-testid="btn-mode-instant-t">
+          <ion-icon name="time-outline"></ion-icon>
+          <span>{{ 'PLAN_SALLE_PAGE.INSTANT_T_MODE' | transloco }}</span>
+        </button>
+      </div>
+
+      @if (isInstantTMode) {
+        <div class="instant-t-inputs">
+          <label for="plan-res-date" class="sr-only">{{ 'RESERVATIONS.FILTER_DATE' | transloco }}</label>
+          <input
+            id="plan-res-date"
+            type="date"
+            [(ngModel)]="selectedReservationDate"
+            (ngModelChange)="chargerReservationsJour()"
+            class="t-input date-input"
+            data-testid="input-plan-res-date"
+          />
+
+          <label for="plan-res-time" class="time-badge">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>T :</span>
+          </label>
+          <input
+            id="plan-res-time"
+            type="time"
+            [(ngModel)]="selectedInstantT"
+            (ngModelChange)="onInstantTChange()"
+            class="t-input time-input"
+            data-testid="input-plan-res-time"
+          />
+
+          <button
+            type="button"
+            class="btn-instant-now"
+            (click)="setInstantTNow()"
+            data-testid="btn-plan-instant-now">
+            <ion-icon name="locate-outline"></ion-icon>
+            <span>{{ 'PLAN_SALLE_PAGE.INSTANT_T_NOW' | transloco }}</span>
+          </button>
+
+          <div class="preset-slots">
+            @for (slot of presetSlots; track slot) {
+              <button
+                type="button"
+                class="slot-pill"
+                [class.active]="selectedInstantT === slot"
+                (click)="setInstantTSlot(slot)"
+                [attr.data-testid]="'chip-slot-' + slot">
+                {{ slot }}
+              </button>
+            }
+          </div>
+        </div>
+      }
     </div>
   </div>
 
@@ -275,4 +358,15 @@
     (deleteTable)="onDeleteTable($event)"
     (deleteZoneArea)="onDeleteZoneArea($event)">
   </app-table-side-panel>
+
+  <app-reservation-modal
+    [isOpen]="isReservationModalOpen"
+    [reservationToEdit]="modalReservationToEdit"
+    [initialDate]="selectedReservationDate"
+    [initialTime]="modalInitialTime"
+    [initialTableId]="modalInitialTableId"
+    [tables]="tables"
+    (modalClose)="isReservationModalOpen = false; modalReservationToEdit = null"
+    (reservationSaved)="onReservationModalSaved($event)">
+  </app-reservation-modal>
 </ion-content>

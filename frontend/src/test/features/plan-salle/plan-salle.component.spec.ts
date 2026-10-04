@@ -73,8 +73,26 @@ describe('PlanSalleComponent', () => {
     zoneServiceSpy.create.and.callFake(z => of({ id: 2, nom: 'NOUVELLE', etage: 'RDC', ...z } as any));
     zoneServiceSpy.delete.and.returnValue(of(void 0));
 
-    reservationServiceSpy = jasmine.createSpyObj('ReservationService', ['getUpcoming', 'seat']);
+    reservationServiceSpy = jasmine.createSpyObj('ReservationService', [
+      'getUpcoming',
+      'seat',
+      'getReservations',
+      'checkAvailability',
+      'create',
+      'update',
+      'deleteReservation',
+      'seatReservation',
+    ]);
     reservationServiceSpy.getUpcoming.and.returnValue(of([]));
+    reservationServiceSpy.getReservations.and.returnValue(of([]));
+    reservationServiceSpy.checkAvailability.and.returnValue(
+      of({
+        available: true,
+        capacitySufficient: true,
+        conflictingBookings: [],
+        message: 'Available',
+      })
+    );
 
     notifSpy = jasmine.createSpyObj('NotificationService', ['onNotification', 'onStockAlert']);
     notifSpy.onNotification.and.returnValue(notif$.asObservable());
@@ -460,5 +478,66 @@ describe('PlanSalleComponent', () => {
     expect(component.zoneAreas.some(za => za.id === 'za-10')).toBeTrue();
     expect(component.zoneAreas.some(za => za.id === 'za-20')).toBeTrue();
     expect(component.zoneAreas.some(za => za.id === 'za-99')).toBeFalse();
+  });
+
+  // --- Instant T Reservation Mode Tests ---
+
+  it('setInstantTMode(true) loads day reservations and recalculates status', () => {
+    const mockRes: any[] = [
+      { id: 101, tableId: 1, nomClient: 'Dupont', heureReservation: '19:30', dureeMinutes: 90, statut: 'CONFIRMED' },
+    ];
+    reservationServiceSpy.getReservations.and.returnValue(of(mockRes));
+
+    component.setInstantTMode(true);
+
+    expect(component.isInstantTMode).toBeTrue();
+    expect(reservationServiceSpy.getReservations).toHaveBeenCalledWith(jasmine.objectContaining({ date: component.selectedReservationDate }));
+    expect(component.activeReservationsByTableId.has(1)).toBeTrue();
+  });
+
+  it('setInstantTSlot() updates instant T and updates active reservations', () => {
+    component.isInstantTMode = true;
+    component.dayReservations = [
+      { id: 101, tableId: 1, nomClient: 'Martin', heureReservation: '20:00', dureeMinutes: 60, statut: 'CONFIRMED' } as any,
+    ];
+
+    component.setInstantTSlot('20:30');
+    expect(component.selectedInstantT).toBe('20:30');
+    expect(component.activeReservationsByTableId.has(1)).toBeTrue();
+
+    component.setInstantTSlot('22:00');
+    expect(component.selectedInstantT).toBe('22:00');
+    expect(component.activeReservationsByTableId.has(1)).toBeFalse();
+  });
+
+  it('onClickTable() in instant T mode on a free table opens reservation modal', async () => {
+    component.isEditMode = false;
+    component.isInstantTMode = true;
+    component.activeReservationsByTableId.clear();
+
+    await component.onClickTable(mockTables[0]);
+
+    expect(component.isReservationModalOpen).toBeTrue();
+    expect(component.modalInitialTableId).toBe(mockTables[0].id);
+    expect(component.modalReservationToEdit).toBeNull();
+  });
+
+  it('onClickTable() in instant T mode on a confirmed reservation opens quick seat modal', async () => {
+    component.isEditMode = false;
+    component.isInstantTMode = true;
+    const reservedBooking: any = {
+      id: 200,
+      tableId: 1,
+      nomClient: 'Durand',
+      heureReservation: '19:30',
+      dureeMinutes: 90,
+      statut: 'CONFIRMED',
+    };
+    component.activeReservationsByTableId.set(1, reservedBooking);
+    spyOn(component, 'ouvrirModalQuickSeat').and.returnValue(Promise.resolve());
+
+    await component.onClickTable(mockTables[0]);
+
+    expect(component.ouvrirModalQuickSeat).toHaveBeenCalledWith(reservedBooking, mockTables[0]);
   });
 });

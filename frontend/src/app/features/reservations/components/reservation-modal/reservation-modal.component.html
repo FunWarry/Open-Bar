@@ -169,11 +169,23 @@
 
         <!-- Table Assignment Section -->
         <div class="form-section">
-          <h3 class="section-title">
-            <ion-icon name="time-outline"></ion-icon>
-            {{ 'RESERVATIONS.SECTION_TABLE' | transloco }}
-          </h3>
+          <div class="section-header-row">
+            <h3 class="section-title">
+              <ion-icon name="time-outline"></ion-icon>
+              {{ 'RESERVATIONS.SECTION_TABLE' | transloco }}
+            </h3>
+            <button
+              type="button"
+              class="toggle-floor-plan-btn"
+              [class.active]="showFloorPlanPicker"
+              (click)="toggleFloorPlanPicker()"
+              data-testid="btn-toggle-floor-plan-picker">
+              <ion-icon [name]="showFloorPlanPicker ? 'list-outline' : 'map-outline'"></ion-icon>
+              <span>{{ (showFloorPlanPicker ? 'RESERVATIONS.HIDE_FLOOR_PLAN' : 'RESERVATIONS.CHOOSE_ON_FLOOR_PLAN') | transloco }}</span>
+            </button>
+          </div>
 
+          <!-- Dropdown Table Picker -->
           <div class="input-group">
             <span class="field-label">{{ 'RESERVATIONS.ASSIGNED_TABLE' | transloco }}</span>
             <app-searchable-select
@@ -187,6 +199,81 @@
               testId="select-reservation-table">
             </app-searchable-select>
           </div>
+
+          <!-- Interactive Floor Plan Visual Table Picker at Instant T -->
+          @if (showFloorPlanPicker) {
+            <div class="floor-plan-picker-container" data-testid="floor-plan-picker">
+              <div class="picker-header">
+                <div class="picker-info">
+                  <span class="picker-title">
+                    {{ 'RESERVATIONS.FLOOR_PLAN_PICKER_TITLE' | transloco: { date: reservationForm.get('dateReservation')?.value, time: reservationForm.get('heureReservation')?.value } }}
+                  </span>
+                  <span class="picker-hint">{{ 'RESERVATIONS.FLOOR_PLAN_PICKER_HINT' | transloco }}</span>
+                </div>
+
+                <!-- Zone Filter Chips -->
+                @if (floorPlanZones.length > 1) {
+                  <div class="picker-zones" data-testid="picker-zones-group">
+                    <button
+                      type="button"
+                      class="picker-zone-chip"
+                      [class.active]="selectedFloorPlanZone === 'ALL'"
+                      (click)="selectedFloorPlanZone = 'ALL'"
+                      data-testid="picker-zone-all">
+                      {{ 'RESERVATIONS.FLOOR_PLAN_ALL_ZONES' | transloco }}
+                    </button>
+                    @for (z of floorPlanZones; track z) {
+                      <button
+                        type="button"
+                        class="picker-zone-chip"
+                        [class.active]="selectedFloorPlanZone === z"
+                        (click)="selectedFloorPlanZone = z"
+                        [attr.data-testid]="'picker-zone-' + z">
+                        {{ z }}
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Legend -->
+              <div class="picker-legend">
+                <span class="legend-badge available"><span class="dot"></span> {{ 'RESERVATIONS.FLOOR_PLAN_STATUS_AVAILABLE' | transloco }}</span>
+                <span class="legend-badge warning"><span class="dot"></span> {{ 'RESERVATIONS.FLOOR_PLAN_STATUS_CAPACITY_WARN' | transloco }}</span>
+                <span class="legend-badge occupied"><span class="dot"></span> {{ 'RESERVATIONS.FLOOR_PLAN_STATUS_OCCUPIED' | transloco }}</span>
+                <span class="legend-badge selected"><span class="dot"></span> {{ 'RESERVATIONS.FLOOR_PLAN_STATUS_SELECTED' | transloco }}</span>
+              </div>
+
+              <!-- Interactive Tables Visual Grid -->
+              <div class="tables-visual-grid" data-testid="tables-visual-grid">
+                @for (t of filteredFloorPlanTables; track t.id) {
+                  @let slotInfo = getTableSlotStatus(t);
+                  <button
+                    type="button"
+                    class="table-visual-card"
+                    [class.is-selected]="slotInfo.status === 'SELECTED'"
+                    [class.is-available]="slotInfo.status === 'AVAILABLE'"
+                    [class.is-warning]="slotInfo.status === 'CAPACITY_WARNING'"
+                    [class.is-occupied]="slotInfo.status === 'OCCUPIED'"
+                    [disabled]="slotInfo.status === 'OCCUPIED'"
+                    (click)="selectTableFromFloorPlan(t)"
+                    [attr.data-testid]="'table-visual-card-' + t.id">
+                    <div class="card-table-number">
+                      <span class="table-prefix">T</span>
+                      <span class="table-num">{{ t.numero }}</span>
+                    </div>
+                    <div class="card-table-meta">
+                      <span class="card-cap">{{ t.capacite }} {{ 'RESERVATIONS.GUESTS_UNIT' | transloco }}</span>
+                      <span class="card-zone">{{ t.zone }}</span>
+                    </div>
+                    <div class="card-status-pill">
+                      {{ slotInfo.label }}
+                    </div>
+                  </button>
+                }
+              </div>
+            </div>
+          }
 
           <!-- Availability Check Feedback -->
           @if (reservationForm.get('tableId')?.value && availabilityCheck) {
@@ -238,6 +325,19 @@
           data-testid="btn-cancel-reservation">
           {{ 'COMMON.CANCEL' | transloco }}
         </button>
+
+        @if (reservationForm.get('tableId')?.value) {
+          <button
+            type="button"
+            class="btn-seat-now"
+            (click)="saveAndSeatReservation()"
+            [disabled]="reservationForm.invalid || isSaving || (availabilityCheck && !availabilityCheck.available)"
+            data-testid="btn-save-and-seat-reservation">
+            <ion-icon name="restaurant-outline"></ion-icon>
+            <span>{{ 'RESERVATIONS.ACTION_SAVE_AND_SEAT' | transloco }}</span>
+          </button>
+        }
+
         <button
           type="submit"
           form="reservationForm"

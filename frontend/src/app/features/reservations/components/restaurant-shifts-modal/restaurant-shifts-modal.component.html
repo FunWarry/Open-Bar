@@ -80,16 +80,14 @@
                         />
                       </div>
                       <div class="form-group flex-1">
-                        <label [for]="'edit-shift-step-' + shift.id" class="form-label">{{ 'RESERVATIONS.SHIFT_INTERVAL' | transloco }}</label>
-                        <select
-                          [id]="'edit-shift-step-' + shift.id"
+                        <span class="form-label">{{ 'RESERVATIONS.SHIFT_INTERVAL' | transloco }}</span>
+                        <app-searchable-select
                           formControlName="stepMinutes"
-                          class="form-select"
-                          data-testid="select-edit-shift-step">
-                          @for (opt of stepOptions; track opt.value) {
-                            <option [value]="opt.value">{{ opt.label }}</option>
-                          }
-                        </select>
+                          [options]="stepOptions"
+                          [clearable]="false"
+                          [searchable]="false"
+                          [testId]="'select-edit-shift-step-' + shift.id">
+                        </app-searchable-select>
                       </div>
                     </div>
                     <div class="edit-actions">
@@ -190,18 +188,16 @@
               </div>
 
               <div class="form-group flex-1">
-                <label for="new-shift-step" class="form-label">
+                <span class="form-label">
                   {{ 'RESERVATIONS.SHIFT_INTERVAL' | transloco }}
-                </label>
-                <select
-                  id="new-shift-step"
+                </span>
+                <app-searchable-select
                   formControlName="stepMinutes"
-                  class="form-select"
-                  data-testid="select-new-shift-step">
-                  @for (opt of stepOptions; track opt.value) {
-                    <option [value]="opt.value">{{ opt.label }}</option>
-                  }
-                </select>
+                  [options]="stepOptions"
+                  [clearable]="false"
+                  [searchable]="false"
+                  testId="select-new-shift-step">
+                </app-searchable-select>
               </div>
             </div>
 

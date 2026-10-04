@@ -826,13 +826,13 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
-  await page.route('**/api/plan-salle/positions**', async (route) => {
+  await page.route(/(?:\/api)?\/(?:plan-salle|tables)\/positions/, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify([
-        { id: 1, tableId: 1, x: 100, y: 100, shape: 'square', rotation: 0 },
-        { id: 2, tableId: 2, x: 250, y: 100, shape: 'circle', rotation: 0 },
+        { id: 1, tableId: 1, x: 100, y: 100, planX: 100, planY: 100, shape: 'square', planForme: 'RECTANGLE', rotation: 0, zone: 'Salle Principale' },
+        { id: 2, tableId: 2, x: 250, y: 100, planX: 250, planY: 100, shape: 'circle', planForme: 'RONDE', rotation: 0, zone: 'Salle Principale' },
       ]),
     });
   });
@@ -1451,6 +1451,7 @@ export async function setupMockApi(page: Page): Promise<void> {
     barTabs: true,
     cocktailLibrary: true,
     suppliersManagement: true,
+    tableReservations: true,
   };
 
   await page.route('**/api/establishment/modules**', async (route) => {
@@ -1865,6 +1866,7 @@ export async function setupMockApi(page: Page): Promise<void> {
         cocktailLibrary: true,
         suppliersManagement: true,
         inventoryAudit: true,
+        tableReservations: true,
       }),
     });
   });
@@ -2069,6 +2071,7 @@ export async function setupMockApi(page: Page): Promise<void> {
         suppliersManagement: true,
         inventoryAudit: true,
         mysteryRoulette: true,
+        tableReservations: true,
       }),
     });
   });

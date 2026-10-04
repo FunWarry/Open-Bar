@@ -20,10 +20,14 @@ import {
   calendarOutline,
   checkmarkCircleOutline,
   closeOutline,
+  gridOutline,
+  listOutline,
   mailOutline,
+  mapOutline,
   peopleOutline,
   personOutline,
   callOutline,
+  restaurantOutline,
   timeOutline,
   warningOutline,
 } from 'ionicons/icons';
@@ -36,6 +40,8 @@ import {
 } from '../../../../core/models/reservation.model';
 import { TableBar } from '../../../../core/models/table.model';
 import { ReservationService } from '../../../../core/services/reservation.service';
+import { PlanSalleService } from '../../../plan-salle/services/plan-salle.service';
+import { TablePosition } from '../../../plan-salle/models/table-position.model';
 import { ModalComponent } from '../../../../core/components/ui/modal/modal.component';
 import {
   SearchableOption,
@@ -45,7 +51,7 @@ import {
 /**
  * Modal dialog component for creating or editing a table reservation.
  * Includes party size validation, live table availability checks, customer autocomplete,
- * and design system searchable select dropdowns.
+ * interactive instant-T floor plan picker, and 1-click seating action.
  */
 @Component({
   selector: 'app-reservation-modal',
@@ -67,6 +73,7 @@ export class ReservationModalComponent implements OnInit, OnChanges {
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly reservationService = inject(ReservationService);
+  private readonly planSalleService = inject(PlanSalleService);
   private readonly translocoService = inject(TranslocoService);
 
   @Input() isOpen = false;
@@ -86,6 +93,26 @@ export class ReservationModalComponent implements OnInit, OnChanges {
 
   customerSuggestions: Reservation[] = [];
   showSuggestions = false;
+
+  showFloorPlanPicker = false;
+  selectedFloorPlanZone = 'ALL';
+  dayReservations: Reservation[] = [];
+  tablePositions: TablePosition[] = [];
+
+  get floorPlanZones(): string[] {
+    const zones = new Set<string>();
+    (this.tables || []).forEach((t) => {
+      if (t.zone) zones.add(t.zone);
+    });
+    return Array.from(zones);
+  }
+
+  get filteredFloorPlanTables(): TableBar[] {
+    if (this.selectedFloorPlanZone === 'ALL') {
+      return this.tables || [];
+    }
+    return (this.tables || []).filter((t) => t.zone === this.selectedFloorPlanZone);
+  }
 
   get durationSelectOptions(): SearchableOption<number>[] {
     const defaultSuffix = this.translocoService.translate('RESERVATIONS.DURATION_DEFAULT_SUFFIX');
@@ -146,6 +173,10 @@ export class ReservationModalComponent implements OnInit, OnChanges {
       checkmarkCircleOutline,
       warningOutline,
       alertCircleOutline,
+      mapOutline,
+      gridOutline,
+      listOutline,
+      restaurantOutline,
     });
   }
 
@@ -230,6 +261,7 @@ export class ReservationModalComponent implements OnInit, OnChanges {
       } else {
         this.availabilityCheck = null;
       }
+      this.loadDayReservations(this.reservationToEdit.dateReservation);
     } else {
       this.reservationForm.patchValue({
         nomClient: '',
@@ -248,10 +280,135 @@ export class ReservationModalComponent implements OnInit, OnChanges {
       } else {
         this.availabilityCheck = null;
       }
+      this.loadDayReservations(this.initialDate || today);
     }
 
+    this.loadFloorPlanData();
     this.reservationForm.markAsPristine();
     this.reservationForm.markAsUntouched();
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Toggles the floor plan picker view.
+   */
+  toggleFloorPlanPicker(): void {
+    this.showFloorPlanPicker = !this.showFloorPlanPicker;
+    if (this.showFloorPlanPicker) {
+      this.loadFloorPlanData();
+      this.loadDayReservations();
+    }
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Loads table physical positions for the floor plan.
+   */
+  loadFloorPlanData(): void {
+    if (typeof this.planSalleService?.getPositions !== 'function') return;
+    this.planSalleService.getPositions().subscribe({
+      next: (positions) => {
+        this.tablePositions = positions;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  /**
+   * Loads reservations for the selected date to evaluate slot availability.
+   */
+  loadDayReservations(date?: string): void {
+    const targetDate = date || this.reservationForm?.get('dateReservation')?.value;
+    if (!targetDate || typeof this.reservationService?.getReservations !== 'function') return;
+
+    this.reservationService.getReservations({ date: targetDate }).subscribe({
+      next: (list) => {
+        this.dayReservations = list;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.dayReservations = [];
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  timeToMinutes(t: string): number {
+    if (!t) return 0;
+    const parts = t.split(':');
+    return (Number.parseInt(parts[0], 10) || 0) * 60 + (Number.parseInt(parts[1], 10) || 0);
+  }
+
+  /**
+   * Computes the availability status of a table at the exact reservation slot T.
+   */
+  getTableSlotStatus(table: TableBar): {
+    status: 'AVAILABLE' | 'CAPACITY_WARNING' | 'OCCUPIED' | 'SELECTED';
+    conflictReservation?: Reservation;
+    label: string;
+  } {
+    const selectedTableId = this.reservationForm?.get('tableId')?.value;
+    if (selectedTableId === table.id) {
+      return {
+        status: 'SELECTED',
+        label: this.translocoService.translate('RESERVATIONS.FLOOR_PLAN_STATUS_SELECTED'),
+      };
+    }
+
+    const slotStartStr = this.reservationForm?.get('heureReservation')?.value || '19:30';
+    const duree = Number(this.reservationForm?.get('dureeMinutes')?.value || 90);
+    const partySize = Number(this.reservationForm?.get('nombrePersonnes')?.value || 1);
+
+    const slotStartMin = this.timeToMinutes(slotStartStr);
+    const slotEndMin = slotStartMin + duree;
+
+    // Check conflict
+    const conflict = this.dayReservations.find((r) => {
+      if (r.tableId !== table.id) return false;
+      if (r.id === this.reservationToEdit?.id) return false;
+      if (r.statut === 'CANCELLED' || r.statut === 'NO_SHOW') return false;
+
+      const rStartMin = this.timeToMinutes(r.heureReservation);
+      const rEndMin = rStartMin + (r.dureeMinutes || 90);
+
+      return !(slotEndMin <= rStartMin || slotStartMin >= rEndMin);
+    });
+
+    if (conflict) {
+      return {
+        status: 'OCCUPIED',
+        conflictReservation: conflict,
+        label: this.translocoService.translate('RESERVATIONS.TABLE_OCCUPIED_BY', {
+          name: conflict.nomClient,
+          time: conflict.heureReservation,
+        }),
+      };
+    }
+
+    if (table.capacite < partySize) {
+      return {
+        status: 'CAPACITY_WARNING',
+        label: this.translocoService.translate('RESERVATIONS.FLOOR_PLAN_STATUS_CAPACITY_WARN'),
+      };
+    }
+
+    return {
+      status: 'AVAILABLE',
+      label: this.translocoService.translate('RESERVATIONS.FLOOR_PLAN_STATUS_AVAILABLE'),
+    };
+  }
+
+  /**
+   * Selects a table clicked on the visual floor plan.
+   */
+  selectTableFromFloorPlan(table: TableBar): void {
+    const statusInfo = this.getTableSlotStatus(table);
+    if (statusInfo.status === 'OCCUPIED') {
+      return;
+    }
+
+    this.reservationForm.get('tableId')?.setValue(table.id);
+    this.checkTableAvailability();
     this.cdr.markForCheck();
   }
 
@@ -328,7 +485,6 @@ export class ReservationModalComponent implements OnInit, OnChanges {
 
     this.reservationService.getSuggestions(query).subscribe({
       next: (suggestions) => {
-        // Deduplicate suggestions by name & phone
         const seen = new Set<string>();
         this.customerSuggestions = suggestions.filter((s) => {
           const key = `${s.nomClient.toLowerCase()}-${s.telephone || ''}`;
@@ -344,8 +500,6 @@ export class ReservationModalComponent implements OnInit, OnChanges {
 
   /**
    * Applies an autocomplete suggestion to the form fields.
-   *
-   * @param suggestion Selected past customer reservation
    */
   selectSuggestion(suggestion: Reservation): void {
     this.reservationForm.patchValue({
@@ -417,6 +571,87 @@ export class ReservationModalComponent implements OnInit, OnChanges {
           this.reservationSaved.emit(created);
           this.close();
         },
+        error: () => {
+          this.isSaving = false;
+          this.cdr.markForCheck();
+        },
+      });
+    }
+  }
+
+  /**
+   * Saves the reservation and immediately seats guests at the table (status SEATED).
+   */
+  saveAndSeatReservation(): void {
+    if (this.reservationForm.invalid || this.isSaving) {
+      this.reservationForm.markAllAsTouched();
+      return;
+    }
+
+    const tableId = this.reservationForm.get('tableId')?.value;
+    if (!tableId) {
+      return;
+    }
+
+    this.reservationForm.patchValue({ statut: 'SEATED' });
+    const raw = this.reservationForm.value;
+    const tableIdValue = Number(raw.tableId);
+
+    this.isSaving = true;
+    this.cdr.markForCheck();
+
+    const onSavedSuccess = (saved: Reservation) => {
+      this.reservationService.seatReservation(saved.id).subscribe({
+        next: (seated) => {
+          this.isSaving = false;
+          this.reservationSaved.emit(seated);
+          this.close();
+        },
+        error: () => {
+          this.isSaving = false;
+          this.reservationSaved.emit(saved);
+          this.close();
+        },
+      });
+    };
+
+    if (this.reservationToEdit?.id) {
+      const updatePayload: ReservationUpdateRequest = {
+        nomClient: raw.nomClient.trim(),
+        telephone: raw.telephone?.trim() || null,
+        email: raw.email?.trim() || null,
+        dateReservation: raw.dateReservation,
+        heureReservation: raw.heureReservation,
+        dureeMinutes: Number(raw.dureeMinutes),
+        nombrePersonnes: Number(raw.nombrePersonnes),
+        notes: raw.notes?.trim() || null,
+        statut: 'SEATED',
+        tableId: tableIdValue,
+      };
+
+      this.reservationService.updateReservation(this.reservationToEdit.id, updatePayload).subscribe({
+        next: onSavedSuccess,
+        error: () => {
+          this.isSaving = false;
+          this.cdr.markForCheck();
+        },
+      });
+    } else {
+      const createPayload: ReservationCreateRequest = {
+        nomClient: raw.nomClient.trim(),
+        telephone: raw.telephone?.trim() || null,
+        email: raw.email?.trim() || null,
+        dateReservation: raw.dateReservation,
+        heureReservation: raw.heureReservation,
+        dureeMinutes: Number(raw.dureeMinutes),
+        nombrePersonnes: Number(raw.nombrePersonnes),
+        notes: raw.notes?.trim() || null,
+        statut: 'SEATED',
+        tableId: tableIdValue,
+      };
+
+      this.reservationService.createReservation(createPayload).subscribe({
+        next: onSavedSuccess,
         error: () => {
           this.isSaving = false;
           this.cdr.markForCheck();

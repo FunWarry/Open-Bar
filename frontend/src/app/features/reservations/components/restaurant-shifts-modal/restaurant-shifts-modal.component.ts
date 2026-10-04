@@ -35,6 +35,10 @@ import {
   checkmarkOutline,
 } from 'ionicons/icons';
 import { RestaurantServiceShift, RestaurantShiftService } from '../../../../core/services/restaurant-shift.service';
+import {
+  SearchableOption,
+  SearchableSelectComponent,
+} from '../../../../core/components/ui/searchable-select/searchable-select.component';
 
 /**
  * Modal dialog for configuring restaurant service shifts (Lunch, Dinner, Afterwork, Night, etc.).
@@ -56,6 +60,7 @@ import { RestaurantServiceShift, RestaurantShiftService } from '../../../../core
     IonButton,
     IonIcon,
     IonContent,
+    SearchableSelectComponent,
   ],
   templateUrl: './restaurant-shifts-modal.component.html',
   styleUrls: ['./restaurant-shifts-modal.component.scss'],
@@ -76,7 +81,7 @@ export class RestaurantShiftsModalComponent implements OnInit, OnChanges {
   editingShiftId: string | null = null;
   editForm!: FormGroup;
 
-  readonly stepOptions = [
+  readonly stepOptions: SearchableOption<number>[] = [
     { label: '15 min', value: 15 },
     { label: '30 min', value: 30 },
     { label: '45 min', value: 45 },
