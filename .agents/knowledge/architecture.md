@@ -35,9 +35,10 @@
 | Backend tests | JUnit 5 + Mockito + Testcontainers | 1.21.4 | Unit + Spring Boot integration tests with isolated PostgreSQL |
 | Frontend tests | Karma + Jasmine | — | Headless browser unit tests |
 | E2E tests | Playwright | 1.50+ | End-to-end browser tests (Chromium headless) |
+| Performance & Load | k6 + Playwright CDP | k6 v2.2+ | Automated rush-hour scenarios, mock ESC/POS socket :9100, degraded network, RPi 5 profiling |
 | Database Backups | Automated Docker cron + rotation | — | `prodrigestivill/postgres-backup-local:15-alpine` (7d/4w/6m retention) |
 | Reverse Proxy & TLS | Nginx | — | Port 443 HTTPS, TLS 1.2/1.3, HTTP 80 redirect, camera header, SAN certs |
-| CI | GitHub Actions | 1 workflow (`ci.yml`) | Backend, Frontend, E2E, SonarCloud |
+| CI / CD | GitHub Actions | 3 workflows (`ci.yml`, `performance.yml`, `release.yml`) | Backend, Frontend, E2E, SonarCloud, Nightly Performance, SemVer Releases |
 | Quality | SonarCloud + Qodana | — | Quality Gate enforcement |
 
 ---
