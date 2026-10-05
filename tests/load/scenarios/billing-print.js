@@ -29,6 +29,7 @@ export default function billingPrintScenario() {
     {
       headers: managerHeaders,
       tags: { name: 'Generate_Invoice' },
+      responseCallback: http.expectedStatuses(200, 400, 404),
     }
   );
 

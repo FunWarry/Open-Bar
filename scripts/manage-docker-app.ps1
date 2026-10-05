@@ -96,17 +96,19 @@ function Stop-App {
 }
 
 function Invoke-LoadTest {
-    param ([string]$Scen = "smoke", [string]$TargetUrl = "http://localhost:8080")
+    param ([string]$Scen = "smoke", [string]$TargetUrl = "http://localhost:8080", [string]$OutputDir = "reports/load-tests")
     Show-Header
     Write-Host "Executing load test scenario [$Scen] against $TargetUrl..." -ForegroundColor Cyan
-    node tests/load/run-load-tests.js "--scenario=$Scen" "--url=$TargetUrl"
+    Write-Host "📁 Results will be exported to: $OutputDir" -ForegroundColor DarkGray
+    node tests/load/run-load-tests.js "--scenario=$Scen" "--url=$TargetUrl" "--output-dir=$OutputDir"
 }
 
 function Invoke-HardwareProfile {
-    param ([int]$Duration = 60)
+    param ([int]$Duration = 60, [string]$OutputFile = "reports/profile-report.json")
     Show-Header
     Write-Host "Starting live hardware profiling (CPU, RAM, GC pauses) for $Duration s..." -ForegroundColor Cyan
-    node scripts/benchmark-profile.js "--duration=$Duration" "--output=profile-report.json"
+    Write-Host "📁 Report will be exported to: $OutputFile" -ForegroundColor DarkGray
+    node scripts/benchmark-profile.js "--duration=$Duration" "--output=$OutputFile"
 }
 
 function Show-ContainerLogs {

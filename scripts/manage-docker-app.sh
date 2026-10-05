@@ -89,16 +89,20 @@ stop_app() {
 run_test() {
     local scen="${1:-smoke}"
     local url="${2:-http://localhost:8080}"
+    local out_dir="${3:-reports/load-tests}"
     show_header
     echo "🎯 Running load test scenario [${scen}] against ${url}..."
-    node tests/load/run-load-tests.js "--scenario=${scen}" "--url=${url}"
+    echo "📁 Results will be exported to: ${out_dir}"
+    node tests/load/run-load-tests.js "--scenario=${scen}" "--url=${url}" "--output-dir=${out_dir}"
 }
 
 run_profile() {
     local duration="${1:-60}"
+    local output="${2:-reports/profile-report.json}"
     show_header
     echo "📊 Starting live hardware profiling (CPU, RAM, GC pauses) for ${duration}s..."
-    node scripts/benchmark-profile.js "--duration=${duration}" "--output=profile-report.json"
+    echo "📁 Report will be exported to: ${output}"
+    node scripts/benchmark-profile.js "--duration=${duration}" "--output=${output}"
 }
 
 case "${1:-}" in

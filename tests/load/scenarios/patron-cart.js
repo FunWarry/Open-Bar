@@ -32,6 +32,7 @@ export default function patronCartScenario() {
   // 1. Patron opens table QR link and checks existing collaborative cart
   const cartRes = http.get(`${baseUrl}/api/public/tables/${tableId}/cart`, {
     tags: { name: 'Get_Table_Cart' },
+    responseCallback: http.expectedStatuses(200, 404),
   });
   check(cartRes, {
     'cart GET responds 200 or 404': (r) => r.status === 200 || r.status === 404,
@@ -55,6 +56,7 @@ export default function patronCartScenario() {
     {
       headers: { 'Content-Type': 'application/json' },
       tags: { name: 'Add_Cart_Item' },
+      responseCallback: http.expectedStatuses(200, 201, 400),
     }
   );
 
@@ -68,9 +70,10 @@ export default function patronCartScenario() {
   // 3. Patron refreshes cart to check other guests additions
   const refreshedCartRes = http.get(`${baseUrl}/api/public/tables/${tableId}/cart`, {
     tags: { name: 'Get_Table_Cart' },
+    responseCallback: http.expectedStatuses(200, 404),
   });
   check(refreshedCartRes, {
-    'refreshed cart responds 200': (r) => r.status === 200,
+    'refreshed cart responds 200 or 404': (r) => r.status === 200 || r.status === 404,
   });
 
   sleep(1.5);

@@ -13,11 +13,12 @@
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
+import path from 'node:path';
 
 const args = process.argv.slice(2);
 let durationSeconds = 30;
 let sampleIntervalMs = 1000;
-let outputFile = null;
+let outputFile = 'reports/profile-report.json';
 
 args.forEach((arg) => {
   if (arg.startsWith('--duration=')) {
@@ -184,6 +185,10 @@ const result = {
 };
 
 if (outputFile) {
+  const dir = path.dirname(outputFile);
+  if (dir && !fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
   fs.writeFileSync(outputFile, JSON.stringify(result, null, 2), 'utf8');
   console.log(`💾 Saved detailed profile data to: ${outputFile}`);
 }

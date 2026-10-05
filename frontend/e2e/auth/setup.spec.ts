@@ -38,7 +38,7 @@ test.describe('Initial Setup E2E Flow', () => {
     await expect(page.locator('[data-testid="setup-badge"]')).toBeVisible();
     await expect(page.locator('[data-testid="setup-form"]')).toBeVisible();
     await expect(page.locator('[data-testid="setup-terms-acceptance"]')).toBeVisible();
-    await expect(page.locator('[data-testid="setup-submit-btn"] button')).toBeDisabled();
+    await expect(page.locator('[data-testid="setup-submit-btn"]')).toBeDisabled();
   });
 
   test('should create admin account and navigate to login', async ({ page }) => {
@@ -59,7 +59,7 @@ test.describe('Initial Setup E2E Flow', () => {
     await page.locator('[data-testid="setup-accept-terms-checkbox"]').click();
 
     // Verify submit button is enabled and submit
-    const submitBtn = page.locator('[data-testid="setup-submit-btn"] button');
+    const submitBtn = page.locator('[data-testid="setup-submit-btn"]');
     await expect(submitBtn).toBeEnabled();
     await submitBtn.click();
 
