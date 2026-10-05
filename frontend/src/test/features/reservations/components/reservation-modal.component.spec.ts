@@ -3,6 +3,8 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
 import { ReservationModalComponent } from '../../../../app/features/reservations/components/reservation-modal/reservation-modal.component';
 import { ReservationService } from '../../../../app/core/services/reservation.service';
+import { PlanSalleService } from '../../../../app/features/plan-salle/services/plan-salle.service';
+import { EtageService } from '../../../../app/core/services/etage.service';
 import { TableBar } from '../../../../app/core/models/table.model';
 import { Reservation } from '../../../../app/core/models/reservation.model';
 import { getTranslocoTestingModule } from '../../../transloco-testing.module';
@@ -11,6 +13,8 @@ describe('ReservationModalComponent', () => {
   let component: ReservationModalComponent;
   let fixture: ComponentFixture<ReservationModalComponent>;
   let reservationServiceSpy: jasmine.SpyObj<ReservationService>;
+  let planSalleServiceSpy: jasmine.SpyObj<PlanSalleService>;
+  let etageServiceSpy: jasmine.SpyObj<EtageService>;
 
   const mockTables: TableBar[] = [
     { id: 10, numero: 1, capacite: 2, occupee: false, zone: 'SALLE', createdAt: '', updatedAt: '' },
@@ -56,6 +60,18 @@ describe('ReservationModalComponent', () => {
     reservationServiceSpy.getReservations.and.returnValue(of([]));
     reservationServiceSpy.seatReservation.and.returnValue(of(mockReservation));
 
+    planSalleServiceSpy = jasmine.createSpyObj('PlanSalleService', ['getPositions']);
+    planSalleServiceSpy.getPositions.and.returnValue(of([
+      { tableId: 10, x: 100, y: 100, width: 80, height: 80, rotation: 0, shape: 'rect', floor: 'RDC', zone: 'SALLE' },
+      { tableId: 20, x: 300, y: 100, width: 100, height: 100, rotation: 45, shape: 'circle', floor: 'ETAGE_1', zone: 'MEZZANINE' },
+    ]));
+
+    etageServiceSpy = jasmine.createSpyObj('EtageService', ['getAll']);
+    etageServiceSpy.getAll.and.returnValue(of([
+      { code: 'RDC', nom: 'Rez-de-chaussée' },
+      { code: 'ETAGE_1', nom: '1er Étage' },
+    ]));
+
     await TestBed.configureTestingModule({
       imports: [
         ReservationModalComponent,
@@ -64,6 +80,8 @@ describe('ReservationModalComponent', () => {
       ],
       providers: [
         { provide: ReservationService, useValue: reservationServiceSpy },
+        { provide: PlanSalleService, useValue: planSalleServiceSpy },
+        { provide: EtageService, useValue: etageServiceSpy },
       ],
     }).compileComponents();
 
@@ -297,5 +315,239 @@ describe('ReservationModalComponent', () => {
     expect(reservationServiceSpy.seatReservation).toHaveBeenCalledWith(mockReservation.id);
     expect(component.reservationSaved.emit).toHaveBeenCalled();
     expect(component.close).toHaveBeenCalled();
+  });
+
+  it('normalizes floor code strings consistently', () => {
+    expect(component.normalizeFloorCode('RDC')).toBe('RDC');
+    expect(component.normalizeFloorCode('rez-de-chaussée')).toBe('RDC');
+    expect(component.normalizeFloorCode('1er étage')).toBe('ETAGE_1');
+    expect(component.normalizeFloorCode('ETAGE_1')).toBe('ETAGE_1');
+    expect(component.normalizeFloorCode('2ème étage')).toBe('ETAGE_2');
+    expect(component.normalizeFloorCode('Rooftop')).toBe('ETAGE_2');
+    expect(component.normalizeFloorCode('Terrasse Haute')).toBe('TERRASSE HAUTE');
+    expect(component.normalizeFloorCode(undefined)).toBe('RDC');
+  });
+
+  it('resolves table floor from position, table attribute, zone, or default', () => {
+    // 1. From tablePositions
+    component.tablePositions = [
+      { tableId: 10, x: 0, y: 0, rotation: 0, shape: 'rect', floor: '1er Étage' },
+    ];
+    expect(component.resolveTableFloor(mockTables[0])).toBe('ETAGE_1');
+
+    // 2. From table.etage
+    component.tablePositions = [];
+    const tableWithEtage: TableBar = { ...mockTables[0], etage: '2ème Étage' };
+    expect(component.resolveTableFloor(tableWithEtage)).toBe('ETAGE_2');
+
+    // 3. From zoneAreas matching zone
+    component.zoneAreas = [
+      { id: 'z1', nom: 'SALLE', etage: '1er étage', x: 0, y: 0, width: 200, height: 200 },
+    ];
+    expect(component.resolveTableFloor(mockTables[0])).toBe('ETAGE_1');
+
+    // 4. Default fallback
+    component.zoneAreas = [];
+    expect(component.resolveTableFloor(mockTables[0])).toBe('RDC');
+  });
+
+  it('computes availableFloors from etages, detected floors, or fallback', () => {
+    // 1. From etages
+    component.etages = [
+      { code: 'RDC', nom: 'Rez-de-chaussée' },
+      { code: 'ETAGE_1', nom: '1er Étage' },
+    ];
+    expect(component.availableFloors).toHaveSize(2);
+
+    // 2. From detected tables and zones when etages is empty
+    component.etages = [];
+    component.tables = [
+      { ...mockTables[0], etage: 'RDC' },
+      { ...mockTables[1], etage: 'ETAGE_1' },
+    ];
+    component.zoneAreas = [
+      { id: 'z1', nom: 'Rooftop Lounge', etage: 'ROOFTOP', x: 0, y: 0, width: 100, height: 100 },
+    ];
+    const detected = component.availableFloors;
+    expect(detected.some(f => f.code === 'RDC')).toBeTrue();
+    expect(detected.some(f => f.code === 'ETAGE_1')).toBeTrue();
+    expect(detected.some(f => f.code === 'ETAGE_2')).toBeTrue();
+
+    // 3. Fallback when tables and zones are empty
+    component.tables = [];
+    component.zoneAreas = [];
+    expect(component.availableFloors).toEqual([{ code: 'RDC', nom: 'RDC' }]);
+  });
+
+  it('selectFloor() updates selectedFloor and resets selectedFloorPlanZone', () => {
+    component.selectedFloor = 'RDC';
+    component.selectedFloorPlanZone = 'VIP';
+    component.selectFloor('ETAGE_1');
+    expect(component.selectedFloor).toBe('ETAGE_1');
+    expect(component.selectedFloorPlanZone).toBe('ALL');
+  });
+
+  it('syncSelectedFloorWithCurrentTable() synchronizes with selected table or first floor', () => {
+    component.tables = mockTables;
+    component.reservationForm.patchValue({ tableId: 20 });
+    component.tablePositions = [{ tableId: 20, x: 0, y: 0, rotation: 0, shape: 'rect', floor: 'ETAGE_1' }];
+    component.syncSelectedFloorWithCurrentTable();
+    expect(component.selectedFloor).toBe('ETAGE_1');
+
+    component.reservationForm.patchValue({ tableId: null });
+    component.etages = [{ code: 'RDC', nom: 'RDC' }];
+    component.selectedFloor = 'UNKNOWN_FLOOR';
+    component.syncSelectedFloorWithCurrentTable();
+    expect(component.selectedFloor).toBe('RDC');
+  });
+
+  it('filters floor plan zones, tables, and zone areas according to active floor and zone', () => {
+    component.selectedFloor = 'RDC';
+    component.tables = [
+      { ...mockTables[0], zone: 'TERRASSE' },
+      { ...mockTables[1], zone: 'BAR' },
+    ];
+    component.zoneAreas = [
+      { id: 'z1', nom: 'JARDIN', etage: 'RDC', x: 0, y: 0, width: 200, height: 200 },
+      { id: 'z2', nom: 'BALCON', etage: 'ETAGE_1', x: 0, y: 0, width: 200, height: 200 },
+    ];
+
+    expect(component.floorPlanZones).toContain('TERRASSE');
+    expect(component.floorPlanZones).toContain('BAR');
+    expect(component.floorPlanZones).toContain('JARDIN');
+    expect(component.floorPlanZones).not.toContain('BALCON');
+
+    component.selectedFloorPlanZone = 'ALL';
+    expect(component.filteredFloorPlanTables).toHaveSize(2);
+    expect(component.filteredZoneAreas).toHaveSize(1);
+
+    component.selectedFloorPlanZone = 'TERRASSE';
+    expect(component.filteredFloorPlanTables).toHaveSize(1);
+    expect(component.filteredFloorPlanTables[0].zone).toBe('TERRASSE');
+  });
+
+  it('computes table geometry and coordinates with getTablePosition()', () => {
+    component.tablePositions = [
+      { tableId: 10, x: 150, y: 250, width: 80, height: 80, rotation: 15, shape: 'rect' },
+    ];
+    const posCached = component.getTablePosition(mockTables[0]);
+    expect(posCached.x).toBe(150);
+    expect(posCached.y).toBe(250);
+    expect(posCached.rotation).toBe(15);
+
+    // Fallback grid computation
+    const posFallback = component.getTablePosition(mockTables[1]);
+    expect(posFallback.x).toBeGreaterThan(0);
+    expect(posFallback.y).toBeGreaterThan(0);
+    expect(posFallback.width).toBe(90);
+  });
+
+  it('formats polygon points and computes viewBox for SVG canvas', () => {
+    expect(component.formatPolygonPoints()).toBe('');
+    expect(component.formatPolygonPoints([10, 20])).toBe('');
+    expect(component.formatPolygonPoints([10, 20, 30, 40])).toBe('10,20 30,40');
+
+    component.tables = mockTables;
+    component.zoneAreas = [
+      { id: 'z1', nom: 'SALLE', etage: 'RDC', x: 100, y: 100, width: 300, height: 200 },
+    ];
+    const viewBox = component.floorPlanViewBox;
+    expect(viewBox).toMatch(/^\d+\s+\d+\s+\d+\s+\d+$/);
+  });
+
+  it('adjusts zoom controls correctly', () => {
+    component.floorPlanZoom = 1.0;
+    component.zoomFloorPlanIn();
+    expect(component.floorPlanZoom).toBe(1.15);
+
+    component.zoomFloorPlanOut();
+    expect(component.floorPlanZoom).toBe(1.0);
+
+    component.floorPlanZoom = 1.8;
+    component.resetFloorPlanZoom();
+    expect(component.floorPlanZoom).toBe(1.0);
+  });
+
+  it('exposes select options for duration, status, and table', () => {
+    expect(component.durationSelectOptions.length).toBeGreaterThan(0);
+    expect(component.statusSelectOptions.length).toBeGreaterThan(0);
+    expect(component.tableSelectOptions.length).toBe(mockTables.length + 1); // default option + mock tables
+  });
+
+  it('selects table from floor plan and rejects occupied table', () => {
+    component.tables = mockTables;
+    component.dayReservations = [
+      {
+        id: 55,
+        nomClient: 'Occupy',
+        tableId: 10,
+        dateReservation: '2026-08-15',
+        heureReservation: '19:30',
+        dureeMinutes: 90,
+        nombrePersonnes: 2,
+        statut: 'CONFIRMED',
+        createdAt: '',
+        updatedAt: '',
+      },
+    ];
+    component.reservationForm.patchValue({ heureReservation: '19:30', dureeMinutes: 90 });
+
+    // Table 10 is occupied -> should not be selected
+    component.selectTableFromFloorPlan(mockTables[0]);
+    expect(component.reservationForm.get('tableId')?.value).not.toBe(10);
+
+    // Table 20 is free -> should be selected
+    component.selectTableFromFloorPlan(mockTables[1]);
+    expect(component.reservationForm.get('tableId')?.value).toBe(20);
+  });
+
+  it('handles table slot statuses for SELECTED and CAPACITY_WARNING', () => {
+    component.tables = mockTables;
+    component.reservationForm.patchValue({
+      tableId: 10,
+    });
+    const statusSelected = component.getTableSlotStatus(mockTables[0]);
+    expect(statusSelected.status).toBe('SELECTED');
+
+    component.reservationForm.patchValue({
+      tableId: null,
+      heureReservation: '21:00',
+      nombrePersonnes: 10, // capacity of table 10 is 2
+    });
+    const statusCapWarn = component.getTableSlotStatus(mockTables[0]);
+    expect(statusCapWarn.status).toBe('CAPACITY_WARNING');
+  });
+
+  it('handles saveAndSeatReservation when tableId is missing or when editing', () => {
+    component.reservationForm.patchValue({
+      nomClient: 'No Table Guest',
+      tableId: null,
+    });
+    component.saveAndSeatReservation();
+    expect(reservationServiceSpy.createReservation).not.toHaveBeenCalled();
+
+    // With reservationToEdit
+    component.reservationToEdit = mockReservation;
+    component.reservationForm.patchValue({
+      nomClient: 'Edit Guest',
+      tableId: 10,
+      statut: 'CONFIRMED',
+    });
+    component.saveAndSeatReservation();
+    expect(reservationServiceSpy.updateReservation).toHaveBeenCalled();
+  });
+
+  it('handles ngOnChanges when isOpen is toggled', () => {
+    spyOn(component, 'populateForm');
+    component.isOpen = true;
+    component.ngOnChanges({
+      isOpen: {
+        currentValue: true,
+        previousValue: false,
+        firstChange: false,
+        isFirstChange: () => false,
+      },
+    });
+    expect(component.populateForm).toHaveBeenCalled();
   });
 });

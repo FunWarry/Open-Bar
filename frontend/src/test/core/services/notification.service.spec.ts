@@ -508,4 +508,48 @@ describe('NotificationService', () => {
 
     expect(notifs).toHaveSize(0);
   }));
+
+  // -------------------------------------------------------------------------
+  // /topic/reservations reservation notifications
+  // -------------------------------------------------------------------------
+
+  it('emits reservation notification when /topic/reservations receives message', fakeAsync(() => {
+    const notifs: AppNotification[] = [];
+    service.onNotification().subscribe(n => notifs.push(n));
+
+    wsStub.emit('/topic/reservations', {
+      id: 88,
+      clientNom: 'Alice Dupont',
+      statut: 'CONFIRMED',
+      dateReservation: '2026-08-15',
+    });
+    tick();
+
+    expect(notifs).toHaveSize(1);
+    expect(notifs[0].type).toBe('reservation');
+    expect(notifs[0].severity).toBe('primary');
+    expect(notifs[0].message).toContain('Alice Dupont');
+    expect(notifs[0].message).toContain('CONFIRMED');
+  }));
+
+  it('handles reservation notification with default client name when clientNom is missing', fakeAsync(() => {
+    const notifs: AppNotification[] = [];
+    service.onNotification().subscribe(n => notifs.push(n));
+
+    wsStub.emit('/topic/reservations', {
+      id: 89,
+    });
+    tick();
+
+    expect(notifs).toHaveSize(1);
+    expect(notifs[0].type).toBe('reservation');
+    expect(notifs[0].message).toContain('Client');
+  }));
+
+  it('ignores malformed messages on /topic/reservations without throwing error', fakeAsync(() => {
+    expect(() => {
+      wsStub.emitRaw('/topic/reservations', '{bad json');
+      tick();
+    }).not.toThrow();
+  }));
 });

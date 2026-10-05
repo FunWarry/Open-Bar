@@ -540,4 +540,77 @@ describe('PlanSalleComponent', () => {
 
     expect(component.ouvrirModalQuickSeat).toHaveBeenCalledWith(reservedBooking, mockTables[0]);
   });
+
+  it('onClickTable() in instant T mode on a seated reservation opens reservation modal in edit mode', async () => {
+    component.isEditMode = false;
+    component.isInstantTMode = true;
+    const seatedBooking: any = {
+      id: 201,
+      tableId: 1,
+      nomClient: 'Seated Guest',
+      heureReservation: '19:30',
+      dureeMinutes: 90,
+      statut: 'SEATED',
+    };
+    component.activeReservationsByTableId.set(1, seatedBooking);
+
+    await component.onClickTable(mockTables[0]);
+
+    expect(component.isReservationModalOpen).toBeTrue();
+    expect(component.modalReservationToEdit).toBe(seatedBooking);
+    expect(component.modalInitialTableId).toBe(1);
+  });
+
+  it('onClickTable() in live mode opens quick seat if upcoming reservation exists', async () => {
+    component.isEditMode = false;
+    component.isInstantTMode = false;
+    const upcomingRes: any = { id: 300, tableId: 1, nomClient: 'Upcoming Guest', heureReservation: '20:00' };
+    component.upcomingReservationsByTableId.set(1, upcomingRes);
+    spyOn(component, 'ouvrirModalQuickSeat').and.returnValue(Promise.resolve());
+
+    await component.onClickTable(mockTables[0]);
+
+    expect(component.ouvrirModalQuickSeat).toHaveBeenCalledWith(upcomingRes, mockTables[0]);
+  });
+
+  it('onClickTable() in live mode opens reservation modal if no upcoming reservation', async () => {
+    component.isEditMode = false;
+    component.isInstantTMode = false;
+    component.upcomingReservationsByTableId.clear();
+
+    await component.onClickTable(mockTables[0]);
+
+    expect(component.isReservationModalOpen).toBeTrue();
+    expect(component.modalInitialTableId).toBe(mockTables[0].id);
+  });
+
+  it('handles instant T controls: onInstantTChange, setInstantTNow, and naviguerVersReservations', () => {
+    spyOn((component as any).router, 'navigate');
+
+    component.onInstantTChange();
+    expect(component.selectedInstantT).toBeDefined();
+
+    component.setInstantTNow();
+    expect(component.selectedInstantT).toMatch(/^\d{2}:\d{2}$/);
+
+    component.naviguerVersReservations();
+    expect((component as any).router.navigate).toHaveBeenCalledWith(['/reservations'], {
+      queryParams: {
+        date: component.selectedReservationDate,
+      },
+    });
+  });
+
+  it('handles onReservationModalSaved callback and reloads reservations', () => {
+    spyOn(component, 'charger');
+    spyOn((component as any), 'chargerReservationsJour');
+    component.isInstantTMode = true;
+
+    component.onReservationModalSaved({ id: 50 } as any);
+
+    expect(component.isReservationModalOpen).toBeFalse();
+    expect(component.modalReservationToEdit).toBeNull();
+    expect(component.charger).toHaveBeenCalled();
+    expect((component as any).chargerReservationsJour).toHaveBeenCalled();
+  });
 });

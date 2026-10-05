@@ -2,6 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { of, Subject } from 'rxjs';
 import { ActionSheetController, AlertController, ModalController, ToastController } from '@ionic/angular';
+import { Router } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 import { ReservationsPageComponent } from '../../../app/features/reservations/reservations-page.component';
 import { ReservationService } from '../../../app/core/services/reservation.service';
 import { TableService } from '../../../app/core/services/table.service';
@@ -21,6 +23,7 @@ describe('ReservationsPageComponent', () => {
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let alertCtrlSpy: jasmine.SpyObj<AlertController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
+  let router: Router;
 
   const mockReservations: Reservation[] = [
     {
@@ -102,6 +105,7 @@ describe('ReservationsPageComponent', () => {
       imports: [
         ReservationsPageComponent,
         HttpClientTestingModule,
+        RouterTestingModule,
         getTranslocoTestingModule(),
       ],
       providers: [
@@ -116,6 +120,7 @@ describe('ReservationsPageComponent', () => {
       ],
     }).compileComponents();
 
+    router = TestBed.inject(Router);
     fixture = TestBed.createComponent(ReservationsPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -292,5 +297,73 @@ describe('ReservationsPageComponent', () => {
     spyOn(component, 'loadReservations');
     component.onReservationSaved(mockReservations[0]);
     expect(component.loadReservations).toHaveBeenCalled();
+  });
+
+  it('navigates to floor plan at instant T with goToFloorPlan()', () => {
+    spyOn(router, 'navigate');
+    component.selectedDate.set('2026-08-15');
+    component.selectedInstantT.set('20:00');
+
+    component.goToFloorPlan();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/plan-salle'], {
+      queryParams: {
+        date: '2026-08-15',
+        time: '20:00',
+      },
+    });
+  });
+
+  it('updates instant T time with setInstantT, setInstantTNow, and onInstantTChange', () => {
+    component.setInstantT('21:15');
+    expect(component.selectedInstantT()).toBe('21:15');
+
+    component.setInstantTNow();
+    expect(component.selectedInstantT()).toMatch(/^\d{2}:\d{2}$/);
+
+    const fakeEvent = { target: { value: '18:45' } } as unknown as Event;
+    component.onInstantTChange(fakeEvent);
+    expect(component.selectedInstantT()).toBe('18:45');
+  });
+
+  it('computes getTableInstantTStatus accurately for available, reserved, and seated', () => {
+    // Table 10 has reservation at 12:30 (duree 90min -> 14:00) with status CONFIRMED
+    // Table 20 has reservation at 20:00 (duree 90min -> 21:30) with status SEATED
+
+    // At 13:00, table 10 is RESERVED
+    component.selectedInstantT.set('13:00');
+    const statusT1 = component.getTableInstantTStatus(mockTables[0]);
+    expect(statusT1.status).toBe('RESERVED');
+    expect(statusT1.reservation?.nomClient).toBe('Jean Dupont');
+
+    // At 20:30, table 20 is SEATED
+    component.selectedInstantT.set('20:30');
+    const statusT2 = component.getTableInstantTStatus(mockTables[1]);
+    expect(statusT2.status).toBe('SEATED');
+
+    // At 18:00, table 10 is AVAILABLE
+    component.selectedInstantT.set('18:00');
+    const statusFree = component.getTableInstantTStatus(mockTables[0]);
+    expect(statusFree.status).toBe('AVAILABLE');
+  });
+
+  it('opens new reservation modal at instant T for a table slot', () => {
+    component.selectedInstantT.set('20:15');
+    component.openNewReservationForTableAtInstantT(10);
+    expect(component.isModalOpen).toBeTrue();
+    expect(component.newReservationInitialTableId).toBe(10);
+    expect(component.newReservationInitialTime).toBe('20:15');
+
+    component.onModalClose();
+    expect(component.isModalOpen).toBeFalse();
+    expect(component.reservationToEdit).toBeNull();
+  });
+
+  it('seats walk-in guest at instant T with seatWalkInAtTableAtInstantT', () => {
+    component.selectedInstantT.set('19:45');
+    component.seatWalkInAtTableAtInstantT(20);
+    expect(component.isModalOpen).toBeTrue();
+    expect(component.newReservationInitialTableId).toBe(20);
+    expect(component.newReservationInitialTime).toBe('19:45');
   });
 });
