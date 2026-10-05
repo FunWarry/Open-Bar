@@ -5,7 +5,10 @@ param (
     [string]$Url = "http://localhost:8080"
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
+if (Test-Path variable:global:PSNativeCommandUseErrorActionPreference) {
+    $global:PSNativeCommandUseErrorActionPreference = $false
+}
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RootDir = Split-Path -Parent $ScriptDir
 Set-Location $RootDir
@@ -71,8 +74,8 @@ function Start-Rpi5Sim {
 function Stop-App {
     Show-Header
     Write-Host "Stopping all OpenBar containers..." -ForegroundColor Yellow
-    docker compose -f docker-compose.prod.yml down -v 2>$null
-    docker compose -f docker/docker-compose.rpi5-sim.yml down -v 2>$null
+    docker compose -f docker-compose.prod.yml down -v --remove-orphans
+    docker compose -f docker/docker-compose.rpi5-sim.yml down -v --remove-orphans
     Write-Host "[OK] All containers stopped successfully." -ForegroundColor Green
 }
 
