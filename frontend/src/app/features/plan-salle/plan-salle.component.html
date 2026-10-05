@@ -159,6 +159,7 @@
             type="date"
             [(ngModel)]="selectedReservationDate"
             (ngModelChange)="chargerReservationsJour()"
+            (input)="chargerReservationsJour()"
             class="t-input date-input"
             data-testid="input-plan-res-date"
           />
@@ -172,6 +173,7 @@
             type="time"
             [(ngModel)]="selectedInstantT"
             (ngModelChange)="onInstantTChange()"
+            (input)="onInstantTChange()"
             class="t-input time-input"
             data-testid="input-plan-res-time"
           />
