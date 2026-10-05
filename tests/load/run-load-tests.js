@@ -71,7 +71,7 @@ function runK6(scenarioRelPath, url, withDocker) {
   return new Promise((resolve) => {
     const currentDir = import.meta.dirname || path.resolve('.');
     const rootDir = path.resolve(currentDir, '..', '..');
-    const normalizedPath = scenarioRelPath.replaceAll(String.raw`\`, '/');
+    const normalizedPath = scenarioRelPath.replaceAll(path.sep, '/');
 
     let proc;
     if (withDocker) {
