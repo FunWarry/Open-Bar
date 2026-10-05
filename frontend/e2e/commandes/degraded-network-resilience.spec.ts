@@ -40,16 +40,17 @@ test.describe('Degraded Network & Resiliency Simulation (#448)', () => {
   });
 
   test('should handle latency spikes (1000ms) gracefully without breaking UI interaction', async ({ page }) => {
-    // 1. Emulate high-latency degraded Wi-Fi (1000ms RTT, 1Mbps throughput)
+    // 1. Initial page load under normal network
+    await page.goto('/serveur?tab=commande&tableId=1');
+    await expect(page.locator('app-cart-drawer')).toBeVisible({ timeout: 15000 });
+
+    // 2. Emulate high-latency degraded Wi-Fi spike (1000ms RTT, 1Mbps throughput)
     await cdpSession.send('Network.emulateNetworkConditions', {
       offline: false,
       latency: 1000,
       downloadThroughput: (1024 * 1024) / 8,
       uploadThroughput: (512 * 1024) / 8,
     });
-
-    await page.goto('/serveur?tab=commande&tableId=2');
-    await expect(page.locator('app-cart-drawer')).toBeVisible({ timeout: 15000 });
 
     // Ensure UI elements remain responsive under latency
     const productCard = page.locator('.product-card, .figma-cocktail-card').first();

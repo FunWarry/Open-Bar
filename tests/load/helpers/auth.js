@@ -23,8 +23,8 @@ export function authenticateUser(username, password, baseUrl = DEFAULT_BASE_URL)
   }
 
   const payload = JSON.stringify({
-    username: username,
-    password: password,
+    username,
+    password,
   });
 
   const params = {
@@ -37,11 +37,11 @@ export function authenticateUser(username, password, baseUrl = DEFAULT_BASE_URL)
   const res = http.post(`${baseUrl}/api/auth/login`, payload, params);
 
   const ok = check(res, {
-    'login status is 200': (r) => r.status === 200,
+    'login status is 200': (r) => r?.status === 200,
     'login returns token': (r) => {
       try {
-        const body = JSON.parse(r.body);
-        return Boolean(body?.token || body?.accessToken);
+        const body = JSON.parse(r?.body);
+        return Boolean(body?.token ?? body?.accessToken);
       } catch (parseError) {
         console.warn('Auth response parse error:', parseError);
         return false;
@@ -50,8 +50,8 @@ export function authenticateUser(username, password, baseUrl = DEFAULT_BASE_URL)
   });
 
   if (ok) {
-    const data = JSON.parse(res.body);
-    const token = data.token || data.accessToken;
+    const data = JSON.parse(res?.body);
+    const token = data?.token ?? data?.accessToken;
     tokenCache[cacheKey] = token;
     return token;
   }

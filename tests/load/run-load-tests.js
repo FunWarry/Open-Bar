@@ -71,7 +71,7 @@ function runK6(scenarioRelPath, url, withDocker) {
   return new Promise((resolve) => {
     const currentDir = import.meta.dirname || path.resolve('.');
     const rootDir = path.resolve(currentDir, '..', '..');
-    const normalizedPath = scenarioRelPath.replaceAll('\\', '/');
+    const normalizedPath = scenarioRelPath.replaceAll(String.raw`\`, '/');
 
     let proc;
     if (withDocker) {
@@ -117,85 +117,82 @@ function runK6(scenarioRelPath, url, withDocker) {
   });
 }
 
-async function main() {
-  console.log('='.repeat(70));
-  console.log('🚀 OpenBar Load & Stress Testing Orchestrator');
-  console.log(`🎯 Scenario: ${selectedScenario}`);
-  console.log(`🌐 Target Base URL: ${targetUrl}`);
-  console.log('='.repeat(70));
+console.log('='.repeat(70));
+console.log('🚀 OpenBar Load & Stress Testing Orchestrator');
+console.log(`🎯 Scenario: ${selectedScenario}`);
+console.log(`🌐 Target Base URL: ${targetUrl}`);
+console.log('='.repeat(70));
 
-  // Determine runner mode
-  const localK6 = hasBinary('k6');
-  const hasDocker = hasBinary('docker');
+// Determine runner mode
+const localK6 = hasBinary('k6');
+const hasDocker = hasBinary('docker');
 
-  if (!localK6 && !hasDocker && !useDocker) {
-    console.error('❌ Neither local `k6` nor `docker` was found in PATH.');
-    console.error('   Please install k6 (https://k6.io/docs/get-started/installation/) or run Docker.');
+if (!localK6 && !hasDocker && !useDocker) {
+  console.error('❌ Neither local `k6` nor `docker` was found in PATH.');
+  console.error('   Please install k6 (https://k6.io/docs/get-started/installation/) or run Docker.');
+  process.exit(1);
+}
+
+const runWithDocker = useDocker || (!localK6 && hasDocker);
+console.log(`⚙️  Execution engine: ${runWithDocker ? 'Docker (grafana/k6)' : 'Local k6 binary'}`);
+
+// Start mock ESC/POS server
+console.log('🖨️  Starting background Mock ESC/POS socket server on port 9100...');
+const currentDir = import.meta.dirname || path.resolve('.');
+const mockServerPath = path.resolve(currentDir, 'helpers', 'mock-escpos-server.js');
+const mockServerProc = spawn(process.execPath, [mockServerPath], {
+  stdio: 'inherit',
+  detached: false,
+  shell: false,
+});
+
+// Ensure mock server cleanup on exit
+const cleanup = () => {
+  try {
+    mockServerProc.kill('SIGTERM');
+  } catch (_ignored) {
+    // Process already terminated
+  }
+};
+process.on('exit', cleanup);
+process.on('SIGINT', () => { cleanup(); process.exit(1); });
+process.on('SIGTERM', () => { cleanup(); process.exit(1); });
+
+// Brief pause for mock server to bind
+await new Promise((r) => setTimeout(r, 600));
+
+const scenariosToRun = selectedScenario === 'all'
+  ? Object.keys(SCENARIOS)
+  : [selectedScenario];
+
+let anyFailure = false;
+
+for (const scenName of scenariosToRun) {
+  const scenFile = SCENARIOS[scenName];
+  if (!scenFile) {
+    console.error(`❌ Unknown scenario: ${scenName}. Available: ${Object.keys(SCENARIOS).join(', ')}, all`);
+    cleanup();
     process.exit(1);
   }
 
-  const runWithDocker = useDocker || (!localK6 && hasDocker);
-  console.log(`⚙️  Execution engine: ${runWithDocker ? 'Docker (grafana/k6)' : 'Local k6 binary'}`);
+  console.log(`\n▶️ Running scenario: [${scenName}] (${scenFile})`);
 
-  // Start mock ESC/POS server
-  console.log('🖨️  Starting background Mock ESC/POS socket server on port 9100...');
-  const currentDir = import.meta.dirname || path.resolve('.');
-  const mockServerPath = path.resolve(currentDir, 'helpers', 'mock-escpos-server.js');
-  const mockServerProc = spawn(process.execPath, [mockServerPath], {
-    stdio: 'inherit',
-    detached: false,
-    shell: false,
-  });
-
-  // Ensure mock server cleanup on exit
-  const cleanup = () => {
-    try {
-      mockServerProc.kill('SIGTERM');
-    } catch (_ignored) {
-      // Process already terminated
-    }
-  };
-  process.on('exit', cleanup);
-  process.on('SIGINT', () => { cleanup(); process.exit(1); });
-  process.on('SIGTERM', () => { cleanup(); process.exit(1); });
-
-  // Brief pause for mock server to bind
-  await new Promise((r) => setTimeout(r, 600));
-
-  const scenariosToRun = selectedScenario === 'all'
-    ? Object.keys(SCENARIOS)
-    : [selectedScenario];
-
-  let anyFailure = false;
-
-  for (const scenName of scenariosToRun) {
-    const scenFile = SCENARIOS[scenName];
-    if (!scenFile) {
-      console.error(`❌ Unknown scenario: ${scenName}. Available: ${Object.keys(SCENARIOS).join(', ')}, all`);
-      cleanup();
-      process.exit(1);
-    }
-
-    console.log(`\n▶️ Running scenario: [${scenName}] (${scenFile})`);
-
-    const code = await runK6(scenFile, targetUrl, runWithDocker);
-    if (code !== 0) {
-      console.error(`❌ Scenario [${scenName}] failed with exit code ${code}`);
-      anyFailure = true;
-    } else {
-      console.log(`✅ Scenario [${scenName}] completed successfully.`);
-    }
-  }
-
-  cleanup();
-  console.log('\n' + '='.repeat(70));
-  if (anyFailure) {
-    console.error('❌ One or more load testing scenarios did not meet KPI thresholds.');
-    process.exit(1);
+  const code = await runK6(scenFile, targetUrl, runWithDocker);
+  if (code !== 0) {
+    console.error(`❌ Scenario [${scenName}] failed with exit code ${code}`);
+    anyFailure = true;
   } else {
-    console.log('🎉 All load test scenarios completed successfully and met all thresholds!');
-    process.exit(0);
+    console.log(`✅ Scenario [${scenName}] completed successfully.`);
   }
 }
 
-await main();
+cleanup();
+console.log('\n' + '='.repeat(70));
+if (anyFailure) {
+  console.error('❌ One or more load testing scenarios did not meet KPI thresholds.');
+  process.exit(1);
+} else {
+  console.log('🎉 All load test scenarios completed successfully and met all thresholds!');
+  process.exit(0);
+}
+
