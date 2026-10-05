@@ -211,9 +211,27 @@
                   <span class="picker-hint">{{ 'RESERVATIONS.FLOOR_PLAN_PICKER_HINT' | transloco }}</span>
                 </div>
 
-                <!-- Zone Filter Chips -->
+                <!-- Floor Level Filter Chips (Strict Single Floor View to Prevent Level Overlapping) -->
+                @if (availableFloors.length > 1) {
+                  <div class="picker-filter-group floor-group" data-testid="picker-floors-group">
+                    <span class="filter-prefix">{{ 'PLAN_SALLE_PAGE.FLOOR_LABEL' | transloco }}</span>
+                    @for (f of availableFloors; track f.code) {
+                      <button
+                        type="button"
+                        class="picker-floor-chip"
+                        [class.active]="selectedFloor === f.code"
+                        (click)="selectFloor(f.code)"
+                        [attr.data-testid]="'picker-floor-' + f.code">
+                        {{ f.nom }}
+                      </button>
+                    }
+                  </div>
+                }
+
+                <!-- Sub-zone Filter Chips for Active Floor -->
                 @if (floorPlanZones.length > 1) {
-                  <div class="picker-zones" data-testid="picker-zones-group">
+                  <div class="picker-filter-group zone-group" data-testid="picker-zones-group">
+                    <span class="filter-prefix">{{ 'PLAN_SALLE_PAGE.ZONE_LABEL' | transloco }}</span>
                     <button
                       type="button"
                       class="picker-zone-chip"

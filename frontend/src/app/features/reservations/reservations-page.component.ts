@@ -340,6 +340,10 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
   }
 
   setViewMode(mode: ViewLayoutMode): void {
+    if (mode === 'FLOOR_PLAN') {
+      this.goToFloorPlan();
+      return;
+    }
     this.viewMode.set(mode);
   }
 
@@ -644,10 +648,22 @@ export class ReservationsPageComponent implements OnInit, OnDestroy {
   }
 
   goToFloorPlan(): void {
+    let targetTime = this.selectedInstantT();
+    const todayStr = new Date().toISOString().substring(0, 10);
+    const shift = this.activeShift();
+    if (shift?.startTime) {
+      targetTime = shift.startTime;
+    } else if (this.selectedDate() === todayStr) {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(Math.floor(now.getMinutes() / 15) * 15).padStart(2, '0');
+      targetTime = `${hh}:${mm}`;
+    }
+
     void this.router.navigate(['/plan-salle'], {
       queryParams: {
         date: this.selectedDate(),
-        time: this.selectedInstantT(),
+        time: targetTime || '19:30',
       },
     });
   }

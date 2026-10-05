@@ -44,7 +44,9 @@ import { TableBar } from '../../../../core/models/table.model';
 import { ReservationService } from '../../../../core/services/reservation.service';
 import { PlanSalleService } from '../../../plan-salle/services/plan-salle.service';
 import { TablePosition, ZoneArea } from '../../../plan-salle/models/table-position.model';
+import { EtageService, EtageBar } from '../../../../core/services/etage.service';
 import { ModalComponent } from '../../../../core/components/ui/modal/modal.component';
+import { catchError, of } from 'rxjs';
 import {
   SearchableOption,
   SearchableSelectComponent,
@@ -76,6 +78,7 @@ export class ReservationModalComponent implements OnInit, OnChanges {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly reservationService = inject(ReservationService);
   private readonly planSalleService = inject(PlanSalleService);
+  private readonly etageService = inject(EtageService);
   private readonly translocoService = inject(TranslocoService);
 
   @Input() isOpen = false;
@@ -97,35 +100,138 @@ export class ReservationModalComponent implements OnInit, OnChanges {
   showSuggestions = false;
 
   showFloorPlanPicker = false;
+  selectedFloor = 'RDC';
   selectedFloorPlanZone = 'ALL';
+  etages: EtageBar[] = [];
   dayReservations: Reservation[] = [];
   tablePositions: TablePosition[] = [];
   zoneAreas: ZoneArea[] = [];
   floorPlanZoom = 1.0;
 
+  /**
+   * Normalizes floor code identifiers to ensure consistent comparison across models.
+   */
+  normalizeFloorCode(raw?: string): string {
+    if (!raw) return 'RDC';
+    const val = raw.trim().toUpperCase();
+    if (val === 'RDC' || val.includes('REZ')) return 'RDC';
+    if (val === 'ETAGE_1' || val.includes('1ER') || val.includes('1ÉTAGE') || val.includes('1ETAGE')) return 'ETAGE_1';
+    if (val === 'ETAGE_2' || val.includes('2ÈME') || val.includes('2EME') || val.includes('ROOFTOP')) return 'ETAGE_2';
+    return val;
+  }
+
+  /**
+   * Resolves the floor level for a given table based on its position, entity, or zone.
+   */
+  resolveTableFloor(t: TableBar): string {
+    const pos = this.tablePositions.find((p) => p.tableId === t.id);
+    if (pos?.floor) return this.normalizeFloorCode(pos.floor);
+    if (t.etage) return this.normalizeFloorCode(t.etage);
+
+    const zoneName = pos?.zone || t.zone;
+    if (zoneName) {
+      const zArea = this.zoneAreas.find(
+        (z) => z.nom?.trim().toLowerCase() === zoneName.trim().toLowerCase()
+      );
+      if (zArea?.etage) return this.normalizeFloorCode(zArea.etage);
+    }
+    return 'RDC';
+  }
+
+  /**
+   * Returns all available floor levels dynamically detected or loaded from backend.
+   */
+  get availableFloors(): { code: string; nom: string }[] {
+    if (this.etages && this.etages.length > 0) {
+      return this.etages.map((e) => ({
+        code: this.normalizeFloorCode(e.code),
+        nom: e.nom,
+      }));
+    }
+
+    const detected = new Map<string, string>();
+    (this.tables || []).forEach((t) => {
+      const code = this.resolveTableFloor(t);
+      if (!detected.has(code)) {
+        detected.set(code, t.etage || code);
+      }
+    });
+    (this.zoneAreas || []).forEach((z) => {
+      if (z.etage) {
+        const code = this.normalizeFloorCode(z.etage);
+        if (!detected.has(code)) {
+          detected.set(code, z.etage);
+        }
+      }
+    });
+
+    if (detected.size === 0) {
+      return [{ code: 'RDC', nom: 'RDC' }];
+    }
+
+    return Array.from(detected.entries()).map(([code, nom]) => ({ code, nom }));
+  }
+
+  /**
+   * Selects a single floor level and resets zone filter to show all zones of this floor.
+   */
+  selectFloor(code: string): void {
+    this.selectedFloor = code;
+    this.selectedFloorPlanZone = 'ALL';
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Synchronizes active floor view with the currently selected or prefilled table.
+   */
+  syncSelectedFloorWithCurrentTable(): void {
+    const currentTableId = this.reservationForm?.get('tableId')?.value ?? this.initialTableId;
+    if (currentTableId) {
+      const t = (this.tables || []).find((tbl) => tbl.id === currentTableId);
+      if (t) {
+        this.selectedFloor = this.resolveTableFloor(t);
+        return;
+      }
+    }
+
+    const floors = this.availableFloors;
+    if (floors.length > 0 && !floors.some((f) => f.code === this.selectedFloor)) {
+      this.selectedFloor = floors[0].code;
+    }
+  }
+
   get floorPlanZones(): string[] {
     const zones = new Set<string>();
     (this.tables || []).forEach((t) => {
-      if (t.zone) zones.add(t.zone);
+      if (this.resolveTableFloor(t) === this.selectedFloor && t.zone) {
+        zones.add(t.zone);
+      }
+    });
+    (this.zoneAreas || []).forEach((z) => {
+      if (this.normalizeFloorCode(z.etage) === this.selectedFloor && z.nom) {
+        zones.add(z.nom);
+      }
     });
     return Array.from(zones);
   }
 
   get filteredFloorPlanTables(): TableBar[] {
-    if (this.selectedFloorPlanZone === 'ALL') {
-      return this.tables || [];
-    }
-    return (this.tables || []).filter((t) => t.zone === this.selectedFloorPlanZone);
+    return (this.tables || []).filter((t) => {
+      const matchesFloor = this.resolveTableFloor(t) === this.selectedFloor;
+      const matchesZone = this.selectedFloorPlanZone === 'ALL' || t.zone === this.selectedFloorPlanZone;
+      return matchesFloor && matchesZone;
+    });
   }
 
   get filteredZoneAreas(): ZoneArea[] {
     if (!this.zoneAreas || this.zoneAreas.length === 0) return [];
-    if (this.selectedFloorPlanZone === 'ALL') {
-      return this.zoneAreas;
-    }
-    return this.zoneAreas.filter(
-      (z) => z.nom?.trim().toLowerCase() === this.selectedFloorPlanZone.trim().toLowerCase()
-    );
+    return this.zoneAreas.filter((z) => {
+      const matchesFloor = this.normalizeFloorCode(z.etage) === this.selectedFloor;
+      const matchesZone =
+        this.selectedFloorPlanZone === 'ALL' ||
+        z.nom?.trim().toLowerCase() === this.selectedFloorPlanZone.trim().toLowerCase();
+      return matchesFloor && matchesZone;
+    });
   }
 
   /**
@@ -142,7 +248,10 @@ export class ReservationModalComponent implements OnInit, OnChanges {
         shape: existing.shape || 'rect',
       };
     }
-    const idx = (this.tables || []).findIndex((t) => t.id === table.id);
+    const floorTables = (this.tables || []).filter(
+      (tbl) => this.resolveTableFloor(tbl) === this.selectedFloor
+    );
+    const idx = floorTables.findIndex((t) => t.id === table.id);
     const validIdx = Math.max(0, idx);
     const col = validIdx % 4;
     const row = Math.floor(validIdx / 4);
@@ -154,7 +263,7 @@ export class ReservationModalComponent implements OnInit, OnChanges {
       height: 90,
       rotation: 0,
       shape: 'rect',
-      floor: table.etage || 'RDC',
+      floor: table.etage || this.selectedFloor,
       zone: table.zone,
     };
   }
@@ -401,6 +510,7 @@ export class ReservationModalComponent implements OnInit, OnChanges {
     }
 
     this.loadFloorPlanData();
+    this.syncSelectedFloorWithCurrentTable();
     this.reservationForm.markAsPristine();
     this.reservationForm.markAsUntouched();
     this.cdr.markForCheck();
@@ -419,13 +529,24 @@ export class ReservationModalComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Loads table physical positions and zone boundary layouts for the floor plan.
+   * Loads table physical positions, floor levels and zone boundary layouts for the floor plan.
    */
   loadFloorPlanData(): void {
+    if (typeof this.etageService?.getAll === 'function') {
+      this.etageService.getAll().pipe(catchError(() => of([]))).subscribe({
+        next: (etages) => {
+          this.etages = etages || [];
+          this.syncSelectedFloorWithCurrentTable();
+          this.cdr.markForCheck();
+        },
+      });
+    }
+
     if (typeof this.planSalleService?.getPositions === 'function') {
       this.planSalleService.getPositions().subscribe({
         next: (positions) => {
           this.tablePositions = positions || [];
+          this.syncSelectedFloorWithCurrentTable();
           this.cdr.markForCheck();
         },
       });
@@ -441,6 +562,8 @@ export class ReservationModalComponent implements OnInit, OnChanges {
     } catch {
       this.zoneAreas = [];
     }
+
+    this.syncSelectedFloorWithCurrentTable();
   }
 
   /**
@@ -536,8 +659,27 @@ export class ReservationModalComponent implements OnInit, OnChanges {
       return;
     }
 
+    this.selectedFloor = this.resolveTableFloor(table);
     this.reservationForm.get('tableId')?.setValue(table.id);
     this.checkTableAvailability();
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Handles table selection from dropdown select menu.
+   */
+  onTableSelected(option: SearchableOption<number | null> | null): void {
+    const tableId = option?.value ?? null;
+    this.reservationForm.get('tableId')?.setValue(tableId);
+    if (tableId) {
+      const t = (this.tables || []).find((tbl) => tbl.id === tableId);
+      if (t) {
+        this.selectedFloor = this.resolveTableFloor(t);
+      }
+      this.checkTableAvailability();
+    } else {
+      this.availabilityCheck = null;
+    }
     this.cdr.markForCheck();
   }
 
@@ -579,12 +721,6 @@ export class ReservationModalComponent implements OnInit, OnChanges {
           this.cdr.markForCheck();
         },
       });
-  }
-
-  onTableSelected(option: SearchableOption<number | null> | null): void {
-    const val = option ? option.value : null;
-    this.reservationForm.get('tableId')?.setValue(val);
-    this.checkTableAvailability();
   }
 
   onDurationSelected(option: SearchableOption<number> | null): void {
