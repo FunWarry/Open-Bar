@@ -58,6 +58,8 @@ frontend/coverage
 /qodana.sarif.json
 /uploads/
 /backend/uploads/
+profile-report.json
+tests/load/*.json
 frontend/playwright-report/
 frontend/test-results/
 frontend/reports/

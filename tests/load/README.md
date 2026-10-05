@@ -39,12 +39,87 @@ tests/load/
 
 ---
 
-## 🚀 Running Load Tests
+## 🎮 All-in-One Local Docker & Benchmark Manager
+
+For the easiest developer experience, OpenBar provides an interactive and CLI-capable management orchestrator available for both Windows and Unix:
+- **Windows (PowerShell)**: [`scripts/manage-docker-app.ps1`](../../scripts/manage-docker-app.ps1)
+- **Linux / macOS / WSL (Bash)**: [`scripts/manage-docker-app.sh`](../../scripts/manage-docker-app.sh)
+
+### Interactive Menu Overview
+
+Launch without arguments to open the interactive terminal console:
+```powershell
+# Windows
+.\scripts\manage-docker-app.ps1
+
+# Linux / macOS
+./scripts/manage-docker-app.sh
+```
+
+| Menu Option | Action | Description & Target Architecture |
+|---|---|---|
+| **`1. Start complete app`** | `start` / `up` | Starts the full production stack (`docker-compose.prod.yml`) with PostgreSQL, Spring Boot backend (`:8080`), and Nginx Angular PWA (`:80`). Healthcheck polls `/api/cocktails`. |
+| **`2. Start Raspberry Pi 5 simulator`** | `start-rpi5` / `rpi5` | Starts the constrained hardware sandbox (`docker/docker-compose.rpi5-sim.yml`) simulating a Raspberry Pi 5 (4 vCPUs, 2GB RAM, G1GC tuning, `test` profile with automatic `demo_dataset.json` seeding). |
+| **`3. Run Smoke Test`** | `test -Scenario smoke` | Fast 15-second sanity check verifying cocktails, waiter auth (`serveur1`), table listing, and guest cart. Suitable for CI. |
+| **`4. Run Rush Hour peak benchmark`** | `test -Scenario rush-hour` | High-stress simulation of a weekend rush hour: 40+ concurrent tables, 10 waitstaff, 4 bartenders submitting orders simultaneously. |
+| **`5. Run WebSocket STOMP benchmark`** | `test -Scenario websocket` | Connects multiple concurrent STOMP clients over WebSocket, publishes order/call events, and measures end-to-end broadcast latency. |
+| **`6. Run Collaborative Patron Cart benchmark`** | `test -Scenario patron-cart` | Simulates guest smartphone QR ordering on table carts (`/api/public/tables/{id}/cart`) with concurrent item adds and removals. |
+| **`7. Run Billing settlement & Thermal printing stress`** | `test -Scenario billing` | Stresses cash drawer settlements, invoice generation, split bills, and thermal receipt printing (mock TCP port 9100). |
+| **`8. Run entire load testing suite`** | `test -Scenario all` | Sequentially executes all 5 load benchmark scenarios and validates SLA threshold compliance. |
+| **`9. Run live Hardware Profiling`** | `profile` | Runs `scripts/benchmark-profile.js` for 60 seconds: streams CPU %, RAM usage, and JVM Garbage Collector pauses with statistical breakdown. |
+| **`10. View container logs`** | `logs` | Attaches a real-time log follow (`docker compose logs -f`) to inspect backend and database output. |
+| **`11. Stop all Docker containers`** | `stop` / `down` | Gracefully shuts down and purges all OpenBar containers, volumes, and simulated networks without lingering processes. |
+| **`0. Exit`** | - | Exits the interactive shell session cleanly. |
+
+### Non-Interactive CLI Automation
+
+All actions can be invoked directly from CI scripts or terminal shortcuts:
+
+```powershell
+# Start the RPi 5 simulation in the background
+.\scripts\manage-docker-app.ps1 -Action start-rpi5
+
+# Run a specific benchmark against a custom URL
+.\scripts\manage-docker-app.ps1 -Action test -Scenario rush-hour -Url http://localhost:8080
+
+# Capture a 60-second hardware telemetry profile
+.\scripts\manage-docker-app.ps1 -Action profile
+
+# Stop all containers
+.\scripts\manage-docker-app.ps1 -Action stop
+```
+
+Equivalent Bash usage:
+```bash
+./scripts/manage-docker-app.sh start-rpi5
+./scripts/manage-docker-app.sh test rush-hour http://localhost:8080
+./scripts/manage-docker-app.sh profile
+./scripts/manage-docker-app.sh stop
+```
+
+### NPM Shortcut Commands
+
+You can also run performance benchmarks from the `frontend/` directory via npm:
+
+```bash
+cd frontend
+npm run perf:smoke         # Smoke test
+npm run perf:rush-hour     # Rush hour benchmark
+npm run perf:websocket     # STOMP WebSocket benchmark
+npm run perf:patron-cart   # Guest cart benchmark
+npm run perf:billing       # Billing & ESC/POS print benchmark
+npm run perf:all           # Run entire suite
+npm run perf:profile       # Run 60s hardware & GC telemetry
+```
+
+---
+
+## 🚀 Direct Node.js Execution
 
 ### 1. Prerequisites
 You need either:
 - **`k6` installed locally** ([Installation Guide](https://k6.io/docs/get-started/installation/)), OR
-- **`docker` running** (the runner will automatically execute inside `grafana/k6:latest`).
+- **`docker` running** (the runner will automatically fallback to execute inside `grafana/k6:latest`).
 
 The mock ESC/POS thermal printer server (port 9100) is **automatically launched and stopped** by the test runner.
 
