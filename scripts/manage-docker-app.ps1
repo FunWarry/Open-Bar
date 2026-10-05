@@ -25,17 +25,18 @@ function Show-Header {
 }
 
 function Wait-ForHealth {
-    param ([string]$TargetUrl = "http://localhost:8080/actuator/health", [int]$TimeoutSec = 90)
+    param ([string]$TargetUrl = "http://localhost:8080/api/cocktails", [int]$TimeoutSec = 90)
     Write-Host "`nWaiting for backend availability ($TargetUrl)..." -ForegroundColor Yellow
     $start = Get-Date
     while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $TimeoutSec)) {
         try {
-            $res = Invoke-RestMethod -Uri $TargetUrl -TimeoutSec 3 -ErrorAction SilentlyContinue
-            if ($res.status -eq "UP") {
+            $res = Invoke-WebRequest -Uri $TargetUrl -TimeoutSec 3 -UseBasicParsing -ErrorAction Stop
+            if ($res.StatusCode -eq 200) {
                 Write-Host "`n[OK] Backend OpenBar is UP and healthy!" -ForegroundColor Green
                 return $true
             }
-        } catch {
+        }
+        catch {
             # Still booting
         }
         Start-Sleep -Seconds 2
@@ -49,11 +50,11 @@ function Start-ProdApp {
     Show-Header
     Write-Host "Starting complete production stack (docker-compose.prod.yml)..." -ForegroundColor Cyan
     docker compose -f docker-compose.prod.yml up -d --build
-    Wait-ForHealth "http://localhost:8080/actuator/health" 90
+    Wait-ForHealth "http://localhost:8080/api/cocktails" 90
     Write-Host "`nAccess endpoints:" -ForegroundColor Cyan
     Write-Host "  - Frontend Web PWA : http://localhost" -ForegroundColor White
     Write-Host "  - Backend REST API : http://localhost:8080" -ForegroundColor White
-    Write-Host "  - Healthcheck      : http://localhost:8080/actuator/health" -ForegroundColor White
+    Write-Host "  - Healthcheck      : http://localhost:8080/api/cocktails" -ForegroundColor White
     Write-Host "  - Swagger UI       : http://localhost:8080/swagger-ui.html" -ForegroundColor White
 }
 
@@ -61,10 +62,10 @@ function Start-Rpi5Sim {
     Show-Header
     Write-Host "Starting Raspberry Pi 5 simulation (4 vCPUs, 2GB RAM, G1GC)..." -ForegroundColor Cyan
     docker compose -f docker/docker-compose.rpi5-sim.yml up -d --build
-    Wait-ForHealth "http://localhost:8080/actuator/health" 90
+    Wait-ForHealth "http://localhost:8080/api/cocktails" 90
     Write-Host "`nAccess endpoints:" -ForegroundColor Cyan
     Write-Host "  - Simulated Backend: http://localhost:8080" -ForegroundColor White
-    Write-Host "  - Healthcheck      : http://localhost:8080/actuator/health" -ForegroundColor White
+    Write-Host "  - Healthcheck      : http://localhost:8080/api/cocktails" -ForegroundColor White
 }
 
 function Stop-App {
@@ -95,16 +96,22 @@ function Show-ContainerLogs {
 }
 
 # CLI Argument routing
-switch ($Action.ToLower()) {
-    "start"      { Start-ProdApp; exit 0 }
-    "up"         { Start-ProdApp; exit 0 }
-    "start-rpi5" { Start-Rpi5Sim; exit 0 }
-    "rpi5"       { Start-Rpi5Sim; exit 0 }
-    "stop"       { Stop-App; exit 0 }
-    "down"       { Stop-App; exit 0 }
-    "logs"       { Show-ContainerLogs; exit 0 }
-    "test"       { Invoke-LoadTest $Scenario $Url; exit 0 }
-    "profile"    { Invoke-HardwareProfile 60; exit 0 }
+if ($Action) {
+    switch ($Action.ToLower()) {
+        "start" { Start-ProdApp; exit 0 }
+        "up" { Start-ProdApp; exit 0 }
+        "start-rpi5" { Start-Rpi5Sim; exit 0 }
+        "rpi5" { Start-Rpi5Sim; exit 0 }
+        "stop" { Stop-App; exit 0 }
+        "down" { Stop-App; exit 0 }
+        "logs" { Show-ContainerLogs; exit 0 }
+        "test" { Invoke-LoadTest $Scenario $Url; exit 0 }
+        "profile" { Invoke-HardwareProfile 60; exit 0 }
+        default {
+            Write-Host "Unknown action: '$Action'. Valid actions: start, start-rpi5, stop, test, profile, logs" -ForegroundColor Red
+            exit 1
+        }
+    }
 }
 
 # Interactive CLI menu when launched without arguments

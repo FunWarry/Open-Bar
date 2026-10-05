@@ -19,12 +19,12 @@ show_header() {
 }
 
 wait_for_health() {
-    local target_url="${1:-http://localhost:8080/actuator/health}"
+    local target_url="${1:-http://localhost:8080/api/cocktails}"
     local timeout_sec="${2:-90}"
     echo -n "⏳ Waiting for backend availability (${target_url})..."
     local start_time=$(date +%s)
     while true; do
-        if curl -s "${target_url}" | grep -q '"status":"UP"'; then
+        if curl -s -o /dev/null -w "%{http_code}" "${target_url}" | grep -q "200"; then
             echo -e "\n✅ Backend OpenBar is UP and healthy!"
             return 0
         fi
@@ -42,12 +42,12 @@ start_prod() {
     show_header
     echo "📦 Starting complete production stack (docker-compose.prod.yml)..."
     docker compose -f docker-compose.prod.yml up -d --build
-    wait_for_health "http://localhost:8080/actuator/health" 90
+    wait_for_health "http://localhost:8080/api/cocktails" 90
     echo ""
     echo "🌐 Access endpoints:"
     echo "  • Frontend Web PWA : http://localhost"
     echo "  • Backend REST API : http://localhost:8080"
-    echo "  • Healthcheck      : http://localhost:8080/actuator/health"
+    echo "  • Healthcheck      : http://localhost:8080/api/cocktails"
     echo "  • Swagger UI       : http://localhost:8080/swagger-ui.html"
 }
 
@@ -55,11 +55,11 @@ start_rpi5() {
     show_header
     echo "🍓 Starting Raspberry Pi 5 simulation (4 vCPUs, 2GB RAM, G1GC)..."
     docker compose -f docker/docker-compose.rpi5-sim.yml up -d --build
-    wait_for_health "http://localhost:8080/actuator/health" 90
+    wait_for_health "http://localhost:8080/api/cocktails" 90
     echo ""
     echo "🌐 Access endpoints:"
     echo "  • Simulated Backend: http://localhost:8080"
-    echo "  • Healthcheck      : http://localhost:8080/actuator/health"
+    echo "  • Healthcheck      : http://localhost:8080/api/cocktails"
 }
 
 stop_app() {
