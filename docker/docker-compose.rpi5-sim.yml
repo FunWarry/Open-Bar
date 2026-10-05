@@ -1,0 +1,87 @@
+name: openbar-rpi5-sim
+
+# Simulation of OpenBar on constrained on-premise hardware (Raspberry Pi 5 / Mini-PC)
+# Hardware specifications modeled:
+# - CPU: 4 CPU Cores (BCM2712 Quad-core ARM Cortex-A76 @ 2.4GHz equivalent)
+# - RAM: 4GB System RAM (Allocated: 2GB Backend + 1GB Postgres + 1GB OS/Buffer)
+# - OS: Linux 64-bit
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    command: >
+      postgres
+      -c max_connections=100
+      -c shared_buffers=256MB
+      -c effective_cache_size=768MB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=4MB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
+    environment:
+      POSTGRES_DB: openbar
+      POSTGRES_USER: openbar
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1024M
+        reservations:
+          cpus: '1.0'
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openbar"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ../backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/openbar
+      SPRING_DATASOURCE_USERNAME: openbar
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      JWT_SECRET: ${JWT_SECRET:-test_openbar_default_secret_key_minimum_32_chars_long}
+      SPRING_PROFILES_ACTIVE: prod
+      HIKARI_MAX_POOL_SIZE: 25
+      HIKARI_MIN_IDLE: 5
+      JAVA_TOOL_OPTIONS: >-
+        -Xms512m
+        -Xmx1536m
+        -XX:+UseG1GC
+        -XX:MaxGCPauseMillis=100
+        -XX:InitiatingHeapOccupancyPercent=45
+        -XX:+ParallelRefProcEnabled
+        -XX:+AlwaysPreTouch
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 2048M
+        reservations:
+          cpus: '2.0'
+          memory: 1024M
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+  k6:
+    image: grafana/k6:latest
+    profiles: ["load-test"]
+    volumes:
+      - ../tests/load:/load
+    environment:
+      - BASE_URL=http://backend:8080
+    entrypoint: ["k6", "run", "/load/scenarios/rush-hour-peak.js"]
+    depends_on:
+      - backend
