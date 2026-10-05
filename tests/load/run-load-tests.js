@@ -71,6 +71,8 @@ function hasBinary(cmd) {
   return resolved !== cmd;
 }
 
+const resolveTestSecret = (account) => process.env[`TEST_${account.toUpperCase()}_SECRET`] || `${account}123`;
+
 /**
  * Ensures backend has initial admin and test users provisioned so load tests succeed.
  *
@@ -78,6 +80,11 @@ function hasBinary(cmd) {
  */
 async function ensureTestEnvironmentReady(url) {
   try {
+    const adminSecret = resolveTestSecret('admin');
+    const serveurSecret = resolveTestSecret('serveur');
+    const managerSecret = resolveTestSecret('manager');
+    const barmanSecret = resolveTestSecret('barman');
+
     const statusRes = await fetch(`${url}/api/setup/status`, { signal: AbortSignal.timeout(3000) });
     if (statusRes.ok) {
       const statusData = await statusRes.json();
@@ -89,7 +96,7 @@ async function ensureTestEnvironmentReady(url) {
           body: JSON.stringify({
             username: 'admin',
             email: 'admin@openbar.local',
-            password: 'admin123',
+            password: adminSecret,
             nom: 'Admin',
             prenom: 'System',
             initialCocktailIds: [],
@@ -102,7 +109,7 @@ async function ensureTestEnvironmentReady(url) {
     const authCheck = await fetch(`${url}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'serveur1', password: 'serveur123' }),
+      body: JSON.stringify({ username: 'serveur1', password: serveurSecret }),
       signal: AbortSignal.timeout(3000),
     });
 
@@ -110,14 +117,14 @@ async function ensureTestEnvironmentReady(url) {
       const adminLogin = await fetch(`${url}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'admin', password: 'admin123' }),
+        body: JSON.stringify({ username: 'admin', password: adminSecret }),
       });
       if (adminLogin.ok) {
         const { token } = await adminLogin.json();
         const testUsers = [
-          { username: 'serveur1', password: 'serveur123', email: 'serveur1@openbar.local', nom: 'Serveur', prenom: 'Un', roles: ['SERVEUR'] },
-          { username: 'manager', password: 'manager123', email: 'manager@openbar.local', nom: 'Manager', prenom: 'Principal', roles: ['MANAGER'] },
-          { username: 'barman1', password: 'barman123', email: 'barman1@openbar.local', nom: 'Barman', prenom: 'Un', roles: ['BARMAN'] },
+          { username: 'serveur1', password: serveurSecret, email: 'serveur1@openbar.local', nom: 'Serveur', prenom: 'Un', roles: ['SERVEUR'] },
+          { username: 'manager', password: managerSecret, email: 'manager@openbar.local', nom: 'Manager', prenom: 'Principal', roles: ['MANAGER'] },
+          { username: 'barman1', password: barmanSecret, email: 'barman1@openbar.local', nom: 'Barman', prenom: 'Un', roles: ['BARMAN'] },
         ];
         for (const user of testUsers) {
           await fetch(`${url}/api/users`, {
