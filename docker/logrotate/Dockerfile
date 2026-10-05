@@ -8,7 +8,8 @@ COPY logrotate.conf /etc/logrotate.conf
 COPY openbar.logrotate /etc/logrotate.d/openbar
 COPY entrypoint.sh /entrypoint.sh
 
-RUN chmod +x /entrypoint.sh \
+RUN sed -i 's/\r$//' /entrypoint.sh /etc/logrotate.conf /etc/logrotate.d/openbar \
+    && chmod +x /entrypoint.sh \
     && chmod 0644 /etc/logrotate.conf /etc/logrotate.d/openbar \
     && chown -R logrotate:logrotate /etc/logrotate.conf /etc/logrotate.d /entrypoint.sh
 

@@ -40,15 +40,20 @@ wait_for_health() {
 
 start_prod() {
     show_header
+    if [ ! -f "${ROOT_DIR}/certs/openbar.crt" ]; then
+        echo "⚠️  Local TLS certificates missing. Generating local certificates..."
+        "${SCRIPT_DIR}/generate-local-certs.sh"
+    fi
     echo "📦 Starting complete production stack (docker-compose.prod.yml)..."
     docker compose -f docker-compose.prod.yml up -d --build
     wait_for_health "http://localhost:8080/api/cocktails" 90
     echo ""
     echo "🌐 Access endpoints:"
-    echo "  • Frontend Web PWA : http://localhost"
-    echo "  • Backend REST API : http://localhost:8080"
-    echo "  • Healthcheck      : http://localhost:8080/api/cocktails"
-    echo "  • Swagger UI       : http://localhost:8080/swagger-ui.html"
+    echo "  • Frontend Web PWA (HTTPS) : https://localhost (or https://openbar.lan)"
+    echo "  • Frontend Web PWA (HTTP)  : http://localhost (redirects to HTTPS)"
+    echo "  • Backend REST API         : http://localhost:8080"
+    echo "  • Healthcheck              : http://localhost:8080/api/cocktails"
+    echo "  • Swagger UI               : http://localhost:8080/swagger-ui.html"
 }
 
 start_rpi5() {

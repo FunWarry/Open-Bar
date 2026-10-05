@@ -51,14 +51,19 @@ function Wait-ForHealth {
 
 function Start-ProdApp {
     Show-Header
+    if (-not (Test-Path "$RootDir\certs\openbar.crt")) {
+        Write-Host "Local TLS certificates missing. Generating local certificates..." -ForegroundColor Yellow
+        & "$ScriptDir\generate-local-certs.ps1"
+    }
     Write-Host "Starting complete production stack (docker-compose.prod.yml)..." -ForegroundColor Cyan
     docker compose -f docker-compose.prod.yml up -d --build
     Wait-ForHealth "http://localhost:8080/api/cocktails" 90
     Write-Host "`nAccess endpoints:" -ForegroundColor Cyan
-    Write-Host "  - Frontend Web PWA : http://localhost" -ForegroundColor White
-    Write-Host "  - Backend REST API : http://localhost:8080" -ForegroundColor White
-    Write-Host "  - Healthcheck      : http://localhost:8080/api/cocktails" -ForegroundColor White
-    Write-Host "  - Swagger UI       : http://localhost:8080/swagger-ui.html" -ForegroundColor White
+    Write-Host "  - Frontend Web PWA (HTTPS) : https://localhost (or https://openbar.lan)" -ForegroundColor Green
+    Write-Host "  - Frontend Web PWA (HTTP)  : http://localhost (redirects to HTTPS)" -ForegroundColor White
+    Write-Host "  - Backend REST API         : http://localhost:8080" -ForegroundColor White
+    Write-Host "  - Healthcheck              : http://localhost:8080/api/cocktails" -ForegroundColor White
+    Write-Host "  - Swagger UI               : http://localhost:8080/swagger-ui.html" -ForegroundColor White
 }
 
 function Start-Rpi5Sim {
