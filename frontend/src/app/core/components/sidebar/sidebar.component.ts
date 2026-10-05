@@ -44,6 +44,7 @@ export const SIDEBAR_NAV_ITEMS: NavItemDef[] = [
   { id: 'nav-home', route: '/app-home', icon: 'home-outline', labelKey: 'NAV.HOME', section: 'main' },
   { id: 'nav-serveur', route: '/serveur', icon: 'restaurant-outline', labelKey: 'NAV.SERVEUR', roles: ['SERVEUR', 'BARMAN', 'ADMIN', 'MANAGER'], section: 'main' },
   { id: 'nav-plan-salle', route: '/plan-salle', icon: 'grid-outline', labelKey: 'NAV.PLAN_SALLE', roles: ['MANAGER', 'ADMIN', 'SERVEUR'], requiredModule: EstablishmentModule.FLOOR_PLAN, section: 'main' },
+  { id: 'nav-reservations', route: '/reservations', icon: 'calendar-outline', labelKey: 'NAV.RESERVATIONS', roles: ['MANAGER', 'ADMIN', 'SERVEUR'], requiredModule: EstablishmentModule.TABLE_RESERVATIONS, section: 'main' },
   { id: 'nav-barman', route: '/barman', icon: 'beer-outline', labelKey: 'NAV.BARMAN', roles: ['BARMAN', 'ADMIN', 'MANAGER'], section: 'main' },
   { id: 'nav-kitchen', route: '/kitchen', icon: 'restaurant-outline', labelKey: 'NAV.KITCHEN', roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS, section: 'main' },
   { id: 'nav-manager', route: '/manager', icon: 'stats-chart-outline', labelKey: 'NAV.DASHBOARD', roles: ['MANAGER', 'ADMIN'], section: 'main' },

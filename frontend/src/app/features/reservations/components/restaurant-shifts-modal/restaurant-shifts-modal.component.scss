@@ -1,0 +1,342 @@
+.shifts-modal-dialog {
+  --width: min(720px, 95vw);
+  --max-width: 720px;
+  --height: min(780px, 88vh);
+  --max-height: 88vh;
+  --border-radius: 16px;
+  --background: var(--background-surface-1);
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--border-medium);
+  background: var(--background-surface-1);
+
+  ion-toolbar {
+    --background: transparent;
+    --color: var(--text-primary);
+    padding: 4px 12px;
+  }
+
+  .modal-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .close-btn {
+    --color: var(--text-secondary);
+    font-size: 1.3rem;
+
+    &:hover {
+      --color: var(--text-primary);
+    }
+  }
+}
+
+.modal-content {
+  --background: var(--background-surface-1);
+  --color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.modal-intro {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+
+  ion-icon {
+    font-size: 1.1rem;
+    color: var(--primary);
+  }
+}
+
+.reset-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  padding: 4px 10px;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: var(--text-primary);
+    border-color: var(--primary);
+  }
+}
+
+.shifts-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.shift-card {
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-light);
+  }
+
+  &.is-editing {
+    border-color: var(--primary);
+    background: rgba(108, 127, 232, 0.05);
+  }
+}
+
+.shift-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .shift-name-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .shift-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .shift-step-pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: var(--background-surface-3);
+      color: var(--text-muted);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+  }
+
+  .shift-hours {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+
+    ion-icon {
+      font-size: 0.95rem;
+      color: var(--primary);
+    }
+  }
+}
+
+.shift-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .action-icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border-medium);
+    background: var(--background-surface-1);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) {
+      color: var(--text-primary);
+      border-color: var(--primary);
+    }
+
+    &.delete:hover:not(:disabled) {
+      color: var(--semantic-danger);
+      border-color: var(--semantic-danger);
+    }
+
+    &:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.add-shift-section {
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 110px;
+
+    &.flex-1 {
+      flex: 1;
+    }
+
+    &.flex-2 {
+      flex: 2;
+      min-width: 160px;
+    }
+  }
+}
+
+.form-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.form-input,
+.form-select {
+  height: 38px;
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+
+  &:focus {
+    border-color: var(--primary);
+  }
+}
+
+app-searchable-select {
+  width: 100%;
+
+  ::ng-deep .select-trigger {
+    min-height: 38px;
+    height: 38px;
+    padding: 0 10px;
+    font-size: 0.88rem;
+    border-radius: 8px;
+    background: var(--background-surface-1);
+    border: 1px solid var(--border-medium);
+  }
+}
+
+.add-btn-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.btn-add-shift {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.1);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.edit-shift-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+
+    .btn-cancel-edit {
+      background: transparent;
+      border: 1px solid var(--border-medium);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+
+      &:hover {
+        color: var(--text-primary);
+      }
+    }
+
+    .btn-save-edit {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--primary);
+      color: var(--text-on-accent);
+      border: none;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+
+      &:hover:not(:disabled) {
+        filter: brightness(1.1);
+      }
+    }
+  }
+}

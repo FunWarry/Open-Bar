@@ -9,7 +9,7 @@ import { SoundService } from './sound.service';
 
 export interface AppNotification {
   id: string;
-  type: 'commande' | 'statut' | 'table' | 'stock';
+  type: 'commande' | 'statut' | 'table' | 'stock' | 'reservation';
   message: string;
   severity: 'success' | 'warning' | 'danger' | 'primary';
   data?: any;
@@ -128,6 +128,31 @@ export class NotificationService implements OnDestroy {
           // malformed message — ignore
         }
       });
+
+    // Reservation updates on /topic/reservations
+    this.ws.watch('/topic/reservations')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(msg => {
+        try {
+          const data = typeof msg.body === 'string' ? JSON.parse(msg.body) : msg.body;
+          this.handleReservationNotification(data);
+        } catch {
+          // malformed message — ignore
+        }
+      });
+  }
+
+  private handleReservationNotification(data: any): void {
+    const notif: AppNotification = {
+      id: `res-${Date.now()}-${++this.notifSequence}`,
+      type: 'reservation',
+      message: `Réservation: ${data?.clientNom || 'Client'} (${data?.statut || 'MAJ'})`,
+      severity: 'primary',
+      data,
+      timestamp: new Date(),
+      lue: false,
+    };
+    this.notifications$.next(notif);
   }
 
   private handleAppelNotification(data: any): void {

@@ -106,6 +106,7 @@ export async function setupMockApi(page: Page): Promise<void> {
         cocktailLibrary: true,
         suppliersManagement: true,
         inventoryAudit: true,
+        tableReservations: true,
       }),
     });
   });
@@ -825,13 +826,13 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
-  await page.route('**/api/plan-salle/positions**', async (route) => {
+  await page.route(/(?:\/api)?\/(?:plan-salle|tables)\/positions/, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify([
-        { id: 1, tableId: 1, x: 100, y: 100, shape: 'square', rotation: 0 },
-        { id: 2, tableId: 2, x: 250, y: 100, shape: 'circle', rotation: 0 },
+        { id: 1, tableId: 1, x: 100, y: 100, planX: 100, planY: 100, shape: 'square', planForme: 'RECTANGLE', rotation: 0, zone: 'Salle Principale' },
+        { id: 2, tableId: 2, x: 250, y: 100, planX: 250, planY: 100, shape: 'circle', planForme: 'RONDE', rotation: 0, zone: 'Salle Principale' },
       ]),
     });
   });
@@ -1450,6 +1451,7 @@ export async function setupMockApi(page: Page): Promise<void> {
     barTabs: true,
     cocktailLibrary: true,
     suppliersManagement: true,
+    tableReservations: true,
   };
 
   await page.route('**/api/establishment/modules**', async (route) => {
@@ -1864,6 +1866,7 @@ export async function setupMockApi(page: Page): Promise<void> {
         cocktailLibrary: true,
         suppliersManagement: true,
         inventoryAudit: true,
+        tableReservations: true,
       }),
     });
   });
@@ -2068,6 +2071,7 @@ export async function setupMockApi(page: Page): Promise<void> {
         suppliersManagement: true,
         inventoryAudit: true,
         mysteryRoulette: true,
+        tableReservations: true,
       }),
     });
   });
@@ -2160,6 +2164,164 @@ export async function setupMockApi(page: Page): Promise<void> {
           },
         ],
       }),
+    });
+  });
+
+  // Table reservations mock endpoints
+  await page.route('**/api/reservations**', async (route) => {
+    const url = route.request().url();
+    const method = route.request().method();
+
+    if (url.includes('/check-availability')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          disponible: true,
+          capaciteSuffisante: true,
+          conflitId: null,
+          message: 'Table is available',
+        }),
+      });
+      return;
+    }
+
+    if (url.includes('/suggestions')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          {
+            id: 1,
+            nomClient: 'Alice Dupont',
+            telephone: '+33612345678',
+            email: 'alice@example.com',
+            dateReservation: new Date().toISOString().split('T')[0],
+            heureReservation: '19:30',
+            dureeMinutes: 90,
+            nombrePersonnes: 3,
+            statut: 'CONFIRMED',
+            tableId: 1,
+            tableNumero: 1,
+          },
+        ]),
+      });
+      return;
+    }
+
+    if (url.includes('/upcoming')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([]),
+      });
+      return;
+    }
+
+    if (url.includes('/seat') && method === 'POST') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          nomClient: 'Alice Dupont',
+          telephone: '+33612345678',
+          email: 'alice@example.com',
+          dateReservation: new Date().toISOString().split('T')[0],
+          heureReservation: '19:30',
+          dureeMinutes: 90,
+          nombrePersonnes: 3,
+          statut: 'SEATED',
+          tableId: 1,
+          tableNumero: 1,
+        }),
+      });
+      return;
+    }
+
+    if (url.includes('/statut') && method === 'PATCH') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          nomClient: 'Alice Dupont',
+          telephone: '+33612345678',
+          email: 'alice@example.com',
+          dateReservation: new Date().toISOString().split('T')[0],
+          heureReservation: '19:30',
+          dureeMinutes: 90,
+          nombrePersonnes: 3,
+          statut: 'CONFIRMED',
+          tableId: 1,
+          tableNumero: 1,
+        }),
+      });
+      return;
+    }
+
+    if (method === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 999,
+          nomClient: body.nomClient || 'New Customer',
+          telephone: body.telephone || null,
+          email: body.email || null,
+          dateReservation: body.dateReservation || new Date().toISOString().split('T')[0],
+          heureReservation: body.heureReservation || '20:00',
+          dureeMinutes: body.dureeMinutes || 90,
+          nombrePersonnes: body.nombrePersonnes || 2,
+          notes: body.notes || null,
+          statut: body.statut || 'CONFIRMED',
+          tableId: body.tableId || 1,
+          tableNumero: 1,
+        }),
+      });
+      return;
+    }
+
+    if (method === 'DELETE') {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+
+    // Default GET reservations list
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          nomClient: 'Alice Dupont',
+          telephone: '+33612345678',
+          email: 'alice@example.com',
+          dateReservation: new Date().toISOString().split('T')[0],
+          heureReservation: '19:30',
+          dureeMinutes: 90,
+          nombrePersonnes: 3,
+          notes: 'Near window',
+          statut: 'CONFIRMED',
+          tableId: 1,
+          tableNumero: 1,
+        },
+        {
+          id: 2,
+          nomClient: 'Bob Martin',
+          telephone: '+33698765432',
+          email: 'bob@example.com',
+          dateReservation: new Date().toISOString().split('T')[0],
+          heureReservation: '21:00',
+          dureeMinutes: 60,
+          nombrePersonnes: 2,
+          notes: null,
+          statut: 'CONFIRMED',
+          tableId: null,
+          tableNumero: null,
+        },
+      ]),
     });
   });
 }

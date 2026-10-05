@@ -98,6 +98,9 @@ class SampleDataSeederServiceTest {
     private StockMovementRepository stockMovementRepository;
 
     @Mock
+    private ReservationRepository reservationRepository;
+
+    @Mock
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @Mock

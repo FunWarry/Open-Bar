@@ -3277,6 +3277,67 @@
       "active": true,
       "displayOrder": 7
     }
+  ],
+  "reservations": [
+    {
+      "clientNom": "Jean Dupont",
+      "clientTelephone": "+33 6 12 34 56 78",
+      "clientEmail": "jean.dupont@email.fr",
+      "tableNumero": 1,
+      "dayOffset": 0,
+      "heureReservation": "12:30",
+      "dureeMinutes": 90,
+      "nombrePersonnes": 2,
+      "statut": "CONFIRMED",
+      "notes": "Table près de la baie vitrée si possible"
+    },
+    {
+      "clientNom": "Marie Curie",
+      "clientTelephone": "+33 6 98 76 54 32",
+      "clientEmail": "marie.curie@email.fr",
+      "tableNumero": 2,
+      "dayOffset": 0,
+      "heureReservation": "13:00",
+      "dureeMinutes": 90,
+      "nombrePersonnes": 4,
+      "statut": "CONFIRMED",
+      "notes": "Déjeuner d'anniversaire"
+    },
+    {
+      "clientNom": "Thomas Edison",
+      "clientTelephone": "+33 6 11 22 33 44",
+      "clientEmail": "thomas.edison@email.fr",
+      "tableNumero": 5,
+      "dayOffset": 0,
+      "heureReservation": "19:30",
+      "dureeMinutes": 120,
+      "nombrePersonnes": 6,
+      "statut": "CONFIRMED",
+      "notes": "Clients réguliers VIP"
+    },
+    {
+      "clientNom": "Sarah Connor",
+      "clientTelephone": "+33 6 55 44 33 22",
+      "clientEmail": "sarah.connor@email.com",
+      "tableNumero": 3,
+      "dayOffset": 0,
+      "heureReservation": "20:00",
+      "dureeMinutes": 90,
+      "nombrePersonnes": 2,
+      "statut": "CONFIRMED",
+      "notes": "Arrivée prévue à l'heure pile"
+    },
+    {
+      "clientNom": "Paul Valery",
+      "clientTelephone": "+33 6 77 88 99 00",
+      "clientEmail": "paul.valery@email.fr",
+      "dayOffset": 0,
+      "heureReservation": "20:30",
+      "dureeMinutes": 90,
+      "nombrePersonnes": 3,
+      "statut": "PENDING",
+      "notes": "Réservation sans table assignée pour le moment"
+    }
   ]
 }
 

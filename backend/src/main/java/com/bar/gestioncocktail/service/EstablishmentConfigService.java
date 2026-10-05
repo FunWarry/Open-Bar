@@ -233,6 +233,10 @@ public class EstablishmentConfigService {
         if (request.paymentTerminal() != null) {
             config.setModuleEnabled(EstablishmentModule.PAYMENT_TERMINAL, request.paymentTerminal());
         }
+        // Toggle table reservations module if explicitly provided in update request
+        if (request.tableReservations() != null) {
+            config.setModuleEnabled(EstablishmentModule.TABLE_RESERVATIONS, request.tableReservations());
+        }
     }
 
     private void applyLegalInfoUpdates(EstablishmentConfig config, EstablishmentConfigUpdateRequest request) {

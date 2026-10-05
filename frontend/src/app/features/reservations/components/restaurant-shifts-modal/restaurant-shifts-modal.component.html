@@ -1,0 +1,219 @@
+<ion-modal [isOpen]="isOpen" (didDismiss)="close()" class="shifts-modal-dialog">
+  <ng-template>
+    <ion-header class="ion-no-border modal-header">
+      <ion-toolbar>
+        <ion-title class="modal-title">
+          {{ 'RESERVATIONS.SHIFTS_MODAL_TITLE' | transloco }}
+        </ion-title>
+        <ion-buttons slot="end">
+          <ion-button
+            (click)="close()"
+            (keyup.enter)="close()"
+            [attr.aria-label]="'COMMON.CLOSE' | transloco"
+            class="close-btn"
+            data-testid="btn-close-shifts-modal">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="modal-content" [fullscreen]="false">
+      <div class="modal-body">
+        <p class="modal-intro">
+          {{ 'RESERVATIONS.SHIFTS_MODAL_SUBTITLE' | transloco }}
+        </p>
+
+        <!-- Current Shifts List -->
+        <div class="shifts-list-section">
+          <div class="section-header">
+            <h3 class="section-title">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>{{ 'RESERVATIONS.SHIFTS_CONFIGURED' | transloco }}</span>
+            </h3>
+            <button
+              type="button"
+              class="reset-btn"
+              (click)="resetDefaults()"
+              data-testid="btn-reset-shifts">
+              <ion-icon name="refresh-outline"></ion-icon>
+              <span>{{ 'RESERVATIONS.SHIFTS_RESET_DEFAULTS' | transloco }}</span>
+            </button>
+          </div>
+
+          <div class="shifts-cards-grid">
+            @for (shift of shiftsList; track shift.id) {
+              <div class="shift-card" [class.is-editing]="editingShiftId === shift.id" [attr.data-testid]="'card-shift-' + shift.id">
+                @if (editingShiftId === shift.id) {
+                  <!-- Inline Edit Form -->
+                  <form [formGroup]="editForm" (ngSubmit)="saveEdit(shift.id)" class="edit-shift-form">
+                    <div class="form-row">
+                      <div class="form-group flex-2">
+                        <label [for]="'edit-shift-name-' + shift.id" class="form-label">{{ 'RESERVATIONS.SHIFT_NAME' | transloco }} *</label>
+                        <input
+                          [id]="'edit-shift-name-' + shift.id"
+                          type="text"
+                          formControlName="name"
+                          class="form-input"
+                          placeholder="{{ 'RESERVATIONS.SHIFT_NAME_PLACEHOLDER' | transloco }}"
+                          data-testid="input-edit-shift-name"
+                        />
+                      </div>
+                      <div class="form-group flex-1">
+                        <label [for]="'edit-shift-start-' + shift.id" class="form-label">{{ 'RESERVATIONS.SHIFT_START' | transloco }} *</label>
+                        <input
+                          [id]="'edit-shift-start-' + shift.id"
+                          type="time"
+                          formControlName="startTime"
+                          class="form-input"
+                          data-testid="input-edit-shift-start"
+                        />
+                      </div>
+                      <div class="form-group flex-1">
+                        <label [for]="'edit-shift-end-' + shift.id" class="form-label">{{ 'RESERVATIONS.SHIFT_END' | transloco }} *</label>
+                        <input
+                          [id]="'edit-shift-end-' + shift.id"
+                          type="time"
+                          formControlName="endTime"
+                          class="form-input"
+                          data-testid="input-edit-shift-end"
+                        />
+                      </div>
+                      <div class="form-group flex-1">
+                        <span class="form-label">{{ 'RESERVATIONS.SHIFT_INTERVAL' | transloco }}</span>
+                        <app-searchable-select
+                          formControlName="stepMinutes"
+                          [options]="stepOptions"
+                          [clearable]="false"
+                          [searchable]="false"
+                          [testId]="'select-edit-shift-step-' + shift.id">
+                        </app-searchable-select>
+                      </div>
+                    </div>
+                    <div class="edit-actions">
+                      <button type="button" class="btn-cancel-edit" (click)="cancelEditing()" data-testid="btn-cancel-edit-shift">
+                        {{ 'COMMON.CANCEL' | transloco }}
+                      </button>
+                      <button type="submit" class="btn-save-edit" [disabled]="editForm.invalid" data-testid="btn-save-edit-shift">
+                        <ion-icon name="checkmark-outline"></ion-icon>
+                        <span>{{ 'COMMON.SAVE' | transloco }}</span>
+                      </button>
+                    </div>
+                  </form>
+                } @else {
+                  <!-- Display Mode -->
+                  <div class="shift-info">
+                    <div class="shift-name-group">
+                      <span class="shift-name">{{ shift.name }}</span>
+                      <span class="shift-step-pill">{{ shift.stepMinutes }} min / slot</span>
+                    </div>
+                    <div class="shift-hours">
+                      <ion-icon name="time-outline"></ion-icon>
+                      <span>{{ shift.startTime }} — {{ shift.endTime }}</span>
+                    </div>
+                  </div>
+
+                  <div class="shift-actions">
+                    <button
+                      type="button"
+                      class="action-icon-btn edit"
+                      (click)="startEditing(shift)"
+                      [title]="'COMMON.EDIT' | transloco"
+                      [attr.data-testid]="'btn-edit-shift-' + shift.id">
+                      <ion-icon name="create-outline"></ion-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="action-icon-btn delete"
+                      (click)="deleteShift(shift)"
+                      [disabled]="shiftsList.length <= 1"
+                      [title]="'COMMON.DELETE' | transloco"
+                      [attr.data-testid]="'btn-delete-shift-' + shift.id">
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Add Shift Section -->
+        <div class="add-shift-section">
+          <h3 class="section-title">
+            <ion-icon name="add-outline"></ion-icon>
+            <span>{{ 'RESERVATIONS.SHIFTS_ADD_NEW' | transloco }}</span>
+          </h3>
+
+          <form [formGroup]="addShiftForm" (ngSubmit)="addNewShift()" class="add-shift-form">
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label for="new-shift-name" class="form-label">
+                  {{ 'RESERVATIONS.SHIFT_NAME' | transloco }} *
+                </label>
+                <input
+                  id="new-shift-name"
+                  type="text"
+                  formControlName="name"
+                  placeholder="{{ 'RESERVATIONS.SHIFT_NAME_PLACEHOLDER' | transloco }}"
+                  class="form-input"
+                  data-testid="input-new-shift-name"
+                />
+              </div>
+
+              <div class="form-group flex-1">
+                <label for="new-shift-start" class="form-label">
+                  {{ 'RESERVATIONS.SHIFT_START' | transloco }} *
+                </label>
+                <input
+                  id="new-shift-start"
+                  type="time"
+                  formControlName="startTime"
+                  class="form-input"
+                  data-testid="input-new-shift-start"
+                />
+              </div>
+
+              <div class="form-group flex-1">
+                <label for="new-shift-end" class="form-label">
+                  {{ 'RESERVATIONS.SHIFT_END' | transloco }} *
+                </label>
+                <input
+                  id="new-shift-end"
+                  type="time"
+                  formControlName="endTime"
+                  class="form-input"
+                  data-testid="input-new-shift-end"
+                />
+              </div>
+
+              <div class="form-group flex-1">
+                <span class="form-label">
+                  {{ 'RESERVATIONS.SHIFT_INTERVAL' | transloco }}
+                </span>
+                <app-searchable-select
+                  formControlName="stepMinutes"
+                  [options]="stepOptions"
+                  [clearable]="false"
+                  [searchable]="false"
+                  testId="select-new-shift-step">
+                </app-searchable-select>
+              </div>
+            </div>
+
+            <div class="add-btn-wrapper">
+              <button
+                type="submit"
+                class="btn-add-shift"
+                [disabled]="addShiftForm.invalid"
+                data-testid="btn-submit-add-shift">
+                <ion-icon name="add-outline"></ion-icon>
+                <span>{{ 'RESERVATIONS.SHIFTS_ADD_BTN' | transloco }}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>

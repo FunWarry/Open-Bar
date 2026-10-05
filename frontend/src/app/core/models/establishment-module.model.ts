@@ -15,6 +15,7 @@ export enum EstablishmentModule {
   INVENTORY_AUDIT = 'INVENTORY_AUDIT',
   MYSTERY_ROULETTE = 'MYSTERY_ROULETTE',
   PAYMENT_TERMINAL = 'PAYMENT_TERMINAL',
+  TABLE_RESERVATIONS = 'TABLE_RESERVATIONS',
 }
 
 /**
@@ -34,6 +35,7 @@ export interface EstablishmentModules {
   inventoryAudit: boolean;
   mysteryRoulette: boolean;
   paymentTerminal: boolean;
+  tableReservations: boolean;
 }
 
 /**
@@ -59,6 +61,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     inventoryAudit: true,
     mysteryRoulette: true,
     paymentTerminal: true,
+    tableReservations: true,
   },
   RESTAURANT: {
     cuisineKds: true,
@@ -74,6 +77,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     inventoryAudit: true,
     mysteryRoulette: true,
     paymentTerminal: true,
+    tableReservations: true,
   },
   FOOD_TRUCK: {
     cuisineKds: true,
@@ -89,6 +93,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     inventoryAudit: false,
     mysteryRoulette: false,
     paymentTerminal: true,
+    tableReservations: false,
   },
   NIGHTCLUB: {
     cuisineKds: false,
@@ -104,5 +109,6 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     inventoryAudit: true,
     mysteryRoulette: true,
     paymentTerminal: true,
+    tableReservations: true,
   },
 };

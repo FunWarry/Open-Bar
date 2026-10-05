@@ -323,7 +323,7 @@ class CocktailLibraryServiceTest {
 
     @Test
     @DisplayName("getWheelData should load wheel JSON resource and delegate to CocktailWheelService")
-    void getWheelData_successAndCaching() {
+    void getWheelDataSuccessAndCaching() {
         CocktailWheelDTO.ConnectionWheelDTO mockWheel = new CocktailWheelDTO.ConnectionWheelDTO(
                 Collections.emptyMap(), Collections.emptyList(), Collections.emptyList()
         );
@@ -340,7 +340,7 @@ class CocktailLibraryServiceTest {
 
     @Test
     @DisplayName("getWheelData with scope string should delegate to CocktailWheelService with parsed scope")
-    void getWheelData_withScopeString_success() {
+    void getWheelDataWithScopeStringSuccess() {
         CocktailWheelDTO.ConnectionWheelDTO mockWheel = new CocktailWheelDTO.ConnectionWheelDTO(
                 Collections.emptyMap(), Collections.emptyList(), Collections.emptyList()
         );
@@ -359,7 +359,7 @@ class CocktailLibraryServiceTest {
 
     @Test
     @DisplayName("getWheelData should enforce module check")
-    void getWheelData_throwsWhenModuleDisabled() {
+    void getWheelDataThrowsWhenModuleDisabled() {
         doThrow(new BusinessException("Module disabled"))
                 .when(establishmentConfigService).checkModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY);
 

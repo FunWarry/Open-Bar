@@ -63,7 +63,7 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("getAllCocktails - retrieves list of all cocktails")
-    void getAllCocktails_success() {
+    void getAllCocktailsSuccess() {
         when(cocktailService.getAllCocktails()).thenReturn(List.of(cocktail));
 
         ResponseEntity<List<CocktailResponseDTO>> response = cocktailController.getAllCocktails();
@@ -75,7 +75,7 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("createCocktail - calls service and returns DTO")
-    void createCocktail_success() {
+    void createCocktailSuccess() {
         CocktailRequestDTO request = new CocktailRequestDTO("Mojito", "Mint", new BigDecimal("8.50"), CocktailCategorie.ALCOOLISE, true, false, null, null, null, null);
         when(cocktailService.createCocktailFromRequest(any(CocktailRequestDTO.class))).thenReturn(cocktailDto);
 
@@ -88,7 +88,7 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("updateCocktail - updates cocktail and returns DTO")
-    void updateCocktail_success() {
+    void updateCocktailSuccess() {
         CocktailRequestDTO request = new CocktailRequestDTO("Mojito", "Mint", new BigDecimal("8.50"), CocktailCategorie.ALCOOLISE, true, false, null, null, null, null);
         when(cocktailService.updateCocktailFromRequest(eq(1L), any(CocktailRequestDTO.class))).thenReturn(cocktailDto);
 
@@ -99,7 +99,7 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("deleteCocktail - deletes cocktail by id")
-    void deleteCocktail_success() {
+    void deleteCocktailSuccess() {
         ResponseEntity<Void> response = cocktailController.deleteCocktail(1L);
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
@@ -108,7 +108,7 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("getCocktailById - returns cocktail if found, 404 otherwise")
-    void getCocktailById_foundAndNotFound() {
+    void getCocktailByIdFoundAndNotFound() {
         when(cocktailService.getCocktailById(1L)).thenReturn(Optional.of(cocktail));
         when(cocktailService.getCocktailById(99L)).thenReturn(Optional.empty());
 
@@ -121,7 +121,7 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("getCocktailsByCategorie, getCocktailsDisponibles, searchCocktails - search and filter endpoints")
-    void filter_endpoints() {
+    void filterEndpoints() {
         when(cocktailService.getCocktailsByCategorie(CocktailCategorie.ALCOOLISE)).thenReturn(List.of(cocktail));
         when(cocktailService.getCocktailsDisponibles()).thenReturn(List.of(cocktail));
         when(cocktailService.searchCocktails("Mojito")).thenReturn(List.of(cocktail));
@@ -133,7 +133,7 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("toggleDisponibilite - toggles availability")
-    void toggleDisponibilite_success() {
+    void toggleDisponibiliteSuccess() {
         when(cocktailService.getCocktailById(1L)).thenReturn(Optional.of(cocktail));
         when(cocktailService.getCocktailById(99L)).thenReturn(Optional.empty());
 
@@ -147,8 +147,8 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("definirSaisonnalite, updateSaisonnalite, getCocktailsSaisonniers, getCocktailsSaisonniersActuels")
-    void seasonality_endpoints() {
-        LocalDateTime start = LocalDateTime.now();
+    void seasonalityEndpoints() {
+        LocalDateTime start = LocalDateTime.now(java.time.ZoneId.systemDefault());
         LocalDateTime end = start.plusMonths(3);
         SaisonnaliteRequest request = new SaisonnaliteRequest(6, 9);
 
@@ -165,7 +165,7 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("uploadCocktailPhoto - uploads custom photo and returns DTO")
-    void uploadCocktailPhoto_success() {
+    void uploadCocktailPhotoSuccess() {
         MockMultipartFile file = new MockMultipartFile("file", "photo.jpg", "image/jpeg", "content".getBytes());
         cocktail.setImageUrl("/uploads/cocktails/cocktail_1_xyz.jpg");
         when(cocktailService.updateCocktailImage(1L, file)).thenReturn(cocktail);
@@ -179,7 +179,7 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("getFacets - returns facets summary")
-    void getFacets_success() {
+    void getFacetsSuccess() {
         CocktailFacetsDTO mockFacets = new CocktailFacetsDTO(
             Map.of(FlavorProfile.FRUITY, 5L), 3L, 4L, 2L, 1L, BigDecimal.ZERO, new BigDecimal("25.0"), 10L
         );
@@ -195,7 +195,7 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("matchCocktails - delegates parameters to service and returns matching DTO list")
-    void matchCocktails_success() {
+    void matchCocktailsSuccess() {
         when(cocktailService.filterAndMatchCocktails(
             List.of(FlavorProfile.FRUITY), false, true, true, false, new BigDecimal("15.0")
         )).thenReturn(List.of(cocktail));
@@ -211,7 +211,7 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("getCocktailMargin - returns calculated margin DTO for cocktail")
-    void getCocktailMargin_success() {
+    void getCocktailMarginSuccess() {
         com.bar.gestioncocktail.dto.CocktailMarginDTO marginDTO = new com.bar.gestioncocktail.dto.CocktailMarginDTO(
             1L, "Mojito", "ALCOOLISE", "20%",
             new BigDecimal("8.50"), new BigDecimal("7.08"), new BigDecimal("1.50"),
@@ -230,7 +230,7 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("getMarginAnalytics - returns catalog margins list")
-    void getMarginAnalytics_success() {
+    void getMarginAnalyticsSuccess() {
         com.bar.gestioncocktail.dto.CocktailMarginDTO marginDTO = new com.bar.gestioncocktail.dto.CocktailMarginDTO(
             1L, "Mojito", "ALCOOLISE", "20%",
             new BigDecimal("8.50"), new BigDecimal("7.08"), new BigDecimal("1.50"),
@@ -279,7 +279,7 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("getLibraryCocktails - retrieves filtered library recipes")
-    void getLibraryCocktails_success() {
+    void getLibraryCocktailsSuccess() {
         com.bar.gestioncocktail.dto.CocktailLibraryItemDTO item = new com.bar.gestioncocktail.dto.CocktailLibraryItemDTO(
                 "lib_1", "Old Fashioned", "Classic bourbon cocktail", "ALCOOLISE", "IBA_CLASSICS", "BOURBON",
                 true, new BigDecimal("10.00"), new BigDecimal("32.0"), false, true, true,
@@ -299,7 +299,7 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("getLibraryWheel - retrieves precomputed connection wheel graph data")
-    void getLibraryWheel_success() {
+    void getLibraryWheelSuccess() {
         CocktailWheelDTO.ConnectionWheelDTO wheelDto = mock(CocktailWheelDTO.ConnectionWheelDTO.class);
         when(cocktailLibraryService.getWheelData()).thenReturn(wheelDto);
 
@@ -311,7 +311,7 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("importLibraryCocktails - imports selected library recipes into active catalog")
-    void importLibraryCocktails_success() {
+    void importLibraryCocktailsSuccess() {
         com.bar.gestioncocktail.dto.CocktailLibraryImportRequestDTO req =
                 new com.bar.gestioncocktail.dto.CocktailLibraryImportRequestDTO(List.of("lib_1"), null);
         com.bar.gestioncocktail.dto.CocktailLibraryImportResultDTO result =
@@ -331,7 +331,7 @@ class CocktailControllerTest {
 
     @Test
     @DisplayName("reloadLibraryCatalog - reloads library templates from resource")
-    void reloadLibraryCatalog_success() {
+    void reloadLibraryCatalogSuccess() {
         ResponseEntity<Void> response = cocktailController.reloadLibraryCatalog();
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();

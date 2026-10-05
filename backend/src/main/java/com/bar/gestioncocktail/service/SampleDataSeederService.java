@@ -82,6 +82,7 @@ public class SampleDataSeederService {
     private static final String KEY_PACKAGING_PRICE_HT = "packagingPriceHt";
     private static final String KEY_COCKTAIL_NOM = "cocktailNom";
     private static final String KEY_REWARD_TEXT = "rewardText";
+    private static final String KEY_DAY_OFFSET = "dayOffset";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -117,6 +118,7 @@ public class SampleDataSeederService {
     private final SupplierRepository supplierRepository;
     private final PurchaseOrderRepository purchaseOrderRepository;
     private final RouletteWheelSectorRepository rouletteWheelSectorRepository;
+    private final ReservationRepository reservationRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -157,7 +159,8 @@ public class SampleDataSeederService {
             @org.springframework.beans.factory.annotation.Autowired(required = false) BarTabRepository barTabRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) SupplierRepository supplierRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) PurchaseOrderRepository purchaseOrderRepository,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) RouletteWheelSectorRepository rouletteWheelSectorRepository) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) RouletteWheelSectorRepository rouletteWheelSectorRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) ReservationRepository reservationRepository) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -192,6 +195,7 @@ public class SampleDataSeederService {
         this.supplierRepository = supplierRepository;
         this.purchaseOrderRepository = purchaseOrderRepository;
         this.rouletteWheelSectorRepository = rouletteWheelSectorRepository;
+        this.reservationRepository = reservationRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -418,6 +422,7 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedCashDrawerSessionsFromJson(root.get("cash_drawer_sessions"), usersMap), "seedCashDrawerSessions");
             safelyInTransaction(() -> seedBarTabsFromJson(root.get("bar_tabs"), usersMap), "seedBarTabs");
             safelyInTransaction(() -> seedSuppliersAndOrdersFromJson(root.get("suppliers"), root.get("purchase_orders"), usersMap), "seedSuppliersAndOrders");
+            safelyInTransaction(() -> seedReservationsFromJson(root.get("reservations"), tablesMap), "seedReservations");
 
         } catch (Exception e) {
             log.error("Failed to seed demo dataset from JSON file '{}'", DATASET_PATH, e);
@@ -682,8 +687,8 @@ public class SampleDataSeederService {
     }
 
     private LocalDate resolveShiftDate(JsonNode sNode, LocalDate monday, LocalDate today) {
-        if (sNode.has("dayOffset")) {
-            return monday.plusDays(sNode.get("dayOffset").asLong());
+        if (sNode.has(KEY_DAY_OFFSET)) {
+            return monday.plusDays(sNode.get(KEY_DAY_OFFSET).asLong());
         }
         return today;
     }
@@ -2098,5 +2103,62 @@ public class SampleDataSeederService {
                 ingredientRepository.save(ing);
             }
         });
+    }
+
+    private void seedReservationsFromJson(JsonNode node, Map<Integer, TableEntity> tablesMap) {
+        if (node == null || !node.isArray() || reservationRepository == null || reservationRepository.count() > 0) {
+            return;
+        }
+
+        LocalDate today = timeService != null ? timeService.now().toLocalDate() : LocalDate.now(ZoneId.systemDefault());
+
+        for (JsonNode resNode : node) {
+            seedSingleReservation(resNode, today, tablesMap);
+        }
+    }
+
+    private void seedSingleReservation(JsonNode resNode, LocalDate today, Map<Integer, TableEntity> tablesMap) {
+        try {
+            String clientNom = resNode.has("clientNom") ? resNode.get("clientNom").asText() : "Client Test";
+            String clientTelephone = resNode.has("clientTelephone") ? resNode.get("clientTelephone").asText() : null;
+            String clientEmail = resNode.has("clientEmail") ? resNode.get("clientEmail").asText() : null;
+            int nombrePersonnes = resNode.has("nombrePersonnes") ? resNode.get("nombrePersonnes").asInt() : 2;
+            int dureeMinutes = resNode.has("dureeMinutes") ? resNode.get("dureeMinutes").asInt() : 90;
+            String notes = resNode.has(KEY_NOTES) ? resNode.get(KEY_NOTES).asText() : null;
+            int dayOffset = resNode.has(KEY_DAY_OFFSET) ? resNode.get(KEY_DAY_OFFSET).asInt() : 0;
+            LocalDate dateReservation = today.plusDays(dayOffset);
+            LocalTime heureReservation = resNode.has("heureReservation")
+                    ? LocalTime.parse(resNode.get("heureReservation").asText())
+                    : LocalTime.of(19, 30);
+            ReservationStatut statut = resNode.has(KEY_STATUT)
+                    ? ReservationStatut.valueOf(resNode.get(KEY_STATUT).asText())
+                    : ReservationStatut.CONFIRMED;
+
+            TableEntity table = resolveReservationTable(resNode, tablesMap);
+
+            Reservation reservation = new Reservation(
+                    clientNom, clientTelephone, clientEmail,
+                    dateReservation, heureReservation, dureeMinutes,
+                    nombrePersonnes
+            );
+            reservation.setNotes(notes);
+            reservation.setStatut(statut);
+            reservation.setTable(table);
+            reservationRepository.save(reservation);
+        } catch (Exception e) {
+            log.warn("Failed to seed reservation: {}", e.getMessage());
+        }
+    }
+
+    private TableEntity resolveReservationTable(JsonNode resNode, Map<Integer, TableEntity> tablesMap) {
+        if (!resNode.has(KEY_TABLE_NUMERO)) {
+            return null;
+        }
+        int tableNum = resNode.get(KEY_TABLE_NUMERO).asInt();
+        TableEntity table = tablesMap.get(tableNum);
+        if (table == null) {
+            table = tableRepository.findByNumero(tableNum).orElse(null);
+        }
+        return table;
     }
 }

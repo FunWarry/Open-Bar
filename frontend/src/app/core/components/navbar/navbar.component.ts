@@ -39,6 +39,7 @@ const ROUTE_TITLE_MAP: Record<string, string> = {
   '/cuisine': 'NAV.TOPBAR.PAGE_TITLES.KITCHEN',
   '/serveur': 'NAV.TOPBAR.PAGE_TITLES.SERVEUR',
   '/plan-salle': 'NAV.TOPBAR.PAGE_TITLES.PLAN_SALLE',
+  '/reservations': 'NAV.TOPBAR.PAGE_TITLES.RESERVATIONS',
   '/manager': 'NAV.TOPBAR.PAGE_TITLES.MANAGER',
   '/cocktails': 'NAV.TOPBAR.PAGE_TITLES.COCKTAILS',
   '/ingredients': 'NAV.TOPBAR.PAGE_TITLES.INGREDIENTS',

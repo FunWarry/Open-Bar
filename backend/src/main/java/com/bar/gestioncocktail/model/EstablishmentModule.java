@@ -76,6 +76,13 @@ public enum EstablishmentModule {
      * Physical payment terminal (TPE) LAN integration via Concert / CB IP protocol,
      * automated card payment amount dispatch, and card authorization auditing.
      */
-    PAYMENT_TERMINAL
+    PAYMENT_TERMINAL,
+
+    /**
+     * Digital table reservation book with date/time slots, party sizes, conflict detection,
+     * floor plan table assignment, and guest arrival seating.
+     */
+    TABLE_RESERVATIONS
 }
+
 

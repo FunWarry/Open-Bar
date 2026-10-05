@@ -10,6 +10,7 @@ import { PlanSalleComponent } from '../../../app/features/plan-salle/plan-salle.
 import { PlanSalleService } from '../../../app/features/plan-salle/services/plan-salle.service';
 import { TableService } from '../../../app/core/services/table.service';
 import { NotificationService, AppNotification } from '../../../app/core/services/notification.service';
+import { ReservationService } from '../../../app/core/services/reservation.service';
 import { TableBar } from '../../../app/core/models/table.model';
 import { TablePosition } from '../../../app/features/plan-salle/models/table-position.model';
 
@@ -35,6 +36,7 @@ describe('PlanSalleComponent', () => {
   let planSalleServiceSpy: jasmine.SpyObj<PlanSalleService>;
   let etageServiceSpy: jasmine.SpyObj<EtageService>;
   let zoneServiceSpy: jasmine.SpyObj<ZoneService>;
+  let reservationServiceSpy: jasmine.SpyObj<ReservationService>;
   let notifSpy: jasmine.SpyObj<NotificationService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
@@ -71,6 +73,27 @@ describe('PlanSalleComponent', () => {
     zoneServiceSpy.create.and.callFake(z => of({ id: 2, nom: 'NOUVELLE', etage: 'RDC', ...z } as any));
     zoneServiceSpy.delete.and.returnValue(of(void 0));
 
+    reservationServiceSpy = jasmine.createSpyObj('ReservationService', [
+      'getUpcoming',
+      'seat',
+      'getReservations',
+      'checkAvailability',
+      'create',
+      'update',
+      'deleteReservation',
+      'seatReservation',
+    ]);
+    reservationServiceSpy.getUpcoming.and.returnValue(of([]));
+    reservationServiceSpy.getReservations.and.returnValue(of([]));
+    reservationServiceSpy.checkAvailability.and.returnValue(
+      of({
+        available: true,
+        capacitySufficient: true,
+        conflictingBookings: [],
+        message: 'Available',
+      })
+    );
+
     notifSpy = jasmine.createSpyObj('NotificationService', ['onNotification', 'onStockAlert']);
     notifSpy.onNotification.and.returnValue(notif$.asObservable());
     notifSpy.onStockAlert.and.returnValue(EMPTY);
@@ -92,6 +115,7 @@ describe('PlanSalleComponent', () => {
         { provide: PlanSalleService,    useValue: planSalleServiceSpy },
         { provide: EtageService,        useValue: etageServiceSpy },
         { provide: ZoneService,         useValue: zoneServiceSpy },
+        { provide: ReservationService,  useValue: reservationServiceSpy },
         { provide: NotificationService, useValue: notifSpy },
         { provide: ToastController,     useValue: toastCtrlSpy },
         { provide: ModalController,     useValue: modalCtrlSpy },
@@ -454,5 +478,139 @@ describe('PlanSalleComponent', () => {
     expect(component.zoneAreas.some(za => za.id === 'za-10')).toBeTrue();
     expect(component.zoneAreas.some(za => za.id === 'za-20')).toBeTrue();
     expect(component.zoneAreas.some(za => za.id === 'za-99')).toBeFalse();
+  });
+
+  // --- Instant T Reservation Mode Tests ---
+
+  it('setInstantTMode(true) loads day reservations and recalculates status', () => {
+    const mockRes: any[] = [
+      { id: 101, tableId: 1, nomClient: 'Dupont', heureReservation: '19:30', dureeMinutes: 90, statut: 'CONFIRMED' },
+    ];
+    reservationServiceSpy.getReservations.and.returnValue(of(mockRes));
+
+    component.setInstantTMode(true);
+
+    expect(component.isInstantTMode).toBeTrue();
+    expect(reservationServiceSpy.getReservations).toHaveBeenCalledWith(jasmine.objectContaining({ date: component.selectedReservationDate }));
+    expect(component.activeReservationsByTableId.has(1)).toBeTrue();
+  });
+
+  it('setInstantTSlot() updates instant T and updates active reservations', () => {
+    component.isInstantTMode = true;
+    component.dayReservations = [
+      { id: 101, tableId: 1, nomClient: 'Martin', heureReservation: '20:00', dureeMinutes: 60, statut: 'CONFIRMED' } as any,
+    ];
+
+    component.setInstantTSlot('20:30');
+    expect(component.selectedInstantT).toBe('20:30');
+    expect(component.activeReservationsByTableId.has(1)).toBeTrue();
+
+    component.setInstantTSlot('22:00');
+    expect(component.selectedInstantT).toBe('22:00');
+    expect(component.activeReservationsByTableId.has(1)).toBeFalse();
+  });
+
+  it('onClickTable() in instant T mode on a free table opens reservation modal', async () => {
+    component.isEditMode = false;
+    component.isInstantTMode = true;
+    component.activeReservationsByTableId.clear();
+
+    await component.onClickTable(mockTables[0]);
+
+    expect(component.isReservationModalOpen).toBeTrue();
+    expect(component.modalInitialTableId).toBe(mockTables[0].id);
+    expect(component.modalReservationToEdit).toBeNull();
+  });
+
+  it('onClickTable() in instant T mode on a confirmed reservation opens quick seat modal', async () => {
+    component.isEditMode = false;
+    component.isInstantTMode = true;
+    const reservedBooking: any = {
+      id: 200,
+      tableId: 1,
+      nomClient: 'Durand',
+      heureReservation: '19:30',
+      dureeMinutes: 90,
+      statut: 'CONFIRMED',
+    };
+    component.activeReservationsByTableId.set(1, reservedBooking);
+    spyOn(component, 'ouvrirModalQuickSeat').and.returnValue(Promise.resolve());
+
+    await component.onClickTable(mockTables[0]);
+
+    expect(component.ouvrirModalQuickSeat).toHaveBeenCalledWith(reservedBooking, mockTables[0]);
+  });
+
+  it('onClickTable() in instant T mode on a seated reservation opens reservation modal in edit mode', async () => {
+    component.isEditMode = false;
+    component.isInstantTMode = true;
+    const seatedBooking: any = {
+      id: 201,
+      tableId: 1,
+      nomClient: 'Seated Guest',
+      heureReservation: '19:30',
+      dureeMinutes: 90,
+      statut: 'SEATED',
+    };
+    component.activeReservationsByTableId.set(1, seatedBooking);
+
+    await component.onClickTable(mockTables[0]);
+
+    expect(component.isReservationModalOpen).toBeTrue();
+    expect(component.modalReservationToEdit).toBe(seatedBooking);
+    expect(component.modalInitialTableId).toBe(1);
+  });
+
+  it('onClickTable() in live mode opens quick seat if upcoming reservation exists', async () => {
+    component.isEditMode = false;
+    component.isInstantTMode = false;
+    const upcomingRes: any = { id: 300, tableId: 1, nomClient: 'Upcoming Guest', heureReservation: '20:00' };
+    component.upcomingReservationsByTableId.set(1, upcomingRes);
+    spyOn(component, 'ouvrirModalQuickSeat').and.returnValue(Promise.resolve());
+
+    await component.onClickTable(mockTables[0]);
+
+    expect(component.ouvrirModalQuickSeat).toHaveBeenCalledWith(upcomingRes, mockTables[0]);
+  });
+
+  it('onClickTable() in live mode opens reservation modal if no upcoming reservation', async () => {
+    component.isEditMode = false;
+    component.isInstantTMode = false;
+    component.upcomingReservationsByTableId.clear();
+
+    await component.onClickTable(mockTables[0]);
+
+    expect(component.isReservationModalOpen).toBeTrue();
+    expect(component.modalInitialTableId).toBe(mockTables[0].id);
+  });
+
+  it('handles instant T controls: onInstantTChange, setInstantTNow, and naviguerVersReservations', () => {
+    spyOn((component as any).router, 'navigate');
+
+    component.onInstantTChange();
+    expect(component.selectedInstantT).toBeDefined();
+
+    component.setInstantTNow();
+    expect(component.selectedInstantT).toMatch(/^\d{2}:\d{2}$/);
+
+    component.naviguerVersReservations();
+    expect((component as any).router.navigate).toHaveBeenCalledWith(['/reservations'], {
+      queryParams: {
+        date: component.selectedReservationDate,
+      },
+    });
+  });
+
+  it('handles onReservationModalSaved callback and reloads reservations', () => {
+    spyOn(component, 'charger');
+    spyOn((component as any), 'chargerReservationsJour');
+    component.isInstantTMode = true;
+
+    component.onReservationModalSaved({ id: 50 } as any);
+
+    expect(component.isReservationModalOpen).toBeFalse();
+    expect(component.modalReservationToEdit).toBeNull();
+    expect(component.charger).toHaveBeenCalled();
+    expect((component as any).chargerReservationsJour).toHaveBeenCalled();
   });
 });

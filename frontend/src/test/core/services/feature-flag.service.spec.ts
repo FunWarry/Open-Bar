@@ -31,6 +31,7 @@ describe('FeatureFlagService', () => {
     inventoryAudit: true,
     mysteryRoulette: true,
     paymentTerminal: true,
+    tableReservations: true,
   };
 
   beforeEach(() => {
@@ -77,6 +78,8 @@ describe('FeatureFlagService', () => {
     expect(service.isModuleEnabled(EstablishmentModule.STOCK_TRACKING)).toBeTrue();
     expect(service.isModuleEnabled(EstablishmentModule.BAR_TABS)).toBeTrue();
     expect(service.isModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY)).toBeTrue();
+    expect(service.isModuleEnabled(EstablishmentModule.TABLE_RESERVATIONS)).toBeTrue();
+    expect(service.tableReservationsEnabled()).toBeTrue();
   });
 
   it('should update modules via PUT /api/establishment/modules', () => {
@@ -150,6 +153,7 @@ describe('FeatureFlagService', () => {
       inventoryAudit: false,
       mysteryRoulette: false,
       paymentTerminal: false,
+      tableReservations: false,
     };
 
     wsSubject.next({ body: JSON.stringify(wsUpdate) });
@@ -170,6 +174,7 @@ describe('FeatureFlagService', () => {
       EstablishmentModule.FLOOR_PLAN,
       EstablishmentModule.QR_CLIENT_ORDERING,
       EstablishmentModule.STOCK_TRACKING,
+      EstablishmentModule.TABLE_RESERVATIONS,
     ];
 
     for (const mod of modulesToTest) {

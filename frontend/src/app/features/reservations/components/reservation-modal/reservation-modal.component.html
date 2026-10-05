@@ -1,0 +1,484 @@
+<ion-modal [isOpen]="isOpen" (didDismiss)="close()" class="reservation-modal-dialog" data-testid="reservation-modal">
+  <ng-template>
+    <app-modal
+      [title]="(reservationToEdit ? 'RESERVATIONS.MODAL_EDIT_TITLE' : 'RESERVATIONS.MODAL_CREATE_TITLE') | transloco"
+      icon="calendar-outline"
+      size="xl"
+      closeButtonTestId="btn-close-modal"
+      (dismiss)="close()"
+    >
+      <form id="reservationForm" [formGroup]="reservationForm" (ngSubmit)="saveReservation()" class="reservation-form">
+        <!-- Customer Info Section -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <ion-icon name="person-outline"></ion-icon>
+            {{ 'RESERVATIONS.SECTION_CUSTOMER' | transloco }}
+          </h3>
+
+          <div class="input-group customer-name-group">
+            <label for="res-nom-client" class="field-label">
+              {{ 'RESERVATIONS.CUSTOMER_NAME' | transloco }} *
+            </label>
+            <div class="input-wrapper">
+              <ion-icon name="person-outline" class="input-icon"></ion-icon>
+              <input
+                id="res-nom-client"
+                type="text"
+                formControlName="nomClient"
+                (input)="onCustomerNameInput()"
+                placeholder="{{ 'RESERVATIONS.CUSTOMER_NAME_PLACEHOLDER' | transloco }}"
+                class="form-input"
+                data-testid="input-reservation-customer-name"
+                autocomplete="off"
+              />
+            </div>
+
+            <!-- Autocomplete Suggestions Dropdown -->
+            @if (showSuggestions && customerSuggestions.length > 0) {
+              <ul class="suggestions-list" data-testid="list-customer-suggestions">
+                @for (sug of customerSuggestions; track sug.id) {
+                  <li class="suggestion-item">
+                    <button
+                      type="button"
+                      class="suggestion-btn"
+                      (click)="selectSuggestion(sug)">
+                      <span class="sug-name">{{ sug.nomClient }}</span>
+                      @if (sug.telephone) {
+                        <span class="sug-phone">{{ sug.telephone }}</span>
+                      }
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+
+          <div class="grid-2-cols">
+            <div class="input-group">
+              <label for="res-telephone" class="field-label">{{ 'RESERVATIONS.PHONE' | transloco }}</label>
+              <div class="input-wrapper">
+                <ion-icon name="call-outline" class="input-icon"></ion-icon>
+                <input
+                  id="res-telephone"
+                  type="tel"
+                  formControlName="telephone"
+                  placeholder="{{ 'RESERVATIONS.PHONE_PLACEHOLDER' | transloco }}"
+                  class="form-input"
+                  data-testid="input-reservation-phone"
+                />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="res-email" class="field-label">{{ 'RESERVATIONS.EMAIL' | transloco }}</label>
+              <div class="input-wrapper">
+                <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+                <input
+                  id="res-email"
+                  type="email"
+                  formControlName="email"
+                  placeholder="{{ 'RESERVATIONS.EMAIL_PLACEHOLDER' | transloco }}"
+                  class="form-input"
+                  data-testid="input-reservation-email"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Schedule & Party Size Section -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <ion-icon name="calendar-outline"></ion-icon>
+            {{ 'RESERVATIONS.SECTION_SCHEDULE' | transloco }}
+          </h3>
+
+          <div class="grid-3-cols">
+            <div class="input-group">
+              <label for="res-date" class="field-label">{{ 'RESERVATIONS.DATE' | transloco }} *</label>
+              <div class="input-wrapper">
+                <input
+                  id="res-date"
+                  type="date"
+                  formControlName="dateReservation"
+                  (change)="checkTableAvailability()"
+                  class="form-input"
+                  data-testid="input-reservation-date"
+                />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="res-heure" class="field-label">{{ 'RESERVATIONS.TIME' | transloco }} *</label>
+              <div class="input-wrapper">
+                <input
+                  id="res-heure"
+                  type="time"
+                  formControlName="heureReservation"
+                  (change)="checkTableAvailability()"
+                  class="form-input"
+                  data-testid="input-reservation-time"
+                />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <span class="field-label">{{ 'RESERVATIONS.DURATION' | transloco }} *</span>
+              <app-searchable-select
+                formControlName="dureeMinutes"
+                [options]="durationSelectOptions"
+                [searchable]="false"
+                [clearable]="false"
+                (selectionChange)="onDurationSelected($event)"
+                testId="select-reservation-duration">
+              </app-searchable-select>
+            </div>
+          </div>
+
+          <div class="grid-2-cols">
+            <div class="input-group">
+              <label for="res-personnes" class="field-label">{{ 'RESERVATIONS.GUESTS_COUNT' | transloco }} *</label>
+              <div class="input-wrapper">
+                <ion-icon name="people-outline" class="input-icon"></ion-icon>
+                <input
+                  id="res-personnes"
+                  type="number"
+                  min="1"
+                  max="100"
+                  formControlName="nombrePersonnes"
+                  (change)="checkTableAvailability()"
+                  class="form-input"
+                  data-testid="input-reservation-guests"
+                />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <span class="field-label">{{ 'RESERVATIONS.STATUS' | transloco }} *</span>
+              <app-searchable-select
+                formControlName="statut"
+                [options]="statusSelectOptions"
+                [searchable]="false"
+                [clearable]="false"
+                (selectionChange)="onStatusSelected($event)"
+                testId="select-reservation-status">
+              </app-searchable-select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table Assignment Section -->
+        <div class="form-section">
+          <div class="section-header-row">
+            <h3 class="section-title">
+              <ion-icon name="time-outline"></ion-icon>
+              {{ 'RESERVATIONS.SECTION_TABLE' | transloco }}
+            </h3>
+            <button
+              type="button"
+              class="toggle-floor-plan-btn"
+              [class.active]="showFloorPlanPicker"
+              (click)="toggleFloorPlanPicker()"
+              data-testid="btn-toggle-floor-plan-picker">
+              <ion-icon [name]="showFloorPlanPicker ? 'list-outline' : 'map-outline'"></ion-icon>
+              <span>{{ (showFloorPlanPicker ? 'RESERVATIONS.HIDE_FLOOR_PLAN' : 'RESERVATIONS.CHOOSE_ON_FLOOR_PLAN') | transloco }}</span>
+            </button>
+          </div>
+
+          <!-- Dropdown Table Picker -->
+          <div class="input-group">
+            <span class="field-label">{{ 'RESERVATIONS.ASSIGNED_TABLE' | transloco }}</span>
+            <app-searchable-select
+              formControlName="tableId"
+              [options]="tableSelectOptions"
+              [searchable]="true"
+              [clearable]="true"
+              placeholder="{{ 'RESERVATIONS.TABLE_UNASSIGNED' | transloco }}"
+              [searchPlaceholder]="'RESERVATIONS.SEARCH_TABLE_PLACEHOLDER' | transloco"
+              (selectionChange)="onTableSelected($event)"
+              testId="select-reservation-table">
+            </app-searchable-select>
+          </div>
+
+          <!-- Interactive Floor Plan Visual Table Picker at Instant T -->
+          @if (showFloorPlanPicker) {
+            <div class="floor-plan-picker-container" data-testid="floor-plan-picker">
+              <div class="picker-header">
+                <div class="picker-info">
+                  <span class="picker-title">
+                    {{ 'RESERVATIONS.FLOOR_PLAN_PICKER_TITLE' | transloco: { date: reservationForm.get('dateReservation')?.value, time: reservationForm.get('heureReservation')?.value } }}
+                  </span>
+                  <span class="picker-hint">{{ 'RESERVATIONS.FLOOR_PLAN_PICKER_HINT' | transloco }}</span>
+                </div>
+
+                <!-- Floor Level Filter Chips (Strict Single Floor View to Prevent Level Overlapping) -->
+                @if (availableFloors.length > 1) {
+                  <div class="picker-filter-group floor-group" data-testid="picker-floors-group">
+                    <span class="filter-prefix">{{ 'PLAN_SALLE_PAGE.FLOOR_LABEL' | transloco }}</span>
+                    @for (f of availableFloors; track f.code) {
+                      <button
+                        type="button"
+                        class="picker-floor-chip"
+                        [class.active]="selectedFloor === f.code"
+                        (click)="selectFloor(f.code)"
+                        [attr.data-testid]="'picker-floor-' + f.code">
+                        {{ f.nom }}
+                      </button>
+                    }
+                  </div>
+                }
+
+                <!-- Sub-zone Filter Chips for Active Floor -->
+                @if (floorPlanZones.length > 1) {
+                  <div class="picker-filter-group zone-group" data-testid="picker-zones-group">
+                    <span class="filter-prefix">{{ 'PLAN_SALLE_PAGE.ZONE_LABEL' | transloco }}</span>
+                    <button
+                      type="button"
+                      class="picker-zone-chip"
+                      [class.active]="selectedFloorPlanZone === 'ALL'"
+                      (click)="selectedFloorPlanZone = 'ALL'"
+                      data-testid="picker-zone-all">
+                      {{ 'RESERVATIONS.FLOOR_PLAN_ALL_ZONES' | transloco }}
+                    </button>
+                    @for (z of floorPlanZones; track z) {
+                      <button
+                        type="button"
+                        class="picker-zone-chip"
+                        [class.active]="selectedFloorPlanZone === z"
+                        (click)="selectedFloorPlanZone = z"
+                        [attr.data-testid]="'picker-zone-' + z">
+                        {{ z }}
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Legend -->
+              <div class="picker-legend">
+                <span class="legend-badge available"><span class="dot"></span> {{ 'RESERVATIONS.FLOOR_PLAN_STATUS_AVAILABLE' | transloco }}</span>
+                <span class="legend-badge warning"><span class="dot"></span> {{ 'RESERVATIONS.FLOOR_PLAN_STATUS_CAPACITY_WARN' | transloco }}</span>
+                <span class="legend-badge occupied"><span class="dot"></span> {{ 'RESERVATIONS.FLOOR_PLAN_STATUS_OCCUPIED' | transloco }}</span>
+                <span class="legend-badge selected"><span class="dot"></span> {{ 'RESERVATIONS.FLOOR_PLAN_STATUS_SELECTED' | transloco }}</span>
+              </div>
+
+              <!-- 2D Spatial Floor Plan Viewport at Instant T -->
+              <div class="floor-plan-viewport-wrapper" data-testid="floor-plan-viewport-wrapper">
+                <!-- Floating Zoom & Reset Navigation Controls -->
+                <div class="floor-plan-zoom-controls" data-testid="floor-plan-zoom-controls">
+                  <button
+                    type="button"
+                    class="zoom-ctrl-btn"
+                    (click)="zoomFloorPlanIn()"
+                    [title]="'PLAN_SALLE_PAGE.ZOOM_IN' | transloco"
+                    data-testid="btn-floor-plan-zoom-in">
+                    <ion-icon name="add-outline"></ion-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="zoom-level-pill"
+                    (click)="resetFloorPlanZoom()"
+                    [title]="'PLAN_SALLE_PAGE.RESET_VIEW' | transloco"
+                    data-testid="btn-floor-plan-zoom-reset">
+                    {{ (floorPlanZoom * 100) | number:'1.0-0' }}%
+                  </button>
+                  <button
+                    type="button"
+                    class="zoom-ctrl-btn"
+                    (click)="zoomFloorPlanOut()"
+                    [title]="'PLAN_SALLE_PAGE.ZOOM_OUT' | transloco"
+                    data-testid="btn-floor-plan-zoom-out">
+                    <ion-icon name="remove-outline"></ion-icon>
+                  </button>
+                </div>
+
+                <!-- Scrollable Blueprint Floor Plan Canvas -->
+                <div class="svg-canvas-scroll-container" data-testid="tables-visual-grid">
+                  <svg
+                    class="floor-plan-svg"
+                    [attr.viewBox]="floorPlanViewBox"
+                    [style.transform]="'scale(' + floorPlanZoom + ')'"
+                    data-testid="floor-plan-svg-canvas">
+
+                    <!-- Background Zone Areas Layer -->
+                    <g class="zones-layer" data-testid="zones-layer">
+                      @for (z of filteredZoneAreas; track z.id) {
+                        @if (z.shapeType === 'polygon' && z.points && z.points.length >= 6) {
+                          <polygon
+                            [attr.points]="formatPolygonPoints(z.points)"
+                            [attr.transform]="'translate(' + z.x + ',' + z.y + ')'"
+                            class="zone-svg-polygon"
+                            [style.stroke]="z.couleur || 'var(--primary)'"
+                            [style.fill]="(z.couleur || 'var(--primary)')"
+                          />
+                        } @else {
+                          <rect
+                            [attr.x]="z.x"
+                            [attr.y]="z.y"
+                            [attr.width]="z.width"
+                            [attr.height]="z.height"
+                            rx="16"
+                            ry="16"
+                            class="zone-svg-rect"
+                            [style.stroke]="z.couleur || 'var(--primary)'"
+                            [style.fill]="(z.couleur || 'var(--primary)')"
+                          />
+                        }
+                        <text
+                          [attr.x]="z.x + (z.labelX ?? 14)"
+                          [attr.y]="z.y + (z.labelY ?? 22)"
+                          class="zone-svg-label"
+                          [style.fill]="z.couleur || 'var(--primary)'">
+                          📍 {{ z.nom | uppercase }}
+                        </text>
+                      }
+                    </g>
+
+                    <!-- Interactive Spatial Tables Layer -->
+                    <g class="tables-layer" data-testid="tables-layer">
+                      @for (t of filteredFloorPlanTables; track t.id) {
+                        @let pos = getTablePosition(t);
+                        @let slotInfo = getTableSlotStatus(t);
+                        <g
+                          class="svg-table-node"
+                          [class.is-selected]="slotInfo.status === 'SELECTED'"
+                          [class.is-available]="slotInfo.status === 'AVAILABLE'"
+                          [class.is-warning]="slotInfo.status === 'CAPACITY_WARNING'"
+                          [class.is-occupied]="slotInfo.status === 'OCCUPIED'"
+                          [attr.transform]="'translate(' + pos.x + ',' + pos.y + ') rotate(' + (pos.rotation || 0) + ')'"
+                          (click)="selectTableFromFloorPlan(t)"
+                          (keydown.enter)="selectTableFromFloorPlan(t)"
+                          [attr.data-testid]="'table-visual-card-' + t.id"
+                          tabindex="0"
+                          role="button"
+                          [attr.aria-label]="'Table ' + t.numero + ' - ' + slotInfo.label">
+
+                          <title>Table {{ t.numero }} ({{ t.capacite }} {{ 'RESERVATIONS.GUESTS_UNIT' | transloco }} - {{ t.zone }})&#10;{{ slotInfo.label }}</title>
+
+                          <!-- Geometry Shape (Circle / Rectangle) -->
+                          @if (pos.shape === 'circle') {
+                            <ellipse
+                              cx="0"
+                              cy="0"
+                              [attr.rx]="(pos.width || 90) / 2"
+                              [attr.ry]="(pos.height || 90) / 2"
+                              class="table-shape-geom"
+                            />
+                          } @else {
+                            <rect
+                              [attr.x]="-(pos.width || 90) / 2"
+                              [attr.y]="-(pos.height || 90) / 2"
+                              [attr.width]="pos.width || 90"
+                              [attr.height]="pos.height || 90"
+                              rx="16"
+                              ry="16"
+                              class="table-shape-geom"
+                            />
+                          }
+
+                          <!-- Un-rotated Horizontal Text Content (Keeps text 0° horizontal regardless of table rotation) -->
+                          <g [attr.transform]="'rotate(' + (-(pos.rotation || 0)) + ')'" class="table-text-group">
+                            <text class="table-svg-num" x="0" y="-7">T{{ t.numero }}</text>
+                            <text class="table-svg-cap" x="0" y="8">{{ t.capacite }} {{ 'RESERVATIONS.GUESTS_UNIT' | transloco }}</text>
+
+                            @if (slotInfo.status === 'SELECTED') {
+                              <g transform="translate(0, 23)">
+                                <rect x="-34" y="-8" width="68" height="15" rx="7" class="status-badge-bg selected" />
+                                <text class="table-svg-badge" x="0" y="3">✓ {{ 'RESERVATIONS.FLOOR_PLAN_STATUS_SELECTED' | transloco }}</text>
+                              </g>
+                            } @else if (slotInfo.status === 'OCCUPIED') {
+                              <g transform="translate(0, 23)">
+                                <rect x="-28" y="-8" width="56" height="15" rx="7" class="status-badge-bg occupied" />
+                                <text class="table-svg-badge" x="0" y="3">{{ 'RESERVATIONS.FLOOR_PLAN_STATUS_OCCUPIED' | transloco }}</text>
+                              </g>
+                            } @else if (slotInfo.status === 'CAPACITY_WARNING') {
+                              <g transform="translate(0, 23)">
+                                <rect x="-28" y="-8" width="56" height="15" rx="7" class="status-badge-bg warning" />
+                                <text class="table-svg-badge" x="0" y="3">{{ 'RESERVATIONS.FLOOR_PLAN_STATUS_CAPACITY_WARN' | transloco }}</text>
+                              </g>
+                            }
+                          </g>
+                        </g>
+                      }
+                    </g>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Availability Check Feedback -->
+          @if (reservationForm.get('tableId')?.value && availabilityCheck) {
+            <div
+              class="availability-banner"
+              [class.available]="availabilityCheck.available && availabilityCheck.capacitySufficient"
+              [class.warning]="availabilityCheck.available && !availabilityCheck.capacitySufficient"
+              [class.conflict]="!availabilityCheck.available"
+              data-testid="banner-availability-feedback">
+              @if (availabilityCheck.available && availabilityCheck.capacitySufficient) {
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+                <span>{{ 'RESERVATIONS.AVAILABILITY_OK' | transloco }}</span>
+              } @else if (availabilityCheck.available && !availabilityCheck.capacitySufficient) {
+                <ion-icon name="warning-outline"></ion-icon>
+                <span>{{ 'RESERVATIONS.AVAILABILITY_CAPACITY_WARN' | transloco }}</span>
+              } @else {
+                <ion-icon name="alert-circle-outline"></ion-icon>
+                <span>{{ 'RESERVATIONS.AVAILABILITY_CONFLICT' | transloco }}</span>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Special Requests / Notes Section -->
+        <div class="form-section">
+          <h3 class="section-title">{{ 'RESERVATIONS.SECTION_NOTES' | transloco }}</h3>
+          <div class="input-group">
+            <label for="res-notes" class="field-label sr-only">
+              {{ 'RESERVATIONS.SECTION_NOTES' | transloco }}
+            </label>
+            <textarea
+              id="res-notes"
+              rows="3"
+              formControlName="notes"
+              placeholder="{{ 'RESERVATIONS.NOTES_PLACEHOLDER' | transloco }}"
+              class="form-textarea"
+              data-testid="textarea-reservation-notes"
+            ></textarea>
+          </div>
+        </div>
+      </form>
+
+      <!-- Pinned Footer Actions Slot -->
+      <div slot="footer" class="modal-actions-footer">
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="close()"
+          data-testid="btn-cancel-reservation">
+          {{ 'COMMON.CANCEL' | transloco }}
+        </button>
+
+        @if (reservationForm.get('tableId')?.value) {
+          <button
+            type="button"
+            class="btn-seat-now"
+            (click)="saveAndSeatReservation()"
+            [disabled]="reservationForm.invalid || isSaving || (availabilityCheck && !availabilityCheck.available)"
+            data-testid="btn-save-and-seat-reservation">
+            <ion-icon name="restaurant-outline"></ion-icon>
+            <span>{{ 'RESERVATIONS.ACTION_SAVE_AND_SEAT' | transloco }}</span>
+          </button>
+        }
+
+        <button
+          type="submit"
+          form="reservationForm"
+          class="btn-primary"
+          [disabled]="reservationForm.invalid || isSaving || (availabilityCheck && !availabilityCheck.available)"
+          data-testid="btn-submit-reservation">
+          {{ (reservationToEdit ? 'COMMON.UPDATE' : 'COMMON.CONFIRM') | transloco }}
+        </button>
+      </div>
+    </app-modal>
+  </ng-template>
+</ion-modal>
