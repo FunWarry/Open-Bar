@@ -1983,6 +1983,7 @@
     "BACK_HOME": "Back to Workspace"
   },
   "SETUP": {
+    "BADGE": "Initial Setup",
     "TITLE": "Welcome to OpenBar!",
     "SUBTITLE": "Initial Setup — Creation of the First Administrator Account",
     "USERNAME": "Username",

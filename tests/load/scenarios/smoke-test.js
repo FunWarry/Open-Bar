@@ -35,6 +35,7 @@ export default function smokeTestScenario() {
   // 3. Public guest cart access
   const cartRes = http.get(`${baseUrl}/api/public/tables/1/cart`, {
     tags: { name: 'Get_Public_Cart' },
+    responseCallback: http.expectedStatuses(200, 404),
   });
   check(cartRes, {
     'cart status is 200 or 404': (r) => r.status === 200 || r.status === 404,

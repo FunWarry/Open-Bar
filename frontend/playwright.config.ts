@@ -14,6 +14,7 @@ export default defineConfig({
   timeout: 30000,
   use: {
     baseURL: process.env['FRONTEND_URL'] || 'http://localhost:4200',
+    ignoreHTTPSErrors: true,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

@@ -51,24 +51,40 @@ function Wait-ForHealth {
 
 function Start-ProdApp {
     Show-Header
+    if (-not (Test-Path "$RootDir\certs\openbar.crt")) {
+        Write-Host "Local TLS certificates missing. Generating local certificates..." -ForegroundColor Yellow
+        & "$ScriptDir\generate-local-certs.ps1"
+    }
     Write-Host "Starting complete production stack (docker-compose.prod.yml)..." -ForegroundColor Cyan
     docker compose -f docker-compose.prod.yml up -d --build
     Wait-ForHealth "http://localhost:8080/api/cocktails" 90
     Write-Host "`nAccess endpoints:" -ForegroundColor Cyan
-    Write-Host "  - Frontend Web PWA : http://localhost" -ForegroundColor White
-    Write-Host "  - Backend REST API : http://localhost:8080" -ForegroundColor White
-    Write-Host "  - Healthcheck      : http://localhost:8080/api/cocktails" -ForegroundColor White
-    Write-Host "  - Swagger UI       : http://localhost:8080/swagger-ui.html" -ForegroundColor White
+    Write-Host "  - Frontend Web PWA (HTTPS) : https://localhost (or https://openbar.lan)" -ForegroundColor Green
+    Write-Host "  - Frontend Web PWA (HTTP)  : http://localhost (redirects to HTTPS)" -ForegroundColor White
+    Write-Host "  - Backend REST API         : http://localhost:8080" -ForegroundColor White
+    Write-Host "  - Healthcheck              : http://localhost:8080/api/cocktails" -ForegroundColor White
+    Write-Host "  - Swagger UI               : http://localhost:8080/swagger-ui.html" -ForegroundColor White
 }
 
 function Start-Rpi5Sim {
     Show-Header
-    Write-Host "Starting Raspberry Pi 5 simulation (4 vCPUs, 2GB RAM, G1GC)..." -ForegroundColor Cyan
+    Write-Host "Verifying Local TLS Certificates for RPi5 simulator..." -ForegroundColor Yellow
+    $certFile = Join-Path $RootDir "certs\openbar.crt"
+    $keyFile = Join-Path $RootDir "certs\openbar.key"
+    if (-not (Test-Path $certFile) -or -not (Test-Path $keyFile)) {
+        Write-Host "Generating local TLS certificates (SAN: openbar.lan, localhost)..." -ForegroundColor Yellow
+        & (Join-Path $PSScriptRoot "generate-local-certs.ps1")
+    }
+    Write-Host "Starting complete Raspberry Pi 5 production stack (4 cores, 4GB RAM, TLS/HTTPS)..." -ForegroundColor Cyan
     docker compose -f docker/docker-compose.rpi5-sim.yml up -d --build
     Wait-ForHealth "http://localhost:8080/api/cocktails" 90
-    Write-Host "`nAccess endpoints:" -ForegroundColor Cyan
-    Write-Host "  - Simulated Backend: http://localhost:8080" -ForegroundColor White
-    Write-Host "  - Healthcheck      : http://localhost:8080/api/cocktails" -ForegroundColor White
+    Write-Host "`nAccess endpoints (Raspberry Pi 5 Simulation):" -ForegroundColor Cyan
+    Write-Host "  - Frontend Web PWA (HTTPS) : https://localhost (or https://openbar.lan)" -ForegroundColor Green
+    Write-Host "  - Frontend Web PWA (HTTP)  : http://localhost (redirects to HTTPS)" -ForegroundColor White
+    Write-Host "  - Backend API              : http://localhost:8080" -ForegroundColor White
+    Write-Host "  - WebSocket STOMP          : ws://localhost:8080/ws" -ForegroundColor White
+    Write-Host "  - Healthcheck              : http://localhost:8080/api/cocktails" -ForegroundColor White
+    Write-Host "  - Swagger UI               : http://localhost:8080/swagger-ui.html" -ForegroundColor White
 }
 
 function Stop-App {
@@ -80,17 +96,19 @@ function Stop-App {
 }
 
 function Invoke-LoadTest {
-    param ([string]$Scen = "smoke", [string]$TargetUrl = "http://localhost:8080")
+    param ([string]$Scen = "smoke", [string]$TargetUrl = "http://localhost:8080", [string]$OutputDir = "reports/load-tests")
     Show-Header
     Write-Host "Executing load test scenario [$Scen] against $TargetUrl..." -ForegroundColor Cyan
-    node tests/load/run-load-tests.js "--scenario=$Scen" "--url=$TargetUrl"
+    Write-Host "📁 Results will be exported to: $OutputDir" -ForegroundColor DarkGray
+    node tests/load/run-load-tests.js "--scenario=$Scen" "--url=$TargetUrl" "--output-dir=$OutputDir"
 }
 
 function Invoke-HardwareProfile {
-    param ([int]$Duration = 60)
+    param ([int]$Duration = 60, [string]$OutputFile = "reports/profile-report.json")
     Show-Header
     Write-Host "Starting live hardware profiling (CPU, RAM, GC pauses) for $Duration s..." -ForegroundColor Cyan
-    node scripts/benchmark-profile.js "--duration=$Duration" "--output=profile-report.json"
+    Write-Host "📁 Report will be exported to: $OutputFile" -ForegroundColor DarkGray
+    node scripts/benchmark-profile.js "--duration=$Duration" "--output=$OutputFile"
 }
 
 function Show-ContainerLogs {

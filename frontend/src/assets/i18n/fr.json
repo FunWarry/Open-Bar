@@ -1983,6 +1983,7 @@
     "BACK_HOME": "Retourner à l'accueil"
   },
   "SETUP": {
+    "BADGE": "Configuration initiale",
     "TITLE": "Bienvenue dans OpenBar !",
     "SUBTITLE": "Configuration initiale — Création du premier compte Administrateur",
     "USERNAME": "Nom d'utilisateur",

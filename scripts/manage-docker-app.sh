@@ -40,26 +40,42 @@ wait_for_health() {
 
 start_prod() {
     show_header
+    if [ ! -f "${ROOT_DIR}/certs/openbar.crt" ]; then
+        echo "⚠️  Local TLS certificates missing. Generating local certificates..."
+        "${SCRIPT_DIR}/generate-local-certs.sh"
+    fi
     echo "📦 Starting complete production stack (docker-compose.prod.yml)..."
     docker compose -f docker-compose.prod.yml up -d --build
     wait_for_health "http://localhost:8080/api/cocktails" 90
     echo ""
     echo "🌐 Access endpoints:"
-    echo "  • Frontend Web PWA : http://localhost"
-    echo "  • Backend REST API : http://localhost:8080"
-    echo "  • Healthcheck      : http://localhost:8080/api/cocktails"
-    echo "  • Swagger UI       : http://localhost:8080/swagger-ui.html"
+    echo "  • Frontend Web PWA (HTTPS) : https://localhost (or https://openbar.lan)"
+    echo "  • Frontend Web PWA (HTTP)  : http://localhost (redirects to HTTPS)"
+    echo "  • Backend REST API         : http://localhost:8080"
+    echo "  • Healthcheck              : http://localhost:8080/api/cocktails"
+    echo "  • Swagger UI               : http://localhost:8080/swagger-ui.html"
 }
 
 start_rpi5() {
     show_header
-    echo "🍓 Starting Raspberry Pi 5 simulation (4 vCPUs, 2GB RAM, G1GC)..."
+    echo "🔒 Verifying Local TLS Certificates for RPi5 simulator..."
+    local cert_file="${ROOT_DIR}/certs/openbar.crt"
+    local key_file="${ROOT_DIR}/certs/openbar.key"
+    if [ ! -f "${cert_file}" ] || [ ! -f "${key_file}" ]; then
+        echo "Generating local TLS certificates (SAN: openbar.lan, localhost)..."
+        bash "${SCRIPT_DIR}/generate-local-certs.sh"
+    fi
+    echo "🍓 Starting complete Raspberry Pi 5 production stack (4 cores, 4GB RAM, TLS/HTTPS)..."
     docker compose -f docker/docker-compose.rpi5-sim.yml up -d --build
     wait_for_health "http://localhost:8080/api/cocktails" 90
     echo ""
-    echo "🌐 Access endpoints:"
-    echo "  • Simulated Backend: http://localhost:8080"
-    echo "  • Healthcheck      : http://localhost:8080/api/cocktails"
+    echo "🌐 Access endpoints (Raspberry Pi 5 Simulation):"
+    echo "  • Frontend Web PWA (HTTPS) : https://localhost (or https://openbar.lan)"
+    echo "  • Frontend Web PWA (HTTP)  : http://localhost (redirects to HTTPS)"
+    echo "  • Backend REST API         : http://localhost:8080"
+    echo "  • WebSocket STOMP          : ws://localhost:8080/ws"
+    echo "  • Healthcheck              : http://localhost:8080/api/cocktails"
+    echo "  • Swagger UI               : http://localhost:8080/swagger-ui.html"
 }
 
 stop_app() {
@@ -73,16 +89,20 @@ stop_app() {
 run_test() {
     local scen="${1:-smoke}"
     local url="${2:-http://localhost:8080}"
+    local out_dir="${3:-reports/load-tests}"
     show_header
     echo "🎯 Running load test scenario [${scen}] against ${url}..."
-    node tests/load/run-load-tests.js "--scenario=${scen}" "--url=${url}"
+    echo "📁 Results will be exported to: ${out_dir}"
+    node tests/load/run-load-tests.js "--scenario=${scen}" "--url=${url}" "--output-dir=${out_dir}"
 }
 
 run_profile() {
     local duration="${1:-60}"
+    local output="${2:-reports/profile-report.json}"
     show_header
     echo "📊 Starting live hardware profiling (CPU, RAM, GC pauses) for ${duration}s..."
-    node scripts/benchmark-profile.js "--duration=${duration}" "--output=profile-report.json"
+    echo "📁 Report will be exported to: ${output}"
+    node scripts/benchmark-profile.js "--duration=${duration}" "--output=${output}"
 }
 
 case "${1:-}" in

@@ -1,28 +1,71 @@
 name: openbar-rpi5-sim
 
-# Simulation of OpenBar on constrained on-premise hardware (Raspberry Pi 5 / Mini-PC)
-# Hardware specifications modeled:
+# ==============================================================================
+# OpenBar — Raspberry Pi 5 / Constrained On-Premise Production Simulator
+# Hardware specifications modeled (Raspberry Pi 5 / Mini-PC, 4 Cores, 4GB RAM):
 # - CPU: 4 CPU Cores (BCM2712 Quad-core ARM Cortex-A76 @ 2.4GHz equivalent)
-# - RAM: 4GB System RAM (Allocated: 2GB Backend + 1GB Postgres + 1GB OS/Buffer)
-# - OS: Linux 64-bit
+# - RAM: 4GB Total System Budget:
+#     * Postgres:  768MB limit (256MB reservation)
+#     * Backend:   1792MB limit (JVM -Xmx1280m, G1GC, 1024MB reservation)
+#     * Frontend:  256MB limit (Nginx + TLS + PWA, 64MB reservation)
+#     * Logrotate: 64MB limit
+#     * Backup:    128MB limit
+#     * OS/Kernel: ~1GB headroom for Linux kernel, buffers, and network stack
+# ==============================================================================
 
 services:
   postgres:
     image: postgres:15-alpine
-    command: >
-      postgres
-      -c max_connections=100
-      -c shared_buffers=256MB
-      -c effective_cache_size=768MB
-      -c maintenance_work_mem=64MB
-      -c checkpoint_completion_target=0.9
-      -c wal_buffers=16MB
-      -c default_statistics_target=100
-      -c random_page_cost=1.1
-      -c effective_io_concurrency=200
-      -c work_mem=4MB
-      -c min_wal_size=1GB
-      -c max_wal_size=4GB
+    entrypoint:
+      - sh
+      - -c
+      - |
+        mkdir -p /var/log/openbar/postgres /var/log/openbar/backend /var/log/openbar/frontend
+        chmod -R 777 /var/log/openbar
+        exec docker-entrypoint.sh "$$@"
+      - --
+    command:
+      - postgres
+      - -c
+      - max_connections=100
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - effective_cache_size=768MB
+      - -c
+      - maintenance_work_mem=64MB
+      - -c
+      - checkpoint_completion_target=0.9
+      - -c
+      - wal_buffers=16MB
+      - -c
+      - default_statistics_target=100
+      - -c
+      - random_page_cost=1.1
+      - -c
+      - effective_io_concurrency=200
+      - -c
+      - work_mem=4MB
+      - -c
+      - min_wal_size=1GB
+      - -c
+      - max_wal_size=4GB
+      - -c
+      - logging_collector=on
+      - -c
+      - log_destination=stderr,csvlog
+      - -c
+      - log_directory=/var/log/openbar/postgres
+      - -c
+      - log_filename=postgresql-%Y-%m-%d_%H%M%S.log
+      - -c
+      - log_rotation_age=1d
+      - -c
+      - log_rotation_size=10MB
+      - -c
+      - log_min_messages=warning
+      - -c
+      - "log_line_prefix=%m [%p] %q%u@%d "
     environment:
       POSTGRES_DB: openbar
       POSTGRES_USER: openbar
@@ -31,17 +74,21 @@ services:
       resources:
         limits:
           cpus: '2.0'
-          memory: 1024M
+          memory: 768M
         reservations:
           cpus: '1.0'
-          memory: 512M
+          memory: 256M
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U openbar"]
       interval: 5s
       timeout: 3s
       retries: 5
+    volumes:
+      - postgres_data_rpi5:/var/lib/postgresql/data
+      - openbar_logs_rpi5:/var/log/openbar
     ports:
       - "5432:5432"
+    restart: unless-stopped
 
   backend:
     build: ../backend
@@ -54,12 +101,14 @@ services:
       DB_NAME: openbar
       DB_USER: openbar
       JWT_SECRET: ${JWT_SECRET:-test_openbar_default_secret_key_minimum_32_chars_long}
-      SPRING_PROFILES_ACTIVE: test
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod,staging}
+      OPENBAR_CORS_ALLOWED_ORIGINS: ${OPENBAR_CORS_ALLOWED_ORIGINS:-http://localhost:*,http://127.0.0.1:*,https://localhost,https://openbar.lan,http://192.168.*:*,http://10.*:*,http://172.16.*:*}
+      LOG_PATH: /var/log/openbar/backend
       HIKARI_MAX_POOL_SIZE: 25
       HIKARI_MIN_IDLE: 5
       JAVA_TOOL_OPTIONS: >-
         -Xms512m
-        -Xmx1536m
+        -Xmx1280m
         -XX:+UseG1GC
         -XX:MaxGCPauseMillis=100
         -XX:InitiatingHeapOccupancyPercent=45
@@ -69,15 +118,78 @@ services:
       resources:
         limits:
           cpus: '4.0'
-          memory: 2048M
+          memory: 1792M
         reservations:
           cpus: '2.0'
           memory: 1024M
+    volumes:
+      - openbar_logs_rpi5:/var/log/openbar
     depends_on:
       postgres:
         condition: service_healthy
     ports:
       - "8080:8080"
+    restart: unless-stopped
+
+  frontend:
+    build: ../frontend
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 256M
+        reservations:
+          cpus: '0.5'
+          memory: 64M
+    volumes:
+      - openbar_logs_rpi5:/var/log/openbar
+      - ../certs:/etc/nginx/certs:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  logrotate:
+    build: ./logrotate
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 64M
+    volumes:
+      - openbar_logs_rpi5:/var/log/openbar
+    restart: unless-stopped
+
+  backup:
+    image: prodrigestivill/postgres-backup-local:15-alpine
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: openbar
+      POSTGRES_USER: openbar
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SCHEDULE: ${BACKUP_SCHEDULE:-0 3 * * *}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-7}
+      BACKUP_KEEP_WEEKS: ${BACKUP_KEEP_WEEKS:-4}
+      BACKUP_KEEP_MONTHS: ${BACKUP_KEEP_MONTHS:-6}
+      BACKUP_DIR: /backups
+      HEALTHCHECK_PORT: "8080"
+      TZ: ${TZ:-Europe/Paris}
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 128M
+        reservations:
+          memory: 32M
+    volumes:
+      - openbar_backups_rpi5:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
 
   k6:
     image: grafana/k6:latest
@@ -89,3 +201,8 @@ services:
     entrypoint: ["k6", "run", "/load/scenarios/rush-hour-peak.js"]
     depends_on:
       - backend
+
+volumes:
+  postgres_data_rpi5:
+  openbar_logs_rpi5:
+  openbar_backups_rpi5:

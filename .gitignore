@@ -55,10 +55,11 @@ frontend/coverage
 .env
 /.sonarlint/
 .vscode/
-/qodana.sarif.json
 /uploads/
 /backend/uploads/
-profile-report.json
+/reports/
+/profile-report.json
+/qodana.sarif.json
 tests/load/*.json
 frontend/playwright-report/
 frontend/test-results/

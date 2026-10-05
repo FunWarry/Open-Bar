@@ -5,11 +5,12 @@
  *
  * Supports local binary k6 execution or containerized Docker (grafana/k6).
  * Automatically boots and shuts down the ESC/POS thermal printer mock server.
+ * Automatically exports per-scenario and aggregate JSON summaries to the reports directory.
  *
  * Usage:
  *   node tests/load/run-load-tests.js --scenario=smoke
  *   node tests/load/run-load-tests.js --scenario=rush-hour --url=http://localhost:8080
- *   node tests/load/run-load-tests.js --scenario=all
+ *   node tests/load/run-load-tests.js --scenario=all --output-dir=reports/load-tests
  */
 
 import { spawn, execSync } from 'node:child_process';
@@ -29,6 +30,7 @@ const SCENARIOS = {
 const args = process.argv.slice(2);
 let selectedScenario = 'smoke';
 let targetUrl = process.env.BASE_URL || 'http://localhost:8080';
+let outputDir = 'reports/load-tests';
 let useDocker = false;
 
 for (const arg of args) {
@@ -36,6 +38,8 @@ for (const arg of args) {
     selectedScenario = arg.split('=')[1].trim();
   } else if (arg.startsWith('--url=')) {
     targetUrl = arg.split('=')[1].trim();
+  } else if (arg.startsWith('--output-dir=') || arg.startsWith('--output=')) {
+    outputDir = arg.split('=')[1].trim();
   } else if (arg === '--docker') {
     useDocker = true;
   }
@@ -67,7 +71,80 @@ function hasBinary(cmd) {
   return resolved !== cmd;
 }
 
-function runK6(scenarioRelPath, url, withDocker) {
+const resolveTestSecret = (account) => process.env[`TEST_${account.toUpperCase()}_SECRET`] || `${account}123`;
+
+/**
+ * Ensures backend has initial admin and test users provisioned so load tests succeed.
+ *
+ * @param {string} url Target backend base URL
+ */
+async function ensureTestEnvironmentReady(url) {
+  try {
+    const adminSecret = resolveTestSecret('admin');
+    const serveurSecret = resolveTestSecret('serveur');
+    const managerSecret = resolveTestSecret('manager');
+    const barmanSecret = resolveTestSecret('barman');
+
+    const statusRes = await fetch(`${url}/api/setup/status`, { signal: AbortSignal.timeout(3000) });
+    if (statusRes.ok) {
+      const statusData = await statusRes.json();
+      if (!statusData.initialized) {
+        console.log('⚡ Initializing test environment (admin + staff test users)...');
+        await fetch(`${url}/api/setup/admin`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: 'admin',
+            email: 'admin@openbar.local',
+            password: adminSecret,
+            nom: 'Admin',
+            prenom: 'System',
+            initialCocktailIds: [],
+          }),
+        });
+      }
+    }
+
+    // Check if test user 'serveur1' can authenticate
+    const authCheck = await fetch(`${url}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'serveur1', password: serveurSecret }),
+      signal: AbortSignal.timeout(3000),
+    });
+
+    if (authCheck.status !== 200) {
+      const adminLogin = await fetch(`${url}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: 'admin', password: adminSecret }),
+      });
+      if (adminLogin.ok) {
+        const { token } = await adminLogin.json();
+        const testUsers = [
+          { username: 'serveur1', password: serveurSecret, email: 'serveur1@openbar.local', nom: 'Serveur', prenom: 'Un', roles: ['SERVEUR'] },
+          { username: 'manager', password: managerSecret, email: 'manager@openbar.local', nom: 'Manager', prenom: 'Principal', roles: ['MANAGER'] },
+          { username: 'barman1', password: barmanSecret, email: 'barman1@openbar.local', nom: 'Barman', prenom: 'Un', roles: ['BARMAN'] },
+        ];
+        for (const user of testUsers) {
+          await fetch(`${url}/api/users`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(user),
+          });
+        }
+        console.log('✅ Staff test users provisioned for automated load testing.');
+      }
+    }
+  } catch (err) {
+    console.warn(`ℹ️ Target preflight check skipped: ${err.message}`);
+  }
+}
+
+function runK6(scenarioRelPath, url, withDocker, summaryFile) {
   return new Promise((resolve) => {
     const currentDir = import.meta.dirname || path.resolve('.');
     const rootDir = path.resolve(currentDir, '..', '..');
@@ -87,19 +164,22 @@ function runK6(scenarioRelPath, url, withDocker) {
         dockerArgs.push('--net=host');
       }
 
+      const summaryRel = path.relative(rootDir, summaryFile).replaceAll(path.sep, '/');
+
       dockerArgs.push(
         '-v', `${rootDir}:/work`,
         '-w', '/work',
         '-e', `BASE_URL=${dockerUrl}`,
         'grafana/k6:latest',
         'run',
+        '--summary-export', `/work/${summaryRel}`,
         normalizedPath
       );
       proc = spawn(dockerBin, dockerArgs, { stdio: 'inherit', shell: false });
     } else {
       // Use local k6
       const k6Bin = resolveBinary('k6');
-      proc = spawn(k6Bin, ['run', '-e', `BASE_URL=${url}`, normalizedPath], {
+      proc = spawn(k6Bin, ['run', '-e', `BASE_URL=${url}`, '--summary-export', summaryFile, normalizedPath], {
         stdio: 'inherit',
         cwd: rootDir,
         shell: false,
@@ -117,10 +197,18 @@ function runK6(scenarioRelPath, url, withDocker) {
   });
 }
 
+const currentDir = import.meta.dirname || path.resolve('.');
+const rootDir = path.resolve(currentDir, '..', '..');
+const resolvedOutputDir = path.resolve(rootDir, outputDir);
+if (!fs.existsSync(resolvedOutputDir)) {
+  fs.mkdirSync(resolvedOutputDir, { recursive: true });
+}
+
 console.log('='.repeat(70));
 console.log('🚀 OpenBar Load & Stress Testing Orchestrator');
 console.log(`🎯 Scenario: ${selectedScenario}`);
 console.log(`🌐 Target Base URL: ${targetUrl}`);
+console.log(`📁 Export Directory: ${path.relative(rootDir, resolvedOutputDir)}`);
 console.log('='.repeat(70));
 
 // Determine runner mode
@@ -136,9 +224,11 @@ if (!localK6 && !hasDocker && !useDocker) {
 const runWithDocker = useDocker || (!localK6 && hasDocker);
 console.log(`⚙️  Execution engine: ${runWithDocker ? 'Docker (grafana/k6)' : 'Local k6 binary'}`);
 
+// Ensure target environment is reachable and test users are created
+await ensureTestEnvironmentReady(targetUrl);
+
 // Start mock ESC/POS server
 console.log('🖨️  Starting background Mock ESC/POS socket server on port 9100...');
-const currentDir = import.meta.dirname || path.resolve('.');
 const mockServerPath = path.resolve(currentDir, 'helpers', 'mock-escpos-server.js');
 const mockServerProc = spawn(process.execPath, [mockServerPath], {
   stdio: 'inherit',
@@ -166,6 +256,7 @@ const scenariosToRun = selectedScenario === 'all'
   : [selectedScenario];
 
 let anyFailure = false;
+const scenarioResults = [];
 
 for (const scenName of scenariosToRun) {
   const scenFile = SCENARIOS[scenName];
@@ -175,10 +266,22 @@ for (const scenName of scenariosToRun) {
     process.exit(1);
   }
 
+  const summaryFile = path.join(resolvedOutputDir, `${scenName}-summary.json`);
   console.log(`\n▶️ Running scenario: [${scenName}] (${scenFile})`);
+  console.log(`   Export target: ${path.relative(rootDir, summaryFile)}`);
 
-  const code = await runK6(scenFile, targetUrl, runWithDocker);
-  if (code !== 0) {
+  const code = await runK6(scenFile, targetUrl, runWithDocker, summaryFile);
+  const passed = code === 0;
+
+  scenarioResults.push({
+    scenario: scenName,
+    script: scenFile,
+    passed,
+    exitCode: code,
+    summaryFile: path.relative(rootDir, summaryFile).replaceAll(path.sep, '/'),
+  });
+
+  if (!passed) {
     console.error(`❌ Scenario [${scenName}] failed with exit code ${code}`);
     anyFailure = true;
   } else {
@@ -186,8 +289,27 @@ for (const scenName of scenariosToRun) {
   }
 }
 
+// Generate aggregated summary report
+const overallReport = {
+  timestamp: new Date().toISOString(),
+  targetUrl,
+  engine: runWithDocker ? 'Docker (grafana/k6)' : 'Local k6 binary',
+  totalScenarios: scenariosToRun.length,
+  passedCount: scenarioResults.filter((r) => r.passed).length,
+  failedCount: scenarioResults.filter((r) => !r.passed).length,
+  allPassed: !anyFailure,
+  scenarios: scenarioResults,
+};
+
+const aggregateReportPath = path.join(resolvedOutputDir, 'summary.json');
+fs.writeFileSync(aggregateReportPath, JSON.stringify(overallReport, null, 2), 'utf8');
+
 cleanup();
 console.log('\n' + '='.repeat(70));
+console.log(`📁 Test results exported to: ${path.relative(rootDir, resolvedOutputDir)}`);
+console.log(`📊 Aggregated summary file : ${path.relative(rootDir, aggregateReportPath)}`);
+console.log('='.repeat(70));
+
 if (anyFailure) {
   console.error('❌ One or more load testing scenarios did not meet KPI thresholds.');
   process.exit(1);
@@ -195,4 +317,3 @@ if (anyFailure) {
   console.log('🎉 All load test scenarios completed successfully and met all thresholds!');
   process.exit(0);
 }
-
