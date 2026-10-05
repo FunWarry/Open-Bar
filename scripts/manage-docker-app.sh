@@ -58,13 +58,24 @@ start_prod() {
 
 start_rpi5() {
     show_header
-    echo "🍓 Starting Raspberry Pi 5 simulation (4 vCPUs, 2GB RAM, G1GC)..."
+    echo "🔒 Verifying Local TLS Certificates for RPi5 simulator..."
+    local cert_file="${ROOT_DIR}/certs/openbar.crt"
+    local key_file="${ROOT_DIR}/certs/openbar.key"
+    if [ ! -f "${cert_file}" ] || [ ! -f "${key_file}" ]; then
+        echo "Generating local TLS certificates (SAN: openbar.lan, localhost)..."
+        bash "${SCRIPT_DIR}/generate-local-certs.sh"
+    fi
+    echo "🍓 Starting complete Raspberry Pi 5 production stack (4 cores, 4GB RAM, TLS/HTTPS)..."
     docker compose -f docker/docker-compose.rpi5-sim.yml up -d --build
     wait_for_health "http://localhost:8080/api/cocktails" 90
     echo ""
-    echo "🌐 Access endpoints:"
-    echo "  • Simulated Backend: http://localhost:8080"
-    echo "  • Healthcheck      : http://localhost:8080/api/cocktails"
+    echo "🌐 Access endpoints (Raspberry Pi 5 Simulation):"
+    echo "  • Frontend Web PWA (HTTPS) : https://localhost (or https://openbar.lan)"
+    echo "  • Frontend Web PWA (HTTP)  : http://localhost (redirects to HTTPS)"
+    echo "  • Backend REST API         : http://localhost:8080"
+    echo "  • WebSocket STOMP          : ws://localhost:8080/ws"
+    echo "  • Healthcheck              : http://localhost:8080/api/cocktails"
+    echo "  • Swagger UI               : http://localhost:8080/swagger-ui.html"
 }
 
 stop_app() {
