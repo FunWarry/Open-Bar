@@ -471,7 +471,7 @@ describe('ReservationModalComponent', () => {
   it('exposes select options for duration, status, and table', () => {
     expect(component.durationSelectOptions.length).toBeGreaterThan(0);
     expect(component.statusSelectOptions.length).toBeGreaterThan(0);
-    expect(component.tableSelectOptions.length).toBe(mockTables.length + 1); // default option + mock tables
+    expect(component.tableSelectOptions).toHaveSize(mockTables.length + 1); // default option + mock tables
   });
 
   it('selects table from floor plan and rejects occupied table', () => {
