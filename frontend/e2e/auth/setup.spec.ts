@@ -45,18 +45,19 @@ test.describe('Initial Setup E2E Flow', () => {
     await page.goto('/setup');
 
     // Fill credentials
-    const usernameInput = page.locator('input').first();
-    await usernameInput.fill('admin');
-
-    const emailInput = page.locator('input[type="email"]');
-    await emailInput.fill('admin@openbar.lan');
-
-    const passwordInputs = page.locator('input[type="password"]');
-    await passwordInputs.nth(0).fill('Admin123456!');
-    await passwordInputs.nth(1).fill('Admin123456!');
+    await page.locator('[data-testid="setup-username-input"]').fill('admin');
+    await page.locator('[data-testid="setup-email-input"]').fill('admin@openbar.lan');
+    await page.locator('[data-testid="setup-password-input"]').fill('Admin123456!');
+    await page.locator('[data-testid="setup-confirm-password-input"]').fill('Admin123456!');
 
     // Accept terms
-    await page.locator('[data-testid="setup-accept-terms-checkbox"]').click();
+    const termsCheckbox = page.locator('[data-testid="setup-accept-terms-checkbox"]');
+    await termsCheckbox.click();
+    await termsCheckbox.evaluate((el: any) => {
+      el.checked = true;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new CustomEvent('ionChange', { detail: { checked: true }, bubbles: true }));
+    });
 
     // Verify submit button is enabled and submit
     const submitBtn = page.locator('[data-testid="setup-submit-btn"]');

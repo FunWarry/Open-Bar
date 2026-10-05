@@ -22,6 +22,7 @@
         placeholder="admin"
         icon="person-outline"
         [required]="true"
+        testId="setup-username-input"
         [errorMessage]="
           setupForm.get('username')?.touched && setupForm.get('username')?.hasError('required')
             ? ('ERRORS.FORM_INVALID' | transloco)
@@ -36,6 +37,7 @@
         placeholder="admin@openbar.local"
         icon="mail-outline"
         [required]="true"
+        testId="setup-email-input"
         [errorMessage]="
           setupForm.get('email')?.touched && setupForm.get('email')?.hasError('email')
             ? ('ERRORS.FORM_INVALID' | transloco)
@@ -47,13 +49,15 @@
         <app-input-field
           formControlName="nom"
           [label]="'SETUP.LASTNAME' | transloco"
-          placeholder="Admin">
+          placeholder="Admin"
+          testId="setup-nom-input">
         </app-input-field>
 
         <app-input-field
           formControlName="prenom"
           [label]="'SETUP.FIRSTNAME' | transloco"
-          placeholder="Initial">
+          placeholder="Initial"
+          testId="setup-prenom-input">
         </app-input-field>
       </div>
 
@@ -62,7 +66,8 @@
         type="password"
         [label]="'SETUP.PASSWORD' | transloco"
         icon="lock-closed-outline"
-        [required]="true">
+        [required]="true"
+        testId="setup-password-input">
       </app-input-field>
 
       <app-input-field
@@ -71,6 +76,7 @@
         [label]="'SETUP.CONFIRM_PASSWORD' | transloco"
         icon="lock-closed-outline"
         [required]="true"
+        testId="setup-confirm-password-input"
         [errorMessage]="
           setupForm.touched && setupForm.hasError('passwordMismatch')
             ? ('ERRORS.FORM_INVALID' | transloco)
@@ -87,6 +93,7 @@
       <div class="terms-acceptance-box" data-testid="setup-terms-acceptance">
         <ion-checkbox
           formControlName="acceptTerms"
+          (ionChange)="setupForm.get('acceptTerms')?.setValue($event.detail.checked)"
           data-testid="setup-accept-terms-checkbox"
           class="terms-checkbox">
           <span class="terms-label">
