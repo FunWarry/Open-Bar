@@ -96,25 +96,25 @@
           (ionChange)="setupForm.get('acceptTerms')?.setValue($event.detail.checked)"
           data-testid="setup-accept-terms-checkbox"
           class="terms-checkbox">
-          <span class="terms-label">
-            {{ 'SETUP.ACCEPT_TERMS_PREFIX' | transloco }}
-            <a
-              href="javascript:void(0)"
-              (click)="openLegalModal($event, 'terms')"
-              data-testid="setup-view-terms-link"
-              class="legal-link">
-              {{ 'SETUP.TERMS_OF_SERVICE_LINK' | transloco }}
-            </a>
-            {{ 'SETUP.AND' | transloco }}
-            <a
-              href="javascript:void(0)"
-              (click)="openLegalModal($event, 'license')"
-              data-testid="setup-view-license-link"
-              class="legal-link">
-              {{ 'SETUP.LICENSE_LINK' | transloco }}
-            </a>
-          </span>
         </ion-checkbox>
+        <span class="terms-label">
+          {{ 'SETUP.ACCEPT_TERMS_PREFIX' | transloco }}
+          <a
+            href="javascript:void(0)"
+            (click)="openLegalModal($event, 'terms')"
+            data-testid="setup-view-terms-link"
+            class="legal-link">
+            {{ 'SETUP.TERMS_OF_SERVICE_LINK' | transloco }}
+          </a>
+          {{ 'SETUP.AND' | transloco }}
+          <a
+            href="javascript:void(0)"
+            (click)="openLegalModal($event, 'license')"
+            data-testid="setup-view-license-link"
+            class="legal-link">
+            {{ 'SETUP.LICENSE_LINK' | transloco }}
+          </a>
+        </span>
       </div>
 
       <div class="actions-row">

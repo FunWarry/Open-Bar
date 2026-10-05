@@ -114,6 +114,9 @@
 }
 
 .terms-acceptance-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
   margin: var(--space-2, 8px) 0;
   padding: 12px 14px;
   background: var(--background-surface-2, rgba(33, 38, 63, 0.5));
@@ -127,7 +130,8 @@
   --border-color: var(--border-medium, #2e3450);
   --border-color-checked: var(--primary, #6c7fe8);
   --checkmark-color: #ffffff;
-  width: 100%;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .terms-label {
