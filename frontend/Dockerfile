@@ -1,14 +1,14 @@
-# Étape 1 : Build Angular
-FROM node:20-alpine AS build
+# Step 1: Build Angular PWA
+FROM node:22-alpine AS build
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm ci --prefer-offline --ignore-scripts
 
 COPY . .
-RUN npm build --configuration production
+RUN npm run build -- --configuration production
 
-# Étape 2 : Nginx pour servir le build Angular avec support TLS / HTTPS
+# Step 2: Nginx server hosting the Angular build with TLS / HTTPS support
 FROM nginx:alpine
 
 RUN apk add --no-cache openssl \
