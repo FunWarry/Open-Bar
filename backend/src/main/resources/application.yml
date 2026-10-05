@@ -6,6 +6,15 @@ spring:
   sql:
     init:
       mode: always
+  datasource:
+    hikari:
+      pool-name: OpenBarHikariCP
+      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:25}
+      minimum-idle: ${HIKARI_MIN_IDLE:5}
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      connection-timeout: 20000
+      leak-detection-threshold: 30000
   jpa:
     open-in-view: false
     hibernate:
@@ -15,6 +24,10 @@ spring:
       hibernate:
         format_sql: true
         default_batch_fetch_size: 50
+        jdbc:
+          batch_size: 50
+          order_inserts: true
+          order_updates: true
   security:
     jwt:
       secret: "${JWT_SECRET:test_openbar_default_secret_key_minimum_32_chars_long}"
