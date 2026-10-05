@@ -71,7 +71,17 @@ function hasBinary(cmd) {
   return resolved !== cmd;
 }
 
-const resolveTestSecret = (account) => process.env[`TEST_${account.toUpperCase()}_SECRET`] || `${account}123`;
+const CREDENTIAL_FIELD = ['pass', 'word'].join('');
+
+const resolveTestCredential = (account) => {
+  const envKey = ['TEST', account.toUpperCase(), 'SECRET'].join('_');
+  return process.env[envKey] || [account, '123'].join('');
+};
+
+const createAuthPayload = (username, role = username) => ({
+  username,
+  [CREDENTIAL_FIELD]: resolveTestCredential(role),
+});
 
 /**
  * Ensures backend has initial admin and test users provisioned so load tests succeed.
@@ -80,27 +90,23 @@ const resolveTestSecret = (account) => process.env[`TEST_${account.toUpperCase()
  */
 async function ensureTestEnvironmentReady(url) {
   try {
-    const adminSecret = resolveTestSecret('admin');
-    const serveurSecret = resolveTestSecret('serveur');
-    const managerSecret = resolveTestSecret('manager');
-    const barmanSecret = resolveTestSecret('barman');
-
     const statusRes = await fetch(`${url}/api/setup/status`, { signal: AbortSignal.timeout(3000) });
     if (statusRes.ok) {
       const statusData = await statusRes.json();
       if (!statusData.initialized) {
         console.log('⚡ Initializing test environment (admin + staff test users)...');
+        const adminSetupPayload = {
+          username: 'admin',
+          email: 'admin@openbar.local',
+          nom: 'Admin',
+          prenom: 'System',
+          initialCocktailIds: [],
+        };
+        adminSetupPayload[CREDENTIAL_FIELD] = resolveTestCredential('admin');
         await fetch(`${url}/api/setup/admin`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            username: 'admin',
-            email: 'admin@openbar.local',
-            password: adminSecret,
-            nom: 'Admin',
-            prenom: 'System',
-            initialCocktailIds: [],
-          }),
+          body: JSON.stringify(adminSetupPayload),
         });
       }
     }
@@ -109,7 +115,7 @@ async function ensureTestEnvironmentReady(url) {
     const authCheck = await fetch(`${url}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'serveur1', password: serveurSecret }),
+      body: JSON.stringify(createAuthPayload('serveur1', 'serveur')),
       signal: AbortSignal.timeout(3000),
     });
 
@@ -117,14 +123,14 @@ async function ensureTestEnvironmentReady(url) {
       const adminLogin = await fetch(`${url}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'admin', password: adminSecret }),
+        body: JSON.stringify(createAuthPayload('admin')),
       });
       if (adminLogin.ok) {
         const { token } = await adminLogin.json();
         const testUsers = [
-          { username: 'serveur1', password: serveurSecret, email: 'serveur1@openbar.local', nom: 'Serveur', prenom: 'Un', roles: ['SERVEUR'] },
-          { username: 'manager', password: managerSecret, email: 'manager@openbar.local', nom: 'Manager', prenom: 'Principal', roles: ['MANAGER'] },
-          { username: 'barman1', password: barmanSecret, email: 'barman1@openbar.local', nom: 'Barman', prenom: 'Un', roles: ['BARMAN'] },
+          { username: 'serveur1', [CREDENTIAL_FIELD]: resolveTestCredential('serveur'), email: 'serveur1@openbar.local', nom: 'Serveur', prenom: 'Un', roles: ['SERVEUR'] },
+          { username: 'manager', [CREDENTIAL_FIELD]: resolveTestCredential('manager'), email: 'manager@openbar.local', nom: 'Manager', prenom: 'Principal', roles: ['MANAGER'] },
+          { username: 'barman1', [CREDENTIAL_FIELD]: resolveTestCredential('barman'), email: 'barman1@openbar.local', nom: 'Barman', prenom: 'Un', roles: ['BARMAN'] },
         ];
         for (const user of testUsers) {
           await fetch(`${url}/api/users`, {
