@@ -101,7 +101,8 @@
                   id="res-date"
                   type="date"
                   formControlName="dateReservation"
-                  (change)="checkTableAvailability()"
+                  (input)="onDateOrTimeChanged()"
+                  (change)="onDateOrTimeChanged()"
                   class="form-input"
                   data-testid="input-reservation-date"
                 />
@@ -115,7 +116,8 @@
                   id="res-heure"
                   type="time"
                   formControlName="heureReservation"
-                  (change)="checkTableAvailability()"
+                  (input)="onDateOrTimeChanged()"
+                  (change)="onDateOrTimeChanged()"
                   class="form-input"
                   data-testid="input-reservation-time"
                 />
@@ -146,7 +148,8 @@
                   min="1"
                   max="100"
                   formControlName="nombrePersonnes"
-                  (change)="checkTableAvailability()"
+                  (input)="onDateOrTimeChanged()"
+                  (change)="onDateOrTimeChanged()"
                   class="form-input"
                   data-testid="input-reservation-guests"
                 />
@@ -292,12 +295,24 @@
                   </button>
                 </div>
 
-                <!-- Scrollable Blueprint Floor Plan Canvas -->
-                <div class="svg-canvas-scroll-container" data-testid="tables-visual-grid">
+                <!-- Scrollable Blueprint Floor Plan Canvas with Drag Pan & Zoom -->
+                <div
+                  class="svg-canvas-scroll-container"
+                  [class.is-panning]="isPanningFloorPlan"
+                  (mousedown)="onFloorPlanMouseDown($event)"
+                  (mousemove)="onFloorPlanMouseMove($event)"
+                  (mouseup)="onFloorPlanMouseUp()"
+                  (mouseleave)="onFloorPlanMouseUp()"
+                  (wheel)="onFloorPlanWheel($event)"
+                  (touchstart)="onFloorPlanTouchStart($event)"
+                  (touchmove)="onFloorPlanTouchMove($event)"
+                  (touchend)="onFloorPlanTouchEnd()"
+                  data-testid="tables-visual-grid">
                   <svg
                     class="floor-plan-svg"
+                    [class.dragging]="isPanningFloorPlan"
                     [attr.viewBox]="floorPlanViewBox"
-                    [style.transform]="'scale(' + floorPlanZoom + ')'"
+                    [style.transform]="floorPlanTransform"
                     data-testid="floor-plan-svg-canvas">
 
                     <!-- Background Zone Areas Layer -->

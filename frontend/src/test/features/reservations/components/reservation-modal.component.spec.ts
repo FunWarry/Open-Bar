@@ -5,6 +5,7 @@ import { ReservationModalComponent } from '../../../../app/features/reservations
 import { ReservationService } from '../../../../app/core/services/reservation.service';
 import { PlanSalleService } from '../../../../app/features/plan-salle/services/plan-salle.service';
 import { EtageService } from '../../../../app/core/services/etage.service';
+import { ZoneService } from '../../../../app/core/services/zone.service';
 import { TableBar } from '../../../../app/core/models/table.model';
 import { Reservation } from '../../../../app/core/models/reservation.model';
 import { getTranslocoTestingModule } from '../../../transloco-testing.module';
@@ -15,6 +16,7 @@ describe('ReservationModalComponent', () => {
   let reservationServiceSpy: jasmine.SpyObj<ReservationService>;
   let planSalleServiceSpy: jasmine.SpyObj<PlanSalleService>;
   let etageServiceSpy: jasmine.SpyObj<EtageService>;
+  let zoneServiceSpy: jasmine.SpyObj<ZoneService>;
 
   const mockTables: TableBar[] = [
     { id: 10, numero: 1, capacite: 2, occupee: false, zone: 'SALLE', createdAt: '', updatedAt: '' },
@@ -72,6 +74,15 @@ describe('ReservationModalComponent', () => {
       { code: 'ETAGE_1', nom: '1er Étage' },
     ]));
 
+    zoneServiceSpy = jasmine.createSpyObj('ZoneService', ['getAll']);
+    zoneServiceSpy.getAll.and.returnValue(of([
+      { id: 1, nom: 'SALLE', etage: 'RDC' },
+      { id: 2, nom: 'MEZZANINE', etage: 'ETAGE_1' },
+      { id: 3, nom: 'TERRASSE', etage: 'RDC' },
+      { id: 4, nom: 'BAR', etage: 'RDC' },
+      { id: 5, nom: 'ROOFTOP', etage: 'ETAGE_2' },
+    ]));
+
     await TestBed.configureTestingModule({
       imports: [
         ReservationModalComponent,
@@ -82,6 +93,7 @@ describe('ReservationModalComponent', () => {
         { provide: ReservationService, useValue: reservationServiceSpy },
         { provide: PlanSalleService, useValue: planSalleServiceSpy },
         { provide: EtageService, useValue: etageServiceSpy },
+        { provide: ZoneService, useValue: zoneServiceSpy },
       ],
     }).compileComponents();
 
@@ -549,5 +561,217 @@ describe('ReservationModalComponent', () => {
       },
     });
     expect(component.populateForm).toHaveBeenCalled();
+  });
+
+  it('correctly maps tables to their respective floors by zone to prevent overlap on RDC', () => {
+    const tableRDC: TableBar = { id: 1, numero: 1, capacite: 4, occupee: false, zone: 'Salle Principale', createdAt: '', updatedAt: '' };
+    const tableEtage1: TableBar = { id: 31, numero: 31, capacite: 6, occupee: false, zone: 'Mezzanine VIP', createdAt: '', updatedAt: '' };
+    const tableEtage2: TableBar = { id: 41, numero: 41, capacite: 8, occupee: false, zone: 'Rooftop Panoramique', createdAt: '', updatedAt: '' };
+
+    component.backendZones = [
+      { id: 1, nom: 'Salle Principale', etage: 'RDC' },
+      { id: 2, nom: 'Mezzanine VIP', etage: 'ETAGE_1' },
+      { id: 3, nom: 'Rooftop Panoramique', etage: 'ETAGE_2' },
+    ];
+    component.tables = [tableRDC, tableEtage1, tableEtage2];
+
+    expect(component.resolveTableFloor(tableRDC)).toBe('RDC');
+    expect(component.resolveTableFloor(tableEtage1)).toBe('ETAGE_1');
+    expect(component.resolveTableFloor(tableEtage2)).toBe('ETAGE_2');
+
+    // On RDC: only tableRDC should be present
+    component.selectedFloor = 'RDC';
+    component.selectedFloorPlanZone = 'ALL';
+    expect(component.filteredFloorPlanTables.map((t) => t.id)).toEqual([1]);
+
+    // On ETAGE_1: only tableEtage1 should be present
+    component.selectFloor('ETAGE_1');
+    expect(component.selectedFloor).toBe('ETAGE_1');
+    expect(component.filteredFloorPlanTables.map((t) => t.id)).toEqual([31]);
+
+    // On ETAGE_2: only tableEtage2 should be present
+    component.selectFloor('ETAGE_2');
+    expect(component.selectedFloor).toBe('ETAGE_2');
+    expect(component.filteredFloorPlanTables.map((t) => t.id)).toEqual([41]);
+  });
+
+  it('reactively reloads day reservations when dateReservation is updated', () => {
+    reservationServiceSpy.getReservations.calls.reset();
+    component.reservationForm.get('dateReservation')?.setValue('2026-10-12');
+
+    expect(reservationServiceSpy.getReservations).toHaveBeenCalledWith({ date: '2026-10-12' });
+  });
+
+  it('reactively recalculates table conflict status when heureReservation changes', () => {
+    const table1: TableBar = { id: 1, numero: 1, capacite: 4, occupee: false, zone: 'Salle', createdAt: '', updatedAt: '' };
+    const table2: TableBar = { id: 2, numero: 2, capacite: 4, occupee: false, zone: 'Salle', createdAt: '', updatedAt: '' };
+    component.tables = [table1, table2];
+    component.dayReservations = [
+      {
+        id: 101,
+        nomClient: 'Lunch Guest',
+        tableId: 1,
+        dateReservation: '2026-10-05',
+        heureReservation: '12:30',
+        dureeMinutes: 90,
+        nombrePersonnes: 2,
+        statut: 'CONFIRMED',
+        createdAt: '',
+        updatedAt: '',
+      },
+      {
+        id: 102,
+        nomClient: 'Dinner Guest',
+        tableId: 2,
+        dateReservation: '2026-10-05',
+        heureReservation: '20:00',
+        dureeMinutes: 90,
+        nombrePersonnes: 2,
+        statut: 'CONFIRMED',
+        createdAt: '',
+        updatedAt: '',
+      },
+    ];
+
+    // At 12:30: Table 1 is OCCUPIED, Table 2 is AVAILABLE
+    component.reservationForm.patchValue({
+      heureReservation: '12:30',
+      dureeMinutes: 90,
+      tableId: null,
+    });
+    expect(component.getTableSlotStatus(table1).status).toBe('OCCUPIED');
+    expect(component.getTableSlotStatus(table2).status).toBe('AVAILABLE');
+
+    // When changing time to 20:30: Table 1 becomes AVAILABLE, Table 2 becomes OCCUPIED
+    component.reservationForm.patchValue({
+      heureReservation: '20:30',
+      dureeMinutes: 90,
+      tableId: null,
+    });
+    expect(component.getTableSlotStatus(table1).status).toBe('AVAILABLE');
+    expect(component.getTableSlotStatus(table2).status).toBe('OCCUPIED');
+  });
+
+  it('handles array and string time formats robustly in timeToMinutes and formatTimeDisplay', () => {
+    // Array format from Jackson LocalTime
+    expect(component.timeToMinutes([20, 30])).toBe(1230);
+    expect(component.formatTimeDisplay([20, 30])).toBe('20:30');
+
+    // String format with seconds
+    expect(component.timeToMinutes('20:30:00')).toBe(1230);
+    expect(component.formatTimeDisplay('20:30:00')).toBe('20:30');
+
+    // Standard string format
+    expect(component.timeToMinutes('12:15')).toBe(735);
+    expect(component.formatTimeDisplay('12:15')).toBe('12:15');
+
+    // Falsy values
+    expect(component.timeToMinutes(null)).toBe(0);
+    expect(component.formatTimeDisplay(null)).toBe('');
+  });
+
+  it('onDateOrTimeChanged triggers loadDayReservations and checkTableAvailability', () => {
+    reservationServiceSpy.getReservations.calls.reset();
+    reservationServiceSpy.checkAvailability.calls.reset();
+
+    component.reservationForm.patchValue({
+      dateReservation: '2026-11-20',
+      heureReservation: '19:00',
+      tableId: 10,
+    });
+
+    component.onDateOrTimeChanged();
+
+    expect(reservationServiceSpy.getReservations).toHaveBeenCalledWith({ date: '2026-11-20' });
+    expect(reservationServiceSpy.checkAvailability).toHaveBeenCalled();
+  });
+
+  it('supports 2D mouse drag-to-pan on the floor plan canvas', () => {
+    expect(component.floorPlanPanX).toBe(0);
+    expect(component.floorPlanPanY).toBe(0);
+    expect(component.floorPlanTransform).toBe('translate(0px, 0px) scale(1)');
+
+    // Start mouse drag
+    component.onFloorPlanMouseDown({ button: 0, clientX: 100, clientY: 100 } as MouseEvent);
+    expect(component.isPanningFloorPlan).toBeTrue();
+
+    // Move mouse
+    component.onFloorPlanMouseMove({ clientX: 150, clientY: 120 } as MouseEvent);
+    expect(component.floorPlanPanX).toBe(50);
+    expect(component.floorPlanPanY).toBe(20);
+    expect(component.hasDraggedFloorPlan).toBeTrue();
+    expect(component.floorPlanTransform).toBe('translate(50px, 20px) scale(1)');
+
+    // Mouse up ends pan
+    component.onFloorPlanMouseUp();
+    expect(component.isPanningFloorPlan).toBeFalse();
+  });
+
+  it('supports touch drag-to-pan for mobile and PWA', () => {
+    component.resetFloorPlanZoom();
+
+    // Touch start
+    component.onFloorPlanTouchStart({
+      touches: [{ clientX: 200, clientY: 200 }] as unknown as TouchList,
+    } as TouchEvent);
+    expect(component.isPanningFloorPlan).toBeTrue();
+
+    // Touch move
+    component.onFloorPlanTouchMove({
+      touches: [{ clientX: 180, clientY: 150 }] as unknown as TouchList,
+    } as TouchEvent);
+    expect(component.floorPlanPanX).toBe(-20);
+    expect(component.floorPlanPanY).toBe(-50);
+
+    // Touch end
+    component.onFloorPlanTouchEnd();
+    expect(component.isPanningFloorPlan).toBeFalse();
+  });
+
+  it('supports mouse wheel zooming on the floor plan', () => {
+    component.resetFloorPlanZoom();
+    expect(component.floorPlanZoom).toBe(1.0);
+
+    // Zoom in with wheel
+    const wheelInEvent = { deltaY: -100, preventDefault: jasmine.createSpy('preventDefault') } as unknown as WheelEvent;
+    component.onFloorPlanWheel(wheelInEvent);
+    expect(wheelInEvent.preventDefault).toHaveBeenCalled();
+    expect(component.floorPlanZoom).toBe(1.15);
+
+    // Zoom out with wheel
+    const wheelOutEvent = { deltaY: 100, preventDefault: jasmine.createSpy('preventDefault') } as unknown as WheelEvent;
+    component.onFloorPlanWheel(wheelOutEvent);
+    expect(wheelOutEvent.preventDefault).toHaveBeenCalled();
+    expect(component.floorPlanZoom).toBe(1.0);
+  });
+
+  it('does not select a table when user was panning the canvas', () => {
+    const table: TableBar = { id: 7, numero: 7, capacite: 4, occupee: false, zone: 'Salle', createdAt: '', updatedAt: '' };
+    component.tables = [table];
+    component.reservationForm.get('tableId')?.setValue(null);
+
+    // Flagged as dragged
+    component.hasDraggedFloorPlan = true;
+    component.selectTableFromFloorPlan(table);
+
+    // Table was NOT selected because it was a pan drag
+    expect(component.reservationForm.get('tableId')?.value).toBeNull();
+  });
+
+  it('resets pan coordinates when switching floor level or clicking reset view', () => {
+    component.floorPlanPanX = 120;
+    component.floorPlanPanY = 80;
+    component.floorPlanZoom = 2.0;
+
+    component.resetFloorPlanZoom();
+    expect(component.floorPlanPanX).toBe(0);
+    expect(component.floorPlanPanY).toBe(0);
+    expect(component.floorPlanZoom).toBe(1.0);
+
+    // When switching floor
+    component.floorPlanPanX = 50;
+    component.selectFloor('ETAGE_1');
+    expect(component.floorPlanPanX).toBe(0);
+    expect(component.floorPlanPanY).toBe(0);
   });
 });

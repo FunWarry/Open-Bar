@@ -247,8 +247,8 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
         switchMap(() => forkJoin({
           tables: this.tableService.getAll(),
           positions: this.planSalleService.getPositions(),
-          etages: this.etageService.getAll().pipe(catchError(() => EMPTY)),
-          zones: this.zoneService.getAll().pipe(catchError(() => EMPTY)),
+          etages: this.etageService.getAll().pipe(catchError(() => of([]))),
+          zones: this.zoneService.getAll().pipe(catchError(() => of([]))),
           upcomingReservations: this.reservationService.getUpcoming(60).pipe(catchError(() => of([]))),
         }).pipe(
           catchError(() => {
@@ -337,10 +337,23 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
-  private timeToMinutes(timeStr: string): number {
+  private timeToMinutes(timeStr: unknown): number {
     if (!timeStr) return 0;
-    const parts = timeStr.split(':');
-    return (Number.parseInt(parts[0], 10) || 0) * 60 + (Number.parseInt(parts[1], 10) || 0);
+    if (Array.isArray(timeStr)) {
+      const h = Number(timeStr[0]) || 0;
+      const m = Number(timeStr[1]) || 0;
+      return h * 60 + m;
+    }
+    if (typeof timeStr === 'string' || typeof timeStr === 'number') {
+      const str = String(timeStr).trim();
+      const parts = str.split(':');
+      if (parts.length >= 2) {
+        const h = Number.parseInt(parts[0], 10) || 0;
+        const m = Number.parseInt(parts[1], 10) || 0;
+        return h * 60 + m;
+      }
+    }
+    return 0;
   }
 
   recalculerStatutsInstantT(): void {
@@ -350,14 +363,17 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     const instantMin = this.timeToMinutes(this.selectedInstantT);
 
     this.dayReservations.forEach((r) => {
-      if (!r.tableId) return;
+      const tableId = r.tableId != null
+        ? Number(r.tableId)
+        : this.tables.find((t) => t.numero === r.tableNumero)?.id;
+      if (!tableId) return;
       if (r.statut === 'CANCELLED' || r.statut === 'NO_SHOW') return;
 
       const rStart = this.timeToMinutes(r.heureReservation);
       const rEnd = rStart + (r.dureeMinutes || 90);
 
       if (instantMin >= rStart && instantMin < rEnd) {
-        this.activeReservationsByTableId.set(r.tableId, r);
+        this.activeReservationsByTableId.set(tableId, r);
       }
     });
   }
@@ -485,13 +501,19 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private resolveTableFloor(t: TableBar, pos?: TablePosition): string {
-    const zoneName = pos?.zone || t.zone;
-    if (zoneName) {
-      const z = this.zones.find(zItem => zItem.nom.toLowerCase() === zoneName.toLowerCase());
-      if (z?.etage) return this.normalizeFloorCode(z.etage);
-    }
     if (t.etage) return this.normalizeFloorCode(t.etage);
     if (pos?.floor) return this.normalizeFloorCode(pos.floor);
+
+    const zoneName = pos?.zone || t.zone;
+    if (zoneName) {
+      const trimmedZone = zoneName.trim().toLowerCase();
+      const z = this.zones.find(zItem => zItem.nom.trim().toLowerCase() === trimmedZone);
+      if (z?.etage) return this.normalizeFloorCode(z.etage);
+
+      if (trimmedZone.includes('mezzanine') || trimmedZone.includes('salon')) return 'ETAGE_1';
+      if (trimmedZone.includes('rooftop') || trimmedZone.includes('balcon')) return 'ETAGE_2';
+      if (trimmedZone.includes('terrasse') || trimmedZone.includes('salle') || trimmedZone.includes('bar')) return 'RDC';
+    }
     return 'RDC';
   }
 

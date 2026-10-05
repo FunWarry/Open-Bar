@@ -6,6 +6,7 @@ import {
   inject,
   Input,
   OnChanges,
+  OnDestroy,
   OnInit,
   Output,
   SimpleChanges,
@@ -45,8 +46,9 @@ import { ReservationService } from '../../../../core/services/reservation.servic
 import { PlanSalleService } from '../../../plan-salle/services/plan-salle.service';
 import { TablePosition, ZoneArea } from '../../../plan-salle/models/table-position.model';
 import { EtageService, EtageBar } from '../../../../core/services/etage.service';
+import { ZoneService, ZoneBar } from '../../../../core/services/zone.service';
 import { ModalComponent } from '../../../../core/components/ui/modal/modal.component';
-import { catchError, of } from 'rxjs';
+import { catchError, distinctUntilChanged, merge, of, Subject, takeUntil } from 'rxjs';
 import {
   SearchableOption,
   SearchableSelectComponent,
@@ -73,13 +75,17 @@ import {
   styleUrls: ['./reservation-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ReservationModalComponent implements OnInit, OnChanges {
+export class ReservationModalComponent implements OnInit, OnChanges, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly reservationService = inject(ReservationService);
   private readonly planSalleService = inject(PlanSalleService);
   private readonly etageService = inject(EtageService);
+  private readonly zoneService = inject(ZoneService);
   private readonly translocoService = inject(TranslocoService);
+
+  private readonly destroy$ = new Subject<void>();
+  private readonly formDestroy$ = new Subject<void>();
 
   @Input() isOpen = false;
   @Input() reservationToEdit?: Reservation | null = null;
@@ -88,8 +94,8 @@ export class ReservationModalComponent implements OnInit, OnChanges {
   @Input() initialTableId?: number | null;
   @Input() tables: TableBar[] = [];
 
-  @Output() modalClose = new EventEmitter<void>();
-  @Output() reservationSaved = new EventEmitter<Reservation>();
+  @Output() readonly modalClose = new EventEmitter<void>();
+  @Output() readonly reservationSaved = new EventEmitter<Reservation>();
 
   reservationForm!: FormGroup;
   isSaving = false;
@@ -103,10 +109,24 @@ export class ReservationModalComponent implements OnInit, OnChanges {
   selectedFloor = 'RDC';
   selectedFloorPlanZone = 'ALL';
   etages: EtageBar[] = [];
+  backendZones: ZoneBar[] = [];
   dayReservations: Reservation[] = [];
   tablePositions: TablePosition[] = [];
   zoneAreas: ZoneArea[] = [];
   floorPlanZoom = 1.0;
+  floorPlanPanX = 0;
+  floorPlanPanY = 0;
+  isPanningFloorPlan = false;
+  hasDraggedFloorPlan = false;
+
+  private panStartMouseX = 0;
+  private panStartMouseY = 0;
+  private panStartOffsetX = 0;
+  private panStartOffsetY = 0;
+
+  get floorPlanTransform(): string {
+    return `translate(${this.floorPlanPanX}px, ${this.floorPlanPanY}px) scale(${this.floorPlanZoom})`;
+  }
 
   /**
    * Normalizes floor code identifiers to ensure consistent comparison across models.
@@ -125,16 +145,30 @@ export class ReservationModalComponent implements OnInit, OnChanges {
    */
   resolveTableFloor(t: TableBar): string {
     const pos = this.tablePositions.find((p) => p.tableId === t.id);
-    if (pos?.floor) return this.normalizeFloorCode(pos.floor);
-    if (t.etage) return this.normalizeFloorCode(t.etage);
 
-    const zoneName = pos?.zone || t.zone;
+    // 1. Explicit floor override on Table entity or TablePosition (when explicitly set)
+    if (t.etage) return this.normalizeFloorCode(t.etage);
+    if (pos?.floor) return this.normalizeFloorCode(pos.floor);
+
+    // 2. Zone to Etage association
+    const zoneName = t.zone || pos?.zone;
     if (zoneName) {
+      const trimmed = zoneName.trim().toLowerCase();
       const zArea = this.zoneAreas.find(
-        (z) => z.nom?.trim().toLowerCase() === zoneName.trim().toLowerCase()
+        (z) => z.nom?.trim().toLowerCase() === trimmed
       );
       if (zArea?.etage) return this.normalizeFloorCode(zArea.etage);
+
+      const bz = this.backendZones.find(
+        (z) => z.nom?.trim().toLowerCase() === trimmed
+      );
+      if (bz?.etage) return this.normalizeFloorCode(bz.etage);
+
+      if (trimmed.includes('mezzanine') || trimmed.includes('salon')) return 'ETAGE_1';
+      if (trimmed.includes('rooftop') || trimmed.includes('balcon')) return 'ETAGE_2';
+      if (trimmed.includes('terrasse') || trimmed.includes('salle') || trimmed.includes('bar')) return 'RDC';
     }
+
     return 'RDC';
   }
 
@@ -142,26 +176,43 @@ export class ReservationModalComponent implements OnInit, OnChanges {
    * Returns all available floor levels dynamically detected or loaded from backend.
    */
   get availableFloors(): { code: string; nom: string }[] {
+    const detected = new Map<string, string>();
+
+    // 1. Configured etages from EtageService
     if (this.etages && this.etages.length > 0) {
-      return this.etages.map((e) => ({
-        code: this.normalizeFloorCode(e.code),
-        nom: e.nom,
-      }));
+      this.etages.forEach((e) => {
+        const code = this.normalizeFloorCode(e.code);
+        if (!detected.has(code)) {
+          detected.set(code, e.nom || code);
+        }
+      });
     }
 
-    const detected = new Map<string, string>();
-    (this.tables || []).forEach((t) => {
-      const code = this.resolveTableFloor(t);
-      if (!detected.has(code)) {
-        detected.set(code, t.etage || code);
+    // 2. Detected from backendZones
+    (this.backendZones || []).forEach((z) => {
+      if (z.etage) {
+        const code = this.normalizeFloorCode(z.etage);
+        if (!detected.has(code)) {
+          detected.set(code, z.etage);
+        }
       }
     });
+
+    // 3. Detected from zoneAreas
     (this.zoneAreas || []).forEach((z) => {
       if (z.etage) {
         const code = this.normalizeFloorCode(z.etage);
         if (!detected.has(code)) {
           detected.set(code, z.etage);
         }
+      }
+    });
+
+    // 4. Detected from tables
+    (this.tables || []).forEach((t) => {
+      const code = this.resolveTableFloor(t);
+      if (!detected.has(code)) {
+        detected.set(code, t.etage || code);
       }
     });
 
@@ -176,8 +227,10 @@ export class ReservationModalComponent implements OnInit, OnChanges {
    * Selects a single floor level and resets zone filter to show all zones of this floor.
    */
   selectFloor(code: string): void {
-    this.selectedFloor = code;
+    this.selectedFloor = this.normalizeFloorCode(code);
     this.selectedFloorPlanZone = 'ALL';
+    this.floorPlanPanX = 0;
+    this.floorPlanPanY = 0;
     this.cdr.markForCheck();
   }
 
@@ -324,18 +377,91 @@ export class ReservationModalComponent implements OnInit, OnChanges {
   }
 
   zoomFloorPlanIn(): void {
-    this.floorPlanZoom = Math.min(2.0, Math.round((this.floorPlanZoom + 0.15) * 100) / 100);
+    this.floorPlanZoom = Math.min(3.0, Math.round((this.floorPlanZoom + 0.15) * 100) / 100);
     this.cdr.markForCheck();
   }
 
   zoomFloorPlanOut(): void {
-    this.floorPlanZoom = Math.max(0.6, Math.round((this.floorPlanZoom - 0.15) * 100) / 100);
+    this.floorPlanZoom = Math.max(0.5, Math.round((this.floorPlanZoom - 0.15) * 100) / 100);
     this.cdr.markForCheck();
   }
 
   resetFloorPlanZoom(): void {
     this.floorPlanZoom = 1.0;
+    this.floorPlanPanX = 0;
+    this.floorPlanPanY = 0;
     this.cdr.markForCheck();
+  }
+
+  onFloorPlanMouseDown(event: MouseEvent): void {
+    if (event.button !== 0) return;
+    this.isPanningFloorPlan = true;
+    this.hasDraggedFloorPlan = false;
+    this.panStartMouseX = event.clientX;
+    this.panStartMouseY = event.clientY;
+    this.panStartOffsetX = this.floorPlanPanX;
+    this.panStartOffsetY = this.floorPlanPanY;
+  }
+
+  onFloorPlanMouseMove(event: MouseEvent): void {
+    if (!this.isPanningFloorPlan) return;
+    const dx = event.clientX - this.panStartMouseX;
+    const dy = event.clientY - this.panStartMouseY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+      this.hasDraggedFloorPlan = true;
+    }
+    this.floorPlanPanX = this.panStartOffsetX + dx;
+    this.floorPlanPanY = this.panStartOffsetY + dy;
+    this.cdr.markForCheck();
+  }
+
+  private endFloorPlanPan(): void {
+    if (this.isPanningFloorPlan) {
+      this.isPanningFloorPlan = false;
+      setTimeout(() => {
+        this.hasDraggedFloorPlan = false;
+      }, 50);
+    }
+  }
+
+  onFloorPlanMouseUp(): void {
+    this.endFloorPlanPan();
+  }
+
+  onFloorPlanWheel(event: WheelEvent): void {
+    event.preventDefault();
+    const delta = event.deltaY < 0 ? 0.15 : -0.15;
+    this.floorPlanZoom = Math.min(3.0, Math.max(0.5, Math.round((this.floorPlanZoom + delta) * 100) / 100));
+    this.cdr.markForCheck();
+  }
+
+  onFloorPlanTouchStart(event: TouchEvent): void {
+    if (event.touches.length === 1) {
+      const touch = event.touches[0];
+      this.isPanningFloorPlan = true;
+      this.hasDraggedFloorPlan = false;
+      this.panStartMouseX = touch.clientX;
+      this.panStartMouseY = touch.clientY;
+      this.panStartOffsetX = this.floorPlanPanX;
+      this.panStartOffsetY = this.floorPlanPanY;
+    }
+  }
+
+  onFloorPlanTouchMove(event: TouchEvent): void {
+    if (!this.isPanningFloorPlan || event.touches.length !== 1) return;
+    const touch = event.touches[0];
+    const dx = touch.clientX - this.panStartMouseX;
+    const dy = touch.clientY - this.panStartMouseY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+      this.hasDraggedFloorPlan = true;
+    }
+    this.floorPlanPanX = this.panStartOffsetX + dx;
+    this.floorPlanPanY = this.panStartOffsetY + dy;
+    this.cdr.markForCheck();
+  }
+
+  onFloorPlanTouchEnd(): void {
+    this.endFloorPlanPan();
   }
 
   get durationSelectOptions(): SearchableOption<number>[] {
@@ -410,6 +536,13 @@ export class ReservationModalComponent implements OnInit, OnChanges {
     this.initForm();
   }
 
+  ngOnDestroy(): void {
+    this.formDestroy$.next();
+    this.formDestroy$.complete();
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (
       changes['isOpen'] ||
@@ -428,6 +561,7 @@ export class ReservationModalComponent implements OnInit, OnChanges {
    * Initializes the reactive form structure.
    */
   initForm(): void {
+    this.formDestroy$.next();
     const today = new Date().toISOString().substring(0, 10);
     const defaultTime = this.initialTime || '19:30';
 
@@ -453,9 +587,64 @@ export class ReservationModalComponent implements OnInit, OnChanges {
       statut: [this.reservationToEdit?.statut || 'CONFIRMED', [Validators.required]],
     });
 
+    this.setupFormListeners();
+
     if (this.reservationForm.get('tableId')?.value) {
       this.checkTableAvailability();
     }
+  }
+
+  /**
+   * Subscribes to form value changes to ensure immediate reactivity of table availability and floor plan status.
+   */
+  private setupFormListeners(): void {
+    this.reservationForm.get('dateReservation')?.valueChanges
+      .pipe(
+        takeUntil(this.formDestroy$),
+        takeUntil(this.destroy$),
+        distinctUntilChanged(),
+      )
+      .subscribe((newDate) => {
+        if (newDate) {
+          this.loadDayReservations(newDate);
+        }
+        this.checkTableAvailability();
+        this.cdr.markForCheck();
+      });
+
+    const heureControl = this.reservationForm.get('heureReservation');
+    const dureeControl = this.reservationForm.get('dureeMinutes');
+    const personnesControl = this.reservationForm.get('nombrePersonnes');
+    const tableIdControl = this.reservationForm.get('tableId');
+
+    if (heureControl && dureeControl && personnesControl && tableIdControl) {
+      merge(
+        heureControl.valueChanges,
+        dureeControl.valueChanges,
+        personnesControl.valueChanges,
+        tableIdControl.valueChanges,
+      )
+        .pipe(
+          takeUntil(this.formDestroy$),
+          takeUntil(this.destroy$),
+        )
+        .subscribe(() => {
+          this.checkTableAvailability();
+          this.cdr.markForCheck();
+        });
+    }
+  }
+
+  /**
+   * Immediate change handler for date, time, and guest count inputs to guarantee instantaneous reactivity on DOM input/change events.
+   */
+  onDateOrTimeChanged(): void {
+    const targetDate = this.reservationForm?.get('dateReservation')?.value;
+    if (targetDate) {
+      this.loadDayReservations(targetDate);
+    }
+    this.checkTableAvailability();
+    this.cdr.markForCheck();
   }
 
   /**
@@ -542,6 +731,17 @@ export class ReservationModalComponent implements OnInit, OnChanges {
       });
     }
 
+    if (typeof this.zoneService?.getAll === 'function') {
+      this.zoneService.getAll().pipe(catchError(() => of([]))).subscribe({
+        next: (zones) => {
+          this.backendZones = zones || [];
+          this.synchronizeZoneAreas(zones || []);
+          this.syncSelectedFloorWithCurrentTable();
+          this.cdr.markForCheck();
+        },
+      });
+    }
+
     if (typeof this.planSalleService?.getPositions === 'function') {
       this.planSalleService.getPositions().subscribe({
         next: (positions) => {
@@ -552,18 +752,67 @@ export class ReservationModalComponent implements OnInit, OnChanges {
       });
     }
 
+    this.synchronizeZoneAreas(this.backendZones);
+    this.syncSelectedFloorWithCurrentTable();
+  }
+
+  /**
+   * Synchronizes zone boundary layout areas with backend zones and local custom edits.
+   */
+  private synchronizeZoneAreas(zones: ZoneBar[]): void {
+    let localZones: ZoneArea[] = [];
     try {
       const stored = localStorage.getItem('openbar_zone_areas');
       if (stored) {
-        this.zoneAreas = JSON.parse(stored);
-      } else {
-        this.zoneAreas = [];
+        localZones = JSON.parse(stored);
       }
     } catch {
-      this.zoneAreas = [];
+      localZones = [];
     }
 
-    this.syncSelectedFloorWithCurrentTable();
+    if (zones && zones.length > 0) {
+      this.zoneAreas = zones.map((bz, idx) => {
+        const localMatch = localZones.find(
+          (lz) => lz.id === `za-${bz.id}` || lz.nom?.trim().toLowerCase() === bz.nom?.trim().toLowerCase()
+        );
+        const normalizedEtage = this.normalizeFloorCode(bz.etage);
+
+        let parsedPoints: number[] | undefined;
+        if (bz.pointsJson) {
+          try { parsedPoints = JSON.parse(bz.pointsJson); } catch {}
+        } else if (localMatch?.points) {
+          parsedPoints = localMatch.points;
+        }
+
+        let parsedRadii: [number, number, number, number] | undefined;
+        if (bz.cornerRadiiJson) {
+          try { parsedRadii = JSON.parse(bz.cornerRadiiJson); } catch {}
+        } else if (localMatch?.cornerRadii) {
+          parsedRadii = localMatch.cornerRadii;
+        }
+
+        return {
+          id: `za-${bz.id ?? idx}`,
+          nom: bz.nom,
+          etage: normalizedEtage,
+          x: localMatch?.x ?? bz.planX ?? (140 + (idx % 3) * 380),
+          y: localMatch?.y ?? bz.planY ?? (140 + Math.floor(idx / 3) * 280),
+          width: localMatch?.width ?? bz.planWidth ?? 400,
+          height: localMatch?.height ?? bz.planHeight ?? 280,
+          shapeType: (bz.shapeType as 'rect' | 'polygon') || localMatch?.shapeType || 'rect',
+          points: parsedPoints,
+          cornerRadii: parsedRadii || [16, 16, 16, 16],
+          couleur: bz.couleur || localMatch?.couleur || 'var(--primary)',
+          labelX: localMatch?.labelX,
+          labelY: localMatch?.labelY,
+        };
+      });
+    } else if (localZones.length > 0) {
+      this.zoneAreas = localZones.map((z) => ({
+        ...z,
+        etage: this.normalizeFloorCode(z.etage),
+      }));
+    }
   }
 
   /**
@@ -573,22 +822,54 @@ export class ReservationModalComponent implements OnInit, OnChanges {
     const targetDate = date || this.reservationForm?.get('dateReservation')?.value;
     if (!targetDate || typeof this.reservationService?.getReservations !== 'function') return;
 
-    this.reservationService.getReservations({ date: targetDate }).subscribe({
-      next: (list) => {
-        this.dayReservations = list;
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.dayReservations = [];
-        this.cdr.markForCheck();
-      },
-    });
+    this.reservationService.getReservations({ date: targetDate })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (list) => {
+          this.dayReservations = list || [];
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.dayReservations = [];
+          this.cdr.markForCheck();
+        },
+      });
   }
 
-  timeToMinutes(t: string): number {
+  /**
+   * Formats time values (string or array) to HH:mm display format.
+   */
+  formatTimeDisplay(t: unknown): string {
+    if (!t) return '';
+    if (Array.isArray(t)) {
+      const h = String(t[0] ?? 0).padStart(2, '0');
+      const m = String(t[1] ?? 0).padStart(2, '0');
+      return `${h}:${m}`;
+    }
+    const str = String(t).trim();
+    return str.length >= 5 ? str.substring(0, 5) : str;
+  }
+
+  /**
+   * Converts a time string, array, or number to elapsed minutes from midnight.
+   */
+  timeToMinutes(t: unknown): number {
     if (!t) return 0;
-    const parts = t.split(':');
-    return (Number.parseInt(parts[0], 10) || 0) * 60 + (Number.parseInt(parts[1], 10) || 0);
+    if (Array.isArray(t)) {
+      const h = Number(t[0]) || 0;
+      const m = Number(t[1]) || 0;
+      return h * 60 + m;
+    }
+    if (typeof t === 'string' || typeof t === 'number') {
+      const str = String(t).trim();
+      const parts = str.split(':');
+      if (parts.length >= 2) {
+        const h = Number.parseInt(parts[0], 10) || 0;
+        const m = Number.parseInt(parts[1], 10) || 0;
+        return h * 60 + m;
+      }
+    }
+    return 0;
   }
 
   /**
@@ -600,13 +881,6 @@ export class ReservationModalComponent implements OnInit, OnChanges {
     label: string;
   } {
     const selectedTableId = this.reservationForm?.get('tableId')?.value;
-    if (selectedTableId === table.id) {
-      return {
-        status: 'SELECTED',
-        label: this.translocoService.translate('RESERVATIONS.FLOOR_PLAN_STATUS_SELECTED'),
-      };
-    }
-
     const slotStartStr = this.reservationForm?.get('heureReservation')?.value || '19:30';
     const duree = Number(this.reservationForm?.get('dureeMinutes')?.value || 90);
     const partySize = Number(this.reservationForm?.get('nombrePersonnes')?.value || 1);
@@ -614,10 +888,13 @@ export class ReservationModalComponent implements OnInit, OnChanges {
     const slotStartMin = this.timeToMinutes(slotStartStr);
     const slotEndMin = slotStartMin + duree;
 
-    // Check conflict
+    // Check conflict against loaded reservations for the selected day
     const conflict = this.dayReservations.find((r) => {
-      if (r.tableId !== table.id) return false;
-      if (r.id === this.reservationToEdit?.id) return false;
+      const matchesTable =
+        (r.tableId != null && Number(r.tableId) === Number(table.id)) ||
+        (r.tableNumero != null && table.numero != null && Number(r.tableNumero) === Number(table.numero));
+      if (!matchesTable) return false;
+      if (this.reservationToEdit?.id && Number(r.id) === Number(this.reservationToEdit.id)) return false;
       if (r.statut === 'CANCELLED' || r.statut === 'NO_SHOW') return false;
 
       const rStartMin = this.timeToMinutes(r.heureReservation);
@@ -632,8 +909,15 @@ export class ReservationModalComponent implements OnInit, OnChanges {
         conflictReservation: conflict,
         label: this.translocoService.translate('RESERVATIONS.TABLE_OCCUPIED_BY', {
           name: conflict.nomClient,
-          time: conflict.heureReservation,
+          time: this.formatTimeDisplay(conflict.heureReservation),
         }),
+      };
+    }
+
+    if (selectedTableId != null && Number(selectedTableId) === Number(table.id)) {
+      return {
+        status: 'SELECTED',
+        label: this.translocoService.translate('RESERVATIONS.FLOOR_PLAN_STATUS_SELECTED'),
       };
     }
 
@@ -654,6 +938,9 @@ export class ReservationModalComponent implements OnInit, OnChanges {
    * Selects a table clicked on the visual floor plan.
    */
   selectTableFromFloorPlan(table: TableBar): void {
+    if (this.hasDraggedFloorPlan) {
+      return;
+    }
     const statusInfo = this.getTableSlotStatus(table);
     if (statusInfo.status === 'OCCUPIED') {
       return;
@@ -727,6 +1014,7 @@ export class ReservationModalComponent implements OnInit, OnChanges {
     if (option) {
       this.reservationForm.get('dureeMinutes')?.setValue(option.value);
       this.checkTableAvailability();
+      this.cdr.markForCheck();
     }
   }
 
