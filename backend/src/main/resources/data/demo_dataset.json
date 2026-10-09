@@ -3338,6 +3338,318 @@
       "statut": "PENDING",
       "notes": "Réservation sans table assignée pour le moment"
     }
+  ],
+  "checklist_templates": [
+    {
+      "code": "BAR_OPENING",
+      "title": "Ouverture du Bar",
+      "description": "Procédure d'ouverture quotidienne : contrôles HACCP, mise sous tension et préparation de la salle.",
+      "category": "OPENING",
+      "estimatedDurationMinutes": 30,
+      "icon": "sunny-outline",
+      "color": "var(--primary)",
+      "items": [
+        {
+          "title": "Vérifier la température des réfrigérateurs et chambres froides (HACCP)",
+          "description": "Noter la température du frigo à fûts (< 4°C) et du frigo à garnitures (< 3°C).",
+          "isMandatory": true,
+          "orderIndex": 1,
+          "targetRole": "BARMAN",
+          "assignedRoles": ["BARMAN", "HYGIENE", "MANAGER"],
+          "mediaType": "IMAGE",
+          "mediaUrl": "/uploads/cocktails/default.jpg",
+          "steps": [
+            {
+              "stepNumber": 1,
+              "title": "Lecture de la sonde frigo boissons",
+              "description": "Vérifier que la température affichée sur le thermomètre digital est comprise entre 2°C et 4°C.",
+              "mediaUrl": "/uploads/cocktails/default.jpg"
+            },
+            {
+              "stepNumber": 2,
+              "title": "Contrôle chambre froide garnitures",
+              "description": "Relever la température de la chambre froide (< 3°C) et consigner sur la fiche HACCP."
+            },
+            {
+              "stepNumber": 3,
+              "title": "Inspection des joints de porte",
+              "description": "S'assurer de l'étanchéité des joints magnétiques et de la fermeture hermétique."
+            }
+          ]
+        },
+        {
+          "title": "Mise sous tension des machines à café et moulins",
+          "description": "Purge vapeur des buses et vérification de la pression du groupe d'extraction (9 bars).",
+          "isMandatory": true,
+          "orderIndex": 2,
+          "targetRole": "BARMAN",
+          "assignedRoles": ["BARMAN"],
+          "mediaType": "VIDEO",
+          "videoEmbedUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "steps": [
+            {
+              "stepNumber": 1,
+              "title": "Allumage chaudière",
+              "description": "Actionner l'interrupteur principal et attendre la montée en pression à 1.2 bar."
+            },
+            {
+              "stepNumber": 2,
+              "title": "Purge des groupes et buses",
+              "description": "Faire couler 200ml d'eau par groupe et purger les buses vapeur avec une microfibre humide."
+            }
+          ]
+        },
+        {
+          "title": "Vérification et comptage du fond de caisse initial",
+          "description": "Vérifier la présence du fond de caisse standard de 300,00 € dans le tiroir principal.",
+          "isMandatory": true,
+          "orderIndex": 3,
+          "targetRole": "MANAGER",
+          "assignedRoles": ["MANAGER"],
+          "mediaType": "NONE",
+          "steps": [
+            {
+              "stepNumber": 1,
+              "title": "Comptage des pièces et billets",
+              "description": "Dénombrer les rouleaux et billets pour vérifier le total de 300,00 €."
+            },
+            {
+              "stepNumber": 2,
+              "title": "Saisie dans le module caisse",
+              "description": "Valider l'ouverture du tiroir-caisse dans le logiciel OpenBar."
+            }
+          ]
+        },
+        {
+          "title": "Mise en place de la terrasse et nettoyage des tables",
+          "description": "Déployer les parasols, installer les chaises, essuyer les plateaux avec produit virucide.",
+          "isMandatory": true,
+          "orderIndex": 4,
+          "targetRole": "SERVEUR",
+          "assignedRoles": ["SERVEUR", "BARMAN"],
+          "mediaType": "IMAGE",
+          "mediaUrl": "/uploads/cocktails/default.jpg",
+          "steps": [
+            {
+              "stepNumber": 1,
+              "title": "Installation du mobilier",
+              "description": "Disposer les tables et chaises selon le plan d'implantation terrasse."
+            },
+            {
+              "stepNumber": 2,
+              "title": "Désinfection virucide des plateaux",
+              "description": "Pulvériser le produit homologué et essuyer avec une lavette propre."
+            },
+            {
+              "stepNumber": 3,
+              "title": "Déploiement des parasols et éclairages",
+              "description": "Ouvrir les parasols et vérifier les lampes solaires d'ambiance."
+            }
+          ]
+        },
+        {
+          "title": "Préparation des bacs de garnitures et stock de glaçons",
+          "description": "Découper rondelles de citrons verts, citrons jaunes et oranges. Remplir le bac à glace pilée.",
+          "isMandatory": false,
+          "orderIndex": 5,
+          "targetRole": "BARMAN",
+          "assignedRoles": ["BARMAN", "CUISINIER"],
+          "mediaType": "NONE",
+          "steps": [
+            {
+              "stepNumber": 1,
+              "title": "Lavage des agrumes",
+              "description": "Nettoyer les citrons et oranges à l'eau courante avant découpe."
+            },
+            {
+              "stepNumber": 2,
+              "title": "Découpe des rondelles et quartiers",
+              "description": "Tailler des tranches de 4mm d'épaisseur régulières et les placer dans les bacs gastro inox réfrigérés."
+            },
+            {
+              "stepNumber": 3,
+              "title": "Remplissage bacs à glaçons",
+              "description": "Transférer la glace avec la pelle dédiée (interdiction d'utiliser un verre)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "BAR_CLOSING",
+      "title": "Fermeture & Sécurité Nocturne",
+      "description": "Checklist de clôture de service : arrêt des équipements, caisse et verrouillage.",
+      "category": "CLOSING",
+      "estimatedDurationMinutes": 45,
+      "icon": "moon-outline",
+      "color": "var(--semantic-danger)",
+      "items": [
+        {
+          "title": "Clôture de caisse et génération du rapport Z",
+          "description": "Compter le tiroir-caisse, enregistrer le montant final et transférer les espèces au coffre.",
+          "isMandatory": true,
+          "orderIndex": 1,
+          "targetRole": "MANAGER",
+          "assignedRoles": ["MANAGER"],
+          "mediaType": "NONE",
+          "steps": [
+            {
+              "stepNumber": 1,
+              "title": "Comptage final et rapprochement",
+              "description": "Rapprocher le montant physique avec le rapport des ventes TPE et espèces."
+            },
+            {
+              "stepNumber": 2,
+              "title": "Génération du ticket Z et mise au coffre",
+              "description": "Éditer le Z de caisse, isoler la recette et placer le sac scellé au coffre."
+            }
+          ]
+        },
+        {
+          "title": "Nettoyage et rinçage des tireuses à bière",
+          "description": "Rincer les becs de tirage à l'eau claire et vider les bacs égouttoirs.",
+          "isMandatory": true,
+          "orderIndex": 2,
+          "targetRole": "BARMAN",
+          "assignedRoles": ["BARMAN"],
+          "mediaType": "IMAGE",
+          "mediaUrl": "/uploads/cocktails/default.jpg",
+          "steps": [
+            {
+              "stepNumber": 1,
+              "title": "Démontage des têtes de tirage",
+              "description": "Fermer les vannes de CO2, débrancher les fûts et plonger les têtes dans l'eau chaude."
+            },
+            {
+              "stepNumber": 2,
+              "title": "Brossage des becs et bacs égouttoirs",
+              "description": "Nettoyer les becs à la brosse conique et vider le bac de récupération."
+            }
+          ]
+        },
+        {
+          "title": "Rangement du mobilier de terrasse et verrouillage",
+          "description": "Empiler les chaises, rentrer les parasols et cadenasser la grille extérieure.",
+          "isMandatory": true,
+          "orderIndex": 3,
+          "targetRole": "SERVEUR",
+          "assignedRoles": ["SERVEUR"],
+          "mediaType": "NONE",
+          "steps": [
+            {
+              "stepNumber": 1,
+              "title": "Rentrée des coussins et accessoires",
+              "description": "Stocker les coussins et menus à l'intérieur du bar."
+            },
+            {
+              "stepNumber": 2,
+              "title": "Empilage et chaînage",
+              "description": "Empiler les chaises et fixer la chaîne de sécurité cadenassée."
+            }
+          ]
+        },
+        {
+          "title": "Vérification des issues de secours et alarme",
+          "description": "Éteindre les luminaires, s'assurer qu'aucun client ne reste, activer le système d'alarme.",
+          "isMandatory": true,
+          "orderIndex": 4,
+          "targetRole": "MANAGER",
+          "assignedRoles": ["MANAGER"],
+          "mediaType": "NONE",
+          "steps": [
+            {
+              "stepNumber": 1,
+              "title": "Tour de contrôle de l'établissement",
+              "description": "Vérifier toilettes, cuisine, réserve et fermeture des fenêtres."
+            },
+            {
+              "stepNumber": 2,
+              "title": "Armement du système d'alarme",
+              "description": "Composer le code d'armement principal et verrouiller la porte d'entrée."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "HYGIENE_HACCP",
+      "title": "Contrôles d'Hygiène & HACCP",
+      "description": "Routines sanitaires approfondies, rotation des stocks et désinfection des postes.",
+      "category": "CLEANING_HYGIENE",
+      "estimatedDurationMinutes": 60,
+      "icon": "sparkles-outline",
+      "color": "var(--semantic-success)",
+      "items": [
+        {
+          "title": "Désinfection complète de la machine à glaçons",
+          "description": "Vider entièrement le bac, appliquer le désinfectant contact alimentaire, rincer abondamment.",
+          "isMandatory": true,
+          "orderIndex": 1,
+          "targetRole": "BARMAN",
+          "assignedRoles": ["BARMAN", "HYGIENE"],
+          "mediaType": "IMAGE",
+          "mediaUrl": "/uploads/cocktails/default.jpg",
+          "steps": [
+            {
+              "stepNumber": 1,
+              "title": "Vidage et arrêt",
+              "description": "Couper l'alimentation électrique et évacuer toute la glace restante."
+            },
+            {
+              "stepNumber": 2,
+              "title": "Application désinfectant alimentaire",
+              "description": "Pulvériser la solution détergente détartrante agréée contact alimentaire."
+            },
+            {
+              "stepNumber": 3,
+              "title": "Rinçage et remise en route",
+              "description": "Rincer à grande eau claire, sécher et réenclencher la machine. Jeter les deux premières tournées."
+            }
+          ]
+        },
+        {
+          "title": "Contrôle des dates limites de consommation (DLC) des sirops et jus",
+          "description": "Vérifier l'étiquetage des bouteilles ouvertes et jeter les produits périmés.",
+          "isMandatory": true,
+          "orderIndex": 2,
+          "targetRole": "BARMAN",
+          "assignedRoles": ["BARMAN", "HYGIENE", "MANAGER"],
+          "mediaType": "NONE",
+          "steps": [
+            {
+              "stepNumber": 1,
+              "title": "Revue des bouteilles ouvertes",
+              "description": "Vérifier la date d'ouverture inscrite sur chaque étiquette."
+            },
+            {
+              "stepNumber": 2,
+              "title": "Élimination et réapprovisionnement",
+              "description": "Jeter tout produit dont la DLC secondaire est dépassée et noter dans le cahier de pertes."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "checklist_runs": [
+    {
+      "templateCode": "BAR_OPENING",
+      "category": "OPENING",
+      "status": "COMPLETED",
+      "createdBy": "manager",
+      "completedBy": "barman1",
+      "notes": "Ouverture effectuée sans incident, terrasse prête à 9h00.",
+      "minutesAgo": 180,
+      "completedMinutesAgo": 150
+    },
+    {
+      "templateCode": "HYGIENE_HACCP",
+      "category": "CLEANING_HYGIENE",
+      "status": "IN_PROGRESS",
+      "createdBy": "manager",
+      "notes": "Contrôle hebdomadaire en cours de réalisation.",
+      "minutesAgo": 40
+    }
   ]
 }
 

@@ -101,6 +101,12 @@ class SampleDataSeederServiceTest {
     private ReservationRepository reservationRepository;
 
     @Mock
+    private ChecklistTemplateRepository checklistTemplateRepository;
+
+    @Mock
+    private ChecklistRunRepository checklistRunRepository;
+
+    @Mock
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @Mock
@@ -141,6 +147,12 @@ class SampleDataSeederServiceTest {
         lenient().when(avoirCreditRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(tableSessionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(tableCartItemRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(checklistTemplateRepository.save(any())).thenAnswer(invocation -> {
+            ChecklistTemplate ct = invocation.getArgument(0);
+            if (ct != null && ct.getId() == null) ct.setId(1L);
+            return ct;
+        });
+        lenient().when(checklistRunRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         Ingredient mockIng = new Ingredient();
         mockIng.setId(1L);
