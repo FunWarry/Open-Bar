@@ -569,6 +569,7 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     module_mystery_roulette_enabled BOOLEAN DEFAULT true,
     module_payment_terminal_enabled BOOLEAN DEFAULT true,
     module_table_reservations_enabled BOOLEAN DEFAULT true,
+    module_checklists_procedures_enabled BOOLEAN DEFAULT true,
     roulette_price_cocktail DECIMAL(10,2) DEFAULT 7.50,
     roulette_price_mocktail DECIMAL(10,2) DEFAULT 5.50,
     roulette_stock_bias VARCHAR(30) DEFAULT 'BALANCED',
@@ -926,3 +927,78 @@ CREATE TABLE IF NOT EXISTS reservations (
 CREATE INDEX IF NOT EXISTS idx_reservations_date ON reservations(date_reservation);
 CREATE INDEX IF NOT EXISTS idx_reservations_table ON reservations(table_id);
 CREATE INDEX IF NOT EXISTS idx_reservations_statut ON reservations(statut);
+
+-- 20. Operational Checklists & SOP Procedures
+CREATE TABLE IF NOT EXISTS checklist_templates (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(150) NOT NULL,
+    description TEXT,
+    category VARCHAR(30) NOT NULL,
+    estimated_duration_minutes INTEGER DEFAULT 15,
+    icon VARCHAR(50) DEFAULT 'checkbox-outline',
+    color VARCHAR(30) DEFAULT 'var(--primary)',
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS checklist_template_items (
+    id BIGSERIAL PRIMARY KEY,
+    template_id BIGINT NOT NULL REFERENCES checklist_templates(id) ON DELETE CASCADE,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    is_mandatory BOOLEAN NOT NULL DEFAULT true,
+    order_index INTEGER NOT NULL DEFAULT 0,
+    target_role VARCHAR(20),
+    assigned_roles VARCHAR(255),
+    assigned_user_ids VARCHAR(255),
+    assigned_usernames VARCHAR(500),
+    media_type VARCHAR(30) DEFAULT 'NONE',
+    media_url TEXT,
+    video_embed_url TEXT,
+    media_attachments_json TEXT,
+    steps_json TEXT
+);
+
+CREATE TABLE IF NOT EXISTS checklist_runs (
+    id BIGSERIAL PRIMARY KEY,
+    template_id BIGINT REFERENCES checklist_templates(id) ON DELETE SET NULL,
+    template_title VARCHAR(150) NOT NULL,
+    category VARCHAR(30) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'IN_PROGRESS' CHECK (status IN ('IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
+    started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP,
+    created_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    completed_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    notes TEXT
+);
+
+CREATE TABLE IF NOT EXISTS checklist_run_items (
+    id BIGSERIAL PRIMARY KEY,
+    run_id BIGINT NOT NULL REFERENCES checklist_runs(id) ON DELETE CASCADE,
+    template_item_id BIGINT,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    is_mandatory BOOLEAN NOT NULL DEFAULT true,
+    order_index INTEGER NOT NULL DEFAULT 0,
+    target_role VARCHAR(20),
+    assigned_roles VARCHAR(255),
+    assigned_user_ids VARCHAR(255),
+    assigned_usernames VARCHAR(500),
+    media_type VARCHAR(30) DEFAULT 'NONE',
+    media_url TEXT,
+    video_embed_url TEXT,
+    media_attachments_json TEXT,
+    steps_json TEXT,
+    is_completed BOOLEAN NOT NULL DEFAULT false,
+    completed_at TIMESTAMP,
+    completed_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    comment TEXT,
+    photo_proof_url TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_checklist_templates_category ON checklist_templates(category);
+CREATE INDEX IF NOT EXISTS idx_checklist_templates_active ON checklist_templates(is_active);
+CREATE INDEX IF NOT EXISTS idx_checklist_runs_status ON checklist_runs(status);
+CREATE INDEX IF NOT EXISTS idx_checklist_runs_started_at ON checklist_runs(started_at);
+CREATE INDEX IF NOT EXISTS idx_checklist_run_items_run_id ON checklist_run_items(run_id);
