@@ -292,4 +292,89 @@ describe('ChecklistsComponent', () => {
     expect(component.templateForm.get('title')?.value).toBe('Bar Opening Routine');
     expect(component.templateItems).toHaveSize(1);
   });
+
+  it('should save template update when editingTemplateId is set', () => {
+    component.openEditTemplateModal(sampleTemplate);
+    component.saveTemplate();
+    expect(mockChecklistService.updateTemplate).toHaveBeenCalledWith(1, jasmine.any(Object));
+    expect(component.isTemplateModalOpen()).toBeFalse();
+  });
+
+  it('should prompt and delete template when confirmed', async () => {
+    spyOn(component, 'confirmDeleteTemplate').and.callThrough();
+    await component.confirmDeleteTemplate(sampleTemplate);
+    expect(mockAlertCtrl.create).toHaveBeenCalled();
+  });
+
+  it('should prompt and complete active run session', async () => {
+    await component.confirmCompleteRun();
+    expect(mockAlertCtrl.create).toHaveBeenCalled();
+  });
+
+  it('should prompt and cancel active run session', async () => {
+    await component.confirmCancelRun();
+    expect(mockAlertCtrl.create).toHaveBeenCalled();
+  });
+
+  it('should select an execution run and update selectedRun signal', () => {
+    component.selectRun(sampleRun);
+    expect(component.selectedRun()?.id).toBe(50);
+  });
+
+  it('should open and close SOP media guide modal', () => {
+    component.openMediaViewer('SOP Guide', 'IMAGE', '/uploads/guide.jpg');
+    expect(component.mediaModalState().isOpen).toBeTrue();
+    expect(component.mediaModalState().url).toBe('/uploads/guide.jpg');
+
+    component.closeMediaViewer();
+    expect(component.mediaModalState().isOpen).toBeFalse();
+  });
+
+  it('should open and close comment and photo modal', () => {
+    component.openCommentModal(sampleRunItem);
+    expect(component.commentModalState().isOpen).toBeTrue();
+    expect(component.commentModalState().item?.id).toBe(201);
+
+    component.closeCommentModal();
+    expect(component.commentModalState().isOpen).toBeFalse();
+  });
+
+  it('should save item comment from modal', () => {
+    component.openCommentModal(sampleRunItem);
+    component.commentModalState.update(s => ({
+      ...s,
+      comment: 'Refrigerators at 3°C',
+      photoProofUrl: '/uploads/fridge.jpg'
+    }));
+
+    component.saveItemComment();
+    expect(mockChecklistService.toggleRunItem).toHaveBeenCalledWith(
+      50,
+      201,
+      jasmine.objectContaining({
+        comment: 'Refrigerators at 3°C',
+        photoProofUrl: '/uploads/fridge.jpg'
+      })
+    );
+    expect(component.commentModalState().isOpen).toBeFalse();
+  });
+
+  it('should filter items by category and toggle history audit', () => {
+    component.selectedCategory.set('OPENING');
+    expect(component.selectedCategory()).toBe('OPENING');
+
+    component.toggleHistoryAudit(50);
+    expect(component.expandedHistoryRunId()).toBe(50);
+  });
+
+  it('should add and remove procedural SOP sub-steps in template builder', () => {
+    component.openCreateTemplateModal();
+    expect(component.getStepsArray(0)).toHaveSize(0);
+
+    component.addStepToItem(0);
+    expect(component.getStepsArray(0)).toHaveSize(1);
+
+    component.removeStepFromItem(0, 0);
+    expect(component.getStepsArray(0)).toHaveSize(0);
+  });
 });

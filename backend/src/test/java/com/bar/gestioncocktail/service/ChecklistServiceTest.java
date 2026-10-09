@@ -336,4 +336,86 @@ class ChecklistServiceTest {
         assertThat(stats.activeTemplatesCount()).isEqualTo(1);
         assertThat(stats.averageCompletionPercentageToday()).isZero();
     }
+
+    @Test
+    @DisplayName("Should throw BusinessException when checklists module is disabled")
+    void shouldThrowExceptionWhenModuleDisabled() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(false);
+
+        assertThatThrownBy(() -> checklistService.getActiveRuns())
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Checklists and SOP procedures module is disabled");
+    }
+
+    @Test
+    @DisplayName("Should update existing checklist template")
+    void shouldUpdateTemplate() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(true);
+        when(checklistTemplateRepository.findById(1L)).thenReturn(Optional.of(testTemplate));
+        when(checklistTemplateRepository.save(any(ChecklistTemplate.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UpdateChecklistTemplateRequest updateReq = new UpdateChecklistTemplateRequest(
+                "Updated Title",
+                "Updated Description",
+                ChecklistCategory.CLOSING,
+                30,
+                "moon-outline",
+                "#ff0000",
+                true,
+                List.of(new CreateChecklistTemplateItemRequest(
+                        "New Step", "Desc", true, 0, UserRole.BARMAN,
+                        List.of("BARMAN"), List.of(1L), List.of("alice"),
+                        ChecklistMediaType.NONE, null, null, null, null
+                ))
+        );
+
+        ChecklistTemplateDTO updated = checklistService.updateTemplate(1L, updateReq);
+
+        assertThat(updated.title()).isEqualTo("Updated Title");
+        assertThat(updated.category()).isEqualTo(ChecklistCategory.CLOSING);
+        verify(checklistTemplateRepository).save(testTemplate);
+        verify(messagingTemplate).convertAndSend(eq("/topic/checklists"), any(ChecklistEventDTO.class));
+    }
+
+    @Test
+    @DisplayName("Should soft-delete / deactivate template")
+    void shouldDeleteTemplate() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(true);
+        when(checklistTemplateRepository.findById(1L)).thenReturn(Optional.of(testTemplate));
+        when(checklistTemplateRepository.save(any(ChecklistTemplate.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        checklistService.deleteTemplate(1L);
+
+        assertThat(testTemplate.getIsActive()).isFalse();
+        verify(checklistTemplateRepository).save(testTemplate);
+        verify(messagingTemplate).convertAndSend(eq("/topic/checklists"), any(ChecklistEventDTO.class));
+    }
+
+    @Test
+    @DisplayName("Should get run by ID or throw ResourceNotFoundException")
+    void shouldGetRunById() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(true);
+        when(checklistRunRepository.findById(50L)).thenReturn(Optional.of(testRun));
+        when(checklistRunRepository.findById(999L)).thenReturn(Optional.empty());
+
+        ChecklistRunDTO found = checklistService.getRunById(50L);
+        assertThat(found.id()).isEqualTo(50L);
+
+        assertThatThrownBy(() -> checklistService.getRunById(999L))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("Should list runs history filtered by status and category")
+    void shouldListRunsFiltered() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(true);
+        when(checklistRunRepository.findByStatusOrderByStartedAtDesc(ChecklistRunStatus.IN_PROGRESS))
+                .thenReturn(List.of(testRun));
+
+        List<ChecklistRunDTO> runs = checklistService.getRunsHistory(null, ChecklistCategory.OPENING, ChecklistRunStatus.IN_PROGRESS);
+        assertThat(runs).hasSize(1);
+
+        List<ChecklistRunDTO> active = checklistService.getActiveRuns();
+        assertThat(active).hasSize(1);
+    }
 }

@@ -758,21 +758,7 @@ export class ChecklistsComponent implements OnInit, OnDestroy {
       }
       const file = new File([blob], `proof_${Date.now()}.jpg`, { type: 'image/jpeg' });
       this.stopInModalCamera();
-
-      this.checklistService.uploadMedia(file).subscribe({
-        next: res => {
-          this.commentModalState.update(s => ({
-            ...s,
-            photoProofUrl: res.url,
-            isUploadingPhoto: false,
-          }));
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.commentModalState.update(s => ({ ...s, isUploadingPhoto: false }));
-          void this.showToast(this.transloco.translate('COMMON.ERROR'));
-        },
-      });
+      this.uploadProofPhoto(file);
     }, 'image/jpeg', 0.92);
   }
 
@@ -785,6 +771,16 @@ export class ChecklistsComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
     const file = input.files[0];
+    this.uploadProofPhoto(file);
+    input.value = '';
+  }
+
+  /**
+   * Uploads a photo proof file and stores the returned URL in modal state.
+   *
+   * @param file Image file to upload
+   */
+  private uploadProofPhoto(file: File): void {
     this.commentModalState.update(s => ({ ...s, isUploadingPhoto: true }));
 
     this.checklistService.uploadMedia(file).subscribe({
@@ -801,7 +797,6 @@ export class ChecklistsComponent implements OnInit, OnDestroy {
         void this.showToast(this.transloco.translate('COMMON.ERROR'));
       },
     });
-    input.value = '';
   }
 
   /**
