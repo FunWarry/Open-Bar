@@ -23,6 +23,19 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("handleNoResourceFound - returns 404 ErrorResponse with formatted path")
+    void handleNoResourceFound() {
+        org.springframework.web.servlet.resource.NoResourceFoundException ex =
+                new org.springframework.web.servlet.resource.NoResourceFoundException(org.springframework.http.HttpMethod.GET, "/favicon.ico", "favicon.ico");
+        ResponseEntity<ErrorResponse> response = defaultHandler.handleNoResourceFound(ex);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getError()).isEqualTo("Not Found");
+        assertThat(response.getBody().getMessage()).isEqualTo("Resource not found: /favicon.ico");
+    }
+
+    @Test
     @DisplayName("handleBusinessException - returns 400 ErrorResponse")
     void handleBusinessException() {
         BusinessException ex = new BusinessException("Business violation");

@@ -2,7 +2,8 @@
 param (
     [string]$Action = "",
     [string]$Scenario = "smoke",
-    [string]$Url = "http://localhost:8080"
+    [string]$Url = "http://localhost:8080",
+    [string]$Service = ""
 )
 
 $ErrorActionPreference = "Continue"
@@ -63,7 +64,7 @@ function Start-ProdApp {
     Write-Host "  - Frontend Web PWA (HTTP)  : http://localhost (redirects to HTTPS)" -ForegroundColor White
     Write-Host "  - Backend REST API         : http://localhost:8080" -ForegroundColor White
     Write-Host "  - Healthcheck              : http://localhost:8080/api/cocktails" -ForegroundColor White
-    Write-Host "  - Swagger UI               : http://localhost:8080/swagger-ui.html" -ForegroundColor White
+    Write-Host "  - Swagger UI               : http://localhost:8080/swagger-ui.html (Disabled in prod profile)" -ForegroundColor DarkGray
 }
 
 function Start-Rpi5Sim {
@@ -84,7 +85,7 @@ function Start-Rpi5Sim {
     Write-Host "  - Backend API              : http://localhost:8080" -ForegroundColor White
     Write-Host "  - WebSocket STOMP          : ws://localhost:8080/ws" -ForegroundColor White
     Write-Host "  - Healthcheck              : http://localhost:8080/api/cocktails" -ForegroundColor White
-    Write-Host "  - Swagger UI               : http://localhost:8080/swagger-ui.html" -ForegroundColor White
+    Write-Host "  - Swagger UI               : http://localhost:8080/swagger-ui.html (Disabled in prod profile)" -ForegroundColor DarkGray
 }
 
 function Stop-App {
@@ -111,9 +112,72 @@ function Invoke-HardwareProfile {
     node scripts/benchmark-profile.js "--duration=$Duration" "--output=$OutputFile"
 }
 
+function Get-ActiveComposeContext {
+    $rpi5Running = docker ps --filter "name=openbar-rpi5-sim" -q
+    $prodRunning = docker ps --filter "name=open-bar" -q
+
+    if ($rpi5Running) {
+        return @{
+            Name = "Raspberry Pi 5 Simulator"
+            File = "docker/docker-compose.rpi5-sim.yml"
+            IsActive = $true
+        }
+    }
+    if ($prodRunning) {
+        return @{
+            Name = "Production Stack"
+            File = "docker-compose.prod.yml"
+            IsActive = $true
+        }
+    }
+    return @{
+        Name = "Default Production"
+        File = "docker-compose.prod.yml"
+        IsActive = $false
+    }
+}
+
 function Show-ContainerLogs {
-    Write-Host "Displaying container logs (Ctrl+C to exit)..." -ForegroundColor Cyan
-    docker compose -f docker-compose.prod.yml logs -f --tail=100
+    param (
+        [string]$ServiceName = "",
+        [int]$Tail = 100
+    )
+    $ctx = Get-ActiveComposeContext
+    if ($ctx.IsActive) {
+        Write-Host "Detected active stack: $($ctx.Name) ($($ctx.File))" -ForegroundColor Green
+    } else {
+        Write-Host "No active OpenBar containers detected. Falling back to $($ctx.File)..." -ForegroundColor Yellow
+    }
+    Write-Host "Displaying container logs (Ctrl+C to exit)...`n" -ForegroundColor Cyan
+
+    if ($ServiceName) {
+        docker compose -f $ctx.File logs -f --tail=$Tail $ServiceName
+    } else {
+        docker compose -f $ctx.File logs -f --tail=$Tail
+    }
+}
+
+function Show-ContainerLogsInteractive {
+    $ctx = Get-ActiveComposeContext
+    Write-Host "`n--- Container Logs Selection (Active: $($ctx.Name)) ---" -ForegroundColor Cyan
+    Write-Host "1. All containers (stream live)" -ForegroundColor White
+    Write-Host "2. Backend only (Spring Boot)" -ForegroundColor White
+    Write-Host "3. Frontend only (Nginx & Web PWA)" -ForegroundColor White
+    Write-Host "4. Database only (PostgreSQL)" -ForegroundColor White
+    Write-Host "5. Logrotate only (Log rotation service)" -ForegroundColor White
+    Write-Host "6. Backup only (Scheduled pg_dump)" -ForegroundColor White
+    Write-Host "0. Back to main menu" -ForegroundColor Gray
+    $logChoice = Read-Host "Select log view [0-6] (Default: 1)"
+
+    switch ($logChoice) {
+        "2" { Show-ContainerLogs "backend" }
+        "3" { Show-ContainerLogs "frontend" }
+        "4" { Show-ContainerLogs "postgres" }
+        "5" { Show-ContainerLogs "logrotate" }
+        "6" { Show-ContainerLogs "backup" }
+        "0" { return }
+        default { Show-ContainerLogs }
+    }
 }
 
 # CLI Argument routing
@@ -125,7 +189,7 @@ if ($Action) {
         "rpi5" { Start-Rpi5Sim; exit 0 }
         "stop" { Stop-App; exit 0 }
         "down" { Stop-App; exit 0 }
-        "logs" { Show-ContainerLogs; exit 0 }
+        "logs" { Show-ContainerLogs $Service; exit 0 }
         "test" { Invoke-LoadTest $Scenario $Url; exit 0 }
         "profile" { Invoke-HardwareProfile 60; exit 0 }
         default {
@@ -166,7 +230,7 @@ do {
         "7" { Invoke-LoadTest "billing" $Url; Read-Host "`nPress Enter to continue..." }
         "8" { Invoke-LoadTest "all" $Url; Read-Host "`nPress Enter to continue..." }
         "9" { Invoke-HardwareProfile 60; Read-Host "`nPress Enter to continue..." }
-        "10" { Show-ContainerLogs; Read-Host "`nPress Enter to continue..." }
+        "10" { Show-ContainerLogsInteractive; Read-Host "`nPress Enter to continue..." }
         "11" { Stop-App; Read-Host "`nPress Enter to continue..." }
         "0" { Write-Host "Goodbye!" -ForegroundColor Cyan; break }
         default { Write-Host "Invalid option." -ForegroundColor Red; Start-Sleep -Seconds 1 }
