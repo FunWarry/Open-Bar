@@ -20,7 +20,7 @@
 | Database | PostgreSQL | — | Managed via Docker Compose |
 | ORM | JPA/Hibernate + Lombok `@Data` | via Spring | |
 | Security | Spring Security + custom JWT | JJWT 0.13.0 | Requires `JWT_SECRET` (≥ 32 characters). 4-hour lifespan (`14400000 ms`) with frontend session auto-disconnect & extension reminder prompt |
-| Real-time | WebSocket STOMP | via Spring | 11 active topics |
+| Real-time | WebSocket STOMP | via Spring | 14 active topics |
 | TPE / Monétique | Protocole Concert IP | Socket TCP :8888 | Communication directe avec terminaux carte sans cloud |
 | Impression | ESC/POS direct socket | Socket TCP :9100 | Format binaire CP850 pour imprimantes thermiques 80mm/58mm |
 | Frontend | Angular | 22.2.0 | |
@@ -243,6 +243,7 @@ flowchart LR
 | `/topic/preparation/kitchen` | Order routed to kitchen workstation |
 | `/topic/preparation/snack` | Order routed to snack workstation |
 | `/topic/establishment/modules` | Real-time establishment modular capabilities synchronization |
+| `/topic/checklists` | Real-time operational checklists & SOP procedure session lifecycle events |
 
 ---
 

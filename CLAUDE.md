@@ -15,7 +15,7 @@ Application de gestion de bar en temps réel : prise de commandes (serveurs), pr
 | ORM        | JPA / Hibernate + Lombok     | 1.18.34     |
 | Sécurité   | Spring Security + JWT custom | JJWT 0.13.0 (4h expiration & session timeout) |
 | Sanitisation| Jsoup (HTML / XSS clean)     | 1.23.2      |
-| Temps réel | WebSocket STOMP              | via Spring (11 topics) |
+| Temps réel | WebSocket STOMP              | via Spring (14 topics) |
 | TPE / Cartes| Protocole Concert IP         | Socket TCP :8888 |
 | Impression | ESC/POS direct socket        | Socket TCP :9100 |
 | PDF        | OpenPDF                      | 2.0.3       |
