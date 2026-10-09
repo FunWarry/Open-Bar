@@ -899,6 +899,7 @@ describe('AppSettingsPageComponent', () => {
         mysteryRoulette: false,
         paymentTerminal: false,
         tableReservations: false,
+        checklistsProcedures: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -917,6 +918,7 @@ describe('AppSettingsPageComponent', () => {
         mysteryRoulette: false,
         paymentTerminal: false,
         tableReservations: false,
+        checklistsProcedures: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });

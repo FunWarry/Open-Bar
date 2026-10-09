@@ -16,10 +16,12 @@ describe('HomeComponent', () => {
   let storeSpy: jasmine.SpyObj<Store>;
   let router: Router;
   let floorPlanSignal = signal(true);
+  let checklistsProceduresSignal = signal(true);
 
   beforeEach(async () => {
     storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
     floorPlanSignal = signal(true);
+    checklistsProceduresSignal = signal(true);
 
     storeSpy.select.and.callFake((selector: any) => {
       if (selector === selectCurrentUser) return of({ username: 'testuser', roles: ['SERVEUR'] });
@@ -34,7 +36,13 @@ describe('HomeComponent', () => {
       imports: [HomeComponent, RouterTestingModule, getTranslocoTestingModule()],
       providers: [
         { provide: Store, useValue: storeSpy },
-        { provide: FeatureFlagService, useValue: { floorPlanEnabled: floorPlanSignal } }
+        {
+          provide: FeatureFlagService,
+          useValue: {
+            floorPlanEnabled: floorPlanSignal,
+            checklistsProceduresEnabled: checklistsProceduresSignal,
+          }
+        }
       ]
     }).compileComponents();
 
@@ -73,5 +81,11 @@ describe('HomeComponent', () => {
     expect(component.floorPlanEnabled()).toBeTrue();
     floorPlanSignal.set(false);
     expect(component.floorPlanEnabled()).toBeFalse();
+  });
+
+  it('checklistsEnabled should reflect feature flag signal', () => {
+    expect(component.checklistsEnabled()).toBeTrue();
+    checklistsProceduresSignal.set(false);
+    expect(component.checklistsEnabled()).toBeFalse();
   });
 });
