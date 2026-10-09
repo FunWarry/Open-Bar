@@ -1,9 +1,9 @@
-name: openbar-prod
+name: openbar-test
 
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: openbar-prod-postgres
+    container_name: openbar-test-postgres
     entrypoint:
       - sh
       - -c
@@ -33,12 +33,12 @@ services:
     environment:
       POSTGRES_DB: openbar
       POSTGRES_USER: openbar
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-openbar_local_secure_password}
     ports:
-      - "${PROD_DB_PORT:-5432}:5432"
+      - "${TEST_DB_PORT:-5434}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - openbar_logs:/var/log/openbar
+      - openbar_test_postgres_data:/var/lib/postgresql/data
+      - openbar_test_logs:/var/log/openbar
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U openbar"]
       interval: 10s
@@ -48,71 +48,48 @@ services:
 
   backend:
     build: ./backend
-    container_name: openbar-prod-backend
+    container_name: openbar-test-backend
     environment:
       SERVER_PORT: 8080
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/openbar
       SPRING_DATASOURCE_USERNAME: openbar
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-openbar_local_secure_password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-openbar_local_secure_password}
+      JWT_SECRET: ${JWT_SECRET:-openbar_local_jwt_secret_key_minimum_32_characters_long_12345}
+      SPRING_PROFILES_ACTIVE: prod,test,staging
       OPENBAR_CORS_ALLOWED_ORIGINS: ${OPENBAR_CORS_ALLOWED_ORIGINS:-http://localhost:*,https://localhost:*,http://localhost,https://localhost,http://127.0.0.1:*,https://127.0.0.1:*,http://127.0.0.1,https://127.0.0.1,https://open-bar.freeboxos.fr,https://open-bar.freeboxos.fr:*,http://open-bar.freeboxos.fr,http://open-bar.freeboxos.fr:*,https://*.freeboxos.fr,https://*.freeboxos.fr:*,http://*.freeboxos.fr,http://*.freeboxos.fr:*,https://openbar.lan,https://openbar.lan:*,http://openbar.lan,http://openbar.lan:*,https://app.open-bar.eu,https://app.open-bar.eu:*,http://app.open-bar.eu,http://app.open-bar.eu:*,https://test.open-bar.eu,https://test.open-bar.eu:*,http://test.open-bar.eu,http://test.open-bar.eu:*,https://*.open-bar.eu,https://*.open-bar.eu:*,http://*.open-bar.eu,http://*.open-bar.eu:*,http://192.168.*:*,https://192.168.*:*,http://10.*:*,https://10.*:*,http://172.16.*:*,https://172.16.*:*}
       LOG_PATH: /var/log/openbar/backend
     volumes:
-      - openbar_logs:/var/log/openbar
+      - openbar_test_logs:/var/log/openbar
     depends_on:
       postgres:
         condition: service_healthy
     ports:
-      - "${PROD_BACKEND_PORT:-8080}:8080"
+      - "${TEST_BACKEND_PORT:-8082}:8080"
     restart: unless-stopped
 
   frontend:
     build: ./frontend
-    container_name: openbar-prod-frontend
+    container_name: openbar-test-frontend
+    environment:
+      HTTPS_PORT: "${TEST_HTTPS_PORT:-8443}"
     volumes:
-      - openbar_logs:/var/log/openbar
+      - openbar_test_logs:/var/log/openbar
       - ./certs:/etc/nginx/certs:ro
     ports:
-      - "${PROD_HTTP_PORT:-80}:80"
-      - "${PROD_HTTPS_PORT:-443}:443"
+      - "${TEST_HTTP_PORT:-8088}:80"
+      - "${TEST_HTTPS_PORT:-8443}:443"
     depends_on:
       - backend
     restart: unless-stopped
 
   logrotate:
     build: ./docker/logrotate
+    container_name: openbar-test-logrotate
     volumes:
-      - openbar_logs:/var/log/openbar
-    restart: unless-stopped
-
-  backup:
-    image: prodrigestivill/postgres-backup-local:15-alpine
-    environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: "5432"
-      POSTGRES_DB: openbar
-      POSTGRES_USER: openbar
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      SCHEDULE: ${BACKUP_SCHEDULE:-0 3 * * *}
-      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-7}
-      BACKUP_KEEP_WEEKS: ${BACKUP_KEEP_WEEKS:-4}
-      BACKUP_KEEP_MONTHS: ${BACKUP_KEEP_MONTHS:-6}
-      BACKUP_DIR: /backups
-      HEALTHCHECK_PORT: "8080"
-      TZ: ${TZ:-Europe/Paris}
-    volumes:
-      - openbar_backups:/backups
-    tmpfs:
-      - /var/lib/postgresql/data
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - openbar_test_logs:/var/log/openbar
     restart: unless-stopped
 
 volumes:
-  postgres_data:
-  openbar_logs:
-  openbar_backups:
-
+  openbar_test_postgres_data:
+  openbar_test_logs:

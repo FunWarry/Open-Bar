@@ -1,10 +1,8 @@
-# OpenBar - Multi-Stack Docker & Benchmark Manager (PowerShell)
+# OpenBar - Docker Application Launcher (PowerShell)
 param (
     [string]$Action = "",
     [ValidateSet("prod", "test", "both")]
     [string]$Mode = "prod",
-    [string]$Scenario = "smoke",
-    [string]$Url = "",
     [string]$Service = "",
     [int]$ProdBackendPort = 8080,
     [int]$ProdHttpPort = 80,
@@ -50,7 +48,7 @@ if (-not $env:JWT_SECRET) {
 
 function Show-Header {
     Write-Host "======================================================================" -ForegroundColor Cyan
-    Write-Host " OpenBar - Multi-Stack Docker Manager & Load Benchmark Suite" -ForegroundColor Cyan
+    Write-Host " OpenBar - Docker Application Launcher" -ForegroundColor Cyan
     Write-Host "======================================================================" -ForegroundColor Cyan
 }
 
@@ -197,9 +195,9 @@ function Start-TestApp {
     Write-Host "`n[SUCCESS] Test / Demo Stack is READY at https://localhost:$TestHttpsPort" -ForegroundColor Green
     Write-Host "`nDemo Accounts (Test Mode):" -ForegroundColor Yellow
     Write-Host "  - Admin     : admin / admin123" -ForegroundColor White
-    Write-Host "  - Manager   : manager / manager123" -ForegroundColor White
-    Write-Host "  - Bartender : barman / barman123" -ForegroundColor White
-    Write-Host "  - Waiter    : serveur / serveur123" -ForegroundColor White
+    Write-Host "  - Manager   : manager1 / manager123" -ForegroundColor White
+    Write-Host "  - Bartender : barman1 / barman123" -ForegroundColor White
+    Write-Host "  - Waiter    : serveur1 / serveur123" -ForegroundColor White
 }
 
 function Start-BothApps {
@@ -250,9 +248,9 @@ function Start-Rpi5Sim {
     if ($TargetMode -eq "test") {
         Write-Host "`nDemo Accounts (Test Mode):" -ForegroundColor Yellow
         Write-Host "  - Admin     : admin / admin123" -ForegroundColor White
-        Write-Host "  - Manager   : manager / manager123" -ForegroundColor White
-        Write-Host "  - Bartender : barman / barman123" -ForegroundColor White
-        Write-Host "  - Waiter    : serveur / serveur123" -ForegroundColor White
+        Write-Host "  - Manager   : manager1 / manager123" -ForegroundColor White
+        Write-Host "  - Bartender : barman1 / barman123" -ForegroundColor White
+        Write-Host "  - Waiter    : serveur1 / serveur123" -ForegroundColor White
     }
 }
 
@@ -287,25 +285,6 @@ function Stop-AllApps {
         docker compose -f backend/src/main/resources/docker-compose.yml down --remove-orphans
     }
     Write-Host "[OK] All containers stopped successfully." -ForegroundColor Green
-}
-
-function Invoke-LoadTest {
-    param ([string]$Scen = "smoke", [string]$TargetUrl = "", [string]$OutputDir = "reports/load-tests")
-    Show-Header
-    if (-not $TargetUrl) {
-        $TargetUrl = "http://localhost:$ProdBackendPort"
-    }
-    Write-Host "Executing load test scenario [$Scen] against $TargetUrl..." -ForegroundColor Cyan
-    Write-Host "[EXPORT] Results will be exported to: $OutputDir" -ForegroundColor DarkGray
-    node tests/load/run-load-tests.js "--scenario=$Scen" "--url=$TargetUrl" "--output-dir=$OutputDir"
-}
-
-function Invoke-HardwareProfile {
-    param ([int]$Duration = 60, [string]$OutputFile = "reports/profile-report.json")
-    Show-Header
-    Write-Host "Starting live hardware profiling (CPU, RAM, GC pauses) for $Duration s..." -ForegroundColor Cyan
-    Write-Host "[EXPORT] Report will be exported to: $OutputFile" -ForegroundColor DarkGray
-    node scripts/benchmark-profile.js "--duration=$Duration" "--output=$OutputFile"
 }
 
 function Show-ContainerLogs {
@@ -377,10 +356,8 @@ if ($Action) {
         "stop-all" { Stop-AllApps -WithVolumes:$Reset; exit 0 }
         "down" { Stop-AllApps -WithVolumes:$Reset; exit 0 }
         "logs" { Show-ContainerLogs "docker-compose.prod.yml" $Service; exit 0 }
-        "test" { Invoke-LoadTest $Scenario $Url; exit 0 }
-        "profile" { Invoke-HardwareProfile 60; exit 0 }
         default {
-            Write-Host "Unknown action: '$Action'. Valid actions: start-prod, start-test, start-both, start-db, start-rpi5, stop-prod, stop-test, stop, test, profile, logs" -ForegroundColor Red
+            Write-Host "Unknown action: '$Action'. Valid actions: start-prod, start-test, start-both, start-db, start-rpi5, stop-prod, stop-test, stop, logs" -ForegroundColor Red
             exit 1
         }
     }
@@ -400,21 +377,13 @@ do {
     Write-Host "5. Start Raspberry Pi 5 simulator in PRODUCTION mode (:443 / :8080)" -ForegroundColor White
     Write-Host "6. Start Raspberry Pi 5 simulator in TEST / DEMO mode (:443 / :8080)" -ForegroundColor White
     Write-Host "----------------------------------------------------------------------" -ForegroundColor DarkGray
-    Write-Host "7. Run Smoke Test (Fast 15s sanity check)" -ForegroundColor Green
-    Write-Host "8. Run Rush Hour peak benchmark (40+ tables, 10 waitstaff, 4 bartenders)" -ForegroundColor Green
-    Write-Host "9. Run WebSocket STOMP benchmark (Real-time broadcast latency)" -ForegroundColor Green
-    Write-Host "10. Run Collaborative Patron Cart benchmark (Public QR guest orders)" -ForegroundColor Green
-    Write-Host "11. Run Billing settlement & Thermal printing stress benchmark" -ForegroundColor Green
-    Write-Host "12. Run entire load testing suite (all scenarios)" -ForegroundColor Green
-    Write-Host "----------------------------------------------------------------------" -ForegroundColor DarkGray
-    Write-Host "13. Run live Hardware Profiling (CPU / RAM / GC pauses telemetry - 60s)" -ForegroundColor Yellow
-    Write-Host "14. View container logs" -ForegroundColor Cyan
-    Write-Host "15. Stop Production Stack only" -ForegroundColor Magenta
-    Write-Host "16. Stop Test Stack only" -ForegroundColor Magenta
-    Write-Host "17. Stop ALL Docker containers" -ForegroundColor Magenta
+    Write-Host "7. View container logs" -ForegroundColor Cyan
+    Write-Host "8. Stop Production Stack only" -ForegroundColor Magenta
+    Write-Host "9. Stop Test Stack only" -ForegroundColor Magenta
+    Write-Host "10. Stop ALL Docker containers" -ForegroundColor Magenta
     Write-Host "0. Exit" -ForegroundColor Gray
     Write-Host "======================================================================" -ForegroundColor Cyan
-    $choice = Read-Host "Select an option [0-17]"
+    $choice = Read-Host "Select an option [0-10]"
 
     switch ($choice) {
         "1" {
@@ -446,17 +415,10 @@ do {
             Start-Rpi5Sim -TargetMode "test" -ResetDatabase:$resetDb
             Read-Host "`nPress Enter to continue..."
         }
-        "7" { Invoke-LoadTest "smoke" $Url; Read-Host "`nPress Enter to continue..." }
-        "8" { Invoke-LoadTest "rush-hour" $Url; Read-Host "`nPress Enter to continue..." }
-        "9" { Invoke-LoadTest "websocket" $Url; Read-Host "`nPress Enter to continue..." }
-        "10" { Invoke-LoadTest "patron-cart" $Url; Read-Host "`nPress Enter to continue..." }
-        "11" { Invoke-LoadTest "billing" $Url; Read-Host "`nPress Enter to continue..." }
-        "12" { Invoke-LoadTest "all" $Url; Read-Host "`nPress Enter to continue..." }
-        "13" { Invoke-HardwareProfile 60; Read-Host "`nPress Enter to continue..." }
-        "14" { Show-ContainerLogsInteractive; Read-Host "`nPress Enter to continue..." }
-        "15" { Stop-ProdApp; Read-Host "`nPress Enter to continue..." }
-        "16" { Stop-TestApp; Read-Host "`nPress Enter to continue..." }
-        "17" { Stop-AllApps; Read-Host "`nPress Enter to continue..." }
+        "7" { Show-ContainerLogsInteractive; Read-Host "`nPress Enter to continue..." }
+        "8" { Stop-ProdApp; Read-Host "`nPress Enter to continue..." }
+        "9" { Stop-TestApp; Read-Host "`nPress Enter to continue..." }
+        "10" { Stop-AllApps; Read-Host "`nPress Enter to continue..." }
         "0" { Write-Host "Goodbye!" -ForegroundColor Cyan; break }
         default { Write-Host "Invalid option." -ForegroundColor Red; Start-Sleep -Seconds 1 }
     }

@@ -26,6 +26,7 @@ const DEFAULT_MODULES: EstablishmentModules = {
   mysteryRoulette: true,
   paymentTerminal: true,
   tableReservations: true,
+  checklistsProcedures: true,
 };
 
 /**
@@ -88,6 +89,9 @@ export class FeatureFlagService implements OnDestroy {
   /** Computed signal for TABLE_RESERVATIONS capability status. */
   readonly tableReservationsEnabled = computed(() => this.modules().tableReservations);
 
+  /** Computed signal for CHECKLISTS_PROCEDURES capability status. */
+  readonly checklistsProceduresEnabled = computed(() => this.modules().checklistsProcedures);
+
   constructor() {
     this.initWebSocketSubscription();
     this.loadModules().subscribe();
@@ -135,6 +139,8 @@ export class FeatureFlagService implements OnDestroy {
         return current.paymentTerminal;
       case EstablishmentModule.TABLE_RESERVATIONS:
         return current.tableReservations;
+      case EstablishmentModule.CHECKLISTS_PROCEDURES:
+        return current.checklistsProcedures;
       default:
         return true;
     }
@@ -252,6 +258,9 @@ export class FeatureFlagService implements OnDestroy {
         break;
       case EstablishmentModule.TABLE_RESERVATIONS:
         current.tableReservations = enabled;
+        break;
+      case EstablishmentModule.CHECKLISTS_PROCEDURES:
+        current.checklistsProcedures = enabled;
         break;
     }
     return this.updateModules(current);

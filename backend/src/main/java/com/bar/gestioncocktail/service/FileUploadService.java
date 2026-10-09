@@ -59,6 +59,9 @@ public class FileUploadService {
             }
 
             String extension = getFileExtension(file.getOriginalFilename());
+            if (!ALLOWED_EXTENSIONS.contains(extension)) {
+                throw new BusinessException("Invalid file extension. Only JPEG, PNG, GIF, and WebP are allowed.");
+            }
             String newFilename = "cocktail_" + cocktailId + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
             Path filePath = uploadPath.resolve(newFilename).normalize();
             if (!filePath.startsWith(uploadPath)) {
@@ -107,6 +110,9 @@ public class FileUploadService {
             }
 
             String extension = getFileExtension(file.getOriginalFilename());
+            if (!ALLOWED_EXTENSIONS.contains(extension)) {
+                throw new BusinessException("Invalid file extension. Only JPEG, PNG, GIF, and WebP are allowed.");
+            }
             String newFilename = "glassware_" + glasswareId + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
             Path filePath = uploadPath.resolve(newFilename).normalize();
             if (!filePath.startsWith(uploadPath)) {
@@ -125,11 +131,69 @@ public class FileUploadService {
         }
     }
 
+    private static final String CHECKLIST_UPLOAD_DIR = "uploads/checklists";
+    private static final long CHECKLIST_MAX_FILE_SIZE = 50L * 1024 * 1024; // 50 MB
+    private static final Set<String> CHECKLIST_ALLOWED_CONTENT_TYPES = Set.of(
+        "image/jpeg", "image/png", "image/webp", "image/gif",
+        "video/mp4", "video/webm", "video/quicktime"
+    );
+    private static final Set<String> CHECKLIST_ALLOWED_EXTENSIONS = Set.of(
+        ".jpg", ".jpeg", ".png", ".webp", ".gif", ".mp4", ".webm", ".mov"
+    );
+
+    /**
+     * Saves an uploaded checklist image or tutorial video to local file storage.
+     *
+     * @param file Uploaded multipart media file (image or video)
+     * @return Relative URL path to access the stored media
+     */
+    public String storeChecklistMedia(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException("Uploaded file is empty");
+        }
+
+        if (file.getSize() > CHECKLIST_MAX_FILE_SIZE) {
+            throw new BusinessException("File size exceeds maximum allowed limit of 50MB");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !CHECKLIST_ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
+            throw new BusinessException("Invalid file type. Only JPEG, PNG, GIF, WebP images and MP4, WebM, QuickTime videos are allowed.");
+        }
+
+        String extension = getFileExtension(file.getOriginalFilename());
+        if (!CHECKLIST_ALLOWED_EXTENSIONS.contains(extension.toLowerCase())) {
+            throw new BusinessException("Invalid file extension: " + extension);
+        }
+
+        try {
+            Path uploadPath = Paths.get(CHECKLIST_UPLOAD_DIR).toAbsolutePath().normalize();
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            String newFilename = "checklist_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16) + extension;
+            Path filePath = uploadPath.resolve(newFilename).normalize();
+            if (!filePath.startsWith(uploadPath)) {
+                throw new BusinessException("Invalid file path traversal");
+            }
+
+            try (InputStream inputStream = file.getInputStream()) {
+                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            log.info("Successfully stored checklist media at {}", filePath);
+            return "/uploads/checklists/" + newFilename;
+        } catch (IOException e) {
+            log.error("Failed to store uploaded checklist media", e);
+            throw new BusinessException("Could not store the media file: " + e.getMessage());
+        }
+    }
+
     private String getFileExtension(String filename) {
         if (filename == null || !filename.contains(".")) {
             return ".jpg";
         }
-        String ext = filename.substring(filename.lastIndexOf(".")).toLowerCase();
-        return ALLOWED_EXTENSIONS.contains(ext) ? ext : ".jpg";
+        return filename.substring(filename.lastIndexOf(".")).toLowerCase();
     }
 }

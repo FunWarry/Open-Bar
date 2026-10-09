@@ -82,7 +82,12 @@ public enum EstablishmentModule {
      * Digital table reservation book with date/time slots, party sizes, conflict detection,
      * floor plan table assignment, and guest arrival seating.
      */
-    TABLE_RESERVATIONS
+    TABLE_RESERVATIONS,
+
+    /**
+     * Operational task checklists, opening/closing SOPs, rich media guidelines, and staff execution audit trail.
+     */
+    CHECKLISTS_PROCEDURES
 }
 
 

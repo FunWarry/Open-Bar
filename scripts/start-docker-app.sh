@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# OpenBar — Multi-Stack Docker & Benchmark Manager (Bash)
+# OpenBar — Docker Application Launcher (Bash)
+# Dedicated launcher for Docker stacks and environment selection (no load tests)
 # ==============================================================================
 
 set -e
@@ -30,7 +31,7 @@ export TEST_DB_PORT="${TEST_DB_PORT:-5434}"
 
 show_header() {
     echo "======================================================================"
-    echo "🚀 OpenBar — Multi-Stack Docker Manager & Load Benchmark Suite"
+    echo "🚀 OpenBar — Docker Application Launcher"
     echo "======================================================================"
 }
 
@@ -71,7 +72,7 @@ start_prod() {
     echo "  • Database       : localhost:${PROD_DB_PORT}"
     docker compose -f docker-compose.prod.yml up -d --build
     wait_for_health "http://localhost:${PROD_BACKEND_PORT}/api/cocktails" 90
-    echo -e "\n✅ Production stack is UP and healthy!"
+    echo -e "\n✅ Production stack is UP and healthy at https://localhost"
 }
 
 start_test() {
@@ -84,8 +85,8 @@ start_test() {
     echo "  • Database       : localhost:${TEST_DB_PORT}"
     docker compose -f docker-compose.test.yml up -d --build
     wait_for_health "http://localhost:${TEST_BACKEND_PORT}/api/cocktails" 90
-    echo -e "\n✅ Test / Demo stack is UP and healthy!"
-    echo "🔑 Demo Accounts (Test Mode): admin/admin123, manager/manager123, barman/barman123, serveur/serveur123"
+    echo -e "\n✅ Test / Demo stack is UP and healthy at https://localhost:${TEST_HTTPS_PORT}"
+    echo "🔑 Demo Accounts: admin/admin123, manager1/manager123, barman1/barman123, serveur1/serveur123"
 }
 
 start_both() {
@@ -122,23 +123,6 @@ stop_all() {
     echo "✅ All stacks stopped."
 }
 
-run_test() {
-    local scen="${1:-smoke}"
-    local url="${2:-http://localhost:${PROD_BACKEND_PORT}}"
-    local out_dir="${3:-reports/load-tests}"
-    show_header
-    echo "🎯 Running load test scenario [${scen}] against ${url}..."
-    node tests/load/run-load-tests.js "--scenario=${scen}" "--url=${url}" "--output-dir=${out_dir}"
-}
-
-run_profile() {
-    local duration="${1:-60}"
-    local output="${2:-reports/profile-report.json}"
-    show_header
-    echo "📊 Starting live hardware profiling (CPU, RAM, GC pauses) for ${duration}s..."
-    node scripts/benchmark-profile.js "--duration=${duration}" "--output=${output}"
-}
-
 case "${1:-}" in
     start-prod)
         start_prod
@@ -161,17 +145,11 @@ case "${1:-}" in
     stop|stop-all|down)
         stop_all
         ;;
-    test)
-        run_test "${2:-smoke}" "${3:-http://localhost:${PROD_BACKEND_PORT}}"
-        ;;
-    profile)
-        run_profile "${2:-60}"
-        ;;
     logs)
         docker compose -f docker-compose.prod.yml logs -f --tail=100
         ;;
     *)
         show_header
-        echo "Usage: ./scripts/manage-docker-app.sh {start-prod|start-test|start-both|start-db|stop-prod|stop-test|stop-all|test|profile|logs}"
+        echo "Usage: ./scripts/start-docker-app.sh {start-prod|start-test|start-both|start-db|stop-prod|stop-test|stop-all|logs}"
         ;;
 esac

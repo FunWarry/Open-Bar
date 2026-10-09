@@ -127,6 +127,9 @@ DNS.2               = $Domain
 DNS.3               = *.$Domain
 DNS.4               = openbar.local
 DNS.5               = *.openbar.local
+DNS.6               = app.open-bar.eu
+DNS.7               = test.open-bar.eu
+DNS.8               = *.open-bar.eu
 IP.1                = 127.0.0.1
 IP.2                = ::1
 "@
@@ -159,6 +162,12 @@ IP.2                = ::1
 if (-not (Test-Path $certFile) -or (Get-Item $certFile).Length -eq 0) {
     throw "Certificate generation failed: Output file missing or empty."
 }
+
+$frontendCertsDir = Join-Path $RootDir "frontend\certs"
+if (-not (Test-Path $frontendCertsDir)) {
+    New-Item -ItemType Directory -Path $frontendCertsDir -Force | Out-Null
+}
+Copy-Item -Path $certFile, $keyFile -Destination $frontendCertsDir -Force -ErrorAction SilentlyContinue
 
 $displayTarget = if ($detectedIP) { $detectedIP } else { $Domain }
 Write-Host "-----------------------------------------------------------------" -ForegroundColor Green
