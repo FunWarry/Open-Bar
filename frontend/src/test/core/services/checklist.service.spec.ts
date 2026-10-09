@@ -399,6 +399,81 @@ describe('ChecklistService', () => {
       expect(service.templates()[0].title).toBe('New Realtime Title');
     });
 
+    it('should process RUN_COMPLETED event and update selectedRun and refresh stats', () => {
+      service.runs.set([sampleRun]);
+      service.selectedRun.set(sampleRun);
+
+      const completedRun: ChecklistRun = {
+        ...sampleRun,
+        status: 'COMPLETED'
+      };
+
+      const event: ChecklistEvent = {
+        eventType: 'RUN_COMPLETED',
+        runId: 100,
+        run: completedRun,
+        timestamp: '2026-10-10T12:00:00Z'
+      };
+
+      wsSubject.next({ body: JSON.stringify(event) });
+      const statsReq = httpMock.expectOne(`${baseUrl}/stats`);
+      statsReq.flush(sampleStats);
+
+      expect(service.selectedRun()?.status).toBe('COMPLETED');
+    });
+
+    it('should process RUN_CANCELLED event and update selectedRun and refresh stats', () => {
+      service.runs.set([sampleRun]);
+      service.selectedRun.set(sampleRun);
+
+      const cancelledRun: ChecklistRun = {
+        ...sampleRun,
+        status: 'CANCELLED'
+      };
+
+      const event: ChecklistEvent = {
+        eventType: 'RUN_CANCELLED',
+        runId: 100,
+        run: cancelledRun,
+        timestamp: '2026-10-10T12:00:00Z'
+      };
+
+      wsSubject.next({ body: JSON.stringify(event) });
+      const statsReq = httpMock.expectOne(`${baseUrl}/stats`);
+      statsReq.flush(sampleStats);
+
+      expect(service.selectedRun()?.status).toBe('CANCELLED');
+    });
+
+    it('should upload media file via multipart post', () => {
+      const file = new File(['content'], 'guide.jpg', { type: 'image/jpeg' });
+      service.uploadMedia(file).subscribe(res => {
+        expect(res.url).toBe('/uploads/guide.jpg');
+        expect(res.mediaType).toBe('IMAGE');
+      });
+
+      const req = httpMock.expectOne(`${baseUrl}/media/upload`);
+      expect(req.request.method).toBe('POST');
+      req.flush({ url: '/uploads/guide.jpg', mediaType: 'IMAGE' });
+    });
+
+    it('should handle stats loading error gracefully returning existing stats', () => {
+      service.stats.set(sampleStats);
+      service.loadStats().subscribe(stats => {
+        expect(stats).toEqual(sampleStats);
+      });
+
+      const req = httpMock.expectOne(`${baseUrl}/stats`);
+      req.error(new ProgressEvent('Network error'));
+    });
+
+    it('should refresh stats by calling loadStats', () => {
+      service.refreshStats();
+      const req = httpMock.expectOne(`${baseUrl}/stats`);
+      expect(req.request.method).toBe('GET');
+      req.flush(sampleStats);
+    });
+
     it('should handle malformed WebSocket JSON payload gracefully without error', () => {
       expect(() => {
         wsSubject.next({ body: 'invalid-json{' });
