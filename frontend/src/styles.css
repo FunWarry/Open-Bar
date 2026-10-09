@@ -890,10 +890,26 @@ ion-modal.commande-detail-modal-container {
   --max-height: 92vh;
 }
 
-ion-modal.reservation-modal-dialog {
+ion-modal.modal-xl,
+ion-modal.reservation-modal-dialog,
+ion-modal.template-editor-modal {
   --width: min(1080px, 96vw);
   --height: min(900px, 94vh);
   --max-height: 94vh;
+}
+
+ion-modal.media-viewer-modal {
+  --width: min(840px, 96vw);
+  --height: auto;
+  --max-height: 90vh;
+  --z-index: 25000;
+  z-index: 25000;
+}
+
+ion-modal.comment-editor-modal {
+  --width: min(640px, 94vw);
+  --height: auto;
+  --max-height: 88vh;
 }
 
 ion-modal.ingredient-form-modal-container {

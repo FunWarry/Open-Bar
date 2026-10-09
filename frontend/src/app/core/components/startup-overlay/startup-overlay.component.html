@@ -1,0 +1,55 @@
+<div class="startup-overlay-backdrop" data-testid="startup-overlay">
+  <div class="startup-card" data-testid="startup-card">
+    <div class="startup-brand">
+      <div class="icon-pulse-wrapper">
+        <ion-icon name="wine-outline" class="brand-icon" aria-hidden="true"></ion-icon>
+        <span class="pulse-ring"></span>
+      </div>
+      <h1 class="startup-title" data-testid="startup-title">{{ 'STARTUP.TITLE' | transloco }}</h1>
+      <p class="startup-subtitle">{{ 'STARTUP.SUBTITLE' | transloco }}</p>
+    </div>
+
+    <div class="startup-progress-section">
+      <div class="progress-bar-container">
+        <div class="progress-bar-indicator"></div>
+      </div>
+
+      <div class="status-badge" data-testid="startup-status-badge">
+        <ion-spinner name="crescent" class="status-spinner"></ion-spinner>
+        <span class="status-label">
+          @if (startupService.elapsedSeconds() > 10) {
+            {{ 'STARTUP.WAITING_DB' | transloco }}
+          } @else {
+            {{ 'STARTUP.CONNECTING' | transloco }}
+          }
+        </span>
+      </div>
+
+      <div class="startup-meta">
+        <span class="elapsed-counter" data-testid="startup-elapsed-counter">
+          {{ 'STARTUP.ELAPSED' | transloco: { seconds: startupService.elapsedSeconds() } }}
+        </span>
+      </div>
+
+      @if (startupService.elapsedSeconds() > 20) {
+        <div class="startup-tip" data-testid="startup-slow-tip">
+          <ion-icon name="information-circle-outline" class="tip-icon"></ion-icon>
+          <p class="tip-text">{{ 'STARTUP.SLOW_START_TIP' | transloco }}</p>
+        </div>
+      }
+    </div>
+
+    <div class="startup-actions">
+      <app-action-button
+        variant="secondary"
+        size="medium"
+        icon="refresh-outline"
+        [loading]="startupService.isChecking()"
+        [title]="'STARTUP.RETRY_NOW' | transloco"
+        testId="startup-retry-btn"
+        (btnClick)="onRetry()">
+        {{ 'STARTUP.RETRY_NOW' | transloco }}
+      </app-action-button>
+    </div>
+  </div>
+</div>

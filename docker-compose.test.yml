@@ -1,0 +1,95 @@
+name: openbar-test
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: openbar-test-postgres
+    entrypoint:
+      - sh
+      - -c
+      - |
+        mkdir -p /var/log/openbar/postgres /var/log/openbar/backend /var/log/openbar/frontend
+        chmod -R 777 /var/log/openbar
+        exec docker-entrypoint.sh "$$@"
+      - --
+    command:
+      - postgres
+      - -c
+      - logging_collector=on
+      - -c
+      - log_destination=stderr,csvlog
+      - -c
+      - log_directory=/var/log/openbar/postgres
+      - -c
+      - log_filename=postgresql-%Y-%m-%d_%H%M%S.log
+      - -c
+      - log_rotation_age=1d
+      - -c
+      - log_rotation_size=10MB
+      - -c
+      - log_min_messages=warning
+      - -c
+      - "log_line_prefix=%m [%p] %q%u@%d "
+    environment:
+      POSTGRES_DB: openbar
+      POSTGRES_USER: openbar
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-openbar_local_secure_password}
+    ports:
+      - "${TEST_DB_PORT:-5434}:5432"
+    volumes:
+      - openbar_test_postgres_data:/var/lib/postgresql/data
+      - openbar_test_logs:/var/log/openbar
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openbar"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: openbar-test-backend
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/openbar
+      SPRING_DATASOURCE_USERNAME: openbar
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-openbar_local_secure_password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-openbar_local_secure_password}
+      JWT_SECRET: ${JWT_SECRET:-openbar_local_jwt_secret_key_minimum_32_characters_long_12345}
+      SPRING_PROFILES_ACTIVE: prod,test,staging
+      OPENBAR_CORS_ALLOWED_ORIGINS: ${OPENBAR_CORS_ALLOWED_ORIGINS:-http://localhost:*,https://localhost:*,http://localhost,https://localhost,http://127.0.0.1:*,https://127.0.0.1:*,http://127.0.0.1,https://127.0.0.1,https://open-bar.freeboxos.fr,https://open-bar.freeboxos.fr:*,http://open-bar.freeboxos.fr,http://open-bar.freeboxos.fr:*,https://*.freeboxos.fr,https://*.freeboxos.fr:*,http://*.freeboxos.fr,http://*.freeboxos.fr:*,https://openbar.lan,https://openbar.lan:*,http://openbar.lan,http://openbar.lan:*,https://app.open-bar.eu,https://app.open-bar.eu:*,http://app.open-bar.eu,http://app.open-bar.eu:*,https://test.open-bar.eu,https://test.open-bar.eu:*,http://test.open-bar.eu,http://test.open-bar.eu:*,https://*.open-bar.eu,https://*.open-bar.eu:*,http://*.open-bar.eu,http://*.open-bar.eu:*,http://192.168.*:*,https://192.168.*:*,http://10.*:*,https://10.*:*,http://172.16.*:*,https://172.16.*:*}
+      LOG_PATH: /var/log/openbar/backend
+    volumes:
+      - openbar_test_logs:/var/log/openbar
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${TEST_BACKEND_PORT:-8082}:8080"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: openbar-test-frontend
+    environment:
+      HTTPS_PORT: "${TEST_HTTPS_PORT:-8443}"
+    volumes:
+      - openbar_test_logs:/var/log/openbar
+      - ./certs:/etc/nginx/certs:ro
+    ports:
+      - "${TEST_HTTP_PORT:-8088}:80"
+      - "${TEST_HTTPS_PORT:-8443}:443"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  logrotate:
+    build: ./docker/logrotate
+    container_name: openbar-test-logrotate
+    volumes:
+      - openbar_test_logs:/var/log/openbar
+    restart: unless-stopped
+
+volumes:
+  openbar_test_postgres_data:
+  openbar_test_logs:

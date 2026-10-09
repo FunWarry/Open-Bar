@@ -30,7 +30,7 @@ if [ ! -f "${CERT_FILE}" ] || [ ! -f "${KEY_FILE}" ]; then
         -keyout "${FALLBACK_KEY}" \
         -out "${FALLBACK_CERT}" \
         -subj "/CN=openbar.lan/O=OpenBar/C=FR" \
-        -addext "subjectAltName=DNS:localhost,DNS:openbar.lan,DNS:*.openbar.lan,DNS:openbar.local,IP:127.0.0.1" \
+        -addext "subjectAltName=DNS:localhost,DNS:openbar.lan,DNS:*.openbar.lan,DNS:openbar.local,DNS:app.open-bar.eu,DNS:test.open-bar.eu,DNS:*.open-bar.eu,IP:127.0.0.1" \
         2>/dev/null || {
             # Fallback for OpenSSL versions without -addext
             openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
@@ -49,6 +49,11 @@ if [ ! -f "${CERT_FILE}" ] || [ ! -f "${KEY_FILE}" ]; then
     fi
 
     echo "Fallback SSL certificate generated successfully."
+fi
+
+# Configure custom HTTPS redirect port if specified (e.g. 8443 for test environment)
+if [ -n "${HTTPS_PORT}" ] && [ "${HTTPS_PORT}" != "443" ]; then
+    sed -i "s|return 301 https://\$host\$request_uri;|return 301 https://\$host:${HTTPS_PORT}\$request_uri;|g" /etc/nginx/conf.d/default.conf
 fi
 
 # Hand over to Nginx

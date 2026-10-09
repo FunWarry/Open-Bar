@@ -73,7 +73,7 @@ export class SearchableSelectComponent extends BaseControlValueAccessor implemen
 
   @HostBinding('style.z-index')
   get hostZIndex(): string {
-    return this.isOpen() ? '50' : '1';
+    return this.isOpen() ? '1000' : '1';
   }
 
   @HostBinding('style.position')
@@ -236,10 +236,25 @@ export class SearchableSelectComponent extends BaseControlValueAccessor implemen
 
     const rect = triggerEl.getBoundingClientRect();
     const dropdownEstimatedHeight = 280;
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceAbove = rect.top;
+    let effectiveSpaceBelow = window.innerHeight - rect.bottom;
+    let effectiveSpaceAbove = rect.top;
 
-    if (spaceBelow < dropdownEstimatedHeight && spaceAbove > spaceBelow) {
+    // Detect closest scrollable container (e.g. .app-modal-body or custom scroll parent)
+    let parent = triggerEl.parentElement;
+    while (parent && parent !== document.body) {
+      const overflowY = window.getComputedStyle(parent).overflowY;
+      if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'hidden') {
+        const parentRect = parent.getBoundingClientRect();
+        const parentSpaceBelow = parentRect.bottom - rect.bottom;
+        const parentSpaceAbove = rect.top - parentRect.top;
+        effectiveSpaceBelow = Math.min(effectiveSpaceBelow, parentSpaceBelow);
+        effectiveSpaceAbove = Math.min(effectiveSpaceAbove, parentSpaceAbove);
+        break;
+      }
+      parent = parent.parentElement;
+    }
+
+    if (effectiveSpaceBelow < dropdownEstimatedHeight && effectiveSpaceAbove > effectiveSpaceBelow) {
       this.openUpwards.set(true);
     } else {
       this.openUpwards.set(false);

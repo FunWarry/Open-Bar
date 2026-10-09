@@ -244,7 +244,14 @@ export class MonEntiteListComponent implements OnInit {
 ```
 
 **Règles absolues frontend :**
-- ❌ Jamais Angular Material — uniquement composants Ionic
+- ❌ Jamais Angular Material — uniquement composants Ionic & Design System OpenBar
+- ❌ Jamais de contrôles HTML natifs bruts (`<select>`, `<input type="checkbox">`, `<button>`, etc.) — utiliser systématiquement les composants de `frontend/src/app/core/components/ui/` :
+  - `<select>` / `<ion-select>` ➡️ **INTERDIT ❌** -> Utiliser `<app-searchable-select>` (`SearchableSelectComponent`)
+  - `<input type="checkbox">` ➡️ **INTERDIT ❌** -> Utiliser `<app-checkbox-field>` (`CheckboxFieldComponent`) ou `<app-toggle-switch>` (`ToggleSwitchComponent`)
+  - `<button>` (actions/submits) ➡️ **INTERDIT ❌** -> Utiliser `<app-action-button>` (`ActionButtonComponent`)
+  - `<input type="text">` / `type="number"` / `type="url"` ➡️ **INTERDIT ❌** -> Utiliser `<app-input-field>` (`InputFieldComponent`)
+  - Filter chips / badges cliquables ➡️ **INTERDIT ❌** -> Utiliser `<app-filter-chip>` (`FilterChipComponent`)
+  - Modales ad-hoc (`modal-backdrop` + div) ➡️ **INTERDIT ❌** -> Utiliser `<ion-modal>` + `<app-modal>` (`ModalComponent`)
 - ❌ Jamais `NgModule` — uniquement standalone components
 - ❌ Jamais de texte hardcodé FR dans les templates — `{{ 'CLE' | transloco }}`
 - ❌ **Jamais de modification frontend sans mettre à jour `fr.json` ET `en.json`** — toujours les deux en même commit

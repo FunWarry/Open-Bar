@@ -31,7 +31,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: unknown) => {
       if (!(error instanceof HttpErrorResponse)) return throwError(() => error);
-      if (error.status === 401) return throwError(() => error);
+      if (error.status === 401 || req.headers.has('X-Silent-Probe')) return throwError(() => error);
 
       const key = getErrorKey(error.status);
       const translated = transloco.translate(key);

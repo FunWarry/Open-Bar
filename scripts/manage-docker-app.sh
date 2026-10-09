@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# OpenBar — Docker Compose & Load Testing Management Script (Bash)
+# OpenBar — Multi-Stack Docker & Benchmark Manager (Bash)
 # ==============================================================================
 
 set -e
@@ -9,17 +9,33 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${ROOT_DIR}"
 
+if [ -f "${ROOT_DIR}/.env" ]; then
+    set -a
+    . "${ROOT_DIR}/.env"
+    set +a
+fi
+
 export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-openbar_local_secure_password}"
 export JWT_SECRET="${JWT_SECRET:-openbar_local_jwt_secret_key_minimum_32_characters_long_12345}"
 
+export PROD_BACKEND_PORT="${PROD_BACKEND_PORT:-8080}"
+export PROD_HTTP_PORT="${PROD_HTTP_PORT:-80}"
+export PROD_HTTPS_PORT="${PROD_HTTPS_PORT:-443}"
+export PROD_DB_PORT="${PROD_DB_PORT:-5432}"
+
+export TEST_BACKEND_PORT="${TEST_BACKEND_PORT:-8082}"
+export TEST_HTTP_PORT="${TEST_HTTP_PORT:-8088}"
+export TEST_HTTPS_PORT="${TEST_HTTPS_PORT:-8443}"
+export TEST_DB_PORT="${TEST_DB_PORT:-5434}"
+
 show_header() {
     echo "======================================================================"
-    echo "🚀 OpenBar — Local Docker Manager & Load Benchmark Suite (k6)"
+    echo "🚀 OpenBar — Multi-Stack Docker Manager & Load Benchmark Suite"
     echo "======================================================================"
 }
 
 wait_for_health() {
-    local target_url="${1:-http://localhost:8080/api/cocktails}"
+    local target_url="${1:-http://localhost:${PROD_BACKEND_PORT}/api/cocktails}"
     local timeout_sec="${2:-90}"
     echo -n "⏳ Waiting for backend availability (${target_url})..."
     local start_time=$(date +%s)
@@ -38,61 +54,80 @@ wait_for_health() {
     done
 }
 
-start_prod() {
-    show_header
-    if [ ! -f "${ROOT_DIR}/certs/openbar.crt" ]; then
+ensure_certs() {
+    if [ ! -f "${ROOT_DIR}/certs/openbar.crt" ] || [ ! -f "${ROOT_DIR}/certs/openbar.key" ]; then
         echo "⚠️  Local TLS certificates missing. Generating local certificates..."
-        "${SCRIPT_DIR}/generate-local-certs.sh"
-    fi
-    echo "📦 Starting complete production stack (docker-compose.prod.yml)..."
-    docker compose -f docker-compose.prod.yml up -d --build
-    wait_for_health "http://localhost:8080/api/cocktails" 90
-    echo ""
-    echo "🌐 Access endpoints:"
-    echo "  • Frontend Web PWA (HTTPS) : https://localhost (or https://openbar.lan)"
-    echo "  • Frontend Web PWA (HTTP)  : http://localhost (redirects to HTTPS)"
-    echo "  • Backend REST API         : http://localhost:8080"
-    echo "  • Healthcheck              : http://localhost:8080/api/cocktails"
-    echo "  • Swagger UI               : http://localhost:8080/swagger-ui.html"
-}
-
-start_rpi5() {
-    show_header
-    echo "🔒 Verifying Local TLS Certificates for RPi5 simulator..."
-    local cert_file="${ROOT_DIR}/certs/openbar.crt"
-    local key_file="${ROOT_DIR}/certs/openbar.key"
-    if [ ! -f "${cert_file}" ] || [ ! -f "${key_file}" ]; then
-        echo "Generating local TLS certificates (SAN: openbar.lan, localhost)..."
         bash "${SCRIPT_DIR}/generate-local-certs.sh"
     fi
-    echo "🍓 Starting complete Raspberry Pi 5 production stack (4 cores, 4GB RAM, TLS/HTTPS)..."
-    docker compose -f docker/docker-compose.rpi5-sim.yml up -d --build
-    wait_for_health "http://localhost:8080/api/cocktails" 90
-    echo ""
-    echo "🌐 Access endpoints (Raspberry Pi 5 Simulation):"
-    echo "  • Frontend Web PWA (HTTPS) : https://localhost (or https://openbar.lan)"
-    echo "  • Frontend Web PWA (HTTP)  : http://localhost (redirects to HTTPS)"
-    echo "  • Backend REST API         : http://localhost:8080"
-    echo "  • WebSocket STOMP          : ws://localhost:8080/ws"
-    echo "  • Healthcheck              : http://localhost:8080/api/cocktails"
-    echo "  • Swagger UI               : http://localhost:8080/swagger-ui.html"
 }
 
-stop_app() {
+start_prod() {
     show_header
-    echo "🛑 Stopping OpenBar containers..."
-    docker compose -f docker-compose.prod.yml down -v 2>/dev/null || true
-    docker compose -f docker/docker-compose.rpi5-sim.yml down -v 2>/dev/null || true
-    echo "✅ All containers stopped successfully."
+    ensure_certs
+    echo "📦 Starting Docker PRODUCTION Stack (openbar-prod)..."
+    echo "  • Frontend HTTPS : https://localhost (or https://openbar.lan)"
+    echo "  • Frontend HTTP  : http://localhost (redirects to HTTPS)"
+    echo "  • Backend API    : http://localhost:${PROD_BACKEND_PORT}"
+    echo "  • Database       : localhost:${PROD_DB_PORT}"
+    docker compose -f docker-compose.prod.yml up -d --build
+    wait_for_health "http://localhost:${PROD_BACKEND_PORT}/api/cocktails" 90
+    echo -e "\n✅ Production stack is UP and healthy!"
+}
+
+start_test() {
+    show_header
+    ensure_certs
+    echo "📦 Starting Docker TEST / DEMO Stack (openbar-test)..."
+    echo "  • Frontend HTTPS : https://localhost:${TEST_HTTPS_PORT} (Special HTTPS Port)"
+    echo "  • Frontend HTTP  : http://localhost:${TEST_HTTP_PORT} (Special HTTP Port)"
+    echo "  • Backend API    : http://localhost:${TEST_BACKEND_PORT}"
+    echo "  • Database       : localhost:${TEST_DB_PORT}"
+    docker compose -f docker-compose.test.yml up -d --build
+    wait_for_health "http://localhost:${TEST_BACKEND_PORT}/api/cocktails" 90
+    echo -e "\n✅ Test / Demo stack is UP and healthy!"
+    echo "🔑 Demo Accounts (Test Mode): admin/admin123, manager/manager123, barman/barman123, serveur/serveur123"
+}
+
+start_both() {
+    show_header
+    echo "🚀 Starting BOTH Production and Test stacks simultaneously..."
+    start_prod
+    start_test
+    echo -e "\n🎉 Both environments are running concurrently without port conflicts!"
+}
+
+start_dev_db() {
+    show_header
+    echo "🐘 Starting IDE Development Database (openbar-db on port 5433)..."
+    docker compose -f backend/src/main/resources/docker-compose.yml up -d
+    echo "✅ IDE database running on localhost:5433"
+}
+
+stop_prod() {
+    echo "🛑 Stopping Production stack..."
+    docker compose -f docker-compose.prod.yml down --remove-orphans
+}
+
+stop_test() {
+    echo "🛑 Stopping Test stack..."
+    docker compose -f docker-compose.test.yml down --remove-orphans
+}
+
+stop_all() {
+    echo "🛑 Stopping all OpenBar Docker stacks..."
+    docker compose -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
+    docker compose -f docker-compose.test.yml down --remove-orphans 2>/dev/null || true
+    docker compose -f docker/docker-compose.rpi5-sim.yml down --remove-orphans 2>/dev/null || true
+    docker compose -f backend/src/main/resources/docker-compose.yml down --remove-orphans 2>/dev/null || true
+    echo "✅ All stacks stopped."
 }
 
 run_test() {
     local scen="${1:-smoke}"
-    local url="${2:-http://localhost:8080}"
+    local url="${2:-http://localhost:${PROD_BACKEND_PORT}}"
     local out_dir="${3:-reports/load-tests}"
     show_header
     echo "🎯 Running load test scenario [${scen}] against ${url}..."
-    echo "📁 Results will be exported to: ${out_dir}"
     node tests/load/run-load-tests.js "--scenario=${scen}" "--url=${url}" "--output-dir=${out_dir}"
 }
 
@@ -101,22 +136,33 @@ run_profile() {
     local output="${2:-reports/profile-report.json}"
     show_header
     echo "📊 Starting live hardware profiling (CPU, RAM, GC pauses) for ${duration}s..."
-    echo "📁 Report will be exported to: ${output}"
     node scripts/benchmark-profile.js "--duration=${duration}" "--output=${output}"
 }
 
 case "${1:-}" in
-    start|up)
+    start-prod)
         start_prod
         ;;
-    start-rpi5|rpi5)
-        start_rpi5
+    start-test)
+        start_test
         ;;
-    stop|down)
-        stop_app
+    start-both)
+        start_both
+        ;;
+    start-db)
+        start_dev_db
+        ;;
+    stop-prod)
+        stop_prod
+        ;;
+    stop-test)
+        stop_test
+        ;;
+    stop|stop-all|down)
+        stop_all
         ;;
     test)
-        run_test "${2:-smoke}" "${3:-http://localhost:8080}"
+        run_test "${2:-smoke}" "${3:-http://localhost:${PROD_BACKEND_PORT}}"
         ;;
     profile)
         run_profile "${2:-60}"
@@ -126,12 +172,6 @@ case "${1:-}" in
         ;;
     *)
         show_header
-        echo "Usage: ./scripts/manage-docker-app.sh {start|start-rpi5|stop|test [scenario]|profile|logs}"
-        echo ""
-        echo "Examples:"
-        echo "  ./scripts/manage-docker-app.sh start            # Starts complete app"
-        echo "  ./scripts/manage-docker-app.sh test smoke       # Runs k6 smoke test"
-        echo "  ./scripts/manage-docker-app.sh test rush-hour   # Runs rush hour peak test"
-        echo "  ./scripts/manage-docker-app.sh stop             # Stops all containers"
+        echo "Usage: ./scripts/manage-docker-app.sh {start-prod|start-test|start-both|start-db|stop-prod|stop-test|stop-all|test|profile|logs}"
         ;;
 esac

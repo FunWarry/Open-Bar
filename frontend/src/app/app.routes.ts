@@ -124,6 +124,14 @@ export const routes: Routes = [
     data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.INVENTORY_AUDIT }
   },
 
+  // Operational checklists and standard operating procedures (SOP)
+  {
+    path: 'checklists',
+    loadComponent: () => import('./features/checklists/checklists.component').then(m => m.ChecklistsComponent),
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER', 'BARMAN', 'SERVEUR'], requiredModule: EstablishmentModule.CHECKLISTS_PROCEDURES }
+  },
+
   // Cocktails
   {
     path: 'cocktails',

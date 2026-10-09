@@ -9,6 +9,7 @@ import { WebSocketService } from '../app/core/services/websocket.service';
 import { AppSettingsService } from '../app/core/services/app-settings.service';
 import { AppUpdateService } from '../app/core/services/app-update.service';
 import { SessionTimeoutService } from '../app/core/services/session-timeout.service';
+import { StartupReadinessService } from '../app/core/services/startup-readiness.service';
 import { PopoverController } from '@ionic/angular';
 import { EMPTY, of, throwError } from 'rxjs';
 import { selectIsAuthenticated } from '../app/core/store/auth.selectors';
@@ -25,6 +26,7 @@ describe('AppComponent', () => {
   let mockAppSettingsService: jasmine.SpyObj<AppSettingsService>;
   let mockAppUpdateService: jasmine.SpyObj<AppUpdateService>;
   let mockSessionTimeoutService: jasmine.SpyObj<SessionTimeoutService>;
+  let mockStartupReadinessService: jasmine.SpyObj<StartupReadinessService>;
   let router: Router;
 
   beforeEach(async () => {
@@ -64,6 +66,14 @@ describe('AppComponent', () => {
     mockAppUpdateService = jasmine.createSpyObj('AppUpdateService', ['initStartupCheck']);
     mockSessionTimeoutService = jasmine.createSpyObj('SessionTimeoutService', ['init', 'destroy', 'extendSession', 'expireSession']);
 
+    mockStartupReadinessService = jasmine.createSpyObj('StartupReadinessService', ['initStartupCheck'], {
+      isStartingUp: signal(false),
+      elapsedSeconds: signal(0),
+      attempts: signal(0),
+      isChecking: signal(false)
+    });
+    mockStartupReadinessService.initStartupCheck.and.returnValue(of(true));
+
     await TestBed.configureTestingModule({
       imports: [
         AppComponent,
@@ -89,6 +99,7 @@ describe('AppComponent', () => {
         { provide: AppSettingsService, useValue: mockAppSettingsService },
         { provide: AppUpdateService, useValue: mockAppUpdateService },
         { provide: SessionTimeoutService, useValue: mockSessionTimeoutService },
+        { provide: StartupReadinessService, useValue: mockStartupReadinessService },
       ],
     }).compileComponents();
 
@@ -106,6 +117,7 @@ describe('AppComponent', () => {
     const app = fixture.componentInstance;
 
     app.ngOnInit();
+    expect(mockStartupReadinessService.initStartupCheck).toHaveBeenCalled();
     expect(mockAppSettingsService.getSettings).toHaveBeenCalled();
     expect(mockAppUpdateService.initStartupCheck).toHaveBeenCalled();
     expect(mockSessionTimeoutService.init).toHaveBeenCalled();

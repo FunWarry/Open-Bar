@@ -193,49 +193,26 @@ public class EstablishmentConfigService {
         if (request == null) {
             return;
         }
-        if (request.cuisineKds() != null) {
-            config.setModuleEnabled(EstablishmentModule.CUISINE_KDS, request.cuisineKds());
-        }
-        if (request.happyHour() != null) {
-            config.setModuleEnabled(EstablishmentModule.HAPPY_HOUR, request.happyHour());
-        }
-        if (request.employeeManagement() != null) {
-            config.setModuleEnabled(EstablishmentModule.EMPLOYEE_MANAGEMENT, request.employeeManagement());
-        }
-        if (request.floorPlan() != null) {
-            config.setModuleEnabled(EstablishmentModule.FLOOR_PLAN, request.floorPlan());
-        }
-        if (request.qrClientOrdering() != null) {
-            config.setModuleEnabled(EstablishmentModule.QR_CLIENT_ORDERING, request.qrClientOrdering());
-        }
-        if (request.stockTracking() != null) {
-            config.setModuleEnabled(EstablishmentModule.STOCK_TRACKING, request.stockTracking());
-        }
-        if (request.cashDrawer() != null) {
-            config.setModuleEnabled(EstablishmentModule.CASH_DRAWER, request.cashDrawer());
-        }
-        if (request.barTabs() != null) {
-            config.setModuleEnabled(EstablishmentModule.BAR_TABS, request.barTabs());
-        }
-        if (request.cocktailLibrary() != null) {
-            config.setModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY, request.cocktailLibrary());
-        }
-        if (request.suppliersManagement() != null) {
-            config.setModuleEnabled(EstablishmentModule.SUPPLIERS_MANAGEMENT, request.suppliersManagement());
-        }
-        if (request.inventoryAudit() != null) {
-            config.setModuleEnabled(EstablishmentModule.INVENTORY_AUDIT, request.inventoryAudit());
-        }
-        if (request.mysteryRoulette() != null) {
-            config.setModuleEnabled(EstablishmentModule.MYSTERY_ROULETTE, request.mysteryRoulette());
-        }
-        // Toggle payment terminal module if explicitly provided in update request
-        if (request.paymentTerminal() != null) {
-            config.setModuleEnabled(EstablishmentModule.PAYMENT_TERMINAL, request.paymentTerminal());
-        }
-        // Toggle table reservations module if explicitly provided in update request
-        if (request.tableReservations() != null) {
-            config.setModuleEnabled(EstablishmentModule.TABLE_RESERVATIONS, request.tableReservations());
+        applyModuleIfPresent(config, EstablishmentModule.CUISINE_KDS, request.cuisineKds());
+        applyModuleIfPresent(config, EstablishmentModule.HAPPY_HOUR, request.happyHour());
+        applyModuleIfPresent(config, EstablishmentModule.EMPLOYEE_MANAGEMENT, request.employeeManagement());
+        applyModuleIfPresent(config, EstablishmentModule.FLOOR_PLAN, request.floorPlan());
+        applyModuleIfPresent(config, EstablishmentModule.QR_CLIENT_ORDERING, request.qrClientOrdering());
+        applyModuleIfPresent(config, EstablishmentModule.STOCK_TRACKING, request.stockTracking());
+        applyModuleIfPresent(config, EstablishmentModule.CASH_DRAWER, request.cashDrawer());
+        applyModuleIfPresent(config, EstablishmentModule.BAR_TABS, request.barTabs());
+        applyModuleIfPresent(config, EstablishmentModule.COCKTAIL_LIBRARY, request.cocktailLibrary());
+        applyModuleIfPresent(config, EstablishmentModule.SUPPLIERS_MANAGEMENT, request.suppliersManagement());
+        applyModuleIfPresent(config, EstablishmentModule.INVENTORY_AUDIT, request.inventoryAudit());
+        applyModuleIfPresent(config, EstablishmentModule.MYSTERY_ROULETTE, request.mysteryRoulette());
+        applyModuleIfPresent(config, EstablishmentModule.PAYMENT_TERMINAL, request.paymentTerminal());
+        applyModuleIfPresent(config, EstablishmentModule.TABLE_RESERVATIONS, request.tableReservations());
+        applyModuleIfPresent(config, EstablishmentModule.CHECKLISTS_PROCEDURES, request.checklistsProcedures());
+    }
+
+    private void applyModuleIfPresent(EstablishmentConfig config, EstablishmentModule module, Boolean enabled) {
+        if (enabled != null) {
+            config.setModuleEnabled(module, enabled);
         }
     }
 

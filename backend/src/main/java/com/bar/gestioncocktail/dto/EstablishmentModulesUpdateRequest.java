@@ -18,6 +18,7 @@ package com.bar.gestioncocktail.dto;
  * @param mysteryRoulette     Optional new status for Mystery Drink Roulette module
  * @param paymentTerminal     Optional new status for Physical Payment Terminal (TPE) module
  * @param tableReservations    Optional new status for Table Reservations module
+ * @param checklistsProcedures Optional new status for Checklists & Procedures module
  */
 public record EstablishmentModulesUpdateRequest(
         Boolean cuisineKds,
@@ -33,7 +34,8 @@ public record EstablishmentModulesUpdateRequest(
         Boolean inventoryAudit,
         Boolean mysteryRoulette,
         Boolean paymentTerminal,
-        Boolean tableReservations
+        Boolean tableReservations,
+        Boolean checklistsProcedures
 ) {
     @Override
     public Boolean paymentTerminal() {
@@ -43,6 +45,33 @@ public record EstablishmentModulesUpdateRequest(
     @Override
     public Boolean tableReservations() {
         return tableReservations;
+    }
+
+    @Override
+    public Boolean checklistsProcedures() {
+        return checklistsProcedures;
+    }
+
+    /**
+     * Backward-compatible constructor for 14 modules before checklistsProcedures was introduced.
+     */
+    public EstablishmentModulesUpdateRequest(
+            Boolean cuisineKds,
+            Boolean happyHour,
+            Boolean employeeManagement,
+            Boolean floorPlan,
+            Boolean qrClientOrdering,
+            Boolean stockTracking,
+            Boolean cashDrawer,
+            Boolean barTabs,
+            Boolean cocktailLibrary,
+            Boolean suppliersManagement,
+            Boolean inventoryAudit,
+            Boolean mysteryRoulette,
+            Boolean paymentTerminal,
+            Boolean tableReservations
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, tableReservations, null);
     }
 
     /**
@@ -63,7 +92,7 @@ public record EstablishmentModulesUpdateRequest(
             Boolean mysteryRoulette,
             Boolean paymentTerminal
     ) {
-        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, null);
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, null, null);
     }
 
     /**
