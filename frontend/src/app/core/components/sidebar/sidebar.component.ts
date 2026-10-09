@@ -54,6 +54,7 @@ export const SIDEBAR_NAV_ITEMS: NavItemDef[] = [
   { id: 'nav-commandes', route: '/commandes', icon: 'receipt-outline', labelKey: 'NAV.COMMANDES', section: 'main' },
   { id: 'nav-tables', route: '/tables', icon: 'table-restaurant-outline', labelKey: 'NAV.TABLES', section: 'main' },
   { id: 'nav-factures', route: '/factures', icon: 'card-outline', labelKey: 'NAV.FACTURES', roles: ['MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN'], section: 'main' },
+  { id: 'nav-checklists', route: '/checklists', icon: 'checkbox-outline', labelKey: 'NAV.CHECKLISTS', roles: ['ADMIN', 'MANAGER', 'BARMAN', 'SERVEUR'], requiredModule: EstablishmentModule.CHECKLISTS_PROCEDURES, section: 'main' },
   { id: 'nav-ingredients', route: '/ingredients', icon: 'nutrition-outline', labelKey: 'NAV.INGREDIENTS', roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.STOCK_TRACKING, section: 'admin' },
   { id: 'nav-purchases', route: '/purchases', icon: 'cart-outline', labelKey: 'NAV.PURCHASES', roles: ['ADMIN', 'MANAGER'], requiredModule: EstablishmentModule.SUPPLIERS_MANAGEMENT, section: 'admin' },
   { id: 'nav-inventory', route: '/inventory', icon: 'clipboard-outline', labelKey: 'NAV.INVENTORY', roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.INVENTORY_AUDIT, section: 'admin' },

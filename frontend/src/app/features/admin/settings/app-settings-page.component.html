@@ -689,6 +689,18 @@
                           </div>
                           <p class="threshold-desc">{{ 'SETTINGS.MODULE_TABLE_RESERVATIONS_DESC' | transloco }}</p>
                         </div>
+
+                        <!-- Module 15: CHECKLISTS_PROCEDURES -->
+                        <div class="threshold-row" data-testid="module-row-checklists-procedures">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="checkbox-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_CHECKLISTS_PROCEDURES_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="checklistsProcedures" data-testid="toggle-module-checklists-procedures"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_CHECKLISTS_PROCEDURES_DESC' | transloco }}</p>
+                        </div>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -1018,6 +1030,26 @@
                                 </span>
                               </div>
                               <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_TABLE_RESERVATIONS' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 15. Checklists Opérationnelles & SOP -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('checklistsProcedures')"
+                            [class.node-inactive]="!isModuleControlActive('checklistsProcedures')"
+                            data-testid="preview-node-checklists-procedures">
+                            <div class="node-icon-box">
+                              <ion-icon name="checkbox-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_CHECKLISTS_PROCEDURES_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('checklistsProcedures')">
+                                  {{ (isModuleControlActive('checklistsProcedures') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_CHECKLISTS_PROCEDURES' | transloco }}</span>
                             </div>
                           </div>
                         </div>

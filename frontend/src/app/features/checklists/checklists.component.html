@@ -1,0 +1,1405 @@
+<div class="checklists-container" data-testid="checklists-container">
+  <!-- Main Header & Page Title -->
+  <header class="checklists-header" data-testid="checklists-header">
+    <div class="header-content">
+      <div class="title-row">
+        <ion-icon name="checkbox-outline" class="header-icon" aria-hidden="true"></ion-icon>
+        <div>
+          <h1 class="page-title">{{ 'CHECKLISTS.TITLE' | transloco }}</h1>
+          <p class="page-subtitle">{{ 'CHECKLISTS.SUBTITLE' | transloco }}</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button
+          type="button"
+          class="btn-icon"
+          (click)="loadData()"
+          [title]="'COMMON.REFRESH' | transloco"
+          data-testid="btn-refresh-checklists">
+          <ion-icon name="refresh-outline"></ion-icon>
+        </button>
+
+        @if (canManageTemplates()) {
+          <app-action-button
+            variant="primary"
+            icon="add-outline"
+            (btnClick)="openCreateTemplateModal()"
+            testId="btn-create-template-header">
+            {{ 'CHECKLISTS.ACTIONS.CREATE_TEMPLATE' | transloco }}
+          </app-action-button>
+        }
+      </div>
+    </div>
+
+    <!-- KPI Stats Bar -->
+    <div class="kpi-grid" data-testid="checklists-kpi-grid">
+      <div class="kpi-card" data-testid="kpi-active-runs">
+        <div class="kpi-icon-wrap active-wrap">
+          <ion-icon name="play-outline"></ion-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ stats().activeRunsCount }}</span>
+          <span class="kpi-label">{{ 'CHECKLISTS.STATS.ACTIVE_RUNS' | transloco }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card" data-testid="kpi-completed-today">
+        <div class="kpi-icon-wrap completed-wrap">
+          <ion-icon name="checkmark-done-outline"></ion-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ stats().completedTodayCount }}</span>
+          <span class="kpi-label">{{ 'CHECKLISTS.STATS.COMPLETED_TODAY' | transloco }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card" data-testid="kpi-completion-rate">
+        <div class="kpi-icon-wrap rate-wrap">
+          <ion-icon name="sparkles-outline"></ion-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ stats().completionRateToday }}%</span>
+          <span class="kpi-label">{{ 'CHECKLISTS.STATS.COMPLETION_RATE' | transloco }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card" data-testid="kpi-templates-count">
+        <div class="kpi-icon-wrap templates-wrap">
+          <ion-icon name="document-text-outline"></ion-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ stats().totalTemplatesCount }}</span>
+          <span class="kpi-label">{{ 'CHECKLISTS.STATS.TEMPLATES_COUNT' | transloco }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs Segment -->
+    <nav class="tabs-nav" data-testid="checklists-tabs-nav">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="currentTab() === 'active'"
+        (click)="switchTab('active')"
+        data-testid="tab-active-runs">
+        <ion-icon name="play-outline"></ion-icon>
+        <span>{{ 'CHECKLISTS.TABS.ACTIVE' | transloco }}</span>
+        @if (activeRuns().length > 0) {
+          <span class="tab-badge">{{ activeRuns().length }}</span>
+        }
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="currentTab() === 'templates'"
+        (click)="switchTab('templates')"
+        data-testid="tab-templates">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <span>{{ 'CHECKLISTS.TABS.TEMPLATES' | transloco }}</span>
+        <span class="tab-badge">{{ templates().length }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="currentTab() === 'history'"
+        (click)="switchTab('history')"
+        data-testid="tab-history">
+        <ion-icon name="time-outline"></ion-icon>
+        <span>{{ 'CHECKLISTS.TABS.HISTORY' | transloco }}</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- Main Content per Selected Tab -->
+  <main class="checklists-body">
+    <!-- ============================================== -->
+    <!-- TAB 1 : IN-PROGRESS SESSIONS (EXECUTION) -->
+    <!-- ============================================== -->
+    @if (currentTab() === 'active') {
+      <section class="tab-content active-tab-layout" data-testid="tab-content-active">
+        @if (activeRuns().length === 0) {
+          <div class="empty-state-card" data-testid="empty-active-runs">
+            <app-empty-state
+              icon="checkbox-outline"
+              [title]="'CHECKLISTS.EMPTY.NO_ACTIVE_RUNS' | transloco"
+              [subtitle]="'CHECKLISTS.EMPTY.NO_ACTIVE_RUNS_SUBTITLE' | transloco"
+              [actionLabel]="'CHECKLISTS.ACTIONS.START_RUN' | transloco"
+              (actionClick)="switchTab('templates')">
+            </app-empty-state>
+          </div>
+        } @else {
+          <!-- Master / Detail Grid -->
+          <div class="runs-workspace">
+            <!-- Left Column : Active Runs List -->
+            <div class="runs-sidebar" data-testid="active-runs-list">
+              <div class="sidebar-header">
+                <span class="sidebar-title">{{ 'CHECKLISTS.TABS.ACTIVE' | transloco }} ({{ activeRuns().length }})</span>
+              </div>
+
+              <div class="runs-cards-stack">
+                @for (run of activeRuns(); track run.id) {
+                  <button
+                    type="button"
+                    class="run-selector-card"
+                    [class.selected]="selectedRun()?.id === run.id"
+                    (click)="selectRun(run)"
+                    [attr.data-testid]="'run-card-' + run.id">
+                    <div class="card-head">
+                      <span class="category-badge cat-{{ run.category.toLowerCase() }}">
+                        {{ 'CHECKLISTS.CATEGORIES.' + run.category | transloco }}
+                      </span>
+                      <span class="progress-pill">{{ run.progressPercentage }}%</span>
+                    </div>
+
+                    <h3 class="run-title">{{ run.templateTitle }}</h3>
+
+                    <div class="progress-bar-track">
+                      <div class="progress-bar-fill" [style.width.%]="run.progressPercentage"></div>
+                    </div>
+
+                    <div class="card-meta">
+                      <span class="meta-item">
+                        <ion-icon name="checkbox-outline"></ion-icon>
+                        {{ run.completedItemsCount }} / {{ run.totalItemsCount }}
+                      </span>
+                      @if (run.mandatoryPendingCount > 0) {
+                        <span class="mandatory-badge" [title]="'CHECKLISTS.LABELS.MANDATORY_PENDING' | transloco">
+                          <ion-icon name="alert-circle-outline"></ion-icon>
+                          {{ run.mandatoryPendingCount }}
+                        </span>
+                      }
+                    </div>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Right Column : Execution Detail Pane -->
+            <div class="run-detail-pane" data-testid="run-detail-pane">
+              @if (selectedRun(); as activeRun) {
+                <div class="detail-card">
+                  <!-- Session Header -->
+                  <div class="detail-header">
+                    <div>
+                      <div class="detail-category-row">
+                        <span class="category-badge cat-{{ activeRun.category.toLowerCase() }}">
+                          {{ 'CHECKLISTS.CATEGORIES.' + activeRun.category | transloco }}
+                        </span>
+                        <span class="status-badge-inline status-in-progress">
+                          {{ 'CHECKLISTS.STATUS.IN_PROGRESS' | transloco }}
+                        </span>
+                      </div>
+                      <h2 class="detail-title">{{ activeRun.templateTitle }}</h2>
+                      <p class="detail-meta">
+                        {{ 'CHECKLISTS.LABELS.CREATED_BY' | transloco }} {{ activeRun.createdByName || ('CHECKLISTS.LABELS.STAFF' | transloco) }} •
+                        {{ 'CHECKLISTS.LABELS.STARTED_AT' | transloco }} {{ activeRun.startedAt | date:'HH:mm' }}
+                      </p>
+                    </div>
+
+                    <div class="header-stats-circle">
+                      <span class="percentage-number">{{ activeRun.progressPercentage || 0 }}%</span>
+                    </div>
+                  </div>
+
+                  <!-- Progress Gauge -->
+                  <div class="progress-section">
+                    <div class="progress-bar-large">
+                      <div class="progress-fill-large" [style.width.%]="activeRun.progressPercentage || 0"></div>
+                    </div>
+                    <div class="progress-labels-row">
+                      <span>{{ 'CHECKLISTS.LABELS.TASKS_VALIDATED' | transloco:{completed: activeRun.completedItemsCount || 0, total: activeRun.totalItemsCount || 0} }}</span>
+                      @if (activeRun.totalItemsCount > 0 && activeRun.completedItemsCount === activeRun.totalItemsCount) {
+                        <span class="success-text">
+                          <ion-icon name="checkmark-circle-outline"></ion-icon>
+                          {{ 'CHECKLISTS.LABELS.ALL_TASKS_COMPLETED' | transloco }}
+                        </span>
+                      } @else if (activeRun.mandatoryPendingCount > 0) {
+                        <span class="warning-text">
+                          <ion-icon name="alert-circle-outline"></ion-icon>
+                          {{ activeRun.mandatoryPendingCount }} {{ 'CHECKLISTS.LABELS.MANDATORY_PENDING' | transloco }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Checklist Task List -->
+                  <div class="tasks-list" data-testid="run-tasks-list">
+                    @for (item of activeRun.items; track item.id) {
+                      <div
+                        class="task-row"
+                        [class.completed]="item.isCompleted"
+                        [class.expanded]="isTaskExpanded(item.id)"
+                        [attr.data-testid]="'task-item-' + item.id">
+                        <!-- 1-Click Checkbox Button -->
+                        <button
+                          type="button"
+                          class="checkbox-trigger"
+                          (click)="toggleItem(item); $event.stopPropagation()"
+                          [attr.aria-checked]="item.isCompleted"
+                          [attr.data-testid]="'checkbox-task-' + item.id">
+                          <ion-icon [name]="item.isCompleted ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+                        </button>
+
+                        <div class="task-info">
+                          <div class="task-title-line">
+                            <button
+                              type="button"
+                              class="task-title-btn"
+                              (click)="toggleTaskExpand(item.id)"
+                              [attr.aria-expanded]="isTaskExpanded(item.id)"
+                              [attr.data-testid]="'btn-title-expand-' + item.id">
+                              <span class="task-title" [class.line-through]="item.isCompleted">{{ item.title }}</span>
+                            </button>
+
+                            <div class="task-badges">
+                              @if (item.isMandatory) {
+                                <span class="badge-mandatory">{{ 'CHECKLISTS.LABELS.MANDATORY' | transloco }}</span>
+                              } @else {
+                                <span class="badge-optional">{{ 'CHECKLISTS.LABELS.OPTIONAL' | transloco }}</span>
+                              }
+
+                              @if (item.assignedRoles && item.assignedRoles.length > 0) {
+                                @for (role of item.assignedRoles; track role) {
+                                  <span class="badge-role">{{ 'CHECKLISTS.ROLES.' + role | transloco }}</span>
+                                }
+                              } @else if (item.targetRole) {
+                                <span class="badge-role">{{ 'CHECKLISTS.ROLES.' + item.targetRole | transloco }}</span>
+                              }
+
+                              @if (item.assignedUsernames && item.assignedUsernames.length > 0) {
+                                @for (username of item.assignedUsernames; track username) {
+                                  <span class="badge-user">
+                                    <ion-icon name="person-outline"></ion-icon>
+                                    {{ username }}
+                                  </span>
+                                }
+                              }
+                            </div>
+                          </div>
+
+                          @if (item.description) {
+                            <p class="task-desc" [class.clamp]="!isTaskExpanded(item.id)">{{ item.description }}</p>
+                          }
+
+                          <!-- Visual Media Guide if Attached (in-line quick chips) -->
+                          @if (getItemMediaList(item); as mediaList) {
+                            @if (mediaList.length > 0) {
+                              <div class="task-media-guide">
+                                @for (med of mediaList; track med.url) {
+                                  <button
+                                    type="button"
+                                    class="media-chip-btn"
+                                    (click)="openMediaViewer(med.title || item.title, med.type, med.url); $event.stopPropagation()"
+                                    [attr.data-testid]="'btn-view-media-' + item.id + '-' + $index">
+                                    <ion-icon [name]="med.type === 'VIDEO' ? 'videocam-outline' : (med.type === 'EXTERNAL_LINK' ? 'link-outline' : 'image-outline')"></ion-icon>
+                                    <span>{{ med.type === 'VIDEO' ? ('CHECKLISTS.LABELS.VIDEO_GUIDE' | transloco) : (med.type === 'EXTERNAL_LINK' ? ('CHECKLISTS.LABELS.EXTERNAL_LINK' | transloco) : ('CHECKLISTS.LABELS.PHOTO_GUIDE' | transloco)) }}</span>
+                                  </button>
+                                }
+                              </div>
+                            }
+                          }
+
+                          <!-- Audit Trail Record -->
+                          @if (item.isCompleted) {
+                            <div class="audit-record-line" [attr.data-testid]="'audit-record-' + item.id">
+                              <ion-icon name="shield-checkmark-outline"></ion-icon>
+                              <span>
+                                {{ 'CHECKLISTS.LABELS.VALIDATED_BY_AT' | transloco:{name: item.completedByName || ('CHECKLISTS.LABELS.STAFF' | transloco), time: (item.completedAt | date:'HH:mm:ss')} }}
+                              </span>
+                            </div>
+                          }
+
+                          <!-- Observation Comment & Attached Photo Proof -->
+                          @if (item.comment || item.photoProofUrl) {
+                            <div class="item-attachments">
+                              @if (item.comment) {
+                                <button
+                                  type="button"
+                                  class="comment-bubble"
+                                  (click)="openCommentModal(item); $event.stopPropagation()">
+                                  <ion-icon name="chatbubble-outline"></ion-icon>
+                                  <span>{{ item.comment }}</span>
+                                </button>
+                              }
+                              @if (item.photoProofUrl) {
+                                <button
+                                  type="button"
+                                  class="proof-thumb-btn"
+                                  (click)="openMediaViewer(item.title, 'IMAGE', item.photoProofUrl); $event.stopPropagation()">
+                                  <ion-icon name="camera-outline"></ion-icon>
+                                  <span>{{ 'CHECKLISTS.LABELS.PROOF_PHOTO_BADGE' | transloco }}</span>
+                                </button>
+                              }
+                            </div>
+                          }
+
+                          <!-- Expanded Detailed Task View (Steps & Full Instructions) -->
+                          @if (isTaskExpanded(item.id)) {
+                            <div class="task-expanded-details">
+                              @if (getItemStepsList(item); as stepsList) {
+                                @if (stepsList.length > 0) {
+                                  <div class="steps-section">
+                                    <h4 class="section-subtitle">
+                                      <ion-icon name="list-outline"></ion-icon>
+                                      {{ 'CHECKLISTS.LABELS.STEPS' | transloco }} ({{ stepsList.length }})
+                                    </h4>
+                                    <div class="steps-timeline">
+                                      @for (step of stepsList; track step.stepNumber) {
+                                        <div class="step-row-card">
+                                          <div class="step-badge-title">
+                                            <span class="step-num-pill">#{{ step.stepNumber }}</span>
+                                            <span class="step-name">{{ step.title }}</span>
+                                          </div>
+                                          @if (step.description) {
+                                            <p class="step-instruction">{{ step.description }}</p>
+                                          }
+                                          @if (step.mediaUrl) {
+                                            <div class="step-img-wrap">
+                                              <button
+                                                type="button"
+                                                class="step-img-btn"
+                                                (click)="openMediaViewer(step.title, 'IMAGE', step.mediaUrl); $event.stopPropagation()">
+                                                <img [src]="resolveImageUrl(step.mediaUrl)" [alt]="step.title" />
+                                              </button>
+                                            </div>
+                                          }
+                                        </div>
+                                      }
+                                    </div>
+                                  </div>
+                                }
+                              }
+                            </div>
+                          }
+                        </div>
+
+                        <!-- Secondary Task Actions -->
+                        <div class="task-row-actions">
+                          <button
+                            type="button"
+                            class="action-mini-btn"
+                            (click)="openCommentModal(item); $event.stopPropagation()"
+                            [title]="'CHECKLISTS.LABELS.OBSERVATION_AND_PROOF' | transloco"
+                            [attr.data-testid]="'btn-comment-' + item.id">
+                            <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+                          </button>
+
+                          <button
+                            type="button"
+                            class="action-mini-btn btn-chevron"
+                            (click)="toggleTaskExpand(item.id); $event.stopPropagation()"
+                            [title]="isTaskExpanded(item.id) ? ('COMMON.CLOSE' | transloco) : ('CHECKLISTS.ACTIONS.VIEW_DETAILS' | transloco)"
+                            [attr.data-testid]="'btn-expand-task-' + item.id">
+                            <ion-icon [name]="isTaskExpanded(item.id) ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Action Buttons to Finalize Session -->
+                  <div class="detail-actions-footer">
+                    <app-action-button
+                      variant="danger"
+                      icon="close-circle-outline"
+                      (btnClick)="confirmCancelRun()"
+                      testId="btn-cancel-run">
+                      {{ 'CHECKLISTS.ACTIONS.CANCEL_RUN' | transloco }}
+                    </app-action-button>
+
+                    <app-action-button
+                      variant="primary"
+                      icon="checkmark-circle-outline"
+                      (btnClick)="confirmCompleteRun()"
+                      [disabled]="activeRun.mandatoryPendingCount > 0"
+                      [title]="activeRun.mandatoryPendingCount > 0 ? ('CHECKLISTS.ALERTS.MANDATORY_TASKS_LEFT' | transloco) : ''"
+                      testId="btn-complete-run">
+                      {{ 'CHECKLISTS.ACTIONS.COMPLETE_RUN' | transloco }}
+                    </app-action-button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- ============================================== -->
+    <!-- TAB 2 : TEMPLATES CATALOG -->
+    <!-- ============================================== -->
+    @if (currentTab() === 'templates') {
+      <section class="tab-content" data-testid="tab-content-templates">
+        <div class="category-filter-bar" data-testid="templates-category-filter">
+          <app-filter-chip
+            [label]="'CHECKLISTS.CATEGORIES.ALL' | transloco"
+            [active]="selectedCategory() === 'ALL'"
+            (chipClick)="selectedCategory.set('ALL')">
+          </app-filter-chip>
+          <app-filter-chip
+            [label]="'CHECKLISTS.CATEGORIES.OPENING' | transloco"
+            [active]="selectedCategory() === 'OPENING'"
+            (chipClick)="selectedCategory.set('OPENING')">
+          </app-filter-chip>
+          <app-filter-chip
+            [label]="'CHECKLISTS.CATEGORIES.CLOSING' | transloco"
+            [active]="selectedCategory() === 'CLOSING'"
+            (chipClick)="selectedCategory.set('CLOSING')">
+          </app-filter-chip>
+          <app-filter-chip
+            [label]="'CHECKLISTS.CATEGORIES.CLEANING_HYGIENE' | transloco"
+            [active]="selectedCategory() === 'CLEANING_HYGIENE'"
+            (chipClick)="selectedCategory.set('CLEANING_HYGIENE')">
+          </app-filter-chip>
+          <app-filter-chip
+            [label]="'CHECKLISTS.CATEGORIES.MID_SHIFT' | transloco"
+            [active]="selectedCategory() === 'MID_SHIFT'"
+            (chipClick)="selectedCategory.set('MID_SHIFT')">
+          </app-filter-chip>
+          <app-filter-chip
+            [label]="'CHECKLISTS.CATEGORIES.SAFETY_MAINTENANCE' | transloco"
+            [active]="selectedCategory() === 'SAFETY_MAINTENANCE'"
+            (chipClick)="selectedCategory.set('SAFETY_MAINTENANCE')">
+          </app-filter-chip>
+        </div>
+
+        @if (filteredTemplates().length === 0) {
+          <div class="empty-state-card" data-testid="empty-templates">
+            <app-empty-state
+              icon="document-text-outline"
+              [title]="'CHECKLISTS.EMPTY.NO_TEMPLATES' | transloco"
+              [subtitle]="'CHECKLISTS.EMPTY.NO_TEMPLATES_SUBTITLE' | transloco">
+            </app-empty-state>
+          </div>
+        } @else {
+          <div class="templates-grid" data-testid="templates-grid">
+            @for (template of filteredTemplates(); track template.id) {
+              <article class="template-card" [attr.data-testid]="'template-card-' + template.id">
+                <div class="template-card-header">
+                  <div class="template-icon-box" [style.color]="template.color || 'var(--primary)'">
+                    <ion-icon [name]="template.icon || 'checkbox-outline'"></ion-icon>
+                  </div>
+                  <span class="category-badge cat-{{ template.category.toLowerCase() }}">
+                    {{ 'CHECKLISTS.CATEGORIES.' + template.category | transloco }}
+                  </span>
+                </div>
+
+                <h3 class="template-title">{{ template.title }}</h3>
+                <p class="template-desc">{{ template.description || ('CHECKLISTS.LABELS.STANDARD_PROCEDURE' | transloco) }}</p>
+
+                <div class="template-meta-row">
+                  <span class="meta-tag">
+                    <ion-icon name="time-outline"></ion-icon>
+                    ≈ {{ template.estimatedDurationMinutes || 15 }} {{ 'CHECKLISTS.LABELS.MINUTES' | transloco }}
+                  </span>
+                  <span class="meta-tag">
+                    <ion-icon name="list-outline"></ion-icon>
+                    {{ template.items.length }} {{ 'CHECKLISTS.LABELS.TASK_COUNT' | transloco:{count: template.items.length} }}
+                  </span>
+                </div>
+
+                <!-- Fast Preview of First Items -->
+                <ul class="template-items-preview">
+                  @for (it of template.items.slice(0, 3); track it.id) {
+                    <li>
+                      <ion-icon name="checkmark-circle-outline"></ion-icon>
+                      <span>{{ it.title }}</span>
+                    </li>
+                  }
+                  @if (template.items.length > 3) {
+                    <li class="more-items">{{ 'CHECKLISTS.LABELS.MORE_TASKS' | transloco:{count: template.items.length - 3} }}</li>
+                  }
+                </ul>
+
+                <!-- Template Actions -->
+                <div class="template-actions">
+                  <app-action-button
+                    variant="primary"
+                    icon="play-outline"
+                    (btnClick)="startRun(template)"
+                    [testId]="'btn-start-run-' + template.id"
+                    class="launch-btn-wrapper">
+                    {{ 'CHECKLISTS.ACTIONS.LAUNCH' | transloco }}
+                  </app-action-button>
+
+                  @if (canManageTemplates()) {
+                    <button
+                      type="button"
+                      class="btn-icon-subtle"
+                      (click)="openEditTemplateModal(template)"
+                      [title]="'COMMON.EDIT' | transloco"
+                      [attr.data-testid]="'btn-edit-template-' + template.id">
+                      <ion-icon name="create-outline"></ion-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-icon-subtle danger"
+                      (click)="confirmDeleteTemplate(template)"
+                      [title]="'COMMON.DELETE' | transloco"
+                      [attr.data-testid]="'btn-delete-template-' + template.id">
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    <!-- ============================================== -->
+    <!-- TAB 3 : HISTORY & AUDIT TRAIL -->
+    <!-- ============================================== -->
+    @if (currentTab() === 'history') {
+      <section class="tab-content" data-testid="tab-content-history">
+        <!-- Status & Category Filter Bar -->
+        <div class="history-filter-bar" data-testid="history-filter-bar">
+          <div class="filter-group">
+            <span class="filter-label">{{ 'CHECKLISTS.STATUS.ALL' | transloco }} :</span>
+            <app-filter-chip
+              [label]="'COMMON.ALL' | transloco"
+              [active]="selectedStatus() === 'ALL'"
+              (chipClick)="selectedStatus.set('ALL')">
+            </app-filter-chip>
+            <app-filter-chip
+              [label]="'CHECKLISTS.STATUS.COMPLETED' | transloco"
+              [active]="selectedStatus() === 'COMPLETED'"
+              (chipClick)="selectedStatus.set('COMPLETED')">
+            </app-filter-chip>
+            <app-filter-chip
+              [label]="'CHECKLISTS.STATUS.CANCELLED' | transloco"
+              [active]="selectedStatus() === 'CANCELLED'"
+              (chipClick)="selectedStatus.set('CANCELLED')">
+            </app-filter-chip>
+          </div>
+        </div>
+
+        @if (filteredHistoryRuns().length === 0) {
+          <div class="empty-state-card" data-testid="empty-history">
+            <app-empty-state
+              icon="time-outline"
+              [title]="'CHECKLISTS.EMPTY.NO_HISTORY' | transloco"
+              [subtitle]="'CHECKLISTS.EMPTY.NO_HISTORY_SUBTITLE' | transloco">
+            </app-empty-state>
+          </div>
+        } @else {
+          <div class="history-list" data-testid="history-runs-list">
+            @for (run of filteredHistoryRuns(); track run.id) {
+              <article class="history-card" [attr.data-testid]="'history-card-' + run.id">
+                <div class="history-head">
+                  <div class="head-left">
+                    <span class="category-badge cat-{{ run.category.toLowerCase() }}">
+                      {{ 'CHECKLISTS.CATEGORIES.' + run.category | transloco }}
+                    </span>
+                    <span
+                      class="status-badge-inline"
+                      [class.status-completed]="run.status === 'COMPLETED'"
+                      [class.status-cancelled]="run.status === 'CANCELLED'">
+                      {{ 'CHECKLISTS.STATUS.' + run.status | transloco }}
+                    </span>
+                    <h3 class="history-title">{{ run.templateTitle }}</h3>
+                  </div>
+
+                  <div class="head-right">
+                    <button
+                      type="button"
+                      class="btn-toggle-audit"
+                      (click)="toggleHistoryAudit(run.id)"
+                      [attr.data-testid]="'btn-expand-audit-' + run.id">
+                      <span>{{ expandedHistoryRunId() === run.id ? ('CHECKLISTS.LABELS.HIDE_AUDIT' | transloco) : ('CHECKLISTS.LABELS.VIEW_AUDIT' | transloco) }}</span>
+                      <ion-icon [name]="expandedHistoryRunId() === run.id ? 'chevron-back-outline' : 'chevron-forward-outline'"></ion-icon>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Audit Metadata Grid -->
+                <div class="history-meta-grid">
+                  <div class="meta-cell">
+                    <span class="cell-label">{{ 'CHECKLISTS.LABELS.STARTED_AT' | transloco }}</span>
+                    <span class="cell-val">{{ run.startedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+
+                  @if (run.completedAt) {
+                    <div class="meta-cell">
+                      <span class="cell-label">{{ 'CHECKLISTS.LABELS.COMPLETED_AT' | transloco }}</span>
+                      <span class="cell-val">{{ run.completedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                  }
+
+                  <div class="meta-cell">
+                    <span class="cell-label">{{ 'CHECKLISTS.LABELS.CREATED_BY' | transloco }}</span>
+                    <span class="cell-val">{{ run.createdByName || ('CHECKLISTS.LABELS.NOT_SPECIFIED' | transloco) }}</span>
+                  </div>
+
+                  @if (run.completedByName) {
+                    <div class="meta-cell">
+                      <span class="cell-label">{{ 'CHECKLISTS.LABELS.COMPLETED_BY' | transloco }}</span>
+                      <span class="cell-val">{{ run.completedByName }}</span>
+                    </div>
+                  }
+
+                  <div class="meta-cell">
+                    <span class="cell-label">{{ 'CHECKLISTS.LABELS.PROGRESS' | transloco }}</span>
+                    <span class="cell-val">{{ run.progressPercentage }}% ({{ run.completedItemsCount }}/{{ run.totalItemsCount }})</span>
+                  </div>
+                </div>
+
+                @if (run.notes) {
+                  <div class="history-notes-box">
+                    <strong>{{ 'CHECKLISTS.LABELS.NOTES' | transloco }} :</strong> {{ run.notes }}
+                  </div>
+                }
+
+                <!-- Nominative Task Completion Drilldown -->
+                @if (expandedHistoryRunId() === run.id) {
+                  <div class="audit-drilldown-box" [attr.data-testid]="'audit-drilldown-' + run.id">
+                    <h4 class="drilldown-title">{{ 'CHECKLISTS.LABELS.DETAILED_AUDIT_TRAIL' | transloco }}</h4>
+                    <div class="drilldown-tasks">
+                      @for (it of run.items; track it.id) {
+                        <div class="drilldown-item" [class.done]="it.isCompleted">
+                          <ion-icon [name]="it.isCompleted ? 'checkmark-circle' : 'close-circle-outline'"></ion-icon>
+                          <div class="drilldown-info">
+                            <span class="drilldown-item-title">{{ it.title }}</span>
+                            @if (it.isCompleted) {
+                              <span class="drilldown-item-audit">
+                                {{ 'CHECKLISTS.LABELS.VALIDATED_BY_AT' | transloco:{name: it.completedByName || ('CHECKLISTS.LABELS.STAFF' | transloco), time: (it.completedAt | date:'HH:mm:ss')} }}
+                              </span>
+                            } @else {
+                              <span class="drilldown-item-pending">{{ 'CHECKLISTS.LABELS.NOT_COMPLETED' | transloco }}</span>
+                            }
+
+                            @if (it.comment) {
+                              <span class="drilldown-comment">{{ 'CHECKLISTS.LABELS.NOTE' | transloco }} {{ it.comment }}</span>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </article>
+            }
+          </div>
+        }
+      </section>
+    }
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- MODAL : CREATE / EDIT PROCEDURE TEMPLATE -->
+  <!-- ============================================================== -->
+  <ion-modal [isOpen]="isTemplateModalOpen()" (didDismiss)="closeTemplateModal()" class="template-editor-modal modal-xl" data-testid="modal-template-backdrop">
+    @if (isTemplateModalOpen()) {
+      <app-modal
+        size="xl"
+        [title]="editingTemplateId ? ('COMMON.EDIT' | transloco) : ('CHECKLISTS.ACTIONS.CREATE_TEMPLATE' | transloco)"
+        icon="document-text-outline"
+        (dismiss)="closeTemplateModal()">
+
+        <form [formGroup]="templateForm" (ngSubmit)="saveTemplate()" id="templateForm" class="template-builder-form">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <app-input-field
+                formControlName="title"
+                [label]="('CHECKLISTS.LABELS.TEMPLATE_TITLE' | transloco) + ' *'"
+                [placeholder]="'CHECKLISTS.LABELS.TEMPLATE_TITLE_PLACEHOLDER' | transloco"
+                icon="create-outline"
+                [required]="true"
+                testId="input-template-title">
+              </app-input-field>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="template-desc" class="form-label">{{ 'CHECKLISTS.LABELS.TEMPLATE_DESCRIPTION' | transloco }}</label>
+              <textarea
+                id="template-desc"
+                class="form-control textarea"
+                formControlName="description"
+                [placeholder]="'CHECKLISTS.LABELS.TEMPLATE_DESC_PLACEHOLDER' | transloco"
+                data-testid="textarea-template-desc"></textarea>
+            </div>
+
+            <div class="form-group">
+              <app-searchable-select
+                formControlName="category"
+                [label]="('CHECKLISTS.LABELS.CATEGORY' | transloco) + ' *'"
+                [options]="categoryOptions()"
+                [placeholder]="'CHECKLISTS.LABELS.CATEGORY' | transloco"
+                [enableSearch]="false"
+                [clearable]="false"
+                testId="select-template-category">
+              </app-searchable-select>
+            </div>
+
+            <div class="form-group">
+              <app-input-field
+                formControlName="estimatedDurationMinutes"
+                type="number"
+                [label]="('CHECKLISTS.LABELS.DURATION' | transloco) + ' (' + ('CHECKLISTS.LABELS.MINUTES' | transloco) + ')'"
+                icon="time-outline"
+                testId="input-template-duration">
+              </app-input-field>
+            </div>
+          </div>
+
+          <!-- Task Items Builder Section -->
+          <div class="builder-section">
+            <div class="builder-header">
+              <h3 class="builder-title">{{ 'CHECKLISTS.LABELS.PROCEDURE_TASKS_COUNT' | transloco:{count: templateItems.length} }}</h3>
+              <app-action-button
+                variant="secondary"
+                size="small"
+                icon="add-outline"
+                (btnClick)="addTemplateItemForm()"
+                testId="btn-add-task-item">
+                {{ 'CHECKLISTS.ACTIONS.ADD_ITEM' | transloco }}
+              </app-action-button>
+            </div>
+
+            <div formArrayName="items" class="builder-items-stack">
+              @for (itemGroup of templateItems.controls; track itemIdx; let itemIdx = $index) {
+                <div [formGroupName]="itemIdx" class="builder-item-card" [attr.data-testid]="'builder-item-' + itemIdx">
+                  <!-- Task Header & Title Row -->
+                  <div class="builder-item-row">
+                    <span class="item-order-badge">#{{ itemIdx + 1 }}</span>
+
+                    <div class="builder-field-title">
+                      <app-input-field
+                        formControlName="title"
+                        [placeholder]="'CHECKLISTS.LABELS.TASK_TITLE_PLACEHOLDER' | transloco"
+                        [testId]="'input-item-title-' + itemIdx">
+                      </app-input-field>
+                    </div>
+
+                    <div class="builder-field-mandatory">
+                      <app-checkbox-field
+                        formControlName="isMandatory"
+                        [label]="'CHECKLISTS.LABELS.MANDATORY' | transloco"
+                        [testId]="'checkbox-item-mandatory-' + itemIdx">
+                      </app-checkbox-field>
+                    </div>
+
+                    <app-action-button
+                      variant="danger"
+                      size="small"
+                      icon="trash-outline"
+                      iconSlot="icon-only"
+                      (btnClick)="removeTemplateItemForm(itemIdx)"
+                      [disabled]="templateItems.length <= 1"
+                      [testId]="'btn-remove-item-' + itemIdx">
+                    </app-action-button>
+                  </div>
+
+                  <!-- Multi-Role & Staff Member Assignments Row -->
+                  <div class="builder-assignments-row">
+                    <!-- Multi-Role Toggle Chips -->
+                    <div class="builder-roles-box">
+                      <span class="builder-sublabel">{{ 'CHECKLISTS.LABELS.ASSIGNED_ROLES' | transloco }}</span>
+                      <div class="builder-role-chips">
+                        @for (role of availableBuilderRoles; track role) {
+                          <button
+                            type="button"
+                            class="builder-role-chip"
+                            [class.active]="isRoleSelectedForItem(itemIdx, role)"
+                            (click)="toggleRoleForItem(itemIdx, role)"
+                            [attr.data-testid]="'chip-role-' + itemIdx + '-' + role">
+                            @if (isRoleSelectedForItem(itemIdx, role)) {
+                              <ion-icon name="checkmark-circle"></ion-icon>
+                            }
+                            <span>{{ 'CHECKLISTS.ROLES.' + role | transloco }}</span>
+                          </button>
+                        }
+                      </div>
+                    </div>
+
+                    <!-- Direct Staff Member Assignment -->
+                    <div class="builder-users-box">
+                      <app-searchable-select
+                        [options]="staffUserOptions()"
+                        [label]="'CHECKLISTS.LABELS.ASSIGN_SPECIFIC_USERS' | transloco"
+                        [placeholder]="'CHECKLISTS.LABELS.SELECT_USERS' | transloco"
+                        [enableSearch]="true"
+                        [clearable]="false"
+                        (selectionChange)="assignUserToItem(itemIdx, $event)"
+                        [testId]="'select-item-users-' + itemIdx">
+                      </app-searchable-select>
+
+                      @if (getAssignedUsersList(itemIdx).length > 0) {
+                        <div class="assigned-users-list">
+                          @for (u of getAssignedUsersList(itemIdx); track u.id) {
+                            <span class="assigned-user-badge">
+                              <ion-icon name="person-outline"></ion-icon>
+                              <span class="user-name">{{ u.prenom || '' }} {{ u.nom || u.username }}</span>
+                              <button
+                                type="button"
+                                class="btn-remove-user"
+                                (click)="removeAssignedUserFromItem(itemIdx, u.id)"
+                                [title]="'COMMON.DELETE' | transloco">
+                                <ion-icon name="close-outline"></ion-icon>
+                              </button>
+                            </span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Visual Media Guide Row -->
+                  <div class="builder-item-media-section">
+                    <div class="builder-media-type-box">
+                      <app-searchable-select
+                        formControlName="mediaType"
+                        [options]="mediaTypeOptions()"
+                        [label]="'CHECKLISTS.LABELS.MEDIA_GUIDE' | transloco"
+                        [placeholder]="'CHECKLISTS.LABELS.MEDIA_GUIDE' | transloco"
+                        [enableSearch]="false"
+                        [clearable]="false"
+                        [testId]="'select-item-media-type-' + itemIdx">
+                      </app-searchable-select>
+                    </div>
+
+                    <!-- PHOTO (IMAGE) MODE -->
+                    @if (itemGroup.get('mediaType')?.value === 'IMAGE') {
+                      <div class="builder-media-zone">
+                        <label for="builder-item-photo-{{ itemIdx }}" style="display: none;">
+                          {{ 'CHECKLISTS.LABELS.IMPORT_PHOTO' | transloco }}
+                        </label>
+                        <input
+                          [id]="'builder-item-photo-' + itemIdx"
+                          type="file"
+                          accept="image/*"
+                          style="display: none;"
+                          [attr.aria-label]="'CHECKLISTS.LABELS.IMPORT_PHOTO' | transloco"
+                          (change)="onTemplateMediaSelected($event, itemIdx)" />
+
+                        @if (itemGroup.get('mediaUrl')?.value; as photoUrl) {
+                          <div class="builder-media-preview-card" data-testid="media-photo-preview">
+                            <button
+                              type="button"
+                              class="media-thumb-btn"
+                              (click)="openMediaViewer(itemGroup.get('title')?.value || 'Photo', 'IMAGE', photoUrl)">
+                              <img [src]="resolveImageUrl(photoUrl)" [alt]="itemGroup.get('title')?.value || 'Guide visual'" class="media-thumb" />
+                            </button>
+                            <div class="media-preview-info">
+                              <span class="media-badge-pill success">{{ 'CHECKLISTS.LABELS.PHOTO_LOADED' | transloco }}</span>
+                              <div class="media-preview-actions">
+                                <app-action-button
+                                  variant="secondary"
+                                  size="small"
+                                  icon="eye-outline"
+                                  (btnClick)="openMediaViewer(itemGroup.get('title')?.value || 'Photo', 'IMAGE', photoUrl)">
+                                  {{ 'COMMON.VIEW' | transloco }}
+                                </app-action-button>
+                                <app-action-button
+                                  variant="secondary"
+                                  size="small"
+                                  icon="cloud-upload-outline"
+                                  (btnClick)="triggerItemFileInput('builder-item-photo-' + itemIdx)">
+                                  {{ 'CHECKLISTS.LABELS.CHANGE_PHOTO' | transloco }}
+                                </app-action-button>
+                                <app-action-button
+                                  variant="danger"
+                                  size="small"
+                                  icon="trash-outline"
+                                  (btnClick)="removeTemplateItemMedia(itemIdx)">
+                                  {{ 'COMMON.DELETE' | transloco }}
+                                </app-action-button>
+                              </div>
+                            </div>
+                          </div>
+                        } @else {
+                          <button
+                            type="button"
+                            class="builder-media-dropzone"
+                            (click)="triggerItemFileInput('builder-item-photo-' + itemIdx)"
+                            [attr.data-testid]="'btn-upload-photo-' + itemIdx">
+                            @if (uploadingMediaState()?.itemIndex === itemIdx && uploadingMediaState()?.type === 'IMAGE') {
+                              <ion-icon name="refresh-outline" class="spinning-icon"></ion-icon>
+                              <span>{{ 'COMMON.LOADING' | transloco }}</span>
+                            } @else {
+                              <div class="dropzone-content">
+                                <div class="dropzone-icon-circle">
+                                  <ion-icon name="image-outline"></ion-icon>
+                                </div>
+                                <div class="dropzone-texts">
+                                  <span class="dropzone-main-text">{{ 'CHECKLISTS.LABELS.IMPORT_PHOTO' | transloco }}</span>
+                                  <span class="dropzone-sub-text">{{ 'CHECKLISTS.LABELS.PHOTO_FORMATS_HINT' | transloco }}</span>
+                                </div>
+                                <app-action-button
+                                  variant="secondary"
+                                  size="small"
+                                  icon="cloud-upload-outline"
+                                  (btnClick)="triggerItemFileInput('builder-item-photo-' + itemIdx); $event.stopPropagation()">
+                                  {{ 'COMMON.IMPORT' | transloco }}
+                                </app-action-button>
+                              </div>
+                            }
+                          </button>
+                        }
+                      </div>
+                    }
+
+                    <!-- VIDEO MODE (Direct Local Upload + External URL) -->
+                    @if (itemGroup.get('mediaType')?.value === 'VIDEO') {
+                      <div class="builder-media-zone video-zone">
+                        <label for="builder-item-video-{{ itemIdx }}" style="display: none;">
+                          {{ 'CHECKLISTS.LABELS.IMPORT_VIDEO' | transloco }}
+                        </label>
+                        <input
+                          [id]="'builder-item-video-' + itemIdx"
+                          type="file"
+                          accept="video/*"
+                          style="display: none;"
+                          [attr.aria-label]="'CHECKLISTS.LABELS.IMPORT_VIDEO' | transloco"
+                          (change)="onTemplateVideoSelected($event, itemIdx)" />
+
+                        @if (itemGroup.get('mediaUrl')?.value; as videoUrl) {
+                          <div class="builder-media-preview-card video-card" data-testid="media-video-preview">
+                            <div class="video-preview-icon-box">
+                              <ion-icon name="videocam-outline"></ion-icon>
+                            </div>
+                            <div class="media-preview-info">
+                              <span class="media-badge-pill primary">{{ 'CHECKLISTS.LABELS.VIDEO_LOADED' | transloco }}</span>
+                              <span class="video-url-truncated">{{ videoUrl }}</span>
+                              <div class="media-preview-actions">
+                                <app-action-button
+                                  variant="secondary"
+                                  size="small"
+                                  icon="eye-outline"
+                                  (btnClick)="openMediaViewer(itemGroup.get('title')?.value || 'Vidéo', 'VIDEO', videoUrl)">
+                                  {{ 'COMMON.VIEW' | transloco }}
+                                </app-action-button>
+                                <app-action-button
+                                  variant="secondary"
+                                  size="small"
+                                  icon="cloud-upload-outline"
+                                  (btnClick)="triggerItemFileInput('builder-item-video-' + itemIdx)">
+                                  {{ 'CHECKLISTS.LABELS.CHANGE_VIDEO' | transloco }}
+                                </app-action-button>
+                                <app-action-button
+                                  variant="danger"
+                                  size="small"
+                                  icon="trash-outline"
+                                  (btnClick)="removeTemplateItemMedia(itemIdx)">
+                                  {{ 'CHECKLISTS.LABELS.REMOVE_VIDEO' | transloco }}
+                                </app-action-button>
+                              </div>
+                            </div>
+                          </div>
+                        } @else {
+                          <div class="video-inputs-grid">
+                            <!-- Local Video Upload Dropzone -->
+                            <button
+                              type="button"
+                              class="builder-media-dropzone"
+                              (click)="triggerItemFileInput('builder-item-video-' + itemIdx)"
+                              [attr.data-testid]="'btn-upload-video-' + itemIdx">
+                              @if (uploadingMediaState()?.itemIndex === itemIdx && uploadingMediaState()?.type === 'VIDEO') {
+                                <ion-icon name="refresh-outline" class="spinning-icon"></ion-icon>
+                                <span>{{ 'COMMON.LOADING' | transloco }}</span>
+                              } @else {
+                                <div class="dropzone-content">
+                                  <div class="dropzone-icon-circle">
+                                    <ion-icon name="videocam-outline"></ion-icon>
+                                  </div>
+                                  <div class="dropzone-texts">
+                                    <span class="dropzone-main-text">{{ 'CHECKLISTS.LABELS.IMPORT_VIDEO' | transloco }}</span>
+                                    <span class="dropzone-sub-text">{{ 'CHECKLISTS.LABELS.VIDEO_FORMATS_HINT' | transloco }}</span>
+                                  </div>
+                                  <span class="btn-import-tag">
+                                    <ion-icon name="cloud-upload-outline"></ion-icon>
+                                    {{ 'COMMON.IMPORT' | transloco }}
+                                  </span>
+                                </div>
+                              }
+                            </button>
+
+                            <!-- External Link alternative -->
+                            <div class="builder-video-url-box">
+                              <app-input-field
+                                formControlName="videoEmbedUrl"
+                                type="url"
+                                icon="link-outline"
+                                [label]="'CHECKLISTS.LABELS.OR' | transloco"
+                                [placeholder]="'CHECKLISTS.LABELS.VIDEO_URL_PLACEHOLDER' | transloco"
+                                [testId]="'input-item-video-url-' + itemIdx">
+                              </app-input-field>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+
+                    <!-- EXTERNAL LINK MODE -->
+                    @if (itemGroup.get('mediaType')?.value === 'EXTERNAL_LINK') {
+                      <div class="builder-media-zone">
+                        <div class="builder-video-url-box full-width">
+                          <app-input-field
+                            formControlName="videoEmbedUrl"
+                            type="url"
+                            icon="link-outline"
+                            [label]="'CHECKLISTS.LABELS.EXTERNAL_LINK' | transloco"
+                            [placeholder]="'CHECKLISTS.LABELS.VIDEO_URL_PLACEHOLDER' | transloco"
+                            [testId]="'input-item-video-url-' + itemIdx">
+                          </app-input-field>
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Procedural Sub-Steps (SOP) Section -->
+                  <div class="builder-sop-section">
+                    <div class="sop-section-header">
+                      <div class="sop-header-title">
+                        <ion-icon name="list-outline"></ion-icon>
+                        <span class="sop-title-text">{{ 'CHECKLISTS.LABELS.SOP_STEPS' | transloco }} ({{ getStepsArray(itemIdx).length }})</span>
+                      </div>
+                      <app-action-button
+                        variant="secondary"
+                        size="small"
+                        icon="add-outline"
+                        (btnClick)="addStepToItem(itemIdx)"
+                        [testId]="'btn-add-step-' + itemIdx">
+                        {{ 'CHECKLISTS.ACTIONS.ADD_STEP' | transloco }}
+                      </app-action-button>
+                    </div>
+                    <p class="sop-section-hint">{{ 'CHECKLISTS.LABELS.SOP_STEPS_HINT' | transloco }}</p>
+
+                    @if (getStepsArray(itemIdx).length > 0) {
+                      <div class="builder-sop-steps-list" formArrayName="steps">
+                        @for (stepControl of getStepsArray(itemIdx).controls; track subIndex; let subIndex = $index) {
+                          <div class="sop-step-card" [formGroupName]="subIndex">
+                            <div class="sop-step-card-head">
+                              <span class="sop-step-badge">{{ 'CHECKLISTS.LABELS.STEP_NUMBER' | transloco:{number: subIndex + 1} }}</span>
+                              <app-action-button
+                                variant="danger"
+                                size="small"
+                                icon="trash-outline"
+                                iconSlot="icon-only"
+                                (btnClick)="removeStepFromItem(itemIdx, subIndex)"
+                                [testId]="'btn-remove-step-' + itemIdx + '-' + subIndex">
+                              </app-action-button>
+                            </div>
+
+                            <div class="sop-step-fields">
+                              <app-input-field
+                                formControlName="title"
+                                [placeholder]="'CHECKLISTS.LABELS.STEP_TITLE' | transloco"
+                                [testId]="'input-step-title-' + itemIdx + '-' + subIndex">
+                              </app-input-field>
+
+                              <label for="step-desc-{{ itemIdx }}-{{ subIndex }}" style="display: none;">
+                                {{ 'CHECKLISTS.LABELS.STEP_DESCRIPTION' | transloco }}
+                              </label>
+                              <textarea
+                                [id]="'step-desc-' + itemIdx + '-' + subIndex"
+                                class="form-control textarea sop-step-textarea"
+                                rows="2"
+                                formControlName="description"
+                                [placeholder]="'CHECKLISTS.LABELS.STEP_DESCRIPTION' | transloco"
+                                [attr.aria-label]="'CHECKLISTS.LABELS.STEP_DESCRIPTION' | transloco"
+                                [attr.data-testid]="'textarea-step-desc-' + itemIdx + '-' + subIndex"></textarea>
+
+                              <!-- Step Illustration Photo -->
+                              @if (stepControl.get('mediaUrl')?.value; as stepMediaUrl) {
+                                <div class="step-media-preview-row">
+                                  <button
+                                    type="button"
+                                    class="step-media-thumb-btn"
+                                    (click)="openMediaViewer(stepControl.get('title')?.value || 'Étape', 'IMAGE', stepMediaUrl)">
+                                    <img [src]="resolveImageUrl(stepMediaUrl)" [alt]="stepControl.get('title')?.value || 'Étape'" class="step-media-thumb" />
+                                  </button>
+                                  <div class="step-media-info">
+                                    <span class="step-media-badge">{{ 'CHECKLISTS.LABELS.PHOTO_LOADED' | transloco }}</span>
+                                    <div class="step-media-actions">
+                                      <button
+                                        type="button"
+                                        class="btn-step-action"
+                                        (click)="openMediaViewer(stepControl.get('title')?.value || 'Étape', 'IMAGE', stepMediaUrl)">
+                                        <ion-icon name="eye-outline"></ion-icon>
+                                        <span>{{ 'COMMON.VIEW' | transloco }}</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        class="btn-step-action danger"
+                                        (click)="removeStepPhoto(itemIdx, subIndex)">
+                                        <ion-icon name="trash-outline"></ion-icon>
+                                        <span>{{ 'COMMON.DELETE' | transloco }}</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              } @else {
+                                <div class="step-photo-upload-row">
+                                  <label
+                                    class="btn-step-upload"
+                                    [attr.for]="'step-photo-input-' + itemIdx + '-' + subIndex">
+                                    <ion-icon name="camera-outline"></ion-icon>
+                                    <span>{{ 'CHECKLISTS.LABELS.STEP_PHOTO' | transloco }}</span>
+                                    <input
+                                      [id]="'step-photo-input-' + itemIdx + '-' + subIndex"
+                                      type="file"
+                                      accept="image/*"
+                                      style="display: none;"
+                                      [attr.aria-label]="'CHECKLISTS.LABELS.STEP_PHOTO' | transloco"
+                                      (change)="onStepPhotoSelected($event, itemIdx, subIndex)" />
+                                  </label>
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </form>
+
+        <div slot="footer" class="modal-footer-actions">
+          <app-action-button
+            variant="secondary"
+            (btnClick)="closeTemplateModal()">
+            {{ 'COMMON.CANCEL' | transloco }}
+          </app-action-button>
+          <app-action-button
+            variant="primary"
+            (btnClick)="saveTemplate()"
+            [disabled]="templateForm.invalid"
+            testId="btn-save-template">
+            {{ 'COMMON.SAVE' | transloco }}
+          </app-action-button>
+        </div>
+      </app-modal>
+    }
+  </ion-modal>
+
+
+  <!-- ============================================================== -->
+  <!-- MODAL : OBSERVATION & PROOF PHOTO (DESIGN SYSTEM) -->
+  <!-- ============================================================== -->
+  <ion-modal [isOpen]="commentModalState().isOpen" (didDismiss)="closeCommentModal()" class="comment-editor-modal" data-testid="modal-comment-backdrop">
+    @if (commentModalState().isOpen && commentModalState().item; as targetItem) {
+      <app-modal
+        size="md"
+        [title]="targetItem.title"
+        [subtitle]="'CHECKLISTS.LABELS.OBSERVATION_AND_PROOF' | transloco"
+        icon="chatbubble-ellipses-outline"
+        (dismiss)="closeCommentModal()">
+
+        <div class="comment-modal-body">
+          <div class="form-group full-width">
+            <label for="task-comment-input" class="form-label">
+              {{ 'CHECKLISTS.LABELS.COMMENT' | transloco }}
+            </label>
+            <textarea
+              id="task-comment-input"
+              class="form-control textarea custom-comment-textarea"
+              rows="3"
+              [ngModel]="commentModalState().comment"
+              (ngModelChange)="updateCommentModalText($event)"
+              [placeholder]="'CHECKLISTS.LABELS.COMMENT_PLACEHOLDER' | transloco"
+              data-testid="textarea-task-comment"></textarea>
+          </div>
+
+          <div class="form-group full-width proof-photo-group">
+            <span class="form-label">
+              {{ 'CHECKLISTS.LABELS.PROOF_PHOTO' | transloco }}
+            </span>
+
+            <!-- Hidden file inputs for import & fallback, scoped for the entire group -->
+            <label for="proof-photo-file-input" style="display: none;">
+              {{ 'CHECKLISTS.LABELS.IMPORT_PHOTO' | transloco }}
+            </label>
+            <input
+              #proofFileInput
+              id="proof-photo-file-input"
+              type="file"
+              accept="image/*,video/*"
+              [attr.aria-label]="'CHECKLISTS.LABELS.IMPORT_PHOTO' | transloco"
+              style="display: none;"
+              [disabled]="commentModalState().isUploadingPhoto"
+              (change)="onCommentModalPhotoSelected($event)" />
+
+            <label for="fallback-camera-file-input" style="display: none;">
+              {{ 'CHECKLISTS.LABELS.TAKE_PHOTO' | transloco }}
+            </label>
+            <input
+              #fallbackFileInput
+              id="fallback-camera-file-input"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              [attr.aria-label]="'CHECKLISTS.LABELS.TAKE_PHOTO' | transloco"
+              style="display: none;"
+              (change)="onCommentModalPhotoSelected($event)" />
+
+            @if (commentModalState().isCameraLive) {
+              <!-- Live In-Modal Camera Viewfinder -->
+              <div class="modal-camera-card" data-testid="live-camera-viewfinder">
+                <div class="modal-camera-viewfinder">
+                  <video
+                    #modalCameraVideo
+                    id="modal-camera-video"
+                    autoplay
+                    playsinline
+                    muted
+                    class="camera-video-feed"
+                    (loadedmetadata)="onCameraVideoLoaded($event)">
+                  </video>
+                  <div class="viewfinder-frame"></div>
+                </div>
+
+                <div class="modal-camera-actions">
+                  <app-action-button
+                    variant="primary"
+                    icon="camera-outline"
+                    size="large"
+                    [disabled]="commentModalState().isUploadingPhoto"
+                    (btnClick)="captureInModalPhoto()"
+                    testId="btn-capture-modal-photo">
+                    {{ 'CHECKLISTS.ACTIONS.CAPTURE_PHOTO' | transloco }}
+                  </app-action-button>
+
+                  <app-action-button
+                    variant="secondary"
+                    (btnClick)="stopInModalCamera()"
+                    testId="btn-cancel-modal-camera">
+                    {{ 'COMMON.CANCEL' | transloco }}
+                  </app-action-button>
+                </div>
+              </div>
+            } @else if (commentModalState().isStartingCamera) {
+              <div class="photo-uploading-indicator">
+                <ion-icon name="refresh-outline" class="spinning-icon"></ion-icon>
+                <span>{{ 'CHECKLISTS.LABELS.STARTING_CAMERA' | transloco }}</span>
+              </div>
+            } @else if (commentModalState().photoProofUrl; as photoUrl) {
+              <div class="photo-preview-card" data-testid="card-proof-photo-preview">
+                <button
+                  type="button"
+                  class="preview-thumb-btn"
+                  (click)="openMediaViewer(targetItem.title, 'IMAGE', photoUrl)">
+                  <img [src]="resolveImageUrl(photoUrl)" [alt]="targetItem.title" class="preview-thumb" />
+                </button>
+                <div class="preview-info-actions">
+                  <span class="preview-badge">{{ 'CHECKLISTS.LABELS.PROOF_PHOTO_BADGE' | transloco }}</span>
+                  <div class="preview-btns-row">
+                    <app-action-button
+                      variant="secondary"
+                      size="small"
+                      icon="eye-outline"
+                      (btnClick)="openMediaViewer(targetItem.title, 'IMAGE', photoUrl)"
+                      testId="btn-preview-photo">
+                      {{ 'COMMON.VIEW' | transloco }}
+                    </app-action-button>
+                    <app-action-button
+                      variant="secondary"
+                      size="small"
+                      icon="cloud-upload-outline"
+                      (btnClick)="triggerProofFileInput()"
+                      testId="btn-change-photo">
+                      {{ 'CHECKLISTS.LABELS.IMPORT_PHOTO' | transloco }}
+                    </app-action-button>
+                    <app-action-button
+                      variant="danger"
+                      size="small"
+                      icon="trash-outline"
+                      (btnClick)="removeCommentModalPhoto()"
+                      testId="btn-remove-photo">
+                      {{ 'CHECKLISTS.LABELS.REMOVE_PHOTO' | transloco }}
+                    </app-action-button>
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <div class="photo-upload-actions">
+                <!-- Direct Camera Button (activates device camera viewfinder) -->
+                <button
+                  type="button"
+                  class="btn-photo-action primary"
+                  [disabled]="commentModalState().isUploadingPhoto"
+                  (click)="startInModalCamera()"
+                  data-testid="btn-take-photo">
+                  <ion-icon name="camera-outline"></ion-icon>
+                  <span>{{ 'CHECKLISTS.LABELS.TAKE_PHOTO' | transloco }}</span>
+                </button>
+
+                <!-- Import Photo / Video Button -->
+                <button
+                  type="button"
+                  class="btn-photo-action secondary"
+                  [disabled]="commentModalState().isUploadingPhoto"
+                  (click)="triggerProofFileInput()"
+                  data-testid="btn-import-photo">
+                  <ion-icon name="cloud-upload-outline"></ion-icon>
+                  <span>{{ 'CHECKLISTS.LABELS.IMPORT_PHOTO' | transloco }}</span>
+                </button>
+              </div>
+
+              @if (commentModalState().isUploadingPhoto) {
+                <div class="photo-uploading-indicator">
+                  <ion-icon name="refresh-outline" class="spinning-icon"></ion-icon>
+                  <span>{{ 'COMMON.LOADING' | transloco }}</span>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <div slot="footer" class="modal-footer-actions">
+          <app-action-button
+            variant="secondary"
+            (btnClick)="closeCommentModal()">
+            {{ 'COMMON.CANCEL' | transloco }}
+          </app-action-button>
+          <app-action-button
+            variant="primary"
+            icon="checkmark-circle-outline"
+            (btnClick)="saveItemComment()"
+            testId="btn-save-comment">
+            {{ 'COMMON.SAVE' | transloco }}
+          </app-action-button>
+        </div>
+      </app-modal>
+    }
+  </ion-modal>
+
+  <!-- ============================================================== -->
+  <!-- MODAL : MEDIA VIEWER (PHOTO OR VIDEO GUIDE) -->
+  <!-- ============================================================== -->
+  <ion-modal [isOpen]="mediaModalState().isOpen" (didDismiss)="closeMediaViewer()" class="media-viewer-modal" data-testid="media-viewer-backdrop">
+    @if (mediaModalState().isOpen) {
+      <app-modal
+        size="md"
+        [title]="mediaModalState().title"
+        icon="image-outline"
+        (dismiss)="closeMediaViewer()">
+
+        <div class="media-modal-body">
+          @if (mediaModalState().mediaType === 'IMAGE') {
+            <img [src]="resolveImageUrl(mediaModalState().url)" [alt]="mediaModalState().title" class="enlarged-photo" />
+          } @else if (mediaModalState().mediaType === 'VIDEO') {
+            <div class="video-container">
+              <video [src]="resolveImageUrl(mediaModalState().url)" controls class="enlarged-video" playsinline autoplay></video>
+            </div>
+          } @else if (mediaModalState().mediaType === 'EXTERNAL_LINK') {
+            <div class="external-link-card">
+              <p>{{ 'CHECKLISTS.LABELS.EXTERNAL_LINK' | transloco }} :</p>
+              <a [href]="mediaModalState().url" target="_blank" rel="noopener noreferrer" class="btn-external-link">
+                <ion-icon name="open-outline"></ion-icon>
+                <span>{{ mediaModalState().url }}</span>
+              </a>
+            </div>
+          }
+        </div>
+      </app-modal>
+    }
+  </ion-modal>
+</div>

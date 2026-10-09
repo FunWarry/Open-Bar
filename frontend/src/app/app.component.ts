@@ -18,6 +18,9 @@ import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import * as allIcons from 'ionicons/icons';
 
+import { StartupReadinessService } from './core/services/startup-readiness.service';
+import { StartupOverlayComponent } from './core/components/startup-overlay/startup-overlay.component';
+
 /**
  * Root component of the OpenBar application.
  * Manages responsive layout shells (Navbar, Sidebar, Notification Panel),
@@ -29,7 +32,7 @@ import * as allIcons from 'ionicons/icons';
   styleUrls: ['./app.component.css'],
   imports: [
     RouterOutlet, NavbarComponent, SidebarComponent, NotificationPanelComponent,
-    AsyncPipe, UpperCasePipe, TranslocoModule, IonIcon
+    AsyncPipe, UpperCasePipe, TranslocoModule, IonIcon, StartupOverlayComponent
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
@@ -46,7 +49,8 @@ export class AppComponent implements OnInit {
     private readonly store: Store,
     private readonly themeService: ThemeService,
     private readonly appUpdateService: AppUpdateService,
-    private readonly sessionTimeoutService: SessionTimeoutService
+    private readonly sessionTimeoutService: SessionTimeoutService,
+    public readonly startupService: StartupReadinessService
   ) {
     addIcons(allIcons);
     const isAuth$ = this.store.select(selectIsAuthenticated);
@@ -91,10 +95,12 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.sessionTimeoutService.init();
-    this.appSettingsService.getSettings().subscribe({
-      error: () => { /* Preserve default design system settings if the backend API is unreachable */ },
+    this.startupService.initStartupCheck().subscribe(() => {
+      this.appSettingsService.getSettings().subscribe({
+        error: () => { /* Preserve default design system settings if the backend API is unreachable */ },
+      });
     });
+    this.sessionTimeoutService.init();
     this.appUpdateService.initStartupCheck();
   }
 }
