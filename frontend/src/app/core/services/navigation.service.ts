@@ -1,11 +1,14 @@
 import { Injectable, signal, NgZone, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { map, take } from 'rxjs/operators';
+import { map, take, filter } from 'rxjs/operators';
 import { selectIsAdmin, selectIsAuthenticated } from '../store/auth.selectors';
 
 /** Responsive breakpoint in pixels below which the navigation sidebar is automatically collapsed. */
 export const SIDEBAR_COLLAPSE_BREAKPOINT_PX = 1200;
+
+/** Canonical responsive breakpoint in pixels for mobile viewports (< 768px). */
+export const MOBILE_BREAKPOINT_PX = 768;
 
 /**
  * Service managing application-wide navigation state, route redirects,
@@ -20,16 +23,29 @@ export class NavigationService {
     typeof window !== 'undefined' ? window.innerWidth < SIDEBAR_COLLAPSE_BREAKPOINT_PX : false
   );
 
+  /** Reactive signal holding whether the active viewport is a mobile screen (< 768px). */
+  readonly isMobile = signal<boolean>(
+    typeof window !== 'undefined' ? window.innerWidth < MOBILE_BREAKPOINT_PX : false
+  );
+
+  /** Reactive signal holding the open state of the off-canvas navigation sidebar on mobile (< 768px). */
+  readonly isMobileSidebarOpen = signal<boolean>(false);
+
   private readonly router = inject(Router);
   private readonly store = inject(Store);
   private readonly ngZone = inject(NgZone);
 
   constructor() {
     this.initResponsiveListener();
+    this.router?.events?.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.closeMobileSidebar();
+    });
   }
 
   /**
-   * Initializes a window resize listener to automatically adjust sidebar state
+   * Initializes a window resize and media query listener to automatically adjust sidebar state
    * on responsive viewport changes.
    */
   private initResponsiveListener(): void {
@@ -48,6 +64,13 @@ export class NavigationService {
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener('change', handleViewportChange);
     }
+
+    const updateMobile = () => {
+      this.ngZone.run(() => {
+        this.isMobile.set(window.innerWidth < MOBILE_BREAKPOINT_PX);
+      });
+    };
+    window.addEventListener('resize', updateMobile, { passive: true });
   }
 
   /**
@@ -64,6 +87,27 @@ export class NavigationService {
    */
   setSidebarCollapsed(collapsed: boolean): void {
     this.isSidebarCollapsed.set(collapsed);
+  }
+
+  /**
+   * Toggles the off-canvas mobile navigation sidebar drawer.
+   */
+  toggleMobileSidebar(): void {
+    this.isMobileSidebarOpen.update(val => !val);
+  }
+
+  /**
+   * Explicitly opens the off-canvas mobile navigation sidebar drawer.
+   */
+  openMobileSidebar(): void {
+    this.isMobileSidebarOpen.set(true);
+  }
+
+  /**
+   * Explicitly closes the off-canvas mobile navigation sidebar drawer.
+   */
+  closeMobileSidebar(): void {
+    this.isMobileSidebarOpen.set(false);
   }
 
   /**

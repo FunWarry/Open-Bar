@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy, computed } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
@@ -11,7 +11,7 @@ import {
   statsChartOutline, receiptOutline, wineOutline, cardOutline,
   nutritionOutline, settingsOutline, documentTextOutline, chevronBackOutline,
   chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline,
-  libraryOutline, cartOutline, clipboardOutline
+  libraryOutline, cartOutline, clipboardOutline, closeOutline, checkboxOutline
 } from 'ionicons/icons';
 import { tableRestaurantOutline } from '../../icons/custom-icons';
 import { selectCurrentUser } from '../../store/auth.selectors';
@@ -95,9 +95,13 @@ const ROLE_COLORS: Record<string, string> = {
 })
 export class SidebarComponent implements OnDestroy {
 
-  get isCollapsed() {
-    return this.navigationService.isSidebarCollapsed;
-  }
+  /** Reactive computed signal indicating whether the sidebar should be rendered collapsed. */
+  readonly isCollapsed = computed(() => {
+    if (this.navigationService.isMobile()) {
+      return false;
+    }
+    return this.navigationService.isSidebarCollapsed();
+  });
 
   /** Observable emitting the currently authenticated user from the NgRx auth store. */
   readonly currentUser$: Observable<User | null>;
@@ -114,7 +118,8 @@ export class SidebarComponent implements OnDestroy {
       statsChartOutline, receiptOutline, wineOutline, cardOutline,
       nutritionOutline, settingsOutline, documentTextOutline, chevronBackOutline,
       chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline,
-      libraryOutline, tableRestaurantOutline, cartOutline, clipboardOutline
+      libraryOutline, tableRestaurantOutline, cartOutline, clipboardOutline, closeOutline,
+      checkboxOutline
     });
 
     this.currentUser$ = this.store.select(selectCurrentUser);

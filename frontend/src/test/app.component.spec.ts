@@ -31,9 +31,11 @@ describe('AppComponent', () => {
 
   beforeEach(async () => {
     const mockNavigationService = jasmine.createSpyObj('NavigationService', [
-      'navigateToHome', 'navigateToLogin', 'navigateToAdmin', 'navigateToUserProfile', 'toggleSidebarCollapse', 'setSidebarCollapsed'
+      'navigateToHome', 'navigateToLogin', 'navigateToAdmin', 'navigateToUserProfile', 'toggleSidebarCollapse', 'setSidebarCollapsed', 'closeMobileSidebar'
     ], {
-      isSidebarCollapsed: signal(false)
+      isSidebarCollapsed: signal(false),
+      isMobileSidebarOpen: signal(false),
+      isMobile: signal(false),
     });
 
     const mockWebSocketService = jasmine.createSpyObj('WebSocketService', [

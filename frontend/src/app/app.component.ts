@@ -12,6 +12,7 @@ import { SessionTimeoutService } from './core/services/session-timeout.service';
 import { filter, map, combineLatest, startWith, Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { selectIsAuthenticated } from './core/store/auth.selectors';
+import { NavigationService } from './core/services/navigation.service';
 import { AsyncPipe, UpperCasePipe } from '@angular/common';
 import { TranslocoModule } from '@jsverse/transloco';
 import { IonIcon } from '@ionic/angular';
@@ -50,7 +51,8 @@ export class AppComponent implements OnInit {
     private readonly themeService: ThemeService,
     private readonly appUpdateService: AppUpdateService,
     private readonly sessionTimeoutService: SessionTimeoutService,
-    public readonly startupService: StartupReadinessService
+    public readonly startupService: StartupReadinessService,
+    public readonly navigationService: NavigationService
   ) {
     addIcons(allIcons);
     const isAuth$ = this.store.select(selectIsAuthenticated);

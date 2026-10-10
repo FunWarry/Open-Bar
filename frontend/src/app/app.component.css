@@ -24,6 +24,44 @@ app-sidebar {
   z-index: 20;
 }
 
+@media (max-width: 767px) {
+  app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100%;
+    height: 100dvh;
+    z-index: 1050;
+    width: 260px;
+    max-width: 82vw;
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+    pointer-events: none;
+  }
+
+  app-sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: 6px 0 24px rgba(0, 0, 0, 0.6);
+    pointer-events: auto;
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(3px);
+    border: none;
+    padding: 0;
+    margin: 0;
+    z-index: 1040;
+    cursor: pointer;
+    animation: fadeInBackdrop 0.2s ease;
+  }
+}
+
 .app-main-wrapper {
   display: flex;
   flex-direction: column;
@@ -177,13 +215,13 @@ app-navbar {
   }
 
   &:hover {
-    background: var(--primary, #4f46e5);
-    color: #ffffff;
-    border-color: var(--primary, #4f46e5);
+    background: var(--primary);
+    color: var(--text-on-accent);
+    border-color: var(--primary);
     box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
 
     ion-icon {
-      color: #ffffff;
+      color: var(--text-on-accent);
     }
   }
 }

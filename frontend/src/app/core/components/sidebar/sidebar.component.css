@@ -271,3 +271,30 @@ button.sidebar-brand,
 .logout-icon {
   font-size: 18px;
 }
+
+/* ── Mobile Off-Canvas Overrides (< 768px) ── */
+@media (max-width: 767px) {
+  .sidebar,
+  .sidebar.collapsed {
+    width: 260px !important;
+    min-width: 260px !important;
+  }
+
+  .sidebar.collapsed .nav-label,
+  .sidebar.collapsed .sidebar-brand,
+  .sidebar.collapsed .role-name,
+  .sidebar.collapsed .username,
+  .sidebar.collapsed .logout-btn {
+    display: inherit !important;
+  }
+
+  .sidebar.collapsed .sidebar-header {
+    justify-content: space-between !important;
+    padding: 0 12px !important;
+  }
+
+  .sidebar.collapsed .collapse-toggle-btn {
+    display: none !important;
+  }
+}
+

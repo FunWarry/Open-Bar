@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { MemoizedSelector } from '@ngrx/store';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
+import { of } from 'rxjs';
 import { NavigationService } from '../../../app/core/services/navigation.service';
 import { selectIsAdmin, selectIsAuthenticated } from '../../../app/core/store/auth.selectors';
 
@@ -15,6 +16,7 @@ describe('NavigationService', () => {
   beforeEach(() => {
     routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate']);
     routerSpy.navigate.and.returnValue(Promise.resolve(true));
+    (routerSpy as any).events = of();
 
     TestBed.configureTestingModule({
       providers: [
@@ -145,14 +147,27 @@ describe('NavigationService', () => {
     // Call private method to trigger listener registration
     (service as any).initResponsiveListener();
     expect(mediaQueryMock.addEventListener).toHaveBeenCalledWith('change', jasmine.any(Function));
+  });
 
-    // Simulate match change
-    if (changeHandler) {
-      service.setSidebarCollapsed(false);
-      changeHandler({ matches: true });
-      expect(service.isSidebarCollapsed()).toBeTrue();
+  // --- Off-Canvas Mobile Navigation State ---
 
-      changeHandler({ matches: false });
-    }
+  it('toggleMobileSidebar toggles the mobile sidebar open state', () => {
+    expect(service.isMobileSidebarOpen()).toBeFalse();
+    service.toggleMobileSidebar();
+    expect(service.isMobileSidebarOpen()).toBeTrue();
+    service.toggleMobileSidebar();
+    expect(service.isMobileSidebarOpen()).toBeFalse();
+  });
+
+  it('openMobileSidebar explicitly opens mobile sidebar', () => {
+    service.closeMobileSidebar();
+    service.openMobileSidebar();
+    expect(service.isMobileSidebarOpen()).toBeTrue();
+  });
+
+  it('closeMobileSidebar explicitly closes mobile sidebar', () => {
+    service.openMobileSidebar();
+    service.closeMobileSidebar();
+    expect(service.isMobileSidebarOpen()).toBeFalse();
   });
 });

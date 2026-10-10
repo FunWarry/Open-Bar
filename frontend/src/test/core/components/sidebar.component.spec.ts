@@ -59,9 +59,11 @@ describe('SidebarComponent', () => {
   beforeEach(async () => {
     isSidebarCollapsedSignal = signal(false);
     mockNavigationService = jasmine.createSpyObj('NavigationService', [
-      'navigateToHome', 'navigateToLogin', 'navigateToAdmin', 'navigateToUserProfile', 'toggleSidebarCollapse'
+      'navigateToHome', 'navigateToLogin', 'navigateToAdmin', 'navigateToUserProfile', 'toggleSidebarCollapse', 'closeMobileSidebar'
     ], {
-      isSidebarCollapsed: isSidebarCollapsedSignal
+      isSidebarCollapsed: isSidebarCollapsedSignal,
+      isMobile: signal(false),
+      isMobileSidebarOpen: signal(false),
     });
     mockNavigationService.toggleSidebarCollapse.and.callFake(() => {
       isSidebarCollapsedSignal.update(v => !v);

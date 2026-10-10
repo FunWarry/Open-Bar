@@ -111,5 +111,37 @@ test.describe('Responsive Layout & Visibility E2E Suite', () => {
     const bottomNav = page.locator('app-bottom-navigation');
     await expect(bottomNav).toBeVisible();
   });
+
+  test('should hide sidebar off-canvas on smartphone and open via hamburger button', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 915 });
+    await page.goto('/app-home');
+
+    const burgerBtn = page.locator('[data-testid="topbar-burger-btn"]');
+    await expect(burgerBtn).toBeVisible();
+
+    const sidebar = page.locator('app-sidebar');
+    await expect(sidebar).not.toHaveClass(/mobile-open/);
+
+    await burgerBtn.click();
+    await expect(sidebar).toHaveClass(/mobile-open/);
+
+    const backdrop = page.locator('[data-testid="sidebar-backdrop"]');
+    await expect(backdrop).toBeVisible();
+
+    await backdrop.click();
+    await expect(sidebar).not.toHaveClass(/mobile-open/);
+  });
+
+  test('should condense topbar auxiliary buttons into user popover on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 915 });
+    await page.goto('/app-home');
+
+    await expect(page.locator('[data-testid="topbar-language-toggle"]')).not.toBeVisible();
+    await expect(page.locator('[data-testid="topbar-theme-toggle"]')).not.toBeVisible();
+    await expect(page.locator('[data-testid="topbar-sound-toggle"]')).not.toBeVisible();
+
+    const userBtn = page.locator('[data-testid="topbar-user-btn"]');
+    await expect(userBtn).toBeVisible();
+  });
 });
 
