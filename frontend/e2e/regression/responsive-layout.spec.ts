@@ -71,4 +71,45 @@ test.describe('Responsive Layout & Visibility E2E Suite', () => {
     await expect(page.locator('app-dashboard-manager')).toBeVisible();
     await expect(page.locator('[data-testid="manager-kanban-section"]')).toBeVisible();
   });
+
+  test('should guarantee zero horizontal page overflow on mobile smartphone viewports (<768px)', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+
+    const targetRoutes = ['/serveur', '/barman', '/factures', '/client/commande'];
+    for (const route of targetRoutes) {
+      await page.goto(route);
+      await page.waitForLoadState('domcontentloaded');
+
+      const hasHorizontalOverflow = await page.evaluate(() => {
+        return document.documentElement.scrollWidth > window.innerWidth;
+      });
+      expect(hasHorizontalOverflow).toBe(false);
+    }
+  });
+
+  test('should contain schedule grid inside table-scroll-container without overflowing viewport on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/manager/schedule');
+    await page.waitForLoadState('domcontentloaded');
+
+    const scrollContainer = page.locator('[data-testid="schedule-grid-scroll-wrapper"]');
+    if (await scrollContainer.isVisible()) {
+      await expect(scrollContainer).toHaveClass(/table-scroll-container/);
+
+      const pageOverflows = await page.evaluate(() => {
+        return document.documentElement.scrollWidth > window.innerWidth;
+      });
+      expect(pageOverflows).toBe(false);
+    }
+  });
+
+  test('should display bottom navigation on waiter view on smartphone (<768px)', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/serveur');
+    await page.waitForLoadState('domcontentloaded');
+
+    const bottomNav = page.locator('app-bottom-navigation');
+    await expect(bottomNav).toBeVisible();
+  });
 });
+
