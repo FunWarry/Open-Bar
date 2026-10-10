@@ -517,12 +517,14 @@
                 <!-- Template Actions -->
                 <div class="template-actions">
                   <app-action-button
-                    variant="primary"
-                    icon="play-outline"
+                    [variant]="isTemplateActive(template.id) ? 'secondary' : 'primary'"
+                    [icon]="isTemplateActive(template.id) ? 'eye-outline' : 'play-outline'"
+                    [loading]="startingTemplateId() === template.id"
+                    [disabled]="startingTemplateId() !== null"
                     (btnClick)="startRun(template)"
                     [testId]="'btn-start-run-' + template.id"
                     class="launch-btn-wrapper">
-                    {{ 'CHECKLISTS.ACTIONS.LAUNCH' | transloco }}
+                    {{ (isTemplateActive(template.id) ? 'CHECKLISTS.ACTIONS.VIEW_ACTIVE_RUN' : 'CHECKLISTS.ACTIONS.LAUNCH') | transloco }}
                   </app-action-button>
 
                   @if (canManageTemplates()) {

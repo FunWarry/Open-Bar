@@ -4422,7 +4422,7 @@
     "STATS": {
       "ACTIVE_RUNS": "Active Sessions",
       "COMPLETED_TODAY": "Completed Today",
-      "TEMPLATES_COUNT": "Configured Templates",
+      "TEMPLATES_COUNT": "Checklist Templates",
       "COMPLETION_RATE": "Completion Rate"
     },
     "ACTIONS": {
@@ -4437,6 +4437,7 @@
       "ADD_ITEM": "Add Task",
       "DELETE_ITEM": "Delete Task",
       "LAUNCH": "Launch Routine",
+      "VIEW_ACTIVE_RUN": "Active Session",
       "VIEW_GUIDE": "Visual Guide",
       "UPLOAD_PHOTO": "Add Verification Photo",
       "SUBMIT_COMPLETION": "Finalize Session",
@@ -4574,6 +4575,8 @@
     },
     "ALERTS": {
       "MANDATORY_TASKS_LEFT": "Cannot finalize: some mandatory tasks are still pending.",
+      "RUN_STARTED_SUCCESS": "Procedure launched successfully!",
+      "RUN_ALREADY_ACTIVE": "This procedure is already in progress.",
       "RUN_COMPLETED_SUCCESS": "Checklist run session completed successfully!",
       "RUN_CANCELLED_SUCCESS": "Session has been cancelled.",
       "TEMPLATE_SAVED_SUCCESS": "Procedure template saved successfully!",

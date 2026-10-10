@@ -17,7 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service managing operational checklist templates, SOP procedures, shift execution runs,
@@ -271,6 +274,14 @@ public class ChecklistService {
         ChecklistTemplate template = checklistTemplateRepository.findById(request.templateId())
                 .orElseThrow(() -> new ResourceNotFoundException(TEMPLATE_NOT_FOUND_MSG + request.templateId()));
 
+        // Idempotency: if an execution session for this template is already in progress, return the existing active run
+        java.util.Optional<ChecklistRun> existingActive = checklistRunRepository.findFirstByTemplateIdAndStatusOrderByStartedAtDesc(template.getId(), ChecklistRunStatus.IN_PROGRESS);
+        if (existingActive.isPresent()) {
+            ChecklistRun existing = existingActive.get();
+            log.info("Checklist run for template ID {} is already in progress (run ID {}), returning existing active run", template.getId(), existing.getId());
+            return ChecklistRunDTO.from(existing);
+        }
+
         User currentUser = resolveUser(username);
 
         ChecklistRun run = new ChecklistRun();
@@ -510,25 +521,58 @@ public class ChecklistService {
     @Transactional(readOnly = true)
     public ChecklistStatsDTO getStats() {
         verifyModuleEnabled();
-        long activeRuns = checklistRunRepository.countByStatus(ChecklistRunStatus.IN_PROGRESS);
+        List<ChecklistRun> activeRuns = checklistRunRepository.findByStatusOrderByStartedAtDesc(ChecklistRunStatus.IN_PROGRESS);
         long activeTemplates = checklistTemplateRepository.findByIsActiveOrderByCategoryAscTitleAsc(true).size();
 
         LocalDate today = timeService.today();
-        LocalDateTime start = today.atStartOfDay();
-        LocalDateTime end = today.atTime(LocalTime.MAX);
-        List<ChecklistRun> todayRuns = checklistRunRepository.findByStartedAtBetweenOrderByStartedAtDesc(start, end);
+        Map<Long, ChecklistRun> completedTodayById = findRunsCompletedToday(today.atStartOfDay(), today.atTime(LocalTime.MAX));
 
-        long completedToday = todayRuns.stream().filter(r -> r.getStatus() == ChecklistRunStatus.COMPLETED).count();
-
-        int avgPercentage = 0;
-        if (!todayRuns.isEmpty()) {
-            int sum = todayRuns.stream()
-                    .mapToInt(r -> r != null ? r.getCompletionPercentage() : 0)
-                    .sum();
-            avgPercentage = (int) Math.round((double) sum / todayRuns.size());
+        // Include all currently active operational sessions AND all sessions finalized today
+        Map<Long, ChecklistRun> evaluatedRunsById = new LinkedHashMap<>();
+        if (activeRuns != null) {
+            for (ChecklistRun run : activeRuns) {
+                if (run != null && run.getId() != null) {
+                    evaluatedRunsById.put(run.getId(), run);
+                }
+            }
         }
+        evaluatedRunsById.putAll(completedTodayById);
 
-        return new ChecklistStatsDTO(activeRuns, completedToday, activeTemplates, avgPercentage);
+        int avgPercentage = calculateAverageCompletionPercentage(evaluatedRunsById.values());
+        return new ChecklistStatsDTO(activeRuns != null ? activeRuns.size() : 0, completedTodayById.size(), activeTemplates, avgPercentage);
+    }
+
+    private Map<Long, ChecklistRun> findRunsCompletedToday(LocalDateTime start, LocalDateTime end) {
+        Map<Long, ChecklistRun> completedTodayById = new LinkedHashMap<>();
+        collectCompletedRuns(completedTodayById, checklistRunRepository.findByCompletedAtBetweenOrderByCompletedAtDesc(start, end));
+        collectCompletedRuns(completedTodayById, checklistRunRepository.findByStartedAtBetweenOrderByStartedAtDesc(start, end));
+        return completedTodayById;
+    }
+
+    private void collectCompletedRuns(Map<Long, ChecklistRun> targetMap, List<ChecklistRun> runs) {
+        if (runs == null) {
+            return;
+        }
+        for (ChecklistRun run : runs) {
+            if (run != null && run.getId() != null && run.getStatus() == ChecklistRunStatus.COMPLETED) {
+                targetMap.put(run.getId(), run);
+            }
+        }
+    }
+
+    private int calculateAverageCompletionPercentage(Collection<ChecklistRun> runs) {
+        if (runs == null || runs.isEmpty()) {
+            return 0;
+        }
+        int sum = 0;
+        int count = 0;
+        for (ChecklistRun run : runs) {
+            if (run != null) {
+                sum += run.getCompletionPercentage();
+                count++;
+            }
+        }
+        return count > 0 ? (int) Math.round((double) sum / count) : 0;
     }
 
     private User resolveUser(String username) {

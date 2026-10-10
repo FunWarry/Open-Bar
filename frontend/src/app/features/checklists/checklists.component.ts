@@ -208,6 +208,9 @@ export class ChecklistsComponent implements OnInit, OnDestroy {
   /** Loading state for media uploads in template builder. */
   readonly uploadingMediaState = signal<{ itemIndex: number; type: 'IMAGE' | 'VIDEO' } | null>(null);
 
+  /** Active template ID currently in flight for run launching to prevent multi-clicks. */
+  readonly startingTemplateId = signal<number | null>(null);
+
   /** Filter applied to templates or history category. */
   readonly selectedCategory = signal<ChecklistCategory | 'ALL'>('ALL');
 
@@ -419,22 +422,47 @@ export class ChecklistsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Launches a new checklist run session from a template.
+   * Determines whether an in-progress session already exists for the given template.
+   *
+   * @param templateId Identifier of procedure template
+   * @returns True if already running
+   */
+  isTemplateActive(templateId: number): boolean {
+    return this.activeRuns().some(r => r.templateId === templateId);
+  }
+
+  /**
+   * Launches a new checklist run session from a template or focuses the active one if already running.
    *
    * @param template Template definition
    */
   startRun(template: ChecklistTemplate): void {
+    const existingActive = this.activeRuns().find(r => r.templateId === template.id);
+    if (existingActive) {
+      this.selectedRun.set(existingActive);
+      this.currentTab.set('active');
+      void this.showToast(this.transloco.translate('CHECKLISTS.ALERTS.RUN_ALREADY_ACTIVE'));
+      return;
+    }
+
+    if (this.startingTemplateId() !== null) {
+      return;
+    }
+    this.startingTemplateId.set(template.id);
+
     const req: StartChecklistRunRequest = {
       templateId: template.id,
     };
 
     this.checklistService.startRun(req).subscribe({
       next: run => {
+        this.startingTemplateId.set(null);
         this.selectedRun.set(run);
         this.currentTab.set('active');
-        void this.showToast(this.transloco.translate('CHECKLISTS.ALERTS.RUN_COMPLETED_SUCCESS'));
+        void this.showToast(this.transloco.translate('CHECKLISTS.ALERTS.RUN_STARTED_SUCCESS'));
       },
       error: () => {
+        this.startingTemplateId.set(null);
         void this.showToast(this.transloco.translate('COMMON.ERROR'));
       },
     });

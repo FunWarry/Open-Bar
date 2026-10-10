@@ -4422,7 +4422,7 @@
     "STATS": {
       "ACTIVE_RUNS": "Sessions actives",
       "COMPLETED_TODAY": "Terminées aujourd'hui",
-      "TEMPLATES_COUNT": "Modèles configurés",
+      "TEMPLATES_COUNT": "Modèles de checklists",
       "COMPLETION_RATE": "Taux de complétion"
     },
     "ACTIONS": {
@@ -4437,6 +4437,7 @@
       "ADD_ITEM": "Ajouter une tâche",
       "DELETE_ITEM": "Supprimer la tâche",
       "LAUNCH": "Lancer la procédure",
+      "VIEW_ACTIVE_RUN": "Session en cours",
       "VIEW_GUIDE": "Guide visuel",
       "UPLOAD_PHOTO": "Ajouter photo preuve",
       "SUBMIT_COMPLETION": "Valider la session",
@@ -4574,6 +4575,8 @@
     },
     "ALERTS": {
       "MANDATORY_TASKS_LEFT": "Impossible de finaliser : certaines tâches obligatoires ne sont pas encore validées.",
+      "RUN_STARTED_SUCCESS": "Procédure lancée avec succès !",
+      "RUN_ALREADY_ACTIVE": "Cette procédure est déjà en cours d'exécution.",
       "RUN_COMPLETED_SUCCESS": "La session de checklist a été validée avec succès !",
       "RUN_CANCELLED_SUCCESS": "La session a été annulée.",
       "TEMPLATE_SAVED_SUCCESS": "Modèle de procédure enregistré avec succès !",
