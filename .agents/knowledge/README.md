@@ -15,6 +15,7 @@ They are the single source of truth for project state, updated after each merged
 | [features-state.md](features-state.md) | July 28, 2026 | Feature implementation table (Backend/Frontend/Tests), active tech debt, PR history |
 | [conventions.md](conventions.md) | July 28, 2026 | Backend/frontend code conventions, naming rules, test structure, Git workflow |
 | [figma-design-system.md](figma-design-system.md) | July 28, 2026 | Figma fileKey, 8 pages, 60+ component IDs, color tokens (hex values) |
+| [competitive-analysis.md](competitive-analysis.md) | October 10, 2026 | Comprehensive POS & bar management market competitive analysis, feature matrix & roadmap |
 
 ---
 

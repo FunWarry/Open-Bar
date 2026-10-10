@@ -106,6 +106,7 @@ The `.agents/knowledge/` directory contains up-to-date project context:
 | [features-state.md](knowledge/features-state.md) | Feature implementation table (Backend/Frontend/Tests), tech debt |
 | [conventions.md](knowledge/conventions.md) | Code conventions, naming, test structure, workflow pipeline |
 | [figma-design-system.md](knowledge/figma-design-system.md) | Figma fileKey, 8 pages, 60+ component IDs, color tokens |
+| [competitive-analysis.md](knowledge/competitive-analysis.md) | POS & bar management market competitive analysis, feature matrix & roadmap |
 
 **Read relevant knowledge files before generating code.** Do not assume the project state — it evolves rapidly.
 
