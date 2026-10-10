@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { MemoizedSelector } from '@ngrx/store';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { NavigationService } from '../../../app/core/services/navigation.service';
 import { selectIsAdmin, selectIsAuthenticated } from '../../../app/core/store/auth.selectors';
 
@@ -169,5 +169,21 @@ describe('NavigationService', () => {
     service.openMobileSidebar();
     service.closeMobileSidebar();
     expect(service.isMobileSidebarOpen()).toBeFalse();
+  });
+
+  it('automatically closes mobile sidebar on NavigationEnd event', () => {
+    const events$ = new Subject<any>();
+    (routerSpy as any).events = events$.asObservable();
+    const newService = TestBed.runInInjectionContext(() => new NavigationService());
+    newService.openMobileSidebar();
+    expect(newService.isMobileSidebarOpen()).toBeTrue();
+    events$.next(new NavigationEnd(1, '/app-home', '/app-home'));
+    expect(newService.isMobileSidebarOpen()).toBeFalse();
+  });
+
+  it('updates isMobile on window resize event', () => {
+    (service as any).initResponsiveListener();
+    window.dispatchEvent(new Event('resize'));
+    expect(service.isMobile()).toBe(window.innerWidth < 768);
   });
 });

@@ -21,6 +21,7 @@ describe('SidebarComponent', () => {
   let mockNavigationService: jasmine.SpyObj<NavigationService>;
   let mockFeatureFlagService: jasmine.SpyObj<FeatureFlagService>;
   let isSidebarCollapsedSignal: WritableSignal<boolean>;
+  let isMobileSignal: WritableSignal<boolean>;
 
   const initialState = {
     auth: { token: 'mock-jwt-token', user: null, error: null },
@@ -58,11 +59,12 @@ describe('SidebarComponent', () => {
 
   beforeEach(async () => {
     isSidebarCollapsedSignal = signal(false);
+    isMobileSignal = signal(false);
     mockNavigationService = jasmine.createSpyObj('NavigationService', [
       'navigateToHome', 'navigateToLogin', 'navigateToAdmin', 'navigateToUserProfile', 'toggleSidebarCollapse', 'closeMobileSidebar'
     ], {
       isSidebarCollapsed: isSidebarCollapsedSignal,
-      isMobile: signal(false),
+      isMobile: isMobileSignal,
       isMobileSidebarOpen: signal(false),
     });
     mockNavigationService.toggleSidebarCollapse.and.callFake(() => {
@@ -204,6 +206,22 @@ describe('SidebarComponent', () => {
       const compiled = fixture.nativeElement as HTMLElement;
       const avatarEl = compiled.querySelector('[data-testid="sidebar-avatar"]');
       expect(avatarEl?.textContent?.trim()).toBe('A');
+    });
+  });
+
+  describe('isCollapsed computed signal', () => {
+    it('should return false on mobile viewport regardless of isSidebarCollapsed', () => {
+      isMobileSignal.set(true);
+      isSidebarCollapsedSignal.set(true);
+      expect(component.isCollapsed()).toBeFalse();
+    });
+
+    it('should mirror isSidebarCollapsed when not on mobile', () => {
+      isMobileSignal.set(false);
+      isSidebarCollapsedSignal.set(true);
+      expect(component.isCollapsed()).toBeTrue();
+      isSidebarCollapsedSignal.set(false);
+      expect(component.isCollapsed()).toBeFalse();
     });
   });
 });
