@@ -33,6 +33,15 @@ public interface ChecklistRunRepository extends JpaRepository<ChecklistRun, Long
     List<ChecklistRun> findByStartedAtBetweenOrderByStartedAtDesc(LocalDateTime start, LocalDateTime end);
 
     /**
+     * Finds runs completed within a specific date-time interval.
+     *
+     * @param start Range start timestamp
+     * @param end   Range end timestamp
+     * @return List of runs completed within interval
+     */
+    List<ChecklistRun> findByCompletedAtBetweenOrderByCompletedAtDesc(LocalDateTime start, LocalDateTime end);
+
+    /**
      * Finds all runs ordered by start time descending.
      *
      * @return Ordered list of runs
@@ -54,4 +63,13 @@ public interface ChecklistRunRepository extends JpaRepository<ChecklistRun, Long
      * @return Count of runs
      */
     long countByStatus(ChecklistRunStatus status);
+
+    /**
+     * Finds the most recently started run for a specific template matching the execution status.
+     *
+     * @param templateId Template identifier
+     * @param status     Run status
+     * @return Optional containing matching run if one exists
+     */
+    java.util.Optional<ChecklistRun> findFirstByTemplateIdAndStatusOrderByStartedAtDesc(Long templateId, ChecklistRunStatus status);
 }

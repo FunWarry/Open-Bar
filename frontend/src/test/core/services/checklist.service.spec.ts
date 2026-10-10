@@ -250,6 +250,33 @@ describe('ChecklistService', () => {
       expect(service.selectedRun()?.id).toBe(100);
     });
 
+    it('should not duplicate runs when startRun and RUN_STARTED WebSocket event both arrive for same run id', () => {
+      const launchReq: StartChecklistRunRequest = { templateId: 1 };
+
+      wsSubject.next({
+        body: JSON.stringify({
+          eventType: 'RUN_STARTED',
+          runId: 100,
+          run: sampleRun,
+          timestamp: '2026-10-10T12:00:00Z'
+        })
+      });
+
+      const wsStatsHttp = httpMock.expectOne(`${baseUrl}/stats`);
+      wsStatsHttp.flush(sampleStats);
+
+      expect(service.runs()).toHaveSize(1);
+
+      service.startRun(launchReq).subscribe();
+      const runHttp = httpMock.expectOne(`${baseUrl}/runs`);
+      runHttp.flush(sampleRun);
+
+      const statsHttp = httpMock.expectOne(`${baseUrl}/stats`);
+      statsHttp.flush(sampleStats);
+
+      expect(service.runs()).toHaveSize(1);
+    });
+
     it('should toggle run item and update run signals', () => {
       service.runs.set([sampleRun]);
       service.selectedRun.set(sampleRun);
@@ -337,6 +364,25 @@ describe('ChecklistService', () => {
       const req = httpMock.expectOne(`${baseUrl}/stats`);
       req.flush(sampleStats);
       expect(service.stats()).toEqual(sampleStats);
+    });
+
+    it('should normalize backend stats with fallback property names', () => {
+      const backendPayload = {
+        activeRunsCount: 3,
+        completedTodayCount: 4,
+        activeTemplatesCount: 5,
+        averageCompletionPercentageToday: 75
+      };
+
+      service.loadStats().subscribe(stats => {
+        expect(stats.totalTemplatesCount).toBe(5);
+        expect(stats.completionRateToday).toBe(75);
+      });
+
+      const req = httpMock.expectOne(`${baseUrl}/stats`);
+      req.flush(backendPayload);
+      expect(service.stats().totalTemplatesCount).toBe(5);
+      expect(service.stats().completionRateToday).toBe(75);
     });
   });
 

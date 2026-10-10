@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Summary metrics of checklist procedures and daily operational execution.
  *
@@ -14,4 +16,23 @@ public record ChecklistStatsDTO(
         long activeTemplatesCount,
         int averageCompletionPercentageToday
 ) {
+    /**
+     * Alias for activeTemplatesCount for frontend compatibility.
+     *
+     * @return count of templates
+     */
+    @JsonProperty("totalTemplatesCount")
+    public long totalTemplatesCount() {
+        return activeTemplatesCount;
+    }
+
+    /**
+     * Alias for averageCompletionPercentageToday for frontend compatibility.
+     *
+     * @return daily completion percentage
+     */
+    @JsonProperty("completionRateToday")
+    public int completionRateToday() {
+        return averageCompletionPercentageToday;
+    }
 }

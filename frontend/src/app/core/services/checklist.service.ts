@@ -46,6 +46,30 @@ export class ChecklistService implements OnDestroy {
     };
   }
 
+  /**
+   * Idempotently inserts or updates an execution run in the reactive signal list.
+   * Guarantees no duplicate items even when WebSocket broadcasts and HTTP responses overlap.
+   */
+  private upsertRun(run: ChecklistRun): void {
+    if (!run) return;
+    const normalized = this.normalizeRun(run);
+    this.runs.update(current => {
+      const exists = current.some(r => r.id === normalized.id);
+      return exists ? current.map(r => (r.id === normalized.id ? normalized : r)) : [normalized, ...current];
+    });
+  }
+
+  /**
+   * Idempotently inserts or updates a template in the reactive signal list.
+   */
+  private upsertTemplate(template: ChecklistTemplate): void {
+    if (!template) return;
+    this.templates.update(current => {
+      const exists = current.some(t => t.id === template.id);
+      return exists ? current.map(t => (t.id === template.id ? template : t)) : [template, ...current];
+    });
+  }
+
   /** Reactive list of reusable SOP templates. */
   readonly templates = signal<ChecklistTemplate[]>([]);
 
@@ -129,7 +153,7 @@ export class ChecklistService implements OnDestroy {
   createTemplate(request: CreateChecklistTemplateRequest): Observable<ChecklistTemplate> {
     return this.http.post<ChecklistTemplate>(`${this.baseUrl}/templates`, request).pipe(
       tap(created => {
-        this.templates.update(current => [created, ...current]);
+        this.upsertTemplate(created);
       })
     );
   }
@@ -219,7 +243,7 @@ export class ChecklistService implements OnDestroy {
     return this.http.post<ChecklistRun>(`${this.baseUrl}/runs`, request).pipe(
       map(run => this.normalizeRun(run)),
       tap(run => {
-        this.runs.update(current => [run, ...current]);
+        this.upsertRun(run);
         this.selectedRun.set(run);
         this.refreshStats();
       })
@@ -295,6 +319,12 @@ export class ChecklistService implements OnDestroy {
    */
   loadStats(): Observable<ChecklistStats> {
     return this.http.get<ChecklistStats>(`${this.baseUrl}/stats`).pipe(
+      map(stats => ({
+        activeRunsCount: stats?.activeRunsCount ?? 0,
+        completedTodayCount: stats?.completedTodayCount ?? 0,
+        totalTemplatesCount: stats?.totalTemplatesCount ?? stats?.activeTemplatesCount ?? 0,
+        completionRateToday: stats?.completionRateToday ?? stats?.averageCompletionPercentageToday ?? 0,
+      })),
       tap(stats => this.stats.set(stats)),
       catchError(err => {
         console.error('[ChecklistService] Failed to load stats', err);
@@ -344,27 +374,21 @@ export class ChecklistService implements OnDestroy {
     this.events$.next(event);
 
     if (event.eventType === 'RUN_STARTED' && event.run) {
-      this.runs.update(current => {
-        const exists = current.some(r => r.id === event.run!.id);
-        return exists ? current.map(r => r.id === event.run!.id ? event.run! : r) : [event.run!, ...current];
-      });
+      this.upsertRun(event.run);
       this.refreshStats();
     } else if (event.eventType === 'ITEM_UPDATED' && event.run) {
-      this.runs.update(current => current.map(r => r.id === event.run!.id ? event.run! : r));
+      this.upsertRun(event.run);
       if (this.selectedRun()?.id === event.run.id) {
-        this.selectedRun.set(event.run);
+        this.selectedRun.set(this.normalizeRun(event.run));
       }
     } else if ((event.eventType === 'RUN_COMPLETED' || event.eventType === 'RUN_CANCELLED') && event.run) {
-      this.runs.update(current => current.map(r => r.id === event.run!.id ? event.run! : r));
+      this.upsertRun(event.run);
       if (this.selectedRun()?.id === event.run.id) {
-        this.selectedRun.set(event.run);
+        this.selectedRun.set(this.normalizeRun(event.run));
       }
       this.refreshStats();
     } else if (event.eventType === 'TEMPLATE_UPDATED' && event.template) {
-      this.templates.update(current => {
-        const exists = current.some(t => t.id === event.template!.id);
-        return exists ? current.map(t => t.id === event.template!.id ? event.template! : t) : [event.template!, ...current];
-      });
+      this.upsertTemplate(event.template);
     }
   }
 }

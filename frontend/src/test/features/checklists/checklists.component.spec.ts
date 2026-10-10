@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal, computed } from '@angular/core';
-import { of, Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { AlertController, ToastController } from '@ionic/angular';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { ChecklistsComponent } from '../../../app/features/checklists/checklists.component';
@@ -265,8 +265,17 @@ describe('ChecklistsComponent', () => {
   });
 
   it('should start a run when clicking launch on a template', () => {
+    runsSignal.set([]);
     component.startRun(sampleTemplate);
     expect(mockChecklistService.startRun).toHaveBeenCalledWith({ templateId: 1 });
+    expect(component.currentTab()).toBe('active');
+  });
+
+  it('should focus existing run and not start a duplicate when template is already active', () => {
+    runsSignal.set([sampleRun]);
+    component.startRun(sampleTemplate);
+    expect(mockChecklistService.startRun).not.toHaveBeenCalled();
+    expect(component.selectedRun()?.id).toBe(sampleRun.id);
     expect(component.currentTab()).toBe('active');
   });
 
@@ -821,5 +830,55 @@ describe('ChecklistsComponent', () => {
         ]),
       })
     );
+  });
+
+  it('should verify whether a template has an active run session with isTemplateActive', () => {
+    expect(component.isTemplateActive(1)).toBeTrue();
+    expect(component.isTemplateActive(999)).toBeFalse();
+  });
+
+  it('should focus existing run and switch to active tab when startRun is called on already active template', () => {
+    component.currentTab.set('templates');
+    component.selectedRun.set(null);
+
+    component.startRun(sampleTemplate);
+
+    expect(component.selectedRun()?.id).toBe(50);
+    expect(component.currentTab()).toBe('active');
+    expect(mockChecklistService.startRun).not.toHaveBeenCalled();
+  });
+
+  it('should ignore startRun calls while launch is already in flight', () => {
+    runsSignal.set([]);
+    component.startingTemplateId.set(2);
+
+    const otherTemplate: ChecklistTemplate = { ...sampleTemplate, id: 2 };
+    component.startRun(otherTemplate);
+
+    expect(mockChecklistService.startRun).not.toHaveBeenCalled();
+  });
+
+  it('should start new run successfully when template is not active', () => {
+    runsSignal.set([]);
+    const newRun: ChecklistRun = { ...sampleRun, id: 99, templateId: 2 };
+    (mockChecklistService.startRun as jasmine.Spy).and.returnValue(of(newRun));
+
+    const otherTemplate: ChecklistTemplate = { ...sampleTemplate, id: 2 };
+    component.startRun(otherTemplate);
+
+    expect(mockChecklistService.startRun).toHaveBeenCalledWith({ templateId: 2 });
+    expect(component.selectedRun()?.id).toBe(99);
+    expect(component.currentTab()).toBe('active');
+    expect(component.startingTemplateId()).toBeNull();
+  });
+
+  it('should handle startRun error gracefully and reset startingTemplateId', () => {
+    runsSignal.set([]);
+    (mockChecklistService.startRun as jasmine.Spy).and.returnValue(throwError(() => new Error('Server error')));
+
+    const otherTemplate: ChecklistTemplate = { ...sampleTemplate, id: 2 };
+    component.startRun(otherTemplate);
+
+    expect(component.startingTemplateId()).toBeNull();
   });
 });

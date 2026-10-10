@@ -142,6 +142,8 @@ export interface ChecklistStats {
   completedTodayCount: number;
   totalTemplatesCount: number;
   completionRateToday: number;
+  activeTemplatesCount?: number;
+  averageCompletionPercentageToday?: number;
 }
 
 /**
