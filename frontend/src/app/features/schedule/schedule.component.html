@@ -328,14 +328,15 @@
           </div>
         </div>
       </div>
-      <!-- Grid -->
-      <div
-        class="schedule-grid"
-        [class.in-delete-mode]="isDeleteMode"
-        [class.in-comparison-mode]="isComparisonMode || (isReplayMode && isReplayComparisonMode)"
-        [class.in-replay-mode]="isReplayMode">
-        <!-- Header row -->
-        <div class="grid-header">
+      <!-- Grid with responsive scroll containment -->
+      <div class="schedule-grid-scroll-wrapper table-scroll-container" data-testid="schedule-grid-scroll-wrapper">
+        <div
+          class="schedule-grid"
+          [class.in-delete-mode]="isDeleteMode"
+          [class.in-comparison-mode]="isComparisonMode || (isReplayMode && isReplayComparisonMode)"
+          [class.in-replay-mode]="isReplayMode">
+          <!-- Header row -->
+          <div class="grid-header">
           <span class="grid-header__employee">{{ 'SHIFTS.EMPLOYEE_HEADER' | transloco | uppercase }}</span>
           @for (h of getDayHeaders(); track h.date; let i = $index) {
             <button
@@ -449,6 +450,7 @@
             }
           </div>
         }
+      </div>
       </div>
       <!-- Shortcuts Legend Bar -->
       @if (!isReplayMode) {

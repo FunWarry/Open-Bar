@@ -194,5 +194,27 @@
         color: var(--semantic-success, #2fbf6b);
       }
     }
+
+    app-action-button {
+      width: 100%;
+      min-height: var(--touch-target-min, 44px);
+    }
+  }
+
+  @media (max-width: 767px) {
+    border-radius: var(--radius-md, 10px);
+    padding: var(--space-3, 12px);
+    margin-bottom: max(16px, var(--safe-area-bottom, 0px));
+
+    .cart-header {
+      padding-bottom: 8px;
+    }
+
+    .clear-btn {
+      min-height: var(--touch-target-min, 44px);
+      display: inline-flex;
+      align-items: center;
+      padding: 0 8px;
+    }
   }
 }

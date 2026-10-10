@@ -410,6 +410,15 @@
 }
 
 // Grid
+.schedule-grid-scroll-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: var(--space-4, 16px);
+  border-radius: var(--radius-md, 10px);
+}
+
 .schedule-grid {
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md, 10px);
@@ -438,6 +447,11 @@
     text-transform: uppercase;
     display: flex;
     align-items: center;
+    position: sticky;
+    left: 0;
+    z-index: 4;
+    background: var(--background-surface-2);
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.15);
   }
 
   &__day {
@@ -513,6 +527,10 @@
     gap: var(--space-2, 8px);
     padding: var(--space-2, 8px) var(--space-3, 12px);
     background: var(--background-surface-2);
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.15);
   }
 
   &__cell {

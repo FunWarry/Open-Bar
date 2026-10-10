@@ -1614,7 +1614,32 @@ dialog.cocktail-details-dialog {
   font-size: 1.3rem;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 767px) {
+  .client-container {
+    padding: var(--space-3, 12px);
+  }
+
+  .step-card {
+    max-width: 100%;
+    margin-top: var(--space-4, 16px);
+    padding: var(--space-4, 16px);
+  }
+
+  .nickname-modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .nickname-modal-backdrop .step-card {
+    border-radius: 16px 16px 0 0;
+    max-height: 90vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
   .roulette-hero-content {
     flex-direction: column;
     align-items: flex-start;
@@ -1625,5 +1650,12 @@ dialog.cocktail-details-dialog {
     justify-content: center;
   }
 }
+
+@media (min-width: 768px) {
+  .menu-view {
+    max-width: 860px;
+  }
+}
+
 
 
