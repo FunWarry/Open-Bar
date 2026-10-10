@@ -400,6 +400,65 @@ class ChecklistServiceTest {
     }
 
     @Test
+    @DisplayName("Should return zero completion percentage when no active runs and no completed runs exist")
+    void shouldReturnZeroStatsWhenNoActiveRunsAndNoCompletedRuns() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(true);
+        when(checklistTemplateRepository.findByIsActiveOrderByCategoryAscTitleAsc(true)).thenReturn(List.of());
+        when(timeService.today()).thenReturn(LocalDate.of(2026, 10, 10));
+        when(checklistRunRepository.findByStatusOrderByStartedAtDesc(ChecklistRunStatus.IN_PROGRESS)).thenReturn(List.of());
+        when(checklistRunRepository.findByStartedAtBetweenOrderByStartedAtDesc(any(), any())).thenReturn(List.of());
+        when(checklistRunRepository.findByCompletedAtBetweenOrderByCompletedAtDesc(any(), any())).thenReturn(List.of());
+
+        ChecklistStatsDTO stats = checklistService.getStats();
+
+        assertThat(stats.activeRunsCount()).isZero();
+        assertThat(stats.completedTodayCount()).isZero();
+        assertThat(stats.averageCompletionPercentageToday()).isZero();
+    }
+
+    @Test
+    @DisplayName("Should include runs completed today, deduplicate by ID, and ignore cancelled runs")
+    void shouldIncludeRunsCompletedTodayInCompletionRateAndDeduplicateById() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(true);
+        when(checklistTemplateRepository.findByIsActiveOrderByCategoryAscTitleAsc(true)).thenReturn(List.of(testTemplate));
+        when(timeService.today()).thenReturn(LocalDate.of(2026, 10, 10));
+
+        // Active run (50%)
+        ChecklistRun activeRun = new ChecklistRun();
+        activeRun.setId(301L);
+        activeRun.setStatus(ChecklistRunStatus.IN_PROGRESS);
+        ChecklistRunItem item1 = new ChecklistRunItem();
+        item1.setIsCompleted(true);
+        ChecklistRunItem item2 = new ChecklistRunItem();
+        item2.setIsCompleted(false);
+        activeRun.setItems(new ArrayList<>(List.of(item1, item2)));
+
+        // Completed run (100%) - appears in both todayCompletedRuns and todayStartedRuns
+        ChecklistRun completedRun = new ChecklistRun();
+        completedRun.setId(302L);
+        completedRun.setStatus(ChecklistRunStatus.COMPLETED);
+        ChecklistRunItem item3 = new ChecklistRunItem();
+        item3.setIsCompleted(true);
+        completedRun.setItems(new ArrayList<>(List.of(item3)));
+
+        // Cancelled run - appears in todayStartedRuns, must be ignored
+        ChecklistRun cancelledRun = new ChecklistRun();
+        cancelledRun.setId(303L);
+        cancelledRun.setStatus(ChecklistRunStatus.CANCELLED);
+
+        when(checklistRunRepository.findByStatusOrderByStartedAtDesc(ChecklistRunStatus.IN_PROGRESS)).thenReturn(List.of(activeRun));
+        when(checklistRunRepository.findByCompletedAtBetweenOrderByCompletedAtDesc(any(), any())).thenReturn(List.of(completedRun));
+        when(checklistRunRepository.findByStartedAtBetweenOrderByStartedAtDesc(any(), any())).thenReturn(List.of(completedRun, cancelledRun));
+
+        ChecklistStatsDTO stats = checklistService.getStats();
+
+        assertThat(stats.activeRunsCount()).isEqualTo(1);
+        assertThat(stats.completedTodayCount()).isEqualTo(1);
+        // (50 + 100) / 2 = 75%
+        assertThat(stats.averageCompletionPercentageToday()).isEqualTo(75);
+    }
+
+    @Test
     @DisplayName("Should throw BusinessException when checklists module is disabled")
     void shouldThrowExceptionWhenModuleDisabled() {
         when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(false);
