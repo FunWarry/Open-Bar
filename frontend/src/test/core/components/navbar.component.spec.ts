@@ -17,6 +17,8 @@ import { EMPTY, of } from 'rxjs';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TranslocoService } from '@jsverse/transloco';
 import { SoundService } from '../../../app/core/services/sound.service';
+import { TableAppelService } from '../../../app/core/services/table-appel.service';
+import { TableAppel } from '../../../app/core/models/table-appel.model';
 import { User } from '../../../app/core/models/user.model';
 
 import { signal, WritableSignal } from '@angular/core';
@@ -27,7 +29,9 @@ describe('NavbarComponent', () => {
   let store: MockStore;
   let mockNavigationService: jasmine.SpyObj<NavigationService>;
   let mockNotifService: any;
+  let mockTableAppelService: any;
   let unreadCountSignal: WritableSignal<number>;
+  let activeAppelsSignal: WritableSignal<TableAppel[]>;
 
   let mockSelectIsAuthenticated: MemoizedSelector<any, boolean>;
   let mockSelectIsAdmin: MemoizedSelector<any, boolean>;
@@ -60,6 +64,7 @@ describe('NavbarComponent', () => {
     (mockNavigationService as any).isMobileSidebarOpen = signal(false);
 
     unreadCountSignal = signal(0);
+    activeAppelsSignal = signal<TableAppel[]>([]);
     mockNotifService = jasmine.createSpyObj('NotificationService', [
       'onNotification', 'onStockAlert', 'getNonLues', 'getHistory', 'marquerLue', 'marquerToutLu', 'toggleNotifPanel', 'closeNotifPanel',
     ]);
@@ -67,6 +72,10 @@ describe('NavbarComponent', () => {
     mockNotifService.onNotification.and.returnValue(of());
     mockNotifService.onStockAlert.and.returnValue(EMPTY);
     mockNotifService.getNonLues.and.returnValue(0);
+
+    mockTableAppelService = jasmine.createSpyObj('TableAppelService', ['getAppelsActifs']);
+    mockTableAppelService.activeAppels = activeAppelsSignal;
+    mockTableAppelService.getAppelsActifs.and.returnValue(of([]));
 
     const mockSoundService = jasmine.createSpyObj('SoundService', ['toggleSound', 'isSoundEnabled']);
     mockSoundService.isSoundEnabled.and.returnValue(true);
@@ -84,6 +93,7 @@ describe('NavbarComponent', () => {
         provideMockStore({ initialState }),
         { provide: NavigationService, useValue: mockNavigationService },
         { provide: NotificationService, useValue: mockNotifService },
+        { provide: TableAppelService, useValue: mockTableAppelService },
         { provide: SoundService, useValue: mockSoundService },
         { provide: PopoverController, useValue: mockPopoverCtrl },
       ],
@@ -280,12 +290,14 @@ describe('NavbarComponent', () => {
   describe('notification badge synchronization (#316)', () => {
     beforeEach(() => {
       store.overrideSelector(selectIsAuthenticated, true);
+      store.overrideSelector(selectCurrentUser, { ...mockAdminUser, roles: ['SERVEUR'] });
       store.refreshState();
       fixture.detectChanges();
     });
 
-    it('should not display badge when unreadCount is 0', () => {
+    it('should not display badge when unreadCount is 0 and no table calls are active', () => {
       unreadCountSignal.set(0);
+      activeAppelsSignal.set([]);
       fixture.detectChanges();
 
       const badge = fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]');
@@ -295,6 +307,7 @@ describe('NavbarComponent', () => {
 
     it('should display exact count when unreadCount is between 1 and 9', () => {
       unreadCountSignal.set(4);
+      activeAppelsSignal.set([]);
       fixture.detectChanges();
 
       const badge = fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]');
@@ -305,6 +318,7 @@ describe('NavbarComponent', () => {
 
     it('should display 9+ when unreadCount exceeds 9', () => {
       unreadCountSignal.set(15);
+      activeAppelsSignal.set([]);
       fixture.detectChanges();
 
       const badge = fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]');
@@ -313,14 +327,55 @@ describe('NavbarComponent', () => {
       expect(component.nonLues).toBe(15);
     });
 
-    it('should reactively remove badge when unreadCount transitions from positive to 0', () => {
+    it('should reactively remove badge when unreadCount transitions from positive to 0 and no calls are pending', () => {
       unreadCountSignal.set(3);
+      activeAppelsSignal.set([]);
       fixture.detectChanges();
       expect(fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]')).not.toBeNull();
 
       unreadCountSignal.set(0);
       fixture.detectChanges();
       expect(fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]')).toBeNull();
+    });
+
+    it('should keep badge visible for servers when unreadCount is 0 but active table calls are pending', () => {
+      unreadCountSignal.set(0);
+      activeAppelsSignal.set([
+        {
+          id: 101,
+          tableId: 3,
+          tableNumero: 3,
+          type: 'ASSISTANCE',
+          statut: 'EN_ATTENTE',
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      fixture.detectChanges();
+
+      const badge = fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]');
+      expect(badge).not.toBeNull();
+      expect(badge.textContent.trim()).toBe('1');
+      expect(component.hasActiveTableCalls()).toBeTrue();
+      expect(component.hasPendingNotifications()).toBeTrue();
+    });
+
+    it('should display max of unread count and calls count to avoid duplicate counting', () => {
+      unreadCountSignal.set(2);
+      activeAppelsSignal.set([
+        {
+          id: 101,
+          tableId: 3,
+          tableNumero: 3,
+          type: 'ASSISTANCE',
+          statut: 'EN_ATTENTE',
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      fixture.detectChanges();
+
+      const badge = fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]');
+      expect(badge).not.toBeNull();
+      expect(badge.textContent.trim()).toBe('2');
     });
   });
 });

@@ -494,10 +494,23 @@ describe('NotificationService', () => {
     expect(soundSpy.playUrgentAlertSound).toHaveBeenCalled();
   }));
 
-  it('ignores /topic/serveur/appels messages when statut is not EN_ATTENTE', fakeAsync(() => {
+  it('marks matching notifications as read and does not emit new notification when statut is ACQUITTE', fakeAsync(() => {
+    // 1. First emit pending alert
+    wsStub.emit('/topic/serveur/appels', {
+      id: 3,
+      tableNumero: 5,
+      type: 'ASSISTANCE',
+      statut: 'EN_ATTENTE'
+    });
+    tick();
+
+    expect(service.getNonLues()).toBe(1);
+    expect(service.getHistory()[0].lue).toBeFalse();
+
     const notifs: AppNotification[] = [];
     service.onNotification().subscribe(n => notifs.push(n));
 
+    // 2. Now emit ACQUITTE
     wsStub.emit('/topic/serveur/appels', {
       id: 3,
       tableNumero: 5,
@@ -506,7 +519,25 @@ describe('NotificationService', () => {
     });
     tick();
 
-    expect(notifs).toHaveSize(0);
+    expect(notifs).toHaveSize(0); // No new notification emitted
+    expect(service.getNonLues()).toBe(0); // Existing notification marked as read
+    expect(service.getHistory()[0].lue).toBeTrue();
+  }));
+
+  it('marquerAppelLu() marks table call notifications as read by call ID or table ID', fakeAsync(() => {
+    wsStub.emit('/topic/serveur/appels', {
+      id: 99,
+      tableNumero: 12,
+      type: 'ASSISTANCE',
+      statut: 'EN_ATTENTE'
+    });
+    tick();
+
+    expect(service.getNonLues()).toBe(1);
+
+    service.marquerAppelLu(99, 12);
+    expect(service.getNonLues()).toBe(0);
+    expect(service.getHistory()[0].lue).toBeTrue();
   }));
 
   // -------------------------------------------------------------------------

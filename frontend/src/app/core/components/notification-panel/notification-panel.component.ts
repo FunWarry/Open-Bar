@@ -2,9 +2,9 @@ import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, Optional, Ch
 import { CommonModule, UpperCasePipe } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
-  IonButton, IonIcon, PopoverController
+  IonButton, IonIcon, PopoverController, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -18,6 +18,8 @@ import {
   checkmarkCircleOutline,
 } from 'ionicons/icons';
 import { NotificationService, AppNotification } from '../../services/notification.service';
+import { TableAppelService } from '../../services/table-appel.service';
+import { TableAppel } from '../../models/table-appel.model';
 
 /**
  * Side drawer panel component for displaying notifications dynamically.
@@ -47,10 +49,16 @@ export class NotificationPanelComponent implements OnInit, OnDestroy {
   /** Current list of notifications displayed in the panel. */
   notifications: AppNotification[] = [];
 
+  /** Reactive signal exposing active table calls awaiting attendance. */
+  readonly activeCalls = this.tableAppelService.activeAppels;
+
   private readonly destroy$ = new Subject<void>();
 
   constructor(
     private readonly notifService: NotificationService,
+    public readonly tableAppelService: TableAppelService,
+    private readonly toastCtrl: ToastController,
+    private readonly translocoService: TranslocoService,
     @Optional() private readonly popoverCtrl?: PopoverController,
   ) {
     addIcons({
@@ -72,11 +80,41 @@ export class NotificationPanelComponent implements OnInit, OnDestroy {
       .subscribe(() => {
         this.notifications = this.notifService.getHistory();
       });
+
+    this.tableAppelService.getAppelsActifs()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        error: () => { /* safely ignore if offline/unauthorized */ }
+      });
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  /**
+   * Acknowledges and dismisses an active table call alert from the notification panel.
+   *
+   * @param appel - The table call alert to acknowledge.
+   * @param event - Optional click event to prevent propagation.
+   */
+  acquitterAppel(appel: TableAppel, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.tableAppelService.acquitterAppel(appel.tableId, appel.id).subscribe({
+      next: async () => {
+        this.notifService.marquerAppelLu(appel.id, appel.tableId);
+        const toast = await this.toastCtrl.create({
+          message: this.translocoService.translate('SERVEUR.ALERTS.ACKNOWLEDGE_SUCCESS'),
+          duration: 2500,
+          color: 'success',
+          position: 'top',
+        });
+        await toast.present();
+      },
+    });
   }
 
   /**

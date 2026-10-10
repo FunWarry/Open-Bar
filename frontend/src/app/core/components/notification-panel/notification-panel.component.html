@@ -16,11 +16,52 @@
   </div>
 
   <div class="panel-body">
-    @if (notifications.length === 0) {
-      <div class="empty-notifs" data-testid="empty-notifs">
-        <ion-icon name="notifications-off-outline"></ion-icon>
-        <p>{{ 'NOTIFICATIONS.EMPTY' | transloco }}</p>
+    <!-- Active Table Calls Section (Compact top section) -->
+    @if (activeCalls().length > 0) {
+      <div class="panel-active-calls-section" data-testid="panel-active-calls-section">
+        <div class="active-calls-header">
+          <div class="active-calls-title-group">
+            <span class="active-calls-icon">🔔</span>
+            <span class="active-calls-title">{{ 'SERVEUR.ALERTS.ACTIVE_CALLS_TITLE' | transloco: { count: activeCalls().length } }}</span>
+          </div>
+          <span class="active-calls-count-badge" data-testid="active-calls-count-badge">{{ activeCalls().length }}</span>
+        </div>
+        <div class="active-calls-list" data-testid="panel-active-calls-list">
+          @for (call of activeCalls(); track call.id) {
+            <div class="panel-call-item" [class.bill-call]="call.type === 'ADDITION'" [attr.data-testid]="'panel-call-item-' + call.id">
+              <div class="call-item-main">
+                <div class="call-item-top">
+                  <span class="call-type-icon">{{ call.type === 'ADDITION' ? '💳' : '🔔' }}</span>
+                  <strong class="call-table-label">Table {{ call.tableNumero || call.tableId }}</strong>
+                  <span class="call-type-tag" [class.bill]="call.type === 'ADDITION'">
+                    {{ (call.type === 'ADDITION' ? 'SERVEUR.ALERTS.BILL_REQUEST' : 'SERVEUR.ALERTS.ASSISTANCE_REQUEST') | transloco }}
+                  </span>
+                </div>
+                @if (call.commentaire) {
+                  <p class="call-item-comment">"{{ call.commentaire }}"</p>
+                }
+              </div>
+              <button
+                type="button"
+                class="panel-ack-call-btn"
+                [attr.data-testid]="'panel-btn-ack-call-' + call.id"
+                (click)="acquitterAppel(call, $event)"
+                [attr.aria-label]="'SERVEUR.ALERTS.ACKNOWLEDGE_BTN' | transloco">
+                ✓ {{ 'SERVEUR.ALERTS.ACKNOWLEDGE_BTN' | transloco }}
+              </button>
+            </div>
+          }
+        </div>
       </div>
+    }
+
+    @if (notifications.length === 0) {
+      @if (activeCalls().length === 0) {
+        <div class="empty-notifs" data-testid="empty-notifs">
+          <ion-icon name="notifications-off-outline"></ion-icon>
+          <p>{{ 'NOTIFICATIONS.EMPTY' | transloco }}</p>
+        </div>
+      }
     } @else {
       <div class="notif-list" data-testid="notif-list">
         @for (n of notifications; track n.id) {

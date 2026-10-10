@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Optional, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Optional, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, combineLatest, of, interval } from 'rxjs';
@@ -7,6 +7,7 @@ import { TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { selectCurrentUser, selectIsAdmin, selectIsAuthenticated } from '../../store/auth.selectors';
 import { NavigationService } from '../../services/navigation.service';
 import { NotificationService } from '../../services/notification.service';
+import { TableAppelService } from '../../services/table-appel.service';
 import { SoundService } from '../../services/sound.service';
 import { LanguageService } from '../../services/language.service';
 import {
@@ -101,9 +102,53 @@ export class NavbarComponent implements OnInit, OnDestroy {
   /** Reactive signal for the number of unread notifications from NotificationService. */
   readonly unreadCount = this.notifService.unreadCount ?? signal(0);
 
+  /** Internal signal tracking current user state for computed role checks. */
+  readonly currentUserSignal = signal<User | null>(null);
+
+  /**
+   * Whether the authenticated user has staff permissions to supervise table calls.
+   */
+  readonly isStaffWithTableCalls = computed(() => {
+    const user = this.currentUserSignal();
+    if (!user?.roles) return false;
+    return user.roles.some(r => ['SERVEUR', 'MANAGER', 'ADMIN'].includes(r));
+  });
+
+  /**
+   * Count of active table calls awaiting attendance.
+   */
+  readonly activeTableCallsCount = computed(() => {
+    return this.isStaffWithTableCalls() ? this.tableAppelService.activeAppels().length : 0;
+  });
+
+  /**
+   * Whether there are currently active table calls that must keep the notification indicator active.
+   */
+  readonly hasActiveTableCalls = computed(() => {
+    return this.activeTableCallsCount() > 0;
+  });
+
+  /**
+   * Whether the notification icon badge should be visible.
+   * Remains true for servers/staff as long as active calls are not yet acknowledged.
+   */
+  readonly hasPendingNotifications = computed(() => {
+    return this.unreadCount() > 0 || this.hasActiveTableCalls();
+  });
+
+  /**
+   * Total badge count displayed on the notification bell.
+   * Guaranteed to reflect pending table calls even if other notifications are read.
+   */
+  readonly displayBadgeCount = computed(() => {
+    const unread = this.unreadCount();
+    const calls = this.activeTableCallsCount();
+    return Math.max(unread, calls);
+  });
+
   /** Backwards compatible getter for the unread notifications count. */
   get nonLues(): number {
-    return this.unreadCount();
+    return this.displayBadgeCount();
   }
 
   /** Whether the non-modal side drawer notification panel is open. */
@@ -118,6 +163,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     private readonly store: Store,
     public readonly navigationService: NavigationService,
     private readonly notifService: NotificationService,
+    public readonly tableAppelService: TableAppelService,
     public readonly soundService: SoundService,
     public readonly languageService: LanguageService,
     private readonly popoverCtrl: PopoverController,
@@ -133,6 +179,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
     this.isAdmin$ = this.store.select(selectIsAdmin);
     this.currentUser$ = this.store.select(selectCurrentUser);
+
+    this.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
+      this.currentUserSignal.set(user);
+      if (user?.roles?.some(r => ['SERVEUR', 'MANAGER', 'ADMIN'].includes(r))) {
+        this.tableAppelService.getAppelsActifs().subscribe({
+          error: () => { /* safely ignore if offline/unauthorized */ }
+        });
+      }
+    });
 
     const initialUrl = (this.router?.url && this.router.url.length > 0) ? this.router.url : '/';
 

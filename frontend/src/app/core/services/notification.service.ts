@@ -156,7 +156,10 @@ export class NotificationService implements OnDestroy {
   }
 
   private handleAppelNotification(data: any): void {
-    if (data?.statut !== 'EN_ATTENTE') return;
+    if (data?.statut !== 'EN_ATTENTE') {
+      this.marquerAppelLu(data?.id, data?.tableId);
+      return;
+    }
     const tableDisplay = this.formatTableDisplay(data.tableNumero || data.tableId || 'Table');
     const isAddition = data.type === 'ADDITION';
     const typeLabel = isAddition ? 'Addition / Bill Request' : 'Assistance Request';
@@ -173,6 +176,30 @@ export class NotificationService implements OnDestroy {
     this.updateUnreadCount();
     this.notifications$.next(notif);
     this.soundService.playUrgentAlertSound();
+  }
+
+  /**
+   * Marks table call notifications matching the given call ID or table ID as read.
+   *
+   * @param appelId - Identifier of the resolved table alert.
+   * @param tableId - Optional table identifier.
+   */
+  marquerAppelLu(appelId?: number, tableId?: number): void {
+    let changed = false;
+    this.notificationHistory.forEach(n => {
+      if (n.type === 'table' && !n.lue) {
+        if (
+          (appelId != null && (n.data?.id === appelId || n.data?.appelId === appelId)) ||
+          (tableId != null && (n.data?.tableId === tableId || n.data?.tableNumero === tableId))
+        ) {
+          n.lue = true;
+          changed = true;
+        }
+      }
+    });
+    if (changed) {
+      this.updateUnreadCount();
+    }
   }
 
   private handleStockAlerteNotification(data: any): void {
