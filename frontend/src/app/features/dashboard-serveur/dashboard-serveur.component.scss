@@ -301,30 +301,28 @@ ion-content.dashboard-serveur-content {
 
 .controls-row-bottom {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 10px;
   border-top: 1px solid var(--border-medium);
   padding-top: 10px;
 }
 
 .filter-dropdowns {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  flex-wrap: wrap;
-  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
 
   .filter-select-box {
-    min-width: 140px;
-    flex: 1;
-    max-width: 240px;
+    min-width: 0;
+    max-width: none;
+    width: 100%;
   }
 }
 
 .view-mode-group {
-  display: flex;
+  display: inline-flex;
+  align-self: flex-end;
   background: var(--background-surface-2);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-sm, 8px);
@@ -336,7 +334,7 @@ ion-content.dashboard-serveur-content {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 5px 9px;
+    padding: 5px 12px;
     min-height: 34px;
     border-radius: var(--radius-sm, 6px);
     background: transparent;
@@ -370,22 +368,14 @@ ion-content.dashboard-serveur-content {
 
 @media (max-width: 767px) {
   .controls-row-bottom {
-    flex-direction: column;
-    align-items: stretch;
     gap: 8px;
   }
 
   .filter-dropdowns {
-    display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
-    width: 100%;
 
     .filter-select-box {
-      min-width: 0;
-      max-width: none;
-      width: 100%;
-
       &:nth-child(3) {
         grid-column: 1 / -1;
       }
@@ -394,6 +384,7 @@ ion-content.dashboard-serveur-content {
 
   .view-mode-group {
     width: 100%;
+    align-self: stretch;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 2px;
@@ -410,6 +401,26 @@ ion-content.dashboard-serveur-content {
         text-overflow: ellipsis;
       }
     }
+  }
+}
+
+@media (min-width: 1100px) {
+  .controls-row-bottom {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+  }
+
+  .filter-dropdowns {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(140px, 220px));
+    width: auto;
+    flex: 1;
+  }
+
+  .view-mode-group {
+    align-self: flex-end;
   }
 }
 

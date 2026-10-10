@@ -2,8 +2,18 @@
 // Adaptive Theme colors using CSS variables from variables.css (Rule #9)
 
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
+
+app-card.mobile-table-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  flex: 1;
+}
+
 
 // 1. Header
 .tile-header {
@@ -117,6 +127,7 @@
   flex-direction: column;
   gap: 10px;
   width: 100%;
+  flex: 1;
 
   .meta-row {
     display: flex;
@@ -181,6 +192,7 @@
   justify-content: space-between;
   width: 100%;
   gap: 12px;
+  margin-top: auto;
 
   .total-badge {
     display: flex;
