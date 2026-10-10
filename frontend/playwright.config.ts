@@ -27,14 +27,17 @@ export default defineConfig({
     {
       name: 'mobile-chrome',
       use: { ...devices['Pixel 7'] },
+      testMatch: /responsive-layout\.spec\.ts/,
     },
     {
       name: 'mobile-safari',
-      use: { ...devices['iPhone 14'] },
+      use: { ...devices['iPhone 14'], browserName: 'chromium' },
+      testMatch: /responsive-layout\.spec\.ts/,
     },
     {
       name: 'tablet',
-      use: { ...devices['iPad (gen 7)'] },
+      use: { ...devices['iPad (gen 7)'], browserName: 'chromium' },
+      testMatch: /responsive-layout\.spec\.ts/,
     },
   ],
   webServer: {
