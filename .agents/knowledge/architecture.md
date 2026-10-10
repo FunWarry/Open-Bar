@@ -34,7 +34,7 @@
 | CSV Exports | RFC 4180 + BOM UTF-8 | — | Backend `CsvUtils` (formula injection defense) + frontend `CsvExportService` |
 | Backend tests | JUnit 5 + Mockito + Testcontainers | 1.21.4 | Unit + Spring Boot integration tests with isolated PostgreSQL |
 | Frontend tests | Karma + Jasmine | — | Headless browser unit tests |
-| E2E tests | Playwright | 1.50+ | End-to-end browser tests (Chromium headless) |
+| E2E tests | Playwright | 1.63+ | End-to-end multi-device emulation tests (Chromium headless Desktop, Pixel 7, iPhone 14, iPad) |
 | Performance & Load | k6 + Playwright CDP | k6 v2.2+ | Automated rush-hour scenarios, mock ESC/POS socket :9100, degraded network, RPi 5 profiling |
 | Database Backups | Automated Docker cron + rotation | — | `prodrigestivill/postgres-backup-local:15-alpine` (7d/4w/6m retention) |
 | Reverse Proxy & TLS | Nginx | — | Port 443 HTTPS, TLS 1.2/1.3, HTTP 80 redirect, camera header, SAN certs |
@@ -96,11 +96,12 @@ frontend/src/
 ```
 
 **Key Architectural Decisions:**
-- Angular Material → **Abandoned** → Ionic 8+
+- Angular Material → **Abandoned** → Ionic 9+
 - Capacitor → **Abandoned** → PWA (`@angular/pwa`, Service Worker)
 - NgRx → **Auth only** — all other state uses direct services + Angular signals
 - Tests → **`src/test/`** (mirror Maven structure, never co-located with source components)
 - Styling → **Adaptive Theme System** using CSS variables from `variables.css` (no hardcoded hex/RGB colors)
+- Responsiveness → **Mandatory Multi-Device Architecture** (Smartphone <768px with off-canvas drawer & condensed popover, Tablet 768px-1024px with adaptive grids, Desktop >1024px) with zero horizontal overflow tolerance.
 
 ---
 
