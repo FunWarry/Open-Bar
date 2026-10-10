@@ -94,6 +94,7 @@
             <!-- Dropdown Étage -->
             <div class="filter-select-box">
               <app-searchable-select
+                size="sm"
                 [label]="'SERVEUR.FLOOR_LABEL' | transloco"
                 [options]="etageOptions"
                 [(ngModel)]="selectedEtage"
@@ -106,6 +107,7 @@
             <!-- Dropdown Zone -->
             <div class="filter-select-box">
               <app-searchable-select
+                size="sm"
                 [label]="'SERVEUR.ZONE_LABEL' | transloco"
                 [options]="zoneOptions"
                 [(ngModel)]="selectedZone"
@@ -118,6 +120,7 @@
             <!-- Dropdown Trier Par -->
             <div class="filter-select-box">
               <app-searchable-select
+                size="sm"
                 [label]="'SERVEUR.SORT_LABEL' | transloco"
                 [options]="sortOptions"
                 [(ngModel)]="sortOption"

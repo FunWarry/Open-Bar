@@ -98,6 +98,9 @@ export class SearchableSelectComponent extends BaseControlValueAccessor implemen
     this.selectedValue.set(val);
   }
 
+  /** Visual size variant ('default' or compact 'sm'). */
+  @Input() size: 'sm' | 'default' = 'default';
+
   /** Label text for the select field. */
   @Input() label?: string;
 
