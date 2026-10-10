@@ -79,6 +79,7 @@ features/<name>/
 - **Component Reusability & Proactive Factoring**: Always inspect `app/core/components/ui/` before creating UI elements to reuse existing components (`app-search-bar`, `app-empty-state`, `app-searchable-select`, `app-toggle-switch`, `app-checkbox-field`). Proactively factor out recurring patterns across 2+ views into `core/components/ui/` and migrate existing ad-hoc code for 100% uniformity and reusability.
 - **Zero Problems in IDE Panel Mandatory**: Never commit or push code with unresolved errors or warnings in the IDE Problems window (or reported via `@[current_problems]`). Always run `npx tsc --noEmit` and `mvn test-compile` to guarantee 0 errors.
 - **Mandatory Plug-and-Play Modular Architecture**: Every new feature or distinct capability must be a toggleable plugin integrated into `EstablishmentModule` and `FeatureFlagService` (`ModuleGuard`), configurable from `AppSettingsPageComponent` ("Capacités & Modules") and onboarding (`/setup`).
+- **Mandatory Multi-Device Responsiveness (Mobile, Tablet & Desktop First)**: Every view, form, modal, table, card, and drawer MUST be systematically responsive across smartphones (<768px), tablets (768px-1024px), and desktop (>1024px). No horizontal overflow, touch targets >= 44x44px on mobile, adaptive layouts. Never design desktop-only views.
 
 ### Internationalization (Transloco)
 - Keys in `SCREAMING_SNAKE_CASE`: `COMMANDE.STATUT.EN_ATTENTE`

@@ -74,6 +74,11 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
     - ❌ Raw `<input type="text">` / `type="number"` / `type="url"` ➡️ **STRICTLY FORBIDDEN** — MUST use `<app-input-field>` (`InputFieldComponent`)
     - ❌ Filter chips / category toggles ➡️ **STRICTLY FORBIDDEN** — MUST use `<app-filter-chip>` (`FilterChipComponent`)
     - ❌ Custom modal backdrops/sheets ➡️ **STRICTLY FORBIDDEN** — MUST use `<ion-modal>` + `<app-modal>` (`ModalComponent`)
+11. **MANDATORY MULTI-DEVICE RESPONSIVENESS (Mobile, Tablet & Desktop First)** — EVERY user-facing screen, view, form, modal, table, card, and drawer MUST be systematically responsive and tested across 3 canonical viewport tiers:
+    - **Smartphone (< 768px)**: Stacked single-column layout, touch hit areas ≥ 44x44px, full-width inputs, scrollable drawers/bottom sheets, zero horizontal scroll/overflow, simplified mobile headers.
+    - **Tablet & Touch POS (768px – 1024px)**: 2-column or adaptive grid layouts, split panes, comfortable touch target density for bar counter tablet stands.
+    - **Desktop (> 1024px)**: Multi-column supervision dashboards, rich data tables with sortable columns, side-by-side inspection panels.
+    **CRITICAL**: NEVER create a desktop-only view or a view that breaks, clips, or overflows horizontally on mobile devices. AI agents MUST systematically guarantee and test mobile/tablet/desktop responsiveness for every component created or modified.
 
 ### Testing & Quality Assurance (Mandatory for ALL code written)
 1. **Full Test Pyramid MANDATORY for every feature / change**:
