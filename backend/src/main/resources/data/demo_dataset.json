@@ -3513,7 +3513,7 @@
           "targetRole": "BARMAN",
           "assignedRoles": ["BARMAN"],
           "mediaType": "IMAGE",
-          "mediaUrl": "/uploads/cocktails/default.jpg",
+          "mediaUrl": "/uploads/checklists/beer_tap_cleaning.jpg",
           "steps": [
             {
               "stepNumber": 1,
@@ -3588,7 +3588,7 @@
           "targetRole": "BARMAN",
           "assignedRoles": ["BARMAN", "HYGIENE"],
           "mediaType": "IMAGE",
-          "mediaUrl": "/uploads/cocktails/default.jpg",
+          "mediaUrl": "/uploads/checklists/ice_machine_cleaning.jpg",
           "steps": [
             {
               "stepNumber": 1,

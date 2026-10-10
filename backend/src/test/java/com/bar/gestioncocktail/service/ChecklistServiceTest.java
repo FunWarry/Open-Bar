@@ -236,6 +236,22 @@ class ChecklistServiceTest {
     }
 
     @Test
+    @DisplayName("Should return existing active run when template is already in progress (prevent duplicate)")
+    void shouldReturnExistingRunWhenTemplateAlreadyInProgress() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(true);
+        when(checklistTemplateRepository.findById(1L)).thenReturn(Optional.of(testTemplate));
+        when(checklistRunRepository.findFirstByTemplateIdAndStatusOrderByStartedAtDesc(1L, ChecklistRunStatus.IN_PROGRESS))
+                .thenReturn(Optional.of(testRun));
+
+        StartChecklistRunRequest req = new StartChecklistRunRequest(1L, "Second trigger attempt");
+        ChecklistRunDTO runDTO = checklistService.startRun(req, "alice");
+
+        assertThat(runDTO.id()).isEqualTo(testRun.getId());
+        verify(checklistRunRepository, never()).save(any(ChecklistRun.class));
+        verify(messagingTemplate, never()).convertAndSend(eq("/topic/checklists"), any(ChecklistEventDTO.class));
+    }
+
+    @Test
     @DisplayName("Should toggle run item completion with actor attribution and photo proof")
     void shouldToggleRunItem() {
         when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(true);
@@ -325,16 +341,62 @@ class ChecklistServiceTest {
     @DisplayName("Should compute correct stats across active and completed runs")
     void shouldComputeCorrectStats() {
         when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(true);
-        when(checklistRunRepository.countByStatus(ChecklistRunStatus.IN_PROGRESS)).thenReturn(2L);
+        when(checklistRunRepository.findByStatusOrderByStartedAtDesc(ChecklistRunStatus.IN_PROGRESS)).thenReturn(List.of(testRun));
         when(checklistTemplateRepository.findByIsActiveOrderByCategoryAscTitleAsc(true)).thenReturn(List.of(testTemplate));
         when(timeService.today()).thenReturn(LocalDate.of(2026, 10, 9));
         when(checklistRunRepository.findByStartedAtBetweenOrderByStartedAtDesc(any(), any())).thenReturn(List.of(testRun));
+        when(checklistRunRepository.findByCompletedAtBetweenOrderByCompletedAtDesc(any(), any())).thenReturn(List.of());
 
         ChecklistStatsDTO stats = checklistService.getStats();
 
-        assertThat(stats.activeRunsCount()).isEqualTo(2);
+        assertThat(stats.activeRunsCount()).isEqualTo(1);
         assertThat(stats.activeTemplatesCount()).isEqualTo(1);
         assertThat(stats.averageCompletionPercentageToday()).isZero();
+    }
+
+    @Test
+    @DisplayName("Should include all active runs across multiple shifts/days in completion rate average")
+    void shouldIncludeAllActiveRunsAcrossMultipleDaysInCompletionRate() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(true);
+        when(checklistTemplateRepository.findByIsActiveOrderByCategoryAscTitleAsc(true)).thenReturn(List.of(testTemplate));
+        when(timeService.today()).thenReturn(LocalDate.of(2026, 10, 10));
+
+        // Run A started yesterday: 1 out of 2 items completed (50%)
+        ChecklistRun runA = new ChecklistRun();
+        runA.setId(201L);
+        runA.setStatus(ChecklistRunStatus.IN_PROGRESS);
+        runA.setStartedAt(LocalDateTime.of(2026, 10, 9, 20, 30));
+        ChecklistRunItem itemA1 = new ChecklistRunItem();
+        itemA1.setIsCompleted(true);
+        ChecklistRunItem itemA2 = new ChecklistRunItem();
+        itemA2.setIsCompleted(false);
+        runA.setItems(new ArrayList<>(List.of(itemA1, itemA2)));
+
+        // Run B started today: 1 out of 4 items completed (25%)
+        ChecklistRun runB = new ChecklistRun();
+        runB.setId(202L);
+        runB.setStatus(ChecklistRunStatus.IN_PROGRESS);
+        runB.setStartedAt(LocalDateTime.of(2026, 10, 10, 14, 0));
+        ChecklistRunItem itemB1 = new ChecklistRunItem();
+        itemB1.setIsCompleted(true);
+        ChecklistRunItem itemB2 = new ChecklistRunItem();
+        itemB2.setIsCompleted(false);
+        ChecklistRunItem itemB3 = new ChecklistRunItem();
+        itemB3.setIsCompleted(false);
+        ChecklistRunItem itemB4 = new ChecklistRunItem();
+        itemB4.setIsCompleted(false);
+        runB.setItems(new ArrayList<>(List.of(itemB1, itemB2, itemB3, itemB4)));
+
+        when(checklistRunRepository.findByStatusOrderByStartedAtDesc(ChecklistRunStatus.IN_PROGRESS)).thenReturn(List.of(runA, runB));
+        when(checklistRunRepository.findByStartedAtBetweenOrderByStartedAtDesc(any(), any())).thenReturn(List.of(runB));
+        when(checklistRunRepository.findByCompletedAtBetweenOrderByCompletedAtDesc(any(), any())).thenReturn(List.of());
+
+        ChecklistStatsDTO stats = checklistService.getStats();
+
+        // 2 active runs, average is (50 + 25) / 2 = 38%
+        assertThat(stats.activeRunsCount()).isEqualTo(2);
+        assertThat(stats.completedTodayCount()).isZero();
+        assertThat(stats.averageCompletionPercentageToday()).isEqualTo(38);
     }
 
     @Test

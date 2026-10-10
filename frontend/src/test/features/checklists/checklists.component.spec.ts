@@ -265,8 +265,17 @@ describe('ChecklistsComponent', () => {
   });
 
   it('should start a run when clicking launch on a template', () => {
+    runsSignal.set([]);
     component.startRun(sampleTemplate);
     expect(mockChecklistService.startRun).toHaveBeenCalledWith({ templateId: 1 });
+    expect(component.currentTab()).toBe('active');
+  });
+
+  it('should focus existing run and not start a duplicate when template is already active', () => {
+    runsSignal.set([sampleRun]);
+    component.startRun(sampleTemplate);
+    expect(mockChecklistService.startRun).not.toHaveBeenCalled();
+    expect(component.selectedRun()?.id).toBe(sampleRun.id);
     expect(component.currentTab()).toBe('active');
   });
 
