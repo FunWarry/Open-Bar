@@ -463,7 +463,9 @@
     "KITCHEN": "Écran Cuisine",
     "COCKTAIL_LIBRARY": "Bibliothèque & Recettes",
     "PURCHASES": "Fournisseurs & Commandes",
-    "INVENTORY": "Inventaire physique"
+    "INVENTORY": "Inventaire physique",
+    "MENU": "Menu",
+    "NOTIFICATIONS": "Notifications"
   },
   "PLAN_SALLE_PAGE": {
     "TITLE": "Plan de Salle",
@@ -4603,4 +4605,3 @@
     "RETRY_NOW": "Vérifier maintenant"
   }
 }
-

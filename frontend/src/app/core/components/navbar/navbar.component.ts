@@ -10,7 +10,7 @@ import { NotificationService } from '../../services/notification.service';
 import { SoundService } from '../../services/sound.service';
 import { LanguageService } from '../../services/language.service';
 import {
-  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
+  IonHeader, IonToolbar, IonButtons, IonButton, IonIcon,
   IonPopover, IonList, IonItem, IonLabel, IonBadge,
   PopoverController,
 } from '@ionic/angular';
@@ -18,7 +18,7 @@ import { addIcons } from 'ionicons';
 import {
   home, settings, personCircle, person, logOut, chevronDown,
   notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline, globeOutline,
-  moonOutline, sunnyOutline
+  moonOutline, sunnyOutline, menuOutline
 } from 'ionicons/icons';
 import { AsyncPipe, UpperCasePipe } from '@angular/common';
 import * as AuthActions from '../../store/auth.actions';
@@ -79,7 +79,7 @@ const ROLE_COLORS: Record<string, string> = {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
+    IonHeader, IonToolbar, IonButtons, IonButton, IonIcon,
     IonPopover, IonList, IonItem, IonLabel, IonBadge,
     AsyncPipe, UpperCasePipe, TranslocoPipe,
   ],
@@ -128,7 +128,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     addIcons({
       home, settings, personCircle, person, logOut, chevronDown,
       notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline, globeOutline,
-      moonOutline, sunnyOutline
+      moonOutline, sunnyOutline, menuOutline
     });
 
     this.isAdmin$ = this.store.select(selectIsAdmin);

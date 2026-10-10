@@ -53,8 +53,11 @@ describe('NavbarComponent', () => {
       'navigateToLogin',
       'navigateToAdmin',
       'navigateToUserProfile',
+      'toggleMobileSidebar',
     ]);
     (mockNavigationService as any).isSidebarCollapsed = signal(false);
+    (mockNavigationService as any).isMobile = signal(false);
+    (mockNavigationService as any).isMobileSidebarOpen = signal(false);
 
     unreadCountSignal = signal(0);
     mockNotifService = jasmine.createSpyObj('NotificationService', [

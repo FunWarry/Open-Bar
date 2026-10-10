@@ -3,7 +3,16 @@
 } @else {
   @if (showNavbar$ | async) {
     <div class="app-layout">
-      <app-sidebar></app-sidebar>
+      @if (navigationService.isMobileSidebarOpen()) {
+        <button
+          type="button"
+          class="sidebar-backdrop"
+          (click)="navigationService.closeMobileSidebar()"
+          data-testid="sidebar-backdrop"
+          [attr.aria-label]="'COMMON.CLOSE' | transloco">
+        </button>
+      }
+      <app-sidebar [class.mobile-open]="navigationService.isMobileSidebarOpen()"></app-sidebar>
       <div class="app-main-wrapper">
         <app-navbar></app-navbar>
         <div class="app-content-body">

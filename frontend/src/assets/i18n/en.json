@@ -463,7 +463,9 @@
     "KITCHEN": "Kitchen Screen",
     "COCKTAIL_LIBRARY": "Cocktail Library",
     "PURCHASES": "Purchases & Suppliers",
-    "INVENTORY": "Physical Inventory"
+    "INVENTORY": "Physical Inventory",
+    "MENU": "Menu",
+    "NOTIFICATIONS": "Notifications"
   },
   "PLAN_SALLE_PAGE": {
     "TITLE": "Floor Plan",
@@ -4603,4 +4605,3 @@
     "RETRY_NOW": "Check now"
   }
 }
-

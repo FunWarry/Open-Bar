@@ -1,32 +1,56 @@
 @if (shouldShowNavbar$ | async) {
   <ion-header>
-    <ion-toolbar>
-      <!-- App logo / home link (Displayed only when sidebar is collapsed) -->
-      @if (navigationService.isSidebarCollapsed()) {
-        <ion-title
-          (click)="navigationService.navigateToHome()"
-          (keyup.enter)="navigationService.navigateToHome()"
-          class="topbar-logo"
-          data-testid="topbar-logo">
-          OpenBar
-        </ion-title>
-      }
+    <ion-toolbar class="topbar-toolbar">
+      <!-- Left side: Hamburger on mobile + Brand Logo -->
+      <ion-buttons slot="start" class="topbar-start-group">
+        <ion-button
+          class="topbar-burger-btn show-on-mobile"
+          (click)="navigationService.toggleMobileSidebar()"
+          (keydown.enter)="navigationService.toggleMobileSidebar()"
+          data-testid="topbar-burger-btn"
+          [attr.aria-label]="'NAV.MENU' | transloco"
+          [title]="'NAV.MENU' | transloco">
+          <ion-icon slot="icon-only" name="menu-outline"></ion-icon>
+        </ion-button>
 
-      <!-- Dynamic page title (center) -->
-      <div class="topbar-page-title" data-testid="topbar-page-title">
+        @if (navigationService.isSidebarCollapsed()) {
+          <button
+            type="button"
+            (click)="navigationService.navigateToHome()"
+            (keyup.enter)="navigationService.navigateToHome()"
+            class="topbar-logo-btn"
+            data-testid="topbar-logo">
+            OpenBar
+          </button>
+        } @else {
+          <button
+            type="button"
+            (click)="navigationService.navigateToHome()"
+            (keyup.enter)="navigationService.navigateToHome()"
+            class="topbar-logo-btn show-on-mobile"
+            data-testid="topbar-logo">
+            OpenBar
+          </button>
+        }
+      </ion-buttons>
+
+      <!-- Dynamic page title (center, hidden on smaller screens) -->
+      <div class="topbar-page-title hide-on-mobile" data-testid="topbar-page-title">
         {{ (pageTitleKey$ | async)! | transloco }}
       </div>
 
-      <ion-buttons slot="end">
+      <!-- Right side controls -->
+      <ion-buttons slot="end" class="topbar-end-group">
 
-        <!-- Local establishment time -->
-        <div class="topbar-time" data-testid="topbar-local-time">
+        <!-- Local establishment time (hidden on mobile and tablet) -->
+        <div class="topbar-time hide-on-mobile" data-testid="topbar-local-time">
           <ion-icon name="time-outline" class="time-icon"></ion-icon>
           {{ localTime() }}
         </div>
 
-        <!-- Language toggle button -->
+        <!-- Language toggle button (desktop/tablet) -->
         <ion-button
+          class="hide-on-mobile"
           (click)="languageService.toggleLanguage()"
           (keydown.enter)="languageService.toggleLanguage()"
           data-testid="topbar-language-toggle"
@@ -35,9 +59,10 @@
           {{ (languageService.currentLang$ | async) | uppercase }}
         </ion-button>
 
-        <!-- Theme toggle button -->
+        <!-- Theme toggle button (desktop/tablet) -->
         @if (themeService) {
           <ion-button
+            class="hide-on-mobile"
             (click)="themeService.toggleTheme()"
             (keydown.enter)="themeService.toggleTheme()"
             data-testid="topbar-theme-toggle"
@@ -46,8 +71,9 @@
           </ion-button>
         }
 
-        <!-- Sound toggle button -->
+        <!-- Sound toggle button (desktop/tablet) -->
         <ion-button
+          class="hide-on-mobile"
           (click)="toggleSound()"
           (keydown.enter)="toggleSound()"
           data-testid="topbar-sound-toggle"
@@ -57,12 +83,13 @@
           </ion-icon>
         </ion-button>
 
-        <!-- Notification bell -->
+        <!-- Notification bell (always visible on mobile & desktop) -->
         <ion-button
           (click)="toggleNotifPanel()"
           (keyup.enter)="toggleNotifPanel()"
           style="position:relative"
-          data-testid="topbar-notifications-btn">
+          data-testid="topbar-notifications-btn"
+          [title]="'NAV.NOTIFICATIONS' | transloco">
           <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
           @if (unreadCount() > 0) {
             <ion-badge
@@ -74,24 +101,66 @@
           }
         </ion-button>
 
-        <!-- User menu -->
+        <!-- User menu trigger -->
         @if (currentUser$ | async; as user) {
-          <ion-button id="topbar-user-trigger" data-testid="topbar-user-btn">
-            <!-- Role badge chip -->
+          <ion-button id="topbar-user-trigger" data-testid="topbar-user-btn" class="topbar-user-btn">
+            <!-- Role badge chip (hidden on mobile) -->
             <span
-              class="role-badge"
+              class="role-badge hide-on-mobile"
               [style.background-color]="getRoleBadgeColor(getPrimaryRole(user))"
               data-testid="topbar-role-badge">
               {{ 'NAV.TOPBAR.ROLE_LABELS.' + getPrimaryRole(user) | transloco }}
             </span>
             <ion-icon slot="start" name="person-circle"></ion-icon>
-            {{ user.username }}
+            <span class="topbar-username hide-on-mobile">{{ user.username }}</span>
             <ion-icon slot="end" name="chevron-down"></ion-icon>
           </ion-button>
 
           <ion-popover trigger="topbar-user-trigger" triggerAction="click" [dismissOnSelect]="true">
             <ng-template>
               <ion-list lines="none">
+                <!-- Mobile Condensed Quick Controls Section -->
+                <div class="popover-mobile-section show-on-mobile">
+                  <div class="popover-user-header">
+                    <span class="popover-user-name">{{ user.username }}</span>
+                    <span
+                      class="role-badge"
+                      [style.background-color]="getRoleBadgeColor(getPrimaryRole(user))">
+                      {{ 'NAV.TOPBAR.ROLE_LABELS.' + getPrimaryRole(user) | transloco }}
+                    </span>
+                  </div>
+                  <div class="popover-divider"></div>
+                  <ion-item
+                    button
+                    (click)="languageService.toggleLanguage()"
+                    (keydown.enter)="languageService.toggleLanguage()">
+                    <ion-icon slot="start" name="globe-outline"></ion-icon>
+                    <ion-label>
+                      {{ 'PROFILE.SECTION_LANGUAGE' | transloco }} ({{ (languageService.currentLang$ | async) | uppercase }})
+                    </ion-label>
+                  </ion-item>
+                  @if (themeService) {
+                    <ion-item
+                      button
+                      (click)="themeService.toggleTheme()"
+                      (keydown.enter)="themeService.toggleTheme()">
+                      <ion-icon slot="start" [name]="themeService.currentTheme === 'dark' ? 'sunny-outline' : 'moon-outline'"></ion-icon>
+                      <ion-label>{{ 'THEME.TOGGLE' | transloco }}</ion-label>
+                    </ion-item>
+                  }
+                  <ion-item
+                    button
+                    (click)="toggleSound()"
+                    (keydown.enter)="toggleSound()">
+                    <ion-icon slot="start" [name]="soundService.isSoundEnabled() ? 'volume-high-outline' : 'volume-mute-outline'"></ion-icon>
+                    <ion-label>
+                      {{ soundService.isSoundEnabled() ? ('NAV.SOUND_DISABLE' | transloco) : ('NAV.SOUND_ENABLE' | transloco) }}
+                    </ion-label>
+                  </ion-item>
+                  <div class="popover-divider"></div>
+                </div>
+
+                <!-- Profile and system navigation -->
                 <ion-item
                   button
                   (click)="navigationService.navigateToUserProfile()"

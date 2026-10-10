@@ -3,14 +3,52 @@
 ion-toolbar {
   --min-height: 56px;
   height: 56px;
-  --background: var(--surface-1, #1a1a2e);
-  --color: var(--text-primary, #eceefb);
-  --border-color: var(--border-medium, #2e3450);
-  border-bottom: 1px solid var(--border-medium, #2e3450);
+  --background: var(--background-surface-1);
+  --color: var(--text-primary);
+  --border-color: var(--border-medium);
+  border-bottom: 1px solid var(--border-medium);
   padding: 0 var(--space-2, 8px);
   display: flex;
   align-items: center;
   position: relative;
+}
+
+/* Start-slot buttons and brand logo */
+.topbar-start-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.topbar-burger-btn {
+  --padding-start: 6px;
+  --padding-end: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 24px;
+  --color: var(--text-primary);
+}
+
+.topbar-logo-btn {
+  background: transparent;
+  border: none;
+  padding: 0 8px;
+  margin: 0;
+  font-family: var(--font, 'Inter', sans-serif);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--primary);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  flex-shrink: 0;
+  min-width: fit-content;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.topbar-logo-btn:hover {
+  opacity: 0.85;
 }
 
 /* Logo / app name — clickable */
@@ -97,7 +135,7 @@ ion-button:hover {
   font-family: var(--font, 'Inter', sans-serif);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--text-on-accent, #ffffff);
+  color: var(--text-on-accent);
   background-color: var(--primary);
   border-radius: 999px;
   padding: 2px 8px;
@@ -109,21 +147,21 @@ ion-button:hover {
 
 /* User popover dropdown menu styling */
 ion-popover {
-  --background: var(--surface-1, #1a1a2e);
-  --color: var(--text-primary, #eceefb);
-  --border-color: var(--border-subtle, #23233a);
+  --background: var(--background-surface-1);
+  --color: var(--text-primary);
+  --border-color: var(--border-medium);
 }
 
 ion-popover ion-list {
-  background: var(--surface-1, #1a1a2e);
-  color: var(--text-primary, #eceefb);
+  background: var(--background-surface-1);
+  color: var(--text-primary);
   padding: 4px;
 }
 
 ion-popover ion-item {
-  --background: var(--surface-1, #1a1a2e);
-  --color: var(--text-primary, #eceefb);
-  --background-hover: var(--surface-2, #21263f);
+  --background: var(--background-surface-1);
+  --color: var(--text-primary);
+  --background-hover: var(--background-surface-2);
   --border-color: transparent;
   --border-radius: var(--radius-md, 8px);
   --padding-start: 12px;
@@ -135,13 +173,42 @@ ion-popover ion-item {
 }
 
 ion-popover ion-item ion-icon {
-  color: var(--text-secondary, #a4add0);
+  color: var(--text-secondary);
   margin-right: 8px;
   font-size: 18px;
 }
 
 ion-popover ion-item:hover ion-icon {
-  color: var(--primary, #6c7fe8);
+  color: var(--primary);
+}
+
+/* User popover mobile controls & user header */
+.popover-user-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 6px 14px;
+  gap: 8px;
+}
+
+.popover-user-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.popover-mobile-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.popover-divider {
+  height: 1px;
+  background-color: var(--border-medium);
+  margin: 4px 8px;
 }
 
 /* Non-modal sliding side notification drawer */
@@ -174,7 +241,11 @@ ion-popover ion-item:hover ion-icon {
 }
 
 @media (max-width: 767px) {
-  .role-badge {
+  .topbar-user-btn .role-badge {
     display: none !important;
+  }
+
+  .popover-user-header .role-badge {
+    display: inline-flex !important;
   }
 }
