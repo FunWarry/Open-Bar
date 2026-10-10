@@ -115,26 +115,31 @@
   }
 }
 
-// Tablet and Desktop Viewports (>= 768px): comfortable horizontal pills
-@media (min-width: 768px) {
+// Desktop Viewports (>= 1024px): comfortable horizontal pills with safe ellipsis
+@media (min-width: 1024px) {
   .bottom-nav {
     justify-content: center;
     gap: var(--space-3, 12px);
     padding: 4px var(--space-4, 16px);
 
     .nav-tab {
+      flex: 0 1 auto;
       flex-direction: row;
       gap: 8px;
-      padding: 6px 16px;
+      padding: 6px 18px;
       height: 40px;
+      min-width: 110px;
       max-width: 220px;
-      font-size: 0.82rem;
+      font-size: 0.84rem;
       border-radius: var(--radius-pill, 999px);
 
       span {
-        overflow: visible;
-        text-overflow: clip;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 140px;
       }
     }
   }
 }
+
