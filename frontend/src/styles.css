@@ -1308,7 +1308,8 @@ ion-modal.zone-manager-modal-container::part(content) {
   overflow: hidden;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 767px) {
+  ion-modal.app-modal-host,
   ion-modal.modal-sm,
   ion-modal.modal-md,
   ion-modal.modal-lg,
@@ -1319,20 +1320,42 @@ ion-modal.zone-manager-modal-container::part(content) {
   ion-modal.variante-modal-container,
   ion-modal.variante-modal,
   ion-modal.zone-manager-modal-container,
-  ion-modal.table-qr-batch-modal-dialog {
-    --width: 100vw;
-    --max-width: 100vw;
-    --height: auto;
-    --max-height: 90vh;
-    --border-radius: 16px 16px 0 0;
+  ion-modal.table-qr-batch-modal-dialog,
+  ion-modal.confirm-delete-dialog,
+  ion-modal.employee-shift-modal-container,
+  ion-modal.schedule-history-modal-container,
+  ion-modal.commande-detail-modal-container {
+    --width: 100vw !important;
+    --max-width: 100vw !important;
+    --height: auto !important;
+    --max-height: 92vh !important;
+    --border-radius: 16px 16px 0 0 !important;
+    align-items: flex-end !important;
+  }
+
+  ion-modal.app-modal-host::part(content),
+  ion-modal.modal-sm::part(content),
+  ion-modal.modal-md::part(content),
+  ion-modal.modal-lg::part(content),
+  ion-modal.modal-xl::part(content),
+  ion-modal.modal-full::part(content),
+  ion-modal.confirm-delete-dialog::part(content),
+  ion-modal.variant-recipe-modal-container::part(content),
+  ion-modal.zone-manager-modal-container::part(content) {
+    border-radius: 16px 16px 0 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92vh !important;
   }
 
   ion-modal.transfert-modal-container {
     --width: 100vw;
     --max-width: 100vw;
-    --height: min(560px, 85vh);
-    --max-height: 85vh;
+    --height: min(560px, 88vh);
+    --max-height: 88vh;
     --border-radius: 16px 16px 0 0;
+    align-items: flex-end;
   }
 }
 
@@ -1833,4 +1856,95 @@ ion-toast::part(button),
 ion-toast .toast-wrapper,
 ion-toast .toast-button {
   pointer-events: auto !important;
+}
+
+/* ==========================================================================
+   Canonical Multi-Device Responsive Utilities (OpenBar Design System)
+   - Mobile: < 768px
+   - Tablet POS: 768px – 1024px
+   - Desktop: > 1024px
+   ========================================================================== */
+
+/* ── Display Toggles ── */
+.hide-on-mobile {
+  display: inherit;
+}
+@media (max-width: 767px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+.show-on-mobile {
+  display: none !important;
+}
+@media (max-width: 767px) {
+  .show-on-mobile {
+    display: inherit !important;
+  }
+}
+
+.hide-on-tablet {
+  display: inherit;
+}
+@media (min-width: 768px) and (max-width: 1024px) {
+  .hide-on-tablet {
+    display: none !important;
+  }
+}
+
+.hide-on-desktop {
+  display: inherit;
+}
+@media (min-width: 1025px) {
+  .hide-on-desktop {
+    display: none !important;
+  }
+}
+
+/* ── Horizontal Scroll Safeguards for Data Tables & Grids ── */
+.table-scroll-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* ── Touch Hit Target Enforcement (>= 44x44px ergonomics) ── */
+.touch-target {
+  min-width: var(--touch-target-min, 44px);
+  min-height: var(--touch-target-min, 44px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Adaptive Responsive Stacks & Grids ── */
+.responsive-stack {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3, 12px);
+}
+@media (max-width: 767px) {
+  .responsive-stack {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+}
+
+.responsive-grid-adaptive {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4, 16px);
+  width: 100%;
+}
+@media (max-width: 767px) {
+  .responsive-grid-adaptive {
+    grid-template-columns: 1fr;
+    gap: var(--space-3, 12px);
+  }
 }
