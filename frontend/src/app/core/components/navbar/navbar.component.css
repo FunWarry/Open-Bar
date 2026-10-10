@@ -115,15 +115,23 @@ ion-button:hover {
   color: var(--text-muted);
 }
 
-/* Notification badge */
+/* Notification badge & pulse animations */
 .notif-badge {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  font-size: 9px;
-  padding: 2px 4px;
+  top: 2px;
+  right: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 5px;
   min-width: 16px;
+  line-height: 1;
 }
+
+.notif-badge.call-pulse {
+  animation: badge-pulse 1.6s infinite ease-in-out;
+}
+
 
 /* Role badge chip shown next to the username */
 .role-badge {
@@ -225,23 +233,6 @@ ion-popover ion-item:hover ion-icon {
 
 .notif-drawer-wrapper.open {
   transform: translateX(0);
-}
-
-/* Notification bell badge & pulse animations */
-.notif-badge {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  font-size: 10px;
-  font-weight: 700;
-  border-radius: 999px;
-  padding: 2px 5px;
-  min-width: 16px;
-  line-height: 1;
-}
-
-.notif-badge.call-pulse {
-  animation: badge-pulse 1.6s infinite ease-in-out;
 }
 
 .bell-pulsing {
