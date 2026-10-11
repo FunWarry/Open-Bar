@@ -23,6 +23,7 @@ import {
   nutritionOutline, eggOutline, leafOutline, sparklesOutline, flameOutline,
   waterOutline, beerOutline, fastFoodOutline, searchOutline,
   addOutline, removeOutline, locateOutline, cartOutline, arrowForwardOutline,
+  chevronBackOutline, chevronForwardOutline,
 } from 'ionicons/icons';
 import { AppCurrencyPipe } from '../../core/pipes/app-currency.pipe';
 import { tableRestaurantOutline } from '../../core/icons/custom-icons';
@@ -162,6 +163,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   cart: CartModel = { tableId: null, items: [] };
   isSubmitting = false;
   mobileOrderView: 'menu' | 'cart' = 'menu';
+  isCartCollapsed = false;
 
   products: ProductItem[] = [
     {
@@ -236,7 +238,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       nutritionOutline, eggOutline, leafOutline, sparklesOutline, flameOutline,
       waterOutline, beerOutline, fastFoodOutline, searchOutline,
       addOutline, removeOutline, locateOutline, tableRestaurantOutline,
-      cartOutline, arrowForwardOutline,
+      cartOutline, arrowForwardOutline, chevronBackOutline, chevronForwardOutline,
     });
   }
 
@@ -2090,5 +2092,10 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
   trackByGroupKey(_: number, group: GroupedTables): string {
     return group.key;
+  }
+
+  toggleCartCollapse(): void {
+    this.isCartCollapsed = !this.isCartCollapsed;
+    this.cdr.detectChanges();
   }
 }

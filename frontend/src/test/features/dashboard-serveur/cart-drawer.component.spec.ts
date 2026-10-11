@@ -99,14 +99,15 @@ describe('CartDrawerComponent', () => {
     expect(component.tableSelect.emit).toHaveBeenCalledWith(5);
   });
 
-  it('should map tables to tableOptions', () => {
-    component.tables = [
-      { id: 1, numero: 1, nom: 'Table 1', capacite: 4, statut: 'LIBRE', zone: 'Terrasse', commandesActives: [] } as any,
-    ];
-    const options = component.tableOptions;
-    expect(options).toHaveSize(1);
-    expect(options[0].value).toBe(1);
-    expect(options[0].label).toBe('Table 1');
-    expect(options[0].subLabel).toBe('Terrasse');
+  it('should emit collapseCart when collapse button is clicked', () => {
+    spyOn(component.collapseCart, 'emit');
+    component.canCollapse = true;
+    fixture.detectChanges();
+
+    const collapseBtn = fixture.nativeElement.querySelector('[data-testid="btn-collapse-cart"]') as HTMLButtonElement;
+    expect(collapseBtn).toBeTruthy();
+    collapseBtn.click();
+
+    expect(component.collapseCart.emit).toHaveBeenCalled();
   });
 });

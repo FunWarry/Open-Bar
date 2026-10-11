@@ -16,7 +16,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 4px 8px;
   min-width: 0;
 }
 
@@ -24,8 +25,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  min-width: 0;
-  flex: 1;
+  min-width: 120px;
+  flex: 1 1 auto;
 }
 
 .tab-icon-box {
@@ -225,11 +226,19 @@
   gap: 6px;
   height: 38px;
   border-radius: 8px;
-  font-size: 0.825rem;
+  font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
   border: 1px solid transparent;
   transition: all 0.16s ease;
+  min-width: 0;
+  padding: 0 6px;
+
+  span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   ion-icon {
     font-size: 1rem;
@@ -287,51 +296,95 @@
 @media (max-width: 767px) {
   .card-header {
     padding: 8px 10px 6px;
-    gap: 6px;
+    gap: 4px;
+  }
+
+  .header-title-row {
+    gap: 4px;
   }
 
   .tab-icon-box {
-    width: 28px;
-    height: 28px;
-    font-size: 15px;
-    border-radius: 8px;
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
+    border-radius: 6px;
   }
 
   .tab-name {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
+  }
+
+  .caution-chip {
+    padding: 2px 6px;
+    font-size: 0.68rem;
+  }
+
+  .header-meta-row {
+    font-size: 0.72rem;
+    gap: 4px;
+    min-height: auto;
+  }
+
+  .tab-meta-strip {
+    font-size: 0.72rem;
+    gap: 4px;
+
+    .elapsed-time,
+    .orders-count {
+      gap: 3px;
+      font-size: 0.72rem;
+
+      ion-icon {
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  .ref-chip {
+    padding: 2px 5px;
+    font-size: 0.68rem;
   }
 
   .card-body {
-    padding: 8px 10px;
-    gap: 8px;
+    padding: 6px 10px;
+    gap: 6px;
   }
 
   .balance-box {
-    padding: 6px 10px;
+    padding: 5px 8px;
 
     .balance-sublabel {
-      font-size: 0.65rem;
+      font-size: 0.62rem;
     }
 
     .balance-value {
-      font-size: 1.05rem;
+      font-size: 1rem;
+    }
+  }
+
+  .notes-box {
+    padding: 4px 8px;
+    .tab-notes-text {
+      font-size: 0.72rem;
     }
   }
 
   .card-actions-layout {
-    padding: 8px 10px;
-    gap: 6px;
+    padding: 6px 6px 8px;
+    gap: 4px;
   }
 
   .primary-actions-row,
   .secondary-actions-row {
-    gap: 6px;
+    gap: 4px;
   }
 
   .action-btn {
-    height: 30px;
-    font-size: 0.72rem;
-    padding: 4px 6px;
+    height: 28px;
+    font-size: 0.63rem;
+    letter-spacing: -0.3px;
+    padding: 2px 1px;
+    gap: 2px;
 
     span {
       overflow: hidden;
@@ -340,7 +393,8 @@
     }
 
     ion-icon {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
+      flex-shrink: 0;
     }
   }
 }

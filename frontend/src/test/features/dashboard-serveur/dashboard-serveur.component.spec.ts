@@ -602,6 +602,14 @@ describe('DashboardServeurComponent', () => {
       expect(component.activeTab).toBe('commande');
     });
 
+    it('toggleCartCollapse toggles isCartCollapsed flag', () => {
+      expect(component.isCartCollapsed).toBeFalse();
+      component.toggleCartCollapse();
+      expect(component.isCartCollapsed).toBeTrue();
+      component.toggleCartCollapse();
+      expect(component.isCartCollapsed).toBeFalse();
+    });
+
     it('should submit cart without item notes when item has no comments or exclusions', fakeAsync(() => {
       const mockCreated: Commande = {
         id: 12,

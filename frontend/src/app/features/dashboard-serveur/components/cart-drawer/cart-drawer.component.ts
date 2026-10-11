@@ -12,7 +12,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 
 import { addIcons } from 'ionicons';
-import { cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutline, createOutline, receiptOutline } from 'ionicons/icons';
+import { cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutline, createOutline, receiptOutline, chevronForwardOutline } from 'ionicons/icons';
 
 /**
  * Drawer modal presenting current order cart lines during server order taking.
@@ -38,6 +38,7 @@ export class CartDrawerComponent {
   @Input() cart: CartModel = { tableId: null, items: [] };
   @Input() tables: TableView[] = [];
   @Input() isSubmitting = false;
+  @Input() canCollapse = false;
 
   @Output() quantityChange = new EventEmitter<{ item: CartItemModel; newQty: number }>();
   @Output() removeItem = new EventEmitter<CartItemModel>();
@@ -45,9 +46,10 @@ export class CartDrawerComponent {
   @Output() submitOrder = new EventEmitter<CartModel>();
   @Output() clearCart = new EventEmitter<void>();
   @Output() editCustomization = new EventEmitter<CartItemModel>();
+  @Output() collapseCart = new EventEmitter<void>();
 
   constructor() {
-    addIcons({ cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutline, createOutline, receiptOutline });
+    addIcons({ cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutline, createOutline, receiptOutline, chevronForwardOutline });
   }
 
   onEditItem(item: CartItemModel) {

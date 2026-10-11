@@ -435,6 +435,7 @@
 
     <div
       class="order-taking-layout"
+      [class.cart-collapsed]="isCartCollapsed"
       [class.mobile-view-menu]="mobileOrderView === 'menu'"
       [class.mobile-view-cart]="mobileOrderView === 'cart'">
       <!-- Zone Produits & Filtres (Gauche) -->
@@ -447,11 +448,13 @@
         </app-cocktail-list>
       </div>
       <!-- Zone Tiroir Panier (Droite) -->
-      <div class="cart-section">
+      <div class="cart-section" [class.collapsed]="isCartCollapsed">
         <app-cart-drawer
           [cart]="cart"
           [tables]="tables"
           [isSubmitting]="isSubmitting"
+          [canCollapse]="true"
+          (collapseCart)="toggleCartCollapse()"
           (quantityChange)="onCartQuantityChanged($event)"
           (removeItem)="onCartItemRemoved($event)"
           (tableSelect)="onTableSelectForOrder($event)"
@@ -460,6 +463,27 @@
           (editCustomization)="onEditCartItemCustomization($event)">
         </app-cart-drawer>
       </div>
+
+      <!-- Bouton flottant pour ré-ouvrir le panier sur tablette et desktop -->
+      @if (isCartCollapsed) {
+        <button
+          type="button"
+          class="desktop-cart-expand-btn"
+          (click)="toggleCartCollapse()"
+          (keyup.enter)="toggleCartCollapse()"
+          data-testid="btn-expand-cart"
+          [title]="'SERVEUR.EXPAND_CART' | transloco">
+          <div class="expand-btn-inner">
+            <ion-icon name="cart-outline" class="cart-icon"></ion-icon>
+            <span class="expand-label">{{ 'SERVEUR.CURRENT_ORDER' | transloco }}</span>
+            @if (cartTotalCount > 0) {
+              <span class="cart-count-badge" data-testid="collapsed-cart-badge">{{ cartTotalCount }}</span>
+              <span class="cart-total-amount">{{ cartTotalPrice | appCurrency }}</span>
+            }
+            <ion-icon name="chevron-back-outline" class="chevron-icon"></ion-icon>
+          </div>
+        </button>
+      }
     </div>
 
     <!-- Barre flottante Panier sur mobile lorsque l'utilisateur est sur la vue Menu -->

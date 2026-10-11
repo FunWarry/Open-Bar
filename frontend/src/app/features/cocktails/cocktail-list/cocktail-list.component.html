@@ -69,6 +69,21 @@
             <span class="toggle-indicator-dot" [class.on]="filtre === 'disponibles'"></span>
           </button>
 
+          <!-- Compact Mode Toggle Button (Sleek Pill) -->
+          <button
+            type="button"
+            class="compact-mode-toggle-pill"
+            [class.active]="compactMode"
+            (click)="toggleCompactMode()"
+            (keydown.enter)="toggleCompactMode()"
+            data-testid="compact-mode-toggle"
+            [attr.aria-pressed]="compactMode"
+            [title]="'COCKTAILS.COMPACT_MODE' | transloco">
+            <ion-icon name="contract-outline"></ion-icon>
+            <span>{{ 'COCKTAILS.COMPACT_MODE' | transloco }}</span>
+            <span class="toggle-indicator-dot" [class.on]="compactMode"></span>
+          </button>
+
           <!-- View Mode Toggle Pill Group (Exact match to reference) -->
           <div class="view-mode-pill-group" data-testid="cocktail-view-mode-toggle">
             <button
@@ -93,16 +108,18 @@
               <span>{{ 'COCKTAILS.VIEW_LIST' | transloco }}</span>
             </button>
 
-            <button
-              type="button"
-              class="view-pill-btn"
-              [class.active]="viewMode === 'wheel'"
-              (click)="viewMode = 'wheel'"
-              (keydown.enter)="viewMode = 'wheel'"
-              data-testid="view-wheel-btn">
-              <ion-icon name="sparkles-outline"></ion-icon>
-              <span>{{ 'COCKTAILS.VIEW_WHEEL' | transloco }}</span>
-            </button>
+            @if (!selectionMode) {
+              <button
+                type="button"
+                class="view-pill-btn"
+                [class.active]="viewMode === 'wheel'"
+                (click)="viewMode = 'wheel'"
+                (keydown.enter)="viewMode = 'wheel'"
+                data-testid="view-wheel-btn">
+                <ion-icon name="sparkles-outline"></ion-icon>
+                <span>{{ 'COCKTAILS.VIEW_WHEEL' | transloco }}</span>
+              </button>
+            }
           </div>
 
           @if (!selectionMode && (isAdmin$ | async)) {
@@ -236,18 +253,41 @@
         </div>
       </div>
 
-      <!-- Interactive Cocktail Matcher Filter Bar -->
-      <app-cocktail-matcher-bar
-        [facets]="catalogFacets"
-        [activeFlavors]="selectedFlavors"
-        [showMocktail]="false"
-        [mocktail]="matcherMocktail"
-        [vegan]="matcherVegan"
-        [glutenFree]="matcherGlutenFree"
-        [lowAbv]="matcherLowAbv"
-        (filtersChange)="onMatcherFiltersChange($event)"
-        (resetFilters)="onResetMatcherFilters()">
-      </app-cocktail-matcher-bar>
+      <!-- Interactive Cocktail Matcher Trigger Button (Collapsible Accordion) -->
+      <div class="matcher-toggle-wrapper">
+        <button
+          type="button"
+          class="matcher-accordion-btn"
+          [class.expanded]="isMatcherExpanded"
+          (click)="toggleMatcher()"
+          (keydown.enter)="toggleMatcher()"
+          data-testid="toggle-matcher-btn">
+          <div class="matcher-btn-title-group">
+            <ion-icon name="sparkles-outline" class="matcher-sparkle-icon"></ion-icon>
+            <span class="matcher-btn-title">{{ 'COCKTAILS.MATCHER_TOGGLE_TITLE' | transloco }}</span>
+            @if (hasActiveMatcherFilters) {
+              <span class="matcher-active-badge">{{ activeMatcherFiltersCount }}</span>
+            }
+          </div>
+          <ion-icon [name]="isMatcherExpanded ? 'chevron-up-outline' : 'chevron-down-outline'" class="chevron-icon"></ion-icon>
+        </button>
+
+        @if (isMatcherExpanded) {
+          <div class="matcher-bar-collapsible-content">
+            <app-cocktail-matcher-bar
+              [facets]="catalogFacets"
+              [activeFlavors]="selectedFlavors"
+              [showMocktail]="false"
+              [mocktail]="matcherMocktail"
+              [vegan]="matcherVegan"
+              [glutenFree]="matcherGlutenFree"
+              [lowAbv]="matcherLowAbv"
+              (filtersChange)="onMatcherFiltersChange($event)"
+              (resetFilters)="onResetMatcherFilters()">
+            </app-cocktail-matcher-bar>
+          </div>
+        }
+      </div>
     </div>
 
     @if (isLoading) {
@@ -260,10 +300,11 @@
         <ion-grid class="cocktail-grid">
           <ion-row>
             @for (cocktail of filteredCocktails; track cocktail.id) {
-              <ion-col size="12" size-sm="6" size-md="4" size-lg="3" size-xl="3">
+              <ion-col [size]="compactMode ? '6' : '12'" [sizeSm]="compactMode ? '4' : '6'" [sizeMd]="compactMode ? '3' : '4'" [sizeLg]="compactMode ? '2' : '3'" [sizeXl]="compactMode ? '2' : '3'">
                 <app-card
                   class="figma-cocktail-card product-card"
-                  [class.no-picture]="!showPictures"
+                  [class.compact-card]="compactMode"
+                  [class.no-picture]="!showPictures || compactMode"
                   [class.unavailable]="!cocktail.disponible"
                   [class.selection-mode]="selectionMode"
                   [class.has-variants]="cocktail.variantes && cocktail.variantes.length > 0"
@@ -280,7 +321,7 @@
                   [attr.tabindex]="cocktail.disponible ? 0 : null"
                   [attr.role]="'button'">
                   <div card-content class="figma-card-inner">
-                    @if (showPictures) {
+                    @if (showPictures && !compactMode) {
                       <div class="figma-card-image-area">
                         <img
                           [src]="getCocktailImage(cocktail)"
@@ -325,8 +366,10 @@
 
                     <div class="figma-card-main-info">
                       <h3 class="figma-cocktail-name">{{ cocktail.nom }}</h3>
-                      <p class="figma-ingredients-sub">{{ getIngredientsText(cocktail) }}</p>
-                      @if (getCocktailAllergens(cocktail).length > 0) {
+                      @if (!compactMode) {
+                        <p class="figma-ingredients-sub">{{ getIngredientsText(cocktail) }}</p>
+                      }
+                      @if (!compactMode && getCocktailAllergens(cocktail).length > 0) {
                         <div class="card-allergens-row" [attr.data-testid]="'cocktail-allergens-' + cocktail.id">
                           @for (allergenKey of getCocktailAllergens(cocktail); track allergenKey) {
                             <span class="figma-allergen-badge">
@@ -337,7 +380,7 @@
                       }
 
                       <!-- Flavor Profile Badges -->
-                      @if (cocktail.flavorProfiles && cocktail.flavorProfiles.length > 0) {
+                      @if (!compactMode && cocktail.flavorProfiles && cocktail.flavorProfiles.length > 0) {
                         <div class="card-flavors-row" [attr.data-testid]="'cocktail-flavors-' + cocktail.id">
                           @for (flavor of cocktail.flavorProfiles; track flavor) {
                             <span class="figma-flavor-badge" [attr.data-flavor]="flavor">
@@ -348,7 +391,7 @@
                       }
 
                       <!-- Dietary Tags -->
-                      @if (cocktail.isMocktail || cocktail.isVegan || cocktail.isGlutenFree || (cocktail.alcoholLevel !== null && cocktail.alcoholLevel !== undefined && cocktail.alcoholLevel > 0)) {
+                      @if (!compactMode && (cocktail.isMocktail || cocktail.isVegan || cocktail.isGlutenFree || (cocktail.alcoholLevel !== null && cocktail.alcoholLevel !== undefined && cocktail.alcoholLevel > 0))) {
                         <div class="card-dietary-row" [attr.data-testid]="'cocktail-dietary-' + cocktail.id">
                           @if (cocktail.isMocktail) {
                             <span class="dietary-badge mocktail">{{ 'CLIENT_QR.MATCHER_MOCKTAIL' | transloco }}</span>
@@ -368,21 +411,7 @@
 
                     <div class="figma-card-bottom-row">
                       <div class="bottom-actions">
-                        @if (selectionMode) {
-                          <button
-                            type="button"
-                            class="selection-add-btn"
-                            [disabled]="!cocktail.disponible"
-                            [attr.data-testid]="'select-cocktail-btn-' + cocktail.id"
-                            (click)="onSelectCocktail(cocktail); $event.stopPropagation()">
-                            <ion-icon [name]="(cocktail.variantes && cocktail.variantes.length > 0) ? 'options-outline' : 'add-circle-outline'"></ion-icon>
-                            <span>
-                              {{ (cocktail.variantes && cocktail.variantes.length > 0)
-                                ? ('SERVEUR.SELECT_VARIANTE' | transloco)
-                                : ('COMMON.ADD' | transloco) }}
-                            </span>
-                          </button>
-                        } @else {
+                        @if (!selectionMode) {
                           <!-- Modern Interactive Availability Slider Switch -->
                           <button
                             type="button"

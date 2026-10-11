@@ -805,6 +805,16 @@ ion-content.dashboard-serveur-content {
     max-height: 100%;
   }
 
+  &.cart-collapsed {
+    @media (min-width: 768px) {
+      grid-template-columns: 1fr !important;
+
+      .cart-section {
+        display: none !important;
+      }
+    }
+  }
+
   @media (max-width: 767px) {
     display: flex;
     flex-direction: column;
@@ -1046,6 +1056,92 @@ ion-content.dashboard-serveur-content {
       min-height: 0;
       width: 100%;
     }
+  }
+}
+
+.desktop-cart-expand-btn {
+  display: none;
+
+  @media (min-width: 768px) {
+    display: inline-flex;
+    position: fixed;
+    top: 76px;
+    right: 20px;
+    z-index: 100;
+    align-items: center;
+    padding: 8px 16px;
+    border-radius: var(--radius-pill, 999px);
+    background: var(--background-surface-1);
+    border: 1.5px solid var(--primary);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 12px var(--primary-tint, rgba(108, 127, 232, 0.35));
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+    &:hover {
+      background: var(--primary);
+      color: var(--text-on-accent);
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 20px rgba(108, 127, 232, 0.5);
+
+      .cart-icon, .chevron-icon {
+        color: var(--text-on-accent);
+      }
+    }
+
+    .expand-btn-inner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .cart-icon {
+      font-size: 1.2rem;
+      color: var(--primary);
+      transition: color 0.2s ease;
+    }
+
+    .cart-count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: var(--semantic-danger);
+      color: var(--text-on-accent);
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+
+    .cart-total-amount {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--semantic-success);
+    }
+
+    .chevron-icon {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      transition: color 0.2s ease;
+    }
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 

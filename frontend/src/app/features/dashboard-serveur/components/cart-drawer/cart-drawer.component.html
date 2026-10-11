@@ -4,11 +4,24 @@
       <ion-icon name="cart-outline"></ion-icon>
       {{ 'SERVEUR.CURRENT_ORDER' | transloco }}
     </h3>
-    @if (cart.items.length > 0) {
-      <button class="clear-btn" (click)="clearCart.emit()" (keyup.enter)="clearCart.emit()" data-testid="btn-clear-cart">
-        {{ 'SERVEUR.CLEAR' | transloco }}
-      </button>
-    }
+    <div class="cart-header-actions">
+      @if (cart.items.length > 0) {
+        <button class="clear-btn" (click)="clearCart.emit()" (keyup.enter)="clearCart.emit()" data-testid="btn-clear-cart">
+          {{ 'SERVEUR.CLEAR' | transloco }}
+        </button>
+      }
+      @if (canCollapse) {
+        <button
+          type="button"
+          class="collapse-cart-btn"
+          (click)="collapseCart.emit()"
+          (keyup.enter)="collapseCart.emit()"
+          [title]="'SERVEUR.COLLAPSE_CART' | transloco"
+          data-testid="btn-collapse-cart">
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+        </button>
+      }
+    </div>
   </div>
 
   <!-- Table / Tab Selector -->

@@ -37,11 +37,13 @@
           <ion-icon name="time-outline"></ion-icon>
           <span>{{ 'TABS.LABEL_SINCE' | transloco: { duration: elapsedFormatted } }}</span>
         </span>
-        <span class="meta-separator">•</span>
-        <span class="orders-count">
-          <ion-icon name="restaurant-outline"></ion-icon>
-          <span>{{ (tab.activeOrdersCount > 1 ? 'TABS.CARD_ORDER_COUNT_PLURAL' : 'TABS.CARD_ORDER_COUNT') | transloco: { count: tab.activeOrdersCount || 0 } }}</span>
-        </span>
+        @if (tab.activeOrdersCount && tab.activeOrdersCount > 0) {
+          <span class="meta-separator">•</span>
+          <span class="orders-count">
+            <ion-icon name="restaurant-outline"></ion-icon>
+            <span>{{ (tab.activeOrdersCount > 1 ? 'TABS.CARD_ORDER_COUNT_PLURAL' : 'TABS.CARD_ORDER_COUNT') | transloco: { count: tab.activeOrdersCount } }}</span>
+          </span>
+        }
       </div>
 
       @if (tab.clientReference) {
@@ -59,7 +61,6 @@
     <div class="balance-box">
       <div class="balance-label-group">
         <span class="balance-sublabel">{{ 'TABS.LABEL_TOTAL' | transloco }}</span>
-        <span class="balance-indicator-dot"></span>
       </div>
       <span class="balance-value" [attr.data-testid]="'tab-total-' + tab.id">
         {{ (tab.total || 0) | appCurrency }}
