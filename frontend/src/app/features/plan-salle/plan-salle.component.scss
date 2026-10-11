@@ -629,3 +629,52 @@
     }
   }
 }
+
+@media (max-width: 767px) {
+  .plan-salle-header {
+    ion-toolbar {
+      padding: 6px 12px;
+    }
+
+    .header-content {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    .header-actions {
+      overflow-x: auto;
+      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+  }
+
+  .plan-control-bar {
+    padding: 8px 12px;
+    gap: 8px;
+
+    .filters-column {
+      width: 100%;
+
+      .filter-chips-group {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+      }
+    }
+
+    .tools-column {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+}

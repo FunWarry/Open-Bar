@@ -18,7 +18,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="nouvelle-facture-content ion-padding">
+<ion-content class="nouvelle-facture-content ion-padding" [scrollY]="true">
   <!-- Loading State -->
   @if (isLoadingTables) {
     <div class="state-container" data-testid="loading-tables-state">

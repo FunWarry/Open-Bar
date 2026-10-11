@@ -216,5 +216,21 @@
       align-items: center;
       padding: 0 8px;
     }
+
+    .cart-item-row {
+      flex-wrap: wrap;
+      gap: 8px;
+
+      .item-info-btn,
+      .item-info {
+        flex: 1 1 100%;
+        padding-right: 0;
+      }
+
+      .item-controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
   }
 }

@@ -871,12 +871,26 @@ ion-modal.bar-tab-transfer-modal-container {
 ion-modal.modal-md,
 ion-modal.openbar-modal-md,
 ion-modal.table-detail-modal-container,
+ion-modal.table-detail-modal-dialog,
+ion-modal.table-form-modal-dialog,
+ion-modal.quick-seat-modal-container,
+ion-modal.fusion-modal-class,
+ion-modal.table-qr-modal-dialog,
+ion-modal.cancel-order-modal-dialog,
+ion-modal.cash-modal-dialog,
+ion-modal.cloture-caisse-modal-dialog,
+ion-modal.ticket-modal,
+ion-modal.ruptures-modal-container,
+ion-modal.rupture-impact-modal-container,
+ion-modal.transfert-modal-container,
+ion-modal.bar-tab-modal-container,
+ion-modal.bar-tab-transfer-modal-container,
 ion-modal.variante-modal-container,
 ion-modal.variante-modal,
 ion-modal.zone-manager-modal-class {
-  --width: min(640px, 92vw);
-  --height: min(600px, 80vh);
-  --max-height: 80vh;
+  --width: min(640px, 94vw);
+  --height: min(640px, 84vh);
+  --max-height: 86vh;
 }
 
 ion-modal.modal-lg,
@@ -919,7 +933,10 @@ ion-modal.ingredient-form-modal-container {
 }
 
 ion-modal.openbar-modal-split,
-ion-modal.encaissement-modal-container {
+ion-modal.encaissement-modal-container,
+ion-modal.facture-split-modal-container,
+ion-modal.nouvelle-facture-modal-container,
+ion-modal.edit-commande-modal-container {
   --width: min(1180px, 96vw);
   --height: min(880px, 92vh);
   --max-height: 92vh;
@@ -1309,30 +1326,8 @@ ion-modal.zone-manager-modal-container::part(content) {
 }
 
 @media (max-width: 767px) {
-  ion-modal.app-modal-host,
-  ion-modal.modal-sm,
-  ion-modal.variante-modal-container,
-  ion-modal.variante-modal,
-  ion-modal.table-qr-batch-modal-dialog,
-  ion-modal.confirm-delete-dialog {
-    --width: 100vw !important;
-    --max-width: 100vw !important;
-    --height: auto !important;
-    --max-height: 92vh !important;
-    --border-radius: 16px 16px 0 0 !important;
-    align-items: flex-end !important;
-  }
-
-  ion-modal.modal-md,
-  ion-modal.modal-lg,
-  ion-modal.modal-xl,
-  ion-modal.modal-full,
-  ion-modal.variant-recipe-modal-container,
-  ion-modal.table-detail-modal-container,
-  ion-modal.zone-manager-modal-container,
-  ion-modal.employee-shift-modal-container,
-  ion-modal.schedule-history-modal-container,
-  ion-modal.commande-detail-modal-container {
+  /* ── Universal Mobile Modal Bottom Sheet (OpenBar DS) ─────────────────── */
+  ion-modal {
     --width: 100vw !important;
     --max-width: 100vw !important;
     --height: 92vh !important;
@@ -1341,29 +1336,7 @@ ion-modal.zone-manager-modal-container::part(content) {
     align-items: flex-end !important;
   }
 
-  ion-modal.app-modal-host::part(content),
-  ion-modal.modal-sm::part(content),
-  ion-modal.confirm-delete-dialog::part(content),
-  ion-modal.variante-modal-container::part(content),
-  ion-modal.variante-modal::part(content),
-  ion-modal.table-qr-batch-modal-dialog::part(content) {
-    border-radius: 16px 16px 0 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    max-height: 92vh !important;
-  }
-
-  ion-modal.modal-md::part(content),
-  ion-modal.modal-lg::part(content),
-  ion-modal.modal-xl::part(content),
-  ion-modal.modal-full::part(content),
-  ion-modal.variant-recipe-modal-container::part(content),
-  ion-modal.zone-manager-modal-container::part(content),
-  ion-modal.table-detail-modal-container::part(content),
-  ion-modal.commande-detail-modal-container::part(content),
-  ion-modal.employee-shift-modal-container::part(content),
-  ion-modal.schedule-history-modal-container::part(content) {
+  ion-modal::part(content) {
     border-radius: 16px 16px 0 0 !important;
     margin: 0 !important;
     width: 100% !important;
@@ -1375,13 +1348,66 @@ ion-modal.zone-manager-modal-container::part(content) {
     overflow: hidden !important;
   }
 
-  ion-modal.transfert-modal-container {
-    --width: 100vw;
-    --max-width: 100vw;
-    --height: min(560px, 88vh);
-    --max-height: 88vh;
-    --border-radius: 16px 16px 0 0;
-    align-items: flex-end;
+  /* Universal scrollable body inside any modal */
+  ion-modal ion-content {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  ion-modal ion-content::part(scroll) {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain !important;
+  }
+
+  ion-modal .modal-scroll-body,
+  ion-modal .app-modal-body,
+  ion-modal .modal-body,
+  ion-modal .modal-content,
+  ion-modal .tab-modal-wrapper,
+  ion-modal .table-modal-wrapper,
+  ion-modal .po-modal-wrapper,
+  ion-modal .supplier-modal-wrapper,
+  ion-modal .recipe-panel-wrapper,
+  ion-modal .customizer-panel-body {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Compact alerts & confirmation dialogs stay centered with auto height */
+  ion-modal.confirm-delete-dialog,
+  ion-modal.confirm-delete-modal-dialog,
+  ion-modal.auto-height-modal,
+  ion-modal.alert-modal,
+  ion-modal.modal-sm,
+  ion-modal.table-qr-batch-modal-dialog {
+    --width: min(92vw, 440px) !important;
+    --max-width: 92vw !important;
+    --height: auto !important;
+    --max-height: 85vh !important;
+    --border-radius: 16px !important;
+    align-items: center !important;
+  }
+
+  ion-modal.confirm-delete-dialog::part(content),
+  ion-modal.confirm-delete-modal-dialog::part(content),
+  ion-modal.auto-height-modal::part(content),
+  ion-modal.alert-modal::part(content),
+  ion-modal.modal-sm::part(content),
+  ion-modal.table-qr-batch-modal-dialog::part(content) {
+    height: auto !important;
+    max-height: 85vh !important;
+    border-radius: 16px !important;
+    margin: auto !important;
+    width: min(92vw, 440px) !important;
+    max-width: 92vw !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
   }
 }
 

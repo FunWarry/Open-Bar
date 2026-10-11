@@ -1,5 +1,14 @@
-:host ion-header {
-  border-bottom: 1px solid var(--border-medium);
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+
+  ion-header {
+    border-bottom: 1px solid var(--border-medium);
+    flex-shrink: 0;
+  }
 }
 
 .modal-toolbar {
@@ -20,8 +29,9 @@
 .modal-scroll-body {
   background: var(--background-bg-0);
   overflow-y: auto;
-  /* Max height = 90vh minus header (~56px) and footer (~70px) */
-  max-height: calc(90vh - 130px);
+  flex: 1 1 auto;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
 }
 
@@ -351,4 +361,58 @@
   height: 42px;
   margin: 0;
   min-width: 160px;
+}
+
+@media (max-width: 767px) {
+  .modal-footer {
+    padding: 10px 14px;
+  }
+
+  .modal-actions-bar {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    width: 100%;
+
+    .btn-action-next {
+      grid-column: 1 / -1;
+      width: 100%;
+      min-width: 0;
+      order: -1;
+    }
+
+    .btn-action-cancel,
+    .btn-action-urgent {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+
+  .order-meta-strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+
+    .meta-pill {
+      width: 100%;
+      justify-content: center;
+      padding: 6px 8px;
+      font-size: 0.78rem;
+
+      &.total-pill {
+        grid-column: 1 / -1;
+      }
+    }
+  }
+
+  .items-table-header,
+  .items-table-row {
+    padding: 10px 8px;
+
+    .th-unit-price,
+    .td-unit-price {
+      display: none;
+    }
+  }
 }

@@ -32,7 +32,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="encaissement-content ion-padding">
+<ion-content class="encaissement-content ion-padding" [scrollY]="true">
   <!-- Loading State -->
   @if (isLoading) {
     <div class="state-container" data-testid="loading-addition">

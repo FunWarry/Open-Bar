@@ -1,3 +1,11 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
 .modal-toolbar {
   --background: var(--background-surface-1);
   --color: var(--text-primary);
@@ -21,6 +29,9 @@
 .nouvelle-facture-content {
   --background: var(--background-bg-0);
   --color: var(--text-primary);
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
 }
 
 .state-container {
@@ -76,7 +87,7 @@
   gap: 20px;
   height: 100%;
 
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     grid-template-columns: 1fr;
   }
 }

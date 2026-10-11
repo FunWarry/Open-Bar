@@ -39,7 +39,7 @@
   }
 </ion-header>
 
-<ion-content class="ion-padding modal-content">
+<ion-content class="ion-padding modal-content" [scrollY]="true">
   <!-- STEP 1: FOND DE CAISSE INITIAL -->
   @if (currentStep === 1) {
     <div class="step-container" data-testid="cloture-step-1">
