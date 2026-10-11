@@ -1067,8 +1067,9 @@ ion-content.factures-content {
 
     .hero-actions {
       width: 100%;
+      flex-wrap: wrap;
       justify-content: flex-start;
-      gap: 12px;
+      gap: 10px;
     }
   }
 

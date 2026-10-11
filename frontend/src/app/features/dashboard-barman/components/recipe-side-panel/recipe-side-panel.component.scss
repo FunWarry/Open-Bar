@@ -37,11 +37,25 @@
   pointer-events: none;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, visibility 0.3s ease;
 
+  &:not(.open) {
+    display: none;
+  }
+
   &.open {
-    transform: translateX(0);
+    display: flex;
+    animation: sidePanelSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     visibility: visible;
     pointer-events: auto;
     box-shadow: -10px 0 40px rgba(0, 0, 0, 0.35);
+  }
+}
+
+@keyframes sidePanelSlideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
   }
 }
 
