@@ -1,12 +1,13 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-import { IonIcon, IonSelect, IonSelectOption } from '@ionic/angular';
+import { IonIcon } from '@ionic/angular';
 import { CartModel, CartItemModel } from '../../models/cart.model';
 import { TableView } from '../../models/table-view.model';
 import { QuantityStepperComponent } from '../../../../core/components/ui/quantity-stepper/quantity-stepper.component';
 import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
 import { EmptyStateComponent } from '../../../../core/components/ui/empty-state/empty-state.component';
+import { SearchableSelectComponent, SearchableOption } from '../../../../core/components/ui/searchable-select/searchable-select.component';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 
@@ -22,8 +23,7 @@ import { cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutlin
   imports: [
     FormsModule,
     IonIcon,
-    IonSelect,
-    IonSelectOption,
+    SearchableSelectComponent,
     QuantityStepperComponent,
     ActionButtonComponent,
     EmptyStateComponent,
@@ -59,6 +59,21 @@ export class CartDrawerComponent {
       this.removeItem.emit(item);
     } else {
       this.quantityChange.emit({ item, newQty });
+    }
+  }
+
+  get tableOptions(): SearchableOption<number>[] {
+    return this.tables.map(t => ({
+      value: t.id,
+      label: t.nom,
+      subLabel: t.zone || undefined,
+    }));
+  }
+
+  onTableSelectChange(option: SearchableOption<any> | number | null) {
+    const val = typeof option === 'object' && option !== null ? option.value : option;
+    if (val) {
+      this.tableSelect.emit(Number(val));
     }
   }
 

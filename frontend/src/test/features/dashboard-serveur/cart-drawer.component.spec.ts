@@ -92,4 +92,21 @@ describe('CartDrawerComponent', () => {
     component.onTableChanged({ detail: { value: '5' } });
     expect(component.tableSelect.emit).toHaveBeenCalledWith(5);
   });
+
+  it('should emit tableSelect on onTableSelectChange', () => {
+    spyOn(component.tableSelect, 'emit');
+    component.onTableSelectChange(5);
+    expect(component.tableSelect.emit).toHaveBeenCalledWith(5);
+  });
+
+  it('should map tables to tableOptions', () => {
+    component.tables = [
+      { id: 1, numero: 1, nom: 'Table 1', capacite: 4, statut: 'LIBRE', zone: 'Terrasse', commandesActives: [] } as any,
+    ];
+    const options = component.tableOptions;
+    expect(options).toHaveSize(1);
+    expect(options[0].value).toBe(1);
+    expect(options[0].label).toBe('Table 1');
+    expect(options[0].subLabel).toBe('Terrasse');
+  });
 });

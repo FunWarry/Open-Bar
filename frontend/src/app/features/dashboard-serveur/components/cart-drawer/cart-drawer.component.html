@@ -22,21 +22,16 @@
     </div>
   } @else {
     <div class="table-selector-wrap">
-      <label for="table-select-cart">{{ 'SERVEUR.ASSIGNED_TABLE' | transloco }} :</label>
-      <ion-select
-        id="table-select-cart"
-        [attr.aria-label]="'SERVEUR.ASSIGNED_TABLE' | transloco"
-        [value]="cart.tableId"
+      <app-searchable-select
+        size="sm"
+        [label]="'SERVEUR.ASSIGNED_TABLE' | transloco"
+        [options]="tableOptions"
+        [ngModel]="cart.tableId"
+        (selectionChange)="onTableSelectChange($event)"
+        [enableSearch]="true"
         [placeholder]="'SERVEUR.SELECT_TABLE' | transloco"
-        interface="popover"
-        data-testid="select-cart-table"
-        (ionChange)="onTableChanged($event)">
-        @for (t of tables; track t) {
-          <ion-select-option [value]="t.id">
-            {{ t.nom }} ({{ t.zone || 'Salle' }})
-          </ion-select-option>
-        }
-      </ion-select>
+        testId="select-cart-table">
+      </app-searchable-select>
     </div>
   }
 

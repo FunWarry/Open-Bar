@@ -22,8 +22,9 @@ import {
   checkmarkCircleOutline, closeCircleOutline, peopleOutline, wineOutline,
   nutritionOutline, eggOutline, leafOutline, sparklesOutline, flameOutline,
   waterOutline, beerOutline, fastFoodOutline, searchOutline,
-  addOutline, removeOutline, locateOutline,
+  addOutline, removeOutline, locateOutline, cartOutline, arrowForwardOutline,
 } from 'ionicons/icons';
+import { AppCurrencyPipe } from '../../core/pipes/app-currency.pipe';
 import { tableRestaurantOutline } from '../../core/icons/custom-icons';
 import { CocktailService } from '../../core/services/cocktail.service';
 import { Cocktail } from '../../core/models/cocktail.model';
@@ -116,6 +117,7 @@ import { SearchBarComponent } from '../../core/components/ui/search-bar/search-b
     SearchBarComponent,
     BarTabsListComponent,
     CocktailListComponent,
+    AppCurrencyPipe,
   ],
   templateUrl: './dashboard-serveur.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -159,6 +161,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
   cart: CartModel = { tableId: null, items: [] };
   isSubmitting = false;
+  mobileOrderView: 'menu' | 'cart' = 'menu';
 
   products: ProductItem[] = [
     {
@@ -233,6 +236,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       nutritionOutline, eggOutline, leafOutline, sparklesOutline, flameOutline,
       waterOutline, beerOutline, fastFoodOutline, searchOutline,
       addOutline, removeOutline, locateOutline, tableRestaurantOutline,
+      cartOutline, arrowForwardOutline,
     });
   }
 
@@ -1715,6 +1719,10 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     return this.cart.items.reduce((sum, item) => sum + item.quantite, 0);
   }
 
+  get cartTotalPrice(): number {
+    return this.cart.items.reduce((sum, item) => sum + item.prix * item.quantite, 0);
+  }
+
   onTabSelected(tab: ServeurTab) {
     this.activeTab = tab;
   }
@@ -1935,6 +1943,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   onNewOrderForTable(table: TableView) {
     this.onTableSelectForOrder(table.id);
     this.activeTab = 'commande';
+    this.mobileOrderView = 'menu';
   }
 
   /**
@@ -2012,6 +2021,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
           await toast.present();
 
           this.cart = { tableId: null, items: [] };
+          this.mobileOrderView = 'menu';
           this.chargerTables();
           if (targetBarTabId) {
             this.barTabService.loadTabs().subscribe();
@@ -2035,6 +2045,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
   onClearCart() {
     this.cart = { tableId: null, items: [] };
+    this.mobileOrderView = 'menu';
   }
 
   onOrderForTab(tab: BarTab) {
@@ -2046,6 +2057,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       items: [],
     };
     this.activeTab = 'commande';
+    this.mobileOrderView = 'menu';
     this.cdr.detectChanges();
   }
 

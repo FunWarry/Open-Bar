@@ -408,7 +408,35 @@
       </div>
     }
 
-    <div class="order-taking-layout">
+    <!-- Selecteur de vue Mobile : Menu / Panier -->
+    <div class="mobile-order-view-selector" data-testid="mobile-order-view-selector">
+      <button
+        type="button"
+        class="mobile-view-pill"
+        [class.active]="mobileOrderView === 'menu'"
+        (click)="mobileOrderView = 'menu'"
+        data-testid="btn-mobile-view-menu">
+        <ion-icon name="wine-outline"></ion-icon>
+        <span>{{ 'SERVEUR.MENU_CATALOG' | transloco }}</span>
+      </button>
+      <button
+        type="button"
+        class="mobile-view-pill"
+        [class.active]="mobileOrderView === 'cart'"
+        (click)="mobileOrderView = 'cart'"
+        data-testid="btn-mobile-view-cart">
+        <ion-icon name="cart-outline"></ion-icon>
+        <span>{{ 'SERVEUR.CURRENT_ORDER' | transloco }}</span>
+        @if (cartTotalCount > 0) {
+          <span class="mobile-pill-badge" data-testid="mobile-cart-badge">{{ cartTotalCount }}</span>
+        }
+      </button>
+    </div>
+
+    <div
+      class="order-taking-layout"
+      [class.mobile-view-menu]="mobileOrderView === 'menu'"
+      [class.mobile-view-cart]="mobileOrderView === 'cart'">
       <!-- Zone Produits & Filtres (Gauche) -->
       <div class="products-section">
         <app-cocktail-list
@@ -433,6 +461,33 @@
         </app-cart-drawer>
       </div>
     </div>
+
+    <!-- Barre flottante Panier sur mobile lorsque l'utilisateur est sur la vue Menu -->
+    @if (mobileOrderView === 'menu' && cart.items.length > 0) {
+      <div
+        class="mobile-cart-floating-bar"
+        data-testid="mobile-cart-floating-bar"
+        role="button"
+        tabindex="0"
+        (click)="mobileOrderView = 'cart'"
+        (keydown.enter)="mobileOrderView = 'cart'">
+        <div class="floating-bar-info">
+          <span class="floating-bar-count">
+            <ion-icon name="cart-outline"></ion-icon>
+            {{ (cartTotalCount > 1 ? 'SERVEUR.ARTICLES_COUNT_PLURAL' : 'SERVEUR.ARTICLES_COUNT') | transloco: { count: cartTotalCount } }}
+          </span>
+          <span class="floating-bar-total">{{ cartTotalPrice | appCurrency }}</span>
+        </div>
+        <button
+          type="button"
+          class="floating-bar-action"
+          data-testid="btn-floating-view-cart"
+          (click)="$event.stopPropagation(); mobileOrderView = 'cart'">
+          <span>{{ 'SERVEUR.VIEW_CART' | transloco }}</span>
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+        </button>
+      </div>
+    }
   </div>
 }
 
