@@ -290,11 +290,11 @@
       <!-- Top Header: Table Number Avatar + Info + Status Toggle -->
       <div card-header class="card-header-row">
         <div class="table-badge-group">
-          <div class="table-num-avatar" [class.occupied]="table.occupee">
-            <ion-icon name="restaurant-outline" class="avatar-icon"></ion-icon>
+          <div class="table-num-avatar" [class.occupied]="table.occupee" [title]="'TABLES.CARD.TITLE' | transloco: { number: table.numero }">
+            <ion-icon name="table-restaurant-outline" class="avatar-icon"></ion-icon>
           </div>
           <div class="table-meta-text">
-            <h3 class="table-title">Table {{ table.numero }}</h3>
+            <h3 class="table-title">{{ table.numero }}</h3>
             <div class="table-zone-chip">
               <ion-icon name="location-outline" class="zone-icon"></ion-icon>
               <span class="zone-name">{{ table.zone }}</span>

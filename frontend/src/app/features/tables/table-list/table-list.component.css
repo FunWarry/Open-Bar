@@ -434,8 +434,36 @@
 /* ── Tables Grid & Modern Card Styles ──────────────────────────── */
 .tables-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 1200px) {
+  .tables-grid {
+    grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  .tables-grid {
+    grid-template-columns: repeat(auto-fill, minmax(205px, 1fr));
+    gap: 10px;
+  }
+}
+
+@media (max-width: 767px) {
+  .tables-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+}
+
+@media (max-width: 330px) {
+  .tables-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
 }
 
 .modern-table-card {
@@ -511,14 +539,14 @@
 .table-badge-group {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
 }
 
 .table-num-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
   background: rgba(52, 199, 123, 0.1);
   border: 1px solid rgba(52, 199, 123, 0.25);
   display: flex;
@@ -535,7 +563,7 @@
   }
 
   .avatar-icon {
-    font-size: 1.3rem;
+    font-size: 1rem;
   }
 }
 
@@ -547,7 +575,7 @@
 
   .table-title {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     font-weight: 800;
     color: var(--text-primary);
     letter-spacing: -0.01em;
@@ -560,7 +588,7 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 0.775rem;
+    font-size: 0.72rem;
     font-weight: 600;
     color: var(--text-secondary);
     white-space: nowrap;
@@ -568,7 +596,7 @@
     text-overflow: ellipsis;
 
     .zone-icon {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--primary);
       flex-shrink: 0;
     }
@@ -587,10 +615,10 @@
 .modern-status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 11px;
+  gap: 4px;
+  padding: 2px 7px;
   border-radius: 999px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   cursor: pointer;
   border: 1px solid transparent;
@@ -681,17 +709,18 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    border-radius: 10px;
-    padding: 8px 14px;
-    font-size: 0.825rem;
+    gap: 4px;
+    border-radius: 8px;
+    padding: 5px 8px;
+    min-height: 30px;
+    font-size: 0.74rem;
     font-weight: 700;
     cursor: pointer;
     border: 1px solid transparent;
     transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 
     ion-icon {
-      font-size: 1rem;
+      font-size: 0.9rem;
     }
 
     &.btn-view {

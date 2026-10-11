@@ -283,3 +283,64 @@
     }
   }
 }
+
+@media (max-width: 767px) {
+  .card-header {
+    padding: 8px 10px 6px;
+    gap: 6px;
+  }
+
+  .tab-icon-box {
+    width: 28px;
+    height: 28px;
+    font-size: 15px;
+    border-radius: 8px;
+  }
+
+  .tab-name {
+    font-size: 0.95rem;
+  }
+
+  .card-body {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .balance-box {
+    padding: 6px 10px;
+
+    .balance-sublabel {
+      font-size: 0.65rem;
+    }
+
+    .balance-value {
+      font-size: 1.05rem;
+    }
+  }
+
+  .card-actions-layout {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .primary-actions-row,
+  .secondary-actions-row {
+    gap: 6px;
+  }
+
+  .action-btn {
+    height: 30px;
+    font-size: 0.72rem;
+    padding: 4px 6px;
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    ion-icon {
+      font-size: 0.85rem;
+    }
+  }
+}

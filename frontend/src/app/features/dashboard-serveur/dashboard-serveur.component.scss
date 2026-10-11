@@ -433,12 +433,18 @@ ion-content.dashboard-serveur-content {
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 12px;
-    padding: 10px 16px;
+    gap: 8px;
+    padding: 8px 14px;
     background: var(--background-surface-1, #16192b);
     border: 1px solid var(--border-medium, #2a2e4d);
     border-radius: 12px;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
+
+    @media (max-width: 767px) {
+      padding: 6px 10px;
+      margin-bottom: 8px;
+      gap: 6px;
+    }
 
     .section-title-group {
       display: flex;
@@ -500,8 +506,28 @@ ion-content.dashboard-serveur-content {
 
 .mobile-tables-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+  gap: 12px;
+
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+    gap: 12px;
+  }
+
+  @media (min-width: 768px) and (max-width: 1199px) {
+    grid-template-columns: repeat(auto-fill, minmax(205px, 1fr));
+    gap: 10px;
+  }
+
+  @media (max-width: 767px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  @media (max-width: 330px) {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
 }
 
 // Vue Plan de Salle 2D Konva.js

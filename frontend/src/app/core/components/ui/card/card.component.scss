@@ -179,6 +179,14 @@
   padding: 16px 20px;
 }
 
+.mobile-table-card {
+  @media (max-width: 767px) {
+    .card-section {
+      padding: 6px 8px;
+    }
+  }
+}
+
 // Dividers between sections
 .card-divider {
   width: 100%;

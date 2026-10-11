@@ -9,10 +9,11 @@ import { CardComponent, CardAccentColor } from '../../../../core/components/ui/c
 
 import { addIcons } from 'ionicons';
 import {
-  restaurantOutline, peopleOutline, locationOutline,
+  peopleOutline, locationOutline,
   timeOutline, addCircleOutline, personAddOutline, checkmarkDoneOutline,
   notificationsOutline, cardOutline,
 } from 'ionicons/icons';
+import { tableRestaurantOutline } from '../../../../core/icons/custom-icons';
 
 /**
  * Mobile table card component for waiter dashboard.
@@ -49,10 +50,22 @@ export class MobileTableCardComponent {
 
   constructor(private readonly translocoService: TranslocoService) {
     addIcons({
-      restaurantOutline, peopleOutline, locationOutline,
+      tableRestaurantOutline,
+      peopleOutline, locationOutline,
       timeOutline, addCircleOutline, personAddOutline, checkmarkDoneOutline,
       notificationsOutline, cardOutline,
     });
+  }
+
+  /**
+   * Compact table display number: strips redundant 'Table' / 'Table #' prefix
+   * to display only the table number (e.g. '1', '10', 'VIP 2').
+   */
+  get displayTableNumber(): string {
+    const raw = (this.table?.nom || '').trim();
+    if (!raw) return `${this.table?.id ?? ''}`;
+    const stripped = raw.replace(/^table\s*(?:#|n°|-)?\s*/i, '').trim();
+    return stripped || raw;
   }
 
   /**

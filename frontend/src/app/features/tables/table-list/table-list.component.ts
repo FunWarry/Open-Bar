@@ -17,6 +17,7 @@ import {
   locationOutline, peopleOutline, eyeOutline, createOutline, trashOutline,
   printOutline
 } from 'ionicons/icons';
+import { tableRestaurantOutline } from '../../../core/icons/custom-icons';
 import { AsyncPipe, NgTemplateOutlet, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -108,6 +109,7 @@ export class TableListComponent implements OnInit, OnDestroy {
     addIcons({
       add, eye, create, people, checkmarkCircle, closeCircle, layersOutline,
       businessOutline, swapVerticalOutline, gridOutline, restaurantOutline,
+      tableRestaurantOutline,
       refreshOutline, checkmarkCircleOutline, closeCircleOutline,
       locationOutline, peopleOutline, eyeOutline, createOutline, trashOutline,
       printOutline
