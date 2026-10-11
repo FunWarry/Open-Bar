@@ -47,6 +47,8 @@
     "INCREASE": "Augmenter",
     "RETRY": "Réessayer",
     "REQUIRED": "Champ requis",
+    "OPTIONAL": "Optionnel",
+    "CREATE": "Créer",
     "NO_RESULTS": "Aucun résultat trouvé",
     "PAGINATION": {
       "PREV": "Précédent",
@@ -1557,6 +1559,13 @@
     "TITLE": "Suivi des Commandes",
     "SUBTITLE": "Supervision en temps réel du flux de préparation et de service",
     "NEW": "Nouvelle commande",
+    "CREATE_HINT": "Sélectionnez une table et précisez d'éventuelles consignes de service pour démarrer la commande.",
+    "SELECT_TABLE_PLACEHOLDER": "Sélectionner une table...",
+    "SEARCH_TABLE_PLACEHOLDER": "Rechercher par numéro de table ou zone...",
+    "TABLE_OCCUPIED_HINT": "Cette table a déjà des commandes en cours. La nouvelle commande y sera rattachée.",
+    "TABLE_REQUIRED": "Veuillez sélectionner une table",
+    "NOTES_LABEL": "Notes & consignes de service",
+    "NOTES_PLACEHOLDER": "Ex : Client régulier, allergie aux fraises, service rapide...",
     "ADD_ITEM": "Ajouter un article",
     "DELETE_CONFIRM": "Annuler cette commande ?",
     "TABLE": "Table",
@@ -1628,6 +1637,7 @@
       "VIEW_TABLE": "Voir la table"
     },
     "ACTIONS": {
+      "CREATE": "Créer la commande",
       "MARK_URGENT": "Marquer Urgent",
       "UNMARK_URGENT": "Retirer Urgent",
       "MARK_IN_PROGRESS": "Démarrer préparation",

@@ -47,6 +47,8 @@
     "INCREASE": "Increase",
     "RETRY": "Retry",
     "REQUIRED": "Required field",
+    "OPTIONAL": "Optional",
+    "CREATE": "Create",
     "NO_RESULTS": "No results found",
     "PAGINATION": {
       "PREV": "Previous",
@@ -1557,6 +1559,13 @@
     "TITLE": "Order Tracking",
     "SUBTITLE": "Real-time supervision of preparation and service workflow",
     "NEW": "New Order",
+    "CREATE_HINT": "Select a table and specify any service instructions to start the order.",
+    "SELECT_TABLE_PLACEHOLDER": "Select a table...",
+    "SEARCH_TABLE_PLACEHOLDER": "Search by table number or zone...",
+    "TABLE_OCCUPIED_HINT": "This table already has active orders. The new order will be attached to it.",
+    "TABLE_REQUIRED": "Please select a table",
+    "NOTES_LABEL": "Notes & service instructions",
+    "NOTES_PLACEHOLDER": "E.g.: Regular customer, allergy to strawberries, fast service...",
     "ADD_ITEM": "Add Item",
     "DELETE_CONFIRM": "Cancel this order?",
     "TABLE": "Table",
@@ -1628,6 +1637,7 @@
       "VIEW_TABLE": "View Table"
     },
     "ACTIONS": {
+      "CREATE": "Create order",
       "MARK_URGENT": "Mark Urgent",
       "UNMARK_URGENT": "Unmark Urgent",
       "MARK_IN_PROGRESS": "Start Preparation",

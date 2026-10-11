@@ -1,29 +1,161 @@
-<ion-card>
-  <ion-card-header>
-    <ion-card-title>{{ (isEditMode ? 'COMMANDES.ACTIONS.EDIT' : 'COMMANDES.NEW') | transloco }}</ion-card-title>
-  </ion-card-header>
-  <ion-card-content>
-    <form (ngSubmit)="onSubmit()" [formGroup]="commandeForm">
-      <ion-item>
-        <ion-label position="stacked">{{ 'COMMANDES.TABLE' | transloco }}</ion-label>
-        <ion-select formControlName="tableId" aria-label="Table">
-          @for (t of tables; track t.id) {
-            <ion-select-option [value]="t.id">Table #{{ t.numero }} ({{ t.zone }})</ion-select-option>
-          }
-        </ion-select>
-      </ion-item>
-      @if (commandeForm.get('tableId')?.hasError('required') && commandeForm.get('tableId')?.touched) {
-        <ion-note color="danger">
-          {{ 'TABLES.ZONE_REQUIRED' | transloco }}
-        </ion-note>
-      }
+<ion-content class="new-order-page-content" [fullscreen]="true">
+  <div class="new-order-page-wrapper">
 
-      <div class="button-row">
-        <ion-button fill="clear" type="button" (click)="router.navigate(['/commandes'])" (keydown.enter)="router.navigate(['/commandes'])" data-testid="btn-cancel-commande">{{ 'COMMON.CANCEL' | transloco }}</ion-button>
-        <ion-button [disabled]="!commandeForm.valid" color="primary" type="submit" data-testid="btn-submit-commande">
-          {{ (isEditMode ? 'COMMON.EDIT' : 'COMMON.CREATE') | transloco }}
-        </ion-button>
+    <!-- Top Navigation & Header Bar -->
+    <div class="order-form-topbar">
+      <button
+        type="button"
+        class="back-nav-btn"
+        (click)="onCancel()"
+        (keydown.enter)="onCancel()"
+        [attr.aria-label]="'COMMON.BACK' | transloco"
+        data-testid="btn-back-commandes">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        <span class="back-btn-text">{{ 'COMMON.BACK' | transloco }}</span>
+      </button>
+
+      <div class="topbar-context-badge">
+        <ion-icon name="receipt-outline"></ion-icon>
+        <span>{{ 'COMMANDES.TITLE' | transloco }}</span>
       </div>
-    </form>
-  </ion-card-content>
-</ion-card>
+    </div>
+
+    <!-- Main Form Card Container -->
+    <div class="order-form-card" data-testid="card-new-commande">
+
+      <!-- Header Section with Glowing Icon -->
+      <div class="order-card-header">
+        <div class="order-badge-icon" [class.edit-mode]="isEditMode">
+          @if (isEditMode) {
+            <ion-icon name="receipt-outline"></ion-icon>
+          } @else {
+            <ion-icon name="cart-outline"></ion-icon>
+          }
+        </div>
+        <div class="order-header-text">
+          <h1 class="order-form-title" data-testid="commande-form-title">
+            {{ (isEditMode ? 'COMMANDES.ACTIONS.EDIT' : 'COMMANDES.NEW') | transloco }}
+          </h1>
+          <p class="order-form-subtitle">
+            {{ 'COMMANDES.CREATE_HINT' | transloco }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Form Body -->
+      <form [formGroup]="commandeForm" (ngSubmit)="onSubmit()" class="order-form-body">
+
+        <!-- Table Selection Field (Searchable Select Combobox) -->
+        <div class="form-field-group">
+          <div class="field-label-row">
+            <span class="field-label" id="table-select-label">
+              <ion-icon name="restaurant-outline"></ion-icon>
+              <span>{{ 'COMMANDES.TABLE' | transloco }}</span>
+              <span class="required-star">*</span>
+            </span>
+          </div>
+
+          @if (isLoadingTables()) {
+            <div class="field-loading-box">
+              <ion-spinner name="crescent" color="primary"></ion-spinner>
+              <span>{{ 'COMMON.LOADING' | transloco }}</span>
+            </div>
+          } @else {
+            <app-searchable-select
+              formControlName="tableId"
+              [options]="tableOptions()"
+              [placeholder]="'COMMANDES.SELECT_TABLE_PLACEHOLDER' | transloco"
+              [searchPlaceholder]="'COMMANDES.SEARCH_TABLE_PLACEHOLDER' | transloco"
+              [required]="true"
+              [clearable]="true"
+              [enableSearch]="true"
+              testId="select-table-commande">
+            </app-searchable-select>
+          }
+
+          @if (commandeForm.get('tableId')?.hasError('required') && commandeForm.get('tableId')?.touched) {
+            <span class="field-error-text" data-testid="error-table-required">
+              <ion-icon name="information-circle-outline"></ion-icon>
+              {{ 'COMMANDES.TABLE_REQUIRED' | transloco }}
+            </span>
+          }
+        </div>
+
+        <!-- Selected Table Summary Preview Card -->
+        @if (selectedTable(); as table) {
+          <div class="selected-table-preview-card" data-testid="selected-table-preview">
+            <div class="preview-icon-wrapper" [class.occupied]="table.occupee">
+              <ion-icon name="restaurant-outline"></ion-icon>
+            </div>
+            <div class="preview-details">
+              <div class="preview-header-line">
+                <span class="table-name">Table #{{ table.numero }}</span>
+                <span class="table-status-pill" [class.occupied]="table.occupee">
+                  {{ (table.occupee ? 'TABLE_CARD.STATUS_OCCUPIED' : 'TABLE_CARD.STATUS_FREE') | transloco }}
+                </span>
+              </div>
+              <div class="preview-badges-line">
+                <span class="preview-badge">
+                  <ion-icon name="location-outline"></ion-icon>
+                  {{ table.zone || 'Salle' }}
+                </span>
+                <span class="preview-badge">
+                  <ion-icon name="people-outline"></ion-icon>
+                  {{ table.capacite }} {{ 'TABLES.STATS.SEATS' | transloco }}
+                </span>
+              </div>
+              @if (table.occupee) {
+                <div class="table-occupied-hint">
+                  <ion-icon name="information-circle-outline"></ion-icon>
+                  <span>{{ 'COMMANDES.TABLE_OCCUPIED_HINT' | transloco }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Service Notes & Instructions Field -->
+        <div class="form-field-group">
+          <div class="field-label-row">
+            <label class="field-label" for="notes-field">
+              <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+              <span>{{ 'COMMANDES.NOTES_LABEL' | transloco }}</span>
+              <span class="optional-tag">({{ 'COMMON.OPTIONAL' | transloco }})</span>
+            </label>
+          </div>
+          <app-input-field
+            id="notes-field"
+            formControlName="notes"
+            [placeholder]="'COMMANDES.NOTES_PLACEHOLDER' | transloco"
+            icon="chatbubble-ellipses-outline"
+            [required]="false"
+            testId="input-commande-notes">
+          </app-input-field>
+        </div>
+
+        <!-- Action Buttons Footer -->
+        <div class="form-actions-footer">
+          <app-action-button
+            variant="ghost"
+            type="button"
+            (btnClick)="onCancel()"
+            testId="btn-cancel-commande">
+            {{ 'COMMON.CANCEL' | transloco }}
+          </app-action-button>
+
+          <app-action-button
+            variant="primary"
+            type="submit"
+            [disabled]="commandeForm.invalid || isSubmitting()"
+            [loading]="isSubmitting()"
+            icon="checkmark-circle-outline"
+            testId="btn-submit-commande">
+            {{ (isEditMode ? 'COMMON.SAVE' : 'COMMANDES.ACTIONS.CREATE') | transloco }}
+          </app-action-button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+</ion-content>

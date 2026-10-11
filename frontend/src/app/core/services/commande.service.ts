@@ -62,6 +62,16 @@ export class CommandeService {
   }
 
   /**
+   * Updates an existing order.
+   * @param id Order identifier
+   * @param request Order update payload
+   * @returns Observable emitting updated order
+   */
+  update(id: number, request: CreateCommandeRequest): Observable<Commande> {
+    return this.http.put<Commande>(`${this.api}/${id}`, request);
+  }
+
+  /**
    * Adds an item line to an active order.
    * @param commandeId Order identifier
    * @param item Order line payload
