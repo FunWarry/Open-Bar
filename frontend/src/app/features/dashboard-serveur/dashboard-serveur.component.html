@@ -464,29 +464,25 @@
 
     <!-- Barre flottante Panier sur mobile lorsque l'utilisateur est sur la vue Menu -->
     @if (mobileOrderView === 'menu' && cart.items.length > 0) {
-      <div
+      <button
+        type="button"
         class="mobile-cart-floating-bar"
         data-testid="mobile-cart-floating-bar"
-        role="button"
-        tabindex="0"
-        (click)="mobileOrderView = 'cart'"
-        (keydown.enter)="mobileOrderView = 'cart'">
-        <div class="floating-bar-info">
+        (click)="mobileOrderView = 'cart'">
+        <span class="floating-bar-info">
           <span class="floating-bar-count">
             <ion-icon name="cart-outline"></ion-icon>
             {{ (cartTotalCount > 1 ? 'SERVEUR.ARTICLES_COUNT_PLURAL' : 'SERVEUR.ARTICLES_COUNT') | transloco: { count: cartTotalCount } }}
           </span>
           <span class="floating-bar-total">{{ cartTotalPrice | appCurrency }}</span>
-        </div>
-        <button
-          type="button"
+        </span>
+        <span
           class="floating-bar-action"
-          data-testid="btn-floating-view-cart"
-          (click)="$event.stopPropagation(); mobileOrderView = 'cart'">
+          data-testid="btn-floating-view-cart">
           <span>{{ 'SERVEUR.VIEW_CART' | transloco }}</span>
           <ion-icon name="arrow-forward-outline"></ion-icon>
-        </button>
-      </div>
+        </span>
+      </button>
     }
   </div>
 }
