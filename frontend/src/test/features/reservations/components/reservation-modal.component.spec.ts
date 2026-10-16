@@ -670,6 +670,18 @@ describe('ReservationModalComponent', () => {
     expect(component.formatTimeDisplay(null)).toBe('');
   });
 
+  it('formatTimeDisplay correctly handles arrays, strings, numbers and edge cases', () => {
+    expect(component.formatTimeDisplay(null)).toBe('');
+    expect(component.formatTimeDisplay(undefined)).toBe('');
+    expect(component.formatTimeDisplay([18, 45])).toBe('18:45');
+    expect(component.formatTimeDisplay([9, 5])).toBe('09:05');
+    expect(component.formatTimeDisplay('19:30:00')).toBe('19:30');
+    expect(component.formatTimeDisplay(' 21:15 ')).toBe('21:15');
+    expect(component.formatTimeDisplay('8:00')).toBe('8:00');
+    expect(component.formatTimeDisplay(12345)).toBe('12345');
+    expect(component.formatTimeDisplay({ invalid: true })).toBe('');
+  });
+
   it('onDateOrTimeChanged triggers loadDayReservations and checkTableAvailability', () => {
     reservationServiceSpy.getReservations.calls.reset();
     reservationServiceSpy.checkAvailability.calls.reset();

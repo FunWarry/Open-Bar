@@ -269,6 +269,34 @@ class PurchaseOrderServiceTest {
         }
 
         @Test
+        @DisplayName("Should receive delivery with null initial received quantity and fallback price")
+        void shouldReceiveDeliveryWithNullInitialReceivedQuantityAndFallbackPrice() {
+            sampleItem.setQuantiteRecue(null);
+            sampleItem.setPrixUnitaireHt(null);
+
+            PurchaseOrderReceptionItemRequest receptionItem = new PurchaseOrderReceptionItemRequest(
+                    1001L,
+                    new BigDecimal("5.00"),
+                    null
+            );
+            PurchaseOrderReceptionRequest receptionRequest = new PurchaseOrderReceptionRequest(
+                    "BL-002",
+                    null,
+                    List.of(receptionItem)
+            );
+
+            when(purchaseOrderRepository.findById(100L)).thenReturn(Optional.of(sampleOrder));
+            when(purchaseOrderDeliveryRepository.save(any(PurchaseOrderDelivery.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(ingredientRepository.save(any(Ingredient.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            PurchaseOrderDTO result = purchaseOrderService.receiveDelivery(100L, receptionRequest, null);
+
+            assertThat(result).isNotNull();
+            assertThat(sampleItem.getQuantiteRecue()).isEqualByComparingTo("5.00");
+        }
+
+        @Test
         @DisplayName("Should throw BusinessException when receiving delivery on order not in ORDERED status")
         void shouldThrowBusinessExceptionWhenOrderNotOrdered() {
             sampleOrder.setStatut(PurchaseOrderStatus.CANCELLED);
