@@ -299,7 +299,7 @@
   }
 
   .paper-tear {
-    display: none !important;
+    display: none;
   }
 
   .thermal-receipt {
@@ -307,12 +307,12 @@
     left: 0;
     top: 0;
     width: 80mm;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
+    background: #ffffff;
+    color: #000000;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
   }
 
   .receipt-header .establishment-title,
@@ -321,25 +321,25 @@
   .meta-row.highlight-table,
   .receipt-item-row .item-main,
   .receipt-summary strong {
-    color: #000000 !important;
+    color: #000000;
   }
 
   .ticket-meta .priority-banner {
-    color: #000000 !important;
-    border: 1px solid #000000 !important;
-    background: none !important;
+    color: #000000;
+    border: 1px solid #000000;
+    background: none;
   }
 
   .receipt-divider {
-    color: #000000 !important;
+    color: #000000;
   }
 
   .receipt-item-row .item-sub,
   .receipt-item-row .item-note,
   .receipt-notes,
   .receipt-footer {
-    color: #000000 !important;
-    background: none !important;
-    border-color: #000000 !important;
+    color: #000000;
+    background: none;
+    border-color: #000000;
   }
 }

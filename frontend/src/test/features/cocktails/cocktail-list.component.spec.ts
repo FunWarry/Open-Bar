@@ -909,7 +909,60 @@ describe('CocktailListComponent', () => {
       expect(results).toHaveSize(1);
       expect(results[0].nom).toBe('Mojito');
     });
+
+    it('isSubsumedAsVariant returns true when a cocktail matches a parent variant name with or without parentheses', () => {
+      const parentWithVariant: Cocktail = {
+        ...mockCocktails[0],
+        id: 1,
+        nom: 'Mojito Classic',
+        variantes: [
+          {
+            id: 201,
+            nom: 'Virgin Mojito (Sans Alcool)',
+            description: 'Mocktail',
+            prixSupplement: 0,
+            disponible: true
+          },
+          {
+            id: 202,
+            nom: 'Strawberry Mojito',
+            description: 'Fruity',
+            prixSupplement: 1,
+            disponible: true
+          }
+        ]
+      };
+      component.cocktails = [parentWithVariant];
+
+      // Cocktail matching variant base name before parenthesis
+      const standaloneVirgin: Cocktail = {
+        ...mockCocktails[1],
+        id: 2,
+        nom: 'Virgin Mojito'
+      };
+      expect(component.isSubsumedAsVariant(standaloneVirgin)).toBeTrue();
+
+      // Cocktail matching exact variant name without parenthesis
+      const standaloneStrawberry: Cocktail = {
+        ...mockCocktails[1],
+        id: 3,
+        nom: 'Strawberry Mojito'
+      };
+      expect(component.isSubsumedAsVariant(standaloneStrawberry)).toBeTrue();
+
+      // Parent cocktail itself is not subsumed
+      expect(component.isSubsumedAsVariant(parentWithVariant)).toBeFalse();
+
+      // Unrelated cocktail
+      const unrelated: Cocktail = {
+        ...mockCocktails[1],
+        id: 4,
+        nom: 'Pina Colada'
+      };
+      expect(component.isSubsumedAsVariant(unrelated)).toBeFalse();
+    });
   });
 });
+
 
 

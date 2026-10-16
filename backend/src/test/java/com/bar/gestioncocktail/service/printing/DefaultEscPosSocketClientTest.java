@@ -66,8 +66,13 @@ class DefaultEscPosSocketClientTest {
 
     @Test
     @DisplayName("send throws IOException when target port is unreachable")
-    void send_unreachableTarget_throwsIOException() {
-        assertThatThrownBy(() -> client.send("127.0.0.1", 59999, new byte[] { 1, 2, 3 }, 100))
+    void send_unreachableTarget_throwsIOException() throws IOException {
+        int closedPort;
+        try (java.net.ServerSocket socket = new java.net.ServerSocket(0)) {
+            closedPort = socket.getLocalPort();
+        }
+        int targetPort = closedPort;
+        assertThatThrownBy(() -> client.send("127.0.0.1", targetPort, new byte[] { 1, 2, 3 }, 100))
                 .isInstanceOf(IOException.class);
     }
 }

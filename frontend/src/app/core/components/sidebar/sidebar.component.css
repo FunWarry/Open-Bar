@@ -276,8 +276,8 @@ button.sidebar-brand,
 @media (max-width: 767px) {
   .sidebar,
   .sidebar.collapsed {
-    width: 260px !important;
-    min-width: 260px !important;
+    width: 260px;
+    min-width: 260px;
   }
 
   .sidebar.collapsed .nav-label,
@@ -285,16 +285,16 @@ button.sidebar-brand,
   .sidebar.collapsed .role-name,
   .sidebar.collapsed .username,
   .sidebar.collapsed .logout-btn {
-    display: inherit !important;
+    display: inherit;
   }
 
   .sidebar.collapsed .sidebar-header {
-    justify-content: space-between !important;
-    padding: 0 12px !important;
+    justify-content: space-between;
+    padding: 0 12px;
   }
 
   .sidebar.collapsed .collapse-toggle-btn {
-    display: none !important;
+    display: none;
   }
 }
 

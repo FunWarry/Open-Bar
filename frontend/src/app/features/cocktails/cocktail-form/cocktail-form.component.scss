@@ -494,7 +494,7 @@
 
   &:has(.dropdown-is-open),
   &:has(.is-open) {
-    z-index: 50 !important;
+    z-index: 50;
   }
 
   &.block-ingredient {

@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.listener;
 
+
+import java.time.Month;
 import com.bar.gestioncocktail.event.InvoiceSettledEvent;
 import com.bar.gestioncocktail.event.OrderCreatedEvent;
 import com.bar.gestioncocktail.event.TableLiberatedEvent;
@@ -89,7 +91,7 @@ class TableEventListenerTest {
     void onOrderCreated_alreadyOccupied_doesNotOverwrite() {
         table.setOccupee(true);
         table.setServeurId(9L);
-        LocalDateTime originalOccupation = LocalDateTime.of(2026, 9, 5, 12, 0);
+        LocalDateTime originalOccupation = LocalDateTime.of(2026, Month.SEPTEMBER, 5, 12, 0);
         table.setDateOccupation(originalOccupation);
         when(tableRepository.findById(10L)).thenReturn(Optional.of(table));
 

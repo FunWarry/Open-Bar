@@ -70,11 +70,11 @@
 }
 
 .mois-cell.actif {
-  background: var(--primary) !important;
-  color: #ffffff !important;
-  border-color: var(--primary-strong, var(--primary)) !important;
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary-strong, var(--primary));
   font-weight: 700;
-  box-shadow: 0 4px 14px rgba(var(--primary-rgb, 79, 70, 229), 0.4) !important;
+  box-shadow: 0 4px 14px rgba(var(--primary-rgb, 79, 70, 229), 0.4);
 }
 
 .mois-cell.courant:not(.actif) {

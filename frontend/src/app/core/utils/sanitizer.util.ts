@@ -4,9 +4,33 @@
 
 const DANGEROUS_BLOCK_TAGS = /<\s*(?:script|style|iframe|object|embed|svg)[^>]*>[\s\S]*?<\s*\/\s*(?:script|style|iframe|object|embed|svg)[^>]*>/gi;
 const DANGEROUS_SELF_CLOSING = /<\s*(?:script|style|iframe|object|embed|svg|link|meta|frame|base)[^>]*\/?>/gi;
-const HTML_TAG_REGEX = /<\/?[a-z][a-z0-9]*[^<>]*>|<!--.*?-->/gi;
-const EVENT_HANDLER_REGEX = /\s+on[a-z]+\s*=\s*(?:'[^']*'|"[^"]*"|[^\s>]+)/gi;
+const EVENT_HANDLER_REGEX = /(?:^|\s)on[a-z]+\s*=\s*(?:'[^']*'|"[^"]*"|[^\s>]+)/gi;
 const JAVASCRIPT_URL_REGEX = /javascript\s*:[^"'\s>]+/gi;
+
+/**
+ * Strips all HTML tags character by character in linear time O(N),
+ * avoiding any regular expression backtracking vulnerabilities.
+ */
+function stripAllHtmlTags(text: string): string {
+  let previous: string;
+  let current = text;
+  do {
+    previous = current;
+    let result = '';
+    let inTag = false;
+    for (const char of current) {
+      if (char === '<') {
+        inTag = true;
+      } else if (char === '>') {
+        inTag = false;
+      } else if (!inTag) {
+        result += char;
+      }
+    }
+    current = result;
+  } while (current !== previous && current.includes('<'));
+  return current;
+}
 
 /**
  * Repeatedly strips matches of a regex until no more replacements occur,
@@ -36,8 +60,8 @@ export function sanitizePlainText(input: string | null | undefined): string {
   // Remove dangerous script and embed elements with their content
   sanitized = stripRepeatedly(sanitized, DANGEROUS_BLOCK_TAGS);
   sanitized = stripRepeatedly(sanitized, DANGEROUS_SELF_CLOSING);
-  // Remove all other HTML tags
-  sanitized = stripRepeatedly(sanitized, HTML_TAG_REGEX);
+  // Remove all other HTML tags safely in linear time
+  sanitized = stripAllHtmlTags(sanitized);
   // Remove inline event handlers and javascript: URLs
   sanitized = stripRepeatedly(sanitized, EVENT_HANDLER_REGEX);
   sanitized = stripRepeatedly(sanitized, JAVASCRIPT_URL_REGEX);

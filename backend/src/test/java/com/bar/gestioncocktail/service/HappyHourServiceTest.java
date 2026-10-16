@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.service;
 
+
+import java.time.Month;
 import com.bar.gestioncocktail.dto.PricingPreviewResponseDTO;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
@@ -122,7 +124,7 @@ class HappyHourServiceTest {
     @Test
     @DisplayName("createRule succeeds with valid fields")
     void createRule_validPayload_savesAndAudits() {
-        when(timeService.now()).thenReturn(LocalDateTime.of(2026, 9, 5, 12, 0));
+        when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.SEPTEMBER, 5, 12, 0));
         when(ruleRepository.save(any(HappyHourRule.class))).thenAnswer(invocation -> {
             HappyHourRule r = invocation.getArgument(0);
             r.setId(99L);
@@ -174,7 +176,7 @@ class HappyHourServiceTest {
     @DisplayName("updateRule updates attributes and audits change")
     void updateRule_existingId_updatesRule() {
         when(ruleRepository.findById(1L)).thenReturn(Optional.of(standardRule));
-        when(timeService.now()).thenReturn(LocalDateTime.of(2026, 9, 5, 14, 0));
+        when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.SEPTEMBER, 5, 14, 0));
         when(ruleRepository.save(any(HappyHourRule.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         HappyHourRule updatedData = new HappyHourRule();
@@ -221,7 +223,7 @@ class HappyHourServiceTest {
     @DisplayName("toggleActive flips active flag")
     void toggleActive_flipsState() {
         when(ruleRepository.findById(1L)).thenReturn(Optional.of(standardRule));
-        when(timeService.now()).thenReturn(LocalDateTime.of(2026, 9, 5, 10, 0));
+        when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.SEPTEMBER, 5, 10, 0));
         when(ruleRepository.save(any(HappyHourRule.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         HappyHourRule toggled = happyHourService.toggleActive(1L);
@@ -237,7 +239,7 @@ class HappyHourServiceTest {
         when(ruleRepository.findByActiveTrue()).thenReturn(List.of(standardRule));
 
         // Friday 19:00 -> within Tuesday-Friday 18:00-20:00 window
-        LocalDateTime promoTime = LocalDateTime.of(2026, 9, 4, 19, 0); // Friday
+        LocalDateTime promoTime = LocalDateTime.of(2026, Month.SEPTEMBER, 4, 19, 0); // Friday
 
         BigDecimal effectivePrice = happyHourService.resolveEffectivePrice(testCocktail, null, promoTime);
 
@@ -252,7 +254,7 @@ class HappyHourServiceTest {
         standardRule.setDiscountValue(new BigDecimal("5.50"));
         when(ruleRepository.findByActiveTrue()).thenReturn(List.of(standardRule));
 
-        LocalDateTime promoTime = LocalDateTime.of(2026, 9, 4, 18, 30); // Friday
+        LocalDateTime promoTime = LocalDateTime.of(2026, Month.SEPTEMBER, 4, 18, 30); // Friday
 
         BigDecimal effectivePrice = happyHourService.resolveEffectivePrice(testCocktail, null, promoTime);
 
@@ -266,7 +268,7 @@ class HappyHourServiceTest {
         standardRule.setDiscountValue(new BigDecimal("2.50"));
         when(ruleRepository.findByActiveTrue()).thenReturn(List.of(standardRule));
 
-        LocalDateTime promoTime = LocalDateTime.of(2026, 9, 4, 18, 30); // Friday
+        LocalDateTime promoTime = LocalDateTime.of(2026, Month.SEPTEMBER, 4, 18, 30); // Friday
 
         BigDecimal effectivePrice = happyHourService.resolveEffectivePrice(testCocktail, null, promoTime);
 
@@ -280,12 +282,12 @@ class HappyHourServiceTest {
         when(ruleRepository.findByActiveTrue()).thenReturn(List.of(standardRule));
 
         // Monday 19:00 (rule is Tue-Fri only)
-        LocalDateTime monday = LocalDateTime.of(2026, 8, 31, 19, 0);
+        LocalDateTime monday = LocalDateTime.of(2026, Month.AUGUST, 31, 19, 0);
         BigDecimal priceMonday = happyHourService.resolveEffectivePrice(testCocktail, null, monday);
         assertThat(priceMonday).isEqualByComparingTo("10.00");
 
         // Friday 21:00 (window ends at 20:00)
-        LocalDateTime lateFriday = LocalDateTime.of(2026, 9, 4, 21, 0);
+        LocalDateTime lateFriday = LocalDateTime.of(2026, Month.SEPTEMBER, 4, 21, 0);
         BigDecimal priceLate = happyHourService.resolveEffectivePrice(testCocktail, null, lateFriday);
         assertThat(priceLate).isEqualByComparingTo("10.00");
     }
@@ -299,7 +301,7 @@ class HappyHourServiceTest {
         variante.setPrixSupplement(new BigDecimal("10.00")); // base 10 + 10 = 20 EUR
 
         when(ruleRepository.findByActiveTrue()).thenReturn(List.of(standardRule));
-        LocalDateTime promoTime = LocalDateTime.of(2026, 9, 4, 18, 30);
+        LocalDateTime promoTime = LocalDateTime.of(2026, Month.SEPTEMBER, 4, 18, 30);
 
         BigDecimal effectivePrice = happyHourService.resolveEffectivePrice(testCocktail, variante, promoTime);
 
@@ -316,7 +318,7 @@ class HappyHourServiceTest {
             "20, 01, false"  // 1 minute after end
     })
     void scheduleBoundaries_exactMinutesEvaluation(int hour, int minute, boolean expectedActive) {
-        LocalDateTime timestamp = LocalDateTime.of(2026, 9, 4, hour, minute); // Friday
+        LocalDateTime timestamp = LocalDateTime.of(2026, Month.SEPTEMBER, 4, hour, minute); // Friday
         boolean applicable = standardRule.isApplicableAt(timestamp);
         assertThat(applicable).isEqualTo(expectedActive);
     }
@@ -339,7 +341,7 @@ class HappyHourServiceTest {
         overnightRule.setActive(true);
         overnightRule.setDaysOfWeek(Collections.emptySet()); // all days
 
-        LocalDateTime eval = LocalDateTime.of(2026, 9, 5, hour, minute);
+        LocalDateTime eval = LocalDateTime.of(2026, Month.SEPTEMBER, 5, hour, minute);
         assertThat(overnightRule.isApplicableAt(eval)).isEqualTo(expectedActive);
     }
 
@@ -364,7 +366,7 @@ class HappyHourServiceTest {
 
         when(ruleRepository.findByActiveTrue()).thenReturn(List.of(rule1, rule2));
 
-        BigDecimal price = happyHourService.resolveEffectivePrice(testCocktail, null, LocalDateTime.of(2026, 9, 4, 19, 0));
+        BigDecimal price = happyHourService.resolveEffectivePrice(testCocktail, null, LocalDateTime.of(2026, Month.SEPTEMBER, 4, 19, 0));
 
         assertThat(price).isEqualByComparingTo("6.50");
     }
@@ -375,7 +377,7 @@ class HappyHourServiceTest {
         when(cocktailRepository.findById(10L)).thenReturn(Optional.of(testCocktail));
         when(ruleRepository.findByActiveTrue()).thenReturn(List.of(standardRule));
 
-        LocalDateTime promoTime = LocalDateTime.of(2026, 9, 4, 18, 30);
+        LocalDateTime promoTime = LocalDateTime.of(2026, Month.SEPTEMBER, 4, 18, 30);
 
         PricingPreviewResponseDTO preview = happyHourService.simulatePricing(10L, null, promoTime);
 
@@ -393,7 +395,7 @@ class HappyHourServiceTest {
         when(cocktailRepository.findById(10L)).thenReturn(Optional.of(testCocktail));
         when(ruleRepository.findByActiveTrue()).thenReturn(List.of(standardRule));
 
-        LocalDateTime outsideTime = LocalDateTime.of(2026, 9, 4, 14, 0);
+        LocalDateTime outsideTime = LocalDateTime.of(2026, Month.SEPTEMBER, 4, 14, 0);
 
         PricingPreviewResponseDTO preview = happyHourService.simulatePricing(10L, null, outsideTime);
 

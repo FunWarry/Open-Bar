@@ -1364,7 +1364,7 @@ public class PdfService {
         return cell;
     }
 
-    private PdfPCell createNoBorderCell(Element element, int alignment, int paddingBottom) {
+    private PdfPCell createNoBorderCell(Element element, int alignment, float paddingBottom) {
         PdfPCell cell = new PdfPCell();
         cell.setBorder(Rectangle.NO_BORDER);
         cell.setHorizontalAlignment(alignment);

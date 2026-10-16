@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.controller;
 
+
+import java.time.Month;
 import com.bar.gestioncocktail.dto.EmployeeShiftRequestDTO;
 import com.bar.gestioncocktail.dto.EmployeeShiftResponseDTO;
 import com.bar.gestioncocktail.dto.ShiftAuditLogDTO;
@@ -54,7 +56,7 @@ class EmployeeShiftControllerTest {
         sampleShift = new EmployeeShift();
         sampleShift.setId(1L);
         sampleShift.setUser(user);
-        sampleShift.setDateShift(LocalDate.of(2026, 8, 10));
+        sampleShift.setDateShift(LocalDate.of(2026, Month.AUGUST, 10));
         sampleShift.setTypeShift(TypeShift.MATIN);
         sampleShift.setTypePoste(TypePoste.MANAGER);
         sampleShift.setHeureDebut("08:00");
@@ -74,8 +76,8 @@ class EmployeeShiftControllerTest {
 
     @Test
     void getShiftsForWeek_WithDebutAndFin_ShouldReturnList() {
-        LocalDate start = LocalDate.of(2026, 8, 10);
-        LocalDate end = LocalDate.of(2026, 8, 16);
+        LocalDate start = LocalDate.of(2026, Month.AUGUST, 10);
+        LocalDate end = LocalDate.of(2026, Month.AUGUST, 16);
         when(shiftService.getShiftsForWeek(start, end)).thenReturn(List.of(sampleShift));
 
         ResponseEntity<List<EmployeeShiftResponseDTO>> response = shiftController.getShiftsForWeek(null, start, end);
@@ -86,7 +88,7 @@ class EmployeeShiftControllerTest {
 
     @Test
     void getShiftsForWeek_WithDate_ShouldCallWeekOfDate() {
-        LocalDate target = LocalDate.of(2026, 8, 12);
+        LocalDate target = LocalDate.of(2026, Month.AUGUST, 12);
         when(shiftService.getShiftsForWeekOfDate(target)).thenReturn(List.of(sampleShift));
 
         ResponseEntity<List<EmployeeShiftResponseDTO>> response = shiftController.getShiftsForWeek(target, null, null);
@@ -97,8 +99,8 @@ class EmployeeShiftControllerTest {
 
     @Test
     void getShiftsForRange_ShouldReturnList() {
-        LocalDate from = LocalDate.of(2026, 8, 10);
-        LocalDate to = LocalDate.of(2026, 8, 16);
+        LocalDate from = LocalDate.of(2026, Month.AUGUST, 10);
+        LocalDate to = LocalDate.of(2026, Month.AUGUST, 16);
         when(shiftService.getShiftsForWeek(from, to)).thenReturn(List.of(sampleShift));
 
         ResponseEntity<List<EmployeeShiftResponseDTO>> response = shiftController.getShiftsForRange(from, to);
@@ -120,7 +122,7 @@ class EmployeeShiftControllerTest {
     @Test
     void createShift_ShouldReturnCreatedDto() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            1L, LocalDate.of(2026, 8, 10), TypeShift.MATIN, TypePoste.MANAGER,
+            1L, LocalDate.of(2026, Month.AUGUST, 10), TypeShift.MATIN, TypePoste.MANAGER,
             "08:00", "16:00", "12:00", 30, null, null, BigDecimal.ZERO, BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Test"
         );
 
@@ -136,7 +138,7 @@ class EmployeeShiftControllerTest {
     @Test
     void updateShift_ShouldReturnUpdatedDto() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            1L, LocalDate.of(2026, 8, 10), TypeShift.SOIR, TypePoste.MANAGER,
+            1L, LocalDate.of(2026, Month.AUGUST, 10), TypeShift.SOIR, TypePoste.MANAGER,
             "17:00", "01:00", "20:00", 30, null, null, BigDecimal.ZERO, BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Modified"
         );
 
@@ -175,7 +177,7 @@ class EmployeeShiftControllerTest {
     void getShiftHistory_ShouldReturnHistoryList() {
         ShiftAuditLogDTO dto = new ShiftAuditLogDTO(
                 10L, 1L, 1L, "manager1", "Dupont", "Jean",
-                LocalDate.of(2026, 8, 10), ShiftAuditAction.CREATED,
+                LocalDate.of(2026, Month.AUGUST, 10), ShiftAuditAction.CREATED,
                 "manager1", LocalDateTime.now(), null, "{}"
         );
         when(shiftAuditService.getHistoryForShift(1L)).thenReturn(List.of(dto));

@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.service;
 
+
+import java.time.Month;
 import com.bar.gestioncocktail.dto.EmployeeShiftRequestDTO;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.EmployeeShift;
@@ -56,7 +58,7 @@ class EmployeeShiftServiceTest {
         sampleShift = new EmployeeShift();
         sampleShift.setId(10L);
         sampleShift.setUser(sampleUser);
-        sampleShift.setDateShift(LocalDate.of(2026, 8, 10));
+        sampleShift.setDateShift(LocalDate.of(2026, Month.AUGUST, 10));
         sampleShift.setTypeShift(TypeShift.MATIN);
         sampleShift.setTypePoste(TypePoste.SERVEUR);
         sampleShift.setHeureDebut("08:00");
@@ -87,8 +89,8 @@ class EmployeeShiftServiceTest {
 
     @Test
     void getShiftsForWeek_ShouldReturnFilteredShifts() {
-        LocalDate start = LocalDate.of(2026, 8, 10);
-        LocalDate end = LocalDate.of(2026, 8, 16);
+        LocalDate start = LocalDate.of(2026, Month.AUGUST, 10);
+        LocalDate end = LocalDate.of(2026, Month.AUGUST, 16);
         when(shiftRepository.findByDateShiftBetween(start, end)).thenReturn(List.of(sampleShift));
 
         List<EmployeeShift> result = shiftService.getShiftsForWeek(start, end);
@@ -98,9 +100,9 @@ class EmployeeShiftServiceTest {
 
     @Test
     void getShiftsForWeekOfDate_ShouldCalculateMondayAndSunday() {
-        LocalDate wednesday = LocalDate.of(2026, 8, 12);
-        LocalDate monday = LocalDate.of(2026, 8, 10);
-        LocalDate sunday = LocalDate.of(2026, 8, 16);
+        LocalDate wednesday = LocalDate.of(2026, Month.AUGUST, 12);
+        LocalDate monday = LocalDate.of(2026, Month.AUGUST, 10);
+        LocalDate sunday = LocalDate.of(2026, Month.AUGUST, 16);
         when(shiftRepository.findByDateShiftBetween(monday, sunday)).thenReturn(List.of(sampleShift));
 
         List<EmployeeShift> result = shiftService.getShiftsForWeekOfDate(wednesday);
@@ -139,7 +141,7 @@ class EmployeeShiftServiceTest {
     @Test
     void createShift_Success() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            1L, LocalDate.of(2026, 8, 10), TypeShift.SOIR, TypePoste.BARMAN,
+            1L, LocalDate.of(2026, Month.AUGUST, 10), TypeShift.SOIR, TypePoste.BARMAN,
             "17:00", "01:00", "20:00", 30, "17:05", "01:10", BigDecimal.ZERO, BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Service bar"
         );
 
@@ -160,7 +162,7 @@ class EmployeeShiftServiceTest {
     @Test
     void createShift_UserNotFound_ThrowsException() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            99L, LocalDate.of(2026, 8, 10), TypeShift.SOIR, TypePoste.BARMAN,
+            99L, LocalDate.of(2026, Month.AUGUST, 10), TypeShift.SOIR, TypePoste.BARMAN,
             "17:00", "01:00", "20:00", 30, "17:05", "01:10", BigDecimal.valueOf(0.5), BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Note"
         );
 
@@ -173,7 +175,7 @@ class EmployeeShiftServiceTest {
     @Test
     void updateShift_Success_AllFields() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            2L, LocalDate.of(2026, 8, 11), TypeShift.SOIR, TypePoste.BARMAN,
+            2L, LocalDate.of(2026, Month.AUGUST, 11), TypeShift.SOIR, TypePoste.BARMAN,
             "18:00", "02:00", "21:00", 30, "18:00", "02:00", BigDecimal.ZERO, BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Special evening"
         );
 
@@ -184,7 +186,7 @@ class EmployeeShiftServiceTest {
         EmployeeShift updated = shiftService.updateShift(10L, request);
 
         assertThat(updated.getUser().getId()).isEqualTo(2L);
-        assertThat(updated.getDateShift()).isEqualTo(LocalDate.of(2026, 8, 11));
+        assertThat(updated.getDateShift()).isEqualTo(LocalDate.of(2026, Month.AUGUST, 11));
         assertThat(updated.getTypeShift()).isEqualTo(TypeShift.SOIR);
         assertThat(updated.getTypePoste()).isEqualTo(TypePoste.BARMAN);
         assertThat(updated.getHeureDebut()).isEqualTo("18:00");
@@ -218,7 +220,7 @@ class EmployeeShiftServiceTest {
         EmployeeShift updated = shiftService.updateShift(10L, request);
 
         // Values should remain unchanged
-        assertThat(updated.getDateShift()).isEqualTo(LocalDate.of(2026, 8, 10));
+        assertThat(updated.getDateShift()).isEqualTo(LocalDate.of(2026, Month.AUGUST, 10));
         assertThat(updated.getTypeShift()).isEqualTo(TypeShift.MATIN);
         assertThat(updated.getTypePoste()).isEqualTo(TypePoste.SERVEUR);
         assertThat(updated.getHeureDebut()).isEqualTo("08:00");
@@ -230,7 +232,7 @@ class EmployeeShiftServiceTest {
     void updateShift_WithSameUserId_DoesNotRefetchUser() {
         // userId == shift.user.id → branch false on userId change check
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            1L, LocalDate.of(2026, 8, 12), TypeShift.COUPURE, TypePoste.CAISSE,
+            1L, LocalDate.of(2026, Month.AUGUST, 12), TypeShift.COUPURE, TypePoste.CAISSE,
             "12:00", "20:00", "15:00", 60, null, null, BigDecimal.ZERO, BigDecimal.valueOf(7.0), new BigDecimal("8.0"), "Coupure"
         );
 
@@ -247,7 +249,7 @@ class EmployeeShiftServiceTest {
     @Test
     void updateShift_WithNewUserId_UpdatesUserSuccessfully() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            2L, LocalDate.of(2026, 8, 12), TypeShift.SOIR, TypePoste.BARMAN,
+            2L, LocalDate.of(2026, Month.AUGUST, 12), TypeShift.SOIR, TypePoste.BARMAN,
             "16:00", "00:00", null, 30, null, null, null, null, null, "Transfer to new user"
         );
 
@@ -264,7 +266,7 @@ class EmployeeShiftServiceTest {
     @Test
     void createShift_WhenHeuresPrevuesNull_CalculatesFromTimesAndHandlesOvernight() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            1L, LocalDate.of(2026, 8, 10), TypeShift.NUIT, TypePoste.BARMAN,
+            1L, LocalDate.of(2026, Month.AUGUST, 10), TypeShift.NUIT, TypePoste.BARMAN,
             "22:00", "06:00", "02:00", 60, null, null, null, null, null, "Overnight"
         );
 
@@ -295,7 +297,7 @@ class EmployeeShiftServiceTest {
         setSecurityContext("serveur1", "SERVEUR");
 
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            1L, LocalDate.of(2026, 8, 10), TypeShift.MATIN, TypePoste.SERVEUR,
+            1L, LocalDate.of(2026, Month.AUGUST, 10), TypeShift.MATIN, TypePoste.SERVEUR,
             "08:00", "16:00", null, null, "08:05", "16:15", BigDecimal.valueOf(0.25), BigDecimal.valueOf(8.0), BigDecimal.valueOf(8.25), "Arrived 5m late"
         );
 
@@ -315,7 +317,7 @@ class EmployeeShiftServiceTest {
         setSecurityContext("barman1", "BARMAN"); // barman1 tries to update serveur1's shift
 
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            1L, LocalDate.of(2026, 8, 10), TypeShift.MATIN, TypePoste.SERVEUR,
+            1L, LocalDate.of(2026, Month.AUGUST, 10), TypeShift.MATIN, TypePoste.SERVEUR,
             "08:00", "16:00", null, null, "08:00", "16:00", BigDecimal.ZERO, BigDecimal.valueOf(8.0), BigDecimal.valueOf(8.0), "Fraud"
         );
 
@@ -331,7 +333,7 @@ class EmployeeShiftServiceTest {
         setSecurityContext("serveur1", "SERVEUR");
 
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            2L, LocalDate.of(2026, 8, 10), TypeShift.MATIN, TypePoste.SERVEUR,
+            2L, LocalDate.of(2026, Month.AUGUST, 10), TypeShift.MATIN, TypePoste.SERVEUR,
             "08:00", "16:00", null, null, "08:00", "16:00", BigDecimal.ZERO, BigDecimal.valueOf(8.0), BigDecimal.valueOf(8.0), "Reassign"
         );
 
@@ -347,7 +349,7 @@ class EmployeeShiftServiceTest {
         setSecurityContext("serveur1", "SERVEUR");
 
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            1L, LocalDate.of(2026, 8, 15), TypeShift.MATIN, TypePoste.SERVEUR,
+            1L, LocalDate.of(2026, Month.AUGUST, 15), TypeShift.MATIN, TypePoste.SERVEUR,
             "08:00", "16:00", null, null, null, null, null, null, null, null
         );
 
@@ -363,7 +365,7 @@ class EmployeeShiftServiceTest {
         setSecurityContext("serveur1", "SERVEUR");
 
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            1L, LocalDate.of(2026, 8, 10), TypeShift.MATIN, TypePoste.SERVEUR,
+            1L, LocalDate.of(2026, Month.AUGUST, 10), TypeShift.MATIN, TypePoste.SERVEUR,
             "10:00", "18:00", null, null, null, null, null, null, null, null
         );
 
@@ -379,7 +381,7 @@ class EmployeeShiftServiceTest {
         setSecurityContext("serveur1", "SERVEUR");
 
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            1L, LocalDate.of(2026, 8, 10), TypeShift.SOIR, TypePoste.SERVEUR,
+            1L, LocalDate.of(2026, Month.AUGUST, 10), TypeShift.SOIR, TypePoste.SERVEUR,
             "08:00", "16:00", null, null, null, null, null, null, null, null
         );
 
@@ -395,7 +397,7 @@ class EmployeeShiftServiceTest {
         setSecurityContext("serveur1", "SERVEUR");
 
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            1L, LocalDate.of(2026, 8, 10), TypeShift.MATIN, TypePoste.BARMAN,
+            1L, LocalDate.of(2026, Month.AUGUST, 10), TypeShift.MATIN, TypePoste.BARMAN,
             "08:00", "16:00", null, null, null, null, null, null, null, null
         );
 
@@ -411,7 +413,7 @@ class EmployeeShiftServiceTest {
         setSecurityContext("serveur1", "SERVEUR");
 
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            1L, LocalDate.of(2026, 8, 10), TypeShift.MATIN, TypePoste.SERVEUR,
+            1L, LocalDate.of(2026, Month.AUGUST, 10), TypeShift.MATIN, TypePoste.SERVEUR,
             "08:00", "18:00", null, null, null, null, null, null, null, null
         );
 
@@ -427,7 +429,7 @@ class EmployeeShiftServiceTest {
         setSecurityContext("admin1", "ADMIN");
 
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            1L, LocalDate.of(2026, 8, 11), TypeShift.SOIR, TypePoste.BARMAN,
+            1L, LocalDate.of(2026, Month.AUGUST, 11), TypeShift.SOIR, TypePoste.BARMAN,
             "18:00", "02:00", null, null, null, null, null, null, null, null
         );
 
@@ -436,7 +438,7 @@ class EmployeeShiftServiceTest {
 
         EmployeeShift updated = shiftService.updateShift(10L, request);
 
-        assertThat(updated.getDateShift()).isEqualTo(LocalDate.of(2026, 8, 11));
+        assertThat(updated.getDateShift()).isEqualTo(LocalDate.of(2026, Month.AUGUST, 11));
         assertThat(updated.getTypeShift()).isEqualTo(TypeShift.SOIR);
     }
 

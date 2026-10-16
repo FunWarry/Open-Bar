@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.service;
 
+
+import java.time.Month;
 import com.bar.gestioncocktail.dto.WeekSchedulePublicationDTO;
 import com.bar.gestioncocktail.model.WeekSchedulePublication;
 import com.bar.gestioncocktail.repository.WeekSchedulePublicationRepository;
@@ -50,21 +52,21 @@ class WeekSchedulePublicationServiceTest {
 
     @BeforeEach
     void setUp() {
-        monday = LocalDate.of(2026, 8, 17);
+        monday = LocalDate.of(2026, Month.AUGUST, 17);
         Mockito.lenient().when(closureService.isClosedOnDate(Mockito.any(LocalDate.class))).thenReturn(false);
     }
 
     @Test
     @DisplayName("publishWeek() creates a new publication, saves it and broadcasts on /topic/schedule/published")
     void publishWeek_createsAndBroadcasts() {
-        when(timeService.now()).thenReturn(LocalDateTime.of(2026, 8, 17, 12, 0));
+        when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.AUGUST, 17, 12, 0));
         when(repository.findByWeekStart(monday)).thenReturn(Optional.empty());
         when(shiftRepository.findByDateShiftBetween(eq(monday), any(LocalDate.class))).thenReturn(List.of());
 
         WeekSchedulePublication saved = new WeekSchedulePublication();
         saved.setId(1L);
         saved.setWeekStart(monday);
-        saved.setPublishedAt(LocalDateTime.of(2026, 8, 17, 12, 0));
+        saved.setPublishedAt(LocalDateTime.of(2026, Month.AUGUST, 17, 12, 0));
         saved.setPublishedBy("manager1");
         saved.setSnapshotJson("[]");
 
@@ -85,13 +87,13 @@ class WeekSchedulePublicationServiceTest {
     @Test
     @DisplayName("publishWeek() updates an existing publication for that week")
     void publishWeek_updatesExisting() {
-        when(timeService.now()).thenReturn(LocalDateTime.of(2026, 8, 17, 14, 0));
+        when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.AUGUST, 17, 14, 0));
         when(shiftRepository.findByDateShiftBetween(eq(monday), any(LocalDate.class))).thenReturn(List.of());
 
         WeekSchedulePublication existing = new WeekSchedulePublication();
         existing.setId(2L);
         existing.setWeekStart(monday);
-        existing.setPublishedAt(LocalDateTime.of(2026, 8, 10, 10, 0));
+        existing.setPublishedAt(LocalDateTime.of(2026, Month.AUGUST, 10, 10, 0));
         existing.setPublishedBy("oldManager");
         existing.setSnapshotJson("[]");
 
