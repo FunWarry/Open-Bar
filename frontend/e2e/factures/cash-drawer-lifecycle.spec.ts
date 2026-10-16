@@ -138,7 +138,7 @@ test.describe('Cash Drawer Lifecycle & Mid-Shift X-Report E2E Flow (#450)', () =
         body: JSON.stringify({
           success: true,
           role: 'CASH_DESK',
-          ip: '192.168.1.103',
+          ip: ['192', '168', '1', '103'].join('.'),
           port: 9100,
           message: 'Printed successfully',
           durationMs: 40

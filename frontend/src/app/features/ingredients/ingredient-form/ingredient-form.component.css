@@ -622,69 +622,69 @@ ion-title {
 /* Strict Height and Baseline Alignment for Confection Source Fields */
 .source-card-fields-grid ::ng-deep .searchable-select-container,
 .source-card-fields-grid ::ng-deep .field-container {
-  gap: 6px !important;
+  gap: 6px;
 }
 
 .source-card-fields-grid ::ng-deep .select-label,
 .source-card-fields-grid ::ng-deep .field-label {
-  display: flex !important;
-  align-items: center !important;
-  height: 20px !important;
-  min-height: 20px !important;
-  line-height: 20px !important;
-  font-size: 0.82rem !important;
-  font-weight: 600 !important;
-  color: var(--text-secondary) !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  margin: 0 !important;
+  display: flex;
+  align-items: center;
+  height: 20px;
+  min-height: 20px;
+  line-height: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
 }
 
 .source-card-fields-grid ::ng-deep .input-wrapper,
 .source-card-fields-grid ::ng-deep .select-trigger {
-  height: 44px !important;
-  min-height: 44px !important;
-  max-height: 44px !important;
-  box-sizing: border-box !important;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  box-sizing: border-box;
 }
 
 .source-card-fields-grid ::ng-deep .select-trigger {
-  padding: 0 12px !important;
-  border-radius: var(--radius-md, 10px) !important;
-  background-color: var(--background-surface-1) !important;
-  border: 1.5px solid var(--border-medium) !important;
+  padding: 0 12px;
+  border-radius: var(--radius-md, 10px);
+  background-color: var(--background-surface-1);
+  border: 1.5px solid var(--border-medium);
 }
 
 .source-card-fields-grid ::ng-deep .select-trigger .selected-item-display {
-  gap: 8px !important;
-  min-width: 0 !important;
+  gap: 8px;
+  min-width: 0;
 }
 
 .source-card-fields-grid ::ng-deep .select-trigger .item-sublabel {
-  display: none !important;
+  display: none;
 }
 
 .source-card-fields-grid ::ng-deep .select-trigger .item-icon {
-  font-size: 1.15rem !important;
-  flex-shrink: 0 !important;
+  font-size: 1.15rem;
+  flex-shrink: 0;
 }
 
 .source-card-fields-grid ::ng-deep .select-trigger .item-header-row {
-  min-width: 0 !important;
-  gap: 6px !important;
+  min-width: 0;
+  gap: 6px;
 }
 
 .source-card-fields-grid ::ng-deep .select-trigger .item-label {
-  font-size: 0.88rem !important;
-  line-height: 1.2 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
+  font-size: 0.88rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .source-card-fields-grid ::ng-deep .select-trigger .item-badge {
-  flex-shrink: 0 !important;
+  flex-shrink: 0;
 }
 
 /* Dynamic Yield Explanation Footer */

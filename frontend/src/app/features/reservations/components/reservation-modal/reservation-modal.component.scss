@@ -488,7 +488,7 @@
   will-change: transform;
 
   &.dragging {
-    transition: none !important;
+    transition: none;
   }
 }
 

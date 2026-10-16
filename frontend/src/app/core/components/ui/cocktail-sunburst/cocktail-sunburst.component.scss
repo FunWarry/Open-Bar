@@ -129,14 +129,14 @@
   stroke: var(--background-bg-0);
   stroke-width: 2;
   transition: opacity 0.2s ease, filter 0.2s ease;
-  outline: none !important;
+  outline: none;
   -webkit-tap-highlight-color: transparent;
 
   &:focus,
   &:focus-visible,
   &:active {
-    outline: none !important;
-    box-shadow: none !important;
+    outline: none;
+    box-shadow: none;
   }
 
   &:hover {

@@ -268,22 +268,22 @@ ion-popover ion-item:hover ion-icon {
 /* ── Responsive adjustments ─────────────────────────────── */
 @media (max-width: 1199px) {
   .topbar-page-title {
-    display: none !important;
+    display: none;
   }
 }
 
 @media (max-width: 991px) {
   .topbar-time {
-    display: none !important;
+    display: none;
   }
 }
 
 @media (max-width: 767px) {
   .topbar-user-btn .role-badge {
-    display: none !important;
+    display: none;
   }
 
   .popover-user-header .role-badge {
-    display: inline-flex !important;
+    display: inline-flex;
   }
 }

@@ -405,39 +405,39 @@
       border: 1px solid transparent;
 
       &[color="warning"] {
-        background: var(--status-waiting-15, rgba(244, 165, 42, 0.15)) !important;
-        color: var(--semantic-warning, #f4a52a) !important;
-        border-color: rgba(244, 165, 42, 0.35) !important;
+        background: var(--status-waiting-15, rgba(244, 165, 42, 0.15));
+        color: var(--semantic-warning, #f4a52a);
+        border-color: rgba(244, 165, 42, 0.35);
       }
 
       &[color="primary"] {
-        background: var(--status-inprogress-15, rgba(43, 168, 232, 0.15)) !important;
-        color: var(--semantic-info, #2ba8e8) !important;
-        border-color: rgba(43, 168, 232, 0.35) !important;
+        background: var(--status-inprogress-15, rgba(43, 168, 232, 0.15));
+        color: var(--semantic-info, #2ba8e8);
+        border-color: rgba(43, 168, 232, 0.35);
       }
 
       &[color="success"] {
-        background: var(--status-ready-15, rgba(47, 191, 107, 0.15)) !important;
-        color: var(--semantic-success, #2fbf6b) !important;
-        border-color: rgba(47, 191, 107, 0.35) !important;
+        background: var(--status-ready-15, rgba(47, 191, 107, 0.15));
+        color: var(--semantic-success, #2fbf6b);
+        border-color: rgba(47, 191, 107, 0.35);
       }
 
       &[color="medium"] {
-        background: var(--background-surface-3, #2a3050) !important;
-        color: var(--text-secondary, #a4add0) !important;
-        border-color: var(--border-medium, #2a2e4d) !important;
+        background: var(--background-surface-3, #2a3050);
+        color: var(--text-secondary, #a4add0);
+        border-color: var(--border-medium, #2a2e4d);
       }
 
       &[color="danger"] {
-        background: var(--status-canceled-15, rgba(229, 96, 79, 0.15)) !important;
-        color: var(--semantic-danger, #e5604f) !important;
-        border-color: rgba(229, 96, 79, 0.35) !important;
+        background: var(--status-canceled-15, rgba(229, 96, 79, 0.15));
+        color: var(--semantic-danger, #e5604f);
+        border-color: rgba(229, 96, 79, 0.35);
       }
 
       &.urgent-badge {
-        background: var(--status-canceled-15, rgba(229, 96, 79, 0.18)) !important;
-        color: var(--semantic-danger, #e5604f) !important;
-        border: 1px solid var(--semantic-danger, #e5604f) !important;
+        background: var(--status-canceled-15, rgba(229, 96, 79, 0.18));
+        color: var(--semantic-danger, #e5604f);
+        border: 1px solid var(--semantic-danger, #e5604f);
         box-shadow: 0 0 8px rgba(229, 96, 79, 0.25);
       }
     }

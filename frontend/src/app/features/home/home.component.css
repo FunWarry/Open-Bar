@@ -215,7 +215,7 @@
 /* ── Mobile Viewport Overrides (< 768px) ── */
 @media (max-width: 767px) {
   .ambient-glow {
-    display: none !important;
+    display: none;
   }
 
   .home-container {

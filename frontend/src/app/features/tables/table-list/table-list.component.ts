@@ -187,7 +187,8 @@ export class TableListComponent implements OnInit, OnDestroy {
     const etage = this.getEtageForZone(zoneName);
     if (!etage) return '';
     if (etage.code === 'RDC') return 'RDC';
-    return etage.nom.replace(/\s*\(.*\)/, '');
+    const parenIndex = etage.nom.indexOf('(');
+    return (parenIndex !== -1 ? etage.nom.substring(0, parenIndex) : etage.nom).trim();
   }
 
   /**

@@ -424,7 +424,8 @@ export class CocktailListComponent implements OnInit, OnDestroy {
       if (parent.id === cocktail.id) return false;
       return (parent.variantes || []).some(v => {
         const vNom = v.nom.toLowerCase().trim();
-        const baseVNom = vNom.replace(/\s*\([^)]*\)/, '').trim();
+        const parenIdx = vNom.indexOf('(');
+        const baseVNom = (parenIdx !== -1 ? vNom.substring(0, parenIdx) : vNom).trim();
         return vNom.includes(cNom) || cNom === baseVNom;
       });
     });
