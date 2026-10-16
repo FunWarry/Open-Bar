@@ -199,12 +199,12 @@ describe('SearchableSelectComponent', () => {
     expect(component.value).toEqual([1]);
     expect(component.isOptionSelected(mockOptions[0])).toBeTrue();
     expect(component.isOptionSelected(mockOptions[1])).toBeFalse();
-    expect(component.selectedOptions().length).toBe(1);
+    expect(component.selectedOptions()).toHaveSize(1);
 
     // Select second option
     component.selectOption(mockOptions[1]);
     expect(component.value).toEqual([1, 2]);
-    expect(component.selectedOptions().length).toBe(2);
+    expect(component.selectedOptions()).toHaveSize(2);
 
     // Deselect first option
     component.selectOption(mockOptions[0]);

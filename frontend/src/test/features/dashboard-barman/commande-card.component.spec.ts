@@ -273,14 +273,14 @@ describe('CommandeCardComponent', () => {
     });
 
     component.stationFilter = 'ALL';
-    expect(component.groupedItems.length).toBe(2);
+    expect(component.groupedItems).toHaveSize(2);
 
     component.stationFilter = 'KITCHEN';
-    expect(component.groupedItems.length).toBe(1);
+    expect(component.groupedItems).toHaveSize(1);
     expect(component.groupedItems[0].cocktailNom).toBe('Nachos');
 
     component.stationFilter = 'BAR';
-    expect(component.groupedItems.length).toBe(1);
+    expect(component.groupedItems).toHaveSize(1);
     expect(component.groupedItems[0].cocktailNom).toBe('Mojito');
   });
 });
