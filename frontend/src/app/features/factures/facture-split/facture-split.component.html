@@ -34,7 +34,7 @@
   <!-- 4-Mode Segment Switcher (hidden when invoice is already settled) -->
   @if (!isAlreadySettled) {
     <div class="segment-container">
-      <ion-segment [(ngModel)]="mode" (ionChange)="onModeChange()" data-testid="split-mode-segment">
+      <ion-segment [scrollable]="true" [(ngModel)]="mode" (ionChange)="onModeChange()" data-testid="split-mode-segment">
         <ion-segment-button value="equal" data-testid="split-mode-egal">
           <ion-icon name="people-outline"></ion-icon>
           <ion-label>{{ 'SPLIT.EQUAL_SHARE' | transloco }}</ion-label>

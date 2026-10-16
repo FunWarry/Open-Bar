@@ -21,6 +21,7 @@ import {
   layersOutline, gitMergeOutline, expandOutline, createOutline,
   addOutline, removeOutline, locateOutline, gridOutline, magnetOutline,
   calendarOutline, timeOutline, personOutline, restaurantOutline,
+  businessOutline, chevronDownOutline, contractOutline, checkmarkCircleOutline,
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
@@ -120,6 +121,22 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Side panel visibility. */
   isSidePanelOpen = false;
 
+  /** Mobile options and filters bottom sheet visibility & resize state. */
+  isMobileOptionsOpen = false;
+  mobileOptionsHeight = 65;
+  isOptionsExpanded = false;
+  isOptionsDragging = false;
+  touchOptionsStartY = 0;
+  touchOptionsStartHeight = 65;
+
+  /** Mobile dedicated floor picker bottom sheet visibility & resize state. */
+  isMobileFloorPickerOpen = false;
+  mobileFloorPickerHeight = 52;
+  isFloorPickerExpanded = false;
+  isFloorPickerDragging = false;
+  touchFloorPickerStartY = 0;
+  touchFloorPickerStartHeight = 52;
+
   /** Source table during merge mode. */
   fusionSourceTable: TableBar | null = null;
 
@@ -199,6 +216,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
       layersOutline, gitMergeOutline, expandOutline, createOutline,
       addOutline, removeOutline, locateOutline, gridOutline, magnetOutline,
       calendarOutline, timeOutline, personOutline, restaurantOutline,
+      businessOutline, chevronDownOutline, contractOutline, checkmarkCircleOutline,
     });
   }
 
@@ -691,6 +709,69 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
         }, 80);
       }
     });
+
+    // Multi-touch pinch-to-zoom for mobile touchscreens
+    let lastTouchDist = 0;
+
+    this.stage.on('touchstart', (e) => {
+      const touch1 = e.evt.touches?.[0];
+      const touch2 = e.evt.touches?.[1];
+      if (touch1 && touch2) {
+        lastTouchDist = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
+      }
+    });
+
+    this.stage.on('touchmove', (e) => {
+      const touch1 = e.evt.touches?.[0];
+      const touch2 = e.evt.touches?.[1];
+      if (touch1 && touch2 && lastTouchDist > 0) {
+        e.evt.preventDefault();
+        const dist = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
+        const stageContainer = this.stage.container();
+        const rect = stageContainer.getBoundingClientRect();
+        const currentCenter = {
+          x: (touch1.clientX + touch2.clientX) / 2 - rect.left,
+          y: (touch1.clientY + touch2.clientY) / 2 - rect.top,
+        };
+
+        const oldScale = this.stage.scaleX();
+        const scaleFactor = dist / lastTouchDist;
+        const newScale = Math.max(0.3, Math.min(2.5, oldScale * scaleFactor));
+
+        const touchPointTo = {
+          x: (currentCenter.x - this.stage.x()) / oldScale,
+          y: (currentCenter.y - this.stage.y()) / oldScale,
+        };
+
+        this.stage.scale({ x: newScale, y: newScale });
+        this.stage.position({
+          x: currentCenter.x - touchPointTo.x * newScale,
+          y: currentCenter.y - touchPointTo.y * newScale,
+        });
+
+        lastTouchDist = dist;
+        this.stage.batchDraw();
+        this.syncGridPosition();
+
+        if (!zoomTimer) {
+          zoomTimer = setTimeout(() => {
+            this.ngZone.run(() => {
+              this.zoomScale = Math.round(newScale * 100) / 100;
+              this.cdr.detectChanges();
+            });
+            zoomTimer = null;
+          }, 80);
+        }
+      }
+    });
+
+    this.stage.on('touchend', (e) => {
+      const touches = e.evt.touches;
+      if (!touches || touches.length < 2) {
+        lastTouchDist = 0;
+      }
+    });
+
     this.layer.add(this.transformer);
 
     this.stage.on('click tap', (e) => {
@@ -2035,6 +2116,171 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     this.zoneShapes.forEach(g => g.draggable(false));
     this.cdr.detectChanges();
     this.ngZone.runOutsideAngular(() => this.dessinerZones());
+  }
+
+  /**
+   * Opens mobile options and filters drawer.
+   */
+  openMobileOptions(): void {
+    this.isMobileOptionsOpen = true;
+    this.isMobileFloorPickerOpen = false;
+  }
+
+  /**
+   * Closes mobile options and filters drawer.
+   */
+  closeMobileOptions(): void {
+    this.isMobileOptionsOpen = false;
+  }
+
+  /**
+   * Toggles mobile options and filters drawer.
+   */
+  toggleMobileOptions(): void {
+    this.isMobileOptionsOpen = !this.isMobileOptionsOpen;
+    if (this.isMobileOptionsOpen) {
+      this.isMobileFloorPickerOpen = false;
+    }
+  }
+
+  /**
+   * Toggles mobile options height between compact (65vh) and expanded (92vh).
+   */
+  toggleOptionsExpand(): void {
+    this.isOptionsExpanded = !this.isOptionsExpanded;
+    this.mobileOptionsHeight = this.isOptionsExpanded ? 92 : 65;
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Touch drag handlers for smooth resizing of the mobile options sheet.
+   */
+  onOptionsTouchStart(e: TouchEvent): void {
+    if (e.touches?.length === 1) {
+      this.touchOptionsStartY = e.touches[0].clientY;
+      this.touchOptionsStartHeight = this.mobileOptionsHeight;
+      this.isOptionsDragging = true;
+    }
+  }
+
+  onOptionsTouchMove(e: TouchEvent): void {
+    if (!this.isOptionsDragging || e.touches?.length !== 1) return;
+    const currentY = e.touches[0].clientY;
+    const deltaY = this.touchOptionsStartY - currentY;
+    const vh = window.innerHeight || 800;
+    const deltaVh = (deltaY / vh) * 100;
+    const newHeight = Math.min(94, Math.max(30, this.touchOptionsStartHeight + deltaVh));
+    this.mobileOptionsHeight = Math.round(newHeight);
+    this.isOptionsExpanded = this.mobileOptionsHeight > 75;
+    this.cdr.markForCheck();
+  }
+
+  onOptionsTouchEnd(): void {
+    if (!this.isOptionsDragging) return;
+    this.isOptionsDragging = false;
+    if (this.mobileOptionsHeight < 38) {
+      this.mobileOptionsHeight = 65;
+      this.isOptionsExpanded = false;
+      this.closeMobileOptions();
+    } else if (this.mobileOptionsHeight > 75) {
+      this.mobileOptionsHeight = 92;
+      this.isOptionsExpanded = true;
+    } else {
+      this.mobileOptionsHeight = 65;
+      this.isOptionsExpanded = false;
+    }
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Opens mobile dedicated floor picker drawer.
+   */
+  openMobileFloorPicker(): void {
+    this.isMobileFloorPickerOpen = true;
+    this.isMobileOptionsOpen = false;
+  }
+
+  /**
+   * Closes mobile dedicated floor picker drawer.
+   */
+  closeMobileFloorPicker(): void {
+    this.isMobileFloorPickerOpen = false;
+  }
+
+  /**
+   * Toggles mobile dedicated floor picker drawer.
+   */
+  toggleMobileFloorPicker(): void {
+    this.isMobileFloorPickerOpen = !this.isMobileFloorPickerOpen;
+    if (this.isMobileFloorPickerOpen) {
+      this.isMobileOptionsOpen = false;
+    }
+  }
+
+  /**
+   * Toggles floor picker height between compact (52vh) and expanded (88vh).
+   */
+  toggleFloorPickerExpand(): void {
+    this.isFloorPickerExpanded = !this.isFloorPickerExpanded;
+    this.mobileFloorPickerHeight = this.isFloorPickerExpanded ? 88 : 52;
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Touch drag handlers for smooth resizing of the floor picker bottom sheet.
+   */
+  onFloorPickerTouchStart(e: TouchEvent): void {
+    if (e.touches?.length === 1) {
+      this.touchFloorPickerStartY = e.touches[0].clientY;
+      this.touchFloorPickerStartHeight = this.mobileFloorPickerHeight;
+      this.isFloorPickerDragging = true;
+    }
+  }
+
+  onFloorPickerTouchMove(e: TouchEvent): void {
+    if (!this.isFloorPickerDragging || e.touches?.length !== 1) return;
+    const currentY = e.touches[0].clientY;
+    const deltaY = this.touchFloorPickerStartY - currentY;
+    const vh = window.innerHeight || 800;
+    const deltaVh = (deltaY / vh) * 100;
+    const newHeight = Math.min(94, Math.max(30, this.touchFloorPickerStartHeight + deltaVh));
+    this.mobileFloorPickerHeight = Math.round(newHeight);
+    this.isFloorPickerExpanded = this.mobileFloorPickerHeight > 70;
+    this.cdr.markForCheck();
+  }
+
+  onFloorPickerTouchEnd(): void {
+    if (!this.isFloorPickerDragging) return;
+    this.isFloorPickerDragging = false;
+    if (this.mobileFloorPickerHeight < 35) {
+      this.mobileFloorPickerHeight = 52;
+      this.isFloorPickerExpanded = false;
+      this.closeMobileFloorPicker();
+    } else if (this.mobileFloorPickerHeight > 70) {
+      this.mobileFloorPickerHeight = 88;
+      this.isFloorPickerExpanded = true;
+    } else {
+      this.mobileFloorPickerHeight = 52;
+      this.isFloorPickerExpanded = false;
+    }
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Computes table count for a given floor level.
+   * @param floorCode Floor identifier code.
+   * @returns Total number of tables on this floor.
+   */
+  getFloorTableCount(floorCode: string): number {
+    return this.tables.filter(t => t.etage === floorCode).length;
+  }
+
+  /**
+   * Returns human-readable name of currently selected floor.
+   */
+  getSelectedFloorName(): string {
+    const etage = this.etages.find(e => e.code === this.selectedFloor);
+    return etage ? etage.nom : this.selectedFloor;
   }
 
   /**

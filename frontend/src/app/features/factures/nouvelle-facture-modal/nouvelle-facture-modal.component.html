@@ -77,7 +77,7 @@
               </div>
               <div class="table-card-meta">
                 <span class="zone-pill">{{ table.zone }}</span>
-                <span class="capacity-info">{{ table.capacite }} {{ 'TABLES.PLACES' | transloco }}</span>
+                <span class="capacity-info">{{ (table.capacite > 1 ? 'TABLES.CARD.SEATS' : 'TABLES.CARD.SEAT') | transloco : { count: table.capacite } }}</span>
               </div>
             </button>
           }
@@ -113,7 +113,8 @@
               </div>
               @if (additionPreview.serveurNom) {
                 <div class="server-info">
-                  <span class="server-label">{{ 'ENCAISSEMENT.SERVER_LABEL' | transloco }}:</span>
+                  <ion-icon name="person-outline" class="server-icon" aria-hidden="true"></ion-icon>
+                  <span class="server-label">{{ 'ENCAISSEMENT.SERVER_LABEL' | transloco }} :</span>
                   <span class="server-name">{{ additionPreview.serveurNom }}</span>
                 </div>
               }

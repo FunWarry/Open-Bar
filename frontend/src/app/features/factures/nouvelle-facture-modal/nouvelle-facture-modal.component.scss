@@ -221,38 +221,83 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-bottom: 10px;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding-bottom: 12px;
       border-bottom: 1px solid var(--border-medium);
 
       .table-title {
         display: flex;
         align-items: center;
         gap: 8px;
+        flex-wrap: wrap;
+        min-width: 0;
 
         h3 {
           margin: 0;
           font-size: 1.15rem;
           font-weight: 700;
           color: var(--text-primary);
+          white-space: nowrap;
+          letter-spacing: -0.01em;
         }
 
         .zone-tag {
-          font-size: 0.8rem;
-          padding: 2px 8px;
-          border-radius: 6px;
+          display: inline-flex;
+          align-items: center;
+          font-size: 0.78rem;
+          font-weight: 600;
+          padding: 3px 10px;
+          border-radius: var(--radius-pill, 999px);
           background: var(--background-surface-2);
           color: var(--text-secondary);
+          border: 1px solid var(--border-medium);
+          white-space: nowrap;
+          flex-shrink: 0;
         }
       }
 
       .server-info {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
         font-size: 0.85rem;
         color: var(--text-secondary);
+        background: var(--background-surface-2);
+        border: 1px solid var(--border-medium);
+        padding: 4px 10px;
+        border-radius: var(--radius-pill, 999px);
+        white-space: nowrap;
+        flex-shrink: 0;
+
+        .server-icon {
+          font-size: 0.95rem;
+          color: var(--primary);
+          flex-shrink: 0;
+        }
+
+        .server-label {
+          color: var(--text-muted);
+          font-weight: 500;
+        }
 
         .server-name {
           font-weight: 600;
           color: var(--text-primary);
-          margin-left: 4px;
+        }
+      }
+
+      @media (max-width: 576px) {
+        gap: 8px;
+
+        .table-title {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .server-info {
+          font-size: 0.8rem;
+          padding: 3px 8px;
         }
       }
     }

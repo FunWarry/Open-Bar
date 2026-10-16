@@ -3,12 +3,24 @@
   --color: var(--text-primary);
   border-bottom: 1px solid var(--border-medium);
   padding: 4px 6px;
+
+  ion-buttons[slot="end"] {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
 }
 
 .toolbar-brand {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
+
+  @media (max-width: 480px) {
+    gap: 8px;
+  }
 }
 
 .modal-icon-badge {
@@ -30,14 +42,22 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .modal-title {
-  font-size: 1.1rem;
+  margin: 0;
+  font-size: 1.05rem;
   font-weight: 800;
   color: var(--text-primary);
-  padding: 0;
-  letter-spacing: -0.2px;
+  line-height: 1.25;
+  white-space: normal;
+  word-break: normal;
+
+  @media (max-width: 480px) {
+    font-size: 0.95rem;
+  }
 }
 
 .modal-subtitle {
@@ -47,17 +67,36 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 320px;
+
+  @media (max-width: 480px) {
+    max-width: 160px;
+    font-size: 0.7rem;
+  }
 }
 
+.btn-export-modal,
 .btn-close-modal {
   --color: var(--text-secondary);
   --border-radius: 8px;
+  --padding-start: 6px;
+  --padding-end: 6px;
+  height: 36px;
+  min-height: 36px;
+  margin: 0;
   transition: all 0.2s ease;
 
   &:hover {
     --color: var(--text-primary);
     background: var(--background-surface-2);
   }
+
+  ion-icon {
+    font-size: 1.25rem;
+  }
+}
+
+.btn-export-modal:hover {
+  --color: var(--primary);
 }
 
 .waste-modal-content {

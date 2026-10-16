@@ -185,4 +185,45 @@ describe('TableSidePanelComponent', () => {
     }));
     expect(mockModal.present).toHaveBeenCalled();
   }));
+
+  it('should toggle expanded mobile height and handle touch resize drag', () => {
+    expect(component.isExpanded).toBeFalse();
+    expect(component.mobileSheetHeight).toBe(62);
+
+    component.toggleExpand();
+    expect(component.isExpanded).toBeTrue();
+    expect(component.mobileSheetHeight).toBe(92);
+
+    component.toggleExpand();
+    expect(component.isExpanded).toBeFalse();
+    expect(component.mobileSheetHeight).toBe(62);
+
+    // Touch start
+    const mockTouchStart = {
+      touches: [{ clientY: 500 }],
+    } as any;
+    component.onTouchStart(mockTouchStart);
+    expect(component.isDragging).toBeTrue();
+
+    // Touch move up (dragging up increases height)
+    const mockTouchMove = {
+      touches: [{ clientY: 300 }],
+    } as any;
+    component.onTouchMove(mockTouchMove);
+    expect(component.mobileSheetHeight).toBeGreaterThan(62);
+
+    // Touch end snaps to expanded if > 75
+    component.mobileSheetHeight = 85;
+    component.onTouchEnd();
+    expect(component.mobileSheetHeight).toBe(92);
+    expect(component.isExpanded).toBeTrue();
+
+    // Touch drag down closes if < 38
+    spyOn(component, 'onClose');
+    component.onTouchStart(mockTouchStart);
+    component.mobileSheetHeight = 35;
+    component.onTouchEnd();
+    expect(component.onClose).toHaveBeenCalled();
+  });
 });
+

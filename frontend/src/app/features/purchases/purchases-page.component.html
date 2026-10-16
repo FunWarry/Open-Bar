@@ -66,9 +66,12 @@
         (click)="selectTab('orders')"
         data-testid="purchases-tab-orders"
       >
-        <ion-icon name="cart-outline"></ion-icon>
-        <span>{{ 'PURCHASES.TAB_ORDERS' | transloco }}</span>
-        <span class="tab-count">{{ purchaseOrders().length }}</span>
+        <div class="tab-icon-wrap">
+          <ion-icon name="cart-outline"></ion-icon>
+          <span class="tab-count">{{ purchaseOrders().length }}</span>
+        </div>
+        <span class="tab-label-full">{{ 'PURCHASES.TAB_ORDERS' | transloco }}</span>
+        <span class="tab-label-short">{{ 'PURCHASES.TAB_ORDERS_SHORT' | transloco }}</span>
       </button>
 
       <button
@@ -78,9 +81,12 @@
         (click)="selectTab('suppliers')"
         data-testid="purchases-tab-suppliers"
       >
-        <ion-icon name="business-outline"></ion-icon>
-        <span>{{ 'PURCHASES.TAB_SUPPLIERS' | transloco }}</span>
-        <span class="tab-count">{{ suppliers().length }}</span>
+        <div class="tab-icon-wrap">
+          <ion-icon name="business-outline"></ion-icon>
+          <span class="tab-count">{{ suppliers().length }}</span>
+        </div>
+        <span class="tab-label-full">{{ 'PURCHASES.TAB_SUPPLIERS' | transloco }}</span>
+        <span class="tab-label-short">{{ 'PURCHASES.TAB_SUPPLIERS_SHORT' | transloco }}</span>
       </button>
 
       <button
@@ -90,9 +96,12 @@
         (click)="selectTab('pamp')"
         data-testid="purchases-tab-pamp"
       >
-        <ion-icon name="analytics-outline"></ion-icon>
-        <span>{{ 'PURCHASES.TAB_PAMP' | transloco }}</span>
-        <span class="tab-count">{{ ingredients().length }}</span>
+        <div class="tab-icon-wrap">
+          <ion-icon name="analytics-outline"></ion-icon>
+          <span class="tab-count">{{ ingredients().length }}</span>
+        </div>
+        <span class="tab-label-full">{{ 'PURCHASES.TAB_PAMP' | transloco }}</span>
+        <span class="tab-label-short">{{ 'PURCHASES.TAB_PAMP_SHORT' | transloco }}</span>
       </button>
     </nav>
   </header>
@@ -407,7 +416,7 @@
             @for (ing of filteredIngredients(); track ing.id) {
               <tr [attr.data-testid]="'pamp-row-' + ing.id">
                 <td class="td-name">
-                  <strong>{{ ing.nom }}</strong>
+                  <strong class="ing-name">{{ ing.nom }}</strong>
                 </td>
                 <td class="td-barcode">
                   @if (ing.codeBarre) {
@@ -416,12 +425,23 @@
                     <span class="text-muted">-</span>
                   }
                 </td>
-                <td>{{ ing.quantiteStock }} {{ ing.uniteMesure }}</td>
-                <td class="td-cost">
-                  <strong>{{ (ing.unitCost || ing.prixUnitaire || 0) | number:'1.2-2' }} €</strong>
+                <td class="td-stock">
+                  <span class="stock-pill">
+                    <ion-icon name="cube-outline"></ion-icon>
+                    <span>{{ ing.quantiteStock }} {{ ing.uniteMesure }}</span>
+                  </span>
                 </td>
-                <td>
-                  {{ ing.defaultSupplierNom || ing.fournisseur || '-' }}
+                <td class="td-cost">
+                  <div class="cost-value-wrap">
+                    <span class="mobile-cost-label">{{ 'PURCHASES.PAMP_UNIT_COST_SHORT' | transloco }}</span>
+                    <strong class="cost-amount">{{ (ing.unitCost || ing.prixUnitaire || 0) | number:'1.2-2' }} €</strong>
+                  </div>
+                </td>
+                <td class="td-supplier">
+                  <span class="supplier-pill">
+                    <ion-icon name="business-outline"></ion-icon>
+                    <span>{{ ing.defaultSupplierNom || ing.fournisseur || '-' }}</span>
+                  </span>
                 </td>
               </tr>
             }

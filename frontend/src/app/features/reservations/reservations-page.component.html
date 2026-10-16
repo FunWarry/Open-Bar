@@ -228,6 +228,33 @@
           </div>
         }
 
+        <!-- Status Colors Legend -->
+        <div class="timeline-legend-bar" data-testid="timeline-status-legend">
+          <span class="legend-title">{{ 'RESERVATIONS.LEGEND_TITLE' | transloco }}</span>
+          <div class="legend-items">
+            <div class="legend-item legend-confirmed" data-testid="legend-item-confirmed">
+              <span class="legend-indicator"></span>
+              <span class="legend-label">{{ 'RESERVATIONS.STATUS_CONFIRMED' | transloco }}</span>
+            </div>
+            <div class="legend-item legend-pending" data-testid="legend-item-pending">
+              <span class="legend-indicator"></span>
+              <span class="legend-label">{{ 'RESERVATIONS.STATUS_PENDING' | transloco }}</span>
+            </div>
+            <div class="legend-item legend-seated" data-testid="legend-item-seated">
+              <span class="legend-indicator"></span>
+              <span class="legend-label">{{ 'RESERVATIONS.STATUS_SEATED' | transloco }}</span>
+            </div>
+            <div class="legend-item legend-cancelled" data-testid="legend-item-cancelled">
+              <span class="legend-indicator"></span>
+              <span class="legend-label">{{ 'RESERVATIONS.STATUS_CANCELLED' | transloco }}</span>
+            </div>
+            <div class="legend-item legend-noshow" data-testid="legend-item-noshow">
+              <span class="legend-indicator"></span>
+              <span class="legend-label">{{ 'RESERVATIONS.STATUS_NO_SHOW' | transloco }}</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Interactive Schedule Grid -->
         <div class="grid-scroll-wrapper">
           <div class="timeline-grid">
@@ -295,7 +322,6 @@
                       <div class="block-content">
                         <span class="block-client">{{ res.nomClient }}</span>
                         <span class="block-party">{{ res.nombrePersonnes }}p</span>
-                        <span class="block-status-pill">{{ ('RESERVATIONS.STATUS_' + res.statut) | transloco }}</span>
                       </div>
                     </button>
                   }

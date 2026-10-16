@@ -17,55 +17,42 @@
         </div>
 
         <div class="header-buttons">
-          <app-action-button
-            variant="secondary"
-            size="medium"
-            icon="download-outline"
-            (btnClick)="exportInventoryCsv()"
-            [disabled]="ingredients.length === 0"
-            testId="ingredient-btn-export-inventory"
+          <app-action-button variant="secondary" size="medium" icon="download-outline" (btnClick)="exportInventoryCsv()"
+            [disabled]="ingredients.length === 0" testId="ingredient-btn-export-inventory"
             data-testid="ingredient-btn-export-inventory">
             {{ 'STOCK.EXPORT_INVENTORY_CSV' | transloco }}
           </app-action-button>
 
-          <app-action-button
-            variant="secondary"
-            size="medium"
-            icon="trash-outline"
-            (btnClick)="exportWasteMovementsCsv()"
-            testId="ingredient-btn-export-waste"
+          <app-action-button variant="secondary" size="medium" icon="trash-outline"
+            (btnClick)="exportWasteMovementsCsv()" testId="ingredient-btn-export-waste"
             data-testid="ingredient-btn-export-waste">
             {{ 'STOCK.EXPORT_WASTE_CSV' | transloco }}
           </app-action-button>
 
-          <ion-button fill="outline" color="warning" class="header-action-btn" (click)="openWasteModal()" (keyup.enter)="openWasteModal()"
-            data-testid="ingredient-btn-record-waste">
-            <ion-icon slot="start" name="alert-circle-outline"></ion-icon>
+          <app-action-button variant="warning" size="medium" icon="alert-circle-outline" (btnClick)="openWasteModal()"
+            testId="ingredient-btn-record-waste" data-testid="ingredient-btn-record-waste">
             {{ 'STOCK.WASTE_RECORD_BTN' | transloco }}
-          </ion-button>
+          </app-action-button>
 
           @if (suppliersManagementEnabled()) {
-            <ion-button fill="outline" color="primary" class="header-action-btn" (click)="goToPurchases()" (keyup.enter)="goToPurchases()"
-              data-testid="ingredient-btn-purchases">
-              <ion-icon slot="start" name="cart-outline"></ion-icon>
-              {{ 'NAV.PURCHASES' | transloco }}
-            </ion-button>
+          <app-action-button variant="secondary" size="medium" icon="cart-outline" (btnClick)="goToPurchases()"
+            testId="ingredient-btn-purchases" data-testid="ingredient-btn-purchases">
+            {{ 'NAV.PURCHASES' | transloco }}
+          </app-action-button>
           }
 
           @if (inventoryAuditEnabled()) {
-            <ion-button fill="outline" color="secondary" class="header-action-btn" (click)="goToInventory()" (keyup.enter)="goToInventory()"
-              data-testid="ingredient-btn-inventory">
-              <ion-icon slot="start" name="clipboard-outline"></ion-icon>
-              {{ 'NAV.INVENTORY' | transloco }}
-            </ion-button>
+          <app-action-button variant="secondary" size="medium" icon="clipboard-outline" (btnClick)="goToInventory()"
+            testId="ingredient-btn-inventory" data-testid="ingredient-btn-inventory">
+            {{ 'NAV.INVENTORY' | transloco }}
+          </app-action-button>
           }
 
           @if (canEdit$ | async) {
-          <ion-button color="primary" class="header-action-btn" (click)="onAdd()" (keyup.enter)="onAdd()"
+          <app-action-button variant="primary" size="medium" icon="add" (btnClick)="onAdd()" testId="ingredient-add-btn"
             data-testid="ingredient-add-btn">
-            <ion-icon slot="start" name="add"></ion-icon>
             {{ 'COMMON.ADD' | transloco }}
-          </ion-button>
+          </app-action-button>
           }
         </div>
       </div>
@@ -76,19 +63,11 @@
       <!-- Top Row: Searchbar + Status Pills -->
       <div class="controls-row-top">
         <div class="search-with-scan-wrap">
-          <app-search-bar
-            [(ngModel)]="searchQuery"
-            (ngModelChange)="onSearchChange()"
-            [placeholder]="'STOCK.SEARCH_PLACEHOLDER' | transloco"
-            [debounce]="200"
-            testId="stock-searchbar">
+          <app-search-bar [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange()"
+            [placeholder]="'STOCK.SEARCH_PLACEHOLDER' | transloco" [debounce]="200" testId="stock-searchbar">
           </app-search-bar>
-          <button
-            type="button"
-            class="btn-scan-filter"
-            (click)="scanBarcode()"
-            [attr.aria-label]="'INGREDIENTS.FORM.SCAN_BARCODE' | transloco"
-            data-testid="ingredient-scan-filter-btn">
+          <button type="button" class="btn-scan-filter" (click)="scanBarcode()"
+            [attr.aria-label]="'INGREDIENTS.FORM.SCAN_BARCODE' | transloco" data-testid="ingredient-scan-filter-btn">
             <ion-icon name="barcode-outline"></ion-icon>
             <span>{{ 'INGREDIENTS.FORM.SCAN_BARCODE' | transloco }}</span>
           </button>
@@ -123,54 +102,34 @@
         <div class="filter-dropdowns">
           <!-- Category Select -->
           <div class="filter-select-box">
-            <app-searchable-select
-              [label]="'STOCK.CATEGORY_LABEL' | transloco"
-              [options]="categoryOptions"
-              [(ngModel)]="selectedCategory"
-              (selectionChange)="onCategorySelected($event)"
-              [enableSearch]="true"
-              [placeholder]="'STOCK.ALL_CATEGORIES' | transloco"
-              testId="stock-category-select">
+            <app-searchable-select [label]="'STOCK.CATEGORY_LABEL' | transloco" [options]="categoryOptions"
+              [(ngModel)]="selectedCategory" (selectionChange)="onCategorySelected($event)" [enableSearch]="true"
+              [placeholder]="'STOCK.ALL_CATEGORIES' | transloco" testId="stock-category-select">
             </app-searchable-select>
           </div>
 
           <!-- Unit Select -->
           <div class="filter-select-box">
-            <app-searchable-select
-              [label]="'STOCK.UNIT_LABEL' | transloco"
-              [options]="unitOptions"
-              [(ngModel)]="selectedUnit"
-              (selectionChange)="onUnitSelected($event)"
-              [enableSearch]="true"
-              [placeholder]="'STOCK.ALL_UNITS' | transloco"
-              testId="stock-unit-select">
+            <app-searchable-select [label]="'STOCK.UNIT_LABEL' | transloco" [options]="unitOptions"
+              [(ngModel)]="selectedUnit" (selectionChange)="onUnitSelected($event)" [enableSearch]="true"
+              [placeholder]="'STOCK.ALL_UNITS' | transloco" testId="stock-unit-select">
             </app-searchable-select>
           </div>
 
           <!-- Sort Select -->
           <div class="filter-select-box">
-            <app-searchable-select
-              [label]="'STOCK.SORT_LABEL' | transloco"
-              [options]="sortOptions"
-              [(ngModel)]="sortOption"
-              (selectionChange)="onSortSelected($event)"
-              [enableSearch]="false"
-              [placeholder]="'STOCK.SORT_LABEL' | transloco"
-              testId="stock-sort-select">
+            <app-searchable-select [label]="'STOCK.SORT_LABEL' | transloco" [options]="sortOptions"
+              [(ngModel)]="sortOption" (selectionChange)="onSortSelected($event)" [enableSearch]="false"
+              [placeholder]="'STOCK.SORT_LABEL' | transloco" testId="stock-sort-select">
             </app-searchable-select>
           </div>
         </div>
 
         <div class="controls-view-actions">
           <!-- Allergens Toggle Pill -->
-          <button
-            type="button"
-            class="allergens-toggle-pill"
-            [class.active]="showAllergens"
-            (click)="toggleShowAllergens()"
-            (keydown.enter)="toggleShowAllergens()"
-            data-testid="stock-toggle-allergens-btn"
-            [attr.aria-pressed]="showAllergens"
+          <button type="button" class="allergens-toggle-pill" [class.active]="showAllergens"
+            (click)="toggleShowAllergens()" (keydown.enter)="toggleShowAllergens()"
+            data-testid="stock-toggle-allergens-btn" [attr.aria-pressed]="showAllergens"
             [title]="(showAllergens ? 'STOCK.HIDE_ALLERGENS' : 'STOCK.SHOW_ALLERGENS') | transloco">
             <ion-icon [name]="showAllergens ? 'shield-checkmark-outline' : 'warning-outline'"></ion-icon>
             <span>{{ 'STOCK.ALLERGENS_TOGGLE' | transloco }}</span>
@@ -180,17 +139,20 @@
           <!-- View Mode Segment Buttons -->
           <div class="view-mode-group">
             <button type="button" class="view-toggle-btn" [class.active]="viewMode === 'category'"
-              (click)="setViewMode('category')" data-testid="view-category-btn" title="{{ 'STOCK.VIEW_MODE_CATEGORY' | transloco }}">
+              (click)="setViewMode('category')" data-testid="view-category-btn"
+              title="{{ 'STOCK.VIEW_MODE_CATEGORY' | transloco }}">
               <ion-icon name="layers-outline"></ion-icon>
               <span>{{ 'STOCK.VIEW_MODE_CATEGORY' | transloco }}</span>
             </button>
             <button type="button" class="view-toggle-btn" [class.active]="viewMode === 'grid'"
-              (click)="setViewMode('grid')" data-testid="view-grid-btn" title="{{ 'STOCK.VIEW_MODE_GRID' | transloco }}">
+              (click)="setViewMode('grid')" data-testid="view-grid-btn"
+              title="{{ 'STOCK.VIEW_MODE_GRID' | transloco }}">
               <ion-icon name="grid-outline"></ion-icon>
               <span>{{ 'STOCK.VIEW_MODE_GRID' | transloco }}</span>
             </button>
             <button type="button" class="view-toggle-btn" [class.active]="viewMode === 'list'"
-              (click)="setViewMode('list')" data-testid="view-list-btn" title="{{ 'STOCK.VIEW_MODE_LIST' | transloco }}">
+              (click)="setViewMode('list')" data-testid="view-list-btn"
+              title="{{ 'STOCK.VIEW_MODE_LIST' | transloco }}">
               <ion-icon name="list-outline"></ion-icon>
               <span>{{ 'STOCK.VIEW_MODE_LIST' | transloco }}</span>
             </button>
@@ -204,334 +166,323 @@
       <ion-spinner name="crescent"></ion-spinner>
     </div>
     } @else {
-      @if (filteredIngredients.length > 0) {
-        <!-- Shared Stock Card Template -->
-        <ng-template #stockCard let-ingredient>
-          <app-card
-            [accentColor]="getIngredientAccentColor(ingredient)"
-            [clickable]="true"
-            [headerDivider]="'dashed'"
-            [footerDivider]="'dashed'"
-            [padding]="'sm'"
-            [testId]="'ingredient-card-' + ingredient.id"
-            (cardClick)="openIngredientModal(ingredient)"
-            (keydown.enter)="openIngredientModal(ingredient)"
-            [attr.aria-label]="ingredient.nom"
-            class="stock-card-host">
+    @if (filteredIngredients.length > 0) {
+    <!-- Shared Stock Card Template -->
+    <ng-template #stockCard let-ingredient>
+      <app-card [accentColor]="getIngredientAccentColor(ingredient)" [clickable]="true" [headerDivider]="'dashed'"
+        [footerDivider]="'dashed'" [padding]="'sm'" [testId]="'ingredient-card-' + ingredient.id"
+        (cardClick)="openIngredientModal(ingredient)" (keydown.enter)="openIngredientModal(ingredient)"
+        [attr.aria-label]="ingredient.nom" class="stock-card-host">
 
-            <div card-header class="card-header-compact">
-              <div class="card-title-row">
-                <h3 class="ingredient-name" [title]="ingredient.nom">{{ ingredient.nom }}</h3>
-                <div class="card-badges-wrap">
-                  <ion-badge [color]="getStockColor(ingredient)" class="stock-badge">
-                    @if (ingredient.quantiteStock <= 0) { {{ 'STOCK.OUT_OF_STOCK' | transloco }} } @else if
-                      (isEnAlerte(ingredient)) { {{ 'STOCK.LOW_STOCK' | transloco }} } @else { {{ 'STOCK.NORMAL_STOCK' |
-                      transloco }} }
-                  </ion-badge>
+        <div card-header class="card-header-compact">
+          <div class="card-title-row">
+            <h3 class="ingredient-name" [title]="ingredient.nom">{{ ingredient.nom }}</h3>
+            <div class="card-badges-wrap">
+              <ion-badge [color]="getStockColor(ingredient)" class="stock-badge">
+                @if (ingredient.quantiteStock <= 0) { {{ 'STOCK.OUT_OF_STOCK' | transloco }} } @else if
+                  (isEnAlerte(ingredient)) { {{ 'STOCK.LOW_STOCK' | transloco }} } @else { {{ 'STOCK.NORMAL_STOCK' |
+                  transloco }} } </ion-badge>
                   @if (ingredient.isCrafted) {
-                    <ion-badge color="tertiary" class="crafted-badge" [attr.data-testid]="'crafted-badge-' + ingredient.id">
-                      🔧 {{ 'INGREDIENTS.CONFECTION.BADGE' | transloco }}
-                    </ion-badge>
-                    @if (!ingredient.isPurchasable) {
-                      <ion-badge color="medium" class="crafted-badge" [attr.data-testid]="'not-purchasable-badge-' + ingredient.id">
-                        {{ 'INGREDIENTS.CONFECTION.NOT_PURCHASABLE_BADGE' | transloco }}
-                      </ion-badge>
-                    }
+                  <ion-badge color="tertiary" class="crafted-badge"
+                    [attr.data-testid]="'crafted-badge-' + ingredient.id">
+                    🔧 {{ 'INGREDIENTS.CONFECTION.BADGE' | transloco }}
+                  </ion-badge>
+                  @if (!ingredient.isPurchasable) {
+                  <ion-badge color="medium" class="crafted-badge"
+                    [attr.data-testid]="'not-purchasable-badge-' + ingredient.id">
+                    {{ 'INGREDIENTS.CONFECTION.NOT_PURCHASABLE_BADGE' | transloco }}
+                  </ion-badge>
                   }
-                </div>
-              </div>
+                  }
             </div>
+          </div>
+        </div>
 
-            <div card-content class="card-content-compact">
-              <!-- Allergens row when showAllergens is active -->
-              @if (showAllergens) {
-                <div class="card-allergens-row" [attr.data-testid]="'card-allergens-' + ingredient.id">
+        <div card-content class="card-content-compact">
+          <!-- Allergens row when showAllergens is active -->
+          @if (showAllergens) {
+          <div class="card-allergens-row" [attr.data-testid]="'card-allergens-' + ingredient.id">
+            @if (ingredient.allergens && ingredient.allergens.length > 0) {
+            @for (algKey of ingredient.allergens; track algKey) {
+            <span class="ingredient-allergen-badge" [title]="getAllergenInfo(algKey).labelKey | transloco">
+              <span class="alg-emoji">{{ getAllergenInfo(algKey).emoji }}</span>
+              <span class="alg-name">{{ getAllergenInfo(algKey).labelKey | transloco }}</span>
+            </span>
+            }
+            } @else {
+            <span class="ingredient-allergen-badge allergen-free" [title]="'STOCK.NO_ALLERGENS' | transloco">
+              <span class="alg-emoji">🛡️</span>
+              <span class="alg-name">{{ 'STOCK.NO_ALLERGENS' | transloco }}</span>
+            </span>
+            }
+            @if (ingredient.isVegan) {
+            <span class="ingredient-allergen-badge vegan" [title]="'COCKTAILS.VEGAN' | transloco">
+              <span class="alg-emoji">🌱</span>
+              <span class="alg-name">{{ 'COCKTAILS.VEGAN' | transloco }}</span>
+            </span>
+            }
+          </div>
+          }
+          <!-- Stock Progress Gauge -->
+          <div class="gauge-section">
+            <div class="gauge-labels">
+              <div class="stock-qty-wrap">
+                <span class="stock-qty-text">{{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }}</span>
+                @if (getPackagingEquivalent(ingredient)) {
+                <span class="stock-packaging-hint">{{ getPackagingEquivalent(ingredient) }}</span>
+                }
+              </div>
+              <span class="threshold-text">{{ 'INGREDIENTS.SEUIL_ALERTE' | transloco }}: {{ ingredient.seuilAlerte
+                }} {{ ingredient.uniteMesure }}</span>
+            </div>
+            <ion-progress-bar [value]="getStockRatio(ingredient)" [color]="getStockColor(ingredient)"
+              class="stock-progress-bar">
+            </ion-progress-bar>
+          </div>
+
+          <!-- Quick Stock Adjust Controls (-10 / -1 / +1 / +10) -->
+          @if (canEdit$ | async) {
+          <div class="quick-adjust-bar">
+            <ion-button fill="clear" size="small" color="danger" class="delta-btn"
+              (click)="$event.stopPropagation(); adjustStock(ingredient, -10)"
+              (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, -10)"
+              [disabled]="ingredient.quantiteStock <= 0" title="-10" data-testid="stock-adjust-minus10-btn">
+              -10
+            </ion-button>
+            <ion-button fill="outline" size="small" color="danger" class="step-btn"
+              (click)="$event.stopPropagation(); adjustStock(ingredient, -1)"
+              (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, -1)"
+              [disabled]="ingredient.quantiteStock <= 0" title="-1" data-testid="stock-adjust-minus-btn">
+              <ion-icon name="remove-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button fill="outline" size="small" color="success" class="step-btn"
+              (click)="$event.stopPropagation(); adjustStock(ingredient, 1)"
+              (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, 1)" title="+1"
+              data-testid="stock-adjust-plus-btn">
+              <ion-icon name="add-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" size="small" color="tertiary" class="delta-btn"
+              (click)="$event.stopPropagation(); adjustStock(ingredient, 10)"
+              (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, 10)" title="+10"
+              data-testid="stock-adjust-plus10-btn">
+              +10
+            </ion-button>
+          </div>
+          }
+        </div>
+
+        <!-- Footer Action Buttons -->
+        <div card-footer class="card-footer-actions">
+          <ion-button fill="clear" color="warning" size="small" class="waste-btn"
+            (click)="$event.stopPropagation(); openWasteModal(ingredient)"
+            (keyup.enter)="$event.stopPropagation(); openWasteModal(ingredient)"
+            [title]="'STOCK.WASTE_RECORD_BTN' | transloco" [attr.data-testid]="'ingredient-waste-btn-' + ingredient.id">
+            <ion-icon slot="start" name="alert-circle-outline"></ion-icon>
+            <span>{{ 'STOCK.WASTE_RECORD_BTN' | transloco }}</span>
+          </ion-button>
+          @if (isAdmin$ | async) {
+          <ion-button fill="clear" color="danger" size="small" class="delete-btn"
+            (click)="$event.stopPropagation(); onDelete(ingredient)"
+            (keyup.enter)="$event.stopPropagation(); onDelete(ingredient)" data-testid="ingredient-delete-btn">
+            <ion-icon slot="start" name="trash-outline"></ion-icon>
+            <span>{{ 'COMMON.DELETE' | transloco }}</span>
+          </ion-button>
+          }
+        </div>
+      </app-card>
+    </ng-template>
+
+    <!-- Mode 1: Catégorie (Groupé par catégorie avec en-têtes et séparateurs) -->
+    @if (viewMode === 'category') {
+    <div class="category-sections-wrapper" data-testid="category-sections-wrapper">
+      @for (group of groupedIngredients; track group.categoryKey) {
+      <section class="category-section-block"
+        [attr.data-testid]="'category-section-' + group.categoryKey.toLowerCase()">
+        <!-- Category Header & Divider -->
+        <div class="category-section-header">
+          <div class="category-title-wrap">
+            <span class="category-icon-pill" [ngClass]="'badge-' + group.badgeType">
+              <ion-icon [name]="group.icon"></ion-icon>
+            </span>
+            <h2 class="category-name">{{ group.categoryLabel }}</h2>
+            <span class="category-count-badge">{{ group.items.length }}</span>
+          </div>
+          <div class="category-divider-line"></div>
+        </div>
+
+        <!-- Grille de Cartes pour cette catégorie -->
+        <ion-grid class="stock-grid">
+          <ion-row>
+            @for (ingredient of group.items; track ingredient.id) {
+            <ion-col class="stock-col">
+              <ng-container *ngTemplateOutlet="stockCard; context: { $implicit: ingredient }"></ng-container>
+            </ion-col>
+            }
+          </ion-row>
+        </ion-grid>
+      </section>
+      }
+    </div>
+    } @else if (viewMode === 'grid') {
+    <!-- Mode 2: Vraie Grille Plate avec Pagination (sans lag) -->
+    <div class="flat-grid-wrapper" data-testid="flat-grid-wrapper">
+      <!-- Header Pagination Toolbar -->
+      <app-pagination [currentPage]="gridPage" [totalItems]="filteredIngredients.length" [pageSize]="gridPageSize"
+        [pageSizeOptions]="[12, 16, 24, 48]" [showPageSize]="true" [showSummary]="true"
+        summaryKey="STOCK.PAGINATION_SUMMARY" testId="grid-pagination-top" (pageChange)="setGridPage($event)"
+        (pageSizeChange)="setGridPageSize($event)">
+      </app-pagination>
+
+      <!-- Flat Card Grid -->
+      <ion-grid class="stock-grid">
+        <ion-row>
+          @for (ingredient of paginatedGridIngredients; track ingredient.id) {
+          <ion-col class="stock-col">
+            <ng-container *ngTemplateOutlet="stockCard; context: { $implicit: ingredient }"></ng-container>
+          </ion-col>
+          }
+        </ion-row>
+      </ion-grid>
+
+      <!-- Bottom Pagination Controls -->
+      @if (totalGridPages > 1) {
+      <app-pagination [currentPage]="gridPage" [totalItems]="filteredIngredients.length" [pageSize]="gridPageSize"
+        [pageSizeOptions]="[12, 16, 24, 48]" [showPageSize]="false" [showSummary]="false" testId="grid-pagination"
+        (pageChange)="setGridPage($event)">
+      </app-pagination>
+      }
+    </div>
+    } @else if (viewMode === 'list') {
+    <!-- Mode 3: Liste -->
+    <div class="category-sections-wrapper" data-testid="list-sections-wrapper">
+      @for (group of groupedIngredients; track group.categoryKey) {
+      <section class="category-section-block"
+        [attr.data-testid]="'category-section-' + group.categoryKey.toLowerCase()">
+        <!-- Category Header & Divider -->
+        <div class="category-section-header">
+          <div class="category-title-wrap">
+            <span class="category-icon-pill" [ngClass]="'badge-' + group.badgeType">
+              <ion-icon [name]="group.icon"></ion-icon>
+            </span>
+            <h2 class="category-name">{{ group.categoryLabel }}</h2>
+            <span class="category-count-badge">{{ group.items.length }}</span>
+          </div>
+          <div class="category-divider-line"></div>
+        </div>
+
+        <!-- Mode Liste -->
+        <app-card class="stock-list-card" [showHeader]="false" [showFooter]="false" [padding]="'none'">
+          <div card-content class="stock-list-container" data-testid="stock-list-container">
+            @for (ingredient of group.items; track ingredient.id) {
+            <div class="stock-list-row" [attr.data-testid]="'ingredient-list-item-' + ingredient.id">
+
+              <div class="stock-list-row-main" (click)="openIngredientModal(ingredient)"
+                (keyup.enter)="openIngredientModal(ingredient)">
+                <div class="list-title-badge-line">
+                  <h3 class="list-item-title">{{ ingredient.nom }}</h3>
+                  <ion-badge [color]="getStockColor(ingredient)" class="stock-badge">
+                    {{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }}
+                  </ion-badge>
+                </div>
+
+                <p class="list-item-meta">
+                  {{ ingredient.uniteMesure }} — {{ 'INGREDIENTS.SEUIL_ALERTE' | transloco }} : {{
+                  ingredient.seuilAlerte }} {{ ingredient.uniteMesure }}
+                  @if (getPackagingEquivalent(ingredient)) {
+                  <span class="list-packaging-hint"> • {{ getPackagingEquivalent(ingredient) }}</span>
+                  }
+                </p>
+
+                @if (showAllergens) {
+                <div class="card-allergens-row list-mode-allergens"
+                  [attr.data-testid]="'list-allergens-' + ingredient.id">
                   @if (ingredient.allergens && ingredient.allergens.length > 0) {
-                    @for (algKey of ingredient.allergens; track algKey) {
-                      <span class="ingredient-allergen-badge" [title]="getAllergenInfo(algKey).labelKey | transloco">
-                        <span class="alg-emoji">{{ getAllergenInfo(algKey).emoji }}</span>
-                        <span class="alg-name">{{ getAllergenInfo(algKey).labelKey | transloco }}</span>
-                      </span>
-                    }
+                  @for (algKey of ingredient.allergens; track algKey) {
+                  <span class="ingredient-allergen-badge" [title]="getAllergenInfo(algKey).labelKey | transloco">
+                    <span class="alg-emoji">{{ getAllergenInfo(algKey).emoji }}</span>
+                    <span class="alg-name">{{ getAllergenInfo(algKey).labelKey | transloco }}</span>
+                  </span>
+                  }
                   } @else {
-                    <span class="ingredient-allergen-badge allergen-free" [title]="'STOCK.NO_ALLERGENS' | transloco">
-                      <span class="alg-emoji">🛡️</span>
-                      <span class="alg-name">{{ 'STOCK.NO_ALLERGENS' | transloco }}</span>
-                    </span>
+                  <span class="ingredient-allergen-badge allergen-free" [title]="'STOCK.NO_ALLERGENS' | transloco">
+                    <span class="alg-emoji">🛡️</span>
+                    <span class="alg-name">{{ 'STOCK.NO_ALLERGENS' | transloco }}</span>
+                  </span>
                   }
                   @if (ingredient.isVegan) {
-                    <span class="ingredient-allergen-badge vegan" [title]="'COCKTAILS.VEGAN' | transloco">
-                      <span class="alg-emoji">🌱</span>
-                      <span class="alg-name">{{ 'COCKTAILS.VEGAN' | transloco }}</span>
-                    </span>
+                  <span class="ingredient-allergen-badge vegan" [title]="'COCKTAILS.VEGAN' | transloco">
+                    <span class="alg-emoji">🌱</span>
+                    <span class="alg-name">{{ 'COCKTAILS.VEGAN' | transloco }}</span>
+                  </span>
                   }
                 </div>
-              }
-              <!-- Stock Progress Gauge -->
-              <div class="gauge-section">
-                <div class="gauge-labels">
-                  <div class="stock-qty-wrap">
-                    <span class="stock-qty-text">{{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }}</span>
-                    @if (getPackagingEquivalent(ingredient)) {
-                      <span class="stock-packaging-hint">{{ getPackagingEquivalent(ingredient) }}</span>
-                    }
-                  </div>
-                  <span class="threshold-text">{{ 'INGREDIENTS.SEUIL_ALERTE' | transloco }}: {{ ingredient.seuilAlerte
-                    }} {{ ingredient.uniteMesure }}</span>
-                </div>
+                }
+
                 <ion-progress-bar [value]="getStockRatio(ingredient)" [color]="getStockColor(ingredient)"
-                  class="stock-progress-bar">
+                  class="list-progress-bar">
                 </ion-progress-bar>
               </div>
 
-              <!-- Quick Stock Adjust Controls (-10 / -1 / +1 / +10) -->
-              @if (canEdit$ | async) {
-              <div class="quick-adjust-bar">
-                <ion-button fill="clear" size="small" color="danger" class="delta-btn"
-                  (click)="$event.stopPropagation(); adjustStock(ingredient, -10)"
-                  (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, -10)"
-                  [disabled]="ingredient.quantiteStock <= 0" title="-10" data-testid="stock-adjust-minus10-btn">
-                  -10
-                </ion-button>
-                <ion-button fill="outline" size="small" color="danger" class="step-btn"
-                  (click)="$event.stopPropagation(); adjustStock(ingredient, -1)"
-                  (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, -1)"
-                  [disabled]="ingredient.quantiteStock <= 0" title="-1" data-testid="stock-adjust-minus-btn">
-                  <ion-icon name="remove-outline" slot="icon-only"></ion-icon>
-                </ion-button>
-                <ion-button fill="outline" size="small" color="success" class="step-btn"
-                  (click)="$event.stopPropagation(); adjustStock(ingredient, 1)"
-                  (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, 1)" title="+1"
-                  data-testid="stock-adjust-plus-btn">
-                  <ion-icon name="add-outline" slot="icon-only"></ion-icon>
-                </ion-button>
-                <ion-button fill="clear" size="small" color="tertiary" class="delta-btn"
-                  (click)="$event.stopPropagation(); adjustStock(ingredient, 10)"
-                  (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, 10)" title="+10"
-                  data-testid="stock-adjust-plus10-btn">
-                  +10
-                </ion-button>
-              </div>
-              }
-            </div>
-
-            <!-- Footer Action Buttons -->
-            <div card-footer class="card-footer-actions">
-              <ion-button fill="clear" color="warning" size="small" class="waste-btn"
-                (click)="$event.stopPropagation(); openWasteModal(ingredient)"
-                (keyup.enter)="$event.stopPropagation(); openWasteModal(ingredient)"
-                [title]="'STOCK.WASTE_RECORD_BTN' | transloco"
-                [attr.data-testid]="'ingredient-waste-btn-' + ingredient.id">
-                <ion-icon slot="start" name="alert-circle-outline"></ion-icon>
-                <span>{{ 'STOCK.WASTE_RECORD_BTN' | transloco }}</span>
-              </ion-button>
-              @if (isAdmin$ | async) {
-              <ion-button fill="clear" color="danger" size="small" class="delete-btn"
-                (click)="$event.stopPropagation(); onDelete(ingredient)"
-                (keyup.enter)="$event.stopPropagation(); onDelete(ingredient)" data-testid="ingredient-delete-btn">
-                <ion-icon slot="start" name="trash-outline"></ion-icon>
-                <span>{{ 'COMMON.DELETE' | transloco }}</span>
-              </ion-button>
-              }
-            </div>
-          </app-card>
-        </ng-template>
-
-        <!-- Mode 1: Catégorie (Groupé par catégorie avec en-têtes et séparateurs) -->
-        @if (viewMode === 'category') {
-          <div class="category-sections-wrapper" data-testid="category-sections-wrapper">
-            @for (group of groupedIngredients; track group.categoryKey) {
-              <section class="category-section-block" [attr.data-testid]="'category-section-' + group.categoryKey.toLowerCase()">
-                <!-- Category Header & Divider -->
-                <div class="category-section-header">
-                  <div class="category-title-wrap">
-                    <span class="category-icon-pill" [ngClass]="'badge-' + group.badgeType">
-                      <ion-icon [name]="group.icon"></ion-icon>
-                    </span>
-                    <h2 class="category-name">{{ group.categoryLabel }}</h2>
-                    <span class="category-count-badge">{{ group.items.length }}</span>
-                  </div>
-                  <div class="category-divider-line"></div>
+              <div class="stock-list-row-actions">
+                @if (canEdit$ | async) {
+                <div class="list-quick-adjust">
+                  <ion-button fill="clear" size="small" color="danger"
+                    (click)="$event.stopPropagation(); adjustStock(ingredient, -10)"
+                    (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, -10)"
+                    [disabled]="ingredient.quantiteStock <= 0" data-testid="stock-list-adjust-minus10-btn">
+                    -10
+                  </ion-button>
+                  <ion-button fill="clear" size="small" color="danger"
+                    (click)="$event.stopPropagation(); adjustStock(ingredient, -1)"
+                    (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, -1)"
+                    [disabled]="ingredient.quantiteStock <= 0" data-testid="stock-list-adjust-minus-btn">
+                    <ion-icon name="remove-circle" slot="icon-only"></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" size="small" color="success"
+                    (click)="$event.stopPropagation(); adjustStock(ingredient, 1)"
+                    (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, 1)"
+                    data-testid="stock-list-adjust-plus-btn">
+                    <ion-icon name="add-circle" slot="icon-only"></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" size="small" color="tertiary"
+                    (click)="$event.stopPropagation(); adjustStock(ingredient, 10)"
+                    (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, 10)"
+                    data-testid="stock-list-adjust-plus10-btn">
+                    +10
+                  </ion-button>
                 </div>
-
-                <!-- Grille de Cartes pour cette catégorie -->
-                <ion-grid class="stock-grid">
-                  <ion-row>
-                    @for (ingredient of group.items; track ingredient.id) {
-                    <ion-col size="12" size-sm="6" size-md="6" size-lg="4" size-xl="3">
-                      <ng-container *ngTemplateOutlet="stockCard; context: { $implicit: ingredient }"></ng-container>
-                    </ion-col>
-                    }
-                  </ion-row>
-                </ion-grid>
-              </section>
-            }
-          </div>
-        } @else if (viewMode === 'grid') {
-          <!-- Mode 2: Vraie Grille Plate avec Pagination (sans lag) -->
-          <div class="flat-grid-wrapper" data-testid="flat-grid-wrapper">
-            <!-- Header Pagination Toolbar -->
-            <app-pagination
-              [currentPage]="gridPage"
-              [totalItems]="filteredIngredients.length"
-              [pageSize]="gridPageSize"
-              [pageSizeOptions]="[12, 16, 24, 48]"
-              [showPageSize]="true"
-              [showSummary]="true"
-              summaryKey="STOCK.PAGINATION_SUMMARY"
-              testId="grid-pagination-top"
-              (pageChange)="setGridPage($event)"
-              (pageSizeChange)="setGridPageSize($event)">
-            </app-pagination>
-
-            <!-- Flat Card Grid -->
-            <ion-grid class="stock-grid">
-              <ion-row>
-                @for (ingredient of paginatedGridIngredients; track ingredient.id) {
-                <ion-col size="12" size-sm="6" size-md="6" size-lg="4" size-xl="3">
-                  <ng-container *ngTemplateOutlet="stockCard; context: { $implicit: ingredient }"></ng-container>
-                </ion-col>
                 }
-              </ion-row>
-            </ion-grid>
 
-            <!-- Bottom Pagination Controls -->
-            @if (totalGridPages > 1) {
-              <app-pagination
-                [currentPage]="gridPage"
-                [totalItems]="filteredIngredients.length"
-                [pageSize]="gridPageSize"
-                [pageSizeOptions]="[12, 16, 24, 48]"
-                [showPageSize]="false"
-                [showSummary]="false"
-                testId="grid-pagination"
-                (pageChange)="setGridPage($event)">
-              </app-pagination>
-            }
-          </div>
-        } @else if (viewMode === 'list') {
-          <!-- Mode 3: Liste -->
-          <div class="category-sections-wrapper" data-testid="list-sections-wrapper">
-            @for (group of groupedIngredients; track group.categoryKey) {
-              <section class="category-section-block" [attr.data-testid]="'category-section-' + group.categoryKey.toLowerCase()">
-                <!-- Category Header & Divider -->
-                <div class="category-section-header">
-                  <div class="category-title-wrap">
-                    <span class="category-icon-pill" [ngClass]="'badge-' + group.badgeType">
-                      <ion-icon [name]="group.icon"></ion-icon>
-                    </span>
-                    <h2 class="category-name">{{ group.categoryLabel }}</h2>
-                    <span class="category-count-badge">{{ group.items.length }}</span>
-                  </div>
-                  <div class="category-divider-line"></div>
+                <div class="list-action-btns">
+                  <ion-button fill="clear" color="warning" size="small"
+                    (click)="$event.stopPropagation(); openWasteModal(ingredient)"
+                    (keyup.enter)="$event.stopPropagation(); openWasteModal(ingredient)"
+                    [title]="'STOCK.WASTE_RECORD_BTN' | transloco"
+                    [attr.data-testid]="'stock-list-waste-btn-' + ingredient.id">
+                    <ion-icon slot="icon-only" name="alert-circle-outline"></ion-icon>
+                  </ion-button>
+                  @if (isAdmin$ | async) {
+                  <ion-button fill="clear" color="danger" size="small"
+                    (click)="$event.stopPropagation(); onDelete(ingredient)"
+                    (keyup.enter)="$event.stopPropagation(); onDelete(ingredient)" data-testid="ingredient-delete-btn">
+                    <ion-icon slot="icon-only" name="trash"></ion-icon>
+                  </ion-button>
+                  }
                 </div>
-
-                <!-- Mode Liste -->
-                <app-card class="stock-list-card" [padding]="'none'">
-                  <div card-content>
-                    <ion-list>
-                      @for (ingredient of group.items; track ingredient.id) {
-                      <ion-item class="stock-list-item" (click)="openIngredientModal(ingredient)"
-                        (keydown.enter)="openIngredientModal(ingredient)" tabindex="0" role="button"
-                        [attr.aria-label]="ingredient.nom" [attr.data-testid]="'ingredient-list-item-' + ingredient.id">
-                        <ion-label>
-                          <h3>{{ ingredient.nom }}</h3>
-                          <p>
-                            {{ ingredient.uniteMesure }} — {{ 'INGREDIENTS.SEUIL_ALERTE' | transloco }} : {{ ingredient.seuilAlerte }} {{ ingredient.uniteMesure }}
-                            @if (getPackagingEquivalent(ingredient)) {
-                              <span class="list-packaging-hint"> • {{ getPackagingEquivalent(ingredient) }}</span>
-                            }
-                          </p>
-                          @if (showAllergens) {
-                            <div class="card-allergens-row list-mode-allergens" [attr.data-testid]="'list-allergens-' + ingredient.id">
-                              @if (ingredient.allergens && ingredient.allergens.length > 0) {
-                                @for (algKey of ingredient.allergens; track algKey) {
-                                  <span class="ingredient-allergen-badge" [title]="getAllergenInfo(algKey).labelKey | transloco">
-                                    <span class="alg-emoji">{{ getAllergenInfo(algKey).emoji }}</span>
-                                    <span class="alg-name">{{ getAllergenInfo(algKey).labelKey | transloco }}</span>
-                                  </span>
-                                }
-                              } @else {
-                                <span class="ingredient-allergen-badge allergen-free" [title]="'STOCK.NO_ALLERGENS' | transloco">
-                                  <span class="alg-emoji">🛡️</span>
-                                  <span class="alg-name">{{ 'STOCK.NO_ALLERGENS' | transloco }}</span>
-                                </span>
-                              }
-                              @if (ingredient.isVegan) {
-                                <span class="ingredient-allergen-badge vegan" [title]="'COCKTAILS.VEGAN' | transloco">
-                                  <span class="alg-emoji">🌱</span>
-                                  <span class="alg-name">{{ 'COCKTAILS.VEGAN' | transloco }}</span>
-                                </span>
-                              }
-                            </div>
-                          }
-                          <ion-progress-bar [value]="getStockRatio(ingredient)" [color]="getStockColor(ingredient)"
-                            style="margin-top:6px">
-                          </ion-progress-bar>
-                        </ion-label>
-
-                        <ion-badge slot="end" [color]="getStockColor(ingredient)">
-                          {{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }}
-                        </ion-badge>
-
-                        @if (canEdit$ | async) {
-                        <div slot="end" class="list-quick-adjust">
-                          <ion-button fill="clear" size="small" color="danger"
-                            (click)="$event.stopPropagation(); adjustStock(ingredient, -10)"
-                            (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, -10)"
-                            [disabled]="ingredient.quantiteStock <= 0" data-testid="stock-list-adjust-minus10-btn">
-                            -10
-                          </ion-button>
-                          <ion-button fill="clear" size="small" color="danger"
-                            (click)="$event.stopPropagation(); adjustStock(ingredient, -1)"
-                            (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, -1)"
-                            [disabled]="ingredient.quantiteStock <= 0" data-testid="stock-list-adjust-minus-btn">
-                            <ion-icon name="remove-circle" slot="icon-only"></ion-icon>
-                          </ion-button>
-                          <ion-button fill="clear" size="small" color="success"
-                            (click)="$event.stopPropagation(); adjustStock(ingredient, 1)"
-                            (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, 1)"
-                            data-testid="stock-list-adjust-plus-btn">
-                            <ion-icon name="add-circle" slot="icon-only"></ion-icon>
-                          </ion-button>
-                          <ion-button fill="clear" size="small" color="tertiary"
-                            (click)="$event.stopPropagation(); adjustStock(ingredient, 10)"
-                            (keyup.enter)="$event.stopPropagation(); adjustStock(ingredient, 10)"
-                            data-testid="stock-list-adjust-plus10-btn">
-                            +10
-                          </ion-button>
-                        </div>
-                        }
-
-                        <ion-buttons slot="end">
-                          <ion-button fill="clear" color="warning"
-                            (click)="$event.stopPropagation(); openWasteModal(ingredient)"
-                            (keyup.enter)="$event.stopPropagation(); openWasteModal(ingredient)"
-                            [title]="'STOCK.WASTE_RECORD_BTN' | transloco"
-                            [attr.data-testid]="'stock-list-waste-btn-' + ingredient.id">
-                            <ion-icon slot="icon-only" name="alert-circle-outline"></ion-icon>
-                          </ion-button>
-                          @if (isAdmin$ | async) {
-                          <ion-button fill="clear" color="danger" (click)="$event.stopPropagation(); onDelete(ingredient)"
-                            (keyup.enter)="$event.stopPropagation(); onDelete(ingredient)" data-testid="ingredient-delete-btn">
-                            <ion-icon slot="icon-only" name="trash"></ion-icon>
-                          </ion-button>
-                          }
-                        </ion-buttons>
-                      </ion-item>
-                      }
-                    </ion-list>
-                  </div>
-                </app-card>
-              </section>
+              </div>
+            </div>
             }
           </div>
-        }
-      } @else {
-        <div class="empty-stock-message">
-          <ion-label color="medium">{{ 'INGREDIENTS.EMPTY' | transloco }}</ion-label>
-        </div>
+        </app-card>
+      </section>
       }
-    }
+  </div>
+  }
+  } @else {
+  <div class="empty-stock-message">
+    <ion-label color="medium">{{ 'INGREDIENTS.EMPTY' | transloco }}</ion-label>
+  </div>
+  }
+  }
   </div>
 </ion-content>

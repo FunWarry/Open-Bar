@@ -34,7 +34,7 @@
             </button>
           </div>
 
-          <ion-button color="primary" routerLink="/commandes/nouvelle" data-testid="btn-new-commande">
+          <ion-button color="primary" routerLink="/serveur" [queryParams]="{ tab: 'commande' }" data-testid="btn-new-commande">
             + {{ 'COMMANDES.NEW' | transloco }}
           </ion-button>
         </div>

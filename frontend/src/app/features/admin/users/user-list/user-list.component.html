@@ -1,129 +1,221 @@
-<div class="user-list-container ion-padding">
-  <ion-card class="user-card">
-    <ion-card-header class="card-header">
-      <div class="header-main">
-        <ion-card-title>{{ 'USERS.TITLE' | transloco }}</ion-card-title>
-        <ion-button color="primary" (click)="openCreateDialog()" (keydown.enter)="openCreateDialog()" data-testid="create-user-btn">
-          <ion-icon name="person-add" slot="start"></ion-icon>
-          {{ 'USERS.NEW_EMPLOYEE_BTN' | transloco }}
-        </ion-button>
+<div class="users-page ion-padding">
+  <!-- ── Top Hero Header ───────────────────────────────────────────────────── -->
+  <header class="users-hero">
+    <div class="hero-left">
+      <div class="hero-badge">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        <span>{{ 'USERS.CATEGORY_BADGE' | transloco }}</span>
+      </div>
+      <h1 class="hero-title">{{ 'USERS.TITLE' | transloco }}</h1>
+      <p class="hero-subtitle">{{ 'USERS.SUBTITLE' | transloco }}</p>
+    </div>
+
+    <div class="hero-actions">
+      <app-action-button
+        variant="primary"
+        size="medium"
+        icon="person-add"
+        (btnClick)="openCreateDialog()"
+        testId="create-user-btn"
+        data-testid="create-user-btn">
+        {{ 'USERS.NEW_EMPLOYEE_BTN' | transloco }}
+      </app-action-button>
+    </div>
+  </header>
+
+  <!-- ── Executive KPI Summary Cards ───────────────────────────────────────── -->
+  <section class="kpis-section" data-testid="users-kpis-grid">
+    <div class="kpis-grid">
+      <app-stat-card
+        [label]="'USERS.KPIS.TOTAL_USERS' | transloco"
+        [value]="totalUsersCount"
+        [subtext]="'USERS.KPIS.TOTAL_USERS_SUB' | transloco"
+        icon="people-outline"
+        color="primary"
+        size="sm"
+        testId="stat-total-users">
+      </app-stat-card>
+
+      <app-stat-card
+        [label]="'USERS.KPIS.ADMINS' | transloco"
+        [value]="adminsCount"
+        [subtext]="'USERS.KPIS.ADMINS_SUB' | transloco"
+        icon="shield-checkmark-outline"
+        color="info"
+        size="sm"
+        testId="stat-admins">
+      </app-stat-card>
+
+      <app-stat-card
+        [label]="'USERS.KPIS.MANAGERS' | transloco"
+        [value]="managersCount"
+        [subtext]="'USERS.KPIS.MANAGERS_SUB' | transloco"
+        icon="briefcase-outline"
+        color="warning"
+        size="sm"
+        testId="stat-managers">
+      </app-stat-card>
+
+      <app-stat-card
+        [label]="'USERS.KPIS.STAFF' | transloco"
+        [value]="staffCount"
+        [subtext]="'USERS.KPIS.STAFF_SUB' | transloco"
+        icon="wine-outline"
+        color="success"
+        size="sm"
+        testId="stat-staff">
+      </app-stat-card>
+    </div>
+  </section>
+
+  <!-- ── Search & Filter Controls ─────────────────────────────────────────── -->
+  <section class="filter-section">
+    <div class="filter-toolbar">
+      <div class="search-wrapper">
+        <app-search-bar
+          [(ngModel)]="searchQuery"
+          (searchChange)="onSearchChange()"
+          [placeholder]="'USERS.SEARCH_PLACEHOLDER' | transloco"
+          testId="user-search-input">
+        </app-search-bar>
       </div>
 
-      <!-- Filtres et Recherche -->
-      <div class="filter-toolbar ion-margin-top">
-        <div class="search-box">
-          <app-search-bar
-            [(ngModel)]="searchQuery"
-            (searchChange)="onSearchChange()"
-            [placeholder]="'USERS.SEARCH_PLACEHOLDER' | transloco"
-            testId="user-search-input">
-          </app-search-bar>
-        </div>
-
-        <div class="role-filter">
-          <ion-select
-            [(ngModel)]="selectedRole"
-            (ionChange)="onRoleChange()"
-            interface="popover"
-            fill="outline"
-            [attr.aria-label]="'USERS.FILTER_ROLE' | transloco"
-            data-testid="user-role-select">
-            @for (r of availableRoles; track r) {
-              <ion-select-option [value]="r.value">
-                {{ r.label }}
-              </ion-select-option>
-            }
-          </ion-select>
-        </div>
+      <div class="role-select-box">
+        <app-searchable-select
+          [options]="roleSelectOptions"
+          [(ngModel)]="selectedRole"
+          (ngModelChange)="onRoleChange()"
+          [multiple]="false"
+          [placeholder]="'USERS.ALL_ROLES' | transloco"
+          [clearable]="false"
+          [enableSearch]="false"
+          size="default"
+          testId="user-role-select">
+        </app-searchable-select>
       </div>
-    </ion-card-header>
 
-    <ion-card-content>
-      @if (loading) {
-        <div class="spinner-container ion-text-center ion-padding">
-          <ion-spinner name="crescent"></ion-spinner>
+      <div class="results-counter" data-testid="users-results-count">
+        <span class="counter-dot"></span>
+        <span>{{ 'USERS.RESULTS_COUNT' | transloco:{ count: totalElements } }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Main Content Area ────────────────────────────────────────────────── -->
+  <main class="content-area">
+    <!-- Loading State -->
+    @if (loading) {
+      <div class="loading-state" data-testid="users-loading">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p>{{ 'COMMON.LOADING' | transloco }}</p>
+      </div>
+    }
+
+    @if (!loading) {
+      <!-- Empty State -->
+      @if (users.length === 0) {
+        <div class="empty-state-wrapper" data-testid="empty-users-state">
+          <app-empty-state
+            icon="people-outline"
+            [title]="'USERS.NO_USERS' | transloco"
+            [subtitle]="'USERS.EMPTY_SUBTEXT' | transloco"
+            [actionLabel]="'USERS.RESET_FILTERS' | transloco"
+            (actionClick)="resetFilters()">
+          </app-empty-state>
         </div>
       }
 
-      @if (!loading) {
-        @if (users.length === 0) {
-          <div class="empty-state ion-text-center ion-padding" data-testid="empty-users-state">
-            <p>{{ 'USERS.NO_USERS' | transloco }}</p>
-          </div>
-        }
-        @if (users.length > 0) {
-          <ion-list data-testid="user-list">
-            @for (user of users; track trackById($index, user)) {
-              <ion-item
-                lines="full"
-                [attr.data-testid]="'user-item-' + user.id"
-                class="user-item-clickable"
-                (click)="openEditDialog(user)"
-                (keydown.enter)="openEditDialog(user)"
-                tabindex="0"
-                [attr.aria-label]="'USERS.EDIT_TITLE' | transloco">
-                <div class="user-row">
-                  <div class="user-info">
-                    <h3 class="user-username">
-                      {{ user.username }}
-                      @if (user.prenom || user.nom) {
-                        <span class="user-fullname">({{ user.prenom }} {{ user.nom }})</span>
-                      }
-                    </h3>
-                    <p class="user-email">{{ user.email }}</p>
-                    <div class="roles-container">
-                      @for (role of user.roles; track role) {
-                        <ion-badge [color]="getRoleColor(role)" class="role-badge">
-                          {{ 'SHIFTS.FILTERS.' + role | transloco }}
-                        </ion-badge>
-                      }
-                    </div>
+      <!-- Users Cards Grid -->
+      @if (users.length > 0) {
+        <div class="users-cards-grid" data-testid="user-list">
+          @for (user of users; track trackById($index, user)) {
+            <article
+              class="user-card"
+              [attr.data-testid]="'user-item-' + user.id">
+
+              <!-- Left: Avatar & Identity -->
+              <div class="card-identity">
+                <div class="avatar-box">
+                  <app-user-avatar
+                    [name]="getDisplayName(user)"
+                    [role]="getUserPrimaryRole(user.roles)"
+                    size="medium"
+                    [testId]="'avatar-' + user.id">
+                  </app-user-avatar>
+                  <span
+                    class="status-indicator"
+                    [class.active]="user.enabled !== false"
+                    [title]="user.enabled !== false ? ('COMMON.ACTIVE' | transloco) : ('COMMON.INACTIVE' | transloco)">
+                  </span>
+                </div>
+
+                <div class="identity-info">
+                  <div class="name-row">
+                    <h2 class="user-display-name">{{ getDisplayName(user) }}</h2>
+                    @if (user.prenom || user.nom) {
+                      <span class="username-tag">@{{ user.username }}</span>
+                    }
                   </div>
-                  <div class="action-buttons">
-                    <ion-button
-                      fill="clear"
-                      color="danger"
-                      (click)="openDeleteDialog(user); $event.stopPropagation()"
-                      (keydown.enter)="openDeleteDialog(user); $event.stopPropagation()"
-                      [attr.data-testid]="'delete-user-btn-' + user.id"
-                      [attr.aria-label]="'COMMON.DELETE' | transloco">
-                      <ion-icon name="trash" slot="icon-only"></ion-icon>
-                    </ion-button>
+
+                  <div class="email-row">
+                    <ion-icon name="mail-outline"></ion-icon>
+                    <span class="user-email">{{ user.email }}</span>
+                  </div>
+
+                  <!-- Role Badges -->
+                  <div class="roles-row">
+                    @for (role of user.roles; track role) {
+                      <app-role-badge
+                        [role]="getUserPrimaryRole([role])"
+                        [testId]="'role-badge-' + user.id + '-' + role.toLowerCase()">
+                      </app-role-badge>
+                    }
                   </div>
                 </div>
-              </ion-item>
-            }
-          </ion-list>
-        }
-        <!-- Pagination Controls Footer -->
-        @if (totalElements > 0) {
-          <div class="pagination-footer ion-margin-top">
-            <div class="pagination-info">
-              <span>{{ 'USERS.PAGE_INFO' | transloco: { page: currentPage + 1, totalPages: totalPages, total: totalElements } }}</span>
-            </div>
-            <div class="pagination-controls">
-              <div class="page-size-selector">
-                <label for="page-size-select">{{ 'USERS.PAGE_SIZE_LABEL' | transloco }}</label>
-                <select id="page-size-select" [ngModel]="pageSize" (ngModelChange)="changePageSize($event)" data-testid="page-size-select">
-                  @for (size of pageSizeOptions; track size) {
-                    <option [value]="size">{{ size }}</option>
-                  }
-                </select>
               </div>
-              <div class="page-nav-buttons">
-                <ion-button fill="outline" size="small" (click)="prevPage()" (keydown.enter)="prevPage()" [disabled]="isFirst" data-testid="prev-page-btn">
-                  <ion-icon name="chevron-back-outline"></ion-icon>
-                  {{ 'COMMON.PREV' | transloco }}
-                </ion-button>
-                <ion-button fill="outline" size="small" (click)="nextPage()" (keydown.enter)="nextPage()" [disabled]="isLast" data-testid="next-page-btn">
-                  {{ 'COMMON.NEXT' | transloco }}
-                  <ion-icon name="chevron-forward-outline"></ion-icon>
-                </ion-button>
+
+              <!-- Right: Actions -->
+              <div class="card-actions">
+                <app-action-button
+                  variant="secondary"
+                  size="small"
+                  icon="create-outline"
+                  (btnClick)="openEditDialog(user)"
+                  [testId]="'edit-user-btn-' + user.id"
+                  [attr.data-testid]="'edit-user-btn-' + user.id">
+                  {{ 'COMMON.EDIT' | transloco }}
+                </app-action-button>
+
+                <app-action-button
+                  variant="danger"
+                  size="small"
+                  icon="trash-outline"
+                  (btnClick)="openDeleteDialog(user)"
+                  [testId]="'delete-user-btn-' + user.id"
+                  [attr.data-testid]="'delete-user-btn-' + user.id">
+                  {{ 'COMMON.DELETE' | transloco }}
+                </app-action-button>
               </div>
-            </div>
-          </div>
-        }
+            </article>
+          }
+        </div>
       }
-    </ion-card-content>
-  </ion-card>
+
+      <!-- Pagination Footer -->
+      @if (totalElements > 0) {
+        <div class="pagination-wrapper" data-testid="pagination-users">
+          <app-pagination
+            [currentPage]="currentPage + 1"
+            [totalItems]="totalElements"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="pageSizeOptions"
+            [showPageSize]="true"
+            testId="users-pagination"
+            (pageChange)="onPageChange($event)"
+            (pageSizeChange)="changePageSize($event)">
+          </app-pagination>
+        </div>
+      }
+    }
+  </main>
 </div>

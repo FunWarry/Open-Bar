@@ -293,17 +293,7 @@
           <div class="table-num-avatar" [class.occupied]="table.occupee" [title]="'TABLES.CARD.TITLE' | transloco: { number: table.numero }">
             <ion-icon name="table-restaurant-outline" class="avatar-icon"></ion-icon>
           </div>
-          <div class="table-meta-text">
-            <h3 class="table-title">{{ table.numero }}</h3>
-            <div class="table-zone-chip">
-              <ion-icon name="location-outline" class="zone-icon"></ion-icon>
-              <span class="zone-name">{{ table.zone }}</span>
-              @if (getEtageShortLabelForZone(table.zone); as etageLabel) {
-                <span class="zone-sep">•</span>
-                <span class="etage-name">{{ etageLabel }}</span>
-              }
-            </div>
-          </div>
+          <h3 class="table-title"><span class="table-prefix">{{ 'TABLES.CARD.TABLE_PREFIX' | transloco }} </span>{{ table.numero }}</h3>
         </div>
 
         <button
@@ -319,11 +309,21 @@
         </button>
       </div>
 
-      <!-- Mid Section: Capacity & Details Badges -->
+      <!-- Mid Section: Zone & Capacity Badges -->
       <div card-content class="card-body-row">
+        @if (table.zone) {
+          <div class="meta-badge zone-badge" [title]="table.zone">
+            <ion-icon name="location-outline" class="badge-icon"></ion-icon>
+            <span class="zone-name">{{ table.zone }}</span>
+            @if (getEtageShortLabelForZone(table.zone); as etageLabel) {
+              <span class="zone-sep">•</span>
+              <span class="etage-name">{{ etageLabel }}</span>
+            }
+          </div>
+        }
         <div class="meta-badge capacity-badge">
-          <ion-icon name="people-outline"></ion-icon>
-          <span>{{ 'TABLES.CARD.CAPACITY' | transloco : { count: table.capacite } }}</span>
+          <ion-icon name="people-outline" class="badge-icon"></ion-icon>
+          <span>{{ (table.capacite > 1 ? 'TABLES.CARD.SEATS' : 'TABLES.CARD.SEAT') | transloco : { count: table.capacite } }}</span>
         </div>
       </div>
 
@@ -348,7 +348,7 @@
             data-testid="table-edit-btn"
             title="{{ 'TABLES.CARD.EDIT' | transloco }}">
             <ion-icon name="create-outline"></ion-icon>
-            <span>{{ 'TABLES.CARD.EDIT' | transloco }}</span>
+            <span class="btn-text-edit">{{ 'TABLES.CARD.EDIT' | transloco }}</span>
           </button>
 
           <button

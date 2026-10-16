@@ -36,6 +36,8 @@ import { PrinterService } from '../../../../core/services/printer.service';
 })
 export class BarTicketPrintComponent implements OnInit {
   @Input({ required: true }) commande!: CommandeView;
+  @Input() isKitchenMode = false;
+  @Input() stationFilter: 'ALL' | 'BAR' | 'KITCHEN' = 'ALL';
 
   establishmentName = 'OpenBar';
   isDirectPrinting = false;
@@ -66,9 +68,24 @@ export class BarTicketPrintComponent implements OnInit {
 
   /**
    * Returns grouped items consolidating duplicate lines.
+   * If in kitchen mode or station filter is KITCHEN, filters items to kitchen & snack stations.
+   * If station filter is BAR, filters items to bar station.
    */
   get groupedItems(): CommandeItemView[] {
-    return groupCommandeItems(this.commande?.items) as CommandeItemView[];
+    const rawItems = this.commande?.items || [];
+    let items = rawItems;
+    if (this.isKitchenMode || this.stationFilter === 'KITCHEN') {
+      const kitchenItems = rawItems.filter(i => i.station === 'KITCHEN' || i.station === 'SNACK');
+      if (kitchenItems.length > 0) {
+        items = kitchenItems;
+      }
+    } else if (this.stationFilter === 'BAR') {
+      const barItems = rawItems.filter(i => !i.station || i.station === 'BAR');
+      if (barItems.length > 0) {
+        items = barItems;
+      }
+    }
+    return groupCommandeItems(items) as CommandeItemView[];
   }
 
   /**
@@ -96,11 +113,13 @@ export class BarTicketPrintComponent implements OnInit {
     printIframe.style.height = '0';
     printIframe.style.border = '0';
 
+    const ticketTitle = this.isKitchenMode ? 'Ticket Cuisine' : 'Ticket Bar';
+
     printIframe.srcdoc = `
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Ticket Bar #${this.commande?.id ?? ''}</title>
+          <title>${ticketTitle} #${this.commande?.id ?? ''}</title>
           <style>
             @page {
               size: 80mm auto;

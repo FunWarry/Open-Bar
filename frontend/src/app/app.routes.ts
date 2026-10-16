@@ -165,8 +165,8 @@ export const routes: Routes = [
   },
   {
     path: 'orders/new',
-    loadComponent: () => import('./features/commandes/commande-form/commande-form.component').then(m => m.CommandeFormComponent),
-    canActivate: [AuthGuard]
+    redirectTo: '/serveur?tab=commande',
+    pathMatch: 'full'
   },
   {
     path: 'orders/:id',
@@ -180,12 +180,12 @@ export const routes: Routes = [
   },
   {
     path: 'commandes/new',
-    redirectTo: '/orders/new',
+    redirectTo: '/serveur?tab=commande',
     pathMatch: 'full'
   },
   {
     path: 'commandes/nouvelle',
-    redirectTo: '/orders/new',
+    redirectTo: '/serveur?tab=commande',
     pathMatch: 'full'
   },
   {
@@ -313,15 +313,15 @@ export const routes: Routes = [
   // Kitchen Display Screen (KDS) (English route /kitchen + /cuisine + /kds)
   {
     path: 'kitchen',
-    loadComponent: () => import('./features/kds-kitchen/kds-kitchen.component').then(m => m.KdsKitchenComponent),
+    loadComponent: () => import('./features/dashboard-barman/dashboard-barman.component').then(m => m.DashboardBarmanComponent),
     canActivate: [ModuleGuard, AuthGuard, RoleGuard],
-    data: { roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS }
+    data: { roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS, station: 'KITCHEN' }
   },
   {
     path: 'cuisine',
-    loadComponent: () => import('./features/kds-kitchen/kds-kitchen.component').then(m => m.KdsKitchenComponent),
+    loadComponent: () => import('./features/dashboard-barman/dashboard-barman.component').then(m => m.DashboardBarmanComponent),
     canActivate: [ModuleGuard, AuthGuard, RoleGuard],
-    data: { roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS }
+    data: { roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS, station: 'KITCHEN' }
   },
   {
     path: 'kds',

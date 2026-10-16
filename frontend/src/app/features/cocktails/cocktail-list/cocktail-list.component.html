@@ -334,8 +334,8 @@
                   <div class="figma-card-body">
                     <div class="figma-card-top-row">
                       <div class="badges-group">
-                        <span class="figma-category-pill" [ngStyle]="getCategoryPillStyle(cocktail.categorie, false)">
-                          <span class="dot-indicator" [style.background-color]="getCategoryDotColor(cocktail.categorie)"></span>
+                        <span class="figma-category-pill">
+                          <span class="dot-indicator" [style.background-color]="cocktail.disponible ? getCategoryDotColor(cocktail.categorie) : 'var(--text-muted)'"></span>
                           {{ ('COCKTAILS.CATEGORIES.' + cocktail.categorie) | transloco }}
                         </span>
                         @if (cocktail.variantes && cocktail.variantes.length > 0) {
@@ -421,7 +421,8 @@
                             (click)="onToggleDisponibilite(cocktail)"
                             (keydown.enter)="onToggleDisponibilite(cocktail)"
                             [attr.aria-pressed]="cocktail.disponible"
-                            [attr.aria-label]="cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco)">
+                            [attr.aria-label]="cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco)"
+                            [title]="cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco)">
                             <span class="slider-track">
                               <span class="slider-knob"></span>
                             </span>
@@ -431,7 +432,7 @@
                           </button>
 
                           @if (isAdmin$ | async) {
-                            <ion-button fill="clear" color="danger" size="small" [attr.data-testid]="'delete-cocktail-btn-' + cocktail.id" (click)="onDelete(cocktail)" (keydown.enter)="onDelete(cocktail)">
+                            <ion-button fill="clear" color="danger" size="small" class="cocktail-delete-btn" [attr.data-testid]="'delete-cocktail-btn-' + cocktail.id" (click)="onDelete(cocktail)" (keydown.enter)="onDelete(cocktail)" [attr.aria-label]="'COMMON.DELETE' | transloco" [title]="'COMMON.DELETE' | transloco">
                               <ion-icon slot="icon-only" name="trash"></ion-icon>
                             </ion-button>
                           }

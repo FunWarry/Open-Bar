@@ -1,134 +1,260 @@
-<div class="employees-container ion-padding">
-  <ion-card class="employees-card">
-    <ion-card-header class="card-header">
-      <div class="header-main">
-        <div>
-          <ion-card-title>{{ 'EMPLOYEES.TITLE' | transloco }}</ion-card-title>
-          <ion-card-subtitle>{{ 'EMPLOYEES.SUBTITLE' | transloco }}</ion-card-subtitle>
-        </div>
-        <div class="header-actions">
-          <app-action-button
-            variant="secondary"
-            size="small"
-            icon="download-outline"
-            (btnClick)="exportEmployeeHoursCsv()"
-            [disabled]="filteredSummaries.length === 0"
-            testId="employees-btn-export-csv"
-            data-testid="employees-btn-export-csv">
-            {{ 'EMPLOYEES.EXPORT_HOURS_CSV' | transloco }}
-          </app-action-button>
-          <app-action-button
-            variant="secondary"
-            size="small"
-            icon="settings-outline"
-            (btnClick)="goToShiftPresets()"
-            testId="employees-btn-presets"
-            data-testid="employees-btn-presets">
-            {{ 'EMPLOYEES.PRESETS_BTN' | transloco }}
-          </app-action-button>
-        </div>
+<div class="employees-page ion-padding">
+  <!-- ── Top Hero Header ───────────────────────────────────────────────────── -->
+  <header class="employees-hero">
+    <div class="hero-left">
+      <div class="hero-badge">
+        <ion-icon name="people-outline"></ion-icon>
+        <span>{{ 'NAV.EMPLOYEES' | transloco }}</span>
+      </div>
+      <h1 class="hero-title">{{ 'EMPLOYEES.TITLE' | transloco }}</h1>
+      <p class="hero-subtitle">{{ 'EMPLOYEES.SUBTITLE' | transloco }}</p>
+    </div>
+
+    <div class="hero-actions">
+      <app-action-button
+        variant="secondary"
+        size="medium"
+        icon="calendar-outline"
+        (btnClick)="goToSchedule()"
+        testId="employees-btn-schedule"
+        data-testid="employees-btn-schedule">
+        {{ 'EMPLOYEES.VIEW_SCHEDULE' | transloco }}
+      </app-action-button>
+
+      <app-action-button
+        variant="secondary"
+        size="medium"
+        icon="download-outline"
+        (btnClick)="exportEmployeeHoursCsv()"
+        [disabled]="filteredSummaries.length === 0"
+        testId="employees-btn-export-csv"
+        data-testid="employees-btn-export-csv">
+        {{ 'EMPLOYEES.EXPORT_HOURS_CSV' | transloco }}
+      </app-action-button>
+
+      <app-action-button
+        variant="secondary"
+        size="medium"
+        icon="options-outline"
+        (btnClick)="goToShiftPresets()"
+        testId="employees-btn-presets"
+        data-testid="employees-btn-presets">
+        {{ 'EMPLOYEES.PRESETS_BTN' | transloco }}
+      </app-action-button>
+    </div>
+  </header>
+
+  <!-- ── Executive KPI Summary Cards ───────────────────────────────────────── -->
+  <section class="kpis-section" data-testid="employees-kpis-grid">
+    <div class="kpis-grid">
+      <app-stat-card
+        [label]="'EMPLOYEES.KPIS.TOTAL_STAFF' | transloco"
+        [value]="totalEmployeesCount"
+        [subtext]="'EMPLOYEES.KPIS.TOTAL_STAFF_SUB' | transloco"
+        icon="people-outline"
+        color="primary"
+        size="sm"
+        testId="stat-total-employees">
+      </app-stat-card>
+
+      <app-stat-card
+        [label]="'EMPLOYEES.KPIS.WEEKLY_HOURS' | transloco"
+        [value]="totalWeeklyHours + ' ' + ('EMPLOYEES.HOURS' | transloco)"
+        [subtext]="'EMPLOYEES.KPIS.WEEKLY_HOURS_SUB' | transloco"
+        icon="time-outline"
+        color="info"
+        size="sm"
+        testId="stat-weekly-hours">
+      </app-stat-card>
+
+      <app-stat-card
+        [label]="'EMPLOYEES.KPIS.WEEKLY_SHIFTS' | transloco"
+        [value]="totalWeeklyShifts"
+        [subtext]="'EMPLOYEES.KPIS.WEEKLY_SHIFTS_SUB' | transloco"
+        icon="calendar-outline"
+        color="warning"
+        size="sm"
+        testId="stat-weekly-shifts">
+      </app-stat-card>
+
+      <app-stat-card
+        [label]="'EMPLOYEES.KPIS.AVERAGE_HOURS' | transloco"
+        [value]="averageWeeklyHours + ' ' + ('EMPLOYEES.HOURS' | transloco)"
+        [subtext]="'EMPLOYEES.KPIS.AVERAGE_HOURS_SUB' | transloco"
+        icon="trending-up-outline"
+        color="success"
+        size="sm"
+        testId="stat-average-hours">
+      </app-stat-card>
+    </div>
+  </section>
+
+  <!-- ── Search & Filter Controls ─────────────────────────────────────────── -->
+  <section class="filter-section">
+    <div class="filter-toolbar">
+      <div class="search-wrapper">
+        <app-search-bar
+          [(ngModel)]="searchQuery"
+          (searchChange)="onSearchChange()"
+          [placeholder]="'EMPLOYEES.SEARCH_PLACEHOLDER' | transloco"
+          testId="employee-search-input">
+        </app-search-bar>
       </div>
 
-      <!-- Filters & Search Toolbar -->
-      <div class="filter-toolbar ion-margin-top">
-        <div class="search-box">
-          <app-search-bar
-            [(ngModel)]="searchQuery"
-            (searchChange)="onSearchChange()"
-            [placeholder]="'EMPLOYEES.SEARCH_PLACEHOLDER' | transloco"
-            testId="employee-search-input">
-          </app-search-bar>
-        </div>
-
-        <div class="role-filter">
-          <ion-select
-            [(ngModel)]="selectedRole"
-            (ionChange)="onRoleChange()"
-            interface="popover"
-            fill="outline"
-            [attr.aria-label]="'EMPLOYEES.FILTER_BY_ROLE' | transloco"
-            data-testid="employee-role-select">
-            @for (r of availableRoles; track r) {
-              <ion-select-option [value]="r.value">
-                {{ r.label }}
-              </ion-select-option>
-            }
-          </ion-select>
-        </div>
+      <div class="role-select-box">
+        <app-searchable-select
+          [options]="roleSelectOptions"
+          [(ngModel)]="selectedRoles"
+          (ngModelChange)="onRoleChange()"
+          [multiple]="true"
+          [placeholder]="'EMPLOYEES.ALL_ROLES' | transloco"
+          [selectedCountLabel]="'EMPLOYEES.ROLES_SELECTED' | transloco"
+          [searchPlaceholder]="'EMPLOYEES.SEARCH_ROLES' | transloco"
+          [clearable]="true"
+          [enableSearch]="false"
+          size="default"
+          testId="employees-role-select">
+        </app-searchable-select>
       </div>
-    </ion-card-header>
 
-    <ion-card-content>
-      <!-- Loading spinner -->
-      @if (loading) {
-        <div class="spinner-container ion-text-center ion-padding" data-testid="employees-loading">
-          <ion-spinner name="crescent"></ion-spinner>
+      <div class="results-counter" data-testid="employees-results-count">
+        <span class="counter-dot"></span>
+        <span>{{ 'EMPLOYEES.RESULTS_COUNT' | transloco:{ count: filteredSummaries.length } }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Main Content Area ────────────────────────────────────────────────── -->
+  <main class="content-area">
+    <!-- Loading State -->
+    @if (loading) {
+      <div class="loading-state" data-testid="employees-loading">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p>{{ 'COMMON.LOADING' | transloco }}</p>
+      </div>
+    }
+
+    @if (!loading) {
+      <!-- Empty State -->
+      @if (filteredSummaries.length === 0) {
+        <div class="empty-state-wrapper" data-testid="empty-employees-state">
+          <app-empty-state
+            icon="people-outline"
+            [title]="'EMPLOYEES.NO_EMPLOYEES' | transloco"
+            [subtitle]="'EMPLOYEES.EMPTY_SUBTEXT' | transloco"
+            [actionLabel]="'EMPLOYEES.RESET_FILTERS' | transloco"
+            (actionClick)="resetFilters()">
+          </app-empty-state>
         </div>
       }
 
-      @if (!loading) {
-        <!-- Empty State -->
-        @if (filteredSummaries.length === 0) {
-          <div class="empty-state ion-text-center ion-padding" data-testid="empty-employees-state">
-            <h3>{{ 'EMPLOYEES.NO_EMPLOYEES' | transloco }}</h3>
-            <p>{{ 'EMPLOYEES.EMPTY_SUBTEXT' | transloco }}</p>
-          </div>
-        }
-        <!-- Employee List -->
-        @if (filteredSummaries.length > 0) {
-          <ion-list class="employee-list" data-testid="employee-list">
-            @for (item of filteredSummaries; track trackById($index, item)) {
-              <ion-item
-                lines="full"
-                class="employee-item"
-                (click)="openEmployeeShiftsModal(item.user)"
-                (keydown.enter)="openEmployeeShiftsModal(item.user)"
-                tabindex="0"
-                [attr.data-testid]="'employee-item-' + item.user.id"
-                [attr.aria-label]="'EMPLOYEES.MANAGE_SHIFTS' | transloco">
-                <div class="employee-row">
-                  <div class="employee-info">
-                    <h3 class="employee-name">
-                      {{ item.user.username }}
-                      @if (item.user.prenom || item.user.nom) {
-                        <span class="employee-fullname">
-                          ({{ item.user.prenom }} {{ item.user.nom }})
-                        </span>
-                      }
-                    </h3>
-                    <p class="employee-email">{{ item.user.email }}</p>
-                    <div class="roles-container">
-                      @for (role of item.user.roles; track role) {
-                        <ion-badge [color]="getRoleBadgeColor(role)" class="role-badge">
-                          {{ role }}
-                        </ion-badge>
-                      }
-                    </div>
+      <!-- Employee Cards Grid -->
+      @if (filteredSummaries.length > 0) {
+        <div class="employee-cards-grid" data-testid="employee-list">
+          @for (item of filteredSummaries; track trackById($index, item)) {
+            <article
+              class="employee-card"
+              [attr.data-testid]="'employee-item-' + item.user.id">
+
+              <!-- Left: Avatar & Identity -->
+              <div class="card-identity">
+                <div class="avatar-box">
+                  <app-user-avatar
+                    [name]="getDisplayName(item.user)"
+                    [role]="getUserPrimaryRole(item.user.roles)"
+                    size="medium"
+                    [testId]="'avatar-' + item.user.id">
+                  </app-user-avatar>
+                  <span class="online-indicator" [class.active]="item.shiftsCount > 0" title="Actif sur le planning"></span>
+                </div>
+
+                <div class="identity-info">
+                  <div class="name-row">
+                    <h2 class="employee-name">{{ getDisplayName(item.user) }}</h2>
+                    @if (item.user.prenom || item.user.nom) {
+                      <span class="username-tag">@{{ item.user.username }}</span>
+                    }
                   </div>
-                  <!-- Weekly shift metrics -->
-                  <div class="shift-metrics">
-                    <div class="metric-chip" data-testid="employee-total-hours">
-                      <ion-icon name="time-outline"></ion-icon>
-                      <span><strong>{{ item.totalHours }}</strong> {{ 'EMPLOYEES.HOURS_THIS_WEEK' | transloco }}</span>
-                    </div>
-                    <div class="metric-chip" data-testid="employee-shifts-count">
-                      <ion-icon name="calendar-outline"></ion-icon>
-                      <span><strong>{{ item.shiftsCount }}</strong> {{ 'EMPLOYEES.SHIFTS_THIS_WEEK' | transloco }}</span>
-                    </div>
+
+                  <div class="email-row">
+                    <ion-icon name="mail-outline"></ion-icon>
+                    <span class="employee-email">{{ item.user.email }}</span>
                   </div>
-                  <!-- Action CTA -->
-                  <div class="action-buttons">
-                    <ion-button fill="outline" color="primary" size="small" (click)="openEmployeeShiftsModal(item.user); $event.stopPropagation()" (keydown.enter)="openEmployeeShiftsModal(item.user); $event.stopPropagation()" [attr.data-testid]="'manage-shifts-btn-' + item.user.id">
-                      <ion-icon name="calendar-outline" slot="start"></ion-icon>
-                      {{ 'EMPLOYEES.MANAGE_SHIFTS' | transloco }}
-                    </ion-button>
+
+                  <!-- Role Badges -->
+                  <div class="roles-row">
+                    @for (role of item.user.roles; track role) {
+                      <app-role-badge
+                        [role]="getUserPrimaryRole([role])"
+                        [testId]="'role-badge-' + item.user.id + '-' + role.toLowerCase()">
+                      </app-role-badge>
+                    }
                   </div>
                 </div>
-              </ion-item>
-            }
-          </ion-list>
-        }
+              </div>
+
+              <!-- Center: Weekly Workload & Shift Metrics -->
+              <div class="card-workload">
+                <div class="workload-stats">
+                  <div class="hours-block" data-testid="employee-total-hours">
+                    <div class="hours-value">
+                      <span class="number">{{ item.totalHours }}</span>
+                      <span class="unit">{{ 'EMPLOYEES.HOURS' | transloco }}</span>
+                    </div>
+                    <span class="hours-caption">{{ 'EMPLOYEES.HOURS_THIS_WEEK' | transloco }}</span>
+                  </div>
+
+                  <div class="shifts-block" data-testid="employee-shifts-count">
+                    <div class="shifts-chip">
+                      <ion-icon name="calendar-outline"></ion-icon>
+                      <span class="shifts-count">{{ item.shiftsCount }}</span>
+                      <span class="shifts-label">{{ 'EMPLOYEES.SHIFTS' | transloco }}</span>
+                    </div>
+                    @if (isOvertime(item.totalHours)) {
+                      <span class="overtime-chip" title="Dépassement du temps de travail de référence (35h)">
+                        <ion-icon name="speedometer-outline"></ion-icon>
+                        {{ 'EMPLOYEES.OVERTIME_BADGE' | transloco }}
+                      </span>
+                    }
+                  </div>
+                </div>
+
+                <!-- Workload Progress Indicator -->
+                <div class="workload-bar-wrapper" [title]="getWorkloadProgress(item.totalHours) + '% ' + ('EMPLOYEES.CONTRACT_BASE' | transloco)">
+                  <div class="progress-track">
+                    <div
+                      class="progress-fill"
+                      [style.width.%]="getWorkloadProgress(item.totalHours)"
+                      [class.overtime]="isOvertime(item.totalHours)"
+                      [class.empty]="item.totalHours === 0">
+                    </div>
+                  </div>
+                  <div class="progress-labels">
+                    <span class="target-label">{{ 'EMPLOYEES.CONTRACT_BASE' | transloco }}</span>
+                    <span class="percent-label">{{ getWorkloadProgress(item.totalHours) }}%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: Actions & Arrow -->
+              <div class="card-action">
+                <app-action-button
+                  variant="primary"
+                  size="small"
+                  icon="calendar-outline"
+                  (btnClick)="openEmployeeShiftsModal(item.user)"
+                  [testId]="'manage-shifts-btn-' + item.user.id"
+                  [attr.data-testid]="'manage-shifts-btn-' + item.user.id">
+                  {{ 'EMPLOYEES.MANAGE_SHIFTS' | transloco }}
+                </app-action-button>
+                <div class="action-arrow" aria-hidden="true">
+                  <ion-icon name="chevron-forward-outline"></ion-icon>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
       }
-    </ion-card-content>
-  </ion-card>
+    }
+  </main>
 </div>

@@ -59,38 +59,69 @@
     }
 
     @for (item of cart.items; track item; let i = $index) {
-      <div class="cart-item-row" [attr.data-testid]="'cart-item-' + i">
-        <button type="button" class="item-info-btn" (click)="onEditItem(item)" (keyup.enter)="onEditItem(item)">
-          <div class="item-name-row">
+      <div class="cart-item-card" [attr.data-testid]="'cart-item-' + i">
+        <!-- Top Row: Drink Name, Variant & Line Total Price -->
+        <div class="item-header-row">
+          <div class="item-title-wrap">
             <span class="item-name">{{ item.nom }}</span>
             @if (item.varianteNom) {
-              <span class="item-variant">({{ item.varianteNom }})</span>
+              <span class="item-variant-badge">{{ item.varianteNom }}</span>
             }
-            <span class="edit-custom-icon" [title]="'COMMON.EDIT' | transloco">
-              <ion-icon name="create-outline"></ion-icon>
-            </span>
           </div>
+          <span class="item-line-total">{{ (item.prix * item.quantite) | appCurrency }}</span>
+        </div>
+
+        <div class="item-subtitle-row">
           <span class="item-unit-price">{{ item.prix | appCurrency }} / u</span>
-          <!-- Exclusions & Commentaire attachés à l'élément -->
-          @if ((item.exclusions && item.exclusions.length > 0) || item.commentaire) {
-            <div class="item-customizations">
-              @for (ex of item.exclusions; track ex) {
-                <span class="custom-badge exclusion-badge">{{ ('COCKTAILS.ALLERGENS.SANS_PREFIX' | transloco) + ' ' + ex }}</span>
-              }
-              @if (item.commentaire) {
-                <span class="custom-badge comment-badge">💬 {{ item.commentaire }}</span>
-              }
-            </div>
-          }
-        </button>
-        <div class="item-controls">
-          <app-quantity-stepper
-            [value]="item.quantite"
-            [min]="0"
-            [max]="99"
-            (valueChange)="onQuantityChanged(item, $event)">
-          </app-quantity-stepper>
-          <span class="item-total">{{ (item.prix * item.quantite) | appCurrency }}</span>
+        </div>
+
+        <!-- Customizations (Exclusions & Comments) -->
+        @if ((item.exclusions && item.exclusions.length > 0) || item.commentaire) {
+          <div class="item-customizations">
+            @for (ex of item.exclusions; track ex) {
+              <span class="custom-badge exclusion-badge">
+                <ion-icon name="close-circle-outline"></ion-icon>
+                <span>{{ ('COCKTAILS.ALLERGENS.SANS_PREFIX' | transloco) + ' ' + ex }}</span>
+              </span>
+            }
+            @if (item.commentaire) {
+              <span class="custom-badge comment-badge">
+                <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+                <span>{{ item.commentaire }}</span>
+              </span>
+            }
+          </div>
+        }
+
+        <!-- Bottom Actions Row: Customize chip on left, Stepper & Delete on right -->
+        <div class="item-actions-row">
+          <app-action-button
+            variant="secondary"
+            size="small"
+            icon="create-outline"
+            [title]="'COMMON.EDIT' | transloco"
+            [testId]="'btn-edit-item-' + i"
+            (btnClick)="onEditItem(item)">
+            {{ (item.commentaire || (item.exclusions && item.exclusions.length > 0) ? 'COMMON.EDIT' : 'SERVEUR.CUSTOMIZE') | transloco }}
+          </app-action-button>
+
+          <div class="item-stepper-group">
+            <app-quantity-stepper
+              [value]="item.quantite"
+              [min]="0"
+              [max]="99"
+              (valueChange)="onQuantityChanged(item, $event)">
+            </app-quantity-stepper>
+            <app-action-button
+              variant="danger"
+              size="small"
+              icon="trash-outline"
+              iconSlot="icon-only"
+              [title]="'COMMON.DELETE' | transloco"
+              [testId]="'btn-delete-item-' + i"
+              (btnClick)="removeItem.emit(item)">
+            </app-action-button>
+          </div>
         </div>
       </div>
     }
@@ -100,7 +131,7 @@
   @if (cart.items.length > 0) {
     <div class="cart-footer">
       <div class="cart-total-row">
-        <span>{{ 'SERVEUR.BREAKDOWN.TOTAL_TTC' | transloco }}</span>
+        <span class="total-label">{{ 'SERVEUR.BREAKDOWN.TOTAL_TTC' | transloco }}</span>
         <span class="total-amount">{{ totalTTC | appCurrency }}</span>
       </div>
       <app-action-button
@@ -109,7 +140,7 @@
         icon="paper-plane-outline"
         testId="btn-submit-cart"
         [disabled]="(!cart.tableId && !cart.barTabId) || isSubmitting"
-        (click)="onSubmit()"
+        (btnClick)="onSubmit()"
         (keyup.enter)="onSubmit()">
         {{ 'SERVEUR.SEND_PREPARATION' | transloco }}
       </app-action-button>

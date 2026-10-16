@@ -30,34 +30,55 @@
     aria-haspopup="listbox">
 
     <div class="trigger-content">
-      @if (selectedOption(); as sel) {
-        <div class="selected-item-display">
-          @if (sel.imageUrl) {
-            <img [src]="resolveImageUrl(sel.imageUrl)" [alt]="sel.label" class="item-img" />
-          } @else if (sel.icon) {
-            <ion-icon [name]="sel.icon" class="item-icon"></ion-icon>
-          }
-          <div class="item-text-stack">
-            <div class="item-header-row">
-              <span class="item-label">{{ sel.label }}</span>
-              @if (sel.badge) {
-                <span class="item-badge" [ngClass]="'badge-' + (sel.badgeType || 'neutral')">
-                  {{ sel.badge }}
-                </span>
+      @if (multiple) {
+        @if (selectedOptions().length > 0) {
+          <div class="selected-item-display">
+            <div class="item-text-stack">
+              <div class="item-header-row">
+                @if (selectedOptions().length === 1) {
+                  @if (selectedOptions()[0].icon) {
+                    <ion-icon [name]="selectedOptions()[0].icon" class="item-icon"></ion-icon>
+                  }
+                  <span class="item-label">{{ selectedOptions()[0].label }}</span>
+                } @else {
+                  <span class="item-label">{{ selectedOptions().length }} {{ selectedCountLabel || 'sélectionnés' }}</span>
+                }
+              </div>
+            </div>
+          </div>
+        } @else {
+          <span class="placeholder-text">{{ placeholder }}</span>
+        }
+      } @else {
+        @if (selectedOption(); as sel) {
+          <div class="selected-item-display">
+            @if (sel.imageUrl) {
+              <img [src]="resolveImageUrl(sel.imageUrl)" [alt]="sel.label" class="item-img" />
+            } @else if (sel.icon) {
+              <ion-icon [name]="sel.icon" class="item-icon"></ion-icon>
+            }
+            <div class="item-text-stack">
+              <div class="item-header-row">
+                <span class="item-label">{{ sel.label }}</span>
+                @if (sel.badge) {
+                  <span class="item-badge" [ngClass]="'badge-' + (sel.badgeType || 'neutral')">
+                    {{ sel.badge }}
+                  </span>
+                }
+              </div>
+              @if (sel.subLabel) {
+                <span class="item-sublabel">{{ sel.subLabel }}</span>
               }
             </div>
-            @if (sel.subLabel) {
-              <span class="item-sublabel">{{ sel.subLabel }}</span>
-            }
           </div>
-        </div>
-      } @else {
-        <span class="placeholder-text">{{ placeholder }}</span>
+        } @else {
+          <span class="placeholder-text">{{ placeholder }}</span>
+        }
       }
     </div>
 
     <div class="trigger-actions">
-      @if (clearable && selectedOption() && !disabled) {
+      @if (clearable && hasSelection && !disabled) {
         <button
           type="button"
           class="clear-btn"
@@ -116,7 +137,7 @@
           <button
             type="button"
             class="option-item"
-            [class.is-selected]="opt.value === value"
+            [class.is-selected]="isOptionSelected(opt)"
             [class.is-highlighted]="idx === highlightedIndex()"
             [class.is-disabled]="opt.disabled"
             [disabled]="opt.disabled"
@@ -143,7 +164,7 @@
                   {{ opt.badge }}
                 </span>
               }
-              @if (opt.value === value) {
+              @if (isOptionSelected(opt)) {
                 <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
               }
             </div>
