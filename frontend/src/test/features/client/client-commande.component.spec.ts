@@ -744,7 +744,9 @@ describe('ClientCommandeComponent', () => {
     });
 
     it('copyInviteLink should write to clipboard and present toast', fakeAsync(() => {
-      const writeTextSpy = spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
+      const writeTextSpy = jasmine.isSpy(navigator.clipboard.writeText)
+        ? (navigator.clipboard.writeText as jasmine.Spy).and.returnValue(Promise.resolve())
+        : spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
       const toastMock = jasmine.createSpyObj('HTMLIonToastElement', ['present']);
       toastCtrlSpy.create.and.returnValue(Promise.resolve(toastMock));
 
@@ -1006,7 +1008,11 @@ describe('ClientCommandeComponent', () => {
     it('copyInviteLink handles success and failure branches', fakeAsync(async () => {
       component.tableNumero = 4;
       component.sessionToken = 'token-123';
-      spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
+      if (!jasmine.isSpy(navigator.clipboard.writeText)) {
+        spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
+      } else {
+        (navigator.clipboard.writeText as jasmine.Spy).and.returnValue(Promise.resolve());
+      }
 
       await component.copyInviteLink();
       expect(component.copiedLinkSuccess()).toBeTrue();

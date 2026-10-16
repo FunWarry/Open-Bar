@@ -255,7 +255,11 @@ describe('ClotureCaisseModalComponent', () => {
 
   it('copySealHash() should write hash to clipboard and show toast', fakeAsync(() => {
     component.createdClosure = mockClosureResponse;
-    spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
+    if (!jasmine.isSpy(navigator.clipboard.writeText)) {
+      spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
+    } else {
+      (navigator.clipboard.writeText as jasmine.Spy).and.returnValue(Promise.resolve());
+    }
 
     component.copySealHash();
     tick();

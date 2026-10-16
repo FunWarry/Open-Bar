@@ -1,5 +1,6 @@
 # OpenBar — Features State & Roadmap
 
+
 > Last update: October 16, 2026 — SonarCloud Quality Gate Restoration & Zero Problems (#585 / #586).
 
 ## Features Table
