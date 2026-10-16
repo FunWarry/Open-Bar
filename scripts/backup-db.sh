@@ -59,12 +59,12 @@ EOF
 # ------------------------------------------------------------------------------
 # Load environment variables if available
 # ------------------------------------------------------------------------------
-if [ -f "${ROOT_DIR}/.env" ]; then
+if [[ -f "${ROOT_DIR}/.env" ]]; then
     # shellcheck disable=SC1091
     set -a
     . "${ROOT_DIR}/.env"
     set +a
-elif [ -f "${ROOT_DIR}/backend/.env" ]; then
+elif [[ -f "${ROOT_DIR}/backend/.env" ]]; then
     # shellcheck disable=SC1091
     set -a
     . "${ROOT_DIR}/backend/.env"
@@ -72,14 +72,14 @@ elif [ -f "${ROOT_DIR}/backend/.env" ]; then
 fi
 
 # Re-evaluate defaults in case env files defined values
-[ "${DB_NAME}" = "${DEFAULT_DB}" ] && DB_NAME="${POSTGRES_DB:-$DEFAULT_DB}"
-[ "${DB_USER}" = "${DEFAULT_USER}" ] && DB_USER="${POSTGRES_USER:-$DEFAULT_USER}"
-[ "${DB_PORT}" = "${DEFAULT_PORT}" ] && DB_PORT="${POSTGRES_PORT:-$DEFAULT_PORT}"
+[[ "${DB_NAME}" == "${DEFAULT_DB}" ]] && DB_NAME="${POSTGRES_DB:-$DEFAULT_DB}"
+[[ "${DB_USER}" == "${DEFAULT_USER}" ]] && DB_USER="${POSTGRES_USER:-$DEFAULT_USER}"
+[[ "${DB_PORT}" == "${DEFAULT_PORT}" ]] && DB_PORT="${POSTGRES_PORT:-$DEFAULT_PORT}"
 
 # ------------------------------------------------------------------------------
 # Parse command-line arguments
 # ------------------------------------------------------------------------------
-while [ $# -gt 0 ]; do
+while [[ $# -gt 0 ]]; do
     case "$1" in
         -d|--db)
             DB_NAME="$2"
@@ -134,7 +134,7 @@ START_TIME=$(date +%s)
 TIMESTAMP=$(date +"%Y-%m-%d_%H%M%S")
 mkdir -p "${OUTPUT_DIR}"
 
-if [ -n "${CUSTOM_FILE}" ]; then
+if [[ -n "${CUSTOM_FILE}" ]]; then
     BACKUP_FILE="${CUSTOM_FILE}"
 else
     BACKUP_FILE="${OUTPUT_DIR}/${DB_NAME}_backup_${TIMESTAMP}.sql.gz"
@@ -157,8 +157,8 @@ execute_backup() {
     local target_mode="${MODE}"
 
     # Auto-detect mode if set to 'auto'
-    if [ "${target_mode}" = "auto" ]; then
-        if [ -f "${COMPOSE_FILE}" ] && docker compose -f "${COMPOSE_FILE}" ps postgres 2>/dev/null | grep -q "postgres"; then
+    if [[ "${target_mode}" == "auto" ]]; then
+        if [[ -f "${COMPOSE_FILE}" ]] && docker compose -f "${COMPOSE_FILE}" ps postgres 2>/dev/null | grep -q "postgres"; then
             target_mode="docker-compose"
         elif docker ps --format '{{.Names}}' 2>/dev/null | grep -qE "openbar.*postgres|gestion_cocktail_db|postgres"; then
             target_mode="docker-exec"
@@ -173,7 +173,7 @@ execute_backup() {
 
     case "${target_mode}" in
         docker-compose)
-            if [ ! -f "${COMPOSE_FILE}" ]; then
+            if [[ ! -f "${COMPOSE_FILE}" ]]; then
                 echo "Error: Docker Compose file not found: ${COMPOSE_FILE}" >&2
                 return 1
             fi
@@ -182,10 +182,10 @@ execute_backup() {
             ;;
         docker-exec)
             local target_c="${CONTAINER_NAME}"
-            if [ -z "${target_c}" ]; then
+            if [[ -z "${target_c}" ]]; then
                 target_c=$(docker ps --format '{{.Names}}' | grep -E "openbar.*postgres|gestion_cocktail_db|postgres" | head -n 1)
             fi
-            if [ -z "${target_c}" ]; then
+            if [[ -z "${target_c}" ]]; then
                 echo "Error: Could not detect running PostgreSQL container. Use -c <container_name>" >&2
                 return 1
             fi
@@ -212,7 +212,7 @@ execute_backup() {
 # Perform the backup
 if execute_backup; then
     # Validate file existence and size
-    if [ ! -f "${BACKUP_FILE}" ] || [ ! -s "${BACKUP_FILE}" ]; then
+    if [[ ! -f "${BACKUP_FILE}" || ! -s "${BACKUP_FILE}" ]]; then
         echo "Error: Backup file was created but is empty or missing: ${BACKUP_FILE}" >&2
         rm -f "${BACKUP_FILE}"
         exit 1
