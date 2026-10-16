@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.controller;
 
+
+import java.time.Month;
 import com.bar.gestioncocktail.dto.EstablishmentClosureDTO;
 import com.bar.gestioncocktail.dto.EstablishmentClosureRequestDTO;
 import com.bar.gestioncocktail.model.ClosureType;
@@ -56,8 +58,8 @@ class EstablishmentClosureControllerTest {
         EstablishmentClosureRequestDTO req = new EstablishmentClosureRequestDTO(
                 ClosureType.EXCEPTIONAL,
                 null,
-                LocalDate.of(2026, 12, 25),
-                LocalDate.of(2026, 12, 26),
+                LocalDate.of(2026, Month.DECEMBER, 25),
+                LocalDate.of(2026, Month.DECEMBER, 26),
                 true,
                 "Christmas"
         );
@@ -65,8 +67,8 @@ class EstablishmentClosureControllerTest {
                 2L,
                 ClosureType.EXCEPTIONAL,
                 null,
-                LocalDate.of(2026, 12, 25),
-                LocalDate.of(2026, 12, 26),
+                LocalDate.of(2026, Month.DECEMBER, 25),
+                LocalDate.of(2026, Month.DECEMBER, 26),
                 true,
                 "Christmas"
         );

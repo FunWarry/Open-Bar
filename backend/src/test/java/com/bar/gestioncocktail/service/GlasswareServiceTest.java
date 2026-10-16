@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.service;
 
+
+import java.time.Month;
 import com.bar.gestioncocktail.dto.GlasswareRequestDTO;
 import com.bar.gestioncocktail.dto.GlasswareResponseDTO;
 import com.bar.gestioncocktail.exception.BusinessException;
@@ -40,7 +42,7 @@ class GlasswareServiceTest {
     private GlasswareService glasswareService;
 
     private Glassware testGlassware;
-    private final LocalDateTime now = LocalDateTime.of(2026, 1, 1, 12, 0);
+    private final LocalDateTime now = LocalDateTime.of(2026, Month.JANUARY, 1, 12, 0);
 
     @BeforeEach
     void setUp() {

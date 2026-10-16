@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.service;
 
+
+import java.time.Month;
 import com.bar.gestioncocktail.dto.StockWasteRequestDTO;
 import com.bar.gestioncocktail.dto.StockWasteSummaryDTO;
 import com.bar.gestioncocktail.exception.BusinessException;
@@ -61,7 +63,7 @@ class StockMovementServiceTest {
 
     private Ingredient sampleIngredient;
     private User sampleUser;
-    private final LocalDateTime fixedNow = LocalDateTime.of(2026, 9, 6, 15, 0, 0);
+    private final LocalDateTime fixedNow = LocalDateTime.of(2026, Month.SEPTEMBER, 6, 15, 0, 0);
 
     @BeforeEach
     void setUp() {

@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.service;
 
+
+import java.time.Month;
 import com.bar.gestioncocktail.dto.EmployeeShiftResponseDTO;
 import com.bar.gestioncocktail.dto.ShiftAuditLogDTO;
 import com.bar.gestioncocktail.model.EmployeeShift;
@@ -44,7 +46,7 @@ class ShiftAuditServiceTest {
 
     private User sampleUser;
     private EmployeeShift sampleShift;
-    private final LocalDateTime fixedNow = LocalDateTime.of(2026, 8, 11, 10, 0, 0);
+    private final LocalDateTime fixedNow = LocalDateTime.of(2026, Month.AUGUST, 11, 10, 0, 0);
 
     @BeforeEach
     void setUp() {
@@ -59,7 +61,7 @@ class ShiftAuditServiceTest {
         sampleShift = new EmployeeShift();
         sampleShift.setId(100L);
         sampleShift.setUser(sampleUser);
-        sampleShift.setDateShift(LocalDate.of(2026, 8, 12));
+        sampleShift.setDateShift(LocalDate.of(2026, Month.AUGUST, 12));
         sampleShift.setTypeShift(TypeShift.SOIR);
         sampleShift.setTypePoste(TypePoste.SERVEUR);
         sampleShift.setHeureDebut("17:00");
@@ -125,7 +127,7 @@ class ShiftAuditServiceTest {
         ShiftAuditLog log1 = ShiftAuditLog.builder()
                 .shiftId(100L)
                 .user(sampleUser)
-                .dateShift(LocalDate.of(2026, 8, 12))
+                .dateShift(LocalDate.of(2026, Month.AUGUST, 12))
                 .action(ShiftAuditAction.CREATED)
                 .changedBy("manager1")
                 .changedAt(fixedNow)
@@ -144,13 +146,13 @@ class ShiftAuditServiceTest {
     @Test
     @DisplayName("getAuditLogForWeek with and without userId filter")
     void getAuditLogForWeek_shouldFilterCorrectly() {
-        LocalDate monday = LocalDate.of(2026, 8, 10);
-        LocalDate sunday = LocalDate.of(2026, 8, 16);
+        LocalDate monday = LocalDate.of(2026, Month.AUGUST, 10);
+        LocalDate sunday = LocalDate.of(2026, Month.AUGUST, 16);
 
         ShiftAuditLog log1 = ShiftAuditLog.builder()
                 .shiftId(100L)
                 .user(sampleUser)
-                .dateShift(LocalDate.of(2026, 8, 12))
+                .dateShift(LocalDate.of(2026, Month.AUGUST, 12))
                 .action(ShiftAuditAction.CREATED)
                 .changedBy("manager1")
                 .changedAt(fixedNow)
@@ -173,9 +175,9 @@ class ShiftAuditServiceTest {
     @Test
     @DisplayName("reconstructScheduleAt should accurately replay shifts based on audit logs and omit deleted shifts")
     void reconstructScheduleAt_shouldDeterministicReplay() {
-        LocalDate monday = LocalDate.of(2026, 8, 10);
-        LocalDate sunday = LocalDate.of(2026, 8, 16);
-        LocalDateTime targetTime = LocalDateTime.of(2026, 8, 11, 14, 0, 0);
+        LocalDate monday = LocalDate.of(2026, Month.AUGUST, 10);
+        LocalDate sunday = LocalDate.of(2026, Month.AUGUST, 16);
+        LocalDateTime targetTime = LocalDateTime.of(2026, Month.AUGUST, 11, 14, 0, 0);
 
         String snapshotShift1 = """
                 {"id":100,"userId":10,"userName":"Martin","userPrenom":"Alice","dateShift":"2026-08-12","typeShift":"SOIR","typePoste":"SERVEUR","heureDebut":"17:00","heureFin":"01:00"}
@@ -184,20 +186,20 @@ class ShiftAuditServiceTest {
         ShiftAuditLog audit1 = ShiftAuditLog.builder()
                 .shiftId(100L)
                 .user(sampleUser)
-                .dateShift(LocalDate.of(2026, 8, 12))
+                .dateShift(LocalDate.of(2026, Month.AUGUST, 12))
                 .action(ShiftAuditAction.CREATED)
                 .changedBy("manager1")
-                .changedAt(LocalDateTime.of(2026, 8, 11, 9, 0, 0))
+                .changedAt(LocalDateTime.of(2026, Month.AUGUST, 11, 9, 0, 0))
                 .newSnapshot(snapshotShift1)
                 .build();
 
         ShiftAuditLog audit2Deleted = ShiftAuditLog.builder()
                 .shiftId(101L)
                 .user(sampleUser)
-                .dateShift(LocalDate.of(2026, 8, 13))
+                .dateShift(LocalDate.of(2026, Month.AUGUST, 13))
                 .action(ShiftAuditAction.DELETED)
                 .changedBy("manager1")
-                .changedAt(LocalDateTime.of(2026, 8, 11, 10, 0, 0))
+                .changedAt(LocalDateTime.of(2026, Month.AUGUST, 11, 10, 0, 0))
                 .previousSnapshot("{\"id\":101}")
                 .newSnapshot(null)
                 .build();
@@ -261,11 +263,11 @@ class ShiftAuditServiceTest {
     @Test
     @DisplayName("getAuditLogForWeek with null week should default to current week's Monday")
     void getAuditLogForWeek_withNullWeek_shouldUseCurrentWeek() {
-        LocalDate today = LocalDate.of(2026, 8, 11);
+        LocalDate today = LocalDate.of(2026, Month.AUGUST, 11);
         when(timeService.today()).thenReturn(today);
 
-        LocalDate monday = LocalDate.of(2026, 8, 10);
-        LocalDate sunday = LocalDate.of(2026, 8, 16);
+        LocalDate monday = LocalDate.of(2026, Month.AUGUST, 10);
+        LocalDate sunday = LocalDate.of(2026, Month.AUGUST, 16);
 
         when(auditLogRepository.findByDateShiftBetweenOrderByChangedAtDesc(monday, sunday))
                 .thenReturn(List.of());
@@ -278,12 +280,12 @@ class ShiftAuditServiceTest {
     @Test
     @DisplayName("reconstructScheduleAt with null week and null at should default to today and now")
     void reconstructScheduleAt_withNullWeekAndAt_shouldUseDefaults() {
-        LocalDate today = LocalDate.of(2026, 8, 11);
+        LocalDate today = LocalDate.of(2026, Month.AUGUST, 11);
         when(timeService.today()).thenReturn(today);
         when(timeService.now()).thenReturn(fixedNow);
 
-        LocalDate monday = LocalDate.of(2026, 8, 10);
-        LocalDate sunday = LocalDate.of(2026, 8, 16);
+        LocalDate monday = LocalDate.of(2026, Month.AUGUST, 10);
+        LocalDate sunday = LocalDate.of(2026, Month.AUGUST, 16);
 
         when(auditLogRepository.findByDateShiftBetweenAndChangedAtLessThanEqualOrderByChangedAtAsc(
                 monday, sunday, fixedNow))
@@ -297,17 +299,17 @@ class ShiftAuditServiceTest {
     @Test
     @DisplayName("reconstructScheduleAt should include legacy shift created before targetTime")
     void reconstructScheduleAt_legacyShift_createdBeforeTarget_shouldBeIncluded() {
-        LocalDate monday = LocalDate.of(2026, 8, 10);
-        LocalDate sunday = LocalDate.of(2026, 8, 16);
-        LocalDateTime targetTime = LocalDateTime.of(2026, 8, 11, 14, 0, 0);
+        LocalDate monday = LocalDate.of(2026, Month.AUGUST, 10);
+        LocalDate sunday = LocalDate.of(2026, Month.AUGUST, 16);
+        LocalDateTime targetTime = LocalDateTime.of(2026, Month.AUGUST, 11, 14, 0, 0);
 
         EmployeeShift legacyShift = new EmployeeShift();
         legacyShift.setId(200L);
         legacyShift.setUser(sampleUser);
-        legacyShift.setDateShift(LocalDate.of(2026, 8, 12));
+        legacyShift.setDateShift(LocalDate.of(2026, Month.AUGUST, 12));
         legacyShift.setTypeShift(TypeShift.MATIN);
         legacyShift.setTypePoste(TypePoste.SERVEUR);
-        legacyShift.setCreatedAt(LocalDateTime.of(2026, 8, 10, 8, 0, 0)); // before target
+        legacyShift.setCreatedAt(LocalDateTime.of(2026, Month.AUGUST, 10, 8, 0, 0)); // before target
 
         when(auditLogRepository.findByDateShiftBetweenAndChangedAtLessThanEqualOrderByChangedAtAsc(monday, sunday, targetTime))
                 .thenReturn(List.of());
@@ -321,17 +323,17 @@ class ShiftAuditServiceTest {
     @Test
     @DisplayName("reconstructScheduleAt should exclude legacy shift created after targetTime")
     void reconstructScheduleAt_legacyShift_createdAfterTarget_shouldBeExcluded() {
-        LocalDate monday = LocalDate.of(2026, 8, 10);
-        LocalDate sunday = LocalDate.of(2026, 8, 16);
-        LocalDateTime targetTime = LocalDateTime.of(2026, 8, 11, 14, 0, 0);
+        LocalDate monday = LocalDate.of(2026, Month.AUGUST, 10);
+        LocalDate sunday = LocalDate.of(2026, Month.AUGUST, 16);
+        LocalDateTime targetTime = LocalDateTime.of(2026, Month.AUGUST, 11, 14, 0, 0);
 
         EmployeeShift futureShift = new EmployeeShift();
         futureShift.setId(201L);
         futureShift.setUser(sampleUser);
-        futureShift.setDateShift(LocalDate.of(2026, 8, 12));
+        futureShift.setDateShift(LocalDate.of(2026, Month.AUGUST, 12));
         futureShift.setTypeShift(TypeShift.SOIR);
         futureShift.setTypePoste(TypePoste.SERVEUR);
-        futureShift.setCreatedAt(LocalDateTime.of(2026, 8, 11, 15, 0, 0)); // after target
+        futureShift.setCreatedAt(LocalDateTime.of(2026, Month.AUGUST, 11, 15, 0, 0)); // after target
 
         when(auditLogRepository.findByDateShiftBetweenAndChangedAtLessThanEqualOrderByChangedAtAsc(monday, sunday, targetTime))
                 .thenReturn(List.of());
