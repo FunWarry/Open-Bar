@@ -1,3 +1,11 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
 .modal-toolbar {
   --background: var(--background-surface-1);
   --color: var(--text-primary);
@@ -94,6 +102,9 @@
 .modal-content {
   --background: var(--background-bg-0);
   --color: var(--text-primary);
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
 }
 
 .step-container {
@@ -761,4 +772,37 @@
 
 .font-bold {
   font-weight: 700;
+}
+
+@media (max-width: 767px) {
+  .step-stepper {
+    padding: var(--space-2) var(--space-3);
+
+    .step-node .step-text {
+      display: none;
+    }
+
+    .step-node.active .step-text {
+      display: inline;
+      font-size: 0.78rem;
+    }
+  }
+
+  .modal-footer {
+    padding: 12px 16px;
+
+    .footer-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+
+      .spacer {
+        display: none;
+      }
+
+      .footer-btn {
+        width: 100%;
+      }
+    }
+  }
 }

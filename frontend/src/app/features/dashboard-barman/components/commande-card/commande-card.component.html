@@ -68,7 +68,7 @@
       <button
         type="button"
         class="icon-btn-print"
-        title="Imprimer le bon de bar (80mm)"
+        [title]="(isKitchenMode ? 'KDS.PRINT_TICKET_TOOLTIP' : 'BARMAN_DASHBOARD.PRINT_TICKET_TOOLTIP') | transloco"
         (click)="onPrintTicket($event)"
         (keyup.enter)="onPrintTicket($event)"
         data-testid="print-ticket-btn">

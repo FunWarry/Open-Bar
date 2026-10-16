@@ -1,5 +1,10 @@
 <ion-header class="ion-no-border modal-custom-header">
-  <ion-toolbar>
+  <!-- Mobile Grab Handle -->
+  <div class="modal-grab-bar mobile-only">
+    <span class="modal-grab-handle"></span>
+  </div>
+
+  <ion-toolbar class="modal-toolbar">
     <div class="header-main-group" slot="start">
       <div class="modal-avatar-badge">
         <ion-icon name="layers-outline"></ion-icon>
@@ -11,25 +16,28 @@
     </div>
 
     <ion-buttons slot="end" class="header-actions">
-      @if (activeTab === 'zones') {
-        <app-action-button
-          [variant]="showAddForm ? 'secondary' : 'primary'"
-          [icon]="showAddForm ? 'close' : 'add'"
-          size="small"
-          testId="zone-add-btn"
-          (btnClick)="toggleAddForm()">
-          {{ showAddForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ZONE' | transloco) }}
-        </app-action-button>
-      } @else {
-        <app-action-button
-          [variant]="showAddEtageForm ? 'secondary' : 'primary'"
-          [icon]="showAddEtageForm ? 'close' : 'add'"
-          size="small"
-          testId="etage-add-btn"
-          (btnClick)="toggleAddEtageForm()">
-          {{ showAddEtageForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ETAGE' | transloco) }}
-        </app-action-button>
-      }
+      <!-- Desktop Action Button -->
+      <div class="desktop-action-btn desktop-only">
+        @if (activeTab === 'zones') {
+          <app-action-button
+            [variant]="showAddForm ? 'secondary' : 'primary'"
+            [icon]="showAddForm ? 'close' : 'add'"
+            size="small"
+            testId="zone-add-btn"
+            (btnClick)="toggleAddForm()">
+            {{ showAddForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ZONE' | transloco) }}
+          </app-action-button>
+        } @else {
+          <app-action-button
+            [variant]="showAddEtageForm ? 'secondary' : 'primary'"
+            [icon]="showAddEtageForm ? 'close' : 'add'"
+            size="small"
+            testId="etage-add-btn"
+            (btnClick)="toggleAddEtageForm()">
+            {{ showAddEtageForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ETAGE' | transloco) }}
+          </app-action-button>
+        }
+      </div>
 
       <button
         type="button"
@@ -57,6 +65,29 @@
         <span class="tab-count-pill">{{ etages.length }}</span>
       </ion-segment-button>
     </ion-segment>
+  </div>
+
+  <!-- Mobile Action Bar (Sticky beneath segment pills) -->
+  <div class="mobile-action-bar mobile-only">
+    @if (activeTab === 'zones') {
+      <app-action-button
+        [variant]="showAddForm ? 'secondary' : 'primary'"
+        [icon]="showAddForm ? 'close' : 'add'"
+        size="medium"
+        testId="zone-add-btn-mobile"
+        (btnClick)="toggleAddForm()">
+        {{ showAddForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ZONE' | transloco) }}
+      </app-action-button>
+    } @else {
+      <app-action-button
+        [variant]="showAddEtageForm ? 'secondary' : 'primary'"
+        [icon]="showAddEtageForm ? 'close' : 'add'"
+        size="medium"
+        testId="etage-add-btn-mobile"
+        (btnClick)="toggleAddEtageForm()">
+        {{ showAddEtageForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ETAGE' | transloco) }}
+      </app-action-button>
+    }
   </div>
 </ion-header>
 

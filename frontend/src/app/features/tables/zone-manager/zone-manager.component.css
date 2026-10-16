@@ -14,6 +14,25 @@
   font-family: var(--font, 'Inter', sans-serif);
 }
 
+/* ─── Modal Grab Bar (Mobile Sheet Handle) ─────────────────────────────────── */
+.modal-grab-bar {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0 2px 0;
+  width: 100%;
+  cursor: grab;
+  user-select: none;
+}
+
+.modal-grab-handle {
+  width: 44px;
+  height: 5px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--border-medium, rgba(255, 255, 255, 0.25));
+  transition: background 0.15s ease, width 0.15s ease;
+}
+
 /* ─── Modal Header & Navigation ────────────────────────────────────────────── */
 .modal-custom-header {
   background: var(--background-surface-1);
@@ -25,7 +44,7 @@ ion-toolbar {
   --background: var(--background-surface-1);
   --color: var(--text-primary);
   --border-color: transparent;
-  padding: 12px 18px 4px 18px;
+  padding: 10px 18px 4px 18px;
   flex-shrink: 0;
 }
 
@@ -33,27 +52,30 @@ ion-toolbar {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+  flex: 1;
 }
 
 .modal-avatar-badge {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background: var(--primary-tint-weak, rgba(108, 127, 232, 0.16));
-  border: 1px solid rgba(108, 127, 232, 0.35);
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(var(--primary-rgb, 108, 127, 232), 0.14);
+  border: 1px solid rgba(var(--primary-rgb, 108, 127, 232), 0.3);
   color: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(108, 127, 232, 0.2);
+  box-shadow: 0 2px 8px rgba(var(--primary-rgb, 108, 127, 232), 0.2);
 }
 
 .modal-header-titles {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .modal-main-title {
@@ -63,29 +85,38 @@ ion-toolbar {
   color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.01em;
-  line-height: 1.2;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .modal-sub-title {
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--text-muted);
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .modal-close-btn {
-  background: transparent;
-  border: none;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
   color: var(--text-secondary);
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-md, 10px);
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -96,18 +127,30 @@ ion-toolbar {
 }
 
 .modal-close-btn ion-icon {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   pointer-events: none;
 }
 
 .modal-close-btn:hover {
   color: var(--text-primary);
-  background: var(--background-surface-2);
+  background: var(--background-surface-3);
+  border-color: var(--primary);
 }
 
 .modal-close-btn:focus-visible {
   outline: none;
   box-shadow: var(--ring-focus);
+}
+
+/* ─── Mobile Action Bar (Sticky beneath segment pills) ──────────────────────── */
+.mobile-action-bar {
+  display: none;
+  padding: 4px 18px 12px 18px;
+  background: var(--background-surface-1);
+}
+
+.mobile-action-bar app-action-button {
+  width: 100%;
 }
 
 /* ─── Segment Tab Navigation (Compact Pill Control) ────────────────────────── */
@@ -131,7 +174,7 @@ ion-segment {
 
 ion-segment-button {
   --color: var(--text-secondary);
-  --color-checked: #ffffff;
+  --color-checked: var(--text-on-accent);
   --indicator-color: var(--primary);
   --indicator-box-shadow: 0 2px 8px rgba(108, 127, 232, 0.35);
   --border-radius: var(--radius-pill, 999px);
@@ -232,7 +275,7 @@ ion-segment-button ion-icon {
 .floor-chip.active {
   background: var(--primary);
   border-color: var(--primary);
-  color: #ffffff;
+  color: var(--text-on-accent);
   font-weight: 700;
   box-shadow: 0 2px 6px rgba(108, 127, 232, 0.35);
 }
@@ -330,7 +373,7 @@ ion-segment-button ion-icon {
 
 .btn-submit {
   --background: var(--primary);
-  --color: #ffffff;
+  --color: var(--text-on-accent);
   --border-radius: var(--radius-pill, 999px);
   --box-shadow: 0 2px 8px rgba(108, 127, 232, 0.35);
   font-weight: 700;
@@ -569,4 +612,93 @@ ion-segment-button ion-icon {
   align-items: center;
   justify-content: center;
   padding: 36px;
+}
+
+/* ─── Responsive Adjustments (Mobile, Tablet, Desktop) ─────────────────────── */
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none;
+  }
+
+  .mobile-only {
+    display: flex;
+  }
+
+  ion-toolbar {
+    padding: 6px 14px 2px 14px;
+  }
+
+  .modal-avatar-badge {
+    width: 36px;
+    height: 36px;
+    font-size: 1.15rem;
+    border-radius: 10px;
+  }
+
+  .modal-main-title {
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+
+  .modal-sub-title {
+    font-size: 0.72rem;
+  }
+
+  .modal-close-btn {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .modal-segment-nav {
+    padding: 6px 14px 8px 14px;
+  }
+
+  ion-segment {
+    max-width: 100%;
+    width: 100%;
+    height: 40px;
+  }
+
+  ion-segment-button {
+    font-size: 0.78rem;
+    padding: 0 10px;
+  }
+
+  .mobile-action-bar {
+    display: flex;
+    padding: 0 14px 10px 14px;
+  }
+
+  .zone-manager-body {
+    padding: 12px 14px 24px 14px;
+    gap: 10px;
+  }
+
+  .item-card {
+    padding: 12px 14px;
+  }
+
+  .card-icon-avatar {
+    width: 38px;
+    height: 38px;
+    font-size: 1.2rem;
+  }
+
+  .card-name {
+    font-size: 0.92rem;
+  }
+
+  .action-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.05rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none;
+  }
 }

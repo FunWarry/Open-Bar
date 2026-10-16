@@ -3,7 +3,6 @@ package com.bar.gestioncocktail.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +11,6 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Schema(description = "Ordered item line in a public QR order")
 public class PublicCommandeItemRequestDTO {
 
@@ -63,5 +61,25 @@ public class PublicCommandeItemRequestDTO {
         this.notes = notes;
         this.isMysteryDrink = false;
         this.prixOverride = null;
+    }
+
+    /**
+     * All-arguments constructor.
+     *
+     * @param cocktailId Selected cocktail identifier
+     * @param varianteId Optional variant identifier
+     * @param quantite   Ordered quantity
+     * @param notes      Special preparation notes
+     * @param isMysteryDrink Whether this item is a mystery drink
+     * @param prixOverride Optional override unit price
+     */
+    public PublicCommandeItemRequestDTO(Long cocktailId, Long varianteId, int quantite, String notes,
+                                         Boolean isMysteryDrink, java.math.BigDecimal prixOverride) {
+        this.cocktailId = cocktailId;
+        this.varianteId = varianteId;
+        this.quantite = quantite;
+        this.notes = notes;
+        this.isMysteryDrink = isMysteryDrink;
+        this.prixOverride = prixOverride;
     }
 }

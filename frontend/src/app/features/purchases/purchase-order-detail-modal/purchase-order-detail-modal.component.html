@@ -79,11 +79,11 @@
           <thead>
             <tr>
               <th>{{ 'PURCHASES.INGREDIENT' | transloco }}</th>
-              <th class="text-right">{{ 'PURCHASES.QUANTITY_ORDERED' | transloco }}</th>
-              <th class="text-right">{{ 'PURCHASES.QUANTITY_RECEIVED' | transloco }}</th>
-              <th class="text-right">{{ 'PURCHASES.UNIT_PRICE_HT' | transloco }}</th>
-              <th class="text-right">{{ 'PURCHASES.VAT_RATE' | transloco }}</th>
-              <th class="text-right">{{ 'PURCHASES.TOTAL_TTC' | transloco }}</th>
+              <th class="text-right col-qty-ordered-th">{{ 'PURCHASES.QUANTITY_ORDERED' | transloco }}</th>
+              <th class="text-right col-qty-received-th">{{ 'PURCHASES.QUANTITY_RECEIVED' | transloco }}</th>
+              <th class="text-right col-price-th">{{ 'PURCHASES.UNIT_PRICE_HT' | transloco }}</th>
+              <th class="text-right col-vat-th">{{ 'PURCHASES.VAT_RATE' | transloco }}</th>
+              <th class="text-right col-total-th">{{ 'PURCHASES.TOTAL_TTC' | transloco }}</th>
             </tr>
           </thead>
           <tbody>
@@ -103,8 +103,8 @@
                     {{ item.quantiteRecue ?? 0 }} / {{ item.quantiteCommandee }}
                   </span>
                 </td>
-                <td class="text-right font-mono">{{ item.prixUnitaireHt | number:'1.2-2' }} €</td>
-                <td class="text-right font-mono">{{ item.tauxTva ?? 20 }}%</td>
+                <td class="text-right col-price font-mono">{{ item.prixUnitaireHt | number:'1.2-2' }} €</td>
+                <td class="text-right col-vat font-mono">{{ item.tauxTva ?? 20 }}%</td>
                 <td class="text-right col-total font-mono font-bold">
                   {{ (item.montantTtc ?? (item.quantiteCommandee * item.prixUnitaireHt * (1 + (item.tauxTva ?? 20) / 100))) | number:'1.2-2' }} €
                 </td>

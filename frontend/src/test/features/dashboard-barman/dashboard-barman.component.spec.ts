@@ -245,10 +245,29 @@ describe('DashboardBarmanComponent', () => {
     expect(mockModal.present).toHaveBeenCalled();
   });
 
-  it('onPrintTicket() opens 80mm thermal print modal', async () => {
+  it('onPrintTicket() opens 80mm thermal print modal with station context', async () => {
     await component.onPrintTicket(mockCommandes[0]);
-    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      componentProps: {
+        commande: mockCommandes[0],
+        isKitchenMode: false,
+        stationFilter: 'ALL'
+      }
+    }));
     expect(mockModal.present).toHaveBeenCalled();
+  });
+
+  it('onPrintTicket() in kitchen mode passes isKitchenMode and KITCHEN stationFilter', async () => {
+    component.isKitchenModeInput = true;
+    component.stationFilter = 'KITCHEN';
+    await component.onPrintTicket(mockCommandes[0]);
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      componentProps: {
+        commande: mockCommandes[0],
+        isKitchenMode: true,
+        stationFilter: 'KITCHEN'
+      }
+    }));
   });
 
   it('onShowRecipe() opens side panel and loads cocktail details', () => {
@@ -815,6 +834,120 @@ describe('DashboardBarmanComponent', () => {
       const takeOrderBtn = compiled.querySelector('[data-testid="barman-take-order-btn"]');
       expect(takeOrderBtn).toBeTruthy();
       expect(takeOrderBtn?.getAttribute('routerLink')).toBe('/serveur');
+    });
+  });
+
+  describe('mobile kanban tabs responsiveness', () => {
+    it('defaults activeMobileTab to PENDING and switches correctly', () => {
+      expect(component.activeMobileTab).toBe('PENDING');
+      component.activeMobileTab = 'IN_PROGRESS';
+      expect(component.activeMobileTab).toBe('IN_PROGRESS');
+      component.activeMobileTab = 'READY';
+      expect(component.activeMobileTab).toBe('READY');
+    });
+
+    it('renders mobile kanban tabs in tickets view mode and updates on tab click', () => {
+      component.activeViewMode = 'tickets';
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const tabsEl = compiled.querySelector('[data-testid="mobile-kanban-tabs"]');
+      expect(tabsEl).toBeTruthy();
+
+      const inProgressBtn = compiled.querySelector('[data-testid="tab-mobile-inprogress"]') as HTMLButtonElement;
+      expect(inProgressBtn).toBeTruthy();
+      inProgressBtn.click();
+      fixture.detectChanges();
+      expect(component.activeMobileTab).toBe('IN_PROGRESS');
+
+      const readyBtn = compiled.querySelector('[data-testid="tab-mobile-ready"]') as HTMLButtonElement;
+      readyBtn.click();
+      fixture.detectChanges();
+      expect(component.activeMobileTab).toBe('READY');
+    });
+
+    it('renders mobile batch tabs in batch view mode and updates on tab click', () => {
+      component.activeViewMode = 'batch';
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const batchTabsEl = compiled.querySelector('[data-testid="mobile-batch-kanban-tabs"]');
+      expect(batchTabsEl).toBeTruthy();
+
+      const inProgressBatchBtn = compiled.querySelector('[data-testid="tab-mobile-batch-inprogress"]') as HTMLButtonElement;
+      expect(inProgressBatchBtn).toBeTruthy();
+      inProgressBatchBtn.click();
+      fixture.detectChanges();
+      expect(component.activeBatchMobileTab).toBe('IN_PROGRESS');
+    });
+  });
+
+  describe('Kitchen Mode Adaptation', () => {
+    it('detects kitchen mode when isKitchenModeInput is true and initializes stationFilter to KITCHEN', () => {
+      component.isKitchenModeInput = true;
+      component.ngOnInit();
+      expect(component.isKitchenMode).toBeTrue();
+      expect(component.stationFilter).toBe('KITCHEN');
+    });
+
+    it('strictly hides roulette TV button when in kitchen mode', () => {
+      component.isKitchenModeInput = true;
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const rouletteBtn = compiled.querySelector('[data-testid="barman-roulette-tv-btn"]');
+      expect(rouletteBtn).toBeNull();
+    });
+
+    it('subscribes to kitchen and snack WebSocket topics when in kitchen mode', () => {
+      wsServiceSpy.watch.calls.reset();
+      component.isKitchenModeInput = true;
+      component.ngOnInit();
+      expect(wsServiceSpy.watch).toHaveBeenCalledWith('/topic/preparation/kitchen');
+      expect(wsServiceSpy.watch).toHaveBeenCalledWith('/topic/preparation/snack');
+    });
+
+    it('filters orders by kitchen station correctly', () => {
+      component.stationFilter = 'KITCHEN';
+      const kitchenOrder: CommandeView = {
+        id: 10,
+        tableNom: 'Table 10',
+        tableNumero: 10,
+        serveurNom: 'Alice',
+        dateCommande: new Date(),
+        prioritaire: false,
+        statut: 'EN_ATTENTE',
+        items: [
+          {
+            id: 101,
+            cocktailNom: 'Burger Frites',
+            quantite: 1,
+            station: 'KITCHEN',
+            statut: 'EN_ATTENTE',
+            prioritaire: false
+          }
+        ]
+      };
+      const barOrder: CommandeView = {
+        id: 11,
+        tableNom: 'Table 11',
+        tableNumero: 11,
+        serveurNom: 'Alice',
+        dateCommande: new Date(),
+        prioritaire: false,
+        statut: 'EN_ATTENTE',
+        items: [
+          {
+            id: 102,
+            cocktailNom: 'Gin Tonic',
+            quantite: 1,
+            station: 'BAR',
+            statut: 'EN_ATTENTE',
+            prioritaire: false
+          }
+        ]
+      };
+      component.commandesEnAttente = [kitchenOrder, barOrder];
+      expect(component.filteredCommandesEnAttente).toEqual([kitchenOrder]);
     });
   });
 });

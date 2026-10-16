@@ -199,4 +199,56 @@ describe('UserListComponent', () => {
     await component.openDeleteDialog(mockUsers[0]);
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   });
+
+  it('getDisplayName() returns formatted full name or falls back to username', () => {
+    expect(component.getDisplayName({ username: 'jdupont', prenom: 'Jean', nom: 'Dupont' } as User)).toBe('Jean Dupont');
+    expect(component.getDisplayName({ username: 'jdupont' } as User)).toBe('jdupont');
+  });
+
+  it('getUserPrimaryRole() extracts correct role token', () => {
+    expect(component.getUserPrimaryRole(['ADMIN'])).toBe('ADMIN');
+    expect(component.getUserPrimaryRole(['MANAGER'])).toBe('MANAGER');
+    expect(component.getUserPrimaryRole(['BARMAN'])).toBe('BARMAN');
+    expect(component.getUserPrimaryRole(['SERVEUR'])).toBe('SERVEUR');
+    expect(component.getUserPrimaryRole([])).toBe('SERVEUR');
+  });
+
+  it('KPI getters compute correct statistics', () => {
+    component.users = [
+      { id: 1, username: 'admin', roles: ['ADMIN'] } as User,
+      { id: 2, username: 'manager', roles: ['MANAGER'] } as User,
+      { id: 3, username: 'serveur', roles: ['SERVEUR'] } as User,
+      { id: 4, username: 'barman', roles: ['BARMAN'] } as User
+    ];
+    component.totalElements = 4;
+
+    expect(component.totalUsersCount).toBe(4);
+    expect(component.adminsCount).toBe(1);
+    expect(component.managersCount).toBe(1);
+    expect(component.staffCount).toBe(2);
+  });
+
+  it('onPageChange() adjusts 1-indexed page to 0-indexed and reloads', () => {
+    userServiceSpy.getUsersPaged.and.callFake((page: number) => of({
+      ...mockPageResponse,
+      pageNumber: page
+    }));
+
+    component.onPageChange(3);
+    expect(component.currentPage).toBe(2);
+    expect(userServiceSpy.getUsersPaged).toHaveBeenCalledWith(2, 10, '', 'ALL');
+  });
+
+  it('resetFilters() clears query, resets role, and reloads first page', () => {
+    component.searchQuery = 'test';
+    component.selectedRole = 'MANAGER';
+    component.currentPage = 3;
+
+    component.resetFilters();
+
+    expect(component.searchQuery).toBe('');
+    expect(component.selectedRole).toBe('ALL');
+    expect(component.currentPage).toBe(0);
+    expect(userServiceSpy.getUsersPaged).toHaveBeenCalledWith(0, 10, '', 'ALL');
+  });
 });

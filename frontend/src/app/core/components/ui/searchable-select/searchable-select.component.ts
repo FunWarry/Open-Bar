@@ -98,6 +98,15 @@ export class SearchableSelectComponent extends BaseControlValueAccessor implemen
     this.selectedValue.set(val);
   }
 
+  /** Visual size variant ('default' or compact 'sm'). */
+  @Input() size: 'sm' | 'default' = 'default';
+
+  /** Whether multi-selection is enabled. */
+  @Input() multiple = false;
+
+  /** Label suffix for multi-selection count display (e.g. 'sélectionnés'). */
+  @Input() selectedCountLabel?: string;
+
   /** Label text for the select field. */
   @Input() label?: string;
 
@@ -174,6 +183,34 @@ export class SearchableSelectComponent extends BaseControlValueAccessor implemen
     if (val === null || val === undefined || val === '') return null;
     return this._options().find((opt) => opt.value === val) || null;
   });
+
+  readonly selectedOptions = computed<SearchableOption[]>(() => {
+    const val = this.selectedValue();
+    if (!val) return [];
+    if (this.multiple && Array.isArray(val)) {
+      return this._options().filter((opt) => val.includes(opt.value));
+    }
+    const single = this._options().find((opt) => opt.value === val);
+    return single ? [single] : [];
+  });
+
+  /** Whether any option is currently selected. */
+  get hasSelection(): boolean {
+    if (this.multiple) {
+      const val = this.selectedValue();
+      return Array.isArray(val) && val.length > 0;
+    }
+    return this.selectedOption() !== null;
+  }
+
+  /** Whether a given option is currently selected. */
+  isOptionSelected(opt: SearchableOption): boolean {
+    const val = this.selectedValue();
+    if (this.multiple && Array.isArray(val)) {
+      return val.includes(opt.value);
+    }
+    return opt.value === this.value;
+  }
 
   constructor(private readonly elementRef: ElementRef) {
     super();
@@ -274,6 +311,21 @@ export class SearchableSelectComponent extends BaseControlValueAccessor implemen
     }
     if (opt.disabled) return;
 
+    if (this.multiple) {
+      const current = Array.isArray(this.selectedValue()) ? [...this.selectedValue()] : [];
+      const idx = current.indexOf(opt.value);
+      if (idx > -1) {
+        current.splice(idx, 1);
+      } else {
+        current.push(opt.value);
+      }
+      this.value = current;
+      this.selectedValue.set(current);
+      this.onChange(this.value);
+      this.selectionChange.emit(opt);
+      return;
+    }
+
     this.value = opt.value;
     this.selectedValue.set(opt.value);
     this.onChange(this.value);
@@ -286,8 +338,8 @@ export class SearchableSelectComponent extends BaseControlValueAccessor implemen
     event.stopPropagation();
     if (this.disabled) return;
 
-    this.value = null;
-    this.selectedValue.set(null);
+    this.value = this.multiple ? [] : null;
+    this.selectedValue.set(this.value);
     this.onChange(this.value);
     this.selectionChange.emit(null);
     this.closeDropdown();

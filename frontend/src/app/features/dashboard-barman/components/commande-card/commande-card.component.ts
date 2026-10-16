@@ -49,6 +49,8 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
   @Input() tempsAlerteWarningMinutes = 3;
   @Input() tempsAlerteCommandeMinutes = 5;
   @Input() tempsAlerteCritiqueCommandeMinutes = 10;
+  @Input() stationFilter: 'ALL' | 'BAR' | 'KITCHEN' = 'ALL';
+  @Input() isKitchenMode = false;
 
   @Output() changerStatut = new EventEmitter<{ id: number; statut: string }>();
   @Output() printTicket = new EventEmitter<CommandeView>();
@@ -63,7 +65,20 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
   private readonly commandeService = inject(CommandeService);
 
   get groupedItems(): CommandeItemView[] {
-    return groupCommandeItems(this.commande?.items) as CommandeItemView[];
+    const rawItems = this.commande?.items || [];
+    let items = rawItems;
+    if (this.stationFilter === 'KITCHEN') {
+      const kitchenItems = rawItems.filter(i => i.station === 'KITCHEN' || i.station === 'SNACK');
+      if (kitchenItems.length > 0) {
+        items = kitchenItems;
+      }
+    } else if (this.stationFilter === 'BAR') {
+      const barItems = rawItems.filter(i => !i.station || i.station === 'BAR');
+      if (barItems.length > 0) {
+        items = barItems;
+      }
+    }
+    return groupCommandeItems(items) as CommandeItemView[];
   }
 
   constructor(@Optional() private readonly modalCtrl?: ModalController) {

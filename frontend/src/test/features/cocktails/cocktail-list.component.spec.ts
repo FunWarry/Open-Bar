@@ -572,15 +572,15 @@ describe('CocktailListComponent', () => {
     const editBtn = compiled.querySelector('[data-testid="edit-cocktail-btn-1"]');
     const deleteBtn = compiled.querySelector('[data-testid="delete-cocktail-btn-1"]');
     const toggleDispoBtn = compiled.querySelector('[data-testid="toggle-dispo-btn-1"]');
-    const selectBtn = compiled.querySelector('[data-testid="select-cocktail-btn-1"]');
+    const cardEl = compiled.querySelector('[data-testid="cocktail-card-1"]');
 
     expect(editBtn).toBeNull();
     expect(deleteBtn).toBeNull();
     expect(toggleDispoBtn).toBeNull();
-    expect(selectBtn).toBeTruthy();
+    expect(cardEl).toBeTruthy();
   }));
 
-  it('in selectionMode, emits cocktailSelect when an available cocktail is selected', fakeAsync(() => {
+  it('in selectionMode, emits cocktailSelect when an available cocktail card is clicked', fakeAsync(() => {
     component.selectionMode = true;
     component.charger();
     tick();
@@ -588,15 +588,28 @@ describe('CocktailListComponent', () => {
 
     spyOn(component.cocktailSelect, 'emit');
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    const selectBtn = compiled.querySelector('[data-testid="select-cocktail-btn-1"]') as HTMLButtonElement;
-    expect(selectBtn).toBeTruthy();
-
-    selectBtn.click();
+    const availableCocktail = mockCocktails.find(c => c.disponible && (!c.variantes || c.variantes.length === 0))!;
+    component.onCardClick(availableCocktail);
     tick();
 
-    expect(component.cocktailSelect.emit).toHaveBeenCalledWith(jasmine.objectContaining({ id: 1, nom: 'Mojito' }));
+    expect(component.cocktailSelect.emit).toHaveBeenCalledWith(jasmine.objectContaining({ id: availableCocktail.id, nom: availableCocktail.nom }));
   }));
+
+  it('toggleCompactMode toggles compactMode flag', () => {
+    expect(component.compactMode).toBeFalse();
+    component.toggleCompactMode();
+    expect(component.compactMode).toBeTrue();
+    component.toggleCompactMode();
+    expect(component.compactMode).toBeFalse();
+  });
+
+  it('toggleMatcher toggles isMatcherExpanded flag', () => {
+    expect(component.isMatcherExpanded).toBeFalse();
+    component.toggleMatcher();
+    expect(component.isMatcherExpanded).toBeTrue();
+    component.toggleMatcher();
+    expect(component.isMatcherExpanded).toBeFalse();
+  });
 
   it('in selectionMode, does not emit cocktailSelect when an unavailable cocktail is clicked', fakeAsync(() => {
     component.selectionMode = true;

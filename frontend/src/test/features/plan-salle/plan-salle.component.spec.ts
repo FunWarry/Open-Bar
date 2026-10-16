@@ -613,4 +613,162 @@ describe('PlanSalleComponent', () => {
     expect(component.charger).toHaveBeenCalled();
     expect((component as any).chargerReservationsJour).toHaveBeenCalled();
   });
+
+  it('handles mobile options and filters drawer toggling and floor name lookup', () => {
+    expect(component.isMobileOptionsOpen).toBeFalse();
+
+    component.openMobileOptions();
+    expect(component.isMobileOptionsOpen).toBeTrue();
+
+    component.closeMobileOptions();
+    expect(component.isMobileOptionsOpen).toBeFalse();
+
+    component.toggleMobileOptions();
+    expect(component.isMobileOptionsOpen).toBeTrue();
+
+    component.toggleMobileOptions();
+    expect(component.isMobileOptionsOpen).toBeFalse();
+
+    component.etages = [
+      { id: 1, code: 'RDC', nom: 'Rez-de-chaussée', ordre: 1 },
+      { id: 2, code: 'ETAGE_1', nom: 'Premier Étage', ordre: 2 },
+    ];
+    component.selectedFloor = 'ETAGE_1';
+    expect(component.getSelectedFloorName()).toBe('Premier Étage');
+
+    component.selectedFloor = 'ROOFTOP';
+    expect(component.getSelectedFloorName()).toBe('ROOFTOP');
+  });
+
+  it('handles mobile dedicated floor picker drawer and table count per floor', () => {
+    expect(component.isMobileFloorPickerOpen).toBeFalse();
+
+    component.openMobileFloorPicker();
+    expect(component.isMobileFloorPickerOpen).toBeTrue();
+    expect(component.isMobileOptionsOpen).toBeFalse();
+
+    component.closeMobileFloorPicker();
+    expect(component.isMobileFloorPickerOpen).toBeFalse();
+
+    component.toggleMobileFloorPicker();
+    expect(component.isMobileFloorPickerOpen).toBeTrue();
+    expect(component.isMobileOptionsOpen).toBeFalse();
+
+    component.toggleMobileFloorPicker();
+    expect(component.isMobileFloorPickerOpen).toBeFalse();
+
+    component.tables = [
+      { id: 1, numero: 1, etage: 'RDC' } as any,
+      { id: 2, numero: 2, etage: 'RDC' } as any,
+      { id: 3, numero: 3, etage: 'ETAGE_1' } as any,
+    ];
+    expect(component.getFloorTableCount('RDC')).toBe(2);
+    expect(component.getFloorTableCount('ETAGE_1')).toBe(1);
+    expect(component.getFloorTableCount('ETAGE_2')).toBe(0);
+  });
+
+  it('handles options sheet resizing, expand toggle, and touch drag gestures', () => {
+    expect(component.mobileOptionsHeight).toBe(65);
+    expect(component.isOptionsExpanded).toBeFalse();
+
+    component.toggleOptionsExpand();
+    expect(component.mobileOptionsHeight).toBe(92);
+    expect(component.isOptionsExpanded).toBeTrue();
+
+    component.toggleOptionsExpand();
+    expect(component.mobileOptionsHeight).toBe(65);
+    expect(component.isOptionsExpanded).toBeFalse();
+
+    // Touch start
+    component.onOptionsTouchStart({ touches: [{ clientY: 500 }] } as any);
+    expect(component.isOptionsDragging).toBeTrue();
+    expect(component.touchOptionsStartY).toBe(500);
+
+    // Touch move
+    component.onOptionsTouchMove({ touches: [{ clientY: 300 }] } as any); // dragged up 200px
+    expect(component.mobileOptionsHeight).toBeGreaterThan(65);
+
+    // Touch end (snaps)
+    component.onOptionsTouchEnd();
+    expect(component.isOptionsDragging).toBeFalse();
+
+    // Snap to close if dragged down below 38vh
+    component.mobileOptionsHeight = 30;
+    component.isOptionsDragging = true;
+    component.isMobileOptionsOpen = true;
+    component.onOptionsTouchEnd();
+    expect(component.isMobileOptionsOpen).toBeFalse();
+    expect(component.mobileOptionsHeight).toBe(65);
+  });
+
+  it('handles floor picker resizing, expand toggle, and touch drag gestures', () => {
+    expect(component.mobileFloorPickerHeight).toBe(52);
+    expect(component.isFloorPickerExpanded).toBeFalse();
+
+    component.toggleFloorPickerExpand();
+    expect(component.mobileFloorPickerHeight).toBe(88);
+    expect(component.isFloorPickerExpanded).toBeTrue();
+
+    component.toggleFloorPickerExpand();
+    expect(component.mobileFloorPickerHeight).toBe(52);
+    expect(component.isFloorPickerExpanded).toBeFalse();
+
+    // Touch start
+    component.onFloorPickerTouchStart({ touches: [{ clientY: 600 }] } as any);
+    expect(component.isFloorPickerDragging).toBeTrue();
+
+    // Touch move
+    component.onFloorPickerTouchMove({ touches: [{ clientY: 400 }] } as any);
+    expect(component.mobileFloorPickerHeight).toBeGreaterThan(52);
+
+    // Touch end
+    component.onFloorPickerTouchEnd();
+    expect(component.isFloorPickerDragging).toBeFalse();
+
+    // Snap to close if dragged down below 35vh
+    component.mobileFloorPickerHeight = 25;
+    component.isFloorPickerDragging = true;
+    component.isMobileFloorPickerOpen = true;
+    component.onFloorPickerTouchEnd();
+    expect(component.isMobileFloorPickerOpen).toBeFalse();
+    expect(component.mobileFloorPickerHeight).toBe(52);
+  });
+
+  it('handles mobile drawer toggles and floor helper methods', () => {
+    component.tables = [
+      { id: 1, etage: 'RDC' } as any,
+      { id: 2, etage: 'RDC' } as any,
+      { id: 3, etage: 'ETAGE_1' } as any,
+    ];
+    component.etages = [
+      { code: 'RDC', nom: 'Rez-de-chaussée' } as any,
+      { code: 'ETAGE_1', nom: 'Étage 1' } as any,
+    ];
+    component.selectedFloor = 'RDC';
+
+    expect(component.getFloorTableCount('RDC')).toBe(2);
+    expect(component.getFloorTableCount('ETAGE_1')).toBe(1);
+    expect(component.getSelectedFloorName()).toBe('Rez-de-chaussée');
+
+    component.openMobileOptions();
+    expect(component.isMobileOptionsOpen).toBeTrue();
+    expect(component.isMobileFloorPickerOpen).toBeFalse();
+
+    component.closeMobileOptions();
+    expect(component.isMobileOptionsOpen).toBeFalse();
+
+    component.toggleMobileOptions();
+    expect(component.isMobileOptionsOpen).toBeTrue();
+
+    component.openMobileFloorPicker();
+    expect(component.isMobileFloorPickerOpen).toBeTrue();
+    expect(component.isMobileOptionsOpen).toBeFalse();
+
+    component.closeMobileFloorPicker();
+    expect(component.isMobileFloorPickerOpen).toBeFalse();
+
+    component.toggleMobileFloorPicker();
+    expect(component.isMobileFloorPickerOpen).toBeTrue();
+  });
 });
+

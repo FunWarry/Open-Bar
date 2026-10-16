@@ -11,7 +11,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="modal-content">
+<ion-content class="modal-content" [scrollY]="true">
   <p class="subtitle">{{ 'SERVEUR.TRANSFER_MODAL_SUBTITLE' | transloco: { id: commandeId } }}</p>
 
   @if (isLoading) {

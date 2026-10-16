@@ -29,7 +29,10 @@ import {
   filterOutline,
   timeOutline,
   playOutline,
-  refreshOutline
+  refreshOutline,
+  downloadOutline,
+  imageOutline,
+  closeOutline
 } from 'ionicons/icons';
 import { Subject, takeUntil, forkJoin, firstValueFrom, catchError, of } from 'rxjs';
 import { UserAvatarComponent } from '../../core/components/ui/user-avatar/user-avatar.component';
@@ -66,6 +69,19 @@ export interface ShiftDiffInfo {
     heureFin?: string;
     typePoste?: string;
   };
+}
+
+/**
+ * Geometric layout parameters for canvas schedule export.
+ */
+export interface ExportTableLayout {
+  tableX: number;
+  tableY: number;
+  tableWidth: number;
+  tableHeight: number;
+  tableHeaderHeight: number;
+  empColWidth: number;
+  colWidth: number;
 }
 
 /**
@@ -157,6 +173,19 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   // Copy & Paste buffer
   copiedShift: EmployeeShift | null = null;
 
+  /** Width of the sticky employee column in pixels. */
+  employeeColWidth = 160;
+  /** Minimum allowed employee column width */
+  readonly minEmpColWidth = 90;
+  /** Maximum allowed employee column width */
+  readonly maxEmpColWidth = 320;
+  /** Whether the column is currently being resized by dragging */
+  isResizingCol = false;
+  private resizeStartX = 0;
+  private resizeStartWidth = 160;
+  private boundOnResizeMove?: (e: MouseEvent | TouchEvent) => void;
+  private boundOnResizeEnd?: () => void;
+
   // Drag-to-fill duplication state
   isDragging = false;
   dragSource: { emp: EmployeeScheduleRow; dayIndex: number; shift: ShiftCell } | null = null;
@@ -184,7 +213,10 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       filterOutline,
       timeOutline,
       playOutline,
-      refreshOutline
+      refreshOutline,
+      downloadOutline,
+      imageOutline,
+      closeOutline
     });
     this.currentWeekStart = this.scheduleService.getMonday(new Date());
   }
@@ -254,13 +286,83 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.initEmployeeColWidth();
     this.loadSchedule();
     this.subscribeToPublicationEvents();
   }
 
   ngOnDestroy(): void {
+    this.cleanupResizeListeners();
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private initEmployeeColWidth(): void {
+    try {
+      const savedWidth = localStorage.getItem('openbar_schedule_emp_col_width');
+      if (savedWidth) {
+        const parsed = Number.parseInt(savedWidth, 10);
+        if (!Number.isNaN(parsed) && parsed >= this.minEmpColWidth && parsed <= this.maxEmpColWidth) {
+          this.employeeColWidth = parsed;
+          return;
+        }
+      }
+    } catch {
+      // Storage unavailable in private browsing
+    }
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      this.employeeColWidth = 115;
+    }
+  }
+
+  /**
+   * Starts drag-resizing the employee column.
+   *
+   * @param event - Mouse or touch start event from the resize handle.
+   */
+  onResizeStart(event: MouseEvent | TouchEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isResizingCol = true;
+    this.resizeStartX = event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
+    this.resizeStartWidth = this.employeeColWidth;
+
+    this.boundOnResizeMove = (e: MouseEvent | TouchEvent) => {
+      const clientX = e instanceof MouseEvent ? e.clientX : (e.touches?.[0]?.clientX ?? this.resizeStartX);
+      const delta = clientX - this.resizeStartX;
+      this.employeeColWidth = Math.max(
+        this.minEmpColWidth,
+        Math.min(this.maxEmpColWidth, Math.round(this.resizeStartWidth + delta))
+      );
+    };
+
+    this.boundOnResizeEnd = () => {
+      this.isResizingCol = false;
+      try {
+        localStorage.setItem('openbar_schedule_emp_col_width', String(this.employeeColWidth));
+      } catch {
+        // Storage unavailable
+      }
+      this.cleanupResizeListeners();
+    };
+
+    window.addEventListener('mousemove', this.boundOnResizeMove);
+    window.addEventListener('touchmove', this.boundOnResizeMove, { passive: true });
+    window.addEventListener('mouseup', this.boundOnResizeEnd);
+    window.addEventListener('touchend', this.boundOnResizeEnd);
+  }
+
+  private cleanupResizeListeners(): void {
+    if (this.boundOnResizeMove) {
+      window.removeEventListener('mousemove', this.boundOnResizeMove);
+      window.removeEventListener('touchmove', this.boundOnResizeMove);
+      this.boundOnResizeMove = undefined;
+    }
+    if (this.boundOnResizeEnd) {
+      window.removeEventListener('mouseup', this.boundOnResizeEnd);
+      window.removeEventListener('touchend', this.boundOnResizeEnd);
+      this.boundOnResizeEnd = undefined;
+    }
   }
 
   /**
@@ -573,6 +675,425 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     ];
 
     this.csvExportService.exportTable(flatShifts, columns, `planning_shifts_${sched.weekStart}`);
+  }
+
+  /**
+   * Exports the filtered week schedule as a high-resolution PNG image.
+   * Adapts dynamically to active role and non-empty employee filters.
+   */
+  /**
+   * Returns border and background colors for an employee role.
+   */
+  private getExportRoleColor(role?: string): { border: string; bg: string } {
+    if (role === 'MANAGER') {
+      return { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.22)' };
+    }
+    if (role === 'BARMAN') {
+      return { border: '#38bdf8', bg: 'rgba(56, 189, 248, 0.22)' };
+    }
+    return { border: '#2dd36f', bg: 'rgba(45, 211, 111, 0.22)' };
+  }
+
+  /**
+   * Exports the filtered week schedule as a high-resolution PNG image.
+   * Adapts dynamically to active role and non-empty employee filters.
+   */
+  exportScheduleImage(): void {
+    const employees = this.filteredEmployees;
+    if (!employees || employees.length === 0) {
+      void this.toastCtrl.create({
+        message: this.translocoService.translate('CSV_EXPORT.NO_DATA'),
+        duration: 2500,
+        color: 'warning'
+      }).then(t => void t.present());
+      return;
+    }
+
+    const dayHeaders = this.getDayHeaders();
+    const colWidth = 140;
+    const empColWidth = 230;
+    const padding = 32;
+    const headerHeight = 110;
+    const tableHeaderHeight = 48;
+    const rowHeight = 64;
+    const footerHeight = 46;
+    const tableWidth = empColWidth + (7 * colWidth);
+    const canvasWidth = tableWidth + (2 * padding);
+    const tableHeight = tableHeaderHeight + (employees.length * rowHeight);
+    const canvasHeight = padding + headerHeight + tableHeight + footerHeight + padding;
+
+    const scale = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvasWidth * scale;
+    canvas.height = canvasHeight * scale;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.scale(scale, scale);
+
+    // 1. Background
+    ctx.fillStyle = '#0f0f1a';
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    // 2. Header Area
+    this.drawExportHeader(ctx, padding, canvasWidth, employees);
+
+    // 3. Table Background & Headers
+    const tableX = padding;
+    const tableY = padding + headerHeight;
+    const layout: ExportTableLayout = {
+      tableX,
+      tableY,
+      tableWidth,
+      tableHeight,
+      tableHeaderHeight,
+      empColWidth,
+      colWidth
+    };
+    this.drawExportTableCard(ctx, layout, dayHeaders);
+
+    // 4. Employee Rows
+    employees.forEach((emp, rIdx) => {
+      const rowY = tableY + tableHeaderHeight + (rIdx * rowHeight);
+      this.drawExportEmployeeRow(ctx, emp, rowY, rowHeight, layout);
+    });
+
+    // 5. Footer (Legend + Brand)
+    const footerY = tableY + tableHeight + 24;
+    this.drawExportFooter(ctx, footerY, padding, canvasWidth);
+
+    // 6. Download PNG
+    const weekFilename = this.displaySchedule?.weekStart || 'semaine';
+    this.triggerImageDownload(canvas, `planning_${weekFilename}.png`);
+  }
+
+  private drawExportHeader(ctx: CanvasRenderingContext2D, padding: number, canvasWidth: number, employees: EmployeeScheduleRow[]): void {
+    ctx.fillStyle = '#6c7fe8';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText('OPENBAR', padding, padding + 16);
+
+    ctx.fillStyle = '#eceefb';
+    ctx.font = 'bold 22px sans-serif';
+    const scheduleTitle = this.translocoService.translate('SHIFTS.TITLE') || 'Créneaux de travail';
+    ctx.fillText(scheduleTitle, padding, padding + 44);
+
+    ctx.fillStyle = '#a4add0';
+    ctx.font = '600 14px sans-serif';
+    ctx.fillText(this.weekLabel, padding, padding + 68);
+
+    let filterSummary = this.selectedRoleFilter === 'ALL'
+      ? (this.translocoService.translate('SHIFTS.FILTERS.ALL_ROLES') || 'Tous les rôles')
+      : (this.translocoService.translate('SHIFTS.FILTERS.' + this.selectedRoleFilter) || this.selectedRoleFilter);
+    if (this.hideEmptyEmployees) {
+      filterSummary += ` • ${this.translocoService.translate('SHIFTS.FILTERS.HIDE_EMPTY') || 'Masquer sans créneau'}`;
+    }
+
+    const totalHoursAll = employees.reduce((acc, e) => acc + this.getEmployeeTotalHours(e), 0);
+    const statsText = `${filterSummary} — ${employees.length} employé(s) • ${totalHoursAll}h`;
+
+    ctx.font = '600 12px sans-serif';
+    const textWidth = ctx.measureText(statsText).width;
+    const pillW = textWidth + 24;
+    const pillH = 30;
+    const pillX = canvasWidth - padding - pillW;
+    const pillY = padding + 28;
+
+    ctx.fillStyle = '#21263f';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(pillX, pillY, pillW, pillH, 8);
+    } else {
+      ctx.rect(pillX, pillY, pillW, pillH);
+    }
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = '#eceefb';
+    ctx.fillText(statsText, pillX + 12, pillY + 19);
+  }
+
+  private drawExportTableCard(
+    ctx: CanvasRenderingContext2D,
+    layout: ExportTableLayout,
+    dayHeaders: DayHeaderInfo[]
+  ): void {
+    ctx.fillStyle = '#16192b';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(layout.tableX, layout.tableY, layout.tableWidth, layout.tableHeight, 10);
+    } else {
+      ctx.rect(layout.tableX, layout.tableY, layout.tableWidth, layout.tableHeight);
+    }
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = '#21263f';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(layout.tableX, layout.tableY, layout.tableWidth, layout.tableHeaderHeight, [10, 10, 0, 0]);
+    } else {
+      ctx.rect(layout.tableX, layout.tableY, layout.tableWidth, layout.tableHeaderHeight);
+    }
+    ctx.fill();
+
+    ctx.fillStyle = '#717baa';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.fillText((this.translocoService.translate('SHIFTS.EMPLOYEE_HEADER') || 'EMPLOYÉ').toUpperCase(), layout.tableX + 16, layout.tableY + 28);
+
+    dayHeaders.forEach((dh, idx) => {
+      const colX = layout.tableX + layout.empColWidth + (idx * layout.colWidth);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.beginPath();
+      ctx.moveTo(colX, layout.tableY);
+      ctx.lineTo(colX, layout.tableY + layout.tableHeight);
+      ctx.stroke();
+
+      ctx.fillStyle = '#717baa';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(dh.day.toUpperCase(), colX + (layout.colWidth / 2), layout.tableY + 20);
+
+      ctx.fillStyle = '#eceefb';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillText(dh.date, colX + (layout.colWidth / 2), layout.tableY + 38);
+
+      if (dh.isClosed) {
+        ctx.fillStyle = '#eb445a';
+        ctx.font = 'bold 9px sans-serif';
+        ctx.fillText('FERMÉ', colX + (layout.colWidth / 2), layout.tableY + 45);
+      }
+    });
+
+    ctx.textAlign = 'left';
+  }
+
+  private drawExportEmployeeRow(
+    ctx: CanvasRenderingContext2D,
+    emp: EmployeeScheduleRow,
+    rowY: number,
+    rowHeight: number,
+    layout: ExportTableLayout
+  ): void {
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.beginPath();
+    ctx.moveTo(layout.tableX, rowY);
+    ctx.lineTo(layout.tableX + layout.tableWidth, rowY);
+    ctx.stroke();
+
+    const avatarX = layout.tableX + 26;
+    const avatarY = rowY + (rowHeight / 2);
+    const roleColors = this.getExportRoleColor(emp.role);
+
+    ctx.fillStyle = roleColors.border;
+    ctx.beginPath();
+    ctx.arc(avatarX, avatarY, 15, 0, Math.PI * 2);
+    ctx.fill();
+
+    const initials = (emp.name || '')
+      .split(' ')
+      .map(n => n.charAt(0))
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+    ctx.fillStyle = '#0f0f1a';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(initials, avatarX, avatarY);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+
+    ctx.fillStyle = '#717baa';
+    ctx.font = 'bold 9px sans-serif';
+    ctx.fillText((emp.role || '').toUpperCase(), layout.tableX + 50, rowY + 22);
+
+    ctx.fillStyle = '#eceefb';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText(emp.name, layout.tableX + 50, rowY + 38);
+
+    const hours = this.getEmployeeTotalHours(emp);
+    const hoursText = `${hours}h`;
+    ctx.font = 'bold 10px sans-serif';
+    const hTextW = ctx.measureText(hoursText).width;
+    const hPillW = hTextW + 10;
+    const hPillH = 16;
+    const hPillX = layout.tableX + 50;
+    const hPillY = rowY + 44;
+
+    ctx.fillStyle = 'rgba(108, 127, 232, 0.2)';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(hPillX, hPillY, hPillW, hPillH, 4);
+    } else {
+      ctx.rect(hPillX, hPillY, hPillW, hPillH);
+    }
+    ctx.fill();
+
+    ctx.fillStyle = '#8b9df8';
+    ctx.fillText(hoursText, hPillX + 5, hPillY + 12);
+
+    emp.shifts.forEach((shift, sIdx) => {
+      const cellMargin = 4;
+      const cardX = layout.tableX + layout.empColWidth + (sIdx * layout.colWidth) + cellMargin;
+      const cardY = rowY + cellMargin;
+      const cardW = layout.colWidth - (cellMargin * 2);
+      const cardH = rowHeight - (cellMargin * 2);
+      this.drawExportShiftCell(ctx, shift, emp, cardX, cardY, cardW, cardH);
+    });
+  }
+
+  private drawExportShiftCell(
+    ctx: CanvasRenderingContext2D,
+    shift: ShiftCell,
+    emp: EmployeeScheduleRow,
+    cardX: number,
+    cardY: number,
+    cardW: number,
+    cardH: number
+  ): void {
+    if (shift.isClosed) {
+      ctx.fillStyle = 'rgba(235, 68, 90, 0.1)';
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(cardX, cardY, cardW, cardH, 6);
+      } else {
+        ctx.rect(cardX, cardY, cardW, cardH);
+      }
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(235, 68, 90, 0.3)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = '#eb445a';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('FERMÉ', cardX + (cardW / 2), cardY + (cardH / 2) + 4);
+      ctx.textAlign = 'left';
+      return;
+    }
+
+    if (shift.startTime && shift.endTime) {
+      const roleColors = this.getExportRoleColor(emp.role);
+
+      ctx.fillStyle = roleColors.bg;
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(cardX, cardY, cardW, cardH, 6);
+      } else {
+        ctx.rect(cardX, cardY, cardW, cardH);
+      }
+      ctx.fill();
+      ctx.strokeStyle = roleColors.border;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = '#eceefb';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${shift.startTime} - ${shift.endTime}`, cardX + (cardW / 2), cardY + 22);
+
+      if (shift.typeShift) {
+        const typeStr = shift.typeShift.toUpperCase();
+        ctx.font = 'bold 8px sans-serif';
+        const tW = ctx.measureText(typeStr).width + 8;
+        const tX = cardX + (cardW / 2) - (tW / 2);
+        const tY = cardY + 30;
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(tX, tY, tW, 14, 3);
+        } else {
+          ctx.rect(tX, tY, tW, 14);
+        }
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(typeStr, cardX + (cardW / 2), tY + 10);
+      }
+      ctx.textAlign = 'left';
+      return;
+    }
+
+    // Empty cell
+    ctx.fillStyle = '#4a5270';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('—', cardX + (cardW / 2), cardY + (cardH / 2) + 5);
+    ctx.textAlign = 'left';
+  }
+
+  private drawExportFooter(ctx: CanvasRenderingContext2D, footerY: number, padding: number, canvasWidth: number): void {
+    const legendItems = [
+      { label: this.translocoService.translate('SHIFTS.FILTERS.MANAGER') || 'Manager', color: '#f59e0b' },
+      { label: this.translocoService.translate('SHIFTS.FILTERS.SERVEUR') || 'Serveur', color: '#2dd36f' },
+      { label: this.translocoService.translate('SHIFTS.FILTERS.BARMAN') || 'Barman', color: '#38bdf8' },
+      { label: this.translocoService.translate('SHIFTS.CLOSURES.CLOSED_STATUS') || 'Fermé', color: '#eb445a' }
+    ];
+
+    let legX = padding;
+    legendItems.forEach(item => {
+      ctx.fillStyle = item.color;
+      ctx.beginPath();
+      ctx.arc(legX + 5, footerY - 4, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#717baa';
+      ctx.font = '600 11px sans-serif';
+      ctx.fillText(item.label, legX + 14, footerY);
+
+      legX += ctx.measureText(item.label).width + 30;
+    });
+
+    const now = new Date();
+    const dateFormatted = `${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    const brandText = `OpenBar • ${dateFormatted}`;
+    ctx.fillStyle = '#717baa';
+    ctx.font = '600 11px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(brandText, canvasWidth - padding, footerY);
+    ctx.textAlign = 'left';
+  }
+
+  private triggerImageDownload(canvas: HTMLCanvasElement, filename: string): void {
+    const downloadBlob = (blob: Blob | null) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      void this.toastCtrl.create({
+        message: this.translocoService.translate('SHIFTS.SCHEDULE.EXPORT_IMAGE_SUCCESS'),
+        duration: 2500,
+        color: 'success'
+      }).then(t => void t.present());
+    };
+
+    if (canvas.toBlob) {
+      canvas.toBlob(downloadBlob, 'image/png');
+    } else {
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      void this.toastCtrl.create({
+        message: this.translocoService.translate('SHIFTS.SCHEDULE.EXPORT_IMAGE_SUCCESS'),
+        duration: 2500,
+        color: 'success'
+      }).then(t => void t.present());
+    }
   }
 
   /**
@@ -1398,21 +1919,21 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       const shiftId = shift.rawShift.id;
       buttons.push(
         {
-          text: 'Modifier le créneau',
+          text: this.translocoService.translate('SHIFTS.CONTEXT_MENU.EDIT_SHIFT'),
           icon: 'create-outline',
           handler: () => {
             void this.openEditShiftModal(emp, shift);
           }
         },
         {
-          text: 'Dupliquer sur le jour suivant',
+          text: this.translocoService.translate('SHIFTS.CONTEXT_MENU.DUPLICATE_NEXT_DAY'),
           icon: 'copy-outline',
           handler: () => {
             this.duplicateShiftToNextDay(shift);
           }
         },
         {
-          text: 'Copier le créneau',
+          text: this.translocoService.translate('SHIFTS.CONTEXT_MENU.COPY_SHIFT'),
           icon: 'copy-outline',
           handler: () => {
             void this.copyShift(shift);
@@ -1422,7 +1943,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
       if (this.copiedShift) {
         buttons.push({
-          text: 'Coller le créneau copié',
+          text: this.translocoService.translate('SHIFTS.CONTEXT_MENU.PASTE_SHIFT'),
           icon: 'clipboard-outline',
           handler: () => {
             void this.pasteShift(emp, shift);
@@ -1432,14 +1953,14 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
       buttons.push(
         {
-          text: 'Menu navigateur standard (Shift + Clic droit)',
+          text: this.translocoService.translate('SHIFTS.CONTEXT_MENU.BROWSER_MENU'),
           icon: 'globe-outline',
           handler: () => {
             void this.showBrowserMenuNotice();
           }
         },
         {
-          text: 'Supprimer le créneau',
+          text: this.translocoService.translate('SHIFTS.CONTEXT_MENU.DELETE_SHIFT'),
           icon: 'trash-outline',
           role: 'destructive',
           handler: () => {
@@ -1450,7 +1971,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     } else {
       if (this.copiedShift) {
         buttons.push({
-          text: 'Coller le créneau copié',
+          text: this.translocoService.translate('SHIFTS.CONTEXT_MENU.PASTE_SHIFT'),
           icon: 'clipboard-outline',
           handler: () => {
             void this.pasteShift(emp, shift);
@@ -1459,7 +1980,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       }
 
       buttons.push({
-        text: 'Nouveau créneau',
+        text: this.translocoService.translate('SHIFTS.CONTEXT_MENU.NEW_SHIFT'),
         icon: 'add-outline',
         handler: () => {
           void this.openCreateShiftModal(emp, shift.date);
@@ -1468,13 +1989,14 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     }
 
     buttons.push({
-      text: 'Annuler',
+      text: this.translocoService.translate('SHIFTS.CONTEXT_MENU.CANCEL'),
       icon: 'close-outline',
       role: 'cancel'
     });
 
     const actionSheet = await this.actionSheetCtrl.create({
-      header: `Créneau de ${emp.name} (${shift.date})`,
+      header: this.translocoService.translate('SHIFTS.CONTEXT_MENU.HEADER', { name: emp.name, date: shift.date }),
+      cssClass: 'openbar-action-sheet schedule-context-menu',
       buttons
     });
 
@@ -1494,7 +2016,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     }
     if (!shift.rawShift) {
       const toast = await this.toastCtrl.create({
-        message: 'Aucun créneau à copier sur cette case',
+        message: this.translocoService.translate('SHIFTS.CONTEXT_MENU.CLIPBOARD_EMPTY'),
         duration: 2000,
         color: 'warning'
       });
@@ -1504,7 +2026,10 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
     this.copiedShift = shift.rawShift;
     const toast = await this.toastCtrl.create({
-      message: `Créneau de ${shift.startTime} - ${shift.endTime} copié dans le presse-papier`,
+      message: this.translocoService.translate('SHIFTS.CONTEXT_MENU.COPIED_SUCCESS', {
+        start: shift.startTime,
+        end: shift.endTime
+      }),
       duration: 2000,
       color: 'success'
     });
@@ -1518,7 +2043,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     }
     if (!this.copiedShift) {
       const toast = await this.toastCtrl.create({
-        message: 'Aucun créneau dans le presse-papier à coller',
+        message: this.translocoService.translate('SHIFTS.CONTEXT_MENU.PASTE_EMPTY'),
         duration: 2000,
         color: 'warning'
       });
@@ -1535,7 +2060,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       heureFin: this.copiedShift.heureFin,
       dureePauseMinutes: this.copiedShift.dureePauseMinutes || 30,
       heuresPrevues: this.copiedShift.heuresPrevues || 7.5,
-      notes: `Collé depuis le presse-papier`
+      notes: this.translocoService.translate('SHIFTS.CONTEXT_MENU.PASTE_SHIFT')
     };
 
     const action$ = targetCell.rawShift?.id
@@ -1546,7 +2071,10 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       next: async () => {
         this.loadSchedule(true);
         const toast = await this.toastCtrl.create({
-          message: `Créneau collé pour ${emp.name} le ${targetCell.date}`,
+          message: this.translocoService.translate('SHIFTS.CONTEXT_MENU.PASTED_SUCCESS', {
+            name: emp.name,
+            date: targetCell.date
+          }),
           duration: 2500,
           color: 'success'
         });
@@ -1554,7 +2082,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       },
       error: async () => {
         const toast = await this.toastCtrl.create({
-          message: 'Erreur lors du collage du créneau',
+          message: this.translocoService.translate('SHIFTS.CONTEXT_MENU.PASTE_ERROR'),
           duration: 3000,
           color: 'danger'
         });
@@ -1589,14 +2117,14 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       heureFin: shift.rawShift.heureFin,
       dureePauseMinutes: shift.rawShift.dureePauseMinutes,
       heuresPrevues: shift.rawShift.heuresPrevues,
-      notes: `Dupliqué depuis le ${shift.date}`
+      notes: `Duplicated from ${shift.date}`
     };
 
     this.shiftService.createShift(req).subscribe({
       next: async () => {
         this.loadSchedule(true);
         const toast = await this.toastCtrl.create({
-          message: `Créneau dupliqué au ${nextDateIso}`,
+          message: this.translocoService.translate('SHIFTS.CONTEXT_MENU.DUPLICATE_SUCCESS', { date: nextDateIso }),
           duration: 2500,
           color: 'success'
         });
@@ -1604,7 +2132,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       },
       error: async () => {
         const toast = await this.toastCtrl.create({
-          message: `Erreur lors de la duplication`,
+          message: this.translocoService.translate('SHIFTS.CONTEXT_MENU.DUPLICATE_ERROR'),
           duration: 3000,
           color: 'danger'
         });
@@ -1692,7 +2220,9 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
   private async showClosedDayNotice(shift: ShiftCell): Promise<void> {
     const toast = await this.toastCtrl.create({
-      message: `Établissement fermé ce jour-là (${shift.closureReason || 'Fermeture'})`,
+      message: this.translocoService.translate('SHIFTS.CONTEXT_MENU.CLOSED_NOTICE', {
+        reason: shift.closureReason || this.translocoService.translate('SHIFTS.CLOSURES.CLOSED_STATUS')
+      }),
       duration: 3000,
       color: 'warning'
     });
@@ -1701,7 +2231,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
   private async showBrowserMenuNotice(): Promise<void> {
     const toast = await this.toastCtrl.create({
-      message: 'Appuyez sur Shift + Clic droit pour ouvrir le menu navigateur direct',
+      message: this.translocoService.translate('SHIFTS.CONTEXT_MENU.BROWSER_NOTICE'),
       duration: 3000,
       color: 'info'
     });

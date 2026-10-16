@@ -5,7 +5,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,7 +15,6 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Schema(description = "Anonymous order request via QR code scan")
 public class PublicCommandeRequestDTO {
 
@@ -61,5 +59,20 @@ public class PublicCommandeRequestDTO {
         this.items = items;
         this.notes = notes;
         this.sessionToken = null;
+    }
+
+    /**
+     * All-arguments constructor including session token.
+     *
+     * @param tableId      Table identifier
+     * @param items        Ordered items list
+     * @param notes        Optional preparation notes
+     * @param sessionToken Ephemeral table session token
+     */
+    public PublicCommandeRequestDTO(Long tableId, List<PublicCommandeItemRequestDTO> items, String notes, String sessionToken) {
+        this.tableId = tableId;
+        this.items = items;
+        this.notes = notes;
+        this.sessionToken = sessionToken;
     }
 }

@@ -19,6 +19,58 @@
   &.is-open {
     z-index: 100;
   }
+
+  &.size-sm {
+    gap: 0.2rem;
+
+    .select-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 1px;
+    }
+
+    .select-trigger {
+      min-height: 34px;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.82rem;
+      border-radius: var(--radius-sm, 8px);
+      gap: 0.5rem;
+
+      .placeholder-text {
+        font-size: 0.82rem;
+      }
+
+      .selected-item-display {
+        gap: 0.5rem;
+
+        .item-icon {
+          font-size: 16px;
+        }
+
+        .item-label {
+          font-size: 0.82rem;
+        }
+
+        .item-badge {
+          font-size: 0.65rem;
+          padding: 1px 5px;
+        }
+      }
+
+      .trigger-actions {
+        gap: 4px;
+
+        .clear-btn {
+          font-size: 14px;
+        }
+
+        .chevron-icon {
+          font-size: 14px;
+        }
+      }
+    }
+  }
 }
 
 .select-label {

@@ -9,7 +9,8 @@ import {
   colorPaletteOutline, layersOutline, addOutline, removeOutline,
   squareOutline, ellipseOutline, chevronDownOutline, chevronUpOutline,
   checkmarkOutline, restaurantOutline, peopleOutline, locationOutline,
-  pencilOutline, checkmarkCircleOutline, qrCodeOutline
+  pencilOutline, checkmarkCircleOutline, qrCodeOutline,
+  expandOutline, contractOutline
 } from 'ionicons/icons';
 
 import { TableBar } from '../../../../core/models/table.model';
@@ -67,6 +68,18 @@ export class TableSidePanelComponent {
 
   isZoneDropdownOpen = false;
 
+  /** Mobile bottom sheet height in vh (default 62vh, expandable to 92vh). */
+  mobileSheetHeight = 62;
+
+  /** Whether the mobile bottom sheet is currently expanded. */
+  isExpanded = false;
+
+  /** Flag indicating active finger dragging on the grab handle. */
+  isDragging = false;
+
+  private touchStartY = 0;
+  private touchStartHeight = 62;
+
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly modalCtrl = inject(ModalController);
   private readonly transloco = inject(TranslocoService);
@@ -96,13 +109,69 @@ export class TableSidePanelComponent {
       'pencil-outline': pencilOutline,
       'checkmark-circle-outline': checkmarkCircleOutline,
       'qr-code-outline': qrCodeOutline,
+      'expand-outline': expandOutline,
+      'contract-outline': contractOutline,
       closeOutline, saveOutline, gitMergeOutline, trashOutline,
       refreshOutline, shapesOutline, resizeOutline, optionsOutline,
       colorPaletteOutline, layersOutline, addOutline, removeOutline,
       squareOutline, ellipseOutline, chevronDownOutline, chevronUpOutline,
       checkmarkOutline, restaurantOutline, peopleOutline, locationOutline,
-      pencilOutline, checkmarkCircleOutline, qrCodeOutline
+      pencilOutline, checkmarkCircleOutline, qrCodeOutline,
+      expandOutline, contractOutline
     });
+  }
+
+  /**
+   * Toggles mobile sheet height between compact (62vh) and expanded (92vh).
+   */
+  toggleExpand(): void {
+    this.isExpanded = !this.isExpanded;
+    this.mobileSheetHeight = this.isExpanded ? 92 : 62;
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Touch drag handlers for smooth resizing of the bottom sheet.
+   */
+  onTouchStart(e: TouchEvent): void {
+    if (e.touches?.length === 1) {
+      this.touchStartY = e.touches[0].clientY;
+      this.touchStartHeight = this.mobileSheetHeight;
+      this.isDragging = true;
+    }
+  }
+
+  onTouchMove(e: TouchEvent): void {
+    if (!this.isDragging || e.touches?.length !== 1) return;
+    const currentY = e.touches[0].clientY;
+    const deltaY = this.touchStartY - currentY; // positive when dragging up
+    const viewportHeight = window.innerHeight || 800;
+    const deltaVh = (deltaY / viewportHeight) * 100;
+    const newHeight = Math.min(94, Math.max(30, this.touchStartHeight + deltaVh));
+    this.mobileSheetHeight = Math.round(newHeight);
+    this.isExpanded = this.mobileSheetHeight > 75;
+    this.cdr.markForCheck();
+  }
+
+  onTouchEnd(): void {
+    if (!this.isDragging) return;
+    this.isDragging = false;
+    // Snap to states
+    if (this.mobileSheetHeight < 38) {
+      // Dragged down far enough: close panel
+      this.mobileSheetHeight = 62;
+      this.isExpanded = false;
+      this.onClose();
+    } else if (this.mobileSheetHeight > 75) {
+      // Snap to full height
+      this.mobileSheetHeight = 92;
+      this.isExpanded = true;
+    } else {
+      // Snap to standard half height
+      this.mobileSheetHeight = 62;
+      this.isExpanded = false;
+    }
+    this.cdr.markForCheck();
   }
 
   toggleZoneDropdown(event: Event) {

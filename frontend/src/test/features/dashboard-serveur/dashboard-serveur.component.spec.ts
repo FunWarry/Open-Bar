@@ -602,6 +602,14 @@ describe('DashboardServeurComponent', () => {
       expect(component.activeTab).toBe('commande');
     });
 
+    it('toggleCartCollapse toggles isCartCollapsed flag', () => {
+      expect(component.isCartCollapsed).toBeFalse();
+      component.toggleCartCollapse();
+      expect(component.isCartCollapsed).toBeTrue();
+      component.toggleCartCollapse();
+      expect(component.isCartCollapsed).toBeFalse();
+    });
+
     it('should submit cart without item notes when item has no comments or exclusions', fakeAsync(() => {
       const mockCreated: Commande = {
         id: 12,
@@ -1375,6 +1383,30 @@ describe('DashboardServeurComponent', () => {
 
       expect(component.cart.items).toHaveSize(0);
     }));
+  });
+
+  describe('Mobile Order View & Cart Totals', () => {
+    it('should calculate cartTotalPrice correctly', () => {
+      component.cart = {
+        tableId: 1,
+        items: [
+          { boissonId: 1, nom: 'Mojito', prix: 8.5, quantite: 2 },
+          { boissonId: 2, nom: 'Bière', prix: 6.0, quantite: 1 },
+        ],
+      };
+      expect(component.cartTotalPrice).toBe(23.0);
+    });
+
+    it('should reset mobileOrderView to menu on new order for table or clear cart', () => {
+      component.mobileOrderView = 'cart';
+      component.onNewOrderForTable(mockTables[0]);
+      expect(component.mobileOrderView).toBe('menu');
+      expect(component.activeTab).toBe('commande');
+
+      component.mobileOrderView = 'cart';
+      component.onClearCart();
+      expect(component.mobileOrderView).toBe('menu');
+    });
   });
 });
 

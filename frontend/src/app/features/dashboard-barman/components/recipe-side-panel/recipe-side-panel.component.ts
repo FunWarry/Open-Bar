@@ -110,6 +110,9 @@ export class RecipeSidePanelComponent implements OnInit, OnChanges {
   /** Whether the recipe details are currently loading. */
   @Input() isLoading = false;
 
+  /** Whether the workstation is operating in Kitchen Mode (KDS). */
+  @Input() isKitchenMode = false;
+
   /** Emits when the user requests closing the side panel. */
   @Output() closePanel = new EventEmitter<void>();
 

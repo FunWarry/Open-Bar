@@ -165,8 +165,8 @@ export const routes: Routes = [
   },
   {
     path: 'orders/new',
-    loadComponent: () => import('./features/commandes/commande-form/commande-form.component').then(m => m.CommandeFormComponent),
-    canActivate: [AuthGuard]
+    redirectTo: '/serveur?tab=commande',
+    pathMatch: 'full'
   },
   {
     path: 'orders/:id',
@@ -180,12 +180,12 @@ export const routes: Routes = [
   },
   {
     path: 'commandes/new',
-    redirectTo: '/orders/new',
+    redirectTo: '/serveur?tab=commande',
     pathMatch: 'full'
   },
   {
     path: 'commandes/nouvelle',
-    redirectTo: '/orders/new',
+    redirectTo: '/serveur?tab=commande',
     pathMatch: 'full'
   },
   {

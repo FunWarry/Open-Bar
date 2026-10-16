@@ -5,17 +5,17 @@
   [clickable]="true"
   [headerDivider]="'dashed'"
   [footerDivider]="'dashed'"
-  [padding]="'md'"
+  [padding]="'sm'"
   [attr.data-testid]="'mobile-table-card-' + table.id"
   [testId]="'mobile-table-card-' + table.id"
   (cardClick)="tableSelect.emit(table)">
 
   <div card-header class="tile-header">
     <div class="table-identity">
-      <div class="icon-box">
-        <ion-icon name="restaurant-outline"></ion-icon>
+      <div class="icon-box" [title]="table.nom || ('Table ' + table.id)">
+        <ion-icon name="table-restaurant-outline"></ion-icon>
       </div>
-      <span class="table-name">{{ table.nom || 'Table #' + table.id }}</span>
+      <span class="table-name" [title]="table.nom || ('Table ' + table.id)">{{ displayTableNumber }}</span>
     </div>
     <span class="status-pill" [class.occupied]="table.occupee" [class.free]="!table.occupee">
       {{ table.occupee ? ('SERVEUR_MOBILE.CARD.STATUS_OCCUPIED' | transloco) : ('SERVEUR_MOBILE.CARD.STATUS_FREE' | transloco) }}

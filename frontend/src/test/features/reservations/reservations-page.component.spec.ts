@@ -366,4 +366,16 @@ describe('ReservationsPageComponent', () => {
     expect(component.newReservationInitialTableId).toBe(20);
     expect(component.newReservationInitialTime).toBe('19:45');
   });
+
+  it('renders timeline legend bar with all status items in timeline view', () => {
+    component.viewMode.set('TIMELINE');
+    fixture.detectChanges();
+    const legendEl = fixture.nativeElement.querySelector('[data-testid="timeline-status-legend"]');
+    expect(legendEl).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('[data-testid="legend-item-confirmed"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('[data-testid="legend-item-pending"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('[data-testid="legend-item-seated"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('[data-testid="legend-item-cancelled"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('[data-testid="legend-item-noshow"]')).toBeTruthy();
+  });
 });

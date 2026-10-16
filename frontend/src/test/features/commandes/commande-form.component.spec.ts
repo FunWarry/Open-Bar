@@ -137,4 +137,45 @@ describe('CommandeFormComponent', () => {
     component.onCancel();
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/commandes']);
   });
+
+  it('computes tableOptions correctly from loaded tables', () => {
+    component.tables = [
+      { id: 10, numero: 5, capacite: 4, zone: 'Terrasse', occupee: false, createdAt: '', updatedAt: '' },
+      { id: 20, numero: 8, capacite: 2, zone: 'Bar', occupee: true, createdAt: '', updatedAt: '' },
+    ];
+    const opts = component.tableOptions();
+    expect(opts).toHaveSize(2);
+    expect(opts[0].value).toBe(10);
+    expect(opts[0].label).toBe('Table #5');
+    expect(opts[0].badgeType).toBe('success');
+    expect(opts[1].value).toBe(20);
+    expect(opts[1].label).toBe('Table #8');
+    expect(opts[1].badgeType).toBe('warning');
+  });
+
+  it('computes selectedTable correctly when tableId is selected', () => {
+    component.tables = [
+      { id: 10, numero: 5, capacite: 4, zone: 'Terrasse', occupee: false, createdAt: '', updatedAt: '' },
+    ];
+    component.commandeForm.get('tableId')?.setValue(10);
+    expect(component.selectedTable()?.id).toBe(10);
+    expect(component.selectedTable()?.numero).toBe(5);
+  });
+
+  it('onSubmit() calls update when in edit mode', async () => {
+    component.isEditMode = true;
+    component.commandeId = 42;
+    commandeServiceSpy.update.and.returnValue(of({} as any));
+
+    component.commandeForm.get('tableId')?.setValue(10);
+    component.commandeForm.get('notes')?.setValue('VIP guest');
+    component.onSubmit();
+    await Promise.resolve();
+
+    expect(commandeServiceSpy.update).toHaveBeenCalledWith(42, {
+      tableId: 10,
+      notes: 'VIP guest',
+    });
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/commandes']);
+  });
 });

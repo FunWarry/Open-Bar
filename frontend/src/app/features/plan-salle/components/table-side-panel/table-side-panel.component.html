@@ -1,4 +1,32 @@
-<div class="side-panel" [class.open]="isOpen" data-testid="table-side-panel">
+@if (isOpen) {
+  <button
+    type="button"
+    class="mobile-panel-backdrop mobile-only"
+    (click)="onClose()"
+    [attr.aria-label]="'COMMON.CLOSE' | transloco"
+    data-testid="backdrop-table-side-panel"></button>
+}
+
+<div
+  class="side-panel"
+  [class.open]="isOpen"
+  [class.expanded]="isExpanded"
+  [class.dragging]="isDragging"
+  [style.--mobile-panel-height]="mobileSheetHeight + 'vh'"
+  data-testid="table-side-panel">
+  <!-- Mobile Grab & Drag-to-Resize Bar -->
+  <button
+    type="button"
+    class="panel-grab-bar mobile-only"
+    (touchstart)="onTouchStart($event)"
+    (touchmove)="onTouchMove($event)"
+    (touchend)="onTouchEnd()"
+    (click)="toggleExpand()"
+    [attr.aria-label]="(isExpanded ? 'COMMON.COLLAPSE' : 'COMMON.EXPAND') | transloco"
+    data-testid="btn-drag-resize-side-panel">
+    <span class="panel-grab-handle"></span>
+  </button>
+
   <!-- ZONE AREA EDITOR -->
   @if (selectedZoneArea) {
     <div class="side-panel__header">
@@ -13,9 +41,19 @@
           </span>
         </div>
       </div>
-      <button type="button" class="close-icon-btn" (click)="onClose()" (keyup.enter)="onClose()" [attr.aria-label]="'COMMON.CLOSE' | transloco" data-testid="btn-close-zone-panel">
-        <ion-icon name="close-outline"></ion-icon>
-      </button>
+      <div class="header-action-buttons">
+        <button
+          type="button"
+          class="expand-icon-btn mobile-only"
+          (click)="toggleExpand()"
+          [attr.aria-label]="(isExpanded ? 'COMMON.COLLAPSE' : 'COMMON.EXPAND') | transloco"
+          data-testid="btn-expand-zone-panel">
+          <ion-icon [name]="isExpanded ? 'contract-outline' : 'expand-outline'"></ion-icon>
+        </button>
+        <button type="button" class="close-icon-btn" (click)="onClose()" (keyup.enter)="onClose()" [attr.aria-label]="'COMMON.CLOSE' | transloco" data-testid="btn-close-zone-panel">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
     </div>
     <div class="side-panel__content">
       <!-- Section 1 : Zone Properties -->
@@ -235,9 +273,19 @@
                 </span>
               </div>
             </div>
-            <button type="button" class="close-icon-btn" (click)="onClose()" (keyup.enter)="onClose()" [attr.aria-label]="'COMMON.CLOSE' | transloco" data-testid="btn-close-side-panel">
-              <ion-icon name="close-outline"></ion-icon>
-            </button>
+            <div class="header-action-buttons">
+              <button
+                type="button"
+                class="expand-icon-btn mobile-only"
+                (click)="toggleExpand()"
+                [attr.aria-label]="(isExpanded ? 'COMMON.COLLAPSE' : 'COMMON.EXPAND') | transloco"
+                data-testid="btn-expand-side-panel">
+                <ion-icon [name]="isExpanded ? 'contract-outline' : 'expand-outline'"></ion-icon>
+              </button>
+              <button type="button" class="close-icon-btn" (click)="onClose()" (keyup.enter)="onClose()" [attr.aria-label]="'COMMON.CLOSE' | transloco" data-testid="btn-close-side-panel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
           </div>
           <div class="side-panel__content">
             <!-- Section 1 : Propriétés générales -->

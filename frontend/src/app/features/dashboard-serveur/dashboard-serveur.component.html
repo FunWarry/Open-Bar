@@ -37,36 +37,6 @@
 
     <!-- ONGLET 1 : TABLES SERVEUR -->
     @if (activeTab === 'tables') {
-      <!-- Top Active Table Calls & Assistance Banner -->
-      @if (tableAppelService.activeAppels().length > 0) {
-        <div class="active-calls-banner" data-testid="active-calls-banner">
-          <div class="banner-header">
-            <div class="banner-title-group">
-              <span class="banner-icon pulse">🔔</span>
-              <span class="banner-title">{{ 'SERVEUR.ALERTS.ACTIVE_CALLS_TITLE' | transloco: { count: tableAppelService.activeAppels().length } }}</span>
-            </div>
-          </div>
-          <div class="banner-calls-list">
-            @for (appel of tableAppelService.activeAppels(); track appel.id) {
-              <div class="call-item-pill" [class.bill-call]="appel.type === 'ADDITION'" [attr.data-testid]="'call-pill-' + appel.id">
-                <span class="call-type-icon">{{ appel.type === 'ADDITION' ? '💳' : '🔔' }}</span>
-                <span class="call-table-text">Table {{ appel.tableNumero || appel.tableId }}</span>
-                <span class="call-type-text">{{ (appel.type === 'ADDITION' ? 'SERVEUR.ALERTS.BILL_REQUEST' : 'SERVEUR.ALERTS.ASSISTANCE_REQUEST') | transloco }}</span>
-                @if (appel.commentaire) {
-                  <span class="call-comment-text">"{{ appel.commentaire }}"</span>
-                }
-                <button
-                  type="button"
-                  class="ack-call-btn"
-                  [attr.data-testid]="'btn-ack-call-' + appel.id"
-                  (click)="acquitterAppel(appel, $event)">
-                  ✓ {{ 'SERVEUR.ALERTS.ACKNOWLEDGE_BTN' | transloco }}
-                </button>
-              </div>
-            }
-          </div>
-        </div>
-      }
       <!-- CONTROLS CARD (COMPARAISON AVEC LA PAGE TABLES) -->
       <div class="controls-card">
         <!-- LIGNE SUPERIEURE : SEARCHBAR & PILLULES STATUT -->
@@ -124,6 +94,7 @@
             <!-- Dropdown Étage -->
             <div class="filter-select-box">
               <app-searchable-select
+                size="sm"
                 [label]="'SERVEUR.FLOOR_LABEL' | transloco"
                 [options]="etageOptions"
                 [(ngModel)]="selectedEtage"
@@ -136,6 +107,7 @@
             <!-- Dropdown Zone -->
             <div class="filter-select-box">
               <app-searchable-select
+                size="sm"
                 [label]="'SERVEUR.ZONE_LABEL' | transloco"
                 [options]="zoneOptions"
                 [(ngModel)]="selectedZone"
@@ -148,6 +120,7 @@
             <!-- Dropdown Trier Par -->
             <div class="filter-select-box">
               <app-searchable-select
+                size="sm"
                 [label]="'SERVEUR.SORT_LABEL' | transloco"
                 [options]="sortOptions"
                 [(ngModel)]="sortOption"
@@ -435,7 +408,36 @@
       </div>
     }
 
-    <div class="order-taking-layout">
+    <!-- Selecteur de vue Mobile : Menu / Panier -->
+    <div class="mobile-order-view-selector" data-testid="mobile-order-view-selector">
+      <button
+        type="button"
+        class="mobile-view-pill"
+        [class.active]="mobileOrderView === 'menu'"
+        (click)="mobileOrderView = 'menu'"
+        data-testid="btn-mobile-view-menu">
+        <ion-icon name="wine-outline"></ion-icon>
+        <span>{{ 'SERVEUR.MENU_CATALOG' | transloco }}</span>
+      </button>
+      <button
+        type="button"
+        class="mobile-view-pill"
+        [class.active]="mobileOrderView === 'cart'"
+        (click)="mobileOrderView = 'cart'"
+        data-testid="btn-mobile-view-cart">
+        <ion-icon name="cart-outline"></ion-icon>
+        <span>{{ 'SERVEUR.CURRENT_ORDER' | transloco }}</span>
+        @if (cartTotalCount > 0) {
+          <span class="mobile-pill-badge" data-testid="mobile-cart-badge">{{ cartTotalCount }}</span>
+        }
+      </button>
+    </div>
+
+    <div
+      class="order-taking-layout"
+      [class.cart-collapsed]="isCartCollapsed"
+      [class.mobile-view-menu]="mobileOrderView === 'menu'"
+      [class.mobile-view-cart]="mobileOrderView === 'cart'">
       <!-- Zone Produits & Filtres (Gauche) -->
       <div class="products-section">
         <app-cocktail-list
@@ -446,11 +448,13 @@
         </app-cocktail-list>
       </div>
       <!-- Zone Tiroir Panier (Droite) -->
-      <div class="cart-section">
+      <div class="cart-section" [class.collapsed]="isCartCollapsed">
         <app-cart-drawer
           [cart]="cart"
           [tables]="tables"
           [isSubmitting]="isSubmitting"
+          [canCollapse]="true"
+          (collapseCart)="toggleCartCollapse()"
           (quantityChange)="onCartQuantityChanged($event)"
           (removeItem)="onCartItemRemoved($event)"
           (tableSelect)="onTableSelectForOrder($event)"
@@ -459,7 +463,51 @@
           (editCustomization)="onEditCartItemCustomization($event)">
         </app-cart-drawer>
       </div>
+
+      <!-- Bouton flottant pour ré-ouvrir le panier sur tablette et desktop -->
+      @if (isCartCollapsed) {
+        <button
+          type="button"
+          class="desktop-cart-expand-btn"
+          (click)="toggleCartCollapse()"
+          (keyup.enter)="toggleCartCollapse()"
+          data-testid="btn-expand-cart"
+          [title]="'SERVEUR.EXPAND_CART' | transloco">
+          <div class="expand-btn-inner">
+            <ion-icon name="cart-outline" class="cart-icon"></ion-icon>
+            <span class="expand-label">{{ 'SERVEUR.CURRENT_ORDER' | transloco }}</span>
+            @if (cartTotalCount > 0) {
+              <span class="cart-count-badge" data-testid="collapsed-cart-badge">{{ cartTotalCount }}</span>
+              <span class="cart-total-amount">{{ cartTotalPrice | appCurrency }}</span>
+            }
+            <ion-icon name="chevron-back-outline" class="chevron-icon"></ion-icon>
+          </div>
+        </button>
+      }
     </div>
+
+    <!-- Barre flottante Panier sur mobile lorsque l'utilisateur est sur la vue Menu -->
+    @if (mobileOrderView === 'menu' && cart.items.length > 0) {
+      <button
+        type="button"
+        class="mobile-cart-floating-bar"
+        data-testid="mobile-cart-floating-bar"
+        (click)="mobileOrderView = 'cart'">
+        <span class="floating-bar-info">
+          <span class="floating-bar-count">
+            <ion-icon name="cart-outline"></ion-icon>
+            {{ (cartTotalCount > 1 ? 'SERVEUR.ARTICLES_COUNT_PLURAL' : 'SERVEUR.ARTICLES_COUNT') | transloco: { count: cartTotalCount } }}
+          </span>
+          <span class="floating-bar-total">{{ cartTotalPrice | appCurrency }}</span>
+        </span>
+        <span
+          class="floating-bar-action"
+          data-testid="btn-floating-view-cart">
+          <span>{{ 'SERVEUR.VIEW_CART' | transloco }}</span>
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+        </span>
+      </button>
+    }
   </div>
 }
 

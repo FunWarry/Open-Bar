@@ -618,14 +618,11 @@ public class RouletteService {
             BigDecimal price,
             String label) {
         try {
-            TableCartItemRequestDTO cartItem = new TableCartItemRequestDTO(
+            TableCartItemRequestDTO cartItem = TableCartItemRequestDTO.ofMysteryDrink(
                     guestSessionId,
                     guestName,
                     cocktailId,
-                    null,
-                    1,
                     "[Mystery Drink 🎲] " + label,
-                    true,
                     price
             );
             tableCartService.addItem(tableId, cartItem);

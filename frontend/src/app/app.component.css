@@ -104,6 +104,10 @@ app-navbar {
   color: var(--text-primary, #eceefb);
 }
 
+.main-content:has(app-dashboard-serveur) {
+  overflow: hidden;
+}
+
 .main-content > *:not(router-outlet) {
   display: block;
   width: 100%;
@@ -166,15 +170,16 @@ app-navbar {
     max-width: 90vw;
     min-width: 0;
     transform: translateX(100%);
-    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.4);
+    box-shadow: none;
+    visibility: hidden;
     pointer-events: none;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.25s ease, box-shadow 0.25s ease;
   }
 
   .notif-drawer-wrapper.open {
     transform: translateX(0);
-    width: 360px;
-    max-width: 90vw;
-    min-width: 0;
+    visibility: visible;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.4);
     pointer-events: auto;
   }
 }

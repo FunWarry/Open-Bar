@@ -92,4 +92,22 @@ describe('CartDrawerComponent', () => {
     component.onTableChanged({ detail: { value: '5' } });
     expect(component.tableSelect.emit).toHaveBeenCalledWith(5);
   });
+
+  it('should emit tableSelect on onTableSelectChange', () => {
+    spyOn(component.tableSelect, 'emit');
+    component.onTableSelectChange(5);
+    expect(component.tableSelect.emit).toHaveBeenCalledWith(5);
+  });
+
+  it('should emit collapseCart when collapse button is clicked', () => {
+    spyOn(component.collapseCart, 'emit');
+    component.canCollapse = true;
+    fixture.detectChanges();
+
+    const collapseBtn = fixture.nativeElement.querySelector('[data-testid="btn-collapse-cart"]') as HTMLButtonElement;
+    expect(collapseBtn).toBeTruthy();
+    collapseBtn.click();
+
+    expect(component.collapseCart.emit).toHaveBeenCalled();
+  });
 });

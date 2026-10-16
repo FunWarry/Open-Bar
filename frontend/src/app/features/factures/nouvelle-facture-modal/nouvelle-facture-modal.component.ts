@@ -7,7 +7,7 @@ import {
 import { addIcons } from 'ionicons';
 import {
   closeOutline, receiptOutline, restaurantOutline, checkmarkCircleOutline,
-  alertCircleOutline, arrowForwardOutline, cardOutline, peopleOutline
+  alertCircleOutline, arrowForwardOutline, cardOutline, peopleOutline, personOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
@@ -74,7 +74,8 @@ export class NouvelleFactureModalComponent implements OnInit {
       alertCircleOutline,
       arrowForwardOutline,
       cardOutline,
-      peopleOutline
+      peopleOutline,
+      personOutline
     });
   }
 

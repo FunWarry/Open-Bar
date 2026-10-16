@@ -5,27 +5,28 @@
         <ion-icon name="trash-outline"></ion-icon>
       </div>
       <div class="modal-title-group">
-        <ion-title class="modal-title">{{ 'STOCK.WASTE_MODAL_TITLE' | transloco }}</ion-title>
+        <h2 class="modal-title">{{ 'STOCK.WASTE_MODAL_TITLE' | transloco }}</h2>
         <span class="modal-subtitle">{{ 'STOCK.WASTE_MODAL_SUBTITLE' | transloco }}</span>
       </div>
     </div>
     <ion-buttons slot="end">
-      <app-action-button
-        variant="ghost"
-        size="small"
-        icon="download-outline"
-        (btnClick)="exportWasteHistoryCsv()"
+      <ion-button
+        fill="clear"
+        class="btn-export-modal"
+        (click)="exportWasteHistoryCsv()"
+        (keyup.enter)="exportWasteHistoryCsv()"
         [title]="'STOCK.WASTE_HISTORY_EXPORT' | transloco"
-        testId="waste-modal-btn-export"
+        [attr.aria-label]="'STOCK.WASTE_HISTORY_EXPORT' | transloco"
         data-testid="waste-modal-btn-export">
-        {{ 'STOCK.WASTE_HISTORY_EXPORT' | transloco }}
-      </app-action-button>
+        <ion-icon slot="icon-only" name="download-outline"></ion-icon>
+      </ion-button>
       <ion-button
         fill="clear"
         class="btn-close-modal"
         (click)="dismiss()"
         (keyup.enter)="dismiss()"
         [title]="'STOCK.WASTE_CANCEL_BTN' | transloco"
+        [attr.aria-label]="'STOCK.WASTE_CANCEL_BTN' | transloco"
         data-testid="waste-modal-btn-close">
         <ion-icon slot="icon-only" name="close-outline"></ion-icon>
       </ion-button>
