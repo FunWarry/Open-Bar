@@ -9,7 +9,7 @@ import { SoundService } from './sound.service';
 
 export interface AppNotification {
   id: string;
-  type: 'commande' | 'statut' | 'table' | 'stock';
+  type: 'commande' | 'statut' | 'table' | 'stock' | 'reservation';
   message: string;
   severity: 'success' | 'warning' | 'danger' | 'primary';
   data?: any;
@@ -128,10 +128,38 @@ export class NotificationService implements OnDestroy {
           // malformed message — ignore
         }
       });
+
+    // Reservation updates on /topic/reservations
+    this.ws.watch('/topic/reservations')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(msg => {
+        try {
+          const data = typeof msg.body === 'string' ? JSON.parse(msg.body) : msg.body;
+          this.handleReservationNotification(data);
+        } catch {
+          // malformed message — ignore
+        }
+      });
+  }
+
+  private handleReservationNotification(data: any): void {
+    const notif: AppNotification = {
+      id: `res-${Date.now()}-${++this.notifSequence}`,
+      type: 'reservation',
+      message: `Réservation: ${data?.clientNom || 'Client'} (${data?.statut || 'MAJ'})`,
+      severity: 'primary',
+      data,
+      timestamp: new Date(),
+      lue: false,
+    };
+    this.notifications$.next(notif);
   }
 
   private handleAppelNotification(data: any): void {
-    if (data?.statut !== 'EN_ATTENTE') return;
+    if (data?.statut !== 'EN_ATTENTE') {
+      this.marquerAppelLu(data?.id, data?.tableId);
+      return;
+    }
     const tableDisplay = this.formatTableDisplay(data.tableNumero || data.tableId || 'Table');
     const isAddition = data.type === 'ADDITION';
     const typeLabel = isAddition ? 'Addition / Bill Request' : 'Assistance Request';
@@ -148,6 +176,30 @@ export class NotificationService implements OnDestroy {
     this.updateUnreadCount();
     this.notifications$.next(notif);
     this.soundService.playUrgentAlertSound();
+  }
+
+  /**
+   * Marks table call notifications matching the given call ID or table ID as read.
+   *
+   * @param appelId - Identifier of the resolved table alert.
+   * @param tableId - Optional table identifier.
+   */
+  marquerAppelLu(appelId?: number, tableId?: number): void {
+    let changed = false;
+    this.notificationHistory.forEach(n => {
+      if (n.type === 'table' && !n.lue) {
+        if (
+          (appelId != null && (n.data?.id === appelId || n.data?.appelId === appelId)) ||
+          (tableId != null && (n.data?.tableId === tableId || n.data?.tableNumero === tableId))
+        ) {
+          n.lue = true;
+          changed = true;
+        }
+      }
+    });
+    if (changed) {
+      this.updateUnreadCount();
+    }
   }
 
   private handleStockAlerteNotification(data: any): void {

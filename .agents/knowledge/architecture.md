@@ -20,7 +20,7 @@
 | Database | PostgreSQL | — | Managed via Docker Compose |
 | ORM | JPA/Hibernate + Lombok `@Data` | via Spring | |
 | Security | Spring Security + custom JWT | JJWT 0.13.0 | Requires `JWT_SECRET` (≥ 32 characters). 4-hour lifespan (`14400000 ms`) with frontend session auto-disconnect & extension reminder prompt |
-| Real-time | WebSocket STOMP | via Spring | 11 active topics |
+| Real-time | WebSocket STOMP | via Spring | 14 active topics |
 | TPE / Monétique | Protocole Concert IP | Socket TCP :8888 | Communication directe avec terminaux carte sans cloud |
 | Impression | ESC/POS direct socket | Socket TCP :9100 | Format binaire CP850 pour imprimantes thermiques 80mm/58mm |
 | Frontend | Angular | 22.2.0 | |
@@ -34,10 +34,11 @@
 | CSV Exports | RFC 4180 + BOM UTF-8 | — | Backend `CsvUtils` (formula injection defense) + frontend `CsvExportService` |
 | Backend tests | JUnit 5 + Mockito + Testcontainers | 1.21.4 | Unit + Spring Boot integration tests with isolated PostgreSQL |
 | Frontend tests | Karma + Jasmine | — | Headless browser unit tests |
-| E2E tests | Playwright | 1.50+ | End-to-end browser tests (Chromium headless) |
+| E2E tests | Playwright | 1.63+ | End-to-end multi-device emulation tests (Chromium headless Desktop, Pixel 7, iPhone 14, iPad) |
+| Performance & Load | k6 + Playwright CDP | k6 v2.2+ | Automated rush-hour scenarios, mock ESC/POS socket :9100, degraded network, RPi 5 profiling |
 | Database Backups | Automated Docker cron + rotation | — | `prodrigestivill/postgres-backup-local:15-alpine` (7d/4w/6m retention) |
 | Reverse Proxy & TLS | Nginx | — | Port 443 HTTPS, TLS 1.2/1.3, HTTP 80 redirect, camera header, SAN certs |
-| CI | GitHub Actions | 1 workflow (`ci.yml`) | Backend, Frontend, E2E, SonarCloud |
+| CI / CD | GitHub Actions | 3 workflows (`ci.yml`, `performance.yml`, `release.yml`) | Backend, Frontend, E2E, SonarCloud, Nightly Performance, SemVer Releases |
 | Quality | SonarCloud + Qodana | — | Quality Gate enforcement |
 
 ---
@@ -95,11 +96,12 @@ frontend/src/
 ```
 
 **Key Architectural Decisions:**
-- Angular Material → **Abandoned** → Ionic 8+
+- Angular Material → **Abandoned** → Ionic 9+
 - Capacitor → **Abandoned** → PWA (`@angular/pwa`, Service Worker)
 - NgRx → **Auth only** — all other state uses direct services + Angular signals
 - Tests → **`src/test/`** (mirror Maven structure, never co-located with source components)
 - Styling → **Adaptive Theme System** using CSS variables from `variables.css` (no hardcoded hex/RGB colors)
+- Responsiveness → **Mandatory Multi-Device Architecture** (Smartphone <768px with off-canvas drawer & condensed popover, Tablet 768px-1024px with adaptive grids, Desktop >1024px) with zero horizontal overflow tolerance.
 
 ---
 
@@ -242,6 +244,7 @@ flowchart LR
 | `/topic/preparation/kitchen` | Order routed to kitchen workstation |
 | `/topic/preparation/snack` | Order routed to snack workstation |
 | `/topic/establishment/modules` | Real-time establishment modular capabilities synchronization |
+| `/topic/checklists` | Real-time operational checklists & SOP procedure session lifecycle events |
 
 ---
 

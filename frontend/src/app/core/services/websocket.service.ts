@@ -36,7 +36,7 @@ export class WebSocketService {
         this.isGuestMode = false;
         this.connect();
       } else if (!isAuth && this.rxStomp.active && !this.isGuestMode) {
-        this.rxStomp.deactivate();
+        void this.rxStomp.deactivate();
       }
     });
   }
@@ -105,7 +105,7 @@ export class WebSocketService {
    */
   disconnect(): void {
     this.isGuestMode = false;
-    this.rxStomp.deactivate();
+    void this.rxStomp.deactivate();
   }
 
   /**

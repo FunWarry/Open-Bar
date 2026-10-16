@@ -5,7 +5,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,7 +13,6 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Schema(description = "Request payload to add an item to the collaborative table cart")
 public class TableCartItemRequestDTO {
 
@@ -68,5 +66,23 @@ public class TableCartItemRequestDTO {
         this.notes = notes;
         this.isMysteryDrink = false;
         this.prixOverride = null;
+    }
+
+    /**
+     * Factory method for creating a mystery drink roulette reward item.
+     *
+     * @param guestSessionId Unique guest session identifier
+     * @param guestName      Guest display nickname
+     * @param cocktailId     Selected cocktail identifier
+     * @param notes          Special preparation notes
+     * @param prixOverride   Optional override unit price
+     * @return Initialized table cart item request
+     */
+    public static TableCartItemRequestDTO ofMysteryDrink(String guestSessionId, String guestName, Long cocktailId,
+                                                         String notes, java.math.BigDecimal prixOverride) {
+        TableCartItemRequestDTO dto = new TableCartItemRequestDTO(guestSessionId, guestName, cocktailId, null, 1, notes);
+        dto.setIsMysteryDrink(true);
+        dto.setPrixOverride(prixOverride);
+        return dto;
     }
 }

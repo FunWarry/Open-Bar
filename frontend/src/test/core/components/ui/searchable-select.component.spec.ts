@@ -185,4 +185,35 @@ describe('SearchableSelectComponent', () => {
     component.openDropdown();
     expect(component.openUpwards()).toBeTrue();
   });
+
+  it('supports multi-selection mode: toggling options and clearSelection', () => {
+    component.multiple = true;
+    component.options = mockOptions;
+    fixture.detectChanges();
+
+    const changeSpy = jasmine.createSpy('onChange');
+    component.registerOnChange(changeSpy);
+
+    // Select first option
+    component.selectOption(mockOptions[0]);
+    expect(component.value).toEqual([1]);
+    expect(component.isOptionSelected(mockOptions[0])).toBeTrue();
+    expect(component.isOptionSelected(mockOptions[1])).toBeFalse();
+    expect(component.selectedOptions()).toHaveSize(1);
+
+    // Select second option
+    component.selectOption(mockOptions[1]);
+    expect(component.value).toEqual([1, 2]);
+    expect(component.selectedOptions()).toHaveSize(2);
+
+    // Deselect first option
+    component.selectOption(mockOptions[0]);
+    expect(component.value).toEqual([2]);
+
+    // Clear multi selection
+    const mockEvent = new MouseEvent('click');
+    component.clearSelection(mockEvent);
+    expect(component.value).toEqual([]);
+    expect(component.hasSelection).toBeFalse();
+  });
 });

@@ -124,6 +124,14 @@ export const routes: Routes = [
     data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.INVENTORY_AUDIT }
   },
 
+  // Operational checklists and standard operating procedures (SOP)
+  {
+    path: 'checklists',
+    loadComponent: () => import('./features/checklists/checklists.component').then(m => m.ChecklistsComponent),
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER', 'BARMAN', 'SERVEUR'], requiredModule: EstablishmentModule.CHECKLISTS_PROCEDURES }
+  },
+
   // Cocktails
   {
     path: 'cocktails',
@@ -157,8 +165,8 @@ export const routes: Routes = [
   },
   {
     path: 'orders/new',
-    loadComponent: () => import('./features/commandes/commande-form/commande-form.component').then(m => m.CommandeFormComponent),
-    canActivate: [AuthGuard]
+    redirectTo: '/serveur?tab=commande',
+    pathMatch: 'full'
   },
   {
     path: 'orders/:id',
@@ -172,12 +180,12 @@ export const routes: Routes = [
   },
   {
     path: 'commandes/new',
-    redirectTo: '/orders/new',
+    redirectTo: '/serveur?tab=commande',
     pathMatch: 'full'
   },
   {
     path: 'commandes/nouvelle',
-    redirectTo: '/orders/new',
+    redirectTo: '/serveur?tab=commande',
     pathMatch: 'full'
   },
   {
@@ -206,6 +214,14 @@ export const routes: Routes = [
     path: 'tables/:id/edit',
     loadComponent: () => import('./features/tables/table-form/table-form.component').then(m => m.TableFormComponent),
     canActivate: [AuthGuard]
+  },
+
+  // Table Reservations Book
+  {
+    path: 'reservations',
+    loadComponent: () => import('./features/reservations/reservations-page.component').then(m => m.ReservationsPageComponent),
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.TABLE_RESERVATIONS }
   },
 
   // Profile & Theme

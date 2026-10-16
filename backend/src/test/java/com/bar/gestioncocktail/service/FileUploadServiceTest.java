@@ -118,4 +118,84 @@ class FileUploadServiceTest {
         assertNotNull(resultPath);
         assertTrue(resultPath.endsWith(".jpg"));
     }
+
+    @Test
+    @DisplayName("Should successfully store valid checklist media image file")
+    void shouldStoreValidChecklistMediaImage() {
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "guide_instruction.png",
+            "image/png",
+            "fake-image-bytes".getBytes()
+        );
+
+        String resultPath = fileUploadService.storeChecklistMedia(file);
+
+        assertNotNull(resultPath);
+        assertTrue(resultPath.startsWith("/uploads/checklists/checklist_"));
+        assertTrue(resultPath.endsWith(".png"));
+    }
+
+    @Test
+    @DisplayName("Should successfully store valid checklist media video file")
+    void shouldStoreValidChecklistMediaVideo() {
+        MockMultipartFile videoFile = new MockMultipartFile(
+            "file",
+            "tutorial.mp4",
+            "video/mp4",
+            "fake-video-bytes".getBytes()
+        );
+
+        String resultPath = fileUploadService.storeChecklistMedia(videoFile);
+
+        assertNotNull(resultPath);
+        assertTrue(resultPath.startsWith("/uploads/checklists/checklist_"));
+        assertTrue(resultPath.endsWith(".mp4"));
+    }
+
+    @Test
+    @DisplayName("Should throw BusinessException when checklist media is empty")
+    void shouldThrowExceptionForEmptyChecklistMedia() {
+        MockMultipartFile emptyFile = new MockMultipartFile("file", "empty.png", "image/png", new byte[0]);
+
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+            fileUploadService.storeChecklistMedia(emptyFile)
+        );
+
+        assertEquals("Uploaded file is empty", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw BusinessException when checklist media has invalid content type")
+    void shouldThrowExceptionForInvalidChecklistMediaType() {
+        MockMultipartFile textFile = new MockMultipartFile(
+            "file",
+            "notes.txt",
+            "text/plain",
+            "plain-text".getBytes()
+        );
+
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+            fileUploadService.storeChecklistMedia(textFile)
+        );
+
+        assertTrue(ex.getMessage().contains("Invalid file type"));
+    }
+
+    @Test
+    @DisplayName("Should throw BusinessException when checklist media exceeds 50MB")
+    void shouldThrowExceptionForOversizedChecklistMedia() {
+        MockMultipartFile oversized = new MockMultipartFile(
+            "file",
+            "massive_video.mp4",
+            "video/mp4",
+            new byte[51 * 1024 * 1024]
+        );
+
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+            fileUploadService.storeChecklistMedia(oversized)
+        );
+
+        assertTrue(ex.getMessage().contains("exceeds maximum allowed limit"));
+    }
 }

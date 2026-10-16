@@ -18,6 +18,8 @@ import com.bar.gestioncocktail.model.EstablishmentConfig;
  * @param inventoryAudit      Whether periodic physical inventory audit (stocktake) and shrinkage reconciliation are enabled
  * @param mysteryRoulette     Whether mystery drink roulette wheel gamification is enabled
  * @param paymentTerminal     Whether physical card payment terminal (TPE) integration is enabled
+ * @param tableReservations    Whether table reservations and floor plan booking assignments are enabled
+ * @param checklistsProcedures Whether operational task checklists and SOP procedures are enabled
  */
 public record EstablishmentModulesDTO(
         boolean cuisineKds,
@@ -32,8 +34,47 @@ public record EstablishmentModulesDTO(
         boolean suppliersManagement,
         boolean inventoryAudit,
         boolean mysteryRoulette,
-        boolean paymentTerminal
+        boolean paymentTerminal,
+        boolean tableReservations,
+        boolean checklistsProcedures
 ) {
+    public EstablishmentModulesDTO(
+            boolean cuisineKds,
+            boolean happyHour,
+            boolean employeeManagement,
+            boolean floorPlan,
+            boolean qrClientOrdering,
+            boolean stockTracking,
+            boolean cashDrawer,
+            boolean barTabs,
+            boolean cocktailLibrary,
+            boolean suppliersManagement,
+            boolean inventoryAudit,
+            boolean mysteryRoulette,
+            boolean paymentTerminal,
+            boolean tableReservations
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, tableReservations, true);
+    }
+
+    public EstablishmentModulesDTO(
+            boolean cuisineKds,
+            boolean happyHour,
+            boolean employeeManagement,
+            boolean floorPlan,
+            boolean qrClientOrdering,
+            boolean stockTracking,
+            boolean cashDrawer,
+            boolean barTabs,
+            boolean cocktailLibrary,
+            boolean suppliersManagement,
+            boolean inventoryAudit,
+            boolean mysteryRoulette,
+            boolean paymentTerminal
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, true, true);
+    }
+
     public EstablishmentModulesDTO(
             boolean cuisineKds,
             boolean happyHour,
@@ -48,7 +89,7 @@ public record EstablishmentModulesDTO(
             boolean inventoryAudit,
             boolean mysteryRoulette
     ) {
-        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, true);
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, true, true);
     }
     public EstablishmentModulesDTO(
             boolean cuisineKds,
@@ -63,7 +104,7 @@ public record EstablishmentModulesDTO(
             boolean suppliersManagement,
             boolean inventoryAudit
     ) {
-        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, true);
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, true, true);
     }
 
     public EstablishmentModulesDTO(
@@ -78,7 +119,7 @@ public record EstablishmentModulesDTO(
             boolean cocktailLibrary,
             boolean suppliersManagement
     ) {
-        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, true, true);
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, true, true, true);
     }
 
     public EstablishmentModulesDTO(
@@ -92,7 +133,7 @@ public record EstablishmentModulesDTO(
             boolean barTabs,
             boolean cocktailLibrary
     ) {
-        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, true, true, true);
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, true, true, true, true);
     }
 
     public EstablishmentModulesDTO(
@@ -105,7 +146,7 @@ public record EstablishmentModulesDTO(
             boolean cashDrawer,
             boolean barTabs
     ) {
-        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, true, true, true, true);
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, true, true, true, true, true);
     }
 
     public EstablishmentModulesDTO(
@@ -117,7 +158,7 @@ public record EstablishmentModulesDTO(
             boolean stockTracking,
             boolean cashDrawer
     ) {
-        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, true, true, true, true, true);
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, true, true, true, true, true, true);
     }
 
     /**
@@ -131,20 +172,26 @@ public record EstablishmentModulesDTO(
             return defaultEnabled();
         }
         return new EstablishmentModulesDTO(
-                config.getModuleKitchenKdsEnabled() == null || config.getModuleKitchenKdsEnabled(),
-                config.getModuleHappyHourEnabled() == null || config.getModuleHappyHourEnabled(),
-                config.getModuleEmployeeManagementEnabled() == null || config.getModuleEmployeeManagementEnabled(),
-                config.getModuleFloorPlanEnabled() == null || config.getModuleFloorPlanEnabled(),
-                config.getModuleQrClientOrderingEnabled() == null || config.getModuleQrClientOrderingEnabled(),
-                config.getModuleStockTrackingEnabled() == null || config.getModuleStockTrackingEnabled(),
-                config.getModuleCashDrawerEnabled() == null || config.getModuleCashDrawerEnabled(),
-                config.getModuleBarTabsEnabled() == null || config.getModuleBarTabsEnabled(),
-                config.getModuleCocktailLibraryEnabled() == null || config.getModuleCocktailLibraryEnabled(),
-                config.getModuleSuppliersManagementEnabled() == null || config.getModuleSuppliersManagementEnabled(),
-                config.getModuleInventoryAuditEnabled() == null || config.getModuleInventoryAuditEnabled(),
-                config.getModuleMysteryRouletteEnabled() == null || config.getModuleMysteryRouletteEnabled(),
-                config.getModulePaymentTerminalEnabled() == null || config.getModulePaymentTerminalEnabled()
+                isEnabled(config.getModuleKitchenKdsEnabled()),
+                isEnabled(config.getModuleHappyHourEnabled()),
+                isEnabled(config.getModuleEmployeeManagementEnabled()),
+                isEnabled(config.getModuleFloorPlanEnabled()),
+                isEnabled(config.getModuleQrClientOrderingEnabled()),
+                isEnabled(config.getModuleStockTrackingEnabled()),
+                isEnabled(config.getModuleCashDrawerEnabled()),
+                isEnabled(config.getModuleBarTabsEnabled()),
+                isEnabled(config.getModuleCocktailLibraryEnabled()),
+                isEnabled(config.getModuleSuppliersManagementEnabled()),
+                isEnabled(config.getModuleInventoryAuditEnabled()),
+                isEnabled(config.getModuleMysteryRouletteEnabled()),
+                isEnabled(config.getModulePaymentTerminalEnabled()),
+                isEnabled(config.getModuleTableReservationsEnabled()),
+                isEnabled(config.getModuleChecklistsProceduresEnabled())
         );
+    }
+
+    private static boolean isEnabled(Boolean flag) {
+        return flag == null || flag;
     }
 
     /**
@@ -153,6 +200,6 @@ public record EstablishmentModulesDTO(
      * @return New instance with all flags set to true
      */
     public static EstablishmentModulesDTO defaultEnabled() {
-        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true, true, true, true, true, true);
+        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);
     }
 }

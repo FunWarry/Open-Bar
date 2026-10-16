@@ -18,53 +18,28 @@
 
   <!-- Header -->
   <header class="panel-header">
-    <div class="header-main">
-      <div class="header-icon-wrapper">
-        <ion-icon name="wine-outline"></ion-icon>
-      </div>
-      <div class="header-title-block">
-        <div class="cocktail-badge-row">
-          <span class="qty-pill" data-testid="recipe-qty-pill">{{ quantity }}x</span>
-          @if (cocktail?.categorie; as cat) {
-            <span class="category-pill">{{ cat }}</span>
-          }
-          @if (item?.prioritaire || commande?.prioritaire) {
-            <span class="priority-pill" data-testid="recipe-priority-pill">
-              <ion-icon name="flash-outline"></ion-icon>
-              {{ 'BARMAN_DASHBOARD.PRIORITY_ORDER' | transloco }}
-            </span>
-          }
+    <div class="panel-header-top">
+      <div class="header-main">
+        <div class="header-icon-wrapper">
+          <ion-icon [name]="isKitchenMode ? 'restaurant-outline' : 'wine-outline'"></ion-icon>
         </div>
-        <h2 class="cocktail-title" data-testid="recipe-cocktail-title">
-          {{ item?.cocktailNom || cocktail?.nom || 'Cocktail' }}
-        </h2>
-      </div>
-    </div>
-
-    <div class="header-actions-group">
-      <!-- View Mode Toggle (Segmented Switcher) -->
-      <div class="view-mode-toggle-group" [attr.aria-label]="'BARMAN_DASHBOARD.VIEW_MODE_LABEL' | transloco">
-        <button
-          type="button"
-          class="view-mode-btn"
-          [class.active]="viewMode === 'compact'"
-          (click)="setViewMode('compact')"
-          [title]="'BARMAN_DASHBOARD.VIEW_MODE_COMPACT_TOOLTIP' | transloco"
-          data-testid="btn-view-mode-compact">
-          <ion-icon name="flash-outline"></ion-icon>
-          <span class="btn-label">{{ 'BARMAN_DASHBOARD.VIEW_MODE_COMPACT' | transloco }}</span>
-        </button>
-
-        <button
-          type="button"
-          class="view-mode-btn"
-          [class.active]="viewMode === 'full'"
-          (click)="setViewMode('full')"
-          [title]="'BARMAN_DASHBOARD.VIEW_MODE_FULL_TOOLTIP' | transloco"
-          data-testid="btn-view-mode-full">
-          <ion-icon name="layers-outline"></ion-icon>
-          <span class="btn-label">{{ 'BARMAN_DASHBOARD.VIEW_MODE_FULL' | transloco }}</span>
-        </button>
+        <div class="header-title-block">
+          <div class="cocktail-badge-row">
+            <span class="qty-pill" data-testid="recipe-qty-pill">{{ quantity }}x</span>
+            @if (cocktail?.categorie; as cat) {
+              <span class="category-pill">{{ cat }}</span>
+            }
+            @if (item?.prioritaire || commande?.prioritaire) {
+              <span class="priority-pill" data-testid="recipe-priority-pill">
+                <ion-icon name="flash-outline"></ion-icon>
+                {{ 'BARMAN_DASHBOARD.PRIORITY_ORDER' | transloco }}
+              </span>
+            }
+          </div>
+          <h2 class="cocktail-title" data-testid="recipe-cocktail-title">
+            {{ item?.cocktailNom || cocktail?.nom || 'Cocktail' }}
+          </h2>
+        </div>
       </div>
 
       <ion-button
@@ -76,6 +51,31 @@
         data-testid="btn-close-recipe-panel">
         <ion-icon slot="icon-only" name="close-outline"></ion-icon>
       </ion-button>
+    </div>
+
+    <!-- View Mode Toggle (Segmented Switcher) -->
+    <div class="view-mode-toggle-group" [attr.aria-label]="'BARMAN_DASHBOARD.VIEW_MODE_LABEL' | transloco">
+      <button
+        type="button"
+        class="view-mode-btn"
+        [class.active]="viewMode === 'compact'"
+        (click)="setViewMode('compact')"
+        [title]="'BARMAN_DASHBOARD.VIEW_MODE_COMPACT_TOOLTIP' | transloco"
+        data-testid="btn-view-mode-compact">
+        <ion-icon name="flash-outline"></ion-icon>
+        <span class="btn-label">{{ 'BARMAN_DASHBOARD.VIEW_MODE_COMPACT' | transloco }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="view-mode-btn"
+        [class.active]="viewMode === 'full'"
+        (click)="setViewMode('full')"
+        [title]="'BARMAN_DASHBOARD.VIEW_MODE_FULL_TOOLTIP' | transloco"
+        data-testid="btn-view-mode-full">
+        <ion-icon name="layers-outline"></ion-icon>
+        <span class="btn-label">{{ 'BARMAN_DASHBOARD.VIEW_MODE_FULL' | transloco }}</span>
+      </button>
     </div>
   </header>
 
@@ -401,17 +401,4 @@
       </section>
     }
   </div>
-
-  <!-- Footer Actions -->
-  <footer class="panel-footer">
-    <ion-button
-      expand="block"
-      fill="outline"
-      class="btn-done"
-      (click)="onClose()"
-      (keyup.enter)="onClose()"
-      data-testid="btn-close-recipe-footer">
-      {{ 'BARMAN_DASHBOARD.CLOSE_PANEL' | transloco }}
-    </ion-button>
-  </footer>
 </aside>

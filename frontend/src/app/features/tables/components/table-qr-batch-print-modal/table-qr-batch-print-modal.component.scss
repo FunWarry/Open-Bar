@@ -114,12 +114,19 @@
 /* --- BODY --- */
 /* ========================================================================= */
 .modal-body {
-  padding: 20px 24px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   overflow-y: auto;
-  max-height: 65vh;
+  max-height: calc(85vh - 140px);
+  flex: 1;
+  min-height: 0;
+
+  @media (max-width: 576px) {
+    padding: 14px 14px;
+    gap: 12px;
+  }
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -150,6 +157,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 
   .section-title {
@@ -161,23 +170,31 @@
     gap: 8px;
     color: var(--modal-text);
     letter-spacing: -0.01em;
+    min-width: 0;
 
     .step-pill {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       width: 22px;
+      min-width: 22px;
       height: 22px;
       border-radius: 50%;
       background: var(--primary);
-      color: #ffffff;
+      color: var(--text-on-accent);
       font-size: 0.72rem;
       font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    span {
+      min-width: 0;
     }
 
     ion-icon {
       color: var(--primary, #6c7fe8);
       font-size: 1.15rem;
+      flex-shrink: 0;
     }
   }
 
@@ -185,16 +202,18 @@
     background: var(--modal-surface-alt);
     border: 1px solid var(--modal-border);
     color: var(--primary, #6c7fe8);
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 700;
-    padding: 5px 14px;
+    padding: 4px 12px;
     border-radius: var(--radius-pill, 999px);
     cursor: pointer;
+    flex-shrink: 0;
+    white-space: nowrap;
     transition: all 0.2s ease;
 
     &:hover {
       background: var(--primary);
-      color: #ffffff;
+      color: var(--text-on-accent);
       border-color: var(--primary);
       box-shadow: 0 2px 8px rgba(108, 127, 232, 0.35);
     }
@@ -236,7 +255,7 @@
 
       .layout-icon {
         background: var(--primary);
-        color: #ffffff;
+        color: var(--text-on-accent);
       }
 
       .layout-radio ion-icon {
@@ -448,11 +467,11 @@
     &.active {
       background: var(--primary);
       border-color: var(--primary);
-      color: #ffffff;
+      color: var(--text-on-accent);
       box-shadow: 0 2px 8px rgba(108, 127, 232, 0.35);
 
       ion-icon {
-        color: #ffffff;
+        color: var(--text-on-accent);
       }
     }
 
@@ -608,20 +627,27 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
+  padding: 12px 18px;
   border-top: 1px solid var(--modal-border);
   background: var(--modal-surface);
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 10px;
+  flex-shrink: 0;
+
+  @media (max-width: 576px) {
+    padding: 10px 14px;
+    gap: 8px;
+  }
 
   .footer-left {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
 
     .selection-summary {
-      font-size: 0.84rem;
+      font-size: 0.8rem;
       font-weight: 600;
       color: var(--modal-text-muted);
+      white-space: nowrap;
 
       .highlight-count {
         color: var(--primary);
@@ -633,22 +659,29 @@
   .footer-right {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     margin-left: auto;
+    flex-shrink: 0;
   }
 
   .btn-action {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
     border-radius: var(--radius-pill, 999px);
-    padding: 10px 20px;
-    font-size: 0.86rem;
+    padding: 8px 16px;
+    font-size: 0.82rem;
     font-weight: 700;
     cursor: pointer;
     border: 1px solid transparent;
     transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+
+    @media (max-width: 480px) {
+      padding: 7px 12px;
+      font-size: 0.78rem;
+    }
   }
 
   .btn-secondary {
@@ -669,7 +702,8 @@
     box-shadow: 0 4px 14px rgba(108, 127, 232, 0.35);
 
     ion-icon {
-      font-size: 1.05rem;
+      font-size: 1rem;
+      flex-shrink: 0;
     }
 
     &:hover:not(:disabled) {

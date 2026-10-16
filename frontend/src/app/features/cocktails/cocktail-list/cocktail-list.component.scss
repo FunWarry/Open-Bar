@@ -23,7 +23,7 @@
   box-sizing: border-box;
 
   @media (max-width: 768px) {
-    padding: 16px 12px 36px;
+    padding: 6px 4px 64px;
   }
 }
 
@@ -37,6 +37,12 @@
   box-shadow: var(--elev-1, 0 4px 20px rgba(0, 0, 0, 0.15));
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+
+  @media (max-width: 768px) {
+    padding: 10px 8px;
+    margin-bottom: 10px;
+    border-radius: var(--radius-md, 10px);
+  }
 }
 
 .header-main-row {
@@ -164,8 +170,9 @@
   }
 }
 
-/* Available Only Toggle Pill */
-.available-only-toggle-pill {
+/* Available Only & Compact Mode Toggle Pills */
+.available-only-toggle-pill,
+.compact-mode-toggle-pill {
   height: 38px;
   font-size: 0.85rem;
   font-weight: 600;
@@ -225,6 +232,22 @@
       background: var(--semantic-success);
       box-shadow: 0 0 6px var(--semantic-success);
     }
+  }
+}
+
+.compact-mode-toggle-pill.active {
+  background: var(--primary-tint-weak, rgba(108, 127, 232, 0.15));
+  color: var(--primary);
+  border-color: var(--primary);
+
+  .pill-icon,
+  ion-icon {
+    color: var(--primary);
+  }
+
+  .toggle-indicator-dot {
+    background: var(--primary);
+    box-shadow: 0 0 6px var(--primary);
   }
 }
 
@@ -474,16 +497,93 @@
   }
 }
 
-/* Cocktail Matcher Bar Integration */
-app-cocktail-matcher-bar {
-  display: block;
-  margin-top: 16px;
+/* Collapsible Cocktail Matcher Accordion */
+.matcher-toggle-wrapper {
+  margin-top: 14px;
+  width: 100%;
+}
 
-  ::ng-deep .matcher-bar-container {
-    margin-bottom: 0;
-    background: var(--background-surface-2);
-    border-color: var(--border-medium);
-    box-shadow: none;
+.matcher-accordion-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-radius: var(--radius-md, 12px);
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--background-surface-3, var(--background-surface-2));
+    border-color: var(--primary);
+  }
+
+  &.expanded {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-color: var(--primary);
+    background: var(--primary-tint-weak, rgba(108, 127, 232, 0.12));
+    color: var(--primary);
+  }
+
+  .matcher-btn-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .matcher-sparkle-icon {
+      font-size: 1.15rem;
+      color: var(--primary);
+    }
+
+    .matcher-btn-title {
+      font-weight: 700;
+    }
+
+    .matcher-active-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 10px;
+      background: var(--primary);
+      color: var(--text-on-accent, #ffffff);
+      font-size: 0.7rem;
+      font-weight: 800;
+    }
+  }
+
+  .chevron-icon {
+    font-size: 1.15rem;
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+  }
+}
+
+.matcher-bar-collapsible-content {
+  border: 1px solid var(--primary);
+  border-top: none;
+  border-bottom-left-radius: var(--radius-md, 12px);
+  border-bottom-right-radius: var(--radius-md, 12px);
+  overflow: hidden;
+
+  app-cocktail-matcher-bar {
+    margin-top: 0;
+
+    ::ng-deep .matcher-bar-container {
+      margin-bottom: 0;
+      background: var(--background-surface-2);
+      border: none;
+      box-shadow: none;
+      border-radius: 0 0 11px 11px;
+    }
   }
 }
 
@@ -494,21 +594,39 @@ app-cocktail-matcher-bar {
 
   ion-row {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
     margin: 0;
     width: 100%;
+    align-items: stretch;
 
     @media (max-width: 576px) {
       grid-template-columns: 1fr;
+      gap: 10px;
     }
   }
 
-  ion-col {
+  /* Compact grid mode: 2 columns on mobile, dense grid on desktop */
+  &:has(.compact-card) ion-row {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+    align-items: stretch;
+
+    @media (max-width: 576px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+  }
+
+  ion-row > ion-col,
+  ion-row > ion-col[size] {
     padding: 0;
-    width: 100% !important;
-    max-width: 100% !important;
-    flex: none !important;
+    width: 100%;
+    max-width: 100%;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 
     &:has(.empty-cocktail-message) {
       grid-column: 1 / -1;
@@ -517,19 +635,175 @@ app-cocktail-matcher-bar {
 }
 
 .figma-cocktail-card {
-  display: block;
+  display: flex;
+  flex-direction: column;
   height: 100%;
   width: 100%;
+  flex: 1;
 
   .figma-card-inner {
     display: flex;
     flex-direction: column;
     height: 100%;
     width: 100%;
+    flex: 1;
   }
 
   &.no-picture {
-    min-height: 140px;
+    min-height: 110px;
+  }
+
+  &.compact-card {
+    min-height: auto;
+
+    .figma-card-body {
+      padding: 8px 10px;
+      gap: 4px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+      flex: 1;
+    }
+
+    .figma-card-top-row {
+      align-items: flex-start;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .badges-group {
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .figma-category-pill {
+      padding: 2px 6px;
+      font-size: 0.68rem;
+      gap: 4px;
+    }
+
+    .figma-variant-indicator-btn {
+      padding: 2px 6px;
+      font-size: 0.68rem;
+      gap: 3px;
+
+      ion-icon {
+        font-size: 0.8rem;
+      }
+    }
+
+    .figma-alert-pill {
+      padding: 2px 6px;
+      font-size: 0.65rem;
+    }
+
+    .figma-edit-btn {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+
+    .figma-card-main-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      min-width: 0;
+    }
+
+    .figma-cocktail-name {
+      font-size: 0.92rem;
+      font-weight: 800;
+      margin: 2px 0 0 0;
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      overflow-wrap: break-word;
+    }
+
+    .figma-card-bottom-row {
+      border-top: none;
+      padding-top: 0;
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .bottom-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+
+      .availability-slider-btn {
+        padding: 2px;
+        gap: 0;
+
+        .slider-label {
+          display: none;
+        }
+
+        .slider-track {
+          width: 28px;
+          height: 16px;
+        }
+
+        .slider-knob {
+          width: 10px;
+          height: 10px;
+        }
+
+        &.active .slider-knob {
+          transform: translateX(12px);
+        }
+      }
+
+      .cocktail-delete-btn,
+      ion-button {
+        --padding-start: 2px;
+        --padding-end: 2px;
+        --padding-top: 0;
+        --padding-bottom: 0;
+        height: 24px;
+        min-height: 24px;
+        width: 24px;
+        min-width: 24px;
+        margin: 0;
+
+        ion-icon {
+          font-size: 0.9rem;
+        }
+      }
+    }
+
+    .price-and-margin-col {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      min-width: 0;
+    }
+
+    .figma-cocktail-price {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--semantic-success);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   /* Unavailable / Grayscale Dimmed State (High Contrast against active cards) */
@@ -551,29 +825,29 @@ app-cocktail-matcher-bar {
     }
 
     .figma-category-pill {
-      background: var(--background-surface-2) !important;
-      border-color: var(--border-medium) !important;
-      color: var(--state-unavailable-text) !important;
-      box-shadow: none !important;
+      background: var(--background-surface-2);
+      border-color: var(--border-medium);
+      color: var(--state-unavailable-text);
+      box-shadow: none;
 
       .dot-indicator {
-        background-color: var(--text-muted) !important;
+        background-color: var(--text-muted);
       }
     }
 
     /* Only the "Indisponible" badge remains in vivid semantic danger color */
     .figma-alert-pill.critical {
-      background: var(--state-unavailable-badge-bg, rgba(229, 96, 79, 0.2)) !important;
-      color: var(--state-unavailable-badge-color, var(--semantic-danger)) !important;
-      border: 1px solid var(--state-unavailable-badge-color, var(--semantic-danger)) !important;
-      opacity: 1 !important;
+      background: var(--state-unavailable-badge-bg, rgba(229, 96, 79, 0.2));
+      color: var(--state-unavailable-badge-color, var(--semantic-danger));
+      border: 1px solid var(--state-unavailable-badge-color, var(--semantic-danger));
+      opacity: 1;
       box-shadow: 0 0 10px rgba(229, 96, 79, 0.25);
     }
 
     .figma-alert-pill.low {
-      background: var(--background-surface-2) !important;
-      border-color: var(--border-medium) !important;
-      color: var(--text-muted) !important;
+      background: var(--background-surface-2);
+      border-color: var(--border-medium);
+      color: var(--text-muted);
       opacity: 0.6;
     }
 
@@ -590,22 +864,28 @@ app-cocktail-matcher-bar {
     }
 
     .figma-allergen-badge {
-      background: var(--background-surface-3) !important;
-      border-color: var(--border-medium) !important;
-      color: var(--text-muted) !important;
+      background: var(--background-surface-3);
+      border-color: var(--border-medium);
+      color: var(--text-muted);
     }
 
     .figma-flavor-badge {
-      background: var(--background-surface-2) !important;
-      border-color: var(--border-medium) !important;
-      color: var(--text-muted) !important;
+      background: var(--background-surface-2);
+      border-color: var(--border-medium);
+      color: var(--text-muted);
       opacity: 0.6;
     }
 
     .dietary-badge {
-      background: var(--background-surface-2) !important;
-      border-color: var(--border-medium) !important;
-      color: var(--text-muted) !important;
+      &,
+      &.mocktail,
+      &.vegan,
+      &.gluten-free,
+      &.abv {
+        background: var(--background-surface-2);
+        border-color: var(--border-medium);
+        color: var(--text-muted);
+      }
     }
 
     .card-allergens-row,
@@ -635,7 +915,7 @@ app-cocktail-matcher-bar {
 
 .figma-card-image-area {
   width: 100%;
-  height: 150px;
+  height: 130px;
   background: var(--background-surface-2);
   overflow: hidden;
 
@@ -649,18 +929,19 @@ app-cocktail-matcher-bar {
 }
 
 .figma-card-body {
-  padding: 14px 16px;
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   flex: 1;
-  gap: 10px;
+  gap: 6px;
 }
 
 .figma-card-top-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 6px;
 }
 
 .badges-group {
@@ -736,18 +1017,18 @@ app-cocktail-matcher-bar {
 }
 
 .figma-cocktail-name {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 4px 0 2px 0;
+  margin: 2px 0 2px 0;
   transition: color 0.2s ease;
 }
 
 .figma-ingredients-sub {
-  font-size: 0.825rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -761,7 +1042,7 @@ app-cocktail-matcher-bar {
   align-items: center;
   justify-content: space-between;
   border-top: 1px solid var(--border-medium);
-  padding-top: 8px;
+  padding-top: 6px;
   margin-top: 4px;
 }
 
@@ -891,9 +1172,15 @@ app-cocktail-matcher-bar {
 
     .dietary-badge,
     .figma-flavor-badge {
-      background: var(--background-surface-2) !important;
-      border-color: var(--border-medium) !important;
-      color: var(--text-muted) !important;
+      &,
+      &.mocktail,
+      &.vegan,
+      &.gluten-free,
+      &.abv {
+        background: var(--background-surface-2);
+        border-color: var(--border-medium);
+        color: var(--text-muted);
+      }
     }
   }
 }

@@ -424,9 +424,10 @@
           }
         </section>
       } @else {
-        <!-- MODE 2: TABLE VIEW -->
+        <!-- MODE 2: TABLE VIEW / COMPACT LIST -->
         <section class="invoices-table-card" data-testid="factures-table-container">
-          <div class="table-scroll-wrapper">
+          <!-- Desktop / Tablet Table View (>= 768px) -->
+          <div class="table-scroll-wrapper desktop-table-view">
             <table class="factures-table">
               <thead>
                 <tr>
@@ -512,6 +513,46 @@
                 }
               </tbody>
             </table>
+          </div>
+
+          <!-- Mobile Compact List (< 768px) -->
+          <div class="mobile-invoices-list" data-testid="mobile-invoices-list">
+            @for (facture of filteredFactures; track trackById($index, facture)) {
+              <div class="mobile-invoice-row" [routerLink]="['/factures', facture.id]" data-testid="invoice-mobile-row">
+                <div class="mobile-row-main">
+                  <div class="mobile-num-line">
+                    <ion-icon name="receipt-outline" class="mobile-receipt-icon"></ion-icon>
+                    <span class="mobile-num-code">{{ facture.numero }}</span>
+                    <span class="table-pill-small">{{ t('FACTURES.TABLE_LABEL', { num: facture.tableNumero }) }}</span>
+                  </div>
+                  <div class="mobile-sub-line">
+                    <span class="mobile-date">{{ facture.dateFacture | date:'dd/MM/yyyy HH:mm' }}</span>
+                    @if (facture.serveurNom) {
+                      <span class="mobile-bullet">•</span>
+                      <span class="mobile-server">{{ facture.serveurNom }}</span>
+                    }
+                  </div>
+                </div>
+
+                <div class="mobile-row-end">
+                  <div class="mobile-amount-box">
+                    <span class="mobile-amount">{{ (facture.totalTTC ?? facture.total) | appCurrency }}</span>
+                    <span class="status-pill-small" [class.settled]="facture.reglee" [class.pending]="!facture.reglee">
+                      {{ facture.reglee ? t('FACTURES.SETTLED') : t('FACTURES.PENDING') }}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    class="mobile-pdf-btn"
+                    (click)="downloadPdf($event, facture.id)"
+                    [title]="t('FACTURES.ACTIONS.PDF')"
+                    data-testid="mobile-pdf-btn">
+                    <ion-icon name="download-outline"></ion-icon>
+                  </button>
+                  <ion-icon name="chevron-forward-outline" class="mobile-arrow"></ion-icon>
+                </div>
+              </div>
+            }
           </div>
         </section>
       }

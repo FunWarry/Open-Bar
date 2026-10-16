@@ -12,6 +12,7 @@ Ce répertoire regroupe les guides techniques, l'historique des sessions d'archi
 | **Présentation Globale** | [`README.md`](../README.md) | Showcase produit, modules, fonctionnalités clés, démarrage rapide |
 | **Cahier des Charges (CDC)** | [`CDC.md`](../CDC.md) | Spécifications fonctionnelles complètes, matrice des fonctionnalités, modèle de données |
 | **Guide Technique & Architecture** | [`docs/TECHNICAL_GUIDE.md`](TECHNICAL_GUIDE.md) | Architecture logicielle, protocoles réseau (Concert IP, ESC/POS), STOMP, conformité fiscale |
+| **Guide Journalisation & Logs** | [`docs/LOGS_GUIDE.md`](LOGS_GUIDE.md) | Architecture centralisée des logs, conteneur Logrotate RPi 5, accès temps réel & dépannage |
 | **Guide Frontend** | [`frontend/README.md`](../frontend/README.md) | Architecture Angular 22 / Ionic 9, signaux, design tokens, tests Karma & Playwright |
 | **Guide Backend** | [`backend/README.md`](../backend/README.md) | Architecture Spring Boot 4.1.1, modèle relationnel, DTOs immuables, sécurité JWT |
 | **Instructions Claude / Agent** | [`CLAUDE.md`](../CLAUDE.md) | Règles de développement, conventions, checklists et commandes optimisées RTK |

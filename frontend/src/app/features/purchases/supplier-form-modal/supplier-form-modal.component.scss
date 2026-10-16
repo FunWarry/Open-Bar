@@ -1,14 +1,18 @@
 :host {
   display: flex;
   flex-direction: column;
+  height: 100%;
   width: 100%;
+  overflow: hidden;
 }
 
 .supplier-modal-wrapper {
   background: var(--background-surface-1);
   display: flex;
   flex-direction: column;
+  height: 100%;
   width: 100%;
+  overflow: hidden;
   color: var(--text-primary);
   font-family: var(--font, 'Inter', sans-serif);
 }
@@ -88,6 +92,10 @@
 .modal-form {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .modal-body {
@@ -95,8 +103,10 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  max-height: 70vh;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .form-row-2 {
@@ -187,6 +197,27 @@
 
     &:hover:not(:disabled) {
       filter: brightness(1.08);
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .modal-header {
+    padding: 16px;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .modal-footer {
+    padding: 12px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+
+    button {
+      width: 100%;
     }
   }
 }

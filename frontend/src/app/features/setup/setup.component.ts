@@ -6,9 +6,14 @@ import { ToastController, ModalController, IonCheckbox } from '@ionic/angular';
 import { SetupService } from '../../core/services/setup.service';
 import { InputFieldComponent } from '../../core/components/ui/input-field/input-field.component';
 import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
-import { CocktailLibraryModalComponent } from '../cocktails/components/cocktail-library-modal/cocktail-library-modal.component';
 import { LegalComponent, LegalTab } from '../legal/legal.component';
 
+/**
+ * Validates that the password and confirmation password fields match.
+ *
+ * @param control The parent FormGroup containing password and confirmPassword fields
+ * @returns Validation error object if mismatch, null otherwise
+ */
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
   const password = control.get('password');
   const confirmPassword = control.get('confirmPassword');
@@ -20,8 +25,8 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
 }
 
 /**
- * Setup Component for initial workspace configuration and creation of the first Admin account.
- * Fully aligned with Figma Common system view Onboarding design.
+ * Setup Component for initial establishment configuration and creation of the primary Administrator account.
+ * Streamlined single-step initial provisioning directly redirecting to login and establishment onboarding.
  */
 @Component({
   selector: 'app-setup',
@@ -34,14 +39,17 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
     TranslocoModule,
     IonCheckbox,
     InputFieldComponent,
-    ActionButtonComponent,
-    CocktailLibraryModalComponent
+    ActionButtonComponent
   ]
 })
 export class SetupComponent implements OnInit {
-  currentStep: 'admin' | 'catalog' = 'admin';
+  /** Reactive form managing primary administrator credentials and legal consent. */
   setupForm: FormGroup;
+
+  /** Error message to display if administrator provisioning fails. */
   errorMessage: string | null = null;
+
+  /** Indicates whether the submission HTTP request is in progress. */
   loading = false;
 
   constructor(
@@ -75,41 +83,20 @@ export class SetupComponent implements OnInit {
   }
 
   /**
-   * Advances wizard from initial admin credentials to optional cocktail library selection.
-   */
-  proceedToCatalog(): void {
-    this.errorMessage = null;
-    if (this.setupForm.invalid) {
-      this.setupForm.markAllAsTouched();
-      return;
-    }
-    this.currentStep = 'catalog';
-  }
-
-  /**
-   * Returns back to admin account configuration step.
-   */
-  backToAdmin(): void {
-    this.currentStep = 'admin';
-  }
-
-  /**
-   * Handles submission directly from admin form without cocktails.
+   * Handles form submission from the template, triggering administrator account provisioning.
    */
   onSubmit(): void {
-    this.proceedToCatalog();
+    this.submitSetup();
   }
 
   /**
-   * Completes onboarding by provisioning admin account and importing selected cocktail library items.
-   *
-   * @param cocktailIds Optional list of cocktail template IDs to import
+   * Completes initial setup by provisioning the primary administrator account.
+   * Upon successful creation, displays a confirmation toast and navigates to the login page.
    */
-  submitSetup(cocktailIds: string[] = []): void {
+  submitSetup(): void {
     this.errorMessage = null;
 
     if (this.setupForm.invalid) {
-      this.currentStep = 'admin';
       this.setupForm.markAllAsTouched();
       return;
     }
@@ -123,7 +110,7 @@ export class SetupComponent implements OnInit {
       nom,
       prenom,
       password,
-      initialCocktailIds: cocktailIds
+      initialCocktailIds: []
     }).subscribe({
       next: async () => {
         this.loading = false;
@@ -144,7 +131,7 @@ export class SetupComponent implements OnInit {
   }
 
   /**
-   * Opens the legal viewer modal with terms of service or non-commercial license details.
+   * Opens the legal viewer modal with terms of service or source-available license details.
    *
    * @param event DOM click event to stop propagation
    * @param tab Target legal tab to display ('terms' | 'license' | 'compliance' | 'commercial')

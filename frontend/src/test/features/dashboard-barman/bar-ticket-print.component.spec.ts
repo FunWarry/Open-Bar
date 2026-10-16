@@ -90,6 +90,46 @@ describe('BarTicketPrintComponent', () => {
     expect(component.totalItemsCount).toBe(3);
   });
 
+  it('filters items for kitchen when isKitchenMode is true', () => {
+    component.isKitchenMode = true;
+    component.commande = {
+      ...mockCommande,
+      items: [
+        { id: 1, cocktailNom: 'Mojito', quantite: 2, prioritaire: false, station: 'BAR' },
+        { id: 2, cocktailNom: 'Planche Mixte', quantite: 1, prioritaire: false, station: 'KITCHEN' },
+        { id: 3, cocktailNom: 'Frites', quantite: 1, prioritaire: false, station: 'SNACK' }
+      ]
+    };
+    fixture.detectChanges();
+
+    expect(component.groupedItems).toHaveSize(2);
+    expect(component.groupedItems.map(i => i.cocktailNom)).toEqual(['Planche Mixte', 'Frites']);
+    expect(component.totalItemsCount).toBe(2);
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const ticketType = compiled.querySelector('.ticket-type')?.textContent?.trim();
+    const serviceTag = compiled.querySelector('.service-tag')?.textContent?.trim();
+    expect(ticketType).toBe('*** BON DE PRÉPARATION CUISINE ***');
+    expect(serviceTag).toBe('SERVICE CUISINE');
+  });
+
+  it('filters items for bar when stationFilter is BAR', () => {
+    component.isKitchenMode = false;
+    component.stationFilter = 'BAR';
+    component.commande = {
+      ...mockCommande,
+      items: [
+        { id: 1, cocktailNom: 'Mojito', quantite: 2, prioritaire: false, station: 'BAR' },
+        { id: 2, cocktailNom: 'Planche Mixte', quantite: 1, prioritaire: false, station: 'KITCHEN' }
+      ]
+    };
+    fixture.detectChanges();
+
+    expect(component.groupedItems).toHaveSize(1);
+    expect(component.groupedItems[0].cocktailNom).toBe('Mojito');
+    expect(component.totalItemsCount).toBe(2);
+  });
+
   it('should render thermal receipt with paper tear edges and action buttons', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.paper-receipt-container')).toBeTruthy();

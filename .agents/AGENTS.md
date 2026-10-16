@@ -67,6 +67,18 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
 7. **Adaptive Theme & No Hardcoded Colors** — The application uses an adaptive theme system (Light/Dark). NEVER hardcode hex (`#1a1a2e`), RGB (`rgb(...)`), or named colors in CSS/SCSS or TS templates. Always use CSS variables from `frontend/src/theme/variables.css` (`var(--background-bg-0)`, `var(--background-surface-1)`, `var(--background-surface-2)`, `var(--text-primary)`, `var(--text-secondary)`, `var(--text-muted)`, `var(--border-medium)`, `var(--primary)`, `var(--semantic-success)`, `var(--semantic-danger)`, `var(--semantic-warning)`, `var(--semantic-info)`, etc.).
 8. **Onboarding & Configuration Update MANDATORY** — For every new feature or feature update, if applicable, systematically update the entire onboarding workflow (`/setup`, `OnboardingComponent`, `SetupComponent`, setup wizard) and configuration interfaces (`AppSettingsPageComponent`, establishment settings, seeders) to ensure the new capability is fully configurable and supported during initial establishment setup.
 9. **Systematic Component Reusability & Proactive Factoring MANDATORY** — Before writing any new UI markup or ad-hoc inputs, ALWAYS inspect `frontend/src/app/core/components/ui/` to check if a shared component already exists (e.g. `app-search-bar`, `app-empty-state`, `app-searchable-select`, `app-toggle-switch`, `app-checkbox-field`). If a UI pattern (such as search bars, filter bars, status badges, empty states, modals) is repeated across 2 or more views, systematically evaluate whether it is smart and cost-effective to factor it out into a shared component. When creating or improving a reusable component, migrate existing ad-hoc implementations across the entire application to guarantee 100% reusability, code deduplication, and design system uniformity.
+10. **STRICT PROHIBITION ON RAW HTML FORM CONTROLS (Design System Mandatory)** — NEVER write raw HTML form controls (`<select>`, `<input type="checkbox">`, `<button>`, `<input type="text">`, etc.) in templates, forms, modals, or views. They look amateur and violate OpenBar UX. You MUST systematically use OpenBar Design System components from `frontend/src/app/core/components/ui/`:
+    - ❌ Raw `<select>` / `<ion-select>` ➡️ **STRICTLY FORBIDDEN** — MUST use `<app-searchable-select>` (`SearchableSelectComponent`)
+    - ❌ Raw `<input type="checkbox">` ➡️ **STRICTLY FORBIDDEN** — MUST use `<app-checkbox-field>` (`CheckboxFieldComponent`) or `<app-toggle-switch>` (`ToggleSwitchComponent`)
+    - ❌ Raw `<button>` (actions/submits) ➡️ **STRICTLY FORBIDDEN** — MUST use `<app-action-button>` (`ActionButtonComponent`)
+    - ❌ Raw `<input type="text">` / `type="number"` / `type="url"` ➡️ **STRICTLY FORBIDDEN** — MUST use `<app-input-field>` (`InputFieldComponent`)
+    - ❌ Filter chips / category toggles ➡️ **STRICTLY FORBIDDEN** — MUST use `<app-filter-chip>` (`FilterChipComponent`)
+    - ❌ Custom modal backdrops/sheets ➡️ **STRICTLY FORBIDDEN** — MUST use `<ion-modal>` + `<app-modal>` (`ModalComponent`)
+11. **MANDATORY MULTI-DEVICE RESPONSIVENESS (Mobile, Tablet & Desktop First)** — EVERY user-facing screen, view, form, modal, table, card, and drawer MUST be systematically responsive and tested across 3 canonical viewport tiers:
+    - **Smartphone (< 768px)**: Stacked single-column layout, touch hit areas ≥ 44x44px, full-width inputs, scrollable drawers/bottom sheets, zero horizontal scroll/overflow, simplified mobile headers.
+    - **Tablet & Touch POS (768px – 1024px)**: 2-column or adaptive grid layouts, split panes, comfortable touch target density for bar counter tablet stands.
+    - **Desktop (> 1024px)**: Multi-column supervision dashboards, rich data tables with sortable columns, side-by-side inspection panels.
+    **CRITICAL**: NEVER create a desktop-only view or a view that breaks, clips, or overflows horizontally on mobile devices. AI agents MUST systematically guarantee and test mobile/tablet/desktop responsiveness for every component created or modified.
 
 ### Testing & Quality Assurance (Mandatory for ALL code written)
 1. **Full Test Pyramid MANDATORY for every feature / change**:
@@ -99,6 +111,7 @@ The `.agents/knowledge/` directory contains up-to-date project context:
 | [features-state.md](knowledge/features-state.md) | Feature implementation table (Backend/Frontend/Tests), tech debt |
 | [conventions.md](knowledge/conventions.md) | Code conventions, naming, test structure, workflow pipeline |
 | [figma-design-system.md](knowledge/figma-design-system.md) | Figma fileKey, 8 pages, 60+ component IDs, color tokens |
+| [competitive-analysis.md](knowledge/competitive-analysis.md) | POS & bar management market competitive analysis, feature matrix & roadmap |
 
 **Read relevant knowledge files before generating code.** Do not assume the project state — it evolves rapidly.
 

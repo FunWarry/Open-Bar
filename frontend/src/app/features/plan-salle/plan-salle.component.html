@@ -1,12 +1,23 @@
 <ion-header class="ion-no-border plan-salle-header">
   <ion-toolbar>
-    <div class="header-content">
+    <!-- Desktop Header -->
+    <div class="header-content desktop-only">
       <div class="header-title-group">
         <h1 class="page-title">{{ 'PLAN_SALLE_PAGE.TITLE' | transloco }}</h1>
         <p class="page-subtitle">{{ 'PLAN_SALLE_PAGE.SUBTITLE' | transloco }}</p>
       </div>
 
       <div class="header-actions">
+        <button
+          type="button"
+          class="action-btn reservations-link-btn"
+          (click)="naviguerVersReservations()"
+          [title]="'PLAN_SALLE_PAGE.GOTO_RESERVATIONS' | transloco"
+          data-testid="btn-goto-reservations">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>{{ 'PLAN_SALLE_PAGE.GOTO_RESERVATIONS' | transloco }}</span>
+        </button>
+
         @if (isAdmin) {
           <button
             type="button"
@@ -62,12 +73,74 @@
         }
       </div>
     </div>
+
+    <!-- Mobile 1-Line Compact Header -->
+    <div class="mobile-top-bar mobile-only">
+      <div class="mobile-floor-group">
+        <button
+          type="button"
+          class="floor-trigger-btn"
+          (click)="toggleMobileFloorPicker()"
+          data-testid="btn-mobile-floor-trigger">
+          <ion-icon name="business-outline" class="floor-icon"></ion-icon>
+          <span class="floor-text">{{ getSelectedFloorName() }}</span>
+          <ion-icon name="chevron-down-outline" class="chevron-icon"></ion-icon>
+        </button>
+      </div>
+
+      <div class="mobile-actions-group">
+        <button
+          type="button"
+          class="mobile-options-btn"
+          [class.has-filter]="selectedZones.length > 0 || isInstantTMode"
+          (click)="toggleMobileOptions()"
+          data-testid="btn-mobile-options-toggle">
+          <ion-icon name="options-outline"></ion-icon>
+          <span class="btn-text">{{ 'PLAN_SALLE_PAGE.OPTIONS_AND_FILTERS' | transloco }}</span>
+          @if (selectedZones.length > 0 || isInstantTMode) {
+            <span class="active-dot"></span>
+          }
+        </button>
+
+        <button
+          type="button"
+          class="mobile-icon-btn refresh-btn"
+          (click)="charger()"
+          [title]="'PLAN_SALLE_PAGE.REFRESH' | transloco"
+          data-testid="btn-mobile-refresh">
+          <ion-icon name="refresh-outline"></ion-icon>
+        </button>
+
+        @if (isAdmin) {
+          <button
+            type="button"
+            class="mobile-icon-btn edit-btn"
+            [class.active]="isEditMode"
+            (click)="toggleEditMode()"
+            [title]="(isEditMode ? 'PLAN_SALLE_PAGE.EDIT_MODE_ON' : 'PLAN_SALLE_PAGE.EDIT_MODE_OFF') | transloco"
+            data-testid="btn-mobile-edit">
+            <ion-icon [name]="isEditMode ? 'close-outline' : 'pencil-outline'"></ion-icon>
+          </button>
+        }
+
+        @if (isAdmin && hasUnsavedChanges) {
+          <button
+            type="button"
+            class="mobile-icon-btn save-btn"
+            (click)="sauvegarder()"
+            [title]="'PLAN_SALLE_PAGE.SAVE_PLAN' | transloco"
+            data-testid="btn-mobile-save">
+            <ion-icon name="save-outline"></ion-icon>
+          </button>
+        }
+      </div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="plan-content" [scrollY]="false">
-  <!-- Floor & Zone Filter Control Bar -->
-  <div class="plan-control-bar">
+  <!-- Floor & Zone Filter Control Bar (Desktop Only) -->
+  <div class="plan-control-bar desktop-only">
     <div class="filters-column">
       <!-- Floor Level Tabs (Strict Single Floor View) -->
       <div class="filter-chips-group floor-group">
@@ -116,6 +189,81 @@
       <div class="legend-item"><span class="dot dot-occupee"></span><span>{{ 'PLAN_SALLE_PAGE.STATUS.OCCUPEE' | transloco }}</span></div>
       <div class="legend-item"><span class="dot dot-payment"></span><span>{{ 'PLAN_SALLE_PAGE.STATUS.PAYMENT_PENDING' | transloco }}</span></div>
       <div class="legend-item"><span class="dot dot-reservee"></span><span>{{ 'PLAN_SALLE_PAGE.STATUS.RESERVEE' | transloco }}</span></div>
+    </div>
+
+    <!-- Instant T / Reservation Timeline Control Row -->
+    <div class="instant-t-row" data-testid="plan-instant-t-row">
+      <div class="mode-toggles">
+        <button
+          type="button"
+          class="mode-switch-btn"
+          [class.active]="!isInstantTMode"
+          (click)="setInstantTMode(false)"
+          data-testid="btn-mode-live">
+          <span class="live-indicator"></span>
+          <span>{{ 'PLAN_SALLE_PAGE.LIVE_MODE' | transloco }}</span>
+        </button>
+        <button
+          type="button"
+          class="mode-switch-btn"
+          [class.active]="isInstantTMode"
+          (click)="setInstantTMode(true)"
+          data-testid="btn-mode-instant-t">
+          <ion-icon name="time-outline"></ion-icon>
+          <span>{{ 'PLAN_SALLE_PAGE.INSTANT_T_MODE' | transloco }}</span>
+        </button>
+      </div>
+
+      @if (isInstantTMode) {
+        <div class="instant-t-inputs">
+          <label for="plan-res-date" class="sr-only">{{ 'RESERVATIONS.FILTER_DATE' | transloco }}</label>
+          <input
+            id="plan-res-date"
+            type="date"
+            [(ngModel)]="selectedReservationDate"
+            (ngModelChange)="chargerReservationsJour()"
+            (input)="chargerReservationsJour()"
+            class="t-input date-input"
+            data-testid="input-plan-res-date"
+          />
+
+          <label for="plan-res-time" class="time-badge">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>T :</span>
+          </label>
+          <input
+            id="plan-res-time"
+            type="time"
+            [(ngModel)]="selectedInstantT"
+            (ngModelChange)="onInstantTChange()"
+            (input)="onInstantTChange()"
+            class="t-input time-input"
+            data-testid="input-plan-res-time"
+          />
+
+          <button
+            type="button"
+            class="btn-instant-now"
+            (click)="setInstantTNow()"
+            data-testid="btn-plan-instant-now">
+            <ion-icon name="locate-outline"></ion-icon>
+            <span>{{ 'PLAN_SALLE_PAGE.INSTANT_T_NOW' | transloco }}</span>
+          </button>
+
+          <div class="preset-slots">
+            @for (slot of presetSlots; track slot) {
+              <button
+                type="button"
+                class="slot-pill"
+                [class.active]="selectedInstantT === slot"
+                (click)="setInstantTSlot(slot)"
+                [attr.data-testid]="'chip-slot-' + slot">
+                {{ slot }}
+              </button>
+            }
+          </div>
+        </div>
+      }
     </div>
   </div>
 
@@ -186,7 +334,7 @@
     </div>
 
     <!-- Floating Editor Toolbar (Mode Édition Admin/Manager) -->
-    @if (isAdmin && isEditMode) {
+    @if (isAdmin && isEditMode && !isSidePanelOpen) {
       <div class="editor-toolbar-floating" data-testid="editor-toolbar">
         <div class="editor-toolbar-title">
           <ion-icon name="options-outline"></ion-icon>
@@ -255,7 +403,304 @@
         </div>
       </div>
     }
+
+    <!-- Floating Instant T Indicator Badge on Mobile -->
+    @if (isInstantTMode) {
+      <button
+        type="button"
+        class="instant-t-floating-badge mobile-only"
+        (click)="openMobileOptions()"
+        data-testid="badge-mobile-instant-t">
+        <ion-icon name="time-outline"></ion-icon>
+        <span>{{ 'PLAN_SALLE_PAGE.ACTIVE_INSTANT_T_BADGE' | transloco: { time: selectedInstantT } }}</span>
+      </button>
+    }
   </div>
+
+  <!-- Mobile Dedicated Floor Picker Bottom Sheet Backdrop & Drawer -->
+  @if (isMobileFloorPickerOpen) {
+    <button
+      type="button"
+      class="mobile-options-backdrop"
+      (click)="closeMobileFloorPicker()"
+      [attr.aria-label]="'PLAN_SALLE_PAGE.CLOSE_FLOOR_PICKER' | transloco"
+      data-testid="backdrop-mobile-floor-picker"></button>
+
+    <div
+      class="mobile-floor-picker-sheet"
+      [class.expanded]="isFloorPickerExpanded"
+      [class.dragging]="isFloorPickerDragging"
+      [style.--mobile-floor-picker-height]="mobileFloorPickerHeight + 'vh'"
+      data-testid="sheet-mobile-floor-picker">
+      <button
+        type="button"
+        class="sheet-grab-bar"
+        (touchstart)="onFloorPickerTouchStart($event)"
+        (touchmove)="onFloorPickerTouchMove($event)"
+        (touchend)="onFloorPickerTouchEnd()"
+        (click)="toggleFloorPickerExpand()"
+        [attr.aria-label]="(isFloorPickerExpanded ? 'COMMON.COLLAPSE' : 'COMMON.EXPAND') | transloco"
+        data-testid="btn-drag-resize-floor-picker">
+        <span class="grab-handle"></span>
+      </button>
+
+      <div class="sheet-header">
+        <div class="sheet-title-group">
+          <ion-icon name="business-outline"></ion-icon>
+          <h3>{{ 'PLAN_SALLE_PAGE.SELECT_FLOOR' | transloco }}</h3>
+        </div>
+        <div class="sheet-header-actions">
+          <button
+            type="button"
+            class="expand-icon-btn mobile-only"
+            (click)="toggleFloorPickerExpand()"
+            [attr.aria-label]="(isFloorPickerExpanded ? 'COMMON.COLLAPSE' : 'COMMON.EXPAND') | transloco"
+            data-testid="btn-expand-floor-picker">
+            <ion-icon [name]="isFloorPickerExpanded ? 'contract-outline' : 'expand-outline'"></ion-icon>
+          </button>
+          <button
+            type="button"
+            class="sheet-close-btn"
+            (click)="closeMobileFloorPicker()"
+            [attr.aria-label]="'PLAN_SALLE_PAGE.CLOSE_FLOOR_PICKER' | transloco"
+            data-testid="btn-close-mobile-floor-picker">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="sheet-body floor-picker-body">
+        <div class="floor-cards-list">
+          @for (e of etages; track e) {
+            <button
+              type="button"
+              class="floor-select-card"
+              [class.active]="selectedFloor === e.code"
+              (click)="selectFloor(e.code); closeMobileFloorPicker()"
+              [attr.data-testid]="'mobile-card-floor-' + e.code">
+              <div class="card-left">
+                <div class="card-avatar" [class.active]="selectedFloor === e.code">
+                  <ion-icon name="business-outline"></ion-icon>
+                </div>
+                <div class="card-info">
+                  <span class="card-title">{{ e.nom }}</span>
+                  <span class="card-meta">
+                    {{ 'PLAN_SALLE_PAGE.FLOOR_TABLES_COUNT' | transloco: { count: getFloorTableCount(e.code) } }}
+                  </span>
+                </div>
+              </div>
+              <div class="card-right">
+                @if (selectedFloor === e.code) {
+                  <ion-icon name="checkmark-circle-outline" class="check-icon"></ion-icon>
+                }
+              </div>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Mobile Options & Filters Bottom Sheet Backdrop & Drawer -->
+  @if (isMobileOptionsOpen) {
+    <button
+      type="button"
+      class="mobile-options-backdrop"
+      (click)="closeMobileOptions()"
+      [attr.aria-label]="'PLAN_SALLE_PAGE.CLOSE_OPTIONS' | transloco"
+      data-testid="backdrop-mobile-options"></button>
+    <div
+      class="mobile-options-sheet"
+      [class.expanded]="isOptionsExpanded"
+      [class.dragging]="isOptionsDragging"
+      [style.--mobile-options-height]="mobileOptionsHeight + 'vh'"
+      data-testid="sheet-mobile-options">
+      <button
+        type="button"
+        class="sheet-grab-bar"
+        (touchstart)="onOptionsTouchStart($event)"
+        (touchmove)="onOptionsTouchMove($event)"
+        (touchend)="onOptionsTouchEnd()"
+        (click)="toggleOptionsExpand()"
+        [attr.aria-label]="(isOptionsExpanded ? 'COMMON.COLLAPSE' : 'COMMON.EXPAND') | transloco"
+        data-testid="btn-drag-resize-options-sheet">
+        <span class="grab-handle"></span>
+      </button>
+      <div class="sheet-header">
+        <div class="sheet-title-group">
+          <ion-icon name="options-outline"></ion-icon>
+          <h3>{{ 'PLAN_SALLE_PAGE.OPTIONS_AND_FILTERS' | transloco }}</h3>
+        </div>
+        <div class="sheet-header-actions">
+          <button
+            type="button"
+            class="expand-icon-btn mobile-only"
+            (click)="toggleOptionsExpand()"
+            [attr.aria-label]="(isOptionsExpanded ? 'COMMON.COLLAPSE' : 'COMMON.EXPAND') | transloco"
+            data-testid="btn-expand-options-sheet">
+            <ion-icon [name]="isOptionsExpanded ? 'contract-outline' : 'expand-outline'"></ion-icon>
+          </button>
+          <button
+            type="button"
+            class="sheet-close-btn"
+            (click)="closeMobileOptions()"
+            [attr.aria-label]="'PLAN_SALLE_PAGE.CLOSE_OPTIONS' | transloco"
+            data-testid="btn-close-mobile-options">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="sheet-body">
+        <!-- Section Étage -->
+        <div class="sheet-section">
+          <span class="sheet-section-title">{{ 'PLAN_SALLE_PAGE.FLOOR_LABEL' | transloco }}</span>
+          <div class="chips-row">
+            @for (e of etages; track e) {
+              <button
+                type="button"
+                class="floor-chip"
+                [class.active]="selectedFloor === e.code"
+                (click)="selectFloor(e.code); closeMobileOptions()"
+                [attr.data-testid]="'mobile-chip-floor-' + e.code">
+                {{ e.nom }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Section Zones -->
+        @if (floorZones.length > 0) {
+          <div class="sheet-section">
+            <span class="sheet-section-title">{{ 'PLAN_SALLE_PAGE.ZONE_LABEL' | transloco }}</span>
+            <div class="chips-row">
+              <button
+                type="button"
+                class="zone-chip"
+                [class.active]="selectedZones.length === 0"
+                (click)="clearZoneFilter()"
+                data-testid="mobile-chip-zone-all">
+                {{ 'PLAN_SALLE_PAGE.ALL_ZONES' | transloco }}
+              </button>
+              @for (z of floorZones; track z) {
+                <button
+                  type="button"
+                  class="zone-chip"
+                  [class.active]="isZoneSelected(z.nom)"
+                  (click)="toggleZone(z.nom)"
+                  [attr.data-testid]="'mobile-chip-zone-' + z.nom">
+                  {{ z.nom }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Section Mode & Instant T -->
+        <div class="sheet-section">
+          <span class="sheet-section-title">{{ 'PLAN_SALLE_PAGE.MODE_SELECTION_TITLE' | transloco }}</span>
+          <div class="mode-toggles-segmented">
+            <button
+              type="button"
+              class="segment-toggle-btn"
+              [class.active]="!isInstantTMode"
+              (click)="setInstantTMode(false)"
+              data-testid="mobile-btn-mode-live">
+              <span class="live-indicator"></span>
+              <span>{{ 'PLAN_SALLE_PAGE.LIVE_MODE' | transloco }}</span>
+            </button>
+            <button
+              type="button"
+              class="segment-toggle-btn"
+              [class.active]="isInstantTMode"
+              (click)="setInstantTMode(true)"
+              data-testid="mobile-btn-mode-instant-t">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>{{ 'PLAN_SALLE_PAGE.INSTANT_T_MODE' | transloco }}</span>
+            </button>
+          </div>
+
+          @if (isInstantTMode) {
+            <div class="instant-t-inputs sheet-instant-t">
+              <div class="time-inputs-grid">
+                <label for="mobile-plan-res-date" class="sr-only">{{ 'COMMON.DATE' | transloco }}</label>
+                <input
+                  id="mobile-plan-res-date"
+                  type="date"
+                  [(ngModel)]="selectedReservationDate"
+                  (ngModelChange)="chargerReservationsJour()"
+                  class="t-input date-input"
+                  data-testid="mobile-input-res-date"
+                />
+                <label for="mobile-plan-res-time" class="sr-only">{{ 'PLAN_SALLE_PAGE.INSTANT_T_MODE' | transloco }}</label>
+                <input
+                  id="mobile-plan-res-time"
+                  type="time"
+                  [(ngModel)]="selectedInstantT"
+                  (ngModelChange)="onInstantTChange()"
+                  class="t-input time-input"
+                  data-testid="mobile-input-res-time"
+                />
+              </div>
+              <div class="preset-slots">
+                <button
+                  type="button"
+                  class="btn-instant-now"
+                  (click)="setInstantTNow()"
+                  data-testid="mobile-btn-instant-now">
+                  <ion-icon name="locate-outline"></ion-icon>
+                  <span>{{ 'PLAN_SALLE_PAGE.INSTANT_T_NOW' | transloco }}</span>
+                </button>
+                @for (slot of presetSlots; track slot) {
+                  <button
+                    type="button"
+                    class="slot-pill"
+                    [class.active]="selectedInstantT === slot"
+                    (click)="setInstantTSlot(slot)"
+                    [attr.data-testid]="'mobile-chip-slot-' + slot">
+                    {{ slot }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Section Légende -->
+        <div class="sheet-section">
+          <span class="sheet-section-title">Légende</span>
+          <div class="legend-grid">
+            <div class="legend-item"><span class="dot dot-libre"></span><span>{{ 'PLAN_SALLE_PAGE.STATUS.LIBRE' | transloco }}</span></div>
+            <div class="legend-item"><span class="dot dot-occupee"></span><span>{{ 'PLAN_SALLE_PAGE.STATUS.OCCUPEE' | transloco }}</span></div>
+            <div class="legend-item"><span class="dot dot-payment"></span><span>{{ 'PLAN_SALLE_PAGE.STATUS.PAYMENT_PENDING' | transloco }}</span></div>
+            <div class="legend-item"><span class="dot dot-reservee"></span><span>{{ 'PLAN_SALLE_PAGE.STATUS.RESERVEE' | transloco }}</span></div>
+          </div>
+        </div>
+
+        <!-- Section Raccourcis -->
+        <div class="sheet-section shortcuts-section">
+          <button
+            type="button"
+            class="sheet-action-link"
+            (click)="naviguerVersReservations(); closeMobileOptions()"
+            data-testid="mobile-link-reservations">
+            <ion-icon name="calendar-outline"></ion-icon>
+            <span>{{ 'PLAN_SALLE_PAGE.GOTO_RESERVATIONS' | transloco }}</span>
+          </button>
+          @if (isAdmin) {
+            <button
+              type="button"
+              class="sheet-action-link"
+              (click)="ouvrirGestionZonesEtages(); closeMobileOptions()"
+              data-testid="mobile-link-manage-zones">
+              <ion-icon name="layers-outline"></ion-icon>
+              <span>{{ 'TABLES.MANAGE_ZONES' | transloco }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
 
   <!-- Side Panel Détail / Édition Table & Zone (Figma TableEditionSidePanel spec 495:2978) -->
   <app-table-side-panel
@@ -275,4 +720,15 @@
     (deleteTable)="onDeleteTable($event)"
     (deleteZoneArea)="onDeleteZoneArea($event)">
   </app-table-side-panel>
+
+  <app-reservation-modal
+    [isOpen]="isReservationModalOpen"
+    [reservationToEdit]="modalReservationToEdit"
+    [initialDate]="selectedReservationDate"
+    [initialTime]="modalInitialTime"
+    [initialTableId]="modalInitialTableId"
+    [tables]="tables"
+    (modalClose)="isReservationModalOpen = false; modalReservationToEdit = null"
+    (reservationSaved)="onReservationModalSaved($event)">
+  </app-reservation-modal>
 </ion-content>

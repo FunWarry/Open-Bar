@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
  * are dynamically available on existing local database instances without manual migrations.
  */
 @Service
-@Profile({"dev", "test"})
+@Profile({"dev", "test", "staging"})
 @Order(-100)
 public class DatabaseSchemaMigrationService implements ApplicationRunner {
 
@@ -97,6 +97,18 @@ public class DatabaseSchemaMigrationService implements ApplicationRunner {
 
             jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS printers_json TEXT");
             jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS tpe_terminals_json TEXT");
+
+            jdbcTemplate.execute("ALTER TABLE checklist_template_items ADD COLUMN IF NOT EXISTS assigned_roles VARCHAR(255)");
+            jdbcTemplate.execute("ALTER TABLE checklist_template_items ADD COLUMN IF NOT EXISTS assigned_user_ids VARCHAR(255)");
+            jdbcTemplate.execute("ALTER TABLE checklist_template_items ADD COLUMN IF NOT EXISTS assigned_usernames VARCHAR(500)");
+            jdbcTemplate.execute("ALTER TABLE checklist_template_items ADD COLUMN IF NOT EXISTS media_attachments_json TEXT");
+            jdbcTemplate.execute("ALTER TABLE checklist_template_items ADD COLUMN IF NOT EXISTS steps_json TEXT");
+
+            jdbcTemplate.execute("ALTER TABLE checklist_run_items ADD COLUMN IF NOT EXISTS assigned_roles VARCHAR(255)");
+            jdbcTemplate.execute("ALTER TABLE checklist_run_items ADD COLUMN IF NOT EXISTS assigned_user_ids VARCHAR(255)");
+            jdbcTemplate.execute("ALTER TABLE checklist_run_items ADD COLUMN IF NOT EXISTS assigned_usernames VARCHAR(500)");
+            jdbcTemplate.execute("ALTER TABLE checklist_run_items ADD COLUMN IF NOT EXISTS media_attachments_json TEXT");
+            jdbcTemplate.execute("ALTER TABLE checklist_run_items ADD COLUMN IF NOT EXISTS steps_json TEXT");
 
             log.info("Baseline schema check completed.");
         } catch (Exception e) {

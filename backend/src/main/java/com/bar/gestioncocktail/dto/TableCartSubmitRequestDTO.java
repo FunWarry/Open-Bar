@@ -3,7 +3,6 @@ package com.bar.gestioncocktail.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +11,6 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Schema(description = "Request payload to lock and submit the consolidated table cart")
 public class TableCartSubmitRequestDTO {
 
@@ -33,4 +31,19 @@ public class TableCartSubmitRequestDTO {
     @Size(max = 64, message = "Session token cannot exceed 64 characters")
     @Schema(description = "Ephemeral table session token for anti-fraud validation", example = "4e389d44-0b1e-451e-b83b-9e236ceb348d")
     private String sessionToken;
+
+    /**
+     * All-arguments constructor for TableCartSubmitRequestDTO.
+     *
+     * @param guestSessionId Identifier of guest who locked and submitted the order
+     * @param guestName      Name of guest who submitted the order
+     * @param notes          General preparation notes for the table order
+     * @param sessionToken   Ephemeral table session token
+     */
+    public TableCartSubmitRequestDTO(String guestSessionId, String guestName, String notes, String sessionToken) {
+        this.guestSessionId = guestSessionId;
+        this.guestName = guestName;
+        this.notes = notes;
+        this.sessionToken = sessionToken;
+    }
 }

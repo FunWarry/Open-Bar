@@ -1,3 +1,11 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
 .cash-modal-header {
   background: var(--background-surface-1);
   border-bottom: 1px solid var(--border-medium);
@@ -57,6 +65,9 @@
 
 .cash-modal-content {
   --background: var(--background-bg-0);
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
 
   .modal-body-container {
     padding: 16px;
@@ -286,6 +297,31 @@
       --background: var(--primary);
       --color: var(--text-on-accent);
       font-weight: 700;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .type-selector-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+
+    .type-tile {
+      flex-direction: row;
+      text-align: left;
+      padding: 10px 14px;
+      gap: 12px;
+    }
+  }
+
+  .cash-modal-footer .footer-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+
+    button {
+      width: 100%;
     }
   }
 }

@@ -30,6 +30,7 @@ export class HomeComponent {
   readonly isServeur$: Observable<boolean>;
 
   readonly floorPlanEnabled = this.featureFlagService.floorPlanEnabled;
+  readonly checklistsEnabled = this.featureFlagService.checklistsProceduresEnabled;
 
   constructor(
     private readonly store: Store,

@@ -9,25 +9,57 @@
             ⏱️ {{ 'SHIFTS.REPLAY.BANNER_TITLE' | transloco }} ({{ replayTimestamp | date:'dd/MM/yyyy HH:mm' }})
           </span>
         }
+        @if (!isReplayMode && isPublished && publication) {
+          <span class="publish-badge" [class.has-pending]="hasUnpublishedChanges" data-testid="publish-badge">
+            @if (!hasUnpublishedChanges) {
+              📅 {{ 'SHIFTS.SCHEDULE.PUBLISHED_BY' | transloco : { date: (publication.publishedAt | date:'dd/MM HH:mm'), user: publication.publishedBy } }}
+            }
+            @if (hasUnpublishedChanges) {
+              {{ 'SHIFTS.SCHEDULE.MODIFIED_SINCE_PUBLISHED' | transloco : { date: (publication.publishedAt | date:'dd/MM HH:mm'), user: publication.publishedBy } }}
+            }
+          </span>
+        }
+        @if (!isReplayMode && !isPublished) {
+          <span class="publish-badge draft-badge" data-testid="publish-badge-draft">
+            📝 {{ 'SHIFTS.SCHEDULE.DRAFT_STATUS' | transloco }}
+          </span>
+        }
       </div>
       <div class="top-actions">
-        <!-- Tool actions group -->
-        <div class="tools-btn-group">
+        <!-- Export actions group -->
+        <div class="actions-group export-btn-group">
           <app-action-button
             variant="secondary"
             icon="download-outline"
             (btnClick)="exportScheduleCsv()"
             testId="btn-export-schedule-csv"
             data-testid="btn-export-schedule-csv">
-            {{ 'SHIFTS.SCHEDULE.EXPORT_CSV' | transloco }}
+            <span class="hide-on-mobile">{{ 'SHIFTS.SCHEDULE.EXPORT_CSV' | transloco }}</span>
+            <span class="show-on-mobile">{{ 'SHIFTS.SCHEDULE.EXPORT_CSV_SHORT' | transloco }}</span>
           </app-action-button>
+          <app-action-button
+            variant="secondary"
+            icon="image-outline"
+            (btnClick)="exportScheduleImage()"
+            testId="btn-export-schedule-image"
+            data-testid="btn-export-schedule-image">
+            <span class="hide-on-mobile">{{ 'SHIFTS.SCHEDULE.EXPORT_IMAGE' | transloco }}</span>
+            <span class="show-on-mobile">{{ 'SHIFTS.SCHEDULE.EXPORT_IMAGE_SHORT' | transloco }}</span>
+          </app-action-button>
+        </div>
+
+        <div class="action-divider"></div>
+
+        <!-- Tool actions group -->
+        <div class="actions-group tools-btn-group">
           <app-action-button
             variant="secondary"
             icon="time-outline"
             (btnClick)="openScheduleHistoryModal()"
             testId="btn-schedule-history"
             data-testid="btn-schedule-history">
-            {{ 'SHIFTS.AUDIT.HISTORY_BUTTON' | transloco }}
+            <span class="hide-on-mobile">{{ 'SHIFTS.AUDIT.HISTORY_BUTTON' | transloco }}</span>
+            <span class="show-on-mobile">{{ 'SHIFTS.AUDIT.HISTORY_SHORT' | transloco }}</span>
           </app-action-button>
           @if (!isReplayMode) {
             <app-action-button
@@ -36,7 +68,8 @@
               (btnClick)="toggleDeleteMode()"
               testId="btn-delete-mode"
               data-testid="btn-delete-mode">
-              {{ (isDeleteMode ? 'SHIFTS.BULK_DELETE.EXIT_TOOL' : 'SHIFTS.BULK_DELETE.TOOL_BUTTON') | transloco }}
+              <span class="hide-on-mobile">{{ (isDeleteMode ? 'SHIFTS.BULK_DELETE.EXIT_TOOL' : 'SHIFTS.BULK_DELETE.TOOL_BUTTON') | transloco }}</span>
+              <span class="show-on-mobile">{{ (isDeleteMode ? 'SHIFTS.BULK_DELETE.EXIT_SHORT' : 'SHIFTS.BULK_DELETE.TOOL_SHORT') | transloco }}</span>
             </app-action-button>
           }
           @if (!isReplayMode) {
@@ -46,61 +79,47 @@
               (btnClick)="openClosureConfigModal()"
               testId="btn-closure-config"
               data-testid="btn-closure-config">
-              {{ 'SHIFTS.CLOSURES.TITLE' | transloco }}
+              <span class="hide-on-mobile">{{ 'SHIFTS.CLOSURES.TITLE' | transloco }}</span>
+              <span class="show-on-mobile">{{ 'SHIFTS.CLOSURES.TITLE_SHORT' | transloco }}</span>
             </app-action-button>
           }
         </div>
+
         @if (!isReplayMode) {
           <div class="action-divider"></div>
         }
+
         <!-- Publication actions group -->
         @if (!isReplayMode) {
-          <div class="publish-wrapper">
-            <div class="publish-btn-group">
+          <div class="actions-group publish-btn-group">
+            <app-action-button
+              [variant]="(!isPublished || hasUnpublishedChanges) ? 'primary' : 'secondary'"
+              [icon]="(!isPublished || hasUnpublishedChanges) ? 'sparkles-outline' : 'checkmark-circle-outline'"
+              (btnClick)="publishSchedule()"
+              testId="btn-publish-schedule"
+              data-testid="btn-publish-schedule">
+              @if (!isPublished) {
+                {{ 'SHIFTS.SCHEDULE.PUBLISH' | transloco }}
+              }
+              @if (isPublished && hasUnpublishedChanges) {
+                {{ 'SHIFTS.SCHEDULE.REPUBLISH' | transloco }} ({{ totalDiffCount }})
+              }
+              @if (isPublished && !hasUnpublishedChanges) {
+                {{ 'SHIFTS.SCHEDULE.ALREADY_PUBLISHED' | transloco }}
+              }
+            </app-action-button>
+            @if (isPublished) {
               <app-action-button
-                [variant]="(!isPublished || hasUnpublishedChanges) ? 'primary' : 'secondary'"
-                [icon]="(!isPublished || hasUnpublishedChanges) ? 'sparkles-outline' : 'checkmark-circle-outline'"
-                (btnClick)="publishSchedule()"
-                testId="btn-publish-schedule"
-                data-testid="btn-publish-schedule">
-                @if (!isPublished) {
-                  {{ 'SHIFTS.SCHEDULE.PUBLISH' | transloco }}
-                }
-                @if (isPublished && hasUnpublishedChanges) {
-                  {{ 'SHIFTS.SCHEDULE.REPUBLISH' | transloco }} ({{ totalDiffCount }})
-                }
-                @if (isPublished && !hasUnpublishedChanges) {
-                  {{ 'SHIFTS.SCHEDULE.ALREADY_PUBLISHED' | transloco }}
+                [variant]="isComparisonMode ? 'primary' : 'secondary'"
+                icon="git-compare-outline"
+                (btnClick)="toggleComparisonMode()"
+                testId="btn-toggle-comparison"
+                data-testid="btn-toggle-comparison">
+                {{ (isComparisonMode ? 'SHIFTS.DIFF.EXIT_COMPARE_BTN' : 'SHIFTS.DIFF.COMPARE_BTN') | transloco }}
+                @if (!isComparisonMode && hasUnpublishedChanges) {
+                  ({{ totalDiffCount }})
                 }
               </app-action-button>
-              @if (isPublished) {
-                <app-action-button
-                  [variant]="isComparisonMode ? 'primary' : 'secondary'"
-                  icon="git-compare-outline"
-                  (btnClick)="toggleComparisonMode()"
-                  testId="btn-toggle-comparison"
-                  data-testid="btn-toggle-comparison">
-                  {{ (isComparisonMode ? 'SHIFTS.DIFF.EXIT_COMPARE_BTN' : 'SHIFTS.DIFF.COMPARE_BTN') | transloco }}
-                  @if (!isComparisonMode && hasUnpublishedChanges) {
-                    ({{ totalDiffCount }})
-                  }
-                </app-action-button>
-              }
-            </div>
-            @if (!isPublished) {
-              <span class="publish-badge draft-badge" data-testid="publish-badge-draft">
-                📝 {{ 'SHIFTS.SCHEDULE.DRAFT_STATUS' | transloco }}
-              </span>
-            }
-            @if (isPublished && publication) {
-              <span class="publish-badge" [class.has-pending]="hasUnpublishedChanges" data-testid="publish-badge">
-                @if (!hasUnpublishedChanges) {
-                  📅 {{ 'SHIFTS.SCHEDULE.PUBLISHED_BY' | transloco : { date: (publication.publishedAt | date:'dd/MM HH:mm'), user: publication.publishedBy } }}
-                }
-                @if (hasUnpublishedChanges) {
-                  {{ 'SHIFTS.SCHEDULE.MODIFIED_SINCE_PUBLISHED' | transloco : { date: (publication.publishedAt | date:'dd/MM HH:mm'), user: publication.publishedBy } }}
-                }
-              </span>
             }
           </div>
         }
@@ -328,15 +347,27 @@
           </div>
         </div>
       </div>
-      <!-- Grid -->
-      <div
-        class="schedule-grid"
-        [class.in-delete-mode]="isDeleteMode"
-        [class.in-comparison-mode]="isComparisonMode || (isReplayMode && isReplayComparisonMode)"
-        [class.in-replay-mode]="isReplayMode">
-        <!-- Header row -->
-        <div class="grid-header">
-          <span class="grid-header__employee">{{ 'SHIFTS.EMPLOYEE_HEADER' | transloco | uppercase }}</span>
+      <!-- Grid with responsive scroll containment -->
+      <div class="schedule-grid-scroll-wrapper table-scroll-container" data-testid="schedule-grid-scroll-wrapper">
+        <div
+          class="schedule-grid"
+          [style.--emp-col-width.px]="employeeColWidth"
+          [class.in-delete-mode]="isDeleteMode"
+          [class.in-comparison-mode]="isComparisonMode || (isReplayMode && isReplayComparisonMode)"
+          [class.in-replay-mode]="isReplayMode">
+          <!-- Header row -->
+          <div class="grid-header">
+            <div class="grid-header__employee">
+              <span class="emp-header-title">{{ 'SHIFTS.EMPLOYEE_HEADER' | transloco | uppercase }}</span>
+              <div
+                class="col-resizer"
+                [class.is-resizing]="isResizingCol"
+                (mousedown)="onResizeStart($event)"
+                (touchstart)="onResizeStart($event)"
+                [attr.title]="'SHIFTS.RESIZE_COLUMN_HINT' | transloco"
+                data-testid="employee-col-resizer">
+              </div>
+            </div>
           @for (h of getDayHeaders(); track h.date; let i = $index) {
             <button
               type="button"
@@ -369,7 +400,7 @@
               (click)="onEmployeeHeaderClick(emp)"
               [title]="'SHIFTS.EMPLOYEE_HEADER_CLICK_HINT' | transloco"
               [attr.data-testid]="'employee-header-' + emp.employeeId">
-              <app-user-avatar [name]="emp.name" [role]="emp.role" size="small"></app-user-avatar>
+              <app-user-avatar class="emp-avatar hide-on-mobile" [name]="emp.name" [role]="emp.role" size="small"></app-user-avatar>
               <div class="emp-info">
                 <span class="emp-role">{{ emp.role | titlecase }}</span>
                 <span class="emp-name">{{ emp.name }}</span>
@@ -449,6 +480,7 @@
             }
           </div>
         }
+      </div>
       </div>
       <!-- Shortcuts Legend Bar -->
       @if (!isReplayMode) {

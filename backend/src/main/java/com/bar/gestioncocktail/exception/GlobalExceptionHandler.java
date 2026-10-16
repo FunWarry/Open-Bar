@@ -48,6 +48,22 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles Spring web static or missing route resource not found exceptions (HTTP 404).
+     *
+     * @param ex Intercepted missing static resource exception
+     * @return HTTP 404 response
+     */
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        ErrorResponse body = ErrorResponse.builder(
+                HttpStatus.NOT_FOUND.value(),
+                "Not Found",
+                "Resource not found: /" + ex.getResourcePath()
+        ).build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    /**
      * Handles business rule violations (HTTP 400).
      *
      * @param ex Intercepted business exception

@@ -190,7 +190,8 @@ public class CocktailDataSeederService {
         if (environment == null) {
             return false;
         }
-        return java.util.Arrays.asList(environment.getActiveProfiles()).contains("test");
+        java.util.List<String> active = java.util.Arrays.asList(environment.getActiveProfiles());
+        return active.contains("test") || active.contains("staging");
     }
 
     private void fixLegacyImageUrls() {

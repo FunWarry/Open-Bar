@@ -1,0 +1,71 @@
+<ion-modal [isOpen]="isOpen" (didDismiss)="close()" class="quick-seat-modal-dialog">
+  <ng-template>
+    <ion-header class="ion-no-border modal-header">
+      <ion-toolbar>
+        <ion-title class="modal-title">
+          {{ 'RESERVATIONS.QUICK_SEAT_TITLE' | transloco: { number: displayTableNumero } }}
+        </ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="close()" (keyup.enter)="close()" [attr.aria-label]="'COMMON.CLOSE' | transloco" class="close-btn" data-testid="btn-close-quick-seat">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="modal-content" [fullscreen]="false">
+      @if (reservation) {
+        <div class="booking-summary-card">
+          <div class="guest-hero">
+            <div class="guest-avatar">
+              <ion-icon name="person-outline"></ion-icon>
+            </div>
+            <div class="guest-meta">
+              <h2 class="customer-name" data-testid="text-quick-seat-customer">{{ reservation.nomClient }}</h2>
+              <div class="meta-row">
+                <span class="meta-badge party" data-testid="badge-quick-seat-party">
+                  <ion-icon name="people-outline"></ion-icon>
+                  {{ reservation.nombrePersonnes }} {{ 'RESERVATIONS.GUESTS_UNIT' | transloco }}
+                </span>
+                <span class="meta-badge time" data-testid="badge-quick-seat-time">
+                  <ion-icon name="time-outline"></ion-icon>
+                  {{ reservation.heureReservation }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="details-list">
+            @if (reservation.telephone) {
+              <div class="detail-row">
+                <ion-icon name="call-outline"></ion-icon>
+                <span class="detail-label">{{ 'RESERVATIONS.PHONE' | transloco }} :</span>
+                <span class="detail-val">{{ reservation.telephone }}</span>
+              </div>
+            }
+
+            @if (reservation.notes) {
+              <div class="notes-box" data-testid="box-quick-seat-notes">
+                <span class="notes-title">{{ 'RESERVATIONS.SECTION_NOTES' | transloco }} :</span>
+                <p class="notes-content">{{ reservation.notes }}</p>
+              </div>
+            }
+          </div>
+
+          <!-- 1-Click Action Button -->
+          <div class="actions-wrapper">
+            <button
+              type="button"
+              class="seat-btn-primary"
+              [disabled]="isSeating"
+              (click)="seatGuests()"
+              data-testid="btn-installer-clients">
+              <ion-icon name="restaurant-outline"></ion-icon>
+              <span>{{ 'RESERVATIONS.ACTION_SEAT_GUESTS' | transloco }}</span>
+            </button>
+          </div>
+        </div>
+      }
+    </ion-content>
+  </ng-template>
+</ion-modal>

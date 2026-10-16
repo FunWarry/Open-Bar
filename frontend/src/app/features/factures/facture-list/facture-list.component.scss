@@ -832,13 +832,23 @@ ion-content.factures-content {
   overflow: hidden;
 }
 
+.desktop-table-view {
+  display: block;
+}
+
+.mobile-invoices-list {
+  display: none;
+}
+
 .table-scroll-wrapper {
   overflow-x: auto;
   width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 .factures-table {
   width: 100%;
+  min-width: 820px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.86rem;
@@ -1067,8 +1077,9 @@ ion-content.factures-content {
 
     .hero-actions {
       width: 100%;
+      flex-wrap: wrap;
       justify-content: flex-start;
-      gap: 12px;
+      gap: 10px;
     }
   }
 
@@ -1090,7 +1101,7 @@ ion-content.factures-content {
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 767px) {
   .factures-page {
     padding: 16px 12px 36px;
     gap: 16px;
@@ -1118,6 +1129,162 @@ ion-content.factures-content {
   .invoices-grid {
     grid-template-columns: 1fr;
     gap: 14px;
+  }
+
+  .desktop-table-view {
+    display: none;
+  }
+
+  .mobile-invoices-list {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+    .mobile-invoice-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border-medium);
+      cursor: pointer;
+      transition: background 0.15s ease;
+
+      &:hover, &:active {
+        background: var(--background-surface-2);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    .mobile-row-main {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+      flex: 1;
+
+      .mobile-num-line {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+
+        .mobile-receipt-icon {
+          color: var(--primary);
+          font-size: 1rem;
+          flex-shrink: 0;
+        }
+
+        .mobile-num-code {
+          font-family: var(--font-family-mono, monospace);
+          font-weight: 700;
+          font-size: 0.88rem;
+          color: var(--text-primary);
+          white-space: nowrap;
+        }
+
+        .table-pill-small {
+          font-size: 0.72rem;
+          padding: 2px 8px;
+        }
+      }
+
+      .mobile-sub-line {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.76rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        .mobile-bullet {
+          color: var(--border-light);
+        }
+
+        .mobile-server {
+          color: var(--text-secondary);
+          font-weight: 500;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+
+    .mobile-row-end {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+
+      .mobile-amount-box {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 3px;
+
+        .mobile-amount {
+          font-size: 1rem;
+          font-weight: 800;
+          color: var(--text-primary);
+          white-space: nowrap;
+          letter-spacing: -0.01em;
+        }
+
+        .status-pill-small {
+          display: inline-flex;
+          align-items: center;
+          font-size: 0.68rem;
+          font-weight: 700;
+          padding: 2px 7px;
+          border-radius: var(--radius-pill, 999px);
+          white-space: nowrap;
+
+          &.settled {
+            background: rgba(47, 191, 107, 0.16);
+            color: var(--semantic-success);
+            border: 1px solid rgba(47, 191, 107, 0.35);
+          }
+
+          &.pending {
+            background: rgba(244, 165, 42, 0.16);
+            color: var(--semantic-warning);
+            border: 1px solid rgba(244, 165, 42, 0.35);
+          }
+        }
+      }
+
+      .mobile-pdf-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-sm, 6px);
+        background: var(--background-surface-2);
+        border: 1px solid var(--border-light);
+        color: var(--primary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.05rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        flex-shrink: 0;
+
+        &:active {
+          background: var(--primary);
+          color: var(--text-on-accent);
+        }
+      }
+
+      .mobile-arrow {
+        color: var(--text-muted);
+        font-size: 1rem;
+        flex-shrink: 0;
+      }
+    }
   }
 }
 

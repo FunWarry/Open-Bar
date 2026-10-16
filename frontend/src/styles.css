@@ -291,15 +291,15 @@ ion-button {
   --box-shadow: none;
   font-family: var(--font);
   font-weight: 600;
-  text-transform: none !important;
-  letter-spacing: normal !important;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 ion-button::part(native) {
-  font-family: var(--font) !important;
-  font-weight: 600 !important;
-  text-transform: none !important;
-  letter-spacing: normal !important;
+  font-family: var(--font);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
   border-radius: var(--border-radius, var(--radius-md));
   transition: background .15s ease, border-color .15s ease, transform .05s ease, box-shadow .15s ease;
 }
@@ -335,25 +335,25 @@ ion-button[fill="clear"]:not([color]) {
 
 ion-button[color="secondary"][fill="outline"],
 ion-button.ion-color-secondary[fill="outline"] {
-  --border-color: var(--border-medium) !important;
-  --border-width: 1px !important;
-  --color: var(--text-primary) !important;
-  --background: var(--surface-2) !important;
-  --background-hover: var(--surface-3) !important;
-  --background-activated: var(--surface-3) !important;
+  --border-color: var(--border-medium);
+  --border-width: 1px;
+  --color: var(--text-primary);
+  --background: var(--surface-2);
+  --background-hover: var(--surface-3);
+  --background-activated: var(--surface-3);
 }
 
 ion-button[color="secondary"][fill="outline"]::part(native),
 ion-button.ion-color-secondary[fill="outline"]::part(native) {
-  color: var(--text-primary) !important;
-  border-color: var(--border-medium) !important;
-  background: var(--surface-2) !important;
+  color: var(--text-primary);
+  border-color: var(--border-medium);
+  background: var(--surface-2);
 }
 
 ion-button[color="secondary"][fill="outline"]:hover::part(native),
 ion-button.ion-color-secondary[fill="outline"]:hover::part(native) {
-  background: var(--surface-3) !important;
-  border-color: var(--border-strong) !important;
+  background: var(--surface-3);
+  border-color: var(--border-strong);
 }
 
 /* OpenBar Component Classes */
@@ -871,21 +871,58 @@ ion-modal.bar-tab-transfer-modal-container {
 ion-modal.modal-md,
 ion-modal.openbar-modal-md,
 ion-modal.table-detail-modal-container,
+ion-modal.table-detail-modal-dialog,
+ion-modal.table-form-modal-dialog,
+ion-modal.quick-seat-modal-container,
+ion-modal.fusion-modal-class,
+ion-modal.table-qr-modal-dialog,
+ion-modal.cancel-order-modal-dialog,
+ion-modal.cash-modal-dialog,
+ion-modal.cloture-caisse-modal-dialog,
+ion-modal.ticket-modal,
+ion-modal.ruptures-modal-container,
+ion-modal.rupture-impact-modal-container,
+ion-modal.transfert-modal-container,
+ion-modal.bar-tab-modal-container,
+ion-modal.bar-tab-transfer-modal-container,
 ion-modal.variante-modal-container,
 ion-modal.variante-modal,
 ion-modal.zone-manager-modal-class {
-  --width: min(640px, 92vw);
-  --height: min(600px, 80vh);
-  --max-height: 80vh;
+  --width: min(640px, 94vw);
+  --height: min(640px, 84vh);
+  --max-height: 86vh;
 }
 
 ion-modal.modal-lg,
 ion-modal.openbar-modal-lg,
 ion-modal.openbar-modal-payment,
 ion-modal.purchase-order-modal-container,
+ion-modal.shifts-modal-dialog,
 ion-modal.commande-detail-modal-container {
-  --width: min(920px, 96vw);
-  --height: min(780px, 88vh);
+  --width: min(880px, 96vw);
+  --height: min(860px, 92vh);
+  --max-height: 92vh;
+}
+
+ion-modal.modal-xl,
+ion-modal.reservation-modal-dialog,
+ion-modal.template-editor-modal {
+  --width: min(1080px, 96vw);
+  --height: min(900px, 94vh);
+  --max-height: 94vh;
+}
+
+ion-modal.media-viewer-modal {
+  --width: min(840px, 96vw);
+  --height: auto;
+  --max-height: 90vh;
+  --z-index: 25000;
+  z-index: 25000;
+}
+
+ion-modal.comment-editor-modal {
+  --width: min(640px, 94vw);
+  --height: auto;
   --max-height: 88vh;
 }
 
@@ -896,7 +933,10 @@ ion-modal.ingredient-form-modal-container {
 }
 
 ion-modal.openbar-modal-split,
-ion-modal.encaissement-modal-container {
+ion-modal.encaissement-modal-container,
+ion-modal.facture-split-modal-container,
+ion-modal.nouvelle-facture-modal-container,
+ion-modal.edit-commande-modal-container {
   --width: min(1180px, 96vw);
   --height: min(880px, 92vh);
   --max-height: 92vh;
@@ -966,33 +1006,33 @@ ion-modal ion-content::part(scroll)::-webkit-scrollbar-thumb:hover {
 .alert-wrapper,
 .popover-content,
 ion-popover::part(content) {
-  --background: var(--background-surface-1) !important;
-  background: var(--background-surface-1) !important;
-  color: var(--text-primary) !important;
-  border: 1px solid var(--border-medium) !important;
-  border-radius: var(--radius-lg, 12px) !important;
-  box-shadow: var(--shadow-popover) !important;
+  --background: var(--background-surface-1);
+  background: var(--background-surface-1);
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-popover);
 }
 
 .alert-head {
-  border-bottom: 1px solid var(--border-medium, #2e3450) !important;
-  padding: 16px 20px 12px 20px !important;
+  border-bottom: 1px solid var(--border-medium);
+  padding: 16px 20px 12px 20px;
 }
 
 .alert-title {
-  color: var(--text-primary, #eceefb) !important;
-  font-size: 16px !important;
-  font-weight: 600 !important;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .alert-sub-title {
-  color: var(--text-secondary, #a0aec0) !important;
+  color: var(--text-secondary);
 }
 
 .alert-radio-group,
 .alert-checkbox-group {
-  border-top: 1px solid var(--border-medium, #2e3450) !important;
-  border-bottom: 1px solid var(--border-medium, #2e3450) !important;
+  border-top: 1px solid var(--border-medium);
+  border-bottom: 1px solid var(--border-medium);
 }
 
 .alert-radio-label,
@@ -1001,53 +1041,53 @@ ion-select-popover ion-item,
 ion-select-popover ion-label,
 ion-popover ion-item,
 ion-popover ion-label {
-  --background: transparent !important;
-  --color: var(--text-primary, #eceefb) !important;
-  color: var(--text-primary, #eceefb) !important;
-  font-weight: 400 !important;
+  --background: transparent;
+  --color: var(--text-primary);
+  color: var(--text-primary);
+  font-weight: 400;
 }
 
 .alert-button-group {
-  border-top: 1px solid var(--border-medium, #2e3450) !important;
-  padding: 8px 16px !important;
+  border-top: 1px solid var(--border-medium);
+  padding: 8px 16px;
 }
 
 .alert-button,
 .alert-button-inner,
 .alert-button .button-inner {
-  --color: var(--primary, #6c7fe8) !important;
-  color: var(--primary, #6c7fe8) !important;
-  font-weight: 500 !important;
-  font-size: 14px !important;
+  --color: var(--primary);
+  color: var(--primary);
+  font-weight: 500;
+  font-size: 14px;
 }
 
 .alert-radio-icon {
-  border-color: var(--border-medium, #3a4682) !important;
+  border-color: var(--border-medium);
 }
 
 .alert-radio-inner {
-  background-color: var(--primary, #6c7fe8) !important;
+  background-color: var(--primary);
 }
 
 [aria-checked="true"] .alert-radio-icon {
-  border-color: var(--primary, #6c7fe8) !important;
+  border-color: var(--primary);
 }
 
-/* Ionic Segment & Segment Button Global Styling (Figma Dark System) */
-ion-segment {
+/* Ionic Segment & Segment Button Global Styling (Figma System) */
+ion-segment:not([mode="ios"]):not(.segment-pill):not(.barman-view-segment) {
   --background: transparent;
   background: transparent;
-  border-bottom: 1px solid var(--border-medium, #2e3450);
+  border-bottom: 1px solid var(--border-medium);
 }
 
-ion-segment-button {
+ion-segment:not([mode="ios"]):not(.segment-pill):not(.barman-view-segment) ion-segment-button {
   --background: transparent;
   --background-checked: transparent;
-  --color: var(--text-secondary, #a0aec0) !important;
-  --color-checked: var(--primary, #6c7fe8) !important;
-  --color-hover: var(--text-primary, #ffffff);
-  --color-focused: var(--primary, #6c7fe8);
-  --indicator-color: var(--primary, #6c7fe8) !important;
+  --color: var(--text-secondary);
+  --color-checked: var(--primary);
+  --color-hover: var(--text-primary);
+  --color-focused: var(--primary);
+  --indicator-color: var(--primary);
   --indicator-height: 2px;
   --padding-top: 10px;
   --padding-bottom: 10px;
@@ -1057,19 +1097,54 @@ ion-segment-button {
   font-size: 13px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  opacity: 1 !important;
+  opacity: 1;
 }
 
-ion-segment-button ion-label {
-  color: var(--text-secondary, #a0aec0) !important;
-  font-weight: 600 !important;
+ion-segment:not([mode="ios"]):not(.segment-pill):not(.barman-view-segment) ion-segment-button ion-label {
+  color: var(--text-secondary);
+  font-weight: 600;
   transition: color 0.2s ease-in-out;
 }
 
-ion-segment-button.segment-button-checked ion-label,
-ion-segment-button[aria-selected="true"] ion-label {
-  color: var(--primary, #6c7fe8) !important;
-  font-weight: 700 !important;
+ion-segment:not([mode="ios"]):not(.segment-pill):not(.barman-view-segment) ion-segment-button.segment-button-checked ion-label,
+ion-segment:not([mode="ios"]):not(.segment-pill):not(.barman-view-segment) ion-segment-button[aria-selected="true"] ion-label {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* iOS & Pill Segment Buttons (Filled Pill High-Contrast States) */
+ion-segment[mode="ios"] ion-segment-button,
+ion-segment.segment-pill ion-segment-button,
+ion-segment.barman-view-segment ion-segment-button {
+  --color: var(--text-secondary);
+  --color-checked: var(--text-on-accent);
+  --color-hover: var(--text-primary);
+  text-transform: none;
+}
+
+ion-segment[mode="ios"] ion-segment-button.segment-button-checked ion-label,
+ion-segment[mode="ios"] ion-segment-button.active-segment ion-label,
+ion-segment[mode="ios"] ion-segment-button[aria-selected="true"] ion-label,
+ion-segment.segment-pill ion-segment-button.segment-button-checked ion-label,
+ion-segment.segment-pill ion-segment-button.active-segment ion-label,
+ion-segment.segment-pill ion-segment-button[aria-selected="true"] ion-label,
+ion-segment.barman-view-segment ion-segment-button.segment-button-checked ion-label,
+ion-segment.barman-view-segment ion-segment-button.active-segment ion-label,
+ion-segment.barman-view-segment ion-segment-button[aria-selected="true"] ion-label {
+  color: var(--text-on-accent);
+  font-weight: 700;
+}
+
+ion-segment[mode="ios"] ion-segment-button.segment-button-checked ion-icon,
+ion-segment[mode="ios"] ion-segment-button.active-segment ion-icon,
+ion-segment[mode="ios"] ion-segment-button[aria-selected="true"] ion-icon,
+ion-segment.segment-pill ion-segment-button.segment-button-checked ion-icon,
+ion-segment.segment-pill ion-segment-button.active-segment ion-icon,
+ion-segment.segment-pill ion-segment-button[aria-selected="true"] ion-icon,
+ion-segment.barman-view-segment ion-segment-button.segment-button-checked ion-icon,
+ion-segment.barman-view-segment ion-segment-button.active-segment ion-icon,
+ion-segment.barman-view-segment ion-segment-button[aria-selected="true"] ion-icon {
+  color: var(--text-on-accent);
 }
 
 /* ==========================================================================
@@ -1285,31 +1360,110 @@ ion-modal.zone-manager-modal-container::part(content) {
   overflow: hidden;
 }
 
-@media (max-width: 600px) {
-  ion-modal.modal-sm,
-  ion-modal.modal-md,
+@media (max-width: 768px) {
+  /* ── Universal Mobile Modal Bottom Sheet (OpenBar DS) ─────────────────── */
+  ion-modal,
   ion-modal.modal-lg,
+  ion-modal.openbar-modal-lg,
+  ion-modal.openbar-modal-payment,
+  ion-modal.purchase-order-modal-container,
+  ion-modal.shifts-modal-dialog,
+  ion-modal.commande-detail-modal-container,
   ion-modal.modal-xl,
-  ion-modal.modal-full,
-  ion-modal.variant-recipe-modal-container,
-  ion-modal.table-detail-modal-container,
-  ion-modal.variante-modal-container,
-  ion-modal.variante-modal,
-  ion-modal.zone-manager-modal-container,
-  ion-modal.table-qr-batch-modal-dialog {
+  ion-modal.reservation-modal-dialog,
+  ion-modal.template-editor-modal,
+  ion-modal.ingredient-form-modal-container,
+  ion-modal.openbar-modal-split,
+  ion-modal.encaissement-modal-container,
+  ion-modal.facture-split-modal-container,
+  ion-modal.nouvelle-facture-modal-container,
+  ion-modal.edit-commande-modal-container {
     --width: 100vw;
     --max-width: 100vw;
-    --height: auto;
-    --max-height: 90vh;
+    --height: 92vh;
+    --max-height: 92vh;
     --border-radius: 16px 16px 0 0;
+    align-items: flex-end;
   }
 
-  ion-modal.transfert-modal-container {
-    --width: 100vw;
-    --max-width: 100vw;
-    --height: min(560px, 85vh);
+  ion-modal::part(content),
+  ion-modal.purchase-order-modal-container::part(content) {
+    border-radius: 16px 16px 0 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom: none;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 92vh;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Universal scrollable body inside any modal */
+  ion-modal ion-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  ion-modal ion-content::part(scroll) {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
+  ion-modal .modal-scroll-body,
+  ion-modal .app-modal-body,
+  ion-modal .modal-body,
+  ion-modal .modal-content,
+  ion-modal .tab-modal-wrapper,
+  ion-modal .table-modal-wrapper,
+  ion-modal .po-modal-wrapper,
+  ion-modal .order-detail-modal-wrapper,
+  ion-modal .reception-modal-wrapper,
+  ion-modal .supplier-modal-wrapper,
+  ion-modal .recipe-panel-wrapper,
+  ion-modal .customizer-panel-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Compact alerts & confirmation dialogs stay centered with auto height */
+  ion-modal.confirm-delete-dialog,
+  ion-modal.confirm-delete-modal-dialog,
+  ion-modal.auto-height-modal,
+  ion-modal.alert-modal,
+  ion-modal.modal-sm,
+  ion-modal.table-qr-batch-modal-dialog {
+    --width: min(92vw, 440px);
+    --max-width: 92vw;
+    --height: auto;
     --max-height: 85vh;
-    --border-radius: 16px 16px 0 0;
+    --border-radius: 16px;
+    align-items: center;
+  }
+
+  ion-modal.confirm-delete-dialog::part(content),
+  ion-modal.confirm-delete-modal-dialog::part(content),
+  ion-modal.auto-height-modal::part(content),
+  ion-modal.alert-modal::part(content),
+  ion-modal.modal-sm::part(content),
+  ion-modal.table-qr-batch-modal-dialog::part(content) {
+    height: auto;
+    max-height: 85vh;
+    border-radius: 16px;
+    margin: auto;
+    width: min(92vw, 440px);
+    max-width: 92vw;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 }
 
@@ -1342,15 +1496,15 @@ select,
 .native-select,
 .custom-select,
 .form-select {
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  background-color: transparent !important;
-  color: var(--text-primary) !important;
-  font-family: var(--font, 'Inter', sans-serif) !important;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background-color: transparent;
+  color: var(--text-primary);
+  font-family: var(--font, 'Inter', sans-serif);
   font-size: inherit;
   font-weight: inherit;
   line-height: inherit;
@@ -1360,25 +1514,25 @@ select,
 }
 
 select::-ms-expand {
-  display: none !important;
+  display: none;
 }
 
 select:focus,
 select:focus-visible {
-  outline: none !important;
-  border: none !important;
-  box-shadow: none !important;
+  outline: none;
+  border: none;
+  box-shadow: none;
 }
 
 select option {
-  background-color: var(--background-surface-1) !important;
-  color: var(--text-primary) !important;
+  background-color: var(--background-surface-1);
+  color: var(--text-primary);
   font-family: var(--font, 'Inter', sans-serif);
   padding: 8px 12px;
 }
 
 select option:disabled {
-  color: var(--text-muted) !important;
+  color: var(--text-muted);
 }
 
 /* Global styling for ion-select */
@@ -1412,80 +1566,147 @@ ion-select::part(icon) {
 }
 
 /* ── OpenBar Design System — Global ActionSheet & Context Menu Styling ── */
-ion-action-sheet {
-  --background: var(--background-surface-2, #21263f);
-  --color: var(--text-primary, #eceefb);
-  --button-background: var(--background-surface-2, #21263f);
-  --button-background-selected: var(--background-surface-3, #2a3050);
-  --button-color: var(--text-primary, #eceefb);
-  --button-color-selected: var(--primary, #6c7fe8);
-  --backdrop-opacity: 0.55;
+body ion-action-sheet,
+body ion-action-sheet.md,
+body ion-action-sheet.ios,
+body ion-action-sheet.openbar-action-sheet,
+ion-action-sheet.openbar-action-sheet,
+ion-action-sheet.schedule-context-menu {
+  --background: var(--background-surface-2);
+  --color: var(--text-primary);
+  --button-background: transparent;
+  --button-background-selected: var(--background-surface-3);
+  --button-background-activated: var(--background-surface-3);
+  --button-background-hover: var(--background-surface-3);
+  --button-color: var(--text-primary);
+  --button-color-selected: var(--primary);
+  --button-color-hover: var(--text-primary);
+  --button-color-activated: var(--text-primary);
+  --icon-color: var(--primary);
+  --backdrop-opacity: 0.65;
 }
 
-ion-action-sheet .action-sheet-wrapper {
+body ion-action-sheet .action-sheet-wrapper,
+body ion-action-sheet.md .action-sheet-wrapper,
+body ion-action-sheet.ios .action-sheet-wrapper {
   border-radius: var(--radius-lg, 14px) var(--radius-lg, 14px) 0 0;
-  background: var(--background-surface-2, #21263f);
-  border-top: 1px solid var(--border-medium, #2e3450);
+  background: var(--background-surface-2);
+  border-top: 1px solid var(--border-medium);
   box-shadow: var(--shadow-xl);
 }
 
 @media (min-width: 768px) {
-  ion-action-sheet .action-sheet-wrapper {
+  body ion-action-sheet .action-sheet-wrapper,
+  body ion-action-sheet.md .action-sheet-wrapper,
+  body ion-action-sheet.ios .action-sheet-wrapper {
     max-width: 440px;
     margin: 0 auto;
     border-radius: var(--radius-lg, 14px);
-    border: 1px solid var(--border-medium, #2e3450);
+    border: 1px solid var(--border-medium);
     box-shadow: var(--shadow-popover);
   }
 }
 
-ion-action-sheet .action-sheet-group {
-  background: var(--background-surface-2, #21263f) !important;
-  border-radius: var(--radius-lg, 14px) !important;
+body ion-action-sheet .action-sheet-group,
+body ion-action-sheet.md .action-sheet-group,
+body ion-action-sheet.ios .action-sheet-group {
+  background: var(--background-surface-2);
+  border-radius: var(--radius-lg, 14px);
+  border: 1px solid var(--border-medium);
   overflow: hidden;
 }
 
-ion-action-sheet .action-sheet-title {
-  color: var(--text-primary, #eceefb) !important;
-  font-weight: 700 !important;
-  font-size: 15px !important;
-  font-family: var(--font, 'Inter', sans-serif);
+body ion-action-sheet .action-sheet-title,
+body ion-action-sheet.md .action-sheet-title,
+body ion-action-sheet.ios .action-sheet-title,
+body ion-action-sheet .action-sheet-title.sc-ion-action-sheet-md,
+body ion-action-sheet .action-sheet-title.sc-ion-action-sheet-ios {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 15px;
+  font-family: var(--font-display, var(--font, 'Outfit', 'Inter', sans-serif));
   padding-bottom: 4px;
 }
 
-ion-action-sheet .action-sheet-sub-title {
-  color: var(--text-muted, #7e87a8) !important;
-  font-size: 13px !important;
+body ion-action-sheet .action-sheet-sub-title,
+body ion-action-sheet.md .action-sheet-sub-title,
+body ion-action-sheet.ios .action-sheet-sub-title,
+body ion-action-sheet .action-sheet-sub-title.sc-ion-action-sheet-md,
+body ion-action-sheet .action-sheet-sub-title.sc-ion-action-sheet-ios {
+  color: var(--text-muted);
+  font-size: 13px;
   font-family: var(--font, 'Inter', sans-serif);
 }
 
-ion-action-sheet .action-sheet-button {
-  color: var(--text-primary, #eceefb) !important;
+body ion-action-sheet .action-sheet-button,
+body ion-action-sheet.md .action-sheet-button,
+body ion-action-sheet.ios .action-sheet-button,
+body ion-action-sheet .action-sheet-button.sc-ion-action-sheet-md,
+body ion-action-sheet .action-sheet-button.sc-ion-action-sheet-ios,
+body ion-action-sheet .action-sheet-button-inner,
+body ion-action-sheet .action-sheet-button-inner.sc-ion-action-sheet-md,
+body ion-action-sheet .action-sheet-button-inner.sc-ion-action-sheet-ios {
+  color: var(--text-primary);
   font-family: var(--font, 'Inter', sans-serif);
   font-size: 14px;
   font-weight: 500;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-ion-action-sheet .action-sheet-button:hover,
-ion-action-sheet .action-sheet-button.activated {
-  background: var(--background-surface-3, #2a3050) !important;
-  color: var(--text-on-accent) !important;
+body ion-action-sheet .action-sheet-button:hover,
+body ion-action-sheet.md .action-sheet-button:hover,
+body ion-action-sheet.ios .action-sheet-button:hover,
+body ion-action-sheet .action-sheet-button.activated,
+body ion-action-sheet.md .action-sheet-button.activated,
+body ion-action-sheet.ios .action-sheet-button.activated,
+body ion-action-sheet .action-sheet-button.ion-activated {
+  background: var(--background-surface-3);
+  color: var(--text-on-accent);
 }
 
-ion-action-sheet .action-sheet-button.action-sheet-destructive {
-  color: var(--semantic-danger, #e5604f) !important;
+body ion-action-sheet .action-sheet-button.action-sheet-destructive,
+body ion-action-sheet.md .action-sheet-button.action-sheet-destructive,
+body ion-action-sheet.ios .action-sheet-button.action-sheet-destructive,
+body ion-action-sheet .action-sheet-button.action-sheet-destructive.sc-ion-action-sheet-md,
+body ion-action-sheet .action-sheet-button.action-sheet-destructive.sc-ion-action-sheet-ios,
+body ion-action-sheet .action-sheet-button.action-sheet-destructive .action-sheet-button-inner {
+  color: var(--semantic-danger);
 }
 
-ion-action-sheet .action-sheet-button.action-sheet-cancel {
-  color: var(--text-muted, #7e87a8) !important;
+body ion-action-sheet .action-sheet-button.action-sheet-cancel,
+body ion-action-sheet.md .action-sheet-button.action-sheet-cancel,
+body ion-action-sheet.ios .action-sheet-button.action-sheet-cancel,
+body ion-action-sheet .action-sheet-button.action-sheet-cancel.sc-ion-action-sheet-md,
+body ion-action-sheet .action-sheet-button.action-sheet-cancel.sc-ion-action-sheet-ios,
+body ion-action-sheet .action-sheet-button.action-sheet-cancel .action-sheet-button-inner {
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
-ion-action-sheet .action-sheet-icon {
-  color: var(--primary, #6c7fe8) !important;
+body ion-action-sheet .action-sheet-icon,
+body ion-action-sheet.md .action-sheet-icon,
+body ion-action-sheet.ios .action-sheet-icon,
+body ion-action-sheet .action-sheet-icon.sc-ion-action-sheet-md,
+body ion-action-sheet .action-sheet-icon.sc-ion-action-sheet-ios {
+  color: var(--primary);
   margin-right: 12px;
   font-size: 18px;
+}
+
+body ion-action-sheet .action-sheet-button.action-sheet-destructive .action-sheet-icon,
+body ion-action-sheet.md .action-sheet-button.action-sheet-destructive .action-sheet-icon,
+body ion-action-sheet.ios .action-sheet-button.action-sheet-destructive .action-sheet-icon,
+body ion-action-sheet .action-sheet-button.action-sheet-destructive .action-sheet-icon.sc-ion-action-sheet-md,
+body ion-action-sheet .action-sheet-button.action-sheet-destructive .action-sheet-icon.sc-ion-action-sheet-ios {
+  color: var(--semantic-danger);
+}
+
+body ion-action-sheet .action-sheet-button.action-sheet-cancel .action-sheet-icon,
+body ion-action-sheet.md .action-sheet-button.action-sheet-cancel .action-sheet-icon,
+body ion-action-sheet.ios .action-sheet-button.action-sheet-cancel .action-sheet-icon,
+body ion-action-sheet .action-sheet-button.action-sheet-cancel .action-sheet-icon.sc-ion-action-sheet-md,
+body ion-action-sheet .action-sheet-button.action-sheet-cancel .action-sheet-icon.sc-ion-action-sheet-ios {
+  color: var(--text-secondary);
 }
 
 /* === Custom OpenBar Ionic Alert Styling === */
@@ -1493,91 +1714,91 @@ ion-alert,
 ion-alert.openbar-alert,
 ion-alert.md,
 ion-alert.ios {
-  --background: var(--background-surface-1, #1a1a2e) !important;
-  --color: var(--text-primary, #eceefb) !important;
-  --backdrop-opacity: 0.75 !important;
-  --border-radius: var(--radius-lg, 16px) !important;
+  --background: var(--background-surface-1);
+  --color: var(--text-primary);
+  --backdrop-opacity: 0.75;
+  --border-radius: var(--radius-lg, 16px);
   --min-width: 320px;
   --max-width: 440px;
   --width: 90%;
 }
 
 ion-alert .alert-wrapper {
-  background: var(--background-surface-1, #1a1a2e) !important;
-  background-color: var(--background-surface-1, #1a1a2e) !important;
-  border: 1px solid var(--border-medium, #2e3450) !important;
-  border-radius: var(--radius-lg, 16px) !important;
-  box-shadow: var(--shadow-modal) !important;
-  padding: 16px !important;
+  background: var(--background-surface-1);
+  background-color: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg, 16px);
+  box-shadow: var(--shadow-modal);
+  padding: 16px;
 }
 
 ion-alert .alert-head {
-  padding: 8px 8px 12px 8px !important;
-  text-align: left !important;
+  padding: 8px 8px 12px 8px;
+  text-align: left;
 }
 
 ion-alert .alert-title {
-  font-family: var(--font-display, var(--font, 'Outfit', 'Inter', sans-serif)) !important;
-  font-size: 1.25rem !important;
-  font-weight: 700 !important;
-  color: var(--text-primary, #ffffff) !important;
+  font-family: var(--font-display, var(--font, 'Outfit', 'Inter', sans-serif));
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 ion-alert .alert-sub-title {
-  color: var(--text-secondary, #a4add0) !important;
-  font-size: 0.9rem !important;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
 ion-alert .alert-message {
-  padding: 0 8px 18px 8px !important;
-  font-family: var(--font, 'Inter', sans-serif) !important;
-  font-size: 0.95rem !important;
-  color: var(--text-secondary, #a4add0) !important;
-  line-height: 1.5 !important;
-  text-align: left !important;
+  padding: 0 8px 18px 8px;
+  font-family: var(--font, 'Inter', sans-serif);
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  text-align: left;
 }
 
 ion-alert .alert-button-group {
-  padding: 14px 8px 4px 8px !important;
-  gap: 12px !important;
-  display: flex !important;
-  justify-content: flex-end !important;
-  border-top: 1px solid var(--border-medium, #2e3450) !important;
+  padding: 14px 8px 4px 8px;
+  gap: 12px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border-medium);
 }
 
 ion-alert button.alert-button {
-  border-radius: var(--radius-md, 10px) !important;
-  font-weight: 600 !important;
-  font-family: var(--font, 'Inter', sans-serif) !important;
-  padding: 10px 20px !important;
-  font-size: 0.9rem !important;
-  text-transform: none !important;
-  transition: all 0.2s ease !important;
-  margin: 0 !important;
-  height: auto !important;
-  min-height: 40px !important;
-  cursor: pointer !important;
+  border-radius: var(--radius-md, 10px);
+  font-weight: 600;
+  font-family: var(--font, 'Inter', sans-serif);
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  text-transform: none;
+  transition: all 0.2s ease;
+  margin: 0;
+  height: auto;
+  min-height: 40px;
+  cursor: pointer;
 }
 
 ion-alert button.alert-button.role-cancel,
 ion-alert button.alert-button.alert-button-cancel,
 ion-alert button.alert-button[aria-label="Annuler"] {
-  background: var(--background-surface-2, #21263f) !important;
-  background-color: var(--background-surface-2, #21263f) !important;
-  color: var(--text-secondary, #a4add0) !important;
-  border: 1px solid var(--border-medium, #2e3450) !important;
+  background: var(--background-surface-2);
+  background-color: var(--background-surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-medium);
 
   .alert-button-inner {
-    color: var(--text-secondary, #a4add0) !important;
+    color: var(--text-secondary);
   }
 
   &:hover {
-    background: var(--background-surface-3, #2a3050) !important;
-    background-color: var(--background-surface-3, #2a3050) !important;
-    color: var(--text-primary, #ffffff) !important;
+    background: var(--background-surface-3);
+    background-color: var(--background-surface-3);
+    color: var(--text-primary);
 
     .alert-button-inner {
-      color: var(--text-primary, #ffffff) !important;
+      color: var(--text-primary);
     }
   }
 }
@@ -1585,22 +1806,22 @@ ion-alert button.alert-button[aria-label="Annuler"] {
 ion-alert button.alert-button.role-destructive,
 ion-alert button.alert-button.alert-button-destructive,
 ion-alert button.alert-button[aria-label="Supprimer"] {
-  background: var(--semantic-danger, #e5604f) !important;
-  background-color: var(--semantic-danger, #e5604f) !important;
-  color: var(--text-on-accent) !important;
-  border: 1px solid transparent !important;
+  background: var(--semantic-danger);
+  background-color: var(--semantic-danger);
+  color: var(--text-on-accent);
+  border: 1px solid transparent;
 
   .alert-button-inner {
-    color: var(--text-on-accent) !important;
+    color: var(--text-on-accent);
   }
 
   &:hover {
-    background: var(--semantic-danger-hover, var(--semantic-danger)) !important;
-    background-color: var(--semantic-danger-hover, var(--semantic-danger)) !important;
-    box-shadow: var(--shadow-btn-danger) !important;
+    background: var(--semantic-danger-hover, var(--semantic-danger));
+    background-color: var(--semantic-danger-hover, var(--semantic-danger));
+    box-shadow: var(--shadow-btn-danger);
 
     .alert-button-inner {
-      color: var(--text-on-accent) !important;
+      color: var(--text-on-accent);
     }
   }
 }
@@ -1695,7 +1916,7 @@ ion-alert button.alert-button[aria-label="Supprimer"] {
   --max-width: 94vw;
   --border-radius: var(--radius-xl, 20px);
   --backdrop-opacity: 0.75;
-  overflow: visible !important;
+  overflow: visible;
 }
 .table-form-modal-dialog::part(content) {
   height: auto;
@@ -1703,10 +1924,10 @@ ion-alert button.alert-button[aria-label="Supprimer"] {
   width: 540px;
   max-width: 94vw;
   border-radius: var(--radius-xl, 20px);
-  border: 1px solid var(--border-medium, #2e3450);
-  background: var(--background-surface-1, #1a1a2e);
+  border: 1px solid var(--border-medium);
+  background: var(--background-surface-1);
   box-shadow: var(--shadow-modal);
-  overflow: visible !important;
+  overflow: visible;
 }
  
 /* Daily Cash Register Closure Modal (Ticket Z) */
@@ -1723,8 +1944,8 @@ ion-alert button.alert-button[aria-label="Supprimer"] {
   width: min(780px, 95vw);
   max-width: 95vw;
   border-radius: var(--radius-xl, 20px);
-  border: 1px solid var(--border-medium, #2e3450);
-  background: var(--background-surface-1, #1a1a2e);
+  border: 1px solid var(--border-medium);
+  background: var(--background-surface-1);
   box-shadow: var(--shadow-modal);
   display: flex;
   flex-direction: column;
@@ -1748,8 +1969,8 @@ ion-alert button.alert-button[aria-label="Supprimer"] {
   width: 480px;
   max-width: 94vw;
   border-radius: var(--radius-xl, 20px);
-  border: 1px solid var(--border-medium, #2e3450);
-  background: var(--background-surface-1, #1a1a2e);
+  border: 1px solid var(--border-medium);
+  background: var(--background-surface-1);
   box-shadow: var(--shadow-modal);
   overflow: hidden;
 }
@@ -1769,8 +1990,8 @@ ion-alert button.alert-button[aria-label="Supprimer"] {
   width: 600px;
   max-width: 94vw;
   border-radius: var(--radius-xl, 20px);
-  border: 1px solid var(--border-medium, #2e3450);
-  background: var(--background-surface-1, #1a1a2e);
+  border: 1px solid var(--border-medium);
+  background: var(--background-surface-1);
   box-shadow: var(--shadow-modal);
   overflow: hidden;
 }
@@ -1802,12 +2023,103 @@ ion-modal.table-qr-batch-modal-dialog::part(content),
 
 /* ── Ion Toast pointer-events & containment ───────────────────────────────── */
 ion-toast {
-  pointer-events: none !important;
+  pointer-events: none;
 }
 
 ion-toast::part(wrapper),
 ion-toast::part(button),
 ion-toast .toast-wrapper,
 ion-toast .toast-button {
-  pointer-events: auto !important;
+  pointer-events: auto;
+}
+
+/* ==========================================================================
+   Canonical Multi-Device Responsive Utilities (OpenBar Design System)
+   - Mobile: < 768px
+   - Tablet POS: 768px – 1024px
+   - Desktop: > 1024px
+   ========================================================================== */
+
+/* ── Display Toggles ── */
+.hide-on-mobile {
+  display: inherit;
+}
+@media (max-width: 767px) {
+  :is(.hide-on-mobile, [class*="hide-on-mobile"]) {
+    display: none;
+  }
+}
+
+.show-on-mobile {
+  display: none;
+}
+@media (max-width: 767px) {
+  :is(.show-on-mobile, [class*="show-on-mobile"]) {
+    display: inherit;
+  }
+}
+
+.hide-on-tablet {
+  display: inherit;
+}
+@media (min-width: 768px) and (max-width: 1024px) {
+  :is(.hide-on-tablet, [class*="hide-on-tablet"]) {
+    display: none;
+  }
+}
+
+.hide-on-desktop {
+  display: inherit;
+}
+@media (min-width: 1025px) {
+  :is(.hide-on-desktop, [class*="hide-on-desktop"]) {
+    display: none;
+  }
+}
+
+/* ── Horizontal Scroll Safeguards for Data Tables & Grids ── */
+.table-scroll-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* ── Touch Hit Target Enforcement (>= 44x44px ergonomics) ── */
+.touch-target {
+  min-width: var(--touch-target-min, 44px);
+  min-height: var(--touch-target-min, 44px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Adaptive Responsive Stacks & Grids ── */
+.responsive-stack {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3, 12px);
+}
+@media (max-width: 767px) {
+  .responsive-stack {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+}
+
+.responsive-grid-adaptive {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4, 16px);
+  width: 100%;
+}
+@media (max-width: 767px) {
+  .responsive-grid-adaptive {
+    grid-template-columns: 1fr;
+    gap: var(--space-3, 12px);
+  }
 }

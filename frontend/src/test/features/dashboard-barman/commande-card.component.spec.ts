@@ -263,4 +263,24 @@ describe('CommandeCardComponent', () => {
     expect(commandeServiceSpy.toggleUrgent).toHaveBeenCalledWith(1);
     expect(component.commande.prioritaire).toBeTrue();
   }));
+
+  it('groupedItems filters items according to stationFilter (KITCHEN and BAR)', () => {
+    component.commande = makeCommande({
+      items: [
+        { id: 1, cocktailNom: 'Mojito', quantite: 1, station: 'BAR' } as any,
+        { id: 2, cocktailNom: 'Nachos', quantite: 1, station: 'KITCHEN' } as any,
+      ]
+    });
+
+    component.stationFilter = 'ALL';
+    expect(component.groupedItems).toHaveSize(2);
+
+    component.stationFilter = 'KITCHEN';
+    expect(component.groupedItems).toHaveSize(1);
+    expect(component.groupedItems[0].cocktailNom).toBe('Nachos');
+
+    component.stationFilter = 'BAR';
+    expect(component.groupedItems).toHaveSize(1);
+    expect(component.groupedItems[0].cocktailNom).toBe('Mojito');
+  });
 });

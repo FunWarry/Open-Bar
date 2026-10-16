@@ -4,6 +4,14 @@ spring:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:openbar}
     username: ${DB_USER:postgres}
     password: ${POSTGRES_PASSWORD:postgres}
+    hikari:
+      pool-name: OpenBarProdHikariPool
+      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:25}
+      minimum-idle: ${HIKARI_MIN_IDLE:5}
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      leak-detection-threshold: 30000
 
   jpa:
     properties:
@@ -18,7 +26,7 @@ springdoc:
 
 openbar:
   cors:
-    allowed-origin-patterns: ${OPENBAR_CORS_ALLOWED_ORIGINS:http://localhost:*,http://127.0.0.1:*,https://open-bar.freeboxos.fr,http://192.168.*:*,http://10.*:*,http://172.16.*:*}
+    allowed-origin-patterns: ${OPENBAR_CORS_ALLOWED_ORIGINS:http://localhost:*,https://localhost:*,http://localhost,https://localhost,http://127.0.0.1:*,https://127.0.0.1:*,http://127.0.0.1,https://127.0.0.1,https://open-bar.freeboxos.fr,https://open-bar.freeboxos.fr:*,http://open-bar.freeboxos.fr,http://open-bar.freeboxos.fr:*,https://*.freeboxos.fr,https://*.freeboxos.fr:*,http://*.freeboxos.fr,http://*.freeboxos.fr:*,https://openbar.lan,https://openbar.lan:*,http://openbar.lan,http://openbar.lan:*,https://app.open-bar.eu,https://app.open-bar.eu:*,http://app.open-bar.eu,http://app.open-bar.eu:*,https://test.open-bar.eu,https://test.open-bar.eu:*,http://test.open-bar.eu,http://test.open-bar.eu:*,https://*.open-bar.eu,https://*.open-bar.eu:*,http://*.open-bar.eu,http://*.open-bar.eu:*,http://192.168.*:*,https://192.168.*:*,http://10.*:*,https://10.*:*,http://172.16.*:*,https://172.16.*:*}
 
 logging:
   file:

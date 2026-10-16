@@ -173,6 +173,9 @@ DNS.2               = ${DOMAIN}
 DNS.3               = *.${DOMAIN}
 DNS.4               = openbar.local
 DNS.5               = *.openbar.local
+DNS.6               = app.open-bar.eu
+DNS.7               = test.open-bar.eu
+DNS.8               = *.open-bar.eu
 IP.1                = 127.0.0.1
 IP.2                = ::1
 EOF

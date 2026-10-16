@@ -1,7 +1,6 @@
 package com.bar.gestioncocktail.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,7 +12,6 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Schema(description = "Authentication response containing tokens and user information")
 public class LoginResponse {
 
@@ -56,4 +54,26 @@ public class LoginResponse {
      * Account last modification timestamp.
      */
     private LocalDateTime updatedAt;
+
+    /**
+     * All-arguments constructor for LoginResponse.
+     *
+     * @param token JWT access token
+     * @param refreshToken Refresh token UUID
+     * @param username Authenticated username
+     * @param roles Assigned roles
+     * @param email User email address
+     * @param createdAt Account creation timestamp
+     * @param updatedAt Account last modification timestamp
+     */
+    public LoginResponse(String token, String refreshToken, String username, List<String> roles,
+                         String email, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.token = token;
+        this.refreshToken = refreshToken;
+        this.username = username;
+        this.roles = roles;
+        this.email = email;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
 }

@@ -76,12 +76,15 @@ class CorsOriginResolverTest {
         assertThat(origins)
                 .doesNotContain("*")
                 .contains(
-                        "http://localhost:[*]",
-                        "http://127.0.0.1:[*]",
+                        "http://localhost:*",
+                        "https://localhost:*",
                         "https://open-bar.freeboxos.fr",
-                        "http://192.168.*:[*]",
-                        "http://10.*:[*]",
-                        "http://172.16.*:[*]"
+                        "https://app.open-bar.eu",
+                        "https://test.open-bar.eu:*",
+                        "https://*.open-bar.eu",
+                        "http://192.168.*:*",
+                        "http://10.*:*",
+                        "http://172.16.*:*"
                 );
     }
 
@@ -96,7 +99,8 @@ class CorsOriginResolverTest {
 
         assertThat(origins)
                 .contains(
-                        "http://localhost:[*]",
+                        "http://localhost:*",
+                        "https://localhost:*",
                         "https://open-bar.freeboxos.fr"
                 );
     }

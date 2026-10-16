@@ -16,7 +16,8 @@ import {
   add, create, trash, leafOutline, toggle, toggleOutline, gridOutline, listOutline,
   search, imageOutline, image, wineOutline, nutritionOutline, eggOutline,
   funnelOutline, closeCircleOutline, alertCircleOutline,
-  checkmarkCircle, optionsOutline, addCircleOutline, libraryOutline, gitBranchOutline
+  checkmarkCircle, optionsOutline, addCircleOutline, libraryOutline, gitBranchOutline,
+  sparklesOutline, chevronDownOutline, chevronUpOutline, contractOutline
 } from 'ionicons/icons';
 import { AsyncPipe, CurrencyPipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -89,6 +90,48 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   searchQuery = '';
   viewMode: 'grid' | 'list' | 'wheel' = 'grid';
   showPictures = localStorage.getItem('openbar_show_pictures') !== 'false';
+  /**
+   * Whether compact card mode is enabled (showing only essential info, omitting flavor/dietary pills).
+   */
+  compactMode = false;
+  /**
+   * Whether the interactive cocktail matcher panel is expanded.
+   * Defaulted to false (collapsed behind a toggle button) to save vertical screen real estate.
+   */
+  isMatcherExpanded = false;
+
+  /**
+   * Number of active cocktail matcher filters.
+   */
+  get activeMatcherFiltersCount(): number {
+    let count = this.selectedFlavors.length;
+    if (this.matcherMocktail) count++;
+    if (this.matcherVegan) count++;
+    if (this.matcherGlutenFree) count++;
+    if (this.matcherLowAbv) count++;
+    return count;
+  }
+
+  /**
+   * Whether any matcher filter is active.
+   */
+  get hasActiveMatcherFilters(): boolean {
+    return this.activeMatcherFiltersCount > 0;
+  }
+
+  /**
+   * Toggles the interactive cocktail matcher accordion.
+   */
+  toggleMatcher(): void {
+    this.isMatcherExpanded = !this.isMatcherExpanded;
+  }
+
+  /**
+   * Toggles compact card mode.
+   */
+  toggleCompactMode(): void {
+    this.compactMode = !this.compactMode;
+  }
 
   getMarginBadgeClass(percentage: number | null | undefined): string {
     const target = this.appSettingsService?.targetGrossMarginPercentage ?? 70;
@@ -129,7 +172,15 @@ export class CocktailListComponent implements OnInit, OnDestroy {
       libraryOutline,
       'library-outline': libraryOutline,
       gitBranchOutline,
-      'git-branch-outline': gitBranchOutline
+      'git-branch-outline': gitBranchOutline,
+      sparklesOutline,
+      'sparkles-outline': sparklesOutline,
+      chevronDownOutline,
+      'chevron-down-outline': chevronDownOutline,
+      chevronUpOutline,
+      'chevron-up-outline': chevronUpOutline,
+      contractOutline,
+      'contract-outline': contractOutline
     });
   }
 

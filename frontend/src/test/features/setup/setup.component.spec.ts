@@ -15,15 +15,15 @@ describe('SetupComponent', () => {
   let routerSpy: jasmine.SpyObj<Router>;
   let toastControllerSpy: jasmine.SpyObj<ToastController>;
   let modalControllerSpy: jasmine.SpyObj<ModalController>;
-  let toastSpy: any;
-  let modalSpy: any;
+  let toastSpy: jasmine.SpyObj<HTMLIonToastElement>;
+  let modalSpy: jasmine.SpyObj<HTMLIonModalElement>;
 
   beforeEach(async () => {
     setupServiceSpy = jasmine.createSpyObj('SetupService', ['getStatus', 'createAdmin']);
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
-    toastSpy = jasmine.createSpyObj('HTMLIonToastElement', ['present']);
+    toastSpy = jasmine.createSpyObj<HTMLIonToastElement>('HTMLIonToastElement', ['present']);
     toastControllerSpy = jasmine.createSpyObj('ToastController', ['create']);
-    modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present']);
+    modalSpy = jasmine.createSpyObj<HTMLIonModalElement>('HTMLIonModalElement', ['present']);
     modalControllerSpy = jasmine.createSpyObj('ModalController', ['create']);
 
     toastControllerSpy.create.and.returnValue(Promise.resolve(toastSpy));
@@ -47,6 +47,12 @@ describe('SetupComponent', () => {
 
   it('should be created', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('redirects to /auth/login during ngOnInit if setup is already initialized', () => {
+    setupServiceSpy.getStatus.and.returnValue(of({ initialized: true, userCount: 1 }));
+    component.ngOnInit();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/auth/login']);
   });
 
   it('form is invalid by default (empty required fields)', () => {
@@ -93,7 +99,21 @@ describe('SetupComponent', () => {
     expect(component.setupForm.hasError('passwordMismatch')).toBeTrue();
   });
 
-  it('advances to catalog step on valid form submit', () => {
+  it('marks form as touched and does not call service when submitting invalid form', () => {
+    component.setupForm.reset();
+    component.onSubmit();
+    expect(setupServiceSpy.createAdmin).not.toHaveBeenCalled();
+    expect(component.setupForm.touched).toBeTrue();
+  });
+
+  it('submits data via SetupService and redirects to /auth/login on success', async () => {
+    setupServiceSpy.createAdmin.and.returnValue(of({
+      id: 1,
+      username: 'admin',
+      email: 'admin@test.com',
+      roles: ['ADMIN']
+    }));
+
     component.setupForm.setValue({
       username: 'admin',
       email: 'admin@test.com',
@@ -106,72 +126,6 @@ describe('SetupComponent', () => {
 
     component.onSubmit();
 
-    expect(component.currentStep).toBe('catalog');
-  });
-
-  it('proceedToCatalog marks form as touched and stays on admin step when form is invalid', () => {
-    component.setupForm.reset();
-    component.proceedToCatalog();
-    expect(component.currentStep).toBe('admin');
-  });
-
-  it('submitSetup returns to admin step and does not call service when form is invalid', () => {
-    component.currentStep = 'catalog';
-    component.setupForm.reset();
-    component.submitSetup(['lib_1']);
-    expect(component.currentStep).toBe('admin');
-    expect(setupServiceSpy.createAdmin).not.toHaveBeenCalled();
-  });
-
-  it('allows returning back to admin step', () => {
-    component.currentStep = 'catalog';
-    component.backToAdmin();
-    expect(component.currentStep).toBe('admin');
-  });
-
-  it('submits data via SetupService with initialCocktailIds and redirects to /auth/login on success', async () => {
-    setupServiceSpy.createAdmin.and.returnValue(of({ id: 1, username: 'admin', email: 'admin@test.com', roles: ['ADMIN'] }));
-
-    component.setupForm.setValue({
-      username: 'admin',
-      email: 'admin@test.com',
-      nom: 'Admin',
-      prenom: 'Initial',
-      password: 'password123',
-      confirmPassword: 'password123',
-      acceptTerms: true
-    });
-
-    component.submitSetup(['lib_1', 'lib_2']);
-
-    expect(setupServiceSpy.createAdmin).toHaveBeenCalledWith({
-      username: 'admin',
-      email: 'admin@test.com',
-      nom: 'Admin',
-      prenom: 'Initial',
-      password: 'password123',
-      initialCocktailIds: ['lib_1', 'lib_2']
-    });
-
-    await fixture.whenStable();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/auth/login']);
-  });
-
-  it('submits setup with empty cocktail list when skipped', async () => {
-    setupServiceSpy.createAdmin.and.returnValue(of({ id: 1, username: 'admin', email: 'admin@test.com', roles: ['ADMIN'] }));
-
-    component.setupForm.setValue({
-      username: 'admin',
-      email: 'admin@test.com',
-      nom: 'Admin',
-      prenom: 'Initial',
-      password: 'password123',
-      confirmPassword: 'password123',
-      acceptTerms: true
-    });
-
-    component.submitSetup([]);
-
     expect(setupServiceSpy.createAdmin).toHaveBeenCalledWith({
       username: 'admin',
       email: 'admin@test.com',
@@ -180,10 +134,17 @@ describe('SetupComponent', () => {
       password: 'password123',
       initialCocktailIds: []
     });
+
+    await fixture.whenStable();
+    expect(toastControllerSpy.create).toHaveBeenCalled();
+    expect(toastSpy.present).toHaveBeenCalled();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/auth/login']);
   });
 
   it('displays an error message if createAdmin fails during submitSetup', () => {
-    setupServiceSpy.createAdmin.and.returnValue(throwError(() => ({ error: { message: 'Username already taken' } })));
+    setupServiceSpy.createAdmin.and.returnValue(throwError(() => ({
+      error: { message: 'Username already taken' }
+    })));
 
     component.setupForm.setValue({
       username: 'admin',
@@ -195,7 +156,7 @@ describe('SetupComponent', () => {
       acceptTerms: true
     });
 
-    component.submitSetup(['lib_1']);
+    component.onSubmit();
 
     expect(component.errorMessage).toBe('Username already taken');
     expect(component.loading).toBeFalse();

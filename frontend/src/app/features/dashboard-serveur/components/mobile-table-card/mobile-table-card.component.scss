@@ -2,8 +2,18 @@
 // Adaptive Theme colors using CSS variables from variables.css (Rule #9)
 
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
+
+app-card.mobile-table-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  flex: 1;
+}
+
 
 // 1. Header
 .tile-header {
@@ -11,40 +21,50 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  gap: 6px;
 
   .table-identity {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
 
     .icon-box {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
       background: var(--background-surface-2);
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
 
       ion-icon {
         color: var(--primary);
-        font-size: 1.15rem;
+        font-size: 0.95rem;
       }
     }
 
     .table-name {
-      font-weight: 700;
-      font-size: 1.1rem;
+      font-weight: 800;
+      font-size: 1.05rem;
       color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: -0.01em;
     }
   }
 
   .status-pill {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
+    padding: 2px 7px;
+    border-radius: var(--radius-pill, 999px);
+    font-size: 0.7rem;
     font-weight: 700;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    flex-shrink: 0;
 
     &.free {
       background: var(--status-ready-15, rgba(47, 191, 107, 0.15));
@@ -65,15 +85,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 6px 10px;
-  border-radius: 8px;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 6px;
   background: var(--status-canceled-15, rgba(229, 96, 79, 0.18));
   border: 1px solid var(--semantic-danger);
   color: var(--semantic-danger);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 
   &.bill-alert {
     background: var(--status-waiting-15, rgba(244, 165, 42, 0.18));
@@ -82,13 +102,13 @@
   }
 
   .call-icon {
-    font-size: 1rem;
+    font-size: 0.85rem;
     line-height: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     flex-shrink: 0;
   }
 
@@ -100,14 +120,15 @@
   }
 
   .call-ack-btn {
-    padding: 3px 8px;
-    border-radius: 6px;
+    padding: 2px 6px;
+    border-radius: 4px;
     background: var(--semantic-success);
     color: var(--text-on-accent, #ffffff);
     border: none;
     font-weight: 800;
-    font-size: 0.78rem;
+    font-size: 0.7rem;
     cursor: pointer;
+    flex-shrink: 0;
   }
 }
 
@@ -115,32 +136,39 @@
 .tile-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   width: 100%;
+  flex: 1;
 
   .meta-row {
     display: flex;
     align-items: center;
-    gap: 12px;
-    font-size: 0.85rem;
+    gap: 6px;
+    font-size: 0.76rem;
     color: var(--text-secondary);
+    flex-wrap: wrap;
 
     .meta-item {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 3px;
 
       ion-icon {
-        font-size: 1rem;
+        font-size: 0.85rem;
         color: var(--text-muted);
       }
 
       &.zone-chip {
         background: var(--background-surface-2);
-        padding: 3px 10px;
-        border-radius: 8px;
+        padding: 2px 6px;
+        border-radius: 6px;
         color: var(--text-secondary);
         font-weight: 500;
+        font-size: 0.7rem;
+        max-width: 95px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
   }
@@ -148,11 +176,25 @@
   .wait-time-banner {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    border-radius: 10px;
-    font-size: 0.85rem;
+    gap: 4px;
+    padding: 3px 6px;
+    border-radius: 6px;
+    font-size: 0.72rem;
     font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    ion-icon {
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
     &.wait-normal {
       background: var(--status-ready-15, rgba(47, 191, 107, 0.15));
@@ -177,52 +219,82 @@
 // 4. Footer
 .tile-footer {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   width: 100%;
-  gap: 12px;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 4px;
 
   .total-badge {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    width: 100%;
+    min-width: 0;
 
     .label {
-      font-size: 0.72rem;
+      font-size: 0.65rem;
       font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
+      line-height: 1.2;
+      white-space: nowrap;
     }
 
     .amount {
-      font-size: 1.2rem;
+      font-size: 1.05rem;
       font-weight: 800;
       color: var(--semantic-success);
+      line-height: 1.2;
+      white-space: nowrap;
     }
   }
 
   .card-action-buttons {
-    margin-left: auto;
+    width: 100%;
+    margin-left: 0;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 
-    .occupy-btn {
+    .occupy-btn,
+    .free-btn,
+    .order-btn {
+      flex: 1;
+      min-width: 0;
+      justify-content: center;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      background: var(--status-waiting-15, rgba(244, 165, 42, 0.15));
-      color: var(--table-occupied);
-      border: 1px solid var(--semantic-warning);
-      border-radius: 10px;
-      padding: 7px 13px;
-      font-size: 0.84rem;
+      gap: 4px;
+      border-radius: 8px;
+      padding: 5px 8px;
+      min-height: 30px;
+      font-size: 0.75rem;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.15s ease;
+      white-space: nowrap;
 
       ion-icon {
-        font-size: 1rem;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+      }
+
+      span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    .occupy-btn {
+      background: var(--status-waiting-15, rgba(244, 165, 42, 0.15));
+      color: var(--table-occupied);
+      border: 1px solid var(--semantic-warning);
+
+      ion-icon {
         color: var(--table-occupied);
       }
 
@@ -232,21 +304,11 @@
     }
 
     .free-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
       background: var(--status-ready-15, rgba(47, 191, 107, 0.15));
       color: var(--table-free);
       border: 1px solid var(--semantic-success);
-      border-radius: 10px;
-      padding: 7px 13px;
-      font-size: 0.84rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s ease;
 
       ion-icon {
-        font-size: 1rem;
         color: var(--table-free);
       }
 
@@ -256,22 +318,12 @@
     }
 
     .order-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
       background: var(--background-surface-2);
       color: var(--text-primary);
       border: 1px solid var(--border-medium);
-      border-radius: 10px;
-      padding: 7px 14px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s ease;
 
       ion-icon {
         color: var(--primary);
-        font-size: 1rem;
       }
 
       &:hover {
@@ -281,6 +333,38 @@
 
         ion-icon {
           color: var(--text-on-accent, #ffffff);
+        }
+      }
+    }
+  }
+
+  @media (max-width: 767px) {
+    gap: 5px;
+
+    .total-badge {
+      .label {
+        font-size: 0.62rem;
+      }
+
+      .amount {
+        font-size: 0.95rem;
+      }
+    }
+
+    .card-action-buttons {
+      gap: 3px;
+
+      .occupy-btn,
+      .free-btn,
+      .order-btn {
+        padding: 4px 3px;
+        font-size: 0.68rem;
+        letter-spacing: -0.2px;
+        min-height: 28px;
+        gap: 2px;
+
+        ion-icon {
+          font-size: 0.8rem;
         }
       }
     }

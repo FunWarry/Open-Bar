@@ -19,8 +19,9 @@
 10. [Conformité Légale, Clôture Z-Report & Export FEC](#10-conformité-légale-clôture-z-report--export-fec)
 11. [Déploiement Embarqué & Reverse Proxy Nginx TLS](#11-déploiement-embarqué--reverse-proxy-nginx-tls)
 12. [Sauvegardes Automatiques & Disaster Recovery](#12-sauvegardes-automatiques--disaster-recovery)
-13. [Sécurité & Durcissement en Production](#13-sécurité--durcissement-en-production)
-14. [Pyramide de Tests & Assurance Qualité](#14-pyramide-de-tests--assurance-qualité)
+13. [Journalisation, Rotation des Logs & Exploitation](#13-journalisation-rotation-des-logs--exploitation)
+14. [Sécurité & Durcissement en Production](#14-sécurité--durcissement-en-production)
+15. [Pyramide de Tests & Assurance Qualité](#15-pyramide-de-tests--assurance-qualité)
 
 ---
 
@@ -271,7 +272,17 @@ Le conteneur `backup` gère les sauvegardes nocturnes et leur rétention dans le
 
 ---
 
-## 13. Sécurité & Durcissement en Production
+## 13. Architecture de Journalisation, Logrotate & Diagnostics
+
+OpenBar utilise une structure centralisée de logs adossée à un volume Docker persistant (`/var/log/openbar`) et supervisée par un conteneur dédié `logrotate` :
+- **Résilience sur matériel embarqué (RPi 5 / Mini-PC)** : Empêche toute saturation du disque flash (MicroSD/eMMC) par rotation horaire et compression automatique.
+- **Politique de rotation** : Quotidienne, déclenchée immédiatement dès qu'un fichier dépasse 10 Mo (`maxsize 10M`), rétention bornée à 14 archives (`rotate 14`) avec compression Gzip.
+- **Rotation sans interruption** : Mécanisme `copytruncate` permettant de tronquer les journaux en place sans redémarrage de la JVM ni de Nginx.
+- La documentation complète, les commandes de streaming et le diagnostic opérationnel sont détaillés dans [`docs/LOGS_GUIDE.md`](LOGS_GUIDE.md).
+
+---
+
+## 14. Sécurité & Durcissement en Production
 
 - **Filtrage Anti-XSS Global** : Jackson désinfecte automatiquement toutes les chaînes entrantes grâce à `Jsoup`.
 - **Validation Anti-Fraude QR** : Les commandes publiques requièrent un jeton de session de table éphémère (`TableSession`), empêchant les commandes pirates depuis l'extérieur de l'établissement.
@@ -280,7 +291,7 @@ Le conteneur `backup` gère les sauvegardes nocturnes et leur rétention dans le
 
 ---
 
-## 14. Pyramide de Tests & Assurance Qualité
+## 15. Pyramide de Tests & Assurance Qualité
 
 ### 1. Tests Unitaires Frontend (Karma / Jasmine)
 ```bash

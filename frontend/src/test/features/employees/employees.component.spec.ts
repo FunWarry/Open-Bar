@@ -226,5 +226,113 @@ describe('EmployeesComponent', () => {
 
     expect(mockCsvExportService.exportTable).not.toHaveBeenCalled();
   });
+
+  describe('KPI and Statistics Getters', () => {
+    it('totalEmployeesCount returns total count of employees', () => {
+      expect(component.totalEmployeesCount).toBe(3);
+    });
+
+    it('totalWeeklyHours computes sum of all employee hours', () => {
+      // sampleShifts has 8h for user 1 and 8h for user 2 = 16h total
+      expect(component.totalWeeklyHours).toBe(16);
+    });
+
+    it('totalWeeklyShifts computes sum of shifts count', () => {
+      // 1 shift for user 1 and 1 shift for user 2 = 2 shifts total
+      expect(component.totalWeeklyShifts).toBe(2);
+    });
+
+    it('averageWeeklyHours returns correct rounded average', () => {
+      // 16 hours / 3 employees = 5.3
+      expect(component.averageWeeklyHours).toBe('5.3');
+    });
+
+    it('averageWeeklyHours returns 0.0 when no employees', () => {
+      component.employeeSummaries = [];
+      expect(component.averageWeeklyHours).toBe('0.0');
+    });
+
+    it('roleCounts calculates accurate count per role', () => {
+      const counts = component.roleCounts;
+      expect(counts['SERVEUR']).toBe(1);
+      expect(counts['BARMAN']).toBe(1);
+      expect(counts['MANAGER']).toBe(1);
+      expect(counts['ADMIN']).toBe(0);
+    });
+  });
+
+  describe('Filter Controls and Helpers', () => {
+    it('selectRole updates selectedRole and re-filters', () => {
+      component.selectRole('SERVEUR');
+      expect(component.selectedRole).toBe('SERVEUR');
+      expect(component.filteredSummaries).toHaveSize(1);
+      expect(component.filteredSummaries[0].user.roles).toContain('SERVEUR');
+
+      component.selectRole('ALL');
+      expect(component.selectedRole).toBe('ALL');
+      expect(component.filteredSummaries).toHaveSize(3);
+    });
+
+    it('filters employees by multiple roles simultaneously', () => {
+      component.selectedRoles = ['SERVEUR', 'BARMAN'];
+      component.onRoleChange();
+
+      expect(component.filteredSummaries).toHaveSize(2);
+      const usernames = component.filteredSummaries.map(s => s.user.username);
+      expect(usernames).toContain('serveur1');
+      expect(usernames).toContain('barman1');
+    });
+
+    it('roleSelectOptions provides complete list with badge counts', () => {
+      const options = component.roleSelectOptions;
+      expect(options).toHaveSize(4);
+      const values = options.map(o => o.value);
+      expect(values).toEqual(['SERVEUR', 'BARMAN', 'MANAGER', 'ADMIN']);
+    });
+
+    it('resetFilters clears search and role filters', () => {
+      component.searchQuery = 'something';
+      component.selectedRole = 'BARMAN';
+      component.resetFilters();
+
+      expect(component.searchQuery).toBe('');
+      expect(component.selectedRole).toBe('ALL');
+      expect(component.filteredSummaries).toHaveSize(3);
+    });
+
+    it('goToSchedule navigates to /manager/schedule', () => {
+      const router = TestBed.inject(Router);
+      spyOn(router, 'navigate');
+      component.goToSchedule();
+      expect(router.navigate).toHaveBeenCalledWith(['/manager/schedule']);
+    });
+
+    it('getUserPrimaryRole returns primary role or default', () => {
+      expect(component.getUserPrimaryRole(sampleUsers[0].roles)).toBe('SERVEUR');
+      expect(component.getUserPrimaryRole([])).toBe('SERVEUR');
+      expect(component.getUserPrimaryRole(['MANAGER', 'ADMIN'])).toBe('MANAGER');
+      expect(component.getUserPrimaryRole(['ADMIN', 'MANAGER'])).toBe('ADMIN');
+      expect(component.getUserPrimaryRole(['BARMAN'])).toBe('BARMAN');
+      expect(component.getUserPrimaryRole(['CUSTOM_ROLE'])).toBe('SERVEUR');
+    });
+
+    it('getWorkloadProgress computes ratio based on 35h contract base', () => {
+      expect(component.getWorkloadProgress(0)).toBe(0);
+      expect(component.getWorkloadProgress(17.5)).toBe(50);
+      expect(component.getWorkloadProgress(35)).toBe(100);
+      expect(component.getWorkloadProgress(45)).toBe(100);
+    });
+
+    it('isOvertime checks if hours exceed 35h', () => {
+      expect(component.isOvertime(35)).toBeFalse();
+      expect(component.isOvertime(35.5)).toBeTrue();
+      expect(component.isOvertime(20)).toBeFalse();
+    });
+
+    it('getDisplayName returns full name or fallback to username', () => {
+      expect(component.getDisplayName(sampleUsers[0])).toBe('Lucas Bernard');
+      expect(component.getDisplayName({ ...sampleUsers[0], prenom: '', nom: '' })).toBe('serveur1');
+    });
+  });
 });
 

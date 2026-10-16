@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, OnInit, OnDestroy, Input, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -102,6 +102,8 @@ import { RouletteService } from '../../core/services/roulette.service';
   styleUrls: ['./dashboard-barman.component.scss']
 })
 export class DashboardBarmanComponent implements OnInit, OnDestroy {
+  @Input() isKitchenModeInput?: boolean;
+
   commandesEnAttente: CommandeView[] = [];
   commandesEnPreparation: CommandeView[] = [];
   commandesPret: CommandeView[] = [];
@@ -139,9 +141,15 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly wsService = inject(WebSocketService);
   private readonly rouletteService = inject(RouletteService, { optional: true });
+  private readonly route = inject(ActivatedRoute, { optional: true });
+  private readonly router = inject(Router, { optional: true });
 
   readonly cuisineKdsEnabled = this.featureFlagService.cuisineKdsEnabled;
   activeViewMode: 'tickets' | 'batch' = 'tickets';
+  /** Currently active column on mobile viewport (< 768px). */
+  activeMobileTab: 'PENDING' | 'IN_PROGRESS' | 'READY' = 'PENDING';
+  /** Currently active batch column on mobile viewport (< 768px). */
+  activeBatchMobileTab: 'PENDING' | 'IN_PROGRESS' = 'PENDING';
   roulettePin = '7777';
 
   constructor() {
@@ -165,6 +173,21 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       tvOutline,
       addCircleOutline
     });
+  }
+
+  /**
+   * Returns whether this preparation workstation is running in Kitchen KDS mode.
+   */
+  get isKitchenMode(): boolean {
+    if (this.isKitchenModeInput !== undefined) {
+      return this.isKitchenModeInput;
+    }
+    const routeStation = this.route?.snapshot?.data?.['station'];
+    if (routeStation === 'KITCHEN') {
+      return true;
+    }
+    const url = this.router?.url || '';
+    return url.includes('/kitchen') || url.includes('/cuisine') || url.includes('/kds');
   }
 
   /**
@@ -277,6 +300,10 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    if (this.isKitchenMode) {
+      this.stationFilter = 'KITCHEN';
+    }
+
     this.settingsService
       .getSettings()
       .pipe(takeUntil(this.destroy$))
@@ -297,7 +324,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
 
     this.chargerCommandes();
 
-    if (this.featureFlagService.mysteryRouletteEnabled() && this.rouletteService) {
+    if (!this.isKitchenMode && this.featureFlagService.mysteryRouletteEnabled() && this.rouletteService) {
       this.rouletteService.getDisplayPin()
         .pipe(takeUntil(this.destroy$))
         .subscribe({
@@ -375,6 +402,22 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
           this.chargerCommandes();
         }
       });
+
+    if (this.isKitchenMode) {
+      this.wsService
+        .watch('/topic/preparation/kitchen')
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          this.chargerCommandes();
+        });
+
+      this.wsService
+        .watch('/topic/preparation/snack')
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          this.chargerCommandes();
+        });
+    }
 
     this.notificationService.onStockAlert()
       .pipe(takeUntil(this.destroy$))
@@ -571,7 +614,11 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   async onPrintTicket(cmd: CommandeView): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: BarTicketPrintComponent,
-      componentProps: { commande: cmd },
+      componentProps: {
+        commande: cmd,
+        isKitchenMode: this.isKitchenMode,
+        stationFilter: this.stationFilter
+      },
       cssClass: 'modal-md bar-ticket-modal-container'
     });
     await modal.present();
@@ -682,7 +729,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
         next: () => {
           this.chargerCommandes();
           void this.showToast(
-            this.transloco.translate('BARMAN_DASHBOARD.BATCH_STARTED_SUCCESS', { name: batch.cocktailNom }),
+            this.transloco.translate(this.isKitchenMode ? 'KDS.BATCH_STARTED_SUCCESS' : 'BARMAN_DASHBOARD.BATCH_STARTED_SUCCESS', { name: batch.cocktailNom }),
             'primary'
           );
         },
@@ -710,7 +757,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
           this.chargerCommandes();
           this.soundService.playOrderReadySound();
           void this.showToast(
-            this.transloco.translate('BARMAN_DASHBOARD.BATCH_COMPLETED_SUCCESS', { name: batch.cocktailNom }),
+            this.transloco.translate(this.isKitchenMode ? 'KDS.BATCH_COMPLETED_SUCCESS' : 'BARMAN_DASHBOARD.BATCH_COMPLETED_SUCCESS', { name: batch.cocktailNom }),
             'success'
           );
         },

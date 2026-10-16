@@ -117,4 +117,21 @@ describe('MobileTableCardComponent', () => {
     component.waitTimeMinutes = 0;
     expect(component.accentColor).toBe('warning');
   });
+
+  it('should format displayTableNumber by stripping redundant Table prefixes', () => {
+    fixture.componentRef.setInput('table', { ...mockTable, nom: 'Table 5' });
+    expect(component.displayTableNumber).toBe('5');
+
+    fixture.componentRef.setInput('table', { ...mockTable, nom: 'Table #12' });
+    expect(component.displayTableNumber).toBe('12');
+
+    fixture.componentRef.setInput('table', { ...mockTable, nom: 'table 42' });
+    expect(component.displayTableNumber).toBe('42');
+
+    fixture.componentRef.setInput('table', { ...mockTable, nom: 'Bar 3' });
+    expect(component.displayTableNumber).toBe('Bar 3');
+
+    fixture.componentRef.setInput('table', { ...mockTable, nom: '' });
+    expect(component.displayTableNumber).toBe('5');
+  });
 });

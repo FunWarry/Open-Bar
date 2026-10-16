@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,7 +12,6 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Schema(description = "Request payload to update quantity or notes of a collaborative cart item")
 public class TableCartItemUpdateRequestDTO {
 
@@ -29,4 +27,17 @@ public class TableCartItemUpdateRequestDTO {
     @Size(max = 500, message = "Notes cannot exceed 500 characters")
     @Schema(description = "Updated preparation notes", example = "No mint")
     private String notes;
+
+    /**
+     * All-arguments constructor for TableCartItemUpdateRequestDTO.
+     *
+     * @param guestSessionId Unique guest session identifier
+     * @param quantite       Updated quantity
+     * @param notes          Updated preparation notes
+     */
+    public TableCartItemUpdateRequestDTO(String guestSessionId, int quantite, String notes) {
+        this.guestSessionId = guestSessionId;
+        this.quantite = quantite;
+        this.notes = notes;
+    }
 }

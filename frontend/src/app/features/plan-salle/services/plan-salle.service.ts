@@ -40,7 +40,7 @@ export class PlanSalleService {
         height: item.planHeight ?? item.height,
         rotation: item.planRotation ?? item.rotation ?? 0,
         shape: normalizeShape(item.planForme ?? item.shape),
-        floor: item.etage || item.floor || 'RDC',
+        floor: item.etage || item.floor || undefined,
         zone: item.zone,
       }))),
       catchError(() => {

@@ -16,18 +16,30 @@
         OpenBar
       </button>
     }
-    <button
-      type="button"
-      class="collapse-toggle-btn"
-      (click)="toggleCollapse()"
-      (keyup.enter)="toggleCollapse()"
-      [title]="isCollapsed() ? ('NAV.SIDEBAR.EXPAND' | transloco) : ('NAV.SIDEBAR.COLLAPSE' | transloco)"
-      data-testid="sidebar-toggle-btn">
-      <ion-icon
-        [name]="isCollapsed() ? 'chevron-forward-outline' : 'chevron-back-outline'"
-        class="toggle-icon">
-      </ion-icon>
-    </button>
+    @if (navigationService.isMobile()) {
+      <button
+        type="button"
+        class="collapse-toggle-btn mobile-close-btn"
+        (click)="navigationService.closeMobileSidebar()"
+        (keyup.enter)="navigationService.closeMobileSidebar()"
+        [title]="'COMMON.CLOSE' | transloco"
+        data-testid="sidebar-mobile-close-btn">
+        <ion-icon name="close-outline" class="toggle-icon"></ion-icon>
+      </button>
+    } @else {
+      <button
+        type="button"
+        class="collapse-toggle-btn"
+        (click)="toggleCollapse()"
+        (keyup.enter)="toggleCollapse()"
+        [title]="isCollapsed() ? ('NAV.SIDEBAR.EXPAND' | transloco) : ('NAV.SIDEBAR.COLLAPSE' | transloco)"
+        data-testid="sidebar-toggle-btn">
+        <ion-icon
+          [name]="isCollapsed() ? 'chevron-forward-outline' : 'chevron-back-outline'"
+          class="toggle-icon">
+        </ion-icon>
+      </button>
+    }
   </div>
 
   @if (currentUser$ | async; as user) {

@@ -1284,6 +1284,168 @@ describe('ScheduleComponent', () => {
         'planning_shifts_2026-08-10'
       );
     });
+
+    it('should warn with warning toast when exportScheduleImage has no employees', fakeAsync(() => {
+      component.schedule = {
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        totalHours: 0,
+        totalEmployees: 0,
+        activeEmployees: 0,
+        employees: []
+      };
+
+      component.exportScheduleImage();
+      tick();
+
+      expect(mockToastCtrl.create).toHaveBeenCalledWith(
+        jasmine.objectContaining({ color: 'warning' })
+      );
+    }));
+
+    it('should generate canvas and trigger download in exportScheduleImage', fakeAsync(() => {
+      spyOn(HTMLCanvasElement.prototype, 'toBlob').and.callFake((callback: BlobCallback) => {
+        callback(new Blob(['test'], { type: 'image/png' }));
+      });
+
+      component.schedule = {
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        totalHours: 35,
+        totalEmployees: 1,
+        activeEmployees: 1,
+        employees: [
+          {
+            employeeId: 1,
+            name: 'Alexandre D.',
+            role: 'MANAGER',
+            shifts: [
+              {
+                userId: 1,
+                date: '2026-08-10',
+                day: 'Lundi',
+                isClosed: false,
+                type: 'MANAGER',
+                typeShift: 'MATIN',
+                startTime: '09:00',
+                endTime: '17:00',
+                rawShift: { id: 10, heuresEffectuees: 8 } as any
+              },
+              {
+                userId: 1,
+                date: '2026-08-11',
+                day: 'Mardi',
+                isClosed: true,
+                closureReason: 'Fermé',
+                type: 'CLOSED',
+                startTime: '',
+                endTime: '',
+                rawShift: null as any
+              }
+            ]
+          }
+        ]
+      };
+
+      component.exportScheduleImage();
+      tick();
+
+      expect(mockToastCtrl.create).toHaveBeenCalledWith(
+        jasmine.objectContaining({ color: 'success' })
+      );
+    }));
+
+    it('should adapt to role filter and empty shifts in exportScheduleImage', fakeAsync(() => {
+      spyOn(HTMLCanvasElement.prototype, 'toBlob').and.callFake((callback: BlobCallback) => {
+        callback(new Blob(['test'], { type: 'image/png' }));
+      });
+
+      component.schedule = {
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        totalHours: 35,
+        totalEmployees: 2,
+        activeEmployees: 1,
+        employees: [
+          {
+            employeeId: 1,
+            name: 'Alexandre D.',
+            role: 'MANAGER',
+            shifts: [
+              {
+                userId: 1,
+                date: '2026-08-10',
+                day: 'Lundi',
+                isClosed: false,
+                type: 'MANAGER',
+                startTime: '09:00',
+                endTime: '17:00',
+                rawShift: { id: 10, heuresEffectuees: 8 } as any
+              }
+            ]
+          },
+          {
+            employeeId: 2,
+            name: 'Lucas B.',
+            role: 'SERVEUR',
+            shifts: []
+          }
+        ]
+      };
+
+      // Set role filter to BARMAN -> no matches -> toast warning
+      component.setRoleFilter('BARMAN');
+      component.exportScheduleImage();
+      tick();
+
+      expect(mockToastCtrl.create).toHaveBeenCalledWith(
+        jasmine.objectContaining({ color: 'warning' })
+      );
+
+      mockToastCtrl.create.calls.reset();
+
+      // Reset to ALL and set hideEmptyEmployees to true -> only MANAGER matches -> success
+      component.setRoleFilter('ALL');
+      component.hideEmptyEmployees = true;
+      expect(component.filteredEmployees).toHaveSize(1);
+      expect(component.filteredEmployees[0].name).toBe('Alexandre D.');
+
+      component.exportScheduleImage();
+      tick();
+
+      expect(mockToastCtrl.create).toHaveBeenCalledWith(
+        jasmine.objectContaining({ color: 'success' })
+      );
+    }));
+
+    it('should support drag-resizing employee column within min/max boundaries', () => {
+      component.employeeColWidth = 160;
+      expect(component.employeeColWidth).toBe(160);
+
+      // Start drag
+      const startEvt = new MouseEvent('mousedown', { clientX: 160 });
+      spyOn(startEvt, 'preventDefault');
+      spyOn(startEvt, 'stopPropagation');
+      component.onResizeStart(startEvt);
+
+      expect(component.isResizingCol).toBeTrue();
+
+      // Dispatch mousemove to expand column by 50px
+      window.dispatchEvent(new MouseEvent('mousemove', { clientX: 210 }));
+      expect(component.employeeColWidth).toBe(210);
+
+      // Dispatch mousemove beyond max boundary
+      window.dispatchEvent(new MouseEvent('mousemove', { clientX: 600 }));
+      expect(component.employeeColWidth).toBe(component.maxEmpColWidth);
+
+      // Dispatch mousemove below min boundary
+      window.dispatchEvent(new MouseEvent('mousemove', { clientX: 10 }));
+      expect(component.employeeColWidth).toBe(component.minEmpColWidth);
+
+      // End drag
+      window.dispatchEvent(new MouseEvent('mouseup'));
+      expect(component.isResizingCol).toBeFalse();
+    });
   });
 });
 

@@ -99,6 +99,12 @@
         <span class="icon">💰</span>
         <span>{{ 'HOME.FACTURES' | transloco }}</span>
       </a>
+      @if (checklistsEnabled()) {
+        <a routerLink="/checklists" class="quick-link-btn" data-testid="home-quick-link-checklists">
+          <span class="icon">✅</span>
+          <span>{{ 'NAV.CHECKLISTS' | transloco }}</span>
+        </a>
+      }
     </div>
   </div>
 </div>

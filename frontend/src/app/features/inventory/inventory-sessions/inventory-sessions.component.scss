@@ -148,6 +148,11 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 20px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
 }
 
 .card-top-row {
@@ -331,12 +336,28 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  @media (max-width: 600px) {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 8px;
+  }
 }
 
 .export-btns {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  flex-shrink: 0;
+
+  @media (max-width: 600px) {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
 }
 
 .icon-action-btn {
@@ -344,13 +365,16 @@
   border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
   border-radius: 8px;
-  padding: 6px 12px;
+  padding: 6px 10px;
   font-size: 0.78rem;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.15s ease;
 
   ion-icon {
@@ -362,25 +386,38 @@
     color: var(--text-primary);
     border-color: var(--border-medium);
   }
+
+  @media (max-width: 600px) {
+    width: 100%;
+    height: 36px;
+  }
 }
 
 .navigate-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  background: var(--background-surface-2);
+  background: rgba(79, 70, 229, 0.1);
   color: var(--primary);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(79, 70, 229, 0.3);
   border-radius: 8px;
-  padding: 6px 14px;
+  padding: 6px 12px;
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.2s ease;
+
+  .nav-text {
+    white-space: nowrap;
+  }
 
   ion-icon {
     font-size: 0.95rem;
     transition: transform 0.2s ease;
+    flex-shrink: 0;
   }
 
   &:hover {
@@ -391,6 +428,14 @@
     ion-icon {
       transform: translateX(3px);
     }
+  }
+
+  @media (max-width: 600px) {
+    width: 100%;
+    height: 40px;
+    font-size: 0.88rem;
+    background: rgba(79, 70, 229, 0.15);
+    border-color: rgba(79, 70, 229, 0.4);
   }
 }
 

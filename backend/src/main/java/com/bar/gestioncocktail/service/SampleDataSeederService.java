@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
@@ -82,6 +83,19 @@ public class SampleDataSeederService {
     private static final String KEY_PACKAGING_PRICE_HT = "packagingPriceHt";
     private static final String KEY_COCKTAIL_NOM = "cocktailNom";
     private static final String KEY_REWARD_TEXT = "rewardText";
+    private static final String KEY_DAY_OFFSET = "dayOffset";
+    private static final String KEY_STATUS = "status";
+    private static final String KEY_TITLE = "title";
+    private static final String KEY_CREATED_BY = "createdBy";
+    private static final String KEY_COMPLETED_BY = "completedBy";
+    private static final String KEY_TARGET_ROLE = "targetRole";
+    private static final String KEY_STEPS = "steps";
+    private static final String KEY_ASSIGNED_ROLES = "assignedRoles";
+    private static final String KEY_MEDIA_ATTACHMENTS = "mediaAttachments";
+    private static final String KEY_MEDIA_TYPE = "mediaType";
+    private static final String KEY_MEDIA_URL = "mediaUrl";
+    private static final String KEY_VIDEO_EMBED_URL = "videoEmbedUrl";
+    private static final String KEY_CODE = "code";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -117,6 +131,9 @@ public class SampleDataSeederService {
     private final SupplierRepository supplierRepository;
     private final PurchaseOrderRepository purchaseOrderRepository;
     private final RouletteWheelSectorRepository rouletteWheelSectorRepository;
+    private final ReservationRepository reservationRepository;
+    private final ChecklistTemplateRepository checklistTemplateRepository;
+    private final ChecklistRunRepository checklistRunRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -157,7 +174,10 @@ public class SampleDataSeederService {
             @org.springframework.beans.factory.annotation.Autowired(required = false) BarTabRepository barTabRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) SupplierRepository supplierRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) PurchaseOrderRepository purchaseOrderRepository,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) RouletteWheelSectorRepository rouletteWheelSectorRepository) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) RouletteWheelSectorRepository rouletteWheelSectorRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) ReservationRepository reservationRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) ChecklistTemplateRepository checklistTemplateRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) ChecklistRunRepository checklistRunRepository) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -192,6 +212,9 @@ public class SampleDataSeederService {
         this.supplierRepository = supplierRepository;
         this.purchaseOrderRepository = purchaseOrderRepository;
         this.rouletteWheelSectorRepository = rouletteWheelSectorRepository;
+        this.reservationRepository = reservationRepository;
+        this.checklistTemplateRepository = checklistTemplateRepository;
+        this.checklistRunRepository = checklistRunRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -418,6 +441,8 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedCashDrawerSessionsFromJson(root.get("cash_drawer_sessions"), usersMap), "seedCashDrawerSessions");
             safelyInTransaction(() -> seedBarTabsFromJson(root.get("bar_tabs"), usersMap), "seedBarTabs");
             safelyInTransaction(() -> seedSuppliersAndOrdersFromJson(root.get("suppliers"), root.get("purchase_orders"), usersMap), "seedSuppliersAndOrders");
+            safelyInTransaction(() -> seedReservationsFromJson(root.get("reservations"), tablesMap), "seedReservations");
+            safelyInTransaction(() -> seedChecklistsFromJson(root.get("checklist_templates"), root.get("checklist_runs"), usersMap), "seedChecklists");
 
         } catch (Exception e) {
             log.error("Failed to seed demo dataset from JSON file '{}'", DATASET_PATH, e);
@@ -428,7 +453,8 @@ public class SampleDataSeederService {
         if (environment == null) {
             return false;
         }
-        return java.util.Arrays.asList(environment.getActiveProfiles()).contains("test");
+        java.util.List<String> active = java.util.Arrays.asList(environment.getActiveProfiles());
+        return active.contains("test") || active.contains("staging");
     }
 
     private InputStream loadResourceStream() {
@@ -682,8 +708,8 @@ public class SampleDataSeederService {
     }
 
     private LocalDate resolveShiftDate(JsonNode sNode, LocalDate monday, LocalDate today) {
-        if (sNode.has("dayOffset")) {
-            return monday.plusDays(sNode.get("dayOffset").asLong());
+        if (sNode.has(KEY_DAY_OFFSET)) {
+            return monday.plusDays(sNode.get(KEY_DAY_OFFSET).asLong());
         }
         return today;
     }
@@ -1199,7 +1225,7 @@ public class SampleDataSeederService {
         Cocktail cocktail = cocktailRepository.findByNomIgnoreCaseWithRecipeSteps(cocktailName).orElse(null);
         if (cocktail == null) return;
 
-        JsonNode stepsNode = cocktailNode.get("steps");
+        JsonNode stepsNode = cocktailNode.get(KEY_STEPS);
         if (stepsNode == null || !stepsNode.isArray()) {
             return;
         }
@@ -1384,7 +1410,7 @@ public class SampleDataSeederService {
             }
 
             String token = sNode.path("sessionToken").asText(UUID.randomUUID().toString());
-            TableSessionStatus status = TableSessionStatus.valueOf(sNode.path("status").asText("ACTIVE"));
+            TableSessionStatus status = TableSessionStatus.valueOf(sNode.path(KEY_STATUS).asText("ACTIVE"));
             int minutesAgo = sNode.path(KEY_MINUTES_AGO).asInt(15);
             int expiresInMinutes = sNode.path("expiresInMinutes").asInt(105);
 
@@ -1452,21 +1478,17 @@ public class SampleDataSeederService {
                     c.setId(EstablishmentConfig.SINGLETON_ID);
                     return c;
                 });
-        if (config.getModuleKitchenKdsEnabled() == null) config.setModuleKitchenKdsEnabled(true);
-        if (config.getModuleHappyHourEnabled() == null) config.setModuleHappyHourEnabled(true);
-        if (config.getModuleEmployeeManagementEnabled() == null) config.setModuleEmployeeManagementEnabled(true);
-        if (config.getModuleFloorPlanEnabled() == null) config.setModuleFloorPlanEnabled(true);
-        if (config.getModuleQrClientOrderingEnabled() == null) config.setModuleQrClientOrderingEnabled(true);
-        if (config.getModuleStockTrackingEnabled() == null) config.setModuleStockTrackingEnabled(true);
-        if (config.getModuleCashDrawerEnabled() == null) config.setModuleCashDrawerEnabled(true);
-        if (config.getModuleBarTabsEnabled() == null) config.setModuleBarTabsEnabled(true);
-        if (config.getModuleCocktailLibraryEnabled() == null) config.setModuleCocktailLibraryEnabled(true);
-        if (config.getModuleSuppliersManagementEnabled() == null) config.setModuleSuppliersManagementEnabled(true);
-        if (config.getModuleInventoryAuditEnabled() == null) config.setModuleInventoryAuditEnabled(true);
-        if (config.getModuleMysteryRouletteEnabled() == null) config.setModuleMysteryRouletteEnabled(true);
-        if (config.getModulePaymentTerminalEnabled() == null) config.setModulePaymentTerminalEnabled(true);
+        ensureDefaultModulesEnabled(config);
         establishmentConfigRepository.save(config);
         log.info("Seeded default EstablishmentConfig singleton with modular capabilities.");
+    }
+
+    private void ensureDefaultModulesEnabled(EstablishmentConfig config) {
+        for (EstablishmentModule module : EstablishmentModule.values()) {
+            if (!config.isModuleEnabled(module)) {
+                config.setModuleEnabled(module, true);
+            }
+        }
     }
 
     private void seedRouletteWheelSectorsFromJson(JsonNode sectorsNode, List<Cocktail> cocktails) {
@@ -1754,7 +1776,7 @@ public class SampleDataSeederService {
         int daysAgo = sNode.has(KEY_DAYS_AGO) ? sNode.get(KEY_DAYS_AGO).asInt() : 0;
         LocalDate sessionDate = LocalDate.now(timeService.getZoneId()).minusDays(daysAgo);
         BigDecimal openingFloat = new BigDecimal(sNode.get(KEY_OPENING_FLOAT).asText());
-        CashDrawerSessionStatus status = CashDrawerSessionStatus.valueOf(sNode.get("status").asText());
+        CashDrawerSessionStatus status = CashDrawerSessionStatus.valueOf(sNode.get(KEY_STATUS).asText());
 
         String openedByUsername = sNode.has(KEY_OPENED_BY_USERNAME) ? sNode.get(KEY_OPENED_BY_USERNAME).asText() : "manager";
         User openedBy = usersMap.get(openedByUsername);
@@ -2098,5 +2120,282 @@ public class SampleDataSeederService {
                 ingredientRepository.save(ing);
             }
         });
+    }
+
+    private void seedReservationsFromJson(JsonNode node, Map<Integer, TableEntity> tablesMap) {
+        if (node == null || !node.isArray() || reservationRepository == null || reservationRepository.count() > 0) {
+            return;
+        }
+
+        LocalDate today = timeService != null ? timeService.now().toLocalDate() : LocalDate.now(ZoneId.systemDefault());
+
+        for (JsonNode resNode : node) {
+            seedSingleReservation(resNode, today, tablesMap);
+        }
+    }
+
+    private void seedSingleReservation(JsonNode resNode, LocalDate today, Map<Integer, TableEntity> tablesMap) {
+        try {
+            String clientNom = resNode.has("clientNom") ? resNode.get("clientNom").asText() : "Client Test";
+            String clientTelephone = resNode.has("clientTelephone") ? resNode.get("clientTelephone").asText() : null;
+            String clientEmail = resNode.has("clientEmail") ? resNode.get("clientEmail").asText() : null;
+            int nombrePersonnes = resNode.has("nombrePersonnes") ? resNode.get("nombrePersonnes").asInt() : 2;
+            int dureeMinutes = resNode.has("dureeMinutes") ? resNode.get("dureeMinutes").asInt() : 90;
+            String notes = resNode.has(KEY_NOTES) ? resNode.get(KEY_NOTES).asText() : null;
+            int dayOffset = resNode.has(KEY_DAY_OFFSET) ? resNode.get(KEY_DAY_OFFSET).asInt() : 0;
+            LocalDate dateReservation = today.plusDays(dayOffset);
+            LocalTime heureReservation = resNode.has("heureReservation")
+                    ? LocalTime.parse(resNode.get("heureReservation").asText())
+                    : LocalTime.of(19, 30);
+            ReservationStatut statut = resNode.has(KEY_STATUT)
+                    ? ReservationStatut.valueOf(resNode.get(KEY_STATUT).asText())
+                    : ReservationStatut.CONFIRMED;
+
+            TableEntity table = resolveReservationTable(resNode, tablesMap);
+
+            Reservation reservation = new Reservation(
+                    clientNom, clientTelephone, clientEmail,
+                    dateReservation, heureReservation, dureeMinutes,
+                    nombrePersonnes
+            );
+            reservation.setNotes(notes);
+            reservation.setStatut(statut);
+            reservation.setTable(table);
+            reservationRepository.save(reservation);
+        } catch (Exception e) {
+            log.warn("Failed to seed reservation: {}", e.getMessage());
+        }
+    }
+
+    private TableEntity resolveReservationTable(JsonNode resNode, Map<Integer, TableEntity> tablesMap) {
+        if (!resNode.has(KEY_TABLE_NUMERO)) {
+            return null;
+        }
+        int tableNum = resNode.get(KEY_TABLE_NUMERO).asInt();
+        TableEntity table = tablesMap.get(tableNum);
+        if (table == null) {
+            table = tableRepository.findByNumero(tableNum).orElse(null);
+        }
+        return table;
+    }
+
+    private void seedChecklistsFromJson(JsonNode templatesNode, JsonNode runsNode, Map<String, User> usersMap) {
+        if (templatesNode == null || !templatesNode.isArray() || checklistTemplateRepository == null) {
+            return;
+        }
+
+        if (checklistTemplateRepository.count() == 0) {
+            Map<String, ChecklistTemplate> codeToTemplate = seedChecklistTemplates(templatesNode);
+            seedChecklistRuns(runsNode, codeToTemplate, usersMap);
+            log.info("Seeded demo operational checklists and SOP runs.");
+        } else {
+            synchronizeExistingChecklistTemplates(templatesNode);
+        }
+    }
+
+    private void synchronizeExistingChecklistTemplates(JsonNode templatesNode) {
+        List<ChecklistTemplate> existingTemplates = checklistTemplateRepository.findAll();
+        Map<String, ChecklistTemplate> titleMap = existingTemplates.stream()
+                .filter(t -> t.getTitle() != null)
+                .collect(Collectors.toMap(t -> t.getTitle(), t -> t, (a, b) -> a));
+
+        for (JsonNode tNode : templatesNode) {
+            String title = tNode.has(KEY_TITLE) ? tNode.get(KEY_TITLE).asText() : null;
+            if (title == null || !titleMap.containsKey(title)) {
+                continue;
+            }
+            ChecklistTemplate template = titleMap.get(title);
+            if (tNode.has(KEY_ITEMS) && tNode.get(KEY_ITEMS).isArray()) {
+                updateTemplateItemsFromNode(template, tNode.get(KEY_ITEMS));
+                checklistTemplateRepository.save(template);
+            }
+        }
+        log.info("Synchronized existing checklist templates with SOP steps and media guides.");
+    }
+
+    private void updateTemplateItemsFromNode(ChecklistTemplate template, JsonNode itemsNode) {
+        Map<String, ChecklistTemplateItem> existingItems = template.getItems().stream()
+                .filter(it -> it.getTitle() != null)
+                .collect(Collectors.toMap(it -> it.getTitle(), it -> it, (a, b) -> a));
+
+        for (JsonNode itemNode : itemsNode) {
+            String itemTitle = itemNode.has(KEY_TITLE) ? itemNode.get(KEY_TITLE).asText() : null;
+            if (itemTitle == null || !existingItems.containsKey(itemTitle)) {
+                continue;
+            }
+            ChecklistTemplateItem item = existingItems.get(itemTitle);
+            if (itemNode.has(KEY_MEDIA_TYPE)) {
+                item.setMediaType(ChecklistMediaType.valueOf(itemNode.get(KEY_MEDIA_TYPE).asText()));
+            }
+            if (itemNode.has(KEY_MEDIA_URL)) {
+                item.setMediaUrl(itemNode.get(KEY_MEDIA_URL).asText());
+            }
+            if (itemNode.has(KEY_VIDEO_EMBED_URL)) {
+                item.setVideoEmbedUrl(itemNode.get(KEY_VIDEO_EMBED_URL).asText());
+            }
+            populateItemAssignments(item, itemNode);
+            populateItemMediaAndSteps(item, itemNode);
+        }
+    }
+
+    private Map<String, ChecklistTemplate> seedChecklistTemplates(JsonNode templatesNode) {
+        Map<String, ChecklistTemplate> map = new HashMap<>();
+        for (JsonNode tNode : templatesNode) {
+            try {
+                ChecklistTemplate template = createChecklistTemplateFromNode(tNode);
+                ChecklistTemplate saved = checklistTemplateRepository.save(template);
+                if (tNode.has(KEY_CODE)) {
+                    map.put(tNode.get(KEY_CODE).asText(), saved);
+                }
+                map.put(saved.getTitle(), saved);
+            } catch (Exception e) {
+                log.warn("Failed to seed checklist template: {}", e.getMessage());
+            }
+        }
+        return map;
+    }
+
+    private ChecklistTemplate createChecklistTemplateFromNode(JsonNode tNode) {
+        ChecklistTemplate template = new ChecklistTemplate();
+        template.setTitle(tNode.has(KEY_TITLE) ? tNode.get(KEY_TITLE).asText() : "Checklist");
+        template.setDescription(tNode.has(KEY_DESCRIPTION) ? tNode.get(KEY_DESCRIPTION).asText() : null);
+        template.setCategory(tNode.has(KEY_CATEGORY) ? ChecklistCategory.valueOf(tNode.get(KEY_CATEGORY).asText()) : ChecklistCategory.OTHER);
+        template.setEstimatedDurationMinutes(tNode.has("estimatedDurationMinutes") ? tNode.get("estimatedDurationMinutes").asInt() : 15);
+        template.setIcon(tNode.has("icon") ? tNode.get("icon").asText() : "checkbox-outline");
+        template.setColor(tNode.has("color") ? tNode.get("color").asText() : "var(--primary)");
+        template.setIsActive(true);
+
+        if (tNode.has(KEY_ITEMS) && tNode.get(KEY_ITEMS).isArray()) {
+            for (JsonNode itemNode : tNode.get(KEY_ITEMS)) {
+                ChecklistTemplateItem item = createChecklistTemplateItemFromNode(itemNode);
+                template.addItem(item);
+            }
+        }
+        return template;
+    }
+
+    private ChecklistTemplateItem createChecklistTemplateItemFromNode(JsonNode itemNode) {
+        ChecklistTemplateItem item = new ChecklistTemplateItem();
+        item.setTitle(itemNode.has(KEY_TITLE) ? itemNode.get(KEY_TITLE).asText() : "Tâche");
+        item.setDescription(itemNode.has(KEY_DESCRIPTION) ? itemNode.get(KEY_DESCRIPTION).asText() : null);
+        item.setIsMandatory(!itemNode.has("isMandatory") || itemNode.get("isMandatory").asBoolean());
+        item.setOrderIndex(itemNode.has("orderIndex") ? itemNode.get("orderIndex").asInt() : 0);
+        if (itemNode.has(KEY_TARGET_ROLE) && !itemNode.get(KEY_TARGET_ROLE).isNull() && !itemNode.get(KEY_TARGET_ROLE).asText().isBlank()) {
+            item.setTargetRole(UserRole.valueOf(itemNode.get(KEY_TARGET_ROLE).asText()));
+        }
+        item.setMediaType(itemNode.has(KEY_MEDIA_TYPE) ? ChecklistMediaType.valueOf(itemNode.get(KEY_MEDIA_TYPE).asText()) : ChecklistMediaType.NONE);
+        item.setMediaUrl(itemNode.has(KEY_MEDIA_URL) ? itemNode.get(KEY_MEDIA_URL).asText() : null);
+        item.setVideoEmbedUrl(itemNode.has(KEY_VIDEO_EMBED_URL) ? itemNode.get(KEY_VIDEO_EMBED_URL).asText() : null);
+
+        populateItemAssignments(item, itemNode);
+        populateItemMediaAndSteps(item, itemNode);
+        return item;
+    }
+
+    private void populateItemAssignments(ChecklistTemplateItem item, JsonNode itemNode) {
+        if (itemNode.has(KEY_ASSIGNED_ROLES)) {
+            JsonNode rolesNode = itemNode.get(KEY_ASSIGNED_ROLES);
+            if (rolesNode.isArray()) {
+                String roles = StreamSupport.stream(rolesNode.spliterator(), false)
+                        .map(n -> n != null ? n.asText() : "")
+                        .collect(Collectors.joining(","));
+                item.setAssignedRoles(roles);
+            } else {
+                item.setAssignedRoles(rolesNode.asText());
+            }
+        }
+        if (itemNode.has("assignedUserIds")) {
+            item.setAssignedUserIds(itemNode.get("assignedUserIds").asText());
+        }
+        if (itemNode.has("assignedUsernames")) {
+            item.setAssignedUsernames(itemNode.get("assignedUsernames").asText());
+        }
+    }
+
+    private void populateItemMediaAndSteps(ChecklistTemplateItem item, JsonNode itemNode) {
+        if (itemNode.has(KEY_STEPS) && itemNode.get(KEY_STEPS).isArray()) {
+            item.setStepsJson(itemNode.get(KEY_STEPS).toString());
+        } else if (itemNode.has("stepsJson")) {
+            item.setStepsJson(itemNode.get("stepsJson").asText());
+        }
+        if (itemNode.has(KEY_MEDIA_ATTACHMENTS) && itemNode.get(KEY_MEDIA_ATTACHMENTS).isArray()) {
+            item.setMediaAttachmentsJson(itemNode.get(KEY_MEDIA_ATTACHMENTS).toString());
+        } else if (itemNode.has("mediaAttachmentsJson")) {
+            item.setMediaAttachmentsJson(itemNode.get("mediaAttachmentsJson").asText());
+        }
+    }
+
+    private void seedChecklistRuns(JsonNode runsNode, Map<String, ChecklistTemplate> codeToTemplate, Map<String, User> usersMap) {
+        if (runsNode == null || !runsNode.isArray() || checklistRunRepository == null || checklistRunRepository.count() > 0) {
+            return;
+        }
+
+        LocalDateTime now = timeService != null ? timeService.now() : LocalDateTime.now(ZoneId.systemDefault());
+        for (JsonNode rNode : runsNode) {
+            try {
+                String code = rNode.has("templateCode") ? rNode.get("templateCode").asText() : "";
+                ChecklistTemplate template = codeToTemplate.get(code);
+                if (template != null) {
+                    ChecklistRun run = createChecklistRunFromNode(rNode, template, usersMap, now);
+                    checklistRunRepository.save(run);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to seed checklist run: {}", e.getMessage());
+            }
+        }
+    }
+
+    private ChecklistRun createChecklistRunFromNode(JsonNode rNode, ChecklistTemplate template, Map<String, User> usersMap, LocalDateTime now) {
+        ChecklistRun run = new ChecklistRun();
+        run.setTemplateId(template.getId());
+        run.setTemplateTitle(template.getTitle());
+        run.setCategory(template.getCategory());
+        run.setStatus(rNode.has(KEY_STATUS) ? ChecklistRunStatus.valueOf(rNode.get(KEY_STATUS).asText()) : ChecklistRunStatus.IN_PROGRESS);
+
+        int minutesAgo = rNode.has(KEY_MINUTES_AGO) ? rNode.get(KEY_MINUTES_AGO).asInt() : 60;
+        run.setStartedAt(now.minusMinutes(minutesAgo));
+
+        if (rNode.has(KEY_CREATED_BY) && usersMap.containsKey(rNode.get(KEY_CREATED_BY).asText())) {
+            run.setCreatedBy(usersMap.get(rNode.get(KEY_CREATED_BY).asText()));
+        }
+        if (rNode.has(KEY_COMPLETED_BY) && usersMap.containsKey(rNode.get(KEY_COMPLETED_BY).asText())) {
+            run.setCompletedBy(usersMap.get(rNode.get(KEY_COMPLETED_BY).asText()));
+        }
+        if (rNode.has("completedMinutesAgo")) {
+            run.setCompletedAt(now.minusMinutes(rNode.get("completedMinutesAgo").asInt()));
+        } else if (run.getStatus() == ChecklistRunStatus.COMPLETED) {
+            run.setCompletedAt(now.minusMinutes(Math.max(5, minutesAgo - 30)));
+        }
+        run.setNotes(rNode.has(KEY_NOTES) ? rNode.get(KEY_NOTES).asText() : null);
+
+        populateRunItems(run, template);
+        return run;
+    }
+
+    private void populateRunItems(ChecklistRun run, ChecklistTemplate template) {
+        boolean isCompleted = run.getStatus() == ChecklistRunStatus.COMPLETED;
+        for (ChecklistTemplateItem tItem : template.getItems()) {
+            ChecklistRunItem rItem = new ChecklistRunItem();
+            rItem.setTemplateItemId(tItem.getId());
+            rItem.setTitle(tItem.getTitle());
+            rItem.setDescription(tItem.getDescription());
+            rItem.setIsMandatory(tItem.getIsMandatory());
+            rItem.setOrderIndex(tItem.getOrderIndex());
+            rItem.setTargetRole(tItem.getTargetRole());
+            rItem.setAssignedRoles(tItem.getAssignedRoles());
+            rItem.setAssignedUserIds(tItem.getAssignedUserIds());
+            rItem.setAssignedUsernames(tItem.getAssignedUsernames());
+            rItem.setMediaType(tItem.getMediaType());
+            rItem.setMediaUrl(tItem.getMediaUrl());
+            rItem.setVideoEmbedUrl(tItem.getVideoEmbedUrl());
+            rItem.setMediaAttachmentsJson(tItem.getMediaAttachmentsJson());
+            rItem.setStepsJson(tItem.getStepsJson());
+            rItem.setIsCompleted(isCompleted);
+            if (isCompleted) {
+                rItem.setCompletedAt(run.getCompletedAt());
+                rItem.setCompletedBy(run.getCompletedBy());
+            }
+            run.addItem(rItem);
+        }
     }
 }

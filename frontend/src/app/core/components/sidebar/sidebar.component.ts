@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy, computed } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
@@ -11,7 +11,7 @@ import {
   statsChartOutline, receiptOutline, wineOutline, cardOutline,
   nutritionOutline, settingsOutline, documentTextOutline, chevronBackOutline,
   chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline,
-  libraryOutline, cartOutline, clipboardOutline
+  libraryOutline, cartOutline, clipboardOutline, closeOutline, checkboxOutline
 } from 'ionicons/icons';
 import { tableRestaurantOutline } from '../../icons/custom-icons';
 import { selectCurrentUser } from '../../store/auth.selectors';
@@ -44,6 +44,7 @@ export const SIDEBAR_NAV_ITEMS: NavItemDef[] = [
   { id: 'nav-home', route: '/app-home', icon: 'home-outline', labelKey: 'NAV.HOME', section: 'main' },
   { id: 'nav-serveur', route: '/serveur', icon: 'restaurant-outline', labelKey: 'NAV.SERVEUR', roles: ['SERVEUR', 'BARMAN', 'ADMIN', 'MANAGER'], section: 'main' },
   { id: 'nav-plan-salle', route: '/plan-salle', icon: 'grid-outline', labelKey: 'NAV.PLAN_SALLE', roles: ['MANAGER', 'ADMIN', 'SERVEUR'], requiredModule: EstablishmentModule.FLOOR_PLAN, section: 'main' },
+  { id: 'nav-reservations', route: '/reservations', icon: 'calendar-outline', labelKey: 'NAV.RESERVATIONS', roles: ['MANAGER', 'ADMIN', 'SERVEUR'], requiredModule: EstablishmentModule.TABLE_RESERVATIONS, section: 'main' },
   { id: 'nav-barman', route: '/barman', icon: 'beer-outline', labelKey: 'NAV.BARMAN', roles: ['BARMAN', 'ADMIN', 'MANAGER'], section: 'main' },
   { id: 'nav-kitchen', route: '/kitchen', icon: 'restaurant-outline', labelKey: 'NAV.KITCHEN', roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS, section: 'main' },
   { id: 'nav-manager', route: '/manager', icon: 'stats-chart-outline', labelKey: 'NAV.DASHBOARD', roles: ['MANAGER', 'ADMIN'], section: 'main' },
@@ -53,6 +54,7 @@ export const SIDEBAR_NAV_ITEMS: NavItemDef[] = [
   { id: 'nav-commandes', route: '/commandes', icon: 'receipt-outline', labelKey: 'NAV.COMMANDES', section: 'main' },
   { id: 'nav-tables', route: '/tables', icon: 'table-restaurant-outline', labelKey: 'NAV.TABLES', section: 'main' },
   { id: 'nav-factures', route: '/factures', icon: 'card-outline', labelKey: 'NAV.FACTURES', roles: ['MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN'], section: 'main' },
+  { id: 'nav-checklists', route: '/checklists', icon: 'checkbox-outline', labelKey: 'NAV.CHECKLISTS', roles: ['ADMIN', 'MANAGER', 'BARMAN', 'SERVEUR'], requiredModule: EstablishmentModule.CHECKLISTS_PROCEDURES, section: 'main' },
   { id: 'nav-ingredients', route: '/ingredients', icon: 'nutrition-outline', labelKey: 'NAV.INGREDIENTS', roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.STOCK_TRACKING, section: 'admin' },
   { id: 'nav-purchases', route: '/purchases', icon: 'cart-outline', labelKey: 'NAV.PURCHASES', roles: ['ADMIN', 'MANAGER'], requiredModule: EstablishmentModule.SUPPLIERS_MANAGEMENT, section: 'admin' },
   { id: 'nav-inventory', route: '/inventory', icon: 'clipboard-outline', labelKey: 'NAV.INVENTORY', roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.INVENTORY_AUDIT, section: 'admin' },
@@ -93,9 +95,13 @@ const ROLE_COLORS: Record<string, string> = {
 })
 export class SidebarComponent implements OnDestroy {
 
-  get isCollapsed() {
-    return this.navigationService.isSidebarCollapsed;
-  }
+  /** Reactive computed signal indicating whether the sidebar should be rendered collapsed. */
+  readonly isCollapsed = computed(() => {
+    if (this.navigationService.isMobile()) {
+      return false;
+    }
+    return this.navigationService.isSidebarCollapsed();
+  });
 
   /** Observable emitting the currently authenticated user from the NgRx auth store. */
   readonly currentUser$: Observable<User | null>;
@@ -112,7 +118,8 @@ export class SidebarComponent implements OnDestroy {
       statsChartOutline, receiptOutline, wineOutline, cardOutline,
       nutritionOutline, settingsOutline, documentTextOutline, chevronBackOutline,
       chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline,
-      libraryOutline, tableRestaurantOutline, cartOutline, clipboardOutline
+      libraryOutline, tableRestaurantOutline, cartOutline, clipboardOutline, closeOutline,
+      checkboxOutline
     });
 
     this.currentUser$ = this.store.select(selectCurrentUser);

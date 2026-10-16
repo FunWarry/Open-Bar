@@ -71,4 +71,77 @@ test.describe('Responsive Layout & Visibility E2E Suite', () => {
     await expect(page.locator('app-dashboard-manager')).toBeVisible();
     await expect(page.locator('[data-testid="manager-kanban-section"]')).toBeVisible();
   });
+
+  test('should guarantee zero horizontal page overflow on mobile smartphone viewports (<768px)', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+
+    const targetRoutes = ['/serveur', '/barman', '/factures', '/client/commande'];
+    for (const route of targetRoutes) {
+      await page.goto(route);
+      await page.waitForLoadState('domcontentloaded');
+
+      const hasHorizontalOverflow = await page.evaluate(() => {
+        return document.documentElement.scrollWidth > window.innerWidth;
+      });
+      expect(hasHorizontalOverflow).toBe(false);
+    }
+  });
+
+  test('should contain schedule grid inside table-scroll-container without overflowing viewport on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/manager/schedule');
+    await page.waitForLoadState('domcontentloaded');
+
+    const scrollContainer = page.locator('[data-testid="schedule-grid-scroll-wrapper"]');
+    if (await scrollContainer.isVisible()) {
+      await expect(scrollContainer).toHaveClass(/table-scroll-container/);
+
+      const pageOverflows = await page.evaluate(() => {
+        return document.documentElement.scrollWidth > window.innerWidth;
+      });
+      expect(pageOverflows).toBe(false);
+    }
+  });
+
+  test('should display bottom navigation on waiter view on smartphone (<768px)', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/serveur');
+    await page.waitForLoadState('domcontentloaded');
+
+    const bottomNav = page.locator('app-bottom-navigation');
+    await expect(bottomNav).toBeVisible();
+  });
+
+  test('should hide sidebar off-canvas on smartphone and open via hamburger button', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 915 });
+    await page.goto('/app-home');
+
+    const burgerBtn = page.locator('[data-testid="topbar-burger-btn"]');
+    await expect(burgerBtn).toBeVisible();
+
+    const sidebar = page.locator('app-sidebar');
+    await expect(sidebar).not.toHaveClass(/mobile-open/);
+
+    await burgerBtn.click();
+    await expect(sidebar).toHaveClass(/mobile-open/);
+
+    const backdrop = page.locator('[data-testid="sidebar-backdrop"]');
+    await expect(backdrop).toBeVisible();
+
+    await backdrop.click();
+    await expect(sidebar).not.toHaveClass(/mobile-open/);
+  });
+
+  test('should condense topbar auxiliary buttons into user popover on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 915 });
+    await page.goto('/app-home');
+
+    await expect(page.locator('[data-testid="topbar-language-toggle"]')).not.toBeVisible();
+    await expect(page.locator('[data-testid="topbar-theme-toggle"]')).not.toBeVisible();
+    await expect(page.locator('[data-testid="topbar-sound-toggle"]')).not.toBeVisible();
+
+    const userBtn = page.locator('[data-testid="topbar-user-btn"]');
+    await expect(userBtn).toBeVisible();
+  });
 });
+

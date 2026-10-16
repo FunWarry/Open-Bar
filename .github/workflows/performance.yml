@@ -1,0 +1,110 @@
+name: Performance & Load Benchmarks
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: 'Load test scenario to execute'
+        required: true
+        default: 'smoke'
+        type: choice
+        options:
+          - smoke
+          - rush-hour
+          - websocket
+          - patron-cart
+          - billing
+          - all
+      profile_hardware:
+        description: 'Enable CPU/RAM resource profiling during test'
+        required: false
+        default: true
+        type: boolean
+  schedule:
+    # Nightly run at 02:00 UTC
+    - cron: '0 2 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  load-benchmarks:
+    name: Load Benchmarks & Stress Suite
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: openbar
+          POSTGRES_USER: openbar
+          POSTGRES_PASSWORD: postgres_benchmark_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openbar"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Java 22
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          java-version: '22'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Install k6
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSfL https://github.com/grafana/k6/releases/download/v0.56.0/k6-v0.56.0-linux-amd64.tar.gz | tar -xz
+          sudo mv k6-v0.56.0-linux-amd64/k6 /usr/local/bin/
+          k6 version
+
+      - name: Build Backend JAR
+        run: |
+          cd backend
+          mvn -B clean package -DskipTests -q
+
+      - name: Start OpenBar Backend with Raspberry Pi 5 Resource Limits
+        run: |
+          java -Xms512m -Xmx1536m -XX:+UseG1GC -XX:MaxGCPauseMillis=100 \
+            -Dspring.profiles.active=test \
+            -Dspring.datasource.url="jdbc:postgresql://localhost:5432/openbar" \
+            -Dspring.datasource.username="openbar" \
+            -Dspring.datasource.password="postgres_benchmark_password" \
+            -Dserver.port=8080 \
+            -jar backend/target/*.jar &
+          
+          # Wait for backend readiness
+          echo "Waiting for Spring Boot to be healthy on port 8080..."
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/api/cocktails > /dev/null; then
+              echo "Backend is up and responsive!"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Execute Load Benchmarks
+        run: |
+          SCENARIO="${{ github.event.inputs.scenario || 'smoke' }}"
+          echo "Executing OpenBar performance scenario: $SCENARIO"
+          node tests/load/run-load-tests.js --scenario="$SCENARIO" --url="http://localhost:8080"
+
+      - name: Upload Benchmark Results & Artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: benchmark-results
+          path: |
+            tests/load/scenarios/
+            tests/load/BENCHMARK_REPORT.md

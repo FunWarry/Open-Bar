@@ -385,6 +385,8 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     inventoryAudit: true,
     mysteryRoulette: true,
     paymentTerminal: true,
+    tableReservations: true,
+    checklistsProcedures: true,
   };
   initialThemeMode: AppTheme = 'dark';
   initialColors: CustomThemeColors = { ...DEFAULT_FIGMA_PALETTE };
@@ -718,6 +720,8 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       inventoryAudit: [true],
       mysteryRoulette: [true],
       paymentTerminal: [true],
+      tableReservations: [true],
+      checklistsProcedures: [true],
     });
 
     this.etabForm = this.fb.group({
@@ -1972,14 +1976,16 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       !!current.suppliersManagement === target.suppliersManagement &&
       !!current.inventoryAudit === target.inventoryAudit &&
       !!current.mysteryRoulette === target.mysteryRoulette &&
-      !!current.paymentTerminal === target.paymentTerminal
+      !!current.paymentTerminal === target.paymentTerminal &&
+      !!current.tableReservations === target.tableReservations &&
+      !!current.checklistsProcedures === target.checklistsProcedures
     );
   }
 
   /**
    * Total count of available modular capabilities.
    */
-  readonly totalModulesCount = 13;
+  readonly totalModulesCount = 15;
 
   /**
    * Computes the number of currently active modules in modulesForm.
