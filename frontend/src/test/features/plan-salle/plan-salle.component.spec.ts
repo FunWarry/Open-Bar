@@ -733,5 +733,42 @@ describe('PlanSalleComponent', () => {
     expect(component.isMobileFloorPickerOpen).toBeFalse();
     expect(component.mobileFloorPickerHeight).toBe(52);
   });
+
+  it('handles mobile drawer toggles and floor helper methods', () => {
+    component.tables = [
+      { id: 1, etage: 'RDC' } as any,
+      { id: 2, etage: 'RDC' } as any,
+      { id: 3, etage: 'ETAGE_1' } as any,
+    ];
+    component.etages = [
+      { code: 'RDC', nom: 'Rez-de-chaussée' } as any,
+      { code: 'ETAGE_1', nom: 'Étage 1' } as any,
+    ];
+    component.selectedFloor = 'RDC';
+
+    expect(component.getFloorTableCount('RDC')).toBe(2);
+    expect(component.getFloorTableCount('ETAGE_1')).toBe(1);
+    expect(component.getSelectedFloorName()).toBe('Rez-de-chaussée');
+
+    component.openMobileOptions();
+    expect(component.isMobileOptionsOpen).toBeTrue();
+    expect(component.isMobileFloorPickerOpen).toBeFalse();
+
+    component.closeMobileOptions();
+    expect(component.isMobileOptionsOpen).toBeFalse();
+
+    component.toggleMobileOptions();
+    expect(component.isMobileOptionsOpen).toBeTrue();
+
+    component.openMobileFloorPicker();
+    expect(component.isMobileFloorPickerOpen).toBeTrue();
+    expect(component.isMobileOptionsOpen).toBeFalse();
+
+    component.closeMobileFloorPicker();
+    expect(component.isMobileFloorPickerOpen).toBeFalse();
+
+    component.toggleMobileFloorPicker();
+    expect(component.isMobileFloorPickerOpen).toBeTrue();
+  });
 });
 
