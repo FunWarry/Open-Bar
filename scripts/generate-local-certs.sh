@@ -20,6 +20,7 @@ OUTPUT_DIR="${DEFAULT_OUTPUT_DIR}"
 DAYS="${DEFAULT_DAYS}"
 EXTRA_IP=""
 TOOL="auto" # auto | mkcert | openssl
+BANNER_DIVIDER="================================================================="
 
 # ------------------------------------------------------------------------------
 # Help & Usage
@@ -49,7 +50,7 @@ EOF
 # ------------------------------------------------------------------------------
 # Parse Arguments
 # ------------------------------------------------------------------------------
-while [ $# -gt 0 ]; do
+while [[ $# -gt 0 ]]; do
     case "$1" in
         -d|--domain)
             DOMAIN="$2"
@@ -91,7 +92,7 @@ KEY_FILE="${OUTPUT_DIR}/openbar.key"
 # Detect Local LAN IP Address
 # ------------------------------------------------------------------------------
 DETECTED_IP=""
-if [ -z "${EXTRA_IP}" ]; then
+if [[ -z "${EXTRA_IP}" ]]; then
     if command -v ip >/dev/null 2>&1; then
         DETECTED_IP=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7}' | head -n1 || true)
     elif command -v hostname >/dev/null 2>&1; then
@@ -101,22 +102,22 @@ fi
 
 TARGET_IP="${EXTRA_IP:-$DETECTED_IP}"
 
-echo "================================================================="
+echo "${BANNER_DIVIDER}"
 echo "   OpenBar Local TLS / SSL Certificate Generator"
-echo "================================================================="
+echo "${BANNER_DIVIDER}"
 echo "Primary Domain : ${DOMAIN}"
 echo "Output Dir     : ${OUTPUT_DIR}"
 echo "Target Cert    : ${CERT_FILE}"
 echo "Target Key     : ${KEY_FILE}"
 echo "Validity (days): ${DAYS}"
-[ -n "${TARGET_IP}" ] && echo "Detected LAN IP: ${TARGET_IP}"
+[[ -n "${TARGET_IP}" ]] && echo "Detected LAN IP: ${TARGET_IP}"
 echo "-----------------------------------------------------------------"
 
 # ------------------------------------------------------------------------------
 # Certificate Generation
 # ------------------------------------------------------------------------------
 SELECTED_TOOL="${TOOL}"
-if [ "${SELECTED_TOOL}" = "auto" ]; then
+if [[ "${SELECTED_TOOL}" == "auto" ]]; then
     if command -v mkcert >/dev/null 2>&1; then
         SELECTED_TOOL="mkcert"
     elif command -v openssl >/dev/null 2>&1; then
@@ -129,12 +130,12 @@ fi
 
 echo "Using tool: ${SELECTED_TOOL}"
 
-if [ "${SELECTED_TOOL}" = "mkcert" ]; then
+if [[ "${SELECTED_TOOL}" == "mkcert" ]]; then
     echo "Running mkcert with local CA..."
     mkcert -install >/dev/null 2>&1 || true
     
     SAN_DOMAINS=("localhost" "127.0.0.1" "::1" "${DOMAIN}" "*.${DOMAIN}" "openbar.local" "*.openbar.local")
-    [ -n "${TARGET_IP}" ] && SAN_DOMAINS+=("${TARGET_IP}")
+    [[ -n "${TARGET_IP}" ]] && SAN_DOMAINS+=("${TARGET_IP}")
     
     mkcert -cert-file "${CERT_FILE}" -key-file "${KEY_FILE}" "${SAN_DOMAINS[@]}"
 else
@@ -180,7 +181,7 @@ IP.1                = 127.0.0.1
 IP.2                = ::1
 EOF
 
-    if [ -n "${TARGET_IP}" ]; then
+    if [[ -n "${TARGET_IP}" ]]; then
         echo "IP.3                = ${TARGET_IP}" >> "${TMP_CONFIG}"
     fi
 
@@ -198,7 +199,7 @@ chmod 0644 "${CERT_FILE}" 2>/dev/null || true
 chmod 0600 "${KEY_FILE}" 2>/dev/null || true
 
 # Verify output
-if [ ! -f "${CERT_FILE}" ] || [ ! -s "${CERT_FILE}" ] || [ ! -f "${KEY_FILE}" ] || [ ! -s "${KEY_FILE}" ]; then
+if [[ ! -f "${CERT_FILE}" || ! -s "${CERT_FILE}" || ! -f "${KEY_FILE}" || ! -s "${KEY_FILE}" ]]; then
     echo "Error: Certificate generation failed." >&2
     exit 1
 fi
@@ -213,10 +214,10 @@ echo "✅ Local TLS Certificate created successfully!"
 echo "Certificate : ${CERT_FILE}"
 echo "Private Key : ${KEY_FILE}"
 echo "SHA-256     : ${FINGERPRINT}"
-echo "================================================================="
+echo "${BANNER_DIVIDER}"
 echo "Mobile Device Setup (iOS Safari & Android Chrome):"
 echo "  1. Copy '${CERT_FILE}' to target tablets/phones or import via AirDrop/Email."
 echo "  2. Install as Trusted Root Certificate authority in device settings."
 echo "  3. Access https://${TARGET_IP:-openbar.lan} to enjoy PWA offline mode and QR camera scanner!"
-echo "================================================================="
+echo "${BANNER_DIVIDER}"
 exit 0

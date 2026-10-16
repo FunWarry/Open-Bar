@@ -72,3 +72,4 @@ frontend/reports/
 *.key
 *.pem
 /data/
+.scannerwork/

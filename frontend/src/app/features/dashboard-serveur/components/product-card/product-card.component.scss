@@ -35,7 +35,7 @@ button.product-card,
     opacity: 0.55;
     filter: grayscale(0.85);
     background: var(--background-surface-2, #151828);
-    border-color: var(--border-medium, #2e3450) !important;
+    border-color: var(--border-medium, #2e3450);
     cursor: not-allowed;
 
     &::before {

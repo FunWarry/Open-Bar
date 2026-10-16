@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.service;
 
+
+import java.time.Month;
 import com.bar.gestioncocktail.dto.ClotureCaisseRequestDTO;
 import com.bar.gestioncocktail.dto.DailyRecapDTO;
 import com.bar.gestioncocktail.dto.PaymentModeSummaryDTO;
@@ -61,7 +63,7 @@ class DailyCashClosureServiceTest {
 
     @BeforeEach
     void setUp() {
-        testDate = LocalDate.of(2026, 9, 6);
+        testDate = LocalDate.of(2026, Month.SEPTEMBER, 6);
         lenient().when(timeService.getZoneId()).thenReturn(ZoneId.of("Europe/Paris"));
 
         List<PaymentModeSummaryDTO> paymentModes = List.of(

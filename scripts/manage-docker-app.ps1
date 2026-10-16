@@ -63,9 +63,23 @@ function Test-PortStatus {
         }
     }
     catch {
-        # NetTCPConnection not available or permission denied
+        Write-Verbose "NetTCPConnection not available for port ${Port}: $_"
     }
     return $false
+}
+
+function Write-ServiceStatus {
+    param (
+        [string]$Label,
+        [bool]$IsActive,
+        [string]$ActiveText = "[ACTIVE]"
+    )
+    Write-Host $Label -NoNewline
+    if ($IsActive) {
+        Write-Host $ActiveText -ForegroundColor Green
+    } else {
+        Write-Host "[INACTIVE]" -ForegroundColor DarkGray
+    }
 }
 
 function Show-EnvironmentSummary {
@@ -84,19 +98,19 @@ function Show-EnvironmentSummary {
     Write-Host "`nActive Multi-Stack Port Overview:" -ForegroundColor Cyan
     Write-Host "----------------------------------------------------------------------" -ForegroundColor DarkGray
     Write-Host " [1] IDE / Local Stack:" -ForegroundColor Yellow
-    Write-Host "     • Frontend  : https://localhost:4201 " -NoNewline; if ($ideFrontActive) { Write-Host "[ACTIVE]" -ForegroundColor Green } else { Write-Host "[INACTIVE]" -ForegroundColor DarkGray }
-    Write-Host "     • Backend   : http://localhost:8081  " -NoNewline; if ($ideBackActive) { Write-Host "[ACTIVE]" -ForegroundColor Green } else { Write-Host "[INACTIVE]" -ForegroundColor DarkGray }
-    Write-Host "     • Database  : localhost:5433         " -NoNewline; if ($ideDbActive) { Write-Host "[ACTIVE (gestion_cocktail_db)]" -ForegroundColor Green } else { Write-Host "[INACTIVE]" -ForegroundColor DarkGray }
+    Write-ServiceStatus "     • Frontend  : https://localhost:4201 " $ideFrontActive
+    Write-ServiceStatus "     • Backend   : http://localhost:8081  " $ideBackActive
+    Write-ServiceStatus "     • Database  : localhost:5433         " $ideDbActive "[ACTIVE (gestion_cocktail_db)]"
 
     Write-Host " [2] Docker Production Stack (openbar-prod):" -ForegroundColor Yellow
-    Write-Host "     • Frontend  : https://localhost ($ProdHttpsPort), http://localhost ($ProdHttpPort) " -NoNewline; if ($prodFrontActive) { Write-Host "[ACTIVE]" -ForegroundColor Green } else { Write-Host "[INACTIVE]" -ForegroundColor DarkGray }
-    Write-Host "     • Backend   : http://localhost:$ProdBackendPort                                    " -NoNewline; if ($prodBackActive) { Write-Host "[ACTIVE]" -ForegroundColor Green } else { Write-Host "[INACTIVE]" -ForegroundColor DarkGray }
-    Write-Host "     • Database  : localhost:$ProdDbPort (openbar-prod-postgres)                      " -NoNewline; if ($prodDbActive) { Write-Host "[ACTIVE]" -ForegroundColor Green } else { Write-Host "[INACTIVE]" -ForegroundColor DarkGray }
+    Write-ServiceStatus "     • Frontend  : https://localhost ($ProdHttpsPort), http://localhost ($ProdHttpPort) " $prodFrontActive
+    Write-ServiceStatus "     • Backend   : http://localhost:$ProdBackendPort                                    " $prodBackActive
+    Write-ServiceStatus "     • Database  : localhost:$ProdDbPort (openbar-prod-postgres)                      " $prodDbActive
 
     Write-Host " [3] Docker Test / Demo Stack (openbar-test):" -ForegroundColor Yellow
-    Write-Host "     • Frontend  : https://localhost:$TestHttpsPort (HTTP: $TestHttpPort) " -NoNewline; if ($testFrontActive) { Write-Host "[ACTIVE]" -ForegroundColor Green } else { Write-Host "[INACTIVE]" -ForegroundColor DarkGray }
-    Write-Host "     • Backend   : http://localhost:$TestBackendPort                    " -NoNewline; if ($testBackActive) { Write-Host "[ACTIVE]" -ForegroundColor Green } else { Write-Host "[INACTIVE]" -ForegroundColor DarkGray }
-    Write-Host "     • Database  : localhost:$TestDbPort (openbar-test-postgres)      " -NoNewline; if ($testDbActive) { Write-Host "[ACTIVE]" -ForegroundColor Green } else { Write-Host "[INACTIVE]" -ForegroundColor DarkGray }
+    Write-ServiceStatus "     • Frontend  : https://localhost:$TestHttpsPort (HTTP: $TestHttpPort) " $testFrontActive
+    Write-ServiceStatus "     • Backend   : http://localhost:$TestBackendPort                    " $testBackActive
+    Write-ServiceStatus "     • Database  : localhost:$TestDbPort (openbar-test-postgres)      " $testDbActive
     Write-Host "----------------------------------------------------------------------`n" -ForegroundColor DarkGray
 }
 
@@ -113,7 +127,7 @@ function Wait-ForHealth {
             }
         }
         catch {
-            # Still booting
+            Write-Verbose "Backend not ready yet ($TargetUrl): $_"
         }
         Start-Sleep -Seconds 2
         Write-Host "." -NoNewline -ForegroundColor Gray

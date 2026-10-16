@@ -120,12 +120,12 @@
   &::part(scroll) {
     scrollbar-width: thin;
     scrollbar-color: var(--primary) var(--modal-surface-2);
-    overflow-y: auto !important;
+    overflow-y: auto;
 
     &::-webkit-scrollbar {
       width: 8px;
       height: 8px;
-      display: block !important;
+      display: block;
     }
 
     &::-webkit-scrollbar-track {
@@ -770,9 +770,9 @@
 }
 
 .suggestion-btn {
-  border-color: var(--semantic-warning) !important;
-  color: var(--semantic-warning) !important;
-  font-weight: 700 !important;
+  border-color: var(--semantic-warning);
+  color: var(--semantic-warning);
+  font-weight: 700;
 }
 
 .increments-bar {

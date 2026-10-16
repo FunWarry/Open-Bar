@@ -846,8 +846,14 @@ export class ReservationModalComponent implements OnInit, OnChanges, OnDestroy {
       const m = String(t[1] ?? 0).padStart(2, '0');
       return `${h}:${m}`;
     }
-    const str = String(t).trim();
-    return str.length >= 5 ? str.substring(0, 5) : str;
+    if (typeof t === 'string') {
+      const str = t.trim();
+      return str.length >= 5 ? str.substring(0, 5) : str;
+    }
+    if (typeof t === 'number') {
+      return String(t);
+    }
+    return '';
   }
 
   /**

@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.controller;
 
+
+import java.time.Month;
 import com.bar.gestioncocktail.dto.*;
 import com.bar.gestioncocktail.model.ChecklistCategory;
 import com.bar.gestioncocktail.model.ChecklistMediaType;
@@ -74,8 +76,8 @@ class ChecklistControllerTest {
                         null,
                         null
                 )),
-                LocalDateTime.of(2026, 10, 9, 8, 0),
-                LocalDateTime.of(2026, 10, 9, 8, 0)
+                LocalDateTime.of(2026, Month.OCTOBER, 9, 8, 0),
+                LocalDateTime.of(2026, Month.OCTOBER, 9, 8, 0)
         );
 
         sampleRun = new ChecklistRunDTO(
@@ -84,7 +86,7 @@ class ChecklistControllerTest {
                 "Bar Opening SOP",
                 ChecklistCategory.OPENING,
                 ChecklistRunStatus.IN_PROGRESS,
-                LocalDateTime.of(2026, 10, 9, 8, 0),
+                LocalDateTime.of(2026, Month.OCTOBER, 9, 8, 0),
                 null,
                 10L,
                 "alice",
@@ -216,7 +218,7 @@ class ChecklistControllerTest {
     @Test
     @DisplayName("GET /api/checklists/runs/history should return historical runs")
     void shouldGetRunsHistory() {
-        LocalDate today = LocalDate.of(2026, 10, 9);
+        LocalDate today = LocalDate.of(2026, Month.OCTOBER, 9);
         when(checklistService.getRunsHistory(today, ChecklistCategory.OPENING, null))
                 .thenReturn(List.of(sampleRun));
 

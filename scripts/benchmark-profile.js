@@ -132,7 +132,8 @@ lastIdle = initMetrics.totalIdle;
 
 const initialGc = getJstatGcInfo(javaPid);
 
-while (Date.now() < endTime) {
+async function sampleLoop() {
+  if (Date.now() >= endTime) return;
   await new Promise((r) => setTimeout(r, sampleIntervalMs));
 
   const { totalTick, totalIdle, usedMemMb } = getSystemMetrics();
@@ -144,7 +145,10 @@ while (Date.now() < endTime) {
   samples.memoryUsedMb.push(usedMemMb);
 
   process.stdout.write(`\r[${now}] CPU: ${cpu.toFixed(1)}% | Host RAM Used: ${usedMemMb} MB    `);
+  return sampleLoop();
 }
+
+await sampleLoop();
 
 const finalGc = getJstatGcInfo(javaPid);
 console.log('\n\n' + '='.repeat(70));

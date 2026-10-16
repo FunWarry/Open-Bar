@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.service;
 
+
+import java.time.Month;
 import com.bar.gestioncocktail.dto.EstablishmentClosureDTO;
 import com.bar.gestioncocktail.dto.EstablishmentClosureRequestDTO;
 import com.bar.gestioncocktail.exception.BusinessException;
@@ -49,16 +51,16 @@ class EstablishmentClosureServiceTest {
         summerHoliday = new EstablishmentClosure();
         summerHoliday.setId(2L);
         summerHoliday.setType(ClosureType.EXCEPTIONAL);
-        summerHoliday.setClosureDate(LocalDate.of(2026, 8, 1));
-        summerHoliday.setEndDate(LocalDate.of(2026, 8, 15));
+        summerHoliday.setClosureDate(LocalDate.of(2026, Month.AUGUST, 1));
+        summerHoliday.setEndDate(LocalDate.of(2026, Month.AUGUST, 15));
         summerHoliday.setIsAnnualRecurring(false);
         summerHoliday.setReason("Annual leave");
 
         annualChristmas = new EstablishmentClosure();
         annualChristmas.setId(3L);
         annualChristmas.setType(ClosureType.EXCEPTIONAL);
-        annualChristmas.setClosureDate(LocalDate.of(2025, 12, 25));
-        annualChristmas.setEndDate(LocalDate.of(2026, 1, 2));
+        annualChristmas.setClosureDate(LocalDate.of(2025, Month.DECEMBER, 25));
+        annualChristmas.setEndDate(LocalDate.of(2026, Month.JANUARY, 2));
         annualChristmas.setIsAnnualRecurring(true);
         annualChristmas.setReason("Holiday season");
     }
@@ -84,7 +86,7 @@ class EstablishmentClosureServiceTest {
     @Test
     @DisplayName("isClosedOnDate - Returns true when weekly recurring closed day matches")
     void isClosedOnDate_weeklyRecurring_returnsTrue() {
-        LocalDate monday = LocalDate.of(2026, 8, 10);
+        LocalDate monday = LocalDate.of(2026, Month.AUGUST, 10);
         when(repository.findByTypeAndDayOfWeek(ClosureType.WEEKLY_RECURRING, DayOfWeek.MONDAY))
                 .thenReturn(Optional.of(weeklyMonday));
 
@@ -96,7 +98,7 @@ class EstablishmentClosureServiceTest {
     @Test
     @DisplayName("isClosedOnDate - Returns true when target date falls inside exceptional closure range")
     void isClosedOnDate_exceptionalRange_returnsTrue() {
-        LocalDate august5th = LocalDate.of(2026, 8, 5);
+        LocalDate august5th = LocalDate.of(2026, Month.AUGUST, 5);
         when(repository.findByTypeAndDayOfWeek(ClosureType.WEEKLY_RECURRING, august5th.getDayOfWeek()))
                 .thenReturn(Optional.empty());
         when(repository.findByType(ClosureType.EXCEPTIONAL)).thenReturn(List.of(summerHoliday));
@@ -109,7 +111,7 @@ class EstablishmentClosureServiceTest {
     @Test
     @DisplayName("isClosedOnDate - Returns true when annual recurring year-crossing closure matches")
     void isClosedOnDate_annualRecurring_returnsTrue() {
-        LocalDate dec30th2028 = LocalDate.of(2028, 12, 30);
+        LocalDate dec30th2028 = LocalDate.of(2028, Month.DECEMBER, 30);
         when(repository.findByTypeAndDayOfWeek(ClosureType.WEEKLY_RECURRING, dec30th2028.getDayOfWeek()))
                 .thenReturn(Optional.empty());
         when(repository.findByType(ClosureType.EXCEPTIONAL)).thenReturn(List.of(annualChristmas));
@@ -122,7 +124,7 @@ class EstablishmentClosureServiceTest {
     @Test
     @DisplayName("isClosedOnDate - Returns false when date has no closures")
     void isClosedOnDate_openDate_returnsFalse() {
-        LocalDate openDate = LocalDate.of(2026, 9, 15);
+        LocalDate openDate = LocalDate.of(2026, Month.SEPTEMBER, 15);
         when(repository.findByTypeAndDayOfWeek(ClosureType.WEEKLY_RECURRING, openDate.getDayOfWeek()))
                 .thenReturn(Optional.empty());
         when(repository.findByType(ClosureType.EXCEPTIONAL)).thenReturn(List.of(summerHoliday));
@@ -183,8 +185,8 @@ class EstablishmentClosureServiceTest {
         EstablishmentClosureRequestDTO req = new EstablishmentClosureRequestDTO(
                 ClosureType.EXCEPTIONAL,
                 null,
-                LocalDate.of(2026, 11, 1),
-                LocalDate.of(2026, 11, 3),
+                LocalDate.of(2026, Month.NOVEMBER, 1),
+                LocalDate.of(2026, Month.NOVEMBER, 3),
                 true,
                 "Toussaint"
         );
@@ -197,8 +199,8 @@ class EstablishmentClosureServiceTest {
         EstablishmentClosureDTO created = service.createClosure(req);
 
         assertThat(created.id()).isEqualTo(20L);
-        assertThat(created.closureDate()).isEqualTo(LocalDate.of(2026, 11, 1));
-        assertThat(created.endDate()).isEqualTo(LocalDate.of(2026, 11, 3));
+        assertThat(created.closureDate()).isEqualTo(LocalDate.of(2026, Month.NOVEMBER, 1));
+        assertThat(created.endDate()).isEqualTo(LocalDate.of(2026, Month.NOVEMBER, 3));
     }
 
     @Test

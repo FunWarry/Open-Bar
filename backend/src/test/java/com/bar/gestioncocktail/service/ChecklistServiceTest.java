@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.service;
 
+
+import java.time.Month;
 import com.bar.gestioncocktail.dto.*;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
@@ -125,7 +127,7 @@ class ChecklistServiceTest {
         testRun.setTemplateTitle("Bar Opening Routine");
         testRun.setCategory(ChecklistCategory.OPENING);
         testRun.setStatus(ChecklistRunStatus.IN_PROGRESS);
-        testRun.setStartedAt(LocalDateTime.of(2026, 10, 9, 8, 0));
+        testRun.setStartedAt(LocalDateTime.of(2026, Month.OCTOBER, 9, 8, 0));
         testRun.setCreatedBy(testUser);
         testRun.setItems(new ArrayList<>(List.of(runItemMandatory, runItemOptional)));
         runItemMandatory.setRun(testRun);
@@ -219,7 +221,7 @@ class ChecklistServiceTest {
         when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(true);
         when(checklistTemplateRepository.findById(1L)).thenReturn(Optional.of(testTemplate));
         when(userRepository.findByUsername("alice")).thenReturn(Optional.of(testUser));
-        when(timeService.now()).thenReturn(LocalDateTime.of(2026, 10, 9, 8, 30));
+        when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.OCTOBER, 9, 8, 30));
         when(checklistRunRepository.save(any(ChecklistRun.class))).thenAnswer(inv -> {
             ChecklistRun r = inv.getArgument(0);
             r.setId(77L);
@@ -258,7 +260,7 @@ class ChecklistServiceTest {
         when(checklistRunRepository.findById(50L)).thenReturn(Optional.of(testRun));
         when(checklistRunItemRepository.findById(201L)).thenReturn(Optional.of(runItemMandatory));
         when(userRepository.findByUsername("alice")).thenReturn(Optional.of(testUser));
-        when(timeService.now()).thenReturn(LocalDateTime.of(2026, 10, 9, 8, 45));
+        when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.OCTOBER, 9, 8, 45));
         when(checklistRunRepository.save(any(ChecklistRun.class))).thenAnswer(inv -> inv.getArgument(0));
 
         ToggleChecklistRunItemRequest toggleReq = new ToggleChecklistRunItemRequest(
@@ -299,7 +301,7 @@ class ChecklistServiceTest {
         when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(true);
         when(checklistRunRepository.findById(50L)).thenReturn(Optional.of(testRun));
         when(userRepository.findByUsername("alice")).thenReturn(Optional.of(testUser));
-        when(timeService.now()).thenReturn(LocalDateTime.of(2026, 10, 9, 9, 0));
+        when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.OCTOBER, 9, 9, 0));
         when(checklistRunRepository.save(any(ChecklistRun.class))).thenAnswer(inv -> inv.getArgument(0));
 
         CompleteChecklistRunRequest req = new CompleteChecklistRunRequest("All opening checks completed successfully");
@@ -343,7 +345,7 @@ class ChecklistServiceTest {
         when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(true);
         when(checklistRunRepository.findByStatusOrderByStartedAtDesc(ChecklistRunStatus.IN_PROGRESS)).thenReturn(List.of(testRun));
         when(checklistTemplateRepository.findByIsActiveOrderByCategoryAscTitleAsc(true)).thenReturn(List.of(testTemplate));
-        when(timeService.today()).thenReturn(LocalDate.of(2026, 10, 9));
+        when(timeService.today()).thenReturn(LocalDate.of(2026, Month.OCTOBER, 9));
         when(checklistRunRepository.findByStartedAtBetweenOrderByStartedAtDesc(any(), any())).thenReturn(List.of(testRun));
         when(checklistRunRepository.findByCompletedAtBetweenOrderByCompletedAtDesc(any(), any())).thenReturn(List.of());
 
@@ -359,13 +361,13 @@ class ChecklistServiceTest {
     void shouldIncludeAllActiveRunsAcrossMultipleDaysInCompletionRate() {
         when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(true);
         when(checklistTemplateRepository.findByIsActiveOrderByCategoryAscTitleAsc(true)).thenReturn(List.of(testTemplate));
-        when(timeService.today()).thenReturn(LocalDate.of(2026, 10, 10));
+        when(timeService.today()).thenReturn(LocalDate.of(2026, Month.OCTOBER, 10));
 
         // Run A started yesterday: 1 out of 2 items completed (50%)
         ChecklistRun runA = new ChecklistRun();
         runA.setId(201L);
         runA.setStatus(ChecklistRunStatus.IN_PROGRESS);
-        runA.setStartedAt(LocalDateTime.of(2026, 10, 9, 20, 30));
+        runA.setStartedAt(LocalDateTime.of(2026, Month.OCTOBER, 9, 20, 30));
         ChecklistRunItem itemA1 = new ChecklistRunItem();
         itemA1.setIsCompleted(true);
         ChecklistRunItem itemA2 = new ChecklistRunItem();
@@ -376,7 +378,7 @@ class ChecklistServiceTest {
         ChecklistRun runB = new ChecklistRun();
         runB.setId(202L);
         runB.setStatus(ChecklistRunStatus.IN_PROGRESS);
-        runB.setStartedAt(LocalDateTime.of(2026, 10, 10, 14, 0));
+        runB.setStartedAt(LocalDateTime.of(2026, Month.OCTOBER, 10, 14, 0));
         ChecklistRunItem itemB1 = new ChecklistRunItem();
         itemB1.setIsCompleted(true);
         ChecklistRunItem itemB2 = new ChecklistRunItem();
@@ -404,7 +406,7 @@ class ChecklistServiceTest {
     void shouldReturnZeroStatsWhenNoActiveRunsAndNoCompletedRuns() {
         when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(true);
         when(checklistTemplateRepository.findByIsActiveOrderByCategoryAscTitleAsc(true)).thenReturn(List.of());
-        when(timeService.today()).thenReturn(LocalDate.of(2026, 10, 10));
+        when(timeService.today()).thenReturn(LocalDate.of(2026, Month.OCTOBER, 10));
         when(checklistRunRepository.findByStatusOrderByStartedAtDesc(ChecklistRunStatus.IN_PROGRESS)).thenReturn(List.of());
         when(checklistRunRepository.findByStartedAtBetweenOrderByStartedAtDesc(any(), any())).thenReturn(List.of());
         when(checklistRunRepository.findByCompletedAtBetweenOrderByCompletedAtDesc(any(), any())).thenReturn(List.of());
@@ -421,7 +423,7 @@ class ChecklistServiceTest {
     void shouldIncludeRunsCompletedTodayInCompletionRateAndDeduplicateById() {
         when(establishmentConfigService.isModuleEnabled(EstablishmentModule.CHECKLISTS_PROCEDURES)).thenReturn(true);
         when(checklistTemplateRepository.findByIsActiveOrderByCategoryAscTitleAsc(true)).thenReturn(List.of(testTemplate));
-        when(timeService.today()).thenReturn(LocalDate.of(2026, 10, 10));
+        when(timeService.today()).thenReturn(LocalDate.of(2026, Month.OCTOBER, 10));
 
         // Active run (50%)
         ChecklistRun activeRun = new ChecklistRun();

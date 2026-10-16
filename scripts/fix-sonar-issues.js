@@ -50,7 +50,7 @@ walkDir(targetDir, filePath => {
 
   // 2. Fix S2933 (never reassigned properties in constructor / class members)
   // Fix destroy$ = new Subject<void>(); -> private readonly destroy$ = new Subject<void>(); or readonly destroy$
-  content = content.replace(/(\n\s*)(private\s+)?destroy\$\s*=\s*/g, '$1private readonly destroy$ = ');
+  content = content.replace(/\n([ \t]*)(?:private[ \t]+)?destroy\$\s*=\s*/g, '\n$1private readonly destroy$ = ');
   
   // Fix constructor injected services: constructor(private service: Service, ...) -> constructor(private readonly service: Service, ...)
   content = content.replace(/constructor\s*\(([^)]+)\)/g, (match, args) => {

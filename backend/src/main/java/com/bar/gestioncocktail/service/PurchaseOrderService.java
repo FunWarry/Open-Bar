@@ -300,10 +300,13 @@ public class PurchaseOrderService {
             Supplier supplier,
             PurchaseOrderDelivery delivery
     ) {
-        BigDecimal currentTotalReceived = orderItem.getQuantiteRecue() != null ? orderItem.getQuantiteRecue() : BigDecimal.ZERO;
-        orderItem.setQuantiteRecue(currentTotalReceived.add(qtyReceivedNow));
+        BigDecimal currentTotalReceived = Objects.requireNonNullElse(orderItem.getQuantiteRecue(), BigDecimal.ZERO);
+        BigDecimal safeQtyReceivedNow = Objects.requireNonNullElse(qtyReceivedNow, BigDecimal.ZERO);
+        orderItem.setQuantiteRecue(currentTotalReceived.add(safeQtyReceivedNow));
 
-        BigDecimal receivedPrice = recItem.prixUnitaireHt() != null ? recItem.prixUnitaireHt() : orderItem.getPrixUnitaireHt();
+        BigDecimal receivedPrice = (recItem != null && recItem.prixUnitaireHt() != null)
+                ? recItem.prixUnitaireHt()
+                : Objects.requireNonNullElse(orderItem.getPrixUnitaireHt(), BigDecimal.ZERO);
         Ingredient ingredient = orderItem.getIngredient();
         if (ingredient == null) {
             throw new BusinessException("Order item ID " + orderItem.getId() + " is missing associated ingredient");

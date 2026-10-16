@@ -162,7 +162,7 @@
 ion-grid,
 ion-row,
 ion-col {
-  overflow: visible !important;
+  overflow: visible;
 }
 
 .settings-card {
@@ -171,12 +171,12 @@ ion-col {
   border-radius: 16px;
   box-shadow: var(--shadow-card);
   margin-bottom: 16px;
-  overflow: visible !important;
-  contain: none !important;
+  overflow: visible;
+  contain: none;
 
   ion-card-content {
-    overflow: visible !important;
-    contain: none !important;
+    overflow: visible;
+    contain: none;
   }
 
   .card-title {
@@ -942,9 +942,9 @@ ion-col {
 }
 
 .badge-optimal {
-  background: rgba(47, 191, 107, 0.15) !important;
-  color: var(--semantic-success) !important;
-  border-color: var(--semantic-success) !important;
+  background: rgba(47, 191, 107, 0.15);
+  color: var(--semantic-success);
+  border-color: var(--semantic-success);
 }
 
 /* --- Cash Register Denominations --- */

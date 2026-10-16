@@ -101,21 +101,21 @@
 
 .avatar-role-badge[data-role='ADMIN'] ion-icon,
 .avatar-role-badge[data-role='admin'] ion-icon {
-  color: var(--role-admin, #9b8af2) !important;
+  color: var(--role-admin, #9b8af2);
 }
 
 .avatar-role-badge[data-role='MANAGER'] ion-icon,
 .avatar-role-badge[data-role='manager'] ion-icon {
-  color: var(--role-manager, #f0a33b) !important;
+  color: var(--role-manager, #f0a33b);
 }
 
 .avatar-role-badge[data-role='BARMAN'] ion-icon,
 .avatar-role-badge[data-role='barman'] ion-icon {
-  color: var(--role-barman, #4fc3f7) !important;
+  color: var(--role-barman, #4fc3f7);
 }
 
 .avatar-role-badge[data-role='SERVEUR'] ion-icon,
 .avatar-role-badge[data-role='serveur'] ion-icon {
-  color: var(--role-serveur, #34c77b) !important;
+  color: var(--role-serveur, #34c77b);
 }
 

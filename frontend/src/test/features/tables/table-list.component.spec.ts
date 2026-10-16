@@ -308,4 +308,29 @@ describe('TableListComponent', () => {
     tick();
     expect(component.onEdit).toHaveBeenCalledWith(mockTables[0]);
   }));
+
+  describe('getEtageShortLabelForZone', () => {
+    it('returns empty string when zone is not found', () => {
+      expect(component.getEtageShortLabelForZone('Unknown Zone')).toBe('');
+    });
+
+    it('returns RDC when floor code is RDC', () => {
+      component.zones = [{ nom: 'Bar', etage: 'RDC', couleur: '#fff', tables: [] } as any];
+      component.etages = [{ code: 'RDC', nom: 'Rez-de-chaussée (Principal)', ordre: 1 } as any];
+      expect(component.getEtageShortLabelForZone('Bar')).toBe('RDC');
+    });
+
+    it('returns stripped name when floor name has parentheses', () => {
+      component.zones = [{ nom: 'Terrasse', etage: 'ETAGE_1', couleur: '#fff', tables: [] } as any];
+      component.etages = [{ code: 'ETAGE_1', nom: 'Étage 1 (Plein Air)', ordre: 2 } as any];
+      expect(component.getEtageShortLabelForZone('Terrasse')).toBe('Étage 1');
+    });
+
+    it('returns full name when floor name has no parentheses', () => {
+      component.zones = [{ nom: 'Rooftop Lounge', etage: 'ROOF', couleur: '#fff', tables: [] } as any];
+      component.etages = [{ code: 'ROOF', nom: 'Rooftop', ordre: 3 } as any];
+      expect(component.getEtageShortLabelForZone('Rooftop Lounge')).toBe('Rooftop');
+    });
+  });
 });
+

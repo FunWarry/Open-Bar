@@ -132,16 +132,14 @@ async function ensureTestEnvironmentReady(url) {
           { username: 'manager', [CREDENTIAL_FIELD]: resolveTestCredential('manager'), email: 'manager@openbar.local', nom: 'Manager', prenom: 'Principal', roles: ['MANAGER'] },
           { username: 'barman1', [CREDENTIAL_FIELD]: resolveTestCredential('barman'), email: 'barman1@openbar.local', nom: 'Barman', prenom: 'Un', roles: ['BARMAN'] },
         ];
-        for (const user of testUsers) {
-          await fetch(`${url}/api/users`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify(user),
-          });
-        }
+        await Promise.all(testUsers.map(user => fetch(`${url}/api/users`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(user),
+        })));
         console.log('✅ Staff test users provisioned for automated load testing.');
       }
     }
@@ -271,7 +269,11 @@ for (const scenName of scenariosToRun) {
     cleanup();
     process.exit(1);
   }
+}
 
+await scenariosToRun.reduce(async (prevPromise, scenName) => {
+  await prevPromise;
+  const scenFile = SCENARIOS[scenName];
   const summaryFile = path.join(resolvedOutputDir, `${scenName}-summary.json`);
   console.log(`\n▶️ Running scenario: [${scenName}] (${scenFile})`);
   console.log(`   Export target: ${path.relative(rootDir, summaryFile)}`);
@@ -293,7 +295,7 @@ for (const scenName of scenariosToRun) {
   } else {
     console.log(`✅ Scenario [${scenName}] completed successfully.`);
   }
-}
+}, Promise.resolve());
 
 // Generate aggregated summary report
 const overallReport = {

@@ -10,7 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${ROOT_DIR}"
 
-if [ -f "${ROOT_DIR}/.env" ]; then
+if [[ -f "${ROOT_DIR}/.env" ]]; then
     set -a
     . "${ROOT_DIR}/.env"
     set +a
@@ -46,7 +46,7 @@ wait_for_health() {
             return 0
         fi
         local now=$(date +%s)
-        if [ $((now - start_time)) -ge ${timeout_sec} ]; then
+        if [[ $((now - start_time)) -ge ${timeout_sec} ]]; then
             echo -e "\n⚠️  Timeout reached (${timeout_sec}s)."
             return 1
         fi
@@ -56,7 +56,7 @@ wait_for_health() {
 }
 
 ensure_certs() {
-    if [ ! -f "${ROOT_DIR}/certs/openbar.crt" ] || [ ! -f "${ROOT_DIR}/certs/openbar.key" ]; then
+    if [[ ! -f "${ROOT_DIR}/certs/openbar.crt" || ! -f "${ROOT_DIR}/certs/openbar.key" ]]; then
         echo "⚠️  Local TLS certificates missing. Generating local certificates..."
         bash "${SCRIPT_DIR}/generate-local-certs.sh"
     fi
