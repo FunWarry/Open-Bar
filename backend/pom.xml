@@ -13,7 +13,7 @@
     
     <groupId>com.bar</groupId>
     <artifactId>gestion-cocktail</artifactId>
-    <version>0.8.1</version>
+    <version>0.9.0</version>
     <name>gestion-cocktail</name>
     <description>Système de gestion de bar et cocktails</description>
     
