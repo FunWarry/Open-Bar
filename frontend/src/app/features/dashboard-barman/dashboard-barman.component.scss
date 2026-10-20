@@ -196,6 +196,7 @@ ion-header {
 
 .header-action-btn {
   --color: var(--text-primary);
+  color: var(--text-primary);
   font-size: 13px;
   font-weight: 600;
   height: 36px;
@@ -203,6 +204,10 @@ ion-header {
   border-radius: var(--radius-pill, 999px);
   border: none;
   overflow: hidden;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
 
   @media (max-width: 767px) {
     height: 34px;
@@ -213,16 +218,33 @@ ion-header {
     justify-content: center;
   }
 
+  &::part(native) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border-radius: inherit;
+    font-weight: inherit;
+    line-height: 1;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
   .btn-text {
+    white-space: nowrap;
+    line-height: 1.2;
+    display: inline-block;
+    vertical-align: middle;
+
     &--full {
       display: none;
       @media (min-width: 900px) {
-        display: inline;
+        display: inline-block;
       }
     }
 
     &--short {
-      display: inline;
+      display: inline-block;
       @media (min-width: 900px) {
         display: none;
       }
@@ -230,20 +252,31 @@ ion-header {
   }
 
   &.btn-new-order {
-    --background: var(--semantic-success, #34c77b);
+    --background: var(--semantic-success);
+    --background-hover: color-mix(in srgb, var(--semantic-success) 85%, #000000);
+    --background-activated: color-mix(in srgb, var(--semantic-success) 75%, #000000);
     --color: var(--text-on-accent, #ffffff);
+    color: var(--text-on-accent, #ffffff);
     --border-radius: var(--radius-pill, 999px);
     --border-width: 0px;
-    color: var(--text-on-accent, #ffffff);
     font-weight: 700;
-    letter-spacing: 0.4px;
-    box-shadow: var(--shadow-sm, 0 2px 6px rgba(0, 0, 0, 0.2));
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--semantic-success) 35%, transparent);
     transition: all 0.2s ease;
+
+    &::part(native) {
+      color: var(--text-on-accent, #ffffff);
+    }
+
+    ion-icon,
+    .btn-text {
+      color: var(--text-on-accent, #ffffff);
+    }
 
     ion-icon {
       font-size: 1.15rem;
       margin-right: 6px;
-      color: var(--text-on-accent, #ffffff);
+      flex-shrink: 0;
 
       @media (max-width: 767px) {
         font-size: 1rem;
@@ -253,25 +286,37 @@ ion-header {
 
     &:hover {
       --background: color-mix(in srgb, var(--semantic-success) 85%, #000000);
-      filter: brightness(0.95);
+      filter: brightness(1.05);
+      transform: translateY(-1px);
     }
   }
 
   &.btn-ruptures {
-    --background: var(--semantic-danger, #e5604f);
+    --background: var(--semantic-danger);
+    --background-hover: color-mix(in srgb, var(--semantic-danger) 85%, #000000);
+    --background-activated: color-mix(in srgb, var(--semantic-danger) 75%, #000000);
     --color: var(--text-on-accent, #ffffff);
+    color: var(--text-on-accent, #ffffff);
     --border-radius: var(--radius-pill, 999px);
     --border-width: 0px;
-    color: var(--text-on-accent, #ffffff);
     font-weight: 700;
-    letter-spacing: 0.4px;
-    box-shadow: var(--shadow-sm, 0 2px 6px rgba(0, 0, 0, 0.2));
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--semantic-danger) 35%, transparent);
     transition: all 0.2s ease;
+
+    &::part(native) {
+      color: var(--text-on-accent, #ffffff);
+    }
+
+    ion-icon,
+    .btn-text {
+      color: var(--text-on-accent, #ffffff);
+    }
 
     ion-icon {
       font-size: 1.05rem;
       margin-right: 6px;
-      color: var(--text-on-accent, #ffffff);
+      flex-shrink: 0;
 
       @media (max-width: 767px) {
         font-size: 1rem;
@@ -281,26 +326,33 @@ ion-header {
 
     &:hover {
       --background: color-mix(in srgb, var(--semantic-danger) 85%, #000000);
-      filter: brightness(0.95);
+      filter: brightness(1.05);
+      transform: translateY(-1px);
     }
   }
 
   &.btn-roulette-tv {
     --background: var(--background-surface-2);
-    --color: var(--primary);
+    --color: var(--text-primary);
     --border-radius: var(--radius-pill, 999px);
-    --border-width: 1px;
+    --border-width: 1.5px;
     --border-style: solid;
     --border-color: var(--primary);
+    color: var(--text-primary);
     font-weight: 700;
-    letter-spacing: 0.5px;
-    box-shadow: 0 0 10px var(--primary-glow);
+    letter-spacing: 0.3px;
+    box-shadow: 0 0 10px var(--primary-tint, rgba(108, 127, 232, 0.25));
     transition: all 0.2s ease;
+
+    &::part(native) {
+      color: var(--text-primary);
+    }
 
     ion-icon {
       font-size: 1.1rem;
       margin-right: 6px;
       color: var(--primary);
+      flex-shrink: 0;
 
       @media (max-width: 767px) {
         font-size: 1rem;
@@ -308,20 +360,35 @@ ion-header {
       }
     }
 
+    .btn-text {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
     &:hover {
       --background: var(--primary);
-      --color: var(--text-contrast);
+      --border-color: var(--primary-strong);
+      --color: var(--text-on-accent, #ffffff);
+      color: var(--text-on-accent, #ffffff);
+      box-shadow: 0 4px 14px var(--primary-tint, rgba(108, 127, 232, 0.35));
+      transform: translateY(-1px);
+
+      &::part(native) {
+        color: var(--text-on-accent, #ffffff);
+      }
 
       ion-icon,
       .btn-text {
-        color: var(--text-contrast);
+        color: var(--text-on-accent, #ffffff);
       }
     }
   }
 
-  &.btn-refresh {
+  &.btn-refresh,
+  &.btn-sound {
     --background: var(--background-surface-2, #21263f);
     --color: var(--text-primary, #eceefb);
+    color: var(--text-primary, #eceefb);
     --border-radius: var(--radius-pill, 999px);
     --border-width: 1px;
     --border-style: solid;
@@ -337,6 +404,10 @@ ion-header {
       width: 34px;
       height: 34px;
       flex: 0 0 34px;
+    }
+
+    &::part(native) {
+      color: var(--text-primary, #eceefb);
     }
 
     ion-icon {

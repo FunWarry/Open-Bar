@@ -90,6 +90,19 @@
           </ion-button>
         }
 
+        <!-- Toggle sons d'alerte -->
+        <ion-button
+          class="header-action-btn btn-sound"
+          (click)="toggleSound()"
+          (keyup.enter)="toggleSound()"
+          [title]="'BARMAN_DASHBOARD.TOGGLE_SOUND' | transloco"
+          data-testid="barman-sound-toggle-btn">
+          <ion-icon
+            slot="icon-only"
+            [name]="isSoundEnabled ? 'volume-high-outline' : 'volume-mute-outline'">
+          </ion-icon>
+        </ion-button>
+
         <!-- Refresh manuel -->
         <ion-button
           class="header-action-btn btn-refresh"

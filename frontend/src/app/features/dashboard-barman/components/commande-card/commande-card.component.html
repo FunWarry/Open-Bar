@@ -51,6 +51,16 @@
           <ion-icon name="time-outline"></ion-icon>
           {{ tempsEcoule }}
         </span>
+
+        @if (commande.statut === 'EN_PREPARATION' && totalItemsCount > 0) {
+          <span
+            class="progress-badge"
+            [class.progress--complete]="isAllItemsPrepared"
+            data-testid="card-progress-badge">
+            <ion-icon [name]="isAllItemsPrepared ? 'checkmark-circle' : 'time-outline'"></ion-icon>
+            {{ preparedItemsCount }}/{{ totalItemsCount }} {{ 'BARMAN_DASHBOARD.ITEMS_READY_SUFFIX' | transloco }}
+          </span>
+        }
       </div>
     </div>
 
@@ -85,22 +95,38 @@
       @for (item of groupedItems; track item.id) {
         <li class="item-row">
           <div class="item-main-line">
-            <span class="qty">{{ item.quantite }}×</span>
-            <span class="cocktail-nom">{{ item.cocktailNom }}</span>
-
-            @if (item.varianteNom) {
-              <span class="variant-tag">{{ item.varianteNom }}</span>
-            }
-
-            @if (item.station && item.station !== 'BAR') {
-              <span class="station-chip station-chip--{{ item.station | lowercase }}">
-                {{ ('STATIONS.BADGE_' + item.station) | transloco }}
+            <button
+              type="button"
+              class="item-check-btn"
+              [class.checked]="isItemPrepared(item)"
+              [disabled]="commande.statut !== 'EN_PREPARATION'"
+              (click)="toggleItemPrepared(item, $event)"
+              (keyup.enter)="toggleItemPrepared(item, $event)"
+              [attr.data-testid]="'item-check-btn-' + item.id"
+              [attr.aria-label]="(isItemPrepared(item) ? 'BARMAN_DASHBOARD.UNMARK_ITEM_PREPARED' : 'BARMAN_DASHBOARD.MARK_ITEM_PREPARED') | transloco"
+              [attr.aria-pressed]="isItemPrepared(item)">
+              <span class="check-box-visual" [class.checked]="isItemPrepared(item)">
+                @if (isItemPrepared(item)) {
+                  <ion-icon name="checkmark-sharp"></ion-icon>
+                }
               </span>
-            }
+            </button>
 
-            @if (item.statut === 'PRET') {
-              <span class="item-ready-chip" [title]="'KDS.READY' | transloco">✓</span>
-            }
+            <div class="item-info" [class.item-prepared]="isItemPrepared(item)">
+              <span class="qty">{{ item.quantite }}×</span>
+              <span class="cocktail-nom">{{ item.cocktailNom }}</span>
+
+              @if (item.varianteNom) {
+                <span class="variant-tag">{{ item.varianteNom }}</span>
+              }
+
+              @if (item.station && item.station !== 'BAR') {
+                <span class="station-chip station-chip--{{ item.station | lowercase }}">
+                  {{ ('STATIONS.BADGE_' + item.station) | transloco }}
+                </span>
+              }
+            </div>
+
 
             <button
               type="button"
@@ -146,6 +172,7 @@
         variant="primary"
         icon="checkmark-circle-outline"
         expand="block"
+        [class.btn-pulse-ready]="isAllItemsPrepared"
         [title]="'COMMANDES.ACTIONS.MARK_READY_TOOLTIP' | transloco"
         (btnClick)="onMarquerPret($event)"
         data-testid="mark-ready-btn">

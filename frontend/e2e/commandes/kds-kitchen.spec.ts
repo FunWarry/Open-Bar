@@ -13,56 +13,60 @@ test.describe('KDS Kitchen Display Screen E2E Flow', () => {
     await page.waitForURL((url) => !url.pathname.includes('/auth/login'), { timeout: 10000 });
   });
 
-  test('should display KDS kitchen header and filter chips', async ({ page }) => {
+  test('should display modern KDS kitchen header and filter chips', async ({ page }) => {
     await page.goto('/kitchen');
     await expect(page.locator('ion-content')).toBeVisible();
 
-    // Verify filter chips exist
-    await expect(page.locator('[data-testid="kds-filter-active"]')).toBeVisible();
-    await expect(page.locator('[data-testid="kds-filter-ready"]')).toBeVisible();
-    await expect(page.locator('[data-testid="kds-filter-all"]')).toBeVisible();
+    // Verify brand title and station filters exist
+    await expect(page.locator('.toolbar-brand')).toBeVisible();
+    await expect(page.locator('[data-testid="chip-station-kitchen"]')).toBeVisible();
+    await expect(page.locator('[data-testid="chip-filter-all"]')).toBeVisible();
+    await expect(page.locator('[data-testid="chip-filter-urgent"]')).toBeVisible();
 
     // Verify sound toggle and refresh buttons
-    await expect(page.locator('[data-testid="kds-sound-toggle"]')).toBeVisible();
-    await expect(page.locator('[data-testid="kds-refresh-btn"]')).toBeVisible();
+    await expect(page.locator('[data-testid="barman-sound-toggle-btn"]')).toBeVisible();
+    await expect(page.locator('[data-testid="refresh-orders-btn"]')).toBeVisible();
   });
 
-  test('should toggle sound alert', async ({ page }) => {
+  test('should toggle sound alert and display feedback toast', async ({ page }) => {
     await page.goto('/kitchen');
-    const soundToggle = page.locator('[data-testid="kds-sound-toggle"]');
+    const soundToggle = page.locator('[data-testid="barman-sound-toggle-btn"]');
     await expect(soundToggle).toBeVisible();
     await soundToggle.click();
     // Toast should show up
     await expect(page.locator('ion-toast')).toBeVisible({ timeout: 5000 });
   });
 
-  test('should switch filter tabs and handle empty/card states', async ({ page }) => {
+  test('should switch view mode segment between tickets and batch rush mode', async ({ page }) => {
     await page.goto('/kitchen');
+    const segment = page.locator('[data-testid="barman-view-mode-segment"]');
+    await expect(segment).toBeVisible();
 
-    // Click Ready filter
-    await page.click('[data-testid="kds-filter-ready"]');
-    await expect(page.locator('[data-testid="kds-filter-ready"]')).toHaveClass(/chip-selected/);
+    // Click Batch mode
+    await page.click('[data-testid="segment-view-batch"]');
+    await expect(page.locator('[data-testid="segment-view-batch"]')).toHaveClass(/active-segment/);
 
-    // Click All filter
-    await page.click('[data-testid="kds-filter-all"]');
-    await expect(page.locator('[data-testid="kds-filter-all"]')).toHaveClass(/chip-selected/);
-
-    // Click Active filter
-    await page.click('[data-testid="kds-filter-active"]');
-    await expect(page.locator('[data-testid="kds-filter-active"]')).toHaveClass(/chip-selected/);
-
-    // Either cards or empty state is visible
-    const hasCards = await page.locator('[data-testid="kds-order-card"]').count() > 0;
-    if (hasCards) {
-      await expect(page.locator('[data-testid="kds-order-card"]').first()).toBeVisible();
-    } else {
-      await expect(page.locator('[data-testid="kds-empty-state"]')).toBeVisible();
-    }
+    // Click Tickets mode
+    await page.click('[data-testid="segment-view-tickets"]');
+    await expect(page.locator('[data-testid="segment-view-tickets"]')).toHaveClass(/active-segment/);
   });
 
-  test('should navigate to /kitchen when visiting /cuisine', async ({ page }) => {
+  test('should switch filter chips and handle urgent toggle', async ({ page }) => {
+    await page.goto('/kitchen');
+
+    // Click Urgent filter
+    await page.click('[data-testid="chip-filter-urgent"]');
+    await expect(page.locator('[data-testid="chip-filter-urgent"]')).toHaveClass(/chip--active/);
+
+    // Click All filter
+    await page.click('[data-testid="chip-filter-all"]');
+    await expect(page.locator('[data-testid="chip-filter-all"]')).toHaveClass(/chip--active/);
+  });
+
+  test('should redirect to /kitchen when visiting /cuisine', async ({ page }) => {
     await page.goto('/cuisine');
+    await page.waitForURL((url) => url.pathname.includes('/kitchen'), { timeout: 10000 });
     await expect(page.locator('ion-content')).toBeVisible();
-    await expect(page.locator('[data-testid="kds-filter-active"]')).toBeVisible();
+    await expect(page.locator('[data-testid="chip-station-kitchen"]')).toBeVisible();
   });
 });

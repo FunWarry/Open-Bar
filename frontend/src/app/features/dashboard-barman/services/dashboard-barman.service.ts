@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
@@ -23,6 +23,78 @@ export class DashboardBarmanService {
   private readonly ingredientsUrl = `${environment.apiUrl}/ingredients`;
 
   private readonly http = inject(HttpClient);
+
+  /**
+   * In-flight local preparation progress map: Commande ID -> Set of prepared item IDs.
+   * Keyed by order ID to persist across card re-renders and filter changes.
+   */
+  readonly preparedItemsSignal = signal<Map<number, Set<number>>>(new Map());
+
+  /**
+   * Checks if a specific order item is marked as prepared.
+   *
+   * @param commandeId Parent order unique identifier
+   * @param itemId Order line item unique identifier
+   * @param initialStatut Optional current item preparation status from backend
+   * @returns True if the item is ready or marked locally
+   */
+  isItemPrepared(commandeId: number, itemId: number, initialStatut?: string): boolean {
+    if (initialStatut === 'PRET') return true;
+    const set = this.preparedItemsSignal().get(commandeId);
+    return Boolean(set?.has(itemId));
+  }
+
+  /**
+   * Toggles the prepared state of an item for an order.
+   * Updates local signal immediately and triggers a background sync to the backend.
+   *
+   * @param commandeId Parent order unique identifier
+   * @param itemId Order line item unique identifier
+   * @param currentStatut Optional current item preparation status from backend
+   * @returns Next prepared boolean state
+   */
+  toggleItemPrepared(commandeId: number, itemId: number, currentStatut?: string): boolean {
+    const currentMap = new Map(this.preparedItemsSignal());
+    let itemSet = currentMap.get(commandeId);
+    if (!itemSet) {
+      itemSet = new Set<number>();
+      currentMap.set(commandeId, itemSet);
+    } else {
+      itemSet = new Set<number>(itemSet);
+      currentMap.set(commandeId, itemSet);
+    }
+
+    const isCurrentlyPrepared = itemSet.has(itemId) || currentStatut === 'PRET';
+    const nextPrepared = !isCurrentlyPrepared;
+
+    if (nextPrepared) {
+      itemSet.add(itemId);
+    } else {
+      itemSet.delete(itemId);
+    }
+
+    this.preparedItemsSignal.set(currentMap);
+
+    // Background non-blocking sync with backend
+    const targetStatut = nextPrepared ? 'PRET' : 'EN_PREPARATION';
+    this.changerItemStatut(commandeId, itemId, targetStatut).subscribe({
+      error: (err) => console.warn(`[DashboardBarmanService] Background item status sync failed for order #${commandeId}, item #${itemId}`, err)
+    });
+
+    return nextPrepared;
+  }
+
+  /**
+   * Clears the in-flight prepared items state for a completed or cancelled order.
+   *
+   * @param commandeId Parent order unique identifier
+   */
+  clearPreparedItems(commandeId: number): void {
+    const currentMap = new Map(this.preparedItemsSignal());
+    if (currentMap.delete(commandeId)) {
+      this.preparedItemsSignal.set(currentMap);
+    }
+  }
 
   /**
    * Fetches all orders currently in pending status (EN_ATTENTE).

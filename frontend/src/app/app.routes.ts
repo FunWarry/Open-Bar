@@ -324,15 +324,14 @@ export const routes: Routes = [
   // Kitchen Display Screen (KDS) (English route /kitchen + /cuisine + /kds)
   {
     path: 'kitchen',
-    loadComponent: () => import('./features/kds-kitchen/kds-kitchen.component').then(m => m.KdsKitchenComponent),
+    loadComponent: () => import('./features/dashboard-barman/dashboard-barman.component').then(m => m.DashboardBarmanComponent),
     canActivate: [ModuleGuard, AuthGuard, RoleGuard],
-    data: { roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS }
+    data: { roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS, station: 'KITCHEN' }
   },
   {
     path: 'cuisine',
-    loadComponent: () => import('./features/kds-kitchen/kds-kitchen.component').then(m => m.KdsKitchenComponent),
-    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
-    data: { roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS }
+    redirectTo: '/kitchen',
+    pathMatch: 'full'
   },
   {
     path: 'kds',

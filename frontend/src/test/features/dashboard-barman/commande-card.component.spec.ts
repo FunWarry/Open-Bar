@@ -65,8 +65,15 @@ describe('CommandeCardComponent', () => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
     modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
 
-    dashboardServiceSpy = jasmine.createSpyObj('DashboardBarmanService', ['getCocktailById']);
+    dashboardServiceSpy = jasmine.createSpyObj('DashboardBarmanService', [
+      'getCocktailById',
+      'isItemPrepared',
+      'toggleItemPrepared',
+      'clearPreparedItems'
+    ]);
     dashboardServiceSpy.getCocktailById.and.returnValue(of(mockCocktail));
+    dashboardServiceSpy.isItemPrepared.and.returnValue(false);
+    dashboardServiceSpy.toggleItemPrepared.and.returnValue(true);
 
     commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['toggleUrgent']);
     commandeServiceSpy.toggleUrgent.and.returnValue(of({ id: 1, prioritaire: true } as any));
@@ -282,5 +289,153 @@ describe('CommandeCardComponent', () => {
     component.stationFilter = 'BAR';
     expect(component.groupedItems).toHaveSize(1);
     expect(component.groupedItems[0].cocktailNom).toBe('Mojito');
+  });
+
+  describe('Item-level prepared checkmarks and progress tracking (#574)', () => {
+    it('renders checkmark button for each item line with testid and aria-label', () => {
+      fixture.componentRef.setInput('commande', makeCommande({
+        statut: 'EN_PREPARATION',
+        items: [
+          { id: 11, cocktailNom: 'Mojito', quantite: 2, prioritaire: false },
+          { id: 12, cocktailNom: 'Moscow Mule', quantite: 1, prioritaire: false }
+        ]
+      }));
+      fixture.detectChanges();
+
+      const checkBtns = fixture.nativeElement.querySelectorAll('.item-check-btn');
+      expect(checkBtns).toHaveSize(2);
+      expect(checkBtns[0].getAttribute('data-testid')).toBe('item-check-btn-11');
+      expect(checkBtns[1].getAttribute('data-testid')).toBe('item-check-btn-12');
+    });
+
+    it('disables item checkmark buttons when order status is EN_ATTENTE', () => {
+      fixture.componentRef.setInput('commande', makeCommande({
+        statut: 'EN_ATTENTE',
+        items: [{ id: 11, cocktailNom: 'Mojito', quantite: 1, prioritaire: false }]
+      }));
+      fixture.detectChanges();
+
+      const checkBtn = fixture.nativeElement.querySelector('[data-testid="item-check-btn-11"]') as HTMLButtonElement;
+      expect(checkBtn).toBeTruthy();
+      expect(checkBtn.disabled).toBeTrue();
+
+      // Clicking while EN_ATTENTE should not trigger toggleItemPrepared
+      const clickEvent = new MouseEvent('click');
+      spyOn(clickEvent, 'stopPropagation');
+      component.toggleItemPrepared(component.groupedItems[0], clickEvent);
+      expect(dashboardServiceSpy.toggleItemPrepared).not.toHaveBeenCalled();
+    });
+
+    it('enables item checkmark buttons and toggles prepared state when order is EN_PREPARATION', () => {
+      fixture.componentRef.setInput('commande', makeCommande({
+        id: 77,
+        statut: 'EN_PREPARATION',
+        items: [{ id: 15, cocktailNom: 'Mojito', quantite: 2, prioritaire: false }]
+      }));
+      fixture.detectChanges();
+
+      const checkBtn = fixture.nativeElement.querySelector('[data-testid="item-check-btn-15"]') as HTMLButtonElement;
+      expect(checkBtn).toBeTruthy();
+      expect(checkBtn.disabled).toBeFalse();
+
+      const stopPropagationSpy = jasmine.createSpy('stopPropagation');
+      const fakeEvent = { stopPropagation: stopPropagationSpy } as unknown as Event;
+
+      component.toggleItemPrepared(component.groupedItems[0], fakeEvent);
+      expect(stopPropagationSpy).toHaveBeenCalled();
+      expect(dashboardServiceSpy.toggleItemPrepared).toHaveBeenCalledWith(77, 15, undefined);
+    });
+
+    it('computes totalItemsCount and preparedItemsCount based on total drink quantities', () => {
+      component.commande = makeCommande({
+        id: 88,
+        statut: 'EN_PREPARATION',
+        items: [
+          { id: 21, cocktailNom: 'Mojito', quantite: 3, prioritaire: false },
+          { id: 22, cocktailNom: 'Caipirinha', quantite: 2, prioritaire: false }
+        ]
+      });
+
+      expect(component.totalItemsCount).toBe(5);
+      expect(component.preparedItemsCount).toBe(0);
+      expect(component.isAllItemsPrepared).toBeFalse();
+
+      // Mock first item as prepared
+      dashboardServiceSpy.isItemPrepared.and.callFake((cmdId, itemId) => itemId === 21);
+      expect(component.preparedItemsCount).toBe(3);
+      expect(component.isAllItemsPrepared).toBeFalse();
+
+      // Mock both items as prepared
+      dashboardServiceSpy.isItemPrepared.and.returnValue(true);
+      expect(component.preparedItemsCount).toBe(5);
+      expect(component.isAllItemsPrepared).toBeTrue();
+    });
+
+    it('displays progress badge in card header during EN_PREPARATION', () => {
+      fixture.componentRef.setInput('commande', makeCommande({
+        id: 99,
+        statut: 'EN_PREPARATION',
+        items: [
+          { id: 31, cocktailNom: 'Spritz', quantite: 2, prioritaire: false },
+          { id: 32, cocktailNom: 'Negroni', quantite: 1, prioritaire: false }
+        ]
+      }));
+      dashboardServiceSpy.isItemPrepared.and.callFake((cmdId, itemId) => itemId === 31);
+      fixture.detectChanges();
+
+      const badgeEl = fixture.nativeElement.querySelector('[data-testid="card-progress-badge"]');
+      expect(badgeEl).toBeTruthy();
+      expect(badgeEl.textContent).toContain('2/3');
+    });
+
+    it('does not display progress badge when order is in EN_ATTENTE', () => {
+      fixture.componentRef.setInput('commande', makeCommande({
+        id: 99,
+        statut: 'EN_ATTENTE',
+        items: [{ id: 31, cocktailNom: 'Spritz', quantite: 2, prioritaire: false }]
+      }));
+      fixture.detectChanges();
+
+      const badgeEl = fixture.nativeElement.querySelector('[data-testid="card-progress-badge"]');
+      expect(badgeEl).toBeNull();
+    });
+
+    it('applies item-prepared class (dimmed and strikethrough) when item is marked prepared', () => {
+      fixture.componentRef.setInput('commande', makeCommande({
+        id: 101,
+        statut: 'EN_PREPARATION',
+        items: [{ id: 41, cocktailNom: 'Gin Fizz', quantite: 1, prioritaire: false }]
+      }));
+      dashboardServiceSpy.isItemPrepared.and.returnValue(true);
+      fixture.detectChanges();
+
+      const itemInfoEl = fixture.nativeElement.querySelector('.item-info');
+      expect(itemInfoEl).toBeTruthy();
+      expect(itemInfoEl.classList.contains('item-prepared')).toBeTrue();
+    });
+
+    it('applies btn-pulse-ready to mark-ready-btn when 100% of items are prepared', () => {
+      fixture.componentRef.setInput('commande', makeCommande({
+        id: 102,
+        statut: 'EN_PREPARATION',
+        items: [{ id: 51, cocktailNom: 'Cuba Libre', quantite: 1, prioritaire: false }]
+      }));
+      dashboardServiceSpy.isItemPrepared.and.returnValue(true);
+      fixture.detectChanges();
+
+      const readyBtnEl = fixture.nativeElement.querySelector('[data-testid="mark-ready-btn"]');
+      expect(readyBtnEl).toBeTruthy();
+      expect(readyBtnEl.classList.contains('btn-pulse-ready')).toBeTrue();
+    });
+
+    it('onMarquerPret clears in-flight prepared items and emits changerStatut', () => {
+      const emitted: { id: number; statut: string }[] = [];
+      component.changerStatut.subscribe(val => emitted.push(val));
+      component.commande = makeCommande({ id: 103, statut: 'EN_PREPARATION' });
+
+      component.onMarquerPret();
+      expect(dashboardServiceSpy.clearPreparedItems).toHaveBeenCalledWith(103);
+      expect(emitted).toEqual([{ id: 103, statut: 'PRET' }]);
+    });
   });
 });
