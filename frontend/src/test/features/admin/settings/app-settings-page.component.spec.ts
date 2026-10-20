@@ -902,6 +902,7 @@ describe('AppSettingsPageComponent', () => {
         paymentTerminal: false,
         tableReservations: false,
         checklistsProcedures: false,
+        systemUpdates: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -921,6 +922,7 @@ describe('AppSettingsPageComponent', () => {
         paymentTerminal: false,
         tableReservations: false,
         checklistsProcedures: false,
+        systemUpdates: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });
