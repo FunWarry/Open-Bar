@@ -2,7 +2,7 @@ import { Component, OnInit, inject, Input, ChangeDetectionStrategy } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
+  IonHeader, IonToolbar, IonButtons, IonButton,
   IonContent, IonFooter, IonIcon, IonSpinner, ModalController, ToastController
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -70,7 +70,6 @@ export interface QuickReasonOption {
     TranslocoModule,
     IonHeader,
     IonToolbar,
-    IonTitle,
     IonButtons,
     IonButton,
     IonContent,
