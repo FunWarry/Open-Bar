@@ -198,11 +198,19 @@
 
 .pack-selector-row {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 8px;
+  width: 100%;
 
   .pack-select-wrapper {
-    flex: 1;
+    width: 100%;
+    min-width: 0;
+  }
+
+  app-action-button {
+    width: 100%;
+    display: block;
   }
 }
 
@@ -241,6 +249,7 @@
     flex-direction: column;
     gap: 2px;
     flex: 1;
+    min-width: 0;
   }
 
   .trigger-label {
@@ -344,11 +353,33 @@
   }
 
   .audio-popover-body {
-    padding: 12px 16px;
+    padding: 12px 14px;
     gap: 10px;
   }
 
   .audition-section .audition-grid {
     grid-template-columns: 1fr;
+  }
+
+  .pack-selector-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+
+    .pack-select-wrapper {
+      width: 100%;
+      min-width: 0;
+    }
+
+    app-action-button {
+      width: 100%;
+      display: block;
+    }
+  }
+
+  .trigger-row {
+    .trigger-actions {
+      flex-shrink: 0;
+    }
   }
 }
