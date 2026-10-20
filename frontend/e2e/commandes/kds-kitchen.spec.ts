@@ -28,9 +28,8 @@ test.describe('KDS Kitchen Display Screen E2E Flow', () => {
     await page.goto('/kitchen');
     const searchBar = page.locator('[data-testid="barman-searchbar"]');
     await expect(searchBar).toBeVisible();
-    const searchInput = searchBar.locator('input');
-    await searchInput.fill('Mojito');
-    await expect(searchInput).toHaveValue('Mojito');
+    await searchBar.fill('Mojito');
+    await expect(searchBar).toHaveValue('Mojito');
   });
 
   test('should switch view mode segment between tickets and batch rush mode', async ({ page }) => {
