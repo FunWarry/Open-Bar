@@ -27,6 +27,7 @@ import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-bad
 import { ToggleSwitchComponent } from '../../core/components/ui/toggle-switch/toggle-switch.component';
 import { SearchableSelectComponent, SearchableOption } from '../../core/components/ui/searchable-select/searchable-select.component';
 import { ThemeCustomizerComponent } from '../theme/theme-customizer.component';
+import { AudioSettingsPopoverComponent } from '../../core/components/audio-settings/audio-settings-popover.component';
 
 /**
  * Profile Component displaying personal user information, roles, profile settings form,
@@ -67,6 +68,7 @@ import { ThemeCustomizerComponent } from '../theme/theme-customizer.component';
     ToggleSwitchComponent,
     SearchableSelectComponent,
     ThemeCustomizerComponent,
+    AudioSettingsPopoverComponent,
   ]
 })
 export class ProfileComponent implements OnInit, OnDestroy {

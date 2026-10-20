@@ -119,7 +119,10 @@ describe('DashboardBarmanComponent', () => {
       'toggleSound',
       'playNewOrderSound',
       'playOrderReadySound',
-      'playUrgentAlertSound'
+      'playUrgentAlertSound',
+      'triggerUrgentOrderAlert',
+      'clearUrgentOrder',
+      'clearAllUrgentOrders',
     ]);
     soundServiceSpy.isSoundEnabled.and.returnValue(true);
     soundServiceSpy.toggleSound.and.returnValue(false);
@@ -955,5 +958,50 @@ describe('DashboardBarmanComponent', () => {
       expect(component.filteredCommandesEnAttente).toEqual([kitchenOrder]);
     });
   });
+
+  describe('Audio Alerts & Rush Urgency (#564)', () => {
+    it('should trigger urgent order audio alert when pending order exceeds 10 minutes wait', () => {
+      const elevenMinutesAgo = new Date(Date.now() - 11 * 60 * 1000);
+      component.commandesEnAttente = [
+        {
+          id: 501,
+          tableNom: 'Table 5',
+          tableNumero: 5,
+          serveurNom: 'Bob',
+          dateCommande: elevenMinutesAgo,
+          prioritaire: false,
+          statut: 'EN_ATTENTE',
+          items: [{ id: 1, cocktailNom: 'Mojito', quantite: 1, statut: 'EN_ATTENTE', prioritaire: false }]
+        }
+      ];
+
+      component.checkUrgentOrdersAudio();
+      expect(soundServiceSpy.triggerUrgentOrderAlert).toHaveBeenCalledWith(501);
+    });
+
+    it('should clear urgent alerts for orders that have moved to preparation or ready', () => {
+      component.commandesEnPreparation = [
+        {
+          id: 501,
+          tableNom: 'Table 5',
+          tableNumero: 5,
+          serveurNom: 'Bob',
+          dateCommande: new Date(),
+          prioritaire: false,
+          statut: 'EN_PREPARATION',
+          items: [{ id: 1, cocktailNom: 'Mojito', quantite: 1, statut: 'EN_PREPARATION', prioritaire: false }]
+        }
+      ];
+
+      component.checkUrgentOrdersAudio();
+      expect(soundServiceSpy.clearUrgentOrder).toHaveBeenCalledWith(501);
+    });
+
+    it('should clear all urgent orders on component destruction', () => {
+      component.ngOnDestroy();
+      expect(soundServiceSpy.clearAllUrgentOrders).toHaveBeenCalled();
+    });
+  });
 });
+
 

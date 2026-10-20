@@ -25,6 +25,7 @@ import { AsyncPipe, UpperCasePipe } from '@angular/common';
 import * as AuthActions from '../../store/auth.actions';
 import { User } from '../../models/user.model';
 import { ThemeService } from '../../services/theme.service';
+import { AudioSettingsPopoverComponent } from '../audio-settings/audio-settings-popover.component';
 
 /** Map from URL prefix to translation key for page titles. */
 const ROUTE_TITLE_MAP: Record<string, string> = {
@@ -83,6 +84,7 @@ const ROLE_COLORS: Record<string, string> = {
     IonHeader, IonToolbar, IonButtons, IonButton, IonIcon,
     IonPopover, IonList, IonItem, IonLabel, IonBadge,
     AsyncPipe, UpperCasePipe, TranslocoPipe,
+    AudioSettingsPopoverComponent,
   ],
 })
 export class NavbarComponent implements OnInit, OnDestroy {

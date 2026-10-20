@@ -45,6 +45,7 @@ describe('NotificationService', () => {
       'playNewOrderSound',
       'playOrderReadySound',
       'playUrgentAlertSound',
+      'playTableCallSound',
     ]);
 
     TestBed.configureTestingModule({
@@ -472,7 +473,7 @@ describe('NotificationService', () => {
     expect(notifs[0].severity).toBe('danger');
     expect(notifs[0].message).toContain('Table 3');
     expect(notifs[0].message).toContain('Assistance Request');
-    expect(soundSpy.playUrgentAlertSound).toHaveBeenCalled();
+    expect(soundSpy.playTableCallSound).toHaveBeenCalled();
   }));
 
   it('emits warning alert when /topic/serveur/appels receives ADDITION request', fakeAsync(() => {
@@ -491,7 +492,7 @@ describe('NotificationService', () => {
     expect(notifs[0].severity).toBe('warning');
     expect(notifs[0].message).toContain('Table 4');
     expect(notifs[0].message).toContain('Addition / Bill Request');
-    expect(soundSpy.playUrgentAlertSound).toHaveBeenCalled();
+    expect(soundSpy.playTableCallSound).toHaveBeenCalled();
   }));
 
   it('marks matching notifications as read and does not emit new notification when statut is ACQUITTE', fakeAsync(() => {

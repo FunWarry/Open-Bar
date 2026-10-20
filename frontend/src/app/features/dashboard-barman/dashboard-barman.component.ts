@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, Input, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subject, forkJoin } from 'rxjs';
+import { Subject, forkJoin, interval } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import {
@@ -419,6 +419,12 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
         });
     }
 
+    interval(15000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.checkUrgentOrdersAudio();
+      });
+
     this.notificationService.onStockAlert()
       .pipe(takeUntil(this.destroy$))
       .subscribe((alert: AppNotification) => {
@@ -442,6 +448,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.soundService.clearAllUrgentOrders();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -466,6 +473,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
           if (enAttente.length > previousCount && previousCount > 0) {
             this.soundService.playNewOrderSound();
           }
+          this.checkUrgentOrdersAudio();
           this.cdr.detectChanges();
         },
         error: async () => {
@@ -477,6 +485,30 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
           await toast.present();
         }
       });
+  }
+
+  /**
+   * Evaluates pending orders against the critical wait time threshold (> 10 min without preparation)
+   * and triggers audible rush urgency alerts via {@link SoundService}.
+   */
+  checkUrgentOrdersAudio(): void {
+    const now = Date.now();
+    const criticalThresholdMs = (this.tempsAlerteCritiqueCommandeMinutes || 10) * 60 * 1000;
+    const maxActiveWindowMs = 2 * 60 * 60 * 1000;
+
+    for (const cmd of this.commandesEnAttente) {
+      if (cmd.dateCommande) {
+        const diff = now - new Date(cmd.dateCommande).getTime();
+        if (diff >= criticalThresholdMs && diff < maxActiveWindowMs) {
+          this.soundService.triggerUrgentOrderAlert(cmd.id);
+        }
+      }
+    }
+
+    // Clear alerts for orders that have transitioned away from pending
+    for (const cmd of [...this.commandesEnPreparation, ...this.commandesPret]) {
+      this.soundService.clearUrgentOrder(cmd.id);
+    }
   }
 
   /**
