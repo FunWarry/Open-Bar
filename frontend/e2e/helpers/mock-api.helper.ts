@@ -1452,7 +1452,12 @@ export async function setupMockApi(page: Page): Promise<void> {
     barTabs: true,
     cocktailLibrary: true,
     suppliersManagement: true,
+    inventoryAudit: true,
+    mysteryRoulette: true,
+    paymentTerminal: true,
     tableReservations: true,
+    checklistsProcedures: true,
+    systemUpdates: true,
   };
 
   await page.route('**/api/establishment/modules**', async (route) => {
@@ -1867,7 +1872,11 @@ export async function setupMockApi(page: Page): Promise<void> {
         cocktailLibrary: true,
         suppliersManagement: true,
         inventoryAudit: true,
+        mysteryRoulette: true,
+        paymentTerminal: true,
         tableReservations: true,
+        checklistsProcedures: true,
+        systemUpdates: true,
       }),
     });
   });
@@ -2072,7 +2081,10 @@ export async function setupMockApi(page: Page): Promise<void> {
         suppliersManagement: true,
         inventoryAudit: true,
         mysteryRoulette: true,
+        paymentTerminal: true,
         tableReservations: true,
+        checklistsProcedures: true,
+        systemUpdates: true,
       }),
     });
   });
@@ -2424,7 +2436,7 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
-  await page.route('**/api/admin/system/snapshots/**', async (route) => {
+  await page.route('**/api/admin/system/snapshots*', async (route) => {
     if (route.request().method() === 'DELETE') {
       await route.fulfill({ status: 204 });
       return;

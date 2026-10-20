@@ -142,7 +142,7 @@
                           variant="primary"
                           icon="play-forward-outline"
                           (btnClick)="openPreFlightModal()"
-                          data-testid="btn-open-preflight">
+                          testId="btn-open-preflight">
                           {{ 'SYSTEM_UPDATE.BTN_LAUNCH_UPDATE' | transloco: { version: 'v' + check.latestVersion } }}
                         </app-action-button>
                       </div>
@@ -314,7 +314,7 @@
             <app-action-button
               variant="secondary"
               (btnClick)="closePreFlightModal()"
-              data-testid="btn-cancel-preflight">
+              testId="btn-cancel-preflight">
               {{ 'COMMON.CANCEL' | transloco }}
             </app-action-button>
 
@@ -323,7 +323,7 @@
               icon="play-forward-outline"
               [disabled]="preFlight()?.canProceed === false"
               (btnClick)="confirmAndLaunchUpdate()"
-              data-testid="btn-confirm-launch-update">
+              testId="btn-confirm-launch-update">
               {{ 'SYSTEM_UPDATE.BTN_CONFIRM_LAUNCH' | transloco }}
             </app-action-button>
           </div>
@@ -498,7 +498,7 @@
             <app-action-button
               variant="secondary"
               (btnClick)="closeRestoreModal()"
-              data-testid="btn-cancel-restore">
+              testId="btn-cancel-restore">
               {{ 'COMMON.CANCEL' | transloco }}
             </app-action-button>
 
@@ -507,7 +507,7 @@
               icon="refresh-outline"
               [loading]="isRestoringSnapshot()"
               (btnClick)="confirmRestoreSnapshot()"
-              data-testid="btn-confirm-restore">
+              testId="btn-confirm-restore">
               {{ 'SYSTEM_UPDATE.BTN_CONFIRM_RESTORE' | transloco }}
             </app-action-button>
           </div>

@@ -41,11 +41,11 @@ test.describe('System OTA Update & Disaster Recovery Snapshots E2E', () => {
 
     // Switch to Beta channel
     await betaChip.click();
-    await expect(betaChip).toHaveClass(/active/);
+    await expect(betaChip).toHaveClass(/ion-color-primary/);
 
     // Switch back to Stable channel
     await stableChip.click();
-    await expect(stableChip).toHaveClass(/active/);
+    await expect(stableChip).toHaveClass(/ion-color-primary/);
   });
 
   test('should display available release banner, open pre-flight safety modal, and inspect safety checks', async ({ page }) => {
@@ -70,7 +70,9 @@ test.describe('System OTA Update & Disaster Recovery Snapshots E2E', () => {
     await expect(page.locator('.preflight-checklist')).toBeVisible();
 
     // Close modal via cancel button
-    await page.locator('[data-testid="btn-cancel-preflight"]').click();
+    const cancelBtn = page.locator('[data-testid="btn-cancel-preflight"]');
+    await expect(cancelBtn).toBeVisible();
+    await cancelBtn.click();
     await expect(preflightModal).not.toBeVisible();
   });
 
@@ -79,7 +81,7 @@ test.describe('System OTA Update & Disaster Recovery Snapshots E2E', () => {
     await expect(page.locator('[data-testid="system-update-page"]')).toBeVisible();
 
     // Snapshots table
-    const table = page.locator('[data-testid="card-snapshots-history"]');
+    const table = page.locator('[data-testid="card-snapshots"]');
     await expect(table).toBeVisible();
 
     const snapshotRow = page.locator('[data-testid="row-snapshot-openbar_pre_update_0.7.5_20261015_020000"]');
@@ -95,7 +97,9 @@ test.describe('System OTA Update & Disaster Recovery Snapshots E2E', () => {
     await expect(restoreModal).toBeVisible();
 
     // Dismiss modal
-    await page.locator('[data-testid="btn-cancel-restore"]').click();
+    const cancelRestoreBtn = page.locator('[data-testid="btn-cancel-restore"]');
+    await expect(cancelRestoreBtn).toBeVisible();
+    await cancelRestoreBtn.click();
     await expect(restoreModal).not.toBeVisible();
   });
 });
