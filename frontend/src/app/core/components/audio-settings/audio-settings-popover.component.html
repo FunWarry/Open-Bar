@@ -1,0 +1,252 @@
+<div class="audio-popover-card" [class.embedded]="embedded" data-testid="audio-settings-popover">
+  <!-- Header Bar -->
+  @if (!embedded) {
+    <header class="audio-popover-header">
+      <div class="header-title-box">
+        <div class="header-icon-wrap" [class.is-muted]="!prefs().enabled">
+          <ion-icon [name]="prefs().enabled ? 'volume-high-outline' : 'volume-mute-outline'"></ion-icon>
+        </div>
+        <div>
+          <h3 class="header-title">{{ 'AUDIO_SETTINGS.TITLE' | transloco }}</h3>
+          <p class="header-subtitle">{{ 'AUDIO_SETTINGS.SUBTITLE' | transloco }}</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        class="popover-close-btn"
+        (click)="onClose()"
+        (keydown.enter)="onClose()"
+        data-testid="audio-popover-close-btn"
+        [attr.aria-label]="'COMMON.CLOSE' | transloco">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </header>
+  }
+
+  <div class="audio-popover-body">
+    <!-- Master Mute Toggle Section -->
+    <section class="audio-section primary-section">
+      <div class="section-row">
+        <div class="section-text">
+          <span class="section-label">{{ 'AUDIO_SETTINGS.MASTER_TOGGLE' | transloco }}</span>
+          <span class="section-desc">
+            {{ prefs().enabled ? ('AUDIO_SETTINGS.STATUS_ACTIVE' | transloco) : ('AUDIO_SETTINGS.STATUS_MUTED' | transloco) }}
+          </span>
+        </div>
+        <app-toggle-switch
+          [value]="prefs().enabled"
+          (checkedChange)="onToggleEnabled($event)"
+          testId="audio-master-toggle">
+        </app-toggle-switch>
+      </div>
+    </section>
+
+    <!-- Master Volume Slider Section -->
+    <section class="audio-section" [class.is-disabled]="!prefs().enabled">
+      <div class="section-header-compact">
+        <span class="section-label">{{ 'AUDIO_SETTINGS.VOLUME_LABEL' | transloco }}</span>
+        <span class="volume-badge" data-testid="audio-volume-badge">{{ prefs().volume }}%</span>
+      </div>
+      <div class="volume-slider-wrapper">
+        <ion-icon name="volume-low-outline" class="slider-icon"></ion-icon>
+        <ion-range
+          min="0"
+          max="100"
+          step="5"
+          [disabled]="!prefs().enabled"
+          [value]="prefs().volume"
+          (ionChange)="onVolumeChange($event)"
+          data-testid="audio-volume-range">
+        </ion-range>
+        <ion-icon name="volume-high-outline" class="slider-icon"></ion-icon>
+      </div>
+    </section>
+
+    <!-- Default Sound Pack Theme Selection -->
+    <section class="audio-section" [class.is-disabled]="!prefs().enabled">
+      <div class="section-header-compact">
+        <span class="section-label">{{ 'AUDIO_SETTINGS.SOUND_PACK_LABEL' | transloco }}</span>
+        <span class="section-desc">{{ 'AUDIO_SETTINGS.SOUND_PACK_DESC' | transloco }}</span>
+      </div>
+      <div class="pack-selector-row">
+        <div class="pack-select-wrapper">
+          <app-searchable-select
+            [options]="soundPackOptions()"
+            [ngModel]="prefs().soundPack"
+            (ngModelChange)="onSoundPackChange($event)"
+            [disabled]="!prefs().enabled"
+            [placeholder]="'AUDIO_SETTINGS.SELECT_PACK_PLACEHOLDER' | transloco"
+            testId="audio-pack-select">
+          </app-searchable-select>
+        </div>
+        <app-action-button
+          variant="secondary"
+          size="medium"
+          icon="play-outline"
+          [disabled]="!prefs().enabled"
+          (btnClick)="onPreviewCurrentPack()"
+          [title]="'AUDIO_SETTINGS.PREVIEW' | transloco"
+          testId="audio-pack-preview-btn">
+          {{ 'AUDIO_SETTINGS.PREVIEW' | transloco }}
+        </app-action-button>
+      </div>
+    </section>
+
+    <!-- Configurable Event Triggers Section -->
+    <section class="audio-section" [class.is-disabled]="!prefs().enabled">
+      <h4 class="section-group-title">
+        <ion-icon name="notifications-outline"></ion-icon>
+        <span>{{ 'AUDIO_SETTINGS.TRIGGERS_TITLE' | transloco }}</span>
+      </h4>
+
+      <!-- Trigger 1: New Orders -->
+      <div class="trigger-row" data-testid="audio-trigger-row-new-order">
+        <div class="trigger-info">
+          <span class="trigger-label">{{ 'AUDIO_SETTINGS.TRIGGER_NEW_ORDER' | transloco }}</span>
+          <span class="trigger-desc">{{ 'AUDIO_SETTINGS.TRIGGER_NEW_ORDER_DESC' | transloco }}</span>
+        </div>
+        <div class="trigger-actions">
+          <button
+            type="button"
+            class="mini-preview-btn"
+            [disabled]="!prefs().enabled"
+            (click)="onPreviewPack(prefs().soundOverrideNewOrder ?? prefs().soundPack, 'NEW_ORDER')"
+            (keydown.enter)="onPreviewPack(prefs().soundOverrideNewOrder ?? prefs().soundPack, 'NEW_ORDER')"
+            [title]="'AUDIO_SETTINGS.PREVIEW' | transloco"
+            data-testid="audio-preview-new-order-btn">
+            <ion-icon name="play-outline"></ion-icon>
+          </button>
+          <app-toggle-switch
+            [value]="prefs().triggerNewOrder"
+            [disabled]="!prefs().enabled"
+            (checkedChange)="onToggleTrigger('NEW_ORDER', $event)"
+            testId="audio-trigger-new-order">
+          </app-toggle-switch>
+        </div>
+      </div>
+
+      <!-- Trigger 2: Table Calls -->
+      <div class="trigger-row" data-testid="audio-trigger-row-table-call">
+        <div class="trigger-info">
+          <span class="trigger-label">{{ 'AUDIO_SETTINGS.TRIGGER_TABLE_CALL' | transloco }}</span>
+          <span class="trigger-desc">{{ 'AUDIO_SETTINGS.TRIGGER_TABLE_CALL_DESC' | transloco }}</span>
+        </div>
+        <div class="trigger-actions">
+          <button
+            type="button"
+            class="mini-preview-btn"
+            [disabled]="!prefs().enabled"
+            (click)="onPreviewPack(prefs().soundOverrideTableCall ?? prefs().soundPack, 'TABLE_CALL')"
+            (keydown.enter)="onPreviewPack(prefs().soundOverrideTableCall ?? prefs().soundPack, 'TABLE_CALL')"
+            [title]="'AUDIO_SETTINGS.PREVIEW' | transloco"
+            data-testid="audio-preview-table-call-btn">
+            <ion-icon name="play-outline"></ion-icon>
+          </button>
+          <app-toggle-switch
+            [value]="prefs().triggerTableCall"
+            [disabled]="!prefs().enabled"
+            (checkedChange)="onToggleTrigger('TABLE_CALL', $event)"
+            testId="audio-trigger-table-call">
+          </app-toggle-switch>
+        </div>
+      </div>
+
+      <!-- Trigger 3: Urgent Orders (> 10 min) -->
+      <div class="trigger-row" data-testid="audio-trigger-row-urgent-order">
+        <div class="trigger-info">
+          <span class="trigger-label">{{ 'AUDIO_SETTINGS.TRIGGER_URGENT_ORDER' | transloco }}</span>
+          <span class="trigger-desc">{{ 'AUDIO_SETTINGS.TRIGGER_URGENT_ORDER_DESC' | transloco }}</span>
+        </div>
+        <div class="trigger-actions">
+          <button
+            type="button"
+            class="mini-preview-btn"
+            [disabled]="!prefs().enabled"
+            (click)="onPreviewPack(prefs().soundOverrideUrgentOrder ?? 'HIGH_URGENCY', 'URGENT_ORDER')"
+            (keydown.enter)="onPreviewPack(prefs().soundOverrideUrgentOrder ?? 'HIGH_URGENCY', 'URGENT_ORDER')"
+            [title]="'AUDIO_SETTINGS.PREVIEW' | transloco"
+            data-testid="audio-preview-urgent-order-btn">
+            <ion-icon name="play-outline"></ion-icon>
+          </button>
+          <app-toggle-switch
+            [value]="prefs().triggerUrgentOrder"
+            [disabled]="!prefs().enabled"
+            (checkedChange)="onToggleTrigger('URGENT_ORDER', $event)"
+            testId="audio-trigger-urgent-order">
+          </app-toggle-switch>
+        </div>
+      </div>
+    </section>
+
+    <!-- Urgency Repetition Interval -->
+    <section class="audio-section" [class.is-disabled]="!prefs().enabled || !prefs().triggerUrgentOrder">
+      <div class="section-header-compact">
+        <span class="section-label">
+          <ion-icon name="timer-outline"></ion-icon>
+          {{ 'AUDIO_SETTINGS.URGENT_REPEAT_LABEL' | transloco }}
+        </span>
+        <span class="section-desc">{{ 'AUDIO_SETTINGS.URGENT_REPEAT_DESC' | transloco }}</span>
+      </div>
+      <div class="repeat-selector-wrapper">
+        <app-searchable-select
+          [options]="urgentRepeatOptions()"
+          [ngModel]="prefs().urgentRepeatInterval"
+          (ngModelChange)="onUrgentRepeatChange($event)"
+          [disabled]="!prefs().enabled || !prefs().triggerUrgentOrder"
+          [placeholder]="'AUDIO_SETTINGS.SELECT_REPEAT_PLACEHOLDER' | transloco"
+          testId="audio-urgent-repeat-select">
+        </app-searchable-select>
+      </div>
+    </section>
+
+    <!-- Audition Grid of Built-in Sound Packs -->
+    <section class="audio-section audition-section">
+      <span class="section-label">{{ 'AUDIO_SETTINGS.AUDITION_TITLE' | transloco }}</span>
+      <div class="audition-grid">
+        <button
+          type="button"
+          class="audition-chip"
+          [class.active]="prefs().soundPack === 'SUBTLE_BELL'"
+          (click)="onPreviewPack('SUBTLE_BELL')"
+          (keydown.enter)="onPreviewPack('SUBTLE_BELL')"
+          data-testid="audition-subtle-bell">
+          <ion-icon name="play-outline"></ion-icon>
+          <span>{{ 'AUDIO_SETTINGS.PACK_SUBTLE_BELL' | transloco }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="audition-chip"
+          [class.active]="prefs().soundPack === 'SHAKER_CHIME'"
+          (click)="onPreviewPack('SHAKER_CHIME')"
+          (keydown.enter)="onPreviewPack('SHAKER_CHIME')"
+          data-testid="audition-shaker-chime">
+          <ion-icon name="play-outline"></ion-icon>
+          <span>{{ 'AUDIO_SETTINGS.PACK_SHAKER_CHIME' | transloco }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="audition-chip"
+          [class.active]="prefs().soundPack === 'RETRO_DING'"
+          (click)="onPreviewPack('RETRO_DING')"
+          (keydown.enter)="onPreviewPack('RETRO_DING')"
+          data-testid="audition-retro-ding">
+          <ion-icon name="play-outline"></ion-icon>
+          <span>{{ 'AUDIO_SETTINGS.PACK_RETRO_DING' | transloco }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="audition-chip"
+          [class.active]="prefs().soundPack === 'HIGH_URGENCY'"
+          (click)="onPreviewPack('HIGH_URGENCY', 'URGENT_ORDER')"
+          (keydown.enter)="onPreviewPack('HIGH_URGENCY', 'URGENT_ORDER')"
+          data-testid="audition-high-urgency">
+          <ion-icon name="play-outline"></ion-icon>
+          <span>{{ 'AUDIO_SETTINGS.PACK_HIGH_URGENCY' | transloco }}</span>
+        </button>
+      </div>
+    </section>
+  </div>
+</div>

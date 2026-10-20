@@ -71,17 +71,22 @@
           </ion-button>
         }
 
-        <!-- Sound toggle button (desktop/tablet) -->
+        <!-- Sound settings popover trigger (desktop/tablet) -->
         <ion-button
+          id="topbar-sound-trigger"
           class="hide-on-mobile"
-          (click)="toggleSound()"
-          (keydown.enter)="toggleSound()"
           data-testid="topbar-sound-toggle"
           [title]="soundService.isSoundEnabled() ? ('NAV.SOUND_DISABLE' | transloco) : ('NAV.SOUND_ENABLE' | transloco)">
           <ion-icon slot="icon-only"
             [name]="soundService.isSoundEnabled() ? 'volume-high-outline' : 'volume-mute-outline'">
           </ion-icon>
         </ion-button>
+
+        <ion-popover #soundPopover trigger="topbar-sound-trigger" triggerAction="click" alignment="end" side="bottom">
+          <ng-template>
+            <app-audio-settings-popover (closePanel)="soundPopover.dismiss()"></app-audio-settings-popover>
+          </ng-template>
+        </ion-popover>
 
         <!-- Notification bell (always visible on mobile & desktop) -->
         <ion-button

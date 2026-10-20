@@ -54,9 +54,33 @@ describe('ProfileComponent', () => {
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(toastSpy));
 
-    soundServiceSpy = jasmine.createSpyObj('SoundService', ['setSoundEnabled']);
+    soundServiceSpy = jasmine.createSpyObj('SoundService', ['setSoundEnabled', 'testSound', 'updatePreferences']);
     languageServiceSpy = jasmine.createSpyObj('LanguageService', ['setLanguage'], { currentLanguage: 'fr' });
-    preferencesSpy = jasmine.createSpyObj('PreferencesService', ['setSoundEnabled', 'setVisualNotifEnabled', 'soundEnabled', 'visualNotifEnabled']);
+    preferencesSpy = jasmine.createSpyObj('PreferencesService', [
+      'setSoundEnabled',
+      'setVisualNotifEnabled',
+      'soundEnabled',
+      'visualNotifEnabled',
+      'updateAudioPreferences',
+      'setVolume',
+      'setSoundPack',
+      'setTriggerEnabled',
+      'setSoundOverride',
+      'setUrgentRepeatInterval'
+    ], {
+      audioPreferences: signal({
+        enabled: true,
+        volume: 80,
+        soundPack: 'SUBTLE_BELL',
+        triggerNewOrder: true,
+        triggerTableCall: true,
+        triggerUrgentOrder: true,
+        soundOverrideNewOrder: null,
+        soundOverrideTableCall: null,
+        soundOverrideUrgentOrder: null,
+        urgentRepeatInterval: 'EVERY_1_MIN'
+      })
+    });
     preferencesSpy.soundEnabled.and.returnValue(true);
     preferencesSpy.visualNotifEnabled.and.returnValue(true);
 

@@ -17,6 +17,7 @@ import { EMPTY, of } from 'rxjs';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TranslocoService } from '@jsverse/transloco';
 import { SoundService } from '../../../app/core/services/sound.service';
+import { PreferencesService } from '../../../app/core/services/preferences.service';
 import { TableAppelService } from '../../../app/core/services/table-appel.service';
 import { TableAppel } from '../../../app/core/models/table-appel.model';
 import { User } from '../../../app/core/models/user.model';
@@ -77,8 +78,26 @@ describe('NavbarComponent', () => {
     mockTableAppelService.activeAppels = activeAppelsSignal;
     mockTableAppelService.getAppelsActifs.and.returnValue(of([]));
 
-    const mockSoundService = jasmine.createSpyObj('SoundService', ['toggleSound', 'isSoundEnabled']);
+    const mockSoundService = jasmine.createSpyObj('SoundService', [
+      'toggleSound',
+      'isSoundEnabled',
+      'testSound',
+      'updatePreferences',
+      'getPreferences',
+    ]);
     mockSoundService.isSoundEnabled.and.returnValue(true);
+    mockSoundService.getPreferences.and.returnValue({
+      enabled: true,
+      volume: 80,
+      soundPack: 'SUBTLE_BELL',
+      triggerNewOrder: true,
+      triggerTableCall: true,
+      triggerUrgentOrder: true,
+      soundOverrideNewOrder: null,
+      soundOverrideTableCall: null,
+      soundOverrideUrgentOrder: null,
+      urgentRepeatInterval: 'EVERY_1_MIN',
+    });
 
     const mockPopoverCtrl = jasmine.createSpyObj('PopoverController', ['create']);
 
@@ -91,6 +110,7 @@ describe('NavbarComponent', () => {
       providers: [
         provideIonicAngular(),
         provideMockStore({ initialState }),
+        PreferencesService,
         { provide: NavigationService, useValue: mockNavigationService },
         { provide: NotificationService, useValue: mockNotifService },
         { provide: TableAppelService, useValue: mockTableAppelService },

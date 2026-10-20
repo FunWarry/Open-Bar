@@ -175,7 +175,7 @@ export class NotificationService implements OnDestroy {
     this.notificationHistory.unshift(notif);
     this.updateUnreadCount();
     this.notifications$.next(notif);
-    this.soundService.playUrgentAlertSound();
+    this.soundService.playTableCallSound();
   }
 
   /**
