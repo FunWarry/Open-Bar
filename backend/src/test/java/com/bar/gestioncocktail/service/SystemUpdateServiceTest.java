@@ -61,6 +61,8 @@ class SystemUpdateServiceTest {
     @BeforeEach
     void setUp() throws IOException {
         objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+        objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         backupDir = tempDir.resolve("backups");
         Files.createDirectories(backupDir);
         statusFile = backupDir.resolve("update-status.json");
@@ -194,5 +196,175 @@ class SystemUpdateServiceTest {
 
         assertThat(Files.exists(sqlPath)).isFalse();
         assertThat(Files.exists(metaPath)).isFalse();
+    }
+
+    @Test
+    @DisplayName("getUpdateStatus - returns IDLE status when status file does not exist")
+    void getUpdateStatus_returnsIdleWhenFileMissing() {
+        SystemUpdateStatusDTO status = service.getUpdateStatus();
+
+        assertThat(status).isNotNull();
+        assertThat(status.status()).isEqualTo("IDLE");
+        assertThat(status.step()).isEqualTo("NONE");
+        assertThat(status.progressPercent()).isZero();
+    }
+
+    @Test
+    @DisplayName("getUpdateStatus - reads and parses JSON status file when present")
+    void getUpdateStatus_readsJsonStatusFile() throws IOException {
+        SystemUpdateStatusDTO mockStatus = new SystemUpdateStatusDTO(
+                "RUNNING",
+                "DOCKER_PULL",
+                50,
+                "Pulling container images...",
+                "0.8.0",
+                "0.8.1",
+                UpdateChannel.STABLE,
+                "snap_123",
+                null,
+                null,
+                null,
+                List.of("log line 1", "log line 2")
+        );
+        Files.writeString(statusFile, objectMapper.writeValueAsString(mockStatus));
+
+        SystemUpdateStatusDTO status = service.getUpdateStatus();
+
+        assertThat(status).isNotNull();
+        assertThat(status.status()).isEqualTo("RUNNING");
+        assertThat(status.step()).isEqualTo("DOCKER_PULL");
+        assertThat(status.progressPercent()).isEqualTo(50);
+        assertThat(status.logs()).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("getUpdateStatus - falls back to UNKNOWN status when status file is corrupt")
+    void getUpdateStatus_fallsBackWhenFileCorrupt() throws IOException {
+        Files.writeString(statusFile, "{ corrupted json ");
+
+        SystemUpdateStatusDTO status = service.getUpdateStatus();
+
+        assertThat(status).isNotNull();
+        assertThat(status.status()).isEqualTo("IDLE");
+        assertThat(status.step()).isEqualTo("UNKNOWN");
+    }
+
+    @Test
+    @DisplayName("triggerUpdate - initiates update and writes initial status file when preconditions met")
+    void triggerUpdate_initiatesUpdateSuccessfully() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.SYSTEM_UPDATES)).thenReturn(true);
+        when(tableRepository.findByOccupee(true)).thenReturn(Collections.emptyList());
+        when(commandeRepository.countByStatutIn(any())).thenReturn(0L);
+
+        SystemUpdateRequest request = new SystemUpdateRequest("0.8.1", UpdateChannel.STABLE);
+
+        SystemUpdateStatusDTO status = service.triggerUpdate(request);
+
+        assertThat(status).isNotNull();
+        assertThat(status.status()).isEqualTo("RUNNING");
+        assertThat(status.step()).isEqualTo("PREFLIGHT");
+        assertThat(status.targetVersion()).isEqualTo("0.8.1");
+        assertThat(Files.exists(statusFile)).isTrue();
+    }
+
+    @Test
+    @DisplayName("triggerUpdate - auto-resolves latest version when targetVersion is blank")
+    void triggerUpdate_resolvesLatestVersionWhenBlank() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.SYSTEM_UPDATES)).thenReturn(true);
+        when(tableRepository.findByOccupee(true)).thenReturn(Collections.emptyList());
+        when(commandeRepository.countByStatutIn(any())).thenReturn(0L);
+
+        SystemUpdateRequest request = new SystemUpdateRequest("", UpdateChannel.STABLE);
+
+        SystemUpdateStatusDTO status = service.triggerUpdate(request);
+
+        assertThat(status).isNotNull();
+        assertThat(status.status()).isEqualTo("RUNNING");
+    }
+
+    @Test
+    @DisplayName("restoreSnapshot - throws BusinessException when snapshotId is invalid")
+    void restoreSnapshot_throwsWhenInvalidId() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.SYSTEM_UPDATES)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.restoreSnapshot("../illegal-path"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Invalid snapshot identifier");
+    }
+
+    @Test
+    @DisplayName("restoreSnapshot - initiates restore when snapshot file exists")
+    void restoreSnapshot_initiatesRestoreWhenFileExists() throws IOException {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.SYSTEM_UPDATES)).thenReturn(true);
+
+        String snapshotId = "openbar_pre_update_0.8.0_20261010_120000";
+        Files.writeString(backupDir.resolve(snapshotId + ".sql.gz"), "backup-content");
+
+        var result = service.restoreSnapshot(snapshotId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.get("snapshotId")).isEqualTo(snapshotId);
+    }
+
+    @Test
+    @DisplayName("restoreSnapshot - throws BusinessException when module disabled")
+    void restoreSnapshot_throwsWhenModuleDisabled() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.SYSTEM_UPDATES)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.restoreSnapshot("snap_1"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("System Updates module is disabled");
+    }
+
+    @Test
+    @DisplayName("deleteSnapshot - throws BusinessException when snapshotId is invalid")
+    void deleteSnapshot_throwsWhenInvalidId() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.SYSTEM_UPDATES)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.deleteSnapshot("invalid id with spaces!"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Invalid snapshot identifier");
+    }
+
+    @Test
+    @DisplayName("deleteSnapshot - throws BusinessException when module disabled")
+    void deleteSnapshot_throwsWhenModuleDisabled() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.SYSTEM_UPDATES)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.deleteSnapshot("snap_1"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("System Updates module is disabled");
+    }
+
+    @Test
+    @DisplayName("listSnapshots - returns empty list when backup directory does not exist")
+    void listSnapshots_returnsEmptyWhenDirMissing() {
+        SystemUpdateService missingDirService = new SystemUpdateService(
+                establishmentConfigService,
+                tableRepository,
+                commandeRepository,
+                objectMapper,
+                "0.8.0",
+                "scripts/ota-update.sh",
+                "scripts/ota-update.ps1",
+                tempDir.resolve("non_existent_backups").toString(),
+                statusFile.toString()
+        );
+
+        List<SystemSnapshotDTO> snapshots = missingDirService.listSnapshots();
+        assertThat(snapshots).isEmpty();
+    }
+
+    @Test
+    @DisplayName("getPreFlightCheck - recovers gracefully when repository query throws exception")
+    void getPreFlightCheck_handlesRepositoryExceptionGracefully() {
+        when(tableRepository.findByOccupee(true)).thenThrow(new RuntimeException("DB Connection timeout"));
+        when(commandeRepository.countByStatutIn(any())).thenThrow(new RuntimeException("DB Connection timeout"));
+
+        SystemPreFlightDTO preflight = service.getPreFlightCheck();
+
+        assertThat(preflight).isNotNull();
+        assertThat(preflight.occupiedTablesCount()).isZero();
+        assertThat(preflight.activeOrdersCount()).isZero();
     }
 }

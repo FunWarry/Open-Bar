@@ -249,7 +249,6 @@ public class SystemUpdateService {
     public SystemPreFlightDTO getPreFlightCheck() {
         File root = new File(".");
         long freeBytes = root.getUsableSpace();
-        long totalBytes = root.getTotalSpace();
         boolean diskOk = freeBytes >= MIN_DISK_SPACE_BYTES;
 
         long occupiedTables = 0;
@@ -464,18 +463,20 @@ public class SystemUpdateService {
      */
     public Map<String, String> restoreSnapshot(String snapshotId) {
         verifyModuleEnabled();
+        validateSnapshotId(snapshotId);
 
         Path sqlGzPath = Paths.get(this.backupDir, snapshotId + SQL_GZ_EXT);
         if (!Files.exists(sqlGzPath)) {
             throw new ResourceNotFoundException("Snapshot file not found: " + snapshotId);
         }
 
-        log.info("Triggering disaster recovery restore for snapshot: {}", snapshotId);
+        String safeSnapshotId = sanitizeForLog(snapshotId);
+        log.info("Triggering disaster recovery restore for snapshot: {}", safeSnapshotId);
         CompletableFuture.runAsync(() -> executeRollbackRestore(sqlGzPath.toAbsolutePath().toString()));
 
         return Map.of(
-                "message", "Restauration du snapshot " + snapshotId + " initiée avec succès.",
-                "snapshotId", snapshotId
+                "message", "Restauration du snapshot " + safeSnapshotId + " initiée avec succès.",
+                "snapshotId", safeSnapshotId
         );
     }
 
@@ -486,18 +487,33 @@ public class SystemUpdateService {
      */
     public void deleteSnapshot(String snapshotId) {
         verifyModuleEnabled();
+        validateSnapshotId(snapshotId);
 
         Path sqlGzPath = Paths.get(this.backupDir, snapshotId + SQL_GZ_EXT);
         Path metaPath = Paths.get(this.backupDir, snapshotId + ".meta.json");
 
+        String safeSnapshotId = sanitizeForLog(snapshotId);
         try {
             Files.deleteIfExists(sqlGzPath);
             Files.deleteIfExists(metaPath);
-            log.info("Deleted snapshot: {}", snapshotId);
+            log.info("Deleted snapshot: {}", safeSnapshotId);
         } catch (IOException ex) {
-            log.error("Failed to delete snapshot files for {}: {}", snapshotId, ex.getMessage());
+            log.error("Failed to delete snapshot files for {}: {}", safeSnapshotId, ex.getMessage());
             throw new BusinessException("Failed to delete snapshot: " + ex.getMessage());
         }
+    }
+
+    private void validateSnapshotId(String snapshotId) {
+        if (snapshotId == null || !snapshotId.matches("^[a-zA-Z0-9_.-]+$")) {
+            throw new BusinessException("Invalid snapshot identifier.");
+        }
+    }
+
+    private String sanitizeForLog(String input) {
+        if (input == null) {
+            return "";
+        }
+        return input.replaceAll("[\\r\\n]", "_");
     }
 
     private void verifyModuleEnabled() {

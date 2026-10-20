@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { ToastController } from '@ionic/angular';
 import { getTranslocoTestingModule } from '../../../transloco-testing.module';
@@ -198,5 +198,87 @@ describe('SystemUpdatePageComponent', () => {
     expect(component.formatBytes(0)).toBe('0 Mo');
     expect(component.formatBytes(50 * 1024 * 1024)).toBe('50.0 Mo');
     expect(component.formatBytes(2.5 * 1024 * 1024 * 1024)).toBe('2.50 Go');
+  });
+
+  it('closeUpdateModal() should close the update modal', () => {
+    component.closeUpdateModal();
+    expect(component.isUpdateModalOpen()).toBeFalse();
+  });
+
+  it('closeRestoreModal() should close restore modal and reset target snapshot', () => {
+    component.openRestoreModal(mockSnapshots[0]);
+    expect(component.isRestoreModalOpen()).toBeTrue();
+
+    component.closeRestoreModal();
+    expect(component.isRestoreModalOpen()).toBeFalse();
+    expect(component.targetRestoreSnapshot()).toBeNull();
+  });
+
+  it('openPreFlightModal() should show toast on error', () => {
+    systemUpdateServiceSpy.getPreFlight.and.returnValue(throwError(() => new Error('Preflight failure')));
+    component.openPreFlightModal();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('confirmAndLaunchUpdate() should show error toast on update failure', () => {
+    systemUpdateServiceSpy.triggerUpdate.and.returnValue(throwError(() => ({
+      error: { message: 'Disk space error' }
+    })));
+
+    component.confirmAndLaunchUpdate();
+
+    expect(component.isTriggeringUpdate()).toBeFalse();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('confirmRestoreSnapshot() should show error toast on failure', () => {
+    systemUpdateServiceSpy.restoreSnapshot.and.returnValue(throwError(() => ({
+      error: { message: 'Restore script failed' }
+    })));
+
+    component.openRestoreModal(mockSnapshots[0]);
+    component.confirmRestoreSnapshot();
+
+    expect(component.isRestoringSnapshot()).toBeFalse();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('deleteSnapshot() should show error toast on failure', () => {
+    systemUpdateServiceSpy.deleteSnapshot.and.returnValue(throwError(() => ({
+      error: { message: 'Deletion failed' }
+    })));
+
+    component.deleteSnapshot(mockSnapshots[0]);
+
+    expect(component.isDeletingSnapshot()).toBeNull();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('checkForUpdates() should handle error gracefully', () => {
+    systemUpdateServiceSpy.checkForUpdates.and.returnValue(throwError(() => new Error('Network error')));
+
+    component.checkForUpdates();
+
+    expect(component.isCheckingUpdate()).toBeFalse();
+  });
+
+  it('checkLiveUpdateStatus() should open update modal if update is already RUNNING', () => {
+    const runningStatus: SystemUpdateStatus = {
+      status: 'RUNNING',
+      step: 'DOCKER_PULL',
+      progressPercent: 40,
+      message: 'Pulling...',
+      currentVersion: '0.8.0',
+      targetVersion: '0.8.1',
+      channel: 'STABLE',
+      logs: [],
+    };
+    systemUpdateServiceSpy.getUpdateStatus.and.returnValue(of(runningStatus));
+
+    component.checkLiveUpdateStatus();
+
+    expect(component.isUpdateModalOpen()).toBeTrue();
+    expect(component.updateStatus()).toEqual(runningStatus);
   });
 });
