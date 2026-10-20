@@ -93,6 +93,7 @@ public class AuthController {
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
         return ResponseEntity.ok(new LoginResponse(
+                user.getId(),
                 accessToken,
                 refreshToken.getToken(),
                 user.getUsername(),

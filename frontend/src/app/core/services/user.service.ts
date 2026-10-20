@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { User } from '../models/user.model';
 /**
@@ -63,12 +63,34 @@ export class UserService {
   }
 
   /**
+   * Fetches the profile of the currently authenticated user from `/api/users/me`.
+   *
+   * @returns Observable emitting the caller {@link User} profile.
+   */
+  getCurrentUser(): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/me`);
+  }
+
+  /**
+   * Updates the profile of the currently authenticated user via `/api/users/me`.
+   *
+   * @param user Partial user object containing updated attributes.
+   * @returns Observable emitting the updated {@link User}.
+   */
+  updateCurrentUser(user: Partial<User>): Observable<User> {
+    return this.http.put<User>(`${this.apiUrl}/me`, user);
+  }
+
+  /**
    * Fetches a single user by unique identifier.
    *
    * @param id Unique identifier of the user.
    * @returns Observable emitting the matching {@link User}.
    */
   getUserById(id: number): Observable<User> {
+    if (!id || isNaN(Number(id))) {
+      return throwError(() => new Error('Cannot fetch user without a valid numeric ID'));
+    }
     return this.http.get<User>(`${this.apiUrl}/${id}`);
   }
 
@@ -90,6 +112,9 @@ export class UserService {
    * @returns Observable emitting the updated {@link User}.
    */
   updateUser(id: number, user: Partial<User>): Observable<User> {
+    if (!id || isNaN(Number(id))) {
+      return throwError(() => new Error('Cannot update user without a valid numeric ID'));
+    }
     return this.http.put<User>(`${this.apiUrl}/${id}`, user);
   }
 
@@ -100,6 +125,9 @@ export class UserService {
    * @returns Observable completing upon successful deletion.
    */
   deleteUser(id: number): Observable<void> {
+    if (!id || isNaN(Number(id))) {
+      return throwError(() => new Error('Cannot delete user without a valid numeric ID'));
+    }
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

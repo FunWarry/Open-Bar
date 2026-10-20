@@ -150,4 +150,56 @@ describe('UserService', () => {
     expect(req.request.method).toBe('GET');
     req.flush(mockPage);
   });
+
+  it('getCurrentUser() should send GET to /api/users/me', () => {
+    service.getCurrentUser().subscribe((user) => {
+      expect(user).toEqual(mockUsers[0]);
+    });
+
+    const req = httpMock.expectOne(`${apiUrl}/me`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockUsers[0]);
+  });
+
+  it('updateCurrentUser() should send PUT to /api/users/me with payload', () => {
+    const updateData: Partial<User> = { email: 'me-updated@openbar.fr' };
+
+    service.updateCurrentUser(updateData).subscribe((updated) => {
+      expect(updated.email).toBe('me-updated@openbar.fr');
+    });
+
+    const req = httpMock.expectOne(`${apiUrl}/me`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual(updateData);
+    req.flush({ ...mockUsers[0], email: 'me-updated@openbar.fr' });
+  });
+
+  it('should reject invalid or non-numeric IDs defensively without emitting HTTP requests', () => {
+    let errorCaught = false;
+    service.getUserById(undefined as unknown as number).subscribe({
+      error: (err) => {
+        errorCaught = true;
+        expect(err.message).toContain('numeric ID');
+      }
+    });
+    expect(errorCaught).toBeTrue();
+
+    errorCaught = false;
+    service.updateUser(undefined as unknown as number, {}).subscribe({
+      error: (err) => {
+        errorCaught = true;
+        expect(err.message).toContain('numeric ID');
+      }
+    });
+    expect(errorCaught).toBeTrue();
+
+    errorCaught = false;
+    service.deleteUser(NaN).subscribe({
+      error: (err) => {
+        errorCaught = true;
+        expect(err.message).toContain('numeric ID');
+      }
+    });
+    expect(errorCaught).toBeTrue();
+  });
 });

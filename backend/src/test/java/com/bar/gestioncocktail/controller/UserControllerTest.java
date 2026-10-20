@@ -145,4 +145,50 @@ class UserControllerTest {
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody().totalElements()).isEqualTo(1);
     }
+
+    @Test
+    @DisplayName("getCurrentUser - returns profile of caller when authenticated")
+    void getCurrentUser_success() {
+        org.springframework.security.core.Authentication auth = org.mockito.Mockito.mock(org.springframework.security.core.Authentication.class);
+        when(auth.getName()).thenReturn("testuser");
+        when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(user));
+
+        ResponseEntity<UserResponseDTO> response = userController.getCurrentUser(auth);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().username()).isEqualTo("testuser");
+        assertThat(response.getBody().id()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("getCurrentUser - returns 401 when unauthenticated")
+    void getCurrentUser_unauthenticated() {
+        ResponseEntity<UserResponseDTO> response = userController.getCurrentUser(null);
+        assertThat(response.getStatusCode().value()).isEqualTo(401);
+    }
+
+    @Test
+    @DisplayName("updateCurrentUser - updates profile using authenticated caller identity")
+    void updateCurrentUser_success() {
+        org.springframework.security.core.Authentication auth = org.mockito.Mockito.mock(org.springframework.security.core.Authentication.class);
+        when(auth.getName()).thenReturn("testuser");
+        when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(user));
+        when(userService.updateUser(eq(1L), any(User.class))).thenReturn(user);
+
+        UserRequestDTO request = new UserRequestDTO("testuser", "secret", "test@example.com", "Doe", "John", Set.of(UserRole.SERVEUR));
+        ResponseEntity<UserResponseDTO> response = userController.updateCurrentUser(auth, request);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        verify(userService).updateUser(eq(1L), any(User.class));
+    }
+
+    @Test
+    @DisplayName("updateCurrentUser - returns 401 when unauthenticated")
+    void updateCurrentUser_unauthenticated() {
+        UserRequestDTO request = new UserRequestDTO("testuser", "secret", "test@example.com", "Doe", "John", Set.of(UserRole.SERVEUR));
+        ResponseEntity<UserResponseDTO> response = userController.updateCurrentUser(null, request);
+        assertThat(response.getStatusCode().value()).isEqualTo(401);
+    }
 }

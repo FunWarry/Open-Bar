@@ -16,6 +16,12 @@ import java.util.List;
 public class LoginResponse {
 
     /**
+     * Unique identifier of the authenticated user.
+     */
+    @Schema(description = "User unique identifier")
+    private Long id;
+
+    /**
      * JWT access token for authenticating subsequent requests (Bearer).
      */
     @Schema(description = "JWT access token (Bearer)")
@@ -58,6 +64,30 @@ public class LoginResponse {
     /**
      * All-arguments constructor for LoginResponse.
      *
+     * @param id User unique identifier
+     * @param token JWT access token
+     * @param refreshToken Refresh token UUID
+     * @param username Authenticated username
+     * @param roles Assigned roles
+     * @param email User email address
+     * @param createdAt Account creation timestamp
+     * @param updatedAt Account last modification timestamp
+     */
+    public LoginResponse(Long id, String token, String refreshToken, String username, List<String> roles,
+                         String email, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.token = token;
+        this.refreshToken = refreshToken;
+        this.username = username;
+        this.roles = roles;
+        this.email = email;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    /**
+     * Legacy constructor for backwards-compatibility without explicit user id.
+     *
      * @param token JWT access token
      * @param refreshToken Refresh token UUID
      * @param username Authenticated username
@@ -68,12 +98,6 @@ public class LoginResponse {
      */
     public LoginResponse(String token, String refreshToken, String username, List<String> roles,
                          String email, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.token = token;
-        this.refreshToken = refreshToken;
-        this.username = username;
-        this.roles = roles;
-        this.email = email;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this(null, token, refreshToken, username, roles, email, createdAt, updatedAt);
     }
 }

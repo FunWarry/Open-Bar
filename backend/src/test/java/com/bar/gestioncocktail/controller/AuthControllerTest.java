@@ -84,6 +84,7 @@ class AuthControllerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getToken()).isEqualTo("jwt-token");
         assertThat(response.getBody().getRefreshToken()).isEqualTo("refresh-token");
+        assertThat(response.getBody().getId()).isEqualTo(user.getId());
     }
 
     @Test
