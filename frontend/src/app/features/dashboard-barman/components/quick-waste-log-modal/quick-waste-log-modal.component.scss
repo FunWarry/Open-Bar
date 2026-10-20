@@ -99,6 +99,8 @@
 .top-controls-section {
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 30;
 }
 
 .search-and-category-row {

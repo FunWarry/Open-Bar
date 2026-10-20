@@ -13,7 +13,8 @@ ion-header {
   flex-shrink: 0;
   position: relative;
   width: 100%;
-  z-index: 5;
+  z-index: 50;
+  overflow: visible;
 }
 
 .barman-content {
@@ -79,6 +80,8 @@ ion-header {
   --padding-bottom: 0;
   padding: 0;
   border-bottom: 1px solid var(--border-medium);
+  position: relative;
+  z-index: 40;
 }
 
 .barman-toolbar-inner {
@@ -597,7 +600,9 @@ ion-header {
   gap: 12px;
   max-width: 100%;
   box-sizing: border-box;
-  overflow-x: hidden;
+  overflow: visible;
+  position: relative;
+  z-index: 60;
 
   @media (max-width: 767px) {
     flex-direction: column;
@@ -617,6 +622,8 @@ ion-header {
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 70;
 
   @media (max-width: 767px) {
     width: 100%;

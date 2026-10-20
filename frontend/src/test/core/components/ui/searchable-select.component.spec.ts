@@ -216,4 +216,55 @@ describe('SearchableSelectComponent', () => {
     expect(component.value).toEqual([]);
     expect(component.hasSelection).toBeFalse();
   });
+
+  it('should not open upwards when near top of viewport even if space below is limited', () => {
+    component.dropdownPosition = 'auto';
+
+    if (component.triggerButtonElement?.nativeElement) {
+      spyOn(component.triggerButtonElement.nativeElement, 'getBoundingClientRect').and.returnValue({
+        top: 100, // Near top of screen (< 280px)
+        bottom: 144,
+        left: 50,
+        right: 350,
+        width: 300,
+        height: 44,
+        x: 50,
+        y: 100,
+        toJSON: () => {},
+      });
+    }
+
+    component.openDropdown();
+    expect(component.openUpwards()).toBeFalse();
+  });
+
+  it('should calculate alignRight correctly based on viewport position and menuAlign override', () => {
+    component.menuAlign = 'right';
+    component.openDropdown();
+    expect(component.alignRight()).toBeTrue();
+
+    component.closeDropdown();
+    component.menuAlign = 'left';
+    component.openDropdown();
+    expect(component.alignRight()).toBeFalse();
+
+    component.closeDropdown();
+    component.menuAlign = 'auto';
+
+    if (component.triggerButtonElement?.nativeElement) {
+      spyOn(component.triggerButtonElement.nativeElement, 'getBoundingClientRect').and.returnValue({
+        top: 500,
+        bottom: 544,
+        left: 900,
+        right: 1100,
+        width: 200,
+        height: 44,
+        x: 900,
+        y: 500,
+        toJSON: () => {},
+      });
+    }
+    component.openDropdown();
+    expect(component.alignRight()).toBeTrue();
+  });
 });
