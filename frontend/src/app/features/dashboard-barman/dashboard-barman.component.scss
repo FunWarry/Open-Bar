@@ -218,9 +218,9 @@ ion-header {
 
   @media (max-width: 767px) {
     height: 34px;
-    font-size: 0.78rem;
-    --padding-start: 10px;
-    --padding-end: 10px;
+    font-size: 0.76rem;
+    --padding-start: 8px;
+    --padding-end: 8px;
     flex: 0 0 auto;
     flex-shrink: 0;
     justify-content: center;
@@ -380,6 +380,12 @@ ion-header {
   }
 
   &.btn-roulette-tv {
+    display: none;
+
+    @media (min-width: 768px) {
+      display: inline-flex;
+    }
+
     --background: var(--background-surface-2);
     --color: var(--text-primary);
     --border-radius: var(--radius-pill, 999px);
