@@ -701,6 +701,18 @@
                           </div>
                           <p class="threshold-desc">{{ 'SETTINGS.MODULE_CHECKLISTS_PROCEDURES_DESC' | transloco }}</p>
                         </div>
+
+                        <!-- Module 16: SYSTEM_UPDATES -->
+                        <div class="threshold-row" data-testid="module-row-system-updates">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="cloud-download-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_SYSTEM_UPDATES_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="systemUpdates" data-testid="toggle-module-system-updates"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_SYSTEM_UPDATES_DESC' | transloco }}</p>
+                        </div>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -1050,6 +1062,26 @@
                                 </span>
                               </div>
                               <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_CHECKLISTS_PROCEDURES' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 16. Mises à Jour OTA & Rollback -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('systemUpdates')"
+                            [class.node-inactive]="!isModuleControlActive('systemUpdates')"
+                            data-testid="preview-node-system-updates">
+                            <div class="node-icon-box">
+                              <ion-icon name="cloud-download-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_SYSTEM_UPDATES_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('systemUpdates')">
+                                  {{ (isModuleControlActive('systemUpdates') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_SYSTEM_UPDATES' | transloco }}</span>
                             </div>
                           </div>
                         </div>

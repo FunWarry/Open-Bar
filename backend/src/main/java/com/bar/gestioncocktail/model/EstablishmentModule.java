@@ -87,7 +87,13 @@ public enum EstablishmentModule {
     /**
      * Operational task checklists, opening/closing SOPs, rich media guidelines, and staff execution audit trail.
      */
-    CHECKLISTS_PROCEDURES
+    CHECKLISTS_PROCEDURES,
+
+    /**
+     * Automated Over-The-Air (OTA) software update service, pre-update PostgreSQL database snapshots,
+     * container healthcheck verification, and auto-rollback capability.
+     */
+    SYSTEM_UPDATES
 }
 
 

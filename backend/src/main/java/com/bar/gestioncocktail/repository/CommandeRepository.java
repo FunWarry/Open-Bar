@@ -38,6 +38,7 @@ public interface CommandeRepository extends JpaRepository<Commande, Long> {
     Optional<Commande> findByClientRequestId(String clientRequestId);
 
     long countByStatut(CommandeStatut statut);
+    long countByStatutIn(List<CommandeStatut> statuts);
 
     @Query("SELECT COALESCE(SUM(c.total), 0) FROM Commande c WHERE c.statut = :statut AND c.dateCommande >= :depuis")
     BigDecimal sumTotalByStatutAndDateCommandeAfter(@Param("statut") CommandeStatut statut, @Param("depuis") LocalDateTime depuis);

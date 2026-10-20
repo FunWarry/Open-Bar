@@ -144,6 +144,9 @@ public class EstablishmentConfig {
     @Column(name = "module_checklists_procedures_enabled")
     private Boolean moduleChecklistsProceduresEnabled = true;
 
+    @Column(name = "module_system_updates_enabled")
+    private Boolean moduleSystemUpdatesEnabled = true;
+
     @Column(name = "roulette_price_cocktail", precision = 10, scale = 2)
     private BigDecimal roulettePriceCocktail = new BigDecimal("7.50");
 
@@ -444,6 +447,14 @@ public class EstablishmentConfig {
         this.moduleChecklistsProceduresEnabled = moduleChecklistsProceduresEnabled;
     }
 
+    public Boolean getModuleSystemUpdatesEnabled() {
+        return this.moduleSystemUpdatesEnabled;
+    }
+
+    public void setModuleSystemUpdatesEnabled(Boolean moduleSystemUpdatesEnabled) {
+        this.moduleSystemUpdatesEnabled = moduleSystemUpdatesEnabled;
+    }
+
     public BigDecimal getRoulettePriceCocktail() {
         return this.roulettePriceCocktail != null ? this.roulettePriceCocktail : new BigDecimal("7.50");
     }
@@ -528,6 +539,7 @@ public class EstablishmentConfig {
             case PAYMENT_TERMINAL -> isEnabledOrDefault(this.modulePaymentTerminalEnabled);
             case TABLE_RESERVATIONS -> isEnabledOrDefault(this.moduleTableReservationsEnabled);
             case CHECKLISTS_PROCEDURES -> isEnabledOrDefault(this.moduleChecklistsProceduresEnabled);
+            case SYSTEM_UPDATES -> isEnabledOrDefault(this.moduleSystemUpdatesEnabled);
             default -> true;
         };
     }
@@ -592,6 +604,9 @@ public class EstablishmentConfig {
             case CHECKLISTS_PROCEDURES:
                 this.moduleChecklistsProceduresEnabled = enabled;
                 break;
+            case SYSTEM_UPDATES:
+                this.moduleSystemUpdatesEnabled = enabled;
+                break;
             default:
                 break;
         }
@@ -644,6 +659,7 @@ public class EstablishmentConfig {
                 ", moduleSuppliersManagementEnabled=" + moduleSuppliersManagementEnabled +
                 ", moduleTableReservationsEnabled=" + moduleTableReservationsEnabled +
                 ", moduleChecklistsProceduresEnabled=" + moduleChecklistsProceduresEnabled +
+                ", moduleSystemUpdatesEnabled=" + moduleSystemUpdatesEnabled +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

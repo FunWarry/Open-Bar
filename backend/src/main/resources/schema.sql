@@ -570,6 +570,7 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     module_payment_terminal_enabled BOOLEAN DEFAULT true,
     module_table_reservations_enabled BOOLEAN DEFAULT true,
     module_checklists_procedures_enabled BOOLEAN DEFAULT true,
+    module_system_updates_enabled BOOLEAN DEFAULT true,
     roulette_price_cocktail DECIMAL(10,2) DEFAULT 7.50,
     roulette_price_mocktail DECIMAL(10,2) DEFAULT 5.50,
     roulette_stock_bias VARCHAR(30) DEFAULT 'BALANCED',
@@ -1002,3 +1003,6 @@ CREATE INDEX IF NOT EXISTS idx_checklist_templates_active ON checklist_templates
 CREATE INDEX IF NOT EXISTS idx_checklist_runs_status ON checklist_runs(status);
 CREATE INDEX IF NOT EXISTS idx_checklist_runs_started_at ON checklist_runs(started_at);
 CREATE INDEX IF NOT EXISTS idx_checklist_run_items_run_id ON checklist_run_items(run_id);
+
+-- System Updates Module idempotency migration
+ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_system_updates_enabled BOOLEAN DEFAULT true;

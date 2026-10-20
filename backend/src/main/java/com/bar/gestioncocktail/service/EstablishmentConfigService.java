@@ -208,6 +208,7 @@ public class EstablishmentConfigService {
         applyModuleIfPresent(config, EstablishmentModule.PAYMENT_TERMINAL, request.paymentTerminal());
         applyModuleIfPresent(config, EstablishmentModule.TABLE_RESERVATIONS, request.tableReservations());
         applyModuleIfPresent(config, EstablishmentModule.CHECKLISTS_PROCEDURES, request.checklistsProcedures());
+        applyModuleIfPresent(config, EstablishmentModule.SYSTEM_UPDATES, request.systemUpdates());
     }
 
     private void applyModuleIfPresent(EstablishmentConfig config, EstablishmentModule module, Boolean enabled) {

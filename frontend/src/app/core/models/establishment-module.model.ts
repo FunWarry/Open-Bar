@@ -17,6 +17,7 @@ export enum EstablishmentModule {
   PAYMENT_TERMINAL = 'PAYMENT_TERMINAL',
   TABLE_RESERVATIONS = 'TABLE_RESERVATIONS',
   CHECKLISTS_PROCEDURES = 'CHECKLISTS_PROCEDURES',
+  SYSTEM_UPDATES = 'SYSTEM_UPDATES',
 }
 
 /**
@@ -38,6 +39,7 @@ export interface EstablishmentModules {
   paymentTerminal: boolean;
   tableReservations: boolean;
   checklistsProcedures: boolean;
+  systemUpdates: boolean;
 }
 
 /**
@@ -65,6 +67,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     paymentTerminal: true,
     tableReservations: true,
     checklistsProcedures: true,
+    systemUpdates: true,
   },
   RESTAURANT: {
     cuisineKds: true,
@@ -82,6 +85,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     paymentTerminal: true,
     tableReservations: true,
     checklistsProcedures: true,
+    systemUpdates: true,
   },
   FOOD_TRUCK: {
     cuisineKds: true,
@@ -99,6 +103,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     paymentTerminal: true,
     tableReservations: false,
     checklistsProcedures: true,
+    systemUpdates: true,
   },
   NIGHTCLUB: {
     cuisineKds: false,
@@ -116,5 +121,6 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     paymentTerminal: true,
     tableReservations: true,
     checklistsProcedures: true,
+    systemUpdates: true,
   },
 };

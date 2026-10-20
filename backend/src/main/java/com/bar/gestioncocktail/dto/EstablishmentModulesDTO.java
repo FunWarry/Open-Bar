@@ -20,6 +20,7 @@ import com.bar.gestioncocktail.model.EstablishmentConfig;
  * @param paymentTerminal     Whether physical card payment terminal (TPE) integration is enabled
  * @param tableReservations    Whether table reservations and floor plan booking assignments are enabled
  * @param checklistsProcedures Whether operational task checklists and SOP procedures are enabled
+ * @param systemUpdates        Whether automated OTA software update service and snapshots are enabled
  */
 public record EstablishmentModulesDTO(
         boolean cuisineKds,
@@ -36,8 +37,28 @@ public record EstablishmentModulesDTO(
         boolean mysteryRoulette,
         boolean paymentTerminal,
         boolean tableReservations,
-        boolean checklistsProcedures
+        boolean checklistsProcedures,
+        boolean systemUpdates
 ) {
+    public EstablishmentModulesDTO(
+            boolean cuisineKds,
+            boolean happyHour,
+            boolean employeeManagement,
+            boolean floorPlan,
+            boolean qrClientOrdering,
+            boolean stockTracking,
+            boolean cashDrawer,
+            boolean barTabs,
+            boolean cocktailLibrary,
+            boolean suppliersManagement,
+            boolean inventoryAudit,
+            boolean mysteryRoulette,
+            boolean paymentTerminal,
+            boolean tableReservations,
+            boolean checklistsProcedures
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, tableReservations, checklistsProcedures, true);
+    }
     public EstablishmentModulesDTO(
             boolean cuisineKds,
             boolean happyHour,
@@ -186,7 +207,8 @@ public record EstablishmentModulesDTO(
                 isEnabled(config.getModuleMysteryRouletteEnabled()),
                 isEnabled(config.getModulePaymentTerminalEnabled()),
                 isEnabled(config.getModuleTableReservationsEnabled()),
-                isEnabled(config.getModuleChecklistsProceduresEnabled())
+                isEnabled(config.getModuleChecklistsProceduresEnabled()),
+                isEnabled(config.getModuleSystemUpdatesEnabled())
         );
     }
 
@@ -200,6 +222,6 @@ public record EstablishmentModulesDTO(
      * @return New instance with all flags set to true
      */
     public static EstablishmentModulesDTO defaultEnabled() {
-        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);
+        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);
     }
 }

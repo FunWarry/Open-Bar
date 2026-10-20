@@ -19,6 +19,7 @@ package com.bar.gestioncocktail.dto;
  * @param paymentTerminal     Optional new status for Physical Payment Terminal (TPE) module
  * @param tableReservations    Optional new status for Table Reservations module
  * @param checklistsProcedures Optional new status for Checklists & Procedures module
+ * @param systemUpdates        Optional new status for System Updates module
  */
 public record EstablishmentModulesUpdateRequest(
         Boolean cuisineKds,
@@ -35,8 +36,29 @@ public record EstablishmentModulesUpdateRequest(
         Boolean mysteryRoulette,
         Boolean paymentTerminal,
         Boolean tableReservations,
-        Boolean checklistsProcedures
+        Boolean checklistsProcedures,
+        Boolean systemUpdates
 ) {
+    public EstablishmentModulesUpdateRequest(
+            Boolean cuisineKds,
+            Boolean happyHour,
+            Boolean employeeManagement,
+            Boolean floorPlan,
+            Boolean qrClientOrdering,
+            Boolean stockTracking,
+            Boolean cashDrawer,
+            Boolean barTabs,
+            Boolean cocktailLibrary,
+            Boolean suppliersManagement,
+            Boolean inventoryAudit,
+            Boolean mysteryRoulette,
+            Boolean paymentTerminal,
+            Boolean tableReservations,
+            Boolean checklistsProcedures
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, tableReservations, checklistsProcedures, null);
+    }
+
     @Override
     public Boolean paymentTerminal() {
         return paymentTerminal;

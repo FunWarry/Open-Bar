@@ -1,0 +1,518 @@
+<div class="system-update-page" data-testid="system-update-page">
+  <!-- Hero Header -->
+  <header class="system-hero">
+    <div class="hero-top-nav">
+      <a routerLink="/admin" class="back-link" data-testid="btn-back-admin">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        <span>{{ 'SYSTEM_UPDATE.BACK_TO_ADMIN' | transloco }}</span>
+      </a>
+    </div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        <span>{{ 'SYSTEM_UPDATE.HERO_BADGE' | transloco }}</span>
+      </div>
+      <h1 class="hero-title">{{ 'SYSTEM_UPDATE.PAGE_TITLE' | transloco }}</h1>
+      <p class="hero-subtitle">{{ 'SYSTEM_UPDATE.PAGE_SUBTITLE' | transloco }}</p>
+    </div>
+  </header>
+
+  <!-- Live KPI Stat Cards -->
+  <section class="kpi-grid">
+    <app-stat-card
+      layout="horizontal"
+      color="primary"
+      [value]="versionInfo()?.currentVersion ? ('v' + versionInfo()?.currentVersion) : '...'"
+      [title]="'SYSTEM_UPDATE.STATS.CURRENT_VERSION' | transloco"
+      [subtext]="'SYSTEM_UPDATE.STATS.CURRENT_VERSION_DESC' | transloco"
+      testId="kpi-current-version">
+      <span stat-icon class="ki-icon">📦</span>
+    </app-stat-card>
+
+    <app-stat-card
+      layout="horizontal"
+      color="success"
+      [value]="'SYSTEM_UPDATE.STATS.STATUS_HEALTHY' | transloco"
+      [title]="'SYSTEM_UPDATE.STATS.HEALTH' | transloco"
+      [subtext]="'SYSTEM_UPDATE.STATS.HEALTH_DESC' | transloco"
+      testId="kpi-health-status">
+      <span stat-icon class="ki-icon">🩺</span>
+    </app-stat-card>
+
+    <app-stat-card
+      layout="horizontal"
+      color="warning"
+      [value]="freeDiskGb() + ' Go'"
+      [title]="'SYSTEM_UPDATE.STATS.DISK_SPACE' | transloco"
+      [subtext]="('SYSTEM_UPDATE.STATS.DISK_TOTAL' | transloco) + ': ' + totalDiskGb() + ' Go'"
+      testId="kpi-disk-space">
+      <span stat-icon class="ki-icon">💾</span>
+    </app-stat-card>
+
+    <app-stat-card
+      layout="horizontal"
+      color="purple"
+      [value]="snapshots().length"
+      [title]="'SYSTEM_UPDATE.STATS.SNAPSHOTS' | transloco"
+      [subtext]="'SYSTEM_UPDATE.STATS.SNAPSHOTS_DESC' | transloco"
+      testId="kpi-snapshots-count">
+      <span stat-icon class="ki-icon">🛡️</span>
+    </app-stat-card>
+  </section>
+
+  <!-- Main Content Grid -->
+  <main class="system-content-grid">
+    <ion-grid>
+      <ion-row>
+        <!-- Colonne Gauche : Recherche & Application de Mise à Jour -->
+        <ion-col size="12" sizeLg="6">
+          <ion-card class="update-card" data-testid="card-update-check">
+            <ion-card-header>
+              <div class="card-title-flex">
+                <ion-card-title class="card-title">
+                  <ion-icon name="cloud-download-outline" class="title-icon"></ion-icon>
+                  <span>{{ 'SYSTEM_UPDATE.CARD_CHECK_TITLE' | transloco }}</span>
+                </ion-card-title>
+                <div class="channel-pills">
+                  <app-filter-chip
+                    [label]="'SYSTEM_UPDATE.CHANNEL_STABLE' | transloco"
+                    [active]="selectedChannel() === 'STABLE'"
+                    (chipClick)="setChannel('STABLE')"
+                    testId="channel-stable">
+                  </app-filter-chip>
+                  <app-filter-chip
+                    [label]="'SYSTEM_UPDATE.CHANNEL_BETA' | transloco"
+                    [active]="selectedChannel() === 'BETA'"
+                    (chipClick)="setChannel('BETA')"
+                    testId="channel-beta">
+                  </app-filter-chip>
+                </div>
+              </div>
+              <p class="card-subtitle">{{ 'SYSTEM_UPDATE.CARD_CHECK_SUBTITLE' | transloco }}</p>
+            </ion-card-header>
+
+            <ion-card-content>
+              <div class="check-actions-bar">
+                <app-action-button
+                  variant="primary"
+                  icon="refresh-outline"
+                  [loading]="isCheckingUpdate()"
+                  (btnClick)="checkForUpdates()"
+                  data-testid="btn-check-updates">
+                  {{ 'SYSTEM_UPDATE.BTN_CHECK_NOW' | transloco }}
+                </app-action-button>
+              </div>
+
+              <!-- Result Banners -->
+              @if (updateCheck(); as check) {
+                @if (check.isOffline) {
+                  <div class="status-banner banner-warning" data-testid="banner-offline">
+                    <ion-icon name="warning-outline"></ion-icon>
+                    <div class="banner-text">
+                      <strong>{{ 'SYSTEM_UPDATE.OFFLINE_TITLE' | transloco }}</strong>
+                      <p>{{ check.statusMessage }}</p>
+                    </div>
+                  </div>
+                } @else if (check.hasUpdate) {
+                  <div class="status-banner banner-update-available" data-testid="banner-update-available">
+                    <div class="banner-header">
+                      <div class="version-badge-wrap">
+                        <span class="sparkle-icon">✨</span>
+                        <span class="target-version-badge">v{{ check.latestVersion }}</span>
+                      </div>
+                      <span class="release-date">{{ check.publishedAt | date:'mediumDate' }}</span>
+                    </div>
+
+                    <h3 class="release-title">{{ check.releaseTitle || ('Release v' + check.latestVersion) }}</h3>
+
+                    @if (check.releaseNotes) {
+                      <div class="release-notes-box">
+                        <div class="notes-header">
+                          <ion-icon name="document-text-outline"></ion-icon>
+                          <span>{{ 'SYSTEM_UPDATE.RELEASE_NOTES' | transloco }}</span>
+                        </div>
+                        <pre class="release-notes-content">{{ check.releaseNotes }}</pre>
+                      </div>
+                    }
+
+                    @if (isAdmin()) {
+                      <div class="banner-actions">
+                        <app-action-button
+                          variant="primary"
+                          icon="play-forward-outline"
+                          (btnClick)="openPreFlightModal()"
+                          data-testid="btn-open-preflight">
+                          {{ 'SYSTEM_UPDATE.BTN_LAUNCH_UPDATE' | transloco: { version: 'v' + check.latestVersion } }}
+                        </app-action-button>
+                      </div>
+                    } @else {
+                      <p class="manager-hint">
+                        <ion-icon name="alert-circle-outline"></ion-icon>
+                        {{ 'SYSTEM_UPDATE.MANAGER_READONLY_HINT' | transloco }}
+                      </p>
+                    }
+                  </div>
+                } @else {
+                  <div class="status-banner banner-success" data-testid="banner-up-to-date">
+                    <ion-icon name="checkmark-circle-outline"></ion-icon>
+                    <div class="banner-text">
+                      <strong>{{ 'SYSTEM_UPDATE.UP_TO_DATE_TITLE' | transloco }}</strong>
+                      <p>{{ check.statusMessage }}</p>
+                    </div>
+                  </div>
+                }
+              }
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <!-- Colonne Droite : Sauvegardes & Snapshots de Secours -->
+        <ion-col size="12" sizeLg="6">
+          <ion-card class="update-card" data-testid="card-snapshots">
+            <ion-card-header>
+              <ion-card-title class="card-title">
+                <ion-icon name="archive-outline" class="title-icon"></ion-icon>
+                <span>{{ 'SYSTEM_UPDATE.CARD_SNAPSHOTS_TITLE' | transloco }}</span>
+              </ion-card-title>
+              <p class="card-subtitle">{{ 'SYSTEM_UPDATE.CARD_SNAPSHOTS_SUBTITLE' | transloco }}</p>
+            </ion-card-header>
+
+            <ion-card-content>
+              @if (snapshots().length === 0) {
+                <app-empty-state
+                  icon="archive-outline"
+                  [title]="'SYSTEM_UPDATE.NO_SNAPSHOTS_TITLE' | transloco"
+                  [subtitle]="'SYSTEM_UPDATE.NO_SNAPSHOTS_MSG' | transloco">
+                </app-empty-state>
+              } @else {
+                <div class="snapshots-table-wrap">
+                  <table class="snapshots-table" data-testid="table-snapshots">
+                    <thead>
+                      <tr>
+                        <th>{{ 'SYSTEM_UPDATE.TABLE_DATE' | transloco }}</th>
+                        <th>{{ 'SYSTEM_UPDATE.TABLE_VERSIONS' | transloco }}</th>
+                        <th>{{ 'SYSTEM_UPDATE.TABLE_SIZE' | transloco }}</th>
+                        <th class="actions-col">{{ 'SYSTEM_UPDATE.TABLE_ACTIONS' | transloco }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (snapshot of snapshots(); track snapshot.snapshotId) {
+                        <tr [attr.data-testid]="'row-snapshot-' + snapshot.snapshotId">
+                          <td class="date-cell">
+                            <strong>{{ snapshot.createdAt | date:'shortDate' }}</strong>
+                            <small>{{ snapshot.createdAt | date:'shortTime' }}</small>
+                          </td>
+                          <td class="version-cell">
+                            <span class="version-pill from-pill">v{{ snapshot.fromVersion }}</span>
+                            @if (snapshot.targetVersion) {
+                              <span class="arrow-sep">→</span>
+                              <span class="version-pill to-pill">v{{ snapshot.targetVersion }}</span>
+                            }
+                          </td>
+                          <td class="size-cell">{{ formatBytes(snapshot.sizeBytes) }}</td>
+                          <td class="actions-cell">
+                            @if (isAdmin()) {
+                              <div class="table-actions-flex">
+                                <app-action-button
+                                  variant="secondary"
+                                  size="small"
+                                  icon="refresh-outline"
+                                  (btnClick)="openRestoreModal(snapshot)"
+                                  [title]="'SYSTEM_UPDATE.BTN_RESTORE' | transloco"
+                                  [testId]="'btn-restore-' + snapshot.snapshotId">
+                                  {{ 'SYSTEM_UPDATE.BTN_RESTORE' | transloco }}
+                                </app-action-button>
+                                <app-action-button
+                                  variant="danger"
+                                  size="small"
+                                  icon="trash-outline"
+                                  [disabled]="isDeletingSnapshot() === snapshot.snapshotId"
+                                  (btnClick)="deleteSnapshot(snapshot)"
+                                  [title]="'SYSTEM_UPDATE.BTN_DELETE' | transloco"
+                                  [testId]="'btn-delete-' + snapshot.snapshotId">
+                                </app-action-button>
+                              </div>
+                            } @else {
+                              <span class="readonly-badge">{{ 'SYSTEM_UPDATE.READ_ONLY' | transloco }}</span>
+                            }
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 1: Pre-flight Safety Checks & Confirmation                          -->
+  <!-- ========================================================================= -->
+  <ion-modal [isOpen]="isPreFlightModalOpen()" (didDismiss)="closePreFlightModal()">
+    @if (isPreFlightModalOpen()) {
+      <app-modal
+        [title]="'SYSTEM_UPDATE.PREFLIGHT_MODAL_TITLE' | transloco"
+        icon="shield-checkmark-outline"
+        size="md"
+        (dismiss)="closePreFlightModal()">
+        <div class="preflight-modal-content" data-testid="preflight-modal">
+          <p class="modal-intro">{{ 'SYSTEM_UPDATE.PREFLIGHT_MODAL_INTRO' | transloco }}</p>
+
+          @if (preFlight(); as pf) {
+            <div class="preflight-checklist">
+              <div class="check-item" [class.check-ok]="pf.hasSufficientDisk" [class.check-warn]="!pf.hasSufficientDisk">
+                <ion-icon [name]="pf.hasSufficientDisk ? 'checkmark-circle-outline' : 'warning-outline'"></ion-icon>
+                <div class="item-info">
+                  <strong>{{ 'SYSTEM_UPDATE.PREFLIGHT_DISK_TITLE' | transloco }}</strong>
+                  <span>{{ formatBytes(pf.freeDiskBytes) }} {{ 'SYSTEM_UPDATE.PREFLIGHT_DISK_AVAILABLE' | transloco }} (Min. 1 Go)</span>
+                </div>
+              </div>
+
+              <div class="check-item" [class.check-ok]="pf.occupiedTablesCount === 0" [class.check-warn]="pf.occupiedTablesCount > 0">
+                <ion-icon [name]="pf.occupiedTablesCount === 0 ? 'checkmark-circle-outline' : 'warning-outline'"></ion-icon>
+                <div class="item-info">
+                  <strong>{{ 'SYSTEM_UPDATE.PREFLIGHT_TABLES_TITLE' | transloco }}</strong>
+                  <span>{{ pf.occupiedTablesCount }} {{ 'SYSTEM_UPDATE.PREFLIGHT_TABLES_OCCUPIED' | transloco }}</span>
+                </div>
+              </div>
+
+              <div class="check-item" [class.check-ok]="pf.activeOrdersCount === 0" [class.check-warn]="pf.activeOrdersCount > 0">
+                <ion-icon [name]="pf.activeOrdersCount === 0 ? 'checkmark-circle-outline' : 'warning-outline'"></ion-icon>
+                <div class="item-info">
+                  <strong>{{ 'SYSTEM_UPDATE.PREFLIGHT_ORDERS_TITLE' | transloco }}</strong>
+                  <span>{{ pf.activeOrdersCount }} {{ 'SYSTEM_UPDATE.PREFLIGHT_ORDERS_ACTIVE' | transloco }}</span>
+                </div>
+              </div>
+            </div>
+
+            @if (pf.warnings.length > 0) {
+              <div class="warnings-box">
+                <h4>{{ 'SYSTEM_UPDATE.PREFLIGHT_WARNINGS_TITLE' | transloco }}</h4>
+                <ul>
+                  @for (warn of pf.warnings; track warn) {
+                    <li>{{ warn }}</li>
+                  }
+                </ul>
+              </div>
+            }
+          }
+
+          <div class="safety-reassurance-box">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            <div class="box-text">
+              <strong>{{ 'SYSTEM_UPDATE.SAFETY_GUARANTEE_TITLE' | transloco }}</strong>
+              <p>{{ 'SYSTEM_UPDATE.SAFETY_GUARANTEE_DESC' | transloco }}</p>
+            </div>
+          </div>
+
+          <div class="modal-footer-actions">
+            <app-action-button
+              variant="secondary"
+              (btnClick)="closePreFlightModal()"
+              data-testid="btn-cancel-preflight">
+              {{ 'COMMON.CANCEL' | transloco }}
+            </app-action-button>
+
+            <app-action-button
+              variant="primary"
+              icon="play-forward-outline"
+              [disabled]="preFlight()?.canProceed === false"
+              (btnClick)="confirmAndLaunchUpdate()"
+              data-testid="btn-confirm-launch-update">
+              {{ 'SYSTEM_UPDATE.BTN_CONFIRM_LAUNCH' | transloco }}
+            </app-action-button>
+          </div>
+        </div>
+      </app-modal>
+    }
+  </ion-modal>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 2: Live OTA Update Progress & Rollback Stepper                      -->
+  <!-- ========================================================================= -->
+  <ion-modal [isOpen]="isUpdateModalOpen()" (didDismiss)="closeUpdateModal()">
+    @if (isUpdateModalOpen()) {
+      <app-modal
+        [title]="'SYSTEM_UPDATE.LIVE_MODAL_TITLE' | transloco"
+        icon="cloud-download-outline"
+        size="lg"
+        (dismiss)="closeUpdateModal()">
+        <div class="live-update-modal-content" data-testid="live-update-modal">
+          @if (updateStatus(); as status) {
+            <!-- Progression Stepper (4 steps) -->
+            <div class="stepper-track">
+              <!-- Step 1: Snapshot -->
+              <div class="step-node" [class.active]="status.step === 'DATABASE_SNAPSHOT'" [class.done]="status.progressPercent > 35">
+                <div class="node-circle">
+                  @if (status.progressPercent > 35) {
+                    <ion-icon name="checkmark-outline"></ion-icon>
+                  } @else {
+                    <span>1</span>
+                  }
+                </div>
+                <span class="node-label">{{ 'SYSTEM_UPDATE.STEP_SNAPSHOT' | transloco }}</span>
+              </div>
+
+              <div class="step-line" [class.done]="status.progressPercent > 35"></div>
+
+              <!-- Step 2: Pull Images -->
+              <div class="step-node" [class.active]="status.step === 'PULLING_IMAGES'" [class.done]="status.progressPercent > 60">
+                <div class="node-circle">
+                  @if (status.progressPercent > 60) {
+                    <ion-icon name="checkmark-outline"></ion-icon>
+                  } @else {
+                    <span>2</span>
+                  }
+                </div>
+                <span class="node-label">{{ 'SYSTEM_UPDATE.STEP_PULL' | transloco }}</span>
+              </div>
+
+              <div class="step-line" [class.done]="status.progressPercent > 60"></div>
+
+              <!-- Step 3: Restart -->
+              <div class="step-node" [class.active]="status.step === 'RESTARTING_CONTAINERS'" [class.done]="status.progressPercent > 80">
+                <div class="node-circle">
+                  @if (status.progressPercent > 80) {
+                    <ion-icon name="checkmark-outline"></ion-icon>
+                  } @else {
+                    <span>3</span>
+                  }
+                </div>
+                <span class="node-label">{{ 'SYSTEM_UPDATE.STEP_RESTART' | transloco }}</span>
+              </div>
+
+              <div class="step-line" [class.done]="status.progressPercent > 80"></div>
+
+              <!-- Step 4: Healthcheck -->
+              <div class="step-node" [class.active]="status.step === 'HEALTHCHECK_VALIDATION'" [class.done]="status.status === 'SUCCESS'">
+                <div class="node-circle">
+                  @if (status.status === 'SUCCESS') {
+                    <ion-icon name="checkmark-outline"></ion-icon>
+                  } @else {
+                    <span>4</span>
+                  }
+                </div>
+                <span class="node-label">{{ 'SYSTEM_UPDATE.STEP_HEALTHCHECK' | transloco }}</span>
+              </div>
+            </div>
+
+            <!-- Progress Bar & Message -->
+            <div class="progress-section">
+              <ion-progress-bar
+                [value]="status.progressPercent / 100"
+                [color]="status.status === 'FAILED_ROLLED_BACK' ? 'danger' : 'primary'">
+              </ion-progress-bar>
+              <div class="progress-label">
+                <span>{{ status.message }}</span>
+                <strong>{{ status.progressPercent }}%</strong>
+              </div>
+            </div>
+
+            <!-- Outcome Banners -->
+            @if (status.status === 'SUCCESS') {
+              <div class="modal-outcome-banner banner-success">
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+                <div class="banner-text">
+                  <h4>{{ 'SYSTEM_UPDATE.SUCCESS_TITLE' | transloco }}</h4>
+                  <p>{{ 'SYSTEM_UPDATE.SUCCESS_DESC' | transloco }}</p>
+                </div>
+              </div>
+            } @else if (status.status === 'FAILED_ROLLED_BACK') {
+              <div class="modal-outcome-banner banner-danger">
+                <ion-icon name="alert-circle-outline"></ion-icon>
+                <div class="banner-text">
+                  <h4>{{ 'SYSTEM_UPDATE.ROLLBACK_COMPLETED_TITLE' | transloco }}</h4>
+                  <p>{{ status.errorDetails }}</p>
+                </div>
+              </div>
+            }
+
+            <!-- Live Logs Collapsible -->
+            <details class="logs-accordion" [open]="status.status === 'FAILED_ROLLED_BACK'">
+              <summary class="logs-summary">
+                <ion-icon name="document-text-outline"></ion-icon>
+                <span>{{ 'SYSTEM_UPDATE.VIEW_DIAGNOSTIC_LOGS' | transloco }} ({{ status.logs.length }})</span>
+              </summary>
+              <div class="logs-terminal">
+                @for (logLine of status.logs; track logLine) {
+                  <div class="log-line">{{ logLine }}</div>
+                }
+              </div>
+            </details>
+
+            <!-- Footer Actions -->
+            <div class="modal-footer-actions">
+              @if (status.status === 'SUCCESS') {
+                <app-action-button
+                  variant="primary"
+                  icon="refresh-outline"
+                  (btnClick)="reloadApplication()"
+                  data-testid="btn-reload-app">
+                  {{ 'SYSTEM_UPDATE.BTN_RELOAD_APP' | transloco }}
+                </app-action-button>
+              } @else if (status.status === 'FAILED_ROLLED_BACK') {
+                <app-action-button
+                  variant="secondary"
+                  (btnClick)="closeUpdateModal()"
+                  data-testid="btn-close-update-modal">
+                  {{ 'COMMON.CLOSE' | transloco }}
+                </app-action-button>
+              } @else {
+                <span class="in-progress-spinner-text">
+                  <ion-spinner name="crescent"></ion-spinner>
+                  {{ 'SYSTEM_UPDATE.IN_PROGRESS_HINT' | transloco }}
+                </span>
+              }
+            </div>
+          }
+        </div>
+      </app-modal>
+    }
+  </ion-modal>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 3: Snapshot Disaster Recovery Restore Confirmation                  -->
+  <!-- ========================================================================= -->
+  <ion-modal [isOpen]="isRestoreModalOpen()" (didDismiss)="closeRestoreModal()">
+    @if (isRestoreModalOpen()) {
+      <app-modal
+        [title]="'SYSTEM_UPDATE.RESTORE_MODAL_TITLE' | transloco"
+        icon="warning-outline"
+        size="sm"
+        (dismiss)="closeRestoreModal()">
+        <div class="restore-modal-content" data-testid="restore-modal">
+          <div class="restore-warning-icon">
+            <ion-icon name="warning-outline"></ion-icon>
+          </div>
+          <h3 class="restore-confirm-title">{{ 'SYSTEM_UPDATE.RESTORE_CONFIRM_TITLE' | transloco }}</h3>
+          <p class="restore-confirm-desc">
+            {{ 'SYSTEM_UPDATE.RESTORE_CONFIRM_DESC' | transloco: { id: targetRestoreSnapshot()?.snapshotId, version: targetRestoreSnapshot()?.fromVersion } }}
+          </p>
+
+          <div class="modal-footer-actions">
+            <app-action-button
+              variant="secondary"
+              (btnClick)="closeRestoreModal()"
+              data-testid="btn-cancel-restore">
+              {{ 'COMMON.CANCEL' | transloco }}
+            </app-action-button>
+
+            <app-action-button
+              variant="danger"
+              icon="refresh-outline"
+              [loading]="isRestoringSnapshot()"
+              (btnClick)="confirmRestoreSnapshot()"
+              data-testid="btn-confirm-restore">
+              {{ 'SYSTEM_UPDATE.BTN_CONFIRM_RESTORE' | transloco }}
+            </app-action-button>
+          </div>
+        </div>
+      </app-modal>
+    }
+  </ion-modal>
+</div>
