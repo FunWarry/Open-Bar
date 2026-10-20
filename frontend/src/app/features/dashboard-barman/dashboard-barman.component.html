@@ -76,8 +76,8 @@
           <span class="btn-text btn-text--short">{{ 'BARMAN_DASHBOARD.QUICK_STOCK_SHORT' | transloco }}</span>
         </ion-button>
 
-        <!-- Pertes & Dégustations Express -->
-        @if (featureFlagService.stockTrackingEnabled()) {
+        <!-- Pertes & Dégustations Express (Bar only - strictly excluded from kitchen) -->
+        @if (!isKitchenMode && featureFlagService.stockTrackingEnabled()) {
           <ion-button
             class="header-action-btn btn-quick-waste"
             (click)="openQuickWasteModal()"

@@ -157,7 +157,8 @@ ion-header {
 
   @media (min-width: 1024px) {
     order: 1;
-    flex: 1;
+    flex: 0 0 auto;
+    min-width: max-content;
     justify-content: flex-start;
   }
 }
@@ -175,10 +176,16 @@ ion-header {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 6px;
+    gap: 8px;
     overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    padding: 2px 4px 4px;
+    padding-right: 16px;
+    flex-wrap: nowrap;
 
     &::-webkit-scrollbar {
       display: none;
@@ -214,7 +221,8 @@ ion-header {
     font-size: 0.78rem;
     --padding-start: 10px;
     --padding-end: 10px;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
+    flex-shrink: 0;
     justify-content: center;
   }
 
@@ -332,20 +340,28 @@ ion-header {
   }
 
   &.btn-quick-waste {
-    --background: var(--background-surface-2);
-    --background-hover: var(--background-surface-3);
-    --background-activated: var(--background-surface-3);
-    --color: var(--text-primary);
-    color: var(--text-primary);
+    --background: var(--semantic-warning);
+    --background-hover: color-mix(in srgb, var(--semantic-warning) 85%, #000000);
+    --background-activated: color-mix(in srgb, var(--semantic-warning) 75%, #000000);
+    --color: var(--text-on-accent, #ffffff);
+    color: var(--text-on-accent, #ffffff);
     --border-radius: var(--radius-pill, 999px);
-    --border-width: 1px;
-    --border-style: solid;
-    --border-color: var(--border-medium);
-    font-weight: 600;
+    --border-width: 0px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--semantic-warning) 35%, transparent);
     transition: all 0.2s ease;
 
+    &::part(native) {
+      color: var(--text-on-accent, #ffffff);
+    }
+
+    ion-icon,
+    .btn-text {
+      color: var(--text-on-accent, #ffffff);
+    }
+
     ion-icon {
-      color: var(--semantic-warning);
       font-size: 1.15rem;
       margin-right: 6px;
       flex-shrink: 0;
@@ -357,7 +373,8 @@ ion-header {
     }
 
     &:hover {
-      --border-color: var(--primary);
+      --background: color-mix(in srgb, var(--semantic-warning) 85%, #000000);
+      filter: brightness(1.05);
       transform: translateY(-1px);
     }
   }

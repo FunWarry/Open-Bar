@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-  IonContent, IonIcon, IonSpinner, ModalController, ToastController
+  IonContent, IonFooter, IonIcon, IonSpinner, ModalController, ToastController
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -74,6 +74,7 @@ export interface QuickReasonOption {
     IonButtons,
     IonButton,
     IonContent,
+    IonFooter,
     IonIcon,
     IonSpinner,
     SearchBarComponent,
@@ -206,6 +207,19 @@ export class QuickWasteLogModalComponent implements OnInit {
     this.selectedIngredient = ingredient;
     this.quantity = this.computeDefaultDose(ingredient);
   }
+
+  /**
+   * Clears currently selected bottle or dismisses modal if opened with preselected ingredient.
+   */
+  clearSelectedIngredient(): void {
+    if (this.preselectedIngredient) {
+      this.dismiss();
+    } else {
+      this.selectedIngredient = null;
+      this.showCustomStepper = false;
+    }
+  }
+
 
   /**
    * Selects the declared reason for shrinkage or loss.
