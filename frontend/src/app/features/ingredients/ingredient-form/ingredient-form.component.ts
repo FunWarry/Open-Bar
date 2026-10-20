@@ -330,6 +330,7 @@ export class IngredientFormComponent implements OnInit, OnDestroy {
 
     const modal = await this.modalCtrl.create({
       component: BarcodeScannerModalComponent,
+      cssClass: 'barcode-scanner-modal-container',
       componentProps: {
         title: 'SCANNER.SCAN_INGREDIENT_TITLE',
         subtitle: 'SCANNER.SCAN_INGREDIENT_SUBTITLE'

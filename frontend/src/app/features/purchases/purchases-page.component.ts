@@ -430,7 +430,7 @@ export class PurchasesPageComponent implements OnInit {
         title: 'PURCHASES.SCAN_BARCODE_TITLE',
         subtitle: 'PURCHASES.SCAN_BARCODE_SUBTITLE'
       },
-      cssClass: 'modal-md openbar-modal-md'
+      cssClass: 'barcode-scanner-modal-container modal-md openbar-modal-md'
     });
 
     await modal.present();

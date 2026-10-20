@@ -6,7 +6,7 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import { selectIsAdmin, selectCanEditIngredient } from '../../../core/store/auth.selectors';
 import {
   IonContent,
-  IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
+  IonLabel, IonBadge, IonIcon, IonButton,
   IonRefresher, IonRefresherContent, IonSpinner,
   IonGrid, IonRow, IonCol, IonProgressBar,
   ToastController, ModalController,
@@ -95,7 +95,7 @@ export interface IngredientCategoryGroup {
   imports: [
     CommonModule, FormsModule, AsyncPipe, TranslocoModule,
     IonContent,
-    IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
+    IonLabel, IonBadge, IonIcon, IonButton,
     IonRefresher, IonRefresherContent, IonSpinner, SearchBarComponent,
     IonGrid, IonRow, IonCol, IonProgressBar,
     SearchableSelectComponent, ActionButtonComponent, PaginationComponent,
@@ -331,6 +331,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
   async scanBarcode(): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: BarcodeScannerModalComponent,
+      cssClass: 'barcode-scanner-modal-container',
       componentProps: {
         title: 'SCANNER.SCAN_INGREDIENT_TITLE',
         subtitle: 'SCANNER.SCAN_INGREDIENT_SUBTITLE'

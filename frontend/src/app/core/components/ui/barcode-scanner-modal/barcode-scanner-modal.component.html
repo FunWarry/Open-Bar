@@ -83,24 +83,26 @@
           [placeholder]="'SCANNER.MANUAL_ENTRY_PLACEHOLDER' | transloco"
           data-testid="barcode-manual-input"
         />
-        <button
-          type="button"
-          class="manual-submit-btn"
+        <app-action-button
+          variant="primary"
           [disabled]="!manualCode().trim()"
-          (click)="submitManual()"
-          data-testid="barcode-manual-submit"
-        >
-          <ion-icon name="checkmark-outline"></ion-icon>
-          <span>{{ 'COMMON.SUBMIT' | transloco }}</span>
-        </button>
+          icon="checkmark-outline"
+          (btnClick)="submitManual()"
+          [testId]="'barcode-manual-submit'">
+          {{ 'COMMON.SUBMIT' | transloco }}
+        </app-action-button>
       </div>
     </div>
   </div>
 
   <!-- Footer -->
   <footer class="modal-footer">
-    <button type="button" class="btn-cancel" (click)="cancel()" data-testid="scanner-cancel-btn">
+    <app-action-button
+      variant="secondary"
+      [expand]="'full'"
+      (btnClick)="cancel()"
+      [testId]="'scanner-cancel-btn'">
       {{ 'COMMON.CANCEL' | transloco }}
-    </button>
+    </app-action-button>
   </footer>
 </div>
