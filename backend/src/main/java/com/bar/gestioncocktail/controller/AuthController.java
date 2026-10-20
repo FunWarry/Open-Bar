@@ -92,15 +92,11 @@ public class AuthController {
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
-        return ResponseEntity.ok(new LoginResponse(
-                user.getId(),
+        return ResponseEntity.ok(LoginResponse.of(
+                user,
                 accessToken,
                 refreshToken.getToken(),
-                user.getUsername(),
-                userRoles,
-                user.getEmail(),
-                user.getCreatedAt(),
-                user.getUpdatedAt()));
+                userRoles));
     }
 
     /**

@@ -62,31 +62,7 @@ public class LoginResponse {
     private LocalDateTime updatedAt;
 
     /**
-     * All-arguments constructor for LoginResponse.
-     *
-     * @param id User unique identifier
-     * @param token JWT access token
-     * @param refreshToken Refresh token UUID
-     * @param username Authenticated username
-     * @param roles Assigned roles
-     * @param email User email address
-     * @param createdAt Account creation timestamp
-     * @param updatedAt Account last modification timestamp
-     */
-    public LoginResponse(Long id, String token, String refreshToken, String username, List<String> roles,
-                         String email, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
-        this.token = token;
-        this.refreshToken = refreshToken;
-        this.username = username;
-        this.roles = roles;
-        this.email = email;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
-
-    /**
-     * Legacy constructor for backwards-compatibility without explicit user id.
+     * Constructor for LoginResponse with core user and token details (7 parameters).
      *
      * @param token JWT access token
      * @param refreshToken Refresh token UUID
@@ -98,6 +74,46 @@ public class LoginResponse {
      */
     public LoginResponse(String token, String refreshToken, String username, List<String> roles,
                          String email, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this(null, token, refreshToken, username, roles, email, createdAt, updatedAt);
+        this.token = token;
+        this.refreshToken = refreshToken;
+        this.username = username;
+        this.roles = roles;
+        this.email = email;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    /**
+     * Factory method creating a LoginResponse from user entity, tokens, and roles.
+     *
+     * @param user Authenticated user entity
+     * @param token JWT access token
+     * @param refreshToken Refresh token UUID
+     * @param roles Assigned roles
+     * @return Fully populated LoginResponse instance
+     */
+    public static LoginResponse of(com.bar.gestioncocktail.model.User user, String token, String refreshToken, List<String> roles) {
+        LoginResponse response = new LoginResponse(
+                token,
+                refreshToken,
+                user.getUsername(),
+                roles,
+                user.getEmail(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
+        );
+        response.setId(user.getId());
+        return response;
+    }
+
+    /**
+     * Fluent setter for user unique identifier.
+     *
+     * @param id Unique user identifier
+     * @return This response instance
+     */
+    public LoginResponse withId(Long id) {
+        this.id = id;
+        return this;
     }
 }

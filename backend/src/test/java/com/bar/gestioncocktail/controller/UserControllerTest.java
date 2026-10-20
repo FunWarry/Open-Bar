@@ -22,8 +22,10 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.springframework.security.core.Authentication;
 
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
@@ -149,7 +151,7 @@ class UserControllerTest {
     @Test
     @DisplayName("getCurrentUser - returns profile of caller when authenticated")
     void getCurrentUser_success() {
-        org.springframework.security.core.Authentication auth = org.mockito.Mockito.mock(org.springframework.security.core.Authentication.class);
+        Authentication auth = mock(Authentication.class);
         when(auth.getName()).thenReturn("testuser");
         when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(user));
 
@@ -171,7 +173,7 @@ class UserControllerTest {
     @Test
     @DisplayName("updateCurrentUser - updates profile using authenticated caller identity")
     void updateCurrentUser_success() {
-        org.springframework.security.core.Authentication auth = org.mockito.Mockito.mock(org.springframework.security.core.Authentication.class);
+        Authentication auth = mock(Authentication.class);
         when(auth.getName()).thenReturn("testuser");
         when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(user));
         when(userService.updateUser(eq(1L), any(User.class))).thenReturn(user);

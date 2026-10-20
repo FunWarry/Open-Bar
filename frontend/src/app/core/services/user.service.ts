@@ -88,7 +88,7 @@ export class UserService {
    * @returns Observable emitting the matching {@link User}.
    */
   getUserById(id: number): Observable<User> {
-    if (!id || isNaN(Number(id))) {
+    if (!id || Number.isNaN(Number(id))) {
       return throwError(() => new Error('Cannot fetch user without a valid numeric ID'));
     }
     return this.http.get<User>(`${this.apiUrl}/${id}`);
@@ -112,7 +112,7 @@ export class UserService {
    * @returns Observable emitting the updated {@link User}.
    */
   updateUser(id: number, user: Partial<User>): Observable<User> {
-    if (!id || isNaN(Number(id))) {
+    if (!id || Number.isNaN(Number(id))) {
       return throwError(() => new Error('Cannot update user without a valid numeric ID'));
     }
     return this.http.put<User>(`${this.apiUrl}/${id}`, user);
@@ -125,7 +125,7 @@ export class UserService {
    * @returns Observable completing upon successful deletion.
    */
   deleteUser(id: number): Observable<void> {
-    if (!id || isNaN(Number(id))) {
+    if (!id || Number.isNaN(Number(id))) {
       return throwError(() => new Error('Cannot delete user without a valid numeric ID'));
     }
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
