@@ -300,7 +300,7 @@
         <ion-grid class="cocktail-grid">
           <ion-row>
             @for (cocktail of filteredCocktails; track cocktail.id) {
-              <ion-col [size]="compactMode ? '6' : '12'" [sizeSm]="compactMode ? '4' : '6'" [sizeMd]="compactMode ? '3' : '4'" [sizeLg]="compactMode ? '2' : '3'" [sizeXl]="compactMode ? '2' : '3'">
+              <ion-col class="cocktail-col">
                 <app-card
                   class="figma-cocktail-card product-card"
                   [class.compact-card]="compactMode"

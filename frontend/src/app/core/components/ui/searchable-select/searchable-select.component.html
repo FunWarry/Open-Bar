@@ -151,7 +151,14 @@
                 <ion-icon [name]="opt.icon" class="option-icon"></ion-icon>
               }
               <div class="option-text-stack">
-                <span class="option-title">{{ opt.label }}</span>
+                <div class="option-header-row">
+                  <span class="option-title">{{ opt.label }}</span>
+                  @if (opt.badge) {
+                    <span class="option-badge" [ngClass]="'badge-' + (opt.badgeType || 'neutral')">
+                      {{ opt.badge }}
+                    </span>
+                  }
+                </div>
                 @if (opt.subLabel) {
                   <span class="option-subtitle">{{ opt.subLabel }}</span>
                 }
@@ -159,11 +166,6 @@
             </div>
 
             <div class="option-extras">
-              @if (opt.badge) {
-                <span class="option-badge" [ngClass]="'badge-' + (opt.badgeType || 'neutral')">
-                  {{ opt.badge }}
-                </span>
-              }
               @if (isOptionSelected(opt)) {
                 <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
               }

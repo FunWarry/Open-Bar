@@ -274,8 +274,8 @@ export const WEIGHT_UNIT_CHOICES = [
     SearchableSelectComponent,
     TicketReceiptComponent,
     HappyHourConfigComponent,
-    ThemeCustomizerComponent
-],
+    ThemeCustomizerComponent,
+  ],
 })
 export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingChanges {
   private readonly fb = inject(FormBuilder);
