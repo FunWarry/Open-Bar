@@ -123,6 +123,7 @@ export class PurchaseOrderReceptionModalComponent implements OnInit {
   async openBarcodeScanner(): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: BarcodeScannerModalComponent,
+      cssClass: 'barcode-scanner-modal-container',
       componentProps: {
         title: 'PURCHASES.SCAN_RECEPTION_TITLE',
         subtitle: 'PURCHASES.SCAN_RECEPTION_SUBTITLE'
