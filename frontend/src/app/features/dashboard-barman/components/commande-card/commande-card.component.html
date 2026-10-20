@@ -127,9 +127,6 @@
               }
             </div>
 
-            @if (item.statut === 'PRET' && commande.statut !== 'EN_PREPARATION') {
-              <span class="item-ready-chip" [title]="'KDS.READY' | transloco">✓</span>
-            }
 
             <button
               type="button"
