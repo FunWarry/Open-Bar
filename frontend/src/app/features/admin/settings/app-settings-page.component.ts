@@ -135,7 +135,6 @@ import {
 import { FeatureFlagService } from '../../../core/services/feature-flag.service';
 import { PaymentTerminalService } from '../../../core/services/payment-terminal.service';
 import { TpeTerminalRole } from '../../../core/models/tpe.model';
-import { AudioSettingsPopoverComponent } from '../../../core/components/audio-settings/audio-settings-popover.component';
 /**
  * Active configuration tab on the admin settings page.
  */
@@ -276,8 +275,7 @@ export const WEIGHT_UNIT_CHOICES = [
     TicketReceiptComponent,
     HappyHourConfigComponent,
     ThemeCustomizerComponent,
-    AudioSettingsPopoverComponent
-],
+  ],
 })
 export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingChanges {
   private readonly fb = inject(FormBuilder);
