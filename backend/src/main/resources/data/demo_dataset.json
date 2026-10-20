@@ -3650,6 +3650,26 @@
       "notes": "Contrôle hebdomadaire en cours de réalisation.",
       "minutesAgo": 40
     }
+  ],
+  "system_snapshots": [
+    {
+      "snapshotId": "openbar_pre_update_0.7.2_20261015_020000",
+      "filename": "openbar_pre_update_0.7.2_20261015_020000.sql.gz",
+      "sizeBytes": 14250000,
+      "createdAt": "2026-10-15T02:00:00",
+      "fromVersion": "0.7.2",
+      "targetVersion": "0.8.0",
+      "status": "VALID"
+    },
+    {
+      "snapshotId": "openbar_pre_update_0.7.0_20260920_020000",
+      "filename": "openbar_pre_update_0.7.0_20260920_020000.sql.gz",
+      "sizeBytes": 12890000,
+      "createdAt": "2026-09-20T02:00:00",
+      "fromVersion": "0.7.0",
+      "targetVersion": "0.7.2",
+      "status": "VALID"
+    }
   ]
 }
 

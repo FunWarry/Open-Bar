@@ -107,6 +107,7 @@ export async function setupMockApi(page: Page): Promise<void> {
         suppliersManagement: true,
         inventoryAudit: true,
         tableReservations: true,
+        systemUpdates: true,
       }),
     });
   });
@@ -2320,6 +2321,126 @@ export async function setupMockApi(page: Page): Promise<void> {
           statut: 'CONFIRMED',
           tableId: null,
           tableNumero: null,
+        },
+      ]),
+    });
+  });
+
+  // System OTA update & snapshot disaster recovery endpoints
+  await page.route('**/api/admin/system/version', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        currentVersion: '0.8.0',
+        javaVersion: '22',
+        osName: 'Linux (x86_64)',
+        uptimeSeconds: 7200,
+        freeDiskBytes: 53687091200,
+        totalDiskBytes: 107374182400,
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/system/check-update*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        hasUpdate: true,
+        currentVersion: '0.8.0',
+        latestVersion: '0.8.1',
+        channel: 'STABLE',
+        releaseTitle: 'OpenBar v0.8.1 - Stability & Resilience',
+        releaseNotes: '- Automated pre-update database snapshot\n- Healthcheck validation & rollback\n- Disk space safety gate',
+        publishedAt: new Date().toISOString(),
+        downloadUrl: 'https://github.com/FunWarry/Open-Bar/releases/tag/v0.8.1',
+        isOffline: false,
+        statusMessage: 'Update available',
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/system/status', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 'IDLE',
+        step: 'IDLE',
+        progressPercent: 0,
+        message: 'System is ready',
+        currentVersion: '0.8.0',
+        targetVersion: '0.8.0',
+        channel: 'STABLE',
+        logs: [],
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/system/preflight', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        canProceed: true,
+        freeDiskBytes: 53687091200,
+        requiredDiskBytes: 1073741824,
+        hasSufficientDisk: true,
+        occupiedTablesCount: 0,
+        activeOrdersCount: 0,
+        warnings: [],
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/system/update', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 'RUNNING',
+        step: 'PREFLIGHT',
+        progressPercent: 10,
+        message: 'Starting update process...',
+        currentVersion: '0.8.0',
+        targetVersion: '0.8.1',
+        channel: 'STABLE',
+        snapshotId: 'openbar_pre_update_0.8.0',
+        startedAt: new Date().toISOString(),
+        logs: ['[INIT] Pre-flight checks passed successfully.'],
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/system/snapshots/*/restore', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        message: 'Disaster recovery restore initiated',
+        snapshotId: 'openbar_pre_update_0.7.5_20261015_020000',
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/system/snapshots/**', async (route) => {
+    if (route.request().method() === 'DELETE') {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          snapshotId: 'openbar_pre_update_0.7.5_20261015_020000',
+          filename: 'openbar_pre_update_0.7.5_20261015_020000.sql.gz',
+          sizeBytes: 14680064,
+          createdAt: '2026-10-15T02:00:00Z',
+          fromVersion: '0.7.5',
+          targetVersion: '0.8.0',
+          status: 'VALID',
         },
       ]),
     });

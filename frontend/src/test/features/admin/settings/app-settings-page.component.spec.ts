@@ -217,6 +217,7 @@ describe('AppSettingsPageComponent', () => {
       paymentTerminal: true,
       tableReservations: true,
       checklistsProcedures: true,
+      systemUpdates: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
 
@@ -874,6 +875,7 @@ describe('AppSettingsPageComponent', () => {
         paymentTerminal: true,
         tableReservations: true,
         checklistsProcedures: true,
+        systemUpdates: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -970,6 +972,7 @@ describe('AppSettingsPageComponent', () => {
         paymentTerminal: false,
         tableReservations: false,
         checklistsProcedures: false,
+        systemUpdates: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();
