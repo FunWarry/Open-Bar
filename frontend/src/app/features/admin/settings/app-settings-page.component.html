@@ -1304,6 +1304,23 @@
                   </ion-card>
                 </ion-col>
               </ion-row>
+
+              <!-- Row 2: Alertes & Profils Sonores -->
+              <ion-row>
+                <ion-col size="12">
+                  <ion-card class="settings-card" data-testid="card-audio-settings">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="volume-high-outline" class="title-icon"></ion-icon>
+                        {{ 'AUDIO_SETTINGS.CARD_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <app-audio-settings-popover [embedded]="true"></app-audio-settings-popover>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
             </ion-grid>
           </form>
         </section>

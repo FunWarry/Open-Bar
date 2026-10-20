@@ -591,14 +591,20 @@
 .cocktail-grid {
   padding: 0;
   margin: 0;
+  width: 100%;
 
   ion-row {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 12px;
+    gap: 16px;
     margin: 0;
     width: 100%;
     align-items: stretch;
+
+    @media (max-width: 768px) {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
 
     @media (max-width: 576px) {
       grid-template-columns: 1fr;
@@ -623,11 +629,11 @@
   }
 
   ion-row > ion-col,
-  ion-row > ion-col[size] {
+  ion-row > .cocktail-col {
     padding: 0;
     width: 100%;
     max-width: 100%;
-    flex: none;
+    flex: 1 1 100%;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -939,14 +945,18 @@
 
 .figma-card-image-area {
   width: 100%;
-  height: 130px;
+  height: 140px;
   background: var(--background-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
 
   img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    padding: 8px;
     display: block;
     transition: filter 0.25s ease, opacity 0.25s ease;
   }
@@ -1056,6 +1066,14 @@
   font-weight: 700;
   color: var(--text-primary);
   margin: 2px 0 2px 0;
+  line-height: 1.25;
+  word-break: normal;
+  overflow-wrap: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   transition: color 0.2s ease;
 }
 

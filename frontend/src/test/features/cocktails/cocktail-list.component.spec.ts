@@ -961,6 +961,26 @@ describe('CocktailListComponent', () => {
       };
       expect(component.isSubsumedAsVariant(unrelated)).toBeFalse();
     });
+
+    it('renders cocktail cards inside .cocktail-col within .cocktail-grid without conflicting size attributes (#595)', fakeAsync(() => {
+      component.charger();
+      tick();
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const grid = compiled.querySelector('.cocktail-grid');
+      expect(grid).toBeTruthy();
+
+      const cols = compiled.querySelectorAll('.cocktail-grid ion-col');
+      expect(cols.length).toBeGreaterThan(0);
+
+      // Verify that cols use the dedicated .cocktail-col class and do NOT have conflicting sizeLg or sizeXl attributes
+      cols.forEach(col => {
+        expect(col.classList.contains('cocktail-col')).toBeTrue();
+        expect(col.getAttribute('sizelg')).toBeNull();
+        expect(col.getAttribute('sizexl')).toBeNull();
+      });
+    }));
   });
 });
 
