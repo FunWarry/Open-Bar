@@ -26,10 +26,9 @@ test.describe('Barman Rapid Waste & Tasting Quick-Log E2E Flow', () => {
     const closeBtn = page.locator('[data-testid="quick-waste-close-btn"]');
     await expect(closeBtn).toBeVisible({ timeout: 5000 });
 
-    // Category filter chips should be visible
-    const allChip = page.locator('[data-testid="filter-chip-all"]');
-    await expect(allChip).toBeVisible();
-    await allChip.click();
+    // Category dropdown should be visible
+    const categorySelect = page.locator('[data-testid="quick-waste-category-select"]');
+    await expect(categorySelect).toBeVisible();
 
     // Close the modal
     await closeBtn.click();
