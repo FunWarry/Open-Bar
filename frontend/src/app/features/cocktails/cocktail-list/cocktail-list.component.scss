@@ -616,6 +616,10 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
     }
+
+    @media (max-width: 340px) {
+      grid-template-columns: 1fr;
+    }
   }
 
   ion-row > ion-col,
@@ -670,24 +674,39 @@
       align-items: flex-start;
       gap: 4px;
       width: 100%;
+      min-width: 0;
+      position: relative;
     }
 
     .badges-group {
       gap: 4px;
-      flex: 1;
+      flex: 1 1 auto;
       min-width: 0;
+      overflow: hidden;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
     }
 
     .figma-category-pill {
       padding: 2px 6px;
       font-size: 0.68rem;
       gap: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      flex-shrink: 1;
     }
 
     .figma-variant-indicator-btn {
       padding: 2px 6px;
       font-size: 0.68rem;
       gap: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
 
       ion-icon {
         font-size: 0.8rem;
@@ -697,15 +716,21 @@
     .figma-alert-pill {
       padding: 2px 6px;
       font-size: 0.65rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
 
     .figma-edit-btn {
-      width: 28px;
-      height: 28px;
-      min-width: 28px;
+      width: 26px;
+      height: 26px;
+      min-width: 26px;
       border-radius: 6px;
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       flex-shrink: 0;
+      margin-left: auto;
+      z-index: 2;
     }
 
     .figma-card-main-info {
@@ -739,12 +764,13 @@
       gap: 4px;
       width: 100%;
       min-width: 0;
+      flex-wrap: nowrap;
     }
 
     .bottom-actions {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 2px;
       flex-shrink: 0;
 
       .availability-slider-btn {
@@ -756,53 +782,51 @@
         }
 
         .slider-track {
-          width: 28px;
-          height: 16px;
+          width: 26px;
+          height: 15px;
         }
 
         .slider-knob {
-          width: 10px;
-          height: 10px;
+          width: 9px;
+          height: 9px;
         }
 
         &.active .slider-knob {
-          transform: translateX(12px);
+          transform: translateX(11px);
         }
       }
 
       .cocktail-delete-btn,
       ion-button {
-        --padding-start: 2px;
-        --padding-end: 2px;
+        --padding-start: 1px;
+        --padding-end: 1px;
         --padding-top: 0;
         --padding-bottom: 0;
-        height: 24px;
-        min-height: 24px;
-        width: 24px;
-        min-width: 24px;
+        height: 22px;
+        min-height: 22px;
+        width: 22px;
+        min-width: 22px;
         margin: 0;
 
         ion-icon {
-          font-size: 0.9rem;
+          font-size: 0.85rem;
         }
       }
     }
 
     .price-and-margin-col {
-      flex: 1;
+      flex: 0 0 auto;
+      margin-left: auto;
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      min-width: 0;
     }
 
     .figma-cocktail-price {
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       font-weight: 800;
       color: var(--semantic-success);
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
   }
 
@@ -942,6 +966,9 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 6px;
+  width: 100%;
+  min-width: 0;
+  position: relative;
 }
 
 .badges-group {
@@ -949,6 +976,9 @@
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .figma-category-pill {
@@ -962,6 +992,11 @@
   font-size: 0.775rem;
   font-weight: 600;
   border: 1px solid var(--border-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  flex-shrink: 1;
   transition: opacity 0.2s ease;
 }
 
