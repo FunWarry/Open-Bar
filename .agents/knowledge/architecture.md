@@ -102,6 +102,8 @@ frontend/src/
 - Tests → **`src/test/`** (mirror Maven structure, never co-located with source components)
 - Styling → **Adaptive Theme System** using CSS variables from `variables.css` (no hardcoded hex/RGB colors)
 - Responsiveness → **Mandatory Multi-Device Architecture** (Smartphone <768px with off-canvas drawer & condensed popover, Tablet 768px-1024px with adaptive grids, Desktop >1024px) with zero horizontal overflow tolerance.
+- Overlay Navigation & Back Button Interception → `ModalHistoryService` listening to Ionic overlay lifecycle (`ion*DidPresent`/`ion*DidDismiss`) and browser `popstate` to dismiss the topmost open modal, alert, or off-canvas drawer before navigating away.
+- Mobile Viewport Units → `dvh` with `vh` fallback and safe-area insets (`env(safe-area-inset-top/bottom)`) preventing viewport clipping on mobile browsers (e.g. Samsung Internet).
 
 ---
 
