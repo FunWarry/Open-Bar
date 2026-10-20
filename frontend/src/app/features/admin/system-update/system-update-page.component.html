@@ -361,7 +361,7 @@
               <div class="step-line" [class.done]="status.progressPercent > 35"></div>
 
               <!-- Step 2: Pull Images -->
-              <div class="step-node" [class.active]="status.step === 'PULLING_IMAGES'" [class.done]="status.progressPercent > 60">
+              <div class="step-node" [class.active]="status.step === 'DOCKER_PULL'" [class.done]="status.progressPercent > 60">
                 <div class="node-circle">
                   @if (status.progressPercent > 60) {
                     <ion-icon name="checkmark-outline"></ion-icon>
@@ -375,7 +375,7 @@
               <div class="step-line" [class.done]="status.progressPercent > 60"></div>
 
               <!-- Step 3: Restart -->
-              <div class="step-node" [class.active]="status.step === 'RESTARTING_CONTAINERS'" [class.done]="status.progressPercent > 80">
+              <div class="step-node" [class.active]="status.step === 'CONTAINER_RESTART'" [class.done]="status.progressPercent > 80">
                 <div class="node-circle">
                   @if (status.progressPercent > 80) {
                     <ion-icon name="checkmark-outline"></ion-icon>
@@ -389,7 +389,7 @@
               <div class="step-line" [class.done]="status.progressPercent > 80"></div>
 
               <!-- Step 4: Healthcheck -->
-              <div class="step-node" [class.active]="status.step === 'HEALTHCHECK_VALIDATION'" [class.done]="status.status === 'SUCCESS'">
+              <div class="step-node" [class.active]="status.step === 'HEALTHCHECK'" [class.done]="status.status === 'SUCCESS'">
                 <div class="node-circle">
                   @if (status.status === 'SUCCESS') {
                     <ion-icon name="checkmark-outline"></ion-icon>
@@ -427,7 +427,7 @@
                 <ion-icon name="alert-circle-outline"></ion-icon>
                 <div class="banner-text">
                   <h4>{{ 'SYSTEM_UPDATE.ROLLBACK_COMPLETED_TITLE' | transloco }}</h4>
-                  <p>{{ status.errorDetails }}</p>
+                  <p>{{ status.error || status.message }}</p>
                 </div>
               </div>
             }
