@@ -2,7 +2,7 @@ import { Component, OnInit, inject, Input, ChangeDetectionStrategy } from '@angu
 
 import { FormsModule } from '@angular/forms';
 import {
-  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
+  IonHeader, IonToolbar, IonButtons, IonButton,
   IonContent, IonInput, IonTextarea, IonIcon, IonSpinner,
   ModalController, ToastController
 } from '@ionic/angular';
@@ -32,7 +32,6 @@ import { Ingredient } from '../../../core/models/ingredient.model';
 import { IngredientService } from '../../../core/services/ingredient.service';
 import { StockWasteService } from '../../../core/services/stock-waste.service';
 import { StockWasteReason } from '../../../core/models/stock-waste.model';
-import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { CsvExportService } from '../../../core/services/csv-export.service';
 
 /**
@@ -57,10 +56,8 @@ export interface WasteReasonOption {
     TranslocoModule,
     AppCurrencyPipe,
     SearchableSelectComponent,
-    ActionButtonComponent,
     IonHeader,
     IonToolbar,
-    IonTitle,
     IonButtons,
     IonButton,
     IonContent,
@@ -68,7 +65,7 @@ export interface WasteReasonOption {
     IonTextarea,
     IonIcon,
     IonSpinner
-],
+  ],
   templateUrl: './stock-waste-modal.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./stock-waste-modal.component.scss']

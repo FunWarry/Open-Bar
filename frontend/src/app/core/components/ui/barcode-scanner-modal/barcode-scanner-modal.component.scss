@@ -25,7 +25,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 24px;
+  padding: max(18px, env(safe-area-inset-top, 0px)) 24px 18px 24px;
   border-bottom: 1px solid var(--border-medium);
   gap: 16px;
   background: var(--background-surface-1);
@@ -265,14 +265,14 @@
   font-size: 0.775rem;
   font-weight: 600;
   background: rgba(0, 0, 0, 0.6);
-  color: #ffffff;
+  color: var(--text-on-accent);
   border: 1px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
   transition: all 0.2s ease;
 
   &.active {
     background: var(--semantic-warning, #f4a52a);
-    color: #111827;
+    color: var(--background-bg-0);
     border-color: var(--semantic-warning, #f4a52a);
   }
 }
@@ -374,7 +374,7 @@
   height: 42px;
   padding: 0 16px;
   background: var(--primary);
-  color: #ffffff;
+  color: var(--text-on-accent);
   border: none;
   border-radius: var(--radius-md, 8px);
   font-size: 0.85rem;
@@ -398,25 +398,15 @@
 .modal-footer {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: stretch;
   padding: 14px 24px;
+  padding-bottom: max(14px, env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--border-medium);
   background: var(--background-surface-2);
+  width: 100%;
 
-  .btn-cancel {
-    height: 40px;
-    padding: 0 20px;
-    background: var(--background-surface-1);
-    border: 1px solid var(--border-medium);
-    border-radius: var(--radius-md, 8px);
-    color: var(--text-primary);
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.18s ease;
-
-    &:hover {
-      background: var(--background-surface-3);
-    }
+  app-action-button {
+    width: 100%;
+    display: block;
   }
 }

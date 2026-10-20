@@ -24,6 +24,7 @@ import {
   alertCircleOutline
 } from 'ionicons/icons';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { ActionButtonComponent } from '../action-button/action-button.component';
 
 /**
  * Result returned when barcode scanner modal closes.
@@ -48,7 +49,8 @@ export interface BarcodeScannerResult {
     CommonModule,
     FormsModule,
     IonIcon,
-    TranslocoPipe
+    TranslocoPipe,
+    ActionButtonComponent
   ]
 })
 export class BarcodeScannerModalComponent implements OnInit, OnDestroy {
