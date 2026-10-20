@@ -6,6 +6,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -146,6 +147,26 @@ public class GlobalExceptionHandler {
                 "Validation Failed",
                 "One or more fields are invalid"
         ).fieldErrors(fieldErrors).build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    /**
+     * Handles method argument type mismatch exceptions (HTTP 400).
+     * Typically occurs when invalid parameter types (e.g. non-numeric strings for Long IDs) are passed.
+     *
+     * @param ex Intercepted argument type mismatch exception
+     * @return HTTP 400 response with descriptive error message
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String paramName = ex.getName();
+        Object value = ex.getValue();
+        String message = String.format("Invalid parameter '%s' with value '%s'", paramName, value);
+        ErrorResponse body = ErrorResponse.builder(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                message
+        ).build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 

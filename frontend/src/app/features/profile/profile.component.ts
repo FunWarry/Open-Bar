@@ -280,7 +280,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   /**
    * Handles profile form submission.
-   * Calls {@link UserService#updateUser} with the updated data,
+   * Calls {@link UserService#updateCurrentUser} with the updated data,
    * dispatches {@link setCurrentUser} to sync the NgRx store,
    * and shows a toast confirmation or error message.
    */
@@ -301,7 +301,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       payload['password'] = newPassword;
     }
 
-    this.userService.updateUser(this.currentUser.id, payload)
+    this.userService.updateCurrentUser(payload)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: async (updatedUser) => {

@@ -154,4 +154,19 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getMessage()).isEqualTo("Unexpected error");
     }
+
+    @Test
+    @DisplayName("handleMethodArgumentTypeMismatch - returns 400 ErrorResponse with parameter details")
+    void handleMethodArgumentTypeMismatch() {
+        org.springframework.web.method.annotation.MethodArgumentTypeMismatchException ex =
+                new org.springframework.web.method.annotation.MethodArgumentTypeMismatchException(
+                        "undefined", Long.class, "id", null, new NumberFormatException("For input string: \"undefined\"")
+                );
+        ResponseEntity<ErrorResponse> response = defaultHandler.handleMethodArgumentTypeMismatch(ex);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getError()).isEqualTo("Bad Request");
+        assertThat(response.getBody().getMessage()).contains("Invalid parameter 'id' with value 'undefined'");
+    }
 }

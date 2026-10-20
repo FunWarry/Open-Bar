@@ -45,8 +45,9 @@ describe('ProfileComponent', () => {
     storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
     storeSpy.select.and.returnValue(of(mockUser));
 
-    userServiceSpy = jasmine.createSpyObj('UserService', ['updateUser']);
+    userServiceSpy = jasmine.createSpyObj('UserService', ['updateUser', 'updateCurrentUser']);
     userServiceSpy.updateUser.and.returnValue(of(mockUser));
+    userServiceSpy.updateCurrentUser.and.returnValue(of(mockUser));
 
     toastSpy = jasmine.createSpyObj('HTMLIonToastElement', ['present']);
     toastSpy.present.and.returnValue(Promise.resolve());
@@ -170,7 +171,7 @@ describe('ProfileComponent', () => {
   });
 
   it('onSubmit() shows an error toast when UserService fails', async () => {
-    userServiceSpy.updateUser.and.returnValue(throwError(() => new Error('API error')));
+    userServiceSpy.updateCurrentUser.and.returnValue(throwError(() => new Error('API error')));
     component.profileForm.patchValue({ username: 'testuser', email: 'test@example.com' });
     component.onSubmit();
     await Promise.resolve();
@@ -181,7 +182,7 @@ describe('ProfileComponent', () => {
   it('onSubmit() does nothing when form is invalid', () => {
     component.profileForm.patchValue({ username: '', email: 'bad' });
     component.onSubmit();
-    expect(userServiceSpy.updateUser).not.toHaveBeenCalled();
+    expect(userServiceSpy.updateCurrentUser).not.toHaveBeenCalled();
   });
 
   it('should handle sound toggle changes', () => {
