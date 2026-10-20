@@ -848,10 +848,11 @@ ion-modal.bar-ticket-modal-container {
 }
 
 ion-modal.ruptures-modal-container,
-ion-modal.rupture-impact-modal-container {
-  --width: min(640px, 94vw);
-  --height: min(660px, 82vh);
-  --max-height: 85vh;
+ion-modal.rupture-impact-modal-container,
+ion-modal.quick-waste-modal-container {
+  --width: min(680px, 94vw);
+  --height: min(720px, 88vh);
+  --max-height: 90vh;
 }
 
 ion-modal.bar-tab-modal-container {

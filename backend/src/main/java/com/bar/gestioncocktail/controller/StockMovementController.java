@@ -1,6 +1,7 @@
 package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.StockMovementResponseDTO;
+import com.bar.gestioncocktail.dto.StockQuickLogRequestDTO;
 import com.bar.gestioncocktail.dto.StockWasteRequestDTO;
 import com.bar.gestioncocktail.dto.StockWasteSummaryDTO;
 import com.bar.gestioncocktail.model.StockMovement;
@@ -14,7 +15,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -69,6 +72,64 @@ public class StockMovementController {
 
         StockMovement saved = stockMovementService.recordWaste(request, username, ipAddress);
         return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(StockMovementResponseDTO.from(saved));
+    }
+
+    /**
+     * Records a rapid bartender stock waste, breakage, or tasting event from the live service widget.
+     * Immediately deducts active inventory balance, registers an audit log, and notifies of low stock if applicable.
+     *
+     * @param request Validated quick-log waste declaration request payload
+     * @param authentication Current user authentication context
+     * @param servletRequest HTTP servlet request for client IP resolution
+     * @return DTO representation of the persisted stock movement
+     */
+    @PostMapping("/quick-log")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('BARMAN')")
+    @Operation(
+            summary = "Record rapid bartender waste / tasting quick-log (ADMIN/MANAGER/BARMAN)",
+            description = "High-speed endpoint allowing bartenders to record broken bottles, spilled drinks, staff tastings, and customer comps with 2 taps."
+    )
+    @ApiResponse(responseCode = "201", description = "Stock quick-log recorded and inventory deducted successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid payload or declared waste exceeds inventory stock")
+    @ApiResponse(responseCode = "404", description = "Ingredient not found")
+    public ResponseEntity<StockMovementResponseDTO> recordQuickLog(
+            @Valid @RequestBody StockQuickLogRequestDTO request,
+            Authentication authentication,
+            HttpServletRequest servletRequest) {
+        String username = authentication != null ? authentication.getName() : null;
+        String ipAddress = servletRequest != null ? servletRequest.getRemoteAddr() : null;
+
+        StockMovement saved = stockMovementService.recordQuickLog(request, username, ipAddress);
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(StockMovementResponseDTO.from(saved));
+    }
+
+    /**
+     * Reverts a recently logged stock waste movement (e.g. bartender 10-second undo).
+     * Re-credits the deducted quantity back to inventory stock and deletes the movement record.
+     *
+     * @param id Identifier of the stock movement to revert
+     * @param authentication Current user authentication context
+     * @param servletRequest HTTP servlet request for client IP resolution
+     * @return No content (204) on successful reversal
+     */
+    @DeleteMapping("/quick-log/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('BARMAN')")
+    @Operation(
+            summary = "Revert / undo a recently logged stock waste movement (ADMIN/MANAGER/BARMAN)",
+            description = "Restores deducted stock quantity back into active inventory and removes the movement record within undo window."
+    )
+    @ApiResponse(responseCode = "204", description = "Stock movement reverted and stock quantity restored successfully")
+    @ApiResponse(responseCode = "400", description = "User not authorized to revert this movement or stock tracking disabled")
+    @ApiResponse(responseCode = "404", description = "Stock movement not found")
+    public ResponseEntity<Void> revertQuickLog(
+            @Parameter(description = "Identifier of the stock movement to revert") @PathVariable Long id,
+            Authentication authentication,
+            HttpServletRequest servletRequest) {
+        String username = authentication != null ? authentication.getName() : null;
+        String ipAddress = servletRequest != null ? servletRequest.getRemoteAddr() : null;
+
+        stockMovementService.revertQuickLog(id, username, ipAddress);
+        return ResponseEntity.noContent().build();
     }
 
     /**

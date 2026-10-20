@@ -331,6 +331,37 @@ ion-header {
     }
   }
 
+  &.btn-quick-waste {
+    --background: var(--background-surface-2);
+    --background-hover: var(--background-surface-3);
+    --background-activated: var(--background-surface-3);
+    --color: var(--text-primary);
+    color: var(--text-primary);
+    --border-radius: var(--radius-pill, 999px);
+    --border-width: 1px;
+    --border-style: solid;
+    --border-color: var(--border-medium);
+    font-weight: 600;
+    transition: all 0.2s ease;
+
+    ion-icon {
+      color: var(--semantic-warning);
+      font-size: 1.15rem;
+      margin-right: 6px;
+      flex-shrink: 0;
+
+      @media (max-width: 767px) {
+        font-size: 1rem;
+        margin-right: 4px;
+      }
+    }
+
+    &:hover {
+      --border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+  }
+
   &.btn-roulette-tv {
     --background: var(--background-surface-2);
     --color: var(--text-primary);

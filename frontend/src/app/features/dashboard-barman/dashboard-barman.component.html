@@ -76,6 +76,20 @@
           <span class="btn-text btn-text--short">{{ 'BARMAN_DASHBOARD.QUICK_STOCK_SHORT' | transloco }}</span>
         </ion-button>
 
+        <!-- Pertes & Dégustations Express -->
+        @if (featureFlagService.stockTrackingEnabled()) {
+          <ion-button
+            class="header-action-btn btn-quick-waste"
+            (click)="openQuickWasteModal()"
+            (keyup.enter)="openQuickWasteModal()"
+            [title]="'BARMAN_DASHBOARD.QUICK_WASTE_TITLE' | transloco"
+            data-testid="open-quick-waste-btn">
+            <ion-icon slot="start" name="flash-outline"></ion-icon>
+            <span class="btn-text btn-text--full">{{ 'BARMAN_DASHBOARD.QUICK_WASTE' | transloco }}</span>
+            <span class="btn-text btn-text--short">{{ 'BARMAN_DASHBOARD.QUICK_WASTE_SHORT' | transloco }}</span>
+          </ion-button>
+        }
+
         <!-- Bouton Roulette TV PIN (bar only - strictly excluded from kitchen) -->
         @if (!isKitchenMode && featureFlagService.mysteryRouletteEnabled()) {
           <ion-button

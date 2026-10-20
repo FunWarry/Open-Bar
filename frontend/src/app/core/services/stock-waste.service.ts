@@ -25,6 +25,27 @@ export class StockWasteService {
   }
 
   /**
+   * Records a rapid bartender stock waste or tasting event from the live service widget.
+   *
+   * @param request Payload containing target ingredient ID, quantity, reason, and optional notes
+   * @returns Observable emitting the persisted StockMovement record
+   */
+  quickLog(request: StockWasteRequest): Observable<StockMovement> {
+    return this.http.post<StockMovement>(`${this.apiUrl}/quick-log`, request);
+  }
+
+  /**
+   * Reverts a recently logged stock waste movement (e.g. bartender 10-second undo).
+   * Restores deducted inventory balance and deletes the movement record.
+   *
+   * @param id Identifier of the stock movement to revert
+   * @returns Observable emitting when reversal completes
+   */
+  revertQuickLog(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/quick-log/${id}`);
+  }
+
+  /**
    * Retrieves all recorded stock shrinkage movements, optionally filtered by ingredient.
    *
    * @param ingredientId Optional filter for a specific ingredient ID

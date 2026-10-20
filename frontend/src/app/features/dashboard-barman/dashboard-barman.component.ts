@@ -55,11 +55,14 @@ import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-
 import { AppSettingsService } from '../../core/services/app-settings.service';
 import { SoundService } from '../../core/services/sound.service';
 import { RupturesModalComponent } from './components/ruptures-modal/ruptures-modal.component';
+import { QuickWasteLogModalComponent } from './components/quick-waste-log-modal/quick-waste-log-modal.component';
 import { RuptureImpactModalComponent } from './components/rupture-impact-modal/rupture-impact-modal.component';
 import { BarTicketPrintComponent } from './components/bar-ticket-print/bar-ticket-print.component';
 import { RecipeSidePanelComponent } from './components/recipe-side-panel/recipe-side-panel.component';
 import { Cocktail } from '../../core/models/cocktail.model';
 import { Ingredient } from '../../core/models/ingredient.model';
+import { StockMovement } from '../../core/models/stock-waste.model';
+import { StockWasteService } from '../../core/services/stock-waste.service';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { FeatureFlagService } from '../../core/services/feature-flag.service';
 import { RouletteService } from '../../core/services/roulette.service';
@@ -136,6 +139,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   private readonly notificationService = inject(NotificationService);
   private readonly settingsService = inject(AppSettingsService);
   public readonly featureFlagService = inject(FeatureFlagService);
+  private readonly stockWasteService = inject(StockWasteService);
   private readonly soundService = inject(SoundService);
   private readonly transloco = inject(TranslocoService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -599,6 +603,86 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       cssClass: 'ruptures-modal-container'
     });
     await modal.present();
+  }
+
+  /**
+   * Opens the high-speed waste, shrinkage, and tasting quick-log modal.
+   */
+  async openQuickWasteModal(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: QuickWasteLogModalComponent,
+      cssClass: 'quick-waste-modal-container'
+    });
+    await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+    if (data?.saved && data.movement) {
+      await this.presentQuickWasteUndoToast(data.movement);
+    }
+  }
+
+  /**
+   * Displays immediate feedback toast with a 10-second undo button to revert the recorded shrinkage.
+   *
+   * @param movement Persisted stock movement
+   */
+  private async presentQuickWasteUndoToast(movement: StockMovement): Promise<void> {
+    const reasonLabel = this.transloco.translate('STOCK.WASTE_REASON_' + movement.reason);
+    const msg = this.transloco.translate('BARMAN_DASHBOARD.QUICK_WASTE_RECORDED_TOAST', {
+      qty: movement.quantity,
+      unit: movement.unit,
+      name: movement.ingredientNom,
+      reason: reasonLabel
+    });
+
+    const toast = await this.toastCtrl.create({
+      message: msg,
+      duration: 10000,
+      position: 'bottom',
+      color: 'dark',
+      cssClass: 'quick-waste-undo-toast',
+      buttons: [
+        {
+          text: this.transloco.translate('COMMON.UNDO'),
+          role: 'cancel',
+          handler: () => {
+            this.revertQuickWasteMovement(movement);
+          }
+        }
+      ]
+    });
+    await toast.present();
+  }
+
+  /**
+   * Reverts a recently logged stock waste movement via backend DELETE /api/stock/quick-log/{id}.
+   *
+   * @param movement Stock movement to revert
+   */
+  private revertQuickWasteMovement(movement: StockMovement): void {
+    this.stockWasteService.revertQuickLog(movement.id).subscribe({
+      next: async () => {
+        const undoMsg = this.transloco.translate('BARMAN_DASHBOARD.QUICK_WASTE_UNDONE_TOAST', {
+          name: movement.ingredientNom
+        });
+        const successToast = await this.toastCtrl.create({
+          message: undoMsg,
+          duration: 3000,
+          color: 'success',
+          position: 'bottom'
+        });
+        await successToast.present();
+      },
+      error: async () => {
+        const errToast = await this.toastCtrl.create({
+          message: this.transloco.translate('COMMON.ERROR'),
+          duration: 3000,
+          color: 'danger',
+          position: 'bottom'
+        });
+        await errToast.present();
+      }
+    });
   }
 
   /**
