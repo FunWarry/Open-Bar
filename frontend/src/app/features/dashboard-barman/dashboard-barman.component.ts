@@ -642,6 +642,9 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
+          if (event.statut === 'PRET' || event.statut === 'ANNULEE' || event.statut === 'LIVREE') {
+            this.dashboardService.clearPreparedItems(event.id);
+          }
           this.chargerCommandes();
           if (event.statut === 'PRET') {
             this.soundService.playOrderReadySound();

@@ -65,8 +65,13 @@ describe('DashboardBarmanComponent', () => {
       'toggleCocktailDisponibilite',
       'updateIngredientStock',
       'transitionBatch',
-      'aggregateBatches'
+      'aggregateBatches',
+      'isItemPrepared',
+      'toggleItemPrepared',
+      'clearPreparedItems'
     ]);
+    dashboardServiceSpy.isItemPrepared.and.returnValue(false);
+    dashboardServiceSpy.toggleItemPrepared.and.returnValue(true);
     dashboardServiceSpy.getCommandesEnAttente.and.returnValue(of(mockCommandes));
     dashboardServiceSpy.getCommandesEnPreparation.and.returnValue(of([]));
     dashboardServiceSpy.getCommandesPret.and.returnValue(of([]));
