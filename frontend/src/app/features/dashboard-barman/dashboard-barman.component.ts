@@ -45,6 +45,7 @@ import {
   addCircleOutline
 } from 'ionicons/icons';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
+import { SearchableSelectComponent, SearchableOption } from '../../core/components/ui/searchable-select/searchable-select.component';
 import { CommandeCardComponent } from './components/commande-card/commande-card.component';
 import { NotificationService, AppNotification } from '../../core/services/notification.service';
 import { DashboardBarmanService } from './services/dashboard-barman.service';
@@ -90,6 +91,7 @@ import { RouletteService } from '../../core/services/roulette.service';
     IonRow,
     IonCol,
     SearchBarComponent,
+    SearchableSelectComponent,
     IonChip,
     IonLabel,
     IonBadge,
@@ -155,6 +157,76 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   /** Currently active batch column on mobile viewport (< 768px). */
   activeBatchMobileTab: 'PENDING' | 'IN_PROGRESS' = 'PENDING';
   roulettePin = '7777';
+
+  /**
+   * Dropdown filter options for urgency state.
+   */
+  get urgentFilterOptions(): SearchableOption<boolean>[] {
+    return [
+      {
+        value: false,
+        label: this.transloco.translate('BARMAN_DASHBOARD.FILTER_ALL'),
+        icon: 'list-outline'
+      },
+      {
+        value: true,
+        label: this.transloco.translate('BARMAN_DASHBOARD.FILTER_URGENT_ONLY'),
+        icon: 'flash-outline',
+        badge: this.urgentOrdersCount > 0 ? String(this.urgentOrdersCount) : undefined,
+        badgeType: 'danger'
+      }
+    ];
+  }
+
+  /**
+   * Dropdown filter options for station routing.
+   */
+  get stationFilterOptions(): SearchableOption<'ALL' | 'BAR' | 'KITCHEN'>[] {
+    return [
+      {
+        value: 'ALL',
+        label: this.transloco.translate('STATIONS.ALL'),
+        icon: 'layers-outline'
+      },
+      {
+        value: 'BAR',
+        label: this.transloco.translate('STATIONS.BAR'),
+        icon: 'wine-outline'
+      },
+      {
+        value: 'KITCHEN',
+        label: this.transloco.translate('STATIONS.KITCHEN'),
+        icon: 'restaurant-outline'
+      }
+    ];
+  }
+
+  /**
+   * Handles urgency filter dropdown change.
+   *
+   * @param val Selected value or option
+   */
+  onUrgentFilterChange(val: boolean | SearchableOption<boolean> | null | undefined): void {
+    if (val === null || val === undefined) return;
+    const isUrgent = typeof val === 'boolean' ? val : val.value;
+    if (isUrgent !== undefined) {
+      this.urgentOnly = isUrgent;
+    }
+  }
+
+  /**
+   * Handles station filter dropdown change.
+   *
+   * @param val Selected station or option
+   */
+  onStationFilterChange(val: 'ALL' | 'BAR' | 'KITCHEN' | SearchableOption<'ALL' | 'BAR' | 'KITCHEN'> | null | undefined): void {
+    if (!val) return;
+    const station = typeof val === 'string' ? val : val.value;
+    if (station) {
+      this.stationFilter = station;
+    }
+  }
+
 
   constructor() {
     addIcons({

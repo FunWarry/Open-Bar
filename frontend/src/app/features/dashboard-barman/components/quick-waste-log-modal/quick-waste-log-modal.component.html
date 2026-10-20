@@ -25,46 +25,27 @@
 
 <ion-content class="quick-waste-content" [fullscreen]="true">
   <div class="quick-waste-container">
-    <!-- Top Filter Section: Search & Category Chips -->
+    <!-- Top Filter Section: Search & Category Dropdown on single line -->
     <div class="top-controls-section">
-      <app-search-bar
-        [placeholder]="'BARMAN_DASHBOARD.QUICK_WASTE_SEARCH_PLACEHOLDER' | transloco"
-        (searchChange)="onSearchChange($event)"
-        testId="quick-waste-search-bar">
-      </app-search-bar>
+      <div class="search-and-category-row">
+        <div class="modal-search-wrapper">
+          <app-search-bar
+            [placeholder]="'BARMAN_DASHBOARD.QUICK_WASTE_SEARCH_PLACEHOLDER' | transloco"
+            (searchChange)="onSearchChange($event)"
+            testId="quick-waste-search-bar">
+          </app-search-bar>
+        </div>
 
-      <div class="category-chips-row" role="tablist">
-        <app-filter-chip
-          [label]="'BARMAN_DASHBOARD.CAT_SPIRITS' | transloco"
-          icon="wine-outline"
-          [active]="selectedCategory === 'SPIRITS'"
-          (chipClick)="setCategory('SPIRITS')"
-          testId="filter-chip-spirits">
-        </app-filter-chip>
-
-        <app-filter-chip
-          [label]="'BARMAN_DASHBOARD.CAT_WINE_BEER' | transloco"
-          icon="beer-outline"
-          [active]="selectedCategory === 'WINE_BEER'"
-          (chipClick)="setCategory('WINE_BEER')"
-          testId="filter-chip-wine-beer">
-        </app-filter-chip>
-
-        <app-filter-chip
-          [label]="'BARMAN_DASHBOARD.CAT_SOFTS' | transloco"
-          icon="water-outline"
-          [active]="selectedCategory === 'SOFTS'"
-          (chipClick)="setCategory('SOFTS')"
-          testId="filter-chip-softs">
-        </app-filter-chip>
-
-        <app-filter-chip
-          [label]="'COMMON.ALL' | transloco"
-          icon="cube-outline"
-          [active]="selectedCategory === 'ALL'"
-          (chipClick)="setCategory('ALL')"
-          testId="filter-chip-all">
-        </app-filter-chip>
+        <app-searchable-select
+          class="modal-category-select"
+          [options]="categoryOptions"
+          [value]="selectedCategory"
+          (selectionChange)="onCategoryChange($event)"
+          [clearable]="false"
+          [searchable]="false"
+          size="md"
+          testId="quick-waste-category-select">
+        </app-searchable-select>
       </div>
     </div>
 

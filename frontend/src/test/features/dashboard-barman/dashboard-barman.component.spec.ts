@@ -744,12 +744,13 @@ describe('DashboardBarmanComponent', () => {
       expect(batchBtn?.getAttribute('layout')).toBe('icon-start');
     });
 
-    it('should style refresh button with btn-refresh class', () => {
+    it('should provide ion-refresher for pull-to-refresh reloading without redundant toolbar button', () => {
       fixture.detectChanges();
       const compiled = fixture.nativeElement as HTMLElement;
+      const refresher = compiled.querySelector('ion-refresher');
+      expect(refresher).toBeTruthy();
       const refreshBtn = compiled.querySelector('ion-button[data-testid="refresh-orders-btn"]');
-      expect(refreshBtn).toBeTruthy();
-      expect(refreshBtn?.classList.contains('btn-refresh')).toBeTrue();
+      expect(refreshBtn).toBeNull();
     });
 
     it('should render batch badge inside batch-segment-label when batch drinks exist', () => {
@@ -1067,6 +1068,30 @@ describe('DashboardBarmanComponent', () => {
 
       expect(stockWasteServiceSpy.revertQuickLog).toHaveBeenCalledWith(88);
       expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    it('filter dropdown options and change handlers', () => {
+      // Urgent filter options
+      const urgentOpts = component.urgentFilterOptions;
+      expect(urgentOpts.length).toBe(2);
+      expect(urgentOpts[0].value).toBe(false);
+      expect(urgentOpts[1].value).toBe(true);
+
+      component.onUrgentFilterChange({ value: true, label: 'Urgent' });
+      expect(component.urgentOnly).toBeTrue();
+
+      component.onUrgentFilterChange({ value: false, label: 'Toutes' });
+      expect(component.urgentOnly).toBeFalse();
+
+      // Station filter options
+      const stationOpts = component.stationFilterOptions;
+      expect(stationOpts.length).toBeGreaterThanOrEqual(2);
+
+      component.onStationFilterChange({ value: 'BAR', label: 'Bar' });
+      expect(component.stationFilter).toBe('BAR');
+
+      component.onStationFilterChange(null);
+      expect(component.stationFilter).toBe('BAR');
     });
   });
 });

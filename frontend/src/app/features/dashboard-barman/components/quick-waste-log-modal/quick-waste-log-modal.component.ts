@@ -25,7 +25,7 @@ import {
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { SearchBarComponent } from '../../../../core/components/ui/search-bar/search-bar.component';
-import { FilterChipComponent } from '../../../../core/components/ui/filter-chip/filter-chip.component';
+import { SearchableSelectComponent, SearchableOption } from '../../../../core/components/ui/searchable-select/searchable-select.component';
 import { QuantityStepperComponent } from '../../../../core/components/ui/quantity-stepper/quantity-stepper.component';
 import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
 import { Ingredient } from '../../../../core/models/ingredient.model';
@@ -78,7 +78,7 @@ export interface QuickReasonOption {
     IonIcon,
     IonSpinner,
     SearchBarComponent,
-    FilterChipComponent,
+    SearchableSelectComponent,
     QuantityStepperComponent,
     ActionButtonComponent
   ],
@@ -176,6 +176,29 @@ export class QuickWasteLogModalComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  /**
+   * Dropdown options for speed rail categories.
+   */
+  get categoryOptions(): SearchableOption<SpeedRailCategory>[] {
+    return [
+      { value: 'SPIRITS', label: this.transloco.translate('BARMAN_DASHBOARD.CAT_SPIRITS'), icon: 'wine-outline' },
+      { value: 'WINE_BEER', label: this.transloco.translate('BARMAN_DASHBOARD.CAT_WINE_BEER'), icon: 'beer-outline' },
+      { value: 'SOFTS', label: this.transloco.translate('BARMAN_DASHBOARD.CAT_SOFTS'), icon: 'water-outline' },
+      { value: 'ALL', label: this.transloco.translate('COMMON.ALL'), icon: 'cube-outline' }
+    ];
+  }
+
+  /**
+   * Handles category filter selection change from the dropdown.
+   *
+   * @param option The selected category option
+   */
+  onCategoryChange(option: SearchableOption<SpeedRailCategory> | null): void {
+    if (option && option.value) {
+      this.setCategory(option.value);
+    }
   }
 
   /**

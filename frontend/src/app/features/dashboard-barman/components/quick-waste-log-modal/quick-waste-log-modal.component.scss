@@ -99,19 +99,33 @@
 .top-controls-section {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
 }
 
-.category-chips-row {
+.search-and-category-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  overflow-x: auto;
-  padding-bottom: 0.25rem;
-  -webkit-overflow-scrolling: touch;
+  gap: 0.75rem;
+  width: 100%;
 
-  &::-webkit-scrollbar {
-    display: none;
+  @media (max-width: 575px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+}
+
+.modal-search-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.modal-category-select {
+  flex: 0 0 auto;
+  min-width: 200px;
+
+  @media (max-width: 575px) {
+    width: 100%;
+    min-width: 0;
   }
 }
 
