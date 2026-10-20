@@ -31,7 +31,6 @@ import {
 import { PreferencesService } from '../../services/preferences.service';
 import { SoundService } from '../../services/sound.service';
 import {
-  AudioPreferences,
   AudioTriggerType,
   SoundPackId,
   UrgentRepeatInterval

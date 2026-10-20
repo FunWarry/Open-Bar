@@ -240,7 +240,7 @@ export class SoundService implements OnDestroy {
         });
       }
 
-      const master = this.getMasterGainNode(ctx, force ? prefs.volume : prefs.volume);
+      const master = this.getMasterGainNode(ctx, prefs.volume);
 
       switch (pack) {
         case 'SUBTLE_BELL':
@@ -270,7 +270,12 @@ export class SoundService implements OnDestroy {
    */
   private synthesizeSubtleBell(ctx: AudioContext, destination: GainNode, event: AudioTriggerType): void {
     const t0 = ctx.currentTime;
-    const baseFreq = event === 'URGENT_ORDER' ? 740.0 : event === 'TABLE_CALL' ? 659.25 : 587.33;
+    let baseFreq = 587.33;
+    if (event === 'URGENT_ORDER') {
+      baseFreq = 740.0;
+    } else if (event === 'TABLE_CALL') {
+      baseFreq = 659.25;
+    }
     const partials = [
       { ratio: 1.0, gain: 0.45, decay: 0.7 },
       { ratio: 1.5, gain: 0.25, decay: 0.5 },
@@ -353,7 +358,12 @@ export class SoundService implements OnDestroy {
 
     // Ringing ice clink at the end of the shake
     const clinkTime = t0 + 0.26;
-    const clinkFreq = event === 'URGENT_ORDER' ? 1480 : event === 'TABLE_CALL' ? 1318.5 : 1046.5;
+    let clinkFreq = 1046.5;
+    if (event === 'URGENT_ORDER') {
+      clinkFreq = 1480;
+    } else if (event === 'TABLE_CALL') {
+      clinkFreq = 1318.5;
+    }
     [clinkFreq, clinkFreq * 1.33].forEach(freq => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -487,8 +497,18 @@ export class SoundService implements OnDestroy {
     const bufferSize = Math.floor(ctx.sampleRate * 0.2);
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      const randomValues = new Uint16Array(bufferSize);
+      crypto.getRandomValues(randomValues);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (randomValues[i] / 32767.5) - 1.0;
+      }
+    } else {
+      let seed = 123456789;
+      for (let i = 0; i < bufferSize; i++) {
+        seed = (seed * 1664525 + 1013904223) % 4294967296;
+        data[i] = (seed / 2147483648) - 1.0;
+      }
     }
     this.noiseBuffer = buffer;
     return buffer;
