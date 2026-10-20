@@ -166,7 +166,7 @@ public class SystemUpdateService {
         }
     }
 
-    private Optional<JsonNode> findMatchingRelease(JsonNode releases, UpdateChannel channel) {
+    Optional<JsonNode> findMatchingRelease(JsonNode releases, UpdateChannel channel) {
         if (releases == null || !releases.isArray() || releases.isEmpty()) {
             return Optional.empty();
         }
@@ -181,7 +181,7 @@ public class SystemUpdateService {
         return Optional.empty();
     }
 
-    private SystemUpdateCheckDTO toUpdateCheckDTO(JsonNode release, UpdateChannel channel) {
+    SystemUpdateCheckDTO toUpdateCheckDTO(JsonNode release, UpdateChannel channel) {
         String tagName = release.path("tag_name").asText("");
         String cleanTargetVersion = cleanVersion(tagName);
         String cleanCurrent = cleanVersion(this.currentVersion);
@@ -211,7 +211,7 @@ public class SystemUpdateService {
         );
     }
 
-    private SystemUpdateCheckDTO createNoUpdateCheck(UpdateChannel channel) {
+    SystemUpdateCheckDTO createNoUpdateCheck(UpdateChannel channel) {
         return new SystemUpdateCheckDTO(
                 false,
                 this.currentVersion,
@@ -226,7 +226,7 @@ public class SystemUpdateService {
         );
     }
 
-    private SystemUpdateCheckDTO createOfflineFallbackCheck(UpdateChannel channel) {
+    SystemUpdateCheckDTO createOfflineFallbackCheck(UpdateChannel channel) {
         return new SystemUpdateCheckDTO(
                 false,
                 this.currentVersion,
@@ -503,13 +503,13 @@ public class SystemUpdateService {
         }
     }
 
-    private void validateSnapshotId(String snapshotId) {
+    void validateSnapshotId(String snapshotId) {
         if (snapshotId == null || !snapshotId.matches("^[a-zA-Z0-9_.-]+$")) {
             throw new BusinessException("Invalid snapshot identifier.");
         }
     }
 
-    private String sanitizeForLog(String input) {
+    static String sanitizeForLog(String input) {
         if (input == null) {
             return "";
         }
@@ -535,10 +535,8 @@ public class SystemUpdateService {
         }
     }
 
-    private void executeOrchestrator(String targetVersion, UpdateChannel channel, String snapshotId) {
-        boolean isWindows = System.getProperty(OS_NAME_PROP, "").toLowerCase().contains("win");
+    List<String> buildOrchestratorCommand(String targetVersion, UpdateChannel channel, String snapshotId, boolean isWindows) {
         List<String> command = new ArrayList<>();
-
         if (isWindows) {
             command.add("powershell.exe");
             command.add("-ExecutionPolicy");
@@ -569,6 +567,12 @@ public class SystemUpdateService {
             command.add("--backup-dir");
             command.add(this.backupDir);
         }
+        return command;
+    }
+
+    private void executeOrchestrator(String targetVersion, UpdateChannel channel, String snapshotId) {
+        boolean isWindows = System.getProperty(OS_NAME_PROP, "").toLowerCase().contains("win");
+        List<String> command = buildOrchestratorCommand(targetVersion, channel, snapshotId, isWindows);
 
         try {
             if (log.isInfoEnabled()) {
@@ -587,7 +591,7 @@ public class SystemUpdateService {
         }
     }
 
-    private void handleOrchestratorFailure(String targetVersion, UpdateChannel channel, String snapshotId, String error) {
+    void handleOrchestratorFailure(String targetVersion, UpdateChannel channel, String snapshotId, String error) {
         log.error("Execution of OTA update orchestrator failed: {}", error);
         SystemUpdateStatusDTO failedStatus = new SystemUpdateStatusDTO(
                 "FAILED_ROLLED_BACK",
@@ -606,10 +610,8 @@ public class SystemUpdateService {
         writeStatusToFile(failedStatus);
     }
 
-    private void executeRollbackRestore(String snapshotFilePath) {
-        boolean isWindows = System.getProperty(OS_NAME_PROP, "").toLowerCase().contains("win");
+    List<String> buildRollbackCommand(String snapshotFilePath, boolean isWindows) {
         List<String> command = new ArrayList<>();
-
         if (isWindows) {
             command.add("powershell.exe");
             command.add("-ExecutionPolicy");
@@ -626,6 +628,12 @@ public class SystemUpdateService {
             command.add(snapshotFilePath);
             command.add("--yes");
         }
+        return command;
+    }
+
+    private void executeRollbackRestore(String snapshotFilePath) {
+        boolean isWindows = System.getProperty(OS_NAME_PROP, "").toLowerCase().contains("win");
+        List<String> command = buildRollbackCommand(snapshotFilePath, isWindows);
 
         try {
             if (log.isInfoEnabled()) {
@@ -643,7 +651,7 @@ public class SystemUpdateService {
         }
     }
 
-    private static String cleanVersion(String version) {
+    static String cleanVersion(String version) {
         if (version == null) return "0.0.0";
         String v = version.trim();
         if (v.startsWith("v") || v.startsWith("V")) {
@@ -652,7 +660,7 @@ public class SystemUpdateService {
         return v;
     }
 
-    private static boolean isNewerVersion(String candidate, String current) {
+    static boolean isNewerVersion(String candidate, String current) {
         try {
             String[] candParts = candidate.split("[-_.]");
             String[] currParts = current.split("[-_.]");
@@ -677,7 +685,7 @@ public class SystemUpdateService {
         }
     }
 
-    private static LocalDateTime parseDateTime(String text) {
+    static LocalDateTime parseDateTime(String text) {
         if (text == null || text.isBlank()) {
             return LocalDateTime.now(DEFAULT_ZONE);
         }

@@ -22,7 +22,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -302,8 +301,7 @@ class SystemUpdateServiceTest {
 
         var result = service.restoreSnapshot(snapshotId);
 
-        assertThat(result).isNotNull();
-        assertThat(result.get("snapshotId")).isEqualTo(snapshotId);
+        assertThat(result).isNotNull().containsEntry("snapshotId", snapshotId);
     }
 
     @Test
@@ -366,5 +364,133 @@ class SystemUpdateServiceTest {
         assertThat(preflight).isNotNull();
         assertThat(preflight.occupiedTablesCount()).isZero();
         assertThat(preflight.activeOrdersCount()).isZero();
+    }
+
+    @Test
+    @DisplayName("buildOrchestratorCommand - constructs proper command for Windows and Linux")
+    void buildOrchestratorCommand_buildsOsSpecificCommand() {
+        List<String> winCmd = service.buildOrchestratorCommand("0.8.1", UpdateChannel.STABLE, "snap_1", true);
+        assertThat(winCmd).contains("powershell.exe", "-TargetVersion", "0.8.1", "-Channel", "STABLE");
+
+        List<String> linuxCmd = service.buildOrchestratorCommand("0.8.1", UpdateChannel.BETA, "snap_1", false);
+        assertThat(linuxCmd).contains("bash", "--target-version", "0.8.1", "--channel", "BETA");
+    }
+
+    @Test
+    @DisplayName("buildRollbackCommand - constructs proper restore command for Windows and Linux")
+    void buildRollbackCommand_buildsOsSpecificCommand() {
+        List<String> winCmd = service.buildRollbackCommand("path/to/snap.sql.gz", true);
+        assertThat(winCmd).contains("powershell.exe", "scripts/restore-db.ps1", "path/to/snap.sql.gz");
+
+        List<String> linuxCmd = service.buildRollbackCommand("path/to/snap.sql.gz", false);
+        assertThat(linuxCmd).contains("bash", "scripts/restore-db.sh", "path/to/snap.sql.gz");
+    }
+
+    @Test
+    @DisplayName("handleOrchestratorFailure - writes failed status file with diagnostic details")
+    void handleOrchestratorFailure_writesStatusFile() {
+        service.handleOrchestratorFailure("0.8.1", UpdateChannel.STABLE, "snap_err", "Connection timed out");
+
+        SystemUpdateStatusDTO status = service.getUpdateStatus();
+        assertThat(status.status()).isEqualTo("FAILED_ROLLED_BACK");
+        assertThat(status.step()).isEqualTo("FAILED");
+        assertThat(status.error()).isEqualTo("Connection timed out");
+    }
+
+    @Test
+    @DisplayName("sanitizeForLog - strips line breaks and handles null safely")
+    void sanitizeForLog_stripsLineBreaks() {
+        assertThat(SystemUpdateService.sanitizeForLog(null)).isEmpty();
+        assertThat(SystemUpdateService.sanitizeForLog("safe_id-123")).isEqualTo("safe_id-123");
+        assertThat(SystemUpdateService.sanitizeForLog("bad\r\nid\n")).isEqualTo("bad__id_");
+    }
+
+    @Test
+    @DisplayName("cleanVersion - cleans version prefix and handles null")
+    void cleanVersion_cleansVersionPrefix() {
+        assertThat(SystemUpdateService.cleanVersion(null)).isEqualTo("0.0.0");
+        assertThat(SystemUpdateService.cleanVersion("v1.2.3")).isEqualTo("1.2.3");
+        assertThat(SystemUpdateService.cleanVersion("V2.0.0-beta")).isEqualTo("2.0.0-beta");
+        assertThat(SystemUpdateService.cleanVersion("3.0.0")).isEqualTo("3.0.0");
+    }
+
+    @Test
+    @DisplayName("isNewerVersion - compares semantic versioning accurately")
+    void isNewerVersion_comparesVersions() {
+        assertThat(SystemUpdateService.isNewerVersion("0.8.1", "0.8.0")).isTrue();
+        assertThat(SystemUpdateService.isNewerVersion("0.8.0", "0.8.1")).isFalse();
+        assertThat(SystemUpdateService.isNewerVersion("0.8.0", "0.8.0")).isFalse();
+        assertThat(SystemUpdateService.isNewerVersion("1.0.0", "0.9.9")).isTrue();
+        assertThat(SystemUpdateService.isNewerVersion("alpha", "beta")).isFalse();
+    }
+
+    @Test
+    @DisplayName("parseDateTime - parses valid ISO dates and provides fallback")
+    void parseDateTime_handlesDatesAndFallbacks() {
+        assertThat(SystemUpdateService.parseDateTime(null)).isNotNull();
+        assertThat(SystemUpdateService.parseDateTime("   ")).isNotNull();
+        assertThat(SystemUpdateService.parseDateTime("invalid-date-format")).isNotNull();
+        assertThat(SystemUpdateService.parseDateTime("2026-10-20T12:00:00")).isNotNull();
+    }
+
+    @Test
+    @DisplayName("findMatchingRelease - filters drafts and channel-specific prereleases")
+    void findMatchingRelease_filtersAppropriately() {
+        assertThat(service.findMatchingRelease(null, UpdateChannel.STABLE)).isEmpty();
+        assertThat(service.findMatchingRelease(objectMapper.createArrayNode(), UpdateChannel.STABLE)).isEmpty();
+
+        var array = objectMapper.createArrayNode();
+        var draft = array.addObject();
+        draft.put("draft", true);
+        draft.put("tag_name", "v0.9.0");
+
+        var prerelease = array.addObject();
+        prerelease.put("draft", false);
+        prerelease.put("prerelease", true);
+        prerelease.put("tag_name", "v0.8.2-rc1");
+
+        var stable = array.addObject();
+        stable.put("draft", false);
+        stable.put("prerelease", false);
+        stable.put("tag_name", "v0.8.1");
+
+        // Stable channel skips draft and prerelease, picks stable
+        var stableMatch = service.findMatchingRelease(array, UpdateChannel.STABLE);
+        assertThat(stableMatch).isPresent();
+        assertThat(stableMatch.get().path("tag_name").asText()).isEqualTo("v0.8.1");
+
+        // Beta channel allows prerelease
+        var betaMatch = service.findMatchingRelease(array, UpdateChannel.BETA);
+        assertThat(betaMatch).isPresent();
+        assertThat(betaMatch.get().path("tag_name").asText()).isEqualTo("v0.8.2-rc1");
+    }
+
+    @Test
+    @DisplayName("toUpdateCheckDTO - produces complete check DTO from JSON release node")
+    void toUpdateCheckDTO_createsCompleteDTO() {
+        var release = objectMapper.createObjectNode();
+        release.put("tag_name", "v0.8.1");
+        release.put("name", "Release 0.8.1");
+        release.put("body", "Release notes content");
+        release.put("published_at", "2026-10-18T10:00:00");
+        release.put("html_url", "https://github.com/FunWarry/Open-Bar/releases/v0.8.1");
+
+        SystemUpdateCheckDTO dto = service.toUpdateCheckDTO(release, UpdateChannel.STABLE);
+        assertThat(dto.hasUpdate()).isTrue();
+        assertThat(dto.latestVersion()).isEqualTo("0.8.1");
+        assertThat(dto.releaseTitle()).isEqualTo("Release 0.8.1");
+        assertThat(dto.releaseNotes()).isEqualTo("Release notes content");
+    }
+
+    @Test
+    @DisplayName("createNoUpdateCheck and createOfflineFallbackCheck - produce expected DTOs")
+    void fallbackChecks_produceExpectedDTOs() {
+        SystemUpdateCheckDTO noUpdate = service.createNoUpdateCheck(UpdateChannel.STABLE);
+        assertThat(noUpdate.hasUpdate()).isFalse();
+        assertThat(noUpdate.isOffline()).isFalse();
+
+        SystemUpdateCheckDTO offline = service.createOfflineFallbackCheck(UpdateChannel.BETA);
+        assertThat(offline.hasUpdate()).isFalse();
+        assertThat(offline.isOffline()).isTrue();
     }
 }

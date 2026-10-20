@@ -27,7 +27,6 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  arrowBackOutline,
   cloudDownloadOutline,
   refreshOutline,
   shieldCheckmarkOutline,
@@ -149,7 +148,6 @@ export class SystemUpdatePageComponent implements OnInit, OnDestroy {
 
   constructor() {
     addIcons({
-      arrowBackOutline,
       cloudDownloadOutline,
       refreshOutline,
       shieldCheckmarkOutline,
