@@ -10,6 +10,7 @@ import { AppSettingsService } from '../app/core/services/app-settings.service';
 import { AppUpdateService } from '../app/core/services/app-update.service';
 import { SessionTimeoutService } from '../app/core/services/session-timeout.service';
 import { StartupReadinessService } from '../app/core/services/startup-readiness.service';
+import { ModalHistoryService } from '../app/core/services/modal-history.service';
 import { PopoverController } from '@ionic/angular';
 import { EMPTY, of, throwError } from 'rxjs';
 import { selectIsAuthenticated } from '../app/core/store/auth.selectors';
@@ -27,9 +28,13 @@ describe('AppComponent', () => {
   let mockAppUpdateService: jasmine.SpyObj<AppUpdateService>;
   let mockSessionTimeoutService: jasmine.SpyObj<SessionTimeoutService>;
   let mockStartupReadinessService: jasmine.SpyObj<StartupReadinessService>;
+  let mockModalHistoryService: jasmine.SpyObj<ModalHistoryService>;
   let router: Router;
 
   beforeEach(async () => {
+    mockModalHistoryService = jasmine.createSpyObj('ModalHistoryService', [
+      'init', 'destroy', 'dismissTopOverlay', 'getOverlayCount'
+    ]);
     const mockNavigationService = jasmine.createSpyObj('NavigationService', [
       'navigateToHome', 'navigateToLogin', 'navigateToAdmin', 'navigateToUserProfile', 'toggleSidebarCollapse', 'setSidebarCollapsed', 'closeMobileSidebar'
     ], {
@@ -102,6 +107,7 @@ describe('AppComponent', () => {
         { provide: AppUpdateService, useValue: mockAppUpdateService },
         { provide: SessionTimeoutService, useValue: mockSessionTimeoutService },
         { provide: StartupReadinessService, useValue: mockStartupReadinessService },
+        { provide: ModalHistoryService, useValue: mockModalHistoryService },
       ],
     }).compileComponents();
 
@@ -114,11 +120,12 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it('ngOnInit calls getSettings(), initStartupCheck(), and sessionTimeoutService.init()', () => {
+  it('ngOnInit calls getSettings(), initStartupCheck(), sessionTimeoutService.init(), and modalHistoryService.init()', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
 
     app.ngOnInit();
+    expect(mockModalHistoryService.init).toHaveBeenCalled();
     expect(mockStartupReadinessService.initStartupCheck).toHaveBeenCalled();
     expect(mockAppSettingsService.getSettings).toHaveBeenCalled();
     expect(mockAppUpdateService.initStartupCheck).toHaveBeenCalled();

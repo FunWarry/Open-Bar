@@ -21,6 +21,7 @@ import * as allIcons from 'ionicons/icons';
 
 import { StartupReadinessService } from './core/services/startup-readiness.service';
 import { StartupOverlayComponent } from './core/components/startup-overlay/startup-overlay.component';
+import { ModalHistoryService } from './core/services/modal-history.service';
 
 /**
  * Root component of the OpenBar application.
@@ -52,7 +53,8 @@ export class AppComponent implements OnInit {
     private readonly appUpdateService: AppUpdateService,
     private readonly sessionTimeoutService: SessionTimeoutService,
     public readonly startupService: StartupReadinessService,
-    public readonly navigationService: NavigationService
+    public readonly navigationService: NavigationService,
+    private readonly modalHistoryService: ModalHistoryService
   ) {
     addIcons(allIcons);
     const isAuth$ = this.store.select(selectIsAuthenticated);
@@ -97,6 +99,7 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.modalHistoryService.init();
     this.startupService.initStartupCheck().subscribe(() => {
       this.appSettingsService.getSettings().subscribe({
         error: () => { /* Preserve default design system settings if the backend API is unreachable */ },
