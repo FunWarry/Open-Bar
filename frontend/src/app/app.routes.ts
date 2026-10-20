@@ -295,6 +295,17 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: {roles: ['ADMIN']}
   },
+  {
+    path: 'admin/system',
+    loadComponent: () => import('./features/admin/system-update/system-update-page.component').then(m => m.SystemUpdatePageComponent),
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER'], requiredModule: EstablishmentModule.SYSTEM_UPDATES }
+  },
+  {
+    path: 'admin/system-updates',
+    redirectTo: '/admin/system',
+    pathMatch: 'full'
+  },
 
   // Bartender (English route + /barman)
   {

@@ -41,6 +41,12 @@ openbar:
     max-wait-seconds: ${OPENBAR_DB_MAX_WAIT_SECONDS:900}
   cors:
     allowed-origin-patterns: ${OPENBAR_CORS_ALLOWED_ORIGINS:*}
+  version: ${OPENBAR_VERSION:0.8.0}
+  system:
+    ota-script-sh: ${OPENBAR_OTA_SCRIPT_SH:scripts/ota-update.sh}
+    ota-script-ps1: ${OPENBAR_OTA_SCRIPT_PS1:scripts/ota-update.ps1}
+    backup-dir: ${OPENBAR_BACKUP_DIR:backups}
+    status-file: ${OPENBAR_STATUS_FILE:backups/update-status.json}
 
 server:
   port: ${SERVER_PORT:8080}

@@ -38,6 +38,7 @@ describe('ModuleGuard', () => {
     paymentTerminal: true,
     tableReservations: true,
     checklistsProcedures: true,
+    systemUpdates: true,
   };
 
   beforeEach(() => {
