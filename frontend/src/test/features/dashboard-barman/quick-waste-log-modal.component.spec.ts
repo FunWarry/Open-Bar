@@ -236,4 +236,23 @@ describe('QuickWasteLogModalComponent', () => {
     component.dismiss();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null, 'cancel');
   });
+
+  it('should clear selected ingredient and reset custom stepper on clearSelectedIngredient()', () => {
+    component.selectIngredient(mockIngredients[0]);
+    component.showCustomStepper = true;
+
+    component.clearSelectedIngredient();
+
+    expect(component.selectedIngredient).toBeNull();
+    expect(component.showCustomStepper).toBeFalse();
+  });
+
+  it('should dismiss modal when clearSelectedIngredient() is called with preselected ingredient', () => {
+    component.preselectedIngredient = mockIngredients[0];
+    component.selectedIngredient = mockIngredients[0];
+
+    component.clearSelectedIngredient();
+
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null, 'cancel');
+  });
 });
