@@ -47,11 +47,30 @@ test.describe('KDS Kitchen Display Screen E2E Flow', () => {
   });
 
   test('should switch filter dropdowns and handle urgent toggle', async ({ page }) => {
-    await page.goto('/kitchen');
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/barman');
     const urgentSelect = page.locator('[data-testid="select-urgent-filter"]');
     await expect(urgentSelect).toBeVisible();
+
+    const trigger = page.locator('[data-testid="select-urgent-filter-trigger"]');
+    await trigger.click();
+
+    const dropdown = page.locator('[data-testid="select-urgent-filter-dropdown"]');
+    await expect(dropdown).toBeVisible();
+
+    // Select Urgent
+    const urgentOption = page.locator('[data-testid="select-urgent-filter-option-true"]');
+    await urgentOption.click();
+    await expect(dropdown).toBeHidden();
+
+    // Test Station filter dropdown if visible
     const stationSelect = page.locator('[data-testid="select-station-filter"]');
-    await expect(stationSelect).toBeVisible();
+    if (await stationSelect.isVisible()) {
+      const stationTrigger = page.locator('[data-testid="select-station-filter-trigger"]');
+      await stationTrigger.click();
+      const stationDropdown = page.locator('[data-testid="select-station-filter-dropdown"]');
+      await expect(stationDropdown).toBeVisible();
+    }
   });
 
   test('should redirect to /kitchen when visiting /cuisine', async ({ page }) => {

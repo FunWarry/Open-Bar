@@ -601,7 +601,8 @@ ion-header {
   max-width: 100%;
   box-sizing: border-box;
   overflow: visible;
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 60;
 
   @media (max-width: 767px) {

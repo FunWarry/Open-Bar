@@ -106,6 +106,12 @@
       </div>
     </div>
   </ion-toolbar>
+</ion-header>
+
+<ion-content class="barman-content">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
   <!-- Barre de filtres et recherche -->
   <div class="barman-filter-bar">
@@ -146,12 +152,6 @@
       }
     </div>
   </div>
-</ion-header>
-
-<ion-content class="barman-content">
-  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher>
 
   @if (activeCriticalStockAlert) {
     <div class="critical-stock-banner" data-testid="critical-stock-banner">
