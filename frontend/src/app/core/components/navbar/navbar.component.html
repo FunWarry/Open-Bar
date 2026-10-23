@@ -88,6 +88,23 @@
           </ng-template>
         </ion-popover>
 
+        <!-- Angel Shot Safety Protocol Trigger (#569) - Accessible globally from TopBar -->
+        @if (isAngelShotEnabled()) {
+          <ion-button
+            class="topbar-safety-btn"
+            (click)="openSafetyModal()"
+            (keyup.enter)="openSafetyModal()"
+            data-testid="topbar-safety-btn"
+            [title]="'SAFETY.STAFF_BUTTON_TITLE' | transloco">
+            @if (navigationService.isMobile()) {
+              <ion-icon slot="icon-only" name="shield-checkmark-outline"></ion-icon>
+            } @else {
+              <ion-icon slot="start" name="shield-checkmark-outline"></ion-icon>
+              <span>{{ 'SAFETY.STAFF_BUTTON_SHORT' | transloco }}</span>
+            }
+          </ion-button>
+        }
+
         <!-- Notification bell (always visible on mobile & desktop) -->
         <ion-button
           (click)="toggleNotifPanel()"
@@ -202,4 +219,8 @@
       </ion-buttons>
     </ion-toolbar>
   </ion-header>
+
+  @if (isSafetyModalOpen) {
+    <app-safety-staff-modal (modalClosed)="closeSafetyModal()"></app-safety-staff-modal>
+  }
 }

@@ -20,13 +20,15 @@ import { addIcons } from 'ionicons';
 import {
   home, settings, personCircle, person, logOut, chevronDown,
   notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline, globeOutline,
-  moonOutline, sunnyOutline, menuOutline
+  moonOutline, sunnyOutline, menuOutline, shieldCheckmarkOutline
 } from 'ionicons/icons';
 import { AsyncPipe, UpperCasePipe } from '@angular/common';
 import * as AuthActions from '../../store/auth.actions';
 import { User } from '../../models/user.model';
 import { ThemeService } from '../../services/theme.service';
 import { AudioSettingsPopoverComponent } from '../audio-settings/audio-settings-popover.component';
+import { FeatureFlagService } from '../../services/feature-flag.service';
+import { SafetyStaffModalComponent } from '../ui/safety-staff-modal/safety-staff-modal.component';
 
 /** Map from URL prefix to translation key for page titles. */
 const ROUTE_TITLE_MAP: Record<string, string> = {
@@ -86,6 +88,7 @@ const ROLE_COLORS: Record<string, string> = {
     IonPopover, IonList, IonItem, IonLabel, IonBadge,
     AsyncPipe, UpperCasePipe, TranslocoPipe,
     AudioSettingsPopoverComponent,
+    SafetyStaffModalComponent,
   ],
 })
 export class NavbarComponent implements OnInit, OnDestroy {
@@ -169,6 +172,24 @@ export class NavbarComponent implements OnInit, OnDestroy {
     return this.displayBadgeCount();
   }
 
+  /** Whether the Angel Shot safety protocol module is enabled for the establishment. */
+  readonly isAngelShotEnabled = computed(() => {
+    return this.featureFlagService ? this.featureFlagService.angelShotSafetyEnabled() : true;
+  });
+
+  /** Whether the staff Angel Shot safety memo & emergency trigger modal is currently open. */
+  isSafetyModalOpen = false;
+
+  /** Opens the staff safety memo and emergency trigger modal. */
+  openSafetyModal(): void {
+    this.isSafetyModalOpen = true;
+  }
+
+  /** Closes the staff safety memo modal. */
+  closeSafetyModal(): void {
+    this.isSafetyModalOpen = false;
+  }
+
   /** Whether the non-modal side drawer notification panel is open. */
   isNotifPanelOpen = false;
 
@@ -189,11 +210,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
     private readonly transloco: TranslocoService,
     @Optional() public readonly themeService?: ThemeService,
     @Optional() private readonly router?: Router,
+    @Optional() public readonly featureFlagService?: FeatureFlagService,
   ) {
     addIcons({
       home, settings, personCircle, person, logOut, chevronDown,
       notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline, globeOutline,
-      moonOutline, sunnyOutline, menuOutline
+      moonOutline, sunnyOutline, menuOutline, shieldCheckmarkOutline
     });
 
     this.isAdmin$ = this.store.select(selectIsAdmin);
