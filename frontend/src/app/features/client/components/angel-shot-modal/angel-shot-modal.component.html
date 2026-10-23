@@ -1,5 +1,6 @@
-<ion-modal [isOpen]="true" (didDismiss)="dismiss()">
-  <app-modal
+<ion-modal [isOpen]="true" (didDismiss)="dismiss()" class="modal-md app-modal-host" data-testid="angel-shot-modal">
+  <ng-template>
+    <app-modal
     [title]="'CLIENT.SAFETY.MODAL_TITLE' | transloco"
     icon="shield-checkmark-outline"
     [subtitle]="'CLIENT.SAFETY.MODAL_SUBTITLE' | transloco"
@@ -84,4 +85,5 @@
       }
     </div>
   </app-modal>
+</ng-template>
 </ion-modal>

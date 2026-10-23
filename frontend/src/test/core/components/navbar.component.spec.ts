@@ -20,6 +20,8 @@ import { SoundService } from '../../../app/core/services/sound.service';
 import { PreferencesService } from '../../../app/core/services/preferences.service';
 import { TableAppelService } from '../../../app/core/services/table-appel.service';
 import { TableAppel } from '../../../app/core/models/table-appel.model';
+import { SafetyAlertService } from '../../../app/core/services/safety-alert.service';
+import { SafetyAlert } from '../../../app/core/models/safety-alert.model';
 import { User } from '../../../app/core/models/user.model';
 
 import { signal, WritableSignal } from '@angular/core';
@@ -31,8 +33,10 @@ describe('NavbarComponent', () => {
   let mockNavigationService: jasmine.SpyObj<NavigationService>;
   let mockNotifService: any;
   let mockTableAppelService: any;
+  let mockSafetyAlertService: any;
   let unreadCountSignal: WritableSignal<number>;
   let activeAppelsSignal: WritableSignal<TableAppel[]>;
+  let activeSafetyAlertsSignal: WritableSignal<SafetyAlert[]>;
 
   let mockSelectIsAuthenticated: MemoizedSelector<any, boolean>;
   let mockSelectIsAdmin: MemoizedSelector<any, boolean>;
@@ -66,6 +70,7 @@ describe('NavbarComponent', () => {
 
     unreadCountSignal = signal(0);
     activeAppelsSignal = signal<TableAppel[]>([]);
+    activeSafetyAlertsSignal = signal<SafetyAlert[]>([]);
     mockNotifService = jasmine.createSpyObj('NotificationService', [
       'onNotification', 'onStockAlert', 'getNonLues', 'getHistory', 'marquerLue', 'marquerToutLu', 'toggleNotifPanel', 'closeNotifPanel',
     ]);
@@ -77,6 +82,10 @@ describe('NavbarComponent', () => {
     mockTableAppelService = jasmine.createSpyObj('TableAppelService', ['getAppelsActifs']);
     mockTableAppelService.activeAppels = activeAppelsSignal;
     mockTableAppelService.getAppelsActifs.and.returnValue(of([]));
+
+    mockSafetyAlertService = jasmine.createSpyObj('SafetyAlertService', ['getActiveAlerts', 'resolveAlert']);
+    mockSafetyAlertService.activeAlerts = activeSafetyAlertsSignal;
+    mockSafetyAlertService.getActiveAlerts.and.returnValue(of([]));
 
     const mockSoundService = jasmine.createSpyObj('SoundService', [
       'toggleSound',
@@ -114,6 +123,7 @@ describe('NavbarComponent', () => {
         { provide: NavigationService, useValue: mockNavigationService },
         { provide: NotificationService, useValue: mockNotifService },
         { provide: TableAppelService, useValue: mockTableAppelService },
+        { provide: SafetyAlertService, useValue: mockSafetyAlertService },
         { provide: SoundService, useValue: mockSoundService },
         { provide: PopoverController, useValue: mockPopoverCtrl },
       ],
@@ -396,6 +406,62 @@ describe('NavbarComponent', () => {
       const badge = fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]');
       expect(badge).not.toBeNull();
       expect(badge.textContent.trim()).toBe('2');
+    });
+
+    it('should display danger badge and pulse when safety alerts are active', () => {
+      unreadCountSignal.set(0);
+      activeAppelsSignal.set([]);
+      activeSafetyAlertsSignal.set([
+        {
+          id: 201,
+          tableId: 2,
+          tableNumero: 2,
+          type: 'ANGEL_SHOT_LIME',
+          typeLabel: 'Angel Shot Rondelle',
+          status: 'ACTIVE',
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      fixture.detectChanges();
+
+      const badge = fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]');
+      expect(badge).not.toBeNull();
+      expect(badge.textContent.trim()).toBe('1');
+      expect(component.hasActiveSafetyAlerts()).toBeTrue();
+      expect(component.hasPendingNotifications()).toBeTrue();
+      expect((badge as any).color ?? badge.getAttribute('ng-reflect-color')).toBe('danger');
+    });
+
+    it('should prioritize safety alert badge color and count combined calls and alerts', () => {
+      unreadCountSignal.set(1);
+      activeAppelsSignal.set([
+        {
+          id: 101,
+          tableId: 3,
+          tableNumero: 3,
+          type: 'ASSISTANCE',
+          statut: 'EN_ATTENTE',
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      activeSafetyAlertsSignal.set([
+        {
+          id: 201,
+          tableId: 2,
+          tableNumero: 2,
+          type: 'ANGEL_SHOT_NEAT',
+          typeLabel: 'Angel Shot Pur',
+          status: 'ACTIVE',
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      fixture.detectChanges();
+
+      const badge = fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]');
+      expect(badge).not.toBeNull();
+      // 1 table call + 1 safety alert = 2
+      expect(badge.textContent.trim()).toBe('2');
+      expect((badge as any).color ?? badge.getAttribute('ng-reflect-color')).toBe('danger');
     });
   });
 });

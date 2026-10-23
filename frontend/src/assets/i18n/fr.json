@@ -1,5 +1,6 @@
 {
   "COMMON": {
+    "TABLE": "Table",
     "SAVE": "Enregistrer",
     "CANCEL": "Annuler",
     "UNDO": "Annuler",
@@ -3722,6 +3723,8 @@
     "SAFETY_SAVE_SUCCESS": "Numéros d'urgence enregistrés avec succès !"
   },
   "SAFETY": {
+    "ACTIVE_ALERTS_TITLE": "Urgences Angel Shot actives ({{ count }})",
+    "EMERGENCY_TITLE": "URGENCE ANGEL SHOT",
     "EMERGENCY_BADGE": "URGENCE ANGEL SHOT",
     "CODE_NEAT": "PUR (Escorte sortie/véhicule)",
     "CODE_ICE": "GLAÇONS (Commande Taxi discrète)",

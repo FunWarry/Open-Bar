@@ -1,187 +1,190 @@
-<ion-modal [isOpen]="true" (didDismiss)="dismiss()">
-  <app-modal
-    [title]="'SAFETY.STAFF_MODAL_TITLE' | transloco"
-    icon="shield-checkmark-outline"
-    [subtitle]="'SAFETY.STAFF_MODAL_SUBTITLE' | transloco"
-    size="lg"
-    (dismiss)="dismiss()">
+<ion-modal [isOpen]="true" (didDismiss)="dismiss()" class="modal-lg app-modal-host" data-testid="safety-staff-modal">
+  <ng-template>
+    <app-modal
+      [title]="'SAFETY.STAFF_MODAL_TITLE' | transloco"
+      icon="shield-checkmark-outline"
+      [subtitle]="'SAFETY.STAFF_MODAL_SUBTITLE' | transloco"
+      size="lg"
+      (dismiss)="dismiss()">
 
-    <!-- Segmented Tabs Navigation -->
-    <div class="modal-tabs-header">
-      <button
-        type="button"
-        class="tab-btn"
-        [class.active]="activeTab === 'memo'"
-        data-testid="tab-safety-memo"
-        (click)="activeTab = 'memo'">
-        <ion-icon name="book-outline"></ion-icon>
-        <span>{{ 'SAFETY.TAB_MEMO' | transloco }}</span>
-      </button>
-      <button
-        type="button"
-        class="tab-btn"
-        [class.active]="activeTab === 'trigger'"
-        data-testid="tab-safety-trigger"
-        (click)="activeTab = 'trigger'">
-        <ion-icon name="megaphone-outline"></ion-icon>
-        <span>{{ 'SAFETY.TAB_TRIGGER' | transloco }}</span>
-      </button>
-    </div>
+      <!-- Segmented Tabs Navigation (Fixed sub-header via summary slot) -->
+      <div slot="summary" class="modal-tabs-header">
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab === 'memo'"
+          data-testid="tab-safety-memo"
+          (click)="activeTab = 'memo'">
+          <ion-icon name="book-outline"></ion-icon>
+          <span>{{ 'SAFETY.TAB_MEMO' | transloco }}</span>
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab === 'trigger'"
+          data-testid="tab-safety-trigger"
+          (click)="activeTab = 'trigger'">
+          <ion-icon name="megaphone-outline"></ion-icon>
+          <span>{{ 'SAFETY.TAB_TRIGGER' | transloco }}</span>
+        </button>
+      </div>
 
-    <div class="safety-staff-body">
-      <!-- TAB 1: PROTOCOL MEMO & ACTION GUIDE -->
-      @if (activeTab === 'memo') {
-        <div class="memo-container" data-testid="safety-memo-view">
-          <div class="memo-banner">
-            <p class="memo-intro">
-              {{ 'SAFETY.MEMO_INTRO_TEXT' | transloco }}
-            </p>
-          </div>
+      <div class="safety-staff-body">
+        <!-- TAB 1: PROTOCOL MEMO & ACTION GUIDE -->
+        @if (activeTab === 'memo') {
+          <div class="memo-container" data-testid="safety-memo-view">
+            <div class="memo-banner">
+              <p class="memo-intro">
+                {{ 'SAFETY.MEMO_INTRO_TEXT' | transloco }}
+              </p>
+            </div>
 
-          <div class="protocol-cards-grid">
-            @for (variant of variants; track variant.type) {
-              <div class="protocol-card" [ngClass]="variant.badgeClass">
-                <div class="card-header">
-                  <span class="card-emoji">{{ variant.icon }}</span>
-                  <div class="card-titles">
-                    <h4 class="card-title">{{ variant.titleKey | transloco }}</h4>
-                    <span class="code-badge">{{ variant.type }}</span>
+            <div class="protocol-cards-grid">
+              @for (variant of variants; track variant.type) {
+                <div class="protocol-card" [ngClass]="variant.badgeClass">
+                  <div class="card-header">
+                    <span class="card-emoji">{{ variant.icon }}</span>
+                    <div class="card-titles">
+                      <h4 class="card-title">{{ variant.titleKey | transloco }}</h4>
+                      <span class="code-badge">{{ variant.type }}</span>
+                    </div>
+                  </div>
+                  <p class="card-desc">{{ variant.descKey | transloco }}</p>
+                  <div class="card-instructions">
+                    <span class="instructions-label">{{ 'SAFETY.ACTION_GUIDE_LABEL' | transloco }}:</span>
+                    <p class="instructions-text">{{ variant.actionKey | transloco }}</p>
                   </div>
                 </div>
-                <p class="card-desc">{{ variant.descKey | transloco }}</p>
-                <div class="card-instructions">
-                  <span class="instructions-label">{{ 'SAFETY.ACTION_GUIDE_LABEL' | transloco }}:</span>
-                  <p class="instructions-text">{{ variant.actionKey | transloco }}</p>
-                </div>
-              </div>
-            }
-          </div>
-
-          <!-- Emergency Helplines Reminder -->
-          <div class="helplines-card">
-            <h5 class="helplines-title">
-              <ion-icon name="call-outline"></ion-icon>
-              {{ 'SAFETY.HELPLINES_TITLE' | transloco }}
-            </h5>
-            <div class="helplines-grid">
-              @for (line of emergencyNumbers; track line.number) {
-                <a [href]="'tel:' + line.number" class="helpline-item helpline-link" [title]="line.description || line.name">
-                  <span class="phone-number">{{ line.number }}</span>
-                  <span class="phone-desc">{{ line.name }}</span>
-                </a>
               }
             </div>
-          </div>
-        </div>
-      }
 
-      <!-- TAB 2: MANUAL STAFF EMERGENCY ALERT TRIGGER -->
-      @if (activeTab === 'trigger') {
-        <div class="trigger-container" data-testid="safety-trigger-view">
-          @if (!isSuccess()) {
-            <p class="trigger-intro">
-              {{ 'SAFETY.TRIGGER_INTRO_TEXT' | transloco }}
-            </p>
-
-            <!-- Table Selector -->
-            <div class="form-group">
-              <app-searchable-select
-                [label]="'SAFETY.TRIGGER_SELECT_TABLE' | transloco"
-                [placeholder]="'SAFETY.TRIGGER_SELECT_TABLE_PLACEHOLDER' | transloco"
-                [options]="tableOptions"
-                [(ngModel)]="selectedTableId"
-                [enableSearch]="true"
-                testId="select-safety-table">
-              </app-searchable-select>
-            </div>
-
-            <!-- Variant Selector -->
-            <div class="form-group">
-              <span class="field-label">{{ 'SAFETY.SELECT_VARIANT_LABEL' | transloco }}</span>
-              <div class="variants-picker-grid">
-                @for (variant of variants; track variant.type) {
-                  <button
-                    type="button"
-                    class="variant-pick-card"
-                    [class.selected]="selectedVariant === variant.type"
-                    [ngClass]="variant.badgeClass"
-                    [attr.data-testid]="'pick-variant-' + variant.type.toLowerCase()"
-                    (click)="selectVariant(variant.type)">
-                    <span class="pick-icon">{{ variant.icon }}</span>
-                    <div class="pick-info">
-                      <span class="pick-title">{{ variant.titleKey | transloco }}</span>
-                      <span class="pick-desc">{{ variant.descKey | transloco }}</span>
-                    </div>
-                  </button>
+            <!-- Emergency Helplines Reminder -->
+            <div class="helplines-card">
+              <h5 class="helplines-title">
+                <ion-icon name="call-outline"></ion-icon>
+                {{ 'SAFETY.HELPLINES_TITLE' | transloco }}
+              </h5>
+              <div class="helplines-grid">
+                @for (line of emergencyNumbers; track line.number) {
+                  <a [href]="'tel:' + line.number" class="helpline-item helpline-link" [title]="line.description || line.name">
+                    <span class="phone-number">{{ line.number }}</span>
+                    <span class="phone-desc">{{ line.name }}</span>
+                  </a>
                 }
               </div>
             </div>
+          </div>
+        }
 
-            <!-- Optional Confidential Note -->
-            <div class="form-group">
-              <app-input-field
-                name="safetyNote"
-                [label]="'SAFETY.OPTIONAL_NOTE_LABEL' | transloco"
-                [placeholder]="'SAFETY.OPTIONAL_NOTE_PLACEHOLDER' | transloco"
-                [(ngModel)]="note"
-                data-testid="input-staff-safety-note">
-              </app-input-field>
-            </div>
+        <!-- TAB 2: MANUAL STAFF EMERGENCY ALERT TRIGGER -->
+        @if (activeTab === 'trigger') {
+          <div class="trigger-container" data-testid="safety-trigger-view">
+            @if (!isSuccess()) {
+              <p class="trigger-intro">
+                {{ 'SAFETY.TRIGGER_INTRO_TEXT' | transloco }}
+              </p>
 
-            @if (errorMessage()) {
-              <div class="error-banner" data-testid="safety-error-msg">
-                <ion-icon name="alert-circle-outline"></ion-icon>
-                <span>{{ errorMessage() }}</span>
+              <!-- Table Selector -->
+              <div class="form-group">
+                <app-searchable-select
+                  [label]="'SAFETY.TRIGGER_SELECT_TABLE' | transloco"
+                  [placeholder]="'SAFETY.TRIGGER_SELECT_TABLE_PLACEHOLDER' | transloco"
+                  [options]="tableOptions"
+                  [(ngModel)]="selectedTableId"
+                  [enableSearch]="true"
+                  testId="select-safety-table">
+                </app-searchable-select>
               </div>
-            }
 
-            <div class="trigger-actions">
-              <app-action-button
-                type="button"
-                variant="danger"
-                size="large"
-                icon="megaphone-outline"
-                [loading]="isSubmitting()"
-                testId="btn-dispatch-safety-alert"
-                (btnClick)="dispatchAlert()">
-                {{ 'SAFETY.DISPATCH_BTN' | transloco }}
-              </app-action-button>
-            </div>
-          } @else {
-            <!-- Success Confirmation -->
-            <div class="success-view" data-testid="staff-safety-success-view">
-              <div class="success-icon-box">
-                <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <!-- Variant Selector -->
+              <div class="form-group">
+                <span class="field-label">{{ 'SAFETY.SELECT_VARIANT_LABEL' | transloco }}</span>
+                <div class="variants-picker-grid">
+                  @for (variant of variants; track variant.type) {
+                    <button
+                      type="button"
+                      class="variant-pick-card"
+                      [class.selected]="selectedVariant === variant.type"
+                      [ngClass]="variant.badgeClass"
+                      [attr.data-testid]="'pick-variant-' + variant.type.toLowerCase()"
+                      (click)="selectVariant(variant.type)">
+                      <span class="pick-icon">{{ variant.icon }}</span>
+                      <div class="pick-info">
+                        <span class="pick-title">{{ variant.titleKey | transloco }}</span>
+                        <span class="pick-desc">{{ variant.descKey | transloco }}</span>
+                      </div>
+                    </button>
+                  }
+                </div>
               </div>
-              <h4 class="success-title">{{ 'SAFETY.TRIGGER_SUCCESS_TITLE' | transloco }}</h4>
-              <p class="success-desc">{{ 'SAFETY.TRIGGER_SUCCESS_DESC' | transloco }}</p>
 
-              <div class="success-actions">
+              <!-- Optional Confidential Note -->
+              <div class="form-group">
+                <app-input-field
+                  name="safetyNote"
+                  [label]="'SAFETY.OPTIONAL_NOTE_LABEL' | transloco"
+                  [placeholder]="'SAFETY.OPTIONAL_NOTE_PLACEHOLDER' | transloco"
+                  [(ngModel)]="note"
+                  data-testid="input-staff-safety-note">
+                </app-input-field>
+              </div>
+
+              @if (errorMessage()) {
+                <div class="error-banner" data-testid="safety-error-msg">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  <span>{{ errorMessage() }}</span>
+                </div>
+              }
+
+              <div class="trigger-actions">
                 <app-action-button
                   type="button"
-                  variant="primary"
-                  size="medium"
-                  testId="btn-close-safety-success"
-                  (btnClick)="dismiss()">
-                  {{ 'COMMON.CLOSE' | transloco }}
+                  variant="danger"
+                  size="large"
+                  icon="megaphone-outline"
+                  [loading]="isSubmitting()"
+                  testId="btn-dispatch-safety-alert"
+                  (btnClick)="dispatchAlert()">
+                  {{ 'SAFETY.DISPATCH_BTN' | transloco }}
                 </app-action-button>
               </div>
-            </div>
-          }
-        </div>
-      }
-    </div>
+            } @else {
+              <!-- Success Confirmation -->
+              <div class="success-view" data-testid="staff-safety-success-view">
+                <div class="success-icon-box">
+                  <ion-icon name="checkmark-circle-outline"></ion-icon>
+                </div>
+                <h4 class="success-title">{{ 'SAFETY.TRIGGER_SUCCESS_TITLE' | transloco }}</h4>
+                <p class="success-desc">{{ 'SAFETY.TRIGGER_SUCCESS_DESC' | transloco }}</p>
 
-    <!-- Modal Footer Slot -->
-    <div slot="footer" class="modal-footer-actions">
-      <app-action-button
-        type="button"
-        variant="secondary"
-        size="medium"
-        testId="btn-dismiss-safety-staff-modal"
-        (btnClick)="dismiss()">
-        {{ 'COMMON.CLOSE' | transloco }}
-      </app-action-button>
-    </div>
-  </app-modal>
+                <div class="success-actions">
+                  <app-action-button
+                    type="button"
+                    variant="primary"
+                    size="medium"
+                    testId="btn-close-safety-success"
+                    (btnClick)="dismiss()">
+                    {{ 'COMMON.CLOSE' | transloco }}
+                  </app-action-button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Modal Footer Slot -->
+      <div slot="footer" class="modal-footer-actions">
+        <app-action-button
+          type="button"
+          variant="secondary"
+          size="medium"
+          testId="btn-dismiss-safety-staff-modal"
+          (btnClick)="dismiss()">
+          {{ 'COMMON.CLOSE' | transloco }}
+        </app-action-button>
+      </div>
+    </app-modal>
+  </ng-template>
 </ion-modal>
+

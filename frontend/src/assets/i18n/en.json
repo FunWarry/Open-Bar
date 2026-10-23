@@ -1,5 +1,6 @@
 {
   "COMMON": {
+    "TABLE": "Table",
     "SAVE": "Save",
     "CANCEL": "Cancel",
     "UNDO": "Undo",
@@ -3722,6 +3723,8 @@
     "SAFETY_SAVE_SUCCESS": "Emergency numbers saved successfully!"
   },
   "SAFETY": {
+    "ACTIVE_ALERTS_TITLE": "Active Angel Shot Emergencies ({{ count }})",
+    "EMERGENCY_TITLE": "ANGEL SHOT EMERGENCY",
     "EMERGENCY_BADGE": "ANGEL SHOT EMERGENCY",
     "CODE_NEAT": "NEAT (Escort exit/car)",
     "CODE_ICE": "ON THE ROCKS (Discreet Taxi)",

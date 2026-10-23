@@ -5,11 +5,9 @@
 .modal-tabs-header {
   display: flex;
   gap: 8px;
-  padding: 4px;
+  padding: 10px 1.5rem;
   background: var(--background-surface-1);
-  border-radius: 12px;
-  margin-bottom: 20px;
-  border: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-medium);
 
   .tab-btn {
     flex: 1;
@@ -17,10 +15,10 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 10px 16px;
+    padding: 9px 16px;
     border: none;
     border-radius: 8px;
-    background: transparent;
+    background: var(--background-surface-2);
     color: var(--text-secondary);
     font-size: 0.92rem;
     font-weight: 600;
@@ -33,7 +31,7 @@
 
     &:hover {
       color: var(--text-primary);
-      background: var(--background-surface-2);
+      background: var(--background-surface-3);
     }
 
     &.active {
@@ -189,19 +187,15 @@
 
     .helplines-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
       gap: 8px;
-
-      @media (min-width: 600px) {
-        grid-template-columns: repeat(4, 1fr);
-      }
 
       .helpline-item {
         display: flex;
         flex-direction: column;
         align-items: center;
         text-align: center;
-        padding: 8px;
+        padding: 8px 10px;
         border-radius: 8px;
         background: var(--background-surface-2);
         text-decoration: none;
@@ -217,12 +211,16 @@
           font-size: 1.15rem;
           font-weight: 800;
           color: var(--primary);
+          overflow-wrap: break-word;
+          max-width: 100%;
         }
 
         .phone-desc {
           font-size: 0.75rem;
           color: var(--text-muted);
           margin-top: 2px;
+          overflow-wrap: break-word;
+          max-width: 100%;
         }
       }
     }

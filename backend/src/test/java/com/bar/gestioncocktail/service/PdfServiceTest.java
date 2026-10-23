@@ -874,12 +874,12 @@ class PdfServiceTest {
 
     @ParameterizedTest(name = "Lang: {0}, Legal: {1}")
     @CsvSource(delimiter = '|', value = {
-            "en | The London Lounge | [{\"name\":\"UK Police\",\"number\":\"999\",\"description\":\"Emergency\"}]",
-            "es | Bar Barcelona | [{\"name\":\"Policía Nacional\",\"number\":\"091\",\"description\":\"Urgencias\"}]",
-            "fr | Le Refuge Parisien | [{\"name\":\"Sécurité Bar\",\"number\":\"06 12 34 56 78\",\"description\":\"Astreinte de nuit\"},{\"name\":\"SAMU\",\"number\":\"15\",\"description\":\"Urgence médicale\"}]"
+            "en | The London Lounge | [{\"name\":\"UK Police\",\"number\":\"999\",\"description\":\"Emergency\"}] | 999",
+            "es | Bar Barcelona | [{\"name\":\"Policía Nacional\",\"number\":\"091\",\"description\":\"Urgencias\"}] | 091",
+            "fr | Le Refuge Parisien | [{\"name\":\"Sécurité Bar\",\"number\":\"06 12 34 56 78\",\"description\":\"Astreinte de nuit\"},{\"name\":\"SAMU\",\"number\":\"15\",\"description\":\"Urgence médicale\"}] | 06 12 34 56 78"
     })
     void generateAngelShotNoticePdf_variousLanguagesAndCustomNumbers_generatesSinglePageValidPdf(
-            String language, String legalName, String emergencyJson) throws Exception {
+            String language, String legalName, String emergencyJson, String expectedPhoneNumber) throws Exception {
         EstablishmentConfig config = new EstablishmentConfig();
         config.setLegalName(legalName);
         config.setLanguage(language);
@@ -894,6 +894,9 @@ class PdfServiceTest {
         assertThat(pdf).isNotNull().isNotEmpty();
         com.lowagie.text.pdf.PdfReader reader = new com.lowagie.text.pdf.PdfReader(pdf);
         assertThat(reader.getNumberOfPages()).isEqualTo(1);
+        byte[] pageContent = reader.getPageContent(1);
+        String pageText = new String(pageContent, java.nio.charset.StandardCharsets.ISO_8859_1);
+        assertThat(pageText).contains(expectedPhoneNumber);
         reader.close();
     }
 }

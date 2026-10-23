@@ -202,6 +202,7 @@ describe('AppSettingsPageComponent', () => {
       happyHourEnabled: () => true,
       qrClientOrderingEnabled: () => true,
       cashDrawerEnabled: () => true,
+      angelShotSafetyEnabled: () => true,
     });
     featureFlagServiceSpy.loadModules.and.returnValue(of({
       cuisineKds: true,
@@ -1715,6 +1716,20 @@ describe('AppSettingsPageComponent', () => {
       component.addEmergencyNumber();
 
       expect(component.configuredEmergencyNumbers()).toHaveSize(initialCount);
+    });
+
+    it('should auto-save modified emergency numbers before downloading notice PDF', () => {
+      appSettingsServiceSpy.updateSettings.calls.reset();
+      safetyAlertServiceSpy.downloadRestroomNoticePdf.calls.reset();
+
+      component.newEmergencyName = 'Private Security';
+      component.newEmergencyNumber = '01 99 88 77 66';
+      component.addEmergencyNumber();
+
+      component.downloadRestroomNoticePdf();
+
+      expect(appSettingsServiceSpy.updateSettings).toHaveBeenCalled();
+      expect(safetyAlertServiceSpy.downloadRestroomNoticePdf).toHaveBeenCalled();
     });
   });
 });

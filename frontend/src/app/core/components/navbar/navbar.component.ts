@@ -8,6 +8,7 @@ import { selectCurrentUser, selectIsAdmin, selectIsAuthenticated } from '../../s
 import { NavigationService } from '../../services/navigation.service';
 import { NotificationService } from '../../services/notification.service';
 import { TableAppelService } from '../../services/table-appel.service';
+import { SafetyAlertService } from '../../services/safety-alert.service';
 import { SoundService } from '../../services/sound.service';
 import { LanguageService } from '../../services/language.service';
 import {
@@ -131,21 +132,36 @@ export class NavbarComponent implements OnInit, OnDestroy {
   });
 
   /**
+   * Count of active Angel Shot emergency safety alerts awaiting resolution.
+   */
+  readonly activeSafetyAlertsCount = computed(() => {
+    return this.isStaffWithTableCalls() ? this.safetyAlertService.activeAlerts().length : 0;
+  });
+
+  /**
+   * Whether there are currently active safety alerts requiring immediate staff attention.
+   */
+  readonly hasActiveSafetyAlerts = computed(() => {
+    return this.activeSafetyAlertsCount() > 0;
+  });
+
+  /**
    * Whether the notification icon badge should be visible.
-   * Remains true for servers/staff as long as active calls are not yet acknowledged.
+   * Remains true for servers/staff as long as active calls or safety alerts are not yet acknowledged.
    */
   readonly hasPendingNotifications = computed(() => {
-    return this.unreadCount() > 0 || this.hasActiveTableCalls();
+    return this.unreadCount() > 0 || this.hasActiveTableCalls() || this.hasActiveSafetyAlerts();
   });
 
   /**
    * Total badge count displayed on the notification bell.
-   * Guaranteed to reflect pending table calls even if other notifications are read.
+   * Guaranteed to reflect pending table calls and safety alerts even if other notifications are read.
    */
   readonly displayBadgeCount = computed(() => {
     const unread = this.unreadCount();
     const calls = this.activeTableCallsCount();
-    return Math.max(unread, calls);
+    const safety = this.activeSafetyAlertsCount();
+    return Math.max(unread, calls + safety);
   });
 
   /** Backwards compatible getter for the unread notifications count. */
@@ -166,6 +182,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     public readonly navigationService: NavigationService,
     private readonly notifService: NotificationService,
     public readonly tableAppelService: TableAppelService,
+    public readonly safetyAlertService: SafetyAlertService,
     public readonly soundService: SoundService,
     public readonly languageService: LanguageService,
     private readonly popoverCtrl: PopoverController,
@@ -186,6 +203,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.currentUserSignal.set(user);
       if (user?.roles?.some(r => ['SERVEUR', 'MANAGER', 'ADMIN'].includes(r))) {
         this.tableAppelService.getAppelsActifs().subscribe({
+          error: () => { /* safely ignore if offline/unauthorized */ }
+        });
+        this.safetyAlertService.getActiveAlerts().subscribe({
           error: () => { /* safely ignore if offline/unauthorized */ }
         });
       }

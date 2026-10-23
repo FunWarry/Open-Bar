@@ -95,6 +95,7 @@ import { EstablishmentConfig } from '../../../core/models/establishment-config.m
 import { AppSettingsService, DEFAULT_DISCOUNT_TIERS, DEFAULT_STORAGE_LOCATIONS, DEFAULT_EMERGENCY_NUMBERS } from '../../../core/services/app-settings.service';
 import {
   AppSettings,
+  AppSettingsUpdateRequest,
   CurrencyPosition,
   DiscountTier,
   UnitSystem,
@@ -2111,24 +2112,54 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
   /**
    * Downloads the printable A4 bilingual Angel Shot restroom notice PDF.
+   * If emergency helplines have been added or updated in the UI without having clicked
+   * global save yet, persists the updated numbers first to ensure the PDF reflects them.
    */
   downloadRestroomNoticePdf(): void {
-    this.safetyAlertService.downloadRestroomNoticePdf()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (blob) => {
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'openbar-angel-shot-notice.pdf';
-          a.click();
-          window.URL.revokeObjectURL(url);
-          void this.showToast(this.translocoService.translate('SETTINGS.MODULE_SAFETY_NOTICE_DOWNLOAD_SUCCESS'), 'success');
-        },
-        error: () => {
-          void this.showToast(this.translocoService.translate('SETTINGS.MODULE_SAFETY_NOTICE_DOWNLOAD_ERROR'), 'danger');
-        }
-      });
+    const doDownload = () => {
+      this.safetyAlertService.downloadRestroomNoticePdf()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'openbar-angel-shot-notice.pdf';
+            a.click();
+            window.URL.revokeObjectURL(url);
+            void this.showToast(this.translocoService.translate('SETTINGS.MODULE_SAFETY_NOTICE_DOWNLOAD_SUCCESS'), 'success');
+          },
+          error: () => {
+            void this.showToast(this.translocoService.translate('SETTINGS.MODULE_SAFETY_NOTICE_DOWNLOAD_ERROR'), 'danger');
+          }
+        });
+    };
+
+    const currentNumbersJson = JSON.stringify(this.configuredEmergencyNumbers());
+    if (this.appSettingsService && this.initialAppSettingsValue && this.initialAppSettingsValue.emergencyNumbersJson !== currentNumbersJson) {
+      const payload: AppSettingsUpdateRequest = {
+        ...this.initialAppSettingsValue,
+        logoUrl: this.initialAppSettingsValue.logoUrl ?? null,
+        primaryColor: this.initialAppSettingsValue.primaryColor || '#6c7fe8',
+        primaryColorStrong: this.initialAppSettingsValue.primaryColorStrong || '#5a68d6',
+        establishmentName: this.initialAppSettingsValue.establishmentName || 'OpenBar',
+        defaultTheme: this.initialAppSettingsValue.defaultTheme || 'DARK',
+        emergencyNumbersJson: currentNumbersJson,
+      };
+      this.appSettingsService.updateSettings(payload)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (updated) => {
+            if (this.initialAppSettingsValue) {
+              this.initialAppSettingsValue = { ...this.initialAppSettingsValue, emergencyNumbersJson: updated.emergencyNumbersJson };
+            }
+            doDownload();
+          },
+          error: () => doDownload(),
+        });
+    } else {
+      doDownload();
+    }
   }
 
   /**

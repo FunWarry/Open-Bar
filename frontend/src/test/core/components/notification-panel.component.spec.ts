@@ -8,15 +8,20 @@ import { PopoverController, ToastController } from '@ionic/angular';
 import { Subject, of } from 'rxjs';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
+import { SafetyAlertService } from '../../../app/core/services/safety-alert.service';
+import { SafetyAlert } from '../../../app/core/models/safety-alert.model';
+
 describe('NotificationPanelComponent', () => {
   let component: NotificationPanelComponent;
   let fixture: ComponentFixture<NotificationPanelComponent>;
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
   let tableAppelServiceSpy: jasmine.SpyObj<TableAppelService>;
+  let safetyAlertServiceSpy: jasmine.SpyObj<SafetyAlertService>;
   let popoverCtrlSpy: jasmine.SpyObj<PopoverController>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let notifSubject: Subject<AppNotification>;
   let activeAppelsSignal: WritableSignal<TableAppel[]>;
+  let activeSafetyAlertsSignal: WritableSignal<SafetyAlert[]>;
 
   const mockNotif: AppNotification = {
     id: 'n-1',
@@ -37,9 +42,21 @@ describe('NotificationPanelComponent', () => {
     createdAt: new Date().toISOString(),
   };
 
+  const mockSafetyAlert: SafetyAlert = {
+    id: 101,
+    tableId: 1,
+    tableNumero: 1,
+    type: 'ANGEL_SHOT_NEAT',
+    typeLabel: 'Angel Shot Pur',
+    status: 'ACTIVE',
+    comment: 'Urgence besoin aide discrète',
+    createdAt: new Date().toISOString(),
+  };
+
   beforeEach(async () => {
     notifSubject = new Subject<AppNotification>();
     activeAppelsSignal = signal<TableAppel[]>([]);
+    activeSafetyAlertsSignal = signal<SafetyAlert[]>([]);
 
     notificationServiceSpy = jasmine.createSpyObj('NotificationService', [
       'getHistory',
@@ -56,6 +73,14 @@ describe('NotificationPanelComponent', () => {
     (tableAppelServiceSpy as any).activeAppels = activeAppelsSignal;
     tableAppelServiceSpy.getAppelsActifs.and.returnValue(of([]));
     tableAppelServiceSpy.acquitterAppel.and.returnValue(of({ ...mockAppel, statut: 'ACQUITTE' }));
+
+    safetyAlertServiceSpy = jasmine.createSpyObj('SafetyAlertService', [
+      'getActiveAlerts',
+      'resolveAlert',
+    ]);
+    (safetyAlertServiceSpy as any).activeAlerts = activeSafetyAlertsSignal;
+    safetyAlertServiceSpy.getActiveAlerts.and.returnValue(of([]));
+    safetyAlertServiceSpy.resolveAlert.and.returnValue(of({ ...mockSafetyAlert, status: 'RESOLVED' }));
 
     popoverCtrlSpy = jasmine.createSpyObj('PopoverController', ['dismiss']);
     popoverCtrlSpy.dismiss.and.returnValue(Promise.resolve(true));
@@ -76,6 +101,7 @@ describe('NotificationPanelComponent', () => {
       providers: [
         { provide: NotificationService, useValue: notificationServiceSpy },
         { provide: TableAppelService, useValue: tableAppelServiceSpy },
+        { provide: SafetyAlertService, useValue: safetyAlertServiceSpy },
         { provide: PopoverController, useValue: popoverCtrlSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
       ],
@@ -168,6 +194,45 @@ describe('NotificationPanelComponent', () => {
       expect(event.stopPropagation).toHaveBeenCalled();
       expect(tableAppelServiceSpy.acquitterAppel).toHaveBeenCalledWith(5, 42);
       expect(notificationServiceSpy.marquerAppelLu).toHaveBeenCalledWith(42, 5);
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    }));
+  });
+
+  describe('active safety alerts in notification panel', () => {
+    it('should not render safety alerts section when activeSafetyAlerts is empty', () => {
+      activeSafetyAlertsSignal.set([]);
+      fixture.detectChanges();
+
+      const safetySection = fixture.nativeElement.querySelector('[data-testid="panel-safety-alerts-section"]');
+      expect(safetySection).toBeNull();
+    });
+
+    it('should render safety alerts section at the top when alerts exist', () => {
+      activeSafetyAlertsSignal.set([mockSafetyAlert]);
+      fixture.detectChanges();
+
+      const safetySection = fixture.nativeElement.querySelector('[data-testid="panel-safety-alerts-section"]');
+      expect(safetySection).not.toBeNull();
+
+      const item = fixture.nativeElement.querySelector('[data-testid="panel-safety-item-101"]');
+      expect(item).not.toBeNull();
+      expect(item.textContent).toContain('Table 1');
+      expect(item.textContent).toContain('Angel Shot Pur');
+      expect(item.textContent).toContain('Urgence besoin aide discrète');
+    });
+
+    it('should call resolveAlert and present toast when resolving a safety alert', fakeAsync(() => {
+      activeSafetyAlertsSignal.set([mockSafetyAlert]);
+      fixture.detectChanges();
+
+      const event = new MouseEvent('click');
+      spyOn(event, 'stopPropagation');
+
+      component.resolveSafetyAlert(mockSafetyAlert, event);
+      tick();
+
+      expect(event.stopPropagation).toHaveBeenCalled();
+      expect(safetyAlertServiceSpy.resolveAlert).toHaveBeenCalledWith(101);
       expect(toastCtrlSpy.create).toHaveBeenCalled();
     }));
   });

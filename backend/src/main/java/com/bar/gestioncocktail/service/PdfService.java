@@ -33,6 +33,7 @@ import com.bar.gestioncocktail.model.VatRate;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.User;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +46,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -81,6 +83,9 @@ public class PdfService {
     private static final String TABLE_PREFIX = "TABLE ";
     private static final String DATE_SIGNATURE_LABEL = "Date & Signature :";
     private static final String BULLET_SEPARATOR = "  •  ";
+    private static final String HELPLINE_FIELD_NUMBER = "number";
+    private static final String HELPLINE_FIELD_NAME = "name";
+    private static final String HELPLINE_FIELD_DESC = "description";
 
     private final EstablishmentConfigService establishmentConfigService;
     private final AppSettingsService appSettingsService;
@@ -2412,16 +2417,36 @@ public class PdfService {
         }
         try {
             ObjectMapper mapper = new ObjectMapper();
-            List<EmergencyHelplineItem> items = mapper.readValue(json, new TypeReference<>() {});
-            if (items != null) {
-                return items.stream()
-                        .filter(item -> item != null && item.number() != null && !item.number().isBlank())
-                        .toList();
+            JsonNode root = mapper.readTree(json);
+            if (root == null || !root.isArray()) {
+                return List.of();
             }
+            List<EmergencyHelplineItem> list = new ArrayList<>();
+            for (JsonNode node : root) {
+                EmergencyHelplineItem item = parseHelplineNode(node);
+                if (item != null) {
+                    list.add(item);
+                }
+            }
+            return list.isEmpty() ? List.of() : list;
         } catch (Exception _) {
             // Fall back to empty list on parsing failure
+            return List.of();
         }
-        return List.of();
+    }
+
+    private EmergencyHelplineItem parseHelplineNode(JsonNode node) {
+        if (node == null || !node.hasNonNull(HELPLINE_FIELD_NUMBER)) {
+            return null;
+        }
+        String number = node.get(HELPLINE_FIELD_NUMBER).asText().trim();
+        if (number.isBlank()) {
+            return null;
+        }
+        String name = node.hasNonNull(HELPLINE_FIELD_NAME) ? node.get(HELPLINE_FIELD_NAME).asText().trim() : "";
+        JsonNode descNode = node.get(HELPLINE_FIELD_DESC);
+        String desc = (descNode != null && !descNode.isNull()) ? descNode.asText().trim() : null;
+        return new EmergencyHelplineItem(name, number, desc);
     }
 
     private AngelShotNoticeI18n getNoticeI18n(String lang) {

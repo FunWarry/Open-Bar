@@ -94,14 +94,14 @@
           (keyup.enter)="toggleNotifPanel()"
           style="position:relative"
           data-testid="topbar-notifications-btn"
-          [class.has-active-calls]="hasActiveTableCalls()"
+          [class.has-active-calls]="hasActiveTableCalls() || hasActiveSafetyAlerts()"
           [title]="'NAV.NOTIFICATIONS' | transloco">
-          <ion-icon slot="icon-only" name="notifications-outline" [class.bell-pulsing]="hasActiveTableCalls()"></ion-icon>
+          <ion-icon slot="icon-only" name="notifications-outline" [class.bell-pulsing]="hasActiveTableCalls() || hasActiveSafetyAlerts()"></ion-icon>
           @if (hasPendingNotifications()) {
             <ion-badge
-              [color]="hasActiveTableCalls() ? 'warning' : 'danger'"
+              [color]="hasActiveSafetyAlerts() ? 'danger' : (hasActiveTableCalls() ? 'warning' : 'danger')"
               class="notif-badge"
-              [class.call-pulse]="hasActiveTableCalls()"
+              [class.call-pulse]="hasActiveTableCalls() || hasActiveSafetyAlerts()"
               data-testid="topbar-notif-badge">
               {{ displayBadgeCount() > 9 ? '9+' : displayBadgeCount() }}
             </ion-badge>
