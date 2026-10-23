@@ -1705,7 +1705,7 @@ public class PdfService {
         }
         String scopePrefix = isEn ? "Scope: " : "Périmètre : ";
         String categoryPrefix = isEn ? "Category: " : "Catégorie : ";
-        return scopePrefix + locationScope + "  •  " + categoryPrefix + categoryScope;
+        return scopePrefix + locationScope + BULLET_SEPARATOR + categoryPrefix + categoryScope;
     }
 
     private PdfPCell createAuditEstablishmentCell(EstablishmentConfig config, boolean isEn, InventoryAuditPdfFonts fonts) {
