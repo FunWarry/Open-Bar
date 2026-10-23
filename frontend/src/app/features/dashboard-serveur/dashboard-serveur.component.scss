@@ -311,6 +311,18 @@ ion-content.dashboard-serveur-content {
         &.free { background: var(--semantic-success, #2dd36f); }
         &.occupied { background: var(--semantic-warning, #f4a52a); }
       }
+
+      &.safety-link-btn {
+        background: color-mix(in srgb, var(--semantic-info) 18%, transparent);
+        border-color: var(--semantic-info);
+        color: var(--semantic-info);
+        font-weight: 700;
+
+        &:hover {
+          background: var(--semantic-info);
+          color: var(--text-on-accent, #ffffff);
+        }
+      }
     }
   }
 }

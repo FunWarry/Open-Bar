@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.SafetyAlertRequestDTO;
 import com.bar.gestioncocktail.dto.SafetyAlertResolveRequestDTO;
 import com.bar.gestioncocktail.dto.SafetyAlertResponseDTO;
 import com.bar.gestioncocktail.service.PdfService;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -69,6 +71,26 @@ public class SafetyAlertController {
             @Parameter(description = "Table ID", example = "3") @PathVariable Long tableId
     ) {
         return safetyAlertService.getActiveAlertsForTable(tableId);
+    }
+
+    /**
+     * Manually triggers an Angel Shot safety alert for a table on behalf of staff.
+     *
+     * @param tableId    Target table identifier
+     * @param requestDTO Alert parameters (type, optional note)
+     * @return Created safety alert response DTO
+     */
+    @PostMapping("/tables/{tableId:\\d+}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SERVEUR', 'BARMAN')")
+    @Operation(summary = "Staff manual safety alert trigger", description = "Allows staff members to immediately trigger an Angel Shot alert for a table.")
+    @ApiResponse(responseCode = "201", description = "Safety alert triggered and broadcast successfully")
+    @ApiResponse(responseCode = "404", description = "Table not found")
+    public ResponseEntity<SafetyAlertResponseDTO> triggerStaffAlert(
+            @Parameter(description = "Table ID", example = "5") @PathVariable Long tableId,
+            @Valid @RequestBody SafetyAlertRequestDTO requestDTO
+    ) {
+        SafetyAlertResponseDTO created = safetyAlertService.createAlert(tableId, requestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     /**

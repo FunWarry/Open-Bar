@@ -40,9 +40,11 @@ import {
   checkmarkCircleOutline,
   eyeOutline,
   tvOutline,
-  addCircleOutline
+  addCircleOutline,
+  shieldCheckmarkOutline
 } from 'ionicons/icons';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
+import { SafetyStaffModalComponent } from '../../core/components/ui/safety-staff-modal/safety-staff-modal.component';
 import { SearchableSelectComponent, SearchableOption } from '../../core/components/ui/searchable-select/searchable-select.component';
 import { CommandeCardComponent } from './components/commande-card/commande-card.component';
 import { NotificationService, AppNotification } from '../../core/services/notification.service';
@@ -99,6 +101,7 @@ export type StationFilterType = 'ALL' | 'BAR' | 'KITCHEN';
     EmptyStateComponent,
     RecipeSidePanelComponent,
     SafetyAlertBannerComponent,
+    SafetyStaffModalComponent,
     RouterLink
 ],
   templateUrl: './dashboard-barman.component.html',
@@ -246,8 +249,20 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       checkmarkCircleOutline,
       eyeOutline,
       tvOutline,
-      addCircleOutline
+      addCircleOutline,
+      shieldCheckmarkOutline
     });
+  }
+
+  isSafetyMemoModalOpen = false;
+  readonly angelShotEnabled = this.featureFlagService.angelShotSafetyEnabled;
+
+  openSafetyMemoModal(): void {
+    this.isSafetyMemoModalOpen = true;
+  }
+
+  closeSafetyMemoModal(): void {
+    this.isSafetyMemoModalOpen = false;
   }
 
   /**

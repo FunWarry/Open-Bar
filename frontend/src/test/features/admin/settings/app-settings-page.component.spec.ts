@@ -1684,6 +1684,39 @@ describe('AppSettingsPageComponent', () => {
       expect(component.configuredTpeTerminals().length).toBeGreaterThan(0);
     });
   });
+
+  describe('Safety Protocol & Emergency Helplines', () => {
+    it('should add, remove, and reset emergency helplines', () => {
+      const initialCount = component.configuredEmergencyNumbers().length;
+      component.newEmergencyName = 'Samu';
+      component.newEmergencyNumber = '15';
+      component.newEmergencyDescription = 'Urgences médicales';
+      component.addEmergencyNumber();
+
+      expect(component.configuredEmergencyNumbers()).toHaveSize(initialCount + 1);
+      expect(component.configuredEmergencyNumbers().some(h => h.number === '15')).toBeTrue();
+      expect(component.newEmergencyName).toBe('');
+      expect(component.newEmergencyNumber).toBe('');
+
+      // Remove the newly added helpline
+      const addedIdx = component.configuredEmergencyNumbers().findIndex(h => h.number === '15');
+      component.removeEmergencyNumber(addedIdx);
+      expect(component.configuredEmergencyNumbers()).toHaveSize(initialCount);
+
+      // Reset to default
+      component.resetEmergencyNumbersToDefault();
+      expect(component.configuredEmergencyNumbers().length).toBeGreaterThan(0);
+    });
+
+    it('should prevent adding duplicate emergency numbers', () => {
+      const initialCount = component.configuredEmergencyNumbers().length;
+      component.newEmergencyName = 'Police Bis';
+      component.newEmergencyNumber = '17';
+      component.addEmergencyNumber();
+
+      expect(component.configuredEmergencyNumbers()).toHaveSize(initialCount);
+    });
+  });
 });
 
 

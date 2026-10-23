@@ -10,7 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { IonIcon, ToastController } from '@ionic/angular';
+import { IonIcon, IonModal, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   shieldCheckmarkOutline,
@@ -42,6 +42,7 @@ import {
     FormsModule,
     TranslocoPipe,
     IonIcon,
+    IonModal,
     ModalComponent,
     ActionButtonComponent,
     InputFieldComponent

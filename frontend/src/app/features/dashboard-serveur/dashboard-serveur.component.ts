@@ -23,7 +23,7 @@ import {
   nutritionOutline, eggOutline, leafOutline, sparklesOutline, flameOutline,
   waterOutline, beerOutline, fastFoodOutline, searchOutline,
   addOutline, removeOutline, locateOutline, cartOutline, arrowForwardOutline,
-  chevronBackOutline, chevronForwardOutline,
+  chevronBackOutline, chevronForwardOutline, shieldCheckmarkOutline,
 } from 'ionicons/icons';
 import { AppCurrencyPipe } from '../../core/pipes/app-currency.pipe';
 import { tableRestaurantOutline } from '../../core/icons/custom-icons';
@@ -95,6 +95,7 @@ import { CommandeListComponent } from '../commandes/commande-list/commande-list.
 import { SearchableSelectComponent, SearchableOption } from '../../core/components/ui/searchable-select/searchable-select.component';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
 import { SafetyAlertBannerComponent } from '../../core/components/ui/safety-alert-banner/safety-alert-banner.component';
+import { SafetyStaffModalComponent } from '../../core/components/ui/safety-staff-modal/safety-staff-modal.component';
 
 /**
  * Main dashboard component for waiters providing table list supervision,
@@ -120,6 +121,7 @@ import { SafetyAlertBannerComponent } from '../../core/components/ui/safety-aler
     BarTabsListComponent,
     CocktailListComponent,
     SafetyAlertBannerComponent,
+    SafetyStaffModalComponent,
     AppCurrencyPipe,
   ],
   templateUrl: './dashboard-serveur.component.html',
@@ -214,6 +216,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   readonly floorPlanEnabled = this.featureFlagService.floorPlanEnabled;
   readonly barTabService = inject(BarTabService);
   readonly barTabsEnabled = this.featureFlagService.barTabsEnabled;
+  readonly angelShotEnabled = this.featureFlagService.angelShotSafetyEnabled;
+  isSafetyMemoModalOpen = false;
   private readonly factureService = inject(FactureService);
 
   constructor(
@@ -241,7 +245,16 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       waterOutline, beerOutline, fastFoodOutline, searchOutline,
       addOutline, removeOutline, locateOutline, tableRestaurantOutline,
       cartOutline, arrowForwardOutline, chevronBackOutline, chevronForwardOutline,
+      shieldCheckmarkOutline,
     });
+  }
+
+  openSafetyMemoModal(): void {
+    this.isSafetyMemoModalOpen = true;
+  }
+
+  closeSafetyMemoModal(): void {
+    this.isSafetyMemoModalOpen = false;
   }
 
   private static readonly FILTER_STORAGE_KEY = 'openbar_serveur_dashboard_filters';

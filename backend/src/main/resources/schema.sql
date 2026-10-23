@@ -1023,3 +1023,6 @@ CREATE INDEX IF NOT EXISTS idx_safety_alerts_table_status ON safety_alerts(table
 CREATE INDEX IF NOT EXISTS idx_safety_alerts_status ON safety_alerts(status);
 
 ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_angel_shot_safety_enabled BOOLEAN DEFAULT true;
+
+-- Configurable emergency helplines for Angel Shot safety protocol
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS emergency_numbers_json TEXT;

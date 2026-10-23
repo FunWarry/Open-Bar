@@ -89,6 +89,17 @@
                 {{ 'SERVEUR_MOBILE.NAV.TABS' | transloco }} ({{ barTabService.activeCount() }})
               </button>
             }
+            @if (angelShotEnabled()) {
+              <button
+                type="button"
+                class="filter-pill-btn safety-link-btn"
+                data-testid="btn-serveur-safety-memo"
+                [title]="'SAFETY.STAFF_BUTTON_TITLE' | transloco"
+                (click)="openSafetyMemoModal()">
+                <ion-icon name="shield-checkmark-outline" style="margin-right: 4px; vertical-align: middle;"></ion-icon>
+                {{ 'SAFETY.STAFF_BUTTON_SHORT' | transloco }}
+              </button>
+            }
           </div>
         </div>
         <!-- LIGNE INFERIEURE : DROPDOWNS SELECTION & BOUTONS MODE D'AFFICHAGE -->
@@ -532,3 +543,8 @@
   [cartBadgeCount]="cartTotalCount"
   (tabSelect)="onTabSelected($event)">
 </app-bottom-navigation>
+
+<!-- Modal Protocole & Déclenchement Sécurité Staff (#569) -->
+@if (isSafetyMemoModalOpen) {
+  <app-safety-staff-modal (modalClosed)="closeSafetyMemoModal()"></app-safety-staff-modal>
+}

@@ -103,6 +103,20 @@
             <span class="btn-text btn-text--short">{{ 'ROULETTE.TV_SHORT' | transloco }}</span>
           </ion-button>
         }
+
+        <!-- Protocole & Alertes Sécurité Angel Shot (#569) -->
+        @if (angelShotEnabled()) {
+          <ion-button
+            class="header-action-btn btn-safety-memo"
+            (click)="openSafetyMemoModal()"
+            (keyup.enter)="openSafetyMemoModal()"
+            [title]="'SAFETY.STAFF_BUTTON_TITLE' | transloco"
+            data-testid="barman-safety-memo-btn">
+            <ion-icon slot="start" name="shield-checkmark-outline"></ion-icon>
+            <span class="btn-text btn-text--full">{{ 'SAFETY.STAFF_BUTTON_FULL' | transloco }}</span>
+            <span class="btn-text btn-text--short">{{ 'SAFETY.STAFF_BUTTON_SHORT' | transloco }}</span>
+          </ion-button>
+        }
       </div>
     </div>
   </ion-toolbar>
@@ -710,3 +724,8 @@
   [isKitchenMode]="isKitchenMode"
   (closePanel)="onCloseRecipePanel()">
 </app-recipe-side-panel>
+
+<!-- Modal Protocole & Déclenchement Sécurité Staff (#569) -->
+@if (isSafetyMemoModalOpen) {
+  <app-safety-staff-modal (modalClosed)="closeSafetyMemoModal()"></app-safety-staff-modal>
+}

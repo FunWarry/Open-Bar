@@ -3138,5 +3138,220 @@ ion-col {
   }
 }
 
+/* ============================================================== */
+/* TAB: SÉCURITÉ & NUMÉROS D'URGENCE (ANGEL SHOT)                 */
+/* ============================================================== */
+.safety-notice-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  background: color-mix(in srgb, var(--primary) 8%, var(--background-surface-1));
+  border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+  border-radius: var(--radius-lg, 12px);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .notice-banner-text {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+
+    .banner-icon {
+      font-size: 2rem;
+      color: var(--primary);
+      flex-shrink: 0;
+    }
+
+    .banner-title {
+      margin: 0 0 4px 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .banner-desc {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+  }
+}
+
+.helplines-manager-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .section-heading {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .section-subtext {
+    margin: -8px 0 8px 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .helplines-grid-config {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (min-width: 1200px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .helpline-config-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--background-surface-1);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md, 10px);
+      transition: border-color 0.2s ease, transform 0.15s ease;
+
+      &:hover {
+        border-color: color-mix(in srgb, var(--primary) 50%, var(--border-medium));
+        transform: translateY(-1px);
+      }
+
+      .helpline-card-main {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+
+        .helpline-badge {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 6px 12px;
+          border-radius: var(--radius-sm, 6px);
+          background: color-mix(in srgb, var(--primary) 12%, var(--background-surface-2));
+          border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+          flex-shrink: 0;
+
+          .phone-number {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: 0.5px;
+          }
+        }
+
+        .helpline-details {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+
+          .helpline-name {
+            margin: 0;
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .helpline-desc {
+            margin: 0;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+      }
+
+      .helpline-card-actions {
+        flex-shrink: 0;
+      }
+    }
+
+    .empty-helplines {
+      padding: 24px;
+      text-align: center;
+      border: 1px dashed var(--border-medium);
+      border-radius: var(--radius-md, 10px);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+  }
+
+  .add-helpline-card {
+    margin-top: 12px;
+    padding: 18px 20px;
+    background: var(--background-surface-1);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-lg, 12px);
+
+    .add-title {
+      margin: 0 0 14px 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .add-helpline-fields {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      align-items: flex-end;
+
+      @media (min-width: 640px) {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      @media (min-width: 1024px) {
+        grid-template-columns: 1.2fr 1fr 1.5fr auto;
+      }
+
+      .field-item {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+
+        &.field-item-wide {
+          @media (min-width: 640px) and (max-width: 1023px) {
+            grid-column: 1 / -1;
+          }
+        }
+      }
+
+      .add-btn-wrapper {
+        display: flex;
+        align-items: flex-end;
+        padding-bottom: 2px;
+
+        @media (max-width: 1023px) {
+          margin-top: 4px;
+        }
+      }
+    }
+  }
+}
+
 
 

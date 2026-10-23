@@ -72,7 +72,7 @@ export class SafetyAlertService implements OnDestroy {
    * @param alert Incoming safety alert event
    */
   private handleIncomingAlert(alert: SafetyAlert): void {
-    if (!alert || !alert.id) {
+    if (!alert?.id) {
       return;
     }
 
@@ -111,6 +111,26 @@ export class SafetyAlertService implements OnDestroy {
   triggerSafetyAlert(tableId: number, type: SafetyAlertType, comment?: string): Observable<SafetyAlert> {
     const payload: SafetyAlertRequest = { type, comment };
     return this.http.post<SafetyAlert>(`${this.publicApiUrl}/tables/${tableId}`, payload);
+  }
+
+  /**
+   * Manually triggers an Angel Shot safety alert on behalf of a staff member (waitstaff / bartender).
+   *
+   * @param tableId Table primary key
+   * @param type Specific Angel Shot variant code
+   * @param comment Optional confidential detail or instructions
+   * @returns Observable of the created SafetyAlert
+   */
+  triggerStaffAlert(tableId: number, type: SafetyAlertType, comment?: string): Observable<SafetyAlert> {
+    const payload: SafetyAlertRequest = { type, comment };
+    return this.http.post<SafetyAlert>(`${this.staffApiUrl}/tables/${tableId}`, payload).pipe(
+      tap((alert) => {
+        this.activeAlerts.update((current) => {
+          const filtered = current.filter(a => a.id !== alert.id);
+          return [alert, ...filtered];
+        });
+      })
+    );
   }
 
   /**

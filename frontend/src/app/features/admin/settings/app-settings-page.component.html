@@ -107,6 +107,18 @@
       <ion-icon name="print-outline"></ion-icon>
       <span>{{ 'SETTINGS.TAB_PRINTERS' | transloco }}</span>
     </button>
+
+    @if (angelShotSafetyEnabled()) {
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab === 'safety'"
+        (click)="selectTab('safety')"
+        data-testid="tab-safety">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        <span>{{ 'SETTINGS.TAB_SAFETY' | transloco }}</span>
+      </button>
+    }
   </nav>
 
   @if (isLoading) {
@@ -2792,6 +2804,136 @@
             </ion-card>
 
           </form>
+        </section>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB: Sécurité & Numéros d'Urgence (Angel Shot) -->
+      <!-- ========================================== -->
+      @if (activeTab === 'safety' && angelShotSafetyEnabled()) {
+        <section class="tab-panel" data-testid="panel-safety">
+          <ion-card class="settings-card">
+            <ion-card-header>
+              <div class="card-title-group">
+                <ion-icon name="shield-checkmark-outline" class="section-icon text-primary"></ion-icon>
+                <div>
+                  <ion-card-title>{{ 'SETTINGS.SAFETY_TITLE' | transloco }}</ion-card-title>
+                  <p class="section-subtitle">{{ 'SETTINGS.SAFETY_SUBTITLE' | transloco }}</p>
+                </div>
+              </div>
+              <div class="header-action-btns">
+                <app-action-button
+                  variant="secondary"
+                  size="small"
+                  icon="refresh-outline"
+                  testId="btn-reset-emergency-numbers"
+                  (btnClick)="resetEmergencyNumbersToDefault()">
+                  {{ 'SETTINGS.RESET_DEFAULT_EMERGENCY_NUMBERS' | transloco }}
+                </app-action-button>
+              </div>
+            </ion-card-header>
+
+            <ion-card-content>
+              <!-- A4 Notice Download Banner -->
+              <div class="safety-notice-banner">
+                <div class="notice-banner-text">
+                  <ion-icon name="document-text-outline" class="banner-icon"></ion-icon>
+                  <div>
+                    <h4 class="banner-title">{{ 'SETTINGS.MODULES_ROUTE_ANGEL_SHOT' | transloco }}</h4>
+                    <p class="banner-desc">{{ 'SETTINGS.MODULE_SAFETY_DESC' | transloco }}</p>
+                  </div>
+                </div>
+                <app-action-button
+                  variant="primary"
+                  size="small"
+                  icon="cloud-download-outline"
+                  testId="btn-download-safety-notice-tab"
+                  (btnClick)="downloadRestroomNoticePdf()">
+                  {{ 'SETTINGS.DOWNLOAD_SAFETY_NOTICE_BTN' | transloco }}
+                </app-action-button>
+              </div>
+
+              <!-- List of configured helplines -->
+              <div class="helplines-manager-section">
+                <h3 class="section-heading">{{ 'SETTINGS.EMERGENCY_NUMBERS_CARD_TITLE' | transloco }}</h3>
+                <p class="section-subtext">{{ 'SETTINGS.EMERGENCY_NUMBERS_CARD_SUBTITLE' | transloco }}</p>
+
+                <div class="helplines-grid-config" data-testid="emergency-numbers-list">
+                  @for (line of configuredEmergencyNumbers(); track line.number; let i = $index) {
+                    <div class="helpline-config-card" [attr.data-testid]="'helpline-card-' + i">
+                      <div class="helpline-card-main">
+                        <div class="helpline-badge">
+                          <span class="phone-number">{{ line.number }}</span>
+                        </div>
+                        <div class="helpline-details">
+                          <h4 class="helpline-name">{{ line.name }}</h4>
+                          @if (line.description) {
+                            <p class="helpline-desc">{{ line.description }}</p>
+                          }
+                        </div>
+                      </div>
+                      <div class="helpline-card-actions">
+                        <app-action-button
+                          variant="danger"
+                          size="small"
+                          icon="trash-outline"
+                          [testId]="'btn-delete-helpline-' + i"
+                          (btnClick)="removeEmergencyNumber(i)">
+                          {{ 'COMMON.DELETE' | transloco }}
+                        </app-action-button>
+                      </div>
+                    </div>
+                  } @empty {
+                    <div class="empty-helplines">
+                      <p>{{ 'SETTINGS.NO_EMERGENCY_NUMBERS' | transloco }}</p>
+                    </div>
+                  }
+                </div>
+
+                <!-- Add new helpline form -->
+                <div class="add-helpline-card">
+                  <h4 class="add-title">{{ 'SETTINGS.ADD_EMERGENCY_NUMBER' | transloco }}</h4>
+                  <div class="add-helpline-fields">
+                    <div class="field-item">
+                      <app-input-field
+                        [label]="'SETTINGS.EMERGENCY_NUMBER_NAME' | transloco"
+                        [placeholder]="'SETTINGS.EMERGENCY_NUMBER_NAME_PLACEHOLDER' | transloco"
+                        [(ngModel)]="newEmergencyName"
+                        testId="input-emergency-name">
+                      </app-input-field>
+                    </div>
+                    <div class="field-item">
+                      <app-input-field
+                        [label]="'SETTINGS.EMERGENCY_NUMBER_PHONE' | transloco"
+                        [placeholder]="'SETTINGS.EMERGENCY_NUMBER_PHONE_PLACEHOLDER' | transloco"
+                        [(ngModel)]="newEmergencyNumber"
+                        testId="input-emergency-phone">
+                      </app-input-field>
+                    </div>
+                    <div class="field-item field-item-wide">
+                      <app-input-field
+                        [label]="'SETTINGS.EMERGENCY_NUMBER_DESC' | transloco"
+                        [placeholder]="'SETTINGS.EMERGENCY_NUMBER_DESC_PLACEHOLDER' | transloco"
+                        [(ngModel)]="newEmergencyDescription"
+                        testId="input-emergency-desc">
+                      </app-input-field>
+                    </div>
+                    <div class="add-btn-wrapper">
+                      <app-action-button
+                        variant="primary"
+                        size="medium"
+                        icon="add-outline"
+                        [disabled]="!newEmergencyName.trim() || !newEmergencyNumber.trim()"
+                        testId="btn-add-emergency-number"
+                        (btnClick)="addEmergencyNumber()">
+                        {{ 'SETTINGS.ADD_EMERGENCY_NUMBER' | transloco }}
+                      </app-action-button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ion-card-content>
+          </ion-card>
         </section>
       }
     </main>

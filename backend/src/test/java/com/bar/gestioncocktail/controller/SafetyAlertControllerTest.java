@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.SafetyAlertRequestDTO;
 import com.bar.gestioncocktail.dto.SafetyAlertResolveRequestDTO;
 import com.bar.gestioncocktail.dto.SafetyAlertResponseDTO;
 import com.bar.gestioncocktail.model.SafetyAlertStatus;
@@ -87,6 +88,33 @@ class SafetyAlertControllerTest {
 
         assertThat(response).isNotNull().hasSize(1);
         assertThat(response.get(0).tableId()).isEqualTo(8L);
+    }
+
+    @Test
+    @DisplayName("triggerStaffAlert - manually triggers safety alert for table and returns 201 Created")
+    void triggerStaffAlert_success() {
+        SafetyAlertRequestDTO request = new SafetyAlertRequestDTO(SafetyAlertType.ANGEL_SHOT_LIME, "Suspicious person");
+        SafetyAlertResponseDTO createdDto = new SafetyAlertResponseDTO(
+                10L,
+                8L,
+                12,
+                SafetyAlertType.ANGEL_SHOT_LIME,
+                SafetyAlertType.ANGEL_SHOT_LIME.getLabel(),
+                SafetyAlertStatus.ACTIVE,
+                "Suspicious person",
+                null,
+                LocalDateTime.now(),
+                null
+        );
+
+        when(safetyAlertService.createAlert(8L, request)).thenReturn(createdDto);
+
+        ResponseEntity<SafetyAlertResponseDTO> response = controller.triggerStaffAlert(8L, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().id()).isEqualTo(10L);
+        assertThat(response.getBody().type()).isEqualTo(SafetyAlertType.ANGEL_SHOT_LIME);
     }
 
     @Test

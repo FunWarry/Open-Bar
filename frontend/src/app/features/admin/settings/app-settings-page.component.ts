@@ -92,7 +92,7 @@ import { takeUntil, catchError } from 'rxjs/operators';
 import { EtablissementService } from '../../../core/services/etablissement.service';
 import { RouletteService } from '../../../core/services/roulette.service';
 import { EstablishmentConfig } from '../../../core/models/establishment-config.model';
-import { AppSettingsService, DEFAULT_DISCOUNT_TIERS, DEFAULT_STORAGE_LOCATIONS } from '../../../core/services/app-settings.service';
+import { AppSettingsService, DEFAULT_DISCOUNT_TIERS, DEFAULT_STORAGE_LOCATIONS, DEFAULT_EMERGENCY_NUMBERS } from '../../../core/services/app-settings.service';
 import {
   AppSettings,
   CurrencyPosition,
@@ -102,6 +102,7 @@ import {
   ConfiguredPrinterRole,
   ConfiguredTpeTerminal,
   ConfiguredTpeRole,
+  EmergencyHelpline,
 } from '../../../core/models/app-settings.model';
 import {
   CashDenomination,
@@ -140,7 +141,7 @@ import { SafetyAlertService } from '../../../core/services/safety-alert.service'
  * Active configuration tab on the admin settings page.
  */
 
-export type SettingsTab = 'legal' | 'modules' | 'timers' | 'currency' | 'theme' | 'qr' | 'pricing' | 'printers';
+export type SettingsTab = 'legal' | 'modules' | 'timers' | 'currency' | 'theme' | 'qr' | 'pricing' | 'printers' | 'safety';
 
 const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 
@@ -302,6 +303,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
   readonly happyHourEnabled = this.featureFlagService.happyHourEnabled;
   readonly qrClientOrderingEnabled = this.featureFlagService.qrClientOrderingEnabled;
+  readonly angelShotSafetyEnabled = this.featureFlagService.angelShotSafetyEnabled;
 
   readonly roulettePin = signal<string>('7777');
   readonly isRegeneratingPin = signal<boolean>(false);
@@ -426,6 +428,12 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   // Configured Concert / CB IP payment terminals (TPEs)
   configuredTpeTerminals = signal<ConfiguredTpeTerminal[]>([]);
   tpeTestResults = signal<Record<string, { success: boolean; message: string; latency?: number }>>({});
+
+  // Configured emergency helplines for Angel Shot safety protocol
+  configuredEmergencyNumbers = signal<EmergencyHelpline[]>([...DEFAULT_EMERGENCY_NUMBERS]);
+  newEmergencyName = '';
+  newEmergencyNumber = '';
+  newEmergencyDescription = '';
 
   readonly printerRoleOptions: SearchableOption<ConfiguredPrinterRole>[] = [
     { value: 'BAR', label: 'Poste Bar (Boissons)' },
@@ -625,7 +633,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     this.initialThemeMode = this.activeTheme;
     this.initialColors = { ...this.themeService.currentCustomColors };
 
-    const validTabs = new Set<SettingsTab>(['legal', 'modules', 'timers', 'currency', 'theme', 'qr', 'pricing', 'printers']);
+    const validTabs = new Set<SettingsTab>(['legal', 'modules', 'timers', 'currency', 'theme', 'qr', 'pricing', 'printers', 'safety']);
 
     if (this.route?.data) {
       this.route.data.pipe(takeUntil(this.destroy$)).subscribe(data => {
@@ -633,7 +641,8 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
           const defTab = data['defaultTab'] as SettingsTab;
           if (!validTabs.has(defTab) ||
               (defTab === 'pricing' && !this.happyHourEnabled()) ||
-              (defTab === 'qr' && !this.qrClientOrderingEnabled())) {
+              (defTab === 'qr' && !this.qrClientOrderingEnabled()) ||
+              (defTab === 'safety' && !this.angelShotSafetyEnabled())) {
             void this.router.navigate(['/404']);
             return;
           }
@@ -649,7 +658,8 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
           const tab = params['tab'] as SettingsTab;
           if (!validTabs.has(tab) ||
               (tab === 'pricing' && !this.happyHourEnabled()) ||
-              (tab === 'qr' && !this.qrClientOrderingEnabled())) {
+              (tab === 'qr' && !this.qrClientOrderingEnabled()) ||
+              (tab === 'safety' && !this.angelShotSafetyEnabled())) {
             void this.router.navigate(['/404']);
             return;
           }
@@ -697,6 +707,10 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       return;
     }
     if (tab === 'qr' && !this.qrClientOrderingEnabled()) {
+      void this.router.navigate(['/404']);
+      return;
+    }
+    if (tab === 'safety' && !this.angelShotSafetyEnabled()) {
       void this.router.navigate(['/404']);
       return;
     }
@@ -764,6 +778,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       weightUnit: ['g', [Validators.required]],
       cashDenominationsJson: [''],
       discountTiersJson: [''],
+      emergencyNumbersJson: [''],
       defaultVatRate: [20.0, [Validators.required, Validators.min(0), Validators.max(100)]],
       targetGrossMarginPercentage: [70.0, [Validators.required, Validators.min(0), Validators.max(100)]],
       warningGrossMarginPercentage: [50.0, [Validators.required, Validators.min(0), Validators.max(100)]],
@@ -855,12 +870,14 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
             this.configuredDenominations.set(this.resolveDenominations(appSettings));
             this.configuredDiscountTiers.set(this.resolveDiscountTiers(appSettings));
             this.configuredStorageLocations.set(this.resolveStorageLocations(appSettings));
+            this.configuredEmergencyNumbers.set(this.resolveEmergencyNumbers(appSettings));
             this.configuredPrinters.set(this.resolvePrinters(appSettings));
             this.configuredTpeTerminals.set(this.resolveTpeTerminals(appSettings));
           } else {
             this.configuredDenominations.set([...DEFAULT_EUR_DENOMINATIONS]);
             this.configuredDiscountTiers.set(this.appSettingsService.getDiscountTiers());
             this.configuredStorageLocations.set(this.appSettingsService.getStorageLocations());
+            this.configuredEmergencyNumbers.set(this.resolveEmergencyNumbers(null));
             this.configuredPrinters.set(this.resolvePrinters(null));
             this.configuredTpeTerminals.set(this.resolveTpeTerminals(null));
           }
@@ -1656,6 +1673,77 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     void this.showToast(this.translocoService.translate('SETTINGS.STORAGE_LOCATIONS_RESET_SUCCESS'), 'info');
   }
 
+  // --- Angel Shot Emergency Helplines ---
+
+  /**
+   * Adds a user-defined emergency or assistance helpline to the safety protocol list.
+   */
+  addEmergencyNumber(): void {
+    const name = this.newEmergencyName?.trim();
+    const number = this.newEmergencyNumber?.trim();
+    const description = this.newEmergencyDescription?.trim();
+    if (!name || !number) {
+      return;
+    }
+    const current = this.configuredEmergencyNumbers();
+    if (current.some(h => h.number === number)) {
+      void this.showToast(this.translocoService.translate('SETTINGS.EMERGENCY_NUMBERS_EXISTS'), 'warning');
+      return;
+    }
+    this.configuredEmergencyNumbers.update(list => [
+      ...list,
+      { name, number, description: description || undefined },
+    ]);
+    this.newEmergencyName = '';
+    this.newEmergencyNumber = '';
+    this.newEmergencyDescription = '';
+    this.appSettingsForm.markAsDirty();
+  }
+
+  /**
+   * Removes an emergency helpline from configuration.
+   *
+   * @param index Index of helpline to remove
+   */
+  removeEmergencyNumber(index: number): void {
+    const current = this.configuredEmergencyNumbers();
+    if (current.length <= 1) {
+      void this.showToast(this.translocoService.translate('SETTINGS.EMERGENCY_NUMBERS_MIN_ONE'), 'warning');
+      return;
+    }
+    this.configuredEmergencyNumbers.update(list => list.filter((_, idx) => idx !== index));
+    this.appSettingsForm.markAsDirty();
+  }
+
+  /**
+   * Resets emergency helplines to the standard default emergency numbers.
+   */
+  resetEmergencyNumbersToDefault(): void {
+    this.configuredEmergencyNumbers.set([...DEFAULT_EMERGENCY_NUMBERS]);
+    this.appSettingsForm.markAsDirty();
+    this.cdr.markForCheck();
+    void this.showToast(this.translocoService.translate('SETTINGS.EMERGENCY_NUMBERS_RESET_SUCCESS'), 'info');
+  }
+
+  private resolveEmergencyNumbers(settings?: Partial<AppSettings> | null): EmergencyHelpline[] {
+    if (settings?.emergencyNumbersJson) {
+      try {
+        const parsed = JSON.parse(settings.emergencyNumbersJson);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.filter((item): item is EmergencyHelpline =>
+            Boolean(item && typeof item.name === 'string' && typeof item.number === 'string')
+          );
+        }
+      } catch {
+        // Fallback to service defaults on invalid JSON
+      }
+    }
+    if (this.appSettingsService && typeof this.appSettingsService.getEmergencyNumbers === 'function') {
+      return this.appSettingsService.getEmergencyNumbers();
+    }
+    return [...DEFAULT_EMERGENCY_NUMBERS];
+  }
+
   // --- VAT & Margin Helpers ---
   applyVatPreset(rate: number): void {
     this.appSettingsForm.patchValue({ defaultVatRate: rate });
@@ -1799,6 +1887,8 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       this.appSettingsForm.markAsPristine();
       this.configuredDenominations.set(this.resolveDenominations(this.initialAppSettingsValue));
       this.configuredDiscountTiers.set(this.resolveDiscountTiers(this.initialAppSettingsValue));
+      this.configuredStorageLocations.set(this.resolveStorageLocations(this.initialAppSettingsValue));
+      this.configuredEmergencyNumbers.set(this.resolveEmergencyNumbers(this.initialAppSettingsValue));
       this.configuredPrinters.set(this.resolvePrinters(this.initialAppSettingsValue));
       this.configuredTpeTerminals.set(this.resolveTpeTerminals(this.initialAppSettingsValue));
     }
@@ -1869,6 +1959,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       cashDenominationsJson: JSON.stringify(this.configuredDenominations()),
       discountTiersJson: JSON.stringify(this.configuredDiscountTiers()),
       storageLocationsJson: JSON.stringify(this.configuredStorageLocations()),
+      emergencyNumbersJson: JSON.stringify(this.configuredEmergencyNumbers()),
     };
 
     const updatePayload: Record<string, any> = {

@@ -97,6 +97,9 @@ export class FeatureFlagService implements OnDestroy {
   /** Computed signal for SYSTEM_UPDATES capability status. */
   readonly systemUpdatesEnabled = computed(() => this.modules().systemUpdates);
 
+  /** Computed signal for ANGEL_SHOT_SAFETY capability status. */
+  readonly angelShotSafetyEnabled = computed(() => this.modules().angelShotSafety);
+
   constructor() {
     this.initWebSocketSubscription();
     this.loadModules().subscribe();
