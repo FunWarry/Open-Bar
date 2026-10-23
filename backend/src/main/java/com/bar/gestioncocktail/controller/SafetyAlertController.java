@@ -89,9 +89,14 @@ public class SafetyAlertController {
             @Valid @RequestBody(required = false) SafetyAlertResolveRequestDTO resolveDTO,
             Authentication authentication
     ) {
-        String resolvedBy = (resolveDTO != null && resolveDTO.resolvedBy() != null && !resolveDTO.resolvedBy().isBlank())
-                ? resolveDTO.resolvedBy()
-                : (authentication != null ? authentication.getName() : "Staff");
+        String resolvedBy;
+        if (resolveDTO != null && resolveDTO.resolvedBy() != null && !resolveDTO.resolvedBy().isBlank()) {
+            resolvedBy = resolveDTO.resolvedBy();
+        } else if (authentication != null) {
+            resolvedBy = authentication.getName();
+        } else {
+            resolvedBy = "Staff";
+        }
 
         SafetyAlertResponseDTO response = safetyAlertService.resolveAlert(id, resolvedBy);
         return ResponseEntity.ok(response);

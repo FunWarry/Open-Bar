@@ -2187,23 +2187,25 @@ public class PdfService {
             PdfPTable codesTable = new PdfPTable(1);
             codesTable.setWidthPercentage(100);
 
+            AngelShotFonts angelFonts = new AngelShotFonts(codeTitle, codeDescFr, codeDescEn);
+
             addAngelShotRow(codesTable,
                     "ANGEL SHOT PUR (NEAT)",
                     "Pour être raccompagné(e) en sécurité vers votre véhicule ou la sortie.",
                     "Discreet staff escort to your car or venue exit.",
-                    codeTitle, codeDescFr, codeDescEn, new Color(240, 249, 255), new Color(186, 230, 253));
+                    angelFonts, new Color(240, 249, 255), new Color(186, 230, 253));
 
             addAngelShotRow(codesTable,
                     "ANGEL SHOT AVEC GLAÇONS (WITH ICE)",
                     "Notre équipe commande discrètement un taxi / VTC pour vous et s'assure de votre départ en sécurité.",
                     "Our staff will discreetly hail or book a taxi / ride and verify your safe departure.",
-                    codeTitle, codeDescFr, codeDescEn, new Color(254, 249, 243), new Color(254, 215, 170));
+                    angelFonts, new Color(254, 249, 243), new Color(254, 215, 170));
 
             addAngelShotRow(codesTable,
                     "ANGEL SHOT AVEC CITRON (WITH LIME)",
                     "Intervention immédiate : notre équipe intervient sans délai et contacte la sécurité ou les forces de l'ordre.",
                     "Immediate intervention: staff steps in right away and contacts venue security or the police.",
-                    codeTitle, codeDescFr, codeDescEn, new Color(254, 242, 242), new Color(254, 202, 202));
+                    angelFonts, new Color(254, 242, 242), new Color(254, 202, 202));
 
             doc.add(codesTable);
             doc.add(new Paragraph(" ", new Font(Font.HELVETICA, 4)));
@@ -2241,25 +2243,27 @@ public class PdfService {
     }
 
     private void addAngelShotRow(PdfPTable table, String title, String descFr, String descEn,
-                                 Font titleFont, Font descFrFont, Font descEnFont, Color bg, Color border) {
+                                 AngelShotFonts fonts, Color bg, Color border) {
         PdfPCell cell = new PdfPCell();
         cell.setBackgroundColor(bg);
         cell.setBorderColor(border);
         cell.setPadding(8);
 
-        Paragraph pTitle = new Paragraph(title, titleFont);
+        Paragraph pTitle = new Paragraph(title, fonts.titleFont());
         pTitle.setSpacingAfter(3f);
         cell.addElement(pTitle);
 
-        Paragraph pFr = new Paragraph("🇫🇷 " + descFr, descFrFont);
+        Paragraph pFr = new Paragraph("🇫🇷 " + descFr, fonts.descFrFont());
         pFr.setSpacingAfter(2f);
         cell.addElement(pFr);
 
-        Paragraph pEn = new Paragraph("🇬🇧 " + descEn, descEnFont);
+        Paragraph pEn = new Paragraph("🇬🇧 " + descEn, fonts.descEnFont());
         cell.addElement(pEn);
 
         table.addCell(cell);
     }
+
+    private record AngelShotFonts(Font titleFont, Font descFrFont, Font descEnFont) {}
 
     private record InventoryAuditPdfFonts(
             Font titleFont,

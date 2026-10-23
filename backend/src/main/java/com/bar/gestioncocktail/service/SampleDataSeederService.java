@@ -96,6 +96,7 @@ public class SampleDataSeederService {
     private static final String KEY_MEDIA_URL = "mediaUrl";
     private static final String KEY_VIDEO_EMBED_URL = "videoEmbedUrl";
     private static final String KEY_CODE = "code";
+    private static final String DEFAULT_SERVEUR_USERNAME = "serveur1";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -1014,7 +1015,7 @@ public class SampleDataSeederService {
         }
 
         List<Commande> tableOrders = table != null ? commandeRepository.findByTable(table) : List.of();
-        Commande latestOrder = !tableOrders.isEmpty() ? tableOrders.get(tableOrders.size() - 1) : null;
+        Commande latestOrder = tableOrders.isEmpty() ? null : tableOrders.get(tableOrders.size() - 1);
 
         BigDecimal total = parseInvoiceItems(f, invNode.get(KEY_ITEMS), latestOrder);
         f.setTotal(total);
@@ -1388,7 +1389,7 @@ public class SampleDataSeederService {
             appel.setUpdatedAt(now.minusMinutes(minutesAgo));
 
             if (statut == TableAppelStatut.ACQUITTE) {
-                appel.setAcquittePar(appelNode.path("acquittePar").asText("serveur1"));
+                appel.setAcquittePar(appelNode.path("acquittePar").asText(DEFAULT_SERVEUR_USERNAME));
                 appel.setAcquitteAt(now.minusMinutes(Math.max(0, minutesAgo - 1)));
             }
 
@@ -1415,7 +1416,7 @@ public class SampleDataSeederService {
             }
 
             SafetyAlertType type = SafetyAlertType.valueOf(alertNode.path("type").asText("ANGEL_SHOT_NEAT"));
-            SafetyAlertStatus status = SafetyAlertStatus.valueOf(alertNode.path("status").asText("ACTIVE"));
+            SafetyAlertStatus status = SafetyAlertStatus.valueOf(alertNode.path(KEY_STATUS).asText("ACTIVE"));
             String comment = alertNode.hasNonNull("comment") ? alertNode.path("comment").asText() : null;
             int minutesAgo = alertNode.path(KEY_MINUTES_AGO).asInt(5);
 
@@ -1427,7 +1428,7 @@ public class SampleDataSeederService {
             alert.setCreatedAt(now.minusMinutes(minutesAgo));
 
             if (status == SafetyAlertStatus.RESOLVED) {
-                alert.setResolvedBy(alertNode.path("resolvedBy").asText("serveur1"));
+                alert.setResolvedBy(alertNode.path("resolvedBy").asText(DEFAULT_SERVEUR_USERNAME));
                 alert.setResolvedAt(now.minusMinutes(Math.max(0, minutesAgo - 2)));
             }
 
