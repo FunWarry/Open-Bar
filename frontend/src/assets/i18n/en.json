@@ -3698,6 +3698,7 @@
     "MODULE_ANGEL_SHOT_SAFETY_TITLE": "Angel Shot Safety Protocol",
     "MODULE_ANGEL_SHOT_SAFETY_DESC": "Enables the discreet assistance protocol for distressed patrons (QR menu), vibrating silent alerts on staff tablets, and printable restroom notice generation.",
     "MODULES_ROUTE_ANGEL_SHOT": "Discreet assistance & Restroom posters",
+    "MODULE_SAFETY_DESC": "Download and print the bilingual A4 awareness notice to place discreetly in your establishment restrooms.",
     "DOWNLOAD_SAFETY_NOTICE_BTN": "Download restroom notice (A4 PDF)",
     "MODULE_SAFETY_NOTICE_DOWNLOAD_SUCCESS": "Restroom notice downloaded successfully.",
     "MODULE_SAFETY_NOTICE_DOWNLOAD_ERROR": "Error downloading restroom notice.",

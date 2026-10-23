@@ -869,5 +869,62 @@ class PdfServiceTest {
         String header = new String(pdf, 0, Math.min(5, pdf.length));
         assertThat(header).startsWith("%PDF");
     }
+
+    @Test
+    void generateAngelShotNoticePdf_englishOfficialLanguage_generatesSinglePageEnglishPdf() throws Exception {
+        EstablishmentConfig config = new EstablishmentConfig();
+        config.setLegalName("The London Lounge");
+        config.setLanguage("en");
+        lenient().when(establishmentConfigService.getConfig()).thenReturn(config);
+
+        com.bar.gestioncocktail.model.AppSettings settings = new com.bar.gestioncocktail.model.AppSettings();
+        settings.setEmergencyNumbersJson("[{\"name\":\"UK Police\",\"number\":\"999\",\"description\":\"Emergency\"}]");
+        lenient().when(appSettingsService.getSettings()).thenReturn(settings);
+
+        byte[] pdf = pdfService.generateAngelShotNoticePdf();
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        com.lowagie.text.pdf.PdfReader reader = new com.lowagie.text.pdf.PdfReader(pdf);
+        assertThat(reader.getNumberOfPages()).isEqualTo(1);
+        reader.close();
+    }
+
+    @Test
+    void generateAngelShotNoticePdf_spanishOfficialLanguage_generatesBilingualSpanishEnglishNotice() throws Exception {
+        EstablishmentConfig config = new EstablishmentConfig();
+        config.setLegalName("Bar Barcelona");
+        config.setLanguage("es");
+        lenient().when(establishmentConfigService.getConfig()).thenReturn(config);
+
+        com.bar.gestioncocktail.model.AppSettings settings = new com.bar.gestioncocktail.model.AppSettings();
+        settings.setEmergencyNumbersJson("[{\"name\":\"Policía Nacional\",\"number\":\"091\",\"description\":\"Urgencias\"}]");
+        lenient().when(appSettingsService.getSettings()).thenReturn(settings);
+
+        byte[] pdf = pdfService.generateAngelShotNoticePdf();
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        com.lowagie.text.pdf.PdfReader reader = new com.lowagie.text.pdf.PdfReader(pdf);
+        assertThat(reader.getNumberOfPages()).isEqualTo(1);
+        reader.close();
+    }
+
+    @Test
+    void generateAngelShotNoticePdf_frenchOfficialLanguageWithCustomNumbers_generatesValidNotice() throws Exception {
+        EstablishmentConfig config = new EstablishmentConfig();
+        config.setLegalName("Le Refuge Parisien");
+        config.setLanguage("fr");
+        lenient().when(establishmentConfigService.getConfig()).thenReturn(config);
+
+        com.bar.gestioncocktail.model.AppSettings settings = new com.bar.gestioncocktail.model.AppSettings();
+        settings.setEmergencyNumbersJson("[{\"name\":\"Sécurité Bar\",\"number\":\"06 12 34 56 78\",\"description\":\"Astreinte de nuit\"},{\"name\":\"SAMU\",\"number\":\"15\",\"description\":\"Urgence médicale\"}]");
+        lenient().when(appSettingsService.getSettings()).thenReturn(settings);
+
+        byte[] pdf = pdfService.generateAngelShotNoticePdf();
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        com.lowagie.text.pdf.PdfReader reader = new com.lowagie.text.pdf.PdfReader(pdf);
+        assertThat(reader.getNumberOfPages()).isEqualTo(1);
+        reader.close();
+    }
 }
 

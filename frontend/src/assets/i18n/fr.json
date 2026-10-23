@@ -3698,6 +3698,7 @@
     "MODULE_ANGEL_SHOT_SAFETY_TITLE": "Protocole Sécurité Angel Shot",
     "MODULE_ANGEL_SHOT_SAFETY_DESC": "Active le protocole d'assistance discrète pour les clients en difficulté (menu QR), les alertes silencieuses vibrantes sur tablettes personnel et la génération de l'affiche sanitaires.",
     "MODULES_ROUTE_ANGEL_SHOT": "Assistance discrète & Affiches sanitaires",
+    "MODULE_SAFETY_DESC": "Téléchargez et imprimez l'affiche de sensibilisation bilingue au format A4 à disposer discrètement dans les sanitaires de votre établissement.",
     "DOWNLOAD_SAFETY_NOTICE_BTN": "Télécharger l'affiche sanitaires (A4 PDF)",
     "MODULE_SAFETY_NOTICE_DOWNLOAD_SUCCESS": "Affiche sanitaires téléchargée avec succès.",
     "MODULE_SAFETY_NOTICE_DOWNLOAD_ERROR": "Erreur lors du téléchargement de l'affiche sanitaires.",
