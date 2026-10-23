@@ -65,6 +65,7 @@ import { StockWasteService } from '../../core/services/stock-waste.service';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { FeatureFlagService } from '../../core/services/feature-flag.service';
 import { RouletteService } from '../../core/services/roulette.service';
+export type StationFilterType = 'ALL' | 'BAR' | 'KITCHEN';
 
 /**
  * Dashboard Barman Component managing the real-time preparation Kanban board.
@@ -114,7 +115,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
 
   searchQuery = '';
   urgentOnly = false;
-  stationFilter: 'ALL' | 'BAR' | 'KITCHEN' = 'ALL';
+  stationFilter: StationFilterType = 'ALL';
 
   isRecipePanelOpen = false;
   activeRecipeItem: CommandeItemView | null = null;
@@ -177,7 +178,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   /**
    * Dropdown filter options for station routing.
    */
-  get stationFilterOptions(): SearchableOption<'ALL' | 'BAR' | 'KITCHEN'>[] {
+  get stationFilterOptions(): SearchableOption<StationFilterType>[] {
     return [
       {
         value: 'ALL',
@@ -215,7 +216,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
    *
    * @param val Selected station or option
    */
-  onStationFilterChange(val: 'ALL' | 'BAR' | 'KITCHEN' | SearchableOption<'ALL' | 'BAR' | 'KITCHEN'> | null | undefined): void {
+  onStationFilterChange(val: StationFilterType | SearchableOption<StationFilterType> | null | undefined): void {
     if (!val) return;
     const station = typeof val === 'string' ? val : val.value;
     if (station) {
@@ -813,7 +814,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
    *
    * @param filter Selected station filter
    */
-  setStationFilter(filter: 'ALL' | 'BAR' | 'KITCHEN'): void {
+  setStationFilter(filter: StationFilterType): void {
     this.stationFilter = filter;
   }
 

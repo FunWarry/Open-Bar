@@ -144,7 +144,7 @@ describe('QuickWasteLogModalComponent', () => {
   });
 
   it('should expose categoryOptions and handle onCategoryChange from dropdown', () => {
-    expect(component.categoryOptions.length).toBe(4);
+    expect(component.categoryOptions).toHaveSize(4);
     expect(component.categoryOptions.map(o => o.value)).toEqual(['SPIRITS', 'WINE_BEER', 'SOFTS', 'ALL']);
 
     component.onCategoryChange({ value: 'WINE_BEER', label: 'Bières & Vins' });

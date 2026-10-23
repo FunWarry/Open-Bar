@@ -1073,7 +1073,7 @@ describe('DashboardBarmanComponent', () => {
     it('filter dropdown options and change handlers', () => {
       // Urgent filter options
       const urgentOpts = component.urgentFilterOptions;
-      expect(urgentOpts.length).toBe(2);
+      expect(urgentOpts).toHaveSize(2);
       expect(urgentOpts[0].value).toBe(false);
       expect(urgentOpts[1].value).toBe(true);
 

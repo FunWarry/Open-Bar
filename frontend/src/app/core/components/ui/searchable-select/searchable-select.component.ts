@@ -276,54 +276,47 @@ export class SearchableSelectComponent extends BaseControlValueAccessor implemen
     }
 
     const rect = triggerEl.getBoundingClientRect();
-
-    // Calculate horizontal alignment to avoid right-edge overflow
-    if (this.menuAlign === 'right') {
-      this.alignRight.set(true);
-    } else if (this.menuAlign === 'left') {
-      this.alignRight.set(false);
-    } else {
-      this.alignRight.set(rect.left + rect.width / 2 > window.innerWidth / 2);
-    }
+    this.alignRight.set(this.computeAlignRight(rect));
 
     if (this.dropdownPosition !== 'auto') {
       return;
     }
 
     const dropdownEstimatedHeight = 280;
+    const spaces = this.computeEffectiveSpaces(triggerEl, rect);
+
+    const shouldOpenUpwards =
+      spaces.below < dropdownEstimatedHeight &&
+      spaces.above >= dropdownEstimatedHeight &&
+      rect.top >= dropdownEstimatedHeight;
+
+    this.openUpwards.set(shouldOpenUpwards);
+  }
+
+  private computeAlignRight(rect: DOMRect): boolean {
+    if (this.menuAlign === 'right') return true;
+    if (this.menuAlign === 'left') return false;
+    return rect.left + rect.width / 2 > window.innerWidth / 2;
+  }
+
+  private computeEffectiveSpaces(triggerEl: HTMLElement, rect: DOMRect): { below: number; above: number } {
     let effectiveSpaceBelow = window.innerHeight - rect.bottom;
     let effectiveSpaceAbove = rect.top;
 
-    // Detect closest scrollable container (e.g. .app-modal-body or custom scroll parent)
     let parent = triggerEl.parentElement;
     while (parent && parent !== document.body) {
       const style = window.getComputedStyle(parent);
-      const overflowY = style.overflowY;
-      // Only treat elements with scroll/auto AND actual scrolling capacity as clipping scroll containers
-      if ((overflowY === 'auto' || overflowY === 'scroll') && parent.scrollHeight > parent.clientHeight) {
+      const isScrollable = (style.overflowY === 'auto' || style.overflowY === 'scroll') && parent.scrollHeight > parent.clientHeight;
+      if (isScrollable) {
         const parentRect = parent.getBoundingClientRect();
-        const parentSpaceBelow = parentRect.bottom - rect.bottom;
-        const parentSpaceAbove = rect.top - parentRect.top;
-        effectiveSpaceBelow = Math.min(effectiveSpaceBelow, parentSpaceBelow);
-        effectiveSpaceAbove = Math.min(effectiveSpaceAbove, parentSpaceAbove);
+        effectiveSpaceBelow = Math.min(effectiveSpaceBelow, parentRect.bottom - rect.bottom);
+        effectiveSpaceAbove = Math.min(effectiveSpaceAbove, rect.top - parentRect.top);
         break;
       }
       parent = parent.parentElement;
     }
 
-    // Only open upwards if:
-    // 1) Space below is insufficient for dropdown panel
-    // 2) Space above has plenty of room for dropdown panel
-    // 3) Trigger is not positioned too close to the top of the viewport
-    if (
-      effectiveSpaceBelow < dropdownEstimatedHeight &&
-      effectiveSpaceAbove >= dropdownEstimatedHeight &&
-      rect.top >= dropdownEstimatedHeight
-    ) {
-      this.openUpwards.set(true);
-    } else {
-      this.openUpwards.set(false);
-    }
+    return { below: effectiveSpaceBelow, above: effectiveSpaceAbove };
   }
 
   closeDropdown(): void {

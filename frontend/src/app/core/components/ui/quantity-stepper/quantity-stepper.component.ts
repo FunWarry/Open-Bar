@@ -55,8 +55,8 @@ export class QuantityStepperComponent {
    */
   onInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const parsed = parseFloat(input.value);
-    if (!isNaN(parsed)) {
+    const parsed = Number.parseFloat(input.value);
+    if (!Number.isNaN(parsed)) {
       this.value = parsed;
       this.valueChange.emit(this.value);
     }
@@ -69,8 +69,8 @@ export class QuantityStepperComponent {
    */
   onBlur(event: Event): void {
     const input = event.target as HTMLInputElement;
-    let parsed = parseFloat(input.value);
-    if (isNaN(parsed) || parsed < this.min) {
+    let parsed = Number.parseFloat(input.value);
+    if (Number.isNaN(parsed) || parsed < this.min) {
       parsed = this.min;
     } else if (parsed > this.max) {
       parsed = this.max;

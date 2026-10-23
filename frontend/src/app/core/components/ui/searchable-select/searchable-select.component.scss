@@ -259,9 +259,8 @@
   width: max-content;
   max-width: min(320px, calc(100vw - 24px));
   z-index: 1000;
-  background-color: var(--background-surface-1, #1a1a2e) !important;
-  background: var(--background-surface-1, #1a1a2e) !important;
-  opacity: 1 !important;
+  background: var(--background-surface-1, #1a1a2e);
+  opacity: 1;
   border: 1px solid var(--border-medium);
   border-radius: 0.85rem;
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8), 0 6px 16px rgba(0, 0, 0, 0.5);

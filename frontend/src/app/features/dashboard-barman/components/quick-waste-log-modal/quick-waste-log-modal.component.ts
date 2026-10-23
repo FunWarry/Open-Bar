@@ -195,7 +195,7 @@ export class QuickWasteLogModalComponent implements OnInit {
    * @param option The selected category option
    */
   onCategoryChange(option: SearchableOption<SpeedRailCategory> | null): void {
-    if (option && option.value) {
+    if (option?.value) {
       this.setCategory(option.value);
     }
   }
