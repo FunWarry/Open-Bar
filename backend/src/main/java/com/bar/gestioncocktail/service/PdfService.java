@@ -2102,6 +2102,165 @@ public class PdfService {
         doc.add(legalNotice);
     }
 
+    /**
+     * Generates a printable A4 bilingual (FR/EN) Angel Shot restroom notice PDF.
+     *
+     * @return PDF byte array
+     */
+    public byte[] generateAngelShotNoticePdf() {
+        EstablishmentConfig config = (establishmentConfigService != null)
+                ? establishmentConfigService.getConfig()
+                : new EstablishmentConfig();
+        if (config == null) {
+            config = new EstablishmentConfig();
+        }
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Document doc = new Document(PageSize.A4, 36, 36, 36, 36);
+            PdfWriter writer = PdfWriter.getInstance(doc, out);
+            writer.setPdfVersion(PdfWriter.PDF_VERSION_1_7);
+            doc.open();
+
+            Font brandFont   = new Font(Font.HELVETICA, 12, Font.BOLD, PRIMARY);
+            Font superTitle  = new Font(Font.HELVETICA, 9, Font.BOLD, MUTED);
+            Font mainTitle   = new Font(Font.HELVETICA, 18, Font.BOLD, DARK_TEXT);
+            Font subTitle    = new Font(Font.HELVETICA, 9, Font.NORMAL, DARK_TEXT);
+            Font codeTitle   = new Font(Font.HELVETICA, 11, Font.BOLD, PRIMARY);
+            Font codeDescFr  = new Font(Font.HELVETICA, 9, Font.BOLD, DARK_TEXT);
+            Font codeDescEn  = new Font(Font.HELVETICA, 8, Font.ITALIC, MUTED);
+            Font boxTitle    = new Font(Font.HELVETICA, 9, Font.BOLD, DARK_TEXT);
+            Font boxText     = new Font(Font.HELVETICA, 8, Font.NORMAL, DARK_TEXT);
+            Font footerFont  = new Font(Font.HELVETICA, 8, Font.ITALIC, MUTED);
+
+            // 1. Establishment header
+            PdfPTable headerTable = new PdfPTable(2);
+            headerTable.setWidthPercentage(100);
+            headerTable.setWidths(new float[]{1.5f, 1f});
+
+            PdfPCell leftCell = new PdfPCell();
+            leftCell.setBorder(Rectangle.NO_BORDER);
+            leftCell.addElement(new Paragraph(config.getLegalName().toUpperCase(), brandFont));
+            leftCell.addElement(new Paragraph("ESPACE SÉCURITÉ & BIEN-ÊTRE  •  SAFETY PROTOCOL", superTitle));
+            headerTable.addCell(leftCell);
+
+            PdfPCell rightCell = new PdfPCell();
+            rightCell.setBorder(Rectangle.NO_BORDER);
+            Paragraph dateP = new Paragraph("OpenBar Safety Net", superTitle);
+            dateP.setAlignment(Element.ALIGN_RIGHT);
+            rightCell.addElement(dateP);
+            headerTable.addCell(rightCell);
+            doc.add(headerTable);
+
+            doc.add(new Paragraph(" ", new Font(Font.HELVETICA, 4)));
+
+            // 2. Main Title Banner
+            PdfPTable titleTable = new PdfPTable(1);
+            titleTable.setWidthPercentage(100);
+            PdfPCell titleCell = new PdfPCell();
+            titleCell.setBackgroundColor(new Color(245, 247, 255));
+            titleCell.setBorderColor(PRIMARY);
+            titleCell.setPadding(10);
+
+            Paragraph pTitle = new Paragraph("BESOIN D'AIDE ? DEMANDEZ UN ANGEL SHOT", mainTitle);
+            pTitle.setAlignment(Element.ALIGN_CENTER);
+            titleCell.addElement(pTitle);
+
+            Paragraph pEnTitle = new Paragraph("NEED ASSISTANCE? ORDER AN ANGEL SHOT", new Font(Font.HELVETICA, 11, Font.BOLD, PRIMARY));
+            pEnTitle.setAlignment(Element.ALIGN_CENTER);
+            titleCell.addElement(pEnTitle);
+
+            Paragraph intro = new Paragraph(
+                    "Si une personne vous met mal à l'aise, que vous ne vous sentez pas en sécurité, ou que votre rendez-vous ne se déroule pas comme prévu : demandez un \"Angel Shot\" au bar ou déclenchez-le discrètement depuis le menu QR de votre table.\n" +
+                    "Notre personnel est spécialement formé pour vous assister avec discrétion absolue et bienveillance.",
+                    subTitle
+            );
+            intro.setAlignment(Element.ALIGN_CENTER);
+            intro.setSpacingBefore(6f);
+            titleCell.addElement(intro);
+
+            titleTable.addCell(titleCell);
+            doc.add(titleTable);
+
+            doc.add(new Paragraph(" ", new Font(Font.HELVETICA, 4)));
+
+            // 3. Three Angel Shot Cards
+            PdfPTable codesTable = new PdfPTable(1);
+            codesTable.setWidthPercentage(100);
+
+            addAngelShotRow(codesTable,
+                    "ANGEL SHOT PUR (NEAT)",
+                    "Pour être raccompagné(e) en sécurité vers votre véhicule ou la sortie.",
+                    "Discreet staff escort to your car or venue exit.",
+                    codeTitle, codeDescFr, codeDescEn, new Color(240, 249, 255), new Color(186, 230, 253));
+
+            addAngelShotRow(codesTable,
+                    "ANGEL SHOT AVEC GLAÇONS (WITH ICE)",
+                    "Notre équipe commande discrètement un taxi / VTC pour vous et s'assure de votre départ en sécurité.",
+                    "Our staff will discreetly hail or book a taxi / ride and verify your safe departure.",
+                    codeTitle, codeDescFr, codeDescEn, new Color(254, 249, 243), new Color(254, 215, 170));
+
+            addAngelShotRow(codesTable,
+                    "ANGEL SHOT AVEC CITRON (WITH LIME)",
+                    "Intervention immédiate : notre équipe intervient sans délai et contacte la sécurité ou les forces de l'ordre.",
+                    "Immediate intervention: staff steps in right away and contacts venue security or the police.",
+                    codeTitle, codeDescFr, codeDescEn, new Color(254, 242, 242), new Color(254, 202, 202));
+
+            doc.add(codesTable);
+            doc.add(new Paragraph(" ", new Font(Font.HELVETICA, 4)));
+
+            // 4. Emergency Helplines Box
+            PdfPTable emergencyTable = new PdfPTable(1);
+            emergencyTable.setWidthPercentage(100);
+            PdfPCell emCell = new PdfPCell();
+            emCell.setBackgroundColor(new Color(248, 250, 252));
+            emCell.setBorderColor(BORDER_COLOR);
+            emCell.setPadding(8);
+
+            emCell.addElement(new Paragraph("NUMÉROS D'URGENCE NATIONAUX & ASSISTANCE (GRATUITS & ANONYMES) :", boxTitle));
+            emCell.addElement(new Paragraph("• 🇫🇷 Police Secours : 17  |  🇪🇺 Urgences Européennes : 112  |  🚑 SAMU : 15", boxText));
+            emCell.addElement(new Paragraph("• 📞 3919 : Violences Femmes Info (appel gratuit et non traçable sur facture téléphonique)", boxText));
+            emCell.addElement(new Paragraph("• 📱 114 : Numéro d'urgence par SMS pour personnes sourdes ou malentendantes", boxText));
+            emergencyTable.addCell(emCell);
+            doc.add(emergencyTable);
+
+            doc.add(new Paragraph(" ", new Font(Font.HELVETICA, 4)));
+
+            // 5. Footer
+            Paragraph footer = new Paragraph(
+                    "Votre sécurité est notre priorité absolue. Ce protocole est strictement confidentiel. — " + config.getLegalName(),
+                    footerFont
+            );
+            footer.setAlignment(Element.ALIGN_CENTER);
+            doc.add(footer);
+
+            doc.close();
+            return out.toByteArray();
+        } catch (DocumentException | IOException e) {
+            throw new IllegalStateException("Error generating Angel Shot restroom notice PDF", e);
+        }
+    }
+
+    private void addAngelShotRow(PdfPTable table, String title, String descFr, String descEn,
+                                 Font titleFont, Font descFrFont, Font descEnFont, Color bg, Color border) {
+        PdfPCell cell = new PdfPCell();
+        cell.setBackgroundColor(bg);
+        cell.setBorderColor(border);
+        cell.setPadding(8);
+
+        Paragraph pTitle = new Paragraph(title, titleFont);
+        pTitle.setSpacingAfter(3f);
+        cell.addElement(pTitle);
+
+        Paragraph pFr = new Paragraph("🇫🇷 " + descFr, descFrFont);
+        pFr.setSpacingAfter(2f);
+        cell.addElement(pFr);
+
+        Paragraph pEn = new Paragraph("🇬🇧 " + descEn, descEnFont);
+        cell.addElement(pEn);
+
+        table.addCell(cell);
+    }
+
     private record InventoryAuditPdfFonts(
             Font titleFont,
             Font subtitleFont,

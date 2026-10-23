@@ -110,6 +110,20 @@ public class DatabaseSchemaMigrationService implements ApplicationRunner {
             jdbcTemplate.execute("ALTER TABLE checklist_run_items ADD COLUMN IF NOT EXISTS media_attachments_json TEXT");
             jdbcTemplate.execute("ALTER TABLE checklist_run_items ADD COLUMN IF NOT EXISTS steps_json TEXT");
 
+            jdbcTemplate.execute("ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_angel_shot_safety_enabled BOOLEAN DEFAULT true");
+            jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS safety_alerts (
+                    id BIGSERIAL PRIMARY KEY,
+                    table_id BIGINT NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+                    type VARCHAR(50) NOT NULL,
+                    status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
+                    comment VARCHAR(255),
+                    resolved_by VARCHAR(100),
+                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    resolved_at TIMESTAMP
+                )
+            """);
+
             log.info("Baseline schema check completed.");
         } catch (Exception e) {
             log.warn("Schema migration notice: {}", e.getMessage());

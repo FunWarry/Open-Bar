@@ -1,0 +1,185 @@
+.angel-shot-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.25rem;
+}
+
+.safety-intro-text {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.variants-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.variant-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius-lg, 12px);
+  background: var(--background-surface-1, #1e1e2d);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.08));
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease;
+  min-height: 48px;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: var(--background-surface-2, #27273a);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &.badge-neat {
+    border-left: 4px solid var(--semantic-info, #38bdf8);
+  }
+
+  &.badge-ice {
+    border-left: 4px solid var(--semantic-warning, #f59e0b);
+  }
+
+  &.badge-lime {
+    border-left: 4px solid var(--semantic-danger, #ef4444);
+  }
+}
+
+.variant-icon-wrapper {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--background-surface-2, rgba(255, 255, 255, 0.05));
+}
+
+.variant-emoji {
+  font-size: 1.5rem;
+}
+
+.variant-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.variant-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.variant-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.silent-badge {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: var(--background-surface-2, rgba(255, 255, 255, 0.1));
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.variant-description {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.variant-action-hint {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--primary, #6c7fe8);
+  margin-top: 0.25rem;
+}
+
+.note-section {
+  margin-top: 0.5rem;
+}
+
+.helpline-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  background: var(--background-surface-2, rgba(255, 255, 255, 0.03));
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-md, 8px);
+  border: 1px dashed var(--border-medium, rgba(255, 255, 255, 0.1));
+}
+
+.sent-confirmation-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem 0.5rem;
+  gap: 0.75rem;
+}
+
+.confirmation-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 2.5rem;
+    color: var(--semantic-success, #10b981);
+  }
+}
+
+.confirmation-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.confirmation-body {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 420px;
+}
+
+.confirmation-advice {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0;
+  font-style: italic;
+  max-width: 400px;
+}
+
+.confirmation-actions {
+  margin-top: 1rem;
+}
+
+.modal-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}

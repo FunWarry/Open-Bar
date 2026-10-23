@@ -94,6 +94,7 @@ import { CommandeListComponent } from '../commandes/commande-list/commande-list.
 
 import { SearchableSelectComponent, SearchableOption } from '../../core/components/ui/searchable-select/searchable-select.component';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
+import { SafetyAlertBannerComponent } from '../../core/components/ui/safety-alert-banner/safety-alert-banner.component';
 
 /**
  * Main dashboard component for waiters providing table list supervision,
@@ -118,6 +119,7 @@ import { SearchBarComponent } from '../../core/components/ui/search-bar/search-b
     SearchBarComponent,
     BarTabsListComponent,
     CocktailListComponent,
+    SafetyAlertBannerComponent,
     AppCurrencyPipe,
   ],
   templateUrl: './dashboard-serveur.component.html',

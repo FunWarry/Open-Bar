@@ -1657,5 +1657,43 @@ dialog.cocktail-details-dialog {
   }
 }
 
+/* Discreet Angel Shot / Bar Safety Trigger */
+.discreet-safety-container {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-2, 8px);
+  margin-bottom: var(--space-2, 8px);
+}
+
+.discreet-safety-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full, 9999px);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.discreet-safety-trigger ion-icon {
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+.discreet-safety-trigger:hover,
+.discreet-safety-trigger:focus-visible {
+  color: var(--text-secondary);
+  border-color: var(--border-medium);
+  background: var(--background-surface-3);
+  transform: translateY(-1px);
+}
+
+
 
 

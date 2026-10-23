@@ -20,6 +20,7 @@ import { RouletteService } from '../../../../app/core/services/roulette.service'
 import { ESTABLISHMENT_PRESETS, EstablishmentPresetType } from '../../../../app/core/models/establishment-module.model';
 import { PaymentTerminalService } from '../../../../app/core/services/payment-terminal.service';
 import { TpePublicConfig } from '../../../../app/core/models/tpe.model';
+import { SafetyAlertService } from '../../../../app/core/services/safety-alert.service';
 
 const mockTpePublicConfig: TpePublicConfig = {
   enabled: true,
@@ -49,6 +50,7 @@ describe('AppSettingsPageComponent', () => {
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let routerSpy: jasmine.SpyObj<Router>;
   let paymentTerminalServiceSpy: jasmine.SpyObj<PaymentTerminalService>;
+  let safetyAlertServiceSpy: jasmine.SpyObj<SafetyAlertService>;
 
   const mockEtab: EstablishmentConfig = {
     id: 1,
@@ -218,6 +220,7 @@ describe('AppSettingsPageComponent', () => {
       tableReservations: true,
       checklistsProcedures: true,
       systemUpdates: true,
+      angelShotSafety: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
 
@@ -249,6 +252,9 @@ describe('AppSettingsPageComponent', () => {
       durationMs: 42
     }));
 
+    safetyAlertServiceSpy = jasmine.createSpyObj('SafetyAlertService', ['downloadRestroomNoticePdf']);
+    safetyAlertServiceSpy.downloadRestroomNoticePdf.and.returnValue(of(new Blob(['pdf-data'], { type: 'application/pdf' })));
+
     await TestBed.configureTestingModule({
       imports: [
         AppSettingsPageComponent,
@@ -270,6 +276,7 @@ describe('AppSettingsPageComponent', () => {
         { provide: RouletteService, useValue: rouletteServiceSpy },
         { provide: PrinterService, useValue: printerServiceSpy },
         { provide: PaymentTerminalService, useValue: paymentTerminalServiceSpy },
+        { provide: SafetyAlertService, useValue: safetyAlertServiceSpy },
         { provide: AppUpdateService, useValue: appUpdateServiceSpy },
         { provide: ThemeService, useValue: themeServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
@@ -876,6 +883,7 @@ describe('AppSettingsPageComponent', () => {
         tableReservations: true,
         checklistsProcedures: true,
         systemUpdates: true,
+        angelShotSafety: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -975,6 +983,7 @@ describe('AppSettingsPageComponent', () => {
         tableReservations: false,
         checklistsProcedures: false,
         systemUpdates: false,
+        angelShotSafety: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();

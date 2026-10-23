@@ -134,6 +134,7 @@ public class SampleDataSeederService {
     private final ReservationRepository reservationRepository;
     private final ChecklistTemplateRepository checklistTemplateRepository;
     private final ChecklistRunRepository checklistRunRepository;
+    private final SafetyAlertRepository safetyAlertRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -177,7 +178,8 @@ public class SampleDataSeederService {
             @org.springframework.beans.factory.annotation.Autowired(required = false) RouletteWheelSectorRepository rouletteWheelSectorRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) ReservationRepository reservationRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) ChecklistTemplateRepository checklistTemplateRepository,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) ChecklistRunRepository checklistRunRepository) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) ChecklistRunRepository checklistRunRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) SafetyAlertRepository safetyAlertRepository) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -215,6 +217,7 @@ public class SampleDataSeederService {
         this.reservationRepository = reservationRepository;
         this.checklistTemplateRepository = checklistTemplateRepository;
         this.checklistRunRepository = checklistRunRepository;
+        this.safetyAlertRepository = safetyAlertRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -424,6 +427,7 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedCocktailRecipeStepsFromJson(root.get("cocktail_recipe_steps"), templatesMap), "seedCocktailRecipeSteps");
             safelyInTransaction(() -> seedStockAdjustmentsFromJson(root.get("stock_adjustments")), "seedStockAdjustments");
             safelyInTransaction(() -> seedTableAppelsFromJson(root.get("table_appels"), tablesMap), "seedTableAppels");
+            safelyInTransaction(() -> seedSafetyAlertsFromJson(root.get("safety_alerts"), tablesMap), "seedSafetyAlerts");
             safelyInTransaction(() -> seedTableSessionsFromJson(root.get("table_sessions"), tablesMap), "seedTableSessions");
             safelyInTransaction(this::seedSettingsAndConfig, "seedSettingsAndConfig");
 
@@ -1391,6 +1395,45 @@ public class SampleDataSeederService {
             tableAppelRepository.save(appel);
         }
         log.info("Seeded table call alerts from demo dataset.");
+    }
+
+    private void seedSafetyAlertsFromJson(JsonNode alertsNode, Map<Integer, TableEntity> tablesMap) {
+        if (alertsNode == null || !alertsNode.isArray() || safetyAlertRepository == null || safetyAlertRepository.count() > 0) {
+            return;
+        }
+
+        LocalDateTime now = timeService.now();
+
+        for (JsonNode alertNode : alertsNode) {
+            int tableNumero = alertNode.path(KEY_TABLE_NUMERO).asInt(1);
+            TableEntity table = tablesMap.get(tableNumero);
+            if (table == null) {
+                table = tableRepository.findByNumero(tableNumero).orElse(null);
+            }
+            if (table == null) {
+                continue;
+            }
+
+            SafetyAlertType type = SafetyAlertType.valueOf(alertNode.path("type").asText("ANGEL_SHOT_NEAT"));
+            SafetyAlertStatus status = SafetyAlertStatus.valueOf(alertNode.path("status").asText("ACTIVE"));
+            String comment = alertNode.hasNonNull("comment") ? alertNode.path("comment").asText() : null;
+            int minutesAgo = alertNode.path(KEY_MINUTES_AGO).asInt(5);
+
+            SafetyAlert alert = new SafetyAlert();
+            alert.setTable(table);
+            alert.setType(type);
+            alert.setStatus(status);
+            alert.setComment(comment);
+            alert.setCreatedAt(now.minusMinutes(minutesAgo));
+
+            if (status == SafetyAlertStatus.RESOLVED) {
+                alert.setResolvedBy(alertNode.path("resolvedBy").asText("serveur1"));
+                alert.setResolvedAt(now.minusMinutes(Math.max(0, minutesAgo - 2)));
+            }
+
+            safetyAlertRepository.save(alert);
+        }
+        log.info("Seeded Angel Shot safety alerts from demo dataset.");
     }
 
     private void seedTableSessionsFromJson(JsonNode sessionsNode, Map<Integer, TableEntity> tablesMap) {

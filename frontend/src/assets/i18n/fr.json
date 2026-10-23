@@ -400,6 +400,29 @@
       "COOLDOWN_ACTIVE": "Veuillez patienter avant de relancer un appel.",
       "SEND_ERROR": "Impossible d'envoyer la demande. Veuillez réessayer.",
       "CALL_FAILED": "Impossible d'envoyer la demande. Veuillez réessayer."
+    },
+    "SAFETY": {
+      "DISCREET_HELP_LINK": "Assistance discrète — Protocole Angel Shot",
+      "MODAL_TITLE": "Assistance discrète — Protocole Angel Shot",
+      "INTRO": "Si vous vous sentez mal à l'aise, importuné(e) ou en insécurité, notre équipe est formée pour vous aider immédiatement et en toute discrétion. Choisissez une option ci-dessous :",
+      "VARIANT_NEAT_TITLE": "Angel Shot « Pur »",
+      "VARIANT_NEAT_DESC": "Vous avez besoin d'être raccompagné(e) discrètement jusqu'à votre véhicule ou à la sortie.",
+      "VARIANT_NEAT_ACTION": "Escorte calme vers la sortie",
+      "VARIANT_ICE_TITLE": "Angel Shot « Avec glaçons »",
+      "VARIANT_ICE_DESC": "Vous avez besoin qu'un taxi ou un VTC soit commandé pour vous en toute discrétion.",
+      "VARIANT_ICE_ACTION": "Appel d'un taxi ou transport sécurisé",
+      "VARIANT_LIME_TITLE": "Angel Shot « Avec rondelle de citron »",
+      "VARIANT_LIME_DESC": "Urgence immédiate : intervention directe de la sécurité ou des forces de l'ordre requise.",
+      "VARIANT_LIME_ACTION": "Intervention d'urgence prioritaire",
+      "SILENT_HINT": "Alerte silencieuse",
+      "NOTE_LABEL": "Précision optionnelle (description d'un individu, localisation...) :",
+      "NOTE_PLACEHOLDER": "Ex: personne au sweat bleu insiste lourdement...",
+      "HELPLINES_HINT": "En cas de danger immédiat, contactez le 17 (Police), le 112 (Urgences Europe) ou le 3919 (Violences femmes info).",
+      "CONFIRMATION_TITLE": "Alerte transmise à l'équipe",
+      "CONFIRMATION_BODY": "Votre demande d'assistance a été transmise silencieusement et en priorité aux serveurs et au barman. Un membre de l'équipe va intervenir de façon discrète et naturelle.",
+      "CONFIRMATION_ADVICE": "Restez calme. Si vous ne vous sentez pas en sécurité à votre table, vous pouvez vous rendre calmement aux sanitaires ou directement au comptoir.",
+      "GOT_IT_BTN": "J'ai compris",
+      "CLOSE_BTN": "Fermer"
     }
   },
   "HOME": {
@@ -3671,7 +3694,25 @@
     "LANGUAGE": "Langue",
     "MODULE_SYSTEM_UPDATES_TITLE": "Mises à jour Over-The-Air (OTA)",
     "MODULE_SYSTEM_UPDATES_DESC": "Recherche de versions en ligne/hors-ligne, instantanés DB pré-mise à jour, tests de santé et auto-rollback.",
-    "MODULES_ROUTE_SYSTEM_UPDATES": "Mises à jour OTA"
+    "MODULES_ROUTE_SYSTEM_UPDATES": "Mises à jour OTA",
+    "MODULE_ANGEL_SHOT_SAFETY_TITLE": "Protocole Sécurité Angel Shot",
+    "MODULE_ANGEL_SHOT_SAFETY_DESC": "Active le protocole d'assistance discrète pour les clients en difficulté (menu QR), les alertes silencieuses vibrantes sur tablettes personnel et la génération de l'affiche sanitaires.",
+    "MODULES_ROUTE_ANGEL_SHOT": "Assistance discrète & Affiches sanitaires",
+    "DOWNLOAD_SAFETY_NOTICE_BTN": "Télécharger l'affiche sanitaires (A4 PDF)",
+    "MODULE_SAFETY_NOTICE_DOWNLOAD_SUCCESS": "Affiche sanitaires téléchargée avec succès.",
+    "MODULE_SAFETY_NOTICE_DOWNLOAD_ERROR": "Erreur lors du téléchargement de l'affiche sanitaires."
+  },
+  "SAFETY": {
+    "EMERGENCY_BADGE": "URGENCE ANGEL SHOT",
+    "CODE_NEAT": "PUR (Escorte sortie/véhicule)",
+    "CODE_ICE": "GLAÇONS (Commande Taxi discrète)",
+    "CODE_LIME": "CITRON (Intervention sécurité/police immédiate)",
+    "TABLE_PREFIX": "Table",
+    "RESOLVE_BTN": "Prendre en charge / Résolu",
+    "RESOLVE_PROMPT": "Nom ou identifiant du serveur/barman qui prend en charge l'alerte :",
+    "RESOLVE_SUCCESS": "Alerte Angel Shot prise en charge et clôturée.",
+    "RESOLVE_ERROR": "Erreur lors de la prise en charge de l'alerte.",
+    "FETCH_ACTIVE_ERROR": "Impossible de charger les alertes de sécurité actives."
   },
   "CONFIRM_DELETE_MODAL": {
     "DELETION_BLOCKED": "Suppression impossible",

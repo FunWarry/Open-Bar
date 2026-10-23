@@ -135,6 +135,7 @@ import {
 import { FeatureFlagService } from '../../../core/services/feature-flag.service';
 import { PaymentTerminalService } from '../../../core/services/payment-terminal.service';
 import { TpeTerminalRole } from '../../../core/models/tpe.model';
+import { SafetyAlertService } from '../../../core/services/safety-alert.service';
 /**
  * Active configuration tab on the admin settings page.
  */
@@ -295,6 +296,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   private readonly appUpdateService = inject(AppUpdateService);
   private readonly rouletteService = inject(RouletteService);
   private readonly paymentTerminalService = inject(PaymentTerminalService);
+  private readonly safetyAlertService = inject(SafetyAlertService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
@@ -388,6 +390,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     tableReservations: true,
     checklistsProcedures: true,
     systemUpdates: true,
+    angelShotSafety: true,
   };
   initialThemeMode: AppTheme = 'dark';
   initialColors: CustomThemeColors = { ...DEFAULT_FIGMA_PALETTE };
@@ -724,6 +727,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       tableReservations: [true],
       checklistsProcedures: [true],
       systemUpdates: [true],
+      angelShotSafety: [true],
     });
 
     this.etabForm = this.fb.group({
@@ -1981,14 +1985,15 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       !!current.paymentTerminal === target.paymentTerminal &&
       !!current.tableReservations === target.tableReservations &&
       !!current.checklistsProcedures === target.checklistsProcedures &&
-      !!current.systemUpdates === target.systemUpdates
+      !!current.systemUpdates === target.systemUpdates &&
+      !!current.angelShotSafety === target.angelShotSafety
     );
   }
 
   /**
    * Total count of available modular capabilities.
    */
-  readonly totalModulesCount = 16;
+  readonly totalModulesCount = 17;
 
   /**
    * Computes the number of currently active modules in modulesForm.
@@ -2011,6 +2016,28 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
    */
   isModuleControlActive(key: string): boolean {
     return !!this.modulesForm?.get(key)?.value;
+  }
+
+  /**
+   * Downloads the printable A4 bilingual Angel Shot restroom notice PDF.
+   */
+  downloadRestroomNoticePdf(): void {
+    this.safetyAlertService.downloadRestroomNoticePdf()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'openbar-angel-shot-notice.pdf';
+          a.click();
+          window.URL.revokeObjectURL(url);
+          void this.showToast(this.translocoService.translate('SETTINGS.MODULE_SAFETY_NOTICE_DOWNLOAD_SUCCESS'), 'success');
+        },
+        error: () => {
+          void this.showToast(this.translocoService.translate('SETTINGS.MODULE_SAFETY_NOTICE_DOWNLOAD_ERROR'), 'danger');
+        }
+      });
   }
 
   /**

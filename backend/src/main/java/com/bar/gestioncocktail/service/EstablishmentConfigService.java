@@ -209,6 +209,7 @@ public class EstablishmentConfigService {
         applyModuleIfPresent(config, EstablishmentModule.TABLE_RESERVATIONS, request.tableReservations());
         applyModuleIfPresent(config, EstablishmentModule.CHECKLISTS_PROCEDURES, request.checklistsProcedures());
         applyModuleIfPresent(config, EstablishmentModule.SYSTEM_UPDATES, request.systemUpdates());
+        applyModuleIfPresent(config, EstablishmentModule.ANGEL_SHOT_SAFETY, request.angelShotSafety());
     }
 
     private void applyModuleIfPresent(EstablishmentConfig config, EstablishmentModule module, Boolean enabled) {

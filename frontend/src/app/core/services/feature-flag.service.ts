@@ -28,6 +28,7 @@ const DEFAULT_MODULES: EstablishmentModules = {
   tableReservations: true,
   checklistsProcedures: true,
   systemUpdates: true,
+  angelShotSafety: true,
 };
 
 /**
@@ -147,6 +148,8 @@ export class FeatureFlagService implements OnDestroy {
         return current.checklistsProcedures;
       case EstablishmentModule.SYSTEM_UPDATES:
         return current.systemUpdates;
+      case EstablishmentModule.ANGEL_SHOT_SAFETY:
+        return current.angelShotSafety;
       default:
         return true;
     }
@@ -270,6 +273,9 @@ export class FeatureFlagService implements OnDestroy {
         break;
       case EstablishmentModule.SYSTEM_UPDATES:
         current.systemUpdates = enabled;
+        break;
+      case EstablishmentModule.ANGEL_SHOT_SAFETY:
+        current.angelShotSafety = enabled;
         break;
     }
     return this.updateModules(current);

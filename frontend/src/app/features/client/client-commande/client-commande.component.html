@@ -466,6 +466,19 @@
 
         <!-- Quick Table Service & Bill Actions Bar -->
         <app-table-assistance-bar [tableNumero]="tableNumero!"></app-table-assistance-bar>
+
+        @if (isSafetyModuleEnabled() && tableNumero) {
+          <div class="discreet-safety-container">
+            <button
+              type="button"
+              class="discreet-safety-trigger"
+              data-testid="btn-angel-shot-trigger"
+              (click)="openAngelShotModal()">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+              <span>{{ 'CLIENT.SAFETY.DISCREET_HELP_LINK' | transloco }}</span>
+            </button>
+          </div>
+        }
       </header>
 
       <!-- Bannière Tournée Groupée / Période de grâce de 2 minutes -->
@@ -861,5 +874,12 @@
         </div>
       </div>
     </dialog>
+  }
+
+  @if (isAngelShotModalOpen() && tableNumero) {
+    <app-angel-shot-modal
+      [tableNumero]="tableNumero"
+      (closed)="closeAngelShotModal()">
+    </app-angel-shot-modal>
   }
 </div>

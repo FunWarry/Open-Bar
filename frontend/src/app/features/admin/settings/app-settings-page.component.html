@@ -713,6 +713,34 @@
                           </div>
                           <p class="threshold-desc">{{ 'SETTINGS.MODULE_SYSTEM_UPDATES_DESC' | transloco }}</p>
                         </div>
+
+                        <!-- Module 17: ANGEL_SHOT_SAFETY -->
+                        <div class="threshold-row" data-testid="module-row-angel-shot-safety">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="shield-checkmark-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_ANGEL_SHOT_SAFETY_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="angelShotSafety" data-testid="toggle-module-angel-shot-safety"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_ANGEL_SHOT_SAFETY_DESC' | transloco }}</p>
+
+                          @if (modulesForm.get('angelShotSafety')?.value) {
+                            <div class="safety-poster-action-box" data-testid="safety-poster-action-box" style="margin-top: 10px;">
+                              <ion-button
+                                size="small"
+                                fill="outline"
+                                color="primary"
+                                (click)="downloadRestroomNoticePdf()"
+                                (keyup.enter)="downloadRestroomNoticePdf()"
+                                data-testid="btn-download-safety-notice-pdf"
+                              >
+                                <ion-icon name="document-text-outline" slot="start"></ion-icon>
+                                {{ 'SETTINGS.DOWNLOAD_SAFETY_NOTICE_BTN' | transloco }}
+                              </ion-button>
+                            </div>
+                          }
+                        </div>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -1082,6 +1110,26 @@
                                 </span>
                               </div>
                               <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_SYSTEM_UPDATES' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 17. Protocole Angel Shot & Sécurité Client -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('angelShotSafety')"
+                            [class.node-inactive]="!isModuleControlActive('angelShotSafety')"
+                            data-testid="preview-node-angel-shot-safety">
+                            <div class="node-icon-box">
+                              <ion-icon name="shield-checkmark-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_ANGEL_SHOT_SAFETY_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('angelShotSafety')">
+                                  {{ (isModuleControlActive('angelShotSafety') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_ANGEL_SHOT' | transloco }}</span>
                             </div>
                           </div>
                         </div>

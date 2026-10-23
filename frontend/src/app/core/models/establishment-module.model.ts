@@ -18,6 +18,7 @@ export enum EstablishmentModule {
   TABLE_RESERVATIONS = 'TABLE_RESERVATIONS',
   CHECKLISTS_PROCEDURES = 'CHECKLISTS_PROCEDURES',
   SYSTEM_UPDATES = 'SYSTEM_UPDATES',
+  ANGEL_SHOT_SAFETY = 'ANGEL_SHOT_SAFETY',
 }
 
 /**
@@ -40,6 +41,7 @@ export interface EstablishmentModules {
   tableReservations: boolean;
   checklistsProcedures: boolean;
   systemUpdates: boolean;
+  angelShotSafety: boolean;
 }
 
 /**
@@ -68,6 +70,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     tableReservations: true,
     checklistsProcedures: true,
     systemUpdates: true,
+    angelShotSafety: true,
   },
   RESTAURANT: {
     cuisineKds: true,
@@ -86,6 +89,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     tableReservations: true,
     checklistsProcedures: true,
     systemUpdates: true,
+    angelShotSafety: true,
   },
   FOOD_TRUCK: {
     cuisineKds: true,
@@ -104,6 +108,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     tableReservations: false,
     checklistsProcedures: true,
     systemUpdates: true,
+    angelShotSafety: false,
   },
   NIGHTCLUB: {
     cuisineKds: false,
@@ -122,5 +127,6 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     tableReservations: true,
     checklistsProcedures: true,
     systemUpdates: true,
+    angelShotSafety: true,
   },
 };

@@ -1,0 +1,84 @@
+<app-modal
+  [title]="'CLIENT.SAFETY.MODAL_TITLE' | transloco"
+  icon="shield-checkmark-outline"
+  [subtitle]="'CLIENT.SAFETY.MODAL_SUBTITLE' | transloco"
+  size="md"
+  (closeModal)="dismiss()">
+
+  <div class="angel-shot-content">
+    @if (!isSent()) {
+      <p class="safety-intro-text">
+        {{ 'CLIENT.SAFETY.INTRO_EXPLANATION' | transloco }}
+      </p>
+
+      <div class="variants-container">
+        @for (variant of variants; track variant.type) {
+          <div
+            class="variant-card"
+            [ngClass]="variant.badgeClass"
+            [attr.data-testid]="'variant-card-' + variant.type.toLowerCase()"
+            (click)="triggerAlert(variant.type)">
+            <div class="variant-icon-wrapper">
+              <span class="variant-emoji">{{ variant.icon }}</span>
+            </div>
+            <div class="variant-info">
+              <div class="variant-header">
+                <h4 class="variant-title">{{ variant.titleKey | transloco }}</h4>
+                <span class="silent-badge">{{ 'CLIENT.SAFETY.SILENT_TAG' | transloco }}</span>
+              </div>
+              <p class="variant-description">{{ variant.subtitleKey | transloco }}</p>
+              <span class="variant-action-hint">{{ variant.actionKey | transloco }}</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="note-section">
+        <app-input-field
+          name="additionalNote"
+          [label]="'CLIENT.SAFETY.OPTIONAL_NOTE_LABEL' | transloco"
+          [placeholder]="'CLIENT.SAFETY.OPTIONAL_NOTE_PLACEHOLDER' | transloco"
+          [(ngModel)]="additionalNote"
+          data-testid="input-safety-note">
+        </app-input-field>
+      </div>
+
+      <div class="helpline-hint">
+        <span>🛡️ {{ 'CLIENT.SAFETY.HELPLINE_INFO' | transloco }}</span>
+      </div>
+    } @else {
+      <div class="sent-confirmation-view" data-testid="safety-confirmation-view">
+        <div class="confirmation-icon-wrapper">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+        </div>
+        <h3 class="confirmation-title">{{ 'CLIENT.SAFETY.SENT_TITLE' | transloco }}</h3>
+        <p class="confirmation-body">
+          {{ 'CLIENT.SAFETY.SENT_BODY' | transloco }}
+        </p>
+        <p class="confirmation-advice">
+          {{ 'CLIENT.SAFETY.SENT_ADVICE' | transloco }}
+        </p>
+
+        <div class="confirmation-actions">
+          <app-action-button
+            variant="secondary"
+            testId="btn-dismiss-safety-confirmation"
+            (btnClick)="dismiss()">
+            {{ 'COMMON.CLOSE' | transloco }}
+          </app-action-button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div slot="footer" class="modal-footer-actions">
+    @if (!isSent()) {
+      <app-action-button
+        variant="ghost"
+        testId="btn-cancel-safety"
+        (btnClick)="dismiss()">
+        {{ 'COMMON.CANCEL' | transloco }}
+      </app-action-button>
+    }
+  </div>
+</app-modal>

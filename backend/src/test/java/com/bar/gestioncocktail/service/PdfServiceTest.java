@@ -856,5 +856,18 @@ class PdfServiceTest {
         String header = new String(pdf, 0, Math.min(5, pdf.length));
         assertThat(header).startsWith("%PDF");
     }
+
+    @Test
+    void generateAngelShotNoticePdf_validConfig_generatesValidPdfNotice() {
+        EstablishmentConfig config = new EstablishmentConfig();
+        config.setLegalName("The Safe Haven Bar");
+        lenient().when(establishmentConfigService.getConfig()).thenReturn(config);
+
+        byte[] pdf = pdfService.generateAngelShotNoticePdf();
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
 }
 

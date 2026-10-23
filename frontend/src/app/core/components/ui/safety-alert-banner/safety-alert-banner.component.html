@@ -1,0 +1,41 @@
+@if (activeAlerts.length > 0) {
+  <aside class="safety-alerts-wrapper" data-testid="safety-alerts-container" aria-live="assertive">
+    @for (alert of activeAlerts; track alert.id) {
+      <div
+        class="safety-alert-strip"
+        [ngClass]="'variant-' + alert.type.toLowerCase().replace('_', '-')"
+        [attr.data-testid]="'safety-alert-strip-' + alert.id">
+        <div class="alert-pulse-indicator">
+          <span class="pulsing-beacon"></span>
+          <ion-icon name="warning-outline" class="alert-icon"></ion-icon>
+        </div>
+
+        <div class="alert-content">
+          <div class="alert-main-line">
+            <span class="emergency-badge">{{ 'SAFETY.EMERGENCY_TITLE' | transloco }}</span>
+            <span class="table-tag">{{ 'COMMON.TABLE' | transloco }} {{ alert.tableNumero }}</span>
+            <span class="alert-code-label">{{ alert.typeLabel }}</span>
+            <span class="alert-time">{{ alert.createdAt | date:'HH:mm:ss' }}</span>
+          </div>
+
+          @if (alert.comment) {
+            <p class="alert-patron-comment">
+              « {{ alert.comment }} »
+            </p>
+          }
+        </div>
+
+        <div class="alert-actions">
+          <app-action-button
+            variant="danger"
+            size="small"
+            icon="checkmark-outline"
+            [testId]="'btn-resolve-safety-' + alert.id"
+            (btnClick)="resolveAlert(alert)">
+            {{ 'SAFETY.RESOLVE_BTN' | transloco }}
+          </app-action-button>
+        </div>
+      </div>
+    }
+  </aside>
+}
