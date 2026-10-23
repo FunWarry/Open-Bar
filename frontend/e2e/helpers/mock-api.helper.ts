@@ -108,6 +108,7 @@ export async function setupMockApi(page: Page): Promise<void> {
         inventoryAudit: true,
         tableReservations: true,
         systemUpdates: true,
+        angelShotSafety: true,
       }),
     });
   });
