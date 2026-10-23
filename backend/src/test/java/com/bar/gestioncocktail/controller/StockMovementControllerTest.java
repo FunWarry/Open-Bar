@@ -153,4 +153,41 @@ class StockMovementControllerTest {
         assertThat(response.getBody().totalLossValue()).isEqualTo(new BigDecimal("22.00"));
         assertThat(response.getBody().countByReason()).containsEntry(StockWasteReason.CASSE, 1L);
     }
+
+    @Test
+    @DisplayName("recordQuickLog — nominal: delegates to service and returns 201 Created with DTO")
+    void recordQuickLog_nominal_success() {
+        when(authentication.getName()).thenReturn("barman1");
+        when(servletRequest.getRemoteAddr()).thenReturn("192.168.1.100");
+
+        com.bar.gestioncocktail.dto.StockQuickLogRequestDTO request = new com.bar.gestioncocktail.dto.StockQuickLogRequestDTO(
+                5L,
+                new BigDecimal("0.50"),
+                StockWasteReason.ERREUR_PREPARATION,
+                "Verre renversé pendant rush"
+        );
+
+        when(stockMovementService.recordQuickLog(request, "barman1", "192.168.1.100"))
+                .thenReturn(sampleMovement);
+
+        ResponseEntity<StockMovementResponseDTO> response = stockMovementController.recordQuickLog(
+                request, authentication, servletRequest);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(201);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().id()).isEqualTo(101L);
+        verify(stockMovementService).recordQuickLog(request, "barman1", "192.168.1.100");
+    }
+
+    @Test
+    @DisplayName("revertQuickLog — nominal: delegates to service and returns 204 No Content")
+    void revertQuickLog_nominal_success() {
+        when(authentication.getName()).thenReturn("barman1");
+        when(servletRequest.getRemoteAddr()).thenReturn("192.168.1.100");
+
+        ResponseEntity<Void> response = stockMovementController.revertQuickLog(101L, authentication, servletRequest);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(204);
+        verify(stockMovementService).revertQuickLog(101L, "barman1", "192.168.1.100");
+    }
 }

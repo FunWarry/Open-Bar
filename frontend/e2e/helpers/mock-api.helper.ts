@@ -643,8 +643,9 @@ export async function setupMockApi(page: Page): Promise<void> {
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify([
-        { id: 1, nom: 'Rhum Blanc', quantiteStock: 100, seuilAlerte: 20, uniteMesure: 'cl' },
-        { id: 2, nom: 'Menthe', quantiteStock: 50, seuilAlerte: 10, uniteMesure: 'g' },
+        { id: 1, nom: 'Rhum Blanc', quantiteStock: 100, seuilAlerte: 20, uniteMesure: 'cl', degreAlcool: 40.0, category: 'light_liquor' },
+        { id: 2, nom: 'Menthe', quantiteStock: 50, seuilAlerte: 10, uniteMesure: 'g', degreAlcool: 0, category: 'herbs' },
+        { id: 3, nom: 'Gin Citadelle', quantiteStock: 70, seuilAlerte: 15, uniteMesure: 'cl', degreAlcool: 44.0, category: 'light_liquor' },
       ]),
     });
   });
@@ -1404,6 +1405,40 @@ export async function setupMockApi(page: Page): Promise<void> {
         recordedAt: new Date().toISOString(),
       }),
     });
+  });
+
+  // Quick-log routes
+  await page.route('**/api/stock/quick-log/**', async (route) => {
+    if (route.request().method() === 'DELETE') {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+    await route.fallback();
+  });
+
+  await page.route('**/api/stock/quick-log', async (route) => {
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 102,
+          ingredientId: body.ingredientId || 1,
+          ingredientNom: 'Rhum Blanc',
+          quantity: body.quantity || 4,
+          unit: 'cl',
+          reason: body.reason || 'ERREUR_PREPARATION',
+          reportedById: 1,
+          reportedByUsername: 'barman1',
+          notes: body.notes || 'Bartender Quick-Log (ERREUR_PREPARATION)',
+          cost: 1.60,
+          recordedAt: new Date().toISOString(),
+        }),
+      });
+      return;
+    }
+    await route.fallback();
   });
 
   await page.route('**/api/stock/movements**', async (route) => {

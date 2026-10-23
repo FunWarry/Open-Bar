@@ -2776,6 +2776,26 @@
       "notes": "Renversé lors du shake vigoureux sur commande pressée",
       "cost": 1.95,
       "minutesAgo": 720
+    },
+    {
+      "ingredientNom": "Tequila",
+      "quantity": 4,
+      "unit": "cl",
+      "reason": "ERREUR_PREPARATION",
+      "reportedByUsername": "barman1",
+      "notes": "Bartender Quick-Log (ERREUR_PREPARATION)",
+      "cost": 2.2,
+      "minutesAgo": 45
+    },
+    {
+      "ingredientNom": "Triple sec",
+      "quantity": 2,
+      "unit": "cl",
+      "reason": "DEGUSTATION_STAFF",
+      "reportedByUsername": "barman1",
+      "notes": "Bartender Quick-Log (DEGUSTATION_STAFF)",
+      "cost": 1.1,
+      "minutesAgo": 30
     }
   ],
   "daily_cash_closures": [

@@ -294,4 +294,126 @@ class StockMovementServiceTest {
         assertThat(summary.lossValueByReason().get(StockWasteReason.PEREMPTION)).isEqualByComparingTo(new BigDecimal("20.00"));
         assertThat(summary.lossValueByReason().get(StockWasteReason.OFFERT_PATRON)).isZero();
     }
+
+    @Test
+    @DisplayName("recordQuickLog — nominal case: successfully records quick-log and generates default notes")
+    void recordQuickLog_nominal_success() {
+        when(timeService.now()).thenReturn(fixedNow);
+        when(ingredientRepository.findById(10L)).thenReturn(Optional.of(sampleIngredient));
+        when(userRepository.findByUsername("barman1")).thenReturn(Optional.of(sampleUser));
+        when(stockMovementRepository.save(any(StockMovement.class))).thenAnswer(inv -> {
+            StockMovement m = inv.getArgument(0);
+            m.setId(100L);
+            return m;
+        });
+
+        com.bar.gestioncocktail.dto.StockQuickLogRequestDTO quickLogReq = new com.bar.gestioncocktail.dto.StockQuickLogRequestDTO(
+                10L,
+                new BigDecimal("0.50"),
+                StockWasteReason.ERREUR_PREPARATION,
+                null
+        );
+
+        StockMovement result = stockMovementService.recordQuickLog(quickLogReq, "barman1", "127.0.0.1");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(100L);
+        assertThat(result.getNotes()).isEqualTo("Bartender Quick-Log (ERREUR_PREPARATION)");
+        verify(ingredientService).updateStock(sampleIngredient, new BigDecimal("9.50"));
+        verify(auditLogService).logAction(eq(sampleUser), eq("STOCK_WASTE_RECORDED"), eq("Ingredient"), eq(10L), any(), eq("127.0.0.1"));
+    }
+
+    @Test
+    @DisplayName("recordQuickLog — error case: throws BusinessException when payload is null")
+    void recordQuickLog_null_throwsBusinessException() {
+        assertThatThrownBy(() -> stockMovementService.recordQuickLog(null, "barman1", "127.0.0.1"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("cannot be null");
+    }
+
+    @Test
+    @DisplayName("revertQuickLog — nominal case: owner bartender successfully undoes movement within window")
+    void revertQuickLog_owner_success() {
+        StockMovement movement = new StockMovement();
+        movement.setId(42L);
+        movement.setIngredient(sampleIngredient);
+        movement.setQuantity(new BigDecimal("0.50"));
+        movement.setUnit("bouteille");
+        movement.setReason(StockWasteReason.ERREUR_PREPARATION);
+        movement.setReportedBy(sampleUser);
+
+        when(stockMovementRepository.findById(42L)).thenReturn(Optional.of(movement));
+        when(userRepository.findByUsername("barman1")).thenReturn(Optional.of(sampleUser));
+
+        stockMovementService.revertQuickLog(42L, "barman1", "127.0.0.1");
+
+        verify(ingredientService).updateStock(sampleIngredient, new BigDecimal("10.50"));
+        verify(stockMovementRepository).delete(movement);
+        verify(auditLogService).logAction(eq(sampleUser), eq("STOCK_WASTE_REVERTED"), eq("StockMovement"), eq(42L), any(), eq("127.0.0.1"));
+    }
+
+    @Test
+    @DisplayName("revertQuickLog — nominal case: manager/admin successfully undoes any movement")
+    void revertQuickLog_manager_success() {
+        User manager = new User();
+        manager.setId(99L);
+        manager.setUsername("manager1");
+        manager.setRoles(java.util.Set.of(com.bar.gestioncocktail.model.UserRole.MANAGER));
+
+        StockMovement movement = new StockMovement();
+        movement.setId(42L);
+        movement.setIngredient(sampleIngredient);
+        movement.setQuantity(new BigDecimal("1.00"));
+        movement.setUnit("bouteille");
+        movement.setReason(StockWasteReason.CASSE);
+        movement.setReportedBy(sampleUser); // created by barman1
+
+        when(stockMovementRepository.findById(42L)).thenReturn(Optional.of(movement));
+        when(userRepository.findByUsername("manager1")).thenReturn(Optional.of(manager));
+
+        stockMovementService.revertQuickLog(42L, "manager1", "127.0.0.1");
+
+        verify(ingredientService).updateStock(sampleIngredient, new BigDecimal("11.00"));
+        verify(stockMovementRepository).delete(movement);
+    }
+
+    @Test
+    @DisplayName("revertQuickLog — error case: throws BusinessException when other unauthorized user attempts undo")
+    void revertQuickLog_unauthorized_throwsBusinessException() {
+        User otherBarman = new User();
+        otherBarman.setId(2L);
+        otherBarman.setUsername("barman2");
+        otherBarman.setRoles(java.util.Set.of(com.bar.gestioncocktail.model.UserRole.BARMAN));
+
+        StockMovement movement = new StockMovement();
+        movement.setId(42L);
+        movement.setReportedBy(sampleUser); // created by barman1
+
+        when(stockMovementRepository.findById(42L)).thenReturn(Optional.of(movement));
+        when(userRepository.findByUsername("barman2")).thenReturn(Optional.of(otherBarman));
+
+        assertThatThrownBy(() -> stockMovementService.revertQuickLog(42L, "barman2", "127.0.0.1"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("not authorized");
+    }
+
+    @Test
+    @DisplayName("revertQuickLog — error case: throws ResourceNotFoundException when movement does not exist")
+    void revertQuickLog_notFound_throwsResourceNotFoundException() {
+        when(stockMovementRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> stockMovementService.revertQuickLog(999L, "barman1", "127.0.0.1"))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Stock movement not found");
+    }
+
+    @Test
+    @DisplayName("revertQuickLog — module disabled: throws BusinessException when STOCK_TRACKING is inactive")
+    void revertQuickLog_moduleDisabled_throwsBusinessException() {
+        when(establishmentConfigService.isModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.STOCK_TRACKING)).thenReturn(false);
+
+        assertThatThrownBy(() -> stockMovementService.revertQuickLog(42L, "barman1", "127.0.0.1"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("disabled");
+    }
 }

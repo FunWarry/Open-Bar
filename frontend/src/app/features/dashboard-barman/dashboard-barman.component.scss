@@ -13,7 +13,8 @@ ion-header {
   flex-shrink: 0;
   position: relative;
   width: 100%;
-  z-index: 5;
+  z-index: 50;
+  overflow: visible;
 }
 
 .barman-content {
@@ -72,48 +73,211 @@ ion-header {
   --background: var(--background-surface-1);
   --color: var(--text-primary);
   --border-color: var(--border-medium);
-  --min-height: 56px;
+  --min-height: auto;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
   padding: 0;
   border-bottom: 1px solid var(--border-medium);
+  position: relative;
+  z-index: 40;
 }
 
 .barman-toolbar-inner {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
+  box-sizing: border-box;
   width: 100%;
-  padding: 8px 16px;
-  gap: 10px;
 
+  /* ─────────────────────────────────────────────────────────────
+     TIER 1: Smartphone (< 768px)
+     - 3 clean stacked rows:
+       Row 1: Brand title & orders counter (spaced between)
+       Row 2: View mode segment (full width)
+       Row 3: Action buttons (adapt to full width: 33.3% each)
+  ───────────────────────────────────────────────────────────── */
   @media (max-width: 767px) {
-    padding: 8px 12px;
-    gap: 8px;
-    display: flex;
     flex-direction: column;
     align-items: stretch;
+    padding: 10px 12px;
+    gap: 8px;
+
+    .toolbar-brand-group {
+      order: 1;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .header-center-segment {
+      order: 2;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin: 0;
+
+      .barman-view-segment {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        height: 38px;
+
+        ion-segment-button {
+          min-height: 32px;
+          height: 32px;
+          font-size: 0.8rem;
+          padding: 0 8px;
+        }
+      }
+    }
+
+    .toolbar-actions {
+      order: 3;
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+
+      .header-action-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        width: 100%;
+        height: 38px;
+        justify-content: center;
+        --padding-start: 4px;
+        --padding-end: 4px;
+        font-size: 0.8rem;
+      }
+    }
   }
 
-  @media (min-width: 1024px) {
+  /* ─────────────────────────────────────────────────────────────
+     TIER 2: Tablet & Touch POS (768px – 1199px)
+     - 2 clean, spacious rows:
+       Row 1: Brand on the left, View segment on the right
+       Row 2: 4 action buttons spanning the row evenly (25% each)
+  ───────────────────────────────────────────────────────────── */
+  @media (min-width: 768px) and (max-width: 1199px) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    gap: 10px 16px;
+
+    .toolbar-brand-group {
+      order: 1;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-center-segment {
+      order: 2;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      margin: 0;
+
+      .barman-view-segment {
+        min-width: 260px;
+        max-width: 320px;
+        height: 38px;
+      }
+    }
+
+    .toolbar-actions {
+      order: 3;
+      flex: 1 0 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+
+      .header-action-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        height: 38px;
+        justify-content: center;
+        --padding-start: 6px;
+        --padding-end: 6px;
+        font-size: 0.82rem;
+      }
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     TIER 3: Desktop & Ultra-wide (≥ 1200px)
+     - Single streamlined row:
+       Left: Brand title & counter
+       Center: View mode segment
+       Right: Action buttons (natural widths with comfortable gaps)
+  ───────────────────────────────────────────────────────────── */
+  @media (min-width: 1200px) {
+    display: flex;
+    flex-direction: row;
     flex-wrap: nowrap;
-    height: 56px;
+    align-items: center;
+    justify-content: space-between;
+    height: 58px;
     padding: 0 16px;
     gap: 16px;
+
+    .toolbar-brand-group {
+      order: 1;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-center-segment {
+      order: 2;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      margin: 0 auto;
+
+      .barman-view-segment {
+        min-width: 270px;
+        max-width: 340px;
+        height: 38px;
+      }
+    }
+
+    .toolbar-actions {
+      order: 3;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+
+      .header-action-btn {
+        flex: 0 0 auto;
+        height: 38px;
+        --padding-start: 12px;
+        --padding-end: 12px;
+        font-size: 0.84rem;
+      }
+    }
   }
 }
 
 .toolbar-brand-group {
-  order: 1;
   display: flex;
   align-items: center;
   gap: 12px;
   min-width: 0;
-
-  @media (max-width: 767px) {
-    order: 1;
-    width: 100%;
-    justify-content: space-between;
-  }
 
   .toolbar-brand-icon {
     font-size: 1.35rem;
@@ -154,44 +318,13 @@ ion-header {
       padding: 3px 8px;
     }
   }
-
-  @media (min-width: 1024px) {
-    order: 1;
-    flex: 1;
-    justify-content: flex-start;
-  }
 }
 
 .toolbar-actions {
-  order: 2;
   display: flex;
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
-
-  @media (max-width: 767px) {
-    order: 3;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 6px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-
-    &::-webkit-scrollbar {
-      display: none;
-      width: 0;
-      height: 0;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    order: 3;
-    flex: 1;
-    justify-content: flex-end;
-  }
 }
 
 .header-action-btn {
@@ -199,22 +332,44 @@ ion-header {
   color: var(--text-primary);
   font-size: 13px;
   font-weight: 600;
-  height: 36px;
+  height: 38px;
   margin: 0;
   border-radius: var(--radius-pill, 999px);
   border: none;
   overflow: hidden;
   white-space: nowrap;
-  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 
   @media (max-width: 767px) {
-    height: 34px;
-    font-size: 0.78rem;
-    --padding-start: 10px;
-    --padding-end: 10px;
-    flex: 1 1 auto;
+    height: 38px;
+    font-size: 0.8rem;
+    --padding-start: 4px;
+    --padding-end: 4px;
+    flex: 1 1 0;
+    min-width: 0;
+    width: 100%;
+    justify-content: center;
+  }
+
+  @media (min-width: 768px) and (max-width: 1199px) {
+    height: 38px;
+    font-size: 0.82rem;
+    --padding-start: 6px;
+    --padding-end: 6px;
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  @media (min-width: 1200px) {
+    height: 38px;
+    font-size: 0.84rem;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    flex: 0 0 auto;
     justify-content: center;
   }
 
@@ -226,6 +381,8 @@ ion-header {
     border-radius: inherit;
     font-weight: inherit;
     line-height: 1;
+    width: 100%;
+    height: 100%;
     padding-top: 0;
     padding-bottom: 0;
   }
@@ -238,14 +395,14 @@ ion-header {
 
     &--full {
       display: none;
-      @media (min-width: 900px) {
+      @media (min-width: 1500px) {
         display: inline-block;
       }
     }
 
     &--short {
       display: inline-block;
-      @media (min-width: 900px) {
+      @media (min-width: 1500px) {
         display: none;
       }
     }
@@ -331,7 +488,53 @@ ion-header {
     }
   }
 
+  &.btn-quick-waste {
+    --background: var(--semantic-warning);
+    --background-hover: color-mix(in srgb, var(--semantic-warning) 85%, #000000);
+    --background-activated: color-mix(in srgb, var(--semantic-warning) 75%, #000000);
+    --color: var(--text-on-accent, #ffffff);
+    color: var(--text-on-accent, #ffffff);
+    --border-radius: var(--radius-pill, 999px);
+    --border-width: 0px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--semantic-warning) 35%, transparent);
+    transition: all 0.2s ease;
+
+    &::part(native) {
+      color: var(--text-on-accent, #ffffff);
+    }
+
+    ion-icon,
+    .btn-text {
+      color: var(--text-on-accent, #ffffff);
+    }
+
+    ion-icon {
+      font-size: 1.15rem;
+      margin-right: 6px;
+      flex-shrink: 0;
+
+      @media (max-width: 767px) {
+        font-size: 1rem;
+        margin-right: 4px;
+      }
+    }
+
+    &:hover {
+      --background: color-mix(in srgb, var(--semantic-warning) 85%, #000000);
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+    }
+  }
+
   &.btn-roulette-tv {
+    display: none;
+
+    @media (min-width: 768px) {
+      display: inline-flex;
+    }
+
     --background: var(--background-surface-2);
     --color: var(--text-primary);
     --border-radius: var(--radius-pill, 999px);
@@ -384,50 +587,6 @@ ion-header {
     }
   }
 
-  &.btn-refresh,
-  &.btn-sound {
-    --background: var(--background-surface-2, #21263f);
-    --color: var(--text-primary, #eceefb);
-    color: var(--text-primary, #eceefb);
-    --border-radius: var(--radius-pill, 999px);
-    --border-width: 1px;
-    --border-style: solid;
-    --border-color: var(--border-medium, #2a2e4d);
-    width: 36px;
-    height: 36px;
-    --padding-start: 0;
-    --padding-end: 0;
-    flex: 0 0 36px;
-    transition: all 0.2s ease;
-
-    @media (max-width: 767px) {
-      width: 34px;
-      height: 34px;
-      flex: 0 0 34px;
-    }
-
-    &::part(native) {
-      color: var(--text-primary, #eceefb);
-    }
-
-    ion-icon {
-      font-size: 1.15rem;
-      margin: 0;
-      color: var(--text-primary);
-      transition: color 0.2s ease, transform 0.2s ease;
-    }
-
-    &:hover {
-      --color: var(--primary);
-      --background: var(--background-surface-3);
-      --border-color: var(--primary);
-
-      ion-icon {
-        color: var(--primary);
-        transform: rotate(45deg);
-      }
-    }
-  }
 }
 
 /* ── Barre de recherche et filtres ── */
@@ -436,15 +595,21 @@ ion-header {
   border-bottom: 1px solid var(--border-medium);
   padding: 8px 16px 10px;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
   max-width: 100%;
   box-sizing: border-box;
-  overflow-x: hidden;
+  overflow: visible;
+  position: sticky;
+  top: 0;
+  z-index: 60;
 
-  @media (min-width: 1024px) {
-    flex-direction: row;
-    align-items: center;
+  @media (max-width: 767px) {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 8px 12px;
+    gap: 8px;
   }
 }
 
@@ -453,118 +618,31 @@ ion-header {
   min-width: 0;
 }
 
-.chips-wrapper {
+.filter-dropdowns-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
-  overflow-x: auto;
-  max-width: 100%;
-  min-width: 0;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 2px;
-  flex: 1 1 auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  gap: 10px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 70;
 
-  &::-webkit-scrollbar {
-    display: none;
-    width: 0;
-    height: 0;
+  @media (max-width: 767px) {
+    width: 100%;
+    flex-direction: row;
+    gap: 8px;
+  }
+}
+
+.filter-dropdown-select {
+  min-width: 175px;
+
+  @media (max-width: 767px) {
+    flex: 1;
+    min-width: 0;
   }
 
-  .chip-divider {
-    width: 1px;
-    height: 22px;
-    background: var(--border-medium);
-    margin: 0 2px;
-    flex-shrink: 0;
-  }
-
-  ion-chip {
-    --background: var(--background-surface-2);
-    --color: var(--text-secondary);
-    --border-radius: var(--radius-pill, 999px);
-    --border-width: 1px;
-    --border-style: solid;
-    --border-color: var(--border-medium);
-    border: none;
-    border-radius: var(--radius-pill, 999px);
-    overflow: hidden;
-    font-size: 0.82rem;
-    font-weight: 600;
-    height: 34px;
-    margin: 0;
-    padding: 0 12px;
-    white-space: nowrap;
-    flex-shrink: 0;
-    transition: all 0.15s ease;
-
-    ion-icon {
-      font-size: 1rem;
-      margin-right: 4px;
-      color: inherit;
-    }
-
-    ion-label {
-      color: inherit;
-    }
-
-    ion-badge {
-      margin-left: 6px;
-      font-size: 0.72rem;
-      font-weight: 800;
-      padding: 2px 6px;
-      border-radius: var(--radius-pill, 999px);
-    }
-
-    &.chip--active {
-      --background: var(--primary);
-      --color: var(--text-on-accent, #ffffff);
-      --border-color: var(--primary-strong);
-      font-weight: 700;
-
-      ion-label,
-      ion-icon {
-        color: var(--text-on-accent, #ffffff);
-      }
-    }
-
-    &.chip--urgent {
-      --border-color: var(--semantic-danger);
-      --color: var(--semantic-danger);
-
-      ion-icon,
-      ion-label {
-        color: var(--semantic-danger);
-      }
-
-      &.chip--active {
-        --background: var(--semantic-danger);
-        --color: var(--text-on-accent, #ffffff);
-        --border-color: var(--semantic-danger);
-
-        ion-icon,
-        ion-label {
-          color: var(--text-on-accent, #ffffff);
-        }
-
-        ion-badge {
-          background: var(--text-on-accent, #ffffff);
-          color: var(--semantic-danger);
-        }
-      }
-    }
-
-    &:hover:not(.chip--active) {
-      --background: var(--background-surface-3);
-      --color: var(--text-primary);
-      --border-color: var(--border-strong);
-
-      ion-label,
-      ion-icon {
-        color: var(--text-primary);
-      }
-    }
+  @media (min-width: 1200px) {
+    min-width: 195px;
   }
 }
 
@@ -844,40 +922,9 @@ ion-header {
 
 /* ── View Mode Segment in Toolbar ── */
 .header-center-segment {
-  order: 3;
-  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 4px auto 0;
-
-  @media (max-width: 767px) {
-    grid-column: 1 / 3;
-    grid-row: 2 / 3;
-    width: 100%;
-    margin: 0;
-
-    .barman-view-segment {
-      min-width: 0;
-      max-width: 100%;
-      width: 100%;
-      height: 34px;
-
-      ion-segment-button {
-        min-height: 28px;
-        height: 28px;
-        font-size: 0.78rem;
-        padding: 0 10px;
-      }
-    }
-  }
-
-  @media (min-width: 1024px) {
-    order: 2;
-    width: auto;
-    flex: 0 0 auto;
-    margin: 0 auto;
-  }
 
   .barman-view-segment {
     --background: var(--background-surface-2);

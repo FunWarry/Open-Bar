@@ -15,9 +15,7 @@ import {
   IonGrid,
   IonRow,
   IonCol,
-  IonChip,
   IonLabel,
-  IonBadge,
   IonSegment,
   IonSegmentButton,
   ModalController,
@@ -45,6 +43,7 @@ import {
   addCircleOutline
 } from 'ionicons/icons';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
+import { SearchableSelectComponent, SearchableOption } from '../../core/components/ui/searchable-select/searchable-select.component';
 import { CommandeCardComponent } from './components/commande-card/commande-card.component';
 import { NotificationService, AppNotification } from '../../core/services/notification.service';
 import { DashboardBarmanService } from './services/dashboard-barman.service';
@@ -55,14 +54,18 @@ import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-
 import { AppSettingsService } from '../../core/services/app-settings.service';
 import { SoundService } from '../../core/services/sound.service';
 import { RupturesModalComponent } from './components/ruptures-modal/ruptures-modal.component';
+import { QuickWasteLogModalComponent } from './components/quick-waste-log-modal/quick-waste-log-modal.component';
 import { RuptureImpactModalComponent } from './components/rupture-impact-modal/rupture-impact-modal.component';
 import { BarTicketPrintComponent } from './components/bar-ticket-print/bar-ticket-print.component';
 import { RecipeSidePanelComponent } from './components/recipe-side-panel/recipe-side-panel.component';
 import { Cocktail } from '../../core/models/cocktail.model';
 import { Ingredient } from '../../core/models/ingredient.model';
+import { StockMovement } from '../../core/models/stock-waste.model';
+import { StockWasteService } from '../../core/services/stock-waste.service';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { FeatureFlagService } from '../../core/services/feature-flag.service';
 import { RouletteService } from '../../core/services/roulette.service';
+export type StationFilterType = 'ALL' | 'BAR' | 'KITCHEN';
 
 /**
  * Dashboard Barman Component managing the real-time preparation Kanban board.
@@ -87,9 +90,8 @@ import { RouletteService } from '../../core/services/roulette.service';
     IonRow,
     IonCol,
     SearchBarComponent,
-    IonChip,
+    SearchableSelectComponent,
     IonLabel,
-    IonBadge,
     IonSegment,
     IonSegmentButton,
     CommandeCardComponent,
@@ -113,7 +115,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
 
   searchQuery = '';
   urgentOnly = false;
-  stationFilter: 'ALL' | 'BAR' | 'KITCHEN' = 'ALL';
+  stationFilter: StationFilterType = 'ALL';
 
   isRecipePanelOpen = false;
   activeRecipeItem: CommandeItemView | null = null;
@@ -136,6 +138,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   private readonly notificationService = inject(NotificationService);
   private readonly settingsService = inject(AppSettingsService);
   public readonly featureFlagService = inject(FeatureFlagService);
+  private readonly stockWasteService = inject(StockWasteService);
   private readonly soundService = inject(SoundService);
   private readonly transloco = inject(TranslocoService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -151,6 +154,76 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   /** Currently active batch column on mobile viewport (< 768px). */
   activeBatchMobileTab: 'PENDING' | 'IN_PROGRESS' = 'PENDING';
   roulettePin = '7777';
+
+  /**
+   * Dropdown filter options for urgency state.
+   */
+  get urgentFilterOptions(): SearchableOption<boolean>[] {
+    return [
+      {
+        value: false,
+        label: this.transloco.translate('BARMAN_DASHBOARD.FILTER_ALL'),
+        icon: 'list-outline'
+      },
+      {
+        value: true,
+        label: this.transloco.translate('BARMAN_DASHBOARD.FILTER_URGENT_ONLY'),
+        icon: 'flash-outline',
+        badge: this.urgentOrdersCount > 0 ? String(this.urgentOrdersCount) : undefined,
+        badgeType: 'danger'
+      }
+    ];
+  }
+
+  /**
+   * Dropdown filter options for station routing.
+   */
+  get stationFilterOptions(): SearchableOption<StationFilterType>[] {
+    return [
+      {
+        value: 'ALL',
+        label: this.transloco.translate('STATIONS.ALL'),
+        icon: 'layers-outline'
+      },
+      {
+        value: 'BAR',
+        label: this.transloco.translate('STATIONS.BAR'),
+        icon: 'wine-outline'
+      },
+      {
+        value: 'KITCHEN',
+        label: this.transloco.translate('STATIONS.KITCHEN'),
+        icon: 'restaurant-outline'
+      }
+    ];
+  }
+
+  /**
+   * Handles urgency filter dropdown change.
+   *
+   * @param val Selected value or option
+   */
+  onUrgentFilterChange(val: boolean | SearchableOption<boolean> | null | undefined): void {
+    if (val === null || val === undefined) return;
+    const isUrgent = typeof val === 'boolean' ? val : val.value;
+    if (isUrgent !== undefined) {
+      this.urgentOnly = isUrgent;
+    }
+  }
+
+  /**
+   * Handles station filter dropdown change.
+   *
+   * @param val Selected station or option
+   */
+  onStationFilterChange(val: StationFilterType | SearchableOption<StationFilterType> | null | undefined): void {
+    if (!val) return;
+    const station = typeof val === 'string' ? val : val.value;
+    if (station) {
+      this.stationFilter = station;
+    }
+  }
+
 
   constructor() {
     addIcons({
@@ -602,6 +675,86 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Opens the high-speed waste, shrinkage, and tasting quick-log modal.
+   */
+  async openQuickWasteModal(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: QuickWasteLogModalComponent,
+      cssClass: 'quick-waste-modal-container'
+    });
+    await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+    if (data?.saved && data.movement) {
+      await this.presentQuickWasteUndoToast(data.movement);
+    }
+  }
+
+  /**
+   * Displays immediate feedback toast with a 10-second undo button to revert the recorded shrinkage.
+   *
+   * @param movement Persisted stock movement
+   */
+  private async presentQuickWasteUndoToast(movement: StockMovement): Promise<void> {
+    const reasonLabel = this.transloco.translate('STOCK.WASTE_REASON_' + movement.reason);
+    const msg = this.transloco.translate('BARMAN_DASHBOARD.QUICK_WASTE_RECORDED_TOAST', {
+      qty: movement.quantity,
+      unit: movement.unit,
+      name: movement.ingredientNom,
+      reason: reasonLabel
+    });
+
+    const toast = await this.toastCtrl.create({
+      message: msg,
+      duration: 10000,
+      position: 'bottom',
+      color: 'dark',
+      cssClass: 'quick-waste-undo-toast',
+      buttons: [
+        {
+          text: this.transloco.translate('COMMON.UNDO'),
+          role: 'cancel',
+          handler: () => {
+            this.revertQuickWasteMovement(movement);
+          }
+        }
+      ]
+    });
+    await toast.present();
+  }
+
+  /**
+   * Reverts a recently logged stock waste movement via backend DELETE /api/stock/quick-log/{id}.
+   *
+   * @param movement Stock movement to revert
+   */
+  private revertQuickWasteMovement(movement: StockMovement): void {
+    this.stockWasteService.revertQuickLog(movement.id).subscribe({
+      next: async () => {
+        const undoMsg = this.transloco.translate('BARMAN_DASHBOARD.QUICK_WASTE_UNDONE_TOAST', {
+          name: movement.ingredientNom
+        });
+        const successToast = await this.toastCtrl.create({
+          message: undoMsg,
+          duration: 3000,
+          color: 'success',
+          position: 'bottom'
+        });
+        await successToast.present();
+      },
+      error: async () => {
+        const errToast = await this.toastCtrl.create({
+          message: this.transloco.translate('COMMON.ERROR'),
+          duration: 3000,
+          color: 'danger',
+          position: 'bottom'
+        });
+        await errToast.present();
+      }
+    });
+  }
+
+  /**
    * Opens the rupture impact verification modal from an active critical stock alert.
    */
   async openCriticalStockImpactModal(): Promise<void> {
@@ -661,7 +814,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
    *
    * @param filter Selected station filter
    */
-  setStationFilter(filter: 'ALL' | 'BAR' | 'KITCHEN'): void {
+  setStationFilter(filter: StationFilterType): void {
     this.stationFilter = filter;
   }
 
