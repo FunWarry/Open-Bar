@@ -1903,7 +1903,7 @@ public class SampleDataSeederService {
         long minutesAgo = tNode.has(KEY_MINUTES_AGO) ? tNode.get(KEY_MINUTES_AGO).asLong() : 45;
         LocalDateTime openedAt = timeService.now().minusMinutes(minutesAgo);
 
-        String serveurUsername = tNode.has(KEY_SERVEUR_USERNAME) ? tNode.get(KEY_SERVEUR_USERNAME).asText() : "serveur1";
+        String serveurUsername = tNode.has(KEY_SERVEUR_USERNAME) ? tNode.get(KEY_SERVEUR_USERNAME).asText() : DEFAULT_SERVEUR_USERNAME;
         User serveur = usersMap.get(serveurUsername);
 
         BarTab tab = new BarTab();
