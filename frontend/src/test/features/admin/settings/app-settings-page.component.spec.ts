@@ -911,6 +911,7 @@ describe('AppSettingsPageComponent', () => {
         tableReservations: false,
         checklistsProcedures: false,
         systemUpdates: false,
+        angelShotSafety: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -931,6 +932,7 @@ describe('AppSettingsPageComponent', () => {
         tableReservations: false,
         checklistsProcedures: false,
         systemUpdates: false,
+        angelShotSafety: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });
