@@ -9,6 +9,8 @@ import com.bar.gestioncocktail.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -870,53 +872,21 @@ class PdfServiceTest {
         assertThat(header).startsWith("%PDF");
     }
 
-    @Test
-    void generateAngelShotNoticePdf_englishOfficialLanguage_generatesSinglePageEnglishPdf() throws Exception {
+    @ParameterizedTest(name = "Lang: {0}, Legal: {1}")
+    @CsvSource(delimiter = '|', value = {
+            "en | The London Lounge | [{\"name\":\"UK Police\",\"number\":\"999\",\"description\":\"Emergency\"}]",
+            "es | Bar Barcelona | [{\"name\":\"Policía Nacional\",\"number\":\"091\",\"description\":\"Urgencias\"}]",
+            "fr | Le Refuge Parisien | [{\"name\":\"Sécurité Bar\",\"number\":\"06 12 34 56 78\",\"description\":\"Astreinte de nuit\"},{\"name\":\"SAMU\",\"number\":\"15\",\"description\":\"Urgence médicale\"}]"
+    })
+    void generateAngelShotNoticePdf_variousLanguagesAndCustomNumbers_generatesSinglePageValidPdf(
+            String language, String legalName, String emergencyJson) throws Exception {
         EstablishmentConfig config = new EstablishmentConfig();
-        config.setLegalName("The London Lounge");
-        config.setLanguage("en");
+        config.setLegalName(legalName);
+        config.setLanguage(language);
         lenient().when(establishmentConfigService.getConfig()).thenReturn(config);
 
         com.bar.gestioncocktail.model.AppSettings settings = new com.bar.gestioncocktail.model.AppSettings();
-        settings.setEmergencyNumbersJson("[{\"name\":\"UK Police\",\"number\":\"999\",\"description\":\"Emergency\"}]");
-        lenient().when(appSettingsService.getSettings()).thenReturn(settings);
-
-        byte[] pdf = pdfService.generateAngelShotNoticePdf();
-
-        assertThat(pdf).isNotNull().isNotEmpty();
-        com.lowagie.text.pdf.PdfReader reader = new com.lowagie.text.pdf.PdfReader(pdf);
-        assertThat(reader.getNumberOfPages()).isEqualTo(1);
-        reader.close();
-    }
-
-    @Test
-    void generateAngelShotNoticePdf_spanishOfficialLanguage_generatesBilingualSpanishEnglishNotice() throws Exception {
-        EstablishmentConfig config = new EstablishmentConfig();
-        config.setLegalName("Bar Barcelona");
-        config.setLanguage("es");
-        lenient().when(establishmentConfigService.getConfig()).thenReturn(config);
-
-        com.bar.gestioncocktail.model.AppSettings settings = new com.bar.gestioncocktail.model.AppSettings();
-        settings.setEmergencyNumbersJson("[{\"name\":\"Policía Nacional\",\"number\":\"091\",\"description\":\"Urgencias\"}]");
-        lenient().when(appSettingsService.getSettings()).thenReturn(settings);
-
-        byte[] pdf = pdfService.generateAngelShotNoticePdf();
-
-        assertThat(pdf).isNotNull().isNotEmpty();
-        com.lowagie.text.pdf.PdfReader reader = new com.lowagie.text.pdf.PdfReader(pdf);
-        assertThat(reader.getNumberOfPages()).isEqualTo(1);
-        reader.close();
-    }
-
-    @Test
-    void generateAngelShotNoticePdf_frenchOfficialLanguageWithCustomNumbers_generatesValidNotice() throws Exception {
-        EstablishmentConfig config = new EstablishmentConfig();
-        config.setLegalName("Le Refuge Parisien");
-        config.setLanguage("fr");
-        lenient().when(establishmentConfigService.getConfig()).thenReturn(config);
-
-        com.bar.gestioncocktail.model.AppSettings settings = new com.bar.gestioncocktail.model.AppSettings();
-        settings.setEmergencyNumbersJson("[{\"name\":\"Sécurité Bar\",\"number\":\"06 12 34 56 78\",\"description\":\"Astreinte de nuit\"},{\"name\":\"SAMU\",\"number\":\"15\",\"description\":\"Urgence médicale\"}]");
+        settings.setEmergencyNumbersJson(emergencyJson);
         lenient().when(appSettingsService.getSettings()).thenReturn(settings);
 
         byte[] pdf = pdfService.generateAngelShotNoticePdf();

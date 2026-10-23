@@ -80,6 +80,7 @@ public class PdfService {
     private static final String DEFAULT_TABLE_URL_PREFIX = "https://openbar.lan/client/commande?table=";
     private static final String TABLE_PREFIX = "TABLE ";
     private static final String DATE_SIGNATURE_LABEL = "Date & Signature :";
+    private static final String BULLET_SEPARATOR = "  •  ";
 
     private final EstablishmentConfigService establishmentConfigService;
     private final AppSettingsService appSettingsService;
@@ -1682,7 +1683,7 @@ public class PdfService {
 
         String statusLabel = formatAuditStatus(session.getStatus(), isEn);
         String refStatusText = (isEn ? "Reference: " : "Référence : ") + session.getReferenceCode()
-                + "  •  " + (isEn ? "Status: " : "Statut : ") + statusLabel;
+                + BULLET_SEPARATOR + (isEn ? "Status: " : "Statut : ") + statusLabel;
         titleCell.addElement(new Paragraph(refStatusText, fonts.subtitleFont()));
 
         if (session.getTitle() != null && !session.getTitle().isBlank()) {
@@ -2144,6 +2145,14 @@ public class PdfService {
 
     private record AngelShotFonts(Font titleFont, Font descOfficialFont, Font descEnFont) {}
 
+    private record AngelShotCardConfig(
+            String title,
+            String descOfficial,
+            String descEn,
+            Color bg,
+            Color border
+    ) {}
+
     /**
      * Generates a printable A4 bilingual Angel Shot restroom notice PDF in English and the
      * establishment's official language, displaying the configured emergency helpline numbers.
@@ -2151,23 +2160,10 @@ public class PdfService {
      * @return PDF byte array
      */
     public byte[] generateAngelShotNoticePdf() {
-        EstablishmentConfig config = (establishmentConfigService != null)
-                ? establishmentConfigService.getConfig()
-                : new EstablishmentConfig();
-        if (config == null) {
-            config = new EstablishmentConfig();
-        }
+        EstablishmentConfig config = resolveEstablishmentConfig();
+        AppSettings settings = resolveAppSettings();
 
-        AppSettings settings = (appSettingsService != null)
-                ? appSettingsService.getSettings()
-                : null;
-        if (settings == null) {
-            settings = new AppSettings();
-        }
-
-        String officialLang = (config.getLanguage() != null && !config.getLanguage().isBlank())
-                ? config.getLanguage().trim().toLowerCase()
-                : "fr";
+        String officialLang = resolveOfficialLanguage(config);
         boolean isEnglishOnly = "en".equals(officialLang);
 
         AngelShotNoticeI18n officialI18n = getNoticeI18n(officialLang);
@@ -2191,154 +2187,19 @@ public class PdfService {
             Font boxText     = new Font(Font.HELVETICA, 8f, Font.NORMAL, DARK_TEXT);
             Font footerFont  = new Font(Font.HELVETICA, 7.5f, Font.ITALIC, MUTED);
 
-            // 1. Establishment header
-            PdfPTable headerTable = new PdfPTable(2);
-            headerTable.setWidthPercentage(100);
-            headerTable.setWidths(new float[]{1.5f, 1f});
-
-            PdfPCell leftCell = new PdfPCell();
-            leftCell.setBorder(Rectangle.NO_BORDER);
-            leftCell.addElement(new Paragraph(config.getLegalName().toUpperCase(), brandFont));
-
-            String headerSub = isEnglishOnly
-                    ? englishI18n.headerSubtitle()
-                    : officialI18n.headerSubtitle() + "  •  " + englishI18n.headerSubtitle();
-            leftCell.addElement(new Paragraph(headerSub, superTitle));
-            headerTable.addCell(leftCell);
-
-            PdfPCell rightCell = new PdfPCell();
-            rightCell.setBorder(Rectangle.NO_BORDER);
-            Paragraph dateP = new Paragraph("OpenBar Safety Net", superTitle);
-            dateP.setAlignment(Element.ALIGN_RIGHT);
-            rightCell.addElement(dateP);
-            headerTable.addCell(rightCell);
-            doc.add(headerTable);
-
+            addNoticeHeader(doc, config, officialI18n, englishI18n, isEnglishOnly, brandFont, superTitle);
             doc.add(new Paragraph(" ", new Font(Font.HELVETICA, 4)));
 
-            // 2. Main Title Banner
-            PdfPTable titleTable = new PdfPTable(1);
-            titleTable.setWidthPercentage(100);
-            PdfPCell titleCell = new PdfPCell();
-            titleCell.setBackgroundColor(new Color(245, 247, 255));
-            titleCell.setBorderColor(PRIMARY);
-            titleCell.setPadding(8);
-
-            if (isEnglishOnly) {
-                Paragraph pTitle = new Paragraph(englishI18n.mainTitle(), mainTitle);
-                pTitle.setAlignment(Element.ALIGN_CENTER);
-                titleCell.addElement(pTitle);
-
-                Paragraph intro = new Paragraph(englishI18n.intro(), subTitle);
-                intro.setAlignment(Element.ALIGN_CENTER);
-                intro.setSpacingBefore(4f);
-                titleCell.addElement(intro);
-            } else {
-                Paragraph pTitle = new Paragraph(officialI18n.mainTitle(), mainTitle);
-                pTitle.setAlignment(Element.ALIGN_CENTER);
-                titleCell.addElement(pTitle);
-
-                Paragraph pEnTitle = new Paragraph(englishI18n.mainTitle(), new Font(Font.HELVETICA, 10.5f, Font.BOLD, PRIMARY));
-                pEnTitle.setAlignment(Element.ALIGN_CENTER);
-                titleCell.addElement(pEnTitle);
-
-                Paragraph introOfficial = new Paragraph(officialI18n.intro(), subTitle);
-                introOfficial.setAlignment(Element.ALIGN_CENTER);
-                introOfficial.setSpacingBefore(4f);
-                titleCell.addElement(introOfficial);
-
-                Paragraph introEn = new Paragraph(englishI18n.intro(), subTitleItalic);
-                introEn.setAlignment(Element.ALIGN_CENTER);
-                introEn.setSpacingBefore(2f);
-                titleCell.addElement(introEn);
-            }
-
-            titleTable.addCell(titleCell);
-            doc.add(titleTable);
-
+            addNoticeTitleBanner(doc, officialI18n, englishI18n, isEnglishOnly, mainTitle, subTitle, subTitleItalic);
             doc.add(new Paragraph(" ", new Font(Font.HELVETICA, 4)));
 
-            // 3. Three Angel Shot Cards
-            PdfPTable codesTable = new PdfPTable(1);
-            codesTable.setWidthPercentage(100);
-
-            AngelShotFonts angelFonts = new AngelShotFonts(codeTitle, codeDescOfficial, codeDescEn);
-
-            addAngelShotRow(codesTable,
-                    officialI18n.neatTitle(),
-                    officialI18n.neatDesc(),
-                    englishI18n.neatDesc(),
-                    officialI18n.langTag(),
-                    isEnglishOnly,
-                    angelFonts, new Color(240, 249, 255), new Color(186, 230, 253));
-
-            addAngelShotRow(codesTable,
-                    officialI18n.iceTitle(),
-                    officialI18n.iceDesc(),
-                    englishI18n.iceDesc(),
-                    officialI18n.langTag(),
-                    isEnglishOnly,
-                    angelFonts, new Color(254, 249, 243), new Color(254, 215, 170));
-
-            addAngelShotRow(codesTable,
-                    officialI18n.limeTitle(),
-                    officialI18n.limeDesc(),
-                    englishI18n.limeDesc(),
-                    officialI18n.langTag(),
-                    isEnglishOnly,
-                    angelFonts, new Color(254, 242, 242), new Color(254, 202, 202));
-
-            doc.add(codesTable);
+            addNoticeActionCards(doc, officialI18n, englishI18n, isEnglishOnly,
+                    new AngelShotFonts(codeTitle, codeDescOfficial, codeDescEn));
             doc.add(new Paragraph(" ", new Font(Font.HELVETICA, 4)));
 
-            // 4. Emergency Helplines Box
-            PdfPTable emergencyTable = new PdfPTable(1);
-            emergencyTable.setWidthPercentage(100);
-            PdfPCell emCell = new PdfPCell();
-            emCell.setBackgroundColor(new Color(248, 250, 252));
-            emCell.setBorderColor(BORDER_COLOR);
-            emCell.setPadding(8);
-
-            String boxTitleText = isEnglishOnly
-                    ? englishI18n.helplinesBoxTitle() + " :"
-                    : officialI18n.helplinesBoxTitle() + " / " + englishI18n.helplinesBoxTitle() + " :";
-            emCell.addElement(new Paragraph(boxTitleText, boxTitle));
-
-            List<EmergencyHelplineItem> helplines = parseEmergencyHelplines(settings.getEmergencyNumbersJson());
-            if (helplines.isEmpty()) {
-                if (isEnglishOnly) {
-                    helplines = List.of(
-                            new EmergencyHelplineItem("Emergency Services", "911 / 112", "Police, Fire, Ambulance"),
-                            new EmergencyHelplineItem("Suicide & Crisis Lifeline", "988", "24/7 free & confidential support"),
-                            new EmergencyHelplineItem("National Domestic Violence Hotline", "1-800-799-SAFE (7233)", "24/7 confidential assistance")
-                    );
-                } else {
-                    helplines = List.of(
-                            new EmergencyHelplineItem("Police Secours", "17", "Urgence immédiate / Agression"),
-                            new EmergencyHelplineItem("Urgences Europe", "112", "Numéro d'urgence européen"),
-                            new EmergencyHelplineItem("Violences Femmes Info", "3919", "Écoute & orientation 24/7"),
-                            new EmergencyHelplineItem("Urgence SMS (Sourds)", "114", "Contact discret par SMS")
-                    );
-                }
-            }
-
-            for (EmergencyHelplineItem helpline : helplines) {
-                Paragraph pLine = new Paragraph();
-                pLine.setSpacingBefore(2f);
-                pLine.add(new Chunk("• " + helpline.name() + " : ", boxTitle));
-                pLine.add(new Chunk(helpline.number(), new Font(Font.HELVETICA, 8.5f, Font.BOLD, PRIMARY)));
-                if (helpline.description() != null && !helpline.description().isBlank()) {
-                    pLine.add(new Chunk(" — " + helpline.description(), boxText));
-                }
-                emCell.addElement(pLine);
-            }
-
-            emergencyTable.addCell(emCell);
-            doc.add(emergencyTable);
-
+            addEmergencyHelplinesSection(doc, settings, officialI18n, englishI18n, isEnglishOnly, boxTitle, boxText);
             doc.add(new Paragraph(" ", new Font(Font.HELVETICA, 4)));
 
-            // 5. Footer
             String footerText = isEnglishOnly
                     ? englishI18n.footerText() + " — " + config.getLegalName()
                     : officialI18n.footerText() + " | " + englishI18n.footerText() + " — " + config.getLegalName();
@@ -2353,31 +2214,196 @@ public class PdfService {
         }
     }
 
-    private void addAngelShotRow(PdfPTable table, String title, String descOfficial, String descEn,
+    private EstablishmentConfig resolveEstablishmentConfig() {
+        if (establishmentConfigService != null && establishmentConfigService.getConfig() != null) {
+            return establishmentConfigService.getConfig();
+        }
+        return new EstablishmentConfig();
+    }
+
+    private AppSettings resolveAppSettings() {
+        if (appSettingsService != null && appSettingsService.getSettings() != null) {
+            return appSettingsService.getSettings();
+        }
+        return new AppSettings();
+    }
+
+    private String resolveOfficialLanguage(EstablishmentConfig config) {
+        if (config.getLanguage() != null && !config.getLanguage().isBlank()) {
+            return config.getLanguage().trim().toLowerCase();
+        }
+        return "fr";
+    }
+
+    private void addNoticeHeader(Document doc, EstablishmentConfig config,
+                                 AngelShotNoticeI18n officialI18n, AngelShotNoticeI18n englishI18n,
+                                 boolean isEnglishOnly, Font brandFont, Font superTitle) throws DocumentException {
+        PdfPTable headerTable = new PdfPTable(2);
+        headerTable.setWidthPercentage(100);
+        headerTable.setWidths(new float[]{1.5f, 1f});
+
+        PdfPCell leftCell = new PdfPCell();
+        leftCell.setBorder(Rectangle.NO_BORDER);
+        leftCell.addElement(new Paragraph(config.getLegalName().toUpperCase(), brandFont));
+
+        String headerSub = isEnglishOnly
+                ? englishI18n.headerSubtitle()
+                : officialI18n.headerSubtitle() + BULLET_SEPARATOR + englishI18n.headerSubtitle();
+        leftCell.addElement(new Paragraph(headerSub, superTitle));
+        headerTable.addCell(leftCell);
+
+        PdfPCell rightCell = new PdfPCell();
+        rightCell.setBorder(Rectangle.NO_BORDER);
+        Paragraph dateP = new Paragraph("OpenBar Safety Net", superTitle);
+        dateP.setAlignment(Element.ALIGN_RIGHT);
+        rightCell.addElement(dateP);
+        headerTable.addCell(rightCell);
+        doc.add(headerTable);
+    }
+
+    private void addNoticeTitleBanner(Document doc, AngelShotNoticeI18n officialI18n,
+                                       AngelShotNoticeI18n englishI18n, boolean isEnglishOnly,
+                                       Font mainTitle, Font subTitle, Font subTitleItalic) throws DocumentException {
+        PdfPTable titleTable = new PdfPTable(1);
+        titleTable.setWidthPercentage(100);
+        PdfPCell titleCell = new PdfPCell();
+        titleCell.setBackgroundColor(new Color(245, 247, 255));
+        titleCell.setBorderColor(PRIMARY);
+        titleCell.setPadding(8);
+
+        if (isEnglishOnly) {
+            Paragraph pTitle = new Paragraph(englishI18n.mainTitle(), mainTitle);
+            pTitle.setAlignment(Element.ALIGN_CENTER);
+            titleCell.addElement(pTitle);
+
+            Paragraph intro = new Paragraph(englishI18n.intro(), subTitle);
+            intro.setAlignment(Element.ALIGN_CENTER);
+            intro.setSpacingBefore(4f);
+            titleCell.addElement(intro);
+        } else {
+            Paragraph pTitle = new Paragraph(officialI18n.mainTitle(), mainTitle);
+            pTitle.setAlignment(Element.ALIGN_CENTER);
+            titleCell.addElement(pTitle);
+
+            Paragraph pEnTitle = new Paragraph(englishI18n.mainTitle(), new Font(Font.HELVETICA, 10.5f, Font.BOLD, PRIMARY));
+            pEnTitle.setAlignment(Element.ALIGN_CENTER);
+            titleCell.addElement(pEnTitle);
+
+            Paragraph introOfficial = new Paragraph(officialI18n.intro(), subTitle);
+            introOfficial.setAlignment(Element.ALIGN_CENTER);
+            introOfficial.setSpacingBefore(4f);
+            titleCell.addElement(introOfficial);
+
+            Paragraph introEn = new Paragraph(englishI18n.intro(), subTitleItalic);
+            introEn.setAlignment(Element.ALIGN_CENTER);
+            introEn.setSpacingBefore(2f);
+            titleCell.addElement(introEn);
+        }
+
+        titleTable.addCell(titleCell);
+        doc.add(titleTable);
+    }
+
+    private void addNoticeActionCards(Document doc, AngelShotNoticeI18n officialI18n,
+                                      AngelShotNoticeI18n englishI18n, boolean isEnglishOnly,
+                                      AngelShotFonts fonts) throws DocumentException {
+        PdfPTable codesTable = new PdfPTable(1);
+        codesTable.setWidthPercentage(100);
+
+        addAngelShotRow(codesTable,
+                new AngelShotCardConfig(officialI18n.neatTitle(), officialI18n.neatDesc(), englishI18n.neatDesc(),
+                        new Color(240, 249, 255), new Color(186, 230, 253)),
+                officialI18n.langTag(), isEnglishOnly, fonts);
+
+        addAngelShotRow(codesTable,
+                new AngelShotCardConfig(officialI18n.iceTitle(), officialI18n.iceDesc(), englishI18n.iceDesc(),
+                        new Color(254, 249, 243), new Color(254, 215, 170)),
+                officialI18n.langTag(), isEnglishOnly, fonts);
+
+        addAngelShotRow(codesTable,
+                new AngelShotCardConfig(officialI18n.limeTitle(), officialI18n.limeDesc(), englishI18n.limeDesc(),
+                        new Color(254, 242, 242), new Color(254, 202, 202)),
+                officialI18n.langTag(), isEnglishOnly, fonts);
+
+        doc.add(codesTable);
+    }
+
+    private void addAngelShotRow(PdfPTable table, AngelShotCardConfig card,
                                  String officialLangTag, boolean isEnglishOnly,
-                                 AngelShotFonts fonts, Color bg, Color border) {
+                                 AngelShotFonts fonts) {
         PdfPCell cell = new PdfPCell();
-        cell.setBackgroundColor(bg);
-        cell.setBorderColor(border);
+        cell.setBackgroundColor(card.bg());
+        cell.setBorderColor(card.border());
         cell.setPadding(6);
 
-        Paragraph pTitle = new Paragraph(title, fonts.titleFont());
+        Paragraph pTitle = new Paragraph(card.title(), fonts.titleFont());
         pTitle.setSpacingAfter(2f);
         cell.addElement(pTitle);
 
         if (isEnglishOnly) {
-            Paragraph pEn = new Paragraph(descEn, fonts.descOfficialFont());
+            Paragraph pEn = new Paragraph(card.descEn(), fonts.descOfficialFont());
             cell.addElement(pEn);
         } else {
-            Paragraph pOfficial = new Paragraph("[" + officialLangTag + "] " + descOfficial, fonts.descOfficialFont());
+            Paragraph pOfficial = new Paragraph("[" + officialLangTag + "] " + card.descOfficial(), fonts.descOfficialFont());
             pOfficial.setSpacingAfter(2f);
             cell.addElement(pOfficial);
 
-            Paragraph pEn = new Paragraph("[EN] " + descEn, fonts.descEnFont());
+            Paragraph pEn = new Paragraph("[EN] " + card.descEn(), fonts.descEnFont());
             cell.addElement(pEn);
         }
 
         table.addCell(cell);
+    }
+
+    private void addEmergencyHelplinesSection(Document doc, AppSettings settings,
+                                              AngelShotNoticeI18n officialI18n, AngelShotNoticeI18n englishI18n,
+                                              boolean isEnglishOnly, Font boxTitle, Font boxText) throws DocumentException {
+        PdfPTable emergencyTable = new PdfPTable(1);
+        emergencyTable.setWidthPercentage(100);
+        PdfPCell emCell = new PdfPCell();
+        emCell.setBackgroundColor(new Color(248, 250, 252));
+        emCell.setBorderColor(BORDER_COLOR);
+        emCell.setPadding(8);
+
+        String boxTitleText = isEnglishOnly
+                ? englishI18n.helplinesBoxTitle() + " :"
+                : officialI18n.helplinesBoxTitle() + " / " + englishI18n.helplinesBoxTitle() + " :";
+        emCell.addElement(new Paragraph(boxTitleText, boxTitle));
+
+        List<EmergencyHelplineItem> helplines = resolveNoticeHelplines(settings, isEnglishOnly);
+        for (EmergencyHelplineItem helpline : helplines) {
+            Paragraph pLine = new Paragraph();
+            pLine.setSpacingBefore(2f);
+            pLine.add(new Chunk("• " + helpline.name() + " : ", boxTitle));
+            pLine.add(new Chunk(helpline.number(), new Font(Font.HELVETICA, 8.5f, Font.BOLD, PRIMARY)));
+            if (helpline.description() != null && !helpline.description().isBlank()) {
+                pLine.add(new Chunk(" — " + helpline.description(), boxText));
+            }
+            emCell.addElement(pLine);
+        }
+
+        emergencyTable.addCell(emCell);
+        doc.add(emergencyTable);
+    }
+
+    private List<EmergencyHelplineItem> resolveNoticeHelplines(AppSettings settings, boolean isEnglishOnly) {
+        List<EmergencyHelplineItem> helplines = parseEmergencyHelplines(settings.getEmergencyNumbersJson());
+        if (!helplines.isEmpty()) {
+            return helplines;
+        }
+        if (isEnglishOnly) {
+            return List.of(
+                    new EmergencyHelplineItem("Emergency Services", "911 / 112", "Police, Fire, Ambulance"),
+                    new EmergencyHelplineItem("Suicide & Crisis Lifeline", "988", "24/7 free & confidential support"),
+                    new EmergencyHelplineItem("National Domestic Violence Hotline", "1-800-799-SAFE (7233)", "24/7 confidential assistance")
+            );
+        }
+        return List.of(
+                new EmergencyHelplineItem("Police Secours", "17", "Urgence immédiate / Agression"),
+                new EmergencyHelplineItem("Urgences Europe", "112", "Numéro d'urgence européen"),
+                new EmergencyHelplineItem("Violences Femmes Info", "3919", "Écoute & orientation 24/7"),
+                new EmergencyHelplineItem("Urgence SMS (Sourds)", "114", "Contact discret par SMS")
+        );
     }
 
     private List<EmergencyHelplineItem> parseEmergencyHelplines(String json) {
