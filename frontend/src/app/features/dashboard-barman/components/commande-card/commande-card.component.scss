@@ -366,6 +366,17 @@
   border: 1px solid rgba(108, 127, 232, 0.4);
 }
 
+.companion-glass-chip {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--primary-light, #9aa8f5);
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+  white-space: nowrap;
+}
+
 .recipe-toggle-btn {
   background: var(--background-surface-2);
   border: 1px solid var(--border-medium);

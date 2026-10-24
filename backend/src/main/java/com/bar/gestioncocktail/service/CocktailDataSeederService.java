@@ -251,6 +251,28 @@ public class CocktailDataSeederService {
                 savedCocktail.setRecipeSteps(steps);
             }
 
+            if (savedCocktail.getGlassware() != null) {
+                CocktailGlass cg1 = new CocktailGlass();
+                cg1.setCocktail(savedCocktail);
+                cg1.setGlassware(savedCocktail.getGlassware());
+                cg1.setGlassOrder(1);
+                cg1.setRoleLabel("Verre Principal");
+                cg1.setPrimary(true);
+                savedCocktail.getGlasses().add(cg1);
+            }
+            if (savedCocktail.getSecondaryGlassware() != null) {
+                CocktailGlass cg2 = new CocktailGlass();
+                cg2.setCocktail(savedCocktail);
+                cg2.setGlassware(savedCocktail.getSecondaryGlassware());
+                cg2.setGlassOrder(2);
+                String label = (savedCocktail.getCompanionGlassTitle() != null && !savedCocktail.getCompanionGlassTitle().isBlank())
+                    ? savedCocktail.getCompanionGlassTitle()
+                    : savedCocktail.getSecondaryGlassware().getNom();
+                cg2.setRoleLabel(label);
+                cg2.setPrimary(false);
+                savedCocktail.getGlasses().add(cg2);
+            }
+
             cocktailRepository.save(savedCocktail);
             importVariantes(savedCocktail, node.get("variantes"));
             return true;
@@ -276,6 +298,14 @@ public class CocktailDataSeederService {
         cocktail.setCategorie(detectCategory(node, containsAlcohol));
         cocktail.setVatRate(resolveVatRate(nom, containsAlcohol));
         cocktail.setGlassware(resolveGlassware(node, allGlassware));
+        if (node.has(KEY_MATERIEL) && node.get(KEY_MATERIEL).has("verre_secondaire")) {
+            String sec = node.get(KEY_MATERIEL).get("verre_secondaire").asText();
+            String matchedSec = matchGlasswarePreset(sec.toLowerCase(), "");
+            cocktail.setSecondaryGlassware(findGlasswareByKeyword(allGlassware, matchedSec));
+        }
+        if (node.has(KEY_MATERIEL) && node.get(KEY_MATERIEL).has("companion_glass_title")) {
+            cocktail.setCompanionGlassTitle(node.get(KEY_MATERIEL).get("companion_glass_title").asText());
+        }
         cocktail.setMocktail(resolveMocktail(node, containsAlcohol, cocktail.getCategorie()));
         cocktail.setAlcoholLevel(resolveAlcoholLevel(node, nom, containsAlcohol, cocktail.getCategorie()));
         cocktail.setVegan(resolveVegan(node, ingredientsNode));
@@ -421,6 +451,11 @@ public class CocktailDataSeederService {
         CocktailRecipeStep step = new CocktailRecipeStep();
         step.setCocktail(savedCocktail);
         step.setStepOrder(order);
+        if (stepNode.has("target_glass_order")) {
+            step.setTargetGlassOrder(stepNode.get("target_glass_order").asInt(1));
+        } else {
+            step.setTargetGlassOrder(1);
+        }
 
         if ("AJOUTER_INGREDIENT".equalsIgnoreCase(action) || ACTION_TOP_UP.equalsIgnoreCase(action) || stepNode.has(KEY_INGREDIENT)) {
             populateIngredientStep(step, stepNode, savedCocktail, desc);
@@ -558,6 +593,7 @@ public class CocktailDataSeederService {
         ci.setIngredient(ingredient);
         ci.setQuantite(qty);
         ci.setUnite(unite.isEmpty() || unite.equalsIgnoreCase("nan") ? "cl" : unite);
+        ci.setTargetGlassOrder(ingNode.has("target_glass_order") ? ingNode.get("target_glass_order").asInt(1) : 1);
         return cocktailIngredientRepository.save(ci);
     }
 

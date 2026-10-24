@@ -74,3 +74,4 @@ frontend/reports/
 *.pem
 /data/
 .scannerwork/
+.sonar/

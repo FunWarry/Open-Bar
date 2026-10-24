@@ -84,7 +84,7 @@
 
       .step-badge {
         background: var(--primary);
-        color: #ffffff;
+        color: var(--text-on-accent, white);
         box-shadow: 0 0 10px rgba(var(--primary-rgb, 79, 70, 229), 0.5);
       }
 
@@ -99,7 +99,7 @@
 
       .step-badge {
         background: var(--semantic-success);
-        color: #ffffff;
+        color: var(--text-on-accent, white);
       }
     }
 
@@ -566,7 +566,7 @@
 
         &:hover:not(:disabled) {
           background: var(--primary);
-          color: #ffffff;
+          color: var(--text-on-accent, white);
         }
 
         &:disabled {
@@ -576,7 +576,7 @@
 
         &.btn-delete:hover:not(:disabled) {
           background: var(--semantic-danger);
-          color: #ffffff;
+          color: var(--text-on-accent, white);
         }
       }
     }
@@ -658,7 +658,7 @@
 
         &:hover {
           background: var(--primary);
-          color: #ffffff;
+          color: var(--text-on-accent, white);
         }
       }
     }
@@ -1033,7 +1033,7 @@
         height: 34px;
         border-radius: 50%;
         background: var(--primary);
-        color: #ffffff;
+        color: var(--text-on-accent, white);
         border: none;
         display: flex;
         align-items: center;
@@ -1583,7 +1583,7 @@
 
             &.active {
               background: var(--primary);
-              color: #ffffff;
+              color: var(--text-on-accent, white);
             }
 
             &:hover:not(.active) {
@@ -1747,7 +1747,7 @@
 
             &:hover {
               background: var(--semantic-danger);
-              color: #ffffff;
+              color: var(--text-on-accent, white);
             }
           }
         }
@@ -1786,7 +1786,7 @@
       .btn-save {
         background: var(--primary);
         border: none;
-        color: #ffffff;
+        color: var(--text-on-accent, white);
 
         &:hover:not(:disabled) {
           box-shadow: 0 0 12px var(--primary);
@@ -1844,7 +1844,7 @@
       padding: 0 6px;
       border-radius: var(--radius-pill, 999px);
       background: var(--primary);
-      color: #ffffff;
+      color: var(--text-on-accent, white);
       font-size: 0.75rem;
       font-weight: 700;
     }
@@ -2039,7 +2039,7 @@
   &.selected {
     background: var(--primary);
     border-color: var(--primary);
-    color: #ffffff;
+    color: var(--text-on-accent, white);
     box-shadow: 0 4px 12px var(--border-selected);
   }
 }
@@ -2322,6 +2322,205 @@
       }
     }
   }
+}
+
+/* ==========================================================================
+   Multi-Glass & Companion Glassware Styles (ticket 570)
+   ========================================================================== */
+.multi-glass-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-sm);
+  margin-top: 0.5rem;
+
+  .multi-glass-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+
+    .toggle-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+
+      .toggle-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      .toggle-hint {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+      }
+    }
+  }
+
+  .companion-glass-config {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-subtle, var(--border-medium));
+  }
+
+  .extra-glasses-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 0.5rem;
+  }
+
+  .extra-glass-card {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+    padding: 0.85rem;
+    background: var(--background-surface-1);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md, 8px);
+    flex-wrap: wrap;
+
+    .extra-glass-select {
+      flex: 1 1 200px;
+    }
+
+    .extra-glass-role {
+      flex: 1 1 180px;
+    }
+
+    .btn-remove-extra-glass {
+      background: var(--action-btn-bg, var(--background-surface-2));
+      border: 1px solid var(--border-medium);
+      color: var(--semantic-danger);
+      width: 40px;
+      height: 40px;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 2px;
+
+      &:hover {
+        background: var(--semantic-danger);
+        color: var(--text-on-accent, white);
+      }
+    }
+  }
+
+  .btn-add-extra-glass {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    background: var(--background-surface-1);
+    border: 1px dashed var(--border-medium);
+    border-radius: var(--radius-md, 8px);
+    color: var(--primary-light);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    align-self: flex-start;
+
+    &:hover {
+      border-color: var(--primary);
+      background: var(--background-surface-3);
+      color: var(--primary);
+    }
+  }
+}
+
+.builder-glass-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.25rem 0 0.75rem 0;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .builder-glass-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: var(--radius-pill, 999px);
+    border: 1px solid var(--border-medium);
+    background: var(--background-surface-1);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+
+    ion-icon {
+      font-size: 0.95rem;
+    }
+
+    &:hover {
+      background: var(--background-surface-2);
+      color: var(--text-primary);
+      border-color: var(--border-light);
+    }
+
+    &.active {
+      background: var(--primary);
+      color: var(--text-on-accent, #ffffff);
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(var(--primary-rgb, 79, 70, 229), 0.35);
+
+      ion-icon {
+        color: var(--text-on-accent, #ffffff);
+      }
+    }
+  }
+}
+
+.block-glass-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  color: var(--primary-light);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.step-glass-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  color: var(--primary-light);
+  font-size: 0.725rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill, 999px);
+  margin-left: 0.5rem;
+  white-space: nowrap;
+}
+
+.target-glass-col {
+  grid-column: 1 / -1;
 }
 
 

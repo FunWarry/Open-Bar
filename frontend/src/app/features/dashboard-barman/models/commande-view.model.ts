@@ -49,6 +49,8 @@ export interface CommandeItemView {
     uniteMesure: string;
   }>;
   instructions?: string;
+  secondaryGlasswareNom?: string;
+  companionGlassTitle?: string;
 }
 
 /**

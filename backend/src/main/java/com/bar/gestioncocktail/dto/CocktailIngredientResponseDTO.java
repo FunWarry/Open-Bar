@@ -8,13 +8,14 @@ import java.util.Set;
 /**
  * Response DTO describing an ingredient used within a cocktail recipe.
  *
- * @param id            Unique link identifier
- * @param ingredientId  Target ingredient ID
- * @param ingredientNom Target ingredient name
- * @param uniteMesure   Recipe measurement unit
- * @param quantite      Measurement quantity
- * @param notes         Preparation notes
- * @param allergens     Set of allergens present in this ingredient
+ * @param id               Unique link identifier
+ * @param ingredientId     Target ingredient ID
+ * @param ingredientNom    Target ingredient name
+ * @param uniteMesure      Recipe measurement unit
+ * @param quantite         Measurement quantity
+ * @param targetGlassOrder Glass order index (1 = Primary, 2 = Secondary, etc.)
+ * @param notes            Preparation notes
+ * @param allergens        Set of allergens present in this ingredient
  */
 public record CocktailIngredientResponseDTO(
     Long id,
@@ -22,11 +23,27 @@ public record CocktailIngredientResponseDTO(
     String ingredientNom,
     String uniteMesure,
     BigDecimal quantite,
+    Integer targetGlassOrder,
     String notes,
     Set<Allergen> allergens
 ) {
     /**
-     * Backward-compatible 6-parameter constructor without allergens.
+     * Backward-compatible 7-parameter constructor without targetGlassOrder.
+     */
+    public CocktailIngredientResponseDTO(
+        Long id,
+        Long ingredientId,
+        String ingredientNom,
+        String uniteMesure,
+        BigDecimal quantite,
+        String notes,
+        Set<Allergen> allergens
+    ) {
+        this(id, ingredientId, ingredientNom, uniteMesure, quantite, 1, notes, allergens);
+    }
+
+    /**
+     * Backward-compatible 6-parameter constructor without allergens and targetGlassOrder.
      */
     public CocktailIngredientResponseDTO(
         Long id,
@@ -36,7 +53,7 @@ public record CocktailIngredientResponseDTO(
         BigDecimal quantite,
         String notes
     ) {
-        this(id, ingredientId, ingredientNom, uniteMesure, quantite, notes, Set.of());
+        this(id, ingredientId, ingredientNom, uniteMesure, quantite, 1, notes, Set.of());
     }
 
     /**
@@ -64,6 +81,7 @@ public record CocktailIngredientResponseDTO(
             ingNom,
             unite,
             ci.getQuantite(),
+            ci.getTargetGlassOrder() != null ? ci.getTargetGlassOrder() : 1,
             ci.getNotes(),
             allergens
         );

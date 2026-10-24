@@ -1,7 +1,7 @@
 {
   "titre": "Base de Données Cocktails & Bar OpenBar",
   "description": "Export complet et professionnel des 99 cocktails, bières, vins, softs et snacks avec recettes pas à pas, verres, photos et ingrédients.",
-  "nombre_total_cocktails": 98,
+  "nombre_total_cocktails": 99,
   "cocktails": [
     {
       "id": 1,
@@ -12584,6 +12584,169 @@
       "mois_fin": 2,
       "flavor_profiles": [
         "SWEET"
+      ]
+    },
+    {
+      "id": 99,
+      "nom": "Pornstar Martini",
+      "materiel": {
+        "ustensiles": "Shaker, Passoire fine",
+        "verre": "Coupe",
+        "verre_secondaire": "Verre à Shot / Chupito",
+        "companion_glass_title": "Shot de Prosecco",
+        "specification": "Shaké énergiquement et double filtré avec shot d'accompagnement",
+        "image_verre": "/assets/images/verres/verre_martini.png"
+      },
+      "economie": {
+        "cout_total_eur": 2.1,
+        "marge_pourcent": "80%",
+        "prix_de_vente_eur": 12
+      },
+      "media": {
+        "photo_url": "assets/images/verres/verre_martini.png"
+      },
+      "ingredients": [
+        {
+          "nom": "Vodka",
+          "quantite": 4,
+          "unite": "cl",
+          "cout_eur": 0.6,
+          "allergens": [],
+          "category": "spirits",
+          "target_glass_order": 1
+        },
+        {
+          "nom": "Passoã",
+          "quantite": 2,
+          "unite": "cl",
+          "cout_eur": 0.35,
+          "allergens": [],
+          "category": "liqueurs",
+          "target_glass_order": 1
+        },
+        {
+          "nom": "Purée de fruit de la passion",
+          "quantite": 3,
+          "unite": "cl",
+          "cout_eur": 0.45,
+          "allergens": [],
+          "category": "juices",
+          "target_glass_order": 1
+        },
+        {
+          "nom": "Sirop de vanille",
+          "quantite": 1.5,
+          "unite": "cl",
+          "cout_eur": 0.15,
+          "allergens": [],
+          "category": "mixers",
+          "target_glass_order": 1
+        },
+        {
+          "nom": "Prosecco",
+          "quantite": 5,
+          "unite": "cl",
+          "cout_eur": 0.55,
+          "allergens": [
+            "SULFITES"
+          ],
+          "category": "wines",
+          "target_glass_order": 2
+        }
+      ],
+      "recette_resume_etapes": [
+        "Verser la vodka, le Passoã, la purée de passion et le sirop de vanille dans le shaker avec des glaçons.",
+        "Shaker énergiquement pendant 15 secondes.",
+        "Double filtrer dans une coupe à cocktail rafraîchie.",
+        "Verser 5 cl de Prosecco bien frais dans le verre à shot d'accompagnement.",
+        "Déposer un demi-fruit de la passion sur la mousse et servir avec le shot de Prosecco."
+      ],
+      "recette_ultra_detaillee": [
+        {
+          "etape": 1,
+          "action": "AJOUTER_INGREDIENT",
+          "ingredient": "Vodka",
+          "quantite": 4,
+          "unite": "cl",
+          "target_glass_order": 1,
+          "cible": "AJOUTER_INGREDIENT",
+          "description": "Verser 4 cl de Vodka dans le shaker."
+        },
+        {
+          "etape": 2,
+          "action": "AJOUTER_INGREDIENT",
+          "ingredient": "Passoã",
+          "quantite": 2,
+          "unite": "cl",
+          "target_glass_order": 1,
+          "cible": "AJOUTER_INGREDIENT",
+          "description": "Ajouter 2 cl de Passoã dans le shaker."
+        },
+        {
+          "etape": 3,
+          "action": "AJOUTER_INGREDIENT",
+          "ingredient": "Purée de fruit de la passion",
+          "quantite": 3,
+          "unite": "cl",
+          "target_glass_order": 1,
+          "cible": "AJOUTER_INGREDIENT",
+          "description": "Ajouter 3 cl de purée de fruit de la passion."
+        },
+        {
+          "etape": 4,
+          "action": "AJOUTER_INGREDIENT",
+          "ingredient": "Sirop de vanille",
+          "quantite": 1.5,
+          "unite": "cl",
+          "target_glass_order": 1,
+          "cible": "AJOUTER_INGREDIENT",
+          "description": "Ajouter 1.5 cl de sirop de vanille."
+        },
+        {
+          "etape": 5,
+          "action": "SHAKER",
+          "target_glass_order": 1,
+          "cible": "SHAKER",
+          "description": "Remplir le shaker de glace et agiter vigoureusement."
+        },
+        {
+          "etape": 6,
+          "action": "FILTRER",
+          "target_glass_order": 1,
+          "cible": "FILTRER",
+          "description": "Double filtrer dans la coupe rafraîchie."
+        },
+        {
+          "etape": 7,
+          "action": "AJOUTER_INGREDIENT",
+          "ingredient": "Prosecco",
+          "quantite": 5,
+          "unite": "cl",
+          "target_glass_order": 2,
+          "cible": "AJOUTER_INGREDIENT",
+          "description": "Verser 5 cl de Prosecco frais dans le verre à shot d'accompagnement."
+        },
+        {
+          "etape": 8,
+          "action": "GARNIR",
+          "target_glass_order": 1,
+          "cible": "GARNIR",
+          "description": "Garnir d'un demi-fruit de la passion et dresser avec le shot de Prosecco."
+        }
+      ],
+      "categorie": "ALCOOLISE",
+      "degre_alcool_pct": 16,
+      "temps_preparation_sec": 75,
+      "tags": [
+        "Alcoolisé",
+        "Shaké",
+        "Multi-verres"
+      ],
+      "variantes": [],
+      "flavor_profiles": [
+        "FRUITY",
+        "SWEET",
+        "SOUR"
       ]
     }
   ]

@@ -1657,5 +1657,56 @@ dialog.cocktail-details-dialog {
   }
 }
 
+/* Glassware section in cocktail details modal */
+.cocktail-glassware-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm, 8px);
+}
+
+.glassware-section-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+
+.glassware-chips-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.glassware-item-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--background-surface-1);
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
+}
+
+.glassware-item-chip.primary-glass {
+  border-color: color-mix(in srgb, var(--primary) 40%, transparent);
+  color: var(--primary-light);
+}
+
+.glassware-item-chip.companion-glass {
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 45%, transparent);
+  color: var(--primary-light);
+}
+
+
 
 
