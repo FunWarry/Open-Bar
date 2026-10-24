@@ -74,6 +74,7 @@ public class CocktailDataSeederService {
     private static final String ACTION_TOP_UP = "TOP_UP";
     private static final String CATEGORY_OTHER = "other";
     private static final String KEY_CATEGORY = "category";
+    private static final String KEY_TARGET_GLASS_ORDER = "target_glass_order";
 
     private static final Set<String> ALCOHOL_KEYWORDS = Set.of(
             "rhum", "vodka", "gin", "tequila", KEY_WHISKY, KEY_WHISKEY, "calvados", "cognac", "armagnac",
@@ -451,8 +452,8 @@ public class CocktailDataSeederService {
         CocktailRecipeStep step = new CocktailRecipeStep();
         step.setCocktail(savedCocktail);
         step.setStepOrder(order);
-        if (stepNode.has("target_glass_order")) {
-            step.setTargetGlassOrder(stepNode.get("target_glass_order").asInt(1));
+        if (stepNode.has(KEY_TARGET_GLASS_ORDER)) {
+            step.setTargetGlassOrder(stepNode.get(KEY_TARGET_GLASS_ORDER).asInt(1));
         } else {
             step.setTargetGlassOrder(1);
         }
@@ -593,7 +594,7 @@ public class CocktailDataSeederService {
         ci.setIngredient(ingredient);
         ci.setQuantite(qty);
         ci.setUnite(unite.isEmpty() || unite.equalsIgnoreCase("nan") ? "cl" : unite);
-        ci.setTargetGlassOrder(ingNode.has("target_glass_order") ? ingNode.get("target_glass_order").asInt(1) : 1);
+        ci.setTargetGlassOrder(ingNode.has(KEY_TARGET_GLASS_ORDER) ? ingNode.get(KEY_TARGET_GLASS_ORDER).asInt(1) : 1);
         return cocktailIngredientRepository.save(ci);
     }
 
@@ -730,7 +731,7 @@ public class CocktailDataSeederService {
                 sb.append("Note : ").append(mat.get(KEY_SPECIFICATION).asText());
             }
         }
-        return !sb.isEmpty() ? sb.toString() : "Cocktail fait maison";
+        return sb.isEmpty() ? "Cocktail fait maison" : sb.toString();
     }
 
     private String buildInstructions(JsonNode node) {

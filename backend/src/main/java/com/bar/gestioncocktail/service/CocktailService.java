@@ -793,71 +793,90 @@ public class CocktailService {
         cocktail.getGlasses().clear();
 
         if (request.glasses() != null && !request.glasses().isEmpty()) {
-            for (CocktailGlassRequestDTO gDto : request.glasses()) {
-                if (gDto.glasswareId() != null) {
-                    Glassware gw = glasswareRepository.findById(gDto.glasswareId()).orElse(null);
-                    if (gw != null) {
-                        CocktailGlass cg = new CocktailGlass();
-                        cg.setCocktail(cocktail);
-                        cg.setGlassware(gw);
-                        cg.setGlassOrder(gDto.glassOrder() != null ? gDto.glassOrder() : 1);
-                        cg.setRoleLabel(gDto.roleLabel());
-                        cg.setPrimary(Boolean.TRUE.equals(gDto.isPrimary()) || (gDto.glassOrder() != null && gDto.glassOrder() == 1));
-                        cg.setCreatedAt(timeService.now());
-                        cg.setUpdatedAt(timeService.now());
-                        cocktail.getGlasses().add(cg);
-
-                        if (cg.isPrimary() || (cg.getGlassOrder() != null && cg.getGlassOrder() == 1)) {
-                            cocktail.setGlassware(gw);
-                        } else if (cg.getGlassOrder() != null && cg.getGlassOrder() == 2) {
-                            cocktail.setSecondaryGlassware(gw);
-                            if (cocktail.getCompanionGlassTitle() == null || cocktail.getCompanionGlassTitle().isBlank()) {
-                                cocktail.setCompanionGlassTitle(cg.getRoleLabel());
-                            }
-                        }
-                    }
-                }
-            }
+            syncGlassesFromList(cocktail, request.glasses());
         } else {
-            if (request.glasswareId() != null) {
-                glasswareRepository.findById(request.glasswareId()).ifPresent(gw -> {
-                    cocktail.setGlassware(gw);
-                    CocktailGlass cg = new CocktailGlass();
-                    cg.setCocktail(cocktail);
-                    cg.setGlassware(gw);
-                    cg.setGlassOrder(1);
-                    cg.setRoleLabel("Verre Principal");
-                    cg.setPrimary(true);
-                    cg.setCreatedAt(timeService.now());
-                    cg.setUpdatedAt(timeService.now());
-                    cocktail.getGlasses().add(cg);
-                });
-            } else {
-                cocktail.setGlassware(null);
-            }
+            syncGlassesFromLegacyFields(cocktail, request);
+        }
+    }
 
-            if (request.secondaryGlasswareId() != null) {
-                glasswareRepository.findById(request.secondaryGlasswareId()).ifPresent(gw -> {
-                    cocktail.setSecondaryGlassware(gw);
-                    cocktail.setCompanionGlassTitle(request.companionGlassTitle());
-                    CocktailGlass cg = new CocktailGlass();
-                    cg.setCocktail(cocktail);
-                    cg.setGlassware(gw);
-                    cg.setGlassOrder(2);
-                    String label = (request.companionGlassTitle() != null && !request.companionGlassTitle().isBlank())
-                        ? request.companionGlassTitle()
-                        : gw.getNom();
-                    cg.setRoleLabel(label);
-                    cg.setPrimary(false);
-                    cg.setCreatedAt(timeService.now());
-                    cg.setUpdatedAt(timeService.now());
-                    cocktail.getGlasses().add(cg);
-                });
-            } else {
-                cocktail.setSecondaryGlassware(null);
-                cocktail.setCompanionGlassTitle(null);
+    private void syncGlassesFromList(Cocktail cocktail, List<CocktailGlassRequestDTO> glassDtos) {
+        for (CocktailGlassRequestDTO gDto : glassDtos) {
+            if (gDto.glasswareId() != null) {
+                glasswareRepository.findById(gDto.glasswareId()).ifPresent(gw -> addGlassFromDto(cocktail, gw, gDto));
             }
         }
+    }
+
+    private void addGlassFromDto(Cocktail cocktail, Glassware gw, CocktailGlassRequestDTO gDto) {
+        int order = gDto.glassOrder() != null ? gDto.glassOrder() : 1;
+        boolean isPrimary = Boolean.TRUE.equals(gDto.isPrimary()) || order == 1;
+
+        CocktailGlass cg = new CocktailGlass();
+        cg.setCocktail(cocktail);
+        cg.setGlassware(gw);
+        cg.setGlassOrder(order);
+        cg.setRoleLabel(gDto.roleLabel());
+        cg.setPrimary(isPrimary);
+        cg.setCreatedAt(timeService.now());
+        cg.setUpdatedAt(timeService.now());
+        cocktail.getGlasses().add(cg);
+
+        updateCocktailGlassReferences(cocktail, gw, cg, order);
+    }
+
+    private void updateCocktailGlassReferences(Cocktail cocktail, Glassware gw, CocktailGlass cg, int order) {
+        if (cg.isPrimary() || order == 1) {
+            cocktail.setGlassware(gw);
+        } else if (order == 2) {
+            cocktail.setSecondaryGlassware(gw);
+            if (cocktail.getCompanionGlassTitle() == null || cocktail.getCompanionGlassTitle().isBlank()) {
+                cocktail.setCompanionGlassTitle(cg.getRoleLabel());
+            }
+        }
+    }
+
+    private void syncGlassesFromLegacyFields(Cocktail cocktail, CocktailRequestDTO request) {
+        syncLegacyPrimaryGlass(cocktail, request.glasswareId());
+        syncLegacySecondaryGlass(cocktail, request.secondaryGlasswareId(), request.companionGlassTitle());
+    }
+
+    private void syncLegacyPrimaryGlass(Cocktail cocktail, Long glasswareId) {
+        if (glasswareId == null) {
+            cocktail.setGlassware(null);
+            return;
+        }
+        glasswareRepository.findById(glasswareId).ifPresent(gw -> {
+            cocktail.setGlassware(gw);
+            CocktailGlass cg = createLegacyCocktailGlass(cocktail, gw, 1, "Verre Principal", true);
+            cocktail.getGlasses().add(cg);
+        });
+    }
+
+    private void syncLegacySecondaryGlass(Cocktail cocktail, Long secondaryGlasswareId, String companionGlassTitle) {
+        if (secondaryGlasswareId == null) {
+            cocktail.setSecondaryGlassware(null);
+            cocktail.setCompanionGlassTitle(null);
+            return;
+        }
+        glasswareRepository.findById(secondaryGlasswareId).ifPresent(gw -> {
+            cocktail.setSecondaryGlassware(gw);
+            cocktail.setCompanionGlassTitle(companionGlassTitle);
+            String label = (companionGlassTitle != null && !companionGlassTitle.isBlank()) ? companionGlassTitle : gw.getNom();
+            CocktailGlass cg = createLegacyCocktailGlass(cocktail, gw, 2, label, false);
+            cocktail.getGlasses().add(cg);
+        });
+    }
+
+    private CocktailGlass createLegacyCocktailGlass(Cocktail cocktail, Glassware gw, int order, String roleLabel, boolean isPrimary) {
+        CocktailGlass cg = new CocktailGlass();
+        cg.setCocktail(cocktail);
+        cg.setGlassware(gw);
+        cg.setGlassOrder(order);
+        cg.setRoleLabel(roleLabel);
+        cg.setPrimary(isPrimary);
+        cg.setCreatedAt(timeService.now());
+        cg.setUpdatedAt(timeService.now());
+        return cg;
     }
 
     /**

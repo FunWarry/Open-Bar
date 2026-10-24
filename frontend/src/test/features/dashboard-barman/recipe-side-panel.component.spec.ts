@@ -661,7 +661,7 @@ describe('RecipeSidePanelComponent', () => {
       };
 
       const resolved = component.resolvedGlasses;
-      expect(resolved.length).toBe(2);
+      expect(resolved).toHaveSize(2);
       expect(resolved[0].glassOrder).toBe(1);
       expect(resolved[0].nom).toBe('Coupe Martini');
       expect(resolved[0].isPrimary).toBeTrue();
@@ -684,16 +684,16 @@ describe('RecipeSidePanelComponent', () => {
 
       // Filter 0 = all
       component.setSelectedGlassFilter(0);
-      expect(component.visibleRecipeSteps.length).toBe(2);
+      expect(component.visibleRecipeSteps).toHaveSize(2);
 
       // Filter 1 = primary
       component.setSelectedGlassFilter(1);
-      expect(component.visibleRecipeSteps.length).toBe(1);
+      expect(component.visibleRecipeSteps).toHaveSize(1);
       expect(component.visibleRecipeSteps[0]).toBe(step1);
 
       // Filter 2 = companion
       component.setSelectedGlassFilter(2);
-      expect(component.visibleRecipeSteps.length).toBe(1);
+      expect(component.visibleRecipeSteps).toHaveSize(1);
       expect(component.visibleRecipeSteps[0]).toBe(step2);
     });
 

@@ -79,10 +79,10 @@ export class ProductCardComponent {
   @Output() cardClick = new EventEmitter<void>();
 
   get companionDescription(): string | null {
-    if (this.companionGlassTitle && this.companionGlassTitle.trim()) {
+    if (this.companionGlassTitle?.trim()) {
       return this.companionGlassTitle.trim();
     }
-    if (this.secondaryGlasswareNom && this.secondaryGlasswareNom.trim()) {
+    if (this.secondaryGlasswareNom?.trim()) {
       return this.secondaryGlasswareNom.trim();
     }
     return null;

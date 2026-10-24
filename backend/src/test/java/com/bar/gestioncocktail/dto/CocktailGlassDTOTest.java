@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,8 +33,8 @@ class CocktailGlassDTOTest {
         entity.setGlassOrder(2);
         entity.setRoleLabel("Accompagnement");
         entity.setPrimary(false);
-        entity.setCreatedAt(LocalDateTime.of(2026, 1, 1, 12, 0));
-        entity.setUpdatedAt(LocalDateTime.of(2026, 1, 1, 12, 30));
+        entity.setCreatedAt(LocalDateTime.of(2026, Month.JANUARY, 1, 12, 0));
+        entity.setUpdatedAt(LocalDateTime.of(2026, Month.JANUARY, 1, 12, 30));
 
         CocktailGlassResponseDTO dto = CocktailGlassResponseDTO.from(entity);
 

@@ -1245,7 +1245,7 @@ describe('CocktailFormComponent', () => {
       component.cocktailForm.patchValue({ glasswareId: 1, isMultiGlass: false });
       const list = component.configuredGlassesList();
 
-      expect(list.length).toBe(1);
+      expect(list).toHaveSize(1);
       expect(list[0].order).toBe(1);
       expect(list[0].isPrimary).toBeTrue();
       expect(list[0].label).toBe('Verre Tumbler');
@@ -1266,7 +1266,7 @@ describe('CocktailFormComponent', () => {
 
       const list = component.configuredGlassesList();
 
-      expect(list.length).toBe(3);
+      expect(list).toHaveSize(3);
       expect(list[0].order).toBe(1);
       expect(list[0].isPrimary).toBeTrue();
       expect(list[1].order).toBe(2);
@@ -1326,10 +1326,10 @@ describe('CocktailFormComponent', () => {
       component.extraGlassesArray.clear();
       component.addExtraGlass();
       component.addExtraGlass();
-      expect(component.extraGlassesArray.length).toBe(2);
+      expect(component.extraGlassesArray).toHaveSize(2);
 
       component.removeExtraGlass(0);
-      expect(component.extraGlassesArray.length).toBe(1);
+      expect(component.extraGlassesArray).toHaveSize(1);
     });
   });
 });

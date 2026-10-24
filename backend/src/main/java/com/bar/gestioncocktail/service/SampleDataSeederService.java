@@ -1013,7 +1013,7 @@ public class SampleDataSeederService {
         }
 
         List<Commande> tableOrders = table != null ? commandeRepository.findByTable(table) : List.of();
-        Commande latestOrder = !tableOrders.isEmpty() ? tableOrders.get(tableOrders.size() - 1) : null;
+        Commande latestOrder = tableOrders.isEmpty() ? null : tableOrders.get(tableOrders.size() - 1);
 
         BigDecimal total = parseInvoiceItems(f, invNode.get(KEY_ITEMS), latestOrder);
         f.setTotal(total);
