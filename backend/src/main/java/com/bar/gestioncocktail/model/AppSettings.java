@@ -215,6 +215,12 @@ public class AppSettings {
     @Column(name = "tpe_terminals_json", columnDefinition = "TEXT")
     private String tpeTerminalsJson;
 
+    /**
+     * Serialized JSON configuration of emergency assistance helplines for the Angel Shot safety protocol.
+     */
+    @Column(name = "emergency_numbers_json", columnDefinition = "TEXT")
+    private String emergencyNumbersJson = "[{\"name\":\"Police Secours\",\"number\":\"17\",\"description\":\"Urgence immédiate / Agression\"},{\"name\":\"Urgences Europe\",\"number\":\"112\",\"description\":\"Numéro d'urgence européen\"},{\"name\":\"Violences Femmes Info\",\"number\":\"3919\",\"description\":\"Écoute & orientation 24/7\"},{\"name\":\"Urgence SMS (Sourds)\",\"number\":\"114\",\"description\":\"Contact discret par SMS\"}]";
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

@@ -65,6 +65,7 @@ import { StockWasteService } from '../../core/services/stock-waste.service';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { FeatureFlagService } from '../../core/services/feature-flag.service';
 import { RouletteService } from '../../core/services/roulette.service';
+import { SafetyAlertBannerComponent } from '../../core/components/ui/safety-alert-banner/safety-alert-banner.component';
 export type StationFilterType = 'ALL' | 'BAR' | 'KITCHEN';
 
 /**
@@ -97,6 +98,7 @@ export type StationFilterType = 'ALL' | 'BAR' | 'KITCHEN';
     CommandeCardComponent,
     EmptyStateComponent,
     RecipeSidePanelComponent,
+    SafetyAlertBannerComponent,
     RouterLink
 ],
   templateUrl: './dashboard-barman.component.html',

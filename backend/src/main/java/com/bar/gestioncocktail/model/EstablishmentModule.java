@@ -93,7 +93,13 @@ public enum EstablishmentModule {
      * Automated Over-The-Air (OTA) software update service, pre-update PostgreSQL database snapshots,
      * container healthcheck verification, and auto-rollback capability.
      */
-    SYSTEM_UPDATES
+    SYSTEM_UPDATES,
+
+    /**
+     * International Angel Shot bar safety protocol providing discreet assistance codes,
+     * silent emergency dispatch, and real-time staff alerts.
+     */
+    ANGEL_SHOT_SAFETY
 }
 
 

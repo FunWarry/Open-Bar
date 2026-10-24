@@ -81,6 +81,7 @@ public record AppSettingsResponseDTO(
     Integer tpeTimeoutSeconds,
     String printersJson,
     String tpeTerminalsJson,
+    String emergencyNumbersJson,
     String timeZone,
     LocalDateTime updatedAt
 ) {
@@ -300,7 +301,40 @@ public record AppSettingsResponseDTO(
                 warningGrossMarginPercentage, barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp,
                 printerPort, directPrintingEnabled, cashDenominationsJson, storageLocationsJson,
                 tpeEnabled, tpeSimulatorEnabled, tpeBarIp, tpeFloorIp, tpePort, tpeTerminalId,
-                tpeTimeoutSeconds, null, null, timeZone, updatedAt);
+                tpeTimeoutSeconds, null, null, null, timeZone, updatedAt);
+    }
+
+    /**
+     * Backwards-compatible constructor without emergencyNumbersJson.
+     */
+    public AppSettingsResponseDTO(
+            Long id, String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            String volumeUnit, String weightUnit,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity,
+            Boolean wifiEnabled, Boolean tableSessionValidationEnabled,
+            BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
+            BigDecimal warningGrossMarginPercentage, String barPrinterIp,
+            String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
+            Boolean directPrintingEnabled, String cashDenominationsJson,
+            String storageLocationsJson, Boolean tpeEnabled, Boolean tpeSimulatorEnabled,
+            String tpeBarIp, String tpeFloorIp, Integer tpePort,
+            String tpeTerminalId, Integer tpeTimeoutSeconds,
+            String printersJson, String tpeTerminalsJson,
+            String timeZone, LocalDateTime updatedAt
+    ) {
+        this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem, volumeUnit, weightUnit,
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes,
+                clientBaseUrl, wifiSsid, wifiPassword, wifiSecurity, wifiEnabled,
+                tableSessionValidationEnabled, defaultVatRate, targetGrossMarginPercentage,
+                warningGrossMarginPercentage, barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp,
+                printerPort, directPrintingEnabled, cashDenominationsJson, storageLocationsJson,
+                tpeEnabled, tpeSimulatorEnabled, tpeBarIp, tpeFloorIp, tpePort, tpeTerminalId,
+                tpeTimeoutSeconds, printersJson, tpeTerminalsJson, null, timeZone, updatedAt);
     }
 
     /**
@@ -345,6 +379,7 @@ public record AppSettingsResponseDTO(
             s.getTpeTimeoutSeconds() != null ? s.getTpeTimeoutSeconds() : 45,
             s.getPrintersJson(),
             s.getTpeTerminalsJson(),
+            s.getEmergencyNumbersJson(),
             timeZone != null ? timeZone : DEFAULT_TIMEZONE,
             s.getUpdatedAt()
         );

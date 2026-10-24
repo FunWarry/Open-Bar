@@ -39,6 +39,7 @@ describe('ModuleGuard', () => {
     tableReservations: true,
     checklistsProcedures: true,
     systemUpdates: true,
+    angelShotSafety: true,
   };
 
   beforeEach(() => {

@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AppSettings, AppSettingsUpdateRequest, DiscountTier } from '../models/app-settings.model';
+import { AppSettings, AppSettingsUpdateRequest, DiscountTier, EmergencyHelpline } from '../models/app-settings.model';
 import { CashDenomination, getDefaultDenominationsForCurrency } from '../models/cash-denomination.model';
 import { WebSocketService } from './websocket.service';
 
@@ -24,6 +24,16 @@ export const DEFAULT_STORAGE_LOCATIONS: string[] = [
   'Arrière-bar',
   'Cave à vins & Spiritueux',
   'Chambre froide fûts'
+];
+
+/**
+ * Standard default emergency helplines for the Angel Shot safety protocol.
+ */
+export const DEFAULT_EMERGENCY_NUMBERS: EmergencyHelpline[] = [
+  { name: 'Police Secours', number: '17', description: 'Urgence immédiate / Agression' },
+  { name: 'Urgences Europe', number: '112', description: 'Numéro d\'urgence européen' },
+  { name: 'Violences Femmes Info', number: '3919', description: 'Écoute & orientation 24/7' },
+  { name: 'Urgence SMS (Sourds)', number: '114', description: 'Contact discret par SMS' }
 ];
 
 /**
@@ -178,6 +188,30 @@ export class AppSettingsService {
       }
     }
     return [...DEFAULT_STORAGE_LOCATIONS];
+  }
+
+  /**
+   * Retrieves the emergency helplines configured for the Angel Shot safety protocol.
+   * If custom JSON is stored in settings, parses and returns it.
+   * Otherwise, falls back to standard default emergency numbers.
+   *
+   * @returns Array of configured emergency contacts
+   */
+  getEmergencyNumbers(): EmergencyHelpline[] {
+    const json = this.currentSettings?.emergencyNumbersJson;
+    if (json && typeof json === 'string' && json.trim().length > 0) {
+      try {
+        const parsed = JSON.parse(json);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.filter((item): item is EmergencyHelpline =>
+            Boolean(item && typeof item.name === 'string' && typeof item.number === 'string')
+          );
+        }
+      } catch (err) {
+        console.warn('Failed to parse emergencyNumbersJson, falling back to defaults:', err);
+      }
+    }
+    return [...DEFAULT_EMERGENCY_NUMBERS];
   }
 
   /**

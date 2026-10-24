@@ -9,6 +9,8 @@ import com.bar.gestioncocktail.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -855,6 +857,47 @@ class PdfServiceTest {
         assertThat(pdf).isNotNull().isNotEmpty();
         String header = new String(pdf, 0, Math.min(5, pdf.length));
         assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generateAngelShotNoticePdf_validConfig_generatesValidPdfNotice() {
+        EstablishmentConfig config = new EstablishmentConfig();
+        config.setLegalName("The Safe Haven Bar");
+        lenient().when(establishmentConfigService.getConfig()).thenReturn(config);
+
+        byte[] pdf = pdfService.generateAngelShotNoticePdf();
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @ParameterizedTest(name = "Lang: {0}, Legal: {1}")
+    @CsvSource(delimiter = '|', value = {
+            "en | The London Lounge | [{\"name\":\"UK Police\",\"number\":\"999\",\"description\":\"Emergency\"}] | 999",
+            "es | Bar Barcelona | [{\"name\":\"Policía Nacional\",\"number\":\"091\",\"description\":\"Urgencias\"}] | 091",
+            "fr | Le Refuge Parisien | [{\"name\":\"Sécurité Bar\",\"number\":\"06 12 34 56 78\",\"description\":\"Astreinte de nuit\"},{\"name\":\"SAMU\",\"number\":\"15\",\"description\":\"Urgence médicale\"}] | 06 12 34 56 78"
+    })
+    void generateAngelShotNoticePdf_variousLanguagesAndCustomNumbers_generatesSinglePageValidPdf(
+            String language, String legalName, String emergencyJson, String expectedPhoneNumber) throws Exception {
+        EstablishmentConfig config = new EstablishmentConfig();
+        config.setLegalName(legalName);
+        config.setLanguage(language);
+        lenient().when(establishmentConfigService.getConfig()).thenReturn(config);
+
+        com.bar.gestioncocktail.model.AppSettings settings = new com.bar.gestioncocktail.model.AppSettings();
+        settings.setEmergencyNumbersJson(emergencyJson);
+        lenient().when(appSettingsService.getSettings()).thenReturn(settings);
+
+        byte[] pdf = pdfService.generateAngelShotNoticePdf();
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        com.lowagie.text.pdf.PdfReader reader = new com.lowagie.text.pdf.PdfReader(pdf);
+        assertThat(reader.getNumberOfPages()).isEqualTo(1);
+        byte[] pageContent = reader.getPageContent(1);
+        String pageText = new String(pageContent, java.nio.charset.StandardCharsets.ISO_8859_1);
+        assertThat(pageText).contains(expectedPhoneNumber);
+        reader.close();
     }
 }
 

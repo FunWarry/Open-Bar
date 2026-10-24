@@ -33,6 +33,7 @@ import com.bar.gestioncocktail.model.VatRate;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.User;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +46,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -80,6 +82,10 @@ public class PdfService {
     private static final String DEFAULT_TABLE_URL_PREFIX = "https://openbar.lan/client/commande?table=";
     private static final String TABLE_PREFIX = "TABLE ";
     private static final String DATE_SIGNATURE_LABEL = "Date & Signature :";
+    private static final String BULLET_SEPARATOR = "  •  ";
+    private static final String HELPLINE_FIELD_NUMBER = "number";
+    private static final String HELPLINE_FIELD_NAME = "name";
+    private static final String HELPLINE_FIELD_DESC = "description";
 
     private final EstablishmentConfigService establishmentConfigService;
     private final AppSettingsService appSettingsService;
@@ -1682,7 +1688,7 @@ public class PdfService {
 
         String statusLabel = formatAuditStatus(session.getStatus(), isEn);
         String refStatusText = (isEn ? "Reference: " : "Référence : ") + session.getReferenceCode()
-                + "  •  " + (isEn ? "Status: " : "Statut : ") + statusLabel;
+                + BULLET_SEPARATOR + (isEn ? "Status: " : "Statut : ") + statusLabel;
         titleCell.addElement(new Paragraph(refStatusText, fonts.subtitleFont()));
 
         if (session.getTitle() != null && !session.getTitle().isBlank()) {
@@ -1704,7 +1710,7 @@ public class PdfService {
         }
         String scopePrefix = isEn ? "Scope: " : "Périmètre : ";
         String categoryPrefix = isEn ? "Category: " : "Catégorie : ";
-        return scopePrefix + locationScope + "  •  " + categoryPrefix + categoryScope;
+        return scopePrefix + locationScope + BULLET_SEPARATOR + categoryPrefix + categoryScope;
     }
 
     private PdfPCell createAuditEstablishmentCell(EstablishmentConfig config, boolean isEn, InventoryAuditPdfFonts fonts) {
@@ -2100,6 +2106,425 @@ public class PdfService {
         );
         legalNotice.setAlignment(Element.ALIGN_CENTER);
         doc.add(legalNotice);
+    }
+
+    /**
+     * Data transfer item for parsing configured emergency helplines.
+     *
+     * @param name Service name
+     * @param number Telephone number
+     * @param description Brief instruction or helpline description
+     */
+    public record EmergencyHelplineItem(String name, String number, String description) {}
+
+    /**
+     * Localized text container for the printable Angel Shot notice.
+     *
+     * @param headerSubtitle Header subtitle text
+     * @param mainTitle Main notice title
+     * @param intro Explanatory introduction paragraph
+     * @param neatTitle Neat code title
+     * @param neatDesc Neat code description
+     * @param iceTitle With Ice code title
+     * @param iceDesc With Ice code description
+     * @param limeTitle With Lime code title
+     * @param limeDesc With Lime code description
+     * @param helplinesBoxTitle Emergency box header
+     * @param footerText Confidentiality disclaimer footer
+     * @param langTag Short language tag (e.g. FR, EN, ES, DE, IT)
+     */
+    private record AngelShotNoticeI18n(
+            String headerSubtitle,
+            String mainTitle,
+            String intro,
+            String neatTitle,
+            String neatDesc,
+            String iceTitle,
+            String iceDesc,
+            String limeTitle,
+            String limeDesc,
+            String helplinesBoxTitle,
+            String footerText,
+            String langTag
+    ) {}
+
+    private record AngelShotFonts(Font titleFont, Font descOfficialFont, Font descEnFont) {}
+
+    private record AngelShotCardConfig(
+            String title,
+            String descOfficial,
+            String descEn,
+            Color bg,
+            Color border
+    ) {}
+
+    /**
+     * Generates a printable A4 bilingual Angel Shot restroom notice PDF in English and the
+     * establishment's official language, displaying the configured emergency helpline numbers.
+     *
+     * @return PDF byte array
+     */
+    public byte[] generateAngelShotNoticePdf() {
+        EstablishmentConfig config = resolveEstablishmentConfig();
+        AppSettings settings = resolveAppSettings();
+
+        String officialLang = resolveOfficialLanguage(config);
+        boolean isEnglishOnly = "en".equals(officialLang);
+
+        AngelShotNoticeI18n officialI18n = getNoticeI18n(officialLang);
+        AngelShotNoticeI18n englishI18n = getNoticeI18n("en");
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Document doc = new Document(PageSize.A4, 36, 36, 36, 36);
+            PdfWriter writer = PdfWriter.getInstance(doc, out);
+            writer.setPdfVersion(PdfWriter.PDF_VERSION_1_7);
+            doc.open();
+
+            Font brandFont   = new Font(Font.HELVETICA, 12, Font.BOLD, PRIMARY);
+            Font superTitle  = new Font(Font.HELVETICA, 8.5f, Font.BOLD, MUTED);
+            Font mainTitle   = new Font(Font.HELVETICA, 16, Font.BOLD, DARK_TEXT);
+            Font subTitle    = new Font(Font.HELVETICA, 8.5f, Font.NORMAL, DARK_TEXT);
+            Font subTitleItalic = new Font(Font.HELVETICA, 8f, Font.ITALIC, MUTED);
+            Font codeTitle   = new Font(Font.HELVETICA, 10.5f, Font.BOLD, PRIMARY);
+            Font codeDescOfficial = new Font(Font.HELVETICA, 8.5f, Font.BOLD, DARK_TEXT);
+            Font codeDescEn  = new Font(Font.HELVETICA, 8f, Font.ITALIC, MUTED);
+            Font boxTitle    = new Font(Font.HELVETICA, 8.5f, Font.BOLD, DARK_TEXT);
+            Font boxText     = new Font(Font.HELVETICA, 8f, Font.NORMAL, DARK_TEXT);
+            Font footerFont  = new Font(Font.HELVETICA, 7.5f, Font.ITALIC, MUTED);
+
+            addNoticeHeader(doc, config, officialI18n, englishI18n, isEnglishOnly, brandFont, superTitle);
+            doc.add(new Paragraph(" ", new Font(Font.HELVETICA, 4)));
+
+            addNoticeTitleBanner(doc, officialI18n, englishI18n, isEnglishOnly, mainTitle, subTitle, subTitleItalic);
+            doc.add(new Paragraph(" ", new Font(Font.HELVETICA, 4)));
+
+            addNoticeActionCards(doc, officialI18n, englishI18n, isEnglishOnly,
+                    new AngelShotFonts(codeTitle, codeDescOfficial, codeDescEn));
+            doc.add(new Paragraph(" ", new Font(Font.HELVETICA, 4)));
+
+            addEmergencyHelplinesSection(doc, settings, officialI18n, englishI18n, isEnglishOnly, boxTitle, boxText);
+            doc.add(new Paragraph(" ", new Font(Font.HELVETICA, 4)));
+
+            String footerText = isEnglishOnly
+                    ? englishI18n.footerText() + " — " + config.getLegalName()
+                    : officialI18n.footerText() + " | " + englishI18n.footerText() + " — " + config.getLegalName();
+            Paragraph footer = new Paragraph(footerText, footerFont);
+            footer.setAlignment(Element.ALIGN_CENTER);
+            doc.add(footer);
+
+            doc.close();
+            return out.toByteArray();
+        } catch (DocumentException | IOException e) {
+            throw new IllegalStateException("Error generating Angel Shot restroom notice PDF", e);
+        }
+    }
+
+    private EstablishmentConfig resolveEstablishmentConfig() {
+        if (establishmentConfigService != null && establishmentConfigService.getConfig() != null) {
+            return establishmentConfigService.getConfig();
+        }
+        return new EstablishmentConfig();
+    }
+
+    private AppSettings resolveAppSettings() {
+        if (appSettingsService != null && appSettingsService.getSettings() != null) {
+            return appSettingsService.getSettings();
+        }
+        return new AppSettings();
+    }
+
+    private String resolveOfficialLanguage(EstablishmentConfig config) {
+        if (config.getLanguage() != null && !config.getLanguage().isBlank()) {
+            return config.getLanguage().trim().toLowerCase();
+        }
+        return "fr";
+    }
+
+    private void addNoticeHeader(Document doc, EstablishmentConfig config,
+                                 AngelShotNoticeI18n officialI18n, AngelShotNoticeI18n englishI18n,
+                                 boolean isEnglishOnly, Font brandFont, Font superTitle) throws DocumentException {
+        PdfPTable headerTable = new PdfPTable(2);
+        headerTable.setWidthPercentage(100);
+        headerTable.setWidths(new float[]{1.5f, 1f});
+
+        PdfPCell leftCell = new PdfPCell();
+        leftCell.setBorder(Rectangle.NO_BORDER);
+        leftCell.addElement(new Paragraph(config.getLegalName().toUpperCase(), brandFont));
+
+        String headerSub = isEnglishOnly
+                ? englishI18n.headerSubtitle()
+                : officialI18n.headerSubtitle() + BULLET_SEPARATOR + englishI18n.headerSubtitle();
+        leftCell.addElement(new Paragraph(headerSub, superTitle));
+        headerTable.addCell(leftCell);
+
+        PdfPCell rightCell = new PdfPCell();
+        rightCell.setBorder(Rectangle.NO_BORDER);
+        Paragraph dateP = new Paragraph("OpenBar Safety Net", superTitle);
+        dateP.setAlignment(Element.ALIGN_RIGHT);
+        rightCell.addElement(dateP);
+        headerTable.addCell(rightCell);
+        doc.add(headerTable);
+    }
+
+    private void addNoticeTitleBanner(Document doc, AngelShotNoticeI18n officialI18n,
+                                       AngelShotNoticeI18n englishI18n, boolean isEnglishOnly,
+                                       Font mainTitle, Font subTitle, Font subTitleItalic) throws DocumentException {
+        PdfPTable titleTable = new PdfPTable(1);
+        titleTable.setWidthPercentage(100);
+        PdfPCell titleCell = new PdfPCell();
+        titleCell.setBackgroundColor(new Color(245, 247, 255));
+        titleCell.setBorderColor(PRIMARY);
+        titleCell.setPadding(8);
+
+        if (isEnglishOnly) {
+            Paragraph pTitle = new Paragraph(englishI18n.mainTitle(), mainTitle);
+            pTitle.setAlignment(Element.ALIGN_CENTER);
+            titleCell.addElement(pTitle);
+
+            Paragraph intro = new Paragraph(englishI18n.intro(), subTitle);
+            intro.setAlignment(Element.ALIGN_CENTER);
+            intro.setSpacingBefore(4f);
+            titleCell.addElement(intro);
+        } else {
+            Paragraph pTitle = new Paragraph(officialI18n.mainTitle(), mainTitle);
+            pTitle.setAlignment(Element.ALIGN_CENTER);
+            titleCell.addElement(pTitle);
+
+            Paragraph pEnTitle = new Paragraph(englishI18n.mainTitle(), new Font(Font.HELVETICA, 10.5f, Font.BOLD, PRIMARY));
+            pEnTitle.setAlignment(Element.ALIGN_CENTER);
+            titleCell.addElement(pEnTitle);
+
+            Paragraph introOfficial = new Paragraph(officialI18n.intro(), subTitle);
+            introOfficial.setAlignment(Element.ALIGN_CENTER);
+            introOfficial.setSpacingBefore(4f);
+            titleCell.addElement(introOfficial);
+
+            Paragraph introEn = new Paragraph(englishI18n.intro(), subTitleItalic);
+            introEn.setAlignment(Element.ALIGN_CENTER);
+            introEn.setSpacingBefore(2f);
+            titleCell.addElement(introEn);
+        }
+
+        titleTable.addCell(titleCell);
+        doc.add(titleTable);
+    }
+
+    private void addNoticeActionCards(Document doc, AngelShotNoticeI18n officialI18n,
+                                      AngelShotNoticeI18n englishI18n, boolean isEnglishOnly,
+                                      AngelShotFonts fonts) throws DocumentException {
+        PdfPTable codesTable = new PdfPTable(1);
+        codesTable.setWidthPercentage(100);
+
+        addAngelShotRow(codesTable,
+                new AngelShotCardConfig(officialI18n.neatTitle(), officialI18n.neatDesc(), englishI18n.neatDesc(),
+                        new Color(240, 249, 255), new Color(186, 230, 253)),
+                officialI18n.langTag(), isEnglishOnly, fonts);
+
+        addAngelShotRow(codesTable,
+                new AngelShotCardConfig(officialI18n.iceTitle(), officialI18n.iceDesc(), englishI18n.iceDesc(),
+                        new Color(254, 249, 243), new Color(254, 215, 170)),
+                officialI18n.langTag(), isEnglishOnly, fonts);
+
+        addAngelShotRow(codesTable,
+                new AngelShotCardConfig(officialI18n.limeTitle(), officialI18n.limeDesc(), englishI18n.limeDesc(),
+                        new Color(254, 242, 242), new Color(254, 202, 202)),
+                officialI18n.langTag(), isEnglishOnly, fonts);
+
+        doc.add(codesTable);
+    }
+
+    private void addAngelShotRow(PdfPTable table, AngelShotCardConfig card,
+                                 String officialLangTag, boolean isEnglishOnly,
+                                 AngelShotFonts fonts) {
+        PdfPCell cell = new PdfPCell();
+        cell.setBackgroundColor(card.bg());
+        cell.setBorderColor(card.border());
+        cell.setPadding(6);
+
+        Paragraph pTitle = new Paragraph(card.title(), fonts.titleFont());
+        pTitle.setSpacingAfter(2f);
+        cell.addElement(pTitle);
+
+        if (isEnglishOnly) {
+            Paragraph pEn = new Paragraph(card.descEn(), fonts.descOfficialFont());
+            cell.addElement(pEn);
+        } else {
+            Paragraph pOfficial = new Paragraph("[" + officialLangTag + "] " + card.descOfficial(), fonts.descOfficialFont());
+            pOfficial.setSpacingAfter(2f);
+            cell.addElement(pOfficial);
+
+            Paragraph pEn = new Paragraph("[EN] " + card.descEn(), fonts.descEnFont());
+            cell.addElement(pEn);
+        }
+
+        table.addCell(cell);
+    }
+
+    private void addEmergencyHelplinesSection(Document doc, AppSettings settings,
+                                              AngelShotNoticeI18n officialI18n, AngelShotNoticeI18n englishI18n,
+                                              boolean isEnglishOnly, Font boxTitle, Font boxText) throws DocumentException {
+        PdfPTable emergencyTable = new PdfPTable(1);
+        emergencyTable.setWidthPercentage(100);
+        PdfPCell emCell = new PdfPCell();
+        emCell.setBackgroundColor(new Color(248, 250, 252));
+        emCell.setBorderColor(BORDER_COLOR);
+        emCell.setPadding(8);
+
+        String boxTitleText = isEnglishOnly
+                ? englishI18n.helplinesBoxTitle() + " :"
+                : officialI18n.helplinesBoxTitle() + " / " + englishI18n.helplinesBoxTitle() + " :";
+        emCell.addElement(new Paragraph(boxTitleText, boxTitle));
+
+        List<EmergencyHelplineItem> helplines = resolveNoticeHelplines(settings, isEnglishOnly);
+        for (EmergencyHelplineItem helpline : helplines) {
+            Paragraph pLine = new Paragraph();
+            pLine.setSpacingBefore(2f);
+            pLine.add(new Chunk("• " + helpline.name() + " : ", boxTitle));
+            pLine.add(new Chunk(helpline.number(), new Font(Font.HELVETICA, 8.5f, Font.BOLD, PRIMARY)));
+            if (helpline.description() != null && !helpline.description().isBlank()) {
+                pLine.add(new Chunk(" — " + helpline.description(), boxText));
+            }
+            emCell.addElement(pLine);
+        }
+
+        emergencyTable.addCell(emCell);
+        doc.add(emergencyTable);
+    }
+
+    private List<EmergencyHelplineItem> resolveNoticeHelplines(AppSettings settings, boolean isEnglishOnly) {
+        List<EmergencyHelplineItem> helplines = parseEmergencyHelplines(settings.getEmergencyNumbersJson());
+        if (!helplines.isEmpty()) {
+            return helplines;
+        }
+        if (isEnglishOnly) {
+            return List.of(
+                    new EmergencyHelplineItem("Emergency Services", "911 / 112", "Police, Fire, Ambulance"),
+                    new EmergencyHelplineItem("Suicide & Crisis Lifeline", "988", "24/7 free & confidential support"),
+                    new EmergencyHelplineItem("National Domestic Violence Hotline", "1-800-799-SAFE (7233)", "24/7 confidential assistance")
+            );
+        }
+        return List.of(
+                new EmergencyHelplineItem("Police Secours", "17", "Urgence immédiate / Agression"),
+                new EmergencyHelplineItem("Urgences Europe", "112", "Numéro d'urgence européen"),
+                new EmergencyHelplineItem("Violences Femmes Info", "3919", "Écoute & orientation 24/7"),
+                new EmergencyHelplineItem("Urgence SMS (Sourds)", "114", "Contact discret par SMS")
+        );
+    }
+
+    private List<EmergencyHelplineItem> parseEmergencyHelplines(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(json);
+            if (root == null || !root.isArray()) {
+                return List.of();
+            }
+            List<EmergencyHelplineItem> list = new ArrayList<>();
+            for (JsonNode node : root) {
+                EmergencyHelplineItem item = parseHelplineNode(node);
+                if (item != null) {
+                    list.add(item);
+                }
+            }
+            return list.isEmpty() ? List.of() : list;
+        } catch (Exception _) {
+            // Fall back to empty list on parsing failure
+            return List.of();
+        }
+    }
+
+    private EmergencyHelplineItem parseHelplineNode(JsonNode node) {
+        if (node == null || !node.hasNonNull(HELPLINE_FIELD_NUMBER)) {
+            return null;
+        }
+        String number = node.get(HELPLINE_FIELD_NUMBER).asText().trim();
+        if (number.isBlank()) {
+            return null;
+        }
+        String name = node.hasNonNull(HELPLINE_FIELD_NAME) ? node.get(HELPLINE_FIELD_NAME).asText().trim() : "";
+        JsonNode descNode = node.get(HELPLINE_FIELD_DESC);
+        String desc = (descNode != null && !descNode.isNull()) ? descNode.asText().trim() : null;
+        return new EmergencyHelplineItem(name, number, desc);
+    }
+
+    private AngelShotNoticeI18n getNoticeI18n(String lang) {
+        if (lang == null) {
+            lang = "fr";
+        }
+        return switch (lang.trim().toLowerCase()) {
+            case "en" -> new AngelShotNoticeI18n(
+                    "SAFETY & WELLBEING AREA • OPENBAR PROTOCOL",
+                    "NEED ASSISTANCE? ASK FOR AN ANGEL SHOT",
+                    "If someone is making you feel uncomfortable, you do not feel safe, or your date is not going well: ask staff for an \"Angel Shot\" at the bar or trigger it discreetly from the QR menu at your table.\nOur team is specially trained to assist you with absolute discretion and care.",
+                    "ANGEL SHOT NEAT",
+                    "Discreet staff escort to your vehicle or venue exit.",
+                    "ANGEL SHOT WITH ICE",
+                    "Our team will discreetly book a taxi / ride and ensure your safe departure.",
+                    "ANGEL SHOT WITH LIME",
+                    "Immediate intervention: staff steps in right away and contacts security or local police.",
+                    "EMERGENCY NUMBERS & HELPLINES (TOLL-FREE & ANONYMOUS)",
+                    "Your safety is our top priority. This protocol is strictly confidential.",
+                    "EN"
+            );
+            case "es" -> new AngelShotNoticeI18n(
+                    "ESPACIO DE SEGURIDAD Y BIENESTAR",
+                    "¿NECESITAS AYUDA? PIDE UN ANGEL SHOT",
+                    "Si una persona te hace sentir incómodo(a), no te sientes seguro(a) o tu cita no va bien: pide un \"Angel Shot\" en la barra o actívalo discretamente desde el menú QR de tu mesa.\nNuestro personal está capacitado para asistirte con total discreción y empatía.",
+                    "ANGEL SHOT SOLO (NEAT)",
+                    "Acompañamiento discreto del personal hacia tu vehículo o la salida del local.",
+                    "ANGEL SHOT CON HIELO (WITH ICE)",
+                    "Nuestro equipo pedirá discretamente un taxi para ti y asegurará tu salida protegida.",
+                    "ANGEL SHOT CON LIMA (WITH LIME)",
+                    "Intervención inmediata: el personal actúa sin demora y contacta a seguridad o a la policía.",
+                    "NÚMEROS DE EMERGENCIA Y ASISTENCIA (GRATUITOS Y ANÓNIMOS)",
+                    "Tu seguridad es nuestra máxima prioridad. Este protocolo es estrictamente confidencial.",
+                    "ES"
+            );
+            case "de" -> new AngelShotNoticeI18n(
+                    "SICHERHEITS- & WOHLBEFINDENSBEREICH",
+                    "BRAUCHEN SIE HILFE? FRAGEN SIE NACH EINEM ANGEL SHOT",
+                    "Wenn Ihnen jemand ein ungutes Gefühl gibt, Sie sich unsicher fühlen oder Ihr Treffen nicht gut verläuft: Fragen Sie an der Bar nach einem \"Angel Shot\" oder aktivieren Sie ihn diskret über das QR-Menü an Ihrem Tisch.\nUnser Team ist geschult, Ihnen mit absoluter Diskretion und Fürsorge zu helfen.",
+                    "ANGEL SHOT PUR (NEAT)",
+                    "Diskrete Begleitung durch unser Personal zu Ihrem Fahrzeug oder zum Ausgang.",
+                    "ANGEL SHOT AUF EIS (WITH ICE)",
+                    "Unser Team ruft diskret ein Taxi und stellt Ihre sichere Abreise sicher.",
+                    "ANGEL SHOT MIT LIMETTE (WITH LIME)",
+                    "Sofortige Intervention: Unser Personal greift unmittelbar ein und kontaktiert Sicherheitspersonal oder die Polizei.",
+                    "NOTRUFNUMMERN & HILFE-HOTLINES (KOSTENLOS & ANONYM)",
+                    "Ihre Sicherheit hat für uns oberste Priorität. Dieses Protokoll ist streng vertraulich.",
+                    "DE"
+            );
+            case "it" -> new AngelShotNoticeI18n(
+                    "SPAZIO SICUREZZA E BENESSERE",
+                    "HAI BISOGNO DI AIUTO? CHIEDI UN ANGEL SHOT",
+                    "Se qualcuno ti mette a disagio, non ti senti al sicuro o il tuo appuntamento non sta andando come previsto: chiedi un \"Angel Shot\" al banco o attivalo con discrezione dal menu QR del tuo tavolo.\nIl nostro staff è formato per assisterti con assoluta discrezione e disponibilità.",
+                    "ANGEL SHOT LISCIO (NEAT)",
+                    "Accompagnamento discreto da parte del personale verso il tuo veicolo o l'uscita.",
+                    "ANGEL SHOT CON GHIACCIO (WITH ICE)",
+                    "Il nostro staff chiamerà con discrezione un taxi per te e vigilerà sulla tua partenza in sicurezza.",
+                    "ANGEL SHOT CON LIME (WITH LIME)",
+                    "Intervento immediato: il nostro staff interviene tempestivamente e contatta la sicurezza o le forces de l'ordre.",
+                    "NUMERI DI EMERGENZA E LINEE DI SUPPORTO (GRATUITI E ANONIMI)",
+                    "La tua sicurezza è la nostra priorità assoluta. Questo protocollo è strettamente confidenziale.",
+                    "IT"
+            );
+            default -> new AngelShotNoticeI18n(
+                    "ESPACE SÉCURITÉ & BIEN-ÊTRE",
+                    "BESOIN D'AIDE ? DEMANDEZ UN ANGEL SHOT",
+                    "Si une personne vous met mal à l'aise, que vous ne vous sentez pas en sécurité, ou que votre rendez-vous ne se déroule pas comme prévu : demandez un \"Angel Shot\" au bar ou déclenchez-le discrètement depuis le menu QR de votre table.\nNotre personnel est spécialement formé pour vous assister avec discrétion absolue et bienveillance.",
+                    "ANGEL SHOT PUR (NEAT)",
+                    "Pour être raccompagné(e) en toute sécurité vers votre véhicule ou la sortie.",
+                    "ANGEL SHOT AVEC GLAÇONS (WITH ICE)",
+                    "Notre équipe commande discrètement un taxi / VTC pour vous et s'assure de votre départ sécurisé.",
+                    "ANGEL SHOT AVEC CITRON (WITH LIME)",
+                    "Intervention immédiate : notre équipe intervient sans délai et contacte la sécurité ou les forces de l'ordre.",
+                    "NUMÉROS D'URGENCE & LIGNES D'ASSISTANCE (GRATUITS & ANONYMES)",
+                    "Votre sécurité est notre priorité absolue. Ce protocole est strictement confidentiel.",
+                    "FR"
+            );
+        };
     }
 
     private record InventoryAuditPdfFonts(

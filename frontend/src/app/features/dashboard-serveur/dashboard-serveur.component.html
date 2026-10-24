@@ -4,6 +4,9 @@
       <ion-refresher-content></ion-refresher-content>
     </ion-refresher>
 
+    <!-- Real-time Angel Shot Safety Alert Banner (#569) -->
+    <app-safety-alert-banner></app-safety-alert-banner>
+
     <!-- Offline Status & Background Sync Banner Bar (#361) -->
     @if (!offlineService.isOnline() || offlineService.pendingCount() > 0) {
       <div class="offline-banner" data-testid="offline-indicator-bar" [class.offline]="!offlineService.isOnline()" [class.syncing]="offlineService.isSyncing()">
@@ -377,6 +380,9 @@
 <!-- ONGLET 2 : PRISE DE COMMANDE RAPIDE & MENU PRODUITS (possède son propre ion-content via app-cocktail-list) -->
 @if (activeTab === 'commande') {
   <div class="commande-tab-wrapper" data-testid="wrapper-commande-tab">
+    <!-- Real-time Angel Shot Safety Alert Banner (#569) -->
+    <app-safety-alert-banner></app-safety-alert-banner>
+
     <!-- Offline Status & Background Sync Banner Bar (#361) -->
     @if (!offlineService.isOnline() || offlineService.pendingCount() > 0) {
       <div class="offline-banner" data-testid="offline-indicator-bar" [class.offline]="!offlineService.isOnline()" [class.syncing]="offlineService.isSyncing()">
