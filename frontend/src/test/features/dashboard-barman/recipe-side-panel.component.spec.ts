@@ -636,4 +636,79 @@ describe('RecipeSidePanelComponent', () => {
       expect(component.getStepIngredientNom(step)).toBe('Ingrédient');
     });
   });
+
+  describe('Multi-Glass Companion Glassware (#570)', () => {
+    it('should resolve multiple glasses when cocktail has glasses array', () => {
+      component.cocktail = {
+        ...mockCocktail,
+        glasses: [
+          {
+            glassOrder: 1,
+            glasswareNom: 'Coupe Martini',
+            isPrimary: true,
+            glasswareContenanceCl: 18,
+            glasswareImageUrl: 'coupe.png',
+          },
+          {
+            glassOrder: 2,
+            glasswareNom: 'Shot de Prosecco',
+            isPrimary: false,
+            roleLabel: 'Accompagnement',
+            glasswareContenanceCl: 5,
+            glasswareImageUrl: 'shot.png',
+          },
+        ],
+      };
+
+      const resolved = component.resolvedGlasses;
+      expect(resolved).toHaveSize(2);
+      expect(resolved[0].glassOrder).toBe(1);
+      expect(resolved[0].nom).toBe('Coupe Martini');
+      expect(resolved[0].isPrimary).toBeTrue();
+      expect(resolved[1].glassOrder).toBe(2);
+      expect(resolved[1].nom).toBe('Shot de Prosecco');
+      expect(resolved[1].isPrimary).toBeFalse();
+    });
+
+    it('should filter recipe steps according to selectedGlassOrderFilter', () => {
+      const step1: CocktailRecipeStep = { stepOrder: 1, stepType: 'INGREDIENT', quantite: 4, targetGlassOrder: 1 };
+      const step2: CocktailRecipeStep = { stepOrder: 2, stepType: 'CUSTOM_TEXT', actionTitle: 'Shot', targetGlassOrder: 2 };
+      component.cocktail = {
+        ...mockCocktail,
+        glasses: [
+          { glassOrder: 1, isPrimary: true, glasswareNom: 'Coupe' },
+          { glassOrder: 2, isPrimary: false, glasswareNom: 'Shot' },
+        ],
+        recipeSteps: [step1, step2],
+      };
+
+      // Filter 0 = all
+      component.setSelectedGlassFilter(0);
+      expect(component.visibleRecipeSteps).toHaveSize(2);
+
+      // Filter 1 = primary
+      component.setSelectedGlassFilter(1);
+      expect(component.visibleRecipeSteps).toHaveSize(1);
+      expect(component.visibleRecipeSteps[0]).toBe(step1);
+
+      // Filter 2 = companion
+      component.setSelectedGlassFilter(2);
+      expect(component.visibleRecipeSteps).toHaveSize(1);
+      expect(component.visibleRecipeSteps[0]).toBe(step2);
+    });
+
+    it('should return matching label with getGlassLabelByOrder', () => {
+      component.cocktail = {
+        ...mockCocktail,
+        glasses: [
+          { glassOrder: 1, glasswareNom: 'Coupe Martini', isPrimary: true },
+          { glassOrder: 2, glasswareNom: 'Shot Prosecco', isPrimary: false },
+        ],
+      };
+
+      expect(component.getGlassLabelByOrder(1)).toBe('Coupe Martini');
+      expect(component.getGlassLabelByOrder(2)).toBe('Shot Prosecco');
+      expect(component.getGlassLabelByOrder(3)).toBeTruthy();
+    });
+  });
 });

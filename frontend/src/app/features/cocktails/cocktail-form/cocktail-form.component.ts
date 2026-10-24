@@ -82,7 +82,7 @@ import {
   DEFAULT_FLAVOR_CONFIGS,
 } from '../../../core/models/cocktail.model';
 import { Ingredient } from '../../../core/models/ingredient.model';
-import { Glassware } from '../../../core/models/glassware.model';
+import { Glassware, CocktailGlassRequest } from '../../../core/models/glassware.model';
 import {
   RecipeStepActionType,
   RecipeStepTemplate,
@@ -92,6 +92,7 @@ import {
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
+import { ToggleSwitchComponent } from '../../../core/components/ui/toggle-switch/toggle-switch.component';
 import { CocktailSaisonnaliteComponent } from '../cocktail-saisonnalite/cocktail-saisonnalite.component';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
@@ -135,6 +136,7 @@ export interface BarEquipmentItem {
     InputFieldComponent,
     ActionButtonComponent,
     SearchableSelectComponent,
+    ToggleSwitchComponent,
     CocktailSaisonnaliteComponent,
   ],
 })
@@ -280,6 +282,9 @@ export class CocktailFormComponent implements OnInit {
   recipeVersion = signal<number>(0);
   selectedGlasswareId = signal<number | null>(null);
 
+  /** Active glass filter tab in Step 2: 0 = show all, 1 = glass 1, 2 = glass 2... */
+  activeStep2GlassTab = signal<number>(0);
+
   /** Active selected flavor profile tags. */
   selectedFlavors = signal<FlavorProfile[]>([]);
 
@@ -292,6 +297,10 @@ export class CocktailFormComponent implements OnInit {
     price: [0, [Validators.required, Validators.min(0)]],
     category: ['', Validators.required],
     glasswareId: [null],
+    isMultiGlass: [false],
+    secondaryGlasswareId: [null],
+    companionGlassTitle: [''],
+    extraGlasses: this.fb.array([]),
     instructions: [''],
     alcoholLevel: [null],
     isMocktail: [false],
@@ -300,6 +309,85 @@ export class CocktailFormComponent implements OnInit {
     station: ['BAR', Validators.required],
     recipeSteps: this.fb.array([]),
     variantes: this.fb.array([]),
+  });
+
+  get extraGlassesArray(): FormArray {
+    return this.cocktailForm.get('extraGlasses') as FormArray;
+  }
+
+  addExtraGlass(): void {
+    this.extraGlassesArray.push(
+      this.fb.group({
+        glasswareId: [null],
+        roleLabel: [''],
+      })
+    );
+    this.recipeVersion.update((v) => v + 1);
+  }
+
+  removeExtraGlass(index: number): void {
+    this.extraGlassesArray.removeAt(index);
+    this.recipeVersion.update((v) => v + 1);
+  }
+
+  getGlassNameById(id: any): string | null {
+    if (!id) return null;
+    const match = this.glasswareList().find((g) => g.id === +id);
+    return match ? match.nom : null;
+  }
+
+  getGlassLabelByOrder(order: number): string {
+    const found = this.configuredGlassesList().find((g) => g.order === order);
+    return found ? found.label : `Verre ${order}`;
+  }
+
+  /**
+   * List of all configured glasses (Primary Glass 1, Companion Glass 2, and any extra glasses).
+   */
+  configuredGlassesList = computed<Array<{ order: number; label: string; isPrimary: boolean }>>(() => {
+    this.recipeVersion();
+    const list: Array<{ order: number; label: string; isPrimary: boolean }> = [];
+    const g1Id = this.cocktailForm.get('glasswareId')?.value;
+    const g1Name = this.getGlassNameById(g1Id);
+    list.push({
+      order: 1,
+      label: g1Name || this.transloco.translate('COCKTAILS.TARGET_GLASS_PRIMARY'),
+      isPrimary: true,
+    });
+
+    if (this.cocktailForm.get('isMultiGlass')?.value) {
+      const g2Id = this.cocktailForm.get('secondaryGlasswareId')?.value;
+      const g2Title = this.cocktailForm.get('companionGlassTitle')?.value;
+      const g2Name = this.getGlassNameById(g2Id);
+      list.push({
+        order: 2,
+        label: g2Title?.trim() || g2Name || this.transloco.translate('COCKTAILS.TARGET_GLASS_COMPANION'),
+        isPrimary: false,
+      });
+
+      this.extraGlassesArray.controls.forEach((ctrl, idx) => {
+        const order = idx + 3;
+        const extraId = ctrl.get('glasswareId')?.value;
+        const extraName = this.getGlassNameById(extraId);
+        const role = ctrl.get('roleLabel')?.value;
+        list.push({
+          order,
+          label: role?.trim() || extraName || `Verre ${order}`,
+          isPrimary: false,
+        });
+      });
+    }
+    return list;
+  });
+
+  /**
+   * Searchable options for selecting target glass for a recipe step.
+   */
+  glassTargetOptions = computed<SearchableOption[]>(() => {
+    return this.configuredGlassesList().map((g) => ({
+      value: g.order,
+      label: `${g.isPrimary ? '🍸' : '🥃'} ${g.label}`,
+    }));
   });
 
   /**
@@ -780,12 +868,21 @@ export class CocktailFormComponent implements OnInit {
           if (cocktail.flavorProfiles) {
             this.selectedFlavors.set([...cocktail.flavorProfiles]);
           }
+          const isMulti = Boolean(
+            cocktail.secondaryGlassware ||
+            cocktail.secondaryGlasswareId ||
+            cocktail.companionGlassTitle ||
+            (cocktail.glasses && cocktail.glasses.length > 1)
+          );
           this.cocktailForm.patchValue({
             name: cocktail.nom,
             description: cocktail.description || '',
             price: cocktail.prix,
             category: cocktail.categorie,
             glasswareId: cocktail.glassware?.id ?? cocktail.glasswareId ?? null,
+            isMultiGlass: isMulti,
+            secondaryGlasswareId: cocktail.secondaryGlassware?.id ?? cocktail.secondaryGlasswareId ?? null,
+            companionGlassTitle: cocktail.companionGlassTitle || '',
             instructions: cocktail.instructions || '',
             alcoholLevel: cocktail.alcoholLevel ?? null,
             isMocktail: cocktail.isMocktail ?? false,
@@ -793,6 +890,18 @@ export class CocktailFormComponent implements OnInit {
             isGlutenFree: cocktail.isGlutenFree ?? false,
             station: cocktail.station || 'BAR',
           });
+
+          if (cocktail.glasses && cocktail.glasses.length > 2) {
+            this.extraGlassesArray.clear();
+            cocktail.glasses.slice(2).forEach((g) => {
+              this.extraGlassesArray.push(
+                this.fb.group({
+                  glasswareId: [g.glasswareId || null],
+                  roleLabel: [g.roleLabel || ''],
+                })
+              );
+            });
+          }
 
           this.saisonnaliteState = {
             saisonnier: cocktail.saisonnier || false,
@@ -977,12 +1086,32 @@ export class CocktailFormComponent implements OnInit {
   }
 
   // --- Step 2: Recipe Block Builder Helpers ---
+  setActiveStep2GlassTab(tab: number): void {
+    this.activeStep2GlassTab.set(tab);
+  }
+
+  isStepVisibleInTab(stepGroup: AbstractControl): boolean {
+    const activeTab = this.activeStep2GlassTab();
+    if (activeTab === 0) return true;
+    const targetOrder = Number(stepGroup.get('targetGlassOrder')?.value) || 1;
+    return targetOrder === activeTab;
+  }
+
+  onTargetGlassSelected(index: number, option: any): void {
+    const group = this.recipeStepsArray.at(index) as FormGroup;
+    const value = option && typeof option === 'object' && 'value' in option ? option.value : option;
+    group.patchValue({ targetGlassOrder: Number(value) || 1 });
+    this.recipeVersion.update((v) => v + 1);
+  }
+
   addIngredientStep(): void {
     const order = this.recipeStepsArray.length + 1;
+    const targetGlass = this.activeStep2GlassTab() > 0 ? this.activeStep2GlassTab() : 1;
     this.recipeStepsArray.push(
       this.fb.group({
         stepOrder: [order],
         stepType: ['INGREDIENT', Validators.required],
+        targetGlassOrder: [targetGlass],
         ingredientId: [null, Validators.required],
         ingredientNom: [''],
         quantite: [4, [Validators.required, Validators.min(0.1)]],
@@ -1002,10 +1131,12 @@ export class CocktailFormComponent implements OnInit {
 
   addActionTemplateStep(): void {
     const order = this.recipeStepsArray.length + 1;
+    const targetGlass = this.activeStep2GlassTab() > 0 ? this.activeStep2GlassTab() : 1;
     this.recipeStepsArray.push(
       this.fb.group({
         stepOrder: [order],
         stepType: ['ACTION_TEMPLATE', Validators.required],
+        targetGlassOrder: [targetGlass],
         ingredientId: [null],
         ingredientNom: [''],
         quantite: [null],
@@ -1030,10 +1161,12 @@ export class CocktailFormComponent implements OnInit {
 
   addCustomTextStep(): void {
     const order = this.recipeStepsArray.length + 1;
+    const targetGlass = this.activeStep2GlassTab() > 0 ? this.activeStep2GlassTab() : 1;
     this.recipeStepsArray.push(
       this.fb.group({
         stepOrder: [order],
         stepType: ['CUSTOM_TEXT', Validators.required],
+        targetGlassOrder: [targetGlass],
         ingredientId: [null],
         ingredientNom: [''],
         quantite: [null],
@@ -1122,6 +1255,7 @@ export class CocktailFormComponent implements OnInit {
     return this.fb.group({
       stepOrder: [order],
       stepType: [step.stepType, Validators.required],
+      targetGlassOrder: [step.targetGlassOrder || 1],
       ingredientId: [step.ingredientId || null],
       ingredientNom: [step.ingredientNom || ''],
       quantite: [step.quantite || null],
@@ -1489,6 +1623,7 @@ export class CocktailFormComponent implements OnInit {
       (step: any, idx: number) => ({
         stepOrder: idx + 1,
         stepType: step.stepType,
+        targetGlassOrder: step.targetGlassOrder != null ? +step.targetGlassOrder : 1,
         ingredientId: step.ingredientId || null,
         quantite: step.quantite != null ? +step.quantite : null,
         unite: step.unite || null,
@@ -1498,6 +1633,36 @@ export class CocktailFormComponent implements OnInit {
         durationSeconds: step.durationSeconds != null ? +step.durationSeconds : null,
       })
     );
+
+    const glassesPayload: CocktailGlassRequest[] = [];
+    if (formVal.glasswareId) {
+      glassesPayload.push({
+        glassOrder: 1,
+        glasswareId: +formVal.glasswareId,
+        roleLabel: this.transloco.translate('BARMAN_DASHBOARD.PRIMARY_GLASS'),
+        isPrimary: true,
+      });
+    }
+    if (formVal.isMultiGlass) {
+      if (formVal.secondaryGlasswareId) {
+        glassesPayload.push({
+          glassOrder: 2,
+          glasswareId: +formVal.secondaryGlasswareId,
+          roleLabel: formVal.companionGlassTitle ? formVal.companionGlassTitle.trim() : null,
+          isPrimary: false,
+        });
+      }
+      (formVal.extraGlasses || []).forEach((eg: any, idx: number) => {
+        if (eg.glasswareId) {
+          glassesPayload.push({
+            glassOrder: idx + 3,
+            glasswareId: +eg.glasswareId,
+            roleLabel: eg.roleLabel ? eg.roleLabel.trim() : null,
+            isPrimary: false,
+          });
+        }
+      });
+    }
 
     const variantesPayload = (formVal.variantes || []).map((v: any) => ({
       id: v.id || null,
@@ -1510,6 +1675,7 @@ export class CocktailFormComponent implements OnInit {
       recipeSteps: (v.recipeSteps || []).map((step: any, sIdx: number) => ({
         stepOrder: sIdx + 1,
         stepType: step.stepType,
+        targetGlassOrder: step.targetGlassOrder != null ? +step.targetGlassOrder : 1,
         ingredientId: step.ingredientId || null,
         quantite: step.quantite != null ? +step.quantite : null,
         unite: step.unite || null,
@@ -1533,6 +1699,9 @@ export class CocktailFormComponent implements OnInit {
       prix: formVal.price,
       categorie: formVal.category,
       glasswareId: formVal.glasswareId ? +formVal.glasswareId : null,
+      secondaryGlasswareId: formVal.isMultiGlass && formVal.secondaryGlasswareId ? +formVal.secondaryGlasswareId : null,
+      companionGlassTitle: formVal.isMultiGlass && formVal.companionGlassTitle ? formVal.companionGlassTitle.trim() : null,
+      glasses: glassesPayload,
       instructions: formVal.instructions || null,
       station: formVal.station || 'BAR',
       flavorProfiles: this.selectedFlavors(),

@@ -1,6 +1,7 @@
 package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.CocktailFacetsDTO;
+import com.bar.gestioncocktail.dto.CocktailGlassRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailRecipeStepRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailResponseDTO;
@@ -1310,6 +1311,108 @@ class CocktailServiceTest {
         assertThat(result).isEmpty();
         verify(cocktailRepository, never()).findAllById(any());
         verify(cocktailRepository, never()).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("createCocktailFromRequest - saves multi-glass configuration and target glass orders")
+    void createCocktailFromRequestWithMultiGlassConfig() {
+        Glassware coupe = new Glassware();
+        coupe.setId(101L);
+        coupe.setNom("Coupe Martini");
+
+        Glassware shot = new Glassware();
+        shot.setId(102L);
+        shot.setNom("Shot");
+
+        when(glasswareRepository.findById(101L)).thenReturn(Optional.of(coupe));
+        when(glasswareRepository.findById(102L)).thenReturn(Optional.of(shot));
+
+        Ingredient vodka = new Ingredient();
+        vodka.setId(11L);
+        vodka.setNom("Vodka Vanille");
+        when(ingredientRepository.findById(11L)).thenReturn(Optional.of(vodka));
+
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(inv -> {
+            Cocktail c = inv.getArgument(0);
+            c.setId(50L);
+            return c;
+        });
+
+        CocktailRecipeStepRequestDTO stepCoupe = new CocktailRecipeStepRequestDTO(
+            1, RecipeStepType.INGREDIENT, 11L, new BigDecimal("4.0"), "cl", 1, null, null, null, null
+        );
+        CocktailRecipeStepRequestDTO stepShot = new CocktailRecipeStepRequestDTO(
+            2, RecipeStepType.CUSTOM_TEXT, null, null, null, 2, null, "Verser le prosecco frais", "Déguster en alternance", null
+        );
+
+        List<CocktailGlassRequestDTO> glasses = List.of(
+            new CocktailGlassRequestDTO(101L, 1, "Verre principal", true),
+            new CocktailGlassRequestDTO(102L, 2, "Shot Prosecco", false)
+        );
+
+        CocktailRequestDTO request = new CocktailRequestDTO(
+            "Pornstar Martini", "Passion & Prosecco", new BigDecimal("12.00"),
+            CocktailCategorie.ALCOOLISE, true, false, null, null, null, null,
+            "Servir avec le shot", null, List.of(stepCoupe, stepShot), 101L,
+            List.of(), Set.of(), new BigDecimal("15.0"), false, true, true,
+            PreparationStation.BAR, 102L, "Shot Prosecco", glasses
+        );
+
+        CocktailResponseDTO response = cocktailService.createCocktailFromRequest(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.secondaryGlassware()).isNotNull();
+        assertThat(response.secondaryGlassware().id()).isEqualTo(102L);
+        assertThat(response.companionGlassTitle()).isEqualTo("Shot Prosecco");
+        assertThat(response.glasses()).hasSize(2);
+        assertThat(response.recipeSteps()).hasSize(2);
+        assertThat(response.recipeSteps().get(0).targetGlassOrder()).isEqualTo(1);
+        assertThat(response.recipeSteps().get(1).targetGlassOrder()).isEqualTo(2);
+        verify(cocktailRepository).save(any(Cocktail.class));
+    }
+
+    @Test
+    @DisplayName("updateCocktailFromRequest - updates multi-glass and syncs glasses collection")
+    void updateCocktailFromRequestUpdatesMultiGlassCollection() {
+        cocktail.setGlasses(new ArrayList<>());
+
+        Glassware rocks = new Glassware();
+        rocks.setId(103L);
+        rocks.setNom("Old Fashioned");
+
+        Glassware shot = new Glassware();
+        shot.setId(104L);
+        shot.setNom("Shot");
+
+        when(cocktailRepository.findById(1L)).thenReturn(Optional.of(cocktail));
+        when(glasswareRepository.findById(103L)).thenReturn(Optional.of(rocks));
+        when(glasswareRepository.findById(104L)).thenReturn(Optional.of(shot));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        List<CocktailGlassRequestDTO> glasses = List.of(
+            new CocktailGlassRequestDTO(103L, 1, "Verre principal", true),
+            new CocktailGlassRequestDTO(104L, 2, "Chaser", false)
+        );
+
+        CocktailRequestDTO updateRequest = new CocktailRequestDTO(
+            "Mojito", "Updated", new BigDecimal("9.00"),
+            CocktailCategorie.ALCOOLISE, true, false, null, null, null, null,
+            "Instructions", null, List.of(), 103L,
+            List.of(), Set.of(), new BigDecimal("12.0"), false, true, true,
+            PreparationStation.BAR, 104L, "Chaser", glasses
+        );
+
+        CocktailResponseDTO response = cocktailService.updateCocktailFromRequest(1L, updateRequest);
+
+        assertThat(response).isNotNull();
+        assertThat(response.glassware()).isNotNull();
+        assertThat(response.glassware().id()).isEqualTo(103L);
+        assertThat(response.secondaryGlassware()).isNotNull();
+        assertThat(response.secondaryGlassware().id()).isEqualTo(104L);
+        assertThat(response.companionGlassTitle()).isEqualTo("Chaser");
+        assertThat(cocktail.getGlasses()).hasSize(2);
+        assertThat(cocktail.getGlasses().get(0).getGlassware().getId()).isEqualTo(103L);
+        assertThat(cocktail.getGlasses().get(1).getGlassware().getId()).isEqualTo(104L);
     }
 }
 

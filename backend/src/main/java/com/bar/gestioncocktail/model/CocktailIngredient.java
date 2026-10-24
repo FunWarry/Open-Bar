@@ -30,6 +30,9 @@ public class CocktailIngredient {
     @Column(length = 20)
     private String unite;
 
+    @Column(name = "target_glass_order", nullable = false)
+    private Integer targetGlassOrder = 1;
+
     private String notes;
 
     @Column(name = "created_at", nullable = false, updatable = false)

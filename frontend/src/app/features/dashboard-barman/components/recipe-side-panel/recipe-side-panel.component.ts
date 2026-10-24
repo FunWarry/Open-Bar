@@ -122,6 +122,9 @@ export class RecipeSidePanelComponent implements OnInit, OnChanges {
   /** Set of step identifiers marked as completed by the bartender. */
   completedSteps = new Set<number | string>();
 
+  /** Filter by target glass order: 0 = show all glasses, 1 = primary, 2 = companion, etc. */
+  selectedGlassOrderFilter = 0;
+
   private readonly translocoService = inject(TranslocoService);
 
   constructor() {
@@ -230,10 +233,100 @@ export class RecipeSidePanelComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Resolves the glassware entity from cocktail with graceful fallback.
+   * Resolves the primary glassware entity from cocktail with graceful fallback.
    */
   get resolvedGlassware(): Glassware | null {
     return this.cocktail?.glassware || null;
+  }
+
+  /**
+   * Resolves all glasses (primary and companion glassware) configured for this cocktail.
+   */
+  get resolvedGlasses(): Array<{
+    glassOrder: number;
+    nom: string;
+    description?: string;
+    imageUrl?: string;
+    contenanceCl?: number;
+    roleLabel?: string;
+    isPrimary: boolean;
+  }> {
+    if (!this.cocktail) return [];
+    if (this.cocktail.glasses && this.cocktail.glasses.length > 0) {
+      return this.cocktail.glasses.map((g) => ({
+        glassOrder: g.glassOrder,
+        nom: g.glasswareNom || g.glassware?.nom || (g.isPrimary ? this.translocoService.translate('BARMAN_DASHBOARD.PRIMARY_GLASS') : (g.roleLabel || this.translocoService.translate('BARMAN_DASHBOARD.COMPANION_GLASS'))),
+        description: '',
+        imageUrl: g.glasswareImageUrl || g.glassware?.imageUrl,
+        contenanceCl: g.glasswareContenanceCl || g.glassware?.contenanceCl,
+        roleLabel: g.roleLabel,
+        isPrimary: g.isPrimary,
+      }));
+    }
+    const list: Array<{
+      glassOrder: number;
+      nom: string;
+      description?: string;
+      imageUrl?: string;
+      contenanceCl?: number;
+      roleLabel?: string;
+      isPrimary: boolean;
+    }> = [];
+    if (this.cocktail.glassware) {
+      list.push({
+        glassOrder: 1,
+        nom: this.cocktail.glassware.nom,
+        description: this.cocktail.glassware.description,
+        imageUrl: this.cocktail.glassware.imageUrl,
+        contenanceCl: this.cocktail.glassware.contenanceCl,
+        roleLabel: undefined,
+        isPrimary: true,
+      });
+    }
+    if (this.cocktail.secondaryGlassware || this.cocktail.companionGlassTitle) {
+      list.push({
+        glassOrder: 2,
+        nom: this.cocktail.secondaryGlassware?.nom || this.cocktail.companionGlassTitle || this.translocoService.translate('BARMAN_DASHBOARD.COMPANION_GLASS'),
+        description: this.cocktail.secondaryGlassware?.description,
+        imageUrl: this.cocktail.secondaryGlassware?.imageUrl,
+        contenanceCl: this.cocktail.secondaryGlassware?.contenanceCl,
+        roleLabel: this.cocktail.companionGlassTitle,
+        isPrimary: false,
+      });
+    }
+    return list;
+  }
+
+  /**
+   * Whether this cocktail is served with multiple glasses (e.g. primary + companion shot/sidecar).
+   */
+  get hasMultipleGlasses(): boolean {
+    return this.resolvedGlasses.length > 1;
+  }
+
+  /**
+   * Sets the active glass filter (0 = all, 1 = primary, 2 = companion).
+   *
+   * @param order Target glass order index
+   */
+  setSelectedGlassFilter(order: number): void {
+    this.selectedGlassOrderFilter = order;
+  }
+
+  /**
+   * Retrieves the human-readable display label for a glass order index.
+   *
+   * @param order Target glass order index
+   * @returns Formatted label
+   */
+  getGlassLabelByOrder(order: number): string {
+    const match = this.resolvedGlasses.find((g) => g.glassOrder === order);
+    if (match) {
+      return match.roleLabel || match.nom;
+    }
+    return order === 1
+      ? this.translocoService.translate('BARMAN_DASHBOARD.PRIMARY_GLASS')
+      : this.translocoService.translate('BARMAN_DASHBOARD.GLASS_ORDER_LABEL', { order });
   }
 
   /**
@@ -260,14 +353,18 @@ export class RecipeSidePanelComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Returns the visible recipe steps depending on the active view mode:
+   * Returns the visible recipe steps depending on the active view mode and target glass filter:
    * - In 'full' mode: all steps (mixology flow, ingredients, actions, instructions).
    * - In 'compact' mode: only INGREDIENT steps in the exact order of the recipe.
+   * - When multi-glass filter is active (> 0): only steps matching the target glass order.
    */
   get visibleRecipeSteps(): CocktailRecipeStep[] {
-    const steps = this.cocktail?.recipeSteps ?? [];
+    let steps = this.cocktail?.recipeSteps ?? [];
     if (this.viewMode === 'compact') {
-      return steps.filter((s) => s.stepType === 'INGREDIENT');
+      steps = steps.filter((s) => s.stepType === 'INGREDIENT');
+    }
+    if (this.hasMultipleGlasses && this.selectedGlassOrderFilter > 0) {
+      steps = steps.filter((s) => (s.targetGlassOrder || 1) === this.selectedGlassOrderFilter);
     }
     return steps;
   }

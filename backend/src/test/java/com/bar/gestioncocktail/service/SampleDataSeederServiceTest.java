@@ -107,6 +107,9 @@ class SampleDataSeederServiceTest {
     private ChecklistRunRepository checklistRunRepository;
 
     @Mock
+    private GlasswareRepository glasswareRepository;
+
+    @Mock
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @Mock
