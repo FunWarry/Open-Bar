@@ -913,6 +913,29 @@ public class EscPosFormatter {
         return out.toByteArray();
     }
 
+    private void writeAuditSlipHeader(ByteArrayOutputStream out, EstablishmentConfig legalConfig, AppSettings appSettings,
+                                     String title, String opDate, String opTime, String opUser) throws IOException {
+        out.write(CMD_INIT);
+        out.write(CMD_CODEPAGE_CP850);
+        out.write(CMD_ALIGN_CENTER);
+        out.write(CMD_BOLD_ON);
+        writeText(out, resolveTradeName(legalConfig, appSettings));
+        out.write(LF);
+        out.write(CMD_BOLD_OFF);
+        writeText(out, title);
+        out.write(LF);
+        writeText(out, repeat("=", LINE_WIDTH));
+        out.write(LF);
+        out.write(CMD_ALIGN_LEFT);
+
+        writeText(out, formatTwoColumns(PREFIX_DATE + opDate, PREFIX_TIME + opTime, LINE_WIDTH));
+        out.write(LF);
+        writeText(out, PREFIX_OPERATOR + opUser);
+        out.write(LF);
+        writeText(out, repeat("-", LINE_WIDTH));
+        out.write(LF);
+    }
+
     private String resolveVarianceLabel(BigDecimal variance) {
         if (variance.compareTo(BigDecimal.ZERO) == 0) {
             return "ECART DE CAISSE :";
