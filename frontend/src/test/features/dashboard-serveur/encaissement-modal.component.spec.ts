@@ -243,6 +243,11 @@ describe('EncaissementModalComponent', () => {
     expect(component.primaryCashIncrements.map(d => d.value)).toEqual([5, 10, 20, 50, 100]);
   });
 
+  it('should fallback to default coin increments if denominations contain no coins', () => {
+    spyOn(appSettingsService, 'getCashDenominations').and.returnValue([]);
+    expect(component.primaryCoinIncrements.map(d => d.value)).toEqual([0.01, 0.02, 0.05, 0.10, 0.20, 0.50, 1, 2]);
+  });
+
   it('should calculate intelligent smart cash suggestions for different amounts', () => {
     spyOnProperty(appSettingsService, 'currencyCode', 'get').and.returnValue('EUR');
     spyOn(appSettingsService, 'getCashDenominations').and.returnValue(DEFAULT_EUR_DENOMINATIONS);

@@ -12,7 +12,7 @@ describe('DenominationCalculatorComponent', () => {
     currencyCode: 'EUR',
     currencySymbol: '€',
     currencyPosition: 'AFTER' as const,
-    getCashDenominations: () => null,
+    getCashDenominations: (): CashDenomination[] | null => null,
     formatCurrency: (value: number | null | undefined) => `${(value ?? 0).toFixed(2)} €`
   };
 
@@ -154,5 +154,29 @@ describe('DenominationCalculatorComponent', () => {
     component.counting = { '50e': 7 };
 
     expect(component.getLineTotal(item)).toBe(350);
+  });
+
+  it('should use configured cash denominations when provided by AppSettingsService', () => {
+    mockAppSettingsService.getCashDenominations = () => customDenominations;
+    component.denominations = undefined;
+    component.ngOnInit();
+
+    expect(component.bills).toHaveSize(2);
+    expect(component.coins).toHaveSize(2);
+    mockAppSettingsService.getCashDenominations = () => null;
+  });
+
+  it('should handle changes in counting input via ngOnChanges', () => {
+    component.counting = { '50e': 5 };
+    component.ngOnChanges({
+      counting: {
+        currentValue: { '50e': 5 },
+        previousValue: {},
+        firstChange: false,
+        isFirstChange: () => false
+      }
+    });
+
+    expect(component.counting['50e']).toBe(5);
   });
 });
