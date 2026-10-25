@@ -63,6 +63,7 @@ class StockMovementServiceTest {
 
     private Ingredient sampleIngredient;
     private User sampleUser;
+    private static final String CLIENT_IP = "test-client-ip";
     private final LocalDateTime fixedNow = LocalDateTime.of(2026, Month.SEPTEMBER, 6, 15, 0, 0);
 
     @BeforeEach
@@ -110,7 +111,7 @@ class StockMovementServiceTest {
                 "Bouteilles tombées lors du nettoyage"
         );
 
-        StockMovement result = stockMovementService.recordWaste(request, "barman1", "127.0.0.1");
+        StockMovement result = stockMovementService.recordWaste(request, "barman1", CLIENT_IP);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(100L);
@@ -129,14 +130,14 @@ class StockMovementServiceTest {
                 eq("Ingredient"),
                 eq(10L),
                 any(),
-                eq("127.0.0.1")
+                eq(CLIENT_IP)
         );
     }
 
     @Test
     @DisplayName("recordWaste — throws BusinessException when request is null")
     void recordWasteNullRequestThrowsBusinessException() {
-        assertThatThrownBy(() -> stockMovementService.recordWaste(null, "barman1", "127.0.0.1"))
+        assertThatThrownBy(() -> stockMovementService.recordWaste(null, "barman1", CLIENT_IP))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Waste declaration request cannot be null");
     }
@@ -153,7 +154,7 @@ class StockMovementServiceTest {
                 "Expiré"
         );
 
-        assertThatThrownBy(() -> stockMovementService.recordWaste(request, "barman1", "127.0.0.1"))
+        assertThatThrownBy(() -> stockMovementService.recordWaste(request, "barman1", CLIENT_IP))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Ingredient not found with ID: 999");
     }
@@ -170,7 +171,7 @@ class StockMovementServiceTest {
                 "Test zero"
         );
 
-        assertThatThrownBy(() -> stockMovementService.recordWaste(requestZero, "barman1", "127.0.0.1"))
+        assertThatThrownBy(() -> stockMovementService.recordWaste(requestZero, "barman1", CLIENT_IP))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Wasted quantity must be greater than zero");
 
@@ -181,7 +182,7 @@ class StockMovementServiceTest {
                 "Test negative"
         );
 
-        assertThatThrownBy(() -> stockMovementService.recordWaste(requestNegative, "barman1", "127.0.0.1"))
+        assertThatThrownBy(() -> stockMovementService.recordWaste(requestNegative, "barman1", CLIENT_IP))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Wasted quantity must be greater than zero");
     }
@@ -198,7 +199,7 @@ class StockMovementServiceTest {
                 "Exceeds inventory"
         );
 
-        assertThatThrownBy(() -> stockMovementService.recordWaste(requestExceed, "barman1", "127.0.0.1"))
+        assertThatThrownBy(() -> stockMovementService.recordWaste(requestExceed, "barman1", CLIENT_IP))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("cannot exceed available inventory stock");
     }
@@ -238,7 +239,7 @@ class StockMovementServiceTest {
                 "Mauvais dosage"
         );
 
-        StockMovement result = stockMovementService.recordWaste(request, "admin", "test-client-ip");
+        StockMovement result = stockMovementService.recordWaste(request, "admin", CLIENT_IP);
 
         // 3.00 * 10.3333 = 30.9999 -> 31.00
         assertThat(result.getCost()).isEqualTo(new BigDecimal("31.00"));
@@ -314,19 +315,19 @@ class StockMovementServiceTest {
                 null
         );
 
-        StockMovement result = stockMovementService.recordQuickLog(quickLogReq, "barman1", "127.0.0.1");
+        StockMovement result = stockMovementService.recordQuickLog(quickLogReq, "barman1", CLIENT_IP);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(100L);
         assertThat(result.getNotes()).isEqualTo("Bartender Quick-Log (ERREUR_PREPARATION)");
         verify(ingredientService).updateStock(sampleIngredient, new BigDecimal("9.50"));
-        verify(auditLogService).logAction(eq(sampleUser), eq("STOCK_WASTE_RECORDED"), eq("Ingredient"), eq(10L), any(), eq("127.0.0.1"));
+        verify(auditLogService).logAction(eq(sampleUser), eq("STOCK_WASTE_RECORDED"), eq("Ingredient"), eq(10L), any(), eq(CLIENT_IP));
     }
 
     @Test
     @DisplayName("recordQuickLog — error case: throws BusinessException when payload is null")
     void recordQuickLogNullThrowsBusinessException() {
-        assertThatThrownBy(() -> stockMovementService.recordQuickLog(null, "barman1", "127.0.0.1"))
+        assertThatThrownBy(() -> stockMovementService.recordQuickLog(null, "barman1", CLIENT_IP))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("cannot be null");
     }
@@ -345,11 +346,11 @@ class StockMovementServiceTest {
         when(stockMovementRepository.findById(42L)).thenReturn(Optional.of(movement));
         when(userRepository.findByUsername("barman1")).thenReturn(Optional.of(sampleUser));
 
-        stockMovementService.revertQuickLog(42L, "barman1", "127.0.0.1");
+        stockMovementService.revertQuickLog(42L, "barman1", CLIENT_IP);
 
         verify(ingredientService).updateStock(sampleIngredient, new BigDecimal("10.50"));
         verify(stockMovementRepository).delete(movement);
-        verify(auditLogService).logAction(eq(sampleUser), eq("STOCK_WASTE_REVERTED"), eq("StockMovement"), eq(42L), any(), eq("127.0.0.1"));
+        verify(auditLogService).logAction(eq(sampleUser), eq("STOCK_WASTE_REVERTED"), eq("StockMovement"), eq(42L), any(), eq(CLIENT_IP));
     }
 
     @Test
@@ -371,7 +372,7 @@ class StockMovementServiceTest {
         when(stockMovementRepository.findById(42L)).thenReturn(Optional.of(movement));
         when(userRepository.findByUsername("manager1")).thenReturn(Optional.of(manager));
 
-        stockMovementService.revertQuickLog(42L, "manager1", "127.0.0.1");
+        stockMovementService.revertQuickLog(42L, "manager1", CLIENT_IP);
 
         verify(ingredientService).updateStock(sampleIngredient, new BigDecimal("11.00"));
         verify(stockMovementRepository).delete(movement);
@@ -392,7 +393,7 @@ class StockMovementServiceTest {
         when(stockMovementRepository.findById(42L)).thenReturn(Optional.of(movement));
         when(userRepository.findByUsername("barman2")).thenReturn(Optional.of(otherBarman));
 
-        assertThatThrownBy(() -> stockMovementService.revertQuickLog(42L, "barman2", "127.0.0.1"))
+        assertThatThrownBy(() -> stockMovementService.revertQuickLog(42L, "barman2", CLIENT_IP))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("not authorized");
     }
@@ -402,7 +403,7 @@ class StockMovementServiceTest {
     void revertQuickLogNotFoundThrowsResourceNotFoundException() {
         when(stockMovementRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> stockMovementService.revertQuickLog(999L, "barman1", "127.0.0.1"))
+        assertThatThrownBy(() -> stockMovementService.revertQuickLog(999L, "barman1", CLIENT_IP))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Stock movement not found");
     }
@@ -412,7 +413,7 @@ class StockMovementServiceTest {
     void revertQuickLogModuleDisabledThrowsBusinessException() {
         when(establishmentConfigService.isModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.STOCK_TRACKING)).thenReturn(false);
 
-        assertThatThrownBy(() -> stockMovementService.revertQuickLog(42L, "barman1", "127.0.0.1"))
+        assertThatThrownBy(() -> stockMovementService.revertQuickLog(42L, "barman1", CLIENT_IP))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("disabled");
     }
