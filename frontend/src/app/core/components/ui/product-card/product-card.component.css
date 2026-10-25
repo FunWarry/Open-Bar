@@ -291,3 +291,14 @@
   letter-spacing: 0.02em;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .product-card-container {
+    transition: none;
+    transform: none;
+  }
+
+  .product-card-container:hover {
+    transform: none;
+  }
+}
+

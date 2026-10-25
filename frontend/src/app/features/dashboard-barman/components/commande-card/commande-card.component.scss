@@ -219,7 +219,7 @@
   cursor: pointer;
   font-size: 14px;
   flex-shrink: 0;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 
   &:hover {
     background: var(--primary);
@@ -301,7 +301,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--text-on-accent);
 
   ion-icon {
@@ -389,7 +389,7 @@
   justify-content: center;
   cursor: pointer;
   font-size: 13px;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   flex-shrink: 0;
 
   &:hover,
@@ -459,5 +459,15 @@
 
   ion-icon {
     font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-alerte-retard,
+  .timer.timer--critical,
+  .progress-badge.progress--complete,
+  .icon-btn-urgent.active-urgent,
+  .btn-pulse-ready {
+    animation: none;
   }
 }

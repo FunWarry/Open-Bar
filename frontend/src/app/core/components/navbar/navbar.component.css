@@ -287,3 +287,13 @@ ion-popover ion-item:hover ion-icon {
     display: inline-flex;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .notif-badge.call-pulse,
+  .bell-pulsing {
+    animation: none;
+  }
+  .notif-drawer-wrapper {
+    transition: none;
+  }
+}
