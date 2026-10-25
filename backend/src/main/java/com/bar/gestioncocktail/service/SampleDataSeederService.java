@@ -73,6 +73,7 @@ public class SampleDataSeederService {
     private static final String KEY_CLOSED_BY_USERNAME = "closedByUsername";
     private static final String KEY_OPENED_BY_USERNAME = "openedByUsername";
     private static final String KEY_OPENING_FLOAT = "openingFloat";
+    private static final String KEY_THEORETICAL_CASH = "theoreticalCash";
     private static final String KEY_OPENING_DENOMINATIONS = "openingDenominations";
     private static final String KEY_MOVEMENTS = "movements";
     private static final String KEY_PURCHASE_UNIT = "purchaseUnit";
@@ -96,6 +97,7 @@ public class SampleDataSeederService {
     private static final String KEY_MEDIA_URL = "mediaUrl";
     private static final String KEY_VIDEO_EMBED_URL = "videoEmbedUrl";
     private static final String KEY_CODE = "code";
+    private static final String DEFAULT_SERVEUR_USERNAME = "serveur1";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -134,6 +136,8 @@ public class SampleDataSeederService {
     private final ReservationRepository reservationRepository;
     private final ChecklistTemplateRepository checklistTemplateRepository;
     private final ChecklistRunRepository checklistRunRepository;
+    private final SafetyAlertRepository safetyAlertRepository;
+    private final GlasswareRepository glasswareRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -177,7 +181,9 @@ public class SampleDataSeederService {
             @org.springframework.beans.factory.annotation.Autowired(required = false) RouletteWheelSectorRepository rouletteWheelSectorRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) ReservationRepository reservationRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) ChecklistTemplateRepository checklistTemplateRepository,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) ChecklistRunRepository checklistRunRepository) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) ChecklistRunRepository checklistRunRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) SafetyAlertRepository safetyAlertRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) GlasswareRepository glasswareRepository) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -215,6 +221,8 @@ public class SampleDataSeederService {
         this.reservationRepository = reservationRepository;
         this.checklistTemplateRepository = checklistTemplateRepository;
         this.checklistRunRepository = checklistRunRepository;
+        this.safetyAlertRepository = safetyAlertRepository;
+        this.glasswareRepository = glasswareRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -424,6 +432,7 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedCocktailRecipeStepsFromJson(root.get("cocktail_recipe_steps"), templatesMap), "seedCocktailRecipeSteps");
             safelyInTransaction(() -> seedStockAdjustmentsFromJson(root.get("stock_adjustments")), "seedStockAdjustments");
             safelyInTransaction(() -> seedTableAppelsFromJson(root.get("table_appels"), tablesMap), "seedTableAppels");
+            safelyInTransaction(() -> seedSafetyAlertsFromJson(root.get("safety_alerts"), tablesMap), "seedSafetyAlerts");
             safelyInTransaction(() -> seedTableSessionsFromJson(root.get("table_sessions"), tablesMap), "seedTableSessions");
             safelyInTransaction(this::seedSettingsAndConfig, "seedSettingsAndConfig");
 
@@ -1010,7 +1019,7 @@ public class SampleDataSeederService {
         }
 
         List<Commande> tableOrders = table != null ? commandeRepository.findByTable(table) : List.of();
-        Commande latestOrder = !tableOrders.isEmpty() ? tableOrders.get(tableOrders.size() - 1) : null;
+        Commande latestOrder = tableOrders.isEmpty() ? null : tableOrders.get(tableOrders.size() - 1);
 
         BigDecimal total = parseInvoiceItems(f, invNode.get(KEY_ITEMS), latestOrder);
         f.setTotal(total);
@@ -1225,8 +1234,46 @@ public class SampleDataSeederService {
         Cocktail cocktail = cocktailRepository.findByNomIgnoreCaseWithRecipeSteps(cocktailName).orElse(null);
         if (cocktail == null) return;
 
+        if (cocktailNode.has("secondaryGlassware")) {
+            String secGlassName = cocktailNode.get("secondaryGlassware").asText();
+            glasswareRepository.findByNomIgnoreCase(secGlassName).ifPresent(cocktail::setSecondaryGlassware);
+        }
+        if (cocktailNode.has("companionGlassTitle")) {
+            cocktail.setCompanionGlassTitle(cocktailNode.get("companionGlassTitle").asText());
+        }
+        if (cocktail.getSecondaryGlassware() != null) {
+            if (cocktail.getGlasses() == null) {
+                cocktail.setGlasses(new ArrayList<>());
+            }
+            cocktail.getGlasses().clear();
+            if (cocktail.getGlassware() != null) {
+                CocktailGlass cg1 = new CocktailGlass();
+                cg1.setCocktail(cocktail);
+                cg1.setGlassware(cocktail.getGlassware());
+                cg1.setGlassOrder(1);
+                cg1.setRoleLabel("Verre Principal");
+                cg1.setPrimary(true);
+                cg1.setCreatedAt(timeService.now());
+                cg1.setUpdatedAt(timeService.now());
+                cocktail.getGlasses().add(cg1);
+            }
+            CocktailGlass cg2 = new CocktailGlass();
+            cg2.setCocktail(cocktail);
+            cg2.setGlassware(cocktail.getSecondaryGlassware());
+            cg2.setGlassOrder(2);
+            String label = (cocktail.getCompanionGlassTitle() != null && !cocktail.getCompanionGlassTitle().isBlank())
+                ? cocktail.getCompanionGlassTitle()
+                : cocktail.getSecondaryGlassware().getNom();
+            cg2.setRoleLabel(label);
+            cg2.setPrimary(false);
+            cg2.setCreatedAt(timeService.now());
+            cg2.setUpdatedAt(timeService.now());
+            cocktail.getGlasses().add(cg2);
+        }
+
         JsonNode stepsNode = cocktailNode.get(KEY_STEPS);
         if (stepsNode == null || !stepsNode.isArray()) {
+            cocktailRepository.save(cocktail);
             return;
         }
 
@@ -1252,6 +1299,11 @@ public class SampleDataSeederService {
         }
         if (stepNode.has("unite")) {
             step.setUnite(stepNode.get("unite").asText());
+        }
+        if (stepNode.has("targetGlassOrder")) {
+            step.setTargetGlassOrder(stepNode.get("targetGlassOrder").asInt());
+        } else {
+            step.setTargetGlassOrder(1);
         }
         if (stepNode.has("actionTitle")) {
             step.setActionTitle(stepNode.get("actionTitle").asText());
@@ -1384,13 +1436,52 @@ public class SampleDataSeederService {
             appel.setUpdatedAt(now.minusMinutes(minutesAgo));
 
             if (statut == TableAppelStatut.ACQUITTE) {
-                appel.setAcquittePar(appelNode.path("acquittePar").asText("serveur1"));
+                appel.setAcquittePar(appelNode.path("acquittePar").asText(DEFAULT_SERVEUR_USERNAME));
                 appel.setAcquitteAt(now.minusMinutes(Math.max(0, minutesAgo - 1)));
             }
 
             tableAppelRepository.save(appel);
         }
         log.info("Seeded table call alerts from demo dataset.");
+    }
+
+    private void seedSafetyAlertsFromJson(JsonNode alertsNode, Map<Integer, TableEntity> tablesMap) {
+        if (alertsNode == null || !alertsNode.isArray() || safetyAlertRepository == null || safetyAlertRepository.count() > 0) {
+            return;
+        }
+
+        LocalDateTime now = timeService.now();
+
+        for (JsonNode alertNode : alertsNode) {
+            int tableNumero = alertNode.path(KEY_TABLE_NUMERO).asInt(1);
+            TableEntity table = tablesMap.get(tableNumero);
+            if (table == null) {
+                table = tableRepository.findByNumero(tableNumero).orElse(null);
+            }
+            if (table == null) {
+                continue;
+            }
+
+            SafetyAlertType type = SafetyAlertType.valueOf(alertNode.path("type").asText("ANGEL_SHOT_NEAT"));
+            SafetyAlertStatus status = SafetyAlertStatus.valueOf(alertNode.path(KEY_STATUS).asText("ACTIVE"));
+            String comment = alertNode.hasNonNull("comment") ? alertNode.path("comment").asText() : null;
+            int minutesAgo = alertNode.path(KEY_MINUTES_AGO).asInt(5);
+
+            SafetyAlert alert = new SafetyAlert();
+            alert.setTable(table);
+            alert.setType(type);
+            alert.setStatus(status);
+            alert.setComment(comment);
+            alert.setCreatedAt(now.minusMinutes(minutesAgo));
+
+            if (status == SafetyAlertStatus.RESOLVED) {
+                alert.setResolvedBy(alertNode.path("resolvedBy").asText(DEFAULT_SERVEUR_USERNAME));
+                alert.setResolvedAt(now.minusMinutes(Math.max(0, minutesAgo - 2)));
+            }
+
+            safetyAlertRepository.save(alert);
+        }
+        log.info("Seeded Angel Shot safety alerts from demo dataset.");
     }
 
     private void seedTableSessionsFromJson(JsonNode sessionsNode, Map<Integer, TableEntity> tablesMap) {
@@ -1699,7 +1790,7 @@ public class SampleDataSeederService {
         LocalDate closureDate = LocalDate.now(timeService.getZoneId()).minusDays(daysAgo);
 
         BigDecimal openingFloat = new BigDecimal(cNode.get(KEY_OPENING_FLOAT).asText());
-        BigDecimal theoreticalCash = new BigDecimal(cNode.get("theoreticalCash").asText());
+        BigDecimal theoreticalCash = new BigDecimal(cNode.get(KEY_THEORETICAL_CASH).asText());
         BigDecimal countedCash = new BigDecimal(cNode.get("countedCash").asText());
         BigDecimal cashDiscrepancy = new BigDecimal(cNode.get("cashDiscrepancy").asText());
         BigDecimal totalRevenueHT = new BigDecimal(cNode.get("totalRevenueHT").asText());
@@ -1800,6 +1891,18 @@ public class SampleDataSeederService {
             if (sNode.has(KEY_CLOSED_BY_USERNAME)) {
                 session.setClosedBy(usersMap.get(sNode.get(KEY_CLOSED_BY_USERNAME).asText()));
             }
+            if (sNode.has(KEY_THEORETICAL_CASH)) {
+                session.setTheoreticalCash(new BigDecimal(sNode.get(KEY_THEORETICAL_CASH).asText()));
+            }
+            if (sNode.has("actualCash")) {
+                session.setActualCash(new BigDecimal(sNode.get("actualCash").asText()));
+            }
+            if (sNode.has("cashVariance")) {
+                session.setCashVariance(new BigDecimal(sNode.get("cashVariance").asText()));
+            }
+            if (sNode.has("closingDenominationsJson")) {
+                session.setClosingDenominationsJson(sNode.get("closingDenominationsJson").toString());
+            }
         }
 
         CashDrawerSession savedSession = cashDrawerSessionRepository.save(session);
@@ -1828,6 +1931,9 @@ public class SampleDataSeederService {
             m.setReceiptReference(ref);
             m.setPerformedBy(performedBy);
             m.setTimestamp(timestamp);
+            if (mNode.has("denominationsJson")) {
+                m.setDenominationsJson(mNode.get("denominationsJson").toString());
+            }
             cashMovementRepository.save(m);
         }
     }
@@ -1859,7 +1965,7 @@ public class SampleDataSeederService {
         long minutesAgo = tNode.has(KEY_MINUTES_AGO) ? tNode.get(KEY_MINUTES_AGO).asLong() : 45;
         LocalDateTime openedAt = timeService.now().minusMinutes(minutesAgo);
 
-        String serveurUsername = tNode.has(KEY_SERVEUR_USERNAME) ? tNode.get(KEY_SERVEUR_USERNAME).asText() : "serveur1";
+        String serveurUsername = tNode.has(KEY_SERVEUR_USERNAME) ? tNode.get(KEY_SERVEUR_USERNAME).asText() : DEFAULT_SERVEUR_USERNAME;
         User serveur = usersMap.get(serveurUsername);
 
         BarTab tab = new BarTab();

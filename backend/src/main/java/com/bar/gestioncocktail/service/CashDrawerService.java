@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.CashDrawerCloseRequestDTO;
 import com.bar.gestioncocktail.dto.CashDrawerOpenRequestDTO;
 import com.bar.gestioncocktail.dto.CashDrawerSessionDTO;
 import com.bar.gestioncocktail.dto.CashDrawerStatusDTO;
@@ -117,7 +118,9 @@ public class CashDrawerService {
         DailyRecapDTO recap = factureService.getDailyRecap(date);
         BigDecimal totalCashRevenue = calculateCashPayments(recap);
 
-        List<CashMovement> movements = movementRepository.findByMovementDateOrderByTimestampAsc(date);
+        List<CashMovement> movements = movementRepository != null
+                ? movementRepository.findByMovementDateOrderByTimestampAsc(date)
+                : java.util.Collections.emptyList();
         BigDecimal totalCashIn = sumMovements(movements, CashMovementType.CASH_IN);
         BigDecimal totalCashDrop = sumMovements(movements, CashMovementType.CASH_DROP);
         BigDecimal totalPaidOut = sumMovements(movements, CashMovementType.PAID_OUT);
@@ -137,7 +140,7 @@ public class CashDrawerService {
                 totalCashDrop,
                 totalPaidOut,
                 currentTheoreticalCash,
-                movements.size()
+                movements != null ? movements.size() : 0
         );
     }
 
@@ -222,6 +225,7 @@ public class CashDrawerService {
         movement.setAmount(request.amount());
         movement.setReason(request.reason().trim());
         movement.setReceiptReference(request.receiptReference() != null ? request.receiptReference().trim() : null);
+        movement.setDenominationsJson(request.denominationsJson());
         movement.setPerformedBy(operator);
         movement.setTimestamp(LocalDateTime.now(timeService.getZoneId()));
 
@@ -267,7 +271,9 @@ public class CashDrawerService {
         DailyRecapDTO recap = factureService.getDailyRecap(date);
         BigDecimal totalCashRevenue = calculateCashPayments(recap);
 
-        List<CashMovement> movements = movementRepository.findByMovementDateOrderByTimestampAsc(date);
+        List<CashMovement> movements = movementRepository != null
+                ? movementRepository.findByMovementDateOrderByTimestampAsc(date)
+                : java.util.Collections.emptyList();
         BigDecimal totalCashIn = sumMovements(movements, CashMovementType.CASH_IN);
         BigDecimal totalCashDrop = sumMovements(movements, CashMovementType.CASH_DROP);
         BigDecimal totalPaidOut = sumMovements(movements, CashMovementType.PAID_OUT);
@@ -279,7 +285,9 @@ public class CashDrawerService {
                 .subtract(totalCashDrop)
                 .subtract(totalPaidOut);
 
-        List<CashMovementDTO> movementDTOs = movements.stream().map(CashMovementDTO::from).toList();
+        List<CashMovementDTO> movementDTOs = movements != null
+                ? movements.stream().map(CashMovementDTO::from).toList()
+                : java.util.Collections.emptyList();
 
         return new XReportDTO(
                 date,
@@ -316,6 +324,68 @@ public class CashDrawerService {
     }
 
     /**
+     * Closes an active cash drawer session with counted physical cash, calculates theoretical balance,
+     * audits cash variance, requires mandatory justification if discrepancy occurs, and prints certified closing slip.
+     *
+     * @param request Closing payload containing counted cash, denomination breakdown, and optional notes
+     * @param operatorUsername Username of the authenticated staff member closing the drawer
+     * @return Persisted and sealed {@link CashDrawerSessionDTO}
+     */
+    @Transactional
+    public CashDrawerSessionDTO closeDrawer(CashDrawerCloseRequestDTO request, String operatorUsername) {
+        validateModuleEnabled();
+        LocalDate date = LocalDate.now(timeService.getZoneId());
+        CashDrawerSession session = sessionRepository.findBySessionDateAndStatus(date, CashDrawerSessionStatus.OPEN)
+                .orElseThrow(() -> new BusinessException("No active cash drawer session is open for today: " + date));
+
+        User operator = resolveUser(operatorUsername);
+        DailyRecapDTO recap = factureService.getDailyRecap(date);
+        BigDecimal totalCashRevenue = calculateCashPayments(recap);
+
+        List<CashMovement> movements = movementRepository.findByMovementDateOrderByTimestampAsc(date);
+        BigDecimal totalCashIn = sumMovements(movements, CashMovementType.CASH_IN);
+        BigDecimal totalCashDrop = sumMovements(movements, CashMovementType.CASH_DROP);
+        BigDecimal totalPaidOut = sumMovements(movements, CashMovementType.PAID_OUT);
+
+        BigDecimal openingFloat = session.getOpeningFloat() != null ? session.getOpeningFloat() : BigDecimal.ZERO;
+        BigDecimal theoreticalCash = openingFloat
+                .add(totalCashRevenue)
+                .add(totalCashIn)
+                .subtract(totalCashDrop)
+                .subtract(totalPaidOut);
+
+        BigDecimal countedCash = request.countedCash() != null ? request.countedCash() : BigDecimal.ZERO;
+        BigDecimal cashVariance = countedCash.subtract(theoreticalCash);
+
+        // Discrepancy rule: if discrepancy != 0, notes/justification is mandatory
+        if (cashVariance.abs().compareTo(new BigDecimal("0.01")) >= 0
+                && (request.notes() == null || request.notes().trim().length() < 3)) {
+            throw new BusinessException("A justification note is mandatory when closing cash drawer with an unexplained discrepancy (" + cashVariance + " €)");
+        }
+
+        session.setStatus(CashDrawerSessionStatus.CLOSED);
+        session.setClosedAt(LocalDateTime.now(timeService.getZoneId()));
+        session.setClosedBy(operator);
+        session.setTheoreticalCash(theoreticalCash);
+        session.setActualCash(countedCash);
+        session.setCashVariance(cashVariance);
+        session.setClosingDenominationsJson(request.denominationsJson());
+        if (request.notes() != null && !request.notes().isBlank()) {
+            session.setNotes(request.notes().trim());
+        }
+
+        CashDrawerSession saved = sessionRepository.save(session);
+        log.info("Cash drawer session {} closed by {} with counted cash {} and variance {}", saved.getId(), operatorUsername, countedCash, cashVariance);
+
+        auditLogService.logAction(operator, "CLOSE_CASH_DRAWER", ENTITY_CASH_DRAWER, saved.getId(),
+                "Till closed for " + date + " - Theoretical: " + theoreticalCash + " €, Actual: " + countedCash + " €, Variance: " + cashVariance + " €", null);
+
+        dispatchTillClosingPrintSafely(saved.getId());
+
+        return CashDrawerSessionDTO.from(saved);
+    }
+
+    /**
      * Closes an active cash drawer session upon official register daily closure (Z-Report).
      *
      * @param date Operational date
@@ -323,15 +393,81 @@ public class CashDrawerService {
      */
     @Transactional
     public void closeActiveSessionOnDailyClosure(LocalDate date, User operator) {
+        performDailyClosure(date, operator, null, null, null, null, null);
+    }
+
+    /**
+     * Closes an active cash drawer session upon official register daily closure (Z-Report)
+     * with detailed counted cash, denomination breakdown, and discrepancy audit.
+     *
+     * @param date Operational date
+     * @param operator User executing the daily closure
+     * @param countedCash Counted physical cash
+     * @param denominationsJson Denomination breakdown JSON
+     * @param notes Justification notes
+     * @param theoreticalCash Theoretical cash in drawer
+     * @param discrepancy Net cash variance
+     */
+    @Transactional
+    public void closeActiveSessionOnDailyClosure(
+            LocalDate date,
+            User operator,
+            BigDecimal countedCash,
+            String denominationsJson,
+            String notes,
+            BigDecimal theoreticalCash,
+            BigDecimal discrepancy) {
+        performDailyClosure(date, operator, countedCash, denominationsJson, notes, theoreticalCash, discrepancy);
+    }
+
+    private void performDailyClosure(
+            LocalDate date,
+            User operator,
+            BigDecimal countedCash,
+            String denominationsJson,
+            String notes,
+            BigDecimal theoreticalCash,
+            BigDecimal discrepancy) {
         LocalDate d = resolveDate(date);
         Optional<CashDrawerSession> openSession = sessionRepository.findBySessionDateAndStatus(d, CashDrawerSessionStatus.OPEN);
-        if (openSession.isPresent()) {
-            CashDrawerSession session = openSession.get();
-            session.setStatus(CashDrawerSessionStatus.CLOSED);
-            session.setClosedAt(LocalDateTime.now(timeService.getZoneId()));
-            session.setClosedBy(operator);
-            sessionRepository.save(session);
-            log.info("Closed cash drawer session {} for date {}", session.getId(), d);
+        if (openSession.isEmpty()) {
+            return;
+        }
+
+        CashDrawerSession session = openSession.get();
+        session.setStatus(CashDrawerSessionStatus.CLOSED);
+        session.setClosedAt(LocalDateTime.now(timeService.getZoneId()));
+        session.setClosedBy(operator);
+        applyClosureAuditFields(session, countedCash, denominationsJson, theoreticalCash, discrepancy, notes);
+
+        CashDrawerSession saved = sessionRepository.save(session);
+        log.info("Closed cash drawer session {} on daily closure for date {} with variance {}", session.getId(), d, discrepancy);
+
+        dispatchTillClosingPrintSafely(saved.getId());
+    }
+
+    private void applyClosureAuditFields(
+            CashDrawerSession session,
+            BigDecimal countedCash,
+            String denominationsJson,
+            BigDecimal theoreticalCash,
+            BigDecimal discrepancy,
+            String notes) {
+        if (countedCash != null) {
+            session.setActualCash(countedCash);
+        }
+        if (denominationsJson != null && !denominationsJson.isBlank()) {
+            session.setClosingDenominationsJson(denominationsJson);
+        }
+        if (theoreticalCash != null) {
+            session.setTheoreticalCash(theoreticalCash);
+        }
+        if (discrepancy != null) {
+            session.setCashVariance(discrepancy);
+        }
+        if (notes != null && !notes.isBlank()) {
+            String existing = session.getNotes();
+            session.setNotes(existing != null && !existing.isBlank() ? existing + " | " + notes.trim() : notes.trim());
         }
     }
 
@@ -412,6 +548,17 @@ public class CashDrawerService {
                 printer.printCashMovementSlip(movementId);
             } catch (Exception ex) {
                 log.warn("Automatic print of cash movement slip failed: {}", ex.getMessage());
+            }
+        }
+    }
+
+    private void dispatchTillClosingPrintSafely(Long sessionId) {
+        EscPosPrintingService printer = printingServiceProvider.getIfAvailable();
+        if (printer != null) {
+            try {
+                printer.printTillClosingSlip(sessionId);
+            } catch (Exception ex) {
+                log.warn("Automatic print of till closing slip failed: {}", ex.getMessage());
             }
         }
     }

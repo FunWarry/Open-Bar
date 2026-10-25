@@ -23,7 +23,7 @@ import {
   nutritionOutline, eggOutline, leafOutline, sparklesOutline, flameOutline,
   waterOutline, beerOutline, fastFoodOutline, searchOutline,
   addOutline, removeOutline, locateOutline, cartOutline, arrowForwardOutline,
-  chevronBackOutline, chevronForwardOutline,
+  chevronBackOutline, chevronForwardOutline, shieldCheckmarkOutline,
 } from 'ionicons/icons';
 import { AppCurrencyPipe } from '../../core/pipes/app-currency.pipe';
 import { tableRestaurantOutline } from '../../core/icons/custom-icons';
@@ -94,6 +94,7 @@ import { CommandeListComponent } from '../commandes/commande-list/commande-list.
 
 import { SearchableSelectComponent, SearchableOption } from '../../core/components/ui/searchable-select/searchable-select.component';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
+import { SafetyAlertBannerComponent } from '../../core/components/ui/safety-alert-banner/safety-alert-banner.component';
 
 /**
  * Main dashboard component for waiters providing table list supervision,
@@ -118,6 +119,7 @@ import { SearchBarComponent } from '../../core/components/ui/search-bar/search-b
     SearchBarComponent,
     BarTabsListComponent,
     CocktailListComponent,
+    SafetyAlertBannerComponent,
     AppCurrencyPipe,
   ],
   templateUrl: './dashboard-serveur.component.html',
@@ -239,6 +241,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       waterOutline, beerOutline, fastFoodOutline, searchOutline,
       addOutline, removeOutline, locateOutline, tableRestaurantOutline,
       cartOutline, arrowForwardOutline, chevronBackOutline, chevronForwardOutline,
+      shieldCheckmarkOutline,
     });
   }
 

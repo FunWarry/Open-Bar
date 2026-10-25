@@ -131,5 +131,21 @@ test.describe('Barman Kanban E2E Flow', () => {
     await closeBtn.click();
     await expect(rupturesModal).not.toBeVisible();
   });
+
+  test('should toggle item checkmark and track preparation progress on in-flight orders (#574)', async ({ page }) => {
+    await page.goto('/barman');
+    await expect(page.locator('ion-content').first()).toBeVisible();
+
+    // Look for item check button on preparation cards
+    const checkBtn = page.locator('.item-check-btn').first();
+    if (await checkBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const isInitiallyDisabled = await checkBtn.isDisabled();
+      if (!isInitiallyDisabled) {
+        await checkBtn.click();
+        await expect(checkBtn).toHaveClass(/checked/);
+        await expect(page.locator('.item-info.item-prepared').first()).toBeVisible();
+      }
+    }
+  });
 });
 

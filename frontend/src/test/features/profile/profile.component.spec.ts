@@ -45,8 +45,9 @@ describe('ProfileComponent', () => {
     storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
     storeSpy.select.and.returnValue(of(mockUser));
 
-    userServiceSpy = jasmine.createSpyObj('UserService', ['updateUser']);
+    userServiceSpy = jasmine.createSpyObj('UserService', ['updateUser', 'updateCurrentUser']);
     userServiceSpy.updateUser.and.returnValue(of(mockUser));
+    userServiceSpy.updateCurrentUser.and.returnValue(of(mockUser));
 
     toastSpy = jasmine.createSpyObj('HTMLIonToastElement', ['present']);
     toastSpy.present.and.returnValue(Promise.resolve());
@@ -54,9 +55,33 @@ describe('ProfileComponent', () => {
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(toastSpy));
 
-    soundServiceSpy = jasmine.createSpyObj('SoundService', ['setSoundEnabled']);
+    soundServiceSpy = jasmine.createSpyObj('SoundService', ['setSoundEnabled', 'testSound', 'updatePreferences']);
     languageServiceSpy = jasmine.createSpyObj('LanguageService', ['setLanguage'], { currentLanguage: 'fr' });
-    preferencesSpy = jasmine.createSpyObj('PreferencesService', ['setSoundEnabled', 'setVisualNotifEnabled', 'soundEnabled', 'visualNotifEnabled']);
+    preferencesSpy = jasmine.createSpyObj('PreferencesService', [
+      'setSoundEnabled',
+      'setVisualNotifEnabled',
+      'soundEnabled',
+      'visualNotifEnabled',
+      'updateAudioPreferences',
+      'setVolume',
+      'setSoundPack',
+      'setTriggerEnabled',
+      'setSoundOverride',
+      'setUrgentRepeatInterval'
+    ], {
+      audioPreferences: signal({
+        enabled: true,
+        volume: 80,
+        soundPack: 'SUBTLE_BELL',
+        triggerNewOrder: true,
+        triggerTableCall: true,
+        triggerUrgentOrder: true,
+        soundOverrideNewOrder: null,
+        soundOverrideTableCall: null,
+        soundOverrideUrgentOrder: null,
+        urgentRepeatInterval: 'EVERY_1_MIN'
+      })
+    });
     preferencesSpy.soundEnabled.and.returnValue(true);
     preferencesSpy.visualNotifEnabled.and.returnValue(true);
 
@@ -146,7 +171,7 @@ describe('ProfileComponent', () => {
   });
 
   it('onSubmit() shows an error toast when UserService fails', async () => {
-    userServiceSpy.updateUser.and.returnValue(throwError(() => new Error('API error')));
+    userServiceSpy.updateCurrentUser.and.returnValue(throwError(() => new Error('API error')));
     component.profileForm.patchValue({ username: 'testuser', email: 'test@example.com' });
     component.onSubmit();
     await Promise.resolve();
@@ -157,7 +182,7 @@ describe('ProfileComponent', () => {
   it('onSubmit() does nothing when form is invalid', () => {
     component.profileForm.patchValue({ username: '', email: 'bad' });
     component.onSubmit();
-    expect(userServiceSpy.updateUser).not.toHaveBeenCalled();
+    expect(userServiceSpy.updateCurrentUser).not.toHaveBeenCalled();
   });
 
   it('should handle sound toggle changes', () => {

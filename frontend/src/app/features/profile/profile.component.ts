@@ -27,6 +27,7 @@ import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-bad
 import { ToggleSwitchComponent } from '../../core/components/ui/toggle-switch/toggle-switch.component';
 import { SearchableSelectComponent, SearchableOption } from '../../core/components/ui/searchable-select/searchable-select.component';
 import { ThemeCustomizerComponent } from '../theme/theme-customizer.component';
+import { AudioSettingsPopoverComponent } from '../../core/components/audio-settings/audio-settings-popover.component';
 
 /**
  * Profile Component displaying personal user information, roles, profile settings form,
@@ -67,6 +68,7 @@ import { ThemeCustomizerComponent } from '../theme/theme-customizer.component';
     ToggleSwitchComponent,
     SearchableSelectComponent,
     ThemeCustomizerComponent,
+    AudioSettingsPopoverComponent,
   ]
 })
 export class ProfileComponent implements OnInit, OnDestroy {
@@ -278,7 +280,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   /**
    * Handles profile form submission.
-   * Calls {@link UserService#updateUser} with the updated data,
+   * Calls {@link UserService#updateCurrentUser} with the updated data,
    * dispatches {@link setCurrentUser} to sync the NgRx store,
    * and shows a toast confirmation or error message.
    */
@@ -299,7 +301,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       payload['password'] = newPassword;
     }
 
-    this.userService.updateUser(this.currentUser.id, payload)
+    this.userService.updateCurrentUser(payload)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: async (updatedUser) => {

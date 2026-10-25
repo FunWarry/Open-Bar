@@ -63,6 +63,12 @@ export class ProductCardComponent {
   /** Whether the cocktail is gluten-free. */
   @Input() isGlutenFree = false;
 
+  /** Companion glassware description or title (e.g. 'Shot de Prosecco'). */
+  @Input() companionGlassTitle?: string;
+
+  /** Name of the secondary glassware entity. */
+  @Input() secondaryGlasswareNom?: string;
+
   /** Event emitted when the add/increment button is clicked. */
   @Output() addClick = new EventEmitter<void>();
 
@@ -71,6 +77,10 @@ export class ProductCardComponent {
 
   /** Event emitted when the card is clicked to inspect cocktail details / ingredients. */
   @Output() cardClick = new EventEmitter<void>();
+
+  get companionDescription(): string | null {
+    return this.companionGlassTitle?.trim() || this.secondaryGlasswareNom?.trim() || null;
+  }
 
   constructor() {
     addIcons({ addOutline, removeOutline, informationCircleOutline });

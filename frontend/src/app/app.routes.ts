@@ -295,6 +295,17 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: {roles: ['ADMIN']}
   },
+  {
+    path: 'admin/system',
+    loadComponent: () => import('./features/admin/system-update/system-update-page.component').then(m => m.SystemUpdatePageComponent),
+    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER'], requiredModule: EstablishmentModule.SYSTEM_UPDATES }
+  },
+  {
+    path: 'admin/system-updates',
+    redirectTo: '/admin/system',
+    pathMatch: 'full'
+  },
 
   // Bartender (English route + /barman)
   {
@@ -313,15 +324,14 @@ export const routes: Routes = [
   // Kitchen Display Screen (KDS) (English route /kitchen + /cuisine + /kds)
   {
     path: 'kitchen',
-    loadComponent: () => import('./features/kds-kitchen/kds-kitchen.component').then(m => m.KdsKitchenComponent),
+    loadComponent: () => import('./features/dashboard-barman/dashboard-barman.component').then(m => m.DashboardBarmanComponent),
     canActivate: [ModuleGuard, AuthGuard, RoleGuard],
-    data: { roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS }
+    data: { roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS, station: 'KITCHEN' }
   },
   {
     path: 'cuisine',
-    loadComponent: () => import('./features/kds-kitchen/kds-kitchen.component').then(m => m.KdsKitchenComponent),
-    canActivate: [ModuleGuard, AuthGuard, RoleGuard],
-    data: { roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS }
+    redirectTo: '/kitchen',
+    pathMatch: 'full'
   },
   {
     path: 'kds',
@@ -460,6 +470,11 @@ export const routes: Routes = [
     data: { roles: ['MANAGER', 'ADMIN'] }
   },
   {
+    path: 'invoices/cash-drawer',
+    redirectTo: 'invoices/recap',
+    pathMatch: 'full'
+  },
+  {
     path: 'invoices/:id/split',
     loadComponent: () => import('./features/factures/facture-split/facture-split.component').then(m => m.FactureSplitComponent),
     canActivate: [AuthGuard, RoleGuard],
@@ -482,6 +497,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/factures/facture-recap-journee/facture-recap-journee.component').then(m => m.FactureRecapJourneeComponent),
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['MANAGER', 'ADMIN'] }
+  },
+  {
+    path: 'factures/caisse',
+    redirectTo: 'factures/recap',
+    pathMatch: 'full'
   },
   {
     path: 'factures/:id/split',

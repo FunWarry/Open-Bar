@@ -63,6 +63,7 @@ frontend/coverage
 tests/load/*.json
 frontend/playwright-report/
 frontend/test-results/
+/test-results/
 frontend/reports/
 .gemini/
 /backups/
@@ -73,3 +74,4 @@ frontend/reports/
 *.pem
 /data/
 .scannerwork/
+.sonar/

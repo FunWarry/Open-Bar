@@ -361,6 +361,55 @@ describe('DashboardBarmanService', () => {
     expect(ginBatch?.items[0].tableNom).toBe('Commande #103');
     expect(ginBatch?.isUrgent).toBeTrue();
   });
+
+  describe('Item-level prepared in-flight state tracking', () => {
+    it('isItemPrepared returns true when item statut is PRET from backend', () => {
+      expect(service.isItemPrepared(1, 10, 'PRET')).toBeTrue();
+    });
+
+    it('isItemPrepared returns false when item is not marked in signal', () => {
+      expect(service.isItemPrepared(1, 10, 'EN_PREPARATION')).toBeFalse();
+    });
+
+    it('toggleItemPrepared adds item to signal and syncs with backend as PRET', () => {
+      const next = service.toggleItemPrepared(1, 10, 'EN_PREPARATION');
+      expect(next).toBeTrue();
+      expect(service.isItemPrepared(1, 10)).toBeTrue();
+
+      const req = httpMock.expectOne(`${apiUrl}/commandes/1/items/10/statut`);
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual({ statut: 'PRET' });
+      req.flush({ id: 1, statut: 'EN_PREPARATION' });
+    });
+
+    it('toggleItemPrepared removes item from signal when toggled again and syncs as EN_PREPARATION', () => {
+      // First toggle: true
+      service.toggleItemPrepared(2, 20, 'EN_PREPARATION');
+      const req1 = httpMock.expectOne(`${apiUrl}/commandes/2/items/20/statut`);
+      req1.flush({ id: 2, statut: 'EN_PREPARATION' });
+      expect(service.isItemPrepared(2, 20)).toBeTrue();
+
+      // Second toggle: false
+      const next = service.toggleItemPrepared(2, 20, 'EN_PREPARATION');
+      expect(next).toBeFalse();
+      expect(service.isItemPrepared(2, 20)).toBeFalse();
+
+      const req2 = httpMock.expectOne(`${apiUrl}/commandes/2/items/20/statut`);
+      expect(req2.request.method).toBe('PATCH');
+      expect(req2.request.body).toEqual({ statut: 'EN_PREPARATION' });
+      req2.flush({ id: 2, statut: 'EN_PREPARATION' });
+    });
+
+    it('clearPreparedItems removes the order from in-flight signal map', () => {
+      service.toggleItemPrepared(3, 30, 'EN_PREPARATION');
+      const req = httpMock.expectOne(`${apiUrl}/commandes/3/items/30/statut`);
+      req.flush({ id: 3 });
+
+      expect(service.isItemPrepared(3, 30)).toBeTrue();
+      service.clearPreparedItems(3);
+      expect(service.isItemPrepared(3, 30)).toBeFalse();
+    });
+  });
 });
 
 

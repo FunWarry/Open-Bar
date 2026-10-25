@@ -89,27 +89,142 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
-  // Establishment modules feature flags
-  await page.route('**/api/establishment/modules*', async (route) => {
+  // Establishment modules feature flags (stateful to support GET and dynamic toggle PUT)
+  let currentModules = {
+    cuisineKds: true,
+    happyHour: true,
+    employeeManagement: true,
+    floorPlan: true,
+    qrClientOrdering: true,
+    stockTracking: true,
+    cashDrawer: true,
+    barTabs: true,
+    cocktailLibrary: true,
+    suppliersManagement: true,
+    inventoryAudit: true,
+    mysteryRoulette: true,
+    paymentTerminal: true,
+    tableReservations: true,
+    checklistsProcedures: true,
+    systemUpdates: true,
+    angelShotSafety: true,
+  };
+
+  await page.route('**/api/establishment/modules**', async (route) => {
+    if (route.request().method() === 'PUT') {
+      const body = route.request().postDataJSON() || {};
+      currentModules = { ...currentModules, ...body };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(currentModules),
+      });
+      return;
+    }
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({
-        cuisineKds: true,
-        happyHour: true,
-        employeeManagement: true,
-        floorPlan: true,
-        qrClientOrdering: true,
-        stockTracking: true,
-        cashDrawer: true,
-        barTabs: true,
-        cocktailLibrary: true,
-        suppliersManagement: true,
-        inventoryAudit: true,
-        tableReservations: true,
-      }),
+      body: JSON.stringify(currentModules),
     });
   });
+
+  // Angel Shot and Patron Safety Alerts
+  const getSafetyAlertLabel = (type?: string): string => {
+    if (type === 'ANGEL_SHOT_NEAT') return 'Sans glaçons';
+    if (type === 'ANGEL_SHOT_LIME') return 'Avec rondelle de citron';
+    return 'Avec glaçons';
+  };
+
+  let activeSafetyAlerts: Array<Record<string, unknown>> = [];
+
+  await page.route('**/api/safety-alerts/active', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(activeSafetyAlerts),
+    });
+  });
+
+  await page.route('**/api/safety-alerts/poster/pdf', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/pdf',
+      body: Buffer.from('%PDF-1.4\n%EOF'),
+    });
+  });
+
+  await page.route('**/api/safety-alerts/tables/**', async (route) => {
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      const newAlert = {
+        id: Date.now(),
+        tableId: 1,
+        tableNumero: 1,
+        type: body.type || 'ANGEL_SHOT_ICE',
+        typeLabel: getSafetyAlertLabel(body.type),
+        status: 'ACTIVE',
+        comment: body.comment || '',
+        createdAt: new Date().toISOString(),
+      };
+      activeSafetyAlerts.push(newAlert);
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify(newAlert),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(activeSafetyAlerts.filter(a => a['status'] === 'ACTIVE')),
+    });
+  });
+
+  await page.route('**/api/safety-alerts/*/resolve', async (route) => {
+    const body = route.request().postDataJSON() || {};
+    const url = route.request().url();
+    const match = /\/safety-alerts\/(\d+)\/resolve/.exec(url);
+    const alertId = match ? Number(match[1]) : 1;
+    const resolved = {
+      id: alertId,
+      tableId: 1,
+      tableNumero: 1,
+      type: 'ANGEL_SHOT_ICE',
+      typeLabel: 'Avec glaçons',
+      status: 'RESOLVED',
+      resolvedBy: body.resolvedBy || 'staff',
+      resolvedAt: new Date().toISOString(),
+      createdAt: new Date(Date.now() - 60000).toISOString(),
+    };
+    activeSafetyAlerts = activeSafetyAlerts.filter(a => a['id'] !== alertId);
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(resolved),
+    });
+  });
+
+  await page.route('**/api/public/safety-alerts/tables/**', async (route) => {
+    const body = route.request().postDataJSON() || {};
+    const alert = {
+      id: Date.now(),
+      tableId: 1,
+      tableNumero: 1,
+      type: body.type || 'ANGEL_SHOT_ICE',
+      typeLabel: getSafetyAlertLabel(body.type),
+      status: 'ACTIVE',
+      comment: body.comment || '',
+      createdAt: new Date().toISOString(),
+    };
+    activeSafetyAlerts.push(alert);
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify(alert),
+    });
+  });
+
 
   // Cocktail library routes
   await page.route('**/api/cocktails/library/import', async (route) => {
@@ -642,8 +757,9 @@ export async function setupMockApi(page: Page): Promise<void> {
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify([
-        { id: 1, nom: 'Rhum Blanc', quantiteStock: 100, seuilAlerte: 20, uniteMesure: 'cl' },
-        { id: 2, nom: 'Menthe', quantiteStock: 50, seuilAlerte: 10, uniteMesure: 'g' },
+        { id: 1, nom: 'Rhum Blanc', quantiteStock: 100, seuilAlerte: 20, uniteMesure: 'cl', degreAlcool: 40.0, category: 'light_liquor' },
+        { id: 2, nom: 'Menthe', quantiteStock: 50, seuilAlerte: 10, uniteMesure: 'g', degreAlcool: 0, category: 'herbs' },
+        { id: 3, nom: 'Gin Citadelle', quantiteStock: 70, seuilAlerte: 15, uniteMesure: 'cl', degreAlcool: 44.0, category: 'light_liquor' },
       ]),
     });
   });
@@ -1405,6 +1521,40 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
+  // Quick-log routes
+  await page.route('**/api/stock/quick-log/**', async (route) => {
+    if (route.request().method() === 'DELETE') {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+    await route.fallback();
+  });
+
+  await page.route('**/api/stock/quick-log', async (route) => {
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 102,
+          ingredientId: body.ingredientId || 1,
+          ingredientNom: 'Rhum Blanc',
+          quantity: body.quantity || 4,
+          unit: 'cl',
+          reason: body.reason || 'ERREUR_PREPARATION',
+          reportedById: 1,
+          reportedByUsername: 'barman1',
+          notes: body.notes || 'Bartender Quick-Log (ERREUR_PREPARATION)',
+          cost: 1.60,
+          recordedAt: new Date().toISOString(),
+        }),
+      });
+      return;
+    }
+    await route.fallback();
+  });
+
   await page.route('**/api/stock/movements**', async (route) => {
     await route.fulfill({
       status: 200,
@@ -1440,37 +1590,7 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
-  let currentModules = {
-    cuisineKds: true,
-    happyHour: true,
-    employeeManagement: true,
-    floorPlan: true,
-    qrClientOrdering: true,
-    stockTracking: true,
-    cashDrawer: true,
-    barTabs: true,
-    cocktailLibrary: true,
-    suppliersManagement: true,
-    tableReservations: true,
-  };
-
-  await page.route('**/api/establishment/modules**', async (route) => {
-    if (route.request().method() === 'PUT') {
-      const body = route.request().postDataJSON() || {};
-      currentModules = { ...currentModules, ...body };
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(currentModules),
-      });
-      return;
-    }
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(currentModules),
-    });
-  });
+  // (Establishment capability modules route defined statefully at top of setupMockApi)
 
   await page.route('**/api/admin/establishment**', async (route) => {
     if (route.request().url().includes('/timezones')) {
@@ -1850,26 +1970,7 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
-  await page.route('**/api/establishment/modules**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        cuisineKds: true,
-        happyHour: true,
-        employeeManagement: true,
-        floorPlan: true,
-        qrClientOrdering: true,
-        stockTracking: true,
-        cashDrawer: true,
-        barTabs: true,
-        cocktailLibrary: true,
-        suppliersManagement: true,
-        inventoryAudit: true,
-        tableReservations: true,
-      }),
-    });
-  });
+  // (Establishment modules route defined statefully at top of setupMockApi)
 
   await page.route('**/api/inventory-audits**', async (route) => {
     const url = route.request().url();
@@ -2053,28 +2154,7 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
-  // Mock Establishment Capability Modules
-  await page.route('**/api/establishment/modules**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        cuisineKds: true,
-        happyHour: true,
-        employeeManagement: true,
-        floorPlan: true,
-        qrClientOrdering: true,
-        stockTracking: true,
-        cashDrawer: true,
-        barTabs: true,
-        cocktailLibrary: true,
-        suppliersManagement: true,
-        inventoryAudit: true,
-        mysteryRoulette: true,
-        tableReservations: true,
-      }),
-    });
-  });
+  // (Establishment capability modules route defined statefully at top of setupMockApi)
 
   // Mock Roulette TV PIN and Staff Administration
   await page.route('**/api/roulette/pin**', async (route) => {
@@ -2320,6 +2400,126 @@ export async function setupMockApi(page: Page): Promise<void> {
           statut: 'CONFIRMED',
           tableId: null,
           tableNumero: null,
+        },
+      ]),
+    });
+  });
+
+  // System OTA update & snapshot disaster recovery endpoints
+  await page.route('**/api/admin/system/version', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        currentVersion: '0.8.0',
+        javaVersion: '22',
+        osName: 'Linux (x86_64)',
+        uptimeSeconds: 7200,
+        freeDiskBytes: 53687091200,
+        totalDiskBytes: 107374182400,
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/system/check-update*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        hasUpdate: true,
+        currentVersion: '0.8.0',
+        latestVersion: '0.8.1',
+        channel: 'STABLE',
+        releaseTitle: 'OpenBar v0.8.1 - Stability & Resilience',
+        releaseNotes: '- Automated pre-update database snapshot\n- Healthcheck validation & rollback\n- Disk space safety gate',
+        publishedAt: new Date().toISOString(),
+        downloadUrl: 'https://github.com/FunWarry/Open-Bar/releases/tag/v0.8.1',
+        isOffline: false,
+        statusMessage: 'Update available',
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/system/status', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 'IDLE',
+        step: 'IDLE',
+        progressPercent: 0,
+        message: 'System is ready',
+        currentVersion: '0.8.0',
+        targetVersion: '0.8.0',
+        channel: 'STABLE',
+        logs: [],
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/system/preflight', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        canProceed: true,
+        freeDiskBytes: 53687091200,
+        requiredDiskBytes: 1073741824,
+        hasSufficientDisk: true,
+        occupiedTablesCount: 0,
+        activeOrdersCount: 0,
+        warnings: [],
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/system/update', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 'RUNNING',
+        step: 'PREFLIGHT',
+        progressPercent: 10,
+        message: 'Starting update process...',
+        currentVersion: '0.8.0',
+        targetVersion: '0.8.1',
+        channel: 'STABLE',
+        snapshotId: 'openbar_pre_update_0.8.0',
+        startedAt: new Date().toISOString(),
+        logs: ['[INIT] Pre-flight checks passed successfully.'],
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/system/snapshots/*/restore', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        message: 'Disaster recovery restore initiated',
+        snapshotId: 'openbar_pre_update_0.7.5_20261015_020000',
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/system/snapshots*', async (route) => {
+    if (route.request().method() === 'DELETE') {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          snapshotId: 'openbar_pre_update_0.7.5_20261015_020000',
+          filename: 'openbar_pre_update_0.7.5_20261015_020000.sql.gz',
+          sizeBytes: 14680064,
+          createdAt: '2026-10-15T02:00:00Z',
+          fromVersion: '0.7.5',
+          targetVersion: '0.8.0',
+          status: 'VALID',
         },
       ]),
     });

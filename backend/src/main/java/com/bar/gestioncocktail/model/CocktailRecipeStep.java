@@ -48,6 +48,9 @@ public class CocktailRecipeStep {
     @Size(max = 20, message = "Unit cannot exceed 20 characters")
     private String unite;
 
+    @Column(name = "target_glass_order", nullable = false)
+    private Integer targetGlassOrder = 1;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "template_id")
     private RecipeStepTemplate template;

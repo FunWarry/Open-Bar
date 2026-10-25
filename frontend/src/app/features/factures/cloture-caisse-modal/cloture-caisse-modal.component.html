@@ -122,57 +122,15 @@
         </div>
       </div>
 
-      <!-- Denominations Grid -->
-      <div class="counting-grid">
-        <div class="denomination-section-title">
-          <ion-icon name="cash-outline"></ion-icon>
-          <span>{{ 'CLOTURE.BILLS_AND_COINS' | transloco }}</span>
-        </div>
-
-        <div class="denomination-list">
-          @for (d of denominations; track d.key) {
-            <div class="denom-row" [attr.data-testid]="'denom-row-' + d.key">
-              <div class="denom-badge-box">
-                <span class="denom-badge" [class.bill]="d.type === 'bill'" [class.coin]="d.type === 'coin'">
-                  {{ d.label }}
-                </span>
-              </div>
-
-              <div class="denom-stepper">
-                <button
-                  type="button"
-                  class="stepper-btn minus"
-                  (click)="adjustCount(d.key, -1)"
-                  [attr.data-testid]="'minus-btn-' + d.key"
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  min="0"
-                  [id]="'denom-input-' + d.key"
-                  [attr.aria-label]="d.label"
-                  [value]="counting[d.key] || 0"
-                  (input)="onCountChange(d.key, $any($event.target).value)"
-                  class="denom-input"
-                  [attr.data-testid]="'denom-input-' + d.key"
-                />
-                <button
-                  type="button"
-                  class="stepper-btn plus"
-                  (click)="adjustCount(d.key, 1)"
-                  [attr.data-testid]="'plus-btn-' + d.key"
-                >
-                  +
-                </button>
-              </div>
-
-              <div class="denom-total">
-                <span>{{ ((counting[d.key] || 0) * d.value) | appCurrency }}</span>
-              </div>
-            </div>
-          }
-        </div>
+      <!-- Denominations Calculator -->
+      <div class="counting-calculator-wrapper" data-testid="cloture-counting-calculator">
+        <app-denomination-calculator
+          [(counting)]="counting"
+          [denominations]="denominations"
+          [showSummary]="false"
+          (totalChange)="onCalculatorTotalChange()"
+          testId="cloture-calc">
+        </app-denomination-calculator>
       </div>
     </div>
   }
@@ -195,6 +153,16 @@
               <p>{{ 'CLOTURE.PERFECT_BALANCE_DESC' | transloco }}</p>
             </div>
           } @else {
+            @if (isToleranceExceeded) {
+              <div class="tolerance-warning-banner" data-testid="tolerance-warning-banner">
+                <ion-icon name="alert-circle-outline"></ion-icon>
+                <div class="tolerance-warning-text">
+                  <strong>{{ 'CLOTURE.TOLERANCE_EXCEEDED_TITLE' | transloco }}</strong>
+                  <span>{{ 'CLOTURE.TOLERANCE_EXCEEDED_DESC' | transloco: { threshold: (discrepancyToleranceThreshold | appCurrency) } }}</span>
+                </div>
+              </div>
+            }
+
             <div class="discrepancy-warning-box" [class.deficit]="cashDiscrepancy < 0" [class.surplus]="cashDiscrepancy > 0">
               <ion-icon name="warning-outline" class="warn-icon"></ion-icon>
               <div class="warn-text">

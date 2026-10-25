@@ -79,6 +79,52 @@ describe('StockWasteService', () => {
     });
   });
 
+  describe('quickLog', () => {
+    it('should call POST /api/stock/quick-log with correct body and return created movement', () => {
+      const request: StockWasteRequest = {
+        ingredientId: 42,
+        quantity: 4,
+        reason: 'ERREUR_PREPARATION'
+      };
+
+      const mockResponse: StockMovement = {
+        id: 105,
+        ingredientId: 42,
+        ingredientNom: 'Gin Bombay',
+        quantity: 4,
+        unit: 'cl',
+        reason: 'ERREUR_PREPARATION',
+        reportedByUsername: 'barman1',
+        cost: 1.80,
+        recordedAt: '2026-10-20T20:00:00Z'
+      };
+
+      service.quickLog(request).subscribe(res => {
+        expect(res).toEqual(mockResponse);
+        expect(res.quantity).toBe(4);
+      });
+
+      const req = httpMock.expectOne(`${baseUrl}/quick-log`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(request);
+      req.flush(mockResponse);
+    });
+  });
+
+  describe('revertQuickLog', () => {
+    it('should call DELETE /api/stock/quick-log/:id to undo movement', () => {
+      let completed = false;
+      service.revertQuickLog(105).subscribe(() => {
+        completed = true;
+      });
+
+      const req = httpMock.expectOne(`${baseUrl}/quick-log/105`);
+      expect(req.request.method).toBe('DELETE');
+      req.flush(null);
+      expect(completed).toBeTrue();
+    });
+  });
+
   describe('getMovements', () => {
     it('should call GET /api/stock/movements and return list of movements', () => {
       const mockMovements: StockMovement[] = [

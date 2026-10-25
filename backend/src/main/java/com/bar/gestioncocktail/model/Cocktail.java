@@ -82,6 +82,17 @@ public class Cocktail {
     @JoinColumn(name = "glassware_id")
     private Glassware glassware;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "secondary_glassware_id")
+    private Glassware secondaryGlassware;
+
+    @Column(name = "companion_glass_title", length = 100)
+    private String companionGlassTitle;
+
+    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("glassOrder ASC")
+    private List<CocktailGlass> glasses = new java.util.ArrayList<>();
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "cocktail_flavor_profiles", joinColumns = @JoinColumn(name = "cocktail_id"))
     @Enumerated(EnumType.STRING)
@@ -178,5 +189,21 @@ public class Cocktail {
 
     public void setStation(PreparationStation station) {
         this.station = station != null ? station : PreparationStation.BAR;
+    }
+
+    public boolean isDisponible() {
+        return disponible;
+    }
+
+    public void setDisponible(boolean disponible) {
+        this.disponible = disponible;
+    }
+
+    public boolean isSaisonnier() {
+        return saisonnier;
+    }
+
+    public void setSaisonnier(boolean saisonnier) {
+        this.saisonnier = saisonnier;
     }
 }

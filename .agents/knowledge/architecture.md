@@ -20,7 +20,7 @@
 | Database | PostgreSQL | — | Managed via Docker Compose |
 | ORM | JPA/Hibernate + Lombok `@Data` | via Spring | |
 | Security | Spring Security + custom JWT | JJWT 0.13.0 | Requires `JWT_SECRET` (≥ 32 characters). 4-hour lifespan (`14400000 ms`) with frontend session auto-disconnect & extension reminder prompt |
-| Real-time | WebSocket STOMP | via Spring | 14 active topics |
+| Real-time | WebSocket STOMP | via Spring | 15 active topics |
 | TPE / Monétique | Protocole Concert IP | Socket TCP :8888 | Communication directe avec terminaux carte sans cloud |
 | Impression | ESC/POS direct socket | Socket TCP :9100 | Format binaire CP850 pour imprimantes thermiques 80mm/58mm |
 | Frontend | Angular | 22.2.0 | |
@@ -506,6 +506,45 @@ OpenBar supports end-of-day register closures (Z-Report), physical drawer reconc
 | `GET` | `/api/factures/clotures/{id}/pdf` | MANAGER, ADMIN | Download certified A4 Z-report PDF |
 | `GET` | `/api/factures/clotures/{id}/export/fec` | MANAGER, ADMIN | Download French FEC tab-delimited accounting export |
 | `POST` | `/api/printers/z-report/{closureId}` | MANAGER, ADMIN | Print 80mm thermal Z-report on cash desk printer |
+
+---
+
+## Automated Over-The-Air (OTA) Updates & Disaster Recovery Engine
+
+OpenBar includes an autonomous Over-The-Air (OTA) update service and disaster recovery orchestrator designed for on-premise local deployments (mini-PC / Raspberry Pi 5):
+
+- **System Diagnostics & Telemetry**:
+  - `SystemUpdateService.getSystemInfo()` reports current SemVer version, git commit hash, JVM runtime, deployment profile, branch, active update channel (`STABLE` vs `BETA`), disk space metrics, and uptime.
+- **GitHub Releases OTA Update Checker**:
+  - Asynchronously queries the GitHub Releases API (`https://api.github.com/repos/FunWarry/Open-Bar/releases`) with 15-minute in-memory caching and fallback resilience for rate limits or offline network states.
+  - Compares versions via `SystemUpdateService` (SemVer parser) taking into account update channels (`STABLE` excludes prereleases and betas).
+- **Pre-Flight Verification (`/api/admin/system/preflight`)**:
+  - Automated check ensuring 3 non-negotiable safety conditions before triggering any update:
+    1. Sufficient free disk space (≥ 1024 MB / 1 GB on the application host volume).
+    2. Zero active, unbilled orders (`activeOrdersCount == 0`).
+    3. Zero occupied tables (`occupiedTablesCount == 0`).
+- **Automated Update Orchestration with Auto-Rollback**:
+  - Triggered via `POST /api/admin/system/update`.
+  - Step 1: Pre-flight re-validation.
+  - Step 2: Atomic PostgreSQL database snapshot via `pg_dump` compressed into `backup_pre_update_<timestamp>.sql.gz` stored in the backups volume alongside companion `metadata.json` (version, sha256 checksum, timestamp).
+  - Step 3: Container image pull (`docker compose pull`) and asynchronous service restart (`docker compose up -d`).
+  - Step 4: Healthcheck validation polling the internal Spring Boot Actuator endpoint (`/actuator/health` or `/api/actuator/health` via `ActuatorForwardController`) with configurable timeout (e.g. 120s) and retry interval.
+  - Step 5: Automatic rollback if healthcheck fails or times out: reverts Docker container image tag to previous version and restores the pre-update PostgreSQL database snapshot via `pg_restore` / `psql`.
+- **Disaster Recovery Snapshot Management**:
+  - Restorable backup snapshots listing, manual database restoration (`POST /api/admin/system/snapshots/{id}/restore`), and deletion (`DELETE /api/admin/system/snapshots/{id}`).
+- **Plug-and-Play Capability**:
+  - Toggleable capability `SYSTEM_UPDATES` registered in `EstablishmentModule`, `EstablishmentConfig`, `FeatureFlagService`, `ModuleGuard`, and App Settings ("Capacités & Modules" tab).
+- **REST Endpoints**:
+
+| Method | URL | Roles | Description |
+|--------|-----|-------|-------------|
+| `GET` | `/api/admin/system/info` | ADMIN | Retrieve host system diagnostics, runtime and version info |
+| `GET` | `/api/admin/system/check-update` | ADMIN | Check GitHub Releases API for new updates (Stable/Beta) |
+| `GET` | `/api/admin/system/preflight` | ADMIN | Validate pre-flight prerequisites (disk space, orders, tables) |
+| `POST` | `/api/admin/system/update` | ADMIN | Trigger automated OTA update with pre-snapshot & auto-rollback |
+| `GET` | `/api/admin/system/snapshots` | ADMIN | List available database disaster recovery snapshots |
+| `POST` | `/api/admin/system/snapshots/{id}/restore` | ADMIN | Restore database from specific disaster recovery snapshot |
+| `DELETE` | `/api/admin/system/snapshots/{id}` | ADMIN | Delete specific disaster recovery snapshot |
 
 ---
 

@@ -76,6 +76,20 @@
           <span class="btn-text btn-text--short">{{ 'BARMAN_DASHBOARD.QUICK_STOCK_SHORT' | transloco }}</span>
         </ion-button>
 
+        <!-- Pertes & Dégustations Express (Bar only - strictly excluded from kitchen) -->
+        @if (!isKitchenMode && featureFlagService.stockTrackingEnabled()) {
+          <ion-button
+            class="header-action-btn btn-quick-waste"
+            (click)="openQuickWasteModal()"
+            (keyup.enter)="openQuickWasteModal()"
+            [title]="'BARMAN_DASHBOARD.QUICK_WASTE_TITLE' | transloco"
+            data-testid="open-quick-waste-btn">
+            <ion-icon slot="start" name="flash-outline"></ion-icon>
+            <span class="btn-text btn-text--full">{{ 'BARMAN_DASHBOARD.QUICK_WASTE' | transloco }}</span>
+            <span class="btn-text btn-text--short">{{ 'BARMAN_DASHBOARD.QUICK_WASTE_SHORT' | transloco }}</span>
+          </ion-button>
+        }
+
         <!-- Bouton Roulette TV PIN (bar only - strictly excluded from kitchen) -->
         @if (!isKitchenMode && featureFlagService.mysteryRouletteEnabled()) {
           <ion-button
@@ -90,18 +104,18 @@
           </ion-button>
         }
 
-        <!-- Refresh manuel -->
-        <ion-button
-          class="header-action-btn btn-refresh"
-          (click)="chargerCommandes()"
-          (keyup.enter)="chargerCommandes()"
-          [title]="'BARMAN_DASHBOARD.REFRESH_ORDERS_TOOLTIP' | transloco"
-          data-testid="refresh-orders-btn">
-          <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
-        </ion-button>
       </div>
     </div>
   </ion-toolbar>
+</ion-header>
+
+<ion-content class="barman-content">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Real-time Angel Shot Safety Alert Banner (#569) -->
+  <app-safety-alert-banner></app-safety-alert-banner>
 
   <!-- Barre de filtres et recherche -->
   <div class="barman-filter-bar">
@@ -114,92 +128,34 @@
       </app-search-bar>
     </div>
 
-    <div class="chips-wrapper">
-      <ion-chip
-        tabindex="0"
-        [class.chip--active]="!urgentOnly"
-        (click)="urgentOnly = false"
-        (keyup.enter)="urgentOnly = false"
-        data-testid="chip-filter-all">
-        <ion-label>{{ 'BARMAN_DASHBOARD.FILTER_ALL' | transloco }}</ion-label>
-      </ion-chip>
+    <div class="filter-dropdowns-wrapper">
+      <app-searchable-select
+        class="filter-dropdown-select select-urgent"
+        [options]="urgentFilterOptions"
+        [value]="urgentOnly"
+        (selectionChange)="onUrgentFilterChange($event)"
+        [clearable]="false"
+        [searchable]="false"
+        dropdownPosition="bottom"
+        size="sm"
+        testId="select-urgent-filter">
+      </app-searchable-select>
 
-      <ion-chip
-        tabindex="0"
-        [class.chip--active]="urgentOnly"
-        [class.chip--urgent]="urgentOrdersCount > 0"
-        (click)="urgentOnly = !urgentOnly"
-        (keyup.enter)="urgentOnly = !urgentOnly"
-        data-testid="chip-filter-urgent">
-        <ion-icon name="flash-outline"></ion-icon>
-        <ion-label>{{ 'BARMAN_DASHBOARD.FILTER_URGENT_ONLY' | transloco }}</ion-label>
-        @if (urgentOrdersCount > 0) {
-          <ion-badge color="danger">{{ urgentOrdersCount }}</ion-badge>
-        }
-      </ion-chip>
-
-      <span class="chip-divider"></span>
-
-      <!-- Station filter chips (adapted for kitchen vs bar) -->
-      @if (isKitchenMode) {
-        <ion-chip
-          tabindex="0"
-          [class.chip--active]="stationFilter === 'KITCHEN'"
-          (click)="setStationFilter('KITCHEN')"
-          (keyup.enter)="setStationFilter('KITCHEN')"
-          data-testid="chip-station-kitchen">
-          <ion-icon name="restaurant-outline"></ion-icon>
-          <ion-label>{{ 'STATIONS.KITCHEN' | transloco }}</ion-label>
-        </ion-chip>
-
-        <ion-chip
-          tabindex="0"
-          [class.chip--active]="stationFilter === 'ALL'"
-          (click)="setStationFilter('ALL')"
-          (keyup.enter)="setStationFilter('ALL')"
-          data-testid="chip-station-all">
-          <ion-label>{{ 'STATIONS.ALL' | transloco }}</ion-label>
-        </ion-chip>
-      } @else {
-        <ion-chip
-          tabindex="0"
-          [class.chip--active]="stationFilter === 'ALL'"
-          (click)="setStationFilter('ALL')"
-          (keyup.enter)="setStationFilter('ALL')"
-          data-testid="chip-station-all">
-          <ion-label>{{ 'STATIONS.ALL' | transloco }}</ion-label>
-        </ion-chip>
-
-        <ion-chip
-          tabindex="0"
-          [class.chip--active]="stationFilter === 'BAR'"
-          (click)="setStationFilter('BAR')"
-          (keyup.enter)="setStationFilter('BAR')"
-          data-testid="chip-station-bar">
-          <ion-icon name="wine-outline"></ion-icon>
-          <ion-label>{{ 'STATIONS.BAR' | transloco }}</ion-label>
-        </ion-chip>
-
-        @if (cuisineKdsEnabled()) {
-          <ion-chip
-            tabindex="0"
-            [class.chip--active]="stationFilter === 'KITCHEN'"
-            (click)="setStationFilter('KITCHEN')"
-            (keyup.enter)="setStationFilter('KITCHEN')"
-            data-testid="chip-station-kitchen">
-            <ion-icon name="restaurant-outline"></ion-icon>
-            <ion-label>{{ 'STATIONS.KITCHEN' | transloco }}</ion-label>
-          </ion-chip>
-        }
+      @if (cuisineKdsEnabled()) {
+        <app-searchable-select
+          class="filter-dropdown-select select-station"
+          [options]="stationFilterOptions"
+          [value]="stationFilter"
+          (selectionChange)="onStationFilterChange($event)"
+          [clearable]="false"
+          [searchable]="false"
+          dropdownPosition="bottom"
+          size="sm"
+          testId="select-station-filter">
+        </app-searchable-select>
       }
     </div>
   </div>
-</ion-header>
-
-<ion-content class="barman-content">
-  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher>
 
   @if (activeCriticalStockAlert) {
     <div class="critical-stock-banner" data-testid="critical-stock-banner">
@@ -755,3 +711,4 @@
   [isKitchenMode]="isKitchenMode"
   (closePanel)="onCloseRecipePanel()">
 </app-recipe-side-panel>
+

@@ -79,6 +79,10 @@
   white-space: nowrap;
   flex-shrink: 0;
   animation: pulse-badge 1.5s infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 }
 
 .station-chip {
@@ -105,19 +109,6 @@
   }
 }
 
-.item-ready-chip {
-  font-size: 0.7rem;
-  font-weight: 800;
-  color: var(--semantic-success);
-  background: rgba(103, 194, 58, 0.15);
-  border: 1px solid var(--semantic-success);
-  border-radius: 50%;
-  width: 16px;
-  height: 16px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
 
 @keyframes pulse-badge {
   0% { transform: scale(1); }
@@ -176,9 +167,38 @@
     border: 1px solid var(--semantic-danger);
     font-weight: 800;
     animation: pulse-critical-timer 1.2s infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
   }
 }
 
+.progress-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(79, 195, 247, 0.15);
+  color: var(--semantic-info);
+  border: 1px solid rgba(79, 195, 247, 0.4);
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 0.85rem;
+  }
+
+  &.progress--complete {
+    background: rgba(47, 191, 107, 0.18);
+    color: var(--semantic-success);
+    border-color: var(--semantic-success);
+    animation: pulse-badge 1.5s infinite;
+  }
+}
 
 @keyframes pulse-critical-timer {
   0% { transform: scale(1); }
@@ -207,7 +227,7 @@
   cursor: pointer;
   font-size: 14px;
   flex-shrink: 0;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 
   &:hover {
     background: var(--primary);
@@ -220,6 +240,10 @@
     color: var(--semantic-danger);
     border-color: var(--semantic-danger);
     animation: pulse-badge 1.5s infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
   }
 }
 
@@ -251,9 +275,82 @@
 .item-main-line {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   font-size: 0.85rem;
   color: var(--text-primary);
+  min-height: 40px;
+}
+
+.item-check-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 40px;
+  min-height: 40px;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+}
+
+.check-box-visual {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm, 5px);
+  border: 1.5px solid var(--border-medium);
+  background: var(--background-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text-on-accent);
+
+  ion-icon {
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  &.checked {
+    background: var(--semantic-success);
+    border-color: var(--semantic-success);
+    color: var(--text-on-accent);
+    box-shadow: 0 0 8px rgba(47, 191, 107, 0.4);
+  }
+}
+
+.item-check-btn:not(:disabled):hover .check-box-visual:not(.checked) {
+  border-color: var(--primary);
+  background: var(--background-surface-1);
+}
+
+.item-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  transition: opacity 0.2s ease;
+
+  &.item-prepared {
+    opacity: 0.55;
+
+    .qty,
+    .cocktail-nom {
+      text-decoration: line-through;
+      text-decoration-color: var(--text-muted);
+    }
+  }
 }
 
 .qty {
@@ -266,6 +363,9 @@
 .cocktail-nom {
   font-weight: 600;
   flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .variant-tag {
@@ -278,19 +378,31 @@
   border: 1px solid rgba(108, 127, 232, 0.4);
 }
 
+.companion-glass-chip {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--primary-light, #9aa8f5);
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+  white-space: nowrap;
+}
+
 .recipe-toggle-btn {
   background: var(--background-surface-2);
   border: 1px solid var(--border-medium);
   color: var(--text-muted);
   border-radius: 4px;
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 12px;
-  transition: all 0.15s ease;
+  font-size: 13px;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  flex-shrink: 0;
 
   &:hover,
   &.active {
@@ -304,7 +416,7 @@
   color: var(--semantic-warning);
   font-style: italic;
   font-size: 0.75rem;
-  padding-left: 26px;
+  padding-left: 44px;
 }
 
 .commande-notes {
@@ -323,6 +435,31 @@
   margin-top: 6px;
 }
 
+.btn-pulse-ready {
+  display: block;
+  animation: pulse-glow-ready 1.5s infinite;
+  border-radius: var(--radius-md, 8px);
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes pulse-glow-ready {
+  0% {
+    box-shadow: 0 0 0 rgba(47, 191, 107, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 14px rgba(47, 191, 107, 0.8);
+    transform: scale(1.02);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(47, 191, 107, 0.4);
+    transform: scale(1);
+  }
+}
+
 .ready-indicator {
   display: flex;
   align-items: center;
@@ -338,5 +475,15 @@
 
   ion-icon {
     font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-alerte-retard,
+  .timer.timer--critical,
+  .progress-badge.progress--complete,
+  .icon-btn-urgent.active-urgent,
+  .btn-pulse-ready {
+    animation: none;
   }
 }

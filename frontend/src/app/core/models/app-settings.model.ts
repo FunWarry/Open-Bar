@@ -58,12 +58,23 @@ export interface AppSettings {
   tpeTerminalId?: string;
   tpeTimeoutSeconds?: number;
   cashDenominationsJson?: string;
+  cashDiscrepancyToleranceThreshold?: number;
   discountTiersJson?: string;
   storageLocationsJson?: string;
   printersJson?: string;
   tpeTerminalsJson?: string;
+  emergencyNumbersJson?: string;
   timeZone?: string;
   updatedAt: string | null;
+}
+
+/**
+ * Emergency contact helpline configured for the Angel Shot safety protocol.
+ */
+export interface EmergencyHelpline {
+  name: string;
+  number: string;
+  description?: string;
 }
 
 export type AppSettingsUpdateRequest = Omit<AppSettings, 'id' | 'updatedAt'>;

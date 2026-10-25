@@ -228,7 +228,11 @@ export class SearchableSelectComponent extends BaseControlValueAccessor implemen
   /** Dropdown placement: 'auto' dynamically selects best placement, 'top' forces dropup, 'bottom' forces dropdown. */
   @Input() dropdownPosition: 'auto' | 'top' | 'bottom' = 'auto';
 
+  /** Horizontal menu alignment: 'auto' aligns right if close to right edge, 'left' forces left align, 'right' forces right align. */
+  @Input() menuAlign: 'auto' | 'left' | 'right' = 'auto';
+
   readonly openUpwards = signal<boolean>(false);
+  readonly alignRight = signal<boolean>(false);
 
   toggleDropdown(): void {
     if (this.disabled) return;
@@ -253,49 +257,66 @@ export class SearchableSelectComponent extends BaseControlValueAccessor implemen
 
   /**
    * Automatically calculates whether the dropdown panel should open downwards or upwards (dropup),
-   * preventing clipping at the bottom of the viewport or container.
+   * and whether it should align to the left or right edge, preventing clipping or overflow.
    */
   computeDropdownDirection(): void {
     if (this.dropdownPosition === 'top') {
       this.openUpwards.set(true);
-      return;
-    }
-    if (this.dropdownPosition === 'bottom') {
+    } else if (this.dropdownPosition === 'bottom') {
       this.openUpwards.set(false);
-      return;
     }
 
     const triggerEl = this.triggerButtonElement?.nativeElement;
     if (!triggerEl || typeof window === 'undefined') {
-      this.openUpwards.set(false);
+      if (this.dropdownPosition === 'auto') {
+        this.openUpwards.set(false);
+      }
+      this.alignRight.set(false);
       return;
     }
 
     const rect = triggerEl.getBoundingClientRect();
+    this.alignRight.set(this.computeAlignRight(rect));
+
+    if (this.dropdownPosition !== 'auto') {
+      return;
+    }
+
     const dropdownEstimatedHeight = 280;
+    const spaces = this.computeEffectiveSpaces(triggerEl, rect);
+
+    const shouldOpenUpwards =
+      spaces.below < dropdownEstimatedHeight &&
+      spaces.above >= dropdownEstimatedHeight &&
+      rect.top >= dropdownEstimatedHeight;
+
+    this.openUpwards.set(shouldOpenUpwards);
+  }
+
+  private computeAlignRight(rect: DOMRect): boolean {
+    if (this.menuAlign === 'right') return true;
+    if (this.menuAlign === 'left') return false;
+    return rect.left + rect.width / 2 > window.innerWidth / 2;
+  }
+
+  private computeEffectiveSpaces(triggerEl: HTMLElement, rect: DOMRect): { below: number; above: number } {
     let effectiveSpaceBelow = window.innerHeight - rect.bottom;
     let effectiveSpaceAbove = rect.top;
 
-    // Detect closest scrollable container (e.g. .app-modal-body or custom scroll parent)
     let parent = triggerEl.parentElement;
     while (parent && parent !== document.body) {
-      const overflowY = window.getComputedStyle(parent).overflowY;
-      if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'hidden') {
+      const style = window.getComputedStyle(parent);
+      const isScrollable = (style.overflowY === 'auto' || style.overflowY === 'scroll') && parent.scrollHeight > parent.clientHeight;
+      if (isScrollable) {
         const parentRect = parent.getBoundingClientRect();
-        const parentSpaceBelow = parentRect.bottom - rect.bottom;
-        const parentSpaceAbove = rect.top - parentRect.top;
-        effectiveSpaceBelow = Math.min(effectiveSpaceBelow, parentSpaceBelow);
-        effectiveSpaceAbove = Math.min(effectiveSpaceAbove, parentSpaceAbove);
+        effectiveSpaceBelow = Math.min(effectiveSpaceBelow, parentRect.bottom - rect.bottom);
+        effectiveSpaceAbove = Math.min(effectiveSpaceAbove, rect.top - parentRect.top);
         break;
       }
       parent = parent.parentElement;
     }
 
-    if (effectiveSpaceBelow < dropdownEstimatedHeight && effectiveSpaceAbove > effectiveSpaceBelow) {
-      this.openUpwards.set(true);
-    } else {
-      this.openUpwards.set(false);
-    }
+    return { below: effectiveSpaceBelow, above: effectiveSpaceAbove };
   }
 
   closeDropdown(): void {

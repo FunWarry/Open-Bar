@@ -9,6 +9,8 @@ import com.bar.gestioncocktail.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -47,8 +49,9 @@ class PdfServiceTest {
     @InjectMocks
     private PdfService pdfService;
 
+    private static final java.time.ZoneId ZONE = java.time.ZoneId.systemDefault();
+
     private Facture factureComplete;
-    private TableEntity table;
 
     @BeforeEach
     void setUp() {
@@ -63,7 +66,7 @@ class PdfServiceTest {
         defaultSettings.setCurrencyPosition(com.bar.gestioncocktail.model.CurrencyPosition.AFTER);
         lenient().when(appSettingsService.getSettings()).thenReturn(defaultSettings);
 
-        table = new TableEntity();
+        TableEntity table = new TableEntity();
         table.setId(1L);
         table.setNumero(5);
 
@@ -99,14 +102,14 @@ class PdfServiceTest {
     // ─── cas nominal ──────────────────────────────────────────────────────────
 
     @Test
-    void generateFacturePdf_factureComplete_retourneByteArrayNonVide() {
+    void generateFacturePdfFactureCompleteRetourneByteArrayNonVide() {
         byte[] pdf = pdfService.generateFacturePdf(factureComplete);
 
         assertThat(pdf).isNotNull().hasSizeGreaterThan(0);
     }
 
     @Test
-    void generateFacturePdf_factureComplete_retournePdfValide() {
+    void generateFacturePdfFactureCompleteRetournePdfValide() {
         // A valid PDF always starts with the %PDF- magic signature
         byte[] pdf = pdfService.generateFacturePdf(factureComplete);
 
@@ -115,7 +118,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateFacturePdf_factureComplete_tailleSuffisante() {
+    void generateFacturePdfFactureCompleteTailleSuffisante() {
         // A PDF containing text and a table must exceed 1 KB
         byte[] pdf = pdfService.generateFacturePdf(factureComplete);
 
@@ -125,7 +128,7 @@ class PdfServiceTest {
     // ─── champs optionnels null ────────────────────────────────────────────────
 
     @Test
-    void generateFacturePdf_sansTable_neLeveAucuneException() {
+    void generateFacturePdfSansTableNeLeveAucuneException() {
         Facture factureSansTable = new Facture();
         factureSansTable.setId(2L);
         factureSansTable.setNumero("FAC-2024-002");
@@ -139,7 +142,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateFacturePdf_sansDateFacture_neLeveAucuneException() {
+    void generateFacturePdfSansDateFactureNeLeveAucuneException() {
         Facture factureSansDate = new Facture();
         factureSansDate.setId(3L);
         factureSansDate.setNumero("FAC-2024-003");
@@ -153,7 +156,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateFacturePdf_sansModePaiement_neLeveAucuneException() {
+    void generateFacturePdfSansModePaiementNeLeveAucuneException() {
         Facture factureSansPaiement = new Facture();
         factureSansPaiement.setId(4L);
         factureSansPaiement.setNumero("FAC-2024-004");
@@ -167,7 +170,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateFacturePdf_sansPourboire_neLeveAucuneException() {
+    void generateFacturePdfSansPourboireNeLeveAucuneException() {
         Facture factureSansPourboire = new Facture();
         factureSansPourboire.setId(5L);
         factureSansPourboire.setNumero("FAC-2024-005");
@@ -182,7 +185,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateFacturePdf_sansTotalTTC_calculeTotalPlusPourboire() {
+    void generateFacturePdfSansTotalTTCCalculeTotalPlusPourboire() {
         // totalTTC null -> the service must calculate total + tip without NPE
         Facture facture = new Facture();
         facture.setId(6L);
@@ -200,7 +203,7 @@ class PdfServiceTest {
     // ─── Items list ───────────────────────────────────────────────────────────
 
     @Test
-    void generateFacturePdf_itemsNull_neLeveAucuneException() {
+    void generateFacturePdfItemsNullNeLeveAucuneException() {
         Facture factureItemsNull = new Facture();
         factureItemsNull.setId(7L);
         factureItemsNull.setNumero("FAC-2024-007");
@@ -213,7 +216,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateFacturePdf_itemsVide_retournePdfValide() {
+    void generateFacturePdfItemsVideRetournePdfValide() {
         Facture factureVide = new Facture();
         factureVide.setId(8L);
         factureVide.setNumero("FAC-2024-008");
@@ -227,7 +230,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateFacturePdf_itemAvecPrixUnitaireNull_neLeveAucuneException() {
+    void generateFacturePdfItemAvecPrixUnitaireNullNeLeveAucuneException() {
         FactureItem itemSansPrix = new FactureItem();
         itemSansPrix.setId(10L);
         itemSansPrix.setDescription("Sparkling water");
@@ -247,7 +250,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateFacturePdf_itemAvecTotalNull_calculeQuantiteFoisPrix() {
+    void generateFacturePdfItemAvecTotalNullCalculeQuantiteFoisPrix() {
         FactureItem itemSansTotal = new FactureItem();
         itemSansTotal.setId(11L);
         itemSansTotal.setDescription("Draft beer");
@@ -267,7 +270,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateFacturePdf_itemAvecDescriptionNull_neLeveAucuneException() {
+    void generateFacturePdfItemAvecDescriptionNullNeLeveAucuneException() {
         FactureItem itemSansDesc = new FactureItem();
         itemSansDesc.setId(12L);
         itemSansDesc.setDescription(null);
@@ -289,7 +292,7 @@ class PdfServiceTest {
     // ─── Settlement status ──────────────────────────────────────────────────────
 
     @Test
-    void generateFacturePdf_factureNonReglee_retournePdfValide() {
+    void generateFacturePdfFactureNonRegleeRetournePdfValide() {
         Facture factureNonReglee = new Facture();
         factureNonReglee.setId(12L);
         factureNonReglee.setNumero("FAC-2024-012");
@@ -306,7 +309,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateFacturePdf_factureRegleeAvecDateReglement_retournePdfValide() {
+    void generateFacturePdfFactureRegleeAvecDateReglementRetournePdfValide() {
         Facture factureReglee = new Facture();
         factureReglee.setId(13L);
         factureReglee.setNumero("FAC-2024-013");
@@ -323,7 +326,7 @@ class PdfServiceTest {
     // ─── notes ────────────────────────────────────────────────────────────────
 
     @Test
-    void generateFacturePdf_avecNotes_retournePdfValide() {
+    void generateFacturePdfAvecNotesRetournePdfValide() {
         Facture factureAvecNotes = new Facture();
         factureAvecNotes.setId(14L);
         factureAvecNotes.setNumero("FAC-2024-014");
@@ -337,7 +340,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateFacturePdf_notesVides_neLeveAucuneException() {
+    void generateFacturePdfNotesVidesNeLeveAucuneException() {
         Facture factureNotesVides = new Facture();
         factureNotesVides.setId(15L);
         factureNotesVides.setNumero("FAC-2024-015");
@@ -353,7 +356,7 @@ class PdfServiceTest {
     // ─── Tip displayed only if > 0 ──────────────────────────────────
 
     @Test
-    void generateFacturePdf_pourboireZero_retournePdfValide() {
+    void generateFacturePdfPourboireZeroRetournePdfValide() {
         Facture factureSansPourboire = new Facture();
         factureSansPourboire.setId(16L);
         factureSansPourboire.setNumero("FAC-2024-016");
@@ -370,7 +373,7 @@ class PdfServiceTest {
     // ─── Multiple items ───────────────────────────────────────────────────────
 
     @Test
-    void generateFacturePdf_multiplesItems_retournePdfNonVide() {
+    void generateFacturePdfMultiplesItemsRetournePdfNonVide() {
         List<FactureItem> items = new ArrayList<>();
         for (int i = 1; i <= 10; i++) {
             FactureItem fi = new FactureItem();
@@ -394,9 +397,9 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateDailyRecapPdf_retournePdfValide() {
+    void generateDailyRecapPdfRetournePdfValide() {
         com.bar.gestioncocktail.dto.DailyRecapDTO recap = new com.bar.gestioncocktail.dto.DailyRecapDTO(
-            java.time.LocalDate.now(),
+            java.time.LocalDate.now(ZONE),
             new BigDecimal("100.00"),
             new BigDecimal("83.33"),
             new BigDecimal("16.67"),
@@ -415,7 +418,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateFacturePdf_withUsdCurrencyPrefix_generatesValidPdf() {
+    void generateFacturePdfWithUsdCurrencyPrefixGeneratesValidPdf() {
         com.bar.gestioncocktail.model.AppSettings usdSettings = new com.bar.gestioncocktail.model.AppSettings();
         usdSettings.setCurrencyCode("USD");
         usdSettings.setCurrencySymbol("$");
@@ -430,7 +433,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateDailyRecapPdf_withGbpCurrency_generatesValidPdf() {
+    void generateDailyRecapPdfWithGbpCurrencyGeneratesValidPdf() {
         com.bar.gestioncocktail.model.AppSettings gbpSettings = new com.bar.gestioncocktail.model.AppSettings();
         gbpSettings.setCurrencyCode("GBP");
         gbpSettings.setCurrencySymbol("£");
@@ -438,7 +441,7 @@ class PdfServiceTest {
         lenient().when(appSettingsService.getSettings()).thenReturn(gbpSettings);
 
         com.bar.gestioncocktail.dto.DailyRecapDTO recap = new com.bar.gestioncocktail.dto.DailyRecapDTO(
-            java.time.LocalDate.now(),
+            java.time.LocalDate.now(ZONE),
             new BigDecimal("250.00"),
             new BigDecimal("208.33"),
             new BigDecimal("41.67"),
@@ -457,7 +460,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateFacturePdf_withNullConfigAndSettings_usesDefaults() {
+    void generateFacturePdfWithNullConfigAndSettingsUsesDefaults() {
         PdfService fallbackPdfService = new PdfService(null, null, null);
         byte[] pdf = fallbackPdfService.generateFacturePdf(factureComplete);
 
@@ -467,10 +470,10 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateDailyRecapPdf_withNullConfigAndSettings_usesDefaults() {
+    void generateDailyRecapPdfWithNullConfigAndSettingsUsesDefaults() {
         PdfService fallbackPdfService = new PdfService(null, null, null);
         com.bar.gestioncocktail.dto.DailyRecapDTO recap = new com.bar.gestioncocktail.dto.DailyRecapDTO(
-            java.time.LocalDate.now(),
+            java.time.LocalDate.now(ZONE),
             new BigDecimal("100.00"),
             new BigDecimal("83.33"),
             new BigDecimal("16.67"),
@@ -489,7 +492,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateFacturePdf_withEnglishLanguageConfig_generatesValidPdf() {
+    void generateFacturePdfWithEnglishLanguageConfigGeneratesValidPdf() {
         EstablishmentConfig englishConfig = new EstablishmentConfig();
         englishConfig.setLegalName("London Bar Ltd");
         englishConfig.setCountry("United Kingdom");
@@ -506,7 +509,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateTableQrCodesPdf_standsLayout_generatesValidPdf() {
+    void generateTableQrCodesPdfStandsLayoutGeneratesValidPdf() {
         TableEntity t1 = new TableEntity();
         t1.setId(1L);
         t1.setNumero(1);
@@ -527,7 +530,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateTableQrCodesPdf_cardsLayout_generatesValidPdf() {
+    void generateTableQrCodesPdfCardsLayoutGeneratesValidPdf() {
         TableEntity t1 = new TableEntity();
         t1.setId(1L);
         t1.setNumero(1);
@@ -542,7 +545,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateTableQrCodesPdf_stickersLayout_generatesValidPdf() {
+    void generateTableQrCodesPdfStickersLayoutGeneratesValidPdf() {
         TableEntity t1 = new TableEntity();
         t1.setId(1L);
         t1.setNumero(1);
@@ -557,7 +560,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateTableQrCodesPdf_withWifiEnabled_generatesValidPdf() {
+    void generateTableQrCodesPdfWithWifiEnabledGeneratesValidPdf() {
         com.bar.gestioncocktail.model.AppSettings wifiSettings = new com.bar.gestioncocktail.model.AppSettings();
         wifiSettings.setWifiEnabled(true);
         wifiSettings.setWifiSsid("OpenBar-Guest");
@@ -579,7 +582,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateTableQrCodesPdf_emptyTables_throwsIllegalArgumentException() {
+    void generateTableQrCodesPdfEmptyTablesThrowsIllegalArgumentException() {
         assertThatThrownBy(() -> pdfService.generateTableQrCodesPdf(List.of(), "STAND", false))
             .isInstanceOf(IllegalArgumentException.class);
 
@@ -588,27 +591,27 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateXReportPdf_withCompleteReport_generatesValidPdf() {
+    void generateXReportPdfWithCompleteReportGeneratesValidPdf() {
         CashMovementDTO m1 = new CashMovementDTO(
                 1L, 1L, LocalDate.of(2026, Month.SEPTEMBER, 18),
                 CashMovementType.CASH_IN, new BigDecimal("50.00"), "Fond appoint",
-                "REF-001", new UserResponseDTO(1L, "barman", "barman@test.com", "Bar", "Man", Set.of(UserRole.SERVEUR), LocalDateTime.now(), LocalDateTime.now()),
+                "REF-001", new UserResponseDTO(1L, "barman", "barman@test.com", "Bar", "Man", Set.of(UserRole.SERVEUR), LocalDateTime.now(ZONE), LocalDateTime.now(ZONE)),
                 LocalDateTime.of(2026, Month.SEPTEMBER, 18, 10, 30, 0),
-                LocalDateTime.now(), LocalDateTime.now()
+                LocalDateTime.now(ZONE), LocalDateTime.now(ZONE)
         );
         CashMovementDTO m2 = new CashMovementDTO(
                 2L, 1L, LocalDate.of(2026, Month.SEPTEMBER, 18),
                 CashMovementType.CASH_DROP, new BigDecimal("100.00"), "Coffre",
                 null, null,
                 LocalDateTime.of(2026, Month.SEPTEMBER, 18, 14, 0, 0),
-                LocalDateTime.now(), LocalDateTime.now()
+                LocalDateTime.now(ZONE), LocalDateTime.now(ZONE)
         );
         CashMovementDTO m3 = new CashMovementDTO(
                 3L, 1L, LocalDate.of(2026, Month.SEPTEMBER, 18),
                 CashMovementType.PAID_OUT, new BigDecimal("20.00"), "Achat menthe",
                 "TICKET-EPICERIE", null,
                 LocalDateTime.of(2026, Month.SEPTEMBER, 18, 15, 15, 0),
-                LocalDateTime.now(), LocalDateTime.now()
+                LocalDateTime.now(ZONE), LocalDateTime.now(ZONE)
         );
 
         PaymentModeSummaryDTO pm1 = new PaymentModeSummaryDTO("CARTE", 10, new BigDecimal("350.00"));
@@ -642,7 +645,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateXReportPdf_withNullAndEmptyBreakdowns_generatesValidPdf() {
+    void generateXReportPdfWithNullAndEmptyBreakdownsGeneratesValidPdf() {
         XReportDTO report = new XReportDTO(
                 null,
                 null,
@@ -669,14 +672,14 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateXReportPdf_nullReport_throwsIllegalArgumentException() {
+    void generateXReportPdfNullReportThrowsIllegalArgumentException() {
         assertThatThrownBy(() -> pdfService.generateXReportPdf(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("cannot be null");
     }
 
     @Test
-    void generatePurchaseOrderPdf_validOrderFrench_generatesValidPdf() {
+    void generatePurchaseOrderPdfValidOrderFrenchGeneratesValidPdf() {
         Supplier supplier = new Supplier();
         supplier.setNom("Brasserie du Mont-Blanc");
         supplier.setContactNom("Sylvain Favre");
@@ -716,7 +719,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generatePurchaseOrderPdf_englishLocaleAndMinimalDetails_generatesValidPdf() {
+    void generatePurchaseOrderPdfEnglishLocaleAndMinimalDetailsGeneratesValidPdf() {
         EstablishmentConfig config = new EstablishmentConfig();
         config.setLegalName("OpenBar English Pub");
         config.setLanguage("en");
@@ -735,21 +738,21 @@ class PdfServiceTest {
     }
 
     @Test
-    void generatePurchaseOrderPdf_withNullOrder_throwsIllegalArgumentException() {
+    void generatePurchaseOrderPdfWithNullOrderThrowsIllegalArgumentException() {
         assertThatThrownBy(() -> pdfService.generatePurchaseOrderPdf(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("cannot be null");
     }
 
     @Test
-    void generateInventoryAuditPdf_withNullSession_throwsIllegalArgumentException() {
+    void generateInventoryAuditPdfWithNullSessionThrowsIllegalArgumentException() {
         assertThatThrownBy(() -> pdfService.generateInventoryAuditPdf(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("cannot be null");
     }
 
     @Test
-    void generateInventoryAuditPdf_frenchLocaleWithDiscrepancies_generatesValidPdf() {
+    void generateInventoryAuditPdfFrenchLocaleWithDiscrepanciesGeneratesValidPdf() {
         EstablishmentConfig config = new EstablishmentConfig();
         config.setLegalName("Bar Central");
         config.setLanguage("fr");
@@ -838,7 +841,7 @@ class PdfServiceTest {
     }
 
     @Test
-    void generateInventoryAuditPdf_englishLocaleAndMinimalData_generatesValidPdf() {
+    void generateInventoryAuditPdfEnglishLocaleAndMinimalDataGeneratesValidPdf() {
         EstablishmentConfig config = new EstablishmentConfig();
         config.setLegalName("Pub London");
         config.setLanguage("en");
@@ -855,6 +858,47 @@ class PdfServiceTest {
         assertThat(pdf).isNotNull().isNotEmpty();
         String header = new String(pdf, 0, Math.min(5, pdf.length));
         assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generateAngelShotNoticePdfValidConfigGeneratesValidPdfNotice() {
+        EstablishmentConfig config = new EstablishmentConfig();
+        config.setLegalName("The Safe Haven Bar");
+        lenient().when(establishmentConfigService.getConfig()).thenReturn(config);
+
+        byte[] pdf = pdfService.generateAngelShotNoticePdf();
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @ParameterizedTest(name = "Lang: {0}, Legal: {1}")
+    @CsvSource(delimiter = '|', value = {
+            "en | The London Lounge | [{\"name\":\"UK Police\",\"number\":\"999\",\"description\":\"Emergency\"}] | 999",
+            "es | Bar Barcelona | [{\"name\":\"Policía Nacional\",\"number\":\"091\",\"description\":\"Urgencias\"}] | 091",
+            "fr | Le Refuge Parisien | [{\"name\":\"Sécurité Bar\",\"number\":\"06 12 34 56 78\",\"description\":\"Astreinte de nuit\"},{\"name\":\"SAMU\",\"number\":\"15\",\"description\":\"Urgence médicale\"}] | 06 12 34 56 78"
+    })
+    void generateAngelShotNoticePdfVariousLanguagesAndCustomNumbersGeneratesSinglePageValidPdf(
+            String language, String legalName, String emergencyJson, String expectedPhoneNumber) throws Exception {
+        EstablishmentConfig config = new EstablishmentConfig();
+        config.setLegalName(legalName);
+        config.setLanguage(language);
+        lenient().when(establishmentConfigService.getConfig()).thenReturn(config);
+
+        com.bar.gestioncocktail.model.AppSettings settings = new com.bar.gestioncocktail.model.AppSettings();
+        settings.setEmergencyNumbersJson(emergencyJson);
+        lenient().when(appSettingsService.getSettings()).thenReturn(settings);
+
+        byte[] pdf = pdfService.generateAngelShotNoticePdf();
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        com.lowagie.text.pdf.PdfReader reader = new com.lowagie.text.pdf.PdfReader(pdf);
+        assertThat(reader.getNumberOfPages()).isEqualTo(1);
+        byte[] pageContent = reader.getPageContent(1);
+        String pageText = new String(pageContent, java.nio.charset.StandardCharsets.ISO_8859_1);
+        assertThat(pageText).contains(expectedPhoneNumber);
+        reader.close();
     }
 }
 

@@ -16,7 +16,47 @@
   </div>
 
   <div class="panel-body">
-    <!-- Active Table Calls Section (Compact top section) -->
+    <!-- Active Safety Alerts Section (Angel Shot Emergency - Highest Priority) -->
+    @if (activeSafetyAlerts().length > 0) {
+      <div class="panel-safety-alerts-section" data-testid="panel-safety-alerts-section">
+        <div class="safety-alerts-header">
+          <div class="safety-alerts-title-group">
+            <span class="safety-alerts-icon">🚨</span>
+            <span class="safety-alerts-title">{{ 'SAFETY.ACTIVE_ALERTS_TITLE' | transloco: { count: activeSafetyAlerts().length } }}</span>
+          </div>
+          <span class="safety-alerts-count-badge" data-testid="safety-alerts-count-badge">{{ activeSafetyAlerts().length }}</span>
+        </div>
+        <div class="safety-alerts-list" data-testid="panel-safety-alerts-list">
+          @for (alert of activeSafetyAlerts(); track alert.id) {
+            <div class="panel-safety-item" [ngClass]="'variant-' + alert.type.toLowerCase().replace('_', '-')" [attr.data-testid]="'panel-safety-item-' + alert.id">
+              <div class="safety-item-main">
+                <div class="safety-item-top">
+                  <span class="safety-type-icon">🚨</span>
+                  <strong class="safety-table-label">{{ 'COMMON.TABLE' | transloco }} {{ alert.tableNumero }}</strong>
+                  <span class="safety-type-tag">
+                    {{ alert.typeLabel }}
+                  </span>
+                  <span class="safety-time">{{ alert.createdAt | date:'HH:mm:ss' }}</span>
+                </div>
+                @if (alert.comment) {
+                  <p class="safety-item-comment">« {{ alert.comment }} »</p>
+                }
+              </div>
+              <button
+                type="button"
+                class="panel-resolve-safety-btn"
+                [attr.data-testid]="'panel-btn-resolve-safety-' + alert.id"
+                (click)="resolveSafetyAlert(alert, $event)"
+                [attr.aria-label]="'SAFETY.RESOLVE_BTN' | transloco">
+                ✓ {{ 'SAFETY.RESOLVE_BTN' | transloco }}
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Active Table Calls Section (Compact section) -->
     @if (activeCalls().length > 0) {
       <div class="panel-active-calls-section" data-testid="panel-active-calls-section">
         <div class="active-calls-header">
@@ -55,14 +95,12 @@
       </div>
     }
 
-    @if (notifications.length === 0) {
-      @if (activeCalls().length === 0) {
-        <div class="empty-notifs" data-testid="empty-notifs">
-          <ion-icon name="notifications-off-outline"></ion-icon>
-          <p>{{ 'NOTIFICATIONS.EMPTY' | transloco }}</p>
-        </div>
-      }
-    } @else {
+    @if (notifications.length === 0 && activeCalls().length === 0 && activeSafetyAlerts().length === 0) {
+      <div class="empty-notifs" data-testid="empty-notifs">
+        <ion-icon name="notifications-off-outline"></ion-icon>
+        <p>{{ 'NOTIFICATIONS.EMPTY' | transloco }}</p>
+      </div>
+    } @else if (notifications.length > 0) {
       <div class="notif-list" data-testid="notif-list">
         @for (n of notifications; track n.id) {
           <button

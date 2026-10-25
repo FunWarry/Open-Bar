@@ -5,13 +5,15 @@ import { addIcons } from 'ionicons';
 import {
   timeOutline,
   checkmarkCircleOutline,
+  checkmarkCircle,
   arrowForwardCircleOutline,
   flashOutline,
   printOutline,
   bookOutline,
   chevronDownOutline,
   chevronUpOutline,
-  informationCircleOutline
+  informationCircleOutline,
+  checkmarkSharp
 } from 'ionicons/icons';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { interval, Subscription } from 'rxjs';
@@ -23,10 +25,12 @@ import { CommandeDetailModalComponent } from '../../../commandes/commande-detail
 import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../core/utils/modal-animation.utils';
 import { CommandeService } from '../../../../core/services/commande.service';
 import { CardComponent } from '../../../../core/components/ui/card/card.component';
+import { DashboardBarmanService } from '../../services/dashboard-barman.service';
 
 /**
  * Kanban order ticket card component for the bar counter preparation dashboard.
  * Features live countdowns/timers, color-shifting urgency, quick recipe sheet inspection,
+ * one-tap item-level prepared checkmarks with in-flight progress tracking,
  * and one-touch status advancement / 80mm thermal bar ticket printing.
  */
 @Component({
@@ -63,6 +67,7 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
 
   private timerSub?: Subscription;
   private readonly commandeService = inject(CommandeService);
+  readonly dashboardBarmanService = inject(DashboardBarmanService);
 
   get groupedItems(): CommandeItemView[] {
     const rawItems = this.commande?.items || [];
@@ -81,17 +86,43 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
     return groupCommandeItems(items) as CommandeItemView[];
   }
 
+  /**
+   * Total drink portion quantity on this preparation card.
+   */
+  get totalItemsCount(): number {
+    return this.groupedItems.reduce((acc, item) => acc + (item.quantite || 1), 0);
+  }
+
+  /**
+   * Total number of drink portions currently marked as prepared on this card.
+   */
+  get preparedItemsCount(): number {
+    return this.groupedItems.reduce((acc, item) => {
+      return this.isItemPrepared(item) ? acc + (item.quantite || 1) : acc;
+    }, 0);
+  }
+
+  /**
+   * Indicates whether 100% of drink portions on this ticket are marked prepared.
+   */
+  get isAllItemsPrepared(): boolean {
+    const total = this.totalItemsCount;
+    return total > 0 && this.preparedItemsCount === total;
+  }
+
   constructor(@Optional() private readonly modalCtrl?: ModalController) {
     addIcons({
       timeOutline,
       checkmarkCircleOutline,
+      checkmarkCircle,
       arrowForwardCircleOutline,
       flashOutline,
       printOutline,
       bookOutline,
       chevronDownOutline,
       chevronUpOutline,
-      informationCircleOutline
+      informationCircleOutline,
+      checkmarkSharp
     });
   }
 
@@ -102,6 +133,87 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.timerSub?.unsubscribe();
+  }
+
+  /**
+   * Checks whether a specific order line item is marked prepared.
+   *
+   * @param item CommandeItemView representation
+   * @returns True if item is ready or locally marked prepared
+   */
+  isItemPrepared(item: CommandeItemView): boolean {
+    if (this.commande.statut === 'PRET') return true;
+    if (item.statut === 'PRET') return true;
+    return this.dashboardBarmanService.isItemPrepared(this.commande.id, item.id, item.statut);
+  }
+
+  /**
+   * Toggles the prepared completion checkmark for a given drink line item.
+   *
+   * @param item CommandeItemView to toggle
+   * @param event DOM click event to stop card detail modal opening
+   */
+  toggleItemPrepared(item: CommandeItemView, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (this.commande.statut !== 'EN_PREPARATION') {
+      return;
+    }
+    const matchingIds = this.getMatchingRawItemIds(item);
+    const targetPrepared = !this.isItemPrepared(item);
+
+    this.syncPreparedItemsState(matchingIds, targetPrepared, item.statut);
+    this.updateInMemoryItemStatuses(item, matchingIds, targetPrepared);
+  }
+
+  /**
+   * Synchronizes item state across matched raw items.
+   */
+  private syncPreparedItemsState(matchingIds: number[], targetPrepared: boolean, currentStatut?: string): void {
+    for (const rawId of matchingIds) {
+      const isSet = this.dashboardBarmanService.isItemPrepared(this.commande.id, rawId);
+      if (isSet !== targetPrepared) {
+        this.dashboardBarmanService.toggleItemPrepared(this.commande.id, rawId, currentStatut);
+      }
+    }
+  }
+
+  /**
+   * Updates in-memory view items to reflect new status immediately.
+   */
+  private updateInMemoryItemStatuses(item: CommandeItemView, matchingIds: number[], targetPrepared: boolean): void {
+    const nextStatus = targetPrepared ? 'PRET' : 'EN_PREPARATION';
+    item.statut = nextStatus;
+    if (this.commande.items) {
+      for (const raw of this.commande.items) {
+        if (matchingIds.includes(raw.id)) {
+          raw.statut = nextStatus;
+        }
+      }
+    }
+  }
+
+  /**
+   * Resolves raw item IDs matching this grouped item line.
+   *
+   * @param item Grouped item line
+   * @returns Array of raw item IDs
+   */
+  private getMatchingRawItemIds(item: CommandeItemView): number[] {
+    if (!this.commande?.items || this.commande.items.length === 0) {
+      return item.id ? [item.id] : [];
+    }
+    const matches = this.commande.items.filter(raw =>
+      (raw.cocktailId ? raw.cocktailId === item.cocktailId : raw.cocktailNom === item.cocktailNom) &&
+      (raw.varianteId ? raw.varianteId === item.varianteId : raw.varianteNom === item.varianteNom) &&
+      ((raw.notes || '').trim().toLowerCase() === (item.notes || '').trim().toLowerCase())
+    );
+    const ids = matches.map(m => m.id).filter((id): id is number => typeof id === 'number');
+    if (ids.length > 0) {
+      return ids;
+    }
+    return item.id ? [item.id] : [];
   }
 
   /**
@@ -184,8 +296,12 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
       if (result.data) {
         const targetStatut = result.data.targetStatut || (result.data.role === 'statusUpdated' ? result.data.commande?.statut : undefined);
         if ((result.data.action === 'statusUpdated' || result.data.role === 'statusUpdated') && targetStatut) {
+          if (targetStatut === 'PRET' || targetStatut === 'ANNULEE' || targetStatut === 'LIVREE') {
+            this.dashboardBarmanService.clearPreparedItems(this.commande.id);
+          }
           this.changerStatut.emit({ id: this.commande.id, statut: targetStatut });
         } else if (result.data.action === 'cancelled' || result.data.role === 'cancelled') {
+          this.dashboardBarmanService.clearPreparedItems(this.commande.id);
           this.changerStatut.emit({ id: this.commande.id, statut: 'ANNULEE' });
         }
       }
@@ -219,10 +335,11 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Advances order status to Ready (PRET).
+   * Advances order status to Ready (PRET) and clears in-flight checklist.
    */
   onMarquerPret(event?: Event): void {
     if (event) event.stopPropagation();
+    this.dashboardBarmanService.clearPreparedItems(this.commande.id);
     this.changerStatut.emit({ id: this.commande.id, statut: 'PRET' });
   }
 

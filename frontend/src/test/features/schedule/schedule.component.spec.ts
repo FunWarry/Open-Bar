@@ -1419,7 +1419,9 @@ describe('ScheduleComponent', () => {
     }));
 
     it('should support drag-resizing employee column within min/max boundaries', () => {
-      component.employeeColWidth = 160;
+      spyOn(localStorage, 'setItem');
+      component.rosterColWidth = 160;
+      expect(component.rosterColWidth).toBe(160);
       expect(component.employeeColWidth).toBe(160);
 
       // Start drag
@@ -1432,19 +1434,21 @@ describe('ScheduleComponent', () => {
 
       // Dispatch mousemove to expand column by 50px
       window.dispatchEvent(new MouseEvent('mousemove', { clientX: 210 }));
+      expect(component.rosterColWidth).toBe(210);
       expect(component.employeeColWidth).toBe(210);
 
       // Dispatch mousemove beyond max boundary
       window.dispatchEvent(new MouseEvent('mousemove', { clientX: 600 }));
-      expect(component.employeeColWidth).toBe(component.maxEmpColWidth);
+      expect(component.rosterColWidth).toBe(component.maxEmpColWidth);
 
       // Dispatch mousemove below min boundary
       window.dispatchEvent(new MouseEvent('mousemove', { clientX: 10 }));
-      expect(component.employeeColWidth).toBe(component.minEmpColWidth);
+      expect(component.rosterColWidth).toBe(component.minEmpColWidth);
 
       // End drag
       window.dispatchEvent(new MouseEvent('mouseup'));
       expect(component.isResizingCol).toBeFalse();
+      expect(localStorage.setItem).toHaveBeenCalledWith('openbar_schedule_roster_width', String(component.minEmpColWidth));
     });
   });
 });

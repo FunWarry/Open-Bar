@@ -16,6 +16,12 @@ import java.util.List;
 public class LoginResponse {
 
     /**
+     * Unique identifier of the authenticated user.
+     */
+    @Schema(description = "User unique identifier")
+    private Long id;
+
+    /**
      * JWT access token for authenticating subsequent requests (Bearer).
      */
     @Schema(description = "JWT access token (Bearer)")
@@ -56,7 +62,7 @@ public class LoginResponse {
     private LocalDateTime updatedAt;
 
     /**
-     * All-arguments constructor for LoginResponse.
+     * Constructor for LoginResponse with core user and token details (7 parameters).
      *
      * @param token JWT access token
      * @param refreshToken Refresh token UUID
@@ -75,5 +81,39 @@ public class LoginResponse {
         this.email = email;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+    }
+
+    /**
+     * Factory method creating a LoginResponse from user entity, tokens, and roles.
+     *
+     * @param user Authenticated user entity
+     * @param token JWT access token
+     * @param refreshToken Refresh token UUID
+     * @param roles Assigned roles
+     * @return Fully populated LoginResponse instance
+     */
+    public static LoginResponse of(com.bar.gestioncocktail.model.User user, String token, String refreshToken, List<String> roles) {
+        LoginResponse response = new LoginResponse(
+                token,
+                refreshToken,
+                user.getUsername(),
+                roles,
+                user.getEmail(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
+        );
+        response.setId(user.getId());
+        return response;
+    }
+
+    /**
+     * Fluent setter for user unique identifier.
+     *
+     * @param id Unique user identifier
+     * @return This response instance
+     */
+    public LoginResponse withId(Long id) {
+        this.id = id;
+        return this;
     }
 }

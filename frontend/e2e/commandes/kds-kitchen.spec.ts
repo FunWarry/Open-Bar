@@ -13,56 +13,70 @@ test.describe('KDS Kitchen Display Screen E2E Flow', () => {
     await page.waitForURL((url) => !url.pathname.includes('/auth/login'), { timeout: 10000 });
   });
 
-  test('should display KDS kitchen header and filter chips', async ({ page }) => {
+  test('should display modern KDS kitchen header and filter controls', async ({ page }) => {
     await page.goto('/kitchen');
     await expect(page.locator('ion-content')).toBeVisible();
 
-    // Verify filter chips exist
-    await expect(page.locator('[data-testid="kds-filter-active"]')).toBeVisible();
-    await expect(page.locator('[data-testid="kds-filter-ready"]')).toBeVisible();
-    await expect(page.locator('[data-testid="kds-filter-all"]')).toBeVisible();
-
-    // Verify sound toggle and refresh buttons
-    await expect(page.locator('[data-testid="kds-sound-toggle"]')).toBeVisible();
-    await expect(page.locator('[data-testid="kds-refresh-btn"]')).toBeVisible();
+    // Verify brand title and filter dropdowns exist
+    await expect(page.locator('.toolbar-brand')).toBeVisible();
+    await expect(page.locator('[data-testid="select-urgent-filter"]')).toBeVisible();
+    await expect(page.locator('[data-testid="select-station-filter"]')).toBeVisible();
+    await expect(page.locator('ion-refresher')).toBeAttached();
   });
 
-  test('should toggle sound alert', async ({ page }) => {
+  test('should filter orders via search bar', async ({ page }) => {
     await page.goto('/kitchen');
-    const soundToggle = page.locator('[data-testid="kds-sound-toggle"]');
-    await expect(soundToggle).toBeVisible();
-    await soundToggle.click();
-    // Toast should show up
-    await expect(page.locator('ion-toast')).toBeVisible({ timeout: 5000 });
+    const searchBar = page.locator('[data-testid="barman-searchbar"]');
+    await expect(searchBar).toBeVisible();
+    await searchBar.fill('Mojito');
+    await expect(searchBar).toHaveValue('Mojito');
   });
 
-  test('should switch filter tabs and handle empty/card states', async ({ page }) => {
+  test('should switch view mode segment between tickets and batch rush mode', async ({ page }) => {
     await page.goto('/kitchen');
+    const segment = page.locator('[data-testid="barman-view-mode-segment"]');
+    await expect(segment).toBeVisible();
 
-    // Click Ready filter
-    await page.click('[data-testid="kds-filter-ready"]');
-    await expect(page.locator('[data-testid="kds-filter-ready"]')).toHaveClass(/chip-selected/);
+    // Click Batch mode
+    await page.click('[data-testid="segment-view-batch"]');
+    await expect(page.locator('[data-testid="segment-view-batch"]')).toHaveClass(/active-segment/);
 
-    // Click All filter
-    await page.click('[data-testid="kds-filter-all"]');
-    await expect(page.locator('[data-testid="kds-filter-all"]')).toHaveClass(/chip-selected/);
+    // Click Tickets mode
+    await page.click('[data-testid="segment-view-tickets"]');
+    await expect(page.locator('[data-testid="segment-view-tickets"]')).toHaveClass(/active-segment/);
+  });
 
-    // Click Active filter
-    await page.click('[data-testid="kds-filter-active"]');
-    await expect(page.locator('[data-testid="kds-filter-active"]')).toHaveClass(/chip-selected/);
+  test('should switch filter dropdowns and handle urgent toggle', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/barman');
+    const urgentSelect = page.locator('[data-testid="select-urgent-filter"]');
+    await expect(urgentSelect).toBeVisible();
 
-    // Either cards or empty state is visible
-    const hasCards = await page.locator('[data-testid="kds-order-card"]').count() > 0;
-    if (hasCards) {
-      await expect(page.locator('[data-testid="kds-order-card"]').first()).toBeVisible();
-    } else {
-      await expect(page.locator('[data-testid="kds-empty-state"]')).toBeVisible();
+    const trigger = page.locator('[data-testid="select-urgent-filter-trigger"]');
+    await trigger.click();
+
+    const dropdown = page.locator('[data-testid="select-urgent-filter-dropdown"]');
+    await expect(dropdown).toBeVisible();
+
+    // Select Urgent
+    const urgentOption = page.locator('[data-testid="select-urgent-filter-option-true"]');
+    await urgentOption.click();
+    await expect(dropdown).toBeHidden();
+
+    // Test Station filter dropdown if visible
+    const stationSelect = page.locator('[data-testid="select-station-filter"]');
+    if (await stationSelect.isVisible()) {
+      const stationTrigger = page.locator('[data-testid="select-station-filter-trigger"]');
+      await stationTrigger.click();
+      const stationDropdown = page.locator('[data-testid="select-station-filter-dropdown"]');
+      await expect(stationDropdown).toBeVisible();
     }
   });
 
-  test('should navigate to /kitchen when visiting /cuisine', async ({ page }) => {
+  test('should redirect to /kitchen when visiting /cuisine', async ({ page }) => {
     await page.goto('/cuisine');
+    await page.waitForURL((url) => url.pathname.includes('/kitchen'), { timeout: 10000 });
     await expect(page.locator('ion-content')).toBeVisible();
-    await expect(page.locator('[data-testid="kds-filter-active"]')).toBeVisible();
+    await expect(page.locator('[data-testid="select-urgent-filter"]')).toBeVisible();
   });
 });

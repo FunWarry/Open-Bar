@@ -85,7 +85,7 @@
   flex-direction: column;
   gap: 4px;
   flex: 1 1 auto;
-  min-width: 220px;
+  min-width: 0;
 }
 
 .pref-label {
@@ -103,6 +103,12 @@
   white-space: normal;
   word-break: normal;
   font-family: inherit;
+}
+
+/* ─── Audio Settings Embedded Card Wrapper ─── */
+.pref-audio-settings-wrapper {
+  width: 100%;
+  margin: var(--space-2, 8px) 0 var(--space-3, 12px) 0;
 }
 
 /* ─── Language select wrapper ─── */
@@ -140,7 +146,7 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   font-family: inherit;
 }
 
@@ -169,6 +175,7 @@
   margin-top: var(--space-2, 8px);
   padding-top: var(--space-2, 8px);
   border-top: 1px dashed var(--border-medium);
+  gap: var(--space-2, 8px);
 }
 
 .theme-studio-btn {
@@ -183,7 +190,7 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
   font-family: inherit;
 }
 
@@ -290,7 +297,7 @@
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
   font-family: inherit;
 }
 
@@ -349,4 +356,94 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2, 8px);
+}
+
+/* ─── Multi-Device Responsiveness (Smartphone < 768px) ─── */
+@media (max-width: 768px) {
+  .profile-container {
+    padding: var(--space-3, 12px) var(--space-2, 8px);
+    gap: var(--space-3, 12px);
+  }
+
+  .pref-row--lang,
+  .pref-row--onboarding {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2, 8px);
+  }
+
+  .pref-select-wrap {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .pref-row--onboarding app-action-button {
+    width: 100%;
+    display: block;
+  }
+
+  .theme-studio-toggle-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2, 8px);
+  }
+
+  .theme-studio-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .theme-page-link {
+    justify-content: center;
+    padding: 6px 0;
+  }
+
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .info-item .label {
+    min-width: 0;
+  }
+
+  .pin-display-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3, 12px);
+  }
+
+  .pin-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .pin-action-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 440px) {
+  .theme-buttons-row {
+    gap: 6px;
+  }
+
+  .theme-btn {
+    padding: 8px 6px;
+    font-size: 11px;
+    gap: 4px;
+  }
+
+  .theme-btn ion-icon {
+    font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pin-action-btn ion-icon.spinning {
+    animation: none;
+  }
 }

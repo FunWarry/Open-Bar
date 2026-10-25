@@ -1,4 +1,4 @@
-<div class="stepper-container">
+<div class="stepper-container" [attr.data-testid]="testId">
   <ion-button
     fill="outline"
     size="small"
@@ -6,10 +6,26 @@
     (click)="decrement()"
     (keyup.enter)="decrement()"
     (keyup.space)="decrement()"
-    class="stepper-btn">
+    class="stepper-btn"
+    [attr.data-testid]="testId + '-decrement-btn'">
     <ion-icon name="remove" slot="icon-only"></ion-icon>
   </ion-button>
-  <span class="stepper-value">{{ value }}</span>
+  <input
+    type="number"
+    class="stepper-input"
+    [value]="value"
+    [min]="min"
+    [max]="max"
+    [step]="step"
+    [disabled]="disabled"
+    (focus)="onFocus($event)"
+    (input)="onInput($event)"
+    (blur)="onBlur($event)"
+    (keydown.enter)="$event.target.blur()"
+    inputmode="decimal"
+    aria-label="Quantity"
+    [attr.data-testid]="testId + '-input'"
+  />
   <ion-button
     fill="outline"
     size="small"
@@ -17,7 +33,9 @@
     (click)="increment()"
     (keyup.enter)="increment()"
     (keyup.space)="increment()"
-    class="stepper-btn">
+    class="stepper-btn"
+    [attr.data-testid]="testId + '-increment-btn'">
     <ion-icon name="add" slot="icon-only"></ion-icon>
   </ion-button>
 </div>
+

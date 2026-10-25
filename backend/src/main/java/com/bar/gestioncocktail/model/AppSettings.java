@@ -198,6 +198,15 @@ public class AppSettings {
     private String cashDenominationsJson;
 
     /**
+     * Cash drawer discrepancy tolerance threshold (in establishment currency).
+     * If cash discrepancy exceeds this threshold, a visual warning alert is raised on till closure.
+     */
+    @NotNull(message = "Cash discrepancy tolerance threshold is required")
+    @DecimalMin(value = "0.0", message = "Tolerance threshold cannot be negative")
+    @Column(name = "cash_discrepancy_tolerance_threshold", precision = 10, scale = 2)
+    private BigDecimal cashDiscrepancyToleranceThreshold = new BigDecimal("5.00");
+
+    /**
      * Serialized JSON configuration of inventory storage and service locations (zones de stockage & service).
      */
     @Column(name = "storage_locations_json", columnDefinition = "TEXT")
@@ -214,6 +223,12 @@ public class AppSettings {
      */
     @Column(name = "tpe_terminals_json", columnDefinition = "TEXT")
     private String tpeTerminalsJson;
+
+    /**
+     * Serialized JSON configuration of emergency assistance helplines for the Angel Shot safety protocol.
+     */
+    @Column(name = "emergency_numbers_json", columnDefinition = "TEXT")
+    private String emergencyNumbersJson = "[{\"name\":\"Police Secours\",\"number\":\"17\",\"description\":\"Urgence immédiate / Agression\"},{\"name\":\"Urgences Europe\",\"number\":\"112\",\"description\":\"Numéro d'urgence européen\"},{\"name\":\"Violences Femmes Info\",\"number\":\"3919\",\"description\":\"Écoute & orientation 24/7\"},{\"name\":\"Urgence SMS (Sourds)\",\"number\":\"114\",\"description\":\"Contact discret par SMS\"}]";
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;

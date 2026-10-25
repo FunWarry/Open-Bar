@@ -17,8 +17,14 @@ import { EMPTY, of } from 'rxjs';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TranslocoService } from '@jsverse/transloco';
 import { SoundService } from '../../../app/core/services/sound.service';
+import { PreferencesService } from '../../../app/core/services/preferences.service';
 import { TableAppelService } from '../../../app/core/services/table-appel.service';
 import { TableAppel } from '../../../app/core/models/table-appel.model';
+import { SafetyAlertService } from '../../../app/core/services/safety-alert.service';
+import { SafetyAlert } from '../../../app/core/models/safety-alert.model';
+import { TableService } from '../../../app/core/services/table.service';
+import { AppSettingsService } from '../../../app/core/services/app-settings.service';
+import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
 import { User } from '../../../app/core/models/user.model';
 
 import { signal, WritableSignal } from '@angular/core';
@@ -30,8 +36,12 @@ describe('NavbarComponent', () => {
   let mockNavigationService: jasmine.SpyObj<NavigationService>;
   let mockNotifService: any;
   let mockTableAppelService: any;
+  let mockSafetyAlertService: any;
+  let mockFeatureFlagService: any;
+  let angelShotSafetyEnabledSignal: WritableSignal<boolean>;
   let unreadCountSignal: WritableSignal<number>;
   let activeAppelsSignal: WritableSignal<TableAppel[]>;
+  let activeSafetyAlertsSignal: WritableSignal<SafetyAlert[]>;
 
   let mockSelectIsAuthenticated: MemoizedSelector<any, boolean>;
   let mockSelectIsAdmin: MemoizedSelector<any, boolean>;
@@ -65,6 +75,7 @@ describe('NavbarComponent', () => {
 
     unreadCountSignal = signal(0);
     activeAppelsSignal = signal<TableAppel[]>([]);
+    activeSafetyAlertsSignal = signal<SafetyAlert[]>([]);
     mockNotifService = jasmine.createSpyObj('NotificationService', [
       'onNotification', 'onStockAlert', 'getNonLues', 'getHistory', 'marquerLue', 'marquerToutLu', 'toggleNotifPanel', 'closeNotifPanel',
     ]);
@@ -77,8 +88,48 @@ describe('NavbarComponent', () => {
     mockTableAppelService.activeAppels = activeAppelsSignal;
     mockTableAppelService.getAppelsActifs.and.returnValue(of([]));
 
-    const mockSoundService = jasmine.createSpyObj('SoundService', ['toggleSound', 'isSoundEnabled']);
+    mockSafetyAlertService = jasmine.createSpyObj('SafetyAlertService', ['getActiveAlerts', 'resolveAlert']);
+    mockSafetyAlertService.activeAlerts = activeSafetyAlertsSignal;
+    mockSafetyAlertService.getActiveAlerts.and.returnValue(of([]));
+
+    angelShotSafetyEnabledSignal = signal<boolean>(true);
+    mockFeatureFlagService = {
+      angelShotSafetyEnabled: angelShotSafetyEnabledSignal,
+    };
+
+    const mockTableService = jasmine.createSpyObj('TableService', ['getAll']);
+    mockTableService.getAll.and.returnValue(of([]));
+
+    const mockAppSettingsService = jasmine.createSpyObj('AppSettingsService', ['getSettings']);
+    mockAppSettingsService.getSettings.and.returnValue(of({
+      id: 1,
+      establishmentName: 'OpenBar',
+      angelShotHelplinePolice: '17',
+      angelShotHelplineSamu: '15',
+      angelShotHelplineViolence: '3919',
+      angelShotHelplineEmergency: '112',
+    }));
+
+    const mockSoundService = jasmine.createSpyObj('SoundService', [
+      'toggleSound',
+      'isSoundEnabled',
+      'testSound',
+      'updatePreferences',
+      'getPreferences',
+    ]);
     mockSoundService.isSoundEnabled.and.returnValue(true);
+    mockSoundService.getPreferences.and.returnValue({
+      enabled: true,
+      volume: 80,
+      soundPack: 'SUBTLE_BELL',
+      triggerNewOrder: true,
+      triggerTableCall: true,
+      triggerUrgentOrder: true,
+      soundOverrideNewOrder: null,
+      soundOverrideTableCall: null,
+      soundOverrideUrgentOrder: null,
+      urgentRepeatInterval: 'EVERY_1_MIN',
+    });
 
     const mockPopoverCtrl = jasmine.createSpyObj('PopoverController', ['create']);
 
@@ -91,9 +142,14 @@ describe('NavbarComponent', () => {
       providers: [
         provideIonicAngular(),
         provideMockStore({ initialState }),
+        PreferencesService,
         { provide: NavigationService, useValue: mockNavigationService },
         { provide: NotificationService, useValue: mockNotifService },
         { provide: TableAppelService, useValue: mockTableAppelService },
+        { provide: SafetyAlertService, useValue: mockSafetyAlertService },
+        { provide: FeatureFlagService, useValue: mockFeatureFlagService },
+        { provide: TableService, useValue: mockTableService },
+        { provide: AppSettingsService, useValue: mockAppSettingsService },
         { provide: SoundService, useValue: mockSoundService },
         { provide: PopoverController, useValue: mockPopoverCtrl },
       ],
@@ -376,6 +432,94 @@ describe('NavbarComponent', () => {
       const badge = fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]');
       expect(badge).not.toBeNull();
       expect(badge.textContent.trim()).toBe('2');
+    });
+
+    it('should display danger badge and pulse when safety alerts are active', () => {
+      unreadCountSignal.set(0);
+      activeAppelsSignal.set([]);
+      activeSafetyAlertsSignal.set([
+        {
+          id: 201,
+          tableId: 2,
+          tableNumero: 2,
+          type: 'ANGEL_SHOT_LIME',
+          typeLabel: 'Angel Shot Rondelle',
+          status: 'ACTIVE',
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      fixture.detectChanges();
+
+      const badge = fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]');
+      expect(badge).not.toBeNull();
+      expect(badge.textContent.trim()).toBe('1');
+      expect(component.hasActiveSafetyAlerts()).toBeTrue();
+      expect(component.hasPendingNotifications()).toBeTrue();
+      expect((badge as any).color ?? badge.getAttribute('ng-reflect-color')).toBe('danger');
+    });
+
+    it('should prioritize safety alert badge color and count combined calls and alerts', () => {
+      unreadCountSignal.set(1);
+      activeAppelsSignal.set([
+        {
+          id: 101,
+          tableId: 3,
+          tableNumero: 3,
+          type: 'ASSISTANCE',
+          statut: 'EN_ATTENTE',
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      activeSafetyAlertsSignal.set([
+        {
+          id: 201,
+          tableId: 2,
+          tableNumero: 2,
+          type: 'ANGEL_SHOT_NEAT',
+          typeLabel: 'Angel Shot Pur',
+          status: 'ACTIVE',
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      fixture.detectChanges();
+
+      const badge = fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]');
+      expect(badge).not.toBeNull();
+      // 1 table call + 1 safety alert = 2
+      expect(badge.textContent.trim()).toBe('2');
+      expect((badge as any).color ?? badge.getAttribute('ng-reflect-color')).toBe('danger');
+    });
+  });
+
+  describe('Angel Shot TopBar button (#569)', () => {
+    beforeEach(() => {
+      store.overrideSelector(selectIsAuthenticated, true);
+      store.overrideSelector(selectCurrentUser, { ...mockAdminUser, roles: ['SERVEUR'] });
+      store.refreshState();
+      fixture.detectChanges();
+    });
+
+    it('should render angel shot button when feature flag is enabled', () => {
+      const button = fixture.nativeElement.querySelector('[data-testid="topbar-safety-btn"]');
+      expect(button).not.toBeNull();
+    });
+
+    it('should open and close safety modal when methods are called', () => {
+      expect(component.isSafetyModalOpen).toBeFalse();
+
+      component.openSafetyModal();
+      expect(component.isSafetyModalOpen).toBeTrue();
+
+      component.closeSafetyModal();
+      expect(component.isSafetyModalOpen).toBeFalse();
+    });
+
+    it('should hide angel shot button when feature flag is disabled', () => {
+      angelShotSafetyEnabledSignal.set(false);
+      fixture.detectChanges();
+
+      const button = fixture.nativeElement.querySelector('[data-testid="topbar-safety-btn"]');
+      expect(button).toBeNull();
     });
   });
 });

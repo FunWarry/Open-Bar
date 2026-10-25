@@ -33,6 +33,8 @@ describe('FeatureFlagService', () => {
     paymentTerminal: true,
     tableReservations: true,
     checklistsProcedures: true,
+    systemUpdates: true,
+    angelShotSafety: true,
   };
 
   beforeEach(() => {
@@ -156,6 +158,8 @@ describe('FeatureFlagService', () => {
       paymentTerminal: false,
       tableReservations: false,
       checklistsProcedures: false,
+      systemUpdates: false,
+      angelShotSafety: false,
     };
 
     wsSubject.next({ body: JSON.stringify(wsUpdate) });

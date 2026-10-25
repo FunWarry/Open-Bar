@@ -1,0 +1,346 @@
+.calc-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Summary Banner */
+.calc-summary-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 12px;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.summary-kpis {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  width: 100%;
+
+  @media (min-width: 576px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+
+  .kpi-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: var(--background-surface-1);
+    color: var(--text-secondary);
+    font-size: 20px;
+    flex-shrink: 0;
+
+    &.highlight {
+      background: var(--primary);
+      color: var(--text-on-accent);
+    }
+  }
+
+  .kpi-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .kpi-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      white-space: nowrap;
+
+      &.grand {
+        font-size: 18px;
+        color: var(--primary);
+      }
+    }
+  }
+
+  &.kpi-grand-total {
+    border-color: var(--primary-light);
+  }
+}
+
+.summary-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Sections Grid (Split Bills & Coins) */
+.calc-sections-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+
+  @media (min-width: 992px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.denomination-group {
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-medium);
+
+  .group-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .group-icon {
+      font-size: 18px;
+      color: var(--primary);
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
+
+  .group-subtotal {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-secondary);
+  }
+}
+
+.denomination-rows-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.calc-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 90px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &.active-count {
+    border-color: var(--primary);
+    background: var(--background-surface-3);
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 70px 1fr 75px;
+    padding: 6px 6px;
+    gap: 4px;
+  }
+}
+
+.label-badge-box {
+  display: flex;
+  align-items: center;
+
+  .denom-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 6px;
+    white-space: nowrap;
+
+    &.badge-bill {
+      background: var(--background-surface-1);
+      color: var(--primary-light);
+      border: 1px solid var(--primary);
+    }
+
+    &.badge-coin {
+      background: var(--background-surface-1);
+      color: var(--semantic-warning);
+      border: 1px solid var(--border-light);
+    }
+  }
+}
+
+.stepper-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+
+  .step-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0;
+    border: 1px solid var(--border-medium);
+    border-radius: 6px;
+    background: var(--background-surface-1);
+    color: var(--text-primary);
+    font-size: 16px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background 0.15s ease, border-color 0.15s ease;
+
+    &:hover:not(:disabled) {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--text-on-accent);
+    }
+
+    &:active:not(:disabled) {
+      background: var(--primary-press);
+    }
+
+    &:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+  }
+
+  .stepper-input {
+    width: 56px;
+    height: 36px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+    border: 1px solid var(--border-medium);
+    border-radius: 6px;
+    background: var(--background-bg-0);
+    color: var(--text-primary);
+    outline: none;
+    -moz-appearance: textfield;
+    appearance: textfield;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    &:focus {
+      border-color: var(--primary);
+    }
+
+    &:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.row-total-box {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  .row-total-amount {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+}
+
+/* Compact layout mode */
+.calc-compact {
+  gap: 10px;
+
+  .calc-summary-banner {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .summary-kpis {
+    gap: 8px;
+  }
+
+  .kpi-card {
+    padding: 8px 10px;
+
+    .kpi-icon-wrap {
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+    }
+
+    .kpi-text {
+      .kpi-label {
+        font-size: 10px;
+      }
+      .kpi-value {
+        font-size: 14px;
+        &.grand {
+          font-size: 15px;
+        }
+      }
+    }
+  }
+
+  .calc-sections-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .denomination-group {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .calc-row {
+    padding: 4px 6px;
+  }
+}

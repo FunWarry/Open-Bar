@@ -3,6 +3,7 @@ package com.bar.gestioncocktail.dto;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailCategorie;
 import com.bar.gestioncocktail.model.FlavorProfile;
+import com.bar.gestioncocktail.model.PreparationStation;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,26 +18,30 @@ import java.util.Set;
 /**
  * Request DTO for creating or updating a cocktail.
  *
- * @param nom             Cocktail name
- * @param description     Optional description
- * @param prix            Unit price (must be positive)
- * @param categorie       Cocktail category
- * @param disponible      Whether the cocktail is currently available
- * @param saisonnier      Whether the cocktail is seasonal
- * @param dateDebutSaison Start date of availability season
- * @param dateFinSaison   End date of availability season
- * @param moisDebut       Starting month (1-12) of seasonal availability
- * @param moisFin         Ending month (1-12) of seasonal availability
- * @param instructions    Preparation instructions text
- * @param imageUrl        Image URL
- * @param recipeSteps     Ordered list of recipe step blocks
- * @param glasswareId     Selected glassware identifier
- * @param variantes       List of drink variants
- * @param flavorProfiles  Selected flavor profiles (FRUITY, SMOKY, etc.)
- * @param alcoholLevel    Alcohol by volume percentage (ABV)
- * @param isMocktail      Whether the drink is non-alcoholic mocktail
- * @param isVegan         Whether the drink is vegan friendly
- * @param isGlutenFree    Whether the drink is gluten-free
+ * @param nom                  Cocktail name
+ * @param description          Optional description
+ * @param prix                 Unit price (must be positive)
+ * @param categorie            Cocktail category
+ * @param disponible           Whether the cocktail is currently available
+ * @param saisonnier           Whether the cocktail is seasonal
+ * @param dateDebutSaison      Start date of availability season
+ * @param dateFinSaison        End date of availability season
+ * @param moisDebut            Starting month (1-12) of seasonal availability
+ * @param moisFin              Ending month (1-12) of seasonal availability
+ * @param instructions         Preparation instructions text
+ * @param imageUrl             Image URL
+ * @param recipeSteps          Ordered list of recipe step blocks
+ * @param glasswareId          Selected primary glassware identifier
+ * @param variantes            List of drink variants
+ * @param flavorProfiles       Selected flavor profiles (FRUITY, SMOKY, etc.)
+ * @param alcoholLevel         Alcohol by volume percentage (ABV)
+ * @param isMocktail           Whether the drink is non-alcoholic mocktail
+ * @param isVegan              Whether the drink is vegan friendly
+ * @param isGlutenFree         Whether the drink is gluten-free
+ * @param station              Preparation station (BAR, KITCHEN, etc.)
+ * @param secondaryGlasswareId Optional companion / secondary glassware identifier
+ * @param companionGlassTitle  Custom title for companion glassware (e.g. 'Shot de Prosecco')
+ * @param glasses              Complete ordered list of glasses in multi-glass presentation
  */
 public record CocktailRequestDTO(
     @NotBlank(message = "Cocktail name is required")
@@ -69,8 +74,46 @@ public record CocktailRequestDTO(
     Boolean isMocktail,
     Boolean isVegan,
     Boolean isGlutenFree,
-    com.bar.gestioncocktail.model.PreparationStation station
+    PreparationStation station,
+    Long secondaryGlasswareId,
+    String companionGlassTitle,
+    List<CocktailGlassRequestDTO> glasses
 ) {
+    /**
+     * Backward-compatible 21-parameter constructor with station but without multi-glass fields.
+     */
+    public CocktailRequestDTO(
+        String nom,
+        String description,
+        BigDecimal prix,
+        CocktailCategorie categorie,
+        Boolean disponible,
+        Boolean saisonnier,
+        LocalDateTime dateDebutSaison,
+        LocalDateTime dateFinSaison,
+        Integer moisDebut,
+        Integer moisFin,
+        String instructions,
+        String imageUrl,
+        List<CocktailRecipeStepRequestDTO> recipeSteps,
+        Long glasswareId,
+        List<CocktailVarianteRequestDTO> variantes,
+        Set<FlavorProfile> flavorProfiles,
+        BigDecimal alcoholLevel,
+        Boolean isMocktail,
+        Boolean isVegan,
+        Boolean isGlutenFree,
+        PreparationStation station
+    ) {
+        this(
+            nom, description, prix, categorie, disponible, saisonnier,
+            dateDebutSaison, dateFinSaison, moisDebut, moisFin, instructions,
+            imageUrl, recipeSteps, glasswareId, variantes, flavorProfiles,
+            alcoholLevel, isMocktail, isVegan, isGlutenFree, station,
+            null, null, null
+        );
+    }
+
     /**
      * Backward-compatible 20-parameter constructor without station.
      */
@@ -96,7 +139,7 @@ public record CocktailRequestDTO(
         Boolean isVegan,
         Boolean isGlutenFree
     ) {
-        this(nom, description, prix, categorie, disponible, saisonnier, dateDebutSaison, dateFinSaison, moisDebut, moisFin, instructions, imageUrl, recipeSteps, glasswareId, variantes, flavorProfiles, alcoholLevel, isMocktail, isVegan, isGlutenFree, com.bar.gestioncocktail.model.PreparationStation.BAR);
+        this(nom, description, prix, categorie, disponible, saisonnier, dateDebutSaison, dateFinSaison, moisDebut, moisFin, instructions, imageUrl, recipeSteps, glasswareId, variantes, flavorProfiles, alcoholLevel, isMocktail, isVegan, isGlutenFree, PreparationStation.BAR);
     }
 
     /**
@@ -114,7 +157,7 @@ public record CocktailRequestDTO(
         Integer moisDebut,
         Integer moisFin
     ) {
-        this(nom, description, prix, categorie, disponible, saisonnier, dateDebutSaison, dateFinSaison, moisDebut, moisFin, null, null, null, null, null, null, null, null, null, null, com.bar.gestioncocktail.model.PreparationStation.BAR);
+        this(nom, description, prix, categorie, disponible, saisonnier, dateDebutSaison, dateFinSaison, moisDebut, moisFin, null, null, null, null, null, null, null, null, null, null, PreparationStation.BAR);
     }
 
     /**
@@ -209,7 +252,8 @@ public record CocktailRequestDTO(
         cocktail.setMocktail(Boolean.TRUE.equals(isMocktail));
         cocktail.setVegan(!Boolean.FALSE.equals(isVegan));
         cocktail.setGlutenFree(!Boolean.FALSE.equals(isGlutenFree));
-        cocktail.setStation(station != null ? station : com.bar.gestioncocktail.model.PreparationStation.BAR);
+        cocktail.setStation(station != null ? station : PreparationStation.BAR);
+        cocktail.setCompanionGlassTitle(companionGlassTitle);
         return cocktail;
     }
 }

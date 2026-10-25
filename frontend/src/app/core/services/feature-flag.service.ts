@@ -27,6 +27,8 @@ const DEFAULT_MODULES: EstablishmentModules = {
   paymentTerminal: true,
   tableReservations: true,
   checklistsProcedures: true,
+  systemUpdates: true,
+  angelShotSafety: true,
 };
 
 /**
@@ -92,6 +94,12 @@ export class FeatureFlagService implements OnDestroy {
   /** Computed signal for CHECKLISTS_PROCEDURES capability status. */
   readonly checklistsProceduresEnabled = computed(() => this.modules().checklistsProcedures);
 
+  /** Computed signal for SYSTEM_UPDATES capability status. */
+  readonly systemUpdatesEnabled = computed(() => this.modules().systemUpdates);
+
+  /** Computed signal for ANGEL_SHOT_SAFETY capability status. */
+  readonly angelShotSafetyEnabled = computed(() => this.modules().angelShotSafety);
+
   constructor() {
     this.initWebSocketSubscription();
     this.loadModules().subscribe();
@@ -141,6 +149,10 @@ export class FeatureFlagService implements OnDestroy {
         return current.tableReservations;
       case EstablishmentModule.CHECKLISTS_PROCEDURES:
         return current.checklistsProcedures;
+      case EstablishmentModule.SYSTEM_UPDATES:
+        return current.systemUpdates;
+      case EstablishmentModule.ANGEL_SHOT_SAFETY:
+        return current.angelShotSafety;
       default:
         return true;
     }
@@ -261,6 +273,12 @@ export class FeatureFlagService implements OnDestroy {
         break;
       case EstablishmentModule.CHECKLISTS_PROCEDURES:
         current.checklistsProcedures = enabled;
+        break;
+      case EstablishmentModule.SYSTEM_UPDATES:
+        current.systemUpdates = enabled;
+        break;
+      case EstablishmentModule.ANGEL_SHOT_SAFETY:
+        current.angelShotSafety = enabled;
         break;
     }
     return this.updateModules(current);

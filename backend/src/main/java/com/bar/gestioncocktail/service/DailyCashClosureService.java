@@ -1,13 +1,17 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.CashMovementDTO;
 import com.bar.gestioncocktail.dto.ClotureCaisseRequestDTO;
 import com.bar.gestioncocktail.dto.DailyRecapDTO;
 import com.bar.gestioncocktail.dto.PaymentModeSummaryDTO;
 import com.bar.gestioncocktail.dto.VatSummaryDTO;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
+import com.bar.gestioncocktail.model.CashMovement;
+import com.bar.gestioncocktail.model.CashMovementType;
 import com.bar.gestioncocktail.model.DailyCashClosure;
 import com.bar.gestioncocktail.model.User;
+import com.bar.gestioncocktail.repository.CashMovementRepository;
 import com.bar.gestioncocktail.repository.DailyCashClosureRepository;
 import com.bar.gestioncocktail.repository.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -42,7 +46,7 @@ public class DailyCashClosureService {
     private final FactureService factureService;
     private final UserRepository userRepository;
     private final TimeService timeService;
-    private final com.bar.gestioncocktail.repository.CashMovementRepository cashMovementRepository;
+    private final CashMovementRepository cashMovementRepository;
     private final CashDrawerService cashDrawerService;
     private final ObjectMapper objectMapper;
 
@@ -61,7 +65,7 @@ public class DailyCashClosureService {
             FactureService factureService,
             UserRepository userRepository,
             TimeService timeService,
-            com.bar.gestioncocktail.repository.CashMovementRepository cashMovementRepository,
+            CashMovementRepository cashMovementRepository,
             CashDrawerService cashDrawerService) {
         this.closureRepository = closureRepository;
         this.factureService = factureService;
@@ -92,12 +96,12 @@ public class DailyCashClosureService {
         BigDecimal openingFloat = request.openingFloat() != null ? request.openingFloat() : BigDecimal.ZERO;
         BigDecimal countedCash = request.countedCash() != null ? request.countedCash() : BigDecimal.ZERO;
 
-        List<com.bar.gestioncocktail.model.CashMovement> movements = (cashMovementRepository != null)
+        List<CashMovement> movements = (cashMovementRepository != null)
                 ? cashMovementRepository.findByMovementDateOrderByTimestampAsc(date)
                 : List.of();
-        BigDecimal totalCashIn = sumMovements(movements, com.bar.gestioncocktail.model.CashMovementType.CASH_IN);
-        BigDecimal totalCashDrop = sumMovements(movements, com.bar.gestioncocktail.model.CashMovementType.CASH_DROP);
-        BigDecimal totalPaidOut = sumMovements(movements, com.bar.gestioncocktail.model.CashMovementType.PAID_OUT);
+        BigDecimal totalCashIn = sumMovements(movements, CashMovementType.CASH_IN);
+        BigDecimal totalCashDrop = sumMovements(movements, CashMovementType.CASH_DROP);
+        BigDecimal totalPaidOut = sumMovements(movements, CashMovementType.PAID_OUT);
         BigDecimal totalCashOut = totalCashDrop.add(totalPaidOut);
 
         BigDecimal cashRevenue = calculateCashPayments(recap);
@@ -112,7 +116,16 @@ public class DailyCashClosureService {
         DailyCashClosure saved = closureRepository.save(closure);
 
         if (cashDrawerService != null) {
-            cashDrawerService.closeActiveSessionOnDailyClosure(date, operator);
+            String countingJson = serializeJson(request.countingBreakdown());
+            cashDrawerService.closeActiveSessionOnDailyClosure(
+                    date,
+                    operator,
+                    countedCash,
+                    countingJson,
+                    request.discrepancyReason(),
+                    theoreticalCash,
+                    cashDiscrepancy
+            );
         }
 
         log.info("Daily register successfully closed: Number={}, Date={}, TotalTTC={}, Discrepancy={}",
@@ -120,12 +133,12 @@ public class DailyCashClosureService {
         return saved;
     }
 
-    private BigDecimal sumMovements(List<com.bar.gestioncocktail.model.CashMovement> movements, com.bar.gestioncocktail.model.CashMovementType type) {
+    private BigDecimal sumMovements(List<CashMovement> movements, CashMovementType type) {
         if (movements == null) {
             return BigDecimal.ZERO;
         }
         BigDecimal total = BigDecimal.ZERO;
-        for (com.bar.gestioncocktail.model.CashMovement m : movements) {
+        for (CashMovement m : movements) {
             if (m != null && m.getType() == type && m.getAmount() != null) {
                 total = total.add(m.getAmount());
             }
@@ -160,17 +173,17 @@ public class DailyCashClosureService {
             User operator,
             BigDecimal theoreticalCash,
             BigDecimal cashDiscrepancy,
-            List<com.bar.gestioncocktail.model.CashMovement> movements) {
-        BigDecimal totalCashIn = sumMovements(movements, com.bar.gestioncocktail.model.CashMovementType.CASH_IN);
-        BigDecimal totalCashDrop = sumMovements(movements, com.bar.gestioncocktail.model.CashMovementType.CASH_DROP);
-        BigDecimal totalPaidOut = sumMovements(movements, com.bar.gestioncocktail.model.CashMovementType.PAID_OUT);
+            List<CashMovement> movements) {
+        BigDecimal totalCashIn = sumMovements(movements, CashMovementType.CASH_IN);
+        BigDecimal totalCashDrop = sumMovements(movements, CashMovementType.CASH_DROP);
+        BigDecimal totalPaidOut = sumMovements(movements, CashMovementType.PAID_OUT);
         BigDecimal totalCashOut = totalCashDrop.add(totalPaidOut);
         String closureNumber = generateNextClosureNumber(date.getYear());
         String vatJson = serializeJson(recap.ventilationTva());
         String paymentMethodsJson = serializeJson(recap.ventilationModePaiement());
         String countingJson = serializeJson(request.countingBreakdown());
         String movementsJson = serializeJson(movements != null
-                ? movements.stream().map(com.bar.gestioncocktail.dto.CashMovementDTO::from).toList()
+                ? movements.stream().map(CashMovementDTO::from).toList()
                 : List.of());
 
         DailyCashClosure closure = new DailyCashClosure();

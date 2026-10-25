@@ -12,6 +12,9 @@ import { AppSettingsService } from '../../../app/core/services/app-settings.serv
 import { SoundService } from '../../../app/core/services/sound.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { CommandeService } from '../../../app/core/services/commande.service';
+import { StockWasteService } from '../../../app/core/services/stock-waste.service';
+import { StockMovement } from '../../../app/core/models/stock-waste.model';
+import { QuickWasteLogModalComponent } from '../../../app/features/dashboard-barman/components/quick-waste-log-modal/quick-waste-log-modal.component';
 import { RouletteService } from '../../../app/core/services/roulette.service';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
@@ -26,6 +29,7 @@ describe('DashboardBarmanComponent', () => {
   let settingsServiceSpy: jasmine.SpyObj<AppSettingsService>;
   let soundServiceSpy: jasmine.SpyObj<SoundService>;
   let commandeServiceSpy: jasmine.SpyObj<CommandeService>;
+  let stockWasteServiceSpy: jasmine.SpyObj<StockWasteService>;
   let notification$: Subject<AppNotification>;
   let wsTopic$: Subject<{ body: string }>;
 
@@ -65,8 +69,13 @@ describe('DashboardBarmanComponent', () => {
       'toggleCocktailDisponibilite',
       'updateIngredientStock',
       'transitionBatch',
-      'aggregateBatches'
+      'aggregateBatches',
+      'isItemPrepared',
+      'toggleItemPrepared',
+      'clearPreparedItems'
     ]);
+    dashboardServiceSpy.isItemPrepared.and.returnValue(false);
+    dashboardServiceSpy.toggleItemPrepared.and.returnValue(true);
     dashboardServiceSpy.getCommandesEnAttente.and.returnValue(of(mockCommandes));
     dashboardServiceSpy.getCommandesEnPreparation.and.returnValue(of([]));
     dashboardServiceSpy.getCommandesPret.and.returnValue(of([]));
@@ -114,7 +123,10 @@ describe('DashboardBarmanComponent', () => {
       'toggleSound',
       'playNewOrderSound',
       'playOrderReadySound',
-      'playUrgentAlertSound'
+      'playUrgentAlertSound',
+      'triggerUrgentOrderAlert',
+      'clearUrgentOrder',
+      'clearAllUrgentOrders',
     ]);
     soundServiceSpy.isSoundEnabled.and.returnValue(true);
     soundServiceSpy.toggleSound.and.returnValue(false);
@@ -133,6 +145,9 @@ describe('DashboardBarmanComponent', () => {
     commandeServiceSpy.toggleUrgent.and.returnValue(of({ id: 1, prioritaire: true } as any));
     commandeServiceSpy.setUrgent.and.returnValue(of({ id: 1, prioritaire: true } as any));
 
+    stockWasteServiceSpy = jasmine.createSpyObj('StockWasteService', ['quickLog', 'revertQuickLog']);
+    stockWasteServiceSpy.revertQuickLog.and.returnValue(of(undefined));
+
     await TestBed.configureTestingModule({
       imports: [
         DashboardBarmanComponent,
@@ -149,6 +164,7 @@ describe('DashboardBarmanComponent', () => {
         { provide: AppSettingsService, useValue: settingsServiceSpy },
         { provide: SoundService, useValue: soundServiceSpy },
         { provide: CommandeService, useValue: commandeServiceSpy },
+        { provide: StockWasteService, useValue: stockWasteServiceSpy },
         {
           provide: RouletteService,
           useValue: {
@@ -728,12 +744,13 @@ describe('DashboardBarmanComponent', () => {
       expect(batchBtn?.getAttribute('layout')).toBe('icon-start');
     });
 
-    it('should style refresh button with btn-refresh class', () => {
+    it('should provide ion-refresher for pull-to-refresh reloading without redundant toolbar button', () => {
       fixture.detectChanges();
       const compiled = fixture.nativeElement as HTMLElement;
+      const refresher = compiled.querySelector('ion-refresher');
+      expect(refresher).toBeTruthy();
       const refreshBtn = compiled.querySelector('ion-button[data-testid="refresh-orders-btn"]');
-      expect(refreshBtn).toBeTruthy();
-      expect(refreshBtn?.classList.contains('btn-refresh')).toBeTrue();
+      expect(refreshBtn).toBeNull();
     });
 
     it('should render batch badge inside batch-segment-label when batch drinks exist', () => {
@@ -950,5 +967,133 @@ describe('DashboardBarmanComponent', () => {
       expect(component.filteredCommandesEnAttente).toEqual([kitchenOrder]);
     });
   });
+
+  describe('Audio Alerts & Rush Urgency (#564)', () => {
+    it('should trigger urgent order audio alert when pending order exceeds 10 minutes wait', () => {
+      const elevenMinutesAgo = new Date(Date.now() - 11 * 60 * 1000);
+      component.commandesEnAttente = [
+        {
+          id: 501,
+          tableNom: 'Table 5',
+          tableNumero: 5,
+          serveurNom: 'Bob',
+          dateCommande: elevenMinutesAgo,
+          prioritaire: false,
+          statut: 'EN_ATTENTE',
+          items: [{ id: 1, cocktailNom: 'Mojito', quantite: 1, statut: 'EN_ATTENTE', prioritaire: false }]
+        }
+      ];
+
+      component.checkUrgentOrdersAudio();
+      expect(soundServiceSpy.triggerUrgentOrderAlert).toHaveBeenCalledWith(501);
+    });
+
+    it('should clear urgent alerts for orders that have moved to preparation or ready', () => {
+      component.commandesEnPreparation = [
+        {
+          id: 501,
+          tableNom: 'Table 5',
+          tableNumero: 5,
+          serveurNom: 'Bob',
+          dateCommande: new Date(),
+          prioritaire: false,
+          statut: 'EN_PREPARATION',
+          items: [{ id: 1, cocktailNom: 'Mojito', quantite: 1, statut: 'EN_PREPARATION', prioritaire: false }]
+        }
+      ];
+
+      component.checkUrgentOrdersAudio();
+      expect(soundServiceSpy.clearUrgentOrder).toHaveBeenCalledWith(501);
+    });
+
+    it('should clear all urgent orders on component destruction', () => {
+      component.ngOnDestroy();
+      expect(soundServiceSpy.clearAllUrgentOrders).toHaveBeenCalled();
+    });
+  });
+
+  describe('Quick Waste Log & Undo Flow', () => {
+    it('openQuickWasteModal — opens QuickWasteLogModalComponent', async () => {
+      await component.openQuickWasteModal();
+      expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+        component: QuickWasteLogModalComponent,
+        cssClass: 'quick-waste-modal-container'
+      }));
+    });
+
+    it('openQuickWasteModal — on dismiss with saved movement, presents 10s undo toast', async () => {
+      const mockSavedMovement: StockMovement = {
+        id: 88,
+        ingredientId: 5,
+        ingredientNom: 'Gin Bombay',
+        quantity: 4,
+        unit: 'cl',
+        reason: 'ERREUR_PREPARATION',
+        reportedByUsername: 'barman1',
+        cost: 2.0,
+        recordedAt: '2026-10-20T20:00:00Z'
+      };
+
+      const customModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({
+          data: { saved: true, movement: mockSavedMovement },
+          role: 'saved'
+        }))
+      };
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(customModal as any));
+
+      await component.openQuickWasteModal();
+
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+        duration: 10000,
+        cssClass: 'quick-waste-undo-toast'
+      }));
+    });
+
+    it('revertQuickWasteMovement — calls stockWasteService.revertQuickLog and presents confirmation toast', () => {
+      const mockMovement: StockMovement = {
+        id: 88,
+        ingredientId: 5,
+        ingredientNom: 'Gin Bombay',
+        quantity: 4,
+        unit: 'cl',
+        reason: 'ERREUR_PREPARATION',
+        reportedByUsername: 'barman1',
+        cost: 2.0,
+        recordedAt: '2026-10-20T20:00:00Z'
+      };
+
+      (component as any).revertQuickWasteMovement(mockMovement);
+
+      expect(stockWasteServiceSpy.revertQuickLog).toHaveBeenCalledWith(88);
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    it('filter dropdown options and change handlers', () => {
+      // Urgent filter options
+      const urgentOpts = component.urgentFilterOptions;
+      expect(urgentOpts).toHaveSize(2);
+      expect(urgentOpts[0].value).toBe(false);
+      expect(urgentOpts[1].value).toBe(true);
+
+      component.onUrgentFilterChange({ value: true, label: 'Urgent' });
+      expect(component.urgentOnly).toBeTrue();
+
+      component.onUrgentFilterChange({ value: false, label: 'Toutes' });
+      expect(component.urgentOnly).toBeFalse();
+
+      // Station filter options
+      const stationOpts = component.stationFilterOptions;
+      expect(stationOpts.length).toBeGreaterThanOrEqual(2);
+
+      component.onStationFilterChange({ value: 'BAR', label: 'Bar' });
+      expect(component.stationFilter).toBe('BAR');
+
+      component.onStationFilterChange(null);
+      expect(component.stationFilter).toBe('BAR');
+    });
+  });
 });
+
 

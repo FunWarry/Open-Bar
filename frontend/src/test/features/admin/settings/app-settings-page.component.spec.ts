@@ -20,6 +20,7 @@ import { RouletteService } from '../../../../app/core/services/roulette.service'
 import { ESTABLISHMENT_PRESETS, EstablishmentPresetType } from '../../../../app/core/models/establishment-module.model';
 import { PaymentTerminalService } from '../../../../app/core/services/payment-terminal.service';
 import { TpePublicConfig } from '../../../../app/core/models/tpe.model';
+import { SafetyAlertService } from '../../../../app/core/services/safety-alert.service';
 
 const mockTpePublicConfig: TpePublicConfig = {
   enabled: true,
@@ -49,6 +50,7 @@ describe('AppSettingsPageComponent', () => {
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let routerSpy: jasmine.SpyObj<Router>;
   let paymentTerminalServiceSpy: jasmine.SpyObj<PaymentTerminalService>;
+  let safetyAlertServiceSpy: jasmine.SpyObj<SafetyAlertService>;
 
   const mockEtab: EstablishmentConfig = {
     id: 1,
@@ -200,6 +202,7 @@ describe('AppSettingsPageComponent', () => {
       happyHourEnabled: () => true,
       qrClientOrderingEnabled: () => true,
       cashDrawerEnabled: () => true,
+      angelShotSafetyEnabled: () => true,
     });
     featureFlagServiceSpy.loadModules.and.returnValue(of({
       cuisineKds: true,
@@ -217,6 +220,8 @@ describe('AppSettingsPageComponent', () => {
       paymentTerminal: true,
       tableReservations: true,
       checklistsProcedures: true,
+      systemUpdates: true,
+      angelShotSafety: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
 
@@ -248,6 +253,9 @@ describe('AppSettingsPageComponent', () => {
       durationMs: 42
     }));
 
+    safetyAlertServiceSpy = jasmine.createSpyObj('SafetyAlertService', ['downloadRestroomNoticePdf']);
+    safetyAlertServiceSpy.downloadRestroomNoticePdf.and.returnValue(of(new Blob(['pdf-data'], { type: 'application/pdf' })));
+
     await TestBed.configureTestingModule({
       imports: [
         AppSettingsPageComponent,
@@ -269,6 +277,7 @@ describe('AppSettingsPageComponent', () => {
         { provide: RouletteService, useValue: rouletteServiceSpy },
         { provide: PrinterService, useValue: printerServiceSpy },
         { provide: PaymentTerminalService, useValue: paymentTerminalServiceSpy },
+        { provide: SafetyAlertService, useValue: safetyAlertServiceSpy },
         { provide: AppUpdateService, useValue: appUpdateServiceSpy },
         { provide: ThemeService, useValue: themeServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
@@ -874,6 +883,8 @@ describe('AppSettingsPageComponent', () => {
         paymentTerminal: true,
         tableReservations: true,
         checklistsProcedures: true,
+        systemUpdates: true,
+        angelShotSafety: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -900,6 +911,8 @@ describe('AppSettingsPageComponent', () => {
         paymentTerminal: false,
         tableReservations: false,
         checklistsProcedures: false,
+        systemUpdates: false,
+        angelShotSafety: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -919,6 +932,8 @@ describe('AppSettingsPageComponent', () => {
         paymentTerminal: false,
         tableReservations: false,
         checklistsProcedures: false,
+        systemUpdates: false,
+        angelShotSafety: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });
@@ -970,6 +985,8 @@ describe('AppSettingsPageComponent', () => {
         paymentTerminal: false,
         tableReservations: false,
         checklistsProcedures: false,
+        systemUpdates: false,
+        angelShotSafety: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -1666,6 +1683,53 @@ describe('AppSettingsPageComponent', () => {
 
       expect(component.configuredPrinters().length).toBeGreaterThan(0);
       expect(component.configuredTpeTerminals().length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Safety Protocol & Emergency Helplines', () => {
+    it('should add, remove, and reset emergency helplines', () => {
+      const initialCount = component.configuredEmergencyNumbers().length;
+      component.newEmergencyName = 'Samu';
+      component.newEmergencyNumber = '15';
+      component.newEmergencyDescription = 'Urgences médicales';
+      component.addEmergencyNumber();
+
+      expect(component.configuredEmergencyNumbers()).toHaveSize(initialCount + 1);
+      expect(component.configuredEmergencyNumbers().some(h => h.number === '15')).toBeTrue();
+      expect(component.newEmergencyName).toBe('');
+      expect(component.newEmergencyNumber).toBe('');
+
+      // Remove the newly added helpline
+      const addedIdx = component.configuredEmergencyNumbers().findIndex(h => h.number === '15');
+      component.removeEmergencyNumber(addedIdx);
+      expect(component.configuredEmergencyNumbers()).toHaveSize(initialCount);
+
+      // Reset to default
+      component.resetEmergencyNumbersToDefault();
+      expect(component.configuredEmergencyNumbers().length).toBeGreaterThan(0);
+    });
+
+    it('should prevent adding duplicate emergency numbers', () => {
+      const initialCount = component.configuredEmergencyNumbers().length;
+      component.newEmergencyName = 'Police Bis';
+      component.newEmergencyNumber = '17';
+      component.addEmergencyNumber();
+
+      expect(component.configuredEmergencyNumbers()).toHaveSize(initialCount);
+    });
+
+    it('should auto-save modified emergency numbers before downloading notice PDF', () => {
+      appSettingsServiceSpy.updateSettings.calls.reset();
+      safetyAlertServiceSpy.downloadRestroomNoticePdf.calls.reset();
+
+      component.newEmergencyName = 'Private Security';
+      component.newEmergencyNumber = '01 99 88 77 66';
+      component.addEmergencyNumber();
+
+      component.downloadRestroomNoticePdf();
+
+      expect(appSettingsServiceSpy.updateSettings).toHaveBeenCalled();
+      expect(safetyAlertServiceSpy.downloadRestroomNoticePdf).toHaveBeenCalled();
     });
   });
 });

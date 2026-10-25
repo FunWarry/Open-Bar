@@ -28,6 +28,7 @@ public class NotificationService {
     private static final String TOPIC_ESTABLISHMENT_MODULES = "/topic/establishment/modules";
     private static final String TOPIC_BAR_TABS = "/topic/bar-tabs";
     private static final String TOPIC_RESERVATIONS = "/topic/reservations";
+    private static final String TOPIC_SAFETY_ALERTS = "/topic/safety-alerts";
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -216,6 +217,26 @@ public class NotificationService {
     public void notifierReservationMiseAJour(com.bar.gestioncocktail.dto.ReservationDTO reservation) {
         messagingTemplate.convertAndSend(TOPIC_RESERVATIONS, reservation);
         messagingTemplate.convertAndSend(TOPIC_TABLES, reservation);
+    }
+
+    /**
+     * Broadcasts a new patron safety alert event to waitstaff, bartenders, and supervisors.
+     *
+     * @param payload Safety alert payload or DTO
+     */
+    public void notifierNouvelleAlerteSecurite(Object payload) {
+        messagingTemplate.convertAndSend(TOPIC_SAFETY_ALERTS, payload);
+        messagingTemplate.convertAndSend(TOPIC_SERVEUR_APPELS, payload);
+    }
+
+    /**
+     * Broadcasts resolution and dismissal of a patron safety alert.
+     *
+     * @param payload Safety alert payload or DTO
+     */
+    public void notifierAlerteSecuriteResolue(Object payload) {
+        messagingTemplate.convertAndSend(TOPIC_SAFETY_ALERTS, payload);
+        messagingTemplate.convertAndSend(TOPIC_SERVEUR_APPELS, payload);
     }
 
     /**

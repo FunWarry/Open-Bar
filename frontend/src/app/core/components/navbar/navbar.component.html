@@ -71,11 +71,10 @@
           </ion-button>
         }
 
-        <!-- Sound toggle button (desktop/tablet) -->
+        <!-- Sound settings popover trigger (desktop/tablet) -->
         <ion-button
+          id="topbar-sound-trigger"
           class="hide-on-mobile"
-          (click)="toggleSound()"
-          (keydown.enter)="toggleSound()"
           data-testid="topbar-sound-toggle"
           [title]="soundService.isSoundEnabled() ? ('NAV.SOUND_DISABLE' | transloco) : ('NAV.SOUND_ENABLE' | transloco)">
           <ion-icon slot="icon-only"
@@ -83,20 +82,43 @@
           </ion-icon>
         </ion-button>
 
+        <ion-popover #soundPopover trigger="topbar-sound-trigger" triggerAction="click" alignment="end" side="bottom">
+          <ng-template>
+            <app-audio-settings-popover (closePanel)="soundPopover.dismiss()"></app-audio-settings-popover>
+          </ng-template>
+        </ion-popover>
+
+        <!-- Angel Shot Safety Protocol Trigger (#569) - Accessible globally from TopBar -->
+        @if (isAngelShotEnabled()) {
+          <ion-button
+            class="topbar-safety-btn"
+            (click)="openSafetyModal()"
+            (keyup.enter)="openSafetyModal()"
+            data-testid="topbar-safety-btn"
+            [title]="'SAFETY.STAFF_BUTTON_TITLE' | transloco">
+            @if (navigationService.isMobile()) {
+              <ion-icon slot="icon-only" name="shield-checkmark-outline"></ion-icon>
+            } @else {
+              <ion-icon slot="start" name="shield-checkmark-outline"></ion-icon>
+              <span>{{ 'SAFETY.STAFF_BUTTON_SHORT' | transloco }}</span>
+            }
+          </ion-button>
+        }
+
         <!-- Notification bell (always visible on mobile & desktop) -->
         <ion-button
           (click)="toggleNotifPanel()"
           (keyup.enter)="toggleNotifPanel()"
           style="position:relative"
           data-testid="topbar-notifications-btn"
-          [class.has-active-calls]="hasActiveTableCalls()"
+          [class.has-active-calls]="hasActiveTableCalls() || hasActiveSafetyAlerts()"
           [title]="'NAV.NOTIFICATIONS' | transloco">
-          <ion-icon slot="icon-only" name="notifications-outline" [class.bell-pulsing]="hasActiveTableCalls()"></ion-icon>
+          <ion-icon slot="icon-only" name="notifications-outline" [class.bell-pulsing]="hasActiveTableCalls() || hasActiveSafetyAlerts()"></ion-icon>
           @if (hasPendingNotifications()) {
             <ion-badge
-              [color]="hasActiveTableCalls() ? 'warning' : 'danger'"
+              [color]="hasActiveSafetyAlerts() ? 'danger' : (hasActiveTableCalls() ? 'warning' : 'danger')"
               class="notif-badge"
-              [class.call-pulse]="hasActiveTableCalls()"
+              [class.call-pulse]="hasActiveTableCalls() || hasActiveSafetyAlerts()"
               data-testid="topbar-notif-badge">
               {{ displayBadgeCount() > 9 ? '9+' : displayBadgeCount() }}
             </ion-badge>
@@ -197,4 +219,8 @@
       </ion-buttons>
     </ion-toolbar>
   </ion-header>
+
+  @if (isSafetyModalOpen) {
+    <app-safety-staff-modal (modalClosed)="closeSafetyModal()"></app-safety-staff-modal>
+  }
 }

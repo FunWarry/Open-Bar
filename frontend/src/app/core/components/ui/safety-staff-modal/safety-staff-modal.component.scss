@@ -1,0 +1,377 @@
+:host {
+  display: block;
+}
+
+.modal-tabs-header {
+  display: flex;
+  gap: 8px;
+  padding: 10px 1.5rem;
+  background: var(--background-surface-1);
+  border-bottom: 1px solid var(--border-medium);
+
+  .tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border: none;
+    border-radius: 8px;
+    background: var(--background-surface-2);
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+
+    ion-icon {
+      font-size: 1.15rem;
+    }
+
+    &:hover {
+      color: var(--text-primary);
+      background: var(--background-surface-3);
+    }
+
+    &.active {
+      background: var(--primary);
+      color: var(--text-on-primary);
+      box-shadow: var(--shadow-sm);
+    }
+  }
+}
+
+.safety-staff-body {
+  min-height: 380px;
+}
+
+/* Memo Styles */
+.memo-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .memo-banner {
+    padding: 12px 16px;
+    background: var(--background-surface-1);
+    border-radius: 10px;
+    border-left: 4px solid var(--primary);
+
+    .memo-intro {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+  }
+
+  .protocol-cards-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .protocol-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border-medium);
+      background: var(--background-surface-1);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .card-emoji {
+          font-size: 1.6rem;
+        }
+
+        .card-titles {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+
+          .card-title {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+          }
+
+          .code-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+          }
+        }
+      }
+
+      .card-desc {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        line-height: 1.4;
+      }
+
+      .card-instructions {
+        margin-top: auto;
+        padding-top: 8px;
+        border-top: 1px dashed var(--border-light);
+
+        .instructions-label {
+          display: block;
+          font-size: 0.76rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          color: var(--text-primary);
+          margin-bottom: 4px;
+        }
+
+        .instructions-text {
+          margin: 0;
+          font-size: 0.82rem;
+          color: var(--text-secondary);
+          line-height: 1.4;
+        }
+      }
+
+      &.variant-neat {
+        border-color: var(--semantic-info);
+        background: var(--background-surface-1);
+      }
+
+      &.variant-ice {
+        border-color: var(--semantic-warning);
+        background: var(--background-surface-1);
+      }
+
+      &.variant-lime {
+        border-color: var(--semantic-danger);
+        background: var(--background-surface-1);
+        box-shadow: 0 0 10px color-mix(in srgb, var(--semantic-danger) 15%, transparent);
+      }
+    }
+  }
+
+  .helplines-card {
+    padding: 12px 16px;
+    background: var(--background-surface-1);
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+
+    .helplines-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0 0 10px 0;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-primary);
+
+      ion-icon {
+        font-size: 1rem;
+        color: var(--semantic-danger);
+      }
+    }
+
+    .helplines-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+
+      .helpline-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: var(--background-surface-2);
+        text-decoration: none;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+
+        &:hover {
+          background: var(--background-surface-3, var(--background-surface-2));
+          transform: translateY(-2px);
+        }
+
+        .phone-number {
+          font-size: 1.15rem;
+          font-weight: 800;
+          color: var(--primary);
+          overflow-wrap: break-word;
+          max-width: 100%;
+        }
+
+        .phone-desc {
+          font-size: 0.75rem;
+          color: var(--text-muted);
+          margin-top: 2px;
+          overflow-wrap: break-word;
+          max-width: 100%;
+        }
+      }
+    }
+  }
+}
+
+/* Trigger Styles */
+.trigger-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .trigger-intro {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .field-label {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
+
+  .variants-picker-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+
+    @media (min-width: 600px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .variant-pick-card {
+      display: flex;
+      align-items: center;
+      text-align: left;
+      width: 100%;
+      font: inherit;
+      outline: none;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      border: 2px solid var(--border-medium);
+      background: var(--background-surface-1);
+      cursor: pointer;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+
+      .pick-icon {
+        font-size: 1.6rem;
+      }
+
+      .pick-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        .pick-title {
+          font-size: 0.9rem;
+          font-weight: 700;
+          color: var(--text-primary);
+        }
+
+        .pick-desc {
+          font-size: 0.78rem;
+          color: var(--text-muted);
+        }
+      }
+
+      &:hover {
+        border-color: var(--primary);
+        background: var(--background-surface-2);
+      }
+
+      &.selected {
+        border-color: var(--primary);
+        background: var(--background-surface-2);
+        box-shadow: 0 0 12px color-mix(in srgb, var(--primary) 20%, transparent);
+      }
+
+      &.variant-lime.selected {
+        border-color: var(--semantic-danger);
+        box-shadow: 0 0 12px color-mix(in srgb, var(--semantic-danger) 20%, transparent);
+      }
+    }
+  }
+
+  .error-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: var(--background-surface-1);
+    border: 1px solid var(--semantic-danger);
+    color: var(--semantic-danger);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .trigger-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+  }
+
+  .success-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 30px 16px;
+    gap: 12px;
+
+    .success-icon-box {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--semantic-success);
+      color: var(--text-on-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+    }
+
+    .success-title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .success-desc {
+      margin: 0;
+      max-width: 440px;
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    .success-actions {
+      margin-top: 16px;
+    }
+  }
+}

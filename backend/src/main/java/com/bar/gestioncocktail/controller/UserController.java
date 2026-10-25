@@ -8,8 +8,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
+import com.bar.gestioncocktail.model.User;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -81,6 +85,50 @@ public class UserController {
     @ApiResponse(responseCode = "403", description = "Access restricted to administrators")
     public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserRequestDTO request) {
         return ResponseEntity.ok(UserResponseDTO.from(userService.createUser(request.toEntity())));
+    }
+
+    /**
+     * Retrieves the profile of the currently authenticated user.
+     *
+     * @param authentication Spring Security authentication token
+     * @return User DTO of the current user
+     */
+    @GetMapping("/me")
+    @Operation(summary = "Get current authenticated user profile", description = "Retrieves the profile of the caller using the security context.")
+    @ApiResponse(responseCode = "200", description = "Current user profile retrieved")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "404", description = "User not found")
+    public ResponseEntity<UserResponseDTO> getCurrentUser(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return userService.getUserByUsername(authentication.getName())
+            .map(UserResponseDTO::from)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Updates the profile of the currently authenticated user.
+     *
+     * @param authentication Spring Security authentication token
+     * @param request Updated user data
+     * @return Updated user DTO
+     */
+    @PutMapping("/me")
+    @Operation(summary = "Update current authenticated user profile", description = "Updates username, email, name, or password of the caller.")
+    @ApiResponse(responseCode = "200", description = "User profile updated")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "404", description = "User not found")
+    public ResponseEntity<UserResponseDTO> updateCurrentUser(
+        Authentication authentication,
+        @RequestBody UserRequestDTO request) {
+        if (authentication == null || authentication.getName() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        User currentUser = userService.getUserByUsername(authentication.getName())
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + authentication.getName()));
+        return ResponseEntity.ok(UserResponseDTO.from(userService.updateUser(currentUser.getId(), request.toEntity())));
     }
 
     /**

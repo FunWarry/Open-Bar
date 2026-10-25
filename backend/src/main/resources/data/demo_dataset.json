@@ -1173,7 +1173,7 @@
       "purchaseUnit": "Bouteille 70cl",
       "packagingCapacity": 70,
       "prixUnitaire": 0.2786,
-      "packagingPriceHt": 19.50
+      "packagingPriceHt": 19.5
     },
     {
       "nom": "Vodka",
@@ -1184,7 +1184,7 @@
       "purchaseUnit": "Magnum 1.75L",
       "packagingCapacity": 175,
       "prixUnitaire": 0.24,
-      "packagingPriceHt": 42.00
+      "packagingPriceHt": 42
     },
     {
       "nom": "Gin",
@@ -1194,8 +1194,8 @@
       "uniteMesure": "cl",
       "purchaseUnit": "Bouteille 70cl",
       "packagingCapacity": 70,
-      "prixUnitaire": 0.40,
-      "packagingPriceHt": 28.00
+      "prixUnitaire": 0.4,
+      "packagingPriceHt": 28
     },
     {
       "nom": "Tequila",
@@ -1206,7 +1206,7 @@
       "purchaseUnit": "Bouteille 70cl",
       "packagingCapacity": 70,
       "prixUnitaire": 0.357,
-      "packagingPriceHt": 25.00
+      "packagingPriceHt": 25
     },
     {
       "nom": "Aperol",
@@ -1217,7 +1217,7 @@
       "purchaseUnit": "Bouteille 70cl",
       "packagingCapacity": 70,
       "prixUnitaire": 0.35,
-      "packagingPriceHt": 24.50
+      "packagingPriceHt": 24.5
     },
     {
       "nom": "Prosecco",
@@ -1228,7 +1228,7 @@
       "purchaseUnit": "Bouteille 75cl",
       "packagingCapacity": 75,
       "prixUnitaire": 0.16,
-      "packagingPriceHt": 12.00
+      "packagingPriceHt": 12
     },
     {
       "nom": "Champagne",
@@ -1239,7 +1239,7 @@
       "purchaseUnit": "Bouteille 75cl",
       "packagingCapacity": 75,
       "prixUnitaire": 0.506,
-      "packagingPriceHt": 38.00
+      "packagingPriceHt": 38
     },
     {
       "nom": "Rhum Ambré",
@@ -1250,7 +1250,7 @@
       "purchaseUnit": "Bouteille 70cl",
       "packagingCapacity": 70,
       "prixUnitaire": 0.342,
-      "packagingPriceHt": 24.00
+      "packagingPriceHt": 24
     },
     {
       "nom": "Menthe fraîche",
@@ -1261,7 +1261,7 @@
       "purchaseUnit": "Botte (≈ 50 feuilles)",
       "packagingCapacity": 50,
       "prixUnitaire": 0.05,
-      "packagingPriceHt": 2.50
+      "packagingPriceHt": 2.5
     },
     {
       "nom": "Purée de fruit de la passion",
@@ -1272,7 +1272,7 @@
       "purchaseUnit": "Bouteille 1L",
       "packagingCapacity": 100,
       "prixUnitaire": 0.065,
-      "packagingPriceHt": 6.50
+      "packagingPriceHt": 6.5
     },
     {
       "nom": "Liqueur de café (Kahlúa)",
@@ -1283,7 +1283,7 @@
       "purchaseUnit": "Bouteille 70cl",
       "packagingCapacity": 70,
       "prixUnitaire": 0.314,
-      "packagingPriceHt": 22.00
+      "packagingPriceHt": 22
     },
     {
       "nom": "Liqueur de framboise (Chambord)",
@@ -1294,7 +1294,7 @@
       "purchaseUnit": "Bouteille 50cl",
       "packagingCapacity": 50,
       "prixUnitaire": 0.56,
-      "packagingPriceHt": 28.00
+      "packagingPriceHt": 28
     },
     {
       "nom": "Cointreau",
@@ -1305,7 +1305,7 @@
       "purchaseUnit": "Bouteille 70cl",
       "packagingCapacity": 70,
       "prixUnitaire": 0.378,
-      "packagingPriceHt": 26.50
+      "packagingPriceHt": 26.5
     },
     {
       "nom": "Baileys",
@@ -1315,8 +1315,8 @@
       "uniteMesure": "cl",
       "purchaseUnit": "Bouteille 70cl",
       "packagingCapacity": 70,
-      "prixUnitaire": 0.30,
-      "packagingPriceHt": 21.00
+      "prixUnitaire": 0.3,
+      "packagingPriceHt": 21
     },
     {
       "nom": "Sirop de Canne",
@@ -1327,7 +1327,7 @@
       "purchaseUnit": "Bouteille 1L",
       "packagingCapacity": 100,
       "prixUnitaire": 0.065,
-      "packagingPriceHt": 6.50
+      "packagingPriceHt": 6.5
     },
     {
       "nom": "Sirop de Cranberry",
@@ -1338,7 +1338,7 @@
       "purchaseUnit": "Bouteille 1L",
       "packagingCapacity": 100,
       "prixUnitaire": 0.072,
-      "packagingPriceHt": 7.20
+      "packagingPriceHt": 7.2
     },
     {
       "nom": "Citron vert",
@@ -1349,7 +1349,7 @@
       "purchaseUnit": "Filet 1kg (≈ 10 citrons)",
       "packagingCapacity": 10,
       "prixUnitaire": 0.35,
-      "packagingPriceHt": 3.50
+      "packagingPriceHt": 3.5
     },
     {
       "nom": "Sucre de canne blanc",
@@ -1360,7 +1360,7 @@
       "purchaseUnit": "Paquet 1kg",
       "packagingCapacity": 1000,
       "prixUnitaire": 0.0021,
-      "packagingPriceHt": 2.10
+      "packagingPriceHt": 2.1
     },
     {
       "nom": "Cannelle",
@@ -1371,7 +1371,7 @@
       "purchaseUnit": "Boîte 50 bâtons",
       "packagingCapacity": 50,
       "prixUnitaire": 0.17,
-      "packagingPriceHt": 8.50
+      "packagingPriceHt": 8.5
     }
   ],
   "recipe_step_templates": [
@@ -2095,6 +2095,82 @@
           "durationSeconds": 10
         }
       ]
+    },
+    {
+      "cocktailName": "Pornstar Martini",
+      "secondaryGlassware": "Verre à Shot / Chupito",
+      "companionGlassTitle": "Shot de Prosecco",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Vodka",
+          "quantite": 4,
+          "unite": "cl",
+          "targetGlassOrder": 1,
+          "customText": "Verser 4 cl de Vodka dans le shaker"
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Passoã",
+          "quantite": 2,
+          "unite": "cl",
+          "targetGlassOrder": 1,
+          "customText": "Ajouter 2 cl de liqueur de passion (Passoã)"
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Purée de fruit de la passion",
+          "quantite": 3,
+          "unite": "cl",
+          "targetGlassOrder": 1,
+          "customText": "Ajouter 3 cl de purée de fruit de la passion"
+        },
+        {
+          "stepOrder": 4,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Sirop de vanille",
+          "quantite": 1.5,
+          "unite": "cl",
+          "targetGlassOrder": 1,
+          "customText": "Ajouter 1.5 cl de sirop de vanille"
+        },
+        {
+          "stepOrder": 5,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Shaker vigoureusement (Shake)",
+          "targetGlassOrder": 1,
+          "durationSeconds": 15,
+          "customText": "Shaker énergiquement avec des glaçons"
+        },
+        {
+          "stepOrder": 6,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Filtrer au passe-thé (Double Strain)",
+          "targetGlassOrder": 1,
+          "durationSeconds": 10,
+          "customText": "Double filtrer dans la coupe rafraîchie"
+        },
+        {
+          "stepOrder": 7,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Prosecco",
+          "quantite": 5,
+          "unite": "cl",
+          "targetGlassOrder": 2,
+          "customText": "Verser 5 cl de Prosecco frais dans le verre à shot d'accompagnement"
+        },
+        {
+          "stepOrder": 8,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Garnir & Dresser (Garnish)",
+          "targetGlassOrder": 1,
+          "durationSeconds": 5,
+          "customText": "Déposer un demi-fruit de la passion sur la mousse de la coupe et servir avec le shot"
+        }
+      ]
     }
   ],
   "orders": [
@@ -2626,6 +2702,23 @@
       "minutesAgo": 25
     }
   ],
+  "safety_alerts": [
+    {
+      "tableNumero": 2,
+      "type": "ANGEL_SHOT_ICE",
+      "status": "ACTIVE",
+      "comment": "Besoin d'un taxi discrètement s'il vous plaît",
+      "minutesAgo": 2
+    },
+    {
+      "tableNumero": 4,
+      "type": "ANGEL_SHOT_NEAT",
+      "status": "RESOLVED",
+      "comment": "Accompagnement vers la sortie",
+      "resolvedBy": "serveur1",
+      "minutesAgo": 40
+    }
+  ],
   "table_sessions": [
     {
       "tableNumero": 1,
@@ -2776,29 +2869,79 @@
       "notes": "Renversé lors du shake vigoureux sur commande pressée",
       "cost": 1.95,
       "minutesAgo": 720
+    },
+    {
+      "ingredientNom": "Tequila",
+      "quantity": 4,
+      "unit": "cl",
+      "reason": "ERREUR_PREPARATION",
+      "reportedByUsername": "barman1",
+      "notes": "Bartender Quick-Log (ERREUR_PREPARATION)",
+      "cost": 2.2,
+      "minutesAgo": 45
+    },
+    {
+      "ingredientNom": "Triple sec",
+      "quantity": 2,
+      "unit": "cl",
+      "reason": "DEGUSTATION_STAFF",
+      "reportedByUsername": "barman1",
+      "notes": "Bartender Quick-Log (DEGUSTATION_STAFF)",
+      "cost": 1.1,
+      "minutesAgo": 30
     }
   ],
   "daily_cash_closures": [
     {
       "closureNumber": "Z-2026-00001",
       "daysAgo": 1,
-      "openingFloat": 150.00,
-      "theoreticalCash": 530.00,
-      "countedCash": 530.00,
-      "cashDiscrepancy": 0.00,
-      "totalRevenueHT": 1150.00,
-      "totalRevenueTTC": 1380.00,
+      "openingFloat": 150,
+      "theoreticalCash": 530,
+      "countedCash": 530,
+      "cashDiscrepancy": 0,
+      "totalRevenueHT": 1150,
+      "totalRevenueTTC": 1380,
       "closedByUsername": "manager",
       "discrepancyReason": null,
       "paymentMethods": [
-        { "modePaiement": "ESPECES", "count": 18, "totalTtc": 380.00 },
-        { "modePaiement": "CARTE", "count": 42, "totalTtc": 880.00 },
-        { "modePaiement": "TICKETS_RESTO", "count": 6, "totalTtc": 120.00 }
+        {
+          "modePaiement": "ESPECES",
+          "count": 18,
+          "totalTtc": 380
+        },
+        {
+          "modePaiement": "CARTE",
+          "count": 42,
+          "totalTtc": 880
+        },
+        {
+          "modePaiement": "TICKETS_RESTO",
+          "count": 6,
+          "totalTtc": 120
+        }
       ],
       "vatBreakdown": [
-        { "rate": "TWENTY", "tauxLabel": "20.0%", "baseHt": 900.00, "montantTva": 180.00, "totalTtc": 1080.00 },
-        { "rate": "TEN", "tauxLabel": "10.0%", "baseHt": 250.00, "montantTva": 25.00, "totalTtc": 275.00 },
-        { "rate": "FIVE_FIVE", "tauxLabel": "5.5%", "baseHt": 23.70, "montantTva": 1.30, "totalTtc": 25.00 }
+        {
+          "rate": "TWENTY",
+          "tauxLabel": "20.0%",
+          "baseHt": 900,
+          "montantTva": 180,
+          "totalTtc": 1080
+        },
+        {
+          "rate": "TEN",
+          "tauxLabel": "10.0%",
+          "baseHt": 250,
+          "montantTva": 25,
+          "totalTtc": 275
+        },
+        {
+          "rate": "FIVE_FIVE",
+          "tauxLabel": "5.5%",
+          "baseHt": 23.7,
+          "montantTva": 1.3,
+          "totalTtc": 25
+        }
       ],
       "countingBreakdown": {
         "50e": 6,
@@ -2815,26 +2958,39 @@
       "daysAgo": 1,
       "openingFloat": 150.00,
       "status": "CLOSED",
-      "countedFloatAtClose": 530.00,
-      "theoreticalCashAtClose": 530.00,
-      "cashDiscrepancy": 0.00,
       "openedByUsername": "manager",
       "closedByUsername": "manager",
-      "notes": "Clôture conforme sans écart",
       "openingDenominations": {
         "50e": 1,
         "20e": 3,
-        "10e": 3,
-        "5e": 2
+        "10e": 2,
+        "5e": 2,
+        "2e": 4,
+        "1e": 2
       },
+      "theoreticalCash": 380.00,
+      "actualCash": 380.00,
+      "cashVariance": 0.00,
+      "closingDenominationsJson": {
+        "50e": 4,
+        "20e": 6,
+        "10e": 4,
+        "5e": 2,
+        "2e": 4,
+        "1e": 2
+      },
+      "notes": "Clôture conforme sans écart",
       "movements": [
         {
           "type": "CASH_DROP",
           "amount": 100.00,
-          "reason": "Écrémage coffre milieu de shift",
-          "receiptReference": "DROP-2026-001",
-          "minutesAgo": 1200,
-          "performedByUsername": "manager"
+          "reason": "Transfert de sécurité vers le coffre",
+          "receiptReference": "DROP-20261024-01",
+          "performedByUsername": "manager",
+          "minutesAgo": 180,
+          "denominationsJson": {
+            "50e": 2
+          }
         }
       ]
     },
@@ -2857,7 +3013,10 @@
           "reason": "Apport de monnaie rouleaux pièces",
           "receiptReference": "DEP-001",
           "minutesAgo": 120,
-          "performedByUsername": "manager"
+          "performedByUsername": "manager",
+          "denominationsJson": {
+            "10e": 5
+          }
         },
         {
           "type": "CASH_DROP",
@@ -2865,7 +3024,10 @@
           "reason": "Écrémage billets coffre",
           "receiptReference": "ECR-001",
           "minutesAgo": 60,
-          "performedByUsername": "manager"
+          "performedByUsername": "manager",
+          "denominationsJson": {
+            "50e": 1
+          }
         }
       ]
     }
@@ -2874,7 +3036,7 @@
     {
       "nom": "Client VIP - Dupont",
       "clientReference": "CB-VISA-8821",
-      "cautionMontant": 50.00,
+      "cautionMontant": 50,
       "statut": "ACTIVE",
       "serveurUsername": "serveur1",
       "notes": "Préfère les cocktails sans paille",
@@ -2892,7 +3054,7 @@
     {
       "nom": "Groupe Afterwork Tech",
       "clientReference": "BADGE-99",
-      "cautionMontant": 100.00,
+      "cautionMontant": 100,
       "statut": "SETTLED",
       "serveurUsername": "serveur1",
       "notes": "Réglé par carte",
@@ -2911,8 +3073,8 @@
       "pays": "France",
       "siret": "43920192800025",
       "delaiLivraisonJours": 3,
-      "francoPortMontant": 250.00,
-      "fraisPort": 15.00,
+      "francoPortMontant": 250,
+      "fraisPort": 15,
       "notes": "Fournisseur principal de bières artisanales et fûts.",
       "actif": true
     },
@@ -2927,8 +3089,8 @@
       "pays": "France",
       "siret": "51283920100018",
       "delaiLivraisonJours": 2,
-      "francoPortMontant": 300.00,
-      "fraisPort": 20.00,
+      "francoPortMontant": 300,
+      "fraisPort": 20,
       "notes": "Génépi, liqueurs artisanales et spiritueux.",
       "actif": true
     },
@@ -2943,8 +3105,8 @@
       "pays": "France",
       "siret": "38291048200034",
       "delaiLivraisonJours": 1,
-      "francoPortMontant": 150.00,
-      "fraisPort": 12.50,
+      "francoPortMontant": 150,
+      "fraisPort": 12.5,
       "notes": "Jus, sirops, softs, sodas et consommables de bar.",
       "actif": true
     }
@@ -2959,30 +3121,30 @@
       "items": [
         {
           "ingredientNom": "Rhum Blanc",
-          "quantiteCommandee": 12.0,
-          "quantiteRecue": 12.0,
-          "prixUnitaireHt": 18.50,
-          "tauxTva": 20.0,
+          "quantiteCommandee": 12,
+          "quantiteRecue": 12,
+          "prixUnitaireHt": 18.5,
+          "tauxTva": 20,
           "purchaseUnit": "Bouteille 70cl",
-          "packagingCapacity": 70.0
+          "packagingCapacity": 70
         },
         {
           "ingredientNom": "Gin",
-          "quantiteCommandee": 6.0,
-          "quantiteRecue": 6.0,
-          "prixUnitaireHt": 22.00,
-          "tauxTva": 20.0,
+          "quantiteCommandee": 6,
+          "quantiteRecue": 6,
+          "prixUnitaireHt": 22,
+          "tauxTva": 20,
           "purchaseUnit": "Bouteille 70cl",
-          "packagingCapacity": 70.0
+          "packagingCapacity": 70
         },
         {
           "ingredientNom": "Vodka",
-          "quantiteCommandee": 8.0,
-          "quantiteRecue": 8.0,
-          "prixUnitaireHt": 16.50,
-          "tauxTva": 20.0,
+          "quantiteCommandee": 8,
+          "quantiteRecue": 8,
+          "prixUnitaireHt": 16.5,
+          "tauxTva": 20,
           "purchaseUnit": "Bouteille 70cl",
-          "packagingCapacity": 70.0
+          "packagingCapacity": 70
         }
       ]
     },
@@ -2995,21 +3157,21 @@
       "items": [
         {
           "ingredientNom": "Sirop de sucre",
-          "quantiteCommandee": 20.0,
-          "quantiteRecue": 0.0,
-          "prixUnitaireHt": 3.80,
+          "quantiteCommandee": 20,
+          "quantiteRecue": 0,
+          "prixUnitaireHt": 3.8,
           "tauxTva": 5.5,
           "purchaseUnit": "Bouteille 1L",
-          "packagingCapacity": 100.0
+          "packagingCapacity": 100
         },
         {
           "ingredientNom": "Jus de citron",
-          "quantiteCommandee": 15.0,
-          "quantiteRecue": 0.0,
-          "prixUnitaireHt": 2.90,
+          "quantiteCommandee": 15,
+          "quantiteRecue": 0,
+          "prixUnitaireHt": 2.9,
           "tauxTva": 5.5,
           "purchaseUnit": "Bouteille 1L",
-          "packagingCapacity": 100.0
+          "packagingCapacity": 100
         }
       ]
     },
@@ -3022,21 +3184,21 @@
       "items": [
         {
           "ingredientNom": "Menthe fraîche",
-          "quantiteCommandee": 5.0,
-          "quantiteRecue": 0.0,
-          "prixUnitaireHt": 2.50,
+          "quantiteCommandee": 5,
+          "quantiteRecue": 0,
+          "prixUnitaireHt": 2.5,
           "tauxTva": 5.5,
           "purchaseUnit": "Botte (≈ 50 feuilles)",
-          "packagingCapacity": 50.0
+          "packagingCapacity": 50
         },
         {
           "ingredientNom": "Citron vert",
-          "quantiteCommandee": 10.0,
-          "quantiteRecue": 0.0,
-          "prixUnitaireHt": 2.20,
+          "quantiteCommandee": 10,
+          "quantiteRecue": 0,
+          "prixUnitaireHt": 2.2,
           "tauxTva": 5.5,
           "purchaseUnit": "Filet 1kg",
-          "packagingCapacity": 10.0
+          "packagingCapacity": 10
         }
       ]
     },
@@ -3049,21 +3211,21 @@
       "items": [
         {
           "ingredientNom": "Purée de fruit de la passion",
-          "quantiteCommandee": 10.0,
-          "quantiteRecue": 5.0,
-          "prixUnitaireHt": 6.50,
+          "quantiteCommandee": 10,
+          "quantiteRecue": 5,
+          "prixUnitaireHt": 6.5,
           "tauxTva": 5.5,
           "purchaseUnit": "Bouteille 1L",
-          "packagingCapacity": 100.0
+          "packagingCapacity": 100
         },
         {
           "ingredientNom": "Jus de citron",
-          "quantiteCommandee": 10.0,
-          "quantiteRecue": 10.0,
-          "prixUnitaireHt": 2.90,
+          "quantiteCommandee": 10,
+          "quantiteRecue": 10,
+          "prixUnitaireHt": 2.9,
           "tauxTva": 5.5,
           "purchaseUnit": "Bouteille 1L",
-          "packagingCapacity": 100.0
+          "packagingCapacity": 100
         }
       ]
     }
@@ -3081,66 +3243,66 @@
       "items": [
         {
           "ingredientNom": "Rhum Blanc",
-          "actualStock": 42.0,
+          "actualStock": 42,
           "notes": "Léger écart de 3cl constaté au bar principal",
           "locationCounts": [
             {
               "storageLocation": "MAIN_BAR",
               "fullContainersCount": 0,
               "partialFraction": 0.6,
-              "exactQuantity": 42.0
+              "exactQuantity": 42
             }
           ]
         },
         {
           "ingredientNom": "Gin",
-          "actualStock": 25.0,
+          "actualStock": 25,
           "notes": "Comptage parfaitement conforme au stock théorique",
           "locationCounts": [
             {
               "storageLocation": "MAIN_BAR",
               "fullContainersCount": 0,
               "partialFraction": 0.35,
-              "exactQuantity": 25.0
+              "exactQuantity": 25
             }
           ]
         },
         {
           "ingredientNom": "Vodka",
-          "actualStock": 345.0,
+          "actualStock": 345,
           "notes": "Écart de 5cl en cave après le service du week-end",
           "locationCounts": [
             {
               "storageLocation": "CELLAR",
               "fullContainersCount": 4,
               "partialFraction": 0.93,
-              "exactQuantity": 345.0
+              "exactQuantity": 345
             }
           ]
         },
         {
           "ingredientNom": "Rhum Ambré",
-          "actualStock": 24.0,
+          "actualStock": 24,
           "notes": "Conforme aux tolérances de débit",
           "locationCounts": [
             {
               "storageLocation": "MAIN_BAR",
               "fullContainersCount": 0,
               "partialFraction": 0.34,
-              "exactQuantity": 24.0
+              "exactQuantity": 24
             }
           ]
         },
         {
           "ingredientNom": "Tequila",
-          "actualStock": 20.0,
+          "actualStock": 20,
           "notes": "Bouteille entamée vérifiée à la jauge",
           "locationCounts": [
             {
               "storageLocation": "MAIN_BAR",
               "fullContainersCount": 0,
               "partialFraction": 0.28,
-              "exactQuantity": 20.0
+              "exactQuantity": 20
             }
           ]
         }
@@ -3158,40 +3320,40 @@
       "items": [
         {
           "ingredientNom": "Vodka",
-          "actualStock": 350.0,
+          "actualStock": 350,
           "notes": "Comptage en cave terminé",
           "locationCounts": [
             {
               "storageLocation": "CELLAR",
               "fullContainersCount": 5,
-              "partialFraction": 0.0,
-              "exactQuantity": 350.0
+              "partialFraction": 0,
+              "exactQuantity": 350
             }
           ]
         },
         {
           "ingredientNom": "Sirop de Canne",
-          "actualStock": 18.0,
+          "actualStock": 18,
           "notes": "Compté au bar principal",
           "locationCounts": [
             {
               "storageLocation": "MAIN_BAR",
               "fullContainersCount": 0,
               "partialFraction": 0.9,
-              "exactQuantity": 18.0
+              "exactQuantity": 18
             }
           ]
         },
         {
           "ingredientNom": "Menthe fraîche",
-          "actualStock": 140.0,
+          "actualStock": 140,
           "notes": "Contrôle chambre froide",
           "locationCounts": [
             {
               "storageLocation": "CELLAR",
               "fullContainersCount": 2,
               "partialFraction": 0.8,
-              "exactQuantity": 140.0
+              "exactQuantity": 140
             }
           ]
         }
@@ -3355,7 +3517,11 @@
           "isMandatory": true,
           "orderIndex": 1,
           "targetRole": "BARMAN",
-          "assignedRoles": ["BARMAN", "HYGIENE", "MANAGER"],
+          "assignedRoles": [
+            "BARMAN",
+            "HYGIENE",
+            "MANAGER"
+          ],
           "mediaType": "IMAGE",
           "mediaUrl": "/uploads/cocktails/default.jpg",
           "steps": [
@@ -3383,7 +3549,9 @@
           "isMandatory": true,
           "orderIndex": 2,
           "targetRole": "BARMAN",
-          "assignedRoles": ["BARMAN"],
+          "assignedRoles": [
+            "BARMAN"
+          ],
           "mediaType": "VIDEO",
           "videoEmbedUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
           "steps": [
@@ -3405,7 +3573,9 @@
           "isMandatory": true,
           "orderIndex": 3,
           "targetRole": "MANAGER",
-          "assignedRoles": ["MANAGER"],
+          "assignedRoles": [
+            "MANAGER"
+          ],
           "mediaType": "NONE",
           "steps": [
             {
@@ -3426,7 +3596,10 @@
           "isMandatory": true,
           "orderIndex": 4,
           "targetRole": "SERVEUR",
-          "assignedRoles": ["SERVEUR", "BARMAN"],
+          "assignedRoles": [
+            "SERVEUR",
+            "BARMAN"
+          ],
           "mediaType": "IMAGE",
           "mediaUrl": "/uploads/cocktails/default.jpg",
           "steps": [
@@ -3453,7 +3626,10 @@
           "isMandatory": false,
           "orderIndex": 5,
           "targetRole": "BARMAN",
-          "assignedRoles": ["BARMAN", "CUISINIER"],
+          "assignedRoles": [
+            "BARMAN",
+            "CUISINIER"
+          ],
           "mediaType": "NONE",
           "steps": [
             {
@@ -3490,7 +3666,9 @@
           "isMandatory": true,
           "orderIndex": 1,
           "targetRole": "MANAGER",
-          "assignedRoles": ["MANAGER"],
+          "assignedRoles": [
+            "MANAGER"
+          ],
           "mediaType": "NONE",
           "steps": [
             {
@@ -3511,7 +3689,9 @@
           "isMandatory": true,
           "orderIndex": 2,
           "targetRole": "BARMAN",
-          "assignedRoles": ["BARMAN"],
+          "assignedRoles": [
+            "BARMAN"
+          ],
           "mediaType": "IMAGE",
           "mediaUrl": "/uploads/checklists/beer_tap_cleaning.jpg",
           "steps": [
@@ -3533,7 +3713,9 @@
           "isMandatory": true,
           "orderIndex": 3,
           "targetRole": "SERVEUR",
-          "assignedRoles": ["SERVEUR"],
+          "assignedRoles": [
+            "SERVEUR"
+          ],
           "mediaType": "NONE",
           "steps": [
             {
@@ -3554,7 +3736,9 @@
           "isMandatory": true,
           "orderIndex": 4,
           "targetRole": "MANAGER",
-          "assignedRoles": ["MANAGER"],
+          "assignedRoles": [
+            "MANAGER"
+          ],
           "mediaType": "NONE",
           "steps": [
             {
@@ -3586,7 +3770,10 @@
           "isMandatory": true,
           "orderIndex": 1,
           "targetRole": "BARMAN",
-          "assignedRoles": ["BARMAN", "HYGIENE"],
+          "assignedRoles": [
+            "BARMAN",
+            "HYGIENE"
+          ],
           "mediaType": "IMAGE",
           "mediaUrl": "/uploads/checklists/ice_machine_cleaning.jpg",
           "steps": [
@@ -3613,7 +3800,11 @@
           "isMandatory": true,
           "orderIndex": 2,
           "targetRole": "BARMAN",
-          "assignedRoles": ["BARMAN", "HYGIENE", "MANAGER"],
+          "assignedRoles": [
+            "BARMAN",
+            "HYGIENE",
+            "MANAGER"
+          ],
           "mediaType": "NONE",
           "steps": [
             {
@@ -3650,6 +3841,25 @@
       "notes": "Contrôle hebdomadaire en cours de réalisation.",
       "minutesAgo": 40
     }
+  ],
+  "system_snapshots": [
+    {
+      "snapshotId": "openbar_pre_update_0.7.2_20261015_020000",
+      "filename": "openbar_pre_update_0.7.2_20261015_020000.sql.gz",
+      "sizeBytes": 14250000,
+      "createdAt": "2026-10-15T02:00:00",
+      "fromVersion": "0.7.2",
+      "targetVersion": "0.8.0",
+      "status": "VALID"
+    },
+    {
+      "snapshotId": "openbar_pre_update_0.7.0_20260920_020000",
+      "filename": "openbar_pre_update_0.7.0_20260920_020000.sql.gz",
+      "sizeBytes": 12890000,
+      "createdAt": "2026-09-20T02:00:00",
+      "fromVersion": "0.7.0",
+      "targetVersion": "0.7.2",
+      "status": "VALID"
+    }
   ]
 }
-

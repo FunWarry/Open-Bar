@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  CashDrawerCloseRequest,
   CashDrawerOpenRequest,
   CashDrawerSession,
   CashDrawerStatus,
@@ -145,6 +146,18 @@ export class CashDrawerService {
   }
 
   /**
+   * Closes the active cash drawer session with counted physical balance and denomination breakdown.
+   *
+   * @param request Physical count, denomination breakdown, and optional notes
+   * @returns Observable emitting closed {@link CashDrawerSession}
+   */
+  closeDrawer(request: CashDrawerCloseRequest): Observable<CashDrawerSession> {
+    return this.http.post<CashDrawerSession>(`${this.baseUrl}/close`, request).pipe(
+      tap(() => this.getStatus().subscribe())
+    );
+  }
+
+  /**
    * Prints a drawer opening audit slip on the ESC/POS printer.
    *
    * @param sessionId Cash drawer session ID
@@ -152,6 +165,16 @@ export class CashDrawerService {
    */
   printTillOpeningSlip(sessionId: number): Observable<PrintResult> {
     return this.http.post<PrintResult>(`${this.baseUrl}/session/${sessionId}/print`, {});
+  }
+
+  /**
+   * Prints a drawer closing reconciliation audit slip on the ESC/POS printer.
+   *
+   * @param sessionId Cash drawer session ID
+   * @returns Observable emitting {@link PrintResult}
+   */
+  printTillClosingSlip(sessionId: number): Observable<PrintResult> {
+    return this.http.post<PrintResult>(`${this.baseUrl}/session/${sessionId}/print-closing`, {});
   }
 
   /**
@@ -164,3 +187,4 @@ export class CashDrawerService {
     return this.http.post<PrintResult>(`${this.baseUrl}/movements/${movementId}/print`, {});
   }
 }
+

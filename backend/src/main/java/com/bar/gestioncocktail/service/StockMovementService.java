@@ -1,13 +1,16 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.StockQuickLogRequestDTO;
 import com.bar.gestioncocktail.dto.StockWasteRequestDTO;
 import com.bar.gestioncocktail.dto.StockWasteSummaryDTO;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
+import com.bar.gestioncocktail.model.EstablishmentModule;
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.model.StockMovement;
 import com.bar.gestioncocktail.model.StockWasteReason;
 import com.bar.gestioncocktail.model.User;
+import com.bar.gestioncocktail.model.UserRole;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import com.bar.gestioncocktail.repository.StockMovementRepository;
 import com.bar.gestioncocktail.repository.UserRepository;
@@ -119,6 +122,73 @@ public class StockMovementService {
         auditLogService.logAction(reportedBy, "STOCK_WASTE_RECORDED", "Ingredient", ingredient.getId(), details, ipAddress);
 
         return saved;
+    }
+
+    /**
+     * Records a rapid bartender stock waste, breakage, or tasting event directly from the live service widget.
+     * Deducts quantity from active inventory stock, calculates financial loss, records an audit log trace,
+     * and persists the stock movement.
+     *
+     * @param request Validated quick-log payload containing ingredient ID, quantity, reason, and optional notes
+     * @param username Username of the bartender submitting the quick-log
+     * @param ipAddress Client IP address for audit trail
+     * @return Persisted {@link StockMovement} entity
+     */
+    public StockMovement recordQuickLog(StockQuickLogRequestDTO request, String username, String ipAddress) {
+        if (request == null) {
+            throw new BusinessException("Quick-log waste declaration cannot be null.");
+        }
+        String defaultNotes = request.notes() != null && !request.notes().isBlank()
+                ? request.notes().trim()
+                : "Bartender Quick-Log (" + request.reason() + ")";
+        StockWasteRequestDTO wasteRequest = new StockWasteRequestDTO(
+                request.ingredientId(),
+                request.quantity(),
+                request.reason(),
+                defaultNotes
+        );
+        return recordWaste(wasteRequest, username, ipAddress);
+    }
+
+    /**
+     * Reverts a recently logged stock waste movement (e.g. bartender 10-second undo).
+     * Re-credits the deducted quantity back to active inventory stock, records an audit log,
+     * and deletes the movement record.
+     *
+     * @param movementId Identifier of the stock movement to revert
+     * @param username Authenticated user requesting the undo
+     * @param ipAddress Client IP address
+     */
+    public void revertQuickLog(Long movementId, String username, String ipAddress) {
+        if (establishmentConfigService != null && !establishmentConfigService.isModuleEnabled(EstablishmentModule.STOCK_TRACKING)) {
+            throw new BusinessException("Inventory stock tracking is currently disabled for this establishment.");
+        }
+        StockMovement movement = stockMovementRepository.findById(movementId)
+                .orElseThrow(() -> new ResourceNotFoundException("Stock movement not found with ID: " + movementId));
+
+        User currentUser = username != null ? userRepository.findByUsername(username).orElse(null) : null;
+        boolean isAdminOrManager = currentUser != null && currentUser.getRoles() != null &&
+                (currentUser.getRoles().contains(UserRole.ADMIN) || currentUser.getRoles().contains(UserRole.MANAGER));
+        boolean isOwner = movement.getReportedBy() != null && currentUser != null &&
+                movement.getReportedBy().getId().equals(currentUser.getId());
+
+        if (!isAdminOrManager && !isOwner) {
+            throw new BusinessException("You are not authorized to revert this stock movement.");
+        }
+
+        Ingredient ingredient = movement.getIngredient();
+        if (ingredient != null) {
+            BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock() : BigDecimal.ZERO;
+            BigDecimal restoredStock = currentStock.add(movement.getQuantity());
+            ingredientService.updateStock(ingredient, restoredStock);
+        }
+
+        stockMovementRepository.delete(movement);
+
+        String details = String.format("Reverted stock waste ID %d: restored %s %s of %s (reason: %s)",
+                movementId, movement.getQuantity(), movement.getUnit(),
+                ingredient != null ? ingredient.getNom() : "unknown", movement.getReason());
+        auditLogService.logAction(currentUser, "STOCK_WASTE_REVERTED", "StockMovement", movementId, details, ipAddress);
     }
 
     /**

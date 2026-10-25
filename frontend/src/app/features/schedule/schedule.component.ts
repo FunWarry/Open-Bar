@@ -173,11 +173,26 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   // Copy & Paste buffer
   copiedShift: EmployeeShift | null = null;
 
-  /** Width of the sticky employee column in pixels. */
-  employeeColWidth = 160;
-  /** Minimum allowed employee column width */
+  /** Width of the sticky roster column in pixels. */
+  rosterColWidth = 160;
+
+  /**
+   * Alias getter for sticky roster column width.
+   */
+  get employeeColWidth(): number {
+    return this.rosterColWidth;
+  }
+
+  /**
+   * Alias setter for sticky roster column width.
+   */
+  set employeeColWidth(val: number) {
+    this.rosterColWidth = val;
+  }
+
+  /** Minimum allowed roster column width */
   readonly minEmpColWidth = 90;
-  /** Maximum allowed employee column width */
+  /** Maximum allowed roster column width */
   readonly maxEmpColWidth = 320;
   /** Whether the column is currently being resized by dragging */
   isResizingCol = false;
@@ -299,11 +314,12 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
   private initEmployeeColWidth(): void {
     try {
-      const savedWidth = localStorage.getItem('openbar_schedule_emp_col_width');
+      const savedWidth = localStorage.getItem('openbar_schedule_roster_width')
+        ?? localStorage.getItem('openbar_schedule_emp_col_width');
       if (savedWidth) {
         const parsed = Number.parseInt(savedWidth, 10);
         if (!Number.isNaN(parsed) && parsed >= this.minEmpColWidth && parsed <= this.maxEmpColWidth) {
-          this.employeeColWidth = parsed;
+          this.rosterColWidth = parsed;
           return;
         }
       }
@@ -311,7 +327,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       // Storage unavailable in private browsing
     }
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      this.employeeColWidth = 115;
+      this.rosterColWidth = 115;
     }
   }
 
@@ -325,12 +341,12 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     event.stopPropagation();
     this.isResizingCol = true;
     this.resizeStartX = event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
-    this.resizeStartWidth = this.employeeColWidth;
+    this.resizeStartWidth = this.rosterColWidth;
 
     this.boundOnResizeMove = (e: MouseEvent | TouchEvent) => {
       const clientX = e instanceof MouseEvent ? e.clientX : (e.touches?.[0]?.clientX ?? this.resizeStartX);
       const delta = clientX - this.resizeStartX;
-      this.employeeColWidth = Math.max(
+      this.rosterColWidth = Math.max(
         this.minEmpColWidth,
         Math.min(this.maxEmpColWidth, Math.round(this.resizeStartWidth + delta))
       );
@@ -339,7 +355,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     this.boundOnResizeEnd = () => {
       this.isResizingCol = false;
       try {
-        localStorage.setItem('openbar_schedule_emp_col_width', String(this.employeeColWidth));
+        localStorage.setItem('openbar_schedule_roster_width', String(this.rosterColWidth));
       } catch {
         // Storage unavailable
       }

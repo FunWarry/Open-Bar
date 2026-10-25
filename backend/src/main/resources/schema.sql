@@ -55,6 +55,8 @@ CREATE TABLE IF NOT EXISTS cocktails (
     instructions TEXT,
     image_url VARCHAR(500),
     glassware_id BIGINT REFERENCES glassware(id) ON DELETE SET NULL,
+    secondary_glassware_id BIGINT REFERENCES glassware(id) ON DELETE SET NULL,
+    companion_glass_title VARCHAR(100),
     alcohol_level DECIMAL(4,1) DEFAULT 0.0,
     is_mocktail BOOLEAN DEFAULT false,
     is_vegan BOOLEAN DEFAULT true,
@@ -144,6 +146,7 @@ CREATE TABLE IF NOT EXISTS cocktail_ingredients (
     ingredient_id BIGINT REFERENCES ingredients(id) ON DELETE CASCADE,
     quantite DECIMAL(10,2) NOT NULL,
     unite VARCHAR(20),
+    target_glass_order INT NOT NULL DEFAULT 1,
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -200,6 +203,7 @@ CREATE TABLE IF NOT EXISTS cocktail_recipe_steps (
     ingredient_id BIGINT REFERENCES ingredients(id) ON DELETE SET NULL,
     quantite DECIMAL(10,2),
     unite VARCHAR(20),
+    target_glass_order INT NOT NULL DEFAULT 1,
     template_id BIGINT REFERENCES recipe_step_templates(id) ON DELETE SET NULL,
     action_title VARCHAR(100),
     custom_text TEXT,
@@ -209,6 +213,19 @@ CREATE TABLE IF NOT EXISTS cocktail_recipe_steps (
 );
 
 CREATE INDEX IF NOT EXISTS idx_cocktail_recipe_steps_cocktail_id ON cocktail_recipe_steps(cocktail_id);
+
+CREATE TABLE IF NOT EXISTS cocktail_glasses (
+    id BIGSERIAL PRIMARY KEY,
+    cocktail_id BIGINT NOT NULL REFERENCES cocktails(id) ON DELETE CASCADE,
+    glassware_id BIGINT REFERENCES glassware(id) ON DELETE SET NULL,
+    glass_order INT NOT NULL DEFAULT 1,
+    role_label VARCHAR(100),
+    is_primary BOOLEAN DEFAULT false,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_cocktail_glasses_cocktail_id ON cocktail_glasses(cocktail_id);
 
 -- 4. Floor Plan, Floors, Zones & Tables
 CREATE TABLE IF NOT EXISTS etages (
@@ -530,6 +547,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
     tpe_timeout_seconds INTEGER DEFAULT 45,
     cash_denominations_json TEXT,
     storage_locations_json TEXT DEFAULT '["Bar Principal", "Arrière-bar", "Cave à vins & Spiritueux", "Chambre froide fûts"]',
+    cash_discrepancy_tolerance_threshold DECIMAL(10,2) DEFAULT 5.00,
     printers_json TEXT,
     tpe_terminals_json TEXT,
     updated_at TIMESTAMP
@@ -570,6 +588,7 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     module_payment_terminal_enabled BOOLEAN DEFAULT true,
     module_table_reservations_enabled BOOLEAN DEFAULT true,
     module_checklists_procedures_enabled BOOLEAN DEFAULT true,
+    module_system_updates_enabled BOOLEAN DEFAULT true,
     roulette_price_cocktail DECIMAL(10,2) DEFAULT 7.50,
     roulette_price_mocktail DECIMAL(10,2) DEFAULT 5.50,
     roulette_stock_bias VARCHAR(30) DEFAULT 'BALANCED',
@@ -728,6 +747,10 @@ CREATE TABLE IF NOT EXISTS cash_drawer_sessions (
     closed_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
     opening_float DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     opening_float_breakdown_json TEXT,
+    closing_denominations_json TEXT,
+    theoretical_cash DECIMAL(10,2),
+    actual_cash DECIMAL(10,2),
+    cash_variance DECIMAL(10,2),
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -744,6 +767,7 @@ CREATE TABLE IF NOT EXISTS cash_movements (
     amount DECIMAL(10,2) NOT NULL,
     reason VARCHAR(255) NOT NULL,
     receipt_reference VARCHAR(100),
+    denominations_json TEXT,
     performed_by_id BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1002,3 +1026,41 @@ CREATE INDEX IF NOT EXISTS idx_checklist_templates_active ON checklist_templates
 CREATE INDEX IF NOT EXISTS idx_checklist_runs_status ON checklist_runs(status);
 CREATE INDEX IF NOT EXISTS idx_checklist_runs_started_at ON checklist_runs(started_at);
 CREATE INDEX IF NOT EXISTS idx_checklist_run_items_run_id ON checklist_run_items(run_id);
+
+-- System Updates Module idempotency migration
+ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_system_updates_enabled BOOLEAN DEFAULT true;
+
+-- Angel Shot Safety Alerts Module
+CREATE TABLE IF NOT EXISTS safety_alerts (
+    id BIGSERIAL PRIMARY KEY,
+    table_id BIGINT NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
+    comment VARCHAR(255),
+    resolved_by VARCHAR(100),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_safety_alerts_table_status ON safety_alerts(table_id, status);
+CREATE INDEX IF NOT EXISTS idx_safety_alerts_status ON safety_alerts(status);
+
+ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_angel_shot_safety_enabled BOOLEAN DEFAULT true;
+
+-- Configurable emergency helplines for Angel Shot safety protocol
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS emergency_numbers_json TEXT;
+
+-- Multi-glass cocktail recipes with companion glassware & dynamic glass dispatch
+ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS secondary_glassware_id BIGINT REFERENCES glassware(id) ON DELETE SET NULL;
+ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS companion_glass_title VARCHAR(100);
+ALTER TABLE cocktail_ingredients ADD COLUMN IF NOT EXISTS target_glass_order INT DEFAULT 1;
+ALTER TABLE cocktail_recipe_steps ADD COLUMN IF NOT EXISTS target_glass_order INT DEFAULT 1;
+
+-- Cash drawer interactive counting, discrepancy reconciliation & audit trail
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS cash_discrepancy_tolerance_threshold DECIMAL(10,2) DEFAULT 5.00;
+ALTER TABLE cash_drawer_sessions ADD COLUMN IF NOT EXISTS closing_denominations_json TEXT;
+ALTER TABLE cash_drawer_sessions ADD COLUMN IF NOT EXISTS theoretical_cash DECIMAL(10,2);
+ALTER TABLE cash_drawer_sessions ADD COLUMN IF NOT EXISTS actual_cash DECIMAL(10,2);
+ALTER TABLE cash_drawer_sessions ADD COLUMN IF NOT EXISTS cash_variance DECIMAL(10,2);
+ALTER TABLE cash_movements ADD COLUMN IF NOT EXISTS denominations_json TEXT;
+

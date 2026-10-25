@@ -67,6 +67,13 @@
         </span>
       }
     </div>
+    @if (companionDescription) {
+      <div class="product-companion-row" data-testid="product-card-companion-row">
+        <span class="product-companion-pill" data-testid="product-card-companion-pill">
+          ✨ {{ 'COCKTAILS.SERVED_WITH' | transloco: { glass: companionDescription } }}
+        </span>
+      </div>
+    }
     <div class="product-footer">
       <div class="product-price-stack">
         @if (isHappyHour && originalPrice != null && originalPrice > price) {

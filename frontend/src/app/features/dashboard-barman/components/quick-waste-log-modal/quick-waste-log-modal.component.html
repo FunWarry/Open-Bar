@@ -1,0 +1,219 @@
+<ion-header class="ion-no-border quick-waste-header">
+  <ion-toolbar class="quick-waste-toolbar">
+    <div class="header-title-group" slot="start">
+      <div class="header-icon-badge">
+        <ion-icon name="flash-outline"></ion-icon>
+      </div>
+      <div class="header-text-group">
+        <h2 class="header-title">{{ 'BARMAN_DASHBOARD.QUICK_WASTE_TITLE' | transloco }}</h2>
+        <p class="header-subtitle">{{ 'BARMAN_DASHBOARD.QUICK_WASTE_SUBTITLE' | transloco }}</p>
+      </div>
+    </div>
+    <ion-buttons slot="end">
+      <ion-button
+        fill="clear"
+        class="close-button"
+        (click)="dismiss()"
+        (keyup.enter)="dismiss()"
+        [title]="'COMMON.CLOSE' | transloco"
+        data-testid="quick-waste-close-btn">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="quick-waste-content" [fullscreen]="true">
+  <div class="quick-waste-container">
+    <!-- Top Filter Section: Search & Category Dropdown on single line -->
+    <div class="top-controls-section">
+      <div class="search-and-category-row">
+        <div class="modal-search-wrapper">
+          <app-search-bar
+            [placeholder]="'BARMAN_DASHBOARD.QUICK_WASTE_SEARCH_PLACEHOLDER' | transloco"
+            (searchChange)="onSearchChange($event)"
+            testId="quick-waste-search-bar">
+          </app-search-bar>
+        </div>
+
+        <app-searchable-select
+          class="modal-category-select"
+          [options]="categoryOptions"
+          [value]="selectedCategory"
+          (selectionChange)="onCategoryChange($event)"
+          [clearable]="false"
+          [searchable]="false"
+          dropdownPosition="bottom"
+          size="default"
+          testId="quick-waste-category-select">
+        </app-searchable-select>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (isLoading) {
+      <div class="loading-state">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <span>{{ 'COMMON.LOADING' | transloco }}</span>
+      </div>
+    }
+
+    <!-- Speed Rail Ingredient Grid -->
+    @if (!isLoading && filteredIngredients.length > 0) {
+      <div class="speed-rail-section">
+        <h2 class="section-title">
+          <span>{{ 'BARMAN_DASHBOARD.SPEED_RAIL_GRID' | transloco }}</span>
+          <span class="items-count-badge">{{ filteredIngredients.length }}</span>
+        </h2>
+
+        <div class="speed-rail-grid">
+          @for (ing of filteredIngredients; track ing.id) {
+            <button
+              type="button"
+              class="speed-rail-card"
+              [class.selected]="selectedIngredient?.id === ing.id"
+              [class.low-stock]="ing.quantiteStock <= (ing.seuilAlerte || 0)"
+              (click)="selectIngredient(ing)"
+              [attr.data-testid]="'speed-rail-item-' + ing.id">
+              <div class="card-icon-wrapper">
+                @if (ing.degreAlcool && ing.degreAlcool > 0) {
+                  <ion-icon name="wine-outline" class="card-icon"></ion-icon>
+                } @else {
+                  <ion-icon name="water-outline" class="card-icon"></ion-icon>
+                }
+              </div>
+              <div class="card-body">
+                <span class="card-name" [title]="ing.nom">{{ ing.nom }}</span>
+                <div class="card-badges">
+                  <span class="stock-badge" [class.alert]="ing.quantiteStock <= (ing.seuilAlerte || 0)">
+                    {{ ing.quantiteStock }} {{ ing.uniteMesure }}
+                  </span>
+                  @if (ing.degreAlcool && ing.degreAlcool > 0) {
+                    <span class="abv-badge">{{ ing.degreAlcool }}°</span>
+                  }
+                </div>
+              </div>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading && filteredIngredients.length === 0) {
+      <div class="empty-state">
+        <ion-icon name="flask-outline" class="empty-icon"></ion-icon>
+        <p class="empty-title">{{ 'BARMAN_DASHBOARD.QUICK_WASTE_NO_ITEMS' | transloco }}</p>
+        <p class="empty-hint">{{ 'BARMAN_DASHBOARD.QUICK_WASTE_NO_ITEMS_HINT' | transloco }}</p>
+      </div>
+    }
+  </div>
+</ion-content>
+
+<!-- Bottom Action Drawer / 2-Tap Action Panel -->
+@if (selectedIngredient) {
+  <ion-footer class="ion-no-border quick-waste-footer">
+    <div class="action-panel" data-testid="quick-waste-action-panel">
+      <div class="panel-header">
+        <div class="selected-ing-info">
+          <span class="label-selected">{{ 'BARMAN_DASHBOARD.SELECTED_BOTTLE' | transloco }}</span>
+          <strong class="selected-name">{{ selectedIngredient.nom }}</strong>
+          <span class="selected-stock-tag">
+            {{ 'STOCK.WASTE_CURRENT_STOCK' | transloco: { stock: selectedIngredient.quantiteStock, unit: selectedIngredient.uniteMesure } }}
+          </span>
+        </div>
+        <div class="panel-header-actions">
+          <button
+            type="button"
+            class="stepper-toggle-btn"
+            (click)="toggleCustomStepper()"
+            data-testid="toggle-custom-stepper-btn">
+            {{ (showCustomStepper ? 'BARMAN_DASHBOARD.HIDE_CUSTOM_QTY' : 'BARMAN_DASHBOARD.CUSTOM_QTY') | transloco }}
+          </button>
+          <button
+            type="button"
+            class="panel-close-btn"
+            (click)="clearSelectedIngredient()"
+            (keyup.enter)="clearSelectedIngredient()"
+            [title]="'COMMON.CLOSE' | transloco"
+            data-testid="quick-waste-panel-close-btn">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- 1. Reason Selection -->
+      <div class="reason-selection-row">
+        <span class="row-label">{{ 'BARMAN_DASHBOARD.STEP_REASON' | transloco }}</span>
+        <div class="reasons-pill-grid">
+          @for (opt of reasonOptions; track opt.value) {
+            <button
+              type="button"
+              class="reason-pill"
+              [class.active]="selectedReason === opt.value"
+              [class.danger-theme]="opt.badgeColor === 'danger'"
+              [class.warning-theme]="opt.badgeColor === 'warning'"
+              [class.primary-theme]="opt.badgeColor === 'primary'"
+              [class.tertiary-theme]="opt.badgeColor === 'tertiary'"
+              (click)="selectReason(opt.value)"
+              [attr.data-testid]="'reason-btn-' + opt.value">
+              <ion-icon [name]="opt.icon"></ion-icon>
+              <span>{{ opt.labelKey | transloco }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- 2. Fast 2-Tap Dose Buttons -->
+      @if (!showCustomStepper) {
+        <div class="dose-selection-row">
+          <div class="dose-row-header">
+            <span class="row-label">{{ 'BARMAN_DASHBOARD.STEP_DOSE' | transloco }}</span>
+            <span class="two-tap-hint">⚡ {{ 'BARMAN_DASHBOARD.TWO_TAP_HINT' | transloco }}</span>
+          </div>
+          <div class="dose-presets-grid">
+            @for (preset of dosePresets; track preset.id) {
+              <button
+                type="button"
+                class="dose-preset-btn"
+                [disabled]="isSubmitting"
+                (click)="selectPresetAndSubmit(preset)"
+                [attr.data-testid]="'dose-preset-' + preset.id">
+                <span class="preset-name">{{ preset.labelKey | transloco }}</span>
+                <span class="preset-qty">{{ getPresetDisplayLabel(preset) }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Custom Stepper Option -->
+      @if (showCustomStepper) {
+        <div class="custom-stepper-row" data-testid="custom-stepper-container">
+          <div class="stepper-controls">
+            <span class="row-label">{{ 'BARMAN_DASHBOARD.CUSTOM_QUANTITY' | transloco }} ({{ selectedIngredient.uniteMesure }}):</span>
+            <app-quantity-stepper
+              [value]="quantity"
+              [min]="0.1"
+              [max]="500"
+              [step]="1"
+              (valueChange)="onQuantityChange($event)"
+              testId="quick-waste-stepper">
+            </app-quantity-stepper>
+          </div>
+          <app-action-button
+            class="custom-qty-submit-btn"
+            variant="primary"
+            expand="block"
+            icon="checkmark-circle-outline"
+            [loading]="isSubmitting"
+            [disabled]="!isValid"
+            (btnClick)="submitQuickLog()"
+            testId="custom-qty-submit-btn">
+            {{ 'BARMAN_DASHBOARD.RECORD_WASTE_BTN' | transloco: { qty: quantity, unit: selectedIngredient.uniteMesure } }}
+          </app-action-button>
+        </div>
+      }
+    </div>
+  </ion-footer>
+}

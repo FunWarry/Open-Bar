@@ -22,8 +22,10 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.springframework.security.core.Authentication;
 
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
@@ -48,7 +50,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("createUser - calls service and returns DTO")
-    void createUser_success() {
+    void createUserSuccess() {
         UserRequestDTO request = new UserRequestDTO("testuser", "secret", "test@example.com", "Doe", "John", Set.of(UserRole.SERVEUR));
         when(userService.createUser(any(User.class))).thenReturn(user);
 
@@ -61,7 +63,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("getAllUsers - retrieves list of all users")
-    void getAllUsers_success() {
+    void getAllUsersSuccess() {
         when(userService.getAllUsers()).thenReturn(List.of(user));
 
         ResponseEntity<List<UserResponseDTO>> response = userController.getAllUsers();
@@ -73,7 +75,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("updateUser - sets ID and updates user")
-    void updateUser_success() {
+    void updateUserSuccess() {
         UserRequestDTO request = new UserRequestDTO("testuser", "secret", "test@example.com", "Doe", "John", Set.of(UserRole.SERVEUR));
         when(userService.updateUser(eq(1L), any(User.class))).thenReturn(user);
 
@@ -85,7 +87,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("deleteUser - calls service delete")
-    void deleteUser_success() {
+    void deleteUserSuccess() {
         ResponseEntity<Void> response = userController.deleteUser(1L);
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
@@ -94,7 +96,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("getUserById - returns DTO if found, 404 otherwise")
-    void getUserById_foundAndNotFound() {
+    void getUserByIdFoundAndNotFound() {
         when(userService.getUserById(1L)).thenReturn(Optional.of(user));
         when(userService.getUserById(99L)).thenReturn(Optional.empty());
 
@@ -123,7 +125,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("changePassword - updates password when user exists")
-    void changePassword_success() {
+    void changePasswordSuccess() {
         when(userService.getUserById(1L)).thenReturn(Optional.of(user));
 
         ResponseEntity<Void> response = userController.changePassword(1L, "newPassword123");
@@ -134,7 +136,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("getUsersPaged - returns paginated DTO")
-    void getUsersPaged_success() {
+    void getUsersPagedSuccess() {
         PageResponseDTO<UserResponseDTO> pageDto =
             PageResponseDTO.of(List.of(UserResponseDTO.from(user)), 0, 10, 1);
         when(userService.getUsersPaged(0, 10, "test", "ADMIN")).thenReturn(pageDto);
@@ -144,5 +146,51 @@ class UserControllerTest {
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody().totalElements()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("getCurrentUser - returns profile of caller when authenticated")
+    void getCurrentUserSuccess() {
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn("testuser");
+        when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(user));
+
+        ResponseEntity<UserResponseDTO> response = userController.getCurrentUser(auth);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().username()).isEqualTo("testuser");
+        assertThat(response.getBody().id()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("getCurrentUser - returns 401 when unauthenticated")
+    void getCurrentUserUnauthenticated() {
+        ResponseEntity<UserResponseDTO> response = userController.getCurrentUser(null);
+        assertThat(response.getStatusCode().value()).isEqualTo(401);
+    }
+
+    @Test
+    @DisplayName("updateCurrentUser - updates profile using authenticated caller identity")
+    void updateCurrentUserSuccess() {
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn("testuser");
+        when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(user));
+        when(userService.updateUser(eq(1L), any(User.class))).thenReturn(user);
+
+        UserRequestDTO request = new UserRequestDTO("testuser", "secret", "test@example.com", "Doe", "John", Set.of(UserRole.SERVEUR));
+        ResponseEntity<UserResponseDTO> response = userController.updateCurrentUser(auth, request);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        verify(userService).updateUser(eq(1L), any(User.class));
+    }
+
+    @Test
+    @DisplayName("updateCurrentUser - returns 401 when unauthenticated")
+    void updateCurrentUserUnauthenticated() {
+        UserRequestDTO request = new UserRequestDTO("testuser", "secret", "test@example.com", "Doe", "John", Set.of(UserRole.SERVEUR));
+        ResponseEntity<UserResponseDTO> response = userController.updateCurrentUser(null, request);
+        assertThat(response.getStatusCode().value()).isEqualTo(401);
     }
 }

@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.integration;
 
+import com.bar.gestioncocktail.dto.StockQuickLogRequestDTO;
 import com.bar.gestioncocktail.dto.StockWasteRequestDTO;
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.model.StockWasteReason;
@@ -13,6 +14,7 @@ import org.springframework.http.MediaType;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -23,8 +25,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 class StockWasteIntegrationTest extends BaseIntegrationTest {
 
+    private final IngredientRepository ingredientRepository;
+
     @Autowired
-    private IngredientRepository ingredientRepository;
+    StockWasteIntegrationTest(IngredientRepository ingredientRepository) {
+        this.ingredientRepository = ingredientRepository;
+    }
 
     @Test
     @DisplayName("recordStockWaste_fullWorkflow_deductsInventoryAndUpdatesSummary")
@@ -126,5 +132,56 @@ class StockWasteIntegrationTest extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(forbiddenRequest)))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("recordQuickLog_and_revertQuickLog_fullWorkflow — records in 2 taps, deducts stock, then reverts completely")
+    void recordQuickLog_and_revertQuickLog_fullWorkflow() throws Exception {
+        // 1. Create a test speed rail ingredient with 50 cl stock
+        Ingredient ingredient = new Ingredient();
+        ingredient.setNom("Gin Tanqueray SpeedRail");
+        ingredient.setQuantiteStock(new BigDecimal("50.00"));
+        ingredient.setSeuilAlerte(new BigDecimal("10.00"));
+        ingredient.setUniteMesure("cl");
+        ingredient.setPrixUnitaire(new BigDecimal("0.60"));
+        ingredient.setCategory("light_liquor");
+        ingredient.setDegreAlcool(new BigDecimal("43.10"));
+        Ingredient saved = ingredientRepository.save(ingredient);
+        Long ingId = saved.getId();
+
+        // 2. Barman records quick-log (4 cl spill)
+        StockQuickLogRequestDTO quickLogRequest = new StockQuickLogRequestDTO(
+                ingId,
+                new BigDecimal("4.00"),
+                StockWasteReason.ERREUR_PREPARATION,
+                null
+        );
+
+        String responseJson = mockMvc.perform(post("/api/stock/quick-log")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getBarmanToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(quickLogRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.ingredientId").value(ingId))
+                .andExpect(jsonPath("$.quantity").value(4.00))
+                .andExpect(jsonPath("$.reason").value("ERREUR_PREPARATION"))
+                .andExpect(jsonPath("$.cost").value(2.40))
+                .andReturn().getResponse().getContentAsString();
+
+        Long movementId = objectMapper.readTree(responseJson).get("id").asLong();
+
+        // 3. Verify active stock was atomically decremented to 46.00
+        Ingredient decremented = ingredientRepository.findById(ingId).orElseThrow();
+        assertThat(decremented.getQuantiteStock()).isEqualByComparingTo("46.00");
+
+        // 4. Barman triggers undo operation via toast action
+        mockMvc.perform(delete("/api/stock/quick-log/" + movementId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getBarmanToken()))
+                .andExpect(status().isNoContent());
+
+        // 5. Verify stock was fully restored back to 50.00
+        Ingredient restored = ingredientRepository.findById(ingId).orElseThrow();
+        assertThat(restored.getQuantiteStock()).isEqualByComparingTo("50.00");
     }
 }

@@ -75,9 +75,9 @@ class StockMovementControllerTest {
 
     @Test
     @DisplayName("recordWaste — nominal: passes authentication context and returns response DTO")
-    void recordWaste_nominal_success() {
+    void recordWasteNominalSuccess() {
         when(authentication.getName()).thenReturn("barman1");
-        when(servletRequest.getRemoteAddr()).thenReturn("192.168.1.100");
+        when(servletRequest.getRemoteAddr()).thenReturn("test-client-ip");
 
         StockWasteRequestDTO request = new StockWasteRequestDTO(
                 5L,
@@ -86,7 +86,7 @@ class StockMovementControllerTest {
                 "Bouteille cassée en préparation"
         );
 
-        when(stockMovementService.recordWaste(request, "barman1", "192.168.1.100"))
+        when(stockMovementService.recordWaste(request, "barman1", "test-client-ip"))
                 .thenReturn(sampleMovement);
 
         ResponseEntity<StockMovementResponseDTO> response = stockMovementController.recordWaste(
@@ -103,7 +103,7 @@ class StockMovementControllerTest {
 
     @Test
     @DisplayName("getMovements — without ingredientId: retrieves all movements")
-    void getMovements_withoutFilter_retrievesAll() {
+    void getMovementsWithoutFilterRetrievesAll() {
         when(stockMovementService.getAllMovements()).thenReturn(List.of(sampleMovement));
 
         ResponseEntity<List<StockMovementResponseDTO>> response = stockMovementController.getMovements(null);
@@ -116,7 +116,7 @@ class StockMovementControllerTest {
 
     @Test
     @DisplayName("getMovements — with ingredientId: filters by ingredient")
-    void getMovements_withFilter_retrievesForIngredient() {
+    void getMovementsWithFilterRetrievesForIngredient() {
         when(stockMovementService.getMovementsByIngredient(5L)).thenReturn(List.of(sampleMovement));
 
         ResponseEntity<List<StockMovementResponseDTO>> response = stockMovementController.getMovements(5L);
@@ -129,7 +129,7 @@ class StockMovementControllerTest {
 
     @Test
     @DisplayName("getWasteSummary — returns aggregated metrics summary DTO")
-    void getWasteSummary_nominal_success() {
+    void getWasteSummaryNominalSuccess() {
         Map<StockWasteReason, BigDecimal> lossMap = new EnumMap<>(StockWasteReason.class);
         lossMap.put(StockWasteReason.CASSE, new BigDecimal("22.00"));
         Map<StockWasteReason, Long> countMap = new EnumMap<>(StockWasteReason.class);
@@ -152,5 +152,42 @@ class StockMovementControllerTest {
         assertThat(response.getBody().totalMovements()).isEqualTo(1);
         assertThat(response.getBody().totalLossValue()).isEqualTo(new BigDecimal("22.00"));
         assertThat(response.getBody().countByReason()).containsEntry(StockWasteReason.CASSE, 1L);
+    }
+
+    @Test
+    @DisplayName("recordQuickLog — nominal: delegates to service and returns 201 Created with DTO")
+    void recordQuickLogNominalSuccess() {
+        when(authentication.getName()).thenReturn("barman1");
+        when(servletRequest.getRemoteAddr()).thenReturn("test-client-ip");
+
+        com.bar.gestioncocktail.dto.StockQuickLogRequestDTO request = new com.bar.gestioncocktail.dto.StockQuickLogRequestDTO(
+                5L,
+                new BigDecimal("0.50"),
+                StockWasteReason.ERREUR_PREPARATION,
+                "Verre renversé pendant rush"
+        );
+
+        when(stockMovementService.recordQuickLog(request, "barman1", "test-client-ip"))
+                .thenReturn(sampleMovement);
+
+        ResponseEntity<StockMovementResponseDTO> response = stockMovementController.recordQuickLog(
+                request, authentication, servletRequest);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(201);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().id()).isEqualTo(101L);
+        verify(stockMovementService).recordQuickLog(request, "barman1", "test-client-ip");
+    }
+
+    @Test
+    @DisplayName("revertQuickLog — nominal: delegates to service and returns 204 No Content")
+    void revertQuickLogNominalSuccess() {
+        when(authentication.getName()).thenReturn("barman1");
+        when(servletRequest.getRemoteAddr()).thenReturn("test-client-ip");
+
+        ResponseEntity<Void> response = stockMovementController.revertQuickLog(101L, authentication, servletRequest);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(204);
+        verify(stockMovementService).revertQuickLog(101L, "barman1", "test-client-ip");
     }
 }

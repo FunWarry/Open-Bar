@@ -186,56 +186,138 @@
             @if (modePaiement === 'ESPECES') {
               <div class="cash-calc-card" data-testid="cash-calculator">
                 <div class="cash-header">
-                  <ion-icon name="cash-outline" color="warning"></ion-icon>
-                  <h5>{{ 'ENCAISSEMENT.CASH_CALCULATOR_TITLE' | transloco }}</h5>
-                </div>
-                <div class="cash-input-wrap">
-                  <ion-item class="cash-item" lines="none">
-                    <ion-label position="stacked">{{ 'ENCAISSEMENT.CASH_RECEIVED_LABEL' | transloco }} ({{ currencySymbol }})</ion-label>
-                    <ion-input type="number" step="0.5" [(ngModel)]="montantRecu" placeholder="0.00" data-testid="input-montant-recu"></ion-input>
-                  </ion-item>
-                </div>
-                <!-- Quick Cash Chips & Shortcuts -->
-                <div class="quick-cash-chips" data-testid="quick-cash-chips">
-                  <!-- Exact Amount Shortcut -->
-                  <button type="button" class="cash-chip exact-chip" (click)="definirMontantExact()" data-testid="chip-cash-exact" [attr.aria-label]="'ENCAISSEMENT.EXACT_AMOUNT' | transloco">
-                    <ion-icon name="checkmark-circle-outline" class="chip-icon"></ion-icon>
-                    <span>{{ 'ENCAISSEMENT.EXACT_AMOUNT' | transloco }}</span>
-                  </button>
-
-                  <!-- Smart Suggestions / Next Highest Bills -->
-                  @for (suggestion of smartCashSuggestions; track suggestion; let first = $first) {
+                  <div class="cash-header-title">
+                    <ion-icon name="cash-outline" class="cash-header-icon"></ion-icon>
+                    <h5>{{ 'ENCAISSEMENT.CASH_CALCULATOR_TITLE' | transloco }}</h5>
+                  </div>
+                  @if (montantRecu && montantRecu > 0) {
                     <button
                       type="button"
-                      class="cash-chip suggestion-chip"
-                      [class.active]="montantRecu === suggestion"
-                      (click)="definirMontantRecu(suggestion)"
-                      [attr.data-testid]="first ? 'chip-cash-next-bill' : ('chip-cash-suggest-' + suggestion)"
-                      [attr.aria-label]="(first ? ('ENCAISSEMENT.NEXT_BILL' | transloco) : ('ENCAISSEMENT.SUGGEST_AMOUNT' | transloco)) + ' ' + (suggestion | appCurrency:0:0)">
-                      <ion-icon name="cash-outline" class="chip-icon"></ion-icon>
-                      <span>{{ suggestion | appCurrency:0:0 }}</span>
-                    </button>
-                  }
-
-                  <!-- Dynamic Banknote Increments -->
-                  @for (note of primaryCashIncrements; track note) {
-                    <button
-                      type="button"
-                      class="cash-chip increment-chip"
-                      (click)="ajouterEspeces(note)"
-                      [attr.data-testid]="'chip-cash-' + note"
-                      [attr.aria-label]="'+' + (note | appCurrency:0:0)">
-                      +{{ note | appCurrency:0:0 }}
+                      class="btn-clear-cash"
+                      (click)="effacerMontantRecu()"
+                      data-testid="btn-clear-cash"
+                      [attr.aria-label]="'ENCAISSEMENT.RESET_AMOUNT' | transloco">
+                      <ion-icon name="close-circle-outline"></ion-icon>
+                      <span>{{ 'ENCAISSEMENT.RESET_AMOUNT' | transloco }}</span>
                     </button>
                   }
                 </div>
-                <!-- Change calculation display -->
+
+                <div class="cash-input-section">
+                  <div class="cash-input-header">
+                    <span class="cash-input-label">{{ 'ENCAISSEMENT.CASH_RECEIVED_LABEL' | transloco }}</span>
+                    <button
+                      type="button"
+                      class="cash-shortcut-btn exact-btn"
+                      (click)="definirMontantExact()"
+                      data-testid="chip-cash-exact"
+                      [attr.aria-label]="'ENCAISSEMENT.EXACT_AMOUNT' | transloco">
+                      <ion-icon name="checkmark-circle-outline"></ion-icon>
+                      <span>{{ 'ENCAISSEMENT.EXACT_AMOUNT' | transloco }}</span>
+                    </button>
+                  </div>
+                  <div class="cash-input-group">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      [(ngModel)]="montantRecu"
+                      placeholder="0.00"
+                      class="cash-native-input"
+                      data-testid="input-montant-recu"
+                      [attr.aria-label]="'ENCAISSEMENT.CASH_RECEIVED_LABEL' | transloco" />
+                    <span class="currency-symbol-affix">{{ currencySymbol }}</span>
+                  </div>
+                </div>
+
+                <!-- Smart Higher Bill Suggestions -->
+                @if (smartCashSuggestions.length > 0) {
+                  <div class="smart-suggestions-row" data-testid="quick-cash-chips">
+                    <span class="row-label">{{ 'ENCAISSEMENT.SUGGEST_AMOUNT' | transloco }} :</span>
+                    <div class="suggestions-chips-wrap">
+                      @for (suggestion of smartCashSuggestions; track suggestion; let first = $first) {
+                        <button
+                          type="button"
+                          class="suggestion-btn"
+                          [class.active]="montantRecu === suggestion"
+                          (click)="definirMontantRecu(suggestion)"
+                          [attr.data-testid]="first ? 'chip-cash-next-bill' : ('chip-cash-suggest-' + suggestion)"
+                          [attr.aria-label]="(first ? ('ENCAISSEMENT.NEXT_BILL' | transloco) : ('ENCAISSEMENT.SUGGEST_AMOUNT' | transloco)) + ' ' + (suggestion | appCurrency:0:0)">
+                          <ion-icon name="cash-outline"></ion-icon>
+                          <span>{{ suggestion | appCurrency:0:0 }}</span>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <!-- Banknotes (+5€, +10€, +20€, +50€, +100€) -->
+                <div class="denominations-group banknotes-group">
+                  <div class="group-header">
+                    <ion-icon name="cash-outline"></ion-icon>
+                    <span>{{ 'ENCAISSEMENT.BANKNOTES_LABEL' | transloco }}</span>
+                  </div>
+                  <div class="denominations-grid banknotes-grid">
+                    @for (note of primaryCashIncrements; track note.key) {
+                      <button
+                        type="button"
+                        class="denom-btn bill-btn"
+                        (click)="ajouterEspeces(note.value)"
+                        [attr.data-testid]="'chip-cash-' + note.key"
+                        [attr.aria-label]="'+' + note.label">
+                        <span class="btn-plus">+</span>
+                        <span class="btn-val">{{ note.label }}</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <!-- Coins (all coins from settings: 0.01€ to 2€) -->
+                <div class="denominations-group coins-group">
+                  <div class="group-header">
+                    <span class="coin-icon">🪙</span>
+                    <span>{{ 'ENCAISSEMENT.COINS_LABEL' | transloco }}</span>
+                  </div>
+                  <div class="denominations-grid coins-grid">
+                    @for (coin of primaryCoinIncrements; track coin.key) {
+                      <button
+                        type="button"
+                        class="denom-btn coin-btn"
+                        (click)="ajouterEspeces(coin.value)"
+                        [attr.data-testid]="'chip-coin-' + coin.key"
+                        [attr.aria-label]="'+' + coin.label">
+                        <span class="btn-plus">+</span>
+                        <span class="btn-val">{{ coin.label }}</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <!-- Change calculation display with Optimal Breakdown -->
                 <div class="change-display-box" [class.insufficient]="!isMontantRecuSuffisant">
                   @if (isMontantRecuSuffisant) {
                     <div class="change-row">
-                      <span>{{ 'ENCAISSEMENT.CHANGE_TO_RETURN' | transloco }}:</span>
+                      <span class="change-label">{{ 'ENCAISSEMENT.CHANGE_TO_RETURN' | transloco }} :</span>
                       <strong class="change-amount" data-testid="change-amount">{{ monnaieARendre | appCurrency }}</strong>
                     </div>
+
+                    @if (monnaieARendre > 0 && optimalChangeBreakdown.length > 0) {
+                      <div class="optimal-breakdown-box" data-testid="optimal-change-breakdown">
+                        <div class="optimal-header">
+                          <ion-icon name="sparkles-outline"></ion-icon>
+                          <span>{{ 'ENCAISSEMENT.OPTIMAL_CHANGE_TITLE' | transloco }}</span>
+                        </div>
+                        <div class="optimal-chips-container">
+                          @for (item of optimalChangeBreakdown; track item.label) {
+                            <div class="optimal-denom-badge" [class.is-bill]="item.type === 'bill'" [class.is-coin]="item.type === 'coin'">
+                              <span class="badge-count">{{ item.count }}×</span>
+                              <span class="badge-icon">{{ item.type === 'bill' ? '💶' : '🪙' }}</span>
+                              <span class="badge-value">{{ item.label }}</span>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
                   }
                   @if (!isMontantRecuSuffisant) {
                     <div class="insufficient-row" data-testid="warning-insufficient-cash">
@@ -481,44 +563,139 @@
 
                 <!-- Cash Calculator (if ESPECES) -->
                 @if (partPaymentMode === 'ESPECES') {
-                  <div class="section-block cash-calculator-box">
-                    <h4 class="section-title">{{ 'ENCAISSEMENT.CASH_RECEIVED' | transloco }}</h4>
-                    <div class="cash-input-row">
-                      <div class="app-input-currency-group">
-                        <label for="input-part-montant-recu" class="sr-only">{{ 'ENCAISSEMENT.CASH_RECEIVED' | transloco }}</label>
+                  <div class="cash-calc-card" data-testid="part-cash-calculator">
+                    <div class="cash-header">
+                      <div class="cash-header-title">
+                        <ion-icon name="cash-outline" class="cash-header-icon"></ion-icon>
+                        <h5>{{ 'ENCAISSEMENT.CASH_CALCULATOR_TITLE' | transloco }}</h5>
+                      </div>
+                      @if (partMontantRecu && partMontantRecu > 0) {
+                        <button
+                          type="button"
+                          class="btn-clear-cash"
+                          (click)="effacerPartMontantRecu()"
+                          data-testid="btn-part-clear-cash"
+                          [attr.aria-label]="'ENCAISSEMENT.RESET_AMOUNT' | transloco">
+                          <ion-icon name="close-circle-outline"></ion-icon>
+                          <span>{{ 'ENCAISSEMENT.RESET_AMOUNT' | transloco }}</span>
+                        </button>
+                      }
+                    </div>
+
+                    <div class="cash-input-section">
+                      <div class="cash-input-header">
+                        <span class="cash-input-label">{{ 'ENCAISSEMENT.CASH_RECEIVED_LABEL' | transloco }}</span>
+                        <button
+                          type="button"
+                          class="cash-shortcut-btn exact-btn"
+                          (click)="definirPartMontantExact()"
+                          data-testid="btn-part-exact-amount"
+                          [attr.aria-label]="'ENCAISSEMENT.EXACT_AMOUNT' | transloco">
+                          <ion-icon name="checkmark-circle-outline"></ion-icon>
+                          <span>{{ 'ENCAISSEMENT.EXACT_AMOUNT' | transloco }}</span>
+                        </button>
+                      </div>
+                      <div class="cash-input-group">
                         <input
                           id="input-part-montant-recu"
                           type="number"
-                          step="0.5"
+                          step="0.01"
                           min="0"
                           [(ngModel)]="partMontantRecu"
                           [placeholder]="partTotalNetAPayer.toFixed(2)"
-                          class="app-styled-input cash-amount-input"
-                          data-testid="input-part-montant-recu" />
-                        <span class="currency-affix">{{ currencySymbol }}</span>
+                          class="cash-native-input"
+                          data-testid="input-part-montant-recu"
+                          [attr.aria-label]="'ENCAISSEMENT.CASH_RECEIVED_LABEL' | transloco" />
+                        <span class="currency-symbol-affix">{{ currencySymbol }}</span>
                       </div>
-                      <button type="button" class="exact-btn" (click)="definirPartMontantExact()" data-testid="btn-part-exact-amount">
-                        {{ 'ENCAISSEMENT.EXACT_AMOUNT' | transloco }}
-                      </button>
                     </div>
-                    <div class="cash-shortcuts-row">
-                      @for (sug of partBilletSuggestions; track sug) {
-                        <button type="button" class="cash-chip suggestion-chip" (click)="definirPartMontantRecu(sug)">
-                          {{ sug | appCurrency:0:0 }}
-                        </button>
-                      }
-                      @for (note of primaryCashIncrements; track note) {
-                        <button type="button" class="cash-chip increment-chip" (click)="ajouterPartEspeces(note)">
-                          +{{ note | appCurrency:0:0 }}
-                        </button>
-                      }
+
+                    <!-- Smart Suggestions -->
+                    @if (partBilletSuggestions.length > 0) {
+                      <div class="smart-suggestions-row">
+                        <span class="row-label">{{ 'ENCAISSEMENT.SUGGEST_AMOUNT' | transloco }} :</span>
+                        <div class="suggestions-chips-wrap">
+                          @for (sug of partBilletSuggestions; track sug) {
+                            <button
+                              type="button"
+                              class="suggestion-btn"
+                              [class.active]="partMontantRecu === sug"
+                              (click)="definirPartMontantRecu(sug)">
+                              <ion-icon name="cash-outline"></ion-icon>
+                              <span>{{ sug | appCurrency:0:0 }}</span>
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    <!-- Banknotes -->
+                    <div class="denominations-group banknotes-group">
+                      <div class="group-header">
+                        <ion-icon name="cash-outline"></ion-icon>
+                        <span>{{ 'ENCAISSEMENT.BANKNOTES_LABEL' | transloco }}</span>
+                      </div>
+                      <div class="denominations-grid banknotes-grid">
+                        @for (note of primaryCashIncrements; track note.key) {
+                          <button
+                            type="button"
+                            class="denom-btn bill-btn"
+                            (click)="ajouterPartEspeces(note.value)"
+                            [attr.data-testid]="'part-chip-cash-' + note.key"
+                            [attr.aria-label]="'+' + note.label">
+                            <span class="btn-plus">+</span>
+                            <span class="btn-val">{{ note.label }}</span>
+                          </button>
+                        }
+                      </div>
                     </div>
+
+                    <!-- Coins -->
+                    <div class="denominations-group coins-group">
+                      <div class="group-header">
+                        <span class="coin-icon">🪙</span>
+                        <span>{{ 'ENCAISSEMENT.COINS_LABEL' | transloco }}</span>
+                      </div>
+                      <div class="denominations-grid coins-grid">
+                        @for (coin of primaryCoinIncrements; track coin.key) {
+                          <button
+                            type="button"
+                            class="denom-btn coin-btn"
+                            (click)="ajouterPartEspeces(coin.value)"
+                            [attr.data-testid]="'part-chip-coin-' + coin.key"
+                            [attr.aria-label]="'+' + coin.label">
+                            <span class="btn-plus">+</span>
+                            <span class="btn-val">{{ coin.label }}</span>
+                          </button>
+                        }
+                      </div>
+                    </div>
+
+                    <!-- Change Display with Optimal Breakdown -->
                     <div class="change-display-box" [class.insufficient]="!isPartMontantRecuSuffisant">
                       @if (isPartMontantRecuSuffisant) {
                         <div class="change-row">
-                          <span>{{ 'ENCAISSEMENT.CHANGE_TO_RETURN' | transloco }}:</span>
+                          <span class="change-label">{{ 'ENCAISSEMENT.CHANGE_TO_RETURN' | transloco }} :</span>
                           <strong class="change-amount">{{ partMonnaieARendre | appCurrency }}</strong>
                         </div>
+
+                        @if (partMonnaieARendre > 0 && partOptimalChangeBreakdown.length > 0) {
+                          <div class="optimal-breakdown-box" data-testid="part-optimal-change-breakdown">
+                            <div class="optimal-header">
+                              <ion-icon name="sparkles-outline"></ion-icon>
+                              <span>{{ 'ENCAISSEMENT.OPTIMAL_CHANGE_TITLE' | transloco }}</span>
+                            </div>
+                            <div class="optimal-chips-container">
+                              @for (item of partOptimalChangeBreakdown; track item.label) {
+                                <div class="optimal-denom-badge" [class.is-bill]="item.type === 'bill'" [class.is-coin]="item.type === 'coin'">
+                                  <span class="badge-count">{{ item.count }}×</span>
+                                  <span class="badge-icon">{{ item.type === 'bill' ? '💶' : '🪙' }}</span>
+                                  <span class="badge-value">{{ item.label }}</span>
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        }
                       }
                       @if (!isPartMontantRecuSuffisant) {
                         <div class="insufficient-row">
