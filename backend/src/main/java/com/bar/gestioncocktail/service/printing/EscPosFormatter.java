@@ -1094,11 +1094,11 @@ public class EscPosFormatter {
 
             String currencySymbol = resolveCurrencySymbol(appSettings);
             String dateStr = xReport.reportDate() != null ? xReport.reportDate().format(DATE_DAY_FMT) : "";
-            String timeStr = xReport.generatedAt() != null ? xReport.generatedAt().format(DateTimeFormatter.ofPattern("HH:mm:ss")) : "";
+            String timeStr = xReport.generatedAt() != null ? xReport.generatedAt().format(TIME_FMT) : "";
 
-            writeText(out, formatTwoColumns("Date : " + dateStr, "Heure : " + timeStr, LINE_WIDTH));
+            writeText(out, formatTwoColumns(PREFIX_DATE + dateStr, PREFIX_TIME + timeStr, LINE_WIDTH));
             out.write(LF);
-            writeText(out, "Operateur : " + (xReport.generatedBy() != null ? xReport.generatedBy() : DEFAULT_OPERATOR));
+            writeText(out, PREFIX_OPERATOR + (xReport.generatedBy() != null ? xReport.generatedBy() : DEFAULT_OPERATOR));
             out.write(LF);
 
             writeText(out, repeat("-", LINE_WIDTH));

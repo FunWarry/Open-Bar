@@ -256,6 +256,10 @@
       .safety-alerts-icon {
         font-size: 15px;
         animation: active-call-pulse 1.4s infinite ease-in-out;
+
+        @media (prefers-reduced-motion: reduce) {
+          animation: none;
+        }
       }
 
       .safety-alerts-title {
@@ -377,7 +381,7 @@
       font-size: 11px;
       font-weight: 700;
       cursor: pointer;
-      transition: opacity 0.15s ease, transform 0.1s ease;
+      transition: opacity 0.15s ease;
 
       &:hover {
         opacity: 0.9;
@@ -415,6 +419,10 @@
       .active-calls-icon {
         font-size: 15px;
         animation: active-call-pulse 1.8s infinite ease-in-out;
+
+        @media (prefers-reduced-motion: reduce) {
+          animation: none;
+        }
       }
 
       .active-calls-title {
@@ -525,7 +533,7 @@
       font-size: 11px;
       font-weight: 700;
       cursor: pointer;
-      transition: opacity 0.15s ease, transform 0.1s ease;
+      transition: opacity 0.15s ease;
 
       &:hover {
         opacity: 0.9;

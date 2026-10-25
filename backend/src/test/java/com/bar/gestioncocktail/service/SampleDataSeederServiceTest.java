@@ -135,28 +135,36 @@ class SampleDataSeederServiceTest {
 
     @BeforeEach
     void setUp() {
+        configureCommonMocks();
+        configureCatalogMocks();
+        configureTransactionMocks();
+    }
+
+    private void configureCommonMocks() {
         lenient().when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.AUGUST, 6, 17, 0));
         lenient().when(passwordEncoder.encode(any())).thenReturn("encodedPassword");
         lenient().when(recipeStepTemplateRepository.findByName(any())).thenReturn(Optional.empty());
         lenient().when(recipeStepTemplateRepository.save(any())).thenAnswer(invocation -> {
             RecipeStepTemplate t = invocation.getArgument(0);
-            if (t != null && t.getId() == null) t.setId(1L);
+            if (t != null && t.getId() == null) {
+                t.setId(1L);
+            }
             return t;
         });
-        lenient().when(factureRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(commandeRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(userRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(tableRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(avoirCreditRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(tableSessionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(tableCartItemRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(checklistTemplateRepository.save(any())).thenAnswer(invocation -> {
-            ChecklistTemplate ct = invocation.getArgument(0);
-            if (ct != null && ct.getId() == null) ct.setId(1L);
-            return ct;
-        });
-        lenient().when(checklistRunRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(shiftPresetRepository.count()).thenReturn(0L);
+        lenient().when(shiftPresetRepository.findByTypeShift(any())).thenReturn(Optional.empty());
+        lenient().when(establishmentClosureRepository.count()).thenReturn(0L);
+        lenient().when(weekSchedulePublicationRepository.count()).thenReturn(0L);
+        lenient().when(weekSchedulePublicationRepository.findByWeekStart(any())).thenReturn(Optional.empty());
+        lenient().when(employeeShiftRepository.findByUserId(anyLong())).thenReturn(List.of());
+        lenient().when(avoirCreditRepository.findByNumero(anyString())).thenReturn(Optional.empty());
+        lenient().when(stockMovementRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(stockMovementRepository.count()).thenReturn(0L);
+        lenient().when(establishmentClosureRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(weekSchedulePublicationRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    }
 
+    private void configureCatalogMocks() {
         Ingredient mockIng = new Ingredient();
         mockIng.setId(1L);
         mockIng.setNom("Rhum Blanc");
@@ -184,11 +192,15 @@ class SampleDataSeederServiceTest {
         lenient().when(cocktailRepository.findByNomIgnoreCaseWithRecipeSteps(any())).thenReturn(Optional.of(mockMojito));
         lenient().when(cocktailRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(cocktailRepository.findAll()).thenReturn(List.of(mockMojito));
+    }
 
+    private void configureTransactionMocks() {
         lenient().when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
         lenient().when(userRepository.save(any())).thenAnswer(invocation -> {
             User u = invocation.getArgument(0);
-            if (u != null && u.getId() == null) u.setId(1L);
+            if (u != null && u.getId() == null) {
+                u.setId(1L);
+            }
             return u;
         });
 
@@ -202,47 +214,55 @@ class SampleDataSeederServiceTest {
 
         lenient().when(factureRepository.save(any())).thenAnswer(invocation -> {
             Facture f = invocation.getArgument(0);
-            if (f != null && f.getId() == null) f.setId(1L);
+            if (f != null && f.getId() == null) {
+                f.setId(1L);
+            }
             return f;
         });
 
         lenient().when(commandeRepository.save(any())).thenAnswer(invocation -> {
             Commande c = invocation.getArgument(0);
-            if (c != null && c.getId() == null) c.setId(1L);
+            if (c != null && c.getId() == null) {
+                c.setId(1L);
+            }
             return c;
         });
         lenient().when(factureReglementRepository.save(any())).thenAnswer(invocation -> {
             FactureReglement fr = invocation.getArgument(0);
-            if (fr != null && fr.getId() == null) fr.setId(1L);
+            if (fr != null && fr.getId() == null) {
+                fr.setId(1L);
+            }
             return fr;
         });
         lenient().when(avoirCreditRepository.save(any())).thenAnswer(invocation -> {
             AvoirCredit ac = invocation.getArgument(0);
-            if (ac != null && ac.getId() == null) ac.setId(1L);
+            if (ac != null && ac.getId() == null) {
+                ac.setId(1L);
+            }
             return ac;
         });
         lenient().when(employeeShiftRepository.save(any())).thenAnswer(invocation -> {
             EmployeeShift es = invocation.getArgument(0);
-            if (es != null && es.getId() == null) es.setId(1L);
+            if (es != null && es.getId() == null) {
+                es.setId(1L);
+            }
             return es;
         });
-        lenient().when(establishmentClosureRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(weekSchedulePublicationRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-
-        lenient().when(shiftPresetRepository.count()).thenReturn(0L);
-        lenient().when(shiftPresetRepository.findByTypeShift(any())).thenReturn(Optional.empty());
-        lenient().when(establishmentClosureRepository.count()).thenReturn(0L);
-        lenient().when(weekSchedulePublicationRepository.count()).thenReturn(0L);
-        lenient().when(weekSchedulePublicationRepository.findByWeekStart(any())).thenReturn(Optional.empty());
-        lenient().when(employeeShiftRepository.findByUserId(anyLong())).thenReturn(List.of());
-        lenient().when(avoirCreditRepository.findByNumero(anyString())).thenReturn(Optional.empty());
-        lenient().when(stockMovementRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(stockMovementRepository.count()).thenReturn(0L);
+        lenient().when(tableSessionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(tableCartItemRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(checklistTemplateRepository.save(any())).thenAnswer(invocation -> {
+            ChecklistTemplate ct = invocation.getArgument(0);
+            if (ct != null && ct.getId() == null) {
+                ct.setId(1L);
+            }
+            return ct;
+        });
+        lenient().when(checklistRunRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
     @DisplayName("seedDemoDataIfEmpty - skips startup auto-seeding in dev profile to keep database blank")
-    void seedDemoDataIfEmpty_skipsWhenNotTestProfile() {
+    void seedDemoDataIfEmptySkipsWhenNotTestProfile() {
         when(environment.getActiveProfiles()).thenReturn(new String[]{"dev"});
 
         sampleDataSeederService.seedDemoDataIfEmpty();
@@ -253,7 +273,7 @@ class SampleDataSeederServiceTest {
 
     @Test
     @DisplayName("seedDemoDataIfEmpty - executes dataset seeding in test profile and seeds all demo data")
-    void seedDemoDataIfEmpty_executesSeedingWhenTestProfile() {
+    void seedDemoDataIfEmptyExecutesSeedingWhenTestProfile() {
         when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
 
         sampleDataSeederService.seedDemoDataIfEmpty();
@@ -273,7 +293,7 @@ class SampleDataSeederServiceTest {
 
     @Test
     @DisplayName("seedAllDemoData - skips closures when closures already exist")
-    void seedAllDemoData_skipsClosuresWhenAlreadyExist() {
+    void seedAllDemoDataSkipsClosuresWhenAlreadyExist() {
         when(establishmentClosureRepository.count()).thenReturn(3L);
         lenient().when(commandeRepository.count()).thenReturn(1L);
 
@@ -284,7 +304,7 @@ class SampleDataSeederServiceTest {
 
     @Test
     @DisplayName("seedAllDemoData - does not duplicate shifts when shift already exists for user and date")
-    void seedAllDemoData_skipsDuplicateShifts() {
+    void seedAllDemoDataSkipsDuplicateShifts() {
         EmployeeShift existingShift = new EmployeeShift();
         LocalDate today = LocalDate.now(ZoneId.systemDefault());
         LocalDate monday = today.minusDays((long) today.getDayOfWeek().getValue() - 1);
@@ -299,7 +319,7 @@ class SampleDataSeederServiceTest {
 
     @Test
     @DisplayName("seedAllDemoData - correctly seeds invoices with VAT rate and HT calculation")
-    void seedAllDemoData_correctlyCalculatesVatAndInvoiceTotals() {
+    void seedAllDemoDataCorrectlyCalculatesVatAndInvoiceTotals() {
         sampleDataSeederService.seedAllDemoData();
 
         ArgumentCaptor<Facture> factureCaptor = ArgumentCaptor.forClass(Facture.class);
@@ -317,7 +337,7 @@ class SampleDataSeederServiceTest {
 
     @Test
     @DisplayName("seedAllDemoData - seeds split payments (FactureReglement) on invoices")
-    void seedAllDemoData_seedsSplitPaymentsOnInvoices() {
+    void seedAllDemoDataSeedsSplitPaymentsOnInvoices() {
         sampleDataSeederService.seedAllDemoData();
 
         verify(factureReglementRepository, atLeastOnce()).save(any(FactureReglement.class));
@@ -325,7 +345,7 @@ class SampleDataSeederServiceTest {
 
     @Test
     @DisplayName("seedAllDemoData - seeds credit notes (AvoirCredit) when present")
-    void seedAllDemoData_seedsCreditNotes() {
+    void seedAllDemoDataSeedsCreditNotes() {
         Facture mockFacture = new Facture();
         mockFacture.setId(5L);
         mockFacture.setNumero("FACT-2026-0005");
@@ -342,7 +362,7 @@ class SampleDataSeederServiceTest {
 
     @Test
     @DisplayName("seedAllDemoData - correctly seeds orders with proper lifecycle timestamps (datePret and dateLivraison)")
-    void seedAllDemoData_seedsOrdersWithProperLifecycleTimestamps() {
+    void seedAllDemoDataSeedsOrdersWithProperLifecycleTimestamps() {
         sampleDataSeederService.seedAllDemoData();
 
         ArgumentCaptor<Commande> commandeCaptor = ArgumentCaptor.forClass(Commande.class);
@@ -370,7 +390,7 @@ class SampleDataSeederServiceTest {
 
     @Test
     @DisplayName("seedAllDemoData - seeds table call alerts (TableAppel) when present in demo dataset")
-    void seedAllDemoData_seedsTableAppels() {
+    void seedAllDemoDataSeedsTableAppels() {
         sampleDataSeederService.seedAllDemoData();
 
         verify(tableAppelRepository, atLeastOnce()).save(any(TableAppel.class));
@@ -378,7 +398,7 @@ class SampleDataSeederServiceTest {
 
     @Test
     @DisplayName("cleanPollutedTestData - purges test tables, duplicates, zones, cocktails, ingredients, and empty orders")
-    void cleanPollutedTestData_success() {
+    void cleanPollutedTestDataSuccess() {
         TableEntity pollutedTable = new TableEntity();
         pollutedTable.setId(99L);
         pollutedTable.setNumero(999);
@@ -424,7 +444,7 @@ class SampleDataSeederServiceTest {
 
     @Test
     @DisplayName("cleanPollutedTestData - handles exceptions gracefully without failing")
-    void cleanPollutedTestData_handlesExceptions() {
+    void cleanPollutedTestDataHandlesExceptions() {
         when(tableRepository.findAll()).thenThrow(new RuntimeException("Database error"));
         when(zoneRepository.findAll()).thenThrow(new RuntimeException("Database error"));
         when(cocktailRepository.findAll()).thenThrow(new RuntimeException("Database error"));

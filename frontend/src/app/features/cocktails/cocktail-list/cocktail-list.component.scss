@@ -121,7 +121,7 @@
   border: 1px solid var(--border-medium);
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   .pill-icon,
   ion-icon {
@@ -140,7 +140,7 @@
     height: 6px;
     border-radius: 50%;
     background: var(--text-muted);
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease;
   }
 
   &:hover {
@@ -185,7 +185,7 @@
   border: 1px solid var(--border-medium);
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   .pill-icon,
   ion-icon {
@@ -205,7 +205,7 @@
     height: 6px;
     border-radius: 50%;
     background: var(--text-muted);
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease;
   }
 
   &:hover {
@@ -273,7 +273,7 @@
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     outline: none;
 
     ion-icon {
@@ -314,7 +314,7 @@
   border: 1px solid var(--border-medium);
   border-radius: 10px;
   padding: 0 14px;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:focus-within {
     border-color: var(--primary);
@@ -388,7 +388,7 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:hover {
     background: var(--background-surface-3);
@@ -449,7 +449,7 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 
   .allergen-pill-emoji {
     font-size: 0.9rem;
@@ -516,7 +516,7 @@
   font-size: 0.875rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 
   &:hover {
     background: var(--background-surface-3, var(--background-surface-2));
@@ -1042,7 +1042,7 @@
   cursor: pointer;
   font-size: 1.15rem;
   box-shadow: 0 1px 4px rgba(108, 127, 232, 0.2);
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
     background: var(--primary);
@@ -1116,7 +1116,7 @@
   border-radius: var(--radius-sm, 6px);
   cursor: pointer;
   outline: none;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 
   .slider-track {
     width: 32px;
@@ -1302,7 +1302,7 @@
   background: var(--background-surface-2);
   border: 1px solid var(--border-medium);
   color: var(--text-secondary);
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .card-dietary-row,
@@ -1401,7 +1401,7 @@
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: var(--elev-1);
 
   ion-icon {
@@ -1460,7 +1460,7 @@
   font-weight: 600;
   color: var(--primary);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   ion-icon {
     font-size: 0.85rem;
@@ -1487,7 +1487,7 @@
   font-weight: 600;
   color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   ion-icon {
     font-size: 0.9rem;
@@ -1525,7 +1525,7 @@
   font-weight: 600;
   color: var(--primary);
   cursor: pointer;
-  transition: all 0.15s ease-in-out;
+  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
 
   ion-icon {
     font-size: 0.8rem;
@@ -1536,4 +1536,3 @@
     border-color: var(--primary);
   }
 }
-

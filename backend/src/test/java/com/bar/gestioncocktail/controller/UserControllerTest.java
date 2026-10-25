@@ -50,7 +50,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("createUser - calls service and returns DTO")
-    void createUser_success() {
+    void createUserSuccess() {
         UserRequestDTO request = new UserRequestDTO("testuser", "secret", "test@example.com", "Doe", "John", Set.of(UserRole.SERVEUR));
         when(userService.createUser(any(User.class))).thenReturn(user);
 
@@ -63,7 +63,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("getAllUsers - retrieves list of all users")
-    void getAllUsers_success() {
+    void getAllUsersSuccess() {
         when(userService.getAllUsers()).thenReturn(List.of(user));
 
         ResponseEntity<List<UserResponseDTO>> response = userController.getAllUsers();
@@ -75,7 +75,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("updateUser - sets ID and updates user")
-    void updateUser_success() {
+    void updateUserSuccess() {
         UserRequestDTO request = new UserRequestDTO("testuser", "secret", "test@example.com", "Doe", "John", Set.of(UserRole.SERVEUR));
         when(userService.updateUser(eq(1L), any(User.class))).thenReturn(user);
 
@@ -87,7 +87,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("deleteUser - calls service delete")
-    void deleteUser_success() {
+    void deleteUserSuccess() {
         ResponseEntity<Void> response = userController.deleteUser(1L);
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
@@ -96,7 +96,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("getUserById - returns DTO if found, 404 otherwise")
-    void getUserById_foundAndNotFound() {
+    void getUserByIdFoundAndNotFound() {
         when(userService.getUserById(1L)).thenReturn(Optional.of(user));
         when(userService.getUserById(99L)).thenReturn(Optional.empty());
 
@@ -125,7 +125,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("changePassword - updates password when user exists")
-    void changePassword_success() {
+    void changePasswordSuccess() {
         when(userService.getUserById(1L)).thenReturn(Optional.of(user));
 
         ResponseEntity<Void> response = userController.changePassword(1L, "newPassword123");
@@ -136,7 +136,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("getUsersPaged - returns paginated DTO")
-    void getUsersPaged_success() {
+    void getUsersPagedSuccess() {
         PageResponseDTO<UserResponseDTO> pageDto =
             PageResponseDTO.of(List.of(UserResponseDTO.from(user)), 0, 10, 1);
         when(userService.getUsersPaged(0, 10, "test", "ADMIN")).thenReturn(pageDto);
@@ -150,7 +150,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("getCurrentUser - returns profile of caller when authenticated")
-    void getCurrentUser_success() {
+    void getCurrentUserSuccess() {
         Authentication auth = mock(Authentication.class);
         when(auth.getName()).thenReturn("testuser");
         when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(user));
@@ -165,14 +165,14 @@ class UserControllerTest {
 
     @Test
     @DisplayName("getCurrentUser - returns 401 when unauthenticated")
-    void getCurrentUser_unauthenticated() {
+    void getCurrentUserUnauthenticated() {
         ResponseEntity<UserResponseDTO> response = userController.getCurrentUser(null);
         assertThat(response.getStatusCode().value()).isEqualTo(401);
     }
 
     @Test
     @DisplayName("updateCurrentUser - updates profile using authenticated caller identity")
-    void updateCurrentUser_success() {
+    void updateCurrentUserSuccess() {
         Authentication auth = mock(Authentication.class);
         when(auth.getName()).thenReturn("testuser");
         when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(user));
@@ -188,7 +188,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("updateCurrentUser - returns 401 when unauthenticated")
-    void updateCurrentUser_unauthenticated() {
+    void updateCurrentUserUnauthenticated() {
         UserRequestDTO request = new UserRequestDTO("testuser", "secret", "test@example.com", "Doe", "John", Set.of(UserRole.SERVEUR));
         ResponseEntity<UserResponseDTO> response = userController.updateCurrentUser(null, request);
         assertThat(response.getStatusCode().value()).isEqualTo(401);
