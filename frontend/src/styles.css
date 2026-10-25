@@ -1842,7 +1842,7 @@ ion-alert button.alert-button {
   padding: 10px 20px;
   font-size: 0.9rem;
   text-transform: none;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
   margin: 0;
   height: auto;
   min-height: 40px;
@@ -2190,5 +2190,20 @@ ion-toast .toast-button {
   .responsive-grid-adaptive {
     grid-template-columns: 1fr;
     gap: var(--space-3, 12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ion-button::part(native),
+  .btn,
+  .elev-hover {
+    transition: none;
+    transform: none;
+  }
+
+  ion-button:active::part(native),
+  .btn:active,
+  .elev-hover:hover {
+    transform: none;
   }
 }

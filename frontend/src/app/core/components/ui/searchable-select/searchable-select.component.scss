@@ -102,7 +102,7 @@
   cursor: pointer;
   outline: none;
   font-size: 0.9rem;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   text-align: left;
 
   &:hover:not(:disabled) {
@@ -394,7 +394,7 @@
   padding: 0.6rem 0.75rem;
   border-radius: 0.6rem;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
   user-select: none;
 
   &:hover,
@@ -551,6 +551,13 @@
     ion-icon {
       font-size: 1rem;
     }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropdown-panel,
+  .open-upwards .dropdown-panel {
+    animation: none;
   }
 }
 

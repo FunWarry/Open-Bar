@@ -281,7 +281,7 @@
     color: var(--text-secondary);
     font-size: 0.85rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 
     &:hover:not(:disabled) {
       background-color: var(--primary-alpha-15, rgba(155, 138, 242, 0.15));
@@ -320,7 +320,7 @@
     font-size: 0.78rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
     text-align: left;
 
     ion-icon {

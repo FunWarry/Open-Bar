@@ -79,6 +79,10 @@
   white-space: nowrap;
   flex-shrink: 0;
   animation: pulse-badge 1.5s infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 }
 
 .station-chip {
@@ -163,6 +167,10 @@
     border: 1px solid var(--semantic-danger);
     font-weight: 800;
     animation: pulse-critical-timer 1.2s infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
   }
 }
 
@@ -219,7 +227,7 @@
   cursor: pointer;
   font-size: 14px;
   flex-shrink: 0;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 
   &:hover {
     background: var(--primary);
@@ -232,6 +240,10 @@
     color: var(--semantic-danger);
     border-color: var(--semantic-danger);
     animation: pulse-badge 1.5s infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
   }
 }
 
@@ -301,7 +313,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--text-on-accent);
 
   ion-icon {
@@ -366,6 +378,17 @@
   border: 1px solid rgba(108, 127, 232, 0.4);
 }
 
+.companion-glass-chip {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--primary-light, #9aa8f5);
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+  white-space: nowrap;
+}
+
 .recipe-toggle-btn {
   background: var(--background-surface-2);
   border: 1px solid var(--border-medium);
@@ -378,7 +401,7 @@
   justify-content: center;
   cursor: pointer;
   font-size: 13px;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   flex-shrink: 0;
 
   &:hover,
@@ -416,6 +439,10 @@
   display: block;
   animation: pulse-glow-ready 1.5s infinite;
   border-radius: var(--radius-md, 8px);
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 }
 
 @keyframes pulse-glow-ready {
@@ -448,5 +475,15 @@
 
   ion-icon {
     font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-alerte-retard,
+  .timer.timer--critical,
+  .progress-badge.progress--complete,
+  .icon-btn-urgent.active-urgent,
+  .btn-pulse-ready {
+    animation: none;
   }
 }

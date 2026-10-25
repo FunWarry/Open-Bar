@@ -1234,4 +1234,160 @@ describe('CocktailFormComponent', () => {
       expect(component.ingredientsList()).toEqual(mockIngredients);
     });
   });
+
+  describe('Multi-Glass Cocktail Recipes (#570)', () => {
+    beforeEach(() => {
+      component.ngOnInit();
+      component.glasswareList.set(mockGlassware);
+    });
+
+    it('should compute configuredGlassesList with primary glass by default', () => {
+      component.cocktailForm.patchValue({ glasswareId: 1, isMultiGlass: false });
+      const list = component.configuredGlassesList();
+
+      expect(list).toHaveSize(1);
+      expect(list[0].order).toBe(1);
+      expect(list[0].isPrimary).toBeTrue();
+      expect(list[0].label).toBe('Verre Tumbler');
+    });
+
+    it('should compute configuredGlassesList with companion glass and extra glasses when multi-glass is active', () => {
+      component.cocktailForm.patchValue({
+        glasswareId: 1,
+        isMultiGlass: true,
+        secondaryGlasswareId: 2,
+        companionGlassTitle: 'Shot de Prosecco',
+      });
+      component.addExtraGlass();
+      component.extraGlassesArray.at(0).patchValue({
+        glasswareId: 1,
+        roleLabel: 'Verre de rinçage',
+      });
+
+      const list = component.configuredGlassesList();
+
+      expect(list).toHaveSize(3);
+      expect(list[0].order).toBe(1);
+      expect(list[0].isPrimary).toBeTrue();
+      expect(list[1].order).toBe(2);
+      expect(list[1].label).toBe('Shot de Prosecco');
+      expect(list[1].isPrimary).toBeFalse();
+      expect(list[2].order).toBe(3);
+      expect(list[2].label).toBe('Verre de rinçage');
+      expect(list[2].isPrimary).toBeFalse();
+    });
+
+    it('should return matching label with getGlassLabelByOrder', () => {
+      component.cocktailForm.patchValue({
+        glasswareId: 1,
+        isMultiGlass: true,
+        secondaryGlasswareId: 2,
+        companionGlassTitle: 'Shot de Prosecco',
+      });
+
+      expect(component.getGlassLabelByOrder(1)).toBe('Verre Tumbler');
+      expect(component.getGlassLabelByOrder(2)).toBe('Shot de Prosecco');
+      expect(component.getGlassLabelByOrder(99)).toBe('Verre 99');
+    });
+
+    it('should filter step visibility according to activeStep2GlassTab', () => {
+      component.addIngredientStep();
+      component.addCustomTextStep();
+      const step1 = component.recipeStepsArray.at(0);
+      const step2 = component.recipeStepsArray.at(1);
+      step1.patchValue({ targetGlassOrder: 1 });
+      step2.patchValue({ targetGlassOrder: 2 });
+
+      // Tab 0 = all glasses
+      component.setActiveStep2GlassTab(0);
+      expect(component.isStepVisibleInTab(step1)).toBeTrue();
+      expect(component.isStepVisibleInTab(step2)).toBeTrue();
+
+      // Tab 1 = primary glass
+      component.setActiveStep2GlassTab(1);
+      expect(component.isStepVisibleInTab(step1)).toBeTrue();
+      expect(component.isStepVisibleInTab(step2)).toBeFalse();
+
+      // Tab 2 = companion glass
+      component.setActiveStep2GlassTab(2);
+      expect(component.isStepVisibleInTab(step1)).toBeFalse();
+      expect(component.isStepVisibleInTab(step2)).toBeTrue();
+    });
+
+    it('should update targetGlassOrder when onTargetGlassSelected is called', () => {
+      component.addIngredientStep();
+      component.onTargetGlassSelected(0, { value: 2 });
+
+      const step = component.recipeStepsArray.at(0);
+      expect(step.get('targetGlassOrder')?.value).toBe(2);
+    });
+
+    it('should remove extra glass and re-index properly', () => {
+      component.extraGlassesArray.clear();
+      component.addExtraGlass();
+      component.addExtraGlass();
+      expect(component.extraGlassesArray).toHaveSize(2);
+
+      component.removeExtraGlass(0);
+      expect(component.extraGlassesArray).toHaveSize(1);
+    });
+
+    it('should compute glassTargetOptions with primary and companion labels', () => {
+      component.extraGlassesArray.clear();
+      component.cocktailForm.patchValue({
+        glasswareId: 1,
+        isMultiGlass: true,
+        secondaryGlasswareId: 2,
+        companionGlassTitle: 'Shot de Prosecco',
+      });
+
+      const options = component.glassTargetOptions();
+      expect(options).toHaveSize(2);
+      expect(options[0].value).toBe(1);
+      expect(options[0].label).toContain('Verre Tumbler');
+      expect(options[1].value).toBe(2);
+      expect(options[1].label).toContain('Shot de Prosecco');
+    });
+
+    it('should build complete glassesPayload when submitting a multi-glass cocktail', () => {
+      component.isEditMode = false;
+      component.recipeStepsArray.clear();
+      component.variantesArray.clear();
+      component.extraGlassesArray.clear();
+      component.cocktailForm.patchValue({
+        name: 'Pornstar Martini',
+        description: 'Multi-glass cocktail',
+        price: 12.0,
+        category: 'ALCOOLISE',
+        glasswareId: 1,
+        isMultiGlass: true,
+        secondaryGlasswareId: 2,
+        companionGlassTitle: 'Shot de Prosecco',
+        station: 'BAR',
+      });
+      component.addExtraGlass();
+      component.extraGlassesArray.at(0).patchValue({
+        glasswareId: 1,
+        roleLabel: 'Sidecar',
+      });
+
+      cocktailServiceSpy.create.and.returnValue(of({ id: 99 } as any));
+      component.onSubmit();
+
+      expect(cocktailServiceSpy.create).toHaveBeenCalled();
+      const payload = cocktailServiceSpy.create.calls.mostRecent().args[0];
+      expect((payload as any).isMultiGlass).toBeUndefined();
+      expect(payload.glasses).toBeDefined();
+      const glasses = payload.glasses!;
+      expect(glasses).toHaveSize(3);
+      expect(glasses[0].glassOrder).toBe(1);
+      expect(glasses[0].glasswareId).toBe(1);
+      expect(glasses[1].glassOrder).toBe(2);
+      expect(glasses[1].glasswareId).toBe(2);
+      expect(glasses[1].roleLabel).toBe('Shot de Prosecco');
+      expect(glasses[2].glassOrder).toBe(3);
+      expect(glasses[2].glasswareId).toBe(1);
+      expect(glasses[2].roleLabel).toBe('Sidecar');
+    });
+  });
 });

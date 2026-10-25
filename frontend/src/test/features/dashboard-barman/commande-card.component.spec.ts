@@ -437,5 +437,28 @@ describe('CommandeCardComponent', () => {
       expect(dashboardServiceSpy.clearPreparedItems).toHaveBeenCalledWith(103);
       expect(emitted).toEqual([{ id: 103, statut: 'PRET' }]);
     });
+
+    it('renders companion glassware chip when item has companion glassware', () => {
+      fixture.componentRef.setInput('commande', makeCommande({
+        id: 104,
+        statut: 'EN_ATTENTE',
+        items: [
+          {
+            id: 61,
+            cocktailNom: 'Pornstar Martini',
+            quantite: 1,
+            prioritaire: false,
+            glasswareNom: 'Coupe Martini',
+            secondaryGlasswareNom: 'Shot',
+            companionGlassTitle: 'Shot Prosecco',
+          } as any
+        ]
+      }));
+      fixture.detectChanges();
+
+      const chipEl = fixture.nativeElement.querySelector('[data-testid="item-companion-glass-chip"]');
+      expect(chipEl).toBeTruthy();
+      expect(chipEl.textContent).toContain('Shot Prosecco');
+    });
   });
 });

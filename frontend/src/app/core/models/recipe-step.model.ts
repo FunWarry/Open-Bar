@@ -59,6 +59,7 @@ export interface CocktailRecipeStep {
   ingredientName?: string;
   quantite?: number;
   unite?: string;
+  targetGlassOrder?: number;
   templateId?: number;
   templateName?: string;
   template?: RecipeStepTemplate;
@@ -79,6 +80,7 @@ export interface CocktailRecipeStepRequest {
   ingredientId?: number;
   quantite?: number;
   unite?: string;
+  targetGlassOrder?: number;
   templateId?: number;
   actionTitle?: string;
   customText?: string;

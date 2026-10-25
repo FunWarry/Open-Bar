@@ -126,6 +126,12 @@ ion-content.dashboard-serveur-content {
     font-weight: 600;
     cursor: pointer;
     transition: opacity 0.2s ease, transform 0.1s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+      transform: none;
+    }
+
     white-space: nowrap;
 
     &:hover {
@@ -185,7 +191,7 @@ ion-content.dashboard-serveur-content {
     border: 1px solid var(--input-border, var(--border-medium));
     border-radius: var(--radius-md, 12px);
     padding: 8px 14px;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
     &:focus-within {
       border-color: var(--primary);
@@ -233,6 +239,11 @@ ion-content.dashboard-serveur-content {
       border-radius: 50%;
       transition: color 0.15s ease, transform 0.15s ease;
 
+      @media (prefers-reduced-motion: reduce) {
+        transition: none;
+        transform: none;
+      }
+
       &:hover {
         color: var(--semantic-danger);
         transform: scale(1.1);
@@ -276,7 +287,7 @@ ion-content.dashboard-serveur-content {
       font-size: 0.8rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 
       &:hover {
         background: var(--background-surface-3, #2a3050);
@@ -359,7 +370,7 @@ ion-content.dashboard-serveur-content {
     font-size: 0.78rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: background-color 0.15s ease, color 0.15s ease;
 
     ion-icon {
       font-size: 0.9rem;
@@ -593,7 +604,7 @@ ion-content.dashboard-serveur-content {
           font-size: 0.8rem;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.15s ease;
+          transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 
           &:hover {
             color: var(--text-primary, #eceefb);
@@ -705,7 +716,12 @@ ion-content.dashboard-serveur-content {
         border: 1px solid var(--border-medium, #2e3450);
         color: var(--text-primary, #eceefb);
         cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+        @media (prefers-reduced-motion: reduce) {
+          transition: none;
+          transform: none;
+        }
 
         ion-icon {
           font-size: 1.15rem;
@@ -774,7 +790,7 @@ ion-content.dashboard-serveur-content {
       font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
       ion-icon {
         font-size: 1.15rem;
@@ -941,7 +957,7 @@ ion-content.dashboard-serveur-content {
       font-weight: 600;
       cursor: pointer;
       white-space: nowrap;
-      transition: all 0.15s ease;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 
       &:hover {
         background: var(--background-surface-3, #2a3050);
@@ -1003,7 +1019,7 @@ ion-content.dashboard-serveur-content {
       font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 
       &:hover {
         background: var(--background-surface-3, #2a3050);
@@ -1103,10 +1119,16 @@ ion-content.dashboard-serveur-content {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 12px var(--primary-tint, rgba(108, 127, 232, 0.35));
     color: var(--text-primary);
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+      transition: none;
+      transform: none;
+    }
 
     &:hover {
       background: var(--primary);
@@ -1240,11 +1262,21 @@ ion-content.dashboard-serveur-content {
       font-weight: 700;
       cursor: pointer;
       box-shadow: 0 2px 8px var(--primary-tint, rgba(108, 127, 232, 0.4));
-      transition: all 0.15s ease;
+      transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+
+      @media (prefers-reduced-motion: reduce) {
+        transition: none;
+        transform: none;
+      }
 
       ion-icon {
         font-size: 1rem;
         transition: transform 0.15s ease;
+
+        @media (prefers-reduced-motion: reduce) {
+          transition: none;
+          transform: none;
+        }
       }
 
       &:active {
@@ -1280,5 +1312,23 @@ ion-content.dashboard-serveur-content {
     flex: 1;
     width: 100%;
     height: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-pay-direct,
+  .search-input-box,
+  .icon-btn,
+  .cart-expand-tab,
+  .mobile-cart-floating-bar,
+  .floating-bar-action {
+    animation: none;
+    transition: none;
+    transform: none;
+
+    &:hover,
+    &:active {
+      transform: none;
+    }
   }
 }

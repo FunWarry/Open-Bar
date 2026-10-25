@@ -153,39 +153,46 @@
         </div>
 
         <div class="glassware-dual-grid">
-          <!-- Glass Card -->
-          <div class="glass-hero-card" data-testid="recipe-glassware-card">
-            @if (resolvedGlassware; as glass) {
-              <div class="glass-visual">
-                @if (glass.imageUrl) {
-                  <img
-                    [src]="resolveImageUrl(glass.imageUrl)"
-                    [alt]="glass.nom"
-                    class="glass-img"
-                    data-testid="recipe-glassware-img" />
-                } @else {
-                  <div class="glass-icon-circle">
-                    <ion-icon name="wine-outline"></ion-icon>
-                  </div>
-                }
-              </div>
-
-              <div class="glass-meta">
-                <div class="glass-title-row">
-                  <strong class="glass-name" data-testid="recipe-glassware-name">
-                    {{ glass.nom }}
-                  </strong>
-                  @if (glass.contenanceCl) {
-                    <span class="glass-capacity-badge" data-testid="recipe-glassware-capacity">
-                      {{ 'BARMAN_DASHBOARD.GLASS_CAPACITY' | transloco: { capacity: glass.contenanceCl } }}
-                    </span>
+          @if (resolvedGlasses.length > 0) {
+            @for (glass of resolvedGlasses; track glass.glassOrder) {
+              <!-- Glass Card -->
+              <div class="glass-hero-card" [attr.data-testid]="'recipe-glassware-card-' + glass.glassOrder">
+                <div class="glass-visual">
+                  @if (glass.imageUrl) {
+                    <img
+                      [src]="resolveImageUrl(glass.imageUrl)"
+                      [alt]="glass.nom"
+                      class="glass-img"
+                      data-testid="recipe-glassware-img" />
+                  } @else {
+                    <div class="glass-icon-circle">
+                      <ion-icon [name]="glass.isPrimary ? 'wine-outline' : 'sparkles-outline'"></ion-icon>
+                    </div>
                   }
                 </div>
-                @if (glass.description) {
-                  <p class="glass-desc">{{ glass.description }}</p>
-                }
+
+                <div class="glass-meta">
+                  <div class="glass-title-row">
+                    <strong class="glass-name" data-testid="recipe-glassware-name">
+                      {{ glass.nom }}
+                    </strong>
+                    @if (glass.contenanceCl) {
+                      <span class="glass-capacity-badge" data-testid="recipe-glassware-capacity">
+                        {{ 'BARMAN_DASHBOARD.GLASS_CAPACITY' | transloco: { capacity: glass.contenanceCl } }}
+                      </span>
+                    }
+                  </div>
+                  @if (glass.roleLabel) {
+                    <span class="glass-role-badge" data-testid="recipe-glass-role">{{ glass.roleLabel }}</span>
+                  }
+                  @if (glass.description) {
+                    <p class="glass-desc">{{ glass.description }}</p>
+                  }
+                </div>
               </div>
-            } @else {
+            }
+          } @else {
+            <div class="glass-hero-card" data-testid="recipe-glassware-card">
               <div class="glass-visual">
                 <div class="glass-icon-circle">
                   <ion-icon name="wine-outline"></ion-icon>
@@ -198,8 +205,8 @@
                   </strong>
                 </div>
               </div>
-            }
-          </div>
+            </div>
+          }
 
           <!-- Garnish Card -->
           <div class="garnish-hero-card" data-testid="recipe-garnish-card">
@@ -243,6 +250,31 @@
           </div>
         </div>
 
+        @if (hasMultipleGlasses) {
+          <div class="glass-filter-tabs" data-testid="recipe-glass-filter-tabs">
+            <button
+              type="button"
+              class="glass-filter-tab"
+              [class.active]="selectedGlassOrderFilter === 0"
+              (click)="setSelectedGlassFilter(0)"
+              data-testid="filter-glass-all">
+              <ion-icon name="layers-outline"></ion-icon>
+              <span>{{ 'BARMAN_DASHBOARD.ALL_GLASSES' | transloco }}</span>
+            </button>
+            @for (g of resolvedGlasses; track g.glassOrder) {
+              <button
+                type="button"
+                class="glass-filter-tab"
+                [class.active]="selectedGlassOrderFilter === g.glassOrder"
+                (click)="setSelectedGlassFilter(g.glassOrder)"
+                [attr.data-testid]="'filter-glass-' + g.glassOrder">
+                <ion-icon [name]="g.isPrimary ? 'wine-outline' : 'sparkles-outline'"></ion-icon>
+                <span>{{ g.roleLabel || g.nom }}</span>
+              </button>
+            }
+          </div>
+        }
+
         @if (hasVisibleSteps) {
           <div class="recipe-timeline" data-testid="barman-recipe-steps-list">
             @for (step of visibleRecipeSteps; track step.id || $index; let sIdx = $index) {
@@ -282,6 +314,11 @@
                           <span class="step-main-title">
                             {{ getStepIngredientNom(step) }}
                           </span>
+                          @if (hasMultipleGlasses && selectedGlassOrderFilter === 0) {
+                            <span class="target-glass-pill" [class.primary]="(step.targetGlassOrder || 1) === 1" data-testid="step-target-glass-pill">
+                              {{ getGlassLabelByOrder(step.targetGlassOrder || 1) }}
+                            </span>
+                          }
                         </div>
                         @if (step.quantite != null) {
                           <div class="dosage-pill" data-testid="ing-dosage-badge">
@@ -307,6 +344,11 @@
                           <span class="step-main-title">
                             {{ getStepActionName(step) || (getActionLabelKey(getStepActionType(step)) | transloco) }}
                           </span>
+                          @if (hasMultipleGlasses && selectedGlassOrderFilter === 0) {
+                            <span class="target-glass-pill" [class.primary]="(step.targetGlassOrder || 1) === 1" data-testid="step-target-glass-pill">
+                              {{ getGlassLabelByOrder(step.targetGlassOrder || 1) }}
+                            </span>
+                          }
                         </div>
                         @if (getStepDurationSeconds(step); as dur) {
                           <div class="duration-pill" data-testid="step-duration-badge">
@@ -330,6 +372,11 @@
                           <span class="step-main-title">
                             {{ step.actionTitle || ('BARMAN_DASHBOARD.CUSTOM_STEP_BADGE' | transloco) }}
                           </span>
+                          @if (hasMultipleGlasses && selectedGlassOrderFilter === 0) {
+                            <span class="target-glass-pill" [class.primary]="(step.targetGlassOrder || 1) === 1" data-testid="step-target-glass-pill">
+                              {{ getGlassLabelByOrder(step.targetGlassOrder || 1) }}
+                            </span>
+                          }
                         </div>
                         @if (getStepDurationSeconds(step); as dur) {
                           <div class="duration-pill" data-testid="step-duration-badge">

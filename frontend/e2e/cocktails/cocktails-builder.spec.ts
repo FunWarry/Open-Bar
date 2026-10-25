@@ -112,4 +112,32 @@ test.describe('Step-by-Step Modular Cocktail Builder & Live Scaling E2E', () => 
     await page.click('[data-testid="modal-btn-save-template"]');
     await expect(page.locator('[data-testid="new-template-modal"]')).not.toBeVisible();
   });
+
+  test('should configure multi-glass cocktail with companion shot and target glass dispatch', async ({ page }) => {
+    await page.goto('/cocktails/new');
+    await page.waitForLoadState('networkidle');
+
+    // Fill Step 1
+    await page.fill('input[data-testid="cocktail-form-name-input"]', 'Pornstar Martini Deluxe');
+    await page.fill('input[data-testid="cocktail-form-price-input"]', '13.0');
+    await page.click('[data-testid="cocktail-form-category-select-trigger"]');
+    await page.click('[data-testid="cocktail-form-category-select-option-ALCOOLISE"]');
+
+    // Enable multi-glass toggle
+    await page.click('[data-testid="toggle-multi-glass"]');
+    await expect(page.locator('[data-testid="multi-glass-config-grid"]')).toBeVisible();
+
+    // Fill companion title
+    await page.fill('input[data-testid="cocktail-form-companion-title-input"]', 'Shot de Prosecco');
+
+    // Go to Step 2
+    await page.click('[data-testid="wizard-btn-next"]');
+    await expect(page.locator('[data-testid="wizard-step-2-tab"]')).toHaveClass(/active/);
+
+    // Verify multi-glass tabs are visible
+    await expect(page.locator('[data-testid="builder-glass-tabs"]')).toBeVisible();
+    await expect(page.locator('[data-testid="tab-glass-all"]')).toBeVisible();
+    await expect(page.locator('[data-testid="tab-glass-1"]')).toBeVisible();
+    await expect(page.locator('[data-testid="tab-glass-2"]')).toBeVisible();
+  });
 });

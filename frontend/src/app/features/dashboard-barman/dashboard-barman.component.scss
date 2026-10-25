@@ -341,7 +341,7 @@ ion-header {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
   @media (max-width: 767px) {
     height: 38px;
@@ -419,7 +419,7 @@ ion-header {
     font-weight: 700;
     letter-spacing: 0.3px;
     box-shadow: 0 2px 8px color-mix(in srgb, var(--semantic-success) 35%, transparent);
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 
     &::part(native) {
       color: var(--text-on-accent, #ffffff);
@@ -459,7 +459,12 @@ ion-header {
     font-weight: 700;
     letter-spacing: 0.3px;
     box-shadow: 0 2px 8px color-mix(in srgb, var(--semantic-danger) 35%, transparent);
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, transform 0.2s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+      transform: none;
+    }
 
     &::part(native) {
       color: var(--text-on-accent, #ffffff);
@@ -499,7 +504,12 @@ ion-header {
     font-weight: 700;
     letter-spacing: 0.3px;
     box-shadow: 0 2px 8px color-mix(in srgb, var(--semantic-warning) 35%, transparent);
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, transform 0.2s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+      transform: none;
+    }
 
     &::part(native) {
       color: var(--text-on-accent, #ffffff);
@@ -545,7 +555,7 @@ ion-header {
     font-weight: 700;
     letter-spacing: 0.3px;
     box-shadow: 0 0 10px var(--primary-tint, rgba(108, 127, 232, 0.25));
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 
     &::part(native) {
       color: var(--text-primary);
@@ -686,7 +696,7 @@ ion-header {
       font-size: 0.74rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
       white-space: nowrap;
 
       .tab-dot {
@@ -967,7 +977,7 @@ ion-header {
       letter-spacing: 0.3px;
       padding: 0 14px;
       margin: 0;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
       &::part(native) {
         color: var(--text-secondary);
@@ -1055,7 +1065,7 @@ ion-header {
         border-radius: var(--radius-pill, 999px);
         line-height: 1;
         margin-left: 2px;
-        transition: all 0.2s ease;
+        transition: background-color 0.2s ease, color 0.2s ease;
       }
     }
   }
@@ -1179,6 +1189,11 @@ ion-header {
     justify-content: center;
     gap: 3px;
     transition: transform 0.2s ease, border-color 0.2s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+      transform: none;
+    }
 
     @media (max-width: 767px) {
       min-width: 0;
@@ -1740,5 +1755,21 @@ ion-header {
     margin: 0;
     max-width: 320px;
     line-height: 1.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .urgent-badge {
+    animation: none;
+  }
+
+  .rush-kpi-pill,
+  .batch-card {
+    transition: none;
+    transform: none;
+
+    &:hover {
+      transform: none;
+    }
   }
 }

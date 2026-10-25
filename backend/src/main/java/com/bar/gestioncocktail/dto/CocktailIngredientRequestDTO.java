@@ -10,11 +10,12 @@ import java.math.BigDecimal;
 /**
  * Request DTO for creating a cocktail-ingredient recipe link.
  *
- * @param cocktailId   Identifier of the cocktail
- * @param ingredientId Identifier of the ingredient
- * @param quantite     Required quantity of the ingredient
- * @param unite        Optional recipe unit of measure (e.g. cl, g, piece)
- * @param notes        Optional preparation notes
+ * @param cocktailId       Identifier of the cocktail
+ * @param ingredientId     Identifier of the ingredient
+ * @param quantite         Required quantity of the ingredient
+ * @param unite            Optional recipe unit of measure (e.g. cl, g, piece)
+ * @param targetGlassOrder Glass order index (1 = Primary glass, 2 = Secondary glass, etc.)
+ * @param notes            Optional preparation notes
  */
 public record CocktailIngredientRequestDTO(
     @NotNull(message = "Cocktail is required")
@@ -28,13 +29,22 @@ public record CocktailIngredientRequestDTO(
 
     String unite,
 
+    Integer targetGlassOrder,
+
     String notes
 ) {
     /**
-     * Backward-compatible constructor without recipe unit.
+     * Backward-compatible 5-parameter constructor without targetGlassOrder.
+     */
+    public CocktailIngredientRequestDTO(Long cocktailId, Long ingredientId, BigDecimal quantite, String unite, String notes) {
+        this(cocktailId, ingredientId, quantite, unite, 1, notes);
+    }
+
+    /**
+     * Backward-compatible 4-parameter constructor without recipe unit and targetGlassOrder.
      */
     public CocktailIngredientRequestDTO(Long cocktailId, Long ingredientId, BigDecimal quantite, String notes) {
-        this(cocktailId, ingredientId, quantite, null, notes);
+        this(cocktailId, ingredientId, quantite, null, 1, notes);
     }
 
     /**
@@ -56,6 +66,7 @@ public record CocktailIngredientRequestDTO(
         }
         ci.setQuantite(quantite);
         ci.setUnite(unite);
+        ci.setTargetGlassOrder(targetGlassOrder != null ? targetGlassOrder : 1);
         ci.setNotes(notes);
         return ci;
     }
