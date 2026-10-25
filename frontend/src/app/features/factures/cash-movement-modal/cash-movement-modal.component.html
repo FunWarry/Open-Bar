@@ -122,6 +122,30 @@
           </button>
         }
       </div>
+
+      <!-- Toggle Calculator for Denominations Breakdown -->
+      <div class="calculator-toggle-row">
+        <label class="toggle-label" for="movement-calc-toggle">
+          {{ 'CASH_DRAWER.DETAIL_DENOMINATIONS' | transloco }}
+        </label>
+        <app-toggle-switch
+          id="movement-calc-toggle"
+          [(ngModel)]="showCalculator"
+          testId="cash-movement-toggle-calc">
+        </app-toggle-switch>
+      </div>
+
+      <!-- Denomination Breakdown Calculator (Compact Mode) -->
+      @if (showCalculator) {
+        <div class="calculator-container-card" data-testid="cash-movement-calc-wrapper">
+          <app-denomination-calculator
+            [compact]="true"
+            [(counting)]="counting"
+            (totalChange)="onCalculatorTotalChange($event)"
+            testId="cash-movement-calc">
+          </app-denomination-calculator>
+        </div>
+      }
     </div>
 
     <!-- Reason / Motif Input Card -->

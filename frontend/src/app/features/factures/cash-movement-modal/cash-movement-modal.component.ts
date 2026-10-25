@@ -16,6 +16,9 @@ import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { CashDrawerService } from '../../../core/services/cash-drawer.service';
 import { CashMovementRequest, CashMovementType } from '../../../core/models/cash-drawer.model';
 
+import { DenominationCalculatorComponent } from '../../../core/components/ui/denomination-calculator/denomination-calculator.component';
+import { ToggleSwitchComponent } from '../../../core/components/ui/toggle-switch/toggle-switch.component';
+
 /**
  * Modal dialog for logging intra-day cash movements:
  * - CASH_IN: Cash deposit / change addition
@@ -37,7 +40,9 @@ import { CashMovementRequest, CashMovementType } from '../../../core/models/cash
     IonIcon,
     IonContent,
     IonFooter,
-    IonSpinner
+    IonSpinner,
+    DenominationCalculatorComponent,
+    ToggleSwitchComponent
   ],
   templateUrl: './cash-movement-modal.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -54,6 +59,9 @@ export class CashMovementModalComponent implements OnInit {
   reason = '';
   receiptReference = '';
   isSubmitting = false;
+
+  showCalculator = false;
+  counting: Record<string, number> = {};
 
   readonly quickPresets = [10, 20, 50, 100, 200];
 
@@ -113,6 +121,13 @@ export class CashMovementModalComponent implements OnInit {
   }
 
   /**
+   * Updates movement amount when calculator total changes.
+   */
+  onCalculatorTotalChange(total: number): void {
+    this.amount = total;
+  }
+
+  /**
    * Submits intra-day cash movement to backend.
    */
   submitMovement(): void {
@@ -121,11 +136,13 @@ export class CashMovementModalComponent implements OnInit {
     }
 
     this.isSubmitting = true;
+    const hasDenominations = this.showCalculator && Object.values(this.counting).some(qty => qty > 0);
     const request: CashMovementRequest = {
       type: this.type,
       amount: this.amount,
       reason: this.reason.trim(),
-      receiptReference: this.receiptReference.trim() || undefined
+      receiptReference: this.receiptReference.trim() || undefined,
+      denominationsJson: hasDenominations ? JSON.stringify(this.counting) : undefined
     };
 
     this.cashDrawerService.recordMovement(request).subscribe({

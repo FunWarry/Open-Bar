@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,6 +34,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class SafetyAlertControllerTest {
 
+    private static final ZoneId ZONE = ZoneId.systemDefault();
+
     @Mock
     private SafetyAlertService safetyAlertService;
 
@@ -44,7 +47,7 @@ class SafetyAlertControllerTest {
 
     @Test
     @DisplayName("getActiveAlerts - returns list of active safety alerts")
-    void getActiveAlerts_success() {
+    void getActiveAlertsSuccess() {
         SafetyAlertResponseDTO alert = new SafetyAlertResponseDTO(
                 1L,
                 3L,
@@ -54,7 +57,7 @@ class SafetyAlertControllerTest {
                 SafetyAlertStatus.ACTIVE,
                 null,
                 null,
-                LocalDateTime.now(),
+                LocalDateTime.now(ZONE),
                 null
         );
 
@@ -68,7 +71,7 @@ class SafetyAlertControllerTest {
 
     @Test
     @DisplayName("getActiveAlertsForTable - returns safety alerts for table")
-    void getActiveAlertsForTable_success() {
+    void getActiveAlertsForTableSuccess() {
         SafetyAlertResponseDTO alert = new SafetyAlertResponseDTO(
                 2L,
                 8L,
@@ -78,7 +81,7 @@ class SafetyAlertControllerTest {
                 SafetyAlertStatus.ACTIVE,
                 null,
                 null,
-                LocalDateTime.now(),
+                LocalDateTime.now(ZONE),
                 null
         );
 
@@ -92,7 +95,7 @@ class SafetyAlertControllerTest {
 
     @Test
     @DisplayName("triggerStaffAlert - manually triggers safety alert for table and returns 201 Created")
-    void triggerStaffAlert_success() {
+    void triggerStaffAlertSuccess() {
         SafetyAlertRequestDTO request = new SafetyAlertRequestDTO(SafetyAlertType.ANGEL_SHOT_LIME, "Suspicious person");
         SafetyAlertResponseDTO createdDto = new SafetyAlertResponseDTO(
                 10L,
@@ -103,7 +106,7 @@ class SafetyAlertControllerTest {
                 SafetyAlertStatus.ACTIVE,
                 "Suspicious person",
                 null,
-                LocalDateTime.now(),
+                LocalDateTime.now(ZONE),
                 null
         );
 
@@ -119,7 +122,7 @@ class SafetyAlertControllerTest {
 
     @Test
     @DisplayName("resolveAlert - acknowledges alert and returns updated DTO with 200 OK")
-    void resolveAlert_success() {
+    void resolveAlertSuccess() {
         SafetyAlertResolveRequestDTO resolveRequest = new SafetyAlertResolveRequestDTO("Sam (Server)");
 
         SafetyAlertResponseDTO resolvedDto = new SafetyAlertResponseDTO(
@@ -131,8 +134,8 @@ class SafetyAlertControllerTest {
                 SafetyAlertStatus.RESOLVED,
                 null,
                 "Sam (Server)",
-                LocalDateTime.now().minusMinutes(2),
-                LocalDateTime.now()
+                LocalDateTime.now(ZONE).minusMinutes(2),
+                LocalDateTime.now(ZONE)
         );
 
         Authentication auth = mock(Authentication.class);
@@ -148,7 +151,7 @@ class SafetyAlertControllerTest {
 
     @Test
     @DisplayName("resolveAlert - uses authenticated username when request body does not provide a name")
-    void resolveAlert_usesAuthUsername() {
+    void resolveAlertUsesAuthUsername() {
         SafetyAlertResponseDTO resolvedDto = new SafetyAlertResponseDTO(
                 1L,
                 3L,
@@ -158,8 +161,8 @@ class SafetyAlertControllerTest {
                 SafetyAlertStatus.RESOLVED,
                 null,
                 "alex_waiter",
-                LocalDateTime.now().minusMinutes(1),
-                LocalDateTime.now()
+                LocalDateTime.now(ZONE).minusMinutes(1),
+                LocalDateTime.now(ZONE)
         );
 
         Authentication auth = mock(Authentication.class);
@@ -175,7 +178,7 @@ class SafetyAlertControllerTest {
 
     @Test
     @DisplayName("getRestroomNoticePdf - returns binary PDF stream with appropriate headers")
-    void getRestroomNoticePdf_success() {
+    void getRestroomNoticePdfSuccess() {
         byte[] mockPdfBytes = "%PDF-1.4 mock pdf content".getBytes();
         when(pdfService.generateAngelShotNoticePdf()).thenReturn(mockPdfBytes);
 

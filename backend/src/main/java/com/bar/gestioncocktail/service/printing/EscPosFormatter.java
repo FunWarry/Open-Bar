@@ -31,48 +31,53 @@ public class EscPosFormatter {
     private static final String DEFAULT_APP_NAME = "OpenBar";
 
     /** Hardware printer initialization (ESC @). */
-    protected static final byte[] CMD_INIT = new byte[] { 0x1B, 0x40 };
+    protected static final byte[] CMD_INIT = { 0x1B, 0x40 };
 
     /** Left text alignment (ESC a 0). */
-    protected static final byte[] CMD_ALIGN_LEFT = new byte[] { 0x1B, 0x61, 0x00 };
+    protected static final byte[] CMD_ALIGN_LEFT = { 0x1B, 0x61, 0x00 };
 
     /** Centered text alignment (ESC a 1). */
-    protected static final byte[] CMD_ALIGN_CENTER = new byte[] { 0x1B, 0x61, 0x01 };
+    protected static final byte[] CMD_ALIGN_CENTER = { 0x1B, 0x61, 0x01 };
 
     /** Right text alignment (ESC a 2). */
-    protected static final byte[] CMD_ALIGN_RIGHT = new byte[] { 0x1B, 0x61, 0x02 };
+    protected static final byte[] CMD_ALIGN_RIGHT = { 0x1B, 0x61, 0x02 };
 
     /** Bold font style ON (ESC E 1). */
-    protected static final byte[] CMD_BOLD_ON = new byte[] { 0x1B, 0x45, 0x01 };
+    protected static final byte[] CMD_BOLD_ON = { 0x1B, 0x45, 0x01 };
 
     /** Bold font style OFF (ESC E 0). */
-    protected static final byte[] CMD_BOLD_OFF = new byte[] { 0x1B, 0x45, 0x00 };
+    protected static final byte[] CMD_BOLD_OFF = { 0x1B, 0x45, 0x00 };
 
     /** Double width and height ON (GS ! 0x11). */
-    protected static final byte[] CMD_DOUBLE_SIZE_ON = new byte[] { 0x1D, 0x21, 0x11 };
+    protected static final byte[] CMD_DOUBLE_SIZE_ON = { 0x1D, 0x21, 0x11 };
 
     /** Double height font ON (GS ! 0x01). */
-    protected static final byte[] CMD_DOUBLE_HEIGHT_ON = new byte[] { 0x1D, 0x21, 0x01 };
+    protected static final byte[] CMD_DOUBLE_HEIGHT_ON = { 0x1D, 0x21, 0x01 };
 
     /** Normal font size reset (GS ! 0x00). */
-    protected static final byte[] CMD_DOUBLE_SIZE_OFF = new byte[] { 0x1D, 0x21, 0x00 };
+    protected static final byte[] CMD_DOUBLE_SIZE_OFF = { 0x1D, 0x21, 0x00 };
 
     /** Full or partial paper cut (GS V 0). */
-    protected static final byte[] CMD_CUT_PAPER = new byte[] { 0x1D, 0x56, 0x00 };
+    protected static final byte[] CMD_CUT_PAPER = { 0x1D, 0x56, 0x00 };
 
     /** Cash drawer pulse kick command on pin 2 (ESC p 0 25 250). */
-    protected static final byte[] CMD_CASH_DRAWER = new byte[] { 0x1B, 0x70, 0x00, 0x19, (byte) 0xFA };
+    protected static final byte[] CMD_CASH_DRAWER = { 0x1B, 0x70, 0x00, 0x19, (byte) 0xFA };
 
     /** Character code table selection: CP850 Multilingual (ESC t 2). */
-    protected static final byte[] CMD_CODEPAGE_CP850 = new byte[] { 0x1B, 0x74, 0x02 };
+    protected static final byte[] CMD_CODEPAGE_CP850 = { 0x1B, 0x74, 0x02 };
 
     /** Line feed byte (LF / 0x0A). */
     protected static final byte LF = 0x0A;
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final DateTimeFormatter DATE_DAY_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final String PREFIX_DATE = "Date : ";
+    private static final String PREFIX_TIME = "Heure : ";
+    private static final String PREFIX_OPERATOR = "Operateur : ";
     private static final String DEFAULT_OPERATOR = "SYSTEM";
     private static final Charset CP850 = Charset.forName("Cp850");
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Formats a kitchen or bar preparation workstation order ticket.
@@ -812,30 +817,12 @@ public class EscPosFormatter {
     public byte[] formatTillOpeningSlip(CashDrawerSession session, EstablishmentConfig legalConfig, AppSettings appSettings) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            out.write(CMD_INIT);
-            out.write(CMD_CODEPAGE_CP850);
-            out.write(CMD_ALIGN_CENTER);
-            out.write(CMD_BOLD_ON);
-            writeText(out, resolveTradeName(legalConfig, appSettings));
-            out.write(LF);
-            out.write(CMD_BOLD_OFF);
-            writeText(out, "OUVERTURE DU TIROIR CAISSE");
-            out.write(LF);
-            writeText(out, repeat("=", LINE_WIDTH));
-            out.write(LF);
-            out.write(CMD_ALIGN_LEFT);
+            String opDate = session.getSessionDate() != null ? session.getSessionDate().format(DATE_DAY_FMT) : "";
+            String opTime = session.getOpenedAt() != null ? session.getOpenedAt().format(TIME_FMT) : "";
+            String opUser = session.getOpenedBy() != null ? session.getOpenedBy().getUsername() : DEFAULT_OPERATOR;
+            writeAuditSlipHeader(out, legalConfig, appSettings, "OUVERTURE DU TIROIR CAISSE", opDate, opTime, opUser);
 
             String currencySymbol = resolveCurrencySymbol(appSettings);
-            String opDate = session.getSessionDate() != null ? session.getSessionDate().format(DATE_DAY_FMT) : "";
-            String opTime = session.getOpenedAt() != null ? session.getOpenedAt().format(DateTimeFormatter.ofPattern("HH:mm:ss")) : "";
-            String opUser = session.getOpenedBy() != null ? session.getOpenedBy().getUsername() : DEFAULT_OPERATOR;
-
-            writeText(out, formatTwoColumns("Date : " + opDate, "Heure : " + opTime, LINE_WIDTH));
-            out.write(LF);
-            writeText(out, "Operateur : " + opUser);
-            out.write(LF);
-            writeText(out, repeat("-", LINE_WIDTH));
-            out.write(LF);
             out.write(CMD_BOLD_ON);
             writeText(out, formatTwoColumns("FOND INITIAL COMPTE :", formatAmount(session.getOpeningFloat(), currencySymbol), LINE_WIDTH));
             out.write(LF);
@@ -855,6 +842,147 @@ public class EscPosFormatter {
             throw new IllegalStateException("Failed to format till opening slip", e);
         }
         return out.toByteArray();
+    }
+
+    /**
+     * Formats an official cash drawer closing & physical cash audit slip on 80mm thermal paper.
+     * Complies with NF525 and cash audit standards.
+     *
+     * @param session Cash drawer session entity with closure and discrepancy data
+     * @param legalConfig Legal establishment details
+     * @param appSettings Visual and currency configuration
+     * @return ESC/POS raw binary byte stream
+     */
+    public byte[] formatTillClosingSlip(CashDrawerSession session, EstablishmentConfig legalConfig, AppSettings appSettings) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            String opDate = session.getSessionDate() != null ? session.getSessionDate().format(DATE_DAY_FMT) : "";
+            String opTime = session.getClosedAt() != null ? session.getClosedAt().format(TIME_FMT) : "";
+            String opUser = session.getClosedBy() != null ? session.getClosedBy().getUsername() : DEFAULT_OPERATOR;
+            writeAuditSlipHeader(out, legalConfig, appSettings, "CLOTURE & AUDIT DU TIROIR CAISSE", opDate, opTime, opUser);
+
+            String currencySymbol = resolveCurrencySymbol(appSettings);
+            writeText(out, formatTwoColumns("Fond initial compte :", formatAmount(session.getOpeningFloat(), currencySymbol), LINE_WIDTH));
+            out.write(LF);
+            if (session.getTheoreticalCash() != null) {
+                writeText(out, formatTwoColumns("Solde theorique attendu :", formatAmount(session.getTheoreticalCash(), currencySymbol), LINE_WIDTH));
+                out.write(LF);
+            }
+            out.write(CMD_BOLD_ON);
+            BigDecimal actual = session.getActualCash() != null ? session.getActualCash() : session.getOpeningFloat();
+            writeText(out, formatTwoColumns("ESPECES COMPTEES :", formatAmount(actual, currencySymbol), LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_BOLD_OFF);
+
+            BigDecimal variance = session.getCashVariance() != null ? session.getCashVariance() : BigDecimal.ZERO;
+            BigDecimal tolerance = appSettings != null && appSettings.getCashDiscrepancyToleranceThreshold() != null
+                    ? appSettings.getCashDiscrepancyToleranceThreshold()
+                    : new BigDecimal("5.00");
+
+            writeText(out, repeat("-", LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_BOLD_ON);
+            String varianceLabel = resolveVarianceLabel(variance);
+            writeText(out, formatTwoColumns(varianceLabel, formatAmount(variance, currencySymbol), LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_BOLD_OFF);
+
+            if (variance.abs().compareTo(tolerance) > 0) {
+                out.write(CMD_BOLD_ON);
+                writeText(out, "!! ALERTE SEUIL TOLERANCE DEPASSE !!");
+                out.write(LF);
+                out.write(CMD_BOLD_OFF);
+            }
+
+            if (session.getNotes() != null && !session.getNotes().isBlank()) {
+                writeText(out, "Justification : " + session.getNotes());
+                out.write(LF);
+            }
+
+            appendDenominationsBreakdown(out, session.getClosingDenominationsJson());
+
+            writeText(out, repeat("=", LINE_WIDTH));
+            out.write(LF);
+            out.write(CMD_ALIGN_CENTER);
+            writeText(out, "Caisse cloturee - Audit certifie");
+            out.write(LF);
+            feedAndCut(out, 4);
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to format till closing slip", e);
+        }
+        return out.toByteArray();
+    }
+
+    private void writeAuditSlipHeader(ByteArrayOutputStream out, EstablishmentConfig legalConfig, AppSettings appSettings,
+                                     String title, String opDate, String opTime, String opUser) throws IOException {
+        out.write(CMD_INIT);
+        out.write(CMD_CODEPAGE_CP850);
+        out.write(CMD_ALIGN_CENTER);
+        out.write(CMD_BOLD_ON);
+        writeText(out, resolveTradeName(legalConfig, appSettings));
+        out.write(LF);
+        out.write(CMD_BOLD_OFF);
+        writeText(out, title);
+        out.write(LF);
+        writeText(out, repeat("=", LINE_WIDTH));
+        out.write(LF);
+        out.write(CMD_ALIGN_LEFT);
+
+        writeText(out, formatTwoColumns(PREFIX_DATE + opDate, PREFIX_TIME + opTime, LINE_WIDTH));
+        out.write(LF);
+        writeText(out, PREFIX_OPERATOR + opUser);
+        out.write(LF);
+        writeText(out, repeat("-", LINE_WIDTH));
+        out.write(LF);
+    }
+
+    private String resolveVarianceLabel(BigDecimal variance) {
+        if (variance.compareTo(BigDecimal.ZERO) == 0) {
+            return "ECART DE CAISSE :";
+        }
+        if (variance.compareTo(BigDecimal.ZERO) > 0) {
+            return "EXCEDENT DE CAISSE :";
+        }
+        return "DEFICIT DE CAISSE :";
+    }
+
+    private int extractCount(Object value) {
+        if (value instanceof Number n) {
+            return n.intValue();
+        }
+        if (value != null) {
+            try {
+                return Integer.parseInt(value.toString());
+            } catch (NumberFormatException _) {
+                // Return 0 if not an integer
+            }
+        }
+        return 0;
+    }
+
+    private void appendDenominationsBreakdown(ByteArrayOutputStream out, String denominationsJson) throws IOException {
+        if (denominationsJson == null || denominationsJson.isBlank()) {
+            return;
+        }
+        try {
+            java.util.Map<String, Object> map = objectMapper.readValue(denominationsJson, new TypeReference<>() {});
+            if (map.isEmpty()) {
+                return;
+            }
+            writeText(out, repeat("-", LINE_WIDTH));
+            out.write(LF);
+            writeText(out, "DETAIL DES COUPURES COMPTEES :");
+            out.write(LF);
+            for (java.util.Map.Entry<String, Object> entry : map.entrySet()) {
+                int count = extractCount(entry.getValue());
+                if (count > 0) {
+                    writeText(out, formatTwoColumns(" - " + entry.getKey() + " :", count + " pcs", LINE_WIDTH));
+                    out.write(LF);
+                }
+            }
+        } catch (Exception _) {
+            // Ignore parsing error on optional breakdown details
+        }
     }
 
     /**
@@ -952,11 +1080,11 @@ public class EscPosFormatter {
 
             String currencySymbol = resolveCurrencySymbol(appSettings);
             String dateStr = xReport.reportDate() != null ? xReport.reportDate().format(DATE_DAY_FMT) : "";
-            String timeStr = xReport.generatedAt() != null ? xReport.generatedAt().format(DateTimeFormatter.ofPattern("HH:mm:ss")) : "";
+            String timeStr = xReport.generatedAt() != null ? xReport.generatedAt().format(TIME_FMT) : "";
 
-            writeText(out, formatTwoColumns("Date : " + dateStr, "Heure : " + timeStr, LINE_WIDTH));
+            writeText(out, formatTwoColumns(PREFIX_DATE + dateStr, PREFIX_TIME + timeStr, LINE_WIDTH));
             out.write(LF);
-            writeText(out, "Operateur : " + (xReport.generatedBy() != null ? xReport.generatedBy() : DEFAULT_OPERATOR));
+            writeText(out, PREFIX_OPERATOR + (xReport.generatedBy() != null ? xReport.generatedBy() : DEFAULT_OPERATOR));
             out.write(LF);
 
             writeText(out, repeat("-", LINE_WIDTH));

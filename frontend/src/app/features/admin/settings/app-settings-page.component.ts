@@ -804,6 +804,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       tpePort: [8888, [Validators.min(1), Validators.max(65535)]],
       tpeTerminalId: ['POS01', [Validators.maxLength(50)]],
       tpeTimeoutSeconds: [90, [Validators.min(5), Validators.max(300)]],
+      cashDiscrepancyToleranceThreshold: [5.0, [Validators.required, Validators.min(0), Validators.max(1000)]],
     }, { validators: [thresholdPriorityValidator, marginThresholdPriorityValidator] });
 
     const currentColors = this.themeService.currentCustomColors;

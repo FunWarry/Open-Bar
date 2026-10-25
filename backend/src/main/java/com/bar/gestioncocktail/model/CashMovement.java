@@ -53,6 +53,12 @@ public class CashMovement {
     @Column(name = "receipt_reference", length = 100)
     private String receiptReference;
 
+    /**
+     * Optional physical denomination breakdown counted during this cash movement serialized in JSON.
+     */
+    @Column(name = "denominations_json", columnDefinition = "TEXT")
+    private String denominationsJson;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "performed_by_id", nullable = false)
     private User performedBy;

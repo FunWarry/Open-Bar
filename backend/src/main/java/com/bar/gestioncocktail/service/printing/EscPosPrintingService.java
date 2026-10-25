@@ -290,6 +290,29 @@ public class EscPosPrintingService {
     }
 
     /**
+     * Prints an official cash drawer closing & cash audit slip on the cash desk printer.
+     *
+     * @param sessionId Cash drawer session ID
+     * @return Execution result report
+     */
+    public PrintResultDTO printTillClosingSlip(Long sessionId) {
+        CashDrawerSession session = cashDrawerSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cash drawer session not found with ID: " + sessionId));
+
+        AppSettings settings = appSettingsService.getSettings();
+        int port = settings.getPrinterPort() != null ? settings.getPrinterPort() : 9100;
+        String cashDeskIp = settings.getCashDeskPrinterIp();
+
+        if (cashDeskIp == null || cashDeskIp.isBlank()) {
+            return new PrintResultDTO(false, PrinterRole.CASH_DESK.name(), null, port, CASH_DESK_IP_NOT_CONFIGURED, 0);
+        }
+
+        EstablishmentConfig legalConfig = establishmentConfigService.getConfig();
+        byte[] data = escPosFormatter.formatTillClosingSlip(session, legalConfig, settings);
+        return sendSafely(cashDeskIp, port, data, PrinterRole.CASH_DESK);
+    }
+
+    /**
      * Prints a cash movement audit slip on the cash desk printer.
      *
      * @param movementId Cash movement ID

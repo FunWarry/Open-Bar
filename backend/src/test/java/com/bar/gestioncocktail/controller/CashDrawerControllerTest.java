@@ -261,4 +261,55 @@ class CashDrawerControllerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().success()).isTrue();
     }
+
+    @Test
+    @DisplayName("closeDrawer - returns 200 with closed session")
+    void testCloseDrawer() {
+        CashDrawerCloseRequestDTO req = new CashDrawerCloseRequestDTO(
+                new BigDecimal("350.00"),
+                "{\"50e\": 7}",
+                "Closing register"
+        );
+        CashDrawerSessionDTO closedSession = new CashDrawerSessionDTO(
+                1L,
+                testDate,
+                CashDrawerSessionStatus.CLOSED,
+                testDate.atTime(9, 0),
+                testDate.atTime(23, 30),
+                null,
+                null,
+                new BigDecimal("150.00"),
+                "{\"50e\": 7}",
+                "{\"50e\": 7}",
+                new BigDecimal("350.00"),
+                new BigDecimal("350.00"),
+                BigDecimal.ZERO,
+                "Closing register",
+                testDate.atTime(9, 0),
+                testDate.atTime(23, 30)
+        );
+
+        when(cashDrawerService.closeDrawer(req, "testuser")).thenReturn(closedSession);
+
+        ResponseEntity<CashDrawerSessionDTO> response = controller.closeDrawer(req, authentication);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().status()).isEqualTo(CashDrawerSessionStatus.CLOSED);
+        assertThat(response.getBody().cashVariance()).isEqualByComparingTo("0.00");
+    }
+
+    @Test
+    @DisplayName("printTillClosingSlip - returns 200 with print result")
+    void testPrintTillClosingSlip() {
+        PrintResultDTO printResult = PrintResultDTO.success(PrinterRole.CASH_DESK, "192.168.1.103", 9100, "Till closing slip printed");
+        when(printingService.printTillClosingSlip(1L)).thenReturn(printResult);
+
+        ResponseEntity<PrintResultDTO> response = controller.printTillClosingSlip(1L);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().success()).isTrue();
+    }
 }
+

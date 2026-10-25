@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.CashDrawerCloseRequestDTO;
 import com.bar.gestioncocktail.dto.CashDrawerOpenRequestDTO;
 import com.bar.gestioncocktail.dto.CashDrawerSessionDTO;
 import com.bar.gestioncocktail.dto.CashDrawerStatusDTO;
@@ -96,6 +97,26 @@ public class CashDrawerController {
             Authentication auth) {
         String username = auth != null ? auth.getName() : DEFAULT_OPERATOR;
         return ResponseEntity.ok(cashDrawerService.openDrawer(request, username));
+    }
+
+    /**
+     * Closes the active physical cash drawer register session with counted cash,
+     * reconciles discrepancies against theoretical sales, and prints thermal closing slip.
+     *
+     * @param request Closing parameters, physical count and discrepancy notes
+     * @param auth Current authenticated security context
+     * @return Closed cash drawer session DTO
+     */
+    @PostMapping("/close")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'BARMAN')")
+    @Operation(summary = "Close cash drawer till", description = "Records shift drawer closing with counted cash, discrepancy reconciliation and thermal audit print")
+    @ApiResponse(responseCode = "200", description = "Cash drawer session closed successfully")
+    @ApiResponse(responseCode = "400", description = "No open cash drawer session or missing justification for discrepancy")
+    public ResponseEntity<CashDrawerSessionDTO> closeDrawer(
+            @Valid @RequestBody CashDrawerCloseRequestDTO request,
+            Authentication auth) {
+        String username = auth != null ? auth.getName() : DEFAULT_OPERATOR;
+        return ResponseEntity.ok(cashDrawerService.closeDrawer(request, username));
     }
 
     /**
@@ -208,6 +229,21 @@ public class CashDrawerController {
     @ApiResponse(responseCode = "404", description = "Session not found")
     public ResponseEntity<PrintResultDTO> printTillOpeningSlip(@PathVariable Long sessionId) {
         return ResponseEntity.ok(printingService.printTillOpeningSlip(sessionId));
+    }
+
+    /**
+     * Prints an official cash drawer closing & audit slip on the thermal printer.
+     *
+     * @param sessionId Cash drawer session ID
+     * @return Print dispatch result report
+     */
+    @PostMapping("/session/{sessionId}/print-closing")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'BARMAN')")
+    @Operation(summary = "Print till closing and audit slip", description = "Prints an 80mm audit slip for a closed cash drawer session")
+    @ApiResponse(responseCode = "200", description = "Print job dispatched successfully")
+    @ApiResponse(responseCode = "404", description = "Session not found")
+    public ResponseEntity<PrintResultDTO> printTillClosingSlip(@PathVariable Long sessionId) {
+        return ResponseEntity.ok(printingService.printTillClosingSlip(sessionId));
     }
 
     /**

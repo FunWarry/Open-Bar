@@ -221,26 +221,31 @@ describe('EncaissementModalComponent', () => {
   it('should return primary cash increments dynamically for EUR', () => {
     spyOnProperty(appSettingsService, 'currencyCode', 'get').and.returnValue('EUR');
     spyOn(appSettingsService, 'getCashDenominations').and.returnValue(DEFAULT_EUR_DENOMINATIONS);
-    expect(component.primaryCashIncrements).toEqual([5, 10, 20, 50, 100]);
+    expect(component.primaryCashIncrements.map(d => d.value)).toEqual([5, 10, 20, 50, 100]);
   });
 
   it('should return primary cash increments dynamically for USD, CHF, and JPY', () => {
     spyOnProperty(appSettingsService, 'currencyCode', 'get').and.returnValue('USD');
     spyOn(appSettingsService, 'getCashDenominations').and.returnValue(DEFAULT_USD_DENOMINATIONS);
-    expect(component.primaryCashIncrements).toEqual([1, 5, 10, 20, 50, 100]);
+    expect(component.primaryCashIncrements.map(d => d.value)).toEqual([1, 2, 5, 10, 20, 50, 100]);
 
     (Object.getOwnPropertyDescriptor(appSettingsService, 'currencyCode')?.get as jasmine.Spy).and.returnValue('CHF');
     (appSettingsService.getCashDenominations as jasmine.Spy).and.returnValue(DEFAULT_CHF_DENOMINATIONS);
-    expect(component.primaryCashIncrements).toEqual([10, 20, 50, 100]);
+    expect(component.primaryCashIncrements.map(d => d.value)).toEqual([10, 20, 50, 100]);
 
     (Object.getOwnPropertyDescriptor(appSettingsService, 'currencyCode')?.get as jasmine.Spy).and.returnValue('JPY');
     (appSettingsService.getCashDenominations as jasmine.Spy).and.returnValue(DEFAULT_JPY_DENOMINATIONS);
-    expect(component.primaryCashIncrements).toEqual([1000, 2000, 5000, 10000]);
+    expect(component.primaryCashIncrements.map(d => d.value)).toEqual([1000, 2000, 5000, 10000]);
   });
 
   it('should fallback to default increments if denominations contain no bills', () => {
     spyOn(appSettingsService, 'getCashDenominations').and.returnValue([]);
-    expect(component.primaryCashIncrements).toEqual([5, 10, 20, 50]);
+    expect(component.primaryCashIncrements.map(d => d.value)).toEqual([5, 10, 20, 50, 100]);
+  });
+
+  it('should fallback to default coin increments if denominations contain no coins', () => {
+    spyOn(appSettingsService, 'getCashDenominations').and.returnValue([]);
+    expect(component.primaryCoinIncrements.map(d => d.value)).toEqual([0.01, 0.02, 0.05, 0.10, 0.20, 0.50, 1, 2]);
   });
 
   it('should calculate intelligent smart cash suggestions for different amounts', () => {
@@ -316,6 +321,38 @@ describe('EncaissementModalComponent', () => {
 
     expect(component.montantRecu).toBe(30.0);
     expect(component.monnaieARendre).toBe(2.0);
+  });
+
+  it('should support coin increments and compute optimal change breakdown accurately', () => {
+    component.addition = mockAddition; // 28.00 €
+    component.modePaiement = 'ESPECES';
+    component.montantRecu = 30.0;
+    expect(component.monnaieARendre).toBe(2.0);
+
+    const breakdown2 = component.optimalChangeBreakdown;
+    expect(breakdown2).toHaveSize(1);
+    expect(breakdown2[0].value).toBe(2);
+    expect(breakdown2[0].count).toBe(1);
+    expect(breakdown2[0].type).toBe('coin');
+
+    // Add a 0.50€ coin and a 2€ coin
+    component.ajouterEspeces(0.50);
+    component.ajouterEspeces(2.00);
+    expect(component.montantRecu).toBe(32.50);
+    expect(component.monnaieARendre).toBe(4.50);
+
+    const breakdown450 = component.optimalChangeBreakdown;
+    // 4.50 € -> 2x 2€ + 1x 0.50€
+    expect(breakdown450).toEqual([
+      jasmine.objectContaining({ value: 2, count: 2, type: 'coin' }),
+      jasmine.objectContaining({ value: 0.5, count: 1, type: 'coin' })
+    ]);
+
+    // Test clear cash
+    component.effacerMontantRecu();
+    expect(component.montantRecu).toBeNull();
+    expect(component.monnaieARendre).toBe(0);
+    expect(component.optimalChangeBreakdown).toEqual([]);
   });
 
   it('should submit single table payment and dismiss with settled invoice', fakeAsync(() => {

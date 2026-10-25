@@ -111,6 +111,9 @@ public class AppSettingsService {
         if (request.cashDenominationsJson() != null) {
             current.setCashDenominationsJson(request.cashDenominationsJson());
         }
+        if (request.cashDiscrepancyToleranceThreshold() != null) {
+            current.setCashDiscrepancyToleranceThreshold(request.cashDiscrepancyToleranceThreshold());
+        }
         if (request.storageLocationsJson() != null) {
             current.setStorageLocationsJson(request.storageLocationsJson());
         }

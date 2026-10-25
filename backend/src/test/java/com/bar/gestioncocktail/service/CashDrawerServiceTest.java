@@ -305,4 +305,159 @@ class CashDrawerServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Cash drawer management module is disabled");
     }
+
+    @Test
+    @DisplayName("closeDrawer: successfully closes balanced session")
+    void testCloseDrawerBalancedSuccess() {
+        CashDrawerSession session = new CashDrawerSession();
+        session.setId(1L);
+        session.setSessionDate(testDate);
+        session.setOpeningFloat(new BigDecimal("150.00"));
+        session.setStatus(CashDrawerSessionStatus.OPEN);
+
+        when(userRepository.findByUsername("manager")).thenReturn(Optional.of(testOperator));
+        when(sessionRepository.findBySessionDateAndStatus(any(LocalDate.class), eq(CashDrawerSessionStatus.OPEN)))
+                .thenReturn(Optional.of(session));
+        when(factureService.getDailyRecap(any(LocalDate.class))).thenReturn(testRecap);
+        when(movementRepository.findByMovementDateOrderByTimestampAsc(any(LocalDate.class))).thenReturn(List.of());
+        when(sessionRepository.save(any(CashDrawerSession.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CashDrawerCloseRequestDTO req = new CashDrawerCloseRequestDTO(
+                new BigDecimal("350.00"), // 150 float + 200 sales = 350 theoretical
+                "{\"50e\": 7}",
+                null
+        );
+
+        CashDrawerSessionDTO closed = service.closeDrawer(req, "manager");
+
+        assertThat(closed).isNotNull();
+        assertThat(closed.status()).isEqualTo(CashDrawerSessionStatus.CLOSED);
+        assertThat(closed.actualCash()).isEqualByComparingTo("350.00");
+        assertThat(closed.theoreticalCash()).isEqualByComparingTo("350.00");
+        assertThat(closed.cashVariance()).isEqualByComparingTo("0.00");
+        assertThat(closed.closingDenominationsJson()).isEqualTo("{\"50e\": 7}");
+        verify(auditLogService).logAction(eq(testOperator), eq("CLOSE_CASH_DRAWER"), eq("CASH_DRAWER"), eq(1L), contains("Actual: 350.00"), isNull());
+    }
+
+    @Test
+    @DisplayName("closeDrawer: requires justification note when variance is present")
+    void testCloseDrawerDiscrepancyMissingJustificationThrows() {
+        CashDrawerSession session = new CashDrawerSession();
+        session.setId(1L);
+        session.setSessionDate(testDate);
+        session.setOpeningFloat(new BigDecimal("150.00"));
+        session.setStatus(CashDrawerSessionStatus.OPEN);
+
+        when(userRepository.findByUsername("manager")).thenReturn(Optional.of(testOperator));
+        when(sessionRepository.findBySessionDateAndStatus(any(LocalDate.class), eq(CashDrawerSessionStatus.OPEN)))
+                .thenReturn(Optional.of(session));
+        when(factureService.getDailyRecap(any(LocalDate.class))).thenReturn(testRecap);
+        when(movementRepository.findByMovementDateOrderByTimestampAsc(any(LocalDate.class))).thenReturn(List.of());
+
+        CashDrawerCloseRequestDTO reqWithoutNote = new CashDrawerCloseRequestDTO(
+                new BigDecimal("345.00"), // 5€ short
+                "{\"50e\": 6, \"20e\": 2, \"5e\": 1}",
+                "   " // empty note
+        );
+
+        assertThatThrownBy(() -> service.closeDrawer(reqWithoutNote, "manager"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("A justification note is mandatory");
+    }
+
+    @Test
+    @DisplayName("closeDrawer: accepts justified discrepancy note")
+    void testCloseDrawerDiscrepancyWithJustificationSuccess() {
+        CashDrawerSession session = new CashDrawerSession();
+        session.setId(1L);
+        session.setSessionDate(testDate);
+        session.setOpeningFloat(new BigDecimal("150.00"));
+        session.setStatus(CashDrawerSessionStatus.OPEN);
+
+        when(userRepository.findByUsername("manager")).thenReturn(Optional.of(testOperator));
+        when(sessionRepository.findBySessionDateAndStatus(any(LocalDate.class), eq(CashDrawerSessionStatus.OPEN)))
+                .thenReturn(Optional.of(session));
+        when(factureService.getDailyRecap(any(LocalDate.class))).thenReturn(testRecap);
+        when(movementRepository.findByMovementDateOrderByTimestampAsc(any(LocalDate.class))).thenReturn(List.of());
+        when(sessionRepository.save(any(CashDrawerSession.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CashDrawerCloseRequestDTO reqWithNote = new CashDrawerCloseRequestDTO(
+                new BigDecimal("345.00"), // -5€ variance
+                "{\"50e\": 6, \"20e\": 2, \"5e\": 1}",
+                "Erreur de rendu de monnaie lors du rush 21h"
+        );
+
+        CashDrawerSessionDTO closed = service.closeDrawer(reqWithNote, "manager");
+
+        assertThat(closed).isNotNull();
+        assertThat(closed.status()).isEqualTo(CashDrawerSessionStatus.CLOSED);
+        assertThat(closed.actualCash()).isEqualByComparingTo("345.00");
+        assertThat(closed.theoreticalCash()).isEqualByComparingTo("350.00");
+        assertThat(closed.cashVariance()).isEqualByComparingTo("-5.00");
+        assertThat(closed.notes()).isEqualTo("Erreur de rendu de monnaie lors du rush 21h");
+    }
+
+    @Test
+    @DisplayName("recordMovement: preserves denominationsJson when provided")
+    void testRecordMovementWithDenominationsJson() {
+        CashDrawerSession session = new CashDrawerSession();
+        session.setId(1L);
+        session.setSessionDate(testDate);
+        session.setOpeningFloat(new BigDecimal("150.00"));
+        session.setStatus(CashDrawerSessionStatus.OPEN);
+
+        when(closureRepository.existsByClosureDate(any(LocalDate.class))).thenReturn(false);
+        when(sessionRepository.findBySessionDateAndStatus(any(LocalDate.class), eq(CashDrawerSessionStatus.OPEN)))
+                .thenReturn(Optional.of(session));
+        when(userRepository.findByUsername("manager")).thenReturn(Optional.of(testOperator));
+        when(movementRepository.save(any(CashMovement.class))).thenAnswer(inv -> {
+            CashMovement m = inv.getArgument(0);
+            m.setId(10L);
+            return m;
+        });
+
+        CashMovementRequestDTO req = new CashMovementRequestDTO(
+                CashMovementType.CASH_IN,
+                new BigDecimal("50.00"),
+                "Adding change float",
+                "REF-42",
+                "{\"10e\": 3, \"5e\": 4}"
+        );
+
+        CashMovementDTO recorded = service.recordMovement(req, "manager");
+
+        assertThat(recorded).isNotNull();
+        assertThat(recorded.amount()).isEqualByComparingTo("50.00");
+        assertThat(recorded.denominationsJson()).isEqualTo("{\"10e\": 3, \"5e\": 4}");
+    }
+
+    @Test
+    @DisplayName("closeActiveSessionOnDailyClosure: records detailed physical count and discrepancy")
+    void testCloseActiveSessionOnDailyClosureWithDetails() {
+        CashDrawerSession session = new CashDrawerSession();
+        session.setId(1L);
+        session.setSessionDate(testDate);
+        session.setOpeningFloat(new BigDecimal("150.00"));
+        session.setStatus(CashDrawerSessionStatus.OPEN);
+
+        when(sessionRepository.findBySessionDateAndStatus(testDate, CashDrawerSessionStatus.OPEN))
+                .thenReturn(Optional.of(session));
+        when(sessionRepository.save(any(CashDrawerSession.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.closeActiveSessionOnDailyClosure(
+                testDate,
+                testOperator,
+                new BigDecimal("350.00"),
+                "{\"50e\": 7}",
+                "Session closing via Z-Report",
+                new BigDecimal("350.00"),
+                BigDecimal.ZERO
+        );
+
+        assertThat(session.getStatus()).isEqualTo(CashDrawerSessionStatus.CLOSED);
+        assertThat(session.getActualCash()).isEqualByComparingTo("350.00");
+        assertThat(session.getClosingDenominationsJson()).isEqualTo("{\"50e\": 7}");
+        assertThat(session.getCashVariance()).isEqualByComparingTo("0.00");
+    }
 }
+

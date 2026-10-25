@@ -83,12 +83,11 @@
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
     ion-icon {
       font-size: 1.1rem;
       color: var(--primary);
-      transition: transform 0.2s ease;
     }
 
     &:hover {
@@ -126,7 +125,7 @@
     font-weight: 600;
     cursor: pointer;
     white-space: nowrap;
-    transition: all 0.2s ease-in-out;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
 
     ion-icon {
       font-size: 1.15rem;
@@ -274,7 +273,7 @@ ion-col {
     background: var(--background-surface-2, #1a1d30);
     border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.08));
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
     .cadence-name {
       font-size: 0.88rem;
@@ -311,7 +310,7 @@ ion-col {
     background: var(--background-surface-2);
     border: 1px solid var(--border-medium);
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
     color: var(--text-primary);
@@ -342,7 +341,7 @@ ion-col {
         color: var(--primary);
         font-size: 1.15rem;
         flex-shrink: 0;
-        transition: all 0.2s ease;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
       }
 
       .preset-name {
@@ -457,7 +456,7 @@ ion-col {
       font-weight: 700;
       cursor: pointer;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
       &:hover {
         background: var(--primary, #4338ca);
@@ -592,7 +591,7 @@ ion-col {
     border: 2px solid var(--text-on-accent);
     box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 50%, transparent), 0 0 0 1px color-mix(in srgb, var(--primary) 30%, transparent);
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: box-shadow 0.15s ease;
   }
 
   &::-moz-range-thumb {
@@ -603,7 +602,7 @@ ion-col {
     border: 2px solid var(--text-on-accent);
     box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 50%, transparent), 0 0 0 1px color-mix(in srgb, var(--primary) 30%, transparent);
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: box-shadow 0.15s ease;
   }
 
   &:hover::-webkit-slider-thumb {
@@ -712,7 +711,7 @@ ion-col {
   background: var(--background-surface-2, #1a1d30);
   border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.1));
   border-left: 4px solid var(--semantic-success, #10b981);
-  transition: all 0.3s ease;
+  transition: border-left-color 0.3s ease, background-color 0.3s ease;
 
   &.status-normal { border-left-color: var(--semantic-success, #10b981); }
   &.status-warning { border-left-color: var(--semantic-warning, #f59e0b); }
@@ -967,7 +966,7 @@ ion-col {
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
   ion-icon {
     font-size: 0.95rem;
@@ -1041,7 +1040,7 @@ ion-col {
     border-radius: 8px;
     background: var(--background-surface-1, #121422);
     border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.1));
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
     &.bill-tag {
       border-color: rgba(108, 127, 232, 0.3);
@@ -1088,7 +1087,7 @@ ion-col {
       color: var(--text-muted, #64748b);
       cursor: pointer;
       padding: 0;
-      transition: all 0.15s ease;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
       ion-icon {
         font-size: 0.9rem;
@@ -1156,7 +1155,7 @@ ion-col {
       font-size: 0.8rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
       ion-icon {
         font-size: 0.95rem;
@@ -1216,7 +1215,7 @@ ion-col {
     font-size: 0.85rem;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
     ion-icon {
       font-size: 1rem;
@@ -1281,7 +1280,7 @@ ion-col {
       font-size: 0.8rem;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
       text-align: center;
 
       &:hover {
@@ -1385,7 +1384,7 @@ ion-col {
     border-radius: 10px;
     background: var(--background-surface-1);
     border: 1px solid var(--border-medium);
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
     &.percent-tier {
       border-color: rgba(108, 127, 232, 0.35);
@@ -1448,7 +1447,7 @@ ion-col {
       color: var(--text-muted);
       cursor: pointer;
       padding: 0;
-      transition: all 0.15s ease;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
       ion-icon {
         font-size: 0.95rem;
@@ -1517,7 +1516,7 @@ ion-col {
       font-size: 0.8rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
       &.active {
         background: var(--background-surface-2);
@@ -1581,7 +1580,7 @@ ion-col {
     font-size: 0.85rem;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
     ion-icon {
       font-size: 1rem;
@@ -1652,7 +1651,7 @@ ion-col {
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
     .preset-color-dot {
       width: 12px;
@@ -1911,6 +1910,10 @@ ion-col {
       background-color: var(--semantic-warning);
       box-shadow: 0 0 8px var(--semantic-warning);
       animation: pulseAmber 1.2s infinite;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
     }
 
     .solid-green-dot {
@@ -1941,7 +1944,7 @@ ion-col {
       cursor: pointer;
       white-space: nowrap;
       flex-shrink: 0;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
       &:hover:not(:disabled) {
         background: var(--background-surface-3);
@@ -1969,7 +1972,7 @@ ion-col {
       cursor: not-allowed;
       white-space: nowrap;
       flex-shrink: 0;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
       ion-spinner {
         width: 18px;
@@ -2344,7 +2347,7 @@ ion-col {
   background: var(--background-surface-2);
   color: var(--text-muted);
   border: 1px solid var(--border-medium);
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
   &.active,
   &.always-active {
@@ -2376,7 +2379,7 @@ ion-col {
   border-radius: 10px;
   background: var(--background-surface-1);
   border: 1px solid var(--border-medium);
-  transition: all 0.25s ease;
+  transition: border-color 0.25s ease, background-color 0.25s ease;
 
   .node-icon-box {
     display: flex;
@@ -2389,7 +2392,7 @@ ion-col {
     color: var(--text-secondary);
     font-size: 1.1rem;
     flex-shrink: 0;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   }
 
   .node-info {
@@ -2464,7 +2467,7 @@ ion-col {
     font-weight: 700;
     cursor: pointer;
     box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent);
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
     ion-icon {
       font-size: 1.15rem;
@@ -2503,7 +2506,7 @@ ion-col {
     font-size: 0.86rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
     ion-icon {
       font-size: 1.1rem;
@@ -2624,7 +2627,7 @@ ion-col {
     font-weight: 600;
     cursor: pointer;
     box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent);
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
     ion-icon {
       font-size: 1.15rem;
@@ -2801,7 +2804,7 @@ ion-col {
   border-radius: var(--radius-lg, 12px);
   padding: 16px;
   gap: 14px;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   position: relative;
 
   &:hover {
@@ -2880,7 +2883,7 @@ ion-col {
       font-size: 0.95rem;
       font-weight: 700;
       color: var(--text-primary);
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
       &:hover {
         border-color: var(--border-medium);
@@ -2917,7 +2920,7 @@ ion-col {
         border: 1px solid transparent;
         color: var(--text-muted);
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
         ion-icon {
           font-size: 1.15rem;
@@ -3050,7 +3053,7 @@ ion-col {
       font-size: 0.8rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
       ion-icon {
         font-size: 1rem;
@@ -3096,7 +3099,7 @@ ion-col {
   color: var(--text-primary);
   font-size: 0.85rem;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
   &::placeholder {
     color: var(--text-muted);
@@ -3124,7 +3127,7 @@ ion-col {
   font-size: 0.85rem;
   font-family: inherit;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
   option {
     background: var(--background-surface-1);
@@ -3227,7 +3230,7 @@ ion-col {
       background: var(--background-surface-1);
       border: 1px solid var(--border-medium);
       border-radius: var(--radius-md, 10px);
-      transition: border-color 0.2s ease, transform 0.15s ease;
+      transition: border-color 0.2s ease;
 
       &:hover {
         border-color: color-mix(in srgb, var(--primary) 50%, var(--border-medium));
@@ -3352,6 +3355,4 @@ ion-col {
     }
   }
 }
-
-
 

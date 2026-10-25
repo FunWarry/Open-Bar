@@ -112,7 +112,16 @@ public class DailyCashClosureService {
         DailyCashClosure saved = closureRepository.save(closure);
 
         if (cashDrawerService != null) {
-            cashDrawerService.closeActiveSessionOnDailyClosure(date, operator);
+            String countingJson = serializeJson(request.countingBreakdown());
+            cashDrawerService.closeActiveSessionOnDailyClosure(
+                    date,
+                    operator,
+                    countedCash,
+                    countingJson,
+                    request.discrepancyReason(),
+                    theoreticalCash,
+                    cashDiscrepancy
+            );
         }
 
         log.info("Daily register successfully closed: Number={}, Date={}, TotalTTC={}, Discrepancy={}",

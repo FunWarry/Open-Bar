@@ -58,6 +58,7 @@ export interface AppSettings {
   tpeTerminalId?: string;
   tpeTimeoutSeconds?: number;
   cashDenominationsJson?: string;
+  cashDiscrepancyToleranceThreshold?: number;
   discountTiersJson?: string;
   storageLocationsJson?: string;
   printersJson?: string;

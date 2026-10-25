@@ -27,6 +27,9 @@ export interface CashDrawerSession {
   openedBy?: UserSummary | null;
   closedBy?: UserSummary | null;
   openingFloat: number;
+  theoreticalCash?: number | null;
+  actualCash?: number | null;
+  cashVariance?: number | null;
   countedFloatAtClose?: number | null;
   theoreticalCashAtClose?: number | null;
   cashDiscrepancy?: number | null;
@@ -43,6 +46,7 @@ export interface CashMovement {
   amount: number;
   reason: string;
   receiptReference?: string | null;
+  denominationsJson?: string | null;
   timestamp: string;
   performedBy?: UserSummary | null;
 }
@@ -69,11 +73,18 @@ export interface CashDrawerOpenRequest {
   notes?: string;
 }
 
+export interface CashDrawerCloseRequest {
+  countedCash: number;
+  denominationsJson?: string;
+  notes?: string;
+}
+
 export interface CashMovementRequest {
   type: CashMovementType;
   amount: number;
   reason: string;
   receiptReference?: string;
+  denominationsJson?: string;
 }
 
 export interface XReportPaymentModeSummary {

@@ -25,8 +25,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 class StockWasteIntegrationTest extends BaseIntegrationTest {
 
+    private final IngredientRepository ingredientRepository;
+
     @Autowired
-    private IngredientRepository ingredientRepository;
+    StockWasteIntegrationTest(IngredientRepository ingredientRepository) {
+        this.ingredientRepository = ingredientRepository;
+    }
 
     @Test
     @DisplayName("recordStockWaste_fullWorkflow_deductsInventoryAndUpdatesSummary")

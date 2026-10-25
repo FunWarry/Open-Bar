@@ -73,6 +73,7 @@ public class SampleDataSeederService {
     private static final String KEY_CLOSED_BY_USERNAME = "closedByUsername";
     private static final String KEY_OPENED_BY_USERNAME = "openedByUsername";
     private static final String KEY_OPENING_FLOAT = "openingFloat";
+    private static final String KEY_THEORETICAL_CASH = "theoreticalCash";
     private static final String KEY_OPENING_DENOMINATIONS = "openingDenominations";
     private static final String KEY_MOVEMENTS = "movements";
     private static final String KEY_PURCHASE_UNIT = "purchaseUnit";
@@ -1789,7 +1790,7 @@ public class SampleDataSeederService {
         LocalDate closureDate = LocalDate.now(timeService.getZoneId()).minusDays(daysAgo);
 
         BigDecimal openingFloat = new BigDecimal(cNode.get(KEY_OPENING_FLOAT).asText());
-        BigDecimal theoreticalCash = new BigDecimal(cNode.get("theoreticalCash").asText());
+        BigDecimal theoreticalCash = new BigDecimal(cNode.get(KEY_THEORETICAL_CASH).asText());
         BigDecimal countedCash = new BigDecimal(cNode.get("countedCash").asText());
         BigDecimal cashDiscrepancy = new BigDecimal(cNode.get("cashDiscrepancy").asText());
         BigDecimal totalRevenueHT = new BigDecimal(cNode.get("totalRevenueHT").asText());
@@ -1890,6 +1891,18 @@ public class SampleDataSeederService {
             if (sNode.has(KEY_CLOSED_BY_USERNAME)) {
                 session.setClosedBy(usersMap.get(sNode.get(KEY_CLOSED_BY_USERNAME).asText()));
             }
+            if (sNode.has(KEY_THEORETICAL_CASH)) {
+                session.setTheoreticalCash(new BigDecimal(sNode.get(KEY_THEORETICAL_CASH).asText()));
+            }
+            if (sNode.has("actualCash")) {
+                session.setActualCash(new BigDecimal(sNode.get("actualCash").asText()));
+            }
+            if (sNode.has("cashVariance")) {
+                session.setCashVariance(new BigDecimal(sNode.get("cashVariance").asText()));
+            }
+            if (sNode.has("closingDenominationsJson")) {
+                session.setClosingDenominationsJson(sNode.get("closingDenominationsJson").toString());
+            }
         }
 
         CashDrawerSession savedSession = cashDrawerSessionRepository.save(session);
@@ -1918,6 +1931,9 @@ public class SampleDataSeederService {
             m.setReceiptReference(ref);
             m.setPerformedBy(performedBy);
             m.setTimestamp(timestamp);
+            if (mNode.has("denominationsJson")) {
+                m.setDenominationsJson(mNode.get("denominationsJson").toString());
+            }
             cashMovementRepository.save(m);
         }
     }

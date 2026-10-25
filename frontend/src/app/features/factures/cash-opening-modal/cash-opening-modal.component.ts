@@ -17,6 +17,8 @@ import { CashDrawerService } from '../../../core/services/cash-drawer.service';
 import { CashDenomination, DEFAULT_EUR_DENOMINATIONS, getDefaultDenominationsForCurrency } from '../../../core/models/cash-denomination.model';
 import { CashDrawerOpenRequest, CashDrawerSession } from '../../../core/models/cash-drawer.model';
 
+import { DenominationCalculatorComponent } from '../../../core/components/ui/denomination-calculator/denomination-calculator.component';
+
 /**
  * Modal dialog for morning cash drawer opening with starting float entry
  * and optional coin/banknote denomination breakdown counting.
@@ -36,7 +38,8 @@ import { CashDrawerOpenRequest, CashDrawerSession } from '../../../core/models/c
     IonIcon,
     IonContent,
     IonFooter,
-    IonSpinner
+    IonSpinner,
+    DenominationCalculatorComponent
   ],
   templateUrl: './cash-opening-modal.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -118,6 +121,13 @@ export class CashOpeningModalComponent implements OnInit {
    */
   setPresetFloat(amount: number): void {
     this.openingFloat = amount;
+  }
+
+  /**
+   * Handles total changes from the embedded denomination calculator.
+   */
+  onCalculatorTotalChange(total: number): void {
+    this.openingFloat = total;
   }
 
   /**

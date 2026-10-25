@@ -64,7 +64,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("login - successful authentication returns token response")
-    void login_success() {
+    void loginSuccess() {
         LoginRequest request = new LoginRequest();
         request.setUsername("testuser");
         request.setPassword("secret");
@@ -89,7 +89,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("register - registers user if username and email available")
-    void register_success() {
+    void registerSuccess() {
         UserRequestDTO request = new UserRequestDTO("newuser", "secret", "new@bar.com", "Doe", "John", Set.of(UserRole.SERVEUR));
         when(userService.existsByUsername("newuser")).thenReturn(false);
         when(userService.existsByEmail("new@bar.com")).thenReturn(false);
@@ -102,7 +102,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("register - returns 400 if username exists")
-    void register_usernameExists() {
+    void registerUsernameExists() {
         UserRequestDTO request = new UserRequestDTO("testuser", "secret", "new@bar.com", "Doe", "John", Set.of(UserRole.SERVEUR));
         when(userService.existsByUsername("testuser")).thenReturn(true);
 
@@ -113,7 +113,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("register - returns 400 if email exists")
-    void register_emailExists() {
+    void registerEmailExists() {
         UserRequestDTO request = new UserRequestDTO("newuser", "secret", "test@bar.com", "Doe", "John", Set.of(UserRole.SERVEUR));
         when(userService.existsByUsername("newuser")).thenReturn(false);
         when(userService.existsByEmail("test@bar.com")).thenReturn(true);
@@ -125,7 +125,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("refreshToken - generates new JWT for valid refresh token")
-    void refreshToken_success() {
+    void refreshTokenSuccess() {
         RefreshTokenRequest request = new RefreshTokenRequest("valid-refresh");
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setToken("valid-refresh");
@@ -146,7 +146,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("refreshToken - returns 401 when token not found")
-    void refreshToken_notFound_returns401() {
+    void refreshTokenNotFoundReturns401() {
         RefreshTokenRequest request = new RefreshTokenRequest("invalid-token");
         when(refreshTokenService.findByToken("invalid-token")).thenReturn(Optional.empty());
 
@@ -157,7 +157,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("refreshToken - returns 401 and deletes when token expired")
-    void refreshToken_expired_returns401() {
+    void refreshTokenExpiredReturns401() {
         RefreshTokenRequest request = new RefreshTokenRequest("expired-token");
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setToken("expired-token");
@@ -174,7 +174,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("logout - cleans up user refresh tokens and clears context")
-    void logout_authenticatedAndAnonymous() {
+    void logoutAuthenticatedAndAnonymous() {
         Authentication auth = mock(Authentication.class);
         when(auth.getName()).thenReturn("testuser");
         when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(user));

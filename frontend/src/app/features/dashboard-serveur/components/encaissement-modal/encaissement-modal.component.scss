@@ -2,8 +2,11 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  max-height: 100%;
+  min-height: 0;
   width: 100%;
   overflow: hidden;
+  flex: 1 1 auto;
 }
 
 .modal-toolbar {
@@ -47,6 +50,12 @@
   flex: 1 1 auto;
   min-height: 0;
   height: 100%;
+
+  &::part(scroll) {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
 }
 
 .state-container {
@@ -70,10 +79,12 @@
   gap: 20px;
   max-width: 1100px;
   margin: 0 auto;
+  padding-bottom: 48px;
 
   @media (max-width: 992px) {
     grid-template-columns: 1fr;
     gap: 16px;
+    padding-bottom: 80px;
   }
 }
 
@@ -271,6 +282,13 @@
   gap: 16px;
 }
 
+.single-payment-flow,
+.part-flow-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .section-block {
   display: flex;
   flex-direction: column;
@@ -302,7 +320,7 @@
     border-radius: 10px;
     color: var(--text-primary);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 
     ion-icon {
       font-size: 1.4rem;
@@ -334,93 +352,198 @@
 /* Cash Calculator */
 .cash-calc-card {
   background: var(--background-surface-2);
-  border: 1px solid var(--border-medium);
-  border-radius: 10px;
-  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--border-medium));
+  border-radius: var(--radius-md, 12px);
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 
   .cash-header {
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: space-between;
 
-    h5 {
-      margin: 0;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-primary);
+    .cash-header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .cash-header-icon {
+        font-size: 1.25rem;
+        color: var(--semantic-warning);
+      }
+
+      h5 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
     }
-  }
 
-  .cash-item {
-    --background: var(--background-surface-1);
-    --color: var(--text-primary);
-    border-radius: 8px;
-    border: 1px solid var(--border-medium);
-  }
-
-  .quick-cash-chips {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-
-    .cash-chip {
+    .btn-clear-cash {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      gap: 5px;
-      min-height: 38px;
-      padding: 8px 14px;
-      background: var(--background-surface-1);
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm, 6px);
       border: 1px solid var(--border-medium);
-      border-radius: 8px;
-      color: var(--text-primary);
-      font-size: 0.88rem;
+      background: var(--background-surface-1);
+      color: var(--text-secondary);
+      font-size: 0.78rem;
       font-weight: 600;
       cursor: pointer;
-      user-select: none;
-      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 
-      .chip-icon {
-        font-size: 1rem;
+      ion-icon {
+        font-size: 0.95rem;
       }
 
       &:hover {
-        border-color: var(--primary);
-        background: var(--background-surface-2);
-        transform: translateY(-1px);
+        background: color-mix(in srgb, var(--semantic-danger) 15%, var(--background-surface-1));
+        color: var(--semantic-danger);
+        border-color: var(--semantic-danger);
       }
+    }
+  }
 
-      &:active {
-        transform: scale(0.96);
-      }
+  .cash-input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 
-      &.exact-chip {
-        background: var(--primary-subtle, rgba(var(--primary-rgb, 100, 100, 255), 0.12));
-        color: var(--primary);
-        border-color: var(--primary);
+    .cash-input-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .cash-input-label {
+        font-size: 0.76rem;
         font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+      }
+
+      .cash-shortcut-btn.exact-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 32px;
+        padding: 0 12px;
+        border-radius: var(--radius-sm, 6px);
+        background: color-mix(in srgb, var(--primary) 15%, var(--background-surface-1));
+        border: 1.5px solid var(--primary);
+        color: var(--primary);
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+        user-select: none;
+        transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+
+        ion-icon {
+          font-size: 0.95rem;
+        }
 
         &:hover {
-          background: var(--primary-subtle, rgba(var(--primary-rgb, 100, 100, 255), 0.2));
+          background: var(--primary);
+          color: var(--text-on-accent, #ffffff);
+          box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 40%, transparent);
+        }
+      }
+    }
+
+    .cash-input-group {
+      display: flex;
+      align-items: center;
+      background: var(--background-surface-1);
+      border: 1.5px solid var(--border-medium);
+      border-radius: var(--radius-sm, 8px);
+      padding: 0 14px;
+      min-height: 48px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+      &:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 25%, transparent);
+      }
+
+      .cash-native-input {
+        flex: 1;
+        width: 100%;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        padding: 8px 0;
+        font-family: inherit;
+
+        &::placeholder {
+          color: var(--text-muted);
+          opacity: 0.6;
         }
       }
 
-      &.suggestion-chip {
-        background: rgba(var(--semantic-warning-rgb, 234, 179, 8), 0.12);
-        color: var(--semantic-warning);
-        border-color: rgba(var(--semantic-warning-rgb, 234, 179, 8), 0.35);
+      .currency-symbol-affix {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--text-secondary);
+        user-select: none;
+      }
+    }
+  }
 
-        .chip-icon {
-          color: var(--semantic-warning);
+  .smart-suggestions-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 6px 10px;
+    background: var(--background-surface-1);
+    border-radius: var(--radius-sm, 8px);
+    border: 1px solid var(--border-medium);
+
+    .row-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .suggestions-chips-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+
+      .suggestion-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 12px;
+        border-radius: var(--radius-pill, 999px);
+        background: color-mix(in srgb, var(--semantic-warning) 15%, var(--background-surface-2));
+        border: 1.5px solid var(--semantic-warning);
+        color: var(--semantic-warning);
+        font-size: 0.85rem;
+        font-weight: 800;
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.15s ease, color 0.15s ease;
+
+        ion-icon {
+          font-size: 0.95rem;
         }
 
         &:hover {
-          border-color: var(--semantic-warning);
-          background: rgba(var(--semantic-warning-rgb, 234, 179, 8), 0.2);
+          background: color-mix(in srgb, var(--semantic-warning) 28%, var(--background-surface-2));
         }
 
         &.active {
@@ -428,18 +551,94 @@
           color: var(--background-bg-0);
           border-color: var(--semantic-warning);
 
-          .chip-icon {
+          ion-icon {
             color: var(--background-bg-0);
           }
         }
       }
+    }
+  }
 
-      &.increment-chip {
-        color: var(--text-primary);
+  .denominations-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 
-        &:hover {
-          border-color: var(--primary);
-          color: var(--primary);
+    .group-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+
+      ion-icon {
+        font-size: 0.95rem;
+        color: var(--primary);
+      }
+
+      .coin-icon {
+        font-size: 0.95rem;
+      }
+    }
+
+    .denominations-grid {
+      display: grid;
+      gap: 6px;
+
+      &.banknotes-grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+
+      &.coins-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .denom-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        min-height: 38px;
+        padding: 6px 2px;
+        border-radius: var(--radius-sm, 8px);
+        font-weight: 700;
+        font-size: 0.82rem;
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+
+        .btn-plus {
+          font-size: 0.74rem;
+          opacity: 0.7;
+        }
+
+        &.bill-btn {
+          background: var(--background-surface-1);
+          border: 1px solid var(--border-medium);
+          color: var(--text-primary);
+
+          &:hover {
+            border-color: var(--primary);
+            background: color-mix(in srgb, var(--primary) 15%, var(--background-surface-1));
+            color: var(--primary);
+            box-shadow: 0 1px 6px color-mix(in srgb, var(--primary) 20%, transparent);
+          }
+        }
+
+        &.coin-btn {
+          background: var(--background-surface-1);
+          border: 1px solid color-mix(in srgb, var(--semantic-warning) 30%, var(--border-medium));
+          color: var(--text-primary);
+
+          &:hover {
+            border-color: var(--semantic-warning);
+            background: color-mix(in srgb, var(--semantic-warning) 15%, var(--background-surface-1));
+            color: var(--semantic-warning);
+            box-shadow: 0 1px 6px color-mix(in srgb, var(--semantic-warning) 20%, transparent);
+          }
         }
       }
     }
@@ -447,33 +646,114 @@
 
   .change-display-box {
     background: var(--background-surface-1);
-    padding: 10px 12px;
-    border-radius: 8px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm, 8px);
     border: 1px solid var(--border-medium);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 
     .change-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.95rem;
+
+      .change-label {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
 
       .change-amount {
-        font-size: 1.15rem;
+        font-size: 1.35rem;
+        font-weight: 800;
         color: var(--semantic-success);
+        letter-spacing: 0.4px;
+      }
+    }
+
+    .optimal-breakdown-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border-medium);
+
+      .optimal-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-secondary);
+
+        ion-icon {
+          color: var(--primary);
+          font-size: 0.95rem;
+        }
+      }
+
+      .optimal-chips-container {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+
+        .optimal-denom-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 5px 9px;
+          border-radius: var(--radius-sm, 6px);
+          font-size: 0.85rem;
+          font-weight: 700;
+
+          &.is-bill {
+            background: color-mix(in srgb, var(--primary) 14%, var(--background-surface-1));
+            border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+            color: var(--text-primary);
+
+            .badge-count {
+              color: var(--primary);
+              font-weight: 800;
+            }
+          }
+
+          &.is-coin {
+            background: color-mix(in srgb, var(--semantic-warning) 14%, var(--background-surface-1));
+            border: 1px solid color-mix(in srgb, var(--semantic-warning) 35%, transparent);
+            color: var(--text-primary);
+
+            .badge-count {
+              color: var(--semantic-warning);
+              font-weight: 800;
+            }
+          }
+
+          .badge-icon {
+            font-size: 0.95rem;
+          }
+
+          .badge-value {
+            font-weight: 700;
+          }
+        }
       }
     }
 
     &.insufficient {
       border-color: var(--semantic-danger);
-      background: rgba(var(--semantic-danger-rgb, 255, 60, 60), 0.08);
+      background: color-mix(in srgb, var(--semantic-danger) 10%, var(--background-surface-2));
 
       .insufficient-row {
         display: flex;
         align-items: center;
         gap: 6px;
         color: var(--semantic-danger);
-        font-size: 0.85rem;
-        font-weight: 500;
+        font-size: 0.88rem;
+        font-weight: 600;
       }
     }
   }
@@ -612,7 +892,7 @@
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
     ion-icon {
       font-size: 1.1rem;
@@ -673,7 +953,7 @@
       border: 1px solid var(--border-medium);
       color: var(--text-secondary);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 
       &:hover {
         border-color: var(--primary);
@@ -881,7 +1161,7 @@
         font-weight: 600;
         cursor: pointer;
         white-space: nowrap;
-        transition: all 0.2s ease;
+        transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
 
         ion-icon {
           font-size: 0.95rem;
@@ -998,7 +1278,7 @@
         align-items: center;
         justify-content: space-between;
         gap: 8px;
-        transition: all 0.2s ease;
+        transition: border-color 0.2s ease, background-color 0.2s ease;
 
         &.completed {
           opacity: 0.65;
@@ -1194,7 +1474,7 @@
               justify-content: center;
               cursor: pointer;
               font-size: 1rem;
-              transition: all 0.2s ease;
+              transition: border-color 0.2s ease, background-color 0.2s ease;
 
               &:hover {
                 border-color: var(--semantic-danger);
@@ -1354,17 +1634,12 @@
               border-radius: var(--radius-pill, 16px);
               padding: 4px 10px;
               cursor: pointer;
-              transition: all 0.2s ease;
+              transition: border-color 0.2s ease, background-color 0.2s ease;
               font-family: inherit;
 
               &:hover {
                 border-color: var(--primary);
                 background: color-mix(in srgb, var(--primary) 12%, transparent);
-                transform: translateY(-1px);
-              }
-
-              &:active {
-                transform: translateY(0);
               }
 
               .chip-plus-badge {
@@ -1414,13 +1689,12 @@
       justify-content: center;
       gap: 6px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
       margin-top: 4px;
 
       &:hover:not(:disabled) {
         background: var(--background-surface-3);
         border-color: var(--primary);
-        transform: translateY(-1px);
       }
 
       &:disabled {
@@ -1482,7 +1756,7 @@
       font-weight: 600;
       color: var(--text-primary);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: border-color 0.2s ease, color 0.2s ease;
 
       ion-icon {
         font-size: 1rem;
@@ -1543,7 +1817,7 @@
       border-radius: 8px;
       color: var(--text-primary);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
 
       ion-icon {
         font-size: 1.3rem;
@@ -1836,7 +2110,7 @@
         font-size: 0.78rem;
         font-weight: 500;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 
         &.active {
           background: var(--primary);
@@ -1887,6 +2161,10 @@
       font-size: 3rem;
       color: var(--primary);
       animation: pulse-icon 1.5s infinite ease-in-out;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
     }
 
     .tpe-modal-title {

@@ -1896,6 +1896,18 @@
                           </button>
                         </div>
                       </div>
+
+                      <!-- Seuil de tolérance d'écart de caisse (NF525) -->
+                      <div class="field-item discrepancy-tolerance-field" style="margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--border-medium);">
+                        <app-input-field
+                          type="number"
+                          formControlName="cashDiscrepancyToleranceThreshold"
+                          [label]="'SETTINGS.CASH_DISCREPANCY_TOLERANCE' | transloco"
+                          [helperText]="'SETTINGS.CASH_DISCREPANCY_TOLERANCE_HINT' | transloco"
+                          placeholder="5.00"
+                          testId="input-cash-discrepancy-tolerance">
+                        </app-input-field>
+                      </div>
                     </ion-card-content>
                   </ion-card>
                 </ion-col>
