@@ -6,7 +6,7 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonContent, IonSpinner, IonBadge, IonSegment, IonSegmentButton,
-  IonItem, IonLabel, IonInput, IonProgressBar,
+  IonLabel, IonProgressBar,
   ModalController, ToastController
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -22,6 +22,7 @@ import {
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 import { AppSettingsService } from '../../../../core/services/app-settings.service';
+import { CashDenomination } from '../../../../core/models/cash-denomination.model';
 import { DiscountTier } from '../../../../core/models/app-settings.model';
 import { CheckboxFieldComponent } from '../../../../core/components/ui/checkbox-field/checkbox-field.component';
 import { TableView } from '../../models/table-view.model';
@@ -76,7 +77,7 @@ export interface OptimalChangeItem {
     TranslocoModule,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonContent, IonSpinner, IonBadge, IonSegment, IonSegmentButton,
-    IonItem, IonLabel, IonInput, IonProgressBar, CheckboxFieldComponent
+    IonLabel, IonProgressBar, CheckboxFieldComponent
   ],
   templateUrl: './encaissement-modal.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -485,12 +486,55 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   // --- Fast Cash Denominations & Smart Shortcuts ---
 
   /**
-   * Primary coin increment amounts for euro currency (0.10, 0.20, 0.50, 1, 2 €).
+   * Cash denominations dynamically queried from establishment configuration (bills & coins).
    */
-  readonly primaryCoinIncrements: number[] = [0.10, 0.20, 0.50, 1, 2];
+  get configuredCashDenominations(): CashDenomination[] {
+    return this.appSettingsService.getCashDenominations();
+  }
 
   /**
-   * Computes the optimal greedy denomination breakdown for returning cash change.
+   * Primary banknote cash increment amounts dynamically queried from establishment cash denominations.
+   * Sorted in ascending face value order.
+   */
+  get primaryCashIncrements(): CashDenomination[] {
+    const all = this.configuredCashDenominations.filter(d => d.type === 'bill');
+    if (all.length === 0) {
+      return [
+        { key: '5e', label: '5 €', value: 5.0, type: 'bill' },
+        { key: '10e', label: '10 €', value: 10.0, type: 'bill' },
+        { key: '20e', label: '20 €', value: 20.0, type: 'bill' },
+        { key: '50e', label: '50 €', value: 50.0, type: 'bill' },
+        { key: '100e', label: '100 €', value: 100.0, type: 'bill' }
+      ];
+    }
+    const filtered = all.filter(d => d.value <= 100).sort((a, b) => a.value - b.value);
+    return filtered.length > 0 ? filtered : all.slice().sort((a, b) => a.value - b.value);
+  }
+
+  /**
+   * Primary coin increment amounts dynamically queried from establishment cash denominations (all coins!).
+   * Sorted in ascending face value order (e.g. 0.01 €, 0.02 €, 0.05 €, 0.10 €, 0.20 €, 0.50 €, 1 €, 2 €).
+   */
+  get primaryCoinIncrements(): CashDenomination[] {
+    const all = this.configuredCashDenominations.filter(d => d.type === 'coin');
+    if (all.length === 0) {
+      return [
+        { key: '001e', label: '0.01 €', value: 0.01, type: 'coin' },
+        { key: '002e', label: '0.02 €', value: 0.02, type: 'coin' },
+        { key: '005e', label: '0.05 €', value: 0.05, type: 'coin' },
+        { key: '010e', label: '0.10 €', value: 0.10, type: 'coin' },
+        { key: '020e', label: '0.20 €', value: 0.20, type: 'coin' },
+        { key: '050e', label: '0.50 €', value: 0.50, type: 'coin' },
+        { key: '1e', label: '1 €', value: 1.0, type: 'coin' },
+        { key: '2e', label: '2 €', value: 2.0, type: 'coin' }
+      ];
+    }
+    return all.slice().sort((a, b) => a.value - b.value);
+  }
+
+  /**
+   * Computes the optimal greedy denomination breakdown for returning cash change,
+   * querying all configured cash denominations (bills and coins) from establishment settings.
    *
    * @param changeDue Total change amount in primary currency units (e.g. euros)
    * @returns Array of denomination items to return to the customer
@@ -502,35 +546,22 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
 
     let remainingCents = Math.round(changeDue * 100);
 
-    const denominations: { cents: number; type: 'bill' | 'coin'; label: string }[] = [
-      { cents: 50000, type: 'bill', label: '500 €' },
-      { cents: 20000, type: 'bill', label: '200 €' },
-      { cents: 10000, type: 'bill', label: '100 €' },
-      { cents: 5000, type: 'bill', label: '50 €' },
-      { cents: 2000, type: 'bill', label: '20 €' },
-      { cents: 1000, type: 'bill', label: '10 €' },
-      { cents: 500, type: 'bill', label: '5 €' },
-      { cents: 200, type: 'coin', label: '2 €' },
-      { cents: 100, type: 'coin', label: '1 €' },
-      { cents: 50, type: 'coin', label: '0,50 €' },
-      { cents: 20, type: 'coin', label: '0,20 €' },
-      { cents: 10, type: 'coin', label: '0,10 €' },
-      { cents: 5, type: 'coin', label: '0,05 €' },
-      { cents: 2, type: 'coin', label: '0,02 €' },
-      { cents: 1, type: 'coin', label: '0,01 €' }
-    ];
+    const denoms = this.configuredCashDenominations
+      .slice()
+      .sort((a, b) => b.value - a.value);
 
     const result: OptimalChangeItem[] = [];
 
-    for (const denom of denominations) {
-      if (remainingCents >= denom.cents) {
-        const count = Math.floor(remainingCents / denom.cents);
-        remainingCents %= denom.cents;
+    for (const d of denoms) {
+      const denomCents = Math.round(d.value * 100);
+      if (denomCents > 0 && remainingCents >= denomCents) {
+        const count = Math.floor(remainingCents / denomCents);
+        remainingCents %= denomCents;
         result.push({
-          value: denom.cents / 100,
+          value: d.value,
           count,
-          type: denom.type,
-          label: denom.label
+          type: d.type,
+          label: d.label
         });
       }
     }
@@ -558,36 +589,6 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
    */
   effacerPartMontantRecu(): void {
     this.partMontantRecu = null;
-  }
-
-  /**
-   * Primary banknote cash increment amounts dynamically queried from establishment cash denominations.
-   * Filters common physical bill values (e.g. 5, 10, 20, 50, 100 € for EUR; 1, 5, 10, 20, 50, 100 $ for USD).
-   */
-  get primaryCashIncrements(): number[] {
-    const allBills = this.appSettingsService.getCashDenominations()
-      .filter(d => d.type === 'bill')
-      .map(d => d.value)
-      .sort((a, b) => a - b);
-
-    if (allBills.length === 0) {
-      return [5, 10, 20, 50];
-    }
-
-    const currency = this.appSettingsService.currencyCode;
-    switch (currency) {
-      case 'EUR':
-      case 'CHF':
-        return allBills.filter(v => v <= 100);
-      case 'USD':
-        return allBills.filter(v => v !== 2 && v <= 100);
-      case 'JPY':
-        return allBills;
-      default:
-        return allBills.some(v => v <= 100)
-          ? allBills.filter(v => v <= 100)
-          : allBills.slice(0, 5);
-    }
   }
 
   /**

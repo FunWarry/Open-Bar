@@ -203,32 +203,31 @@
                   }
                 </div>
 
-                <div class="cash-input-wrap">
-                  <div class="cash-input-field">
+                <div class="cash-input-section">
+                  <div class="cash-input-header">
                     <span class="cash-input-label">{{ 'ENCAISSEMENT.CASH_RECEIVED_LABEL' | transloco }}</span>
-                    <div class="cash-input-group">
-                      <input
-                        type="number"
-                        step="0.10"
-                        min="0"
-                        [(ngModel)]="montantRecu"
-                        placeholder="0.00"
-                        class="cash-native-input"
-                        data-testid="input-montant-recu"
-                        [attr.aria-label]="'ENCAISSEMENT.CASH_RECEIVED_LABEL' | transloco" />
-                      <span class="currency-symbol-affix">{{ currencySymbol }}</span>
-                    </div>
+                    <button
+                      type="button"
+                      class="cash-shortcut-btn exact-btn"
+                      (click)="definirMontantExact()"
+                      data-testid="chip-cash-exact"
+                      [attr.aria-label]="'ENCAISSEMENT.EXACT_AMOUNT' | transloco">
+                      <ion-icon name="checkmark-circle-outline"></ion-icon>
+                      <span>{{ 'ENCAISSEMENT.EXACT_AMOUNT' | transloco }}</span>
+                    </button>
                   </div>
-
-                  <button
-                    type="button"
-                    class="cash-shortcut-btn exact-btn"
-                    (click)="definirMontantExact()"
-                    data-testid="chip-cash-exact"
-                    [attr.aria-label]="'ENCAISSEMENT.EXACT_AMOUNT' | transloco">
-                    <ion-icon name="checkmark-circle-outline"></ion-icon>
-                    <span>{{ 'ENCAISSEMENT.EXACT_AMOUNT' | transloco }}</span>
-                  </button>
+                  <div class="cash-input-group">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      [(ngModel)]="montantRecu"
+                      placeholder="0.00"
+                      class="cash-native-input"
+                      data-testid="input-montant-recu"
+                      [attr.aria-label]="'ENCAISSEMENT.CASH_RECEIVED_LABEL' | transloco" />
+                    <span class="currency-symbol-affix">{{ currencySymbol }}</span>
+                  </div>
                 </div>
 
                 <!-- Smart Higher Bill Suggestions -->
@@ -259,36 +258,36 @@
                     <span>{{ 'ENCAISSEMENT.BANKNOTES_LABEL' | transloco }}</span>
                   </div>
                   <div class="denominations-grid banknotes-grid">
-                    @for (note of primaryCashIncrements; track note) {
+                    @for (note of primaryCashIncrements; track note.key) {
                       <button
                         type="button"
                         class="denom-btn bill-btn"
-                        (click)="ajouterEspeces(note)"
-                        [attr.data-testid]="'chip-cash-' + note"
-                        [attr.aria-label]="'+' + (note | appCurrency:0:0)">
+                        (click)="ajouterEspeces(note.value)"
+                        [attr.data-testid]="'chip-cash-' + note.key"
+                        [attr.aria-label]="'+' + note.label">
                         <span class="btn-plus">+</span>
-                        <span class="btn-val">{{ note | appCurrency:0:0 }}</span>
+                        <span class="btn-val">{{ note.label }}</span>
                       </button>
                     }
                   </div>
                 </div>
 
-                <!-- Coins (+0.10€, +0.20€, +0.50€, +1€, +2€) -->
+                <!-- Coins (all coins from settings: 0.01€ to 2€) -->
                 <div class="denominations-group coins-group">
                   <div class="group-header">
                     <span class="coin-icon">🪙</span>
                     <span>{{ 'ENCAISSEMENT.COINS_LABEL' | transloco }}</span>
                   </div>
                   <div class="denominations-grid coins-grid">
-                    @for (coin of primaryCoinIncrements; track coin) {
+                    @for (coin of primaryCoinIncrements; track coin.key) {
                       <button
                         type="button"
                         class="denom-btn coin-btn"
-                        (click)="ajouterEspeces(coin)"
-                        [attr.data-testid]="'chip-coin-' + coin"
-                        [attr.aria-label]="'+' + (coin | appCurrency)">
+                        (click)="ajouterEspeces(coin.value)"
+                        [attr.data-testid]="'chip-coin-' + coin.key"
+                        [attr.aria-label]="'+' + coin.label">
                         <span class="btn-plus">+</span>
-                        <span class="btn-val">{{ coin >= 1 ? (coin | appCurrency:0:0) : (coin | appCurrency:2:2) }}</span>
+                        <span class="btn-val">{{ coin.label }}</span>
                       </button>
                     }
                   </div>
@@ -583,33 +582,32 @@
                       }
                     </div>
 
-                    <div class="cash-input-wrap">
-                      <div class="cash-input-field">
+                    <div class="cash-input-section">
+                      <div class="cash-input-header">
                         <span class="cash-input-label">{{ 'ENCAISSEMENT.CASH_RECEIVED_LABEL' | transloco }}</span>
-                        <div class="cash-input-group">
-                          <input
-                            id="input-part-montant-recu"
-                            type="number"
-                            step="0.10"
-                            min="0"
-                            [(ngModel)]="partMontantRecu"
-                            [placeholder]="partTotalNetAPayer.toFixed(2)"
-                            class="cash-native-input"
-                            data-testid="input-part-montant-recu"
-                            [attr.aria-label]="'ENCAISSEMENT.CASH_RECEIVED_LABEL' | transloco" />
-                          <span class="currency-symbol-affix">{{ currencySymbol }}</span>
-                        </div>
+                        <button
+                          type="button"
+                          class="cash-shortcut-btn exact-btn"
+                          (click)="definirPartMontantExact()"
+                          data-testid="btn-part-exact-amount"
+                          [attr.aria-label]="'ENCAISSEMENT.EXACT_AMOUNT' | transloco">
+                          <ion-icon name="checkmark-circle-outline"></ion-icon>
+                          <span>{{ 'ENCAISSEMENT.EXACT_AMOUNT' | transloco }}</span>
+                        </button>
                       </div>
-
-                      <button
-                        type="button"
-                        class="cash-shortcut-btn exact-btn"
-                        (click)="definirPartMontantExact()"
-                        data-testid="btn-part-exact-amount"
-                        [attr.aria-label]="'ENCAISSEMENT.EXACT_AMOUNT' | transloco">
-                        <ion-icon name="checkmark-circle-outline"></ion-icon>
-                        <span>{{ 'ENCAISSEMENT.EXACT_AMOUNT' | transloco }}</span>
-                      </button>
+                      <div class="cash-input-group">
+                        <input
+                          id="input-part-montant-recu"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          [(ngModel)]="partMontantRecu"
+                          [placeholder]="partTotalNetAPayer.toFixed(2)"
+                          class="cash-native-input"
+                          data-testid="input-part-montant-recu"
+                          [attr.aria-label]="'ENCAISSEMENT.CASH_RECEIVED_LABEL' | transloco" />
+                        <span class="currency-symbol-affix">{{ currencySymbol }}</span>
+                      </div>
                     </div>
 
                     <!-- Smart Suggestions -->
@@ -638,15 +636,15 @@
                         <span>{{ 'ENCAISSEMENT.BANKNOTES_LABEL' | transloco }}</span>
                       </div>
                       <div class="denominations-grid banknotes-grid">
-                        @for (note of primaryCashIncrements; track note) {
+                        @for (note of primaryCashIncrements; track note.key) {
                           <button
                             type="button"
                             class="denom-btn bill-btn"
-                            (click)="ajouterPartEspeces(note)"
-                            [attr.data-testid]="'part-chip-cash-' + note"
-                            [attr.aria-label]="'+' + (note | appCurrency:0:0)">
+                            (click)="ajouterPartEspeces(note.value)"
+                            [attr.data-testid]="'part-chip-cash-' + note.key"
+                            [attr.aria-label]="'+' + note.label">
                             <span class="btn-plus">+</span>
-                            <span class="btn-val">{{ note | appCurrency:0:0 }}</span>
+                            <span class="btn-val">{{ note.label }}</span>
                           </button>
                         }
                       </div>
@@ -659,15 +657,15 @@
                         <span>{{ 'ENCAISSEMENT.COINS_LABEL' | transloco }}</span>
                       </div>
                       <div class="denominations-grid coins-grid">
-                        @for (coin of primaryCoinIncrements; track coin) {
+                        @for (coin of primaryCoinIncrements; track coin.key) {
                           <button
                             type="button"
                             class="denom-btn coin-btn"
-                            (click)="ajouterPartEspeces(coin)"
-                            [attr.data-testid]="'part-chip-coin-' + coin"
-                            [attr.aria-label]="'+' + (coin | appCurrency)">
+                            (click)="ajouterPartEspeces(coin.value)"
+                            [attr.data-testid]="'part-chip-coin-' + coin.key"
+                            [attr.aria-label]="'+' + coin.label">
                             <span class="btn-plus">+</span>
-                            <span class="btn-val">{{ coin >= 1 ? (coin | appCurrency:0:0) : (coin | appCurrency:2:2) }}</span>
+                            <span class="btn-val">{{ coin.label }}</span>
                           </button>
                         }
                       </div>
