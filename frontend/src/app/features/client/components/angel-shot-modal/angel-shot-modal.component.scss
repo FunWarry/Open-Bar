@@ -33,6 +33,16 @@
   transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease;
   min-height: 48px;
 
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    transform: none;
+
+    &:hover,
+    &:active {
+      transform: none;
+    }
+  }
+
   &:hover {
     transform: translateY(-2px);
     background: var(--background-surface-2);

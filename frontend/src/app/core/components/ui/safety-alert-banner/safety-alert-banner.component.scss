@@ -37,6 +37,10 @@
   width: 100%;
   box-sizing: border-box;
 
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+
   &.variant-angel-shot-neat {
     border-color: var(--semantic-info);
     box-shadow: 0 4px 20px color-mix(in srgb, var(--semantic-info) 35%, transparent);
@@ -124,6 +128,10 @@
     background: color-mix(in srgb, var(--semantic-danger) 40%, transparent);
     animation: beaconPulse 1.5s infinite ease-out;
     z-index: 1;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
   }
 }
 
