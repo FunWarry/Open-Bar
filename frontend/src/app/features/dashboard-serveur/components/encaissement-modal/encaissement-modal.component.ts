@@ -16,7 +16,8 @@ import {
   timeOutline, addOutline, removeOutline, pricetagOutline, receiptOutline,
   heartOutline, alertCircleOutline, refreshOutline, documentTextOutline,
   arrowBackOutline, pieChartOutline, personOutline, trashOutline,
-  arrowDownCircleOutline, calculatorOutline, sparklesOutline, listOutline
+  arrowDownCircleOutline, calculatorOutline, sparklesOutline, listOutline,
+  closeCircleOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
@@ -56,6 +57,14 @@ export type EncaissementSplitMode = 'egal' | 'libre' | 'pourcentage' | 'selectio
 
 /** Main encaissement tabs */
 export type EncaissementTab = 'single' | 'split';
+
+/** Denomination breakdown item for optimal cash return */
+export interface OptimalChangeItem {
+  value: number;
+  count: number;
+  type: 'bill' | 'coin';
+  label: string;
+}
 
 @Component({
   selector: 'app-encaissement-modal',
@@ -229,7 +238,8 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
       timeOutline, addOutline, removeOutline, pricetagOutline, receiptOutline,
       heartOutline, alertCircleOutline, refreshOutline, documentTextOutline,
       arrowBackOutline, pieChartOutline, personOutline, trashOutline,
-      arrowDownCircleOutline, calculatorOutline, sparklesOutline, listOutline
+      arrowDownCircleOutline, calculatorOutline, sparklesOutline, listOutline,
+      closeCircleOutline
     });
   }
 
@@ -473,6 +483,82 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   }
 
   // --- Fast Cash Denominations & Smart Shortcuts ---
+
+  /**
+   * Primary coin increment amounts for euro currency (0.10, 0.20, 0.50, 1, 2 €).
+   */
+  readonly primaryCoinIncrements: number[] = [0.10, 0.20, 0.50, 1, 2];
+
+  /**
+   * Computes the optimal greedy denomination breakdown for returning cash change.
+   *
+   * @param changeDue Total change amount in primary currency units (e.g. euros)
+   * @returns Array of denomination items to return to the customer
+   */
+  computeOptimalChange(changeDue: number): OptimalChangeItem[] {
+    if (!changeDue || changeDue <= 0) {
+      return [];
+    }
+
+    let remainingCents = Math.round(changeDue * 100);
+
+    const denominations: { cents: number; type: 'bill' | 'coin'; label: string }[] = [
+      { cents: 50000, type: 'bill', label: '500 €' },
+      { cents: 20000, type: 'bill', label: '200 €' },
+      { cents: 10000, type: 'bill', label: '100 €' },
+      { cents: 5000, type: 'bill', label: '50 €' },
+      { cents: 2000, type: 'bill', label: '20 €' },
+      { cents: 1000, type: 'bill', label: '10 €' },
+      { cents: 500, type: 'bill', label: '5 €' },
+      { cents: 200, type: 'coin', label: '2 €' },
+      { cents: 100, type: 'coin', label: '1 €' },
+      { cents: 50, type: 'coin', label: '0,50 €' },
+      { cents: 20, type: 'coin', label: '0,20 €' },
+      { cents: 10, type: 'coin', label: '0,10 €' },
+      { cents: 5, type: 'coin', label: '0,05 €' },
+      { cents: 2, type: 'coin', label: '0,02 €' },
+      { cents: 1, type: 'coin', label: '0,01 €' }
+    ];
+
+    const result: OptimalChangeItem[] = [];
+
+    for (const denom of denominations) {
+      if (remainingCents >= denom.cents) {
+        const count = Math.floor(remainingCents / denom.cents);
+        remainingCents %= denom.cents;
+        result.push({
+          value: denom.cents / 100,
+          count,
+          type: denom.type,
+          label: denom.label
+        });
+      }
+    }
+
+    return result;
+  }
+
+  get optimalChangeBreakdown(): OptimalChangeItem[] {
+    return this.computeOptimalChange(this.monnaieARendre);
+  }
+
+  get partOptimalChangeBreakdown(): OptimalChangeItem[] {
+    return this.computeOptimalChange(this.partMonnaieARendre);
+  }
+
+  /**
+   * Resets the received cash amount back to zero.
+   */
+  effacerMontantRecu(): void {
+    this.montantRecu = null;
+  }
+
+  /**
+   * Resets the split received cash amount back to zero.
+   */
+  effacerPartMontantRecu(): void {
+    this.partMontantRecu = null;
+  }
 
   /**
    * Primary banknote cash increment amounts dynamically queried from establishment cash denominations.
