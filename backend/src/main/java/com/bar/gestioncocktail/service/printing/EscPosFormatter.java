@@ -817,30 +817,12 @@ public class EscPosFormatter {
     public byte[] formatTillOpeningSlip(CashDrawerSession session, EstablishmentConfig legalConfig, AppSettings appSettings) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            out.write(CMD_INIT);
-            out.write(CMD_CODEPAGE_CP850);
-            out.write(CMD_ALIGN_CENTER);
-            out.write(CMD_BOLD_ON);
-            writeText(out, resolveTradeName(legalConfig, appSettings));
-            out.write(LF);
-            out.write(CMD_BOLD_OFF);
-            writeText(out, "OUVERTURE DU TIROIR CAISSE");
-            out.write(LF);
-            writeText(out, repeat("=", LINE_WIDTH));
-            out.write(LF);
-            out.write(CMD_ALIGN_LEFT);
-
-            String currencySymbol = resolveCurrencySymbol(appSettings);
             String opDate = session.getSessionDate() != null ? session.getSessionDate().format(DATE_DAY_FMT) : "";
             String opTime = session.getOpenedAt() != null ? session.getOpenedAt().format(TIME_FMT) : "";
             String opUser = session.getOpenedBy() != null ? session.getOpenedBy().getUsername() : DEFAULT_OPERATOR;
+            writeAuditSlipHeader(out, legalConfig, appSettings, "OUVERTURE DU TIROIR CAISSE", opDate, opTime, opUser);
 
-            writeText(out, formatTwoColumns(PREFIX_DATE + opDate, PREFIX_TIME + opTime, LINE_WIDTH));
-            out.write(LF);
-            writeText(out, PREFIX_OPERATOR + opUser);
-            out.write(LF);
-            writeText(out, repeat("-", LINE_WIDTH));
-            out.write(LF);
+            String currencySymbol = resolveCurrencySymbol(appSettings);
             out.write(CMD_BOLD_ON);
             writeText(out, formatTwoColumns("FOND INITIAL COMPTE :", formatAmount(session.getOpeningFloat(), currencySymbol), LINE_WIDTH));
             out.write(LF);
@@ -874,31 +856,12 @@ public class EscPosFormatter {
     public byte[] formatTillClosingSlip(CashDrawerSession session, EstablishmentConfig legalConfig, AppSettings appSettings) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            out.write(CMD_INIT);
-            out.write(CMD_CODEPAGE_CP850);
-            out.write(CMD_ALIGN_CENTER);
-            out.write(CMD_BOLD_ON);
-            writeText(out, resolveTradeName(legalConfig, appSettings));
-            out.write(LF);
-            out.write(CMD_BOLD_OFF);
-            writeText(out, "CLOTURE & AUDIT DU TIROIR CAISSE");
-            out.write(LF);
-            writeText(out, repeat("=", LINE_WIDTH));
-            out.write(LF);
-            out.write(CMD_ALIGN_LEFT);
-
-            String currencySymbol = resolveCurrencySymbol(appSettings);
             String opDate = session.getSessionDate() != null ? session.getSessionDate().format(DATE_DAY_FMT) : "";
             String opTime = session.getClosedAt() != null ? session.getClosedAt().format(TIME_FMT) : "";
             String opUser = session.getClosedBy() != null ? session.getClosedBy().getUsername() : DEFAULT_OPERATOR;
+            writeAuditSlipHeader(out, legalConfig, appSettings, "CLOTURE & AUDIT DU TIROIR CAISSE", opDate, opTime, opUser);
 
-            writeText(out, formatTwoColumns(PREFIX_DATE + opDate, PREFIX_TIME + opTime, LINE_WIDTH));
-            out.write(LF);
-            writeText(out, PREFIX_OPERATOR + opUser);
-            out.write(LF);
-            writeText(out, repeat("-", LINE_WIDTH));
-            out.write(LF);
-
+            String currencySymbol = resolveCurrencySymbol(appSettings);
             writeText(out, formatTwoColumns("Fond initial compte :", formatAmount(session.getOpeningFloat(), currencySymbol), LINE_WIDTH));
             out.write(LF);
             if (session.getTheoreticalCash() != null) {

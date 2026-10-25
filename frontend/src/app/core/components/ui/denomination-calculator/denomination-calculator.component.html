@@ -73,59 +73,7 @@
 
         <div class="denomination-rows-list">
           @for (d of bills; track d.key) {
-            <div
-              class="calc-row item-bill"
-              [class.active-count]="(counting[d.key] || 0) > 0"
-              [attr.data-testid]="testId + '-row-' + d.key"
-            >
-              <div class="label-badge-box">
-                <span class="denom-badge badge-bill">{{ d.label }}</span>
-              </div>
-
-              <div class="stepper-box">
-                @if (!readOnly) {
-                  <button
-                    type="button"
-                    class="step-btn minus"
-                    (click)="adjustCount(d.key, -1)"
-                    [disabled]="(counting[d.key] || 0) <= 0"
-                    [attr.aria-label]="('COMMON.DECREASE' | transloco) + ' ' + d.label"
-                    [attr.data-testid]="testId + '-minus-' + d.key"
-                  >
-                    <ion-icon name="remove-outline"></ion-icon>
-                  </button>
-                }
-
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  [id]="'calc-input-' + d.key"
-                  [attr.aria-label]="d.label"
-                  [value]="counting[d.key] || 0"
-                  (input)="onCountInput(d.key, $any($event.target).value)"
-                  [disabled]="readOnly"
-                  class="stepper-input"
-                  [attr.data-testid]="testId + '-input-' + d.key"
-                />
-
-                @if (!readOnly) {
-                  <button
-                    type="button"
-                    class="step-btn plus"
-                    (click)="adjustCount(d.key, 1)"
-                    [attr.aria-label]="('COMMON.INCREASE' | transloco) + ' ' + d.label"
-                    [attr.data-testid]="testId + '-plus-' + d.key"
-                  >
-                    <ion-icon name="add-outline"></ion-icon>
-                  </button>
-                }
-              </div>
-
-              <div class="row-total-box" [attr.data-testid]="testId + '-subtotal-' + d.key">
-                <span class="row-total-amount">{{ getLineTotal(d) | appCurrency }}</span>
-              </div>
-            </div>
+            <ng-container *ngTemplateOutlet="denomRow; context: { $implicit: d, isBill: true }"></ng-container>
           }
         </div>
       </div>
@@ -146,62 +94,68 @@
 
         <div class="denomination-rows-list">
           @for (d of coins; track d.key) {
-            <div
-              class="calc-row item-coin"
-              [class.active-count]="(counting[d.key] || 0) > 0"
-              [attr.data-testid]="testId + '-row-' + d.key"
-            >
-              <div class="label-badge-box">
-                <span class="denom-badge badge-coin">{{ d.label }}</span>
-              </div>
-
-              <div class="stepper-box">
-                @if (!readOnly) {
-                  <button
-                    type="button"
-                    class="step-btn minus"
-                    (click)="adjustCount(d.key, -1)"
-                    [disabled]="(counting[d.key] || 0) <= 0"
-                    [attr.aria-label]="('COMMON.DECREASE' | transloco) + ' ' + d.label"
-                    [attr.data-testid]="testId + '-minus-' + d.key"
-                  >
-                    <ion-icon name="remove-outline"></ion-icon>
-                  </button>
-                }
-
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  [id]="'calc-input-' + d.key"
-                  [attr.aria-label]="d.label"
-                  [value]="counting[d.key] || 0"
-                  (input)="onCountInput(d.key, $any($event.target).value)"
-                  [disabled]="readOnly"
-                  class="stepper-input"
-                  [attr.data-testid]="testId + '-input-' + d.key"
-                />
-
-                @if (!readOnly) {
-                  <button
-                    type="button"
-                    class="step-btn plus"
-                    (click)="adjustCount(d.key, 1)"
-                    [attr.aria-label]="('COMMON.INCREASE' | transloco) + ' ' + d.label"
-                    [attr.data-testid]="testId + '-plus-' + d.key"
-                  >
-                    <ion-icon name="add-outline"></ion-icon>
-                  </button>
-                }
-              </div>
-
-              <div class="row-total-box" [attr.data-testid]="testId + '-subtotal-' + d.key">
-                <span class="row-total-amount">{{ getLineTotal(d) | appCurrency }}</span>
-              </div>
-            </div>
+            <ng-container *ngTemplateOutlet="denomRow; context: { $implicit: d, isBill: false }"></ng-container>
           }
         </div>
       </div>
     }
   </div>
+
+  <ng-template #denomRow let-d let-isBill="isBill">
+    <div
+      class="calc-row"
+      [class.item-bill]="isBill"
+      [class.item-coin]="!isBill"
+      [class.active-count]="(counting[d.key] || 0) > 0"
+      [attr.data-testid]="testId + '-row-' + d.key"
+    >
+      <div class="label-badge-box">
+        <span class="denom-badge" [class.badge-bill]="isBill" [class.badge-coin]="!isBill">{{ d.label }}</span>
+      </div>
+
+      <div class="stepper-box">
+        @if (!readOnly) {
+          <button
+            type="button"
+            class="step-btn minus"
+            (click)="adjustCount(d.key, -1)"
+            [disabled]="(counting[d.key] || 0) <= 0"
+            [attr.aria-label]="('COMMON.DECREASE' | transloco) + ' ' + d.label"
+            [attr.data-testid]="testId + '-minus-' + d.key"
+          >
+            <ion-icon name="remove-outline"></ion-icon>
+          </button>
+        }
+
+        <input
+          type="number"
+          min="0"
+          step="1"
+          [id]="'calc-input-' + d.key"
+          [attr.aria-label]="d.label"
+          [value]="counting[d.key] || 0"
+          (input)="onCountInput(d.key, $any($event.target).value)"
+          [disabled]="readOnly"
+          class="stepper-input"
+          [attr.data-testid]="testId + '-input-' + d.key"
+        />
+
+        @if (!readOnly) {
+          <button
+            type="button"
+            class="step-btn plus"
+            (click)="adjustCount(d.key, 1)"
+            [attr.aria-label]="('COMMON.INCREASE' | transloco) + ' ' + d.label"
+            [attr.data-testid]="testId + '-plus-' + d.key"
+          >
+            <ion-icon name="add-outline"></ion-icon>
+          </button>
+        }
+      </div>
+
+      <div class="row-total-box" [attr.data-testid]="testId + '-subtotal-' + d.key">
+        <span class="row-total-amount">{{ getLineTotal(d) | appCurrency }}</span>
+      </div>
+    </div>
+  </ng-template>
 </div>

@@ -187,4 +187,82 @@ describe('CashDrawerService', () => {
     expect(req.request.method).toBe('POST');
     req.flush({ success: true, message: 'Printed' });
   });
+
+  it('should get movements with and without date parameter', () => {
+    service.getMovements('2026-09-18').subscribe(res => {
+      expect(res).toEqual([]);
+    });
+    const req1 = httpMock.expectOne(`${baseUrl}/movements?date=2026-09-18`);
+    expect(req1.request.method).toBe('GET');
+    req1.flush([]);
+
+    service.getMovements().subscribe(res => {
+      expect(res).toEqual([]);
+    });
+    const req2 = httpMock.expectOne(`${baseUrl}/movements`);
+    expect(req2.request.method).toBe('GET');
+    req2.flush([]);
+  });
+
+  it('should close drawer and refresh status', () => {
+    const mockClosedSession: CashDrawerSession = {
+      id: 1,
+      sessionDate: '2026-09-18',
+      openedAt: '2026-09-18T09:00:00',
+      closedAt: '2026-09-18T23:00:00',
+      openingFloat: 150.0,
+      actualCash: 360.0,
+      theoreticalCash: 360.0,
+      cashVariance: 0.0,
+      status: 'CLOSED'
+    };
+
+    service.closeDrawer({ countedCash: 360.0 }).subscribe(res => {
+      expect(res).toEqual(mockClosedSession);
+    });
+
+    const closeReq = httpMock.expectOne(`${baseUrl}/close`);
+    expect(closeReq.request.method).toBe('POST');
+    closeReq.flush(mockClosedSession);
+
+    const statusReq = httpMock.expectOne(`${baseUrl}/status`);
+    statusReq.flush({ ...mockStatus, isOpened: false, isClosed: true });
+  });
+
+  it('should handle print audit slips for opening, closing, and cash movements', () => {
+    service.printTillOpeningSlip(1).subscribe(res => {
+      expect(res.success).toBeTrue();
+    });
+    const reqOpen = httpMock.expectOne(`${baseUrl}/session/1/print`);
+    expect(reqOpen.request.method).toBe('POST');
+    reqOpen.flush({ success: true });
+
+    service.printTillClosingSlip(1).subscribe(res => {
+      expect(res.success).toBeTrue();
+    });
+    const reqClose = httpMock.expectOne(`${baseUrl}/session/1/print-closing`);
+    expect(reqClose.request.method).toBe('POST');
+    reqClose.flush({ success: true });
+
+    service.printCashMovementSlip(10).subscribe(res => {
+      expect(res.success).toBeTrue();
+    });
+    const reqMov = httpMock.expectOne(`${baseUrl}/movements/10/print`);
+    expect(reqMov.request.method).toBe('POST');
+    reqMov.flush({ success: true });
+  });
+
+  it('should handle XReport without date parameter', () => {
+    service.getXReport().subscribe(r => expect(r).toBeTruthy());
+    const reqX = httpMock.expectOne(`${baseUrl}/x-report`);
+    reqX.flush({ reportDate: '2026-09-18' });
+
+    service.downloadXReportPdf().subscribe(b => expect(b).toBeTruthy());
+    const reqPdf = httpMock.expectOne(`${baseUrl}/x-report/pdf`);
+    reqPdf.flush(new Blob());
+
+    service.printXReport().subscribe(p => expect(p.success).toBeTrue());
+    const reqPr = httpMock.expectOne(`${baseUrl}/x-report/print`);
+    reqPr.flush({ success: true });
+  });
 });
