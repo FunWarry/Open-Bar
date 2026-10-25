@@ -124,11 +124,11 @@ test.describe('Step-by-Step Modular Cocktail Builder & Live Scaling E2E', () => 
     await page.click('[data-testid="cocktail-form-category-select-option-ALCOOLISE"]');
 
     // Enable multi-glass toggle
-    await page.click('[data-testid="cocktail-multi-glass-toggle"]');
-    await expect(page.locator('[data-testid="companion-glass-config"]')).toBeVisible();
+    await page.click('[data-testid="toggle-multi-glass"]');
+    await expect(page.locator('[data-testid="multi-glass-config-grid"]')).toBeVisible();
 
     // Fill companion title
-    await page.fill('[data-testid="input-companion-glass-title"]', 'Shot de Prosecco');
+    await page.fill('input[data-testid="cocktail-form-companion-title-input"]', 'Shot de Prosecco');
 
     // Go to Step 2
     await page.click('[data-testid="wizard-btn-next"]');
