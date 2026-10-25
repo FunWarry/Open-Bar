@@ -164,11 +164,22 @@ class SampleDataSeederServiceTest {
         mockIng.setSeuilAlerte(new BigDecimal("5.0"));
         lenient().when(ingredientRepository.findByNomIgnoreCase(any())).thenReturn(Optional.of(mockIng));
 
+        Glassware primaryGlass = new Glassware();
+        primaryGlass.setId(10L);
+        primaryGlass.setNom("Verre Tumbler / Highball");
+
+        Glassware shotGlass = new Glassware();
+        shotGlass.setId(11L);
+        shotGlass.setNom("Shot de Prosecco");
+
         Cocktail mockMojito = new Cocktail();
         mockMojito.setId(1L);
         mockMojito.setNom("Mojito");
         mockMojito.setPrix(new BigDecimal("9.50"));
+        mockMojito.setGlassware(primaryGlass);
         mockMojito.setRecipeSteps(new ArrayList<>());
+        lenient().when(glasswareRepository.findByNomIgnoreCase("Shot de Prosecco")).thenReturn(Optional.of(shotGlass));
+        lenient().when(glasswareRepository.findByNomIgnoreCase(any())).thenReturn(Optional.of(primaryGlass));
         lenient().when(cocktailRepository.findByNomIgnoreCase(any())).thenReturn(Optional.of(mockMojito));
         lenient().when(cocktailRepository.findByNomIgnoreCaseWithRecipeSteps(any())).thenReturn(Optional.of(mockMojito));
         lenient().when(cocktailRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));

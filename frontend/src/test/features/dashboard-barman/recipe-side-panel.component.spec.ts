@@ -710,5 +710,23 @@ describe('RecipeSidePanelComponent', () => {
       expect(component.getGlassLabelByOrder(2)).toBe('Shot Prosecco');
       expect(component.getGlassLabelByOrder(3)).toBeTruthy();
     });
+
+    it('should resolve glasses from glassware and secondaryGlassware when glasses array is empty or missing', () => {
+      component.cocktail = {
+        ...mockCocktail,
+        glasses: undefined,
+        glassware: { id: 1, nom: 'Flûte Champagne', contenanceCl: 15, isPredefined: true, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+        secondaryGlassware: { id: 2, nom: 'Petit Shot', contenanceCl: 4, isPredefined: true, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+        companionGlassTitle: 'Shot d’accompagnement',
+      };
+
+      const resolved = component.resolvedGlasses;
+      expect(resolved).toHaveSize(2);
+      expect(resolved[0].nom).toBe('Flûte Champagne');
+      expect(resolved[0].isPrimary).toBeTrue();
+      expect(resolved[1].nom).toBe('Petit Shot');
+      expect(resolved[1].roleLabel).toBe('Shot d’accompagnement');
+      expect(resolved[1].isPrimary).toBeFalse();
+    });
   });
 });

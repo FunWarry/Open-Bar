@@ -1331,5 +1331,63 @@ describe('CocktailFormComponent', () => {
       component.removeExtraGlass(0);
       expect(component.extraGlassesArray).toHaveSize(1);
     });
+
+    it('should compute glassTargetOptions with primary and companion labels', () => {
+      component.extraGlassesArray.clear();
+      component.cocktailForm.patchValue({
+        glasswareId: 1,
+        isMultiGlass: true,
+        secondaryGlasswareId: 2,
+        companionGlassTitle: 'Shot de Prosecco',
+      });
+
+      const options = component.glassTargetOptions();
+      expect(options).toHaveSize(2);
+      expect(options[0].value).toBe(1);
+      expect(options[0].label).toContain('Verre Tumbler');
+      expect(options[1].value).toBe(2);
+      expect(options[1].label).toContain('Shot de Prosecco');
+    });
+
+    it('should build complete glassesPayload when submitting a multi-glass cocktail', () => {
+      component.isEditMode = false;
+      component.recipeStepsArray.clear();
+      component.variantesArray.clear();
+      component.extraGlassesArray.clear();
+      component.cocktailForm.patchValue({
+        name: 'Pornstar Martini',
+        description: 'Multi-glass cocktail',
+        price: 12.0,
+        category: 'ALCOOLISE',
+        glasswareId: 1,
+        isMultiGlass: true,
+        secondaryGlasswareId: 2,
+        companionGlassTitle: 'Shot de Prosecco',
+        station: 'BAR',
+      });
+      component.addExtraGlass();
+      component.extraGlassesArray.at(0).patchValue({
+        glasswareId: 1,
+        roleLabel: 'Sidecar',
+      });
+
+      cocktailServiceSpy.create.and.returnValue(of({ id: 99 } as any));
+      component.onSubmit();
+
+      expect(cocktailServiceSpy.create).toHaveBeenCalled();
+      const payload = cocktailServiceSpy.create.calls.mostRecent().args[0];
+      expect((payload as any).isMultiGlass).toBeUndefined();
+      expect(payload.glasses).toBeDefined();
+      const glasses = payload.glasses!;
+      expect(glasses).toHaveSize(3);
+      expect(glasses[0].glassOrder).toBe(1);
+      expect(glasses[0].glasswareId).toBe(1);
+      expect(glasses[1].glassOrder).toBe(2);
+      expect(glasses[1].glasswareId).toBe(2);
+      expect(glasses[1].roleLabel).toBe('Shot de Prosecco');
+      expect(glasses[2].glassOrder).toBe(3);
+      expect(glasses[2].glasswareId).toBe(1);
+      expect(glasses[2].roleLabel).toBe('Sidecar');
+    });
   });
 });

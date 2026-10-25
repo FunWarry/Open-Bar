@@ -1414,5 +1414,65 @@ class CocktailServiceTest {
         assertThat(cocktail.getGlasses().get(0).getGlassware().getId()).isEqualTo(103L);
         assertThat(cocktail.getGlasses().get(1).getGlassware().getId()).isEqualTo(104L);
     }
+
+    @Test
+    @DisplayName("createCocktailFromRequest - syncs glasses from legacy glasswareId and secondaryGlasswareId when glasses array is null")
+    void createCocktailFromRequestWithLegacyGlasswareFields() {
+        Glassware primary = new Glassware();
+        primary.setId(201L);
+        primary.setNom("Coupe");
+
+        Glassware secondary = new Glassware();
+        secondary.setId(202L);
+        secondary.setNom("Shot");
+
+        when(glasswareRepository.findById(201L)).thenReturn(Optional.of(primary));
+        when(glasswareRepository.findById(202L)).thenReturn(Optional.of(secondary));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CocktailRequestDTO request = new CocktailRequestDTO(
+            "Legacy Martini", "Classic", new BigDecimal("11.00"),
+            CocktailCategorie.ALCOOLISE, true, false, null, null, null, null,
+            "Instructions", null, List.of(), 201L,
+            List.of(), Set.of(), new BigDecimal("14.0"), false, true, true,
+            PreparationStation.BAR, 202L, "Sidecar Shot", null
+        );
+
+        CocktailResponseDTO response = cocktailService.createCocktailFromRequest(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.glassware()).isNotNull();
+        assertThat(response.glassware().id()).isEqualTo(201L);
+        assertThat(response.secondaryGlassware()).isNotNull();
+        assertThat(response.secondaryGlassware().id()).isEqualTo(202L);
+        assertThat(response.companionGlassTitle()).isEqualTo("Sidecar Shot");
+        assertThat(response.glasses()).hasSize(2);
+        assertThat(response.glasses().get(0).glassware().id()).isEqualTo(201L);
+        assertThat(response.glasses().get(0).roleLabel()).isEqualTo("Verre Principal");
+        assertThat(response.glasses().get(1).glassware().id()).isEqualTo(202L);
+        assertThat(response.glasses().get(1).roleLabel()).isEqualTo("Sidecar Shot");
+    }
+
+    @Test
+    @DisplayName("createCocktailFromRequest - clears glassware when IDs are null")
+    void createCocktailFromRequestWithNullGlassware() {
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CocktailRequestDTO request = new CocktailRequestDTO(
+            "No Glass Cocktail", null, new BigDecimal("8.00"),
+            CocktailCategorie.SANS_ALCOOL, true, false, null, null, null, null,
+            null, null, List.of(), null,
+            List.of(), Set.of(), BigDecimal.ZERO, true, true, true,
+            PreparationStation.BAR, null, null, null
+        );
+
+        CocktailResponseDTO response = cocktailService.createCocktailFromRequest(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.glassware()).isNull();
+        assertThat(response.secondaryGlassware()).isNull();
+        assertThat(response.companionGlassTitle()).isNull();
+        assertThat(response.glasses()).isEmpty();
+    }
 }
 
