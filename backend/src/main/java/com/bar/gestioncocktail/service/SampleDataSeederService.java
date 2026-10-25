@@ -96,6 +96,7 @@ public class SampleDataSeederService {
     private static final String KEY_MEDIA_URL = "mediaUrl";
     private static final String KEY_VIDEO_EMBED_URL = "videoEmbedUrl";
     private static final String KEY_CODE = "code";
+    private static final String DEFAULT_SERVEUR_USERNAME = "serveur1";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -134,6 +135,7 @@ public class SampleDataSeederService {
     private final ReservationRepository reservationRepository;
     private final ChecklistTemplateRepository checklistTemplateRepository;
     private final ChecklistRunRepository checklistRunRepository;
+    private final SafetyAlertRepository safetyAlertRepository;
     private final GlasswareRepository glasswareRepository;
     private final ObjectMapper objectMapper;
 
@@ -179,6 +181,7 @@ public class SampleDataSeederService {
             @org.springframework.beans.factory.annotation.Autowired(required = false) ReservationRepository reservationRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) ChecklistTemplateRepository checklistTemplateRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) ChecklistRunRepository checklistRunRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) SafetyAlertRepository safetyAlertRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) GlasswareRepository glasswareRepository) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
@@ -217,6 +220,7 @@ public class SampleDataSeederService {
         this.reservationRepository = reservationRepository;
         this.checklistTemplateRepository = checklistTemplateRepository;
         this.checklistRunRepository = checklistRunRepository;
+        this.safetyAlertRepository = safetyAlertRepository;
         this.glasswareRepository = glasswareRepository;
         this.objectMapper = new ObjectMapper();
     }
@@ -427,6 +431,7 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedCocktailRecipeStepsFromJson(root.get("cocktail_recipe_steps"), templatesMap), "seedCocktailRecipeSteps");
             safelyInTransaction(() -> seedStockAdjustmentsFromJson(root.get("stock_adjustments")), "seedStockAdjustments");
             safelyInTransaction(() -> seedTableAppelsFromJson(root.get("table_appels"), tablesMap), "seedTableAppels");
+            safelyInTransaction(() -> seedSafetyAlertsFromJson(root.get("safety_alerts"), tablesMap), "seedSafetyAlerts");
             safelyInTransaction(() -> seedTableSessionsFromJson(root.get("table_sessions"), tablesMap), "seedTableSessions");
             safelyInTransaction(this::seedSettingsAndConfig, "seedSettingsAndConfig");
 
@@ -1430,13 +1435,52 @@ public class SampleDataSeederService {
             appel.setUpdatedAt(now.minusMinutes(minutesAgo));
 
             if (statut == TableAppelStatut.ACQUITTE) {
-                appel.setAcquittePar(appelNode.path("acquittePar").asText("serveur1"));
+                appel.setAcquittePar(appelNode.path("acquittePar").asText(DEFAULT_SERVEUR_USERNAME));
                 appel.setAcquitteAt(now.minusMinutes(Math.max(0, minutesAgo - 1)));
             }
 
             tableAppelRepository.save(appel);
         }
         log.info("Seeded table call alerts from demo dataset.");
+    }
+
+    private void seedSafetyAlertsFromJson(JsonNode alertsNode, Map<Integer, TableEntity> tablesMap) {
+        if (alertsNode == null || !alertsNode.isArray() || safetyAlertRepository == null || safetyAlertRepository.count() > 0) {
+            return;
+        }
+
+        LocalDateTime now = timeService.now();
+
+        for (JsonNode alertNode : alertsNode) {
+            int tableNumero = alertNode.path(KEY_TABLE_NUMERO).asInt(1);
+            TableEntity table = tablesMap.get(tableNumero);
+            if (table == null) {
+                table = tableRepository.findByNumero(tableNumero).orElse(null);
+            }
+            if (table == null) {
+                continue;
+            }
+
+            SafetyAlertType type = SafetyAlertType.valueOf(alertNode.path("type").asText("ANGEL_SHOT_NEAT"));
+            SafetyAlertStatus status = SafetyAlertStatus.valueOf(alertNode.path(KEY_STATUS).asText("ACTIVE"));
+            String comment = alertNode.hasNonNull("comment") ? alertNode.path("comment").asText() : null;
+            int minutesAgo = alertNode.path(KEY_MINUTES_AGO).asInt(5);
+
+            SafetyAlert alert = new SafetyAlert();
+            alert.setTable(table);
+            alert.setType(type);
+            alert.setStatus(status);
+            alert.setComment(comment);
+            alert.setCreatedAt(now.minusMinutes(minutesAgo));
+
+            if (status == SafetyAlertStatus.RESOLVED) {
+                alert.setResolvedBy(alertNode.path("resolvedBy").asText(DEFAULT_SERVEUR_USERNAME));
+                alert.setResolvedAt(now.minusMinutes(Math.max(0, minutesAgo - 2)));
+            }
+
+            safetyAlertRepository.save(alert);
+        }
+        log.info("Seeded Angel Shot safety alerts from demo dataset.");
     }
 
     private void seedTableSessionsFromJson(JsonNode sessionsNode, Map<Integer, TableEntity> tablesMap) {
@@ -1905,7 +1949,7 @@ public class SampleDataSeederService {
         long minutesAgo = tNode.has(KEY_MINUTES_AGO) ? tNode.get(KEY_MINUTES_AGO).asLong() : 45;
         LocalDateTime openedAt = timeService.now().minusMinutes(minutesAgo);
 
-        String serveurUsername = tNode.has(KEY_SERVEUR_USERNAME) ? tNode.get(KEY_SERVEUR_USERNAME).asText() : "serveur1";
+        String serveurUsername = tNode.has(KEY_SERVEUR_USERNAME) ? tNode.get(KEY_SERVEUR_USERNAME).asText() : DEFAULT_SERVEUR_USERNAME;
         User serveur = usersMap.get(serveurUsername);
 
         BarTab tab = new BarTab();

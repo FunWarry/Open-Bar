@@ -286,6 +286,25 @@ ion-popover ion-item:hover ion-icon {
   .popover-user-header .role-badge {
     display: inline-flex;
   }
+
+  .topbar-safety-btn {
+    min-width: 44px;
+    min-height: 44px;
+    --padding-start: 4px;
+    --padding-end: 4px;
+    font-size: 20px;
+  }
+}
+
+/* Angel Shot Safety Protocol button (#569) */
+.topbar-safety-btn {
+  --color: var(--semantic-info);
+  font-weight: 700;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.topbar-safety-btn:hover {
+  --color: var(--primary);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -293,7 +312,8 @@ ion-popover ion-item:hover ion-icon {
   .bell-pulsing {
     animation: none;
   }
-  .notif-drawer-wrapper {
+  .notif-drawer-wrapper,
+  .topbar-safety-btn {
     transition: none;
   }
 }

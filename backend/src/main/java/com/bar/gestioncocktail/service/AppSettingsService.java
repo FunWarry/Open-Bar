@@ -69,6 +69,7 @@ public class AppSettingsService {
         applyVatAndMargins(current, request);
         applyPrinters(current, request);
         applyTpe(current, request);
+        applyEmergencyNumbers(current, request);
 
         AppSettings saved = appSettingsRepository.save(current);
         String tz = (timeService != null && timeService.getZoneId() != null)
@@ -221,6 +222,12 @@ public class AppSettingsService {
         }
         if (request.tpeTerminalsJson() != null) {
             current.setTpeTerminalsJson(request.tpeTerminalsJson());
+        }
+    }
+
+    private void applyEmergencyNumbers(AppSettings current, AppSettingsUpdateRequest request) {
+        if (request.emergencyNumbersJson() != null) {
+            current.setEmergencyNumbersJson(request.emergencyNumbersJson());
         }
     }
 

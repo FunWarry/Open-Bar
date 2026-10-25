@@ -2702,6 +2702,23 @@
       "minutesAgo": 25
     }
   ],
+  "safety_alerts": [
+    {
+      "tableNumero": 2,
+      "type": "ANGEL_SHOT_ICE",
+      "status": "ACTIVE",
+      "comment": "Besoin d'un taxi discrètement s'il vous plaît",
+      "minutesAgo": 2
+    },
+    {
+      "tableNumero": 4,
+      "type": "ANGEL_SHOT_NEAT",
+      "status": "RESOLVED",
+      "comment": "Accompagnement vers la sortie",
+      "resolvedBy": "serveur1",
+      "minutesAgo": 40
+    }
+  ],
   "table_sessions": [
     {
       "tableNumero": 1,

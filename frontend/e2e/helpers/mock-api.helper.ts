@@ -89,28 +89,136 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
-  // Establishment modules feature flags
-  await page.route('**/api/establishment/modules*', async (route) => {
+  // Establishment modules feature flags (stateful to support GET and dynamic toggle PUT)
+  let currentModules = {
+    cuisineKds: true,
+    happyHour: true,
+    employeeManagement: true,
+    floorPlan: true,
+    qrClientOrdering: true,
+    stockTracking: true,
+    cashDrawer: true,
+    barTabs: true,
+    cocktailLibrary: true,
+    suppliersManagement: true,
+    inventoryAudit: true,
+    mysteryRoulette: true,
+    paymentTerminal: true,
+    tableReservations: true,
+    checklistsProcedures: true,
+    systemUpdates: true,
+    angelShotSafety: true,
+  };
+
+  await page.route('**/api/establishment/modules**', async (route) => {
+    if (route.request().method() === 'PUT') {
+      const body = route.request().postDataJSON() || {};
+      currentModules = { ...currentModules, ...body };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(currentModules),
+      });
+      return;
+    }
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({
-        cuisineKds: true,
-        happyHour: true,
-        employeeManagement: true,
-        floorPlan: true,
-        qrClientOrdering: true,
-        stockTracking: true,
-        cashDrawer: true,
-        barTabs: true,
-        cocktailLibrary: true,
-        suppliersManagement: true,
-        inventoryAudit: true,
-        tableReservations: true,
-        systemUpdates: true,
-      }),
+      body: JSON.stringify(currentModules),
     });
   });
+
+  // Angel Shot and Patron Safety Alerts
+  let activeSafetyAlerts: Array<Record<string, unknown>> = [];
+
+  await page.route('**/api/safety-alerts/active', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(activeSafetyAlerts),
+    });
+  });
+
+  await page.route('**/api/safety-alerts/poster/pdf', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/pdf',
+      body: Buffer.from('%PDF-1.4\n%EOF'),
+    });
+  });
+
+  await page.route('**/api/safety-alerts/tables/**', async (route) => {
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      const newAlert = {
+        id: Date.now(),
+        tableId: 1,
+        tableNumero: 1,
+        type: body.type || 'ANGEL_SHOT_ICE',
+        typeLabel: body.type === 'ANGEL_SHOT_NEAT' ? 'Sans glaçons' : body.type === 'ANGEL_SHOT_LIME' ? 'Avec rondelle de citron' : 'Avec glaçons',
+        status: 'ACTIVE',
+        comment: body.comment || '',
+        createdAt: new Date().toISOString(),
+      };
+      activeSafetyAlerts.push(newAlert);
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify(newAlert),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(activeSafetyAlerts.filter(a => a['status'] === 'ACTIVE')),
+    });
+  });
+
+  await page.route('**/api/safety-alerts/*/resolve', async (route) => {
+    const body = route.request().postDataJSON() || {};
+    const url = route.request().url();
+    const match = url.match(/\/safety-alerts\/(\d+)\/resolve/);
+    const alertId = match ? Number(match[1]) : 1;
+    const resolved = {
+      id: alertId,
+      tableId: 1,
+      tableNumero: 1,
+      type: 'ANGEL_SHOT_ICE',
+      typeLabel: 'Avec glaçons',
+      status: 'RESOLVED',
+      resolvedBy: body.resolvedBy || 'staff',
+      resolvedAt: new Date().toISOString(),
+      createdAt: new Date(Date.now() - 60000).toISOString(),
+    };
+    activeSafetyAlerts = activeSafetyAlerts.filter(a => a['id'] !== alertId);
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(resolved),
+    });
+  });
+
+  await page.route('**/api/public/safety-alerts/tables/**', async (route) => {
+    const body = route.request().postDataJSON() || {};
+    const alert = {
+      id: Date.now(),
+      tableId: 1,
+      tableNumero: 1,
+      type: body.type || 'ANGEL_SHOT_ICE',
+      typeLabel: body.type === 'ANGEL_SHOT_NEAT' ? 'Sans glaçons' : body.type === 'ANGEL_SHOT_LIME' ? 'Avec rondelle de citron' : 'Avec glaçons',
+      status: 'ACTIVE',
+      comment: body.comment || '',
+      createdAt: new Date().toISOString(),
+    };
+    activeSafetyAlerts.push(alert);
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify(alert),
+    });
+  });
+
 
   // Cocktail library routes
   await page.route('**/api/cocktails/library/import', async (route) => {
@@ -1476,42 +1584,7 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
-  let currentModules = {
-    cuisineKds: true,
-    happyHour: true,
-    employeeManagement: true,
-    floorPlan: true,
-    qrClientOrdering: true,
-    stockTracking: true,
-    cashDrawer: true,
-    barTabs: true,
-    cocktailLibrary: true,
-    suppliersManagement: true,
-    inventoryAudit: true,
-    mysteryRoulette: true,
-    paymentTerminal: true,
-    tableReservations: true,
-    checklistsProcedures: true,
-    systemUpdates: true,
-  };
-
-  await page.route('**/api/establishment/modules**', async (route) => {
-    if (route.request().method() === 'PUT') {
-      const body = route.request().postDataJSON() || {};
-      currentModules = { ...currentModules, ...body };
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(currentModules),
-      });
-      return;
-    }
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(currentModules),
-    });
-  });
+  // (Establishment capability modules route defined statefully at top of setupMockApi)
 
   await page.route('**/api/admin/establishment**', async (route) => {
     if (route.request().url().includes('/timezones')) {
@@ -1891,30 +1964,7 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
-  await page.route('**/api/establishment/modules**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        cuisineKds: true,
-        happyHour: true,
-        employeeManagement: true,
-        floorPlan: true,
-        qrClientOrdering: true,
-        stockTracking: true,
-        cashDrawer: true,
-        barTabs: true,
-        cocktailLibrary: true,
-        suppliersManagement: true,
-        inventoryAudit: true,
-        mysteryRoulette: true,
-        paymentTerminal: true,
-        tableReservations: true,
-        checklistsProcedures: true,
-        systemUpdates: true,
-      }),
-    });
-  });
+  // (Establishment modules route defined statefully at top of setupMockApi)
 
   await page.route('**/api/inventory-audits**', async (route) => {
     const url = route.request().url();
@@ -2098,31 +2148,7 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
-  // Mock Establishment Capability Modules
-  await page.route('**/api/establishment/modules**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        cuisineKds: true,
-        happyHour: true,
-        employeeManagement: true,
-        floorPlan: true,
-        qrClientOrdering: true,
-        stockTracking: true,
-        cashDrawer: true,
-        barTabs: true,
-        cocktailLibrary: true,
-        suppliersManagement: true,
-        inventoryAudit: true,
-        mysteryRoulette: true,
-        paymentTerminal: true,
-        tableReservations: true,
-        checklistsProcedures: true,
-        systemUpdates: true,
-      }),
-    });
-  });
+  // (Establishment capability modules route defined statefully at top of setupMockApi)
 
   // Mock Roulette TV PIN and Staff Administration
   await page.route('**/api/roulette/pin**', async (route) => {

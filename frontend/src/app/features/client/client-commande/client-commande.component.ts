@@ -52,6 +52,7 @@ import { FeatureFlagService } from '../../../core/services/feature-flag.service'
 import { EstablishmentModule } from '../../../core/models/establishment-module.model';
 import { RouletteSpinResult } from '../../../core/models/roulette.model';
 import { RouletteModalComponent } from '../components/roulette-modal/roulette-modal.component';
+import { AngelShotModalComponent } from '../components/angel-shot-modal/angel-shot-modal.component';
 
 /**
  * Navigation steps for the customer QR order lifecycle.
@@ -82,7 +83,8 @@ export type ClientCommandeStep = 'table' | 'menu' | 'recap';
     SearchBarComponent,
     ProductCardComponent,
     CocktailMatcherBarComponent,
-    TableAssistanceBarComponent
+    TableAssistanceBarComponent,
+    AngelShotModalComponent
   ]
 })
 export class ClientCommandeComponent implements OnInit, OnDestroy {
@@ -1171,5 +1173,28 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
     if (orderId && this.step === 'recap') {
       void this.router.navigate(['/client/suivi', orderId]);
     }
+  }
+
+  readonly isAngelShotModalOpen = signal<boolean>(false);
+
+  /**
+   * Checks whether the Angel Shot safety protocol module is currently enabled.
+   */
+  isSafetyModuleEnabled(): boolean {
+    return this.featureFlagService ? this.featureFlagService.isModuleEnabled(EstablishmentModule.ANGEL_SHOT_SAFETY) : true;
+  }
+
+  /**
+   * Opens the discreet Angel Shot assistance modal.
+   */
+  openAngelShotModal(): void {
+    this.isAngelShotModalOpen.set(true);
+  }
+
+  /**
+   * Closes the discreet Angel Shot assistance modal.
+   */
+  closeAngelShotModal(): void {
+    this.isAngelShotModalOpen.set(false);
   }
 }

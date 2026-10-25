@@ -190,4 +190,20 @@ public class Cocktail {
     public void setStation(PreparationStation station) {
         this.station = station != null ? station : PreparationStation.BAR;
     }
+
+    public boolean isDisponible() {
+        return disponible;
+    }
+
+    public void setDisponible(boolean disponible) {
+        this.disponible = disponible;
+    }
+
+    public boolean isSaisonnier() {
+        return saisonnier;
+    }
+
+    public void setSaisonnier(boolean saisonnier) {
+        this.saisonnier = saisonnier;
+    }
 }

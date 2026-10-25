@@ -20,6 +20,8 @@ import {
 import { NotificationService, AppNotification } from '../../services/notification.service';
 import { TableAppelService } from '../../services/table-appel.service';
 import { TableAppel } from '../../models/table-appel.model';
+import { SafetyAlertService } from '../../services/safety-alert.service';
+import { SafetyAlert } from '../../models/safety-alert.model';
 
 /**
  * Side drawer panel component for displaying notifications dynamically.
@@ -52,11 +54,15 @@ export class NotificationPanelComponent implements OnInit, OnDestroy {
   /** Reactive signal exposing active table calls awaiting attendance. */
   readonly activeCalls = this.tableAppelService.activeAppels;
 
+  /** Reactive signal exposing active Angel Shot emergency safety alerts. */
+  readonly activeSafetyAlerts = this.safetyAlertService.activeAlerts;
+
   private readonly destroy$ = new Subject<void>();
 
   constructor(
     private readonly notifService: NotificationService,
     public readonly tableAppelService: TableAppelService,
+    public readonly safetyAlertService: SafetyAlertService,
     private readonly toastCtrl: ToastController,
     private readonly translocoService: TranslocoService,
     @Optional() private readonly popoverCtrl?: PopoverController,
@@ -86,6 +92,12 @@ export class NotificationPanelComponent implements OnInit, OnDestroy {
       .subscribe({
         error: () => { /* safely ignore if offline/unauthorized */ }
       });
+
+    this.safetyAlertService.getActiveAlerts()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        error: () => { /* safely ignore if offline/unauthorized */ }
+      });
   }
 
   ngOnDestroy(): void {
@@ -110,6 +122,38 @@ export class NotificationPanelComponent implements OnInit, OnDestroy {
           message: this.translocoService.translate('SERVEUR.ALERTS.ACKNOWLEDGE_SUCCESS'),
           duration: 2500,
           color: 'success',
+          position: 'top',
+        });
+        await toast.present();
+      },
+    });
+  }
+
+  /**
+   * Resolves and dismisses an active Angel Shot emergency safety alert.
+   *
+   * @param alert - The safety alert to acknowledge and resolve.
+   * @param event - Optional click event to prevent propagation.
+   */
+  resolveSafetyAlert(alert: SafetyAlert, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.safetyAlertService.resolveAlert(alert.id).subscribe({
+      next: async () => {
+        const toast = await this.toastCtrl.create({
+          message: this.translocoService.translate('SAFETY.RESOLVE_SUCCESS'),
+          duration: 2500,
+          color: 'success',
+          position: 'top',
+        });
+        await toast.present();
+      },
+      error: async () => {
+        const toast = await this.toastCtrl.create({
+          message: this.translocoService.translate('SAFETY.RESOLVE_ERROR'),
+          duration: 2500,
+          color: 'danger',
           position: 'top',
         });
         await toast.present();

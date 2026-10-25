@@ -1024,6 +1024,26 @@ CREATE INDEX IF NOT EXISTS idx_checklist_run_items_run_id ON checklist_run_items
 -- System Updates Module idempotency migration
 ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_system_updates_enabled BOOLEAN DEFAULT true;
 
+-- Angel Shot Safety Alerts Module
+CREATE TABLE IF NOT EXISTS safety_alerts (
+    id BIGSERIAL PRIMARY KEY,
+    table_id BIGINT NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
+    comment VARCHAR(255),
+    resolved_by VARCHAR(100),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_safety_alerts_table_status ON safety_alerts(table_id, status);
+CREATE INDEX IF NOT EXISTS idx_safety_alerts_status ON safety_alerts(status);
+
+ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_angel_shot_safety_enabled BOOLEAN DEFAULT true;
+
+-- Configurable emergency helplines for Angel Shot safety protocol
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS emergency_numbers_json TEXT;
+
 -- Multi-glass cocktail recipes with companion glassware & dynamic glass dispatch
 ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS secondary_glassware_id BIGINT REFERENCES glassware(id) ON DELETE SET NULL;
 ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS companion_glass_title VARCHAR(100);

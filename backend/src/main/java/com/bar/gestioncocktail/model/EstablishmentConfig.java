@@ -147,6 +147,9 @@ public class EstablishmentConfig {
     @Column(name = "module_system_updates_enabled")
     private Boolean moduleSystemUpdatesEnabled = true;
 
+    @Column(name = "module_angel_shot_safety_enabled")
+    private Boolean moduleAngelShotSafetyEnabled = true;
+
     @Column(name = "roulette_price_cocktail", precision = 10, scale = 2)
     private BigDecimal roulettePriceCocktail = new BigDecimal("7.50");
 
@@ -455,6 +458,14 @@ public class EstablishmentConfig {
         this.moduleSystemUpdatesEnabled = moduleSystemUpdatesEnabled;
     }
 
+    public Boolean getModuleAngelShotSafetyEnabled() {
+        return this.moduleAngelShotSafetyEnabled;
+    }
+
+    public void setModuleAngelShotSafetyEnabled(Boolean moduleAngelShotSafetyEnabled) {
+        this.moduleAngelShotSafetyEnabled = moduleAngelShotSafetyEnabled;
+    }
+
     public BigDecimal getRoulettePriceCocktail() {
         return this.roulettePriceCocktail != null ? this.roulettePriceCocktail : new BigDecimal("7.50");
     }
@@ -540,6 +551,7 @@ public class EstablishmentConfig {
             case TABLE_RESERVATIONS -> isEnabledOrDefault(this.moduleTableReservationsEnabled);
             case CHECKLISTS_PROCEDURES -> isEnabledOrDefault(this.moduleChecklistsProceduresEnabled);
             case SYSTEM_UPDATES -> isEnabledOrDefault(this.moduleSystemUpdatesEnabled);
+            case ANGEL_SHOT_SAFETY -> isEnabledOrDefault(this.moduleAngelShotSafetyEnabled);
             default -> true;
         };
     }
@@ -606,6 +618,9 @@ public class EstablishmentConfig {
                 break;
             case SYSTEM_UPDATES:
                 this.moduleSystemUpdatesEnabled = enabled;
+                break;
+            case ANGEL_SHOT_SAFETY:
+                this.moduleAngelShotSafetyEnabled = enabled;
                 break;
             default:
                 break;
