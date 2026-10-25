@@ -197,11 +197,19 @@ jobs:
         working-directory: frontend
         run: npm ci --ignore-scripts
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.1.1
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('frontend/package-lock.json') }}
+
       - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: frontend
         run: |
           sudo rm -f /etc/apt/sources.list.d/*chrome* /etc/apt/sources.list.d/*google*
-          npx --no-install playwright install --with-deps chromium
+          npx playwright install --with-deps chromium
 
       - name: Run E2E tests
         working-directory: frontend
