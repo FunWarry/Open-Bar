@@ -525,9 +525,9 @@ class EscPosPrintingServiceTest {
     void printTillClosingSlip_success() throws IOException {
         CashDrawerSession session = new CashDrawerSession();
         session.setId(1L);
-        session.setSessionDate(LocalDate.of(2026, 9, 18));
-        session.setOpenedAt(LocalDateTime.of(2026, 9, 18, 9, 0));
-        session.setClosedAt(LocalDateTime.of(2026, 9, 18, 23, 0));
+        session.setSessionDate(LocalDate.of(2026, Month.SEPTEMBER, 18));
+        session.setOpenedAt(LocalDateTime.of(2026, Month.SEPTEMBER, 18, 9, 0));
+        session.setClosedAt(LocalDateTime.of(2026, Month.SEPTEMBER, 18, 23, 0));
         session.setOpeningFloat(new BigDecimal("150.00"));
         session.setActualCash(new BigDecimal("360.00"));
         session.setTheoreticalCash(new BigDecimal("360.00"));
@@ -578,7 +578,7 @@ class EscPosPrintingServiceTest {
         movement.setType(CashMovementType.CASH_DROP);
         movement.setAmount(new BigDecimal("100.00"));
         movement.setReason("Safe drop");
-        movement.setMovementDate(LocalDate.of(2026, 9, 18));
+        movement.setMovementDate(LocalDate.of(2026, Month.SEPTEMBER, 18));
 
         when(cashMovementRepository.findById(10L)).thenReturn(Optional.of(movement));
         when(appSettingsService.getSettings()).thenReturn(settings);
