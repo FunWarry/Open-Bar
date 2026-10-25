@@ -465,14 +465,25 @@ public class SystemUpdateService {
         verifyModuleEnabled();
         validateSnapshotId(snapshotId);
 
-        Path sqlGzPath = Paths.get(this.backupDir, snapshotId + SQL_GZ_EXT);
-        if (!Files.exists(sqlGzPath)) {
+        Path sqlGzPath = resolveSafeSnapshotPath(snapshotId, SQL_GZ_EXT);
+        if (!Files.exists(sqlGzPath) || !Files.isRegularFile(sqlGzPath)) {
             throw new ResourceNotFoundException("Snapshot file not found: " + snapshotId);
+        }
+
+        SystemSnapshotDTO matchedSnapshot = listSnapshots().stream()
+                .filter(s -> s.snapshotId().equals(snapshotId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Snapshot file not found: " + snapshotId));
+
+        Path baseDir = Paths.get(this.backupDir).toAbsolutePath().normalize();
+        Path safeFile = baseDir.resolve(matchedSnapshot.filename()).normalize();
+        if (!safeFile.startsWith(baseDir) || !Files.isRegularFile(safeFile)) {
+            throw new BusinessException("Invalid snapshot path.");
         }
 
         String safeSnapshotId = sanitizeForLog(snapshotId);
         log.info("Triggering disaster recovery restore for snapshot: {}", safeSnapshotId);
-        CompletableFuture.runAsync(() -> executeRollbackRestore(sqlGzPath.toAbsolutePath().toString()));
+        CompletableFuture.runAsync(() -> executeRollbackRestore(safeFile.toString()));
 
         return Map.of(
                 "message", "Restauration du snapshot " + safeSnapshotId + " initiée avec succès.",
@@ -489,8 +500,8 @@ public class SystemUpdateService {
         verifyModuleEnabled();
         validateSnapshotId(snapshotId);
 
-        Path sqlGzPath = Paths.get(this.backupDir, snapshotId + SQL_GZ_EXT);
-        Path metaPath = Paths.get(this.backupDir, snapshotId + ".meta.json");
+        Path sqlGzPath = resolveSafeSnapshotPath(snapshotId, SQL_GZ_EXT);
+        Path metaPath = resolveSafeSnapshotPath(snapshotId, ".meta.json");
 
         String safeSnapshotId = sanitizeForLog(snapshotId);
         try {
@@ -503,8 +514,20 @@ public class SystemUpdateService {
         }
     }
 
+    Path resolveSafeSnapshotPath(String snapshotId, String extension) {
+        validateSnapshotId(snapshotId);
+        Path baseDir = Paths.get(this.backupDir).toAbsolutePath().normalize();
+        Path targetPath = baseDir.resolve(snapshotId + extension).normalize();
+        if (!targetPath.startsWith(baseDir) || targetPath.getParent() == null || !targetPath.getParent().equals(baseDir)) {
+            throw new BusinessException("Path traversal attempt detected in snapshot identifier.");
+        }
+        return targetPath;
+    }
+
     void validateSnapshotId(String snapshotId) {
-        if (snapshotId == null || !snapshotId.matches("^[a-zA-Z0-9_.-]+$")) {
+        if (snapshotId == null
+                || !snapshotId.matches("^[a-zA-Z0-9_.-]{1,64}$")
+                || snapshotId.contains("..") || snapshotId.contains("/") || snapshotId.contains("\\")) {
             throw new BusinessException("Invalid snapshot identifier.");
         }
     }
@@ -610,7 +633,23 @@ public class SystemUpdateService {
         writeStatusToFile(failedStatus);
     }
 
+    void validateRollbackPath(String snapshotFilePath) {
+        if (snapshotFilePath == null || snapshotFilePath.isBlank()
+                || snapshotFilePath.contains("..")
+                || snapshotFilePath.contains(";")
+                || snapshotFilePath.contains("&")
+                || snapshotFilePath.contains("|")
+                || snapshotFilePath.contains("`")
+                || snapshotFilePath.contains("$")
+                || snapshotFilePath.contains("\n")
+                || snapshotFilePath.contains("\r")
+                || !snapshotFilePath.endsWith(SQL_GZ_EXT)) {
+            throw new BusinessException("Invalid rollback snapshot file path.");
+        }
+    }
+
     List<String> buildRollbackCommand(String snapshotFilePath, boolean isWindows) {
+        validateRollbackPath(snapshotFilePath);
         List<String> command = new ArrayList<>();
         if (isWindows) {
             command.add("powershell.exe");
@@ -632,6 +671,7 @@ public class SystemUpdateService {
     }
 
     private void executeRollbackRestore(String snapshotFilePath) {
+        validateRollbackPath(snapshotFilePath);
         boolean isWindows = System.getProperty(OS_NAME_PROP, "").toLowerCase().contains("win");
         List<String> command = buildRollbackCommand(snapshotFilePath, isWindows);
 
