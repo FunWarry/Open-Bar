@@ -129,6 +129,12 @@ export async function setupMockApi(page: Page): Promise<void> {
   });
 
   // Angel Shot and Patron Safety Alerts
+  const getSafetyAlertLabel = (type?: string): string => {
+    if (type === 'ANGEL_SHOT_NEAT') return 'Sans glaçons';
+    if (type === 'ANGEL_SHOT_LIME') return 'Avec rondelle de citron';
+    return 'Avec glaçons';
+  };
+
   let activeSafetyAlerts: Array<Record<string, unknown>> = [];
 
   await page.route('**/api/safety-alerts/active', async (route) => {
@@ -155,7 +161,7 @@ export async function setupMockApi(page: Page): Promise<void> {
         tableId: 1,
         tableNumero: 1,
         type: body.type || 'ANGEL_SHOT_ICE',
-        typeLabel: body.type === 'ANGEL_SHOT_NEAT' ? 'Sans glaçons' : body.type === 'ANGEL_SHOT_LIME' ? 'Avec rondelle de citron' : 'Avec glaçons',
+        typeLabel: getSafetyAlertLabel(body.type),
         status: 'ACTIVE',
         comment: body.comment || '',
         createdAt: new Date().toISOString(),
@@ -178,7 +184,7 @@ export async function setupMockApi(page: Page): Promise<void> {
   await page.route('**/api/safety-alerts/*/resolve', async (route) => {
     const body = route.request().postDataJSON() || {};
     const url = route.request().url();
-    const match = url.match(/\/safety-alerts\/(\d+)\/resolve/);
+    const match = /\/safety-alerts\/(\d+)\/resolve/.exec(url);
     const alertId = match ? Number(match[1]) : 1;
     const resolved = {
       id: alertId,
@@ -206,7 +212,7 @@ export async function setupMockApi(page: Page): Promise<void> {
       tableId: 1,
       tableNumero: 1,
       type: body.type || 'ANGEL_SHOT_ICE',
-      typeLabel: body.type === 'ANGEL_SHOT_NEAT' ? 'Sans glaçons' : body.type === 'ANGEL_SHOT_LIME' ? 'Avec rondelle de citron' : 'Avec glaçons',
+      typeLabel: getSafetyAlertLabel(body.type),
       status: 'ACTIVE',
       comment: body.comment || '',
       createdAt: new Date().toISOString(),
