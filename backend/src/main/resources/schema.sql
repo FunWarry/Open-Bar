@@ -55,6 +55,8 @@ CREATE TABLE IF NOT EXISTS cocktails (
     instructions TEXT,
     image_url VARCHAR(500),
     glassware_id BIGINT REFERENCES glassware(id) ON DELETE SET NULL,
+    secondary_glassware_id BIGINT REFERENCES glassware(id) ON DELETE SET NULL,
+    companion_glass_title VARCHAR(100),
     alcohol_level DECIMAL(4,1) DEFAULT 0.0,
     is_mocktail BOOLEAN DEFAULT false,
     is_vegan BOOLEAN DEFAULT true,
@@ -144,6 +146,7 @@ CREATE TABLE IF NOT EXISTS cocktail_ingredients (
     ingredient_id BIGINT REFERENCES ingredients(id) ON DELETE CASCADE,
     quantite DECIMAL(10,2) NOT NULL,
     unite VARCHAR(20),
+    target_glass_order INT NOT NULL DEFAULT 1,
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -200,6 +203,7 @@ CREATE TABLE IF NOT EXISTS cocktail_recipe_steps (
     ingredient_id BIGINT REFERENCES ingredients(id) ON DELETE SET NULL,
     quantite DECIMAL(10,2),
     unite VARCHAR(20),
+    target_glass_order INT NOT NULL DEFAULT 1,
     template_id BIGINT REFERENCES recipe_step_templates(id) ON DELETE SET NULL,
     action_title VARCHAR(100),
     custom_text TEXT,
@@ -209,6 +213,19 @@ CREATE TABLE IF NOT EXISTS cocktail_recipe_steps (
 );
 
 CREATE INDEX IF NOT EXISTS idx_cocktail_recipe_steps_cocktail_id ON cocktail_recipe_steps(cocktail_id);
+
+CREATE TABLE IF NOT EXISTS cocktail_glasses (
+    id BIGSERIAL PRIMARY KEY,
+    cocktail_id BIGINT NOT NULL REFERENCES cocktails(id) ON DELETE CASCADE,
+    glassware_id BIGINT REFERENCES glassware(id) ON DELETE SET NULL,
+    glass_order INT NOT NULL DEFAULT 1,
+    role_label VARCHAR(100),
+    is_primary BOOLEAN DEFAULT false,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_cocktail_glasses_cocktail_id ON cocktail_glasses(cocktail_id);
 
 -- 4. Floor Plan, Floors, Zones & Tables
 CREATE TABLE IF NOT EXISTS etages (
@@ -1026,3 +1043,9 @@ ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_angel_shot_safe
 
 -- Configurable emergency helplines for Angel Shot safety protocol
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS emergency_numbers_json TEXT;
+
+-- Multi-glass cocktail recipes with companion glassware & dynamic glass dispatch
+ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS secondary_glassware_id BIGINT REFERENCES glassware(id) ON DELETE SET NULL;
+ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS companion_glass_title VARCHAR(100);
+ALTER TABLE cocktail_ingredients ADD COLUMN IF NOT EXISTS target_glass_order INT DEFAULT 1;
+ALTER TABLE cocktail_recipe_steps ADD COLUMN IF NOT EXISTS target_glass_order INT DEFAULT 1;

@@ -217,6 +217,33 @@
               <span class="product-flavor-tag">{{ ('COCKTAIL.FLAVOR_' + flavor) | transloco }}</span>
             }
           </div>
+
+          @if (cocktail.glassware || cocktail.secondaryGlassware || (cocktail.glasses && cocktail.glasses.length > 0)) {
+            <div class="cocktail-glassware-section" data-testid="cocktail-glassware-section">
+              <span class="glassware-section-label">🍸 {{ 'COCKTAILS.GLASSWARE_SECTION_TITLE' | transloco }} :</span>
+              <div class="glassware-chips-list">
+                @if (cocktail.glasses && cocktail.glasses.length > 0) {
+                  @for (glass of cocktail.glasses; track glass.id || glass.glassOrder) {
+                    <span class="glassware-item-chip" [class.primary-glass]="glass.isPrimary" data-testid="cocktail-glass-chip">
+                      {{ glass.isPrimary ? '🍸' : '🥃' }}
+                      {{ glass.roleLabel || glass.glasswareNom }}
+                    </span>
+                  }
+                } @else {
+                  @if (cocktail.glassware) {
+                    <span class="glassware-item-chip primary-glass" data-testid="cocktail-glass-chip">
+                      🍸 {{ cocktail.glassware.nom }}
+                    </span>
+                  }
+                  @if (cocktail.secondaryGlassware || cocktail.companionGlassTitle) {
+                    <span class="glassware-item-chip companion-glass" data-testid="cocktail-glass-chip">
+                      🥃 {{ cocktail.companionGlassTitle || cocktail.secondaryGlassware?.nom }}
+                    </span>
+                  }
+                }
+              </div>
+            </div>
+          }
         </div>
 
         <!-- Section Ingrédients (strictement SANS quantités) -->
@@ -623,6 +650,8 @@
               [isVegan]="cocktail.isVegan ?? true"
               [isGlutenFree]="cocktail.isGlutenFree ?? true"
               [quantity]="getItemQuantity(cocktail.id)"
+              [companionGlassTitle]="cocktail.companionGlassTitle"
+              [secondaryGlasswareNom]="cocktail.secondaryGlassware?.nom"
               (cardClick)="openCocktailDetails(cocktail)"
               (addClick)="addToCart(cocktail)"
               (removeClick)="removeFromCart(cocktail.id)"

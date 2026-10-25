@@ -306,3 +306,13 @@ ion-popover ion-item:hover ion-icon {
 .topbar-safety-btn:hover {
   --color: var(--primary);
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .notif-badge.call-pulse,
+  .bell-pulsing {
+    animation: none;
+  }
+  .notif-drawer-wrapper {
+    transition: none;
+  }
+}

@@ -1,4 +1,4 @@
-import { Glassware } from './glassware.model';
+import { Glassware, CocktailGlass } from './glassware.model';
 import { CocktailRecipeStep } from './recipe-step.model';
 import { Allergen } from './ingredient.model';
 /**
@@ -63,6 +63,7 @@ export interface CocktailIngredientItem {
   ingredientNom: string;
   quantite: number;
   uniteMesure: string;
+  targetGlassOrder?: number;
   allergens?: Allergen[];
 }
 
@@ -154,6 +155,10 @@ type CocktailBase = {
   recipeSteps?: CocktailRecipeStep[];
   glassware?: Glassware;
   glasswareId?: number;
+  secondaryGlassware?: Glassware;
+  secondaryGlasswareId?: number;
+  companionGlassTitle?: string;
+  glasses?: CocktailGlass[];
   instructions?: string;
   imageUrl?: string;
   flavorProfiles?: FlavorProfile[];

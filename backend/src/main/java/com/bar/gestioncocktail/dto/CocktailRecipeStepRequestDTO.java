@@ -10,15 +10,16 @@ import java.math.BigDecimal;
 /**
  * Request DTO for configuring an individual step block within a cocktail recipe.
  *
- * @param stepOrder Sequential order index (1, 2, 3...)
- * @param stepType Type of block (INGREDIENT, ACTION_TEMPLATE, CUSTOM_TEXT)
- * @param ingredientId Linked ingredient ID (if stepType == INGREDIENT)
- * @param quantite Ingredient quantity for 1 serving
- * @param unite Measurement unit
- * @param templateId Linked reusable template ID (if stepType == ACTION_TEMPLATE)
- * @param actionTitle Override or custom title for the action
- * @param customText Freeform instruction text
- * @param durationSeconds Execution duration in seconds
+ * @param stepOrder        Sequential order index (1, 2, 3...)
+ * @param stepType         Type of block (INGREDIENT, ACTION_TEMPLATE, CUSTOM_TEXT)
+ * @param ingredientId     Linked ingredient ID (if stepType == INGREDIENT)
+ * @param quantite         Ingredient quantity for 1 serving
+ * @param unite            Measurement unit
+ * @param targetGlassOrder Glass order index (1 = Primary glass, 2 = Secondary glass, etc.)
+ * @param templateId       Linked reusable template ID (if stepType == ACTION_TEMPLATE)
+ * @param actionTitle      Override or custom title for the action
+ * @param customText       Freeform instruction text
+ * @param durationSeconds  Execution duration in seconds
  */
 @Schema(description = "Request DTO for defining an ordered step block in a recipe")
 public record CocktailRecipeStepRequestDTO(
@@ -35,6 +36,8 @@ public record CocktailRecipeStepRequestDTO(
     @Size(max = 20, message = "Unit cannot exceed 20 characters")
     String unite,
 
+    Integer targetGlassOrder,
+
     Long templateId,
 
     @Size(max = 100, message = "Action title cannot exceed 100 characters")
@@ -43,4 +46,21 @@ public record CocktailRecipeStepRequestDTO(
     String customText,
 
     Integer durationSeconds
-) {}
+) {
+    /**
+     * Backward-compatible 9-parameter constructor without targetGlassOrder.
+     */
+    public CocktailRecipeStepRequestDTO(
+        Integer stepOrder,
+        RecipeStepType stepType,
+        Long ingredientId,
+        BigDecimal quantite,
+        String unite,
+        Long templateId,
+        String actionTitle,
+        String customText,
+        Integer durationSeconds
+    ) {
+        this(stepOrder, stepType, ingredientId, quantite, unite, 1, templateId, actionTitle, customText, durationSeconds);
+    }
+}

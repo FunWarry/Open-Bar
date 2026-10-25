@@ -10,21 +10,22 @@ import java.time.LocalDateTime;
 /**
  * Response DTO describing a configured step in a cocktail recipe.
  *
- * @param id Unique step identifier
- * @param cocktailId Associated cocktail identifier
- * @param stepOrder Chronological order index (1-based)
- * @param stepType Type of block (INGREDIENT, ACTION_TEMPLATE, CUSTOM_TEXT)
- * @param ingredientId Associated ingredient identifier if INGREDIENT block
- * @param ingredientName Associated ingredient name if INGREDIENT block
- * @param quantite Ingredient dosage for 1 cocktail portion
- * @param unite Measurement unit (cl, ml, g, dashes, leaves, etc.)
- * @param templateId Associated reusable template identifier if ACTION_TEMPLATE block
- * @param template Attached template details
- * @param actionTitle Custom action title
- * @param customText Freeform notes/instructions
- * @param durationSeconds Estimated execution duration in seconds
- * @param createdAt Creation timestamp
- * @param updatedAt Modification timestamp
+ * @param id               Unique step identifier
+ * @param cocktailId       Associated cocktail identifier
+ * @param stepOrder        Chronological order index (1-based)
+ * @param stepType         Type of block (INGREDIENT, ACTION_TEMPLATE, CUSTOM_TEXT)
+ * @param ingredientId     Associated ingredient identifier if INGREDIENT block
+ * @param ingredientName   Associated ingredient name if INGREDIENT block
+ * @param quantite         Ingredient dosage for 1 cocktail portion
+ * @param unite            Measurement unit (cl, ml, g, dashes, leaves, etc.)
+ * @param targetGlassOrder Glass order index (1 = Primary glass, 2 = Secondary glass, etc.)
+ * @param templateId       Associated reusable template identifier if ACTION_TEMPLATE block
+ * @param template         Attached template details
+ * @param actionTitle      Custom action title
+ * @param customText       Freeform notes/instructions
+ * @param durationSeconds  Estimated execution duration in seconds
+ * @param createdAt        Creation timestamp
+ * @param updatedAt        Modification timestamp
  */
 @Schema(description = "DTO representation of an ordered cocktail recipe step")
 public record CocktailRecipeStepResponseDTO(
@@ -36,6 +37,7 @@ public record CocktailRecipeStepResponseDTO(
     String ingredientName,
     BigDecimal quantite,
     String unite,
+    Integer targetGlassOrder,
     Long templateId,
     RecipeStepTemplateResponseDTO template,
     String actionTitle,
@@ -44,6 +46,29 @@ public record CocktailRecipeStepResponseDTO(
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
+    /**
+     * Backward-compatible 15-parameter constructor without targetGlassOrder.
+     */
+    public CocktailRecipeStepResponseDTO(
+        Long id,
+        Long cocktailId,
+        Integer stepOrder,
+        RecipeStepType stepType,
+        Long ingredientId,
+        String ingredientName,
+        BigDecimal quantite,
+        String unite,
+        Long templateId,
+        RecipeStepTemplateResponseDTO template,
+        String actionTitle,
+        String customText,
+        Integer durationSeconds,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        this(id, cocktailId, stepOrder, stepType, ingredientId, ingredientName, quantite, unite, 1, templateId, template, actionTitle, customText, durationSeconds, createdAt, updatedAt);
+    }
+
     /**
      * Converts a {@link CocktailRecipeStep} entity into a response DTO.
      *
@@ -68,6 +93,7 @@ public record CocktailRecipeStepResponseDTO(
             resolvedIngredientName,
             s.getQuantite(),
             s.getUnite(),
+            s.getTargetGlassOrder() != null ? s.getTargetGlassOrder() : 1,
             s.getTemplate() != null ? s.getTemplate().getId() : null,
             RecipeStepTemplateResponseDTO.from(s.getTemplate()),
             s.getActionTitle(),

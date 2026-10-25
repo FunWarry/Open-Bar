@@ -136,6 +136,7 @@ public class SampleDataSeederService {
     private final ChecklistTemplateRepository checklistTemplateRepository;
     private final ChecklistRunRepository checklistRunRepository;
     private final SafetyAlertRepository safetyAlertRepository;
+    private final GlasswareRepository glasswareRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -180,7 +181,8 @@ public class SampleDataSeederService {
             @org.springframework.beans.factory.annotation.Autowired(required = false) ReservationRepository reservationRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) ChecklistTemplateRepository checklistTemplateRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) ChecklistRunRepository checklistRunRepository,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) SafetyAlertRepository safetyAlertRepository) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) SafetyAlertRepository safetyAlertRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) GlasswareRepository glasswareRepository) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -219,6 +221,7 @@ public class SampleDataSeederService {
         this.checklistTemplateRepository = checklistTemplateRepository;
         this.checklistRunRepository = checklistRunRepository;
         this.safetyAlertRepository = safetyAlertRepository;
+        this.glasswareRepository = glasswareRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -1230,8 +1233,46 @@ public class SampleDataSeederService {
         Cocktail cocktail = cocktailRepository.findByNomIgnoreCaseWithRecipeSteps(cocktailName).orElse(null);
         if (cocktail == null) return;
 
+        if (cocktailNode.has("secondaryGlassware")) {
+            String secGlassName = cocktailNode.get("secondaryGlassware").asText();
+            glasswareRepository.findByNomIgnoreCase(secGlassName).ifPresent(cocktail::setSecondaryGlassware);
+        }
+        if (cocktailNode.has("companionGlassTitle")) {
+            cocktail.setCompanionGlassTitle(cocktailNode.get("companionGlassTitle").asText());
+        }
+        if (cocktail.getSecondaryGlassware() != null) {
+            if (cocktail.getGlasses() == null) {
+                cocktail.setGlasses(new ArrayList<>());
+            }
+            cocktail.getGlasses().clear();
+            if (cocktail.getGlassware() != null) {
+                CocktailGlass cg1 = new CocktailGlass();
+                cg1.setCocktail(cocktail);
+                cg1.setGlassware(cocktail.getGlassware());
+                cg1.setGlassOrder(1);
+                cg1.setRoleLabel("Verre Principal");
+                cg1.setPrimary(true);
+                cg1.setCreatedAt(timeService.now());
+                cg1.setUpdatedAt(timeService.now());
+                cocktail.getGlasses().add(cg1);
+            }
+            CocktailGlass cg2 = new CocktailGlass();
+            cg2.setCocktail(cocktail);
+            cg2.setGlassware(cocktail.getSecondaryGlassware());
+            cg2.setGlassOrder(2);
+            String label = (cocktail.getCompanionGlassTitle() != null && !cocktail.getCompanionGlassTitle().isBlank())
+                ? cocktail.getCompanionGlassTitle()
+                : cocktail.getSecondaryGlassware().getNom();
+            cg2.setRoleLabel(label);
+            cg2.setPrimary(false);
+            cg2.setCreatedAt(timeService.now());
+            cg2.setUpdatedAt(timeService.now());
+            cocktail.getGlasses().add(cg2);
+        }
+
         JsonNode stepsNode = cocktailNode.get(KEY_STEPS);
         if (stepsNode == null || !stepsNode.isArray()) {
+            cocktailRepository.save(cocktail);
             return;
         }
 
@@ -1257,6 +1298,11 @@ public class SampleDataSeederService {
         }
         if (stepNode.has("unite")) {
             step.setUnite(stepNode.get("unite").asText());
+        }
+        if (stepNode.has("targetGlassOrder")) {
+            step.setTargetGlassOrder(stepNode.get("targetGlassOrder").asInt());
+        } else {
+            step.setTargetGlassOrder(1);
         }
         if (stepNode.has("actionTitle")) {
             step.setActionTitle(stepNode.get("actionTitle").asText());

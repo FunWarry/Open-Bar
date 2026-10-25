@@ -20,6 +20,8 @@ import java.math.BigDecimal;
  * @param prioritaire Priority status flag
  * @param station Workstation responsible for preparation (BAR, KITCHEN, SNACK)
  * @param statut Item preparation status (EN_ATTENTE, EN_PREPARATION, PRET, etc.)
+ * @param secondaryGlasswareNom Name of companion / secondary glassware if multi-glass presentation
+ * @param companionGlassTitle Custom display title of companion glassware (e.g. 'Shot de Prosecco')
  */
 public record CommandeItemResponseDTO(
     Long id,
@@ -33,8 +35,30 @@ public record CommandeItemResponseDTO(
     String notes,
     boolean prioritaire,
     PreparationStation station,
-    CommandeStatut statut
+    CommandeStatut statut,
+    String secondaryGlasswareNom,
+    String companionGlassTitle
 ) {
+    /**
+     * Backward-compatible 12-parameter constructor without multi-glass fields.
+     */
+    public CommandeItemResponseDTO(
+        Long id,
+        Long commandeId,
+        Long cocktailId,
+        String cocktailNom,
+        Long varianteId,
+        String varianteNom,
+        int quantite,
+        BigDecimal prixUnitaire,
+        String notes,
+        boolean prioritaire,
+        PreparationStation station,
+        CommandeStatut statut
+    ) {
+        this(id, commandeId, cocktailId, cocktailNom, varianteId, varianteNom, quantite, prixUnitaire, notes, prioritaire, station, statut, null, null);
+    }
+
     /**
      * Backward-compatible 10-parameter constructor defaulting station to BAR and status to EN_ATTENTE.
      */
@@ -50,7 +74,7 @@ public record CommandeItemResponseDTO(
         String notes,
         boolean prioritaire
     ) {
-        this(id, commandeId, cocktailId, cocktailNom, varianteId, varianteNom, quantite, prixUnitaire, notes, prioritaire, PreparationStation.BAR, CommandeStatut.EN_ATTENTE);
+        this(id, commandeId, cocktailId, cocktailNom, varianteId, varianteNom, quantite, prixUnitaire, notes, prioritaire, PreparationStation.BAR, CommandeStatut.EN_ATTENTE, null, null);
     }
 
     /**
@@ -72,11 +96,17 @@ public record CommandeItemResponseDTO(
         Long cocktailId = null;
         String cocktailNom = null;
         PreparationStation cocktailStation = null;
+        String secondaryGlasswareNom = null;
+        String companionGlassTitle = null;
         try {
             if (item.getCocktail() != null) {
                 cocktailId = item.getCocktail().getId();
                 cocktailNom = item.getCocktail().getNom();
                 cocktailStation = item.getCocktail().getStation();
+                if (item.getCocktail().getSecondaryGlassware() != null) {
+                    secondaryGlasswareNom = item.getCocktail().getSecondaryGlassware().getNom();
+                }
+                companionGlassTitle = item.getCocktail().getCompanionGlassTitle();
             }
         } catch (Exception _) {
             // Lazy load fallback
@@ -112,7 +142,9 @@ public record CommandeItemResponseDTO(
             item.getNotes(),
             item.isPrioritaire(),
             station,
-            statut
+            statut,
+            secondaryGlasswareNom,
+            companionGlassTitle
         );
     }
 }

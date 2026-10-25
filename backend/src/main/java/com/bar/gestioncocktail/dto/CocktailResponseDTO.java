@@ -38,7 +38,7 @@ import java.util.Set;
  * @param ingredients List of recipe ingredients
  * @param variantes List of available variants
  * @param recipeSteps List of chronological recipe steps
- * @param glassware Serving glassware details
+ * @param glassware Serving primary glassware details
  * @param flavorProfiles Set of flavor profile tags (FRUITY, SMOKY, etc.)
  * @param alcoholLevel Alcohol by volume percentage (ABV)
  * @param isMocktail True if drink is non-alcoholic mocktail
@@ -51,6 +51,9 @@ import java.util.Set;
  * @param grossMarginPercentage Gross profit margin percentage
  * @param createdAt Creation timestamp
  * @param updatedAt Modification timestamp
+ * @param secondaryGlassware Optional companion / secondary glassware details
+ * @param companionGlassTitle Custom title for companion glassware (e.g. 'Shot de Prosecco')
+ * @param glasses Full list of glassware in multi-glass presentation
  */
 @Schema(description = "Complete DTO representation of a cocktail with financial margins and COGS")
 public record CocktailResponseDTO(
@@ -83,9 +86,59 @@ public record CocktailResponseDTO(
     BigDecimal grossMargin,
     BigDecimal grossMarginPercentage,
     LocalDateTime createdAt,
-    LocalDateTime updatedAt
+    LocalDateTime updatedAt,
+    GlasswareResponseDTO secondaryGlassware,
+    String companionGlassTitle,
+    List<CocktailGlassResponseDTO> glasses
 ) {
     private static final MathContext MC = new MathContext(10, RoundingMode.HALF_UP);
+
+    /**
+     * Backward-compatible 30-parameter constructor without multi-glass fields.
+     */
+    public CocktailResponseDTO(
+        Long id,
+        String nom,
+        String description,
+        BigDecimal prix,
+        CocktailCategorie categorie,
+        boolean disponible,
+        boolean saisonnier,
+        LocalDateTime dateDebutSaison,
+        LocalDateTime dateFinSaison,
+        Integer moisDebut,
+        Integer moisFin,
+        boolean disponibleAujourdhui,
+        String instructions,
+        String imageUrl,
+        List<CocktailIngredientResponseDTO> ingredients,
+        List<CocktailVarianteResponseDTO> variantes,
+        List<CocktailRecipeStepResponseDTO> recipeSteps,
+        GlasswareResponseDTO glassware,
+        Set<FlavorProfile> flavorProfiles,
+        BigDecimal alcoholLevel,
+        boolean isMocktail,
+        boolean isVegan,
+        boolean isGlutenFree,
+        PreparationStation station,
+        BigDecimal recipeCost,
+        BigDecimal sellingPriceHT,
+        BigDecimal grossMargin,
+        BigDecimal grossMarginPercentage,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        this(
+            id, nom, description, prix, categorie, disponible, saisonnier,
+            dateDebutSaison, dateFinSaison, moisDebut, moisFin, disponibleAujourdhui,
+            instructions, imageUrl, ingredients, variantes, recipeSteps, glassware,
+            flavorProfiles, alcoholLevel, isMocktail, isVegan, isGlutenFree,
+            station,
+            recipeCost, sellingPriceHT, grossMargin, grossMarginPercentage,
+            createdAt, updatedAt,
+            null, null, Collections.emptyList()
+        );
+    }
 
     /**
      * Backward-compatible 29-parameter constructor without station.
@@ -243,7 +296,7 @@ public record CocktailResponseDTO(
     }
 
     /**
-     * Converts a {@link Cocktail} entity into a response DTO with calculated margin analytics.
+     * Converts a {@link Cocktail} entity into a response DTO with calculated margin analytics and multi-glass specs.
      *
      * @param c Source cocktail entity
      * @return Corresponding response DTO
@@ -257,6 +310,8 @@ public record CocktailResponseDTO(
         List<CocktailVarianteResponseDTO> vars = extractVariantes(c);
         List<CocktailRecipeStepResponseDTO> steps = extractRecipeSteps(c);
         GlasswareResponseDTO glassDto = GlasswareResponseDTO.from(c.getGlassware());
+        GlasswareResponseDTO secondaryGlassDto = GlasswareResponseDTO.from(c.getSecondaryGlassware());
+        List<CocktailGlassResponseDTO> glassDtos = extractGlasses(c);
         Set<FlavorProfile> flavors = extractFlavors(c);
 
         BigDecimal recipeCost = calculateRecipeCost(c);
@@ -283,8 +338,32 @@ public record CocktailResponseDTO(
             grossMargin,
             grossMarginPercentage,
             c.getCreatedAt(),
-            c.getUpdatedAt()
+            c.getUpdatedAt(),
+            secondaryGlassDto,
+            c.getCompanionGlassTitle(),
+            glassDtos
         );
+    }
+
+    private static List<CocktailGlassResponseDTO> extractGlasses(Cocktail c) {
+        if (c.getGlasses() != null && !c.getGlasses().isEmpty()) {
+            try {
+                return c.getGlasses().stream().map(CocktailGlassResponseDTO::from).toList();
+            } catch (Exception _) {
+                // fallback
+            }
+        }
+        List<CocktailGlassResponseDTO> fallback = new java.util.ArrayList<>();
+        if (c.getGlassware() != null) {
+            fallback.add(new CocktailGlassResponseDTO(null, c.getId(), GlasswareResponseDTO.from(c.getGlassware()), 1, "Verre Principal", true));
+        }
+        if (c.getSecondaryGlassware() != null) {
+            String label = (c.getCompanionGlassTitle() != null && !c.getCompanionGlassTitle().isBlank())
+                ? c.getCompanionGlassTitle()
+                : c.getSecondaryGlassware().getNom();
+            fallback.add(new CocktailGlassResponseDTO(null, c.getId(), GlasswareResponseDTO.from(c.getSecondaryGlassware()), 2, label, false));
+        }
+        return fallback;
     }
 
     private static List<CocktailIngredientResponseDTO> extractIngredients(Cocktail c) {
