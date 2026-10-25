@@ -1723,7 +1723,12 @@ dialog.cocktail-details-dialog {
   .product-action-btn,
   .cart-item-remove-btn,
   .cart-checkout-btn,
-  .modal-close-btn {
+  .modal-close-btn,
+  .recap-btn,
+  .roulette-launcher-btn,
+  .roulette-hero-card,
+  .roulette-hero-cta-btn,
+  .floating-roulette-fab {
     transition: none;
     transform: none;
 

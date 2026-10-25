@@ -79,6 +79,10 @@
   white-space: nowrap;
   flex-shrink: 0;
   animation: pulse-badge 1.5s infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 }
 
 .station-chip {
@@ -163,6 +167,10 @@
     border: 1px solid var(--semantic-danger);
     font-weight: 800;
     animation: pulse-critical-timer 1.2s infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
   }
 }
 
@@ -232,6 +240,10 @@
     color: var(--semantic-danger);
     border-color: var(--semantic-danger);
     animation: pulse-badge 1.5s infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
   }
 }
 
@@ -427,6 +439,10 @@
   display: block;
   animation: pulse-glow-ready 1.5s infinite;
   border-radius: var(--radius-md, 8px);
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 }
 
 @keyframes pulse-glow-ready {

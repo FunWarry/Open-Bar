@@ -126,6 +126,12 @@ ion-content.dashboard-serveur-content {
     font-weight: 600;
     cursor: pointer;
     transition: opacity 0.2s ease, transform 0.1s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+      transform: none;
+    }
+
     white-space: nowrap;
 
     &:hover {
@@ -232,6 +238,11 @@ ion-content.dashboard-serveur-content {
       cursor: pointer;
       border-radius: 50%;
       transition: color 0.15s ease, transform 0.15s ease;
+
+      @media (prefers-reduced-motion: reduce) {
+        transition: none;
+        transform: none;
+      }
 
       &:hover {
         color: var(--semantic-danger);
@@ -707,6 +718,11 @@ ion-content.dashboard-serveur-content {
         cursor: pointer;
         transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
+        @media (prefers-reduced-motion: reduce) {
+          transition: none;
+          transform: none;
+        }
+
         ion-icon {
           font-size: 1.15rem;
         }
@@ -1108,6 +1124,12 @@ ion-content.dashboard-serveur-content {
     -webkit-backdrop-filter: blur(8px);
     animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+      transition: none;
+      transform: none;
+    }
+
     &:hover {
       background: var(--primary);
       color: var(--text-on-accent);
@@ -1242,9 +1264,19 @@ ion-content.dashboard-serveur-content {
       box-shadow: 0 2px 8px var(--primary-tint, rgba(108, 127, 232, 0.4));
       transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 
+      @media (prefers-reduced-motion: reduce) {
+        transition: none;
+        transform: none;
+      }
+
       ion-icon {
         font-size: 1rem;
         transition: transform 0.15s ease;
+
+        @media (prefers-reduced-motion: reduce) {
+          transition: none;
+          transform: none;
+        }
       }
 
       &:active {

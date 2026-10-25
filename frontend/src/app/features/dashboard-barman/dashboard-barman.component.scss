@@ -461,6 +461,11 @@ ion-header {
     box-shadow: 0 2px 8px color-mix(in srgb, var(--semantic-danger) 35%, transparent);
     transition: background-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, transform 0.2s ease;
 
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+      transform: none;
+    }
+
     &::part(native) {
       color: var(--text-on-accent, #ffffff);
     }
@@ -500,6 +505,11 @@ ion-header {
     letter-spacing: 0.3px;
     box-shadow: 0 2px 8px color-mix(in srgb, var(--semantic-warning) 35%, transparent);
     transition: background-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, transform 0.2s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+      transform: none;
+    }
 
     &::part(native) {
       color: var(--text-on-accent, #ffffff);
@@ -1179,6 +1189,11 @@ ion-header {
     justify-content: center;
     gap: 3px;
     transition: transform 0.2s ease, border-color 0.2s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+      transform: none;
+    }
 
     @media (max-width: 767px) {
       min-width: 0;

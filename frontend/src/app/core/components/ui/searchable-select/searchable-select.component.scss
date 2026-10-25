@@ -555,7 +555,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dropdown-panel {
+  .dropdown-panel,
+  .open-upwards .dropdown-panel {
     animation: none;
   }
 }
