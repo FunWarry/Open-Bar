@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
  * @param amount Positive movement amount
  * @param reason Mandatory business reason
  * @param receiptReference Optional invoice or ticket reference
+ * @param denominationsJson Optional physical coin and bill count breakdown in JSON
  * @param performedBy Staff member who logged the movement
  * @param timestamp Timestamp when movement was recorded
  * @param createdAt Entity persistence timestamp
@@ -32,11 +33,23 @@ public record CashMovementDTO(
         BigDecimal amount,
         String reason,
         String receiptReference,
+        String denominationsJson,
         UserResponseDTO performedBy,
         LocalDateTime timestamp,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
+
+    /**
+     * Backwards-compatible 11-parameter constructor before denominationsJson was introduced.
+     */
+    public CashMovementDTO(
+            Long id, Long sessionId, LocalDate movementDate, CashMovementType type,
+            BigDecimal amount, String reason, String receiptReference,
+            UserResponseDTO performedBy, LocalDateTime timestamp,
+            LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this(id, sessionId, movementDate, type, amount, reason, receiptReference, null, performedBy, timestamp, createdAt, updatedAt);
+    }
 
     /**
      * Converts a {@link CashMovement} entity to a {@link CashMovementDTO}.
@@ -56,6 +69,7 @@ public record CashMovementDTO(
                 movement.getAmount(),
                 movement.getReason(),
                 movement.getReceiptReference(),
+                movement.getDenominationsJson(),
                 movement.getPerformedBy() != null ? UserResponseDTO.from(movement.getPerformedBy()) : null,
                 movement.getTimestamp(),
                 movement.getCreatedAt(),

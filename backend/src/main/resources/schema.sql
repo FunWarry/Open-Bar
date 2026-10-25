@@ -547,6 +547,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
     tpe_timeout_seconds INTEGER DEFAULT 45,
     cash_denominations_json TEXT,
     storage_locations_json TEXT DEFAULT '["Bar Principal", "Arrière-bar", "Cave à vins & Spiritueux", "Chambre froide fûts"]',
+    cash_discrepancy_tolerance_threshold DECIMAL(10,2) DEFAULT 5.00,
     printers_json TEXT,
     tpe_terminals_json TEXT,
     updated_at TIMESTAMP
@@ -746,6 +747,10 @@ CREATE TABLE IF NOT EXISTS cash_drawer_sessions (
     closed_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
     opening_float DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     opening_float_breakdown_json TEXT,
+    closing_denominations_json TEXT,
+    theoretical_cash DECIMAL(10,2),
+    actual_cash DECIMAL(10,2),
+    cash_variance DECIMAL(10,2),
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -762,6 +767,7 @@ CREATE TABLE IF NOT EXISTS cash_movements (
     amount DECIMAL(10,2) NOT NULL,
     reason VARCHAR(255) NOT NULL,
     receipt_reference VARCHAR(100),
+    denominations_json TEXT,
     performed_by_id BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1049,3 +1055,12 @@ ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS secondary_glassware_id BIGINT REF
 ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS companion_glass_title VARCHAR(100);
 ALTER TABLE cocktail_ingredients ADD COLUMN IF NOT EXISTS target_glass_order INT DEFAULT 1;
 ALTER TABLE cocktail_recipe_steps ADD COLUMN IF NOT EXISTS target_glass_order INT DEFAULT 1;
+
+-- Cash drawer interactive counting, discrepancy reconciliation & audit trail
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS cash_discrepancy_tolerance_threshold DECIMAL(10,2) DEFAULT 5.00;
+ALTER TABLE cash_drawer_sessions ADD COLUMN IF NOT EXISTS closing_denominations_json TEXT;
+ALTER TABLE cash_drawer_sessions ADD COLUMN IF NOT EXISTS theoretical_cash DECIMAL(10,2);
+ALTER TABLE cash_drawer_sessions ADD COLUMN IF NOT EXISTS actual_cash DECIMAL(10,2);
+ALTER TABLE cash_drawer_sessions ADD COLUMN IF NOT EXISTS cash_variance DECIMAL(10,2);
+ALTER TABLE cash_movements ADD COLUMN IF NOT EXISTS denominations_json TEXT;
+

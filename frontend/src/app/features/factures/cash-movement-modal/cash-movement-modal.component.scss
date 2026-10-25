@@ -279,6 +279,30 @@
   }
 }
 
+.calculator-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  margin-top: 8px;
+  border-top: 1px dashed var(--border-medium);
+
+  .toggle-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+}
+
+.calculator-container-card {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: 10px;
+}
+
+
 .cash-modal-footer {
   background: var(--background-surface-1);
   border-top: 1px solid var(--border-medium);

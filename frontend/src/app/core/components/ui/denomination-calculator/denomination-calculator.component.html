@@ -1,0 +1,207 @@
+<div
+  class="calc-container"
+  [class.calc-compact]="compact"
+  [class.calc-readonly]="readOnly"
+  [attr.data-testid]="testId"
+>
+  <!-- Summary Banner -->
+  @if (showSummary) {
+    <div class="calc-summary-banner" [attr.data-testid]="testId + '-summary'">
+      <div class="summary-kpis">
+        <div class="kpi-card kpi-bills" [attr.data-testid]="testId + '-bills-total'">
+          <div class="kpi-icon-wrap">
+            <ion-icon name="wallet-outline"></ion-icon>
+          </div>
+          <div class="kpi-text">
+            <span class="kpi-label">{{ 'CALCULATOR.SUBTOTAL_BILLS' | transloco }}</span>
+            <span class="kpi-value">{{ billsTotal | appCurrency }}</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-coins" [attr.data-testid]="testId + '-coins-total'">
+          <div class="kpi-icon-wrap">
+            <ion-icon name="cash-outline"></ion-icon>
+          </div>
+          <div class="kpi-text">
+            <span class="kpi-label">{{ 'CALCULATOR.SUBTOTAL_COINS' | transloco }}</span>
+            <span class="kpi-value">{{ coinsTotal | appCurrency }}</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-grand-total" [attr.data-testid]="testId + '-grand-total'">
+          <div class="kpi-icon-wrap highlight">
+            <ion-icon name="calculator-outline"></ion-icon>
+          </div>
+          <div class="kpi-text">
+            <span class="kpi-label">{{ 'CALCULATOR.GRAND_TOTAL' | transloco }}</span>
+            <span class="kpi-value grand">{{ grandTotal | appCurrency }}</span>
+          </div>
+        </div>
+      </div>
+
+      @if (showResetButton && !readOnly) {
+        <div class="summary-actions">
+          <app-action-button
+            variant="ghost"
+            size="small"
+            icon="refresh-outline"
+            [title]="'CALCULATOR.RESET' | transloco"
+            [testId]="testId + '-reset-btn'"
+            (btnClick)="resetCounts()"
+          >
+            {{ 'CALCULATOR.RESET' | transloco }}
+          </app-action-button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Split Sections Grid (Banknotes & Coins) -->
+  <div class="calc-sections-grid">
+    <!-- Banknotes Section -->
+    @if (bills.length > 0) {
+      <div class="denomination-group group-bills" [attr.data-testid]="testId + '-bills-group'">
+        <div class="group-header">
+          <div class="group-title">
+            <ion-icon name="wallet-outline" class="group-icon"></ion-icon>
+            <h3>{{ 'CALCULATOR.BANKNOTES' | transloco }}</h3>
+          </div>
+          <span class="group-subtotal" [attr.data-testid]="testId + '-bills-subtotal'">
+            {{ billsTotal | appCurrency }}
+          </span>
+        </div>
+
+        <div class="denomination-rows-list">
+          @for (d of bills; track d.key) {
+            <div
+              class="calc-row item-bill"
+              [class.active-count]="(counting[d.key] || 0) > 0"
+              [attr.data-testid]="testId + '-row-' + d.key"
+            >
+              <div class="label-badge-box">
+                <span class="denom-badge badge-bill">{{ d.label }}</span>
+              </div>
+
+              <div class="stepper-box">
+                @if (!readOnly) {
+                  <button
+                    type="button"
+                    class="step-btn minus"
+                    (click)="adjustCount(d.key, -1)"
+                    [disabled]="(counting[d.key] || 0) <= 0"
+                    [attr.aria-label]="('COMMON.DECREASE' | transloco) + ' ' + d.label"
+                    [attr.data-testid]="testId + '-minus-' + d.key"
+                  >
+                    <ion-icon name="remove-outline"></ion-icon>
+                  </button>
+                }
+
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  [id]="'calc-input-' + d.key"
+                  [attr.aria-label]="d.label"
+                  [value]="counting[d.key] || 0"
+                  (input)="onCountInput(d.key, $any($event.target).value)"
+                  [disabled]="readOnly"
+                  class="stepper-input"
+                  [attr.data-testid]="testId + '-input-' + d.key"
+                />
+
+                @if (!readOnly) {
+                  <button
+                    type="button"
+                    class="step-btn plus"
+                    (click)="adjustCount(d.key, 1)"
+                    [attr.aria-label]="('COMMON.INCREASE' | transloco) + ' ' + d.label"
+                    [attr.data-testid]="testId + '-plus-' + d.key"
+                  >
+                    <ion-icon name="add-outline"></ion-icon>
+                  </button>
+                }
+              </div>
+
+              <div class="row-total-box" [attr.data-testid]="testId + '-subtotal-' + d.key">
+                <span class="row-total-amount">{{ getLineTotal(d) | appCurrency }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Coins Section -->
+    @if (coins.length > 0) {
+      <div class="denomination-group group-coins" [attr.data-testid]="testId + '-coins-group'">
+        <div class="group-header">
+          <div class="group-title">
+            <ion-icon name="cash-outline" class="group-icon"></ion-icon>
+            <h3>{{ 'CALCULATOR.COINS' | transloco }}</h3>
+          </div>
+          <span class="group-subtotal" [attr.data-testid]="testId + '-coins-subtotal'">
+            {{ coinsTotal | appCurrency }}
+          </span>
+        </div>
+
+        <div class="denomination-rows-list">
+          @for (d of coins; track d.key) {
+            <div
+              class="calc-row item-coin"
+              [class.active-count]="(counting[d.key] || 0) > 0"
+              [attr.data-testid]="testId + '-row-' + d.key"
+            >
+              <div class="label-badge-box">
+                <span class="denom-badge badge-coin">{{ d.label }}</span>
+              </div>
+
+              <div class="stepper-box">
+                @if (!readOnly) {
+                  <button
+                    type="button"
+                    class="step-btn minus"
+                    (click)="adjustCount(d.key, -1)"
+                    [disabled]="(counting[d.key] || 0) <= 0"
+                    [attr.aria-label]="('COMMON.DECREASE' | transloco) + ' ' + d.label"
+                    [attr.data-testid]="testId + '-minus-' + d.key"
+                  >
+                    <ion-icon name="remove-outline"></ion-icon>
+                  </button>
+                }
+
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  [id]="'calc-input-' + d.key"
+                  [attr.aria-label]="d.label"
+                  [value]="counting[d.key] || 0"
+                  (input)="onCountInput(d.key, $any($event.target).value)"
+                  [disabled]="readOnly"
+                  class="stepper-input"
+                  [attr.data-testid]="testId + '-input-' + d.key"
+                />
+
+                @if (!readOnly) {
+                  <button
+                    type="button"
+                    class="step-btn plus"
+                    (click)="adjustCount(d.key, 1)"
+                    [attr.aria-label]="('COMMON.INCREASE' | transloco) + ' ' + d.label"
+                    [attr.data-testid]="testId + '-plus-' + d.key"
+                  >
+                    <ion-icon name="add-outline"></ion-icon>
+                  </button>
+                }
+              </div>
+
+              <div class="row-total-box" [attr.data-testid]="testId + '-subtotal-' + d.key">
+                <span class="row-total-amount">{{ getLineTotal(d) | appCurrency }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

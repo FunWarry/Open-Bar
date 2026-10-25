@@ -1890,6 +1890,18 @@ public class SampleDataSeederService {
             if (sNode.has(KEY_CLOSED_BY_USERNAME)) {
                 session.setClosedBy(usersMap.get(sNode.get(KEY_CLOSED_BY_USERNAME).asText()));
             }
+            if (sNode.has("theoreticalCash")) {
+                session.setTheoreticalCash(new BigDecimal(sNode.get("theoreticalCash").asText()));
+            }
+            if (sNode.has("actualCash")) {
+                session.setActualCash(new BigDecimal(sNode.get("actualCash").asText()));
+            }
+            if (sNode.has("cashVariance")) {
+                session.setCashVariance(new BigDecimal(sNode.get("cashVariance").asText()));
+            }
+            if (sNode.has("closingDenominationsJson")) {
+                session.setClosingDenominationsJson(sNode.get("closingDenominationsJson").toString());
+            }
         }
 
         CashDrawerSession savedSession = cashDrawerSessionRepository.save(session);
@@ -1918,6 +1930,9 @@ public class SampleDataSeederService {
             m.setReceiptReference(ref);
             m.setPerformedBy(performedBy);
             m.setTimestamp(timestamp);
+            if (mNode.has("denominationsJson")) {
+                m.setDenominationsJson(mNode.get("denominationsJson").toString());
+            }
             cashMovementRepository.save(m);
         }
     }

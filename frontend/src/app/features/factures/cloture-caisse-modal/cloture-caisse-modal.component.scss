@@ -434,6 +434,39 @@
   }
 }
 
+.tolerance-warning-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--status-canceled-15);
+  border: 1px solid var(--semantic-danger);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-3);
+
+  ion-icon {
+    font-size: 1.5rem;
+    color: var(--semantic-danger);
+    flex-shrink: 0;
+  }
+
+  .tolerance-warning-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    strong {
+      color: var(--semantic-danger);
+      font-size: 0.95rem;
+    }
+
+    span {
+      color: var(--text-primary);
+      font-size: 0.85rem;
+    }
+  }
+}
+
 .discrepancy-warning-box {
   display: flex;
   align-items: flex-start;

@@ -2523,6 +2523,8 @@
     "JUSTIFICATION_LABEL": "Motif de l'écart constaté",
     "JUSTIFICATION_PLACEHOLDER": "Ex: Erreur de rendu de monnaie lors du rush, pourboire non enregistré...",
     "DISCREPANCY_REASON_REQUIRED": "Veuillez renseigner un motif d'au moins 3 caractères pour justifier l'écart.",
+    "TOLERANCE_EXCEEDED_TITLE": "Seuil de tolérance d'écart dépassé",
+    "TOLERANCE_EXCEEDED_DESC": "L'écart de caisse constaté excède le seuil de tolérance autorisé de {{ threshold }}. Un contrôle approfondi et une justification détaillée sont requis.",
     "CONFIRMATION_TITLE": "Récapitulatif et Verrouillage Définitif",
     "DATE_LABEL": "Date de clôture",
     "JUSTIFICATION_SUMMARY": "Motif de l'écart",
@@ -3529,6 +3531,8 @@
     "ENTER_AMOUNT": "Montant (ex: 200 ou 0.50)",
     "BILL": "Billet",
     "COIN": "Pièce",
+    "CASH_DISCREPANCY_TOLERANCE": "Seuil de tolérance d'écart de caisse (€)",
+    "CASH_DISCREPANCY_TOLERANCE_HINT": "Montant maximal d'écart toléré avant déclenchement d'un avertissement renforcé (défaut : 5,00 €).",
     "DISCOUNT_TIERS_TITLE": "Paliers de Remise Commerciale & Gestes",
     "DISCOUNT_TIERS_SUBTITLE": "Configurez les paliers prédéfinis pour les gestes commerciaux et remises rapides (ex: Équipier -50%, VIP -20%, Offert -100%).",
     "RESET_DISCOUNT_TIERS": "Réinitialiser les paliers",
@@ -4155,7 +4159,9 @@
     "RECON_CASH_DROP": "Total dépôts coffre",
     "RECON_PAID_OUT": "Total dépenses sorties",
     "RECON_THEORETICAL_TOTAL": "Total théorique en caisse",
-    "VAT_TITLE": "Ventilation par taux de TVA"
+    "VAT_TITLE": "Ventilation par taux de TVA",
+    "DETAIL_DENOMINATIONS": "Détailler les coupures (calculateur)",
+    "BTN_CLOSE_DRAWER": "Clôturer la caisse"
   },
   "TABS": {
     "TAB_LABEL": "Ardoise",
@@ -5049,5 +5055,16 @@
     "RESTORE_CONFIRM_TITLE": "Confirmer la restauration du snapshot",
     "RESTORE_CONFIRM_DESC": "La base de données sera restaurée dans l'état exact capturé lors de cet instantané. Cette opération est immédiate et garantit la reprise d'activité.",
     "BTN_CONFIRM_RESTORE": "Restaurer maintenant"
+  },
+  "CALCULATOR": {
+    "TITLE": "Calculateur physique de caisse",
+    "BANKNOTES": "Billets",
+    "COINS": "Pièces",
+    "SUBTOTAL_BILLS": "Sous-total billets",
+    "SUBTOTAL_COINS": "Sous-total pièces",
+    "GRAND_TOTAL": "Total physique",
+    "RESET": "Réinitialiser",
+    "EMPTY_HINT": "Saisissez les quantités de chaque coupure pour calculer automatiquement le total."
   }
 }
+

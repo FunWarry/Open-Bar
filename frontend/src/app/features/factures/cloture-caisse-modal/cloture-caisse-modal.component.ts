@@ -23,6 +23,8 @@ import { DailyRecap } from '../../../core/models/daily-recap.model';
 import { ClotureCaisseRequest, DailyCashClosure } from '../../../core/models/daily-cash-closure.model';
 import { CashDenomination, DEFAULT_EUR_DENOMINATIONS } from '../../../core/models/cash-denomination.model';
 
+import { DenominationCalculatorComponent } from '../../../core/components/ui/denomination-calculator/denomination-calculator.component';
+
 export type { CashDenomination };
 
 /**
@@ -58,7 +60,8 @@ export const EURO_DENOMINATIONS: CashDenomination[] = DEFAULT_EUR_DENOMINATIONS;
     IonCardTitle,
     IonCardContent,
     IonBadge,
-    IonSpinner
+    IonSpinner,
+    DenominationCalculatorComponent
 ],
   templateUrl: './cloture-caisse-modal.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -201,6 +204,28 @@ export class ClotureCaisseModalComponent implements OnInit, OnDestroy {
   get hasDiscrepancy(): boolean {
     return Math.abs(this.cashDiscrepancy) >= 0.01;
   }
+
+  /**
+   * Cash discrepancy tolerance threshold configured in AppSettings (default 5.00 €).
+   */
+  get discrepancyToleranceThreshold(): number {
+    return this.appSettingsService?.currentSettings?.cashDiscrepancyToleranceThreshold ?? 5.0;
+  }
+
+  /**
+   * Whether the cash discrepancy strictly exceeds the tolerated threshold.
+   */
+  get isToleranceExceeded(): boolean {
+    return Math.abs(this.cashDiscrepancy) > this.discrepancyToleranceThreshold;
+  }
+
+  /**
+   * Handles total updates from the embedded denomination calculator.
+   */
+  onCalculatorTotalChange(): void {
+    this.cdr.markForCheck();
+  }
+
 
   /**
    * Updates count for a specific denomination safely.

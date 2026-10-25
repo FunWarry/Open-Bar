@@ -118,16 +118,38 @@ describe('CashMovementModalComponent', () => {
     tick();
     flushMicrotasks();
 
-    expect(cashDrawerServiceSpy.recordMovement).toHaveBeenCalledWith({
+    expect(cashDrawerServiceSpy.recordMovement).toHaveBeenCalledWith(jasmine.objectContaining({
       type: 'CASH_DROP',
       amount: 50.0,
       reason: 'Safe transfer',
       receiptReference: 'REC-123'
-    });
+    }));
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({
       movement: mockMovement
     });
     expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
+
+  it('should submit movement with denominationsJson when calculator breakdown is provided', fakeAsync(() => {
+    component.type = 'CASH_IN';
+    component.reason = 'Float refill';
+    component.showCalculator = true;
+    component.counting = { '50e': 2, '20e': 1 };
+    component.amount = 120.0;
+
+    component.submitMovement();
+    tick();
+    flushMicrotasks();
+
+    expect(cashDrawerServiceSpy.recordMovement).toHaveBeenCalledWith(jasmine.objectContaining({
+      type: 'CASH_IN',
+      amount: 120.0,
+      reason: 'Float refill',
+      denominationsJson: JSON.stringify({ '50e': 2, '20e': 1 })
+    }));
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({
+      movement: mockMovement
+    });
   }));
 
   it('should handle API failure on movement recording', fakeAsync(() => {

@@ -217,4 +217,44 @@ test.describe('Cash Drawer Lifecycle & Mid-Shift X-Report E2E Flow (#450)', () =
     // Close X-report modal
     await page.click('[data-testid="x-report-close-bottom-btn"]');
   });
+
+  test('should count physical cash denominations and support itemized movement breakdown (#571)', async ({ page }) => {
+    await page.goto('/factures/recap');
+    await expect(page.locator('ion-content')).toBeVisible();
+
+    const openBtn = page.locator('[data-testid="btn-open-cash-drawer"]');
+    if (await openBtn.isVisible()) {
+      await openBtn.click();
+      await expect(page.locator('[data-testid="denomination-calculator"]')).toBeVisible();
+
+      // Enter physical counts in the calculator: 2 x 50€
+      const input50 = page.locator('[data-testid="denom-input-50e"]');
+      if (await input50.isVisible()) {
+        await input50.fill('2');
+      }
+
+      // Check live total update
+      await expect(page.locator('[data-testid="calc-grand-total"]')).toBeVisible();
+
+      await page.click('[data-testid="cash-opening-confirm-btn"]');
+    }
+
+    // Test intra-day cash movement with itemized denominations calculator
+    const movementBtn = page.locator('[data-testid="btn-open-cash-movement"]');
+    if (await movementBtn.isVisible()) {
+      await movementBtn.click();
+      await expect(page.locator('[data-testid="cash-movement-modal-title"]')).toBeVisible();
+
+      const toggleCalc = page.locator('[data-testid="toggle-itemized-calculator"]');
+      if (await toggleCalc.isVisible()) {
+        await toggleCalc.click();
+        await expect(page.locator('[data-testid="movement-denomination-calc"]')).toBeVisible();
+      }
+
+      const closeMovementModal = page.locator('[data-testid="btn-cancel-cash-movement"]');
+      if (await closeMovementModal.isVisible()) {
+        await closeMovementModal.click();
+      }
+    }
+  });
 });

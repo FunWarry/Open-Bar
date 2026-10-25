@@ -468,4 +468,61 @@ class EscPosFormatterTest {
                 "FIN DU RAPPORT X"
         );
     }
+
+    @Test
+    @DisplayName("formatTillClosingSlip generates audit ticket with theoretical, counted, variance, and breakdown")
+    void formatTillClosingSlip_generatesExpectedSlip() {
+        User testUser = new User();
+        testUser.setUsername("manager");
+
+        CashDrawerSession session = new CashDrawerSession();
+        session.setId(42L);
+        session.setSessionDate(LocalDate.of(2026, Month.SEPTEMBER, 18));
+        session.setOpenedAt(LocalDateTime.of(2026, Month.SEPTEMBER, 18, 9, 0));
+        session.setClosedAt(LocalDateTime.of(2026, Month.SEPTEMBER, 18, 23, 45));
+        session.setOpenedBy(testUser);
+        session.setClosedBy(testUser);
+        session.setOpeningFloat(new BigDecimal("150.00"));
+        session.setClosingDenominationsJson("{\"50e\": 6, \"20e\": 2, \"5e\": 1}");
+        session.setTheoreticalCash(new BigDecimal("350.00"));
+        session.setActualCash(new BigDecimal("345.00"));
+        session.setCashVariance(new BigDecimal("-5.00"));
+        session.setNotes("Erreur de rendu de monnaie lors du rush");
+
+        EstablishmentConfig etab = new EstablishmentConfig();
+        etab.setLegalName("Le Comptoir Central");
+        etab.setSiret("12345678900012");
+        etab.setAddress("10 Place du Bar, 75001 Paris");
+
+        AppSettings settings = new AppSettings();
+        settings.setEstablishmentName("Le Comptoir Central");
+        settings.setCashDiscrepancyToleranceThreshold(new BigDecimal("2.00")); // Tolerance exceeded: 5 > 2
+
+        byte[] output = formatter.formatTillClosingSlip(session, etab, settings);
+
+        assertThat(output).isNotEmpty();
+        String text = new String(output, CP850);
+        assertThat(text).contains(
+                "Le Comptoir Central",
+                "CLOTURE & AUDIT DU TIROIR CAISSE",
+                "Date : 18/09/2026",
+                "Operateur : manager",
+                "Fond initial compte :",
+                "150,00",
+                "Solde theorique attendu :",
+                "350,00",
+                "ESPECES COMPTEES :",
+                "345,00",
+                "DEFICIT DE CAISSE :",
+                "-5,00",
+                "!! ALERTE SEUIL TOLERANCE DEPASSE !!",
+                "Justification : Erreur de rendu de monnaie lors du rush",
+                "DETAIL DES COUPURES COMPTEES :",
+                "50e :",
+                "20e :",
+                "5e :",
+                "Caisse cloturee - Audit certifie"
+        );
+    }
 }
+

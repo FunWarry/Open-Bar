@@ -3823,6 +3823,48 @@
       "minutesAgo": 40
     }
   ],
+  "cash_drawer_sessions": [
+    {
+      "daysAgo": 1,
+      "openingFloat": 150.00,
+      "status": "CLOSED",
+      "openedByUsername": "manager",
+      "closedByUsername": "manager",
+      "openingDenominations": {
+        "50e": 1,
+        "20e": 3,
+        "10e": 2,
+        "5e": 2,
+        "2e": 4,
+        "1e": 2
+      },
+      "theoreticalCash": 380.00,
+      "actualCash": 380.00,
+      "cashVariance": 0.00,
+      "closingDenominationsJson": {
+        "50e": 4,
+        "20e": 6,
+        "10e": 4,
+        "5e": 2,
+        "2e": 4,
+        "1e": 2
+      },
+      "notes": "Clôture conforme sans écart",
+      "movements": [
+        {
+          "type": "CASH_DROP",
+          "amount": 100.00,
+          "reason": "Transfert de sécurité vers le coffre",
+          "receiptReference": "DROP-20261024-01",
+          "performedByUsername": "manager",
+          "minutesAgo": 180,
+          "denominationsJson": {
+            "50e": 2
+          }
+        }
+      ]
+    }
+  ],
   "system_snapshots": [
     {
       "snapshotId": "openbar_pre_update_0.7.2_20261015_020000",

@@ -470,6 +470,11 @@ export const routes: Routes = [
     data: { roles: ['MANAGER', 'ADMIN'] }
   },
   {
+    path: 'invoices/cash-drawer',
+    redirectTo: 'invoices/recap',
+    pathMatch: 'full'
+  },
+  {
     path: 'invoices/:id/split',
     loadComponent: () => import('./features/factures/facture-split/facture-split.component').then(m => m.FactureSplitComponent),
     canActivate: [AuthGuard, RoleGuard],
@@ -492,6 +497,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/factures/facture-recap-journee/facture-recap-journee.component').then(m => m.FactureRecapJourneeComponent),
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['MANAGER', 'ADMIN'] }
+  },
+  {
+    path: 'factures/caisse',
+    redirectTo: 'factures/recap',
+    pathMatch: 'full'
   },
   {
     path: 'factures/:id/split',

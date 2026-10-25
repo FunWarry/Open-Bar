@@ -60,6 +60,30 @@ public class CashDrawerSession {
     @Column(name = "opening_float_breakdown_json", columnDefinition = "TEXT")
     private String openingFloatBreakdownJson;
 
+    /**
+     * Physical cash and coin denomination breakdown counted upon drawer closure serialized in JSON.
+     */
+    @Column(name = "closing_denominations_json", columnDefinition = "TEXT")
+    private String closingDenominationsJson;
+
+    /**
+     * Calculated theoretical cash balance expected in drawer at session closing.
+     */
+    @Column(name = "theoretical_cash", precision = 10, scale = 2)
+    private BigDecimal theoreticalCash;
+
+    /**
+     * Actual physical cash counted by the operator at session closing.
+     */
+    @Column(name = "actual_cash", precision = 10, scale = 2)
+    private BigDecimal actualCash;
+
+    /**
+     * Cash variance (actual cash - theoretical cash) at session closing.
+     */
+    @Column(name = "cash_variance", precision = 10, scale = 2)
+    private BigDecimal cashVariance;
+
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 

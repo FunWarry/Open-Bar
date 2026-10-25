@@ -106,51 +106,15 @@
       </button>
     </div>
 
-    <!-- Denominations breakdown grid -->
+    <!-- Denominations breakdown calculator -->
     @if (showDenominations) {
       <div class="denominations-card" data-testid="cash-opening-denominations-grid">
-        <div class="denominations-header">
-          <span class="grid-title">{{ 'CASH_DRAWER.COUNT_DETAILS' | transloco }}</span>
-          <span class="counted-badge" data-testid="cash-opening-counted-badge">
-            {{ 'CASH_DRAWER.TOTAL_COUNTED' | transloco }}: {{ countedTotal | appCurrency }}
-          </span>
-        </div>
-
-        <div class="denominations-list">
-          @for (d of denominations; track d.key) {
-            <div class="denomination-row" [attr.data-testid]="'denom-row-' + d.key">
-              <label for="denom-input-{{ d.key }}" class="denom-label" [class.coin]="d.type === 'coin'">{{ d.label }}</label>
-              <div class="stepper-controls">
-                <button
-                  type="button"
-                  class="step-btn step-minus"
-                  (click)="updateCount(d.key, -1)"
-                  [attr.data-testid]="'denom-minus-' + d.key">
-                  <ion-icon name="remove-outline"></ion-icon>
-                </button>
-                <input
-                  type="number"
-                  id="denom-input-{{ d.key }}"
-                  aria-label="{{ d.label }}"
-                  min="0"
-                  [ngModel]="counting[d.key]"
-                  (ngModelChange)="onDirectCountChange(d.key, $event)"
-                  class="stepper-input"
-                  [attr.data-testid]="'denom-input-' + d.key" />
-                <button
-                  type="button"
-                  class="step-btn step-plus"
-                  (click)="updateCount(d.key, 1)"
-                  [attr.data-testid]="'denom-plus-' + d.key">
-                  <ion-icon name="add-outline"></ion-icon>
-                </button>
-              </div>
-              <span class="denom-subtotal">
-                {{ ((counting[d.key] || 0) * d.value) | appCurrency }}
-              </span>
-            </div>
-          }
-        </div>
+        <app-denomination-calculator
+          [(counting)]="counting"
+          [denominations]="denominations"
+          (totalChange)="onCalculatorTotalChange($event)"
+          testId="cash-opening-calc">
+        </app-denomination-calculator>
       </div>
     }
 

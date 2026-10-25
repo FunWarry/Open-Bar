@@ -2523,6 +2523,8 @@
     "JUSTIFICATION_LABEL": "Discrepancy reason note",
     "JUSTIFICATION_PLACEHOLDER": "E.g. Change return mistake during rush hour, unrecorded cash tip...",
     "DISCREPANCY_REASON_REQUIRED": "Please enter an explanation of at least 3 characters justifying the discrepancy.",
+    "TOLERANCE_EXCEEDED_TITLE": "Cash discrepancy tolerance threshold exceeded",
+    "TOLERANCE_EXCEEDED_DESC": "The observed cash discrepancy exceeds the authorized tolerance threshold of {{ threshold }}. A thorough audit and detailed justification note are required.",
     "CONFIRMATION_TITLE": "Final Summary and Register Sealing",
     "DATE_LABEL": "Closure date",
     "JUSTIFICATION_SUMMARY": "Discrepancy reason",
@@ -3529,6 +3531,8 @@
     "ENTER_AMOUNT": "Amount (e.g. 200 or 0.50)",
     "BILL": "Bill",
     "COIN": "Coin",
+    "CASH_DISCREPANCY_TOLERANCE": "Cash discrepancy tolerance threshold (€)",
+    "CASH_DISCREPANCY_TOLERANCE_HINT": "Maximum cash discrepancy tolerated before raising a high-priority audit warning (default: 5.00 €).",
     "DISCOUNT_TIERS_TITLE": "Discount Tiers & Commercial Gestures",
     "DISCOUNT_TIERS_SUBTITLE": "Configure predefined discount tiers for quick commercial gestures (e.g. Staff -50%, VIP -20%, Complimentary -100%).",
     "RESET_DISCOUNT_TIERS": "Reset discount tiers",
@@ -4155,7 +4159,9 @@
     "RECON_CASH_DROP": "Safe deposits",
     "RECON_PAID_OUT": "Outgoing expenses",
     "RECON_THEORETICAL_TOTAL": "Theoretical drawer total",
-    "VAT_TITLE": "VAT Breakdown by rate"
+    "VAT_TITLE": "VAT Breakdown by rate",
+    "DETAIL_DENOMINATIONS": "Itemize denominations (calculator)",
+    "BTN_CLOSE_DRAWER": "Close cash register"
   },
   "TABS": {
     "TAB_LABEL": "Tab",
@@ -5049,5 +5055,16 @@
     "RESTORE_CONFIRM_TITLE": "Confirm Snapshot Restoration",
     "RESTORE_CONFIRM_DESC": "The database will be restored to the exact state captured at snapshot creation. This operation is immediate and restores data integrity.",
     "BTN_CONFIRM_RESTORE": "Restore Now"
+  },
+  "CALCULATOR": {
+    "TITLE": "Physical cash calculator",
+    "BANKNOTES": "Banknotes",
+    "COINS": "Coins",
+    "SUBTOTAL_BILLS": "Banknotes subtotal",
+    "SUBTOTAL_COINS": "Coins subtotal",
+    "GRAND_TOTAL": "Physical total",
+    "RESET": "Reset",
+    "EMPTY_HINT": "Enter the quantity of each denomination to compute the physical total automatically."
   }
 }
+

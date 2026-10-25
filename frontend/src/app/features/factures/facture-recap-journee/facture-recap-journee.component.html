@@ -109,6 +109,16 @@
                   <ion-icon name="swap-vertical-outline" slot="start"></ion-icon>
                   {{ 'CASH_DRAWER.BTN_MOVEMENT' | transloco }}
                 </ion-button>
+                <ion-button
+                  color="danger"
+                  fill="outline"
+                  size="small"
+                  (click)="openClotureModal()"
+                  (keydown)="$event.key === 'Enter' && openClotureModal()"
+                  data-testid="btn-close-cash-drawer">
+                  <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+                  {{ 'CASH_DRAWER.BTN_CLOSE_DRAWER' | transloco }}
+                </ion-button>
               } @else {
                 <ion-button
                   color="primary"
