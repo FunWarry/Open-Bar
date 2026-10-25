@@ -225,16 +225,20 @@ test.describe('Cash Drawer Lifecycle & Mid-Shift X-Report E2E Flow (#450)', () =
     const openBtn = page.locator('[data-testid="btn-open-cash-drawer"]');
     if (await openBtn.isVisible()) {
       await openBtn.click();
-      await expect(page.locator('[data-testid="denomination-calculator"]')).toBeVisible();
+      const toggleBreakdown = page.locator('[data-testid="cash-opening-toggle-breakdown"]');
+      if (await toggleBreakdown.isVisible()) {
+        await toggleBreakdown.click();
+        await expect(page.locator('[data-testid="cash-opening-calc"]')).toBeVisible();
 
-      // Enter physical counts in the calculator: 2 x 50€
-      const input50 = page.locator('[data-testid="denom-input-50e"]');
-      if (await input50.isVisible()) {
-        await input50.fill('2');
+        // Enter physical counts in the calculator: 2 x 50€
+        const input50 = page.locator('[data-testid="cash-opening-calc-input-50e"]');
+        if (await input50.isVisible()) {
+          await input50.fill('2');
+        }
+
+        // Check live total update
+        await expect(page.locator('[data-testid="cash-opening-calc-grand-total"]')).toBeVisible();
       }
-
-      // Check live total update
-      await expect(page.locator('[data-testid="calc-grand-total"]')).toBeVisible();
 
       await page.click('[data-testid="cash-opening-confirm-btn"]');
     }
@@ -245,10 +249,10 @@ test.describe('Cash Drawer Lifecycle & Mid-Shift X-Report E2E Flow (#450)', () =
       await movementBtn.click();
       await expect(page.locator('[data-testid="cash-movement-modal-title"]')).toBeVisible();
 
-      const toggleCalc = page.locator('[data-testid="toggle-itemized-calculator"]');
+      const toggleCalc = page.locator('[data-testid="cash-movement-toggle-calc"]');
       if (await toggleCalc.isVisible()) {
         await toggleCalc.click();
-        await expect(page.locator('[data-testid="movement-denomination-calc"]')).toBeVisible();
+        await expect(page.locator('[data-testid="cash-movement-calc"]')).toBeVisible();
       }
 
       const closeMovementModal = page.locator('[data-testid="btn-cancel-cash-movement"]');
