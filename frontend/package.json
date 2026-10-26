@@ -33,7 +33,7 @@
     "@angular/platform-browser": "^22.2.3",
     "@angular/platform-browser-dynamic": "^22.2.3",
     "@angular/router": "^22.2.3",
-    "@ionic/angular": "^9.0.7",
+    "@ionic/angular": "^9.0.9",
     "@jsverse/transloco": "^8.4.0",
     "@ngrx/effects": "^22.0.1",
     "@ngrx/store": "^22.0.1",
