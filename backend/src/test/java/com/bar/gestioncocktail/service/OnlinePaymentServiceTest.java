@@ -91,6 +91,10 @@ class OnlinePaymentServiceTest {
         testSettings.setEstablishmentName("OpenBar Demo");
         testSettings.setOnlinePaymentProvider("SANDBOX");
         testSettings.setOnlinePaymentCurrency("EUR");
+
+        lenient().when(sandboxPaymentProvider.getProviderName()).thenReturn("SANDBOX");
+        lenient().when(appSettingsService.getSettings()).thenReturn(testSettings);
+        lenient().when(establishmentConfigService.isModuleEnabled(EstablishmentModule.QR_PAY_AT_TABLE)).thenReturn(true);
     }
 
     @Test

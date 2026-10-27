@@ -101,9 +101,11 @@ public class OnlinePaymentService {
      */
     public PaymentGatewayProvider resolveProvider() {
         AppSettings settings = appSettingsService.getSettings();
-        String preferred = settings.getOnlinePaymentProvider();
-        if (STRIPE_PROVIDER.equalsIgnoreCase(preferred) && stripePaymentProvider.isAvailable()) {
-            return stripePaymentProvider;
+        if (settings != null) {
+            String preferred = settings.getOnlinePaymentProvider();
+            if (STRIPE_PROVIDER.equalsIgnoreCase(preferred) && stripePaymentProvider.isAvailable()) {
+                return stripePaymentProvider;
+            }
         }
         return sandboxPaymentProvider;
     }
@@ -145,6 +147,7 @@ public class OnlinePaymentService {
 
         PaymentGatewayProvider provider = resolveProvider();
         AppSettings settings = appSettingsService.getSettings();
+        String providerName = provider != null ? provider.getProviderName() : "SANDBOX";
 
         return new TableBillSummaryResponseDTO(
                 table.getId(),
@@ -161,8 +164,8 @@ public class OnlinePaymentService {
                 myConsumptions,
                 mySubTotal,
                 moduleEnabled,
-                provider.getProviderName(),
-                STRIPE_PROVIDER.equalsIgnoreCase(provider.getProviderName()) ? settings.getStripePublishableKey() : null
+                providerName,
+                (settings != null && STRIPE_PROVIDER.equalsIgnoreCase(providerName)) ? settings.getStripePublishableKey() : null
         );
     }
 

@@ -915,6 +915,7 @@ describe('AppSettingsPageComponent', () => {
         checklistsProcedures: false,
         systemUpdates: false,
         angelShotSafety: false,
+        qrPayAtTable: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -936,6 +937,7 @@ describe('AppSettingsPageComponent', () => {
         checklistsProcedures: false,
         systemUpdates: false,
         angelShotSafety: false,
+        qrPayAtTable: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });

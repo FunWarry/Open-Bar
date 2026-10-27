@@ -1092,7 +1092,7 @@ CREATE TABLE IF NOT EXISTS online_payment_transactions (
     total_charged DECIMAL(10,2) NOT NULL,
     currency VARCHAR(10) NOT NULL DEFAULT 'EUR',
     provider VARCHAR(50) NOT NULL,
-    status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
+    status VARCHAR(30) NOT NULL,
     idempotency_key VARCHAR(100) NOT NULL UNIQUE,
     payment_method_type VARCHAR(50),
     customer_email VARCHAR(255),
