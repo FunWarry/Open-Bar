@@ -1,10 +1,10 @@
 <div class="table-assistance-wrapper">
-  <div class="table-assistance-bar">
+  <div class="table-assistance-bar" [class.has-pay-online]="canPayOnline">
     <button
       class="assistance-btn call-waiter-btn"
       type="button"
       data-testid="btn-call-waiter"
-      [disabled]="isCallingServer || cooldownSeconds > 0"
+      [disabled]="isCallingServer || (cooldownSeconds > 0 && activeCallType === 'ASSISTANCE')"
       (click)="appelerServeur('ASSISTANCE')">
       <span class="btn-icon">🔔</span>
       <span class="btn-text">
@@ -16,21 +16,32 @@
       </span>
     </button>
 
-    <button
-      class="assistance-btn request-bill-btn"
-      type="button"
-      data-testid="btn-request-bill"
-      [disabled]="isCallingServer || cooldownSeconds > 0"
-      (click)="appelerServeur('ADDITION')">
-      <span class="btn-icon">💳</span>
-      <span class="btn-text">
-        @if (cooldownSeconds > 0 && activeCallType === 'ADDITION') {
-          {{ 'CLIENT.ALERTS.COOLDOWN' | transloco: { seconds: cooldownSeconds } }}
-        } @else {
-          {{ 'CLIENT.ALERTS.REQUEST_BILL_BTN' | transloco }}
-        }
-      </span>
-    </button>
+    @if (canPayOnline) {
+      <button
+        class="assistance-btn pay-online-btn"
+        type="button"
+        data-testid="btn-request-bill"
+        (click)="openPayment.emit()">
+        <span class="btn-icon">💳</span>
+        <span class="btn-text">{{ 'CLIENT.PAYMENT.LAUNCHER_BTN' | transloco }}</span>
+      </button>
+    } @else {
+      <button
+        class="assistance-btn request-bill-btn"
+        type="button"
+        data-testid="btn-request-bill"
+        [disabled]="isCallingServer || (cooldownSeconds > 0 && activeCallType === 'ADDITION')"
+        (click)="appelerServeur('ADDITION')">
+        <span class="btn-icon">💳</span>
+        <span class="btn-text">
+          @if (cooldownSeconds > 0 && activeCallType === 'ADDITION') {
+            {{ 'CLIENT.ALERTS.COOLDOWN' | transloco: { seconds: cooldownSeconds } }}
+          } @else {
+            {{ 'CLIENT.ALERTS.REQUEST_BILL_BTN' | transloco }}
+          }
+        </span>
+      </button>
+    }
   </div>
 
   @if (cooldownSeconds > 0 && activeCallType) {

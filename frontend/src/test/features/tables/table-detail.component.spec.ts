@@ -144,7 +144,14 @@ describe('TableDetailComponent', () => {
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(jasmine.objectContaining({ action: 'deleted', tableId: 5 }));
   }));
 
-  it('onViewCommande() ferme la modal et navigue vers /commandes/:id', fakeAsync(() => {
+  it('onViewCommande() ferme la modal avec action view_order', fakeAsync(() => {
+    component.onViewCommande(mockCommande);
+    tick();
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ action: 'view_order', commandeId: mockCommande.id });
+  }));
+
+  it('onViewCommande() navigue directement si aucune modal active', fakeAsync(() => {
+    modalCtrlSpy.getTop.and.returnValue(Promise.resolve(null as any));
     component.onViewCommande(mockCommande);
     tick();
     expect(router.navigate).toHaveBeenCalledWith(['/commandes', 1]);

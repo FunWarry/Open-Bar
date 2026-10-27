@@ -50,6 +50,18 @@
   border-color: var(--semantic-warning, #f4a52a);
 }
 
+.pay-online-btn {
+  background: linear-gradient(135deg, rgba(108, 127, 232, 0.22) 0%, rgba(108, 127, 232, 0.12) 100%);
+  border-color: var(--primary, #6c7fe8);
+  color: var(--text-primary, #ffffff);
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(108, 127, 232, 0.35) 0%, rgba(108, 127, 232, 0.2) 100%);
+    border-color: var(--primary-strong, #5a6edb);
+    box-shadow: 0 4px 14px rgba(108, 127, 232, 0.3);
+  }
+}
+
 .active-call-badge {
   display: inline-flex;
   align-items: center;

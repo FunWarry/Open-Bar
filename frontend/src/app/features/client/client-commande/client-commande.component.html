@@ -492,7 +492,11 @@
         </div>
 
         <!-- Quick Table Service & Bill Actions Bar -->
-        <app-table-assistance-bar [tableNumero]="tableNumero!"></app-table-assistance-bar>
+        <app-table-assistance-bar
+          [tableNumero]="tableNumero!"
+          [canPayOnline]="isQrPayAtTableEnabled()"
+          (openPayment)="openPaymentModal()">
+        </app-table-assistance-bar>
 
         @if (isQrPayAtTableEnabled() && tableNumero) {
           <div class="pay-at-table-action-box">
@@ -870,6 +874,19 @@
               {{ tableCartService.tableOrdersSummary()?.totalDrinksOrdered || 0 }}
             </span>
           </div>
+
+          @if (isQrPayAtTableEnabled()) {
+            <div class="bill-pay-cta-row">
+              <button
+                type="button"
+                class="bill-pay-cta-btn"
+                data-testid="btn-pay-from-orders-summary"
+                (click)="closeTableOrdersModal(); openPaymentModal()">
+                <ion-icon name="card-outline"></ion-icon>
+                <span>{{ 'CLIENT.PAYMENT.LAUNCHER_BTN' | transloco }}</span>
+              </button>
+            </div>
+          }
         </div>
 
         <!-- Liste des tournées successives -->
@@ -910,6 +927,16 @@
         </div>
 
         <div class="modal-footer-actions">
+          @if (isQrPayAtTableEnabled()) {
+            <button
+              type="button"
+              class="footer-pay-btn"
+              data-testid="btn-pay-from-orders-footer"
+              (click)="closeTableOrdersModal(); openPaymentModal()">
+              <ion-icon name="card-outline"></ion-icon>
+              <span>{{ 'CLIENT.PAYMENT.LAUNCHER_BTN' | transloco }}</span>
+            </button>
+          }
           <button type="button" class="details-close-btn" (click)="closeTableOrdersModal()" data-testid="btn-close-table-orders-footer">
             {{ 'CLIENT.TABLE_ORDERS_CLOSE_BTN' | transloco }}
           </button>

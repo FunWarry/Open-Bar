@@ -160,7 +160,7 @@ test.describe('QR Pay-at-Table Mobile Settlement E2E', () => {
     await expect(downloadPdfBtn).toBeVisible();
 
     // Test email receipt sending
-    const emailInput = page.locator('[data-testid="input-receipt-email"] input');
+    const emailInput = page.locator('[data-testid="input-receipt-email"]');
     await expect(emailInput).toBeVisible();
     await emailInput.fill('client@example.com');
 

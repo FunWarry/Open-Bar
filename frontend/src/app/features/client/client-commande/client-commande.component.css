@@ -1785,6 +1785,47 @@ dialog.cocktail-details-dialog {
   }
 }
 
+.bill-pay-cta-row {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border-subtle);
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.bill-pay-cta-btn,
+.footer-pay-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 18px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong, var(--primary)) 100%);
+  color: var(--text-on-primary, #ffffff);
+  border: none;
+  border-radius: var(--radius-full, 9999px);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(108, 127, 232, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(108, 127, 232, 0.4);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .nickname-card,
   .invite-card,

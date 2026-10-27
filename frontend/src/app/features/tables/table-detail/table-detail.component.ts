@@ -241,7 +241,15 @@ export class TableDetailComponent implements OnInit, OnDestroy {
   }
 
   async onViewCommande(c: Commande): Promise<void> {
-    await this.onClose();
+    try {
+      const topModal = await this.modalCtrl.getTop();
+      if (topModal) {
+        await this.modalCtrl.dismiss({ action: 'view_order', commandeId: c.id });
+        return;
+      }
+    } catch {
+      // Fallback
+    }
     await this.router.navigate(['/commandes', c.id]);
   }
 
