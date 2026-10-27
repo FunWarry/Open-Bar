@@ -235,8 +235,10 @@ describe('ClientPaymentModalComponent', () => {
   });
 
   it('should show warning toast when processCheckout has zero base amount', () => {
-    component.setSplitMode('CUSTOM_AMOUNT');
-    component.onCustomAmountChange(0);
+    component.billSummary.set({
+      ...mockBill,
+      remainingBalance: 0
+    });
 
     component.processCheckout('card');
 
