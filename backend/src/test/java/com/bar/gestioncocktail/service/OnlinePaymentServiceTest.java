@@ -510,4 +510,189 @@ class OnlinePaymentServiceTest {
 
         assertThrows(BusinessException.class, () -> onlinePaymentService.createPaymentIntent(10L, req));
     }
+
+    @Test
+    @DisplayName("createPaymentIntent - returns idempotent cached transaction when key matches existing")
+    void createPaymentIntent_idempotencyHit_returnsCachedTransaction() {
+        OnlinePaymentTransaction existingTx = new OnlinePaymentTransaction();
+        existingTx.setTransactionId("tx_cached_001");
+        existingTx.setClientSecret("secret_cached_001");
+        existingTx.setAmount(BigDecimal.TEN);
+        existingTx.setTip(BigDecimal.ZERO);
+        existingTx.setTotalCharged(BigDecimal.TEN);
+        existingTx.setCurrency("EUR");
+        existingTx.setProvider("SANDBOX");
+        existingTx.setStatus("PENDING");
+
+        when(tableRepository.findById(10L)).thenReturn(Optional.of(testTable));
+        when(transactionRepository.findByIdempotencyKey("idemp_cached_hit")).thenReturn(Optional.of(existingTx));
+
+        PaymentIntentRequestDTO req = new PaymentIntentRequestDTO(
+                BigDecimal.TEN, BigDecimal.ZERO, "TOTALITE", "Alex", null, "idemp_cached_hit", false, null
+        );
+
+        PaymentIntentResponseDTO response = onlinePaymentService.createPaymentIntent(10L, req);
+
+        assertNotNull(response);
+        assertEquals("tx_cached_001", response.transactionId());
+        assertEquals("secret_cached_001", response.clientSecret());
+    }
+
+    @Test
+    @DisplayName("createPaymentIntent - throws BusinessException when table addition has no items")
+    void createPaymentIntent_noItemsOnBill_throwsBusinessException() {
+        when(tableRepository.findById(10L)).thenReturn(Optional.of(testTable));
+
+        TableAdditionResponseDTO mockAddition = new TableAdditionResponseDTO(
+                10L, 4, "SALLE", 1L, "Lucas", LocalDateTime.now(),
+                List.of(), List.of(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+                0, false, null
+        );
+        when(factureService.getTableAddition(10L)).thenReturn(mockAddition);
+
+        PaymentIntentRequestDTO req = new PaymentIntentRequestDTO(
+                BigDecimal.TEN, BigDecimal.ZERO, "TOTALITE", "Alex", null, "idemp_no_items", false, null
+        );
+
+        assertThrows(BusinessException.class, () -> onlinePaymentService.createPaymentIntent(10L, req));
+    }
+
+    @Test
+    @DisplayName("createPaymentIntent - throws BusinessException when addition is already fully settled")
+    void createPaymentIntent_alreadyFullySettled_throwsBusinessException() {
+        when(tableRepository.findById(10L)).thenReturn(Optional.of(testTable));
+
+        TableAdditionResponseDTO mockAddition = new TableAdditionResponseDTO(
+                10L, 4, "SALLE", 1L, "Lucas", LocalDateTime.now(),
+                List.of(), List.of(101L), BigDecimal.valueOf(8.0), BigDecimal.valueOf(2.0), BigDecimal.TEN,
+                0, true, 55L
+        );
+        when(factureService.getTableAddition(10L)).thenReturn(mockAddition);
+        FactureReglementDTO reglement = new FactureReglementDTO(
+                1L, 55L, "Alex", 1, 1, BigDecimal.TEN, BigDecimal.ZERO, BigDecimal.TEN,
+                "CARTE_EN_LIGNE", "TOTALITE", List.of(), LocalDateTime.now()
+        );
+        when(factureService.getReglementsByFactureId(55L)).thenReturn(List.of(reglement));
+
+        PaymentIntentRequestDTO req = new PaymentIntentRequestDTO(
+                BigDecimal.TEN, BigDecimal.ZERO, "TOTALITE", "Alex", null, "idemp_settled", false, null
+        );
+
+        assertThrows(BusinessException.class, () -> onlinePaymentService.createPaymentIntent(10L, req));
+    }
+
+    @Test
+    @DisplayName("confirmSandboxPayment - throws BusinessException when transaction belongs to another table")
+    void confirmSandboxPayment_tableMismatch_throwsBusinessException() {
+        TableEntity otherTable = new TableEntity();
+        otherTable.setId(99L);
+        otherTable.setNumero(12);
+
+        OnlinePaymentTransaction tx = new OnlinePaymentTransaction();
+        tx.setTransactionId("tx_wrong_table");
+        tx.setTable(otherTable);
+        tx.setClientSecret("secret_match");
+
+        when(transactionRepository.findByTransactionId("tx_wrong_table")).thenReturn(Optional.of(tx));
+
+        ConfirmSandboxPaymentRequestDTO req = new ConfirmSandboxPaymentRequestDTO(
+                "tx_wrong_table", "secret_match", "card"
+        );
+
+        assertThrows(BusinessException.class, () -> onlinePaymentService.confirmSandboxPayment(10L, req));
+    }
+
+    @Test
+    @DisplayName("confirmSandboxPayment - throws BusinessException when client secret does not match")
+    void confirmSandboxPayment_secretMismatch_throwsBusinessException() {
+        OnlinePaymentTransaction tx = new OnlinePaymentTransaction();
+        tx.setTransactionId("tx_secret_mismatch");
+        tx.setTable(testTable);
+        tx.setClientSecret("expected_secret");
+
+        when(transactionRepository.findByTransactionId("tx_secret_mismatch")).thenReturn(Optional.of(tx));
+
+        ConfirmSandboxPaymentRequestDTO req = new ConfirmSandboxPaymentRequestDTO(
+                "tx_secret_mismatch", "wrong_secret", "card"
+        );
+
+        assertThrows(BusinessException.class, () -> onlinePaymentService.confirmSandboxPayment(10L, req));
+    }
+
+    @Test
+    @DisplayName("liberateTableIfSettled - throws BusinessException when remaining balance is not zero")
+    void liberateTableIfSettled_balanceRemaining_throwsBusinessException() {
+        when(tableRepository.findById(10L)).thenReturn(Optional.of(testTable));
+
+        TableAdditionResponseDTO mockAddition = new TableAdditionResponseDTO(
+                10L, 4, "SALLE", 1L, "Lucas", LocalDateTime.now(),
+                List.of(), List.of(101L), BigDecimal.valueOf(25.0), BigDecimal.ZERO, BigDecimal.valueOf(25.0),
+                0, false, 55L
+        );
+        when(factureService.getTableAddition(10L)).thenReturn(mockAddition);
+
+        assertThrows(BusinessException.class, () -> onlinePaymentService.liberateTableIfSettled(10L));
+    }
+
+    @Test
+    @DisplayName("generateReceiptPdf - throws BusinessException when transaction has no linked invoice")
+    void generateReceiptPdf_noInvoice_throwsBusinessException() {
+        OnlinePaymentTransaction tx = new OnlinePaymentTransaction();
+        tx.setTransactionId("tx_no_invoice");
+        tx.setFacture(null);
+
+        when(transactionRepository.findByTransactionId("tx_no_invoice")).thenReturn(Optional.of(tx));
+
+        assertThrows(BusinessException.class, () -> onlinePaymentService.generateReceiptPdf("tx_no_invoice"));
+    }
+
+    @Test
+    @DisplayName("sendReceiptEmail - throws BusinessException when transaction has no linked invoice")
+    void sendReceiptEmail_noInvoice_throwsBusinessException() {
+        OnlinePaymentTransaction tx = new OnlinePaymentTransaction();
+        tx.setTransactionId("tx_no_invoice_mail");
+        tx.setFacture(null);
+
+        when(transactionRepository.findByTransactionId("tx_no_invoice_mail")).thenReturn(Optional.of(tx));
+
+        assertThrows(BusinessException.class, () -> onlinePaymentService.sendReceiptEmail("tx_no_invoice_mail", "test@bar.local"));
+    }
+
+    @Test
+    @DisplayName("finalizePaymentSuccess - executes table liberation when fully settled and liberateTableRequested is true")
+    void finalizePaymentSuccess_liberatesTable_whenRequestedAndSettled() {
+        Facture facture = new Facture();
+        facture.setId(55L);
+        facture.setNumero("FAC-2026-00055");
+
+        OnlinePaymentTransaction tx = new OnlinePaymentTransaction();
+        tx.setTransactionId("tx_liberate_requested");
+        tx.setTable(testTable);
+        tx.setAmount(BigDecimal.valueOf(30.0));
+        tx.setTotalCharged(BigDecimal.valueOf(30.0));
+        tx.setFacture(facture);
+        tx.setStatus("PENDING");
+        tx.setLiberateTableRequested(true);
+
+        FactureReglementDTO mockReglement = new FactureReglementDTO(
+                100L, 55L, "Client QR", 1, 1, BigDecimal.valueOf(30.0), BigDecimal.ZERO, BigDecimal.valueOf(30.0),
+                "CARTE_EN_LIGNE", "TOTALITE", List.of(), LocalDateTime.now()
+        );
+        when(factureService.encaisserPart(eq(55L), any(EncaisserPartRequest.class))).thenReturn(mockReglement);
+
+        TableAdditionResponseDTO mockAddition = new TableAdditionResponseDTO(
+                10L, 4, "SALLE", 1L, "Lucas", LocalDateTime.now(),
+                List.of(), List.of(101L), BigDecimal.valueOf(25.0), BigDecimal.valueOf(5.0), BigDecimal.valueOf(30.0),
+                0, true, 55L
+        );
+        when(factureService.getTableAddition(10L)).thenReturn(mockAddition);
+        when(factureService.getReglementsByFactureId(55L)).thenReturn(List.of(mockReglement));
+
+        PaymentSuccessResponseDTO result = onlinePaymentService.finalizePaymentSuccess(tx, "card");
+
+        assertNotNull(result);
+        assertTrue(result.isTableLiberated());
+        assertFalse(testTable.isOccupee());
+        verify(tableRepository, atLeastOnce()).save(testTable);
+    }
 }
