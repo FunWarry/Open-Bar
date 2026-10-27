@@ -35,6 +35,7 @@ describe('FeatureFlagService', () => {
     checklistsProcedures: true,
     systemUpdates: true,
     angelShotSafety: true,
+    qrPayAtTable: true,
   };
 
   beforeEach(() => {
@@ -160,6 +161,7 @@ describe('FeatureFlagService', () => {
       checklistsProcedures: false,
       systemUpdates: false,
       angelShotSafety: false,
+      qrPayAtTable: false,
     };
 
     wsSubject.next({ body: JSON.stringify(wsUpdate) });

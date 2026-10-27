@@ -309,6 +309,19 @@ describe('TableListComponent', () => {
     expect(component.onEdit).toHaveBeenCalledWith(mockTables[0]);
   }));
 
+  it('onView handles modal dismiss with view_order action and navigates', fakeAsync(() => {
+    const router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+    modalCtrlSpy.create.and.returnValue(Promise.resolve({
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { action: 'view_order', commandeId: 42 } }))
+    } as any));
+
+    component.onView(mockTables[0]);
+    tick();
+    expect(router.navigate).toHaveBeenCalledWith(['/commandes', 42]);
+  }));
+
   describe('getEtageShortLabelForZone', () => {
     it('returns empty string when zone is not found', () => {
       expect(component.getEtageShortLabelForZone('Unknown Zone')).toBe('');

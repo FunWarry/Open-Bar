@@ -83,11 +83,29 @@ public record AppSettingsResponseDTO(
     String tpeTerminalsJson,
     String emergencyNumbersJson,
     BigDecimal cashDiscrepancyToleranceThreshold,
+    String onlinePaymentProvider,
+    String stripePublishableKey,
+    Boolean stripeSecretKeyConfigured,
+    Boolean stripeWebhookSecretConfigured,
+    String onlinePaymentCurrency,
+    String smtpHost,
+    Integer smtpPort,
+    String smtpUsername,
+    Boolean smtpConfigured,
+    String smtpFrom,
+    Boolean smtpAuth,
+    Boolean smtpStarttls,
     String timeZone,
     LocalDateTime updatedAt
 ) {
     /** Default fallback timezone identifier. */
     public static final String DEFAULT_TIMEZONE = "SYSTEM";
+
+    /** Default fallback online payment gateway provider. */
+    public static final String DEFAULT_ONLINE_PAYMENT_PROVIDER = "STRIPE";
+
+    /** Default fallback sender email for automated notifications and digital receipts. */
+    public static final String DEFAULT_SMTP_FROM = "no-reply@openbar.local";
 
     /**
      * Backwards-compatible 35-parameter constructor before TPE configuration was introduced.
@@ -358,6 +376,7 @@ public record AppSettingsResponseDTO(
             String tpeBarIp, String tpeFloorIp, Integer tpePort,
             String tpeTerminalId, Integer tpeTimeoutSeconds,
             String printersJson, String tpeTerminalsJson, String emergencyNumbersJson,
+            BigDecimal cashDiscrepancyToleranceThreshold,
             String timeZone, LocalDateTime updatedAt
     ) {
         this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
@@ -369,7 +388,62 @@ public record AppSettingsResponseDTO(
                 printerPort, directPrintingEnabled, cashDenominationsJson, storageLocationsJson,
                 tpeEnabled, tpeSimulatorEnabled, tpeBarIp, tpeFloorIp, tpePort, tpeTerminalId,
                 tpeTimeoutSeconds, printersJson, tpeTerminalsJson, emergencyNumbersJson,
-                null, timeZone, updatedAt);
+                cashDiscrepancyToleranceThreshold,
+                DEFAULT_ONLINE_PAYMENT_PROVIDER, null, false, false, "EUR", null, 587, null, false, DEFAULT_SMTP_FROM, false, false,
+                timeZone, updatedAt);
+    }
+
+    public AppSettingsResponseDTO(
+            Long id, String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            String volumeUnit, String weightUnit,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity,
+            Boolean wifiEnabled, Boolean tableSessionValidationEnabled,
+            BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
+            BigDecimal warningGrossMarginPercentage, String barPrinterIp,
+            String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
+            Boolean directPrintingEnabled, String cashDenominationsJson,
+            String storageLocationsJson, Boolean tpeEnabled, Boolean tpeSimulatorEnabled,
+            String tpeBarIp, String tpeFloorIp, Integer tpePort,
+            String tpeTerminalId, Integer tpeTimeoutSeconds,
+            String printersJson, String tpeTerminalsJson, String emergencyNumbersJson,
+            String timeZone, LocalDateTime updatedAt
+    ) {
+        this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem, volumeUnit, weightUnit,
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes,
+                clientBaseUrl, wifiSsid, wifiPassword, wifiSecurity, wifiEnabled,
+                tableSessionValidationEnabled, defaultVatRate, targetGrossMarginPercentage,
+                warningGrossMarginPercentage, barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp,
+                printerPort, directPrintingEnabled, cashDenominationsJson, storageLocationsJson,
+                tpeEnabled, tpeSimulatorEnabled, tpeBarIp, tpeFloorIp, tpePort, tpeTerminalId,
+                tpeTimeoutSeconds, printersJson, tpeTerminalsJson, emergencyNumbersJson,
+                null,
+                DEFAULT_ONLINE_PAYMENT_PROVIDER, null, false, false, "EUR", null, 587, null, false, DEFAULT_SMTP_FROM, false, false,
+                timeZone, updatedAt);
+    }
+
+    private static boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private static int resolvePort(Integer port, int defaultPort) {
+        return port != null ? port : defaultPort;
+    }
+
+    private static boolean resolveTpeSimulator(Boolean enabled) {
+        return enabled == null || enabled;
+    }
+
+    private static UnitSystem resolveUnitSystem(UnitSystem unitSystem) {
+        return unitSystem != null ? unitSystem : UnitSystem.METRIC_CL;
+    }
+
+    private static String resolveString(String value, String defaultValue) {
+        return value != null ? value : defaultValue;
     }
 
     /**
@@ -384,9 +458,9 @@ public record AppSettingsResponseDTO(
             s.getId(), s.getPrimaryColor(), s.getPrimaryColorStrong(),
             s.getLogoUrl(), s.getEstablishmentName(), s.getDefaultTheme(),
             s.getCurrencyCode(), s.getCurrencySymbol(), s.getCurrencyPosition(),
-            s.getUnitSystem() != null ? s.getUnitSystem() : UnitSystem.METRIC_CL,
-            s.getVolumeUnit() != null ? s.getVolumeUnit() : "cl",
-            s.getWeightUnit() != null ? s.getWeightUnit() : "g",
+            resolveUnitSystem(s.getUnitSystem()),
+            resolveString(s.getVolumeUnit(), "cl"),
+            resolveString(s.getWeightUnit(), "g"),
             s.getTempsAlerteWarningMinutes(),
             s.getTempsAlerteCommandeMinutes(), s.getTempsAlerteCritiqueCommandeMinutes(),
             s.getClientBaseUrl(),
@@ -401,22 +475,34 @@ public record AppSettingsResponseDTO(
             s.getBarPrinterIp(),
             s.getKitchenPrinterIp(),
             s.getCashDeskPrinterIp(),
-            s.getPrinterPort() != null ? s.getPrinterPort() : 9100,
+            resolvePort(s.getPrinterPort(), 9100),
             Boolean.TRUE.equals(s.getDirectPrintingEnabled()),
             s.getCashDenominationsJson(),
             s.getStorageLocationsJson(),
             Boolean.TRUE.equals(s.getTpeEnabled()),
-            s.getTpeSimulatorEnabled() == null || s.getTpeSimulatorEnabled(),
+            resolveTpeSimulator(s.getTpeSimulatorEnabled()),
             s.getTpeBarIp(),
             s.getTpeFloorIp(),
-            s.getTpePort() != null ? s.getTpePort() : 8888,
-            s.getTpeTerminalId() != null ? s.getTpeTerminalId() : "01",
-            s.getTpeTimeoutSeconds() != null ? s.getTpeTimeoutSeconds() : 45,
+            resolvePort(s.getTpePort(), 8888),
+            resolveString(s.getTpeTerminalId(), "01"),
+            resolvePort(s.getTpeTimeoutSeconds(), 45),
             s.getPrintersJson(),
             s.getTpeTerminalsJson(),
             s.getEmergencyNumbersJson(),
             s.getCashDiscrepancyToleranceThreshold(),
-            timeZone != null ? timeZone : DEFAULT_TIMEZONE,
+            resolveString(s.getOnlinePaymentProvider(), DEFAULT_ONLINE_PAYMENT_PROVIDER),
+            s.getStripePublishableKey(),
+            hasText(s.getStripeSecretKey()),
+            hasText(s.getStripeWebhookSecret()),
+            resolveString(s.getOnlinePaymentCurrency(), "EUR"),
+            s.getSmtpHost(),
+            resolvePort(s.getSmtpPort(), 587),
+            s.getSmtpUsername(),
+            hasText(s.getSmtpPassword()),
+            resolveString(s.getSmtpFrom(), DEFAULT_SMTP_FROM),
+            Boolean.TRUE.equals(s.getSmtpAuth()),
+            Boolean.TRUE.equals(s.getSmtpStarttls()),
+            resolveString(timeZone, DEFAULT_TIMEZONE),
             s.getUpdatedAt()
         );
     }

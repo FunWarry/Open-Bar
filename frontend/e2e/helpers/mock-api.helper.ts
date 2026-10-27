@@ -108,6 +108,7 @@ export async function setupMockApi(page: Page): Promise<void> {
     checklistsProcedures: true,
     systemUpdates: true,
     angelShotSafety: true,
+    qrPayAtTable: true,
   };
 
   await page.route('**/api/establishment/modules**', async (route) => {
@@ -2522,6 +2523,105 @@ export async function setupMockApi(page: Page): Promise<void> {
           status: 'VALID',
         },
       ]),
+    });
+  });
+
+  // Mock Online Pay-at-table APIs
+  await page.route('**/api/public/tables/*/payments/bill*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        tableId: 1,
+        tableNumber: 1,
+        activeOrdersCount: 1,
+        totalItemsCount: 2,
+        subtotalVatExcluded: 20.0,
+        vatAmount: 4.0,
+        subtotalVatIncluded: 24.0,
+        alreadyPaidAmount: 0.0,
+        remainingBalance: 24.0,
+        isFullySettled: false,
+        settlements: [],
+        paymentProvider: 'SANDBOX',
+        stripePublishableKey: null,
+        currency: 'EUR',
+        items: [
+          {
+            ligneId: 101,
+            boissonNom: 'Mojito Classique',
+            quantite: 2,
+            prixUnitaire: 8.0,
+            totalLigne: 16.0,
+            guestName: 'Client',
+            orderStatus: 'SERVIE',
+            orderDate: '2026-10-27T12:00:00'
+          },
+          {
+            ligneId: 102,
+            boissonNom: 'Spritz',
+            quantite: 1,
+            prixUnitaire: 8.0,
+            totalLigne: 8.0,
+            guestName: 'Autre Convive',
+            orderStatus: 'SERVIE',
+            orderDate: '2026-10-27T12:05:00'
+          }
+        ]
+      })
+    });
+  });
+
+  await page.route('**/api/public/tables/*/payments/intent*', async (route) => {
+    const body = route.request().postDataJSON() || {};
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        transactionId: 'tx_e2e_sim_001',
+        clientSecret: 'secret_e2e_001',
+        amount: body.baseAmount || 24.0,
+        tipAmount: body.tipAmount || 0.0,
+        totalAmount: body.totalAmount || 24.0,
+        currency: 'EUR',
+        provider: 'SANDBOX',
+        status: 'PENDING'
+      })
+    });
+  });
+
+  await page.route('**/api/public/tables/*/payments/confirm-sandbox*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        transactionId: 'tx_e2e_sim_001',
+        status: 'SUCCEEDED',
+        baseAmount: 24.0,
+        tipAmount: 2.4,
+        totalAmount: 26.4,
+        currency: 'EUR',
+        remainingBalance: 0,
+        isTableFullySettled: true,
+        tableLiberated: true,
+        receiptDownloadUrl: '/api/public/tables/1/payments/tx_e2e_sim_001/receipt.pdf'
+      })
+    });
+  });
+
+  await page.route('**/api/public/tables/*/payments/liberate*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ liberated: true, message: 'Table 1 marked liberated' })
+    });
+  });
+
+  await page.route('**/api/public/tables/*/payments/*/receipt-email*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ sent: true })
     });
   });
 }

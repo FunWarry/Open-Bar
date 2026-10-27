@@ -128,4 +128,16 @@ describe('TableAssistanceBarComponent', () => {
     // Timer was stopped so countdown stops
     expect(component.cooldownSeconds).toBe(60);
   }));
+
+  it('should emit openPayment when pay-online-btn is clicked', () => {
+    spyOn(component.openPayment, 'emit');
+    component.canPayOnline = true;
+    fixture.detectChanges();
+
+    const payBtn = fixture.nativeElement.querySelector('.pay-online-btn');
+    expect(payBtn).toBeTruthy();
+    payBtn.click();
+
+    expect(component.openPayment.emit).toHaveBeenCalled();
+  });
 });

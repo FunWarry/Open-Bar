@@ -458,5 +458,42 @@ class AppSettingsServiceTest {
         assertThat(updated.getTpeTerminalsJson()).isEqualTo(tpeJson);
         verify(appSettingsRepository).save(any(AppSettings.class));
     }
+
+    @Test
+    @DisplayName("updateSettings persists online payment and SMTP configuration successfully")
+    void updateSettings_persistsOnlinePaymentAndSmtpSettings() {
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+        when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        AppSettingsUpdateRequest req = new AppSettingsUpdateRequest(
+                "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
+                "EUR", "€", CurrencyPosition.AFTER,
+                com.bar.gestioncocktail.model.UnitSystem.METRIC_CL, "cl", "g",
+                3, 5, 10,
+                null, null, null, null, false, false,
+                null, null, null,
+                null, null, null, 9100, false, null, null,
+                false, false, null, null, null, null, null,
+                null, null, null, null,
+                "STRIPE", "pk_test_123", "sk_test_123", "whsec_123", "EUR",
+                "smtp.mail.local", 587, "user@mail.local", "secretpwd", "no-reply@bar.local",
+                true, true
+        );
+
+        AppSettings updated = appSettingsService.updateSettings(req);
+
+        assertThat(updated.getOnlinePaymentProvider()).isEqualTo("STRIPE");
+        assertThat(updated.getStripePublishableKey()).isEqualTo("pk_test_123");
+        assertThat(updated.getStripeSecretKey()).isEqualTo("sk_test_123");
+        assertThat(updated.getStripeWebhookSecret()).isEqualTo("whsec_123");
+        assertThat(updated.getOnlinePaymentCurrency()).isEqualTo("EUR");
+        assertThat(updated.getSmtpHost()).isEqualTo("smtp.mail.local");
+        assertThat(updated.getSmtpPort()).isEqualTo(587);
+        assertThat(updated.getSmtpUsername()).isEqualTo("user@mail.local");
+        assertThat(updated.getSmtpPassword()).isEqualTo("secretpwd");
+        assertThat(updated.getSmtpFrom()).isEqualTo("no-reply@bar.local");
+        assertThat(updated.getSmtpAuth()).isTrue();
+        assertThat(updated.getSmtpStarttls()).isTrue();
+    }
 }
 

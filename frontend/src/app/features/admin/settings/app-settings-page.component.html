@@ -753,6 +753,18 @@
                             </div>
                           }
                         </div>
+
+                        <!-- Module 18: QR_PAY_AT_TABLE -->
+                        <div class="threshold-row" data-testid="module-row-qr-pay-at-table">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="card-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_QR_PAY_AT_TABLE_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="qrPayAtTable" data-testid="toggle-module-qr-pay-at-table"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_QR_PAY_AT_TABLE_DESC' | transloco }}</p>
+                        </div>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -2258,6 +2270,128 @@
                           formControlName="tableSessionValidationEnabled"
                           data-testid="toggle-table-session-validation">
                         </ion-toggle>
+                      </div>
+
+                      <!-- Online Payment Gateway & Receipts -->
+                      <div class="divider-line"></div>
+
+                      <div class="form-section-subtitle">
+                        <ion-icon name="card-outline"></ion-icon>
+                        <span>{{ 'SETTINGS.ONLINE_PAYMENT_CONFIG_TITLE' | transloco }}</span>
+                      </div>
+                      <p class="section-intro-text">
+                        {{ 'SETTINGS.ONLINE_PAYMENT_CONFIG_DESC' | transloco }}
+                      </p>
+
+                      <div class="form-group-block">
+                        <app-searchable-select
+                          formControlName="onlinePaymentProvider"
+                          [label]="'SETTINGS.ONLINE_PAYMENT_PROVIDER_LABEL' | transloco"
+                          [options]="paymentProviderOptions"
+                          [clearable]="false"
+                          [enableSearch]="false"
+                          testId="select-online-payment-provider">
+                        </app-searchable-select>
+                      </div>
+
+                      <div class="form-group-block">
+                        <app-input-field
+                          formControlName="onlinePaymentCurrency"
+                          [label]="'SETTINGS.ONLINE_PAYMENT_CURRENCY' | transloco"
+                          [helperText]="'SETTINGS.ONLINE_PAYMENT_CURRENCY_HINT' | transloco"
+                          placeholder="EUR"
+                          testId="input-online-payment-currency">
+                        </app-input-field>
+                      </div>
+
+                      @if (appSettingsForm.get('onlinePaymentProvider')?.value === 'STRIPE') {
+                        <div class="stripe-config-block">
+                          <div class="form-group-block">
+                            <app-input-field
+                              formControlName="stripePublishableKey"
+                              [label]="'SETTINGS.STRIPE_PUBLISHABLE_KEY' | transloco"
+                              [helperText]="'SETTINGS.STRIPE_PUBLISHABLE_KEY_HINT' | transloco"
+                              placeholder="pk_test_..."
+                              testId="input-stripe-publishable-key">
+                            </app-input-field>
+                          </div>
+
+                          <div class="form-group-block">
+                            <app-input-field
+                              formControlName="stripeSecretKey"
+                              type="password"
+                              [label]="'SETTINGS.STRIPE_SECRET_KEY' | transloco"
+                              [helperText]="'SETTINGS.STRIPE_SECRET_KEY_HINT' | transloco"
+                              placeholder="sk_test_..."
+                              testId="input-stripe-secret-key">
+                            </app-input-field>
+                          </div>
+
+                          <div class="form-group-block">
+                            <app-input-field
+                              formControlName="stripeWebhookSecret"
+                              type="password"
+                              [label]="'SETTINGS.STRIPE_WEBHOOK_SECRET' | transloco"
+                              [helperText]="'SETTINGS.STRIPE_WEBHOOK_SECRET_HINT' | transloco"
+                              placeholder="whsec_..."
+                              testId="input-stripe-webhook-secret">
+                            </app-input-field>
+                          </div>
+                        </div>
+                      }
+
+                      <!-- Digital Receipts Dispatch (SMTP) -->
+                      <div class="divider-line"></div>
+
+                      <div class="form-section-subtitle">
+                        <ion-icon name="mail-outline"></ion-icon>
+                        <span>{{ 'SETTINGS.SMTP_RECEIPT_CONFIG_TITLE' | transloco }}</span>
+                      </div>
+                      <p class="section-intro-text">
+                        {{ 'SETTINGS.SMTP_RECEIPT_CONFIG_DESC' | transloco }}
+                      </p>
+
+                      <div class="form-row-2">
+                        <app-input-field
+                          formControlName="smtpHost"
+                          [label]="'SETTINGS.SMTP_HOST' | transloco"
+                          placeholder="smtp.example.com"
+                          testId="input-smtp-host">
+                        </app-input-field>
+
+                        <app-input-field
+                          formControlName="smtpPort"
+                          type="number"
+                          [label]="'SETTINGS.SMTP_PORT' | transloco"
+                          placeholder="587"
+                          testId="input-smtp-port">
+                        </app-input-field>
+                      </div>
+
+                      <div class="form-row-2">
+                        <app-input-field
+                          formControlName="smtpUsername"
+                          [label]="'SETTINGS.SMTP_USERNAME' | transloco"
+                          placeholder="notifications@openbar.lan"
+                          testId="input-smtp-username">
+                        </app-input-field>
+
+                        <app-input-field
+                          formControlName="smtpPassword"
+                          type="password"
+                          [label]="'SETTINGS.SMTP_PASSWORD' | transloco"
+                          placeholder="••••••••"
+                          testId="input-smtp-password">
+                        </app-input-field>
+                      </div>
+
+                      <div class="form-group-block">
+                        <app-input-field
+                          formControlName="smtpFrom"
+                          [label]="'SETTINGS.SMTP_FROM' | transloco"
+                          placeholder="OpenBar <no-reply@openbar.lan>"
+                          testId="input-smtp-from">
+                        </app-input-field>
                       </div>
                     </ion-card-content>
                   </ion-card>

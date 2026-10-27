@@ -144,10 +144,21 @@ describe('TableDetailComponent', () => {
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(jasmine.objectContaining({ action: 'deleted', tableId: 5 }));
   }));
 
-  it('onViewCommande() ferme la modal et navigue vers /commandes/:id', fakeAsync(() => {
+  it('onViewCommande() ouvre la modal CommandeDetailModalComponent', fakeAsync(() => {
+    component.table = mockTable;
     component.onViewCommande(mockCommande);
     tick();
-    expect(router.navigate).toHaveBeenCalledWith(['/commandes', 1]);
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      componentProps: { commandeId: mockCommande.id, commandeInput: mockCommande }
+    }));
+    expect(mockChildModal.present).toHaveBeenCalled();
+  }));
+
+  it('onViewCommande() navigue en fallback si erreur d ouverture', fakeAsync(() => {
+    modalCtrlSpy.create.and.returnValue(Promise.reject(new Error('Modal failed')));
+    component.onViewCommande(mockCommande);
+    tick();
+    expect(router.navigate).toHaveBeenCalledWith(['/commandes', mockCommande.id]);
   }));
 
   it('isAdmin$ emits false by default', (done) => {

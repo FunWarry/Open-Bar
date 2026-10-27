@@ -1064,3 +1064,49 @@ ALTER TABLE cash_drawer_sessions ADD COLUMN IF NOT EXISTS actual_cash DECIMAL(10
 ALTER TABLE cash_drawer_sessions ADD COLUMN IF NOT EXISTS cash_variance DECIMAL(10,2);
 ALTER TABLE cash_movements ADD COLUMN IF NOT EXISTS denominations_json TEXT;
 
+-- Pay-at-Table Online Payment Gateway Module & Settings
+ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_qr_pay_at_table_enabled BOOLEAN DEFAULT true;
+
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS online_payment_provider VARCHAR(50) DEFAULT 'STRIPE';
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS stripe_publishable_key VARCHAR(255);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS stripe_secret_key VARCHAR(255);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS stripe_webhook_secret VARCHAR(255);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS online_payment_currency VARCHAR(10) DEFAULT 'EUR';
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS smtp_host VARCHAR(255);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS smtp_port INTEGER DEFAULT 587;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS smtp_username VARCHAR(255);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS smtp_password VARCHAR(255);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS smtp_from VARCHAR(255) DEFAULT 'no-reply@openbar.local';
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS smtp_auth BOOLEAN DEFAULT false;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS smtp_starttls BOOLEAN DEFAULT false;
+
+CREATE TABLE IF NOT EXISTS online_payment_transactions (
+    id BIGSERIAL PRIMARY KEY,
+    transaction_id VARCHAR(100) NOT NULL UNIQUE,
+    table_id BIGINT NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+    facture_id BIGINT REFERENCES factures(id) ON DELETE SET NULL,
+    reglement_id BIGINT REFERENCES facture_reglements(id) ON DELETE SET NULL,
+    guest_name VARCHAR(100),
+    amount DECIMAL(10,2) NOT NULL,
+    tip DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    total_charged DECIMAL(10,2) NOT NULL,
+    currency VARCHAR(10) NOT NULL DEFAULT 'EUR',
+    provider VARCHAR(50) NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    idempotency_key VARCHAR(100) NOT NULL UNIQUE,
+    payment_method_type VARCHAR(50),
+    customer_email VARCHAR(255),
+    client_secret VARCHAR(255),
+    items_json TEXT,
+    type_split VARCHAR(30) NOT NULL DEFAULT 'TOTALITE',
+    liberate_table_requested BOOLEAN DEFAULT false,
+    receipt_url VARCHAR(500),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_online_payments_table ON online_payment_transactions(table_id);
+CREATE INDEX IF NOT EXISTS idx_online_payments_transaction_id ON online_payment_transactions(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_online_payments_idempotency ON online_payment_transactions(idempotency_key);
+CREATE INDEX IF NOT EXISTS idx_online_payments_status ON online_payment_transactions(status);
+

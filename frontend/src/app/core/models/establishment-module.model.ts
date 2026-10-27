@@ -19,6 +19,7 @@ export enum EstablishmentModule {
   CHECKLISTS_PROCEDURES = 'CHECKLISTS_PROCEDURES',
   SYSTEM_UPDATES = 'SYSTEM_UPDATES',
   ANGEL_SHOT_SAFETY = 'ANGEL_SHOT_SAFETY',
+  QR_PAY_AT_TABLE = 'QR_PAY_AT_TABLE',
 }
 
 /**
@@ -42,6 +43,7 @@ export interface EstablishmentModules {
   checklistsProcedures: boolean;
   systemUpdates: boolean;
   angelShotSafety: boolean;
+  qrPayAtTable: boolean;
 }
 
 /**
@@ -71,6 +73,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     checklistsProcedures: true,
     systemUpdates: true,
     angelShotSafety: true,
+    qrPayAtTable: true,
   },
   RESTAURANT: {
     cuisineKds: true,
@@ -90,6 +93,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     checklistsProcedures: true,
     systemUpdates: true,
     angelShotSafety: true,
+    qrPayAtTable: true,
   },
   FOOD_TRUCK: {
     cuisineKds: true,
@@ -109,6 +113,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     checklistsProcedures: true,
     systemUpdates: true,
     angelShotSafety: false,
+    qrPayAtTable: true,
   },
   NIGHTCLUB: {
     cuisineKds: false,
@@ -128,5 +133,6 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     checklistsProcedures: true,
     systemUpdates: true,
     angelShotSafety: true,
+    qrPayAtTable: true,
   },
 };

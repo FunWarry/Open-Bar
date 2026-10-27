@@ -210,6 +210,7 @@ public class EstablishmentConfigService {
         applyModuleIfPresent(config, EstablishmentModule.CHECKLISTS_PROCEDURES, request.checklistsProcedures());
         applyModuleIfPresent(config, EstablishmentModule.SYSTEM_UPDATES, request.systemUpdates());
         applyModuleIfPresent(config, EstablishmentModule.ANGEL_SHOT_SAFETY, request.angelShotSafety());
+        applyModuleIfPresent(config, EstablishmentModule.QR_PAY_AT_TABLE, request.qrPayAtTable());
     }
 
     private void applyModuleIfPresent(EstablishmentConfig config, EstablishmentModule module, Boolean enabled) {

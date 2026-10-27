@@ -24,6 +24,7 @@ import { TableBar } from '../../../core/models/table.model';
 import { Commande } from '../../../core/models/commande.model';
 import { ConfirmDeleteModalComponent } from '../../../core/components/ui/confirm-delete-modal/confirm-delete-modal.component';
 import { TableQrModalComponent } from '../components/table-qr-modal/table-qr-modal.component';
+import { CommandeDetailModalComponent } from '../../commandes/commande-detail-modal/commande-detail-modal.component';
 
 /**
  * Modal component for viewing detailed information about a table in OpenBar,
@@ -241,8 +242,23 @@ export class TableDetailComponent implements OnInit, OnDestroy {
   }
 
   async onViewCommande(c: Commande): Promise<void> {
-    await this.onClose();
-    await this.router.navigate(['/commandes', c.id]);
+    try {
+      const modal = await this.modalCtrl.create({
+        component: CommandeDetailModalComponent,
+        componentProps: {
+          commandeId: c.id,
+          commandeInput: c,
+        },
+        cssClass: 'commande-detail-modal-container',
+      });
+      await modal.present();
+      const { data } = await modal.onDidDismiss();
+      if (data && this.table?.id) {
+        this.loadTableData(this.table.id);
+      }
+    } catch {
+      await this.router.navigate(['/commandes', c.id]);
+    }
   }
 
   async onOpenQrModal(): Promise<void> {

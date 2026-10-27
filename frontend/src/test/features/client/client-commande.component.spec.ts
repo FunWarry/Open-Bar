@@ -1210,5 +1210,66 @@ describe('ClientCommandeComponent', () => {
       }));
     }));
   });
+
+  describe('Pay-at-table mobile bill settlement', () => {
+    it('isQrPayAtTableEnabled returns feature flag status', () => {
+      featureFlagServiceSpy.isModuleEnabled.and.returnValue(true);
+      expect(component.isQrPayAtTableEnabled()).toBeTrue();
+      expect(featureFlagServiceSpy.isModuleEnabled).toHaveBeenCalledWith(EstablishmentModule.QR_PAY_AT_TABLE);
+
+      featureFlagServiceSpy.isModuleEnabled.and.returnValue(false);
+      expect(component.isQrPayAtTableEnabled()).toBeFalse();
+    });
+
+    it('openPaymentModal and closePaymentModal toggle modal visibility signal', () => {
+      expect(component.isPaymentModalOpen()).toBeFalse();
+
+      component.openPaymentModal();
+      expect(component.isPaymentModalOpen()).toBeTrue();
+
+      component.closePaymentModal();
+      expect(component.isPaymentModalOpen()).toBeFalse();
+    });
+
+    it('onPaymentCompleted resets tableNumero and step when tableLiberated is true', () => {
+      component.tableNumero = 4;
+      component.step = 'menu';
+
+      component.onPaymentCompleted({
+        transactionId: 'tx_test_123',
+        status: 'SUCCEEDED',
+        baseAmount: 20,
+        tipAmount: 2,
+        totalAmount: 22,
+        currency: 'EUR',
+        remainingBalance: 0,
+        isTableFullySettled: true,
+        tableLiberated: true
+      });
+
+      expect(component.tableNumero).toBeNull();
+      expect(component.step).toBe('table');
+    });
+
+    it('onPaymentCompleted preserves tableNumero and step when tableLiberated is false', () => {
+      component.tableNumero = 4;
+      component.step = 'menu';
+
+      component.onPaymentCompleted({
+        transactionId: 'tx_test_123',
+        status: 'SUCCEEDED',
+        baseAmount: 10,
+        tipAmount: 0,
+        totalAmount: 10,
+        currency: 'EUR',
+        remainingBalance: 10,
+        isTableFullySettled: false,
+        tableLiberated: false
+      });
+
+      expect(component.tableNumero).toBe(4);
+      expect(component.step).toBe('menu');
+    });
+  });
 });
 

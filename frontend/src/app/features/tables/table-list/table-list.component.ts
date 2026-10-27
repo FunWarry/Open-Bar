@@ -507,6 +507,8 @@ export class TableListComponent implements OnInit, OnDestroy {
       void this.onEdit(data.table || t);
     } else if (data?.action === 'deleted') {
       this.charger();
+    } else if (data?.action === 'view_order' && data?.commandeId) {
+      void this.router.navigate(['/commandes', data.commandeId]);
     }
   }
 

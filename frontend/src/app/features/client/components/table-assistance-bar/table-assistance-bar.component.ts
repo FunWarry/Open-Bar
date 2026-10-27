@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ToastController } from '@ionic/angular';
@@ -19,6 +19,8 @@ import { TableAppelType } from '../../../../core/models/table-appel.model';
 })
 export class TableAssistanceBarComponent implements OnDestroy {
   @Input({ required: true }) tableNumero!: number;
+  @Input() canPayOnline = false;
+  @Output() openPayment = new EventEmitter<void>();
 
   isCallingServer = false;
   cooldownSeconds = 0;
