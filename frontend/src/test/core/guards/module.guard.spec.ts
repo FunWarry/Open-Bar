@@ -40,6 +40,7 @@ describe('ModuleGuard', () => {
     checklistsProcedures: true,
     systemUpdates: true,
     angelShotSafety: true,
+    qrPayAtTable: true,
   };
 
   beforeEach(() => {
