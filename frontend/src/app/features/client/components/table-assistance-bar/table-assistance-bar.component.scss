@@ -27,7 +27,7 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
   backdrop-filter: blur(12px);
 
   &:hover:not(:disabled) {
@@ -98,5 +98,21 @@
   100% {
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(155, 138, 242, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistance-btn {
+    transition: none;
+    transform: none;
+
+    &:hover:not(:disabled) {
+      transform: none;
+    }
+  }
+
+  .active-call-badge,
+  .pulse-dot {
+    animation: none;
   }
 }

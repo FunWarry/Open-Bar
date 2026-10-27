@@ -1849,7 +1849,9 @@ dialog.cocktail-details-dialog {
   .roulette-hero-cta-btn,
   .floating-roulette-fab,
   .discreet-safety-trigger,
-  .pay-at-table-trigger-btn {
+  .pay-at-table-trigger-btn,
+  .bill-pay-cta-btn,
+  .footer-pay-btn {
     transition: none;
     transform: none;
 
