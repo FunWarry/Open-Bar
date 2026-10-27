@@ -139,6 +139,13 @@ export class ClientSuiviComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Resolves the table number or ID associated with the current order.
+   */
+  get currentTableNumero(): number | undefined {
+    return this.commande?.tableNumero || this.commande?.tableId;
+  }
+
+  /**
    * Checks whether the QR Pay-at-Table module is dynamically enabled for this establishment.
    */
   isQrPayAtTableEnabled(): boolean {

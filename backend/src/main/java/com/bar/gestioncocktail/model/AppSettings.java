@@ -345,6 +345,102 @@ public class AppSettings {
         this.tpeTerminalsJson = tpeTerminalsJson;
     }
 
+    public String getOnlinePaymentProvider() {
+        return onlinePaymentProvider;
+    }
+
+    public void setOnlinePaymentProvider(String onlinePaymentProvider) {
+        this.onlinePaymentProvider = onlinePaymentProvider;
+    }
+
+    public String getStripePublishableKey() {
+        return stripePublishableKey;
+    }
+
+    public void setStripePublishableKey(String stripePublishableKey) {
+        this.stripePublishableKey = stripePublishableKey;
+    }
+
+    public String getStripeSecretKey() {
+        return stripeSecretKey;
+    }
+
+    public void setStripeSecretKey(String stripeSecretKey) {
+        this.stripeSecretKey = stripeSecretKey;
+    }
+
+    public String getStripeWebhookSecret() {
+        return stripeWebhookSecret;
+    }
+
+    public void setStripeWebhookSecret(String stripeWebhookSecret) {
+        this.stripeWebhookSecret = stripeWebhookSecret;
+    }
+
+    public String getOnlinePaymentCurrency() {
+        return onlinePaymentCurrency != null ? onlinePaymentCurrency : "EUR";
+    }
+
+    public void setOnlinePaymentCurrency(String onlinePaymentCurrency) {
+        this.onlinePaymentCurrency = onlinePaymentCurrency;
+    }
+
+    public String getSmtpHost() {
+        return smtpHost;
+    }
+
+    public void setSmtpHost(String smtpHost) {
+        this.smtpHost = smtpHost;
+    }
+
+    public Integer getSmtpPort() {
+        return smtpPort;
+    }
+
+    public void setSmtpPort(Integer smtpPort) {
+        this.smtpPort = smtpPort;
+    }
+
+    public String getSmtpUsername() {
+        return smtpUsername;
+    }
+
+    public void setSmtpUsername(String smtpUsername) {
+        this.smtpUsername = smtpUsername;
+    }
+
+    public String getSmtpPassword() {
+        return smtpPassword;
+    }
+
+    public void setSmtpPassword(String smtpPassword) {
+        this.smtpPassword = smtpPassword;
+    }
+
+    public String getSmtpFrom() {
+        return smtpFrom;
+    }
+
+    public void setSmtpFrom(String smtpFrom) {
+        this.smtpFrom = smtpFrom;
+    }
+
+    public Boolean getSmtpAuth() {
+        return smtpAuth;
+    }
+
+    public void setSmtpAuth(Boolean smtpAuth) {
+        this.smtpAuth = smtpAuth;
+    }
+
+    public Boolean getSmtpStarttls() {
+        return smtpStarttls;
+    }
+
+    public void setSmtpStarttls(Boolean smtpStarttls) {
+        this.smtpStarttls = smtpStarttls;
+    }
+
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }

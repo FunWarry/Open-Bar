@@ -104,10 +104,10 @@
     </div>
   }
 
-  @if (isPaymentModalOpen() && (commande?.tableNumero || commande?.tableId)) {
+  @if (isPaymentModalOpen() && currentTableNumero) {
     <app-client-payment-modal
-      [tableId]="(commande?.tableNumero || commande?.tableId)!"
-      [tableNumero]="(commande?.tableNumero || commande?.tableId)!"
+      [tableId]="currentTableNumero"
+      [tableNumero]="currentTableNumero"
       (closeModal)="closePaymentModal()"
       (paymentCompleted)="onPaymentCompleted($event)">
     </app-client-payment-modal>
