@@ -243,6 +243,16 @@ export class TableDetailComponent implements OnInit, OnDestroy {
 
   async onViewCommande(c: Commande): Promise<void> {
     try {
+      const topModal = await this.modalCtrl.getTop();
+      if (topModal) {
+        await this.modalCtrl.dismiss({ action: 'view_order', commande: c, commandeId: c.id });
+        return;
+      }
+    } catch {
+      // Fallback
+    }
+
+    try {
       const modal = await this.modalCtrl.create({
         component: CommandeDetailModalComponent,
         componentProps: {

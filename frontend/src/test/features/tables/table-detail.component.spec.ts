@@ -144,7 +144,19 @@ describe('TableDetailComponent', () => {
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(jasmine.objectContaining({ action: 'deleted', tableId: 5 }));
   }));
 
-  it('onViewCommande() ouvre la modal CommandeDetailModalComponent', fakeAsync(() => {
+  it('onViewCommande() dismisses with view_order action when inside modal', fakeAsync(() => {
+    component.table = mockTable;
+    component.onViewCommande(mockCommande);
+    tick();
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({
+      action: 'view_order',
+      commande: mockCommande,
+      commandeId: mockCommande.id
+    });
+  }));
+
+  it('onViewCommande() ouvre la modal CommandeDetailModalComponent en mode standalone', fakeAsync(() => {
+    modalCtrlSpy.getTop.and.returnValue(Promise.resolve(null as any));
     component.table = mockTable;
     component.onViewCommande(mockCommande);
     tick();
@@ -154,7 +166,8 @@ describe('TableDetailComponent', () => {
     expect(mockChildModal.present).toHaveBeenCalled();
   }));
 
-  it('onViewCommande() navigue en fallback si erreur d ouverture', fakeAsync(() => {
+  it('onViewCommande() navigue en fallback si erreur d ouverture en mode standalone', fakeAsync(() => {
+    modalCtrlSpy.getTop.and.returnValue(Promise.resolve(null as any));
     modalCtrlSpy.create.and.returnValue(Promise.reject(new Error('Modal failed')));
     component.onViewCommande(mockCommande);
     tick();

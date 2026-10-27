@@ -309,9 +309,7 @@ describe('TableListComponent', () => {
     expect(component.onEdit).toHaveBeenCalledWith(mockTables[0]);
   }));
 
-  it('onView handles modal dismiss with view_order action and navigates', fakeAsync(() => {
-    const router = TestBed.inject(Router);
-    spyOn(router, 'navigate');
+  it('onView handles modal dismiss with view_order action and opens CommandeDetailModalComponent', fakeAsync(() => {
     modalCtrlSpy.create.and.returnValue(Promise.resolve({
       present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
       onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { action: 'view_order', commandeId: 42 } }))
@@ -319,7 +317,9 @@ describe('TableListComponent', () => {
 
     component.onView(mockTables[0]);
     tick();
-    expect(router.navigate).toHaveBeenCalledWith(['/commandes', 42]);
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      componentProps: { commandeId: 42, commandeInput: undefined }
+    }));
   }));
 
   describe('getEtageShortLabelForZone', () => {
