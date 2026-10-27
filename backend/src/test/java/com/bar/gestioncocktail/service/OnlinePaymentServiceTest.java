@@ -295,4 +295,78 @@ class OnlinePaymentServiceTest {
         assertFalse(testTable.isOccupee());
         verify(tableRepository, times(1)).save(testTable);
     }
+
+    @Test
+    @DisplayName("generateReceiptPdf - returns binary PDF when transaction and invoice exist")
+    void generateReceiptPdf_nominal_returnsBytes() {
+        Facture facture = new Facture();
+        facture.setId(55L);
+        facture.setNumero("FAC-2026-00055");
+
+        OnlinePaymentTransaction tx = new OnlinePaymentTransaction();
+        tx.setTransactionId("tx_pdf_01");
+        tx.setTable(testTable);
+        tx.setAmount(BigDecimal.TEN);
+        tx.setTotalCharged(BigDecimal.TEN);
+        tx.setCurrency("EUR");
+        tx.setProvider("SANDBOX");
+        tx.setStatus("SUCCEEDED");
+        tx.setIdempotencyKey("idemp_pdf_01");
+        tx.setFacture(facture);
+
+        when(transactionRepository.findByTransactionId("tx_pdf_01")).thenReturn(Optional.of(tx));
+        when(pdfService.generateFacturePdf(facture)).thenReturn(new byte[]{1, 2, 3});
+
+        byte[] result = onlinePaymentService.generateReceiptPdf("tx_pdf_01");
+
+        assertNotNull(result);
+        assertEquals(3, result.length);
+    }
+
+    @Test
+    @DisplayName("sendReceiptEmail - dispatches email via emailReceiptService")
+    void sendReceiptEmail_nominal_dispatchesEmail() {
+        Facture facture = new Facture();
+        facture.setId(55L);
+        facture.setNumero("FAC-2026-00055");
+
+        OnlinePaymentTransaction tx = new OnlinePaymentTransaction();
+        tx.setTransactionId("tx_mail_01");
+        tx.setTable(testTable);
+        tx.setAmount(BigDecimal.TEN);
+        tx.setTotalCharged(BigDecimal.TEN);
+        tx.setCurrency("EUR");
+        tx.setProvider("SANDBOX");
+        tx.setStatus("SUCCEEDED");
+        tx.setIdempotencyKey("idemp_mail_01");
+        tx.setFacture(facture);
+
+        when(transactionRepository.findByTransactionId("tx_mail_01")).thenReturn(Optional.of(tx));
+        when(pdfService.generateFacturePdf(facture)).thenReturn(new byte[]{1, 2, 3});
+        when(emailReceiptService.sendReceiptPdf(eq("patron@example.com"), eq("FAC-2026-00055"), any(), any()))
+                .thenReturn(true);
+
+        boolean result = onlinePaymentService.sendReceiptEmail("tx_mail_01", "patron@example.com");
+
+        assertTrue(result);
+    }
+
+    @Test
+    @DisplayName("handleStripeWebhook - processes webhook from stripePaymentProvider")
+    void handleStripeWebhook_nominal_processesEvent() {
+        PaymentWebhookResult webhookResult = new PaymentWebhookResult(
+                null,
+                "IGNORED",
+                null,
+                BigDecimal.ZERO,
+                "EUR",
+                null
+        );
+        when(stripePaymentProvider.parseAndVerifyWebhook("{}", "sig")).thenReturn(webhookResult);
+
+        PaymentWebhookResult result = onlinePaymentService.handleStripeWebhook("{}", "sig");
+
+        assertNotNull(result);
+        assertEquals("IGNORED", result.status());
+    }
 }
