@@ -49,9 +49,10 @@ class PublicPaymentWebhookControllerTest {
         );
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().get("received")).isEqualTo(true);
-        assertThat(response.getBody().get("status")).isEqualTo("SUCCEEDED");
-        assertThat(response.getBody().get("transactionId")).isEqualTo("pi_stripe_123");
+        assertThat(response.getBody())
+                .isNotNull()
+                .containsEntry("received", true)
+                .containsEntry("status", "SUCCEEDED")
+                .containsEntry("transactionId", "pi_stripe_123");
     }
 }
