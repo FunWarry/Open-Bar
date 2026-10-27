@@ -65,6 +65,18 @@ export interface AppSettings {
   tpeTerminalsJson?: string;
   emergencyNumbersJson?: string;
   timeZone?: string;
+  onlinePaymentProvider?: string;
+  stripePublishableKey?: string;
+  stripeSecretKey?: string;
+  stripeWebhookSecret?: string;
+  onlinePaymentCurrency?: string;
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpUsername?: string;
+  smtpPassword?: string;
+  smtpFrom?: string;
+  smtpAuth?: boolean;
+  smtpStarttls?: boolean;
   updatedAt: string | null;
 }
 

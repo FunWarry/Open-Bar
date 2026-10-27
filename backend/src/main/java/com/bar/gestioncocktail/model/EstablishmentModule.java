@@ -99,7 +99,13 @@ public enum EstablishmentModule {
      * International Angel Shot bar safety protocol providing discreet assistance codes,
      * silent emergency dispatch, and real-time staff alerts.
      */
-    ANGEL_SHOT_SAFETY
+    ANGEL_SHOT_SAFETY,
+
+    /**
+     * Pay-at-table patron direct mobile settlement via online payment gateway (Stripe Elements,
+     * Apple Pay, Google Pay, itemized or equal split billing, and digital receipts).
+     */
+    QR_PAY_AT_TABLE
 }
 
 

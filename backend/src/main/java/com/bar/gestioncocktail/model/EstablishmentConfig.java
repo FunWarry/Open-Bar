@@ -150,6 +150,9 @@ public class EstablishmentConfig {
     @Column(name = "module_angel_shot_safety_enabled")
     private Boolean moduleAngelShotSafetyEnabled = true;
 
+    @Column(name = "module_qr_pay_at_table_enabled")
+    private Boolean moduleQrPayAtTableEnabled = true;
+
     @Column(name = "roulette_price_cocktail", precision = 10, scale = 2)
     private BigDecimal roulettePriceCocktail = new BigDecimal("7.50");
 
@@ -466,6 +469,14 @@ public class EstablishmentConfig {
         this.moduleAngelShotSafetyEnabled = moduleAngelShotSafetyEnabled;
     }
 
+    public Boolean getModuleQrPayAtTableEnabled() {
+        return this.moduleQrPayAtTableEnabled;
+    }
+
+    public void setModuleQrPayAtTableEnabled(Boolean moduleQrPayAtTableEnabled) {
+        this.moduleQrPayAtTableEnabled = moduleQrPayAtTableEnabled;
+    }
+
     public BigDecimal getRoulettePriceCocktail() {
         return this.roulettePriceCocktail != null ? this.roulettePriceCocktail : new BigDecimal("7.50");
     }
@@ -552,6 +563,7 @@ public class EstablishmentConfig {
             case CHECKLISTS_PROCEDURES -> isEnabledOrDefault(this.moduleChecklistsProceduresEnabled);
             case SYSTEM_UPDATES -> isEnabledOrDefault(this.moduleSystemUpdatesEnabled);
             case ANGEL_SHOT_SAFETY -> isEnabledOrDefault(this.moduleAngelShotSafetyEnabled);
+            case QR_PAY_AT_TABLE -> isEnabledOrDefault(this.moduleQrPayAtTableEnabled);
             default -> true;
         };
     }
@@ -621,6 +633,9 @@ public class EstablishmentConfig {
                 break;
             case ANGEL_SHOT_SAFETY:
                 this.moduleAngelShotSafetyEnabled = enabled;
+                break;
+            case QR_PAY_AT_TABLE:
+                this.moduleQrPayAtTableEnabled = enabled;
                 break;
             default:
                 break;

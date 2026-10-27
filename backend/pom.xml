@@ -165,6 +165,19 @@
             <artifactId>javase</artifactId>
             <version>${zxing.version}</version>
         </dependency>
+
+        <!-- Online Payment Gateway (Stripe) -->
+        <dependency>
+            <groupId>com.stripe</groupId>
+            <artifactId>stripe-java</artifactId>
+            <version>28.1.0</version>
+        </dependency>
+
+        <!-- Mail Sender for Digital Receipts -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
     </dependencies>
     
     <build>

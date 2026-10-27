@@ -22,6 +22,7 @@ import com.bar.gestioncocktail.model.EstablishmentConfig;
  * @param checklistsProcedures Whether operational task checklists and SOP procedures are enabled
  * @param systemUpdates        Whether automated OTA software update service and snapshots are enabled
  * @param angelShotSafety      Whether Angel Shot patron safety protocol and real-time emergency dispatch are enabled
+ * @param qrPayAtTable         Whether patron pay-at-table direct online mobile settlement is enabled
  */
 public record EstablishmentModulesDTO(
         boolean cuisineKds,
@@ -40,8 +41,31 @@ public record EstablishmentModulesDTO(
         boolean tableReservations,
         boolean checklistsProcedures,
         boolean systemUpdates,
-        boolean angelShotSafety
+        boolean angelShotSafety,
+        boolean qrPayAtTable
 ) {
+    public EstablishmentModulesDTO(
+            boolean cuisineKds,
+            boolean happyHour,
+            boolean employeeManagement,
+            boolean floorPlan,
+            boolean qrClientOrdering,
+            boolean stockTracking,
+            boolean cashDrawer,
+            boolean barTabs,
+            boolean cocktailLibrary,
+            boolean suppliersManagement,
+            boolean inventoryAudit,
+            boolean mysteryRoulette,
+            boolean paymentTerminal,
+            boolean tableReservations,
+            boolean checklistsProcedures,
+            boolean systemUpdates,
+            boolean angelShotSafety
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, tableReservations, checklistsProcedures, systemUpdates, angelShotSafety, true);
+    }
+
     public EstablishmentModulesDTO(
             boolean cuisineKds,
             boolean happyHour,
@@ -60,7 +84,7 @@ public record EstablishmentModulesDTO(
             boolean checklistsProcedures,
             boolean systemUpdates
     ) {
-        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, tableReservations, checklistsProcedures, systemUpdates, true);
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, tableReservations, checklistsProcedures, systemUpdates, true, true);
     }
     public EstablishmentModulesDTO(
             boolean cuisineKds,
@@ -231,7 +255,8 @@ public record EstablishmentModulesDTO(
                 isEnabled(config.getModuleTableReservationsEnabled()),
                 isEnabled(config.getModuleChecklistsProceduresEnabled()),
                 isEnabled(config.getModuleSystemUpdatesEnabled()),
-                isEnabled(config.getModuleAngelShotSafetyEnabled())
+                isEnabled(config.getModuleAngelShotSafetyEnabled()),
+                isEnabled(config.getModuleQrPayAtTableEnabled())
         );
     }
 
@@ -245,6 +270,6 @@ public record EstablishmentModulesDTO(
      * @return New instance with all flags set to true
      */
     public static EstablishmentModulesDTO defaultEnabled() {
-        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);
+        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);
     }
 }

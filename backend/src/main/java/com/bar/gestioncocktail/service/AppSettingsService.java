@@ -70,6 +70,8 @@ public class AppSettingsService {
         applyPrinters(current, request);
         applyTpe(current, request);
         applyEmergencyNumbers(current, request);
+        applyOnlinePayment(current, request);
+        applySmtp(current, request);
 
         AppSettings saved = appSettingsRepository.save(current);
         String tz = (timeService != null && timeService.getZoneId() != null)
@@ -231,6 +233,48 @@ public class AppSettingsService {
     private void applyEmergencyNumbers(AppSettings current, AppSettingsUpdateRequest request) {
         if (request.emergencyNumbersJson() != null) {
             current.setEmergencyNumbersJson(request.emergencyNumbersJson());
+        }
+    }
+
+    private void applyOnlinePayment(AppSettings current, AppSettingsUpdateRequest request) {
+        if (request.onlinePaymentProvider() != null && !request.onlinePaymentProvider().isBlank()) {
+            current.setOnlinePaymentProvider(request.onlinePaymentProvider().trim().toUpperCase());
+        }
+        if (request.stripePublishableKey() != null) {
+            current.setStripePublishableKey(request.stripePublishableKey().trim());
+        }
+        if (request.stripeSecretKey() != null && !request.stripeSecretKey().isBlank()) {
+            current.setStripeSecretKey(request.stripeSecretKey().trim());
+        }
+        if (request.stripeWebhookSecret() != null && !request.stripeWebhookSecret().isBlank()) {
+            current.setStripeWebhookSecret(request.stripeWebhookSecret().trim());
+        }
+        if (request.onlinePaymentCurrency() != null && !request.onlinePaymentCurrency().isBlank()) {
+            current.setOnlinePaymentCurrency(request.onlinePaymentCurrency().trim().toUpperCase());
+        }
+    }
+
+    private void applySmtp(AppSettings current, AppSettingsUpdateRequest request) {
+        if (request.smtpHost() != null) {
+            current.setSmtpHost(request.smtpHost().trim());
+        }
+        if (request.smtpPort() != null) {
+            current.setSmtpPort(request.smtpPort());
+        }
+        if (request.smtpUsername() != null) {
+            current.setSmtpUsername(request.smtpUsername().trim());
+        }
+        if (request.smtpPassword() != null && !request.smtpPassword().isBlank()) {
+            current.setSmtpPassword(request.smtpPassword().trim());
+        }
+        if (request.smtpFrom() != null && !request.smtpFrom().isBlank()) {
+            current.setSmtpFrom(request.smtpFrom().trim());
+        }
+        if (request.smtpAuth() != null) {
+            current.setSmtpAuth(request.smtpAuth());
+        }
+        if (request.smtpStarttls() != null) {
+            current.setSmtpStarttls(request.smtpStarttls());
         }
     }
 
