@@ -369,4 +369,145 @@ class OnlinePaymentServiceTest {
         assertNotNull(result);
         assertEquals("IGNORED", result.status());
     }
+
+    @Test
+    @DisplayName("handleStripeWebhook - processes SUCCEEDED webhook and finalizes payment on existing transaction")
+    void handleStripeWebhook_succeeded_finalizesPayment() {
+        PaymentWebhookResult webhookResult = new PaymentWebhookResult(
+                "pi_stripe_succeeded",
+                "SUCCEEDED",
+                "card",
+                BigDecimal.valueOf(20.0),
+                "EUR",
+                "customer@bar.local"
+        );
+        when(stripePaymentProvider.parseAndVerifyWebhook("{}", "sig")).thenReturn(webhookResult);
+
+        Facture facture = new Facture();
+        facture.setId(55L);
+        facture.setNumero("FAC-2026-00055");
+
+        OnlinePaymentTransaction tx = new OnlinePaymentTransaction();
+        tx.setTransactionId("pi_stripe_succeeded");
+        tx.setTable(testTable);
+        tx.setAmount(BigDecimal.valueOf(20.0));
+        tx.setTotalCharged(BigDecimal.valueOf(20.0));
+        tx.setCurrency("EUR");
+        tx.setProvider("STRIPE");
+        tx.setStatus("PENDING");
+        tx.setFacture(facture);
+
+        when(transactionRepository.findByTransactionId("pi_stripe_succeeded")).thenReturn(Optional.of(tx));
+
+        FactureReglementDTO mockReglement = new FactureReglementDTO(
+                100L, 55L, "Client QR", 1, 1, BigDecimal.valueOf(20.0), BigDecimal.ZERO, BigDecimal.valueOf(20.0),
+                "CARTE_EN_LIGNE", "TOTALITE", List.of(), LocalDateTime.now()
+        );
+        when(factureService.encaisserPart(eq(55L), any(EncaisserPartRequest.class))).thenReturn(mockReglement);
+
+        TableAdditionResponseDTO mockAddition = new TableAdditionResponseDTO(
+                10L, 4, "SALLE", 1L, "Lucas", LocalDateTime.now(),
+                List.of(), List.of(101L), BigDecimal.valueOf(20.0), BigDecimal.ZERO, BigDecimal.valueOf(20.0),
+                0, true, 55L
+        );
+        when(factureService.getTableAddition(10L)).thenReturn(mockAddition);
+
+        PaymentWebhookResult result = onlinePaymentService.handleStripeWebhook("{}", "sig");
+
+        assertNotNull(result);
+        assertEquals("SUCCEEDED", result.status());
+        assertEquals("customer@bar.local", tx.getCustomerEmail());
+        assertEquals("SUCCEEDED", tx.getStatus());
+    }
+
+    @Test
+    @DisplayName("handleStripeWebhook - handles SUCCEEDED webhook with unknown transaction without error")
+    void handleStripeWebhook_succeededWithUnknownTransaction_logsWarning() {
+        PaymentWebhookResult webhookResult = new PaymentWebhookResult(
+                "pi_unknown_123",
+                "SUCCEEDED",
+                "card",
+                BigDecimal.valueOf(20.0),
+                "EUR",
+                null
+        );
+        when(stripePaymentProvider.parseAndVerifyWebhook("{}", "sig")).thenReturn(webhookResult);
+        when(transactionRepository.findByTransactionId("pi_unknown_123")).thenReturn(Optional.empty());
+
+        PaymentWebhookResult result = onlinePaymentService.handleStripeWebhook("{}", "sig");
+
+        assertNotNull(result);
+        assertEquals("SUCCEEDED", result.status());
+    }
+
+    @Test
+    @DisplayName("finalizePaymentSuccess - returns idempotent success when already SUCCEEDED")
+    void finalizePaymentSuccess_alreadySucceeded_returnsIdempotentSuccess() {
+        TableAdditionResponseDTO mockAddition = new TableAdditionResponseDTO(
+                10L, 4, "SALLE", 1L, "Lucas", LocalDateTime.now(),
+                List.of(), List.of(101L), BigDecimal.valueOf(10.0), BigDecimal.ZERO, BigDecimal.valueOf(10.0),
+                0, true, 55L
+        );
+        when(factureService.getTableAddition(10L)).thenReturn(mockAddition);
+
+        OnlinePaymentTransaction tx = new OnlinePaymentTransaction();
+        tx.setTransactionId("tx_already_done");
+        tx.setTable(testTable);
+        tx.setAmount(BigDecimal.TEN);
+        tx.setTotalCharged(BigDecimal.TEN);
+        tx.setStatus("SUCCEEDED");
+        tx.setReceiptUrl("/receipt.pdf");
+
+        PaymentSuccessResponseDTO result = onlinePaymentService.finalizePaymentSuccess(tx, "card");
+
+        assertNotNull(result);
+        assertEquals("tx_already_done", result.transactionId());
+        assertEquals("SUCCEEDED", result.status());
+    }
+
+    @Test
+    @DisplayName("createPaymentIntent - throws ResourceNotFoundException when table not found")
+    void createPaymentIntent_tableNotFound_throwsResourceNotFoundException() {
+        PaymentIntentRequestDTO req = new PaymentIntentRequestDTO(
+                BigDecimal.TEN, BigDecimal.ZERO, "TOTALITE", "Alex", null, "idemp_not_found", false, null
+        );
+        when(tableRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> onlinePaymentService.createPaymentIntent(999L, req));
+    }
+
+    @Test
+    @DisplayName("resolveProvider - returns stripe provider when preferred and available")
+    void resolveProvider_stripePreferredAndAvailable_returnsStripeProvider() {
+        testSettings.setOnlinePaymentProvider("STRIPE");
+        when(stripePaymentProvider.isAvailable()).thenReturn(true);
+
+        PaymentGatewayProvider provider = onlinePaymentService.resolveProvider();
+
+        assertEquals(stripePaymentProvider, provider);
+    }
+
+    @Test
+    @DisplayName("resolveProvider - falls back to sandbox when stripe unavailable")
+    void resolveProvider_stripeUnavailable_fallsBackToSandbox() {
+        testSettings.setOnlinePaymentProvider("STRIPE");
+        when(stripePaymentProvider.isAvailable()).thenReturn(false);
+
+        PaymentGatewayProvider provider = onlinePaymentService.resolveProvider();
+
+        assertEquals(sandboxPaymentProvider, provider);
+    }
+
+    @Test
+    @DisplayName("createPaymentIntent - throws when QR_PAY_AT_TABLE module is disabled")
+    void createPaymentIntent_moduleDisabled_throwsException() {
+        doThrow(new BusinessException("Module QR_PAY_AT_TABLE is disabled"))
+                .when(establishmentConfigService).checkModuleEnabled(EstablishmentModule.QR_PAY_AT_TABLE);
+
+        PaymentIntentRequestDTO req = new PaymentIntentRequestDTO(
+                BigDecimal.TEN, BigDecimal.ZERO, "TOTALITE", "Alex", null, "idemp_disabled", false, null
+        );
+
+        assertThrows(BusinessException.class, () -> onlinePaymentService.createPaymentIntent(10L, req));
+    }
 }

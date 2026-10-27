@@ -226,4 +226,68 @@ describe('ClientPaymentModalComponent', () => {
     component.onBackdropClick(mockEvent);
     expect(component.closeModal.emit).toHaveBeenCalledTimes(2);
   });
+
+  it('should return correct receiptPdfUrl', () => {
+    expect(component.receiptPdfUrl).toBe('#');
+
+    component.paymentSuccess.set(mockSuccess);
+    expect(component.receiptPdfUrl).toBe('/api/public/tables/10/payments/tx_sim_001/receipt.pdf');
+  });
+
+  it('should show warning toast when processCheckout has zero base amount', () => {
+    component.setSplitMode('CUSTOM_AMOUNT');
+    component.onCustomAmountChange(0);
+
+    component.processCheckout('card');
+
+    expect(paymentServiceMock.createPaymentIntent).not.toHaveBeenCalled();
+    expect(toastCtrlMock.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      color: 'warning'
+    }));
+  });
+
+  it('should handle confirmSandboxPayment failure with danger toast', () => {
+    paymentServiceMock.confirmSandboxPayment.and.returnValue(throwError(() => ({ error: { message: 'Failed settlement' } })));
+
+    component.setSplitMode('FULL');
+    component.processCheckout('card');
+
+    expect(component.isProcessingPayment()).toBeFalse();
+    expect(toastCtrlMock.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      color: 'danger'
+    }));
+  });
+
+  it('should handle sendEmailReceipt failure with danger toast', () => {
+    paymentServiceMock.sendReceiptEmail.and.returnValue(throwError(() => new Error('SMTP Error')));
+    component.paymentSuccess.set(mockSuccess);
+    component.emailReceiptForm.patchValue({ email: 'patron@example.com' });
+
+    component.sendEmailReceipt();
+
+    expect(component.isSendingEmail()).toBeFalse();
+    expect(toastCtrlMock.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      color: 'danger'
+    }));
+  });
+
+  it('should handle liberateTable failure with danger toast', () => {
+    paymentServiceMock.liberateTable.and.returnValue(throwError(() => new Error('Lock timeout')));
+
+    component.liberateTableNow();
+
+    expect(component.isLiberatingTable()).toBeFalse();
+    expect(toastCtrlMock.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      color: 'danger'
+    }));
+  });
+
+  it('should support custom tip amount', () => {
+    component.setSplitMode('FULL');
+    component.setTipPercentage(0);
+    component.customTipAmount.set(3.5);
+
+    expect(component.computedTipAmount()).toBe(3.5);
+    expect(component.computedTotalToCharge()).toBe(23.5);
+  });
 });

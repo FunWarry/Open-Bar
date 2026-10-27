@@ -144,4 +144,30 @@ class PublicPaymentControllerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody()).containsEntry("liberated", true);
     }
+
+    @Test
+    @DisplayName("downloadReceiptPdf - returns binary PDF with attachment header")
+    void downloadReceiptPdf_success() {
+        byte[] pdfContent = {1, 2, 3};
+        when(onlinePaymentService.generateReceiptPdf("tx_sim_001")).thenReturn(pdfContent);
+
+        ResponseEntity<byte[]> response = controller.downloadReceiptPdf(10L, "tx_sim_001");
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isEqualTo(pdfContent);
+        assertThat(response.getHeaders().getContentType()).isEqualTo(org.springframework.http.MediaType.APPLICATION_PDF);
+    }
+
+    @Test
+    @DisplayName("sendReceiptEmail - dispatches email receipt and returns 200 OK")
+    void sendReceiptEmail_success() {
+        SendReceiptEmailRequestDTO request = new SendReceiptEmailRequestDTO("test@example.com");
+        when(onlinePaymentService.sendReceiptEmail("tx_sim_001", "test@example.com")).thenReturn(true);
+
+        ResponseEntity<Map<String, Object>> response = controller.sendReceiptEmail(10L, "tx_sim_001", request);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).containsEntry("sent", true);
+    }
 }
