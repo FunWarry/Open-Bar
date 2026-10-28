@@ -2,12 +2,13 @@
 
 /**
  * OpenBar — Fast Pre-Push Validation Script
- * Verifies the 5 critical quality gates before committing or pushing:
+ * Verifies the 6 critical quality gates before committing or pushing:
  * 1. Zero IDE Problems / TypeScript compilation (npx tsc --noEmit)
  * 2. i18n JSON Parity (fr.json vs en.json)
  * 3. No hardcoded colors in modified styles (#hex, rgb())
  * 4. Zero @SuppressWarnings in modified Java/TS files
  * 5. Backend compilation check (mvn test-compile)
+ * 6. CSS / SCSS Sonar Quality Rules (css:S9449 transition:all & css:S9440 reduced-motion)
  */
 
 const fs = require('node:fs');
@@ -91,13 +92,36 @@ function runCommand(command, cwd) {
 }
 
 function getModifiedFiles() {
+  const fileSet = new Set();
   try {
-    const gitDiff = runCommand('git diff --name-only HEAD', ROOT_DIR);
-    return gitDiff.trim().split('\n').map(f => f.trim()).filter(Boolean);
-  } catch (err) {
-    logFail(`Failed checking git diff: ${err.message}`);
-    return [];
+    const working = runCommand('git status --porcelain', ROOT_DIR);
+    working.trim().split('\n').forEach(line => {
+      if (!line) return;
+      const file = line.substring(3).trim();
+      if (file) fileSet.add(file);
+    });
+
+    let baseRef = 'origin/dev';
+    try {
+      runCommand('git rev-parse --verify origin/dev', ROOT_DIR);
+    } catch {
+      baseRef = 'dev';
+    }
+    const branchDiff = runCommand(`git diff --name-only ${baseRef}...HEAD`, ROOT_DIR);
+    branchDiff.trim().split('\n').forEach(f => {
+      const trimmed = f.trim();
+      if (trimmed) fileSet.add(trimmed);
+    });
+  } catch {
+    try {
+      const gitDiff = runCommand('git diff --name-only HEAD', ROOT_DIR);
+      gitDiff.trim().split('\n').forEach(f => {
+        const trimmed = f.trim();
+        if (trimmed) fileSet.add(trimmed);
+      });
+    } catch {}
   }
+  return [...fileSet];
 }
 
 // --- Check 2: No @SuppressWarnings ---
@@ -174,12 +198,50 @@ function checkNoHardcodedColors(modifiedFiles) {
   }
 }
 
+// --- Check 6: CSS / SCSS Sonar Quality Rules (css:S9449 transition:all & css:S9440 reduced-motion) ---
+function checkCssSonarQuality(modifiedFiles) {
+  logStep('CSS & SCSS Sonar Quality Rules (S9449 & S9440)');
+  const styleFiles = modifiedFiles.filter(f => (f.endsWith('.scss') || f.endsWith('.css')) && !f.includes('variables.css'));
+
+  let issues = 0;
+  for (const rel of styleFiles) {
+    if (!rel) continue;
+    const full = path.join(ROOT_DIR, rel);
+    if (!fs.existsSync(full)) continue;
+
+    const content = fs.readFileSync(full, 'utf8');
+    const lines = content.split('\n');
+
+    // Rule 1: S9449 - transition: all
+    lines.forEach((line, idx) => {
+      if (line.trim().startsWith('/*') || line.trim().startsWith('//')) return;
+      if (/transition\s*:\s*all\b/i.test(line)) {
+        logFail(`Disallowed 'transition: all' at ${rel}:${idx + 1}. Sonar S9449 requires specifying explicit transition properties.`);
+        issues++;
+      }
+    });
+
+    // Rule 2: S9440 - animation or @keyframes requires prefers-reduced-motion
+    const hasAnimation = /animation\s*:/i.test(content) || /@keyframes\b/i.test(content);
+    const hasReducedMotion = /prefers-reduced-motion/i.test(content);
+    if (hasAnimation && !hasReducedMotion) {
+      logFail(`Missing accessibility media query 'prefers-reduced-motion' in ${rel}. Sonar S9440 requires respecting reduced-motion preferences when using animations.`);
+      issues++;
+    }
+  }
+
+  if (issues === 0) {
+    logPass('All modified stylesheets comply with Sonar CSS accessibility & transition rules.');
+  }
+}
+
 // Run all checks
 console.log('\x1b[1m🚀 Running OpenBar Pre-Push Verification Suite...\x1b[0m');
 checkI18nParity();
 const modifiedFiles = getModifiedFiles();
 checkNoSuppressWarnings(modifiedFiles);
 checkNoHardcodedColors(modifiedFiles);
+checkCssSonarQuality(modifiedFiles);
 checkTypeScript();
 checkBackendCompile();
 
