@@ -3959,7 +3959,17 @@
     "SAVINGS_BADGE": "Économisez {{amount}}",
     "ORIGINAL_PRICE": "Prix initial : {{price}}",
     "DISCOUNT_APPLIED": "Tarif Happy Hour appliqué",
-    "REGULAR_PRICE": "Prix normal"
+    "REGULAR_PRICE": "Prix normal",
+    "HAPPY_HOUR_ACTIVE_TITLE": "🍸 Happy Hour en cours !",
+    "HAPPY_HOUR_ENDS_IN": "Fin dans {{ time }}",
+    "HAPPY_HOUR_UPCOMING_TITLE": "⏰ Happy Hour approche !",
+    "HAPPY_HOUR_STARTS_IN": "Commence dans {{ minutes }} minutes {{ target }} !",
+    "TARGET_ALL": "sur toute la carte",
+    "TARGET_CATEGORIES": "sur nos {{ categories }}",
+    "TARGET_NAMED": "sur {{ name }}",
+    "TOAST_HH_STARTED": "🍸 Le Happy Hour commence ! Vos réductions ont été appliquées.",
+    "TOAST_HH_ENDED": "⏰ Le Happy Hour est terminé. Le panier a été recalculé aux tarifs standards.",
+    "DISCOUNT_BADGE_PERCENT": "-{{ percent }}%"
   },
   "DAYS": {
     "MONDAY": "Lundi",

@@ -12,6 +12,7 @@ import { TableSessionService } from '../../../app/core/services/table-session.se
 import { TableCartService } from '../../../app/core/services/table-cart.service';
 import { TableSessionResponse } from '../../../app/core/models/table-session.model';
 import { TableCart, TableCartItem } from '../../../app/core/models/table-cart.model';
+import { ActiveCountdownInfo, HappyHourStateTransition, UpcomingTeaserInfo } from '../../../app/core/models/happy-hour.model';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
 import { EstablishmentModule } from '../../../app/core/models/establishment-module.model';
@@ -33,6 +34,7 @@ describe('ClientCommandeComponent', () => {
   let tableCartServiceMock: any;
   let cocktailWsSubject: Subject<any>;
   let cocktailSupprimeWsSubject: Subject<any>;
+  let happyHourTransitionSubject: Subject<HappyHourStateTransition>;
 
   const mockActiveSessionResponse: TableSessionResponse = {
     id: 1,
@@ -165,7 +167,11 @@ describe('ClientCommandeComponent', () => {
     tableSessionServiceSpy.refreshSession.and.returnValue(of(mockActiveSessionResponse));
     toastCtrlSpy.create.and.returnValue(Promise.resolve({ present: () => Promise.resolve() } as any));
 
-    happyHourServiceSpy = jasmine.createSpyObj('HappyHourService', ['loadRules', 'resolvePrice']);
+    happyHourTransitionSubject = new Subject<HappyHourStateTransition>();
+    happyHourServiceSpy = jasmine.createSpyObj<HappyHourService>('HappyHourService', ['loadRules', 'resolvePrice']);
+    Object.defineProperty(happyHourServiceSpy, 'stateTransition$', { value: happyHourTransitionSubject });
+    Object.defineProperty(happyHourServiceSpy, 'activeCountdown', { value: signal<ActiveCountdownInfo | null>(null).asReadonly() });
+    Object.defineProperty(happyHourServiceSpy, 'upcomingTeaser', { value: signal<UpcomingTeaserInfo | null>(null).asReadonly() });
     happyHourServiceSpy.loadRules.and.returnValue(of([]));
     happyHourServiceSpy.resolvePrice.and.callFake((price: number) => ({
       effectivePrice: price,
@@ -1004,6 +1010,53 @@ describe('ClientCommandeComponent', () => {
       expect(component.isHappyHour(mockCocktail)).toBeFalse();
       expect(component.getEffectivePrice(mockCocktail)).toBe(8.5);
     });
+
+    it('isHappyHourEnabled returns false when HAPPY_HOUR module is disabled', () => {
+      featureFlagServiceSpy.isModuleEnabled.and.callFake((mod: EstablishmentModule) => mod !== EstablishmentModule.HAPPY_HOUR);
+      expect(component.isHappyHourEnabled).toBeFalse();
+      expect(component.isHappyHour(mockCocktail)).toBeFalse();
+      expect(component.getEffectivePrice(mockCocktail)).toBe(mockCocktail.prix);
+    });
+
+    it('getDiscountPercentage computes integer savings or null', () => {
+      happyHourServiceSpy.resolvePrice.and.returnValue({
+        effectivePrice: 6.0,
+        isHappyHour: true,
+        appliedRule: null,
+        savings: 2.5
+      });
+      // 8.5 down to 6.0 -> (2.5 / 8.5) * 100 = 29%
+      expect(component.getDiscountPercentage(mockCocktail)).toBe(29);
+
+      happyHourServiceSpy.resolvePrice.and.returnValue({
+        effectivePrice: 8.5,
+        isHappyHour: false,
+        appliedRule: null,
+        savings: 0
+      });
+      expect(component.getDiscountPercentage(mockCocktail)).toBeNull();
+    });
+
+    it('reacts to happyHourService.stateTransition$ by presenting toast and refreshing table cart', fakeAsync(() => {
+      component.tableNumero = 4;
+      component.sessionToken = 'token-123';
+      tableCartServiceMock.initCart.and.returnValue(of(mockCart));
+
+      happyHourTransitionSubject.next({ type: 'STARTED' });
+      tick();
+
+      expect(tableCartServiceMock.initCart).toHaveBeenCalledWith(4, 'token-123');
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+        color: 'warning'
+      }));
+
+      happyHourTransitionSubject.next({ type: 'ENDED' });
+      tick();
+
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+        color: 'primary'
+      }));
+    }));
 
     it('copyInviteLink handles success and failure branches', fakeAsync(async () => {
       component.tableNumero = 4;

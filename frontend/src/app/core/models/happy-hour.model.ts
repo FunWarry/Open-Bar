@@ -68,3 +68,43 @@ export interface PricingPreviewResult {
   discountValue?: number | null;
   evaluatedAt?: string;
 }
+
+/**
+ * Real-time active Happy Hour countdown state.
+ */
+export interface ActiveCountdownInfo {
+  /** Applied rule triggering the countdown. */
+  rule: HappyHourRule;
+  /** Remaining duration in seconds. */
+  remainingSeconds: number;
+  /** Human-readable formatted duration (e.g. "24:15" or "01:10:05"). */
+  formattedTime: string;
+  /** Transloco translation key describing the affected scope. */
+  scopeDescriptionKey: string;
+  /** Optional interpolation parameters for translation key. */
+  scopeDescriptionParams?: Record<string, unknown>;
+}
+
+/**
+ * Upcoming Happy Hour promotional teaser state.
+ */
+export interface UpcomingTeaserInfo {
+  /** Scheduled rule to start within 60 minutes. */
+  rule: HappyHourRule;
+  /** Minutes remaining before promotion window starts. */
+  minutesUntilStart: number;
+  /** Transloco translation key describing the affected scope. */
+  scopeDescriptionKey: string;
+  /** Optional interpolation parameters for translation key. */
+  scopeDescriptionParams?: Record<string, unknown>;
+}
+
+/**
+ * Event payload emitted upon Happy Hour real-time state transition.
+ */
+export interface HappyHourStateTransition {
+  /** Transition direction. */
+  type: 'STARTED' | 'ENDED';
+  /** Target rule when starting. */
+  rule?: HappyHourRule;
+}

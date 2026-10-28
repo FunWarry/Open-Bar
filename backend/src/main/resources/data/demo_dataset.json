@@ -2768,10 +2768,12 @@
       "startTime": "17:00",
       "endTime": "20:00",
       "daysOfWeek": [
+        "MONDAY",
         "TUESDAY",
         "WEDNESDAY",
         "THURSDAY",
-        "FRIDAY"
+        "FRIDAY",
+        "SATURDAY"
       ],
       "discountType": "PERCENTAGE",
       "discountValue": 25,
