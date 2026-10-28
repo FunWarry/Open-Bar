@@ -23,6 +23,7 @@ import { CocktailService } from '../../../app/core/services/cocktail.service';
 import { Cocktail } from '../../../app/core/models/cocktail.model';
 import { PlanSalleService } from '../../../app/features/plan-salle/services/plan-salle.service';
 import { HappyHourService } from '../../../app/core/services/happy-hour.service';
+import { HappyHourStateTransition } from '../../../app/core/models/happy-hour.model';
 import { FactureService } from '../../../app/features/factures/services/facture.service';
 import { provideMockStore } from '@ngrx/store/testing';
 
@@ -33,6 +34,7 @@ import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TableAppelService } from '../../../app/core/services/table-appel.service';
 import { TableAppel } from '../../../app/core/models/table-appel.model';
 import { OfflineOrderService } from '../../../app/core/services/offline-order.service';
+import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
 import { OfflineQueuedOrder } from '../../../app/core/models/commande.model';
 import { computed, signal } from '@angular/core';
 
@@ -124,7 +126,12 @@ describe('DashboardServeurComponent', () => {
     wsSpy = jasmine.createSpyObj('WebSocketService', ['watch']);
     wsSpy.watch.and.returnValue(EMPTY);
 
-    happyHourServiceSpy = jasmine.createSpyObj('HappyHourService', ['loadRules', 'resolvePrice']);
+    const hhTransition$ = new Subject<HappyHourStateTransition>();
+    happyHourServiceSpy = jasmine.createSpyObj('HappyHourService', ['loadRules', 'resolvePrice', 'calculateDiscountPercentage'], {
+      stateTransition$: hhTransition$,
+      activeCountdown: signal(null),
+      upcomingTeaser: signal(null),
+    });
     happyHourServiceSpy.loadRules.and.returnValue(of([]));
     happyHourServiceSpy.resolvePrice.and.callFake((price: number) => ({
       effectivePrice: price,
@@ -132,6 +139,7 @@ describe('DashboardServeurComponent', () => {
       appliedRule: null,
       savings: 0
     }));
+    happyHourServiceSpy.calculateDiscountPercentage.and.returnValue(null);
 
     const isOnlineSignal = signal(true);
     const pendingOrdersSignal = signal<OfflineQueuedOrder[]>([]);
@@ -1407,6 +1415,70 @@ describe('DashboardServeurComponent', () => {
       component.onClearCart();
       expect(component.mobileOrderView).toBe('menu');
     });
+  });
+
+  describe('Happy Hour Waiter Ordering Integration (#565)', () => {
+    it('applies promotional price and saves originalPrice when adding cocktail to cart during Happy Hour', fakeAsync(() => {
+      const ffService = TestBed.inject(FeatureFlagService);
+      spyOn(ffService, 'happyHourEnabled').and.returnValue(true);
+
+      happyHourServiceSpy.resolvePrice.and.returnValue({
+        effectivePrice: 6.75,
+        isHappyHour: true,
+        appliedRule: { id: 1, name: 'Afterwork Cheers' } as any,
+        savings: 2.25,
+      });
+
+      const cocktail: Cocktail = {
+        id: 10,
+        nom: 'Apple Jeak',
+        prix: 9.0,
+        categorie: 'ALCOOLISE',
+        disponible: true,
+        ingredients: [],
+        variantes: [],
+        saisonnier: false,
+        createdAt: '2026-01-01',
+        updatedAt: '2026-01-01',
+      };
+
+      component.onCocktailSelected(cocktail);
+      tick();
+
+      expect(component.cart.items).toHaveSize(1);
+      const cartItem = component.cart.items[0];
+      expect(cartItem.nom).toBe('Apple Jeak');
+      expect(cartItem.prix).toBe(6.75);
+      expect(cartItem.originalPrice).toBe(9.0);
+      expect(component.cartTotalPrice).toBe(6.75);
+    }));
+
+    it('recalculates cart prices upon Happy Hour state transition', fakeAsync(() => {
+      const ffService = TestBed.inject(FeatureFlagService);
+      spyOn(ffService, 'happyHourEnabled').and.returnValue(true);
+
+      component.cart = {
+        tableId: 1,
+        items: [
+          { boissonId: 10, nom: 'Apple Jeak', prix: 6.75, originalPrice: 9.0, quantite: 2, typeBoisson: 'COCKTAIL' },
+        ],
+      };
+
+      happyHourServiceSpy.resolvePrice.and.returnValue({
+        effectivePrice: 9.0,
+        isHappyHour: false,
+        appliedRule: null,
+        savings: 0,
+      });
+
+      const transitionSubject = (happyHourServiceSpy as any).stateTransition$ as Subject<HappyHourStateTransition>;
+      transitionSubject.next({ type: 'ENDED' });
+      tick();
+
+      expect(component.cart.items[0].prix).toBe(9.0);
+      expect(component.cart.items[0].originalPrice).toBeUndefined();
+      expect(component.cartTotalPrice).toBe(18.0);
+    }));
   });
 });
 

@@ -439,7 +439,19 @@
                         }
                       </div>
                       <div class="price-and-margin-col">
-                        <span class="figma-cocktail-price">{{ cocktail.prix | currency:'EUR' }}</span>
+                        @let hh = getHappyHourPricing(cocktail);
+                        @if (hh.isHappyHour && hh.originalPrice != null && hh.originalPrice > hh.effectivePrice) {
+                          <div class="hh-price-container">
+                            <span class="happy-hour-pill" data-testid="badge-happy-hour">
+                              <span class="happy-hour-icon">🍸</span>
+                              @if (hh.discountPercentage != null) {
+                                <span>-{{ hh.discountPercentage }}%</span>
+                              }
+                            </span>
+                            <span class="original-price" data-testid="cocktail-original-price">{{ hh.originalPrice | currency:'EUR' }}</span>
+                          </div>
+                        }
+                        <span class="figma-cocktail-price" [class.discounted]="hh.isHappyHour">{{ hh.effectivePrice | currency:'EUR' }}</span>
                       </div>
                     </div>
                   </div>
@@ -555,7 +567,13 @@
                       </span>
                     </button>
                   </div>
-                  <ion-badge slot="end" color="primary">{{ cocktail.prix | currency:'EUR' }}</ion-badge>
+                  @let hhSelection = getHappyHourPricing(cocktail);
+                  <div slot="end" class="list-price-badge-group">
+                    @if (hhSelection.isHappyHour && hhSelection.originalPrice != null && hhSelection.originalPrice > hhSelection.effectivePrice) {
+                      <span class="list-original-price">{{ hhSelection.originalPrice | currency:'EUR' }}</span>
+                    }
+                    <ion-badge [color]="hhSelection.isHappyHour ? 'warning' : 'primary'">{{ hhSelection.effectivePrice | currency:'EUR' }}</ion-badge>
+                  </div>
                 } @else {
                   <div slot="end" class="list-availability-wrapper">
                     <button
@@ -571,7 +589,13 @@
                     </button>
                   </div>
 
-                  <ion-badge slot="end" color="primary">{{ cocktail.prix | currency:'EUR' }}</ion-badge>
+                  @let hhStandard = getHappyHourPricing(cocktail);
+                  <div slot="end" class="list-price-badge-group">
+                    @if (hhStandard.isHappyHour && hhStandard.originalPrice != null && hhStandard.originalPrice > hhStandard.effectivePrice) {
+                      <span class="list-original-price">{{ hhStandard.originalPrice | currency:'EUR' }}</span>
+                    }
+                    <ion-badge [color]="hhStandard.isHappyHour ? 'warning' : 'primary'">{{ hhStandard.effectivePrice | currency:'EUR' }}</ion-badge>
+                  </div>
                   <ion-buttons slot="end">
                     @if (isAdmin$ | async) {
                       <ion-button fill="clear" color="tertiary" [attr.data-testid]="'edit-cocktail-btn-' + cocktail.id" (click)="onEdit(cocktail)" (keydown.enter)="onEdit(cocktail)">

@@ -9,6 +9,7 @@ import { CocktailListComponent } from '../../../app/features/cocktails/cocktail-
 import { CocktailService } from '../../../app/core/services/cocktail.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
+import { HappyHourService } from '../../../app/core/services/happy-hour.service';
 import { CocktailLibraryService } from '../../../app/core/services/cocktail-library.service';
 import { Cocktail, CocktailCategorie, CocktailVariante } from '../../../app/core/models/cocktail.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
@@ -981,6 +982,39 @@ describe('CocktailListComponent', () => {
         expect(col.getAttribute('sizexl')).toBeNull();
       });
     }));
+  });
+
+  describe('Happy Hour dynamic pricing on cocktail catalog (#565)', () => {
+    it('returns regular price when happy hour feature flag is disabled', () => {
+      const ffService = TestBed.inject(FeatureFlagService);
+      spyOn(ffService, 'happyHourEnabled').and.returnValue(false);
+      const cocktail: Cocktail = { ...mockCocktails[0], id: 1, nom: 'Mojito', prix: 10 };
+
+      const pricing = component.getHappyHourPricing(cocktail);
+      expect(pricing.effectivePrice).toBe(10);
+      expect(pricing.isHappyHour).toBeFalse();
+      expect(pricing.originalPrice).toBeNull();
+    });
+
+    it('returns discounted effective price, original price, and percentage when happy hour is active', () => {
+      const ffService = TestBed.inject(FeatureFlagService);
+      spyOn(ffService, 'happyHourEnabled').and.returnValue(true);
+      const hhService = TestBed.inject(HappyHourService);
+      spyOn(hhService, 'resolvePrice').and.returnValue({
+        effectivePrice: 7.5,
+        isHappyHour: true,
+        appliedRule: { id: 1, name: 'Afterwork' } as any,
+        savings: 2.5,
+      });
+      spyOn(hhService, 'calculateDiscountPercentage').and.returnValue(25);
+
+      const cocktail: Cocktail = { ...mockCocktails[0], id: 1, nom: 'Mojito', prix: 10 };
+      const pricing = component.getHappyHourPricing(cocktail);
+      expect(pricing.effectivePrice).toBe(7.5);
+      expect(pricing.originalPrice).toBe(10);
+      expect(pricing.isHappyHour).toBeTrue();
+      expect(pricing.discountPercentage).toBe(25);
+    });
   });
 });
 
