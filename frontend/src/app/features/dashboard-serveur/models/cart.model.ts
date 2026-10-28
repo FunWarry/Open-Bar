@@ -5,6 +5,7 @@ export interface CartItemModel {
   boissonId: number;
   nom: string;
   prix: number;
+  originalPrice?: number;
   quantite: number;
   notes?: string;
   typeBoisson?: string;

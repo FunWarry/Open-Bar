@@ -1194,12 +1194,58 @@
   font-weight: 800;
   color: var(--semantic-success);
   transition: color 0.2s ease, opacity 0.2s ease;
+
+  &.discounted {
+    color: var(--semantic-warning);
+  }
 }
 
 .price-and-margin-col {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hh-price-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.happy-hour-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--semantic-warning) 22%, transparent);
+  color: var(--semantic-warning);
+  border: 1px solid color-mix(in srgb, var(--semantic-warning) 45%, transparent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.original-price {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.list-price-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.list-original-price {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-decoration: line-through;
 }
 
 .cocktail-list-card {

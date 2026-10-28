@@ -50,7 +50,7 @@
       padding: 4px 12px;
       border-radius: var(--radius-pill, 999px);
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
       &:hover {
         background: var(--semantic-danger, #e5604f);
@@ -75,7 +75,7 @@
       border: 1px solid var(--border-medium);
       color: var(--text-secondary);
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
       ion-icon {
         font-size: 1.1rem;
@@ -171,12 +171,25 @@
         gap: 6px;
         margin-top: -4px;
 
+        .item-original-price {
+          font-size: 0.75rem;
+          color: var(--text-muted);
+          text-decoration: line-through;
+          opacity: 0.7;
+          margin-right: 4px;
+        }
+
         .item-unit-price {
           font-size: 0.8rem;
           color: var(--text-muted);
           font-weight: 500;
           white-space: nowrap;
           flex-shrink: 0;
+
+          &.discounted {
+            color: var(--semantic-warning);
+            font-weight: 700;
+          }
         }
       }
 
@@ -234,7 +247,7 @@
             background: var(--primary-tint-weak, rgba(108, 127, 232, 0.12));
             border: 1px solid var(--primary-tint, rgba(108, 127, 232, 0.35));
             color: var(--primary, #6c7fe8);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
             ion-icon {
               color: var(--primary, #6c7fe8);
@@ -298,7 +311,7 @@
               background: rgba(229, 96, 79, 0.12);
               border: 1px solid rgba(229, 96, 79, 0.35);
               color: var(--semantic-danger, #e5604f);
-              transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+              transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
               ion-icon {
                 font-size: 1.05rem;
@@ -358,7 +371,7 @@
         letter-spacing: -0.2px;
         border: none;
         box-shadow: 0 4px 14px var(--primary-tint, rgba(56, 96, 255, 0.4));
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
         ion-icon {
           font-size: 1.2rem;
