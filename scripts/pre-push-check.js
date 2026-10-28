@@ -2,14 +2,17 @@
 
 /**
  * OpenBar — Fast Pre-Push Validation Script
- * Verifies the 7 critical quality gates before committing or pushing:
+ * Verifies the 10 critical quality gates before committing or pushing:
  * 1. Transloco i18n JSON Parity (fr.json vs en.json)
  * 2. Zero @SuppressWarnings in modified Java/TS files
  * 3. No hardcoded colors in modified styles (#hex, rgb())
  * 4. CSS / SCSS Sonar Quality Rules (css:S9449 transition:all & css:S9440 reduced-motion)
  * 5. TypeScript Cognitive Complexity (Sonar typescript:S3776 <= 15)
- * 6. Zero IDE Problems / Frontend TypeScript compilation (npx tsc --noEmit)
- * 7. Backend compilation check (mvn test-compile)
+ * 6.Consistent Line Endings (no mixed CRLF/LF that corrupt IDE LSP incremental buffers)
+ * 7. Full-File Backend Java Sonar Quality Rules (S9435, S6213, S2925, S2589)
+ * 8. Zero IDE Problems / Frontend TypeScript compilation (npx tsc --noEmit)
+ * 9. Backend compilation check (mvn test-compile)
+ * 10. Live IDE Extension Diagnostics (Eclipse JDT LS redhat.java & SonarQube for IDE logs)
  */
 
 const fs = require('node:fs');
@@ -328,6 +331,243 @@ function checkCognitiveComplexity(modifiedFiles) {
   }
 }
 
+// --- Check 8: Consistent Line Endings (Prevent LSP Incremental Buffer Corruption) ---
+function checkConsistentLineEndings(modifiedFiles) {
+  logStep('Consistent Line Endings Check (No Mixed CRLF/LF)');
+  const textExts = ['.java', '.ts', '.html', '.scss', '.css', '.json', '.sql', '.yml', '.yaml', '.xml'];
+  const targets = modifiedFiles.filter(f => textExts.some(ext => f.endsWith(ext)));
+
+  let mixedCount = 0;
+  for (const rel of targets) {
+    const full = path.join(ROOT_DIR, rel);
+    if (!fs.existsSync(full)) continue;
+
+    const raw = fs.readFileSync(full, 'utf8');
+    const hasCrlf = raw.includes('\r\n');
+    const withoutCrlf = raw.replace(/\r\n/g, '');
+    const hasBareLf = withoutCrlf.includes('\n');
+
+    if (hasCrlf && hasBareLf) {
+      logFail(`Mixed CRLF and LF line endings in ${rel}. This corrupts Eclipse JDT LS (redhat.java) incremental working copies! Normalize line endings.`);
+      mixedCount++;
+    }
+  }
+
+  if (mixedCount === 0) {
+    logPass('All modified source files have consistent line endings.');
+  }
+}
+
+// --- Check 9: Full-File Backend Java Sonar Quality Rules ---
+function checkJavaSonarRules(modifiedFiles) {
+  logStep('Full-File Backend Java Sonar Quality Rules (S9435, S6213, S2925, S2589)');
+  const javaFiles = modifiedFiles.filter(f => f.endsWith('.java'));
+
+  let issues = 0;
+  for (const rel of javaFiles) {
+    const full = path.join(ROOT_DIR, rel);
+    if (!fs.existsSync(full)) continue;
+
+    const lines = fs.readFileSync(full, 'utf8').split(/\r?\n/);
+    const isTestFile = rel.endsWith('Test.java') || rel.includes('/test/') || rel.includes('\\test\\');
+
+    lines.forEach((line, idx) => {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) return;
+
+      // Strip string literals before matching identifier/expression patterns
+      const codeWithoutStrings = line.replace(/"(?:\\.|[^"\\])*"/g, '""');
+
+      // Rule java:S9435 — Negated ternary condition (!cond ? a : b)
+      if (/![a-zA-Z0-9_.]+\s*(?:\([^)]*\))?\s*\?[^:]+:/.test(codeWithoutStrings) && !codeWithoutStrings.includes('!=')) {
+        logFail(`Sonar java:S9435 at ${rel}:${idx + 1}: Invert negated ternary condition and swap branches.`);
+        issues++;
+      }
+
+      // Rule java:S6213 — Restricted identifier 'record' used as variable/parameter name
+      if (/\b(?:var|final\s+[A-Za-z0-9_<>]+|[A-Z][A-Za-z0-9_<>]*)\s+record\s*[=,;)]/.test(codeWithoutStrings)) {
+        logFail(`Sonar java:S6213 at ${rel}:${idx + 1}: Rename variable 'record' to avoid restricted identifier.`);
+        issues++;
+      }
+
+      // Rule java:S2925 — Thread.sleep() in tests
+      if (isTestFile && /\bThread\.sleep\s*\(/.test(codeWithoutStrings)) {
+        logFail(`Sonar java:S2925 at ${rel}:${idx + 1}: Do not use Thread.sleep() in tests.`);
+        issues++;
+      }
+
+      // Rule java:S2589 — Gratuitous null check on Spring non-null UserDetails/Environment return values
+      if (/userDetails\.getAuthorities\(\)\s*!=\s*null|\.getActiveProfiles\(\)\s*!=\s*null/.test(codeWithoutStrings)) {
+        logFail(`Sonar java:S2589 at ${rel}:${idx + 1}: Redundant null check on non-null Spring return value.`);
+        issues++;
+      }
+    });
+  }
+
+  if (issues === 0) {
+    logPass('All modified Java files pass full-file SonarLint static checks.');
+  }
+}
+
+// --- Check 10: Live IDE Extension Diagnostics (redhat.java JDT LS & SonarQube for IDE) ---
+function checkLiveIdeDiagnostics() {
+  logStep('Live IDE Extension Diagnostics (Eclipse JDT LS & SonarQube for IDE)');
+  const appData = process.env.APPDATA;
+  if (!appData) {
+    logPass('APPDATA not set (CI/headless environment); skipping local IDE log inspection.');
+    return;
+  }
+
+  const ideBase = path.join(appData, 'Antigravity IDE');
+  if (!fs.existsSync(ideBase)) {
+    logPass('Antigravity IDE appData directory not present; skipping local IDE log inspection.');
+    return;
+  }
+
+  let ideErrors = 0;
+
+  // 10a. Inspect Eclipse JDT LS (redhat.java) .metadata/.log for the current workspace
+  try {
+    const wsStorageDir = path.join(ideBase, 'User', 'workspaceStorage');
+    if (fs.existsSync(wsStorageDir)) {
+      const normalizedRoot = ROOT_DIR.toLowerCase().replace(/\\/g, '/');
+      let jdtLogPath = null;
+      let latestMtime = 0;
+
+      for (const entry of fs.readdirSync(wsStorageDir)) {
+        const candidateDir = path.join(wsStorageDir, entry);
+        const wsJsonPath = path.join(candidateDir, 'workspace.json');
+        const logCandidate = path.join(candidateDir, 'redhat.java', 'jdt_ws', '.metadata', '.log');
+        if (!fs.existsSync(logCandidate)) continue;
+
+        let matchesWorkspace = false;
+        if (fs.existsSync(wsJsonPath)) {
+          const wsJson = decodeURIComponent(fs.readFileSync(wsJsonPath, 'utf8')).toLowerCase().replace(/\\/g, '/');
+          if (wsJson.includes(normalizedRoot) || wsJson.includes('open-bar')) {
+            matchesWorkspace = true;
+          }
+        }
+        const stat = fs.statSync(logCandidate);
+        if (matchesWorkspace && stat.mtimeMs >= latestMtime) {
+          latestMtime = stat.mtimeMs;
+          jdtLogPath = logCandidate;
+        }
+      }
+
+      if (jdtLogPath) {
+        const logContent = fs.readFileSync(jdtLogPath, 'utf8');
+        // Parse only the active JDT LS session (after the last !SESSION header)
+        const sessions = logContent.split(/^!SESSION\s/m);
+        const currentSession = sessions[sessions.length - 1] || logContent;
+        const problemRegex = /^!MESSAGE\s+(\d+)\s+problems?\s+reported\s+for\s+(\/[^\r\n]+\.java)/gm;
+        const latestProblemsByFile = new Map();
+        let match;
+        while ((match = problemRegex.exec(currentSession)) !== null) {
+          latestProblemsByFile.set(match[2], Number.parseInt(match[1], 10));
+        }
+
+        for (const [fileUri, count] of latestProblemsByFile.entries()) {
+          if (count > 0) {
+            logFail(`IDE JDT Language Server (redhat.java) reports ${count} problem(s) in ${fileUri}. Check IDE Problems tab or restart Java Language Server if stale.`);
+            ideErrors++;
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn(`  ⚠️ Could not inspect JDT LS log: ${err.message}`);
+  }
+
+  // 10b. Inspect SonarQube for IDE (SonarSource.sonarlint-vscode) log in the active window
+  try {
+    const logsDir = path.join(ideBase, 'logs');
+    if (fs.existsSync(logsDir)) {
+      let latestSonarLog = null;
+      let latestMtime = 0;
+
+      for (const sessionDir of fs.readdirSync(logsDir)) {
+        const sessionPath = path.join(logsDir, sessionDir);
+        if (!fs.statSync(sessionPath).isDirectory()) continue;
+        for (const winDir of fs.readdirSync(sessionPath)) {
+          const sonarLog = path.join(
+            sessionPath,
+            winDir,
+            'exthost',
+            'SonarSource.sonarlint-vscode',
+            'SonarQube for IDE.log'
+          );
+          if (fs.existsSync(sonarLog)) {
+            const mtime = fs.statSync(sonarLog).mtimeMs;
+            if (mtime >= latestMtime) {
+              latestMtime = mtime;
+              latestSonarLog = sonarLog;
+            }
+          }
+        }
+      }
+
+      if (latestSonarLog) {
+        const sonarContent = fs.readFileSync(latestSonarLog, 'utf8');
+        const lines = sonarContent.split(/\r?\n/);
+        const latestIssuesByFile = new Map();
+        let currentBatchFiles = new Set();
+
+        for (const line of lines) {
+          if (line.includes('Start analysis')) {
+            currentBatchFiles = new Set();
+          }
+          const langMatch = line.match(/Language of file "(file:\/\/\/[^"]+)"/);
+          if (langMatch) {
+            currentBatchFiles.add(decodeURIComponent(langMatch[1]));
+          }
+          const fileMatch = line.match(/Initializing metadata of file (file:\/\/\/[^\s]+)/);
+          if (fileMatch) {
+            currentBatchFiles.add(decodeURIComponent(fileMatch[1]));
+          }
+          const issueMatch = line.match(/^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3}).*Analysis detected (\d+) issues? and (\d+) Security Hotspots?/);
+          if (issueMatch && currentBatchFiles.size > 0) {
+            const logTimeMs = new Date(issueMatch[1].replace(' ', 'T')).getTime();
+            const issues = Number.parseInt(issueMatch[2], 10);
+            const hotspots = Number.parseInt(issueMatch[3], 10);
+
+            if (issues === 0 && hotspots === 0) {
+              for (const fUri of currentBatchFiles) {
+                latestIssuesByFile.set(fUri, { issues: 0, hotspots: 0, logTimeMs });
+              }
+            } else if (currentBatchFiles.size === 1) {
+              const [singleUri] = currentBatchFiles;
+              latestIssuesByFile.set(singleUri, { issues, hotspots, logTimeMs });
+            }
+            currentBatchFiles = new Set();
+          }
+        }
+
+        for (const [fileUri, result] of latestIssuesByFile.entries()) {
+          if (result.issues > 0 || result.hotspots > 0) {
+            const localPath = fileUri.replace(/^file:\/\/\//i, '');
+            if (fs.existsSync(localPath)) {
+              const fileMtimeMs = fs.statSync(localPath).mtimeMs;
+              // If the file on disk was modified after the SonarLint analysis timestamp, ignore stale pre-edit entry
+              if (result.logTimeMs && fileMtimeMs > result.logTimeMs + 2000) {
+                continue;
+              }
+            }
+            const shortName = path.basename(fileUri);
+            logFail(`SonarQube for IDE reports ${result.issues} issue(s) and ${result.hotspots} Security Hotspot(s) in ${shortName} (${fileUri}).`);
+            ideErrors++;
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn(`  ⚠️ Could not inspect SonarQube for IDE log: ${err.message}`);
+  }
+
+  if (ideErrors === 0) {
+    logPass('Zero active issues reported in live Eclipse JDT LS & SonarQube for IDE logs.');
+  }
+}
+
 // Run all checks
 console.log('\x1b[1m🚀 Running OpenBar Pre-Push Verification Suite...\x1b[0m');
 checkI18nParity();
@@ -336,8 +576,11 @@ checkNoSuppressWarnings(modifiedFiles);
 checkNoHardcodedColors(modifiedFiles);
 checkCssSonarQuality(modifiedFiles);
 checkCognitiveComplexity(modifiedFiles);
+checkConsistentLineEndings(modifiedFiles);
+checkJavaSonarRules(modifiedFiles);
 checkTypeScript();
 checkBackendCompile();
+checkLiveIdeDiagnostics();
 
 if (hasErrors) {
   console.error('\n\x1b[41m\x1b[37m ✖ PRE-PUSH CHECKS FAILED: Please fix reported issues before pushing! \x1b[0m\n');

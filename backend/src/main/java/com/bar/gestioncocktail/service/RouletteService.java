@@ -230,7 +230,7 @@ public class RouletteService {
                     false
             );
             List<RouletteWheelSector> filtered = filterEligibleSectors(activeSectors, spinReq);
-            return selectWinningSectorWithStockWeighting(!filtered.isEmpty() ? filtered : activeSectors);
+            return selectWinningSectorWithStockWeighting(filtered.isEmpty() ? activeSectors : filtered);
         }
         return selectWinningSectorWithStockWeighting(activeSectors);
     }
