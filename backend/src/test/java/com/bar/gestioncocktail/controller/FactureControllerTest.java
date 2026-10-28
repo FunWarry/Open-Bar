@@ -308,4 +308,36 @@ class FactureControllerTest {
         assertThat(response.getBody()).isEqualTo(dto);
         verify(factureService).genererFactureTab(2L);
     }
+
+    @Test
+    @DisplayName("encaisserPartTable calls service and returns 200 OK")
+    void encaisserPartTable_returnsOk() {
+        EncaisserPartRequest request = new EncaisserPartRequest(
+                "Lucas", 1, 2, new BigDecimal("15.00"), null, new BigDecimal("15.00"), "CARTE", "EGAL", null, null, null, null, null, null);
+        FactureReglementDTO dto = new FactureReglementDTO(
+                1L, 10L, "Lucas", 1, 2, new BigDecimal("15.00"), null, new BigDecimal("15.00"), "CARTE", "EGAL", null, LocalDateTime.now());
+        when(factureService.encaisserPartTable(1L, request)).thenReturn(dto);
+
+        ResponseEntity<FactureReglementDTO> response = factureController.encaisserPartTable(1L, request);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isEqualTo(dto);
+        verify(factureService).encaisserPartTable(1L, request);
+    }
+
+    @Test
+    @DisplayName("encaisserPartTab calls service and returns 200 OK")
+    void encaisserPartTab_returnsOk() {
+        EncaisserPartRequest request = new EncaisserPartRequest(
+                "Sarah", 1, 1, new BigDecimal("25.00"), null, new BigDecimal("25.00"), "ESPECES", "MONTANT_LIBRE", null, null, null, null, null, null);
+        FactureReglementDTO dto = new FactureReglementDTO(
+                2L, 20L, "Sarah", 1, 1, new BigDecimal("25.00"), null, new BigDecimal("25.00"), "ESPECES", "MONTANT_LIBRE", null, LocalDateTime.now());
+        when(factureService.encaisserPartTab(2L, request)).thenReturn(dto);
+
+        ResponseEntity<FactureReglementDTO> response = factureController.encaisserPartTab(2L, request);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isEqualTo(dto);
+        verify(factureService).encaisserPartTab(2L, request);
+    }
 }

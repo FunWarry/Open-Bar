@@ -168,4 +168,16 @@ class TpeControllerTest {
         assertThat(response.getBody().simulatorEnabled()).isTrue();
         verify(paymentTerminalService).getPublicConfig();
     }
+
+    @Test
+    @DisplayName("TpePaymentRequestDTO deserializes correctly with amount and targetRole aliases")
+    void tpePaymentRequestDTO_deserializesAliases() throws Exception {
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        String json = "{\"amount\": 101.20, \"targetRole\": \"BAR\", \"tableNumber\": \"Table 3\", \"invoiceId\": 42}";
+        TpePaymentRequestDTO dto = mapper.readValue(json, TpePaymentRequestDTO.class);
+
+        assertThat(dto.montant()).isEqualByComparingTo(new BigDecimal("101.20"));
+        assertThat(dto.terminalRole()).isEqualTo(TpeTerminalRole.BAR);
+        assertThat(dto.reference()).isEqualTo("Table 3");
+    }
 }

@@ -619,6 +619,20 @@
                   </div>
                 </div>
               }
+
+              <!-- Quick Pay Action for this specific Guest -->
+              @if (getGuestTotal(i) > 0) {
+                <div class="guest-card-pay-action" [attr.data-testid]="'guest-pay-action-' + i">
+                  <app-action-button
+                    variant="primary"
+                    size="medium"
+                    icon="card-outline"
+                    (btnClick)="settleGuestFromCard(i)"
+                    [testId]="'btn-pay-guest-part-' + i">
+                    {{ 'SPLIT.PAY_THIS_PART' | transloco }} ({{ getGuestTotal(i) | appCurrency }})
+                  </app-action-button>
+                </div>
+              }
             </div>
           }
         </div>

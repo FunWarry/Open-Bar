@@ -61,7 +61,18 @@ export class PaymentTerminalService {
    * @returns Observable of initial transaction response
    */
   initiatePayment(request: TpePaymentRequest): Observable<TpePaymentResponse> {
-    return this.http.post<TpePaymentResponse>(`${this.apiUrl}/pay`, request);
+    const amountVal = request.montant ?? request.amount;
+    const roleVal = request.terminalRole ?? request.targetRole;
+    const refVal = request.reference ?? request.tableNumber;
+    const payload: TpePaymentRequest = {
+      ...request,
+      montant: amountVal,
+      amount: amountVal,
+      terminalRole: roleVal,
+      targetRole: roleVal,
+      reference: refVal,
+    };
+    return this.http.post<TpePaymentResponse>(`${this.apiUrl}/pay`, payload);
   }
 
   /**

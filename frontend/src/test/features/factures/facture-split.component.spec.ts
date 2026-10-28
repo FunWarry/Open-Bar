@@ -697,5 +697,69 @@ describe('FactureSplitComponent', () => {
       component.calculateCustomPercentageSplit();
       expect(component.errorMessage).toBe('Pct error');
     });
+
+    it('settleGuestFromCard opens ReglementModalComponent and calls encaisserPart with guest selection', async () => {
+      component.facture = { ...mockFacture };
+      component.mode = 'itemized';
+      component.unitAssignments = { '10_0': 0 };
+
+      const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onWillDismiss']);
+      modalSpy.present.and.returnValue(Promise.resolve());
+      modalSpy.onWillDismiss.and.returnValue(Promise.resolve({
+        data: {
+          modePaiement: 'CARTE',
+          totalTotal: 8,
+          pourboire: 0
+        }
+      }));
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(modalSpy));
+      spyOn<any>(component, 'loadFacture');
+
+      await component.settleGuestFromCard(0);
+
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
+      expect(modalSpy.present).toHaveBeenCalled();
+      expect(factureServiceSpy.encaisserPart).toHaveBeenCalledWith(42, jasmine.objectContaining({
+        nomConvive: 'Convive 1',
+        partIndex: 1,
+        montant: 8,
+        modePaiement: 'CARTE',
+        typeSplit: 'SELECTION'
+      }));
+      expect(component.unitAssignments['10_0']).toBeUndefined();
+      expect((component as any).loadFacture).toHaveBeenCalled();
+    });
+
+    it('settleGuestFromCard displays error toast when encaisserPart fails', async () => {
+      component.facture = { ...mockFacture };
+      component.mode = 'itemized';
+      component.unitAssignments = { '10_0': 0 };
+
+      const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onWillDismiss']);
+      modalSpy.present.and.returnValue(Promise.resolve());
+      modalSpy.onWillDismiss.and.returnValue(Promise.resolve({
+        data: {
+          modePaiement: 'CARTE',
+          totalTotal: 8,
+          pourboire: 0
+        }
+      }));
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(modalSpy));
+      factureServiceSpy.encaisserPart.and.returnValue(throwError(() => ({ error: { message: 'Settlement failed' } })));
+
+      await component.settleGuestFromCard(0);
+
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+        message: 'Settlement failed',
+        color: 'danger'
+      }));
+    });
+
+    it('sets factureId automatically when setting facture if factureId was empty', () => {
+      (component as any).factureId = undefined;
+      component.facture = { ...mockFacture, id: 77 };
+      expect(component.factureId).toBe(77);
+    });
   });
 });
+

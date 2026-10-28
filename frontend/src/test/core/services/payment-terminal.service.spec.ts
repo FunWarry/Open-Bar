@@ -72,7 +72,13 @@ describe('PaymentTerminalService', () => {
 
     const req = httpMock.expectOne(`${apiUrl}/pay`);
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual(request);
+    expect(req.request.body).toEqual(jasmine.objectContaining({
+      amount: 19.50,
+      montant: 19.50,
+      targetRole: 'BAR',
+      terminalRole: 'BAR',
+      reference: 'Table 4'
+    }));
     req.flush(mockResponse);
   });
 

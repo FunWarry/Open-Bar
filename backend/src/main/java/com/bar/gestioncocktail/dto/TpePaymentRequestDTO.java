@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.bar.gestioncocktail.model.TpeTerminalRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
@@ -17,17 +19,20 @@ import java.math.BigDecimal;
  * @param terminalPort  Optional direct TCP port override
  * @param reference     Transaction business reference (e.g. order tracking or table reference)
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "Request payload for dispatching a payment to a physical or simulated TPE terminal")
 public record TpePaymentRequestDTO(
     @NotNull(message = "Payment amount is mandatory")
     @DecimalMin(value = "0.01", message = "Payment amount must be greater than zero")
     @Schema(description = "Payment amount to charge", example = "15.50")
+    @JsonAlias({"amount"})
     BigDecimal montant,
 
     @Schema(description = "Currency code ISO-4217", example = "EUR", defaultValue = "EUR")
     String currencyCode,
 
     @Schema(description = "Terminal station role", example = "BAR", defaultValue = "BAR")
+    @JsonAlias({"targetRole", "role"})
     TpeTerminalRole terminalRole,
 
     @Schema(description = "Optional custom terminal IP override", example = "terminal-bar.local")
@@ -37,6 +42,7 @@ public record TpePaymentRequestDTO(
     Integer terminalPort,
 
     @Schema(description = "Invoice or business reference for transaction matching", example = "TAB-12")
+    @JsonAlias({"tableNumber", "tableName"})
     String reference
 ) {
     /**

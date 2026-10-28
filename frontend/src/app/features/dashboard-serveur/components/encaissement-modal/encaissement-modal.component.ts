@@ -25,6 +25,7 @@ import { AppSettingsService } from '../../../../core/services/app-settings.servi
 import { CashDenomination } from '../../../../core/models/cash-denomination.model';
 import { DiscountTier } from '../../../../core/models/app-settings.model';
 import { CheckboxFieldComponent } from '../../../../core/components/ui/checkbox-field/checkbox-field.component';
+import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
 import { TableView } from '../../models/table-view.model';
 import {
   DashboardServeurService,
@@ -33,7 +34,7 @@ import {
   EncaissementRequest
 } from '../../services/dashboard-serveur.service';
 import { FactureService, SplitResultDTO } from '../../../factures/services/facture.service';
-import { Facture } from '../../../factures/models/facture.model';
+import { Facture, EncaisserPartRequest, TypeSplit, FactureReglement } from '../../../factures/models/facture.model';
 import { environment } from '../../../../../environments/environment';
 import { BarTab } from '../../../../core/models/bar-tab.model';
 import { BarTabService } from '../../../../core/services/bar-tab.service';
@@ -77,7 +78,7 @@ export interface OptimalChangeItem {
     TranslocoModule,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonContent, IonSpinner, IonBadge, IonSegment, IonSegmentButton,
-    IonLabel, IonProgressBar, CheckboxFieldComponent
+    IonLabel, IonProgressBar, CheckboxFieldComponent, ActionButtonComponent
   ],
   templateUrl: './encaissement-modal.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -172,6 +173,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
       modePaiement: string;
       pourboire?: number;
       totalPaid: number;
+      reglement?: FactureReglement;
       tpeAutorisation?: string;
       tpeTerminalId?: string;
       tpeCardBrand?: string;
@@ -295,8 +297,19 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
 
   // --- Financial Calculations (Paiement Unique) ---
 
-  get subTotalTTC(): number {
+  get billTotalTTC(): number {
     return this.addition?.totalTTC || 0;
+  }
+
+  get alreadyPaidAmount(): number {
+    return this.addition?.alreadyPaidAmount || 0;
+  }
+
+  get subTotalTTC(): number {
+    if (this.addition?.remainingBalance !== undefined && this.addition?.remainingBalance !== null) {
+      return this.addition.remainingBalance;
+    }
+    return Math.max(0, Math.round(((this.addition?.totalTTC || 0) - this.alreadyPaidAmount) * 100) / 100);
   }
 
   get totalHT(): number {
@@ -797,10 +810,15 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
     this.tpeErrorMessage.set(null);
 
     const targetRole = this.preferredTpeRole();
+    const roundedAmount = Math.round(amount * 100) / 100;
+    const tableOrTabName = this.table?.nom || (this.tab?.nom ?? 'Bar');
     const req: TpePaymentRequestDTO = {
-      amount: Math.round(amount * 100) / 100,
+      amount: roundedAmount,
+      montant: roundedAmount,
       targetRole: targetRole,
-      tableNumber: this.table?.nom || (this.tab?.nom ?? 'Bar'),
+      terminalRole: targetRole,
+      tableNumber: tableOrTabName,
+      reference: this.resolveTpeReference(),
       invoiceId: this.addition?.existingFactureId,
     };
 
@@ -813,7 +831,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
             this.handleTpeApproved(initialRes, isPart);
             return;
           }
-          if (['DECLINED', 'CANCELLED', 'FAILED', 'TIMEOUT'].includes(initialRes.status)) {
+          if (['DECLINED', 'CANCELLED', 'FAILED', 'TIMEOUT', 'ERROR'].includes(initialRes.status)) {
             this.isTpeProcessing.set(false);
             this.tpeErrorMessage.set(initialRes.message || this.transloco.translate('TPE.TRANSACTION_FAILED'));
             return;
@@ -826,7 +844,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
               this.activeTpeTransaction.set(updated);
               if (updated.status === 'APPROVED') {
                 this.handleTpeApproved(updated, isPart);
-              } else if (['DECLINED', 'CANCELLED', 'FAILED', 'TIMEOUT'].includes(updated.status)) {
+              } else if (['DECLINED', 'CANCELLED', 'FAILED', 'TIMEOUT', 'ERROR'].includes(updated.status)) {
                 this.isTpeProcessing.set(false);
                 this.tpeErrorMessage.set(updated.message || this.transloco.translate('TPE.TRANSACTION_FAILED'));
               }
@@ -850,7 +868,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
       tpeSequence: res.sequenceNumber
     };
     if (isPart) {
-      void this.validerReglementPart();
+      this.validerReglementPart();
     } else {
       this.validerEncaissement();
     }
@@ -868,6 +886,21 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
     }
     this.isTpeProcessing.set(false);
     this.activeTpeTransaction.set(null);
+  }
+
+  /**
+   * Resolves the business transaction reference for the terminal payment.
+   *
+   * @returns Formatted table or bar tab reference string
+   */
+  private resolveTpeReference(): string {
+    if (this.table?.nom) {
+      return `Table ${this.table.nom}`;
+    }
+    if (this.tab?.nom) {
+      return `Tab ${this.tab.nom}`;
+    }
+    return 'Bar';
   }
 
   // --- Settlement Submission ---
@@ -1145,16 +1178,18 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
     if (!this.addition?.items) return [];
     const units: { key: string; itemId: number; description: string; unitIndex: number; totalUnits: number; unitLabel: string; prixUnitaire: number }[] = [];
     for (const item of this.addition.items) {
-      const qte = item.quantite || 1;
+      const qteTotal = item.quantite || 1;
+      const qtePayee = item.quantitePayee || 0;
+      const qteRestante = Math.max(0, qteTotal - qtePayee);
       const desc = item.cocktailNom + (item.varianteNom ? ` (${item.varianteNom})` : '');
-      for (let u = 0; u < qte; u++) {
+      for (let u = 0; u < qteRestante; u++) {
         units.push({
           key: `${item.itemId}_${u}`,
           itemId: item.itemId,
           description: desc,
           unitIndex: u,
-          totalUnits: qte,
-          unitLabel: qte > 1 ? `${desc} (${u + 1}/${qte})` : desc,
+          totalUnits: qteRestante,
+          unitLabel: qteRestante > 1 ? `${desc} (${u + 1}/${qteRestante})` : desc,
           prixUnitaire: item.prixUnitaire
         });
       }
@@ -1208,8 +1243,10 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
     const result: { itemId: number; description: string; unitPrice: number; count: number; total: number }[] = [];
     for (const item of this.addition.items) {
       let count = 0;
-      const qte = item.quantite || 1;
-      for (let u = 0; u < qte; u++) {
+      const qteTotal = item.quantite || 1;
+      const qtePayee = item.quantitePayee || 0;
+      const qteRestante = Math.max(0, qteTotal - qtePayee);
+      for (let u = 0; u < qteRestante; u++) {
         if (this.unitAssignments[`${item.itemId}_${u}`] === guestIndex) {
           count++;
         }
@@ -1243,8 +1280,10 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   assignOneUnitToGuest(guestIndex: number, itemId: number): void {
     const item = this.addition?.items?.find(i => i.itemId === itemId);
     if (!item) return;
-    const qte = item.quantite || 1;
-    for (let u = 0; u < qte; u++) {
+    const qteTotal = item.quantite || 1;
+    const qtePayee = item.quantitePayee || 0;
+    const qteRestante = Math.max(0, qteTotal - qtePayee);
+    for (let u = 0; u < qteRestante; u++) {
       const key = `${itemId}_${u}`;
       if (this.unitAssignments[key] === undefined) {
         this.unitAssignments[key] = guestIndex;
@@ -1256,8 +1295,10 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   unassignOneUnitFromGuest(guestIndex: number, itemId: number): void {
     const item = this.addition?.items?.find(i => i.itemId === itemId);
     if (!item) return;
-    const qte = item.quantite || 1;
-    for (let u = qte - 1; u >= 0; u--) {
+    const qteTotal = item.quantite || 1;
+    const qtePayee = item.quantitePayee || 0;
+    const qteRestante = Math.max(0, qteTotal - qtePayee);
+    for (let u = qteRestante - 1; u >= 0; u--) {
       const key = `${itemId}_${u}`;
       if (this.unitAssignments[key] === guestIndex) {
         delete this.unitAssignments[key];
@@ -1269,8 +1310,10 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   removeAllUnitsOfItemFromGuest(guestIndex: number, itemId: number): void {
     const item = this.addition?.items?.find(i => i.itemId === itemId);
     if (!item) return;
-    const qte = item.quantite || 1;
-    for (let u = 0; u < qte; u++) {
+    const qteTotal = item.quantite || 1;
+    const qtePayee = item.quantitePayee || 0;
+    const qteRestante = Math.max(0, qteTotal - qtePayee);
+    for (let u = 0; u < qteRestante; u++) {
       const key = `${itemId}_${u}`;
       if (this.unitAssignments[key] === guestIndex) {
         delete this.unitAssignments[key];
@@ -1281,8 +1324,10 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   assignItemToGuest(itemId: number, guestIndex: number | undefined): void {
     const item = this.addition?.items?.find(i => i.itemId === itemId);
     if (!item) return;
-    const qte = item.quantite || 1;
-    for (let u = 0; u < qte; u++) {
+    const qteTotal = item.quantite || 1;
+    const qtePayee = item.quantitePayee || 0;
+    const qteRestante = Math.max(0, qteTotal - qtePayee);
+    for (let u = 0; u < qteRestante; u++) {
       const key = `${itemId}_${u}`;
       if (guestIndex === undefined) {
         delete this.unitAssignments[key];
@@ -1356,6 +1401,31 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
     return this.splitResults.length > 0 && this.splitResults.every((_, i) => !!this.partStates[i]?.reglee);
   }
 
+  /**
+   * Triggers individual immediate payment for a guest card mid-dinner.
+   *
+   * @param guestIndex Index of the guest in convives
+   */
+  payerPartConvive(guestIndex: number): void {
+    const assignedItems = this.getAssignedItemsForGuest(guestIndex);
+    if (!assignedItems.length) return;
+    const subTotal = this.getGuestTotal(guestIndex);
+    const part: SplitResultDTO = {
+      factureId: this.addition?.existingFactureId || 0,
+      nomConvive: this.conviveNom(guestIndex),
+      items: assignedItems.map(it => ({
+        itemId: it.itemId,
+        description: it.description,
+        quantite: it.count,
+        prixUnitaire: it.unitPrice,
+        total: it.total
+      })),
+      sousTotal: subTotal,
+      totalAvecPourboire: subTotal
+    };
+    this.reglerPart(guestIndex, part);
+  }
+
   reglerPart(index: number, part: SplitResultDTO): void {
     if (this.partStates[index]?.reglee) return;
     this.settlingPartIndex = index;
@@ -1376,26 +1446,62 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
     this.settlingPart = null;
   }
 
-  async validerReglementPart(): Promise<void> {
-    if (!this.settlingPart || this.settlingPartIndex === null) return;
-    const index = this.settlingPartIndex;
-    const part = this.settlingPart;
+  private resolveTypeSplit(): TypeSplit {
+    switch (this.splitMode) {
+      case 'selection':
+        return TypeSplit.SELECTION;
+      case 'libre':
+        return TypeSplit.MONTANT_LIBRE;
+      case 'pourcentage':
+        return TypeSplit.POURCENTAGE;
+      default:
+        return TypeSplit.EGAL;
+    }
+  }
 
+  private resolveTotalPartsCount(): number {
+    if (this.splitMode === 'selection') {
+      return this.convives.length;
+    }
+    return this.splitResults.length > 0 ? this.splitResults.length : this.nombreConvives;
+  }
+
+  private getPartSettlementObservable(req: EncaisserPartRequest): Observable<FactureReglement> | null {
+    if (this.tab && this.barTabService) {
+      return this.factureService.encaisserPartTab(this.tab.id, req);
+    }
+    if (this.table) {
+      return this.factureService.encaisserPartTable(this.table.id, req);
+    }
+    if (this.addition?.existingFactureId) {
+      return this.factureService.encaisserPart(this.addition.existingFactureId, req);
+    }
+    return null;
+  }
+
+  private async handlePartSettledSuccess(
+    index: number,
+    guestName: string,
+    mode: string,
+    pourboire: number,
+    totalPaid: number,
+    savedReglement: FactureReglement,
+    tpeAuth?: string
+  ): Promise<void> {
     this.partStates[index] = {
       reglee: true,
-      modePaiement: this.partPaymentMode,
-      pourboire: this.partPourboire,
-      totalPaid: this.partTotalNetAPayer,
-      tpeAutorisation: this.tpeMetadata.tpeAutorisation,
-      tpeTerminalId: this.tpeMetadata.tpeTerminalId,
-      tpeCardBrand: this.tpeMetadata.tpeCardBrand,
-      tpeMaskedPan: this.tpeMetadata.tpeMaskedPan,
-      tpeSequence: this.tpeMetadata.tpeSequence
+      modePaiement: mode,
+      pourboire,
+      totalPaid,
+      tpeAutorisation: tpeAuth || savedReglement?.tpeAutorisation,
+      reglement: savedReglement
     };
-    this.tpeMetadata = {};
 
-    const guestName = part.nomConvive;
-    const mode = this.partPaymentMode;
+    Object.keys(this.unitAssignments).forEach(key => {
+      if (this.unitAssignments[key] === index) {
+        delete this.unitAssignments[key];
+      }
+    });
 
     this.settlingPart = null;
     this.settlingPartIndex = null;
@@ -1405,14 +1511,65 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
         nom: guestName,
         mode: mode
       }),
-      duration: 2000,
+      duration: 2500,
       color: 'success'
     });
     await toast.present();
 
-    if (this.toutesPartsReglees) {
-      this.finaliserReglementSplitGlobal();
-    }
+    this.chargerAddition();
+  }
+
+  validerReglementPart(): void {
+    if (!this.settlingPart || this.settlingPartIndex === null || this.isSubmitting) return;
+    const index = this.settlingPartIndex;
+    const part = this.settlingPart;
+    const guestName = part.nomConvive;
+    const mode = this.partPaymentMode;
+    const pourboire = this.partPourboire;
+    const totalPaid = this.partTotalNetAPayer;
+    const tpeAuth = this.tpeMetadata.tpeAutorisation;
+
+    const req: EncaisserPartRequest = {
+      nomConvive: guestName,
+      partIndex: index + 1,
+      totalParts: this.resolveTotalPartsCount(),
+      montant: part.sousTotal,
+      pourboire: pourboire > 0 ? pourboire : undefined,
+      totalRegle: totalPaid,
+      modePaiement: mode,
+      typeSplit: this.resolveTypeSplit(),
+      items: part.items,
+      tpeAutorisation: this.tpeMetadata.tpeAutorisation,
+      tpeTerminalId: this.tpeMetadata.tpeTerminalId,
+      tpeCardBrand: this.tpeMetadata.tpeCardBrand,
+      tpeMaskedPan: this.tpeMetadata.tpeMaskedPan,
+      tpeSequence: this.tpeMetadata.tpeSequence
+    };
+    this.tpeMetadata = {};
+
+    const settlement$ = this.getPartSettlementObservable(req);
+    if (!settlement$) return;
+
+    this.isSubmitting = true;
+    settlement$
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => (this.isSubmitting = false))
+      )
+      .subscribe({
+        next: (savedReglement) => {
+          void this.handlePartSettledSuccess(index, guestName, mode, pourboire, totalPaid, savedReglement, tpeAuth);
+        },
+        error: async (err: { error?: { message?: string } }) => {
+          const msg = err?.error?.message || this.transloco.translate('ENCAISSEMENT.ERROR_SETTLEMENT');
+          const toast = await this.toastCtrl.create({
+            message: msg,
+            duration: 3500,
+            color: 'danger'
+          });
+          await toast.present();
+        }
+      });
   }
 
   private finaliserReglementSplitGlobal(): void {

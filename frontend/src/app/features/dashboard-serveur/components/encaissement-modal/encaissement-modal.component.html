@@ -100,6 +100,12 @@
                 @if (item.isHappyHour) {
                   <span class="item-hh-badge" data-testid="addition-item-hh-badge">Happy Hour</span>
                 }
+                @if (item.quantitePayee && item.quantitePayee > 0) {
+                  <span class="item-paid-badge" data-testid="addition-item-paid-badge">
+                    <ion-icon name="checkmark-circle-outline"></ion-icon>
+                    {{ item.quantitePayee }}/{{ item.quantite }} {{ 'SPLIT.SETTLED' | transloco }}
+                  </span>
+                }
               </div>
               <div class="item-total-col">
                 <span class="item-line-total">{{ item.total | appCurrency }}</span>
@@ -109,6 +115,19 @@
         </div>
         <!-- Financial Totals -->
         <div class="totals-breakdown">
+          @if (alreadyPaidAmount > 0) {
+            <div class="total-row sub-row paid-row" data-testid="total-already-paid-row">
+              <span class="paid-label">
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+                {{ 'SPLIT.PAID_TOTAL' | transloco }}
+              </span>
+              <span class="paid-value">-{{ alreadyPaidAmount | appCurrency }}</span>
+            </div>
+            <div class="total-row sub-row balance-row" data-testid="total-remaining-balance-row">
+              <span class="balance-label">{{ 'SPLIT.REMAINING_BALANCE' | transloco }}</span>
+              <span class="balance-value">{{ subTotalTTC | appCurrency }}</span>
+            </div>
+          }
           <div class="total-row sub-row">
             <span>{{ 'ENCAISSEMENT.SUBTOTAL_HT' | transloco }}</span>
             <span>{{ totalHT | appCurrency }}</span>
@@ -1169,6 +1188,35 @@
               <!-- SPLIT SELECTION (PAR ARTICLE) -->
               @if (splitMode === 'selection') {
                 <div class="split-selection-section" data-testid="split-selection-section">
+                  <!-- Already Settled Parts Section (if any parts were paid mid-dinner) -->
+                  @if (alreadyPaidAmount > 0 && addition.reglements && addition.reglements.length > 0) {
+                    <div class="already-settled-summary-card" data-testid="already-settled-summary-card">
+                      <div class="settled-card-header">
+                        <div class="settled-card-title">
+                          <ion-icon name="checkmark-circle-outline" class="settled-icon"></ion-icon>
+                          <h5>{{ 'SPLIT.ALREADY_SETTLED_PARTS_TITLE' | transloco }}</h5>
+                        </div>
+                        <span class="settled-total-badge">{{ alreadyPaidAmount | appCurrency }}</span>
+                      </div>
+                      <div class="settled-reglements-list">
+                        @for (reg of addition.reglements; track reg.id) {
+                          <div class="settled-reglement-item" [attr.data-testid]="'settled-reglement-' + reg.id">
+                            <div class="reglement-guest-info">
+                              <span class="guest-name">{{ reg.nomConvive || ('SPLIT.GUEST_PLACEHOLDER' | transloco:{ number: reg.partIndex || 1 }) }}</span>
+                              <span class="payment-method-tag">{{ reg.modePaiement }}</span>
+                            </div>
+                            <div class="reglement-amount-info">
+                              <strong class="reg-amount">{{ (reg.totalRegle || reg.montant) | appCurrency }}</strong>
+                              @if (reg.pourboire && reg.pourboire > 0) {
+                                <span class="reg-tip">(+{{ reg.pourboire | appCurrency }} tip)</span>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+
                   <!-- 1. Pool Summary: Bill Items & Remaining Counters -->
                   @if (addition) {
                     <div class="pool-summary-card">
@@ -1199,7 +1247,7 @@
                             </div>
                             <div class="pool-item-count">
                               <span class="count-pill" [class.done]="getUnassignedCount(item.itemId) === 0">
-                                {{ getUnassignedCount(item.itemId) }}/{{ item.quantite || 1 }}
+                                {{ getUnassignedCount(item.itemId) }}/{{ (item.quantite || 1) - (item.quantitePayee || 0) }}
                               </span>
                             </div>
                           </div>
@@ -1330,6 +1378,20 @@
                               </div>
                             </div>
                           }
+
+                          <!-- Quick Pay Action for this specific Guest -->
+                          @if (getGuestTotal(i) > 0) {
+                            <div class="guest-card-pay-action" [attr.data-testid]="'guest-pay-action-' + i">
+                              <app-action-button
+                                variant="primary"
+                                size="medium"
+                                icon="card-outline"
+                                (btnClick)="payerPartConvive(i)"
+                                [testId]="'btn-pay-guest-part-' + i">
+                                {{ 'SPLIT.PAY_THIS_PART' | transloco }} ({{ getGuestTotal(i) | appCurrency }})
+                              </app-action-button>
+                            </div>
+                          }
                         </div>
                       }
                     </div>
@@ -1357,7 +1419,7 @@
                     expand="block"
                     fill="outline"
                     color="primary"
-                    [disabled]="!allItemsAssigned"
+                    [disabled]="totalAssignedItemsAmount <= 0"
                     (click)="calculerSplitSelection()"
                     (keydown.enter)="calculerSplitSelection()"
                     (keyup.enter)="calculerSplitSelection()"
