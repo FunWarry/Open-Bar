@@ -10,22 +10,28 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.springframework.security.core.Authentication;
 
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
@@ -205,7 +211,7 @@ class UserControllerTest {
         UserRequestDTO request = new UserRequestDTO("testuser", "secret", "test@example.com", "Doe", "John", Set.of(UserRole.ADMIN));
         userController.updateCurrentUser(auth, request);
 
-        org.mockito.ArgumentCaptor<User> captor = org.mockito.ArgumentCaptor.forClass(User.class);
+        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userService).updateUser(eq(1L), captor.capture());
         assertThat(captor.getValue().getRoles()).isNull();
     }
@@ -218,19 +224,19 @@ class UserControllerTest {
         nonAdmin.setUsername("serveur1");
         nonAdmin.setRoles(Set.of(UserRole.SERVEUR));
 
-        org.springframework.security.authentication.UsernamePasswordAuthenticationToken auth =
-                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                        "serveur1", null, List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_SERVEUR")));
-        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(
+                        "serveur1", null, List.of(new SimpleGrantedAuthority("ROLE_SERVEUR")));
+        SecurityContextHolder.getContext().setAuthentication(auth);
         try {
             when(userService.getUserByUsername("serveur1")).thenReturn(Optional.of(nonAdmin));
 
-            org.assertj.core.api.Assertions.assertThatThrownBy(() -> userController.getUserById(1L))
-                    .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
-            org.assertj.core.api.Assertions.assertThatThrownBy(() -> userController.changePassword(1L, "hackedPass"))
-                    .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+            assertThatThrownBy(() -> userController.getUserById(1L))
+                    .isInstanceOf(AccessDeniedException.class);
+            assertThatThrownBy(() -> userController.changePassword(1L, "hackedPass"))
+                    .isInstanceOf(AccessDeniedException.class);
         } finally {
-            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+            SecurityContextHolder.clearContext();
         }
     }
 }

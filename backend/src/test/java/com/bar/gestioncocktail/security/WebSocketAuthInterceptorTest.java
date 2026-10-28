@@ -3,6 +3,8 @@ package com.bar.gestioncocktail.security;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.Message;
@@ -12,12 +14,15 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -100,8 +105,8 @@ class WebSocketAuthInterceptorTest {
         verifyNoInteractions(jwtTokenProvider);
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.CsvSource({
+    @ParameterizedTest
+    @CsvSource({
             "X-Guest-Session, guest-uuid-1234, guest:guest-uuid-1234",
             "X-Session-Token, session-token-abcd, guest:session-token-abcd",
             "Authorization, Guest guest-direct, guest:guest-direct"
@@ -124,8 +129,8 @@ class WebSocketAuthInterceptorTest {
     void testPreSendSubscribePublicTopicAllowedForGuest() {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         accessor.setDestination("/topic/tables/5/cart");
-        accessor.setUser(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                "guest:123", null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
+        accessor.setUser(new UsernamePasswordAuthenticationToken(
+                "guest:123", null, List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
         accessor.setLeaveMutable(true);
         Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
 
@@ -137,8 +142,8 @@ class WebSocketAuthInterceptorTest {
     void testPreSendSubscribeProtectedTopicRejectedForGuest() {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         accessor.setDestination("/topic/commandes");
-        accessor.setUser(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                "guest:123", null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
+        accessor.setUser(new UsernamePasswordAuthenticationToken(
+                "guest:123", null, List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
         accessor.setLeaveMutable(true);
         Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
 
@@ -149,8 +154,8 @@ class WebSocketAuthInterceptorTest {
     void testPreSendSubscribeProtectedTopicAllowedForStaff() {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         accessor.setDestination("/topic/commandes");
-        accessor.setUser(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                "admin", null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"))));
+        accessor.setUser(new UsernamePasswordAuthenticationToken(
+                "admin", null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
         accessor.setLeaveMutable(true);
         Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
 
@@ -160,11 +165,11 @@ class WebSocketAuthInterceptorTest {
 
     @Test
     void testPreSendSubscribeAdditionalProtectedTopicsRejectedForGuest() {
-        for (String topic : java.util.List.of("/topic/bar-tabs", "/topic/preparation/BAR", "/topic/checklists", "/topic/tables")) {
+        for (String topic : List.of("/topic/bar-tabs", "/topic/preparation/BAR", "/topic/checklists", "/topic/tables")) {
             StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
             accessor.setDestination(topic);
-            accessor.setUser(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                    "guest:123", null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
+            accessor.setUser(new UsernamePasswordAuthenticationToken(
+                    "guest:123", null, List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
             accessor.setLeaveMutable(true);
             Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
 
@@ -176,8 +181,8 @@ class WebSocketAuthInterceptorTest {
     void testPreSendSendToAppDestinationRejectedForGuestAndAllowedForStaff() {
         StompHeaderAccessor guestAccessor = StompHeaderAccessor.create(StompCommand.SEND);
         guestAccessor.setDestination("/app/commandes/nouvelle");
-        guestAccessor.setUser(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                "guest:123", null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
+        guestAccessor.setUser(new UsernamePasswordAuthenticationToken(
+                "guest:123", null, List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
         guestAccessor.setLeaveMutable(true);
         Message<?> guestMessage = MessageBuilder.createMessage(new byte[0], guestAccessor.getMessageHeaders());
 
@@ -185,8 +190,8 @@ class WebSocketAuthInterceptorTest {
 
         StompHeaderAccessor staffAccessor = StompHeaderAccessor.create(StompCommand.SEND);
         staffAccessor.setDestination("/app/commandes/nouvelle");
-        staffAccessor.setUser(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                "serveur1", null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_SERVEUR"))));
+        staffAccessor.setUser(new UsernamePasswordAuthenticationToken(
+                "serveur1", null, List.of(new SimpleGrantedAuthority("ROLE_SERVEUR"))));
         staffAccessor.setLeaveMutable(true);
         Message<?> staffMessage = MessageBuilder.createMessage(new byte[0], staffAccessor.getMessageHeaders());
 

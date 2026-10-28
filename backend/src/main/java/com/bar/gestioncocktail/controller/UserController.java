@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.PageResponseDTO;
 import com.bar.gestioncocktail.dto.UserRequestDTO;
 import com.bar.gestioncocktail.dto.UserResponseDTO;
 import com.bar.gestioncocktail.model.UserRole;
@@ -12,8 +13,10 @@ import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -64,7 +67,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Get paginated users (ADMIN, MANAGER)", description = "Retrieves paginated users with optional search and role filtering.")
     @ApiResponse(responseCode = "200", description = "Paginated users retrieved")
-    public ResponseEntity<com.bar.gestioncocktail.dto.PageResponseDTO<UserResponseDTO>> getUsersPaged(
+    public ResponseEntity<PageResponseDTO<UserResponseDTO>> getUsersPaged(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size,
         @RequestParam(required = false) String search,
@@ -267,7 +270,7 @@ public class UserController {
     }
 
     private void checkAdminOrSelf(Long targetUserId) {
-        Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return;
         }
@@ -278,7 +281,7 @@ public class UserController {
         }
         User caller = userService.getUserByUsername(auth.getName()).orElse(null);
         if (caller == null || !targetUserId.equals(caller.getId())) {
-            throw new org.springframework.security.access.AccessDeniedException(
+            throw new AccessDeniedException(
                     "Access denied: you may only access or modify your own user account");
         }
     }

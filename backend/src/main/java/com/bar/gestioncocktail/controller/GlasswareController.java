@@ -9,9 +9,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -111,7 +113,7 @@ public class GlasswareController {
      * @param file Multipart photo file
      * @return Updated glassware DTO with new photo URL
      */
-    @PostMapping(value = "/{id}/image", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'BARMAN')")
     @Operation(summary = "Upload custom glassware photo (BARMAN/MANAGER/ADMIN)", description = "Stores uploaded illustration and updates glassware photo URL.")
     @ApiResponse(responseCode = "200", description = "Photo uploaded and glassware updated")
@@ -119,7 +121,7 @@ public class GlasswareController {
     @ApiResponse(responseCode = "404", description = "Glassware not found")
     public ResponseEntity<GlasswareResponseDTO> uploadGlasswarePhoto(
         @Parameter(description = "Glassware ID") @PathVariable Long id,
-        @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        @RequestParam("file") MultipartFile file) {
         GlasswareResponseDTO updated = glasswareService.updateGlasswareImage(id, file);
         return ResponseEntity.ok(updated);
     }

@@ -49,26 +49,6 @@ public class TableCartService {
     private final CommandeRepository commandeRepository;
     private final TableAppelRepository tableAppelRepository;
     private final HappyHourService happyHourService;
-    private final EstablishmentConfigService establishmentConfigService;
-
-    /**
-     * Backward-compatible constructor without establishment configuration service.
-     */
-    public TableCartService(
-            TableCartItemRepository tableCartItemRepository,
-            TableRepository tableRepository,
-            CocktailRepository cocktailRepository,
-            CocktailVarianteRepository varianteRepository,
-            PublicCommandeService publicCommandeService,
-            SimpMessagingTemplate messagingTemplate,
-            TimeService timeService,
-            CommandeRepository commandeRepository,
-            TableAppelRepository tableAppelRepository,
-            HappyHourService happyHourService) {
-        this(tableCartItemRepository, tableRepository, cocktailRepository, varianteRepository,
-                publicCommandeService, messagingTemplate, timeService, commandeRepository,
-                tableAppelRepository, happyHourService, null);
-    }
 
     /**
      * Constructs the table cart service with all required dependencies.
@@ -83,9 +63,7 @@ public class TableCartService {
      * @param commandeRepository Repository for order queries and updates
      * @param tableAppelRepository Repository for waiter and bill alerts
      * @param happyHourService Happy Hour service for dynamic pricing calculation
-     * @param establishmentConfigService Establishment configuration service for module and mystery pricing validation
      */
-    @org.springframework.beans.factory.annotation.Autowired
     public TableCartService(
             TableCartItemRepository tableCartItemRepository,
             TableRepository tableRepository,
@@ -96,8 +74,7 @@ public class TableCartService {
             TimeService timeService,
             CommandeRepository commandeRepository,
             TableAppelRepository tableAppelRepository,
-            HappyHourService happyHourService,
-            EstablishmentConfigService establishmentConfigService) {
+            HappyHourService happyHourService) {
         this.tableCartItemRepository = tableCartItemRepository;
         this.tableRepository = tableRepository;
         this.cocktailRepository = cocktailRepository;
@@ -108,7 +85,6 @@ public class TableCartService {
         this.commandeRepository = commandeRepository;
         this.tableAppelRepository = tableAppelRepository;
         this.happyHourService = happyHourService;
-        this.establishmentConfigService = establishmentConfigService;
     }
 
     /**
@@ -167,33 +143,18 @@ public class TableCartService {
             }
             return;
         }
-        if (establishmentConfigService != null
-                && !establishmentConfigService.isModuleEnabled(EstablishmentModule.MYSTERY_ROULETTE)) {
-            throw new BusinessException("Mystery Roulette module is disabled");
-        }
         BigDecimal minMysteryPrice = resolveMinimumMysteryPrice(cocktail);
-        if (dto.getPrixOverride() != null) {
-            if (dto.getPrixOverride().compareTo(BigDecimal.ZERO) <= 0
-                    || dto.getPrixOverride().compareTo(minMysteryPrice) < 0) {
-                throw new BusinessException("Invalid mystery drink price override: below minimum allowed roulette price");
-            }
+        if (dto.getPrixOverride() != null
+                && (dto.getPrixOverride().compareTo(BigDecimal.ZERO) <= 0
+                || dto.getPrixOverride().compareTo(minMysteryPrice) < 0)) {
+            throw new BusinessException("Invalid mystery drink price override: below minimum allowed roulette price");
         }
     }
 
     private BigDecimal resolveMinimumMysteryPrice(Cocktail cocktail) {
-        EstablishmentConfig config = establishmentConfigService != null ? establishmentConfigService.getConfig() : null;
         boolean isMocktail = Boolean.TRUE.equals(cocktail.getIsMocktail())
                 || cocktail.getCategorie() == CocktailCategorie.SANS_ALCOOL;
-        BigDecimal configuredPrice;
-        if (isMocktail) {
-            configuredPrice = (config != null && config.getRoulettePriceMocktail() != null)
-                    ? config.getRoulettePriceMocktail()
-                    : new BigDecimal("5.50");
-        } else {
-            configuredPrice = (config != null && config.getRoulettePriceCocktail() != null)
-                    ? config.getRoulettePriceCocktail()
-                    : new BigDecimal("7.50");
-        }
+        BigDecimal configuredPrice = isMocktail ? new BigDecimal("5.50") : new BigDecimal("7.50");
         if (cocktail.getPrix() != null
                 && cocktail.getPrix().compareTo(BigDecimal.ZERO) > 0
                 && cocktail.getPrix().compareTo(configuredPrice) < 0) {
@@ -662,26 +623,7 @@ public class TableCartService {
                 ? variantesMap.get(item.getCocktailVarianteId())
                 : null;
 
-        BigDecimal unitPrice = (Boolean.TRUE.equals(item.getIsMysteryDrink())
-                && item.getPrixOverride() != null
-                && item.getPrixOverride().compareTo(BigDecimal.ZERO) > 0)
-                ? item.getPrixOverride()
-                : null;
-        if (unitPrice == null) {
-            if (happyHourService != null) {
-                BigDecimal effective = happyHourService.resolveEffectivePrice(cocktail, variante, timeService.now());
-                if (effective != null) {
-                    unitPrice = effective;
-                }
-            }
-            if (unitPrice == null) {
-                unitPrice = cocktail.getPrix() != null ? cocktail.getPrix() : BigDecimal.ZERO;
-                if (variante != null && variante.getPrixSupplement() != null) {
-                    unitPrice = unitPrice.add(variante.getPrixSupplement());
-                }
-            }
-        }
-
+        BigDecimal unitPrice = resolveCartItemUnitPrice(item, cocktail, variante);
         BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(item.getQuantite()));
 
         return new TableCartItemResponseDTO(
@@ -700,6 +642,28 @@ public class TableCartService {
                 item.getCreatedAt() != null ? item.getCreatedAt() : timeService.now(),
                 item.getIsMysteryDrink() != null && item.getIsMysteryDrink()
         );
+    }
+
+    private BigDecimal resolveCartItemUnitPrice(
+            TableCartItem item,
+            Cocktail cocktail,
+            CocktailVariante variante) {
+        if (Boolean.TRUE.equals(item.getIsMysteryDrink())
+                && item.getPrixOverride() != null
+                && item.getPrixOverride().compareTo(BigDecimal.ZERO) > 0) {
+            return item.getPrixOverride();
+        }
+        if (happyHourService != null) {
+            BigDecimal effective = happyHourService.resolveEffectivePrice(cocktail, variante, timeService.now());
+            if (effective != null) {
+                return effective;
+            }
+        }
+        BigDecimal base = cocktail.getPrix() != null ? cocktail.getPrix() : BigDecimal.ZERO;
+        if (variante != null && variante.getPrixSupplement() != null) {
+            return base.add(variante.getPrixSupplement());
+        }
+        return base;
     }
 
     private void broadcastCart(Long tableId, TableCartResponseDTO cart) {

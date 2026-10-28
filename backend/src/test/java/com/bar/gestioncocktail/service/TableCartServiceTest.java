@@ -7,6 +7,7 @@ import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailVariante;
 import com.bar.gestioncocktail.model.Commande;
+import com.bar.gestioncocktail.model.CommandeItem;
 import com.bar.gestioncocktail.model.CommandeStatut;
 import com.bar.gestioncocktail.model.TableAppelStatut;
 import com.bar.gestioncocktail.model.TableAppelType;
@@ -443,7 +444,7 @@ class TableCartServiceTest {
         cmd1.setStatut(CommandeStatut.EN_ATTENTE);
         cmd1.setTotal(BigDecimal.valueOf(18.0));
         cmd1.setDateCommande(fixedNow.minusMinutes(10));
-        com.bar.gestioncocktail.model.CommandeItem item1 = new com.bar.gestioncocktail.model.CommandeItem();
+        CommandeItem item1 = new CommandeItem();
         item1.setQuantite(2);
         cmd1.setItems(List.of(item1));
 
@@ -493,7 +494,7 @@ class TableCartServiceTest {
         when(tableCartItemRepository.findById(99L)).thenReturn(Optional.of(item));
 
         assertThatThrownBy(() -> tableCartService.removeItem(1L, 99L, "guest-me"))
-                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("does not belong to table");
     }
 
@@ -544,7 +545,7 @@ class TableCartServiceTest {
     @DisplayName("handleTableLiberated: handles null event or null table gracefully")
     void handleTableLiberated_nullSafety() {
         tableCartService.handleTableLiberated(null);
-        tableCartService.handleTableLiberated(new com.bar.gestioncocktail.event.TableLiberatedEvent(null));
+        tableCartService.handleTableLiberated(new TableLiberatedEvent(null));
         verify(tableCartItemRepository, never()).deleteByTableId(anyLong());
     }
 
@@ -552,11 +553,11 @@ class TableCartServiceTest {
     @DisplayName("validateTableExists and resolveTable: throws BusinessException when tableId is null")
     void tableIdNull_throwsBusinessException() {
         assertThatThrownBy(() -> tableCartService.getCart(null))
-                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Table ID cannot be null");
 
         assertThatThrownBy(() -> tableCartService.getTableOrdersSummary(null))
-                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Table ID cannot be null");
     }
 

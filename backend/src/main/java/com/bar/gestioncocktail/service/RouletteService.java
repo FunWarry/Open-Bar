@@ -1,11 +1,13 @@
 package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.*;
+import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.CocktailRepository;
 import com.bar.gestioncocktail.repository.RouletteWheelSectorRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
+import com.bar.gestioncocktail.security.LoginAttemptService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -28,6 +31,9 @@ public class RouletteService {
     private static final String COCKTAIL_NOT_FOUND_MSG = "Cocktail not found with id: ";
     private static final String DEFAULT_ICON = "wine-outline";
     private static final String CATEGORY_MOCKTAIL = "MOCKTAIL";
+    private static final String DEFAULT_SOUND_PROFILE = "CSGO";
+    private static final BigDecimal DEFAULT_COCKTAIL_PRICE = new BigDecimal("7.50");
+    private static final BigDecimal DEFAULT_MOCKTAIL_PRICE = new BigDecimal("5.50");
 
     private final RouletteWheelSectorRepository sectorRepository;
     private final CocktailRepository cocktailRepository;
@@ -36,11 +42,11 @@ public class RouletteService {
     private final EstablishmentConfigService establishmentConfigService;
     private final SimpMessagingTemplate messagingTemplate;
     private final TimeService timeService;
-    private final com.bar.gestioncocktail.security.LoginAttemptService loginAttemptService;
-    private final java.security.SecureRandom random = new java.security.SecureRandom();
+    private final LoginAttemptService loginAttemptService = new LoginAttemptService();
+    private final SecureRandom random = new SecureRandom();
 
     /**
-     * Backward-compatible constructor initializing a default brute-force protection service.
+     * Constructs the RouletteService with all required dependencies.
      *
      * @param sectorRepository           Wheel sectors repository
      * @param cocktailRepository         Cocktail repository
@@ -58,33 +64,6 @@ public class RouletteService {
             EstablishmentConfigService establishmentConfigService,
             SimpMessagingTemplate messagingTemplate,
             TimeService timeService) {
-        this(sectorRepository, cocktailRepository, tableRepository, tableCartService,
-                establishmentConfigService, messagingTemplate, timeService,
-                new com.bar.gestioncocktail.security.LoginAttemptService());
-    }
-
-    /**
-     * Constructs the RouletteService with all required dependencies including brute-force rate limiting.
-     *
-     * @param sectorRepository           Wheel sectors repository
-     * @param cocktailRepository         Cocktail repository
-     * @param tableRepository            Table repository
-     * @param tableCartService           Table cart service for adding won drinks
-     * @param establishmentConfigService Establishment configuration and feature flags
-     * @param messagingTemplate          STOMP messaging template for live broadcasts
-     * @param timeService                Application time service
-     * @param loginAttemptService        Brute-force rate limiting service for PIN verification
-     */
-    @org.springframework.beans.factory.annotation.Autowired
-    public RouletteService(
-            RouletteWheelSectorRepository sectorRepository,
-            CocktailRepository cocktailRepository,
-            TableRepository tableRepository,
-            TableCartService tableCartService,
-            EstablishmentConfigService establishmentConfigService,
-            SimpMessagingTemplate messagingTemplate,
-            TimeService timeService,
-            com.bar.gestioncocktail.security.LoginAttemptService loginAttemptService) {
         this.sectorRepository = sectorRepository;
         this.cocktailRepository = cocktailRepository;
         this.tableRepository = tableRepository;
@@ -92,9 +71,6 @@ public class RouletteService {
         this.establishmentConfigService = establishmentConfigService;
         this.messagingTemplate = messagingTemplate;
         this.timeService = timeService;
-        this.loginAttemptService = loginAttemptService != null
-                ? loginAttemptService
-                : new com.bar.gestioncocktail.security.LoginAttemptService();
     }
 
     /**
@@ -109,16 +85,16 @@ public class RouletteService {
 
         BigDecimal priceCocktail = config.getRoulettePriceCocktail() != null
                 ? config.getRoulettePriceCocktail()
-                : new BigDecimal("7.50");
+                : DEFAULT_COCKTAIL_PRICE;
         BigDecimal priceMocktail = config.getRoulettePriceMocktail() != null
                 ? config.getRoulettePriceMocktail()
-                : new BigDecimal("5.50");
+                : DEFAULT_MOCKTAIL_PRICE;
         String stockBias = config.getRouletteStockBias() != null
                 ? config.getRouletteStockBias()
                 : "BALANCED";
         String soundProfile = config.getRouletteSoundProfile() != null
                 ? config.getRouletteSoundProfile()
-                : "CSGO";
+                : DEFAULT_SOUND_PROFILE;
 
         List<RouletteWheelSector> sectors = getOrInitActiveSectors();
 
@@ -272,7 +248,7 @@ public class RouletteService {
         sector.setLabel(c.getNom());
         sector.setCocktail(c);
         sector.setPrizeType(RoulettePrizeType.COCKTAIL);
-        sector.setPrix(new BigDecimal("7.50"));
+        sector.setPrix(DEFAULT_COCKTAIL_PRICE);
         return sector;
     }
 
@@ -314,7 +290,7 @@ public class RouletteService {
             RouletteSpinResultDTO result,
             Integer tableNumero) {
         int durationMs = request.durationSeconds() != null ? request.durationSeconds() * 1000 : 5000;
-        String soundProfile = request.soundProfile() != null ? request.soundProfile() : "CSGO";
+        String soundProfile = request.soundProfile() != null ? request.soundProfile() : DEFAULT_SOUND_PROFILE;
 
         RouletteEventDTO eventDto = new RouletteEventDTO(
                 "SPIN_TRIGGERED",
@@ -447,14 +423,14 @@ public class RouletteService {
         Cocktail moscowMule = findCocktailByName(catalog, "Moscow Mule");
 
         List<SectorTemplate> templates = List.of(
-                new SectorTemplate("Mojito", RoulettePrizeType.COCKTAIL, mojito, null, new BigDecimal("7.50"), "#10b981", DEFAULT_ICON, 2, 0),
-                new SectorTemplate("Création du Barman", RoulettePrizeType.BARTENDER_SPECIAL, null, "Recette surprise selon stocks du moment", new BigDecimal("7.50"), "#f59e0b", "sparkles-outline", 3, 1),
-                new SectorTemplate("Margarita", RoulettePrizeType.COCKTAIL, margarita, null, new BigDecimal("7.50"), "#ec4899", DEFAULT_ICON, 2, 2),
+                new SectorTemplate("Mojito", RoulettePrizeType.COCKTAIL, mojito, null, DEFAULT_COCKTAIL_PRICE, "#10b981", DEFAULT_ICON, 2, 0),
+                new SectorTemplate("Création du Barman", RoulettePrizeType.BARTENDER_SPECIAL, null, "Recette surprise selon stocks du moment", DEFAULT_COCKTAIL_PRICE, "#f59e0b", "sparkles-outline", 3, 1),
+                new SectorTemplate("Margarita", RoulettePrizeType.COCKTAIL, margarita, null, DEFAULT_COCKTAIL_PRICE, "#ec4899", DEFAULT_ICON, 2, 2),
                 new SectorTemplate("Tournée de Shooters", RoulettePrizeType.SHOOTER, null, "1 shooter maison offert", BigDecimal.ZERO, "#ef4444", "flame-outline", 1, 3),
-                new SectorTemplate("Piña Colada", RoulettePrizeType.COCKTAIL, pinaColada, null, new BigDecimal("7.50"), "#8b5cf6", DEFAULT_ICON, 2, 4),
+                new SectorTemplate("Piña Colada", RoulettePrizeType.COCKTAIL, pinaColada, null, DEFAULT_COCKTAIL_PRICE, "#8b5cf6", DEFAULT_ICON, 2, 4),
                 new SectorTemplate("Shooter au Choix", RoulettePrizeType.CUSTOM_REWARD, null, "Shooter au choix de la carte", BigDecimal.ZERO, "#06b6d4", "gift-outline", 1, 5),
-                new SectorTemplate("Virgin Mojito", RoulettePrizeType.COCKTAIL, virginMojito, null, new BigDecimal("5.50"), "#3b82f6", "leaf-outline", 2, 6),
-                new SectorTemplate("Moscow Mule", RoulettePrizeType.COCKTAIL, moscowMule, null, new BigDecimal("7.50"), "#6366f1", "beer-outline", 2, 7)
+                new SectorTemplate("Virgin Mojito", RoulettePrizeType.COCKTAIL, virginMojito, null, DEFAULT_MOCKTAIL_PRICE, "#3b82f6", "leaf-outline", 2, 6),
+                new SectorTemplate("Moscow Mule", RoulettePrizeType.COCKTAIL, moscowMule, null, DEFAULT_COCKTAIL_PRICE, "#6366f1", "beer-outline", 2, 7)
         );
 
         return sectorRepository.saveAll(templates.stream().map(t -> t.toEntity()).toList());
@@ -479,24 +455,43 @@ public class RouletteService {
     }
 
     private boolean isSectorEligible(RouletteWheelSector sector, RouletteSpinRequestDTO req) {
-        // Anti-fraud: client self-spins must only land on billable menu drinks, never free rewards or discounts
-        if (sector.getPrizeType() == RoulettePrizeType.CUSTOM_REWARD) {
-            return false;
-        }
-        if (sector.getPrix() != null && sector.getPrix().compareTo(BigDecimal.ZERO) <= 0 && sector.getCocktail() == null) {
+        if (!isBillableClientSector(sector)) {
             return false;
         }
         if (req.nonAlcoholicOnly() && isAlcoholic(sector)) {
             return false;
         }
-        if (req.spiritCategory() != null && !req.spiritCategory().isBlank() && !"ALL".equalsIgnoreCase(req.spiritCategory())
-                && sector.getPrizeType() == RoulettePrizeType.COCKTAIL && sector.getCocktail() != null
-                && !matchesSpirit(sector.getCocktail(), req.spiritCategory())) {
+        if (!matchesSpiritFilter(sector, req.spiritCategory())) {
             return false;
         }
-        return req.excludedAllergens() == null || req.excludedAllergens().isEmpty()
-                || sector.getPrizeType() != RoulettePrizeType.COCKTAIL || sector.getCocktail() == null
-                || !containsExcludedAllergens(sector.getCocktail(), req.excludedAllergens());
+        return !hasExcludedSectorAllergens(sector, req.excludedAllergens());
+    }
+
+    private boolean isBillableClientSector(RouletteWheelSector sector) {
+        if (sector.getPrizeType() == RoulettePrizeType.CUSTOM_REWARD) {
+            return false;
+        }
+        return sector.getPrix() == null || sector.getPrix().compareTo(BigDecimal.ZERO) > 0 || sector.getCocktail() != null;
+    }
+
+    private boolean matchesSpiritFilter(RouletteWheelSector sector, String spiritCategory) {
+        if (spiritCategory == null || spiritCategory.isBlank() || "ALL".equalsIgnoreCase(spiritCategory)) {
+            return true;
+        }
+        if (sector.getPrizeType() != RoulettePrizeType.COCKTAIL || sector.getCocktail() == null) {
+            return true;
+        }
+        return matchesSpirit(sector.getCocktail(), spiritCategory);
+    }
+
+    private boolean hasExcludedSectorAllergens(RouletteWheelSector sector, List<Allergen> excludedAllergens) {
+        if (excludedAllergens == null || excludedAllergens.isEmpty()) {
+            return false;
+        }
+        if (sector.getPrizeType() != RoulettePrizeType.COCKTAIL || sector.getCocktail() == null) {
+            return false;
+        }
+        return containsExcludedAllergens(sector.getCocktail(), excludedAllergens);
     }
 
     private boolean isAlcoholic(RouletteWheelSector sector) {
@@ -638,7 +633,7 @@ public class RouletteService {
         if (sector.getPrix() != null && sector.getPrix().compareTo(BigDecimal.ZERO) > 0) {
             return sector.getPrix();
         }
-        return new BigDecimal(isMocktail ? "5.50" : "7.50");
+        return isMocktail ? DEFAULT_MOCKTAIL_PRICE : DEFAULT_COCKTAIL_PRICE;
     }
 
     private boolean addWinningDrinkToCart(
@@ -682,7 +677,7 @@ public class RouletteService {
                 null,
                 null,
                 0,
-                "CSGO",
+                DEFAULT_SOUND_PROFILE,
                 timeService.now()
         );
         broadcastEvent(event);
@@ -732,7 +727,7 @@ public class RouletteService {
      */
     public RoulettePinDTO updateDisplayPin(String newPin) {
         if (newPin == null || !newPin.matches("^\\d{4}$")) {
-            throw new com.bar.gestioncocktail.exception.BusinessException("PIN must be exactly 4 digits");
+            throw new BusinessException("PIN must be exactly 4 digits");
         }
         establishmentConfigService.updateRouletteDisplayPin(newPin);
         broadcastPinRevoked();
@@ -762,7 +757,7 @@ public class RouletteService {
                 null,
                 null,
                 0,
-                "CSGO",
+                DEFAULT_SOUND_PROFILE,
                 timeService.now()
         );
         broadcastEvent(event);

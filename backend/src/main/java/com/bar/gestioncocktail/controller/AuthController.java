@@ -28,6 +28,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -116,7 +117,7 @@ public class AuthController {
         String accessToken = jwtTokenProvider.generateToken(authentication);
         User user = userService.getUserByUsername(loginRequest.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        List<String> userRoles = new java.util.ArrayList<>();
+        List<String> userRoles = new ArrayList<>();
         if (user.getRoles() != null) {
             for (UserRole role : user.getRoles()) {
                 if (role != null && role.getName() != null) {

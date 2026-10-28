@@ -1,16 +1,27 @@
 package com.bar.gestioncocktail.service;
 
-import com.bar.gestioncocktail.dto.*;
+import com.bar.gestioncocktail.dto.PublicCommandeItemRequestDTO;
+import com.bar.gestioncocktail.dto.PublicCommandeRequestDTO;
+import com.bar.gestioncocktail.dto.PublicCommandeResponseDTO;
+import com.bar.gestioncocktail.event.OrderCreatedEvent;
+import com.bar.gestioncocktail.event.OrderUpdatedEvent;
+import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.InvalidTableSessionException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.exception.StockInsuffisantException;
-import com.bar.gestioncocktail.model.*;
+import com.bar.gestioncocktail.model.Cocktail;
+import com.bar.gestioncocktail.model.CocktailCategorie;
+import com.bar.gestioncocktail.model.CocktailIngredient;
+import com.bar.gestioncocktail.model.CocktailVariante;
+import com.bar.gestioncocktail.model.Commande;
+import com.bar.gestioncocktail.model.CommandeItem;
+import com.bar.gestioncocktail.model.CommandeStatut;
+import com.bar.gestioncocktail.model.Ingredient;
+import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.repository.CocktailRepository;
 import com.bar.gestioncocktail.repository.CocktailVarianteRepository;
 import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
-import com.bar.gestioncocktail.event.OrderCreatedEvent;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,13 +30,16 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 /**
  * Service managing patron self-ordering via QR code scans and ephemeral order tracking.
  */
-
 @Service
 @Transactional
 public class PublicCommandeService {
+
+    private static final BigDecimal DEFAULT_ROULETTE_MOCKTAIL_FLOOR = new BigDecimal("5.50");
+    private static final BigDecimal DEFAULT_ROULETTE_COCKTAIL_FLOOR = new BigDecimal("7.50");
 
     private final CommandeRepository commandeRepository;
     private final TableRepository tableRepository;
@@ -35,10 +49,18 @@ public class PublicCommandeService {
     private final TimeService timeService;
     private final TableSessionService tableSessionService;
     private final HappyHourService happyHourService;
-    private final EstablishmentConfigService establishmentConfigService;
 
     /**
-     * Backward-compatible constructor without establishment configuration service.
+     * Constructs the public order service with required repositories and services.
+     *
+     * @param commandeRepository Repository for orders
+     * @param tableRepository Repository for tables
+     * @param cocktailRepository Repository for cocktails
+     * @param varianteRepository Repository for cocktail variants
+     * @param eventPublisher Spring event publisher
+     * @param timeService Application time service
+     * @param tableSessionService Table session validation service
+     * @param happyHourService Happy hour pricing service
      */
     public PublicCommandeService(
             CommandeRepository commandeRepository,
@@ -49,24 +71,6 @@ public class PublicCommandeService {
             TimeService timeService,
             TableSessionService tableSessionService,
             HappyHourService happyHourService) {
-        this(commandeRepository, tableRepository, cocktailRepository, varianteRepository,
-                eventPublisher, timeService, tableSessionService, happyHourService, null);
-    }
-
-    /**
-     * Full constructor with establishment configuration service for module and mystery pricing validation.
-     */
-    @Autowired
-    public PublicCommandeService(
-            CommandeRepository commandeRepository,
-            TableRepository tableRepository,
-            CocktailRepository cocktailRepository,
-            CocktailVarianteRepository varianteRepository,
-            ApplicationEventPublisher eventPublisher,
-            TimeService timeService,
-            TableSessionService tableSessionService,
-            HappyHourService happyHourService,
-            EstablishmentConfigService establishmentConfigService) {
         this.commandeRepository = commandeRepository;
         this.tableRepository = tableRepository;
         this.cocktailRepository = cocktailRepository;
@@ -75,7 +79,6 @@ public class PublicCommandeService {
         this.timeService = timeService;
         this.tableSessionService = tableSessionService;
         this.happyHourService = happyHourService;
-        this.establishmentConfigService = establishmentConfigService;
     }
 
     /**
@@ -84,7 +87,6 @@ public class PublicCommandeService {
      * @param dto Public order request payload
      * @return Created order response DTO
      */
-
     public PublicCommandeResponseDTO creerCommandePublique(PublicCommandeRequestDTO dto) {
         if (tableSessionService != null && !tableSessionService.isSessionValidForOrder(dto.getTableId(), dto.getSessionToken())) {
             throw new InvalidTableSessionException("Invalid or expired table session token for table " + dto.getTableId());
@@ -127,52 +129,17 @@ public class PublicCommandeService {
 
     private CommandeItem construireCommandeItem(PublicCommandeItemRequestDTO itemDto, Commande commande) {
         if (itemDto.getQuantite() <= 0) {
-            throw new com.bar.gestioncocktail.exception.BusinessException("Order item quantity must be at least 1");
+            throw new BusinessException("Order item quantity must be at least 1");
         }
 
         Cocktail cocktail = cocktailRepository.findById(itemDto.getCocktailId())
                 .orElseThrow(() -> new ResourceNotFoundException("Cocktail not found with id: " + itemDto.getCocktailId()));
 
-        CocktailVariante variante = null;
-        if (itemDto.getVarianteId() != null) {
-            variante = varianteRepository.findById(itemDto.getVarianteId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + itemDto.getVarianteId()));
-        }
-
-        BigDecimal prixUnitaire = cocktail.getPrix();
-        if (variante != null && variante.getPrixSupplement() != null) {
-            prixUnitaire = prixUnitaire.add(variante.getPrixSupplement());
-        }
-
+        CocktailVariante variante = resolveVariante(itemDto.getVarianteId());
         boolean isMystery = Boolean.TRUE.equals(itemDto.getIsMysteryDrink());
-        if (isMystery) {
-            if (establishmentConfigService != null
-                    && !establishmentConfigService.isModuleEnabled(EstablishmentModule.MYSTERY_ROULETTE)) {
-                throw new com.bar.gestioncocktail.exception.BusinessException("Mystery Roulette module is disabled");
-            }
-            BigDecimal minMysteryPrice = resolveMinimumMysteryPrice(cocktail);
-            if (itemDto.getPrixOverride() != null) {
-                if (itemDto.getPrixOverride().compareTo(BigDecimal.ZERO) <= 0
-                        || itemDto.getPrixOverride().compareTo(minMysteryPrice) < 0) {
-                    throw new com.bar.gestioncocktail.exception.BusinessException(
-                            "Invalid mystery drink price override: below minimum allowed roulette price");
-                }
-                prixUnitaire = itemDto.getPrixOverride();
-            } else {
-                prixUnitaire = minMysteryPrice;
-            }
-        } else {
-            if (itemDto.getPrixOverride() != null) {
-                throw new com.bar.gestioncocktail.exception.BusinessException(
-                        "Price override is not allowed for standard menu items");
-            }
-            if (happyHourService != null) {
-                BigDecimal effectivePrice = happyHourService.resolveEffectivePrice(cocktail, variante, timeService.now());
-                if (effectivePrice != null) {
-                    prixUnitaire = effectivePrice;
-                }
-            }
-        }
+        BigDecimal prixUnitaire = isMystery
+                ? resolveMysteryUnitPrice(itemDto, cocktail)
+                : resolveStandardUnitPrice(itemDto, cocktail, variante);
 
         verifierDisponibiliteIngredients(cocktail, itemDto.getQuantite());
 
@@ -187,26 +154,55 @@ public class PublicCommandeService {
         return item;
     }
 
+    private CocktailVariante resolveVariante(Long varianteId) {
+        if (varianteId == null) {
+            return null;
+        }
+        return varianteRepository.findById(varianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + varianteId));
+    }
+
+    private BigDecimal resolveMysteryUnitPrice(PublicCommandeItemRequestDTO itemDto, Cocktail cocktail) {
+        BigDecimal minMysteryPrice = resolveMinimumMysteryPrice(cocktail);
+        BigDecimal override = itemDto.getPrixOverride();
+        if (override == null) {
+            return minMysteryPrice;
+        }
+        if (override.compareTo(BigDecimal.ZERO) <= 0 || override.compareTo(minMysteryPrice) < 0) {
+            throw new BusinessException("Invalid mystery drink price override: below minimum allowed roulette price");
+        }
+        return override;
+    }
+
+    private BigDecimal resolveStandardUnitPrice(
+            PublicCommandeItemRequestDTO itemDto,
+            Cocktail cocktail,
+            CocktailVariante variante) {
+        if (itemDto.getPrixOverride() != null) {
+            throw new BusinessException("Price override is not allowed for standard menu items");
+        }
+        if (happyHourService != null) {
+            BigDecimal effectivePrice = happyHourService.resolveEffectivePrice(cocktail, variante, timeService.now());
+            if (effectivePrice != null) {
+                return effectivePrice;
+            }
+        }
+        BigDecimal basePrice = cocktail.getPrix() != null ? cocktail.getPrix() : BigDecimal.ZERO;
+        if (variante != null && variante.getPrixSupplement() != null) {
+            return basePrice.add(variante.getPrixSupplement());
+        }
+        return basePrice;
+    }
+
     private BigDecimal resolveMinimumMysteryPrice(Cocktail cocktail) {
-        EstablishmentConfig config = establishmentConfigService != null ? establishmentConfigService.getConfig() : null;
         boolean isMocktail = Boolean.TRUE.equals(cocktail.getIsMocktail())
                 || cocktail.getCategorie() == CocktailCategorie.SANS_ALCOOL;
-        BigDecimal configuredPrice;
-        if (isMocktail) {
-            configuredPrice = (config != null && config.getRoulettePriceMocktail() != null)
-                    ? config.getRoulettePriceMocktail()
-                    : new BigDecimal("5.50");
-        } else {
-            configuredPrice = (config != null && config.getRoulettePriceCocktail() != null)
-                    ? config.getRoulettePriceCocktail()
-                    : new BigDecimal("7.50");
+        BigDecimal floorPrice = isMocktail ? DEFAULT_ROULETTE_MOCKTAIL_FLOOR : DEFAULT_ROULETTE_COCKTAIL_FLOOR;
+        BigDecimal catalogPrice = cocktail.getPrix();
+        if (catalogPrice != null && catalogPrice.compareTo(BigDecimal.ZERO) > 0 && catalogPrice.compareTo(floorPrice) < 0) {
+            return catalogPrice;
         }
-        if (cocktail.getPrix() != null
-                && cocktail.getPrix().compareTo(BigDecimal.ZERO) > 0
-                && cocktail.getPrix().compareTo(configuredPrice) < 0) {
-            return cocktail.getPrix();
-        }
-        return configuredPrice;
+        return floorPrice;
     }
 
     private void verifierDisponibiliteIngredients(Cocktail cocktail, int quantite) {
@@ -232,13 +228,13 @@ public class PublicCommandeService {
             tableRepository.save(table);
         }
     }
-/**
+
+    /**
      * Retrieves order tracking information using an ephemeral tracking token.
      *
      * @param trackingToken Ephemeral customer tracking token
      * @return Order response DTO
      */
-
     @Transactional(readOnly = true)
     public PublicCommandeResponseDTO getCommandeParTrackingToken(String trackingToken) {
         Commande commande = commandeRepository.findByTrackingToken(trackingToken)
@@ -267,7 +263,7 @@ public class PublicCommandeService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + commandeId));
 
         if (commande.getStatut() != CommandeStatut.EN_ATTENTE) {
-            throw new com.bar.gestioncocktail.exception.BusinessException("Cannot append items: Order is already " + commande.getStatut());
+            throw new BusinessException("Cannot append items: Order is already " + commande.getStatut());
         }
 
         List<CommandeItem> currentItems = commande.getItems();
@@ -288,7 +284,7 @@ public class PublicCommandeService {
 
         Commande savedCommande = commandeRepository.save(commande);
         if (eventPublisher != null) {
-            eventPublisher.publishEvent(new com.bar.gestioncocktail.event.OrderUpdatedEvent(savedCommande));
+            eventPublisher.publishEvent(new OrderUpdatedEvent(savedCommande));
         }
 
         long pendingCount = commandeRepository.countByStatut(CommandeStatut.EN_ATTENTE);

@@ -68,16 +68,13 @@ public class LoginAttemptService {
     public boolean isBlocked(String key) {
         String normalizedKey = normalizeKey(key);
         AttemptRecord record = attempts.get(normalizedKey);
-        if (record == null) {
+        if (record == null || record.lockedUntil == null) {
             return false;
         }
-        if (record.lockedUntil != null) {
-            if (Instant.now().isBefore(record.lockedUntil)) {
-                return true;
-            }
-            attempts.remove(normalizedKey);
-            return false;
+        if (Instant.now().isBefore(record.lockedUntil)) {
+            return true;
         }
+        attempts.remove(normalizedKey);
         return false;
     }
 
@@ -88,7 +85,7 @@ public class LoginAttemptService {
      */
     public void recordFailure(String key) {
         String normalizedKey = normalizeKey(key);
-        attempts.compute(normalizedKey, (k, existing) -> {
+        attempts.compute(normalizedKey, (_, existing) -> {
             Instant now = Instant.now();
             if (existing == null || (existing.lockedUntil != null && !now.isBefore(existing.lockedUntil))) {
                 int count = 1;

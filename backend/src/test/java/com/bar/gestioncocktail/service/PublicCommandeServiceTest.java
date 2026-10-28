@@ -1,6 +1,9 @@
 package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.*;
+import com.bar.gestioncocktail.event.OrderCreatedEvent;
+import com.bar.gestioncocktail.event.OrderUpdatedEvent;
+import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.exception.StockInsuffisantException;
 import com.bar.gestioncocktail.model.*;
@@ -13,19 +16,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import com.bar.gestioncocktail.event.OrderCreatedEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-
-import org.mockito.Spy;
 
 @ExtendWith(MockitoExtension.class)
 class PublicCommandeServiceTest {
@@ -85,7 +87,7 @@ class PublicCommandeServiceTest {
         cocktail.setPrix(BigDecimal.valueOf(8.50));
         cocktail.setIngredients(List.of(cocktailIngredient));
 
-        org.mockito.Mockito.lenient().when(tableSessionService.isSessionValidForOrder(any(), any())).thenReturn(true);
+        lenient().when(tableSessionService.isSessionValidForOrder(any(), any())).thenReturn(true);
     }
 
     @Test
@@ -179,7 +181,7 @@ class PublicCommandeServiceTest {
         existing.setStatut(CommandeStatut.EN_ATTENTE);
         existing.setTable(table);
         existing.setTotal(BigDecimal.valueOf(10.0));
-        existing.setItems(new java.util.ArrayList<>());
+        existing.setItems(new ArrayList<>());
 
         PublicCommandeItemRequestDTO newItemDTO = new PublicCommandeItemRequestDTO(100L, null, 2, "Extra mint");
 
@@ -192,7 +194,7 @@ class PublicCommandeServiceTest {
 
         assertNotNull(response);
         assertEquals(0, BigDecimal.valueOf(27.0).compareTo(existing.getTotal())); // 10.0 + (2 * 8.50)
-        verify(eventPublisher).publishEvent(any(com.bar.gestioncocktail.event.OrderUpdatedEvent.class));
+        verify(eventPublisher).publishEvent(any(OrderUpdatedEvent.class));
         assertEquals(8, response.getTempsEstimeMinutes()); // 5 + (1 * 3)
     }
 
@@ -213,7 +215,7 @@ class PublicCommandeServiceTest {
 
         when(commandeRepository.findById(50L)).thenReturn(Optional.of(existing));
 
-        assertThrows(com.bar.gestioncocktail.exception.BusinessException.class, () ->
+        assertThrows(BusinessException.class, () ->
                 publicCommandeService.ajouterArticlesACommande(50L, List.of())
         );
     }
@@ -230,7 +232,7 @@ class PublicCommandeServiceTest {
         when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
         when(cocktailRepository.findById(100L)).thenReturn(Optional.of(cocktail));
 
-        assertThrows(com.bar.gestioncocktail.exception.BusinessException.class, () ->
+        assertThrows(BusinessException.class, () ->
                 publicCommandeService.creerCommandePublique(requestDTO)
         );
     }
@@ -247,7 +249,7 @@ class PublicCommandeServiceTest {
         when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
         when(cocktailRepository.findById(100L)).thenReturn(Optional.of(cocktail));
 
-        assertThrows(com.bar.gestioncocktail.exception.BusinessException.class, () ->
+        assertThrows(BusinessException.class, () ->
                 publicCommandeService.creerCommandePublique(requestDTO)
         );
 
@@ -256,7 +258,7 @@ class PublicCommandeServiceTest {
         );
         requestDTO.setItems(List.of(lowPriceMystery));
 
-        assertThrows(com.bar.gestioncocktail.exception.BusinessException.class, () ->
+        assertThrows(BusinessException.class, () ->
                 publicCommandeService.creerCommandePublique(requestDTO)
         );
     }

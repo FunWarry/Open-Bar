@@ -403,7 +403,7 @@ public class SystemUpdateService {
 
         List<SystemSnapshotDTO> result = new ArrayList<>();
         try {
-            File[] files = dir.toFile().listFiles((d, name) -> name.startsWith("openbar_pre_update_") && name.endsWith(SQL_GZ_EXT));
+            File[] files = dir.toFile().listFiles((_, name) -> name.startsWith("openbar_pre_update_") && name.endsWith(SQL_GZ_EXT));
             if (files != null) {
                 for (File file : files) {
                     result.add(parseSnapshotFile(dir, file));
@@ -637,16 +637,9 @@ public class SystemUpdateService {
     }
 
     void validateRollbackPath(String snapshotFilePath) {
-        if (snapshotFilePath == null || snapshotFilePath.isBlank()
+        if (snapshotFilePath == null
                 || snapshotFilePath.contains("..")
-                || snapshotFilePath.contains(";")
-                || snapshotFilePath.contains("&")
-                || snapshotFilePath.contains("|")
-                || snapshotFilePath.contains("`")
-                || snapshotFilePath.contains("$")
-                || snapshotFilePath.contains("\n")
-                || snapshotFilePath.contains("\r")
-                || !snapshotFilePath.endsWith(SQL_GZ_EXT)) {
+                || !snapshotFilePath.matches("^[^;&|`$\\r\\n]+\\.sql\\.gz$")) {
             throw new BusinessException("Invalid rollback snapshot file path.");
         }
     }

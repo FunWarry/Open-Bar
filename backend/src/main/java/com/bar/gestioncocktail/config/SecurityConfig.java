@@ -3,9 +3,11 @@ package com.bar.gestioncocktail.config;
 import com.bar.gestioncocktail.security.JwtAuthenticationFilter;
 import com.bar.gestioncocktail.security.JwtAuthorizationFilter;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -36,10 +38,19 @@ import java.util.List;
 @EnableConfigurationProperties(JwtProperties.class)
 public class SecurityConfig {
 
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final String[] SWAGGER_PATHS = {
+            "/v3/api-docs/**",
+            "/api-docs/**",
+            "/api-docs",
+            "/swagger-ui/**",
+            "/swagger-ui.html"
+    };
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
     private final CorsOriginResolver corsOriginResolver;
-    private final org.springframework.core.env.Environment environment;
+    private final Environment environment;
 
     /**
      * Backward-compatible constructor without Environment.
@@ -63,12 +74,12 @@ public class SecurityConfig {
      * @param corsOriginResolver Resolver for CORS allowed origins
      * @param environment Spring runtime environment for profile inspection
      */
-    @org.springframework.beans.factory.annotation.Autowired
+    @Autowired
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             JwtAuthorizationFilter jwtAuthorizationFilter,
             CorsOriginResolver corsOriginResolver,
-            org.springframework.core.env.Environment environment) {
+            Environment environment) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.jwtAuthorizationFilter = jwtAuthorizationFilter;
         this.corsOriginResolver = corsOriginResolver;
@@ -93,7 +104,7 @@ public class SecurityConfig {
                     .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth -> {
                         auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .requestMatchers("/api/auth/register").hasRole("ADMIN")
+                                .requestMatchers("/api/auth/register").hasRole(ROLE_ADMIN)
                                 .requestMatchers(
                                         "/api/cocktails/library",
                                         "/api/cocktails/library/**",
@@ -103,21 +114,9 @@ public class SecurityConfig {
                                         "/api/cocktails/by-ingredient/**")
                                 .authenticated();
                         if (prodProfile) {
-                            auth.requestMatchers(
-                                    "/v3/api-docs/**",
-                                    "/api-docs/**",
-                                    "/api-docs",
-                                    "/swagger-ui/**",
-                                    "/swagger-ui.html")
-                                    .hasRole("ADMIN");
+                            auth.requestMatchers(SWAGGER_PATHS).hasRole(ROLE_ADMIN);
                         } else {
-                            auth.requestMatchers(
-                                    "/v3/api-docs/**",
-                                    "/api-docs/**",
-                                    "/api-docs",
-                                    "/swagger-ui/**",
-                                    "/swagger-ui.html")
-                                    .permitAll();
+                            auth.requestMatchers(SWAGGER_PATHS).permitAll();
                         }
                         auth.requestMatchers(
                                         "/api/auth/**",

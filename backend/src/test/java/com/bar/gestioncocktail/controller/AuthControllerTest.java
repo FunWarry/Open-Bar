@@ -6,6 +6,7 @@ import com.bar.gestioncocktail.dto.RefreshTokenRequest;
 import com.bar.gestioncocktail.dto.TokenRefreshResponse;
 import com.bar.gestioncocktail.dto.UserRequestDTO;
 import com.bar.gestioncocktail.dto.UserResponseDTO;
+import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.RefreshToken;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.model.UserRole;
@@ -21,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
@@ -29,6 +31,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -195,15 +198,15 @@ class AuthControllerTest {
         request.setPassword("wrongpass");
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenThrow(new org.springframework.security.authentication.BadCredentialsException("Bad credentials"));
+                .thenThrow(new BadCredentialsException("Bad credentials"));
 
         for (int i = 0; i < 5; i++) {
-            org.assertj.core.api.Assertions.assertThatThrownBy(() -> authController.login(request))
-                    .isInstanceOf(org.springframework.security.authentication.BadCredentialsException.class);
+            assertThatThrownBy(() -> authController.login(request))
+                    .isInstanceOf(BadCredentialsException.class);
         }
 
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> authController.login(request))
-                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+        assertThatThrownBy(() -> authController.login(request))
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Too many failed attempts");
     }
 }
