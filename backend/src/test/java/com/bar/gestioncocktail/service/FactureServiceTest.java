@@ -2214,5 +2214,316 @@ class FactureServiceTest {
         assertThat(result.nomConvive()).isEqualTo("VIP Guest");
         assertThat(result.montant()).isEqualByComparingTo(new BigDecimal("50.00"));
     }
+
+    @Test
+    @DisplayName("encaisserPartTab throws ResourceNotFoundException when bar tab does not exist")
+    void encaisserPartTab_whenTabNotFound_throwsResourceNotFoundException() {
+        when(barTabRepository.findById(999L)).thenReturn(Optional.empty());
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest", 1, 1, new BigDecimal("10.00"), BigDecimal.ZERO, new BigDecimal("10.00"), "CARTE", "EGAL", List.of()
+        );
+
+        assertThatThrownBy(() -> factureService.encaisserPartTab(999L, req))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Bar tab not found with id: 999");
+    }
+
+    @Test
+    @DisplayName("encaisserPartTable creates pending invoice when none exists and settles share")
+    void encaisserPartTable_whenNoUnpaidFacture_createsPendingInvoiceAndSettles() {
+        TableEntity tableEntity = new TableEntity();
+        tableEntity.setId(10L);
+        tableEntity.setNumero(10);
+        tableEntity.setOccupee(true);
+
+        Cocktail cocktail = new Cocktail();
+        cocktail.setId(200L);
+        cocktail.setNom("Margarita");
+
+        CommandeItem item = new CommandeItem();
+        item.setId(50L);
+        item.setCocktail(cocktail);
+        item.setQuantite(1);
+        item.setPrixUnitaire(new BigDecimal("15.00"));
+
+        Commande cmd = new Commande();
+        cmd.setId(400L);
+        cmd.setTable(tableEntity);
+        cmd.setStatut(CommandeStatut.LIVREE);
+        cmd.setItems(List.of(item));
+
+        when(tableRepository.findById(10L)).thenReturn(Optional.of(tableEntity));
+        when(factureRepository.findByTable(tableEntity)).thenReturn(List.of());
+        when(commandeRepository.findByTable(tableEntity)).thenReturn(List.of(cmd));
+        when(factureRepository.save(any(Facture.class))).thenAnswer(i -> {
+            Facture f = i.getArgument(0);
+            if (f.getId() == null) {
+                f.setId(100L);
+            }
+            return f;
+        });
+        when(factureRepository.findById(100L)).thenAnswer(i -> {
+            Facture f = new Facture();
+            f.setId(100L);
+            f.setTable(tableEntity);
+            f.setTotalTTC(new BigDecimal("15.00"));
+            f.setReglee(false);
+            return Optional.of(f);
+        });
+        when(factureReglementRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(100L)).thenReturn(List.of());
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Alice", 1, 1, new BigDecimal("15.00"), BigDecimal.ZERO, new BigDecimal("15.00"), "CARTE", "EGAL", List.of()
+        );
+
+        com.bar.gestioncocktail.dto.FactureReglementDTO result = factureService.encaisserPartTable(10L, req);
+
+        assertThat(result).isNotNull();
+        assertThat(result.factureId()).isEqualTo(100L);
+        assertThat(result.nomConvive()).isEqualTo("Alice");
+    }
+
+    @Test
+    @DisplayName("encaisserPartTab creates pending invoice when none exists and settles share")
+    void encaisserPartTab_whenNoUnpaidFacture_createsPendingInvoiceAndSettles() {
+        com.bar.gestioncocktail.model.BarTab barTab = new com.bar.gestioncocktail.model.BarTab();
+        barTab.setId(77L);
+        barTab.setNom("Terrace Tab");
+        barTab.setStatut(com.bar.gestioncocktail.model.BarTabStatus.ACTIVE);
+
+        Cocktail cocktail = new Cocktail();
+        cocktail.setId(201L);
+        cocktail.setNom("Gin Tonic");
+
+        CommandeItem item = new CommandeItem();
+        item.setId(51L);
+        item.setCocktail(cocktail);
+        item.setQuantite(2);
+        item.setPrixUnitaire(new BigDecimal("10.00"));
+
+        Commande cmd = new Commande();
+        cmd.setId(401L);
+        cmd.setBarTab(barTab);
+        cmd.setStatut(CommandeStatut.LIVREE);
+        cmd.setItems(List.of(item));
+
+        when(barTabRepository.findById(77L)).thenReturn(Optional.of(barTab));
+        when(factureRepository.findByBarTab(barTab)).thenReturn(List.of());
+        when(commandeRepository.findByBarTab(barTab)).thenReturn(List.of(cmd));
+        when(factureRepository.save(any(Facture.class))).thenAnswer(i -> {
+            Facture f = i.getArgument(0);
+            if (f.getId() == null) {
+                f.setId(770L);
+            }
+            return f;
+        });
+        when(factureRepository.findById(770L)).thenAnswer(i -> {
+            Facture f = new Facture();
+            f.setId(770L);
+            f.setBarTab(barTab);
+            f.setTotalTTC(new BigDecimal("20.00"));
+            f.setReglee(false);
+            return Optional.of(f);
+        });
+        when(factureReglementRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(770L)).thenReturn(List.of());
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Bob", 1, 1, new BigDecimal("20.00"), BigDecimal.ZERO, new BigDecimal("20.00"), "CARTE", "EGAL", List.of()
+        );
+
+        com.bar.gestioncocktail.dto.FactureReglementDTO result = factureService.encaisserPartTab(77L, req);
+
+        assertThat(result).isNotNull();
+        assertThat(result.factureId()).isEqualTo(770L);
+        assertThat(result.nomConvive()).isEqualTo("Bob");
+    }
+
+    @Test
+    @DisplayName("encaisserPart finalizes table invoice when total amount is fully covered")
+    void encaisserPart_whenFullAmountReached_finalizesSplitSettlementForTable() {
+        TableEntity table = new TableEntity();
+        table.setId(5L);
+        table.setNumero(5);
+        table.setOccupee(true);
+
+        Facture tableFacture = new Facture();
+        tableFacture.setId(55L);
+        tableFacture.setNumero("FAC-202610-0055");
+        tableFacture.setTable(table);
+        tableFacture.setTotalTTC(new BigDecimal("40.00"));
+        tableFacture.setReglee(false);
+
+        Commande cmd = new Commande();
+        cmd.setId(501L);
+        cmd.setTable(table);
+        cmd.setStatut(CommandeStatut.LIVREE);
+
+        com.bar.gestioncocktail.model.FactureReglement part1 = new com.bar.gestioncocktail.model.FactureReglement();
+        part1.setId(1L);
+        part1.setFacture(tableFacture);
+        part1.setMontant(new BigDecimal("20.00"));
+        part1.setPourboire(new BigDecimal("2.00"));
+
+        com.bar.gestioncocktail.model.FactureReglement part2 = new com.bar.gestioncocktail.model.FactureReglement();
+        part2.setId(2L);
+        part2.setFacture(tableFacture);
+        part2.setMontant(new BigDecimal("20.00"));
+        part2.setPourboire(new BigDecimal("1.00"));
+
+        when(factureRepository.findById(55L)).thenReturn(Optional.of(tableFacture));
+        when(factureReglementRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(55L)).thenReturn(List.of(part1, part2));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of(cmd));
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest 2", 2, 2, new BigDecimal("20.00"), new BigDecimal("1.00"), new BigDecimal("21.00"), "CARTE", "EGAL", List.of()
+        );
+
+        com.bar.gestioncocktail.dto.FactureReglementDTO result = factureService.encaisserPart(55L, req);
+
+        assertThat(result).isNotNull();
+        assertThat(tableFacture.isReglee()).isTrue();
+        assertThat(tableFacture.getModePaiement()).isEqualTo("MIXTE_SPLIT");
+        assertThat(tableFacture.getPourboire()).isEqualByComparingTo(new BigDecimal("3.00"));
+        assertThat(table.isOccupee()).isFalse();
+        verify(tableRepository).save(table);
+        verify(eventPublisher).publishEvent(any(TableLiberatedEvent.class));
+        verify(eventPublisher).publishEvent(any(InvoiceSettledEvent.class));
+        verify(auditLogService).logAction(eq(null), eq("FACTURE_SETTLED_SPLIT"), anyString(), eq(55L), anyString(), eq(null));
+    }
+
+    @Test
+    @DisplayName("encaisserPart finalizes bar tab invoice when total amount is fully covered")
+    void encaisserPart_whenFullAmountReached_finalizesSplitSettlementForBarTab() {
+        com.bar.gestioncocktail.model.BarTab barTab = new com.bar.gestioncocktail.model.BarTab();
+        barTab.setId(90L);
+        barTab.setNom("Bar Tab VIP");
+        barTab.setStatut(com.bar.gestioncocktail.model.BarTabStatus.ACTIVE);
+
+        Facture tabFacture = new Facture();
+        tabFacture.setId(900L);
+        tabFacture.setNumero("FAC-202610-0900");
+        tabFacture.setBarTab(barTab);
+        tabFacture.setTotalTTC(new BigDecimal("25.00"));
+        tabFacture.setReglee(false);
+
+        Commande cmd = new Commande();
+        cmd.setId(901L);
+        cmd.setBarTab(barTab);
+        cmd.setStatut(CommandeStatut.LIVREE);
+
+        com.bar.gestioncocktail.model.FactureReglement part = new com.bar.gestioncocktail.model.FactureReglement();
+        part.setId(10L);
+        part.setFacture(tabFacture);
+        part.setMontant(new BigDecimal("25.00"));
+        part.setPourboire(BigDecimal.ZERO);
+
+        when(factureRepository.findById(900L)).thenReturn(Optional.of(tabFacture));
+        when(factureReglementRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(900L)).thenReturn(List.of(part));
+        when(commandeRepository.findByBarTab(barTab)).thenReturn(List.of(cmd));
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest VIP", 1, 1, new BigDecimal("25.00"), BigDecimal.ZERO, new BigDecimal("25.00"), "CARTE", "EGAL", List.of()
+        );
+
+        com.bar.gestioncocktail.dto.FactureReglementDTO result = factureService.encaisserPart(900L, req);
+
+        assertThat(result).isNotNull();
+        assertThat(tabFacture.isReglee()).isTrue();
+        assertThat(tabFacture.getModePaiement()).isEqualTo("MIXTE_SPLIT");
+        assertThat(barTab.getStatut()).isEqualTo(com.bar.gestioncocktail.model.BarTabStatus.SETTLED);
+        verify(barTabRepository).save(barTab);
+        verify(auditLogService).logAction(eq(null), eq("FACTURE_SETTLED_SPLIT"), anyString(), eq(900L), anyString(), eq(null));
+    }
+
+    @Test
+    @DisplayName("encaisserPart adjusts slight rounding excess within 5 cents")
+    void encaisserPart_withRoundingExcess_adjustsMontant() {
+        Facture testFacture = new Facture();
+        testFacture.setId(60L);
+        testFacture.setTotalTTC(new BigDecimal("30.00"));
+        testFacture.setReglee(false);
+
+        com.bar.gestioncocktail.model.FactureReglement reg1 = new com.bar.gestioncocktail.model.FactureReglement();
+        reg1.setId(1L);
+        reg1.setFacture(testFacture);
+        reg1.setMontant(new BigDecimal("20.00"));
+
+        com.bar.gestioncocktail.model.FactureReglement reg2 = new com.bar.gestioncocktail.model.FactureReglement();
+        reg2.setId(2L);
+        reg2.setFacture(testFacture);
+        reg2.setMontant(new BigDecimal("10.02")); // Total = 30.02 (excess = 0.02)
+        reg2.setPourboire(BigDecimal.ZERO);
+
+        when(factureRepository.findById(60L)).thenReturn(Optional.of(testFacture));
+        when(factureReglementRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(60L)).thenReturn(List.of(reg1, reg2));
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest 2", 2, 2, new BigDecimal("10.02"), BigDecimal.ZERO, new BigDecimal("10.02"), "CARTE", "EGAL", List.of()
+        );
+
+        com.bar.gestioncocktail.dto.FactureReglementDTO result = factureService.encaisserPart(60L, req);
+
+        assertThat(result).isNotNull();
+        // The excess 0.02 should have been subtracted from the last saved reglement (10.02 - 0.02 = 10.00)
+        assertThat(result.montant()).isEqualByComparingTo(new BigDecimal("10.00"));
+    }
+
+    @Test
+    @DisplayName("getTableAddition syncs missing order items and computes paid quantities correctly")
+    void getTableAddition_syncsMissingItemsAndComputesPaidQuantities() {
+        TableEntity table = new TableEntity();
+        table.setId(12L);
+        table.setNumero(12);
+
+        Cocktail cocktailA = new Cocktail();
+        cocktailA.setId(111L);
+        cocktailA.setNom("Negroni");
+
+        Cocktail cocktailB = new Cocktail();
+        cocktailB.setId(222L);
+        cocktailB.setNom("Spritz");
+
+        CommandeItem itemA = new CommandeItem();
+        itemA.setId(1001L);
+        itemA.setCocktail(cocktailA);
+        itemA.setQuantite(2);
+        itemA.setPrixUnitaire(new BigDecimal("10.00"));
+
+        CommandeItem itemB = new CommandeItem();
+        itemB.setId(1002L);
+        itemB.setCocktail(cocktailB);
+        itemB.setQuantite(1);
+        itemB.setPrixUnitaire(new BigDecimal("8.00"));
+
+        Commande cmd = new Commande();
+        cmd.setId(777L);
+        cmd.setTable(table);
+        cmd.setStatut(CommandeStatut.LIVREE);
+        cmd.setItems(List.of(itemA, itemB));
+
+        Facture unpaidFacture = new Facture();
+        unpaidFacture.setId(120L);
+        unpaidFacture.setTable(table);
+        unpaidFacture.setReglee(false);
+        unpaidFacture.setItems(new ArrayList<>());
+
+        when(tableRepository.findById(12L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of(cmd));
+        when(factureRepository.findByTable(table)).thenReturn(List.of(unpaidFacture));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(120L)).thenReturn(List.of());
+
+        TableAdditionResponseDTO addition = factureService.getTableAddition(12L);
+
+        assertThat(addition).isNotNull();
+        assertThat(addition.items()).hasSize(2);
+        verify(factureRepository).save(unpaidFacture);
+        assertThat(unpaidFacture.getItems()).hasSize(2);
+    }
 }
 
