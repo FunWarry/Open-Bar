@@ -23,6 +23,11 @@ import java.util.List;
  * @param nombreArticles     Total count of physical articles
  * @param hasUnpaidFacture   Whether an unpaid invoice is already generated
  * @param existingFactureId  ID of the existing unpaid invoice if present
+ * @param tabId              Optional bar tab identifier
+ * @param tabNom             Optional bar tab display name
+ * @param alreadyPaidAmount  Sum of previously recorded payments/settlements for this session
+ * @param remainingBalance   Net balance remaining to settle (totalTTC - alreadyPaidAmount)
+ * @param reglements         List of already settled split shares
  */
 @Schema(description = "Detailed bill summary and active orders for a table")
 public record TableAdditionResponseDTO(
@@ -41,8 +46,39 @@ public record TableAdditionResponseDTO(
     boolean hasUnpaidFacture,
     Long existingFactureId,
     Long tabId,
-    String tabNom
+    String tabNom,
+    BigDecimal alreadyPaidAmount,
+    BigDecimal remainingBalance,
+    List<FactureReglementDTO> reglements
 ) {
+    /**
+     * Backward-compatible 16-parameter constructor.
+     */
+    public TableAdditionResponseDTO(
+        Long tableId,
+        Integer tableNumero,
+        String zone,
+        Long serveurId,
+        String serveurNom,
+        LocalDateTime dateOccupation,
+        List<TableAdditionItemDTO> items,
+        List<Long> commandeIds,
+        BigDecimal totalHT,
+        BigDecimal totalVAT,
+        BigDecimal totalTTC,
+        int nombreArticles,
+        boolean hasUnpaidFacture,
+        Long existingFactureId,
+        Long tabId,
+        String tabNom
+    ) {
+        this(tableId, tableNumero, zone, serveurId, serveurNom, dateOccupation, items, commandeIds, totalHT, totalVAT, totalTTC,
+             nombreArticles, hasUnpaidFacture, existingFactureId, tabId, tabNom, BigDecimal.ZERO, totalTTC, List.of());
+    }
+
+    /**
+     * Backward-compatible 14-parameter constructor.
+     */
     public TableAdditionResponseDTO(
         Long tableId,
         Integer tableNumero,
@@ -59,6 +95,7 @@ public record TableAdditionResponseDTO(
         boolean hasUnpaidFacture,
         Long existingFactureId
     ) {
-        this(tableId, tableNumero, zone, serveurId, serveurNom, dateOccupation, items, commandeIds, totalHT, totalVAT, totalTTC, nombreArticles, hasUnpaidFacture, existingFactureId, null, null);
+        this(tableId, tableNumero, zone, serveurId, serveurNom, dateOccupation, items, commandeIds, totalHT, totalVAT, totalTTC,
+             nombreArticles, hasUnpaidFacture, existingFactureId, null, null, BigDecimal.ZERO, totalTTC, List.of());
     }
 }
