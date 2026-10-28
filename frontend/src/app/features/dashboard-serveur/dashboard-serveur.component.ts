@@ -28,7 +28,7 @@ import {
 import { AppCurrencyPipe } from '../../core/pipes/app-currency.pipe';
 import { tableRestaurantOutline } from '../../core/icons/custom-icons';
 import { CocktailService } from '../../core/services/cocktail.service';
-import { Cocktail } from '../../core/models/cocktail.model';
+import { Cocktail, CocktailVariante } from '../../core/models/cocktail.model';
 import { CocktailListComponent } from '../cocktails/cocktail-list/cocktail-list.component';
 import { HappyHourService } from '../../core/services/happy-hour.service';
 import { ZoneService, ZoneBar } from '../../core/services/zone.service';
@@ -1778,19 +1778,35 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   /**
-   * Handles cocktail selection from the embedded cocktail catalog in the order-taking tab.
-   * If the cocktail has variants, prompts the waiter to pick a variant (or the standard recipe)
-   * before adding the item to the order cart.
+   * Resolves the effective pricing and Happy Hour status for a cocktail.
    *
-   * @param cocktail - Selected cocktail from the catalog
+   * @param cocktail - The cocktail to resolve pricing for
+   * @returns Pricing resolution including effective price and happy hour flag
    */
-  async onCocktailSelected(cocktail: Cocktail): Promise<void> {
+  private resolveCocktailPricing(cocktail: Cocktail): { effectivePrice: number; isHappyHour: boolean; discountPercentage?: number } {
     const isHhEnabled = this.featureFlagService.happyHourEnabled();
-    const hhPricing = (this.happyHourService && isHhEnabled)
-      ? this.happyHourService.resolvePrice(cocktail.prix, cocktail.id, cocktail.categorie)
-      : { effectivePrice: cocktail.prix, isHappyHour: false, discountPercentage: undefined };
+    if (!this.happyHourService || !isHhEnabled) {
+      return { effectivePrice: cocktail.prix, isHappyHour: false };
+    }
+    return this.happyHourService.resolvePrice(cocktail.prix, cocktail.id, cocktail.categorie);
+  }
 
-    const productItem: ProductItem = {
+  /**
+   * Builds a cart ProductItem from a selected cocktail and its pricing.
+   *
+   * @param cocktail - Selected cocktail
+   * @param hhPricing - Resolved pricing
+   * @returns Standardized ProductItem for the order cart
+   */
+  private buildProductItemFromCocktail(
+    cocktail: Cocktail,
+    hhPricing: { effectivePrice: number; isHappyHour: boolean }
+  ): ProductItem {
+    const description = cocktail.ingredients && cocktail.ingredients.length > 0
+      ? cocktail.ingredients.map(i => i.ingredientNom).join(' · ')
+      : (cocktail.description || '');
+
+    return {
       id: cocktail.id,
       nom: cocktail.nom,
       prix: hhPricing.effectivePrice,
@@ -1798,62 +1814,125 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       isHappyHour: hhPricing.isHappyHour,
       categorie: cocktail.categorie,
       disponible: cocktail.disponible,
-      description: cocktail.ingredients && cocktail.ingredients.length > 0
-        ? cocktail.ingredients.map(i => i.ingredientNom).join(' · ')
-        : (cocktail.description || ''),
+      description,
       image: cocktail.imageUrl,
     };
+  }
 
+  /**
+   * Prepares the list of variants for the selection modal, including the standard recipe option.
+   *
+   * @param cocktail - Selected cocktail
+   * @param availableVariants - List of active cocktail variants
+   * @param hhPricing - Resolved base pricing
+   * @returns List of variants with resolved prices
+   */
+  private buildVariantsForModal(
+    cocktail: Cocktail,
+    availableVariants: CocktailVariante[],
+    hhPricing: { effectivePrice: number; isHappyHour: boolean }
+  ): ProductVariant[] {
+    const standardLabel = this.translocoService.translate('SERVEUR.NO_VARIANTE') || 'Standard';
+    const standardOption: ProductVariant = {
+      id: undefined,
+      nom: `${cocktail.nom} (${standardLabel})`,
+      prix: hhPricing.effectivePrice,
+    };
+
+    const isHhEnabled = this.featureFlagService.happyHourEnabled();
+    const mappedVariants = availableVariants.map(v => {
+      const rawPrice = Number((cocktail.prix + (v.prixSupplement || 0)).toFixed(2));
+      const vPricing = (this.happyHourService && isHhEnabled)
+        ? this.happyHourService.resolvePrice(rawPrice, cocktail.id, cocktail.categorie)
+        : { effectivePrice: rawPrice, isHappyHour: false };
+      return {
+        id: v.id,
+        nom: v.nom,
+        prix: vPricing.effectivePrice,
+      };
+    });
+
+    return [standardOption, ...mappedVariants];
+  }
+
+  /**
+   * Adds the selected variant to the cart with appropriate original and discounted prices.
+   *
+   * @param cocktail - Selected cocktail
+   * @param productItem - Base product item
+   * @param availableVariants - List of available variants
+   * @param hhPricing - Resolved pricing info
+   * @param selectedVariant - The variant chosen by the user
+   */
+  private applySelectedVariantToCart(
+    cocktail: Cocktail,
+    productItem: ProductItem,
+    availableVariants: CocktailVariante[],
+    hhPricing: { effectivePrice: number; isHappyHour: boolean },
+    selectedVariant: ProductVariant
+  ): void {
+    const isStandard = selectedVariant.id === undefined;
+    const supplement = availableVariants.find(v => v.id === selectedVariant.id)?.prixSupplement || 0;
+    const basePrice = isStandard ? cocktail.prix : Number((cocktail.prix + supplement).toFixed(2));
+    const hasDiscount = hhPricing.isHappyHour && selectedVariant.prix < basePrice;
+
+    this.pushItemToCart(
+      productItem,
+      isStandard ? undefined : selectedVariant.nom,
+      selectedVariant.prix,
+      undefined,
+      undefined,
+      selectedVariant.id,
+      hasDiscount ? basePrice : undefined,
+    );
+  }
+
+  /**
+   * Prompts the user to pick a variant and pushes the choice to the cart.
+   *
+   * @param cocktail - Selected cocktail
+   * @param productItem - Base product item
+   * @param availableVariants - Active variants
+   * @param hhPricing - Base pricing resolution
+   */
+  private async promptVariantSelection(
+    cocktail: Cocktail,
+    productItem: ProductItem,
+    availableVariants: CocktailVariante[],
+    hhPricing: { effectivePrice: number; isHappyHour: boolean }
+  ): Promise<void> {
+    const variantsForModal = this.buildVariantsForModal(cocktail, availableVariants, hhPricing);
+    const modal = await this.modalCtrl.create({
+      component: VariantSelectionModalComponent,
+      componentProps: {
+        product: {
+          ...productItem,
+          variantes: variantsForModal,
+        },
+      },
+    });
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm' && data?.selectedVariant) {
+      this.applySelectedVariantToCart(cocktail, productItem, availableVariants, hhPricing, data.selectedVariant);
+    }
+  }
+
+  /**
+   * Handles cocktail selection from the embedded cocktail catalog in the order-taking tab.
+   * If the cocktail has variants, prompts the waiter to pick a variant (or the standard recipe)
+   * before adding the item to the order cart.
+   *
+   * @param cocktail - Selected cocktail from the catalog
+   */
+  async onCocktailSelected(cocktail: Cocktail): Promise<void> {
+    const hhPricing = this.resolveCocktailPricing(cocktail);
+    const productItem = this.buildProductItemFromCocktail(cocktail, hhPricing);
     const availableVariants = (cocktail.variantes || []).filter(v => v.disponible !== false);
 
     if (availableVariants.length > 0) {
-      const standardOption: ProductVariant = {
-        id: undefined,
-        nom: `${cocktail.nom} (${this.translocoService.translate('SERVEUR.NO_VARIANTE') || 'Standard'})`,
-        prix: hhPricing.effectivePrice,
-      };
-      const variantsForModal: ProductVariant[] = [
-        standardOption,
-        ...availableVariants.map(v => {
-          const rawVariantPrice = Number((cocktail.prix + (v.prixSupplement || 0)).toFixed(2));
-          const vPricing = (this.happyHourService && isHhEnabled)
-            ? this.happyHourService.resolvePrice(rawVariantPrice, cocktail.id, cocktail.categorie)
-            : { effectivePrice: rawVariantPrice, isHappyHour: false };
-          return {
-            id: v.id,
-            nom: v.nom,
-            prix: vPricing.effectivePrice,
-          };
-        }),
-      ];
-
-      const modal = await this.modalCtrl.create({
-        component: VariantSelectionModalComponent,
-        componentProps: {
-          product: {
-            ...productItem,
-            variantes: variantsForModal,
-          },
-        },
-      });
-      await modal.present();
-      const { data, role } = await modal.onWillDismiss();
-      if (role === 'confirm' && data?.selectedVariant) {
-        const isStandard = data.selectedVariant.id === undefined;
-        const selectedBasePrice = isStandard
-          ? cocktail.prix
-          : Number((cocktail.prix + ((availableVariants.find(v => v.id === data.selectedVariant.id)?.prixSupplement) || 0)).toFixed(2));
-        const hasHh = hhPricing.isHappyHour && data.selectedVariant.prix < selectedBasePrice;
-        this.pushItemToCart(
-          productItem,
-          isStandard ? undefined : data.selectedVariant.nom,
-          data.selectedVariant.prix,
-          undefined,
-          undefined,
-          data.selectedVariant.id,
-          hasHh ? selectedBasePrice : undefined,
-        );
-      }
+      await this.promptVariantSelection(cocktail, productItem, availableVariants, hhPricing);
       return;
     }
 

@@ -2,13 +2,14 @@
 
 /**
  * OpenBar — Fast Pre-Push Validation Script
- * Verifies the 6 critical quality gates before committing or pushing:
- * 1. Zero IDE Problems / TypeScript compilation (npx tsc --noEmit)
- * 2. i18n JSON Parity (fr.json vs en.json)
+ * Verifies the 7 critical quality gates before committing or pushing:
+ * 1. Transloco i18n JSON Parity (fr.json vs en.json)
+ * 2. Zero @SuppressWarnings in modified Java/TS files
  * 3. No hardcoded colors in modified styles (#hex, rgb())
- * 4. Zero @SuppressWarnings in modified Java/TS files
- * 5. Backend compilation check (mvn test-compile)
- * 6. CSS / SCSS Sonar Quality Rules (css:S9449 transition:all & css:S9440 reduced-motion)
+ * 4. CSS / SCSS Sonar Quality Rules (css:S9449 transition:all & css:S9440 reduced-motion)
+ * 5. TypeScript Cognitive Complexity (Sonar typescript:S3776 <= 15)
+ * 6. Zero IDE Problems / Frontend TypeScript compilation (npx tsc --noEmit)
+ * 7. Backend compilation check (mvn test-compile)
  */
 
 const fs = require('node:fs');
@@ -183,7 +184,6 @@ function checkNoHardcodedColors(modifiedFiles) {
 
     const lines = fs.readFileSync(full, 'utf8').split('\n');
     lines.forEach((line, idx) => {
-      // Ignore CSS variables definition or comment lines
       if (line.includes('--') || line.trim().startsWith('/*') || line.trim().startsWith('//')) return;
       const match = line.match(hexRegex);
       if (match) {
@@ -235,6 +235,99 @@ function checkCssSonarQuality(modifiedFiles) {
   }
 }
 
+// --- Check 7: TypeScript Cognitive Complexity (SonarQube typescript:S3776 <= 15) ---
+function checkCognitiveComplexity(modifiedFiles) {
+  logStep('TypeScript Cognitive Complexity Check (Sonar typescript:S3776 <= 15)');
+  const tsFiles = modifiedFiles.filter(f => f.endsWith('.ts') && !f.endsWith('.spec.ts') && !f.endsWith('.d.ts'));
+
+  if (tsFiles.length === 0) {
+    logPass('No modified TypeScript application files to evaluate.');
+    return;
+  }
+
+  let tsModule;
+  try {
+    tsModule = require(path.join(FRONTEND_DIR, 'node_modules/typescript'));
+  } catch (err) {
+    console.warn(`  ⚠️ Could not load TypeScript compiler AST module: ${err.message}`);
+    return;
+  }
+
+  let violations = 0;
+  const MAX_COMPLEXITY = 15;
+
+  function computeComplexity(node) {
+    let complexity = 0;
+    function walk(n, nesting) {
+      let nestInc = 0;
+      switch (n.kind) {
+        case tsModule.SyntaxKind.IfStatement:
+        case tsModule.SyntaxKind.ConditionalExpression:
+        case tsModule.SyntaxKind.SwitchStatement:
+        case tsModule.SyntaxKind.ForStatement:
+        case tsModule.SyntaxKind.ForInStatement:
+        case tsModule.SyntaxKind.ForOfStatement:
+        case tsModule.SyntaxKind.WhileStatement:
+        case tsModule.SyntaxKind.DoStatement:
+        case tsModule.SyntaxKind.CatchClause:
+          complexity += (1 + nesting);
+          nestInc = 1;
+          break;
+        case tsModule.SyntaxKind.BinaryExpression: {
+          const op = n.operatorToken.kind;
+          if (op === tsModule.SyntaxKind.AmpersandAmpersandToken || op === tsModule.SyntaxKind.BarBarToken) {
+            const parent = n.parent;
+            if (!parent || parent.kind !== tsModule.SyntaxKind.BinaryExpression || parent.operatorToken.kind !== op) {
+              complexity += 1;
+            }
+          }
+          break;
+        }
+      }
+
+      tsModule.forEachChild(n, (child) => {
+        if (child.kind === tsModule.SyntaxKind.FunctionDeclaration ||
+            child.kind === tsModule.SyntaxKind.MethodDeclaration ||
+            child.kind === tsModule.SyntaxKind.ArrowFunction ||
+            child.kind === tsModule.SyntaxKind.FunctionExpression) {
+          return;
+        }
+        walk(child, nesting + nestInc);
+      });
+    }
+
+    tsModule.forEachChild(node.body || node, (child) => walk(child, 0));
+    return complexity;
+  }
+
+  for (const rel of tsFiles) {
+    const full = path.join(ROOT_DIR, rel);
+    if (!fs.existsSync(full)) continue;
+
+    const code = fs.readFileSync(full, 'utf8');
+    const sf = tsModule.createSourceFile(path.basename(rel), code, tsModule.ScriptTarget.Latest, true);
+
+    function inspect(n) {
+      if (tsModule.isMethodDeclaration(n) || tsModule.isFunctionDeclaration(n)) {
+        const c = computeComplexity(n);
+        if (c > MAX_COMPLEXITY) {
+          const name = n.name ? n.name.getText(sf) : 'anonymous function';
+          const { line, character } = sf.getLineAndCharacterOfPosition(n.getStart(sf));
+          logFail(`Method "${name}" at ${rel}:${line + 1}:${character + 1} has Cognitive Complexity of ${c} (max allowed is ${MAX_COMPLEXITY}, Sonar typescript:S3776).`);
+          violations++;
+        }
+      }
+      tsModule.forEachChild(n, inspect);
+    }
+
+    inspect(sf);
+  }
+
+  if (violations === 0) {
+    logPass(`All methods in modified TypeScript files adhere to Cognitive Complexity <= ${MAX_COMPLEXITY} (Sonar S3776).`);
+  }
+}
+
 // Run all checks
 console.log('\x1b[1m🚀 Running OpenBar Pre-Push Verification Suite...\x1b[0m');
 checkI18nParity();
@@ -242,6 +335,7 @@ const modifiedFiles = getModifiedFiles();
 checkNoSuppressWarnings(modifiedFiles);
 checkNoHardcodedColors(modifiedFiles);
 checkCssSonarQuality(modifiedFiles);
+checkCognitiveComplexity(modifiedFiles);
 checkTypeScript();
 checkBackendCompile();
 
