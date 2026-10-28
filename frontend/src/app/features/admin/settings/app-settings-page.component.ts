@@ -83,6 +83,7 @@ import {
   addOutline,
   flameOutline,
   walkOutline,
+  mailOutline,
 } from 'ionicons/icons';
 import { HappyHourConfigComponent } from './components/happy-hour-config/happy-hour-config.component';
 import { LegalComponent, LegalTab } from '../../legal/legal.component';
@@ -304,6 +305,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
   readonly happyHourEnabled = this.featureFlagService.happyHourEnabled;
   readonly qrClientOrderingEnabled = this.featureFlagService.qrClientOrderingEnabled;
+  readonly qrPayAtTableEnabled = this.featureFlagService.qrPayAtTableEnabled;
   readonly angelShotSafetyEnabled = this.featureFlagService.angelShotSafetyEnabled;
 
   readonly roulettePin = signal<string>('7777');
@@ -394,6 +396,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     checklistsProcedures: true,
     systemUpdates: true,
     angelShotSafety: true,
+    qrPayAtTable: true,
   };
   initialThemeMode: AppTheme = 'dark';
   initialColors: CustomThemeColors = { ...DEFAULT_FIGMA_PALETTE };
@@ -482,6 +485,11 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   readonly languageOptions: SearchableOption<string>[] = [
     { value: 'fr', label: 'Français (FR)', badge: 'FR', badgeType: 'primary' },
     { value: 'en', label: 'English (EN)', badge: 'EN', badgeType: 'neutral' },
+  ];
+
+  readonly paymentProviderOptions: SearchableOption<string>[] = [
+    { value: 'SANDBOX', label: 'Sandbox / Simulateur local (Démo)', subLabel: 'Transactions locales sans frais bancaires ni clé API', badge: 'Dev', badgeType: 'neutral' },
+    { value: 'STRIPE', label: 'Stripe Gateway (CB, Apple Pay, Google Pay)', subLabel: 'Passerelle sécurisée Stripe Elements', badge: 'Live', badgeType: 'primary' },
   ];
 
   readonly ticketFormatOptions: SearchableOption<'80mm' | '58mm'>[] = [
@@ -594,6 +602,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       addOutline,
       flameOutline,
       walkOutline,
+      mailOutline,
     });
     this.initForms();
   }
@@ -743,6 +752,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       checklistsProcedures: [true],
       systemUpdates: [true],
       angelShotSafety: [true],
+      qrPayAtTable: [true],
     });
 
     this.etabForm = this.fb.group({
@@ -805,6 +815,18 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       tpeTerminalId: ['POS01', [Validators.maxLength(50)]],
       tpeTimeoutSeconds: [90, [Validators.min(5), Validators.max(300)]],
       cashDiscrepancyToleranceThreshold: [5.0, [Validators.required, Validators.min(0), Validators.max(1000)]],
+      onlinePaymentProvider: ['SANDBOX'],
+      stripePublishableKey: [''],
+      stripeSecretKey: [''],
+      stripeWebhookSecret: [''],
+      onlinePaymentCurrency: ['EUR'],
+      smtpHost: [''],
+      smtpPort: [587],
+      smtpUsername: [''],
+      smtpPassword: [''],
+      smtpFrom: [''],
+      smtpAuth: [true],
+      smtpStarttls: [true],
     }, { validators: [thresholdPriorityValidator, marginThresholdPriorityValidator] });
 
     const currentColors = this.themeService.currentCustomColors;
@@ -2079,14 +2101,15 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       !!current.tableReservations === target.tableReservations &&
       !!current.checklistsProcedures === target.checklistsProcedures &&
       !!current.systemUpdates === target.systemUpdates &&
-      !!current.angelShotSafety === target.angelShotSafety
+      !!current.angelShotSafety === target.angelShotSafety &&
+      !!current.qrPayAtTable === target.qrPayAtTable
     );
   }
 
   /**
    * Total count of available modular capabilities.
    */
-  readonly totalModulesCount = 17;
+  readonly totalModulesCount = 18;
 
   /**
    * Computes the number of currently active modules in modulesForm.

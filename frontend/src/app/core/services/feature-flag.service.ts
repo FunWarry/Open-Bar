@@ -29,6 +29,7 @@ const DEFAULT_MODULES: EstablishmentModules = {
   checklistsProcedures: true,
   systemUpdates: true,
   angelShotSafety: true,
+  qrPayAtTable: true,
 };
 
 /**
@@ -100,6 +101,9 @@ export class FeatureFlagService implements OnDestroy {
   /** Computed signal for ANGEL_SHOT_SAFETY capability status. */
   readonly angelShotSafetyEnabled = computed(() => this.modules().angelShotSafety);
 
+  /** Computed signal for QR_PAY_AT_TABLE capability status. */
+  readonly qrPayAtTableEnabled = computed(() => this.modules().qrPayAtTable);
+
   constructor() {
     this.initWebSocketSubscription();
     this.loadModules().subscribe();
@@ -153,6 +157,8 @@ export class FeatureFlagService implements OnDestroy {
         return current.systemUpdates;
       case EstablishmentModule.ANGEL_SHOT_SAFETY:
         return current.angelShotSafety;
+      case EstablishmentModule.QR_PAY_AT_TABLE:
+        return current.qrPayAtTable;
       default:
         return true;
     }

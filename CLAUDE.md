@@ -436,9 +436,10 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 3 octobre 2026 — Version 0.8.0 : Bar Tabs sans table (#538/#539), Intégration TPE Concert IP (:8888), Inventaire physique périodique & jauges visuelles, Roue des arômes & variantes cocktails, Mystery Drink Roulette & TV Display, Achats fournisseurs & WAC/PAMP, Tiroir-caisse & X-report, Impression ESC/POS directe (TCP 9100).
+> Dernière mise à jour : 29 octobre 2026 — Audit de sécurité approfondi, durcissement multi-couches & suite qualité pré-push (#616 / #617).
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
+| Audit de sécurité complet & durcissement multi-couches (anti-commandes gratuites, NF525, SSRF, panier QR, Actuator, Sonar) (#616 / #617) | ✅ | ✅ | ✅ |
 | Saisie Rapide Pertes & Dégustations Barman, Speed Rail & Doses Bouteille (#566 / #599) | ✅ | ✅ | ✅ |
 | Mises à jour OTA automatisées, snapshot BDD, healthcheck & auto-rollback (#568 / #592) | ✅ | ✅ | ✅ |
 | Bar Tabs & Ardoises Comptoir sans Table (#538 / #539) | ✅ | ✅ | ✅ |

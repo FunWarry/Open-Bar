@@ -74,7 +74,11 @@
 
       <!-- Quick Table Service & Bill Actions Bar -->
       @if (commande.tableNumero || commande.tableId) {
-        <app-table-assistance-bar [tableNumero]="(commande.tableNumero || commande.tableId)!"></app-table-assistance-bar>
+        <app-table-assistance-bar
+          [tableNumero]="(commande.tableNumero || commande.tableId)!"
+          [canPayOnline]="isQrPayAtTableEnabled() && canPayThisOrder()"
+          (openPayment)="openPaymentModal()">
+        </app-table-assistance-bar>
       }
 
       <div class="actions-row">
@@ -98,5 +102,14 @@
         {{ 'CLIENT.ORDER_NOW' | transloco }}
       </app-action-button>
     </div>
+  }
+
+  @if (isPaymentModalOpen() && currentTableNumero) {
+    <app-client-payment-modal
+      [tableId]="currentTableNumero"
+      [tableNumero]="currentTableNumero"
+      (closeModal)="closePaymentModal()"
+      (paymentCompleted)="onPaymentCompleted($event)">
+    </app-client-payment-modal>
   }
 </div>

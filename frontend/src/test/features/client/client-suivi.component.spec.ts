@@ -7,6 +7,8 @@ import { ClientSuiviComponent } from '../../../app/features/client/client-suivi/
 import { CommandeService } from '../../../app/core/services/commande.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { TableAppelService } from '../../../app/core/services/table-appel.service';
+import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
+import { OnlinePaymentService } from '../../../app/core/services/online-payment.service';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TableAppel } from '../../../app/core/models/table-appel.model';
 
@@ -16,6 +18,8 @@ describe('ClientSuiviComponent', () => {
   let commandeServiceSpy: jasmine.SpyObj<CommandeService>;
   let websocketServiceSpy: jasmine.SpyObj<WebSocketService>;
   let tableAppelServiceSpy: jasmine.SpyObj<TableAppelService>;
+  let featureFlagServiceSpy: jasmine.SpyObj<FeatureFlagService>;
+  let onlinePaymentServiceSpy: jasmine.SpyObj<OnlinePaymentService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let router: Router;
 
@@ -53,6 +57,25 @@ describe('ClientSuiviComponent', () => {
       'appelerServeur',
       'getAppelsActifsPourTable'
     ]);
+    featureFlagServiceSpy = jasmine.createSpyObj('FeatureFlagService', ['isModuleEnabled']);
+    featureFlagServiceSpy.isModuleEnabled.and.returnValue(true);
+    onlinePaymentServiceSpy = jasmine.createSpyObj('OnlinePaymentService', [
+      'getTableBill',
+      'createPaymentIntent',
+      'confirmSandboxPayment',
+      'downloadReceiptPdf'
+    ]);
+    onlinePaymentServiceSpy.getTableBill.and.returnValue(of({
+      tableId: 4,
+      tableNumero: 4,
+      totalTTC: 17.5,
+      remainingBalance: 17.5,
+      items: [],
+      alreadyPaidAmount: 0,
+      isFullySettled: false,
+      onlinePaymentEnabled: true,
+      paymentProvider: 'SANDBOX'
+    } as any));
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
 
     commandeServiceSpy.getById.and.returnValue(of(mockCommande as any));
@@ -71,6 +94,8 @@ describe('ClientSuiviComponent', () => {
         { provide: CommandeService, useValue: commandeServiceSpy },
         { provide: WebSocketService, useValue: websocketServiceSpy },
         { provide: TableAppelService, useValue: tableAppelServiceSpy },
+        { provide: FeatureFlagService, useValue: featureFlagServiceSpy },
+        { provide: OnlinePaymentService, useValue: onlinePaymentServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         {
           provide: ActivatedRoute,
@@ -139,5 +164,32 @@ describe('ClientSuiviComponent', () => {
     const localFixture = TestBed.createComponent(ClientSuiviComponent);
     localFixture.detectChanges();
     expect(router.navigate).toHaveBeenCalledWith(['/404']);
+  });
+
+  it('should manage payment modal visibility and refresh order on completion', () => {
+    expect(component.isPaymentModalOpen()).toBeFalse();
+    expect(component.isQrPayAtTableEnabled()).toBeTrue();
+    expect(component.canPayThisOrder()).toBeTrue();
+
+    component.openPaymentModal();
+    expect(component.isPaymentModalOpen()).toBeTrue();
+
+    component.closePaymentModal();
+    expect(component.isPaymentModalOpen()).toBeFalse();
+
+    component.openPaymentModal();
+    component.onPaymentCompleted({
+      transactionId: 'TX-1',
+      status: 'SUCCEEDED',
+      baseAmount: 17.5,
+      tipAmount: 0,
+      totalAmount: 17.5,
+      currency: 'EUR',
+      remainingBalance: 0,
+      isTableFullySettled: true,
+      tableLiberated: true
+    });
+    expect(component.isPaymentModalOpen()).toBeFalse();
+    expect(commandeServiceSpy.getById).toHaveBeenCalledWith(42);
   });
 });

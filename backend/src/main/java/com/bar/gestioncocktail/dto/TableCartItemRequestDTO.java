@@ -1,12 +1,15 @@
 package com.bar.gestioncocktail.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 /**
  * Request DTO to add or increment an item in the collaborative table cart.
@@ -44,8 +47,9 @@ public class TableCartItemRequestDTO {
     @Schema(description = "Whether this is a mystery drink won on the roulette", example = "true")
     private Boolean isMysteryDrink = false;
 
+    @DecimalMin(value = "0.01", message = "Override price must be strictly positive")
     @Schema(description = "Optional override unit price for mystery drinks", example = "7.50")
-    private java.math.BigDecimal prixOverride;
+    private BigDecimal prixOverride;
 
     /**
      * Backward-compatible 6-argument constructor.
@@ -79,7 +83,7 @@ public class TableCartItemRequestDTO {
      * @return Initialized table cart item request
      */
     public static TableCartItemRequestDTO ofMysteryDrink(String guestSessionId, String guestName, Long cocktailId,
-                                                         String notes, java.math.BigDecimal prixOverride) {
+                                                         String notes, BigDecimal prixOverride) {
         TableCartItemRequestDTO dto = new TableCartItemRequestDTO(guestSessionId, guestName, cocktailId, null, 1, notes);
         dto.setIsMysteryDrink(true);
         dto.setPrixOverride(prixOverride);

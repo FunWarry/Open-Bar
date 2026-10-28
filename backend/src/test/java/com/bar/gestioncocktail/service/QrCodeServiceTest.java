@@ -67,6 +67,21 @@ class QrCodeServiceTest {
             assertThat(image.getWidth()).isEqualTo(180);
             assertThat(image.getHeight()).isEqualTo(180);
         }
+
+        @Test
+        @DisplayName("Should clamp oversized and undersized QR dimensions to safe bounds [100, 2048]")
+        void generateBufferedImage_outOfBoundsDimensions_clampsToSafeRange() {
+            BufferedImage smallImage = qrCodeService.generateBufferedImage("https://openbar.lan/client/commande?table=7", 10, 20);
+            assertThat(smallImage.getWidth()).isEqualTo(100);
+            assertThat(smallImage.getHeight()).isEqualTo(100);
+
+            BufferedImage largeImage = qrCodeService.generateBufferedImage("https://openbar.lan/client/commande?table=7", 50000, 50000);
+            assertThat(largeImage.getWidth()).isEqualTo(2048);
+            assertThat(largeImage.getHeight()).isEqualTo(2048);
+
+            String clampedSvg = qrCodeService.generateSvg("https://openbar.lan/client/commande?table=7", 99999);
+            assertThat(clampedSvg).contains("width=\"2048\"").contains("height=\"2048\"");
+        }
     }
 
     @Nested

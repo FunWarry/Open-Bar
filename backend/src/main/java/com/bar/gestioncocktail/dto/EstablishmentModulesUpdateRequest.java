@@ -21,6 +21,7 @@ package com.bar.gestioncocktail.dto;
  * @param checklistsProcedures Optional new status for Checklists & Procedures module
  * @param systemUpdates        Optional new status for System Updates module
  * @param angelShotSafety      Optional new status for Angel Shot Safety module
+ * @param qrPayAtTable         Optional new status for QR Pay-at-Table module
  */
 public record EstablishmentModulesUpdateRequest(
         Boolean cuisineKds,
@@ -39,8 +40,31 @@ public record EstablishmentModulesUpdateRequest(
         Boolean tableReservations,
         Boolean checklistsProcedures,
         Boolean systemUpdates,
-        Boolean angelShotSafety
+        Boolean angelShotSafety,
+        Boolean qrPayAtTable
 ) {
+    public EstablishmentModulesUpdateRequest(
+            Boolean cuisineKds,
+            Boolean happyHour,
+            Boolean employeeManagement,
+            Boolean floorPlan,
+            Boolean qrClientOrdering,
+            Boolean stockTracking,
+            Boolean cashDrawer,
+            Boolean barTabs,
+            Boolean cocktailLibrary,
+            Boolean suppliersManagement,
+            Boolean inventoryAudit,
+            Boolean mysteryRoulette,
+            Boolean paymentTerminal,
+            Boolean tableReservations,
+            Boolean checklistsProcedures,
+            Boolean systemUpdates,
+            Boolean angelShotSafety
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, tableReservations, checklistsProcedures, systemUpdates, angelShotSafety, null);
+    }
+
     public EstablishmentModulesUpdateRequest(
             Boolean cuisineKds,
             Boolean happyHour,
@@ -59,7 +83,7 @@ public record EstablishmentModulesUpdateRequest(
             Boolean checklistsProcedures,
             Boolean systemUpdates
     ) {
-        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, tableReservations, checklistsProcedures, systemUpdates, null);
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, tableReservations, checklistsProcedures, systemUpdates, null, null);
     }
 
     public EstablishmentModulesUpdateRequest(

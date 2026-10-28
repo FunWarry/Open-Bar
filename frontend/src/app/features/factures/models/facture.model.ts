@@ -38,6 +38,7 @@ export interface TableAdditionItem {
   vatRate: string;
   isHappyHour?: boolean;
   basePrice?: number;
+  quantitePayee?: number;
 }
 
 export interface TableAdditionResponse {
@@ -55,6 +56,11 @@ export interface TableAdditionResponse {
   nombreArticles: number;
   hasUnpaidFacture: boolean;
   existingFactureId?: number;
+  tabId?: number;
+  tabNom?: string;
+  alreadyPaidAmount?: number;
+  remainingBalance?: number;
+  reglements?: FactureReglement[];
 }
 
 /**

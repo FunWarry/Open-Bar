@@ -79,6 +79,20 @@ class ConcertSocketClientTest {
     }
 
     @Test
+    @DisplayName("Should reject privileged, database, or link-local SSRF targets")
+    void shouldRejectForbiddenPortsAndAddresses() {
+        assertThatThrownBy(() -> socketClient.testConnection("127.0.0.1", 22, 500))
+                .isInstanceOf(java.io.IOException.class)
+                .hasMessageContaining("outside allowed terminal range");
+        assertThatThrownBy(() -> socketClient.testConnection("127.0.0.1", 6379, 500))
+                .isInstanceOf(java.io.IOException.class)
+                .hasMessageContaining("outside allowed terminal range");
+        assertThatThrownBy(() -> socketClient.testConnection("169.254.169.254", 8888, 500))
+                .isInstanceOf(java.io.IOException.class)
+                .hasMessageContaining("Target IP address is not an allowed terminal address");
+    }
+
+    @Test
     @DisplayName("Should execute debit transaction over TCP loopback and parse approval")
     void shouldExecuteDebitTransactionSuccessfully() throws Exception {
         String txId = "test-tx-001";

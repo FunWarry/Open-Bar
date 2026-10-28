@@ -27,10 +27,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import com.bar.gestioncocktail.dto.SplitMontantsRequest;
 import com.bar.gestioncocktail.dto.SplitPourcentagesRequest;
+import com.bar.gestioncocktail.dto.EncaisserPartRequest;
+import com.bar.gestioncocktail.dto.FactureReglementDTO;
 
 import com.bar.gestioncocktail.model.AvoirCredit;
 import com.bar.gestioncocktail.model.VatRate;
@@ -255,6 +259,7 @@ public class FactureService {
     public Facture updateFacture(Long id, Facture factureDetails) {
         Facture facture = factureRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_ID_PREFIX + id));
+        checkInvoiceNotFinalized(facture);
 
         facture.setTable(factureDetails.getTable());
         facture.setItems(factureDetails.getItems());
@@ -272,6 +277,7 @@ public class FactureService {
 
     @Transactional
     public void deleteFacture(Long id) {
+        factureRepository.findById(id).ifPresent(this::checkInvoiceNotFinalized);
         factureRepository.deleteById(id);
     }
 /**
@@ -286,6 +292,7 @@ public class FactureService {
     public Facture ajouterItem(Long factureId, FactureItem item) {
         Facture facture = factureRepository.findById(factureId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_ID_PREFIX + factureId));
+        checkInvoiceNotFinalized(facture);
 
         facture.getItems().add(item);
         facture.setTotal(
@@ -305,6 +312,7 @@ public class FactureService {
     public Facture retirerItem(Long factureId, Long itemId) {
         Facture facture = factureRepository.findById(factureId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_ID_PREFIX + factureId));
+        checkInvoiceNotFinalized(facture);
 
         facture.getItems().removeIf(item -> item.getId().equals(itemId));
 
@@ -317,6 +325,12 @@ public class FactureService {
         facture.setTotal(total);
 
         return factureRepository.save(facture);
+    }
+
+    private void checkInvoiceNotFinalized(Facture facture) {
+        if (facture != null && facture.isFinalized()) {
+            throw new BusinessException("Invoice " + facture.getNumero() + " is finalized and immutable.");
+        }
     }
 /**
      * Settles and closes an invoice with a chosen payment method and optional tip.
@@ -420,7 +434,7 @@ public class FactureService {
      * @param tableId Table identifier
      * @return TableAdditionResponseDTO containing aggregated items, tax breakdown, and totals
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public TableAdditionResponseDTO getTableAddition(Long tableId) {
         TableEntity table = tableRepository.findById(tableId)
                 .orElseThrow(() -> new ResourceNotFoundException(TABLE_NOT_FOUND_PREFIX + tableId));
@@ -431,8 +445,15 @@ public class FactureService {
         List<Facture> facturesTable = factureRepository.findByTable(table);
         Optional<Facture> unpaidFacture = findUnpaidFacture(facturesTable);
 
+        if (unpaidFacture.isPresent() && !activeCommandes.isEmpty()) {
+            syncInvoiceWithActiveOrders(unpaidFacture.get(), activeCommandes);
+        }
+
+        List<FactureReglementDTO> reglements = unpaidFacture.map(this::fetchReglementsForFacture).orElseGet(List::of);
+        BigDecimal alreadyPaidAmount = calculateAlreadyPaid(reglements);
+
         String serveurNom = resolveServeurName(table, activeCommandes);
-        List<TableAdditionItemDTO> items = buildAdditionItemList(activeCommandes, unpaidFacture);
+        List<TableAdditionItemDTO> items = buildAdditionItemList(activeCommandes, unpaidFacture, reglements);
 
         BigDecimal totalHT = BigDecimal.ZERO;
         BigDecimal totalVAT = BigDecimal.ZERO;
@@ -451,6 +472,8 @@ public class FactureService {
             }
             totalArticles += item.quantite();
         }
+
+        BigDecimal remainingBalance = totalTTC.subtract(alreadyPaidAmount).max(BigDecimal.ZERO);
 
         List<Long> commandeIds = activeCommandes.stream()
                 .filter(c -> c != null && c.getId() != null)
@@ -471,7 +494,12 @@ public class FactureService {
                 totalTTC,
                 totalArticles,
                 unpaidFacture.isPresent(),
-                unpaidFacture.isPresent() ? unpaidFacture.get().getId() : null
+                unpaidFacture.isPresent() ? unpaidFacture.get().getId() : null,
+                null,
+                null,
+                alreadyPaidAmount,
+                remainingBalance,
+                reglements
         );
     }
 
@@ -533,15 +561,7 @@ public class FactureService {
         return FactureResponseDTO.from(savedFacture);
     }
 
-    /**
-     * Generates or retrieves an unpaid pending invoice for an occupied table based on its active orders.
-     * If an unpaid invoice already exists, it is synchronized with any new active order items.
-     *
-     * @param tableId Table identifier
-     * @return FactureResponseDTO representing the pending invoice
-     */
-    @Transactional
-    public FactureResponseDTO genererFactureTable(Long tableId) {
+    private Facture getOrCreateUnpaidFactureForTable(Long tableId) {
         TableEntity table = tableRepository.findById(tableId)
                 .orElseThrow(() -> new ResourceNotFoundException(TABLE_NOT_FOUND_PREFIX + tableId));
 
@@ -563,17 +583,22 @@ public class FactureService {
         auditLogService.logAction(null, "GENERATE_INVOICE_TABLE", ENTITY_FACTURE, savedFacture.getId(),
                 "Generated pending invoice " + savedFacture.getNumero() + " for table " + table.getNumero(), null);
 
-        return FactureResponseDTO.from(savedFacture);
+        return savedFacture;
     }
 
     /**
-     * Generates or retrieves an unpaid pending invoice for an active bar tab based on its active orders.
+     * Generates or retrieves an unpaid pending invoice for an occupied table based on its active orders.
+     * If an unpaid invoice already exists, it is synchronized with any new active order items.
      *
-     * @param tabId Bar tab identifier
+     * @param tableId Table identifier
      * @return FactureResponseDTO representing the pending invoice
      */
     @Transactional
-    public FactureResponseDTO genererFactureTab(Long tabId) {
+    public FactureResponseDTO genererFactureTable(Long tableId) {
+        return FactureResponseDTO.from(getOrCreateUnpaidFactureForTable(tableId));
+    }
+
+    private Facture getOrCreateUnpaidFactureForTab(Long tabId) {
         if (establishmentConfigService != null) {
             establishmentConfigService.checkModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.BAR_TABS);
         }
@@ -598,7 +623,18 @@ public class FactureService {
         auditLogService.logAction(null, "GENERATE_INVOICE_TAB", ENTITY_FACTURE, savedFacture.getId(),
                 "Generated pending invoice " + savedFacture.getNumero() + " for bar tab " + tab.getNom(), null);
 
-        return FactureResponseDTO.from(savedFacture);
+        return savedFacture;
+    }
+
+    /**
+     * Generates or retrieves an unpaid pending invoice for an active bar tab based on its active orders.
+     *
+     * @param tabId Bar tab identifier
+     * @return FactureResponseDTO representing the pending invoice
+     */
+    @Transactional
+    public FactureResponseDTO genererFactureTab(Long tabId) {
+        return FactureResponseDTO.from(getOrCreateUnpaidFactureForTab(tabId));
     }
 
     /**
@@ -607,7 +643,7 @@ public class FactureService {
      * @param tabId Bar tab identifier
      * @return TableAdditionResponseDTO containing aggregated items, tax breakdown, and totals for the bar tab
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public TableAdditionResponseDTO getTabAddition(Long tabId) {
         if (establishmentConfigService != null) {
             establishmentConfigService.checkModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.BAR_TABS);
@@ -621,8 +657,15 @@ public class FactureService {
         List<Facture> facturesTab = factureRepository.findByBarTab(tab);
         Optional<Facture> unpaidFacture = findUnpaidFacture(facturesTab);
 
+        if (unpaidFacture.isPresent() && !activeCommandes.isEmpty()) {
+            syncInvoiceWithActiveOrders(unpaidFacture.get(), activeCommandes);
+        }
+
+        List<FactureReglementDTO> reglements = unpaidFacture.map(this::fetchReglementsForFacture).orElseGet(List::of);
+        BigDecimal alreadyPaidAmount = calculateAlreadyPaid(reglements);
+
         String serveurNom = tab.getServeur() != null ? (tab.getServeur().getPrenom() + " " + tab.getServeur().getNom()).trim() : null;
-        List<TableAdditionItemDTO> items = buildAdditionItemList(activeCommandes, unpaidFacture);
+        List<TableAdditionItemDTO> items = buildAdditionItemList(activeCommandes, unpaidFacture, reglements);
 
         BigDecimal totalHT = BigDecimal.ZERO;
         BigDecimal totalVAT = BigDecimal.ZERO;
@@ -641,6 +684,8 @@ public class FactureService {
             }
             totalArticles += item.quantite();
         }
+
+        BigDecimal remainingBalance = totalTTC.subtract(alreadyPaidAmount).max(BigDecimal.ZERO);
 
         List<Long> commandeIds = activeCommandes.stream()
                 .filter(c -> c != null && c.getId() != null)
@@ -663,7 +708,10 @@ public class FactureService {
                 unpaidFacture.isPresent(),
                 unpaidFacture.isPresent() ? unpaidFacture.get().getId() : null,
                 tab.getId(),
-                tab.getNom()
+                tab.getNom(),
+                alreadyPaidAmount,
+                remainingBalance,
+                reglements
         );
     }
 
@@ -753,19 +801,115 @@ public class FactureService {
                 .findFirst();
     }
 
-    private List<TableAdditionItemDTO> buildAdditionItemList(List<Commande> activeCommandes, Optional<Facture> unpaidFacture) {
+    private List<FactureReglementDTO> fetchReglementsForFacture(Facture facture) {
+        if (facture == null || facture.getId() == null || factureReglementRepository == null) {
+            return List.of();
+        }
+        return factureReglementRepository.findByFactureIdOrderByIdAsc(facture.getId()).stream()
+                .map(com.bar.gestioncocktail.dto.FactureReglementDTO::from)
+                .toList();
+    }
+
+    /**
+     * Calculates the cumulative paid sum across recorded split settlements.
+     *
+     * @param reglements List of recorded settlements
+     * @return Sum of settled amounts
+     */
+    public BigDecimal calculateAlreadyPaid(List<FactureReglementDTO> reglements) {
+        if (reglements == null || reglements.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal total = BigDecimal.ZERO;
+        for (FactureReglementDTO r : reglements) {
+            if (r != null && r.montant() != null) {
+                total = total.add(r.montant());
+            }
+        }
+        return total;
+    }
+
+    private Set<Long> extractExistingCommandeItemIds(List<FactureItem> items) {
+        Set<Long> ids = new HashSet<>();
+        if (items != null) {
+            for (FactureItem fi : items) {
+                if (fi != null && fi.getCommandeItem() != null && fi.getCommandeItem().getId() != null) {
+                    ids.add(fi.getCommandeItem().getId());
+                }
+            }
+        }
+        return ids;
+    }
+
+    private boolean appendMissingCommandeItems(Facture facture, List<FactureItem> currentItems, Set<Long> existingIds, List<Commande> activeCommandes) {
+        boolean modified = false;
+        for (Commande cmd : activeCommandes) {
+            if (cmd.getItems() != null) {
+                for (CommandeItem ci : cmd.getItems()) {
+                    if (ci.getId() != null && !existingIds.contains(ci.getId())) {
+                        FactureItem fi = buildFactureItemFromCommandeItem(ci, facture);
+                        currentItems.add(fi);
+                        existingIds.add(ci.getId());
+                        modified = true;
+                    }
+                }
+            }
+        }
+        return modified;
+    }
+
+    private void syncInvoiceWithActiveOrders(Facture facture, List<Commande> activeCommandes) {
+        if (facture == null || activeCommandes == null || activeCommandes.isEmpty()) {
+            return;
+        }
+        List<FactureItem> currentItems = facture.getItems();
+        if (currentItems == null) {
+            currentItems = new ArrayList<>();
+            facture.setItems(currentItems);
+        }
+        Set<Long> existingCommandeItemIds = extractExistingCommandeItemIds(currentItems);
+        boolean modified = appendMissingCommandeItems(facture, currentItems, existingCommandeItemIds, activeCommandes);
+
+        if (modified) {
+            computeAndSetInvoiceTaxTotals(facture);
+            facture.setTotalTTC(facture.getTotal());
+            factureRepository.save(facture);
+        }
+    }
+
+    private int computePaidQuantityForItem(Long itemId, String cocktailNom, List<FactureReglementDTO> reglements) {
+        if (reglements == null || reglements.isEmpty()) {
+            return 0;
+        }
+        int paid = 0;
+        for (FactureReglementDTO reg : reglements) {
+            if (reg.items() != null) {
+                for (SplitResultDTO.SplitItemDTO it : reg.items()) {
+                    boolean matches = (itemId != null && itemId.equals(it.itemId())) ||
+                            (itemId == null && cocktailNom != null && it.description() != null &&
+                             it.description().toLowerCase().contains(cocktailNom.toLowerCase()));
+                    if (matches) {
+                        paid += it.quantite();
+                    }
+                }
+            }
+        }
+        return paid;
+    }
+
+    private List<TableAdditionItemDTO> buildAdditionItemList(List<Commande> activeCommandes, Optional<Facture> unpaidFacture, List<FactureReglementDTO> reglements) {
         List<TableAdditionItemDTO> items = new ArrayList<>();
         if (!activeCommandes.isEmpty()) {
             for (Commande cmd : activeCommandes) {
                 if (cmd.getItems() != null) {
                     for (CommandeItem item : cmd.getItems()) {
-                        items.add(buildAdditionItemDTO(item, cmd.getId()));
+                        items.add(buildAdditionItemDTO(item, cmd.getId(), reglements));
                     }
                 }
             }
         } else if (unpaidFacture.isPresent() && unpaidFacture.get().getItems() != null) {
             for (FactureItem fi : unpaidFacture.get().getItems()) {
-                items.add(buildAdditionItemDTOFromFactureItem(fi));
+                items.add(buildAdditionItemDTOFromFactureItem(fi, reglements));
             }
         }
         return items;
@@ -797,6 +941,7 @@ public class FactureService {
 
     private BigDecimal applyDiscountAndTip(Facture facture, EncaissementRequestDTO request) {
         BigDecimal subTotalTTC = facture.getTotal() != null ? facture.getTotal() : BigDecimal.ZERO;
+        validateDiscountAndTipInputs(request, subTotalTTC);
         BigDecimal discount = BigDecimal.ZERO;
 
         if (request.remiseMontant() != null && request.remiseMontant().compareTo(BigDecimal.ZERO) > 0) {
@@ -813,6 +958,22 @@ public class FactureService {
         }
         facture.setTotalTTC(netTTC);
         return netTTC;
+    }
+
+    private void validateDiscountAndTipInputs(EncaissementRequestDTO request, BigDecimal subTotalTTC) {
+        if (request.remisePourcentage() != null
+                && (request.remisePourcentage().compareTo(BigDecimal.ZERO) < 0
+                || request.remisePourcentage().compareTo(BigDecimal.valueOf(100)) > 0)) {
+            throw new BusinessException("Discount percentage must be between 0 and 100");
+        }
+        if (request.remiseMontant() != null
+                && (request.remiseMontant().compareTo(BigDecimal.ZERO) < 0
+                || request.remiseMontant().compareTo(subTotalTTC) > 0)) {
+            throw new BusinessException("Discount amount cannot be negative or exceed invoice subtotal");
+        }
+        if (request.pourboire() != null && request.pourboire().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("Tip amount cannot be negative");
+        }
     }
 
     private void markOrdersAsSettled(List<Commande> activeCommandes) {
@@ -924,7 +1085,7 @@ public class FactureService {
         return null;
     }
 
-    private TableAdditionItemDTO buildAdditionItemDTO(CommandeItem item, Long commandeId) {
+    private TableAdditionItemDTO buildAdditionItemDTO(CommandeItem item, Long commandeId, List<FactureReglementDTO> reglements) {
         BigDecimal qty = BigDecimal.valueOf(item.getQuantite());
         BigDecimal unitPrice = item.getPrixUnitaire();
         if (unitPrice == null && item.getCocktail() != null && happyHourService != null) {
@@ -938,6 +1099,7 @@ public class FactureService {
         BigDecimal lineVAT = lineTTC.subtract(lineHT);
         String cocktailNom = item.getCocktail() != null ? item.getCocktail().getNom() : "Article";
         String varianteNom = item.getVariante() != null ? item.getVariante().getNom() : null;
+        int quantitePayee = computePaidQuantityForItem(item.getId(), cocktailNom, reglements);
 
         return new TableAdditionItemDTO(
                 item.getId(),
@@ -950,15 +1112,18 @@ public class FactureService {
                 lineTTC,
                 lineHT,
                 lineVAT,
-                "20%"
+                "20%",
+                quantitePayee
         );
     }
 
-    private TableAdditionItemDTO buildAdditionItemDTOFromFactureItem(FactureItem fi) {
+    private TableAdditionItemDTO buildAdditionItemDTOFromFactureItem(FactureItem fi, List<FactureReglementDTO> reglements) {
         BigDecimal unitPrice = fi.getPrixUnitaire() != null ? fi.getPrixUnitaire() : BigDecimal.ZERO;
         BigDecimal lineTTC = fi.getTotal() != null ? fi.getTotal() : BigDecimal.ZERO;
         BigDecimal lineHT = fi.getPriceHT() != null ? fi.getPriceHT() : lineTTC.divide(BigDecimal.valueOf(1.20), 2, RoundingMode.HALF_UP);
         BigDecimal lineVAT = fi.getVatAmount() != null ? fi.getVatAmount() : lineTTC.subtract(lineHT);
+        Long itemId = fi.getCommandeItem() != null ? fi.getCommandeItem().getId() : fi.getId();
+        int quantitePayee = computePaidQuantityForItem(itemId, fi.getDescription(), reglements);
 
         return new TableAdditionItemDTO(
                 fi.getId(),
@@ -971,7 +1136,8 @@ public class FactureService {
                 lineTTC,
                 lineHT,
                 lineVAT,
-                fi.getVatRate() != null ? fi.getVatRate().getLabel() : "20%"
+                fi.getVatRate() != null ? fi.getVatRate().getLabel() : "20%",
+                quantitePayee
         );
     }
 
@@ -1381,48 +1547,13 @@ public class FactureService {
      * @param request   Settlement request details
      * @return Saved FactureReglementDTO
      */
-    @Transactional
-    public com.bar.gestioncocktail.dto.FactureReglementDTO encaisserPart(Long factureId, com.bar.gestioncocktail.dto.EncaisserPartRequest request) {
+    private FactureReglementDTO encaisserPartInternal(Long factureId, EncaisserPartRequest request) {
         Facture facture = factureRepository.findById(factureId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_PREFIX + factureId));
-        if (facture.getDateFacture() != null) {
-            checkDateNotClosed(facture.getDateFacture().toLocalDate());
-        }
-        checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
-        checkTillOpenedIfCashPayment(request.modePaiement(), java.time.LocalDate.now(timeService.getZoneId()));
+        validateSplitInputs(facture, request);
 
-        if (facture.isReglee()) {
-            throw new BusinessException("Invoice " + facture.getNumero() + " is already fully settled");
-        }
         BigDecimal invoiceTarget = resolveInvoiceTarget(facture);
-        BigDecimal amountToRecord = request.montant();
-
-        com.bar.gestioncocktail.model.FactureReglement reglement = new com.bar.gestioncocktail.model.FactureReglement();
-        reglement.setFacture(facture);
-        reglement.setNomConvive(request.nomConvive());
-        reglement.setPartIndex(request.partIndex());
-        reglement.setTotalParts(request.totalParts());
-        reglement.setMontant(amountToRecord);
-        BigDecimal tip = request.pourboire() != null ? request.pourboire() : BigDecimal.ZERO;
-        reglement.setPourboire(tip);
-        reglement.setTotalRegle(request.totalRegle() != null ? request.totalRegle() : amountToRecord.add(tip));
-        reglement.setModePaiement(request.modePaiement());
-        reglement.setTypeSplit(request.typeSplit());
-        reglement.setDateReglement(timeService.now());
-
-        if (request.items() != null && !request.items().isEmpty()) {
-            try {
-                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                reglement.setItemsJson(mapper.writeValueAsString(request.items()));
-            } catch (Exception _) {
-                reglement.setItemsJson("[]");
-            }
-        } else {
-            reglement.setItemsJson("[]");
-        }
-
-        populateTpeFields(reglement, request);
-
+        com.bar.gestioncocktail.model.FactureReglement reglement = buildFactureReglement(facture, request);
         com.bar.gestioncocktail.model.FactureReglement saved = factureReglementRepository.save(reglement);
         if (facture.getReglements() == null) {
             facture.setReglements(new ArrayList<>());
@@ -1435,19 +1566,131 @@ public class FactureService {
             throw new BusinessException("Total settled amount (" + totalPaidSoFar + ") exceeds invoice total (" + invoiceTarget + ")");
         }
 
+        saved = adjustExcessRounding(saved, totalPaidSoFar, invoiceTarget);
+        checkAndFinalizeSplitSettlement(facture, factureId, allReglements, invoiceTarget);
+
+        return FactureReglementDTO.from(saved);
+    }
+
+    private void validateSplitInputs(Facture facture, EncaisserPartRequest request) {
+        if (facture.getDateFacture() != null) {
+            checkDateNotClosed(facture.getDateFacture().toLocalDate());
+        }
+        checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
+        checkTillOpenedIfCashPayment(request.modePaiement(), java.time.LocalDate.now(timeService.getZoneId()));
+
+        if (facture.isReglee()) {
+            throw new BusinessException("Invoice " + facture.getNumero() + " is already fully settled");
+        }
+        BigDecimal amountToRecord = request.montant();
+        if (amountToRecord == null || amountToRecord.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Split settlement amount must be strictly positive");
+        }
+        if (request.pourboire() != null && request.pourboire().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("Tip amount cannot be negative");
+        }
+    }
+
+    private com.bar.gestioncocktail.model.FactureReglement buildFactureReglement(Facture facture, EncaisserPartRequest request) {
+        com.bar.gestioncocktail.model.FactureReglement reglement = new com.bar.gestioncocktail.model.FactureReglement();
+        reglement.setFacture(facture);
+        reglement.setNomConvive(request.nomConvive());
+        reglement.setPartIndex(request.partIndex());
+        reglement.setTotalParts(request.totalParts());
+        reglement.setMontant(request.montant());
+        BigDecimal tip = request.pourboire() != null ? request.pourboire() : BigDecimal.ZERO;
+        reglement.setPourboire(tip);
+        reglement.setTotalRegle(request.totalRegle() != null ? request.totalRegle() : request.montant().add(tip));
+        reglement.setModePaiement(request.modePaiement());
+        reglement.setTypeSplit(request.typeSplit());
+        reglement.setDateReglement(timeService.now());
+        reglement.setItemsJson(serializeSplitItems(request.items()));
+        populateTpeFields(reglement, request);
+        return reglement;
+    }
+
+    private String serializeSplitItems(List<?> items) {
+        if (items == null || items.isEmpty()) {
+            return "[]";
+        }
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            return mapper.writeValueAsString(items);
+        } catch (Exception _) {
+            return "[]";
+        }
+    }
+
+    private com.bar.gestioncocktail.model.FactureReglement adjustExcessRounding(
+            com.bar.gestioncocktail.model.FactureReglement saved, BigDecimal totalPaidSoFar, BigDecimal invoiceTarget) {
         BigDecimal excess = totalPaidSoFar.subtract(invoiceTarget);
         if (excess.compareTo(BigDecimal.ZERO) > 0 && excess.compareTo(new BigDecimal("0.05")) <= 0) {
             BigDecimal adjustedMontant = saved.getMontant().subtract(excess);
             if (adjustedMontant.compareTo(BigDecimal.ZERO) > 0) {
                 saved.setMontant(adjustedMontant);
                 saved.setTotalRegle(adjustedMontant.add(saved.getPourboire()));
-                saved = factureReglementRepository.save(saved);
+                return factureReglementRepository.save(saved);
             }
         }
+        return saved;
+    }
 
-        checkAndFinalizeSplitSettlement(facture, factureId, allReglements, invoiceTarget);
+    /**
+     * Records and persists an individual split settlement for an invoice.
+     * If the sum of all settled parts covers the full invoice total, the invoice is marked as settled.
+     *
+     * @param factureId Target invoice ID
+     * @param request   Settlement request details
+     * @return Saved FactureReglementDTO
+     */
+    @Transactional
+    public FactureReglementDTO encaisserPart(Long factureId, EncaisserPartRequest request) {
+        return encaisserPartInternal(factureId, request);
+    }
 
-        return com.bar.gestioncocktail.dto.FactureReglementDTO.from(saved);
+    /**
+     * Records an individual split share settlement directly for a table.
+     * Ensures an active pending invoice exists on the table, creates it if necessary,
+     * and delegates to the internal split settlement handler.
+     *
+     * @param tableId Physical table ID
+     * @param request Settlement details
+     * @return Saved settlement DTO
+     */
+    @Transactional
+    public FactureReglementDTO encaisserPartTable(Long tableId, EncaisserPartRequest request) {
+        TableEntity table = tableRepository.findById(tableId)
+                .orElseThrow(() -> new ResourceNotFoundException(TABLE_NOT_FOUND_PREFIX + tableId));
+
+        List<Facture> facturesTable = factureRepository.findByTable(table);
+        Facture facture = findUnpaidFacture(facturesTable)
+                .orElseGet(() -> getOrCreateUnpaidFactureForTable(tableId));
+
+        return encaisserPartInternal(facture.getId(), request);
+    }
+
+    /**
+     * Records an individual split share settlement directly for a bar tab.
+     * Ensures an active pending invoice exists on the tab, creates it if necessary,
+     * and delegates to the internal split settlement handler.
+     *
+     * @param tabId Bar tab identifier
+     * @param request Settlement details
+     * @return Saved settlement DTO
+     */
+    @Transactional
+    public FactureReglementDTO encaisserPartTab(Long tabId, EncaisserPartRequest request) {
+        if (establishmentConfigService != null) {
+            establishmentConfigService.checkModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.BAR_TABS);
+        }
+        BarTab tab = barTabRepository.findById(tabId)
+                .orElseThrow(() -> new ResourceNotFoundException(BAR_TAB_NOT_FOUND_PREFIX + tabId));
+
+        List<Facture> facturesTab = factureRepository.findByBarTab(tab);
+        Facture facture = findUnpaidFacture(facturesTab)
+                .orElseGet(() -> getOrCreateUnpaidFactureForTab(tabId));
+
+        return encaisserPartInternal(facture.getId(), request);
     }
 
     private void checkAndFinalizeSplitSettlement(Facture facture, Long factureId, List<com.bar.gestioncocktail.model.FactureReglement> allReglements, BigDecimal invoiceTarget) {

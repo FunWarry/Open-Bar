@@ -18,6 +18,7 @@ import java.math.BigDecimal;
  * @param priceHT          Line subtotal without tax (HT)
  * @param vatAmount        Line VAT tax amount
  * @param vatRate          Applied VAT rate percentage label
+ * @param quantitePayee    Quantity of this line already settled in prior split payments
  */
 @Schema(description = "Item line breakdown in a table bill summary")
 public record TableAdditionItemDTO(
@@ -31,6 +32,25 @@ public record TableAdditionItemDTO(
     BigDecimal total,
     BigDecimal priceHT,
     BigDecimal vatAmount,
-    String vatRate
+    String vatRate,
+    int quantitePayee
 ) {
+    /**
+     * Backward-compatible constructor for callers omitting quantitePayee.
+     */
+    public TableAdditionItemDTO(
+        Long itemId,
+        Long commandeId,
+        Long cocktailId,
+        String cocktailNom,
+        String varianteNom,
+        int quantite,
+        BigDecimal prixUnitaire,
+        BigDecimal total,
+        BigDecimal priceHT,
+        BigDecimal vatAmount,
+        String vatRate
+    ) {
+        this(itemId, commandeId, cocktailId, cocktailNom, varianteNom, quantite, prixUnitaire, total, priceHT, vatAmount, vatRate, 0);
+    }
 }

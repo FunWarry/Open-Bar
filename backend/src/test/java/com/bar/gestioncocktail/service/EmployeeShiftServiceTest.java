@@ -450,5 +450,45 @@ class EmployeeShiftServiceTest {
 
         verify(shiftRepository).delete(sampleShift);
     }
+
+    @Test
+    void getShiftsByUserId_ByNonManagerForOtherEmployee_ThrowsAccessDeniedException() {
+        setSecurityContext("serveur2", "SERVEUR");
+
+        User otherEmployee = new User();
+        otherEmployee.setId(1L);
+        otherEmployee.setUsername("serveur1");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(otherEmployee));
+
+        assertThatThrownBy(() -> shiftService.getShiftsByUserId(1L))
+            .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
+            .hasMessageContaining("You are not authorized to view shifts of another employee");
+    }
+
+    @Test
+    void updateShift_ByEmployee_WhenTamperingHeuresPrevuesOrExcessiveOvertime_ThrowsAccessDeniedException() {
+        setSecurityContext("serveur1", "SERVEUR");
+        sampleShift.setHeuresPrevues(new BigDecimal("8.0"));
+
+        when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
+
+        EmployeeShiftRequestDTO tamperPlannedHours = new EmployeeShiftRequestDTO(
+            1L, LocalDate.of(2026, Month.AUGUST, 10), TypeShift.MATIN, TypePoste.SERVEUR,
+            "08:00", "16:00", null, null, null, null, null, new BigDecimal("12.0"), new BigDecimal("8.0"), null
+        );
+
+        assertThatThrownBy(() -> shiftService.updateShift(10L, tamperPlannedHours))
+            .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
+            .hasMessageContaining("Only a manager can modify the planned work hours");
+
+        EmployeeShiftRequestDTO excessiveOvertime = new EmployeeShiftRequestDTO(
+            1L, LocalDate.of(2026, Month.AUGUST, 10), TypeShift.MATIN, TypePoste.SERVEUR,
+            "08:00", "16:00", null, null, null, null, new BigDecimal("24.0"), new BigDecimal("8.0"), new BigDecimal("8.0"), null
+        );
+
+        assertThatThrownBy(() -> shiftService.updateShift(10L, excessiveOvertime))
+            .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
+            .hasMessageContaining("Overtime hours must be between 0 and 16");
+    }
 }
 

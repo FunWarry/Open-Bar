@@ -7,14 +7,16 @@
 
 .table-assistance-bar {
   display: flex;
-  gap: var(--space-3, 12px);
+  gap: var(--space-2, 8px);
   margin-top: var(--space-3, 12px);
   justify-content: center;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .assistance-btn {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 110px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -27,7 +29,7 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
   backdrop-filter: blur(12px);
 
   &:hover:not(:disabled) {
@@ -48,6 +50,18 @@
 
 .request-bill-btn:hover:not(:disabled) {
   border-color: var(--semantic-warning, #f4a52a);
+}
+
+.pay-online-btn {
+  background: linear-gradient(135deg, rgba(108, 127, 232, 0.22) 0%, rgba(108, 127, 232, 0.12) 100%);
+  border-color: var(--primary, #6c7fe8);
+  color: var(--text-primary, #ffffff);
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(108, 127, 232, 0.35) 0%, rgba(108, 127, 232, 0.2) 100%);
+    border-color: var(--primary-strong, #5a6edb);
+    box-shadow: 0 4px 14px rgba(108, 127, 232, 0.3);
+  }
 }
 
 .active-call-badge {
@@ -86,5 +100,21 @@
   100% {
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(155, 138, 242, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistance-btn {
+    transition: none;
+    transform: none;
+
+    &:hover:not(:disabled) {
+      transform: none;
+    }
+  }
+
+  .active-call-badge,
+  .pulse-dot {
+    animation: none;
   }
 }

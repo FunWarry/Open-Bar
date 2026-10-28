@@ -1,0 +1,446 @@
+<dialog class="client-payment-backdrop" open (click)="onBackdropClick($event)" (keydown.escape)="dismiss()" data-testid="payment-modal-backdrop">
+  <div class="client-payment-card" data-testid="payment-modal-card">
+
+    <!-- Modal Header -->
+    <header class="modal-header">
+      <div class="header-left">
+        <span class="table-badge" data-testid="payment-modal-table-badge">
+          Table {{ tableNumero || billSummary()?.tableNumber || tableId }}
+        </span>
+        <h2 class="modal-title">{{ 'CLIENT.PAYMENT.MODAL_TITLE' | transloco }}</h2>
+      </div>
+      <ion-button
+        fill="clear"
+        size="small"
+        class="close-btn"
+        (click)="dismiss()"
+        (keyup.enter)="dismiss()"
+        [attr.aria-label]="'COMMON.CLOSE' | transloco"
+        data-testid="btn-close-payment-modal">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </header>
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="loading-state" data-testid="payment-loading-state">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p class="loading-text">{{ 'CLIENT.PAYMENT.LOADING_BILL' | transloco }}</p>
+      </div>
+    }
+
+    <!-- SUCCESS STATE (Payment confirmed) -->
+    @else if (paymentSuccess()) {
+      <div class="success-container" data-testid="payment-success-view">
+        <div class="success-icon-badge">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+        </div>
+
+        <h3 class="success-title">{{ 'CLIENT.PAYMENT.SUCCESS_TITLE' | transloco }}</h3>
+        <p class="success-desc">{{ 'CLIENT.PAYMENT.SUCCESS_SUBTITLE' | transloco }}</p>
+
+        <!-- Settlement Summary Pill -->
+        <div class="success-summary-card">
+          <div class="summary-line">
+            <span class="summary-label">{{ 'CLIENT.PAYMENT.CHARGED_AMOUNT' | transloco }}</span>
+            <strong class="summary-val charged-total" data-testid="val-charged-amount">
+              {{ paymentSuccess()?.totalAmount || 0 | appCurrency }}
+            </strong>
+          </div>
+          @if ((paymentSuccess()?.tipAmount || 0) > 0) {
+            <div class="summary-line tip-line">
+              <span class="summary-label">{{ 'CLIENT.PAYMENT.INCLUDED_TIP' | transloco }}</span>
+              <span class="summary-val" data-testid="val-included-tip">
+                {{ paymentSuccess()?.tipAmount || 0 | appCurrency }}
+              </span>
+            </div>
+          }
+          <div class="summary-line">
+            <span class="summary-label">{{ 'CLIENT.PAYMENT.TX_REFERENCE' | transloco }}</span>
+            <code class="tx-ref" data-testid="val-tx-reference">{{ paymentSuccess()?.transactionId }}</code>
+          </div>
+          <div class="summary-line">
+            <span class="summary-label">{{ 'CLIENT.PAYMENT.REMAINING_BALANCE' | transloco }}</span>
+            <strong
+              class="summary-val"
+              [class.settled-zero]="(paymentSuccess()?.remainingBalance || 0) <= 0"
+              data-testid="val-remaining-balance-success">
+              {{ paymentSuccess()?.remainingBalance || 0 | appCurrency }}
+            </strong>
+          </div>
+        </div>
+
+        <!-- 1-Click Legal PDF Download -->
+        <div class="receipt-download-box">
+          <a
+            [href]="receiptPdfUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="pdf-download-link"
+            data-testid="btn-download-receipt-pdf">
+            <ion-icon name="download-outline"></ion-icon>
+            <span>{{ 'CLIENT.PAYMENT.DOWNLOAD_RECEIPT_PDF' | transloco }}</span>
+          </a>
+        </div>
+
+        <!-- Email Receipt Dispatch -->
+        <div class="email-receipt-section">
+          <h4 class="email-section-title">
+            <ion-icon name="mail-outline"></ion-icon>
+            <span>{{ 'CLIENT.PAYMENT.RECEIPT_BY_EMAIL_TITLE' | transloco }}</span>
+          </h4>
+
+          @if (emailSentSuccess()) {
+            <div class="email-sent-badge" data-testid="badge-email-sent-success">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <span>{{ 'CLIENT.PAYMENT.EMAIL_ALREADY_SENT' | transloco }}</span>
+            </div>
+          } @else {
+            <form [formGroup]="emailReceiptForm" (ngSubmit)="sendEmailReceipt()" class="email-form">
+              <app-input-field
+                formControlName="email"
+                type="email"
+                [label]="'CLIENT.PAYMENT.CUSTOMER_EMAIL_LABEL' | transloco"
+                placeholder="client@exemple.com"
+                testId="input-receipt-email">
+              </app-input-field>
+
+              <app-action-button
+                type="submit"
+                variant="secondary"
+                [loading]="isSendingEmail()"
+                [disabled]="emailReceiptForm.invalid || isSendingEmail()"
+                data-testid="btn-submit-receipt-email">
+                <ion-icon name="mail-outline"></ion-icon>
+                <span>{{ 'CLIENT.PAYMENT.SEND_EMAIL_BTN' | transloco }}</span>
+              </app-action-button>
+            </form>
+          }
+        </div>
+
+        <!-- Table Liberation Prompt (When 100% Settled) -->
+        @if ((paymentSuccess()?.remainingBalance || 0) <= 0) {
+          <div class="liberation-box" data-testid="table-liberation-box">
+            @if (tableLiberatedSuccess()) {
+              <div class="liberated-badge" data-testid="badge-table-liberated-success">
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+                <span>{{ 'CLIENT.PAYMENT.TABLE_FREED_BANNER' | transloco }}</span>
+              </div>
+            } @else {
+              <p class="liberation-prompt">{{ 'CLIENT.PAYMENT.LIBERATE_TABLE_QUESTION' | transloco }}</p>
+              <app-action-button
+                variant="secondary"
+                [loading]="isLiberatingTable()"
+                (click)="liberateTableNow()"
+                (keydown.enter)="liberateTableNow()"
+                data-testid="btn-confirm-liberate-table">
+                <ion-icon name="log-out-outline"></ion-icon>
+                <span>{{ 'CLIENT.PAYMENT.LIBERATE_TABLE_ACTION' | transloco }}</span>
+              </app-action-button>
+            }
+          </div>
+        }
+
+        <!-- Close modal button -->
+        <div class="success-actions">
+          <app-action-button
+            variant="primary"
+            (click)="dismiss()"
+            (keydown.enter)="dismiss()"
+            data-testid="btn-done-payment-success">
+            <span>{{ 'COMMON.CLOSE' | transloco }}</span>
+          </app-action-button>
+        </div>
+      </div>
+    }
+
+    <!-- NORMAL PAYMENT FLOW -->
+    @else {
+      <div class="payment-body" data-testid="payment-form-view">
+
+        <!-- Bill Overview Hero Banner -->
+        <section class="bill-overview-card" data-testid="bill-overview-card">
+          <div class="balance-spotlight">
+            <span class="balance-caption">{{ 'CLIENT.PAYMENT.REMAINING_TO_PAY' | transloco }}</span>
+            <div class="balance-highlight" data-testid="remaining-balance-amount">
+              {{ billSummary()?.remainingBalance || 0 | appCurrency }}
+            </div>
+          </div>
+
+          <div class="bill-stats-grid">
+            <div class="stat-item">
+              <span class="stat-lbl">{{ 'FACTURES.TOTAL_TTC' | transloco }}</span>
+              <span class="stat-val" data-testid="bill-total-ttc">{{ billSummary()?.subtotalVatIncluded || 0 | appCurrency }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-lbl">{{ 'CLIENT.PAYMENT.ALREADY_PAID' | transloco }}</span>
+              <span class="stat-val already-paid" data-testid="bill-already-paid">{{ billSummary()?.alreadyPaidAmount || 0 | appCurrency }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-lbl">{{ 'FACTURES.TOTAL_HT' | transloco }}</span>
+              <span class="stat-val">{{ billSummary()?.subtotalVatExcluded || 0 | appCurrency }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-lbl">{{ 'FACTURES.TVA' | transloco }}</span>
+              <span class="stat-val">{{ billSummary()?.vatAmount || 0 | appCurrency }}</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Previous Partial Settlements from Companions -->
+        @if (billSummary()?.settlements && (billSummary()?.settlements?.length || 0) > 0) {
+          <section class="settlements-history-section" data-testid="settlements-history-section">
+            <h4 class="section-label">
+              <ion-icon name="people-outline"></ion-icon>
+              <span>{{ 'CLIENT.PAYMENT.PREVIOUS_SETTLEMENTS_TITLE' | transloco }}</span>
+            </h4>
+            <div class="settlements-list">
+              @for (st of billSummary()?.settlements; track st.id) {
+                <div class="settlement-chip" data-testid="settlement-item">
+                  <span class="settler-name">{{ st.payerName || ('CLIENT.PAYMENT.COMPANION' | transloco) }}</span>
+                  <strong class="settler-amount">{{ st.montant | appCurrency }}</strong>
+                  @if (st.pourboire > 0) {
+                    <span class="settler-tip">(+{{ st.pourboire | appCurrency }} pourboire)</span>
+                  }
+                </div>
+              }
+            </div>
+          </section>
+        }
+
+        <!-- Split Options Selector -->
+        <section class="split-mode-section">
+          <h4 class="section-label">
+            <ion-icon name="receipt-outline"></ion-icon>
+            <span>{{ 'CLIENT.PAYMENT.SPLIT_CHOICE_TITLE' | transloco }}</span>
+          </h4>
+
+          <div class="split-modes-grid" data-testid="split-modes-selector">
+            <button
+              type="button"
+              class="split-card-btn"
+              [class.active]="activeSplitMode() === 'FULL'"
+              (click)="setSplitMode('FULL')"
+              data-testid="btn-split-full">
+              <ion-icon name="cash-outline"></ion-icon>
+              <div class="split-btn-text">
+                <strong>{{ 'CLIENT.PAYMENT.MODE_FULL_TITLE' | transloco }}</strong>
+                <span>{{ 'CLIENT.PAYMENT.MODE_FULL_DESC' | transloco }}</span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              class="split-card-btn"
+              [class.active]="activeSplitMode() === 'MY_ITEMS'"
+              (click)="setSplitMode('MY_ITEMS')"
+              data-testid="btn-split-my-items">
+              <ion-icon name="person-outline"></ion-icon>
+              <div class="split-btn-text">
+                <strong>{{ 'CLIENT.PAYMENT.MODE_MY_ITEMS_TITLE' | transloco }}</strong>
+                <span>{{ 'CLIENT.PAYMENT.MODE_MY_ITEMS_DESC' | transloco }}</span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              class="split-card-btn"
+              [class.active]="activeSplitMode() === 'EQUAL_SPLIT'"
+              (click)="setSplitMode('EQUAL_SPLIT')"
+              data-testid="btn-split-equal">
+              <ion-icon name="people-outline"></ion-icon>
+              <div class="split-btn-text">
+                <strong>{{ 'CLIENT.PAYMENT.MODE_EQUAL_TITLE' | transloco }}</strong>
+                <span>{{ 'CLIENT.PAYMENT.MODE_EQUAL_DESC' | transloco }}</span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              class="split-card-btn"
+              [class.active]="activeSplitMode() === 'CUSTOM_AMOUNT'"
+              (click)="setSplitMode('CUSTOM_AMOUNT')"
+              data-testid="btn-split-custom">
+              <ion-icon name="card-outline"></ion-icon>
+              <div class="split-btn-text">
+                <strong>{{ 'CLIENT.PAYMENT.MODE_CUSTOM_TITLE' | transloco }}</strong>
+                <span>{{ 'CLIENT.PAYMENT.MODE_CUSTOM_DESC' | transloco }}</span>
+              </div>
+            </button>
+          </div>
+
+          <!-- Dynamic Details depending on active split -->
+          @if (activeSplitMode() === 'EQUAL_SPLIT') {
+            <div class="equal-split-controls" data-testid="equal-split-controls">
+              <span class="control-label">{{ 'CLIENT.PAYMENT.PERSONS_COUNT_LABEL' | transloco }}</span>
+              <div class="stepper-box">
+                <ion-button
+                  fill="clear"
+                  size="small"
+                  class="stepper-btn"
+                  (click)="setNumberOfPersons(-1)"
+                  (keyup.enter)="setNumberOfPersons(-1)"
+                  [disabled]="numberOfPersons() <= 2"
+                  data-testid="btn-stepper-decrement">
+                  -
+                </ion-button>
+                <span class="stepper-val" data-testid="stepper-val-persons">{{ numberOfPersons() }}</span>
+                <ion-button
+                  fill="clear"
+                  size="small"
+                  class="stepper-btn"
+                  (click)="setNumberOfPersons(1)"
+                  (keyup.enter)="setNumberOfPersons(1)"
+                  [disabled]="numberOfPersons() >= 20"
+                  data-testid="btn-stepper-increment">
+                  +
+                </ion-button>
+              </div>
+              <span class="equal-subtext">
+                {{ 'CLIENT.PAYMENT.EQUAL_SHARE_PER_PERSON' | transloco: { amount: (computedBaseAmount() | appCurrency) } }}
+              </span>
+            </div>
+          }
+
+          @if (activeSplitMode() === 'CUSTOM_AMOUNT') {
+            <div class="custom-amount-controls" data-testid="custom-amount-controls">
+              <form [formGroup]="customAmountForm">
+                <app-input-field
+                  formControlName="amount"
+                  type="number"
+                  [label]="'CLIENT.PAYMENT.CUSTOM_AMOUNT_LABEL' | transloco"
+                  [helperText]="'CLIENT.PAYMENT.CUSTOM_AMOUNT_HINT' | transloco: { max: (billSummary()?.remainingBalance || 0 | appCurrency) }"
+                  placeholder="10.00"
+                  testId="input-custom-split-amount">
+                </app-input-field>
+              </form>
+            </div>
+          }
+
+          @if (activeSplitMode() === 'MY_ITEMS') {
+            <div class="my-items-summary" data-testid="my-items-summary">
+              @if (myPersonalItems().length === 0) {
+                <p class="no-items-text">{{ 'CLIENT.PAYMENT.NO_ITEMS_FOUND_FOR_GUEST' | transloco }}</p>
+              } @else {
+                <div class="my-items-list">
+                  @for (it of myPersonalItems(); track it.ligneId) {
+                    <div class="my-item-row">
+                      <span class="item-qty">{{ it.quantite }}x</span>
+                      <span class="item-name">{{ it.boissonNom }}</span>
+                      <strong class="item-price">{{ it.totalLigne | appCurrency }}</strong>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </section>
+
+        <!-- Tip Selector -->
+        <section class="tip-section">
+          <div class="tip-header">
+            <h4 class="section-label">
+              <ion-icon name="sparkles-outline"></ion-icon>
+              <span>{{ 'CLIENT.PAYMENT.TIP_SECTION_TITLE' | transloco }}</span>
+            </h4>
+            <span class="tip-amount-preview" data-testid="tip-amount-preview">
+              + {{ computedTipAmount() | appCurrency }}
+            </span>
+          </div>
+
+          <div class="tip-chips-row" data-testid="tip-chips-row">
+            @for (opt of tipOptions; track opt.value) {
+              <app-filter-chip
+                [label]="opt.label"
+                [active]="tipPercentage() === opt.value"
+                (chipClick)="setTipPercentage(opt.value)"
+                [testId]="'chip-tip-' + opt.value">
+              </app-filter-chip>
+            }
+          </div>
+        </section>
+
+        <!-- Final Checkout Summary Spotlight -->
+        <section class="checkout-spotlight" data-testid="checkout-spotlight">
+          <div class="spotlight-row">
+            <span>{{ 'CLIENT.PAYMENT.BASE_SHARE' | transloco }}</span>
+            <span data-testid="spotlight-base-amount">{{ computedBaseAmount() | appCurrency }}</span>
+          </div>
+          <div class="spotlight-row">
+            <span>{{ 'CLIENT.PAYMENT.TIP' | transloco }}</span>
+            <span data-testid="spotlight-tip-amount">+ {{ computedTipAmount() | appCurrency }}</span>
+          </div>
+          <div class="spotlight-divider"></div>
+          <div class="spotlight-total-row">
+            <strong class="total-caption">{{ 'CLIENT.PAYMENT.TOTAL_TO_CHARGE' | transloco }}</strong>
+            <strong class="total-number" data-testid="spotlight-total-amount">
+              {{ computedTotalToCharge() | appCurrency }}
+            </strong>
+          </div>
+        </section>
+
+        <!-- Email Receipt Input (Optional upfront) -->
+        <section class="email-optional-section">
+          <form [formGroup]="emailReceiptForm">
+            <app-input-field
+              formControlName="email"
+              type="email"
+              [label]="'CLIENT.PAYMENT.EMAIL_OPTIONAL_LABEL' | transloco"
+              [helperText]="'CLIENT.PAYMENT.EMAIL_OPTIONAL_HINT' | transloco"
+              placeholder="votre-email@exemple.com"
+              testId="input-optional-customer-email">
+            </app-input-field>
+          </form>
+        </section>
+
+        <!-- Checkout Buttons -->
+        <footer class="checkout-footer-actions">
+          <!-- Sandbox Simulator Quick Buttons -->
+          @if (billSummary()?.paymentProvider === 'SANDBOX') {
+            <div class="sandbox-actions-grid" data-testid="sandbox-payment-actions">
+              <app-action-button
+                variant="primary"
+                [loading]="isProcessingPayment()"
+                [disabled]="computedBaseAmount() <= 0 || isProcessingPayment()"
+                (click)="processCheckout('apple_pay')"
+                (keydown.enter)="processCheckout('apple_pay')"
+                data-testid="btn-pay-apple-pay-simulated">
+                <ion-icon name="card-outline"></ion-icon>
+                <span>{{ 'CLIENT.PAYMENT.PAY_APPLE_PAY_SIMULATED' | transloco }}</span>
+              </app-action-button>
+
+              <app-action-button
+                variant="secondary"
+                [loading]="isProcessingPayment()"
+                [disabled]="computedBaseAmount() <= 0 || isProcessingPayment()"
+                (click)="processCheckout('card')"
+                (keydown.enter)="processCheckout('card')"
+                data-testid="btn-pay-card-simulated">
+                <ion-icon name="card-outline"></ion-icon>
+                <span>{{ 'CLIENT.PAYMENT.PAY_CARD_SIMULATED' | transloco }}</span>
+              </app-action-button>
+            </div>
+          }
+
+          <!-- Live Stripe Buttons -->
+          @else {
+            <div class="stripe-actions-container" data-testid="stripe-payment-actions">
+              <app-action-button
+                variant="primary"
+                [loading]="isProcessingPayment()"
+                [disabled]="computedBaseAmount() <= 0 || isProcessingPayment()"
+                (click)="processCheckout('card')"
+                (keydown.enter)="processCheckout('card')"
+                data-testid="btn-pay-stripe-card">
+                <ion-icon name="card-outline"></ion-icon>
+                <span>{{ 'CLIENT.PAYMENT.PAY_WITH_CARD_STRIPE' | transloco }} ({{ computedTotalToCharge() | appCurrency }})</span>
+              </app-action-button>
+            </div>
+          }
+        </footer>
+
+      </div>
+    }
+
+  </div>
+</dialog>

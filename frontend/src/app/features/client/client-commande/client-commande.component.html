@@ -190,6 +190,11 @@
               <span class="happy-hour-badge" data-testid="cocktail-details-hh-badge">
                 {{ 'PRICING.HAPPY_HOUR_BADGE' | transloco }}
               </span>
+              @if (getDiscountPercentage(cocktail)) {
+                <span class="discount-percent-badge" data-testid="cocktail-details-discount-badge">
+                  -{{ getDiscountPercentage(cocktail) }}%
+                </span>
+              }
             }
             <span class="cocktail-details-price" [class.discounted]="isHappyHour(cocktail)" data-testid="cocktail-details-price">
               {{ getEffectivePrice(cocktail) | appCurrency }}
@@ -492,7 +497,24 @@
         </div>
 
         <!-- Quick Table Service & Bill Actions Bar -->
-        <app-table-assistance-bar [tableNumero]="tableNumero!"></app-table-assistance-bar>
+        <app-table-assistance-bar
+          [tableNumero]="tableNumero!"
+          [canPayOnline]="isQrPayAtTableEnabled()"
+          (openPayment)="openPaymentModal()">
+        </app-table-assistance-bar>
+
+        @if (isQrPayAtTableEnabled() && tableNumero) {
+          <div class="pay-at-table-action-box">
+            <button
+              type="button"
+              class="pay-at-table-trigger-btn"
+              data-testid="btn-pay-at-table-trigger"
+              (click)="openPaymentModal()">
+              <ion-icon name="card-outline"></ion-icon>
+              <span>{{ 'CLIENT.PAYMENT.LAUNCHER_BTN' | transloco }}</span>
+            </button>
+          </div>
+        }
 
         @if (isSafetyModuleEnabled() && tableNumero) {
           <div class="discreet-safety-container">
@@ -507,6 +529,11 @@
           </div>
         }
       </header>
+
+      <!-- Dynamic Happy Hour Countdown Banner & Upcoming Teaser -->
+      @if (isHappyHourEnabled) {
+        <app-happy-hour-banner></app-happy-hour-banner>
+      }
 
       <!-- Bannière Tournée Groupée / Période de grâce de 2 minutes -->
       @if (tableCartService.graceRemainingSeconds() > 0) {
@@ -710,6 +737,11 @@
         <p class="card-subtitle">{{ 'CLIENT.SHARED_CART_SUBTITLE' | transloco }}</p>
       </div>
 
+      <!-- Dynamic Happy Hour Countdown Banner -->
+      @if (isHappyHourEnabled) {
+        <app-happy-hour-banner></app-happy-hour-banner>
+      }
+
       <div class="recap-invite-banner" data-testid="recap-invite-banner">
         <div class="banner-text">
           <span class="banner-icon">👥</span>
@@ -857,6 +889,19 @@
               {{ tableCartService.tableOrdersSummary()?.totalDrinksOrdered || 0 }}
             </span>
           </div>
+
+          @if (isQrPayAtTableEnabled()) {
+            <div class="bill-pay-cta-row">
+              <button
+                type="button"
+                class="bill-pay-cta-btn"
+                data-testid="btn-pay-from-orders-summary"
+                (click)="closeTableOrdersModal(); openPaymentModal()">
+                <ion-icon name="card-outline"></ion-icon>
+                <span>{{ 'CLIENT.PAYMENT.LAUNCHER_BTN' | transloco }}</span>
+              </button>
+            </div>
+          }
         </div>
 
         <!-- Liste des tournées successives -->
@@ -897,6 +942,16 @@
         </div>
 
         <div class="modal-footer-actions">
+          @if (isQrPayAtTableEnabled()) {
+            <button
+              type="button"
+              class="footer-pay-btn"
+              data-testid="btn-pay-from-orders-footer"
+              (click)="closeTableOrdersModal(); openPaymentModal()">
+              <ion-icon name="card-outline"></ion-icon>
+              <span>{{ 'CLIENT.PAYMENT.LAUNCHER_BTN' | transloco }}</span>
+            </button>
+          }
           <button type="button" class="details-close-btn" (click)="closeTableOrdersModal()" data-testid="btn-close-table-orders-footer">
             {{ 'CLIENT.TABLE_ORDERS_CLOSE_BTN' | transloco }}
           </button>
@@ -910,5 +965,15 @@
       [tableNumero]="tableNumero"
       (closed)="closeAngelShotModal()">
     </app-angel-shot-modal>
+  }
+
+  @if (isPaymentModalOpen() && tableNumero) {
+    <app-client-payment-modal
+      [tableId]="tableNumero"
+      [tableNumero]="tableNumero"
+      [guestName]="tableCartService.getGuestName() || undefined"
+      (closeModal)="closePaymentModal()"
+      (paymentCompleted)="onPaymentCompleted($event)">
+    </app-client-payment-modal>
   }
 </div>

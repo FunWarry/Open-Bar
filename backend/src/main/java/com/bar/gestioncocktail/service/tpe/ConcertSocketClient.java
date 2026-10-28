@@ -9,10 +9,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.bar.gestioncocktail.service.tpe.ConcertProtocolConstants.*;
@@ -25,6 +27,7 @@ import static com.bar.gestioncocktail.service.tpe.ConcertProtocolConstants.*;
 public class ConcertSocketClient {
 
     private static final Logger log = LoggerFactory.getLogger(ConcertSocketClient.class);
+    private static final Set<Integer> FORBIDDEN_PORTS = Set.of(3306, 5432, 6379, 27017);
 
     private final Map<String, Socket> activeTransactionSockets = new ConcurrentHashMap<>();
 
@@ -50,6 +53,7 @@ public class ConcertSocketClient {
         log.info("Connecting to TPE at {}:{} for transaction {}", safeIp, port, safeTxId);
 
         try (Socket socket = new Socket()) {
+            validateSocketTarget(ip, port);
             activeTransactionSockets.put(transactionId, socket);
             socket.connect(new InetSocketAddress(ip, port), 5000);
             socket.setSoTimeout(Math.max(5, timeoutSeconds) * 1000);
@@ -110,6 +114,19 @@ public class ConcertSocketClient {
         return input.replaceAll("[^a-zA-Z0-9_.-]", "");
     }
 
+    private void validateSocketTarget(String ip, int port) throws IOException {
+        if (ip == null || ip.isBlank()) {
+            throw new IOException("Terminal IP address cannot be empty");
+        }
+        if (port < 1024 || port > 65535 || FORBIDDEN_PORTS.contains(port)) {
+            throw new IOException("Target port is outside allowed terminal range: " + port);
+        }
+        InetAddress addr = InetAddress.getByName(ip.trim());
+        if (addr.isLinkLocalAddress() || addr.isMulticastAddress() || addr.isAnyLocalAddress()) {
+            throw new IOException("Target IP address is not an allowed terminal address");
+        }
+    }
+
     /**
      * Performs a lightweight TCP connectivity and ENQ handshake probe against the terminal.
      *
@@ -120,6 +137,7 @@ public class ConcertSocketClient {
      * @throws IOException If connection or handshake fails
      */
     public long testConnection(String ip, int port, int timeoutMs) throws IOException {
+        validateSocketTarget(ip, port);
         long start = System.currentTimeMillis();
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress(ip, port), timeoutMs);

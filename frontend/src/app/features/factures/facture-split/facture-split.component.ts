@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonContent, IonHeader, IonToolbar, IonButtons,
@@ -20,6 +21,7 @@ import { FactureService, SplitResultDTO, SplitPartRequest, SplitPartItemRequest 
 import { Facture, FactureItem, FactureReglement, EncaisserPartRequest, TypeSplit } from '../models/facture.model';
 import { ReglementModalComponent, ReglementModalResult } from '../reglement-modal/reglement-modal.component';
 import { TicketReceiptComponent } from '../ticket-receipt/ticket-receipt.component';
+import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 
 /** State tracking for individual guest split settlements. */
 export interface PartSettlementState {
@@ -52,7 +54,7 @@ export interface PartSettlementState {
     CommonModule, FormsModule, TranslocoModule, AppCurrencyPipe,
     IonContent, IonHeader, IonToolbar, IonButtons,
     IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel,
-    IonSpinner, IonProgressBar
+    IonSpinner, IonProgressBar, ActionButtonComponent
   ],
   templateUrl: './facture-split.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -75,6 +77,9 @@ export class FactureSplitComponent implements OnInit {
   }
   set facture(val: Facture | null) {
     this._facture = val;
+    if (val?.id && !this.factureId) {
+      this.factureId = val.id;
+    }
     this.initFactureState();
   }
 
@@ -660,6 +665,89 @@ export class FactureSplitComponent implements OnInit {
         this.loading = false;
       },
     });
+  }
+
+  /**
+   * Settle an individual guest part directly from the guest card without requiring full table split.
+   *
+   * @param guestIndex Index of the guest
+   */
+  async settleGuestFromCard(guestIndex: number): Promise<void> {
+    const assignedItems = this.getAssignedItemsForGuest(guestIndex);
+    if (!assignedItems.length) return;
+    const subTotal = this.getGuestTotal(guestIndex);
+    const guestName = this.getGuestName(guestIndex);
+    const part: SplitResultDTO = {
+      factureId: this.factureId,
+      nomConvive: guestName,
+      items: assignedItems.map(it => ({
+        itemId: it.itemId,
+        description: it.description,
+        quantite: it.count,
+        prixUnitaire: it.unitPrice,
+        total: it.total
+      })),
+      sousTotal: subTotal,
+      totalAvecPourboire: subTotal
+    };
+
+    const modal = await this.modalCtrl.create({
+      component: ReglementModalComponent,
+      componentProps: {
+        totalInitial: subTotal,
+        nomPart: guestName,
+      }
+    });
+
+    await modal.present();
+    const { data } = await modal.onWillDismiss<ReglementModalResult>();
+    if (!data) return;
+
+    const request: EncaisserPartRequest = {
+      nomConvive: guestName,
+      partIndex: guestIndex + 1,
+      totalParts: this.guests.length,
+      montant: subTotal,
+      pourboire: data.pourboire || 0,
+      totalRegle: data.totalTotal,
+      modePaiement: data.modePaiement,
+      typeSplit: TypeSplit.SELECTION,
+      items: part.items,
+    };
+
+    const targetFactureId = this.factureId || this.facture?.id;
+    if (targetFactureId) {
+      this.factureId = targetFactureId;
+      try {
+        await firstValueFrom(this.factureService.encaisserPart(targetFactureId, request));
+
+        // Clean unit assignments for this guest
+        Object.keys(this.unitAssignments).forEach(key => {
+          if (this.unitAssignments[key] === guestIndex) {
+            delete this.unitAssignments[key];
+          }
+        });
+
+        const toast = await this.toastCtrl.create({
+          message: String(this.transloco.translate('SPLIT.PART_PAID_SUCCESS', { guest: guestName, mode: data.modePaiement })),
+          duration: 2500,
+          color: 'success'
+        });
+        await toast.present();
+
+        this.loadFacture();
+      } catch (err: unknown) {
+        const message = (err && typeof err === 'object' && 'error' in err && (err as { error?: { message?: string } }).error?.message)
+          ? (err as { error?: { message?: string } }).error?.message
+          : String(this.transloco.translate('ENCAISSEMENT.ERROR_SETTLEMENT'));
+        const toast = await this.toastCtrl.create({
+          message,
+          duration: 3500,
+          color: 'danger'
+        });
+        await toast.present();
+      }
+    }
   }
 
   // ─── Individual Post-Split Settlement ──────────────────────────────────────

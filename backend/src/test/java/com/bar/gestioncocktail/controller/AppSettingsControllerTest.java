@@ -3,8 +3,10 @@ package com.bar.gestioncocktail.controller;
 import com.bar.gestioncocktail.dto.AppSettingsResponseDTO;
 import com.bar.gestioncocktail.dto.AppSettingsUpdateRequest;
 import com.bar.gestioncocktail.model.AppSettings;
+import com.bar.gestioncocktail.model.CurrencyPosition;
 import com.bar.gestioncocktail.model.DefaultTheme;
 import com.bar.gestioncocktail.service.AppSettingsService;
+import com.bar.gestioncocktail.service.TimeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,11 +14,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.List;
+import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -29,7 +39,7 @@ class AppSettingsControllerTest {
     AppSettingsService appSettingsService;
 
     @Mock
-    com.bar.gestioncocktail.service.TimeService timeService;
+    TimeService timeService;
 
     @InjectMocks
     AppSettingsController appSettingsController;
@@ -59,7 +69,7 @@ class AppSettingsControllerTest {
         ResponseEntity<AppSettingsResponseDTO> response = appSettingsController.getSettings();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        AppSettingsResponseDTO body = java.util.Objects.requireNonNull(response.getBody());
+        AppSettingsResponseDTO body = Objects.requireNonNull(response.getBody());
         assertThat(body.primaryColor()).isEqualTo("#6c7fe8");
         assertThat(body.establishmentName()).isEqualTo("OpenBar");
         assertThat(body.tempsAlerteWarningMinutes()).isEqualTo(3);
@@ -72,7 +82,7 @@ class AppSettingsControllerTest {
     void updateSettingsDelegatesToServiceWithRequestAndReturnsUpdatedDto() {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
             "#ff0000", "#cc0000", "https://example.com/new-logo.png", "The Test Bar", DefaultTheme.DARK,
-            "USD", "$", com.bar.gestioncocktail.model.CurrencyPosition.BEFORE,
+            "USD", "$", CurrencyPosition.BEFORE,
             2, 6, 12,
             "https://openbar.lan", "OpenBar-Guest", "secret123", "WPA", true
         );
@@ -85,7 +95,7 @@ class AppSettingsControllerTest {
         updated.setDefaultTheme(DefaultTheme.DARK);
         updated.setCurrencyCode("USD");
         updated.setCurrencySymbol("$");
-        updated.setCurrencyPosition(com.bar.gestioncocktail.model.CurrencyPosition.BEFORE);
+        updated.setCurrencyPosition(CurrencyPosition.BEFORE);
         updated.setTempsAlerteWarningMinutes(2);
         updated.setTempsAlerteCommandeMinutes(6);
         updated.setTempsAlerteCritiqueCommandeMinutes(12);
@@ -100,7 +110,7 @@ class AppSettingsControllerTest {
 
         verify(appSettingsService).updateSettings(request);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        AppSettingsResponseDTO body = java.util.Objects.requireNonNull(response.getBody());
+        AppSettingsResponseDTO body = Objects.requireNonNull(response.getBody());
         assertThat(body.tempsAlerteWarningMinutes()).isEqualTo(2);
         assertThat(body.tempsAlerteCommandeMinutes()).isEqualTo(6);
         assertThat(body.tempsAlerteCritiqueCommandeMinutes()).isEqualTo(12);
@@ -108,7 +118,7 @@ class AppSettingsControllerTest {
         assertThat(body.establishmentName()).isEqualTo("The Test Bar");
         assertThat(body.currencyCode()).isEqualTo("USD");
         assertThat(body.currencySymbol()).isEqualTo("$");
-        assertThat(body.currencyPosition()).isEqualTo(com.bar.gestioncocktail.model.CurrencyPosition.BEFORE);
+        assertThat(body.currencyPosition()).isEqualTo(CurrencyPosition.BEFORE);
         assertThat(body.clientBaseUrl()).isEqualTo("https://openbar.lan");
         assertThat(body.wifiSsid()).isEqualTo("OpenBar-Guest");
         assertThat(body.wifiPassword()).isEqualTo("secret123");
@@ -124,21 +134,50 @@ class AppSettingsControllerTest {
         ResponseEntity<byte[]> response = appSettingsController.getWifiQrCode("PNG", 300);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getHeaders().getContentType()).isEqualTo(org.springframework.http.MediaType.IMAGE_PNG);
-        assertThat(response.getHeaders().getFirst(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION)).contains("wifi-qrcode.png");
+        assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.IMAGE_PNG);
+        assertThat(response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION)).contains("wifi-qrcode.png");
         assertThat(response.getBody()).isEqualTo(new byte[]{10, 20, 30});
     }
 
     @Test
     @DisplayName("getWifiQrCode with SVG returns svg bytes")
     void getWifiQrCodeSvgReturnsSvgBytes() {
-        when(appSettingsService.generateWifiQrCode("SVG", 250)).thenReturn("<svg></svg>".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        when(appSettingsService.generateWifiQrCode("SVG", 250)).thenReturn("<svg></svg>".getBytes(StandardCharsets.UTF_8));
 
         ResponseEntity<byte[]> response = appSettingsController.getWifiQrCode("SVG", 250);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getHeaders().getContentType()).isEqualTo(org.springframework.http.MediaType.valueOf("image/svg+xml"));
-        assertThat(response.getHeaders().getFirst(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION)).contains("wifi-qrcode.svg");
-        assertThat(new String(java.util.Objects.requireNonNull(response.getBody()))).isEqualTo("<svg></svg>");
+        assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.valueOf("image/svg+xml"));
+        assertThat(response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION)).contains("wifi-qrcode.svg");
+        assertThat(new String(Objects.requireNonNull(response.getBody()))).isEqualTo("<svg></svg>");
+    }
+
+    @Test
+    @DisplayName("getSettings redacts sensitive fields when caller is anonymous")
+    void getSettingsRedactsSensitiveFieldsForAnonymousCaller() {
+        settings.setWifiPassword("super-secret-wifi");
+        settings.setBarPrinterIp("192.168.1.200");
+        settings.setTpeBarIp("192.168.1.201");
+        settings.setSmtpHost("smtp.internal.lan");
+        settings.setSmtpUsername("bar-mailer");
+        when(appSettingsService.getSettings()).thenReturn(settings);
+
+        AnonymousAuthenticationToken anon =
+                new AnonymousAuthenticationToken(
+                        "key", "anonymousUser",
+                        List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS")));
+        SecurityContextHolder.getContext().setAuthentication(anon);
+        try {
+            ResponseEntity<AppSettingsResponseDTO> response = appSettingsController.getSettings();
+            AppSettingsResponseDTO body = Objects.requireNonNull(response.getBody());
+            assertThat(body.establishmentName()).isEqualTo("OpenBar");
+            assertThat(body.wifiPassword()).isNull();
+            assertThat(body.barPrinterIp()).isNull();
+            assertThat(body.tpeBarIp()).isNull();
+            assertThat(body.smtpHost()).isNull();
+            assertThat(body.smtpUsername()).isNull();
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 }

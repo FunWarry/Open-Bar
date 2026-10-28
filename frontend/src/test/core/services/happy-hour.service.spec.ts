@@ -324,4 +324,124 @@ describe('HappyHourService', () => {
       expect(nonMatch.effectivePrice).toBe(10.0);
     });
   });
+
+  describe('Countdown & Dynamic Promotion Features', () => {
+    it('calculateDiscountPercentage calculates correct integer percentages and null when no discount', () => {
+      expect(service.calculateDiscountPercentage(12.0, 9.0)).toBe(25);
+      expect(service.calculateDiscountPercentage(10.0, 6.67)).toBe(33);
+      expect(service.calculateDiscountPercentage(10.0, 10.0)).toBeNull();
+      expect(service.calculateDiscountPercentage(10.0, 12.0)).toBeNull();
+      expect(service.calculateDiscountPercentage(0, 0)).toBeNull();
+    });
+
+    it('formatDuration formats MM:SS for durations under an hour and HH:MM:SS for longer', () => {
+      expect(service.formatDuration(1455)).toBe('24:15');
+      expect(service.formatDuration(59)).toBe('00:59');
+      expect(service.formatDuration(3665)).toBe('01:01:05');
+    });
+
+    it('getSecondsUntilEnd computes remaining seconds correctly for standard and overnight rules', () => {
+      const standardRule: HappyHourRule = {
+        ...mockRule,
+        startTime: '17:00',
+        endTime: '19:00',
+        daysOfWeek: ['MONDAY']
+      };
+      // 18:30:00 on Monday
+      const testDate = new Date('2026-09-07T18:30:00');
+      const remaining = service.getSecondsUntilEnd(standardRule, testDate);
+      expect(remaining).toBe(1800); // 30 mins = 1800s
+
+      const overnightRule: HappyHourRule = {
+        ...mockRule,
+        startTime: '22:00',
+        endTime: '02:00',
+        daysOfWeek: ['MONDAY']
+      };
+      // 23:00:00 on Monday
+      const testDateNight = new Date('2026-09-07T23:00:00');
+      const remainingNight = service.getSecondsUntilEnd(overnightRule, testDateNight);
+      expect(remainingNight).toBe(10800); // 3 hours = 10800s
+    });
+
+    it('getSecondsUntilStart returns seconds within 60 minutes or null', () => {
+      const upcomingRule: HappyHourRule = {
+        ...mockRule,
+        startTime: '18:00',
+        endTime: '20:00',
+        daysOfWeek: ['MONDAY']
+      };
+      // 17:25 on Monday -> starts in 35 mins (2100s)
+      const withinHourDate = new Date('2026-09-07T17:25:00');
+      expect(service.getSecondsUntilStart(upcomingRule, withinHourDate)).toBe(2100);
+
+      // 16:00 on Monday -> starts in 2 hours (> 3600s)
+      const beyondHourDate = new Date('2026-09-07T16:00:00');
+      expect(service.getSecondsUntilStart(upcomingRule, beyondHourDate)).toBeNull();
+
+      // Inactive rule
+      expect(service.getSecondsUntilStart({ ...upcomingRule, active: false }, withinHourDate)).toBeNull();
+    });
+
+    it('getRuleScope resolves translation key based on categories, name or all', () => {
+      const catRule: HappyHourRule = { ...mockRule, categories: ['COCKTAIL', 'BEER'] };
+      expect(service.getRuleScope(catRule).key).toBe('PRICING.TARGET_CATEGORIES');
+
+      const namedRule: HappyHourRule = { ...mockRule, categories: [], name: 'Cocktails Signature' };
+      expect(service.getRuleScope(namedRule).key).toBe('PRICING.TARGET_NAMED');
+      expect(service.getRuleScope(namedRule).params?.['name']).toBe('Cocktails Signature');
+
+      const globalRule: HappyHourRule = { ...mockRule, categories: [], name: 'Happy Hour Standard' };
+      expect(service.getRuleScope(globalRule).key).toBe('PRICING.TARGET_ALL');
+    });
+
+    it('updateCountdownAndTeaser prioritizes urgent-first active rule and emits state transition events', () => {
+      const ruleEndingSoon: HappyHourRule = {
+        id: 1,
+        name: 'Urgent Rule',
+        startTime: '17:00',
+        endTime: '18:00',
+        daysOfWeek: ['MONDAY'],
+        discountType: 'PERCENTAGE',
+        discountValue: 20,
+        active: true,
+        categories: [],
+        cocktailIds: []
+      };
+
+      const ruleEndingLater: HappyHourRule = {
+        id: 2,
+        name: 'Long Rule',
+        startTime: '17:00',
+        endTime: '20:00',
+        daysOfWeek: ['MONDAY'],
+        discountType: 'PERCENTAGE',
+        discountValue: 30,
+        active: true,
+        categories: [],
+        cocktailIds: []
+      };
+
+      service['rulesSignal'].set([ruleEndingLater, ruleEndingSoon]);
+      service['wasActiveLastTick'] = false;
+
+      const transitions: string[] = [];
+      service.stateTransition$.subscribe(t => transitions.push(t.type));
+
+      // At 17:30 on Monday: rule 1 ends in 30m, rule 2 ends in 2h30m -> rule 1 wins
+      service.updateCountdownAndTeaser(new Date('2026-09-07T17:30:00'));
+
+      expect(service.activeCountdown()).not.toBeNull();
+      expect(service.activeCountdown()?.rule.id).toBe(1);
+      expect(service.activeCountdown()?.remainingSeconds).toBe(1800);
+      expect(service.activeCountdown()?.formattedTime).toBe('30:00');
+      expect(service.upcomingTeaser()).toBeNull();
+      expect(transitions).toEqual(['STARTED']);
+
+      // At 21:00 on Monday: no active rules, transition to ENDED
+      service.updateCountdownAndTeaser(new Date('2026-09-07T21:00:00'));
+      expect(service.activeCountdown()).toBeNull();
+      expect(transitions).toEqual(['STARTED', 'ENDED']);
+    });
+  });
 });

@@ -310,7 +310,7 @@ class TableSessionServiceTest {
 
         when(qrCodeService.buildTableOrderUrl("https://bar.example.com", 12, "my-token"))
                 .thenReturn("https://bar.example.com/client/commande?table=12&token=my-token");
-        byte[] expectedBytes = new byte[]{1, 2, 3};
+        byte[] expectedBytes = {1, 2, 3};
         when(qrCodeService.generatePng("https://bar.example.com/client/commande?table=12&token=my-token", 300, 300))
                 .thenReturn(expectedBytes);
 
@@ -804,5 +804,28 @@ class TableSessionServiceTest {
 
         byte[] pngBytes = serviceWithoutQr.generateSessionQrCode(null, null, "PNG", 250, null);
         assertThat(pngBytes).isEmpty();
+    }
+
+    @Test
+    @DisplayName("generateSessionQrCode: omits session token when table has an active guest owner and token parameter is null")
+    void generateSessionQrCode_whenOwnedSessionAndTokenNull_doesNotLeakSessionToken() {
+        when(tableRepository.findById(5L)).thenReturn(Optional.empty());
+        when(tableRepository.findByNumero(5)).thenReturn(Optional.empty());
+
+        TableSession ownedSession = new TableSession();
+        ownedSession.setTableId(5L);
+        ownedSession.setSessionToken("secret-owner-token");
+        ownedSession.setOwnerGuestSessionId("owner-guest-1");
+        when(tableSessionRepository.findFirstByTableIdAndStatusOrderByOpenedAtDesc(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(Optional.of(ownedSession));
+
+        when(qrCodeService.buildTableOrderUrl("https://openbar.lan", 5, null))
+                .thenReturn("https://openbar.lan/client/commande?table=5");
+        when(qrCodeService.generatePng("https://openbar.lan/client/commande?table=5", 300, 300))
+                .thenReturn(new byte[]{9, 9, 9});
+
+        byte[] png = tableSessionService.generateSessionQrCode(5L, null, "PNG", 300, null);
+        assertThat(png).containsExactly(9, 9, 9);
+        verify(qrCodeService).buildTableOrderUrl("https://openbar.lan", 5, null);
     }
 }

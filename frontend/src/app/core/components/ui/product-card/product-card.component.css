@@ -170,6 +170,17 @@
   letter-spacing: 0.03em;
 }
 
+.discount-percent-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--semantic-success);
+  color: var(--text-on-accent);
+  letter-spacing: 0.03em;
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--semantic-success) 35%, transparent);
+}
+
 .product-price {
   font-size: 18px;
   font-weight: 700;

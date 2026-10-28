@@ -443,4 +443,22 @@ public record CocktailResponseDTO(
         }
         return grossMargin.multiply(BigDecimal.valueOf(100), MC).divide(sellingPriceHT, 2, RoundingMode.HALF_UP);
     }
+
+    /**
+     * Returns a copy of this DTO with internal financial margin data and bartender recipe instructions redacted for anonymous callers.
+     *
+     * @return Redacted public-safe cocktail DTO
+     */
+    public CocktailResponseDTO redactForPublic() {
+        return new CocktailResponseDTO(
+            id, nom, description, prix, categorie, disponible, saisonnier,
+            dateDebutSaison, dateFinSaison, moisDebut, moisFin, disponibleAujourdhui,
+            null, imageUrl, ingredients, variantes, Collections.emptyList(), glassware,
+            flavorProfiles, alcoholLevel, isMocktail, isVegan, isGlutenFree,
+            station,
+            null, null, null, null,
+            createdAt, updatedAt,
+            secondaryGlassware, companionGlassTitle, glasses
+        );
+    }
 }

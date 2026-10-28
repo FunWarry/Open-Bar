@@ -84,6 +84,11 @@
             <span class="happy-hour-badge" data-testid="product-card-hh-badge">
               {{ 'PRICING.HAPPY_HOUR_BADGE' | transloco }}
             </span>
+            @if (discountPercentage) {
+              <span class="discount-percent-badge" data-testid="product-card-discount-badge">
+                -{{ discountPercentage }}%
+              </span>
+            }
           </div>
         }
         <span class="product-price" [class.discounted]="isHappyHour" data-testid="product-card-price">

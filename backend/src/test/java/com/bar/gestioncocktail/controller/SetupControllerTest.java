@@ -12,13 +12,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -98,10 +104,36 @@ class SetupControllerTest {
     @DisplayName("cleanTestData - skips when seeder service is absent")
     void cleanTestData_absent_skipped() {
         SetupController controller = new SetupController(setupService, Optional.empty());
-
         ResponseEntity<Map<String, String>> response = controller.cleanTestData();
-
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getBody()).containsEntry("status", "skipped");
+    }
+
+    @Test
+    @DisplayName("seedDemoData - rejects unauthenticated call when system is already initialized")
+    void seedDemoData_whenAlreadyInitializedAndUnauthenticated_throwsAccessDenied() {
+        SetupController controller = new SetupController(setupService, Optional.of(sampleDataSeederService));
+        when(setupService.getSetupStatus()).thenReturn(new SetupStatusDTO(true, 3L));
+        SecurityContextHolder.clearContext();
+
+        assertThatThrownBy(controller::seedDemoData)
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @DisplayName("seedDemoData - allows ADMIN call when system is already initialized")
+    void seedDemoData_whenAlreadyInitializedAndAdmin_succeeds() {
+        SetupController controller = new SetupController(setupService, Optional.of(sampleDataSeederService));
+        when(setupService.getSetupStatus()).thenReturn(new SetupStatusDTO(true, 3L));
+        UsernamePasswordAuthenticationToken adminAuth =
+                new UsernamePasswordAuthenticationToken(
+                        "admin", null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        SecurityContextHolder.getContext().setAuthentication(adminAuth);
+        try {
+            ResponseEntity<Map<String, String>> response = controller.seedDemoData();
+            assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 }

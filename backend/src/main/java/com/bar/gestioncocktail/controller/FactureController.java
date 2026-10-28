@@ -416,6 +416,42 @@ public class FactureController {
     }
 
     /**
+     * Records an individual split share payment directly for a table.
+     * Ensures pending invoice creation if needed and stores settlement line.
+     *
+     * @param tableId Scanned table identifier
+     * @param request Payload containing guest payment details and assigned items
+     * @return Saved settlement DTO
+     */
+    @PostMapping("/table/{tableId}/split/encaisser")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
+    @Operation(summary = "Record individual split share payment for a table", description = "Saves guest payment details and items consumed on an active table.")
+    @ApiResponse(responseCode = "200", description = "Split share settlement recorded for table")
+    public ResponseEntity<com.bar.gestioncocktail.dto.FactureReglementDTO> encaisserPartTable(
+            @PathVariable Long tableId,
+            @Valid @RequestBody com.bar.gestioncocktail.dto.EncaisserPartRequest request) {
+        return ResponseEntity.ok(factureService.encaisserPartTable(tableId, request));
+    }
+
+    /**
+     * Records an individual split share payment directly for a bar tab.
+     * Ensures pending invoice creation if needed and stores settlement line.
+     *
+     * @param tabId Bar tab identifier
+     * @param request Payload containing guest payment details and assigned items
+     * @return Saved settlement DTO
+     */
+    @PostMapping("/tab/{tabId}/split/encaisser")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR') or hasRole('BARMAN')")
+    @Operation(summary = "Record individual split share payment for a bar tab", description = "Saves guest payment details and items consumed on an active bar tab.")
+    @ApiResponse(responseCode = "200", description = "Split share settlement recorded for bar tab")
+    public ResponseEntity<com.bar.gestioncocktail.dto.FactureReglementDTO> encaisserPartTab(
+            @PathVariable Long tabId,
+            @Valid @RequestBody com.bar.gestioncocktail.dto.EncaisserPartRequest request) {
+        return ResponseEntity.ok(factureService.encaisserPartTab(tabId, request));
+    }
+
+    /**
      * Retrieves all recorded split share settlements for an invoice.
      *
      * @param id Invoice identifier

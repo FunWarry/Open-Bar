@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -9,10 +9,14 @@ import { WebSocketService } from '../../../core/services/websocket.service';
 import { Commande } from '../../../core/models/commande.model';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { TableAssistanceBarComponent } from '../components/table-assistance-bar/table-assistance-bar.component';
+import { ClientPaymentModalComponent } from '../components/client-payment-modal/client-payment-modal.component';
+import { FeatureFlagService } from '../../../core/services/feature-flag.service';
+import { EstablishmentModule } from '../../../core/models/establishment-module.model';
+import { PaymentSuccessResponse } from '../../../core/models/payment.model';
 
 /**
  * Client Suivi Component for real-time tracking of a customer order via STOMP WebSocket,
- * with quick assistance call and bill request actions.
+ * with quick assistance call, bill request, and online self-checkout actions.
  * Aligned with Figma Vue Client QR Code specs (`636:1083`).
  */
 @Component({
@@ -26,7 +30,8 @@ import { TableAssistanceBarComponent } from '../components/table-assistance-bar/
     AppCurrencyPipe,
     TranslocoModule,
     ActionButtonComponent,
-    TableAssistanceBarComponent
+    TableAssistanceBarComponent,
+    ClientPaymentModalComponent
   ]
 })
 export class ClientSuiviComponent implements OnInit, OnDestroy {
@@ -34,11 +39,13 @@ export class ClientSuiviComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly commandeService = inject(CommandeService);
   private readonly websocketService = inject(WebSocketService);
+  private readonly featureFlagService = inject(FeatureFlagService);
   private readonly destroy$ = new Subject<void>();
 
   commandeId: number | null = null;
   commande: Commande | null = null;
   isLoading = true;
+  readonly isPaymentModalOpen = signal<boolean>(false);
 
   ngOnInit(): void {
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
@@ -129,5 +136,50 @@ export class ClientSuiviComponent implements OnInit, OnDestroy {
 
   get statusLabel(): string {
     return this.statusLabelKey;
+  }
+
+  /**
+   * Resolves the table number or ID associated with the current order.
+   */
+  get currentTableNumero(): number | undefined {
+    return this.commande?.tableNumero || this.commande?.tableId;
+  }
+
+  /**
+   * Checks whether the QR Pay-at-Table module is dynamically enabled for this establishment.
+   */
+  isQrPayAtTableEnabled(): boolean {
+    return this.featureFlagService ? this.featureFlagService.isModuleEnabled(EstablishmentModule.QR_PAY_AT_TABLE) : true;
+  }
+
+  /**
+   * Checks whether the current order can still be settled online.
+   */
+  canPayThisOrder(): boolean {
+    return !this.commande || (this.commande.statut !== 'REGLEE' && this.commande.statut !== 'ANNULEE');
+  }
+
+  /**
+   * Opens the self-checkout mobile payment modal.
+   */
+  openPaymentModal(): void {
+    this.isPaymentModalOpen.set(true);
+  }
+
+  /**
+   * Closes the self-checkout payment modal.
+   */
+  closePaymentModal(): void {
+    this.isPaymentModalOpen.set(false);
+  }
+
+  /**
+   * Handler invoked when payment succeeds.
+   */
+  onPaymentCompleted(res: PaymentSuccessResponse): void {
+    this.closePaymentModal();
+    if (this.commandeId) {
+      this.loadCommande(this.commandeId);
+    }
   }
 }

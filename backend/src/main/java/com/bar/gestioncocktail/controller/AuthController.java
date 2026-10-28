@@ -10,6 +10,7 @@ import com.bar.gestioncocktail.model.RefreshToken;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.model.UserRole;
 import com.bar.gestioncocktail.security.JwtTokenProvider;
+import com.bar.gestioncocktail.security.LoginAttemptService;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.service.RefreshTokenService;
 import com.bar.gestioncocktail.service.UserService;
@@ -17,13 +18,17 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,9 +46,10 @@ public class AuthController {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
+    private final LoginAttemptService loginAttemptService;
 
     /**
-     * Constructs the controller with authentication and token service dependencies.
+     * Backward-compatible constructor initializing a default brute-force protection service.
      *
      * @param authenticationManager Spring Security authentication manager
      * @param jwtTokenProvider      JWT token provider service
@@ -55,10 +61,30 @@ public class AuthController {
             JwtTokenProvider jwtTokenProvider,
             UserService userService,
             RefreshTokenService refreshTokenService) {
+        this(authenticationManager, jwtTokenProvider, userService, refreshTokenService, new LoginAttemptService());
+    }
+
+    /**
+     * Constructs the controller with authentication, token, and brute-force protection dependencies.
+     *
+     * @param authenticationManager Spring Security authentication manager
+     * @param jwtTokenProvider      JWT token provider service
+     * @param userService           User management service
+     * @param refreshTokenService   Refresh token management service
+     * @param loginAttemptService   Brute-force rate limiting service
+     */
+    @Autowired
+    public AuthController(
+            AuthenticationManager authenticationManager,
+            JwtTokenProvider jwtTokenProvider,
+            UserService userService,
+            RefreshTokenService refreshTokenService,
+            LoginAttemptService loginAttemptService) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userService = userService;
         this.refreshTokenService = refreshTokenService;
+        this.loginAttemptService = loginAttemptService != null ? loginAttemptService : new LoginAttemptService();
     }
 
     /**
@@ -72,16 +98,26 @@ public class AuthController {
     @ApiResponse(responseCode = "200", description = "Authentication successful")
     @ApiResponse(responseCode = "401", description = "Invalid credentials")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(),
-                        loginRequest.getPassword()));
+        String attemptKey = "login:" + (loginRequest.getUsername() != null ? loginRequest.getUsername() : "unknown");
+        loginAttemptService.checkAllowed(attemptKey);
+
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getUsername(),
+                            loginRequest.getPassword()));
+        } catch (AuthenticationException ex) {
+            loginAttemptService.recordFailure(attemptKey);
+            throw ex;
+        }
+        loginAttemptService.recordSuccess(attemptKey);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String accessToken = jwtTokenProvider.generateToken(authentication);
         User user = userService.getUserByUsername(loginRequest.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        List<String> userRoles = new java.util.ArrayList<>();
+        List<String> userRoles = new ArrayList<>();
         if (user.getRoles() != null) {
             for (UserRole role : user.getRoles()) {
                 if (role != null && role.getName() != null) {
@@ -144,15 +180,17 @@ public class AuthController {
     }
 
     /**
-     * Registers a new user in the system.
+     * Registers a new user in the system (restricted to administrators).
      *
      * @param request The user data to create
      * @return The created user as a DTO
      */
     @PostMapping("/register")
-    @Operation(summary = "Register a new user", description = "Creates a new user account in the system.")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Register a new user (ADMIN)", description = "Creates a new user account in the system. Restricted to administrators.")
     @ApiResponse(responseCode = "200", description = "Registration successful")
     @ApiResponse(responseCode = "400", description = "Username or email already exists")
+    @ApiResponse(responseCode = "403", description = "Access restricted to administrators")
     public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody UserRequestDTO request) {
         if (userService.existsByUsername(request.username())) {
             return ResponseEntity.badRequest().build();

@@ -3,17 +3,25 @@ package com.bar.gestioncocktail.controller;
 import com.bar.gestioncocktail.dto.AppSettingsResponseDTO;
 import com.bar.gestioncocktail.dto.AppSettingsUpdateRequest;
 import com.bar.gestioncocktail.service.AppSettingsService;
+import com.bar.gestioncocktail.service.TimeService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -28,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AppSettingsController {
 
     private final AppSettingsService appSettingsService;
-    private final com.bar.gestioncocktail.service.TimeService timeService;
+    private final TimeService timeService;
 
     /**
      * Constructs the controller with settings service and time service dependencies.
@@ -37,7 +45,7 @@ public class AppSettingsController {
      * @param timeService Application time service for establishment timezone resolution
      */
     @Autowired
-    public AppSettingsController(AppSettingsService appSettingsService, com.bar.gestioncocktail.service.TimeService timeService) {
+    public AppSettingsController(AppSettingsService appSettingsService, TimeService timeService) {
         this.appSettingsService = appSettingsService;
         this.timeService = timeService;
     }
@@ -48,13 +56,26 @@ public class AppSettingsController {
      * @return Establishment settings DTO
      */
     @GetMapping
-    @Operation(summary = "Get establishment settings", description = "Public endpoint to retrieve establishment branding and alert thresholds.")
+    @Operation(summary = "Get establishment settings", description = "Public endpoint to retrieve establishment branding and alert thresholds. Sensitive fields are redacted for unauthenticated callers.")
     @ApiResponse(responseCode = "200", description = "Settings retrieved successfully")
     public ResponseEntity<AppSettingsResponseDTO> getSettings() {
         String tz = (timeService != null && timeService.getZoneId() != null)
                 ? timeService.getZoneId().getId()
                 : AppSettingsResponseDTO.DEFAULT_TIMEZONE;
-        return ResponseEntity.ok(AppSettingsResponseDTO.from(appSettingsService.getSettings(), tz));
+        AppSettingsResponseDTO dto = AppSettingsResponseDTO.from(appSettingsService.getSettings(), tz);
+        if (isAnonymousCaller()) {
+            dto = dto.redactForPublic();
+        }
+        return ResponseEntity.ok(dto);
+    }
+
+    private boolean isAnonymousCaller() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof AnonymousAuthenticationToken) {
+            return true;
+        }
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ANONYMOUS".equals(a.getAuthority()));
     }
 
     /**
@@ -87,16 +108,16 @@ public class AppSettingsController {
     @ApiResponse(responseCode = "200", description = "Wi-Fi QR code generated successfully")
     @ApiResponse(responseCode = "400", description = "Wi-Fi SSID is not configured")
     public ResponseEntity<byte[]> getWifiQrCode(
-        @io.swagger.v3.oas.annotations.Parameter(description = "Format: PNG or SVG") @org.springframework.web.bind.annotation.RequestParam(defaultValue = "PNG") String format,
-        @io.swagger.v3.oas.annotations.Parameter(description = "Image size in pixels") @org.springframework.web.bind.annotation.RequestParam(defaultValue = "300") int size) {
+        @Parameter(description = "Format: PNG or SVG") @RequestParam(defaultValue = "PNG") String format,
+        @Parameter(description = "Image size in pixels") @RequestParam(defaultValue = "300") int size) {
         byte[] qrBytes = appSettingsService.generateWifiQrCode(format, size);
         String cleanFormat = format != null ? format.toLowerCase() : "png";
-        org.springframework.http.MediaType mediaType = "svg".equalsIgnoreCase(cleanFormat)
-            ? org.springframework.http.MediaType.valueOf("image/svg+xml")
-            : org.springframework.http.MediaType.IMAGE_PNG;
+        MediaType mediaType = "svg".equalsIgnoreCase(cleanFormat)
+            ? MediaType.valueOf("image/svg+xml")
+            : MediaType.IMAGE_PNG;
 
         return ResponseEntity.ok()
-            .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"wifi-qrcode." + cleanFormat + "\"")
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"wifi-qrcode." + cleanFormat + "\"")
             .contentType(mediaType)
             .body(qrBytes);
     }

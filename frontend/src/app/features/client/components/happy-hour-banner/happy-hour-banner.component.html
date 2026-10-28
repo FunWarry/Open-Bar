@@ -1,0 +1,60 @@
+@if (activeCountdown(); as active) {
+  <div class="hh-banner hh-banner-active" data-testid="hh-active-banner">
+    <div class="hh-banner-glow-effect"></div>
+    <div class="hh-banner-content">
+      <div class="hh-banner-left">
+        <div class="hh-icon-box hh-icon-active">
+          <ion-icon name="flame-outline" class="hh-flame-icon"></ion-icon>
+        </div>
+        <div class="hh-text-group">
+          <div class="hh-title-row">
+            <strong class="hh-title" data-testid="hh-active-title">
+              {{ 'PRICING.HAPPY_HOUR_ACTIVE_TITLE' | transloco }}
+            </strong>
+            <span class="hh-scope-badge" data-testid="hh-active-scope">
+              {{ active.scopeDescriptionKey | transloco: active.scopeDescriptionParams }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="hh-banner-right">
+        <div class="hh-countdown-pill" data-testid="hh-active-countdown">
+          <ion-icon name="timer-outline" class="hh-timer-icon"></ion-icon>
+          <span class="hh-countdown-text">
+            {{ 'PRICING.HAPPY_HOUR_ENDS_IN' | transloco: { time: active.formattedTime } }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+} @else if (upcomingTeaser(); as upcoming) {
+  <div class="hh-banner hh-banner-upcoming" data-testid="hh-upcoming-banner">
+    <div class="hh-banner-content">
+      <div class="hh-banner-left">
+        <div class="hh-icon-box hh-icon-upcoming">
+          <ion-icon name="time-outline"></ion-icon>
+        </div>
+        <div class="hh-text-group">
+          <div class="hh-title-row">
+            <strong class="hh-title" data-testid="hh-upcoming-title">
+              {{ 'PRICING.HAPPY_HOUR_UPCOMING_TITLE' | transloco }}
+            </strong>
+          </div>
+          <p class="hh-teaser-desc" data-testid="hh-upcoming-desc">
+            {{ 'PRICING.HAPPY_HOUR_STARTS_IN' | transloco: {
+                minutes: upcoming.minutesUntilStart,
+                target: (upcoming.scopeDescriptionKey | transloco: upcoming.scopeDescriptionParams)
+            } }}
+          </p>
+        </div>
+      </div>
+      <div class="hh-banner-right">
+        <div class="hh-teaser-badge" data-testid="hh-upcoming-time">
+          <ion-icon name="sparkles-outline"></ion-icon>
+          <span>{{ upcoming.minutesUntilStart }} min</span>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+

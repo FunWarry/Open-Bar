@@ -28,6 +28,7 @@ import { TableBar } from '../../../core/models/table.model';
 import { ZoneManagerComponent } from '../zone-manager/zone-manager.component';
 import { TableDetailComponent } from '../table-detail/table-detail.component';
 import { TableFormComponent } from '../table-form/table-form.component';
+import { CommandeDetailModalComponent } from '../../commandes/commande-detail-modal/commande-detail-modal.component';
 import { TableQrBatchPrintModalComponent } from '../components/table-qr-batch-print-modal/table-qr-batch-print-modal.component';
 import { ConfirmDeleteModalComponent } from '../../../core/components/ui/confirm-delete-modal/confirm-delete-modal.component';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
@@ -506,6 +507,18 @@ export class TableListComponent implements OnInit, OnDestroy {
     if (data?.action === 'edit') {
       void this.onEdit(data.table || t);
     } else if (data?.action === 'deleted') {
+      this.charger();
+    } else if (data?.action === 'view_order' && (data?.commandeId || data?.commande)) {
+      const commandeModal = await this.modalCtrl.create({
+        component: CommandeDetailModalComponent,
+        componentProps: {
+          commandeId: data.commandeId || data.commande?.id,
+          commandeInput: data.commande,
+        },
+        cssClass: 'commande-detail-modal-container',
+      });
+      await commandeModal.present();
+      await commandeModal.onDidDismiss();
       this.charger();
     }
   }

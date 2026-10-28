@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, Input, Output, EventEmitter, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
@@ -26,6 +26,7 @@ import { CocktailService } from '../../../core/services/cocktail.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
 import { FeatureFlagService } from '../../../core/services/feature-flag.service';
+import { HappyHourService } from '../../../core/services/happy-hour.service';
 import { EstablishmentModule } from '../../../core/models/establishment-module.model';
 import { Cocktail, CocktailFacets, CocktailVariante, FlavorProfile } from '../../../core/models/cocktail.model';
 import { CocktailVariantModalComponent, CocktailVariantModalResult } from '../components/cocktail-variant-modal/cocktail-variant-modal.component';
@@ -144,6 +145,7 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   isLoading = false;
   isAdmin$: Observable<boolean>;
 
+  private readonly happyHourService = inject(HappyHourService, { optional: true });
   private readonly destroy$ = new Subject<void>();
 
   constructor(
@@ -225,6 +227,49 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.charger();
     this.initWebSocketSubscription();
+    this.initHappyHourSubscription();
+  }
+
+  /**
+   * Initializes Happy Hour rules loading and state transition subscriptions
+   * to keep pricing in sync with live active/ended promotions.
+   */
+  private initHappyHourSubscription(): void {
+    if (this.happyHourService && this.featureFlagService.happyHourEnabled()) {
+      this.happyHourService.loadRules()?.pipe(takeUntil(this.destroy$))?.subscribe();
+      this.happyHourService.stateTransition$
+        ?.pipe(takeUntil(this.destroy$))
+        ?.subscribe(() => {
+          this.cocktails = [...this.cocktails];
+        });
+    }
+  }
+
+  /**
+   * Resolves dynamic pricing details for a given cocktail based on active Happy Hour rules.
+   *
+   * @param cocktail - Cocktail item to price
+   * @returns Pricing resolution including effective price, original price, and HH badge flag
+   */
+  getHappyHourPricing(cocktail: Cocktail): {
+    effectivePrice: number;
+    originalPrice: number | null;
+    isHappyHour: boolean;
+    discountPercentage?: number | null;
+  } {
+    if (!this.featureFlagService.happyHourEnabled() || !this.happyHourService) {
+      return { effectivePrice: cocktail.prix, originalPrice: null, isHappyHour: false };
+    }
+    const pricing = this.happyHourService.resolvePrice(cocktail.prix, cocktail.id, cocktail.categorie);
+    const discountPercentage = pricing.isHappyHour
+      ? this.happyHourService.calculateDiscountPercentage(cocktail.prix, pricing.effectivePrice)
+      : null;
+    return {
+      effectivePrice: pricing.effectivePrice,
+      originalPrice: pricing.isHappyHour ? cocktail.prix : null,
+      isHappyHour: pricing.isHappyHour,
+      discountPercentage,
+    };
   }
 
   /**

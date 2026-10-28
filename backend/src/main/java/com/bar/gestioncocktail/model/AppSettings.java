@@ -230,6 +230,78 @@ public class AppSettings {
     @Column(name = "emergency_numbers_json", columnDefinition = "TEXT")
     private String emergencyNumbersJson = "[{\"name\":\"Police Secours\",\"number\":\"17\",\"description\":\"Urgence immédiate / Agression\"},{\"name\":\"Urgences Europe\",\"number\":\"112\",\"description\":\"Numéro d'urgence européen\"},{\"name\":\"Violences Femmes Info\",\"number\":\"3919\",\"description\":\"Écoute & orientation 24/7\"},{\"name\":\"Urgence SMS (Sourds)\",\"number\":\"114\",\"description\":\"Contact discret par SMS\"}]";
 
+    /**
+     * Selected online payment gateway provider (e.g. "STRIPE", "SANDBOX").
+     */
+    @Column(name = "online_payment_provider", length = 50)
+    private String onlinePaymentProvider = "STRIPE";
+
+    /**
+     * Stripe publishable key (e.g. pk_test_... or pk_live_...).
+     */
+    @Column(name = "stripe_publishable_key")
+    private String stripePublishableKey;
+
+    /**
+     * Stripe secret API key (e.g. sk_test_... or sk_live_...).
+     */
+    @Column(name = "stripe_secret_key")
+    private String stripeSecretKey;
+
+    /**
+     * Stripe webhook signing secret (e.g. whsec_...).
+     */
+    @Column(name = "stripe_webhook_secret")
+    private String stripeWebhookSecret;
+
+    /**
+     * Currency code used for online payment gateway transactions.
+     */
+    @Column(name = "online_payment_currency", length = 10)
+    private String onlinePaymentCurrency = "EUR";
+
+    /**
+     * SMTP Host server for digital receipt email delivery.
+     */
+    @Column(name = "smtp_host")
+    private String smtpHost;
+
+    /**
+     * SMTP Port server.
+     */
+    @Column(name = "smtp_port")
+    private Integer smtpPort = 587;
+
+    /**
+     * SMTP username.
+     */
+    @Column(name = "smtp_username")
+    private String smtpUsername;
+
+    /**
+     * SMTP password.
+     */
+    @Column(name = "smtp_password")
+    private String smtpPassword;
+
+    /**
+     * Sender email address for automated receipt emails.
+     */
+    @Column(name = "smtp_from")
+    private String smtpFrom = "no-reply@openbar.local";
+
+    /**
+     * Whether SMTP authentication is required.
+     */
+    @Column(name = "smtp_auth")
+    private Boolean smtpAuth = false;
+
+    /**
+     * Whether STARTTLS is enabled for SMTP communication.
+     */
+    @Column(name = "smtp_starttls")
+    private Boolean smtpStarttls = false;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
@@ -271,6 +343,102 @@ public class AppSettings {
 
     public void setTpeTerminalsJson(String tpeTerminalsJson) {
         this.tpeTerminalsJson = tpeTerminalsJson;
+    }
+
+    public String getOnlinePaymentProvider() {
+        return onlinePaymentProvider;
+    }
+
+    public void setOnlinePaymentProvider(String onlinePaymentProvider) {
+        this.onlinePaymentProvider = onlinePaymentProvider;
+    }
+
+    public String getStripePublishableKey() {
+        return stripePublishableKey;
+    }
+
+    public void setStripePublishableKey(String stripePublishableKey) {
+        this.stripePublishableKey = stripePublishableKey;
+    }
+
+    public String getStripeSecretKey() {
+        return stripeSecretKey;
+    }
+
+    public void setStripeSecretKey(String stripeSecretKey) {
+        this.stripeSecretKey = stripeSecretKey;
+    }
+
+    public String getStripeWebhookSecret() {
+        return stripeWebhookSecret;
+    }
+
+    public void setStripeWebhookSecret(String stripeWebhookSecret) {
+        this.stripeWebhookSecret = stripeWebhookSecret;
+    }
+
+    public String getOnlinePaymentCurrency() {
+        return onlinePaymentCurrency != null ? onlinePaymentCurrency : "EUR";
+    }
+
+    public void setOnlinePaymentCurrency(String onlinePaymentCurrency) {
+        this.onlinePaymentCurrency = onlinePaymentCurrency;
+    }
+
+    public String getSmtpHost() {
+        return smtpHost;
+    }
+
+    public void setSmtpHost(String smtpHost) {
+        this.smtpHost = smtpHost;
+    }
+
+    public Integer getSmtpPort() {
+        return smtpPort;
+    }
+
+    public void setSmtpPort(Integer smtpPort) {
+        this.smtpPort = smtpPort;
+    }
+
+    public String getSmtpUsername() {
+        return smtpUsername;
+    }
+
+    public void setSmtpUsername(String smtpUsername) {
+        this.smtpUsername = smtpUsername;
+    }
+
+    public String getSmtpPassword() {
+        return smtpPassword;
+    }
+
+    public void setSmtpPassword(String smtpPassword) {
+        this.smtpPassword = smtpPassword;
+    }
+
+    public String getSmtpFrom() {
+        return smtpFrom;
+    }
+
+    public void setSmtpFrom(String smtpFrom) {
+        this.smtpFrom = smtpFrom;
+    }
+
+    public Boolean getSmtpAuth() {
+        return smtpAuth;
+    }
+
+    public void setSmtpAuth(Boolean smtpAuth) {
+        this.smtpAuth = smtpAuth;
+    }
+
+    public Boolean getSmtpStarttls() {
+        return smtpStarttls;
+    }
+
+    public void setSmtpStarttls(Boolean smtpStarttls) {
+        this.smtpStarttls = smtpStarttls;
     }
 
     public LocalDateTime getUpdatedAt() {

@@ -2768,10 +2768,12 @@
       "startTime": "17:00",
       "endTime": "20:00",
       "daysOfWeek": [
+        "MONDAY",
         "TUESDAY",
         "WEDNESDAY",
         "THURSDAY",
-        "FRIDAY"
+        "FRIDAY",
+        "SATURDAY"
       ],
       "discountType": "PERCENTAGE",
       "discountValue": 25,
@@ -3860,6 +3862,22 @@
       "fromVersion": "0.7.0",
       "targetVersion": "0.7.2",
       "status": "VALID"
+    }
+  ],
+  "online_payment_transactions": [
+    {
+      "transactionId": "tx_demo_pay_at_table_001",
+      "tableNumero": 4,
+      "amount": 25.00,
+      "tipAmount": 2.50,
+      "totalAmount": 27.50,
+      "splitMode": "EQUAL_SPLIT",
+      "provider": "SANDBOX",
+      "status": "SUCCEEDED",
+      "customerEmail": "patron@example.com",
+      "guestName": "Alex",
+      "tableLiberated": false,
+      "createdAt": "2026-10-25T20:30:00"
     }
   ]
 }

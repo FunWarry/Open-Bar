@@ -72,7 +72,10 @@
         </div>
 
         <div class="item-subtitle-row">
-          <span class="item-unit-price">{{ item.prix | appCurrency }} / u</span>
+          @if (item.originalPrice && item.originalPrice > item.prix) {
+            <span class="item-original-price" data-testid="cart-item-original-price">{{ item.originalPrice | appCurrency }}</span>
+          }
+          <span class="item-unit-price" [class.discounted]="item.originalPrice && item.originalPrice > item.prix">{{ item.prix | appCurrency }} / u</span>
         </div>
 
         <!-- Customizations (Exclusions & Comments) -->

@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { FactureService, SplitPartRequest, SplitResultDTO } from '../../../../app/features/factures/services/facture.service';
 import { environment } from '../../../../environments/environment';
-import { Facture } from '../../../../app/features/factures/models/facture.model';
+import { Facture, EncaisserPartRequest, FactureReglement, TypeSplit } from '../../../../app/features/factures/models/facture.model';
 
 describe('FactureService', () => {
   let service: FactureService;
@@ -273,4 +273,63 @@ describe('FactureService', () => {
     expect(req.request.method).toBe('GET');
     req.flush(mockAddition);
   });
+
+  it('encaisserPartTable() calls POST /api/factures/table/:tableId/split/encaisser', () => {
+    const mockPartReq: EncaisserPartRequest = {
+      nomConvive: 'Bob',
+      partIndex: 1,
+      totalParts: 2,
+      montant: 15.0,
+      totalRegle: 15.0,
+      modePaiement: 'CARTE',
+      typeSplit: TypeSplit.EGAL
+    };
+    const mockReglement: FactureReglement = {
+      id: 101,
+      factureId: 1,
+      nomConvive: 'Bob',
+      partIndex: 1,
+      montant: 15.0,
+      totalRegle: 15.0,
+      modePaiement: 'CARTE',
+      typeSplit: TypeSplit.EGAL
+    };
+    service.encaisserPartTable(10, mockPartReq).subscribe(res => {
+      expect(res).toEqual(mockReglement);
+    });
+    const req = httpMock.expectOne(`${baseUrl}/table/10/split/encaisser`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(mockPartReq);
+    req.flush(mockReglement);
+  });
+
+  it('encaisserPartTab() calls POST /api/factures/tab/:tabId/split/encaisser', () => {
+    const mockPartReq: EncaisserPartRequest = {
+      nomConvive: 'Alice',
+      partIndex: 1,
+      totalParts: 1,
+      montant: 20.0,
+      totalRegle: 20.0,
+      modePaiement: 'ESPECES',
+      typeSplit: TypeSplit.MONTANT_LIBRE
+    };
+    const mockReglement: FactureReglement = {
+      id: 102,
+      factureId: 2,
+      nomConvive: 'Alice',
+      partIndex: 1,
+      montant: 20.0,
+      totalRegle: 20.0,
+      modePaiement: 'ESPECES',
+      typeSplit: TypeSplit.MONTANT_LIBRE
+    };
+    service.encaisserPartTab(20, mockPartReq).subscribe(res => {
+      expect(res).toEqual(mockReglement);
+    });
+    const req = httpMock.expectOne(`${baseUrl}/tab/20/split/encaisser`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(mockPartReq);
+    req.flush(mockReglement);
+  });
 });
+

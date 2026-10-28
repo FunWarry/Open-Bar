@@ -222,6 +222,7 @@ describe('AppSettingsPageComponent', () => {
       checklistsProcedures: true,
       systemUpdates: true,
       angelShotSafety: true,
+      qrPayAtTable: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
 
@@ -885,6 +886,7 @@ describe('AppSettingsPageComponent', () => {
         checklistsProcedures: true,
         systemUpdates: true,
         angelShotSafety: true,
+        qrPayAtTable: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -913,6 +915,7 @@ describe('AppSettingsPageComponent', () => {
         checklistsProcedures: false,
         systemUpdates: false,
         angelShotSafety: false,
+        qrPayAtTable: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -934,6 +937,7 @@ describe('AppSettingsPageComponent', () => {
         checklistsProcedures: false,
         systemUpdates: false,
         angelShotSafety: false,
+        qrPayAtTable: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });
@@ -987,6 +991,7 @@ describe('AppSettingsPageComponent', () => {
         checklistsProcedures: false,
         systemUpdates: false,
         angelShotSafety: false,
+        qrPayAtTable: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();

@@ -31,7 +31,8 @@ import {
   hourglassOutline,
   checkmarkCircleOutline,
   alertCircleOutline,
-  sparklesOutline
+  sparklesOutline,
+  cardOutline
 } from 'ionicons/icons';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { CocktailService } from '../../../core/services/cocktail.service';
@@ -53,6 +54,9 @@ import { EstablishmentModule } from '../../../core/models/establishment-module.m
 import { RouletteSpinResult } from '../../../core/models/roulette.model';
 import { RouletteModalComponent } from '../components/roulette-modal/roulette-modal.component';
 import { AngelShotModalComponent } from '../components/angel-shot-modal/angel-shot-modal.component';
+import { ClientPaymentModalComponent } from '../components/client-payment-modal/client-payment-modal.component';
+import { HappyHourBannerComponent } from '../components/happy-hour-banner/happy-hour-banner.component';
+import { PaymentSuccessResponse } from '../../../core/models/payment.model';
 
 /**
  * Navigation steps for the customer QR order lifecycle.
@@ -84,7 +88,9 @@ export type ClientCommandeStep = 'table' | 'menu' | 'recap';
     ProductCardComponent,
     CocktailMatcherBarComponent,
     TableAssistanceBarComponent,
-    AngelShotModalComponent
+    AngelShotModalComponent,
+    ClientPaymentModalComponent,
+    HappyHourBannerComponent
   ]
 })
 export class ClientCommandeComponent implements OnInit, OnDestroy {
@@ -160,6 +166,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   readonly isJoinRejected = signal<boolean>(false);
   readonly tableOwnerName = signal<string | null>(null);
   readonly showTableOrdersModal = signal<boolean>(false);
+  readonly isPaymentModalOpen = signal<boolean>(false);
   joinRequestNameForm!: FormGroup;
   orderNotes = '';
 
@@ -190,7 +197,8 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
       hourglassOutline,
       checkmarkCircleOutline,
       alertCircleOutline,
-      sparklesOutline
+      sparklesOutline,
+      cardOutline
     });
 
     effect(() => {
@@ -238,15 +246,43 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
 
     if (this.happyHourService) {
       this.happyHourService.loadRules().pipe(takeUntil(this.destroy$)).subscribe();
+      this.happyHourService.stateTransition$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(async transition => {
+          this.cdr.markForCheck();
+          if (this.tableNumero) {
+            this.tableCartService.initCart(this.tableNumero, this.sessionToken || undefined)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe();
+          }
+          const toastMsgKey = transition.type === 'STARTED' ? 'PRICING.TOAST_HH_STARTED' : 'PRICING.TOAST_HH_ENDED';
+          const toast = await this.toastCtrl.create({
+            message: this.translocoService.translate(toastMsgKey),
+            duration: 3500,
+            position: 'top',
+            color: transition.type === 'STARTED' ? 'warning' : 'primary'
+          });
+          await toast.present();
+        });
     }
 
     this.initWebSocketSubscription();
   }
 
   /**
+   * Checks whether the Happy Hour establishment capability module is enabled.
+   */
+  get isHappyHourEnabled(): boolean {
+    return this.featureFlagService?.isModuleEnabled(EstablishmentModule.HAPPY_HOUR) ?? true;
+  }
+
+  /**
    * Checks whether a cocktail is currently under Happy Hour.
    */
   isHappyHour(cocktail: Cocktail): boolean {
+    if (!this.isHappyHourEnabled) {
+      return false;
+    }
     return this.happyHourService?.resolvePrice(cocktail.prix, cocktail.id, cocktail.categorie).isHappyHour ?? false;
   }
 
@@ -254,7 +290,24 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
    * Resolves the current effective price for a cocktail.
    */
   getEffectivePrice(cocktail: Cocktail): number {
+    if (!this.isHappyHourEnabled) {
+      return cocktail.prix;
+    }
     return this.happyHourService?.resolvePrice(cocktail.prix, cocktail.id, cocktail.categorie).effectivePrice ?? cocktail.prix;
+  }
+
+  /**
+   * Calculates the integer discount percentage for an item under Happy Hour.
+   */
+  getDiscountPercentage(cocktail: Cocktail): number | null {
+    if (!this.isHappyHour(cocktail)) {
+      return null;
+    }
+    const effective = this.getEffectivePrice(cocktail);
+    if (cocktail.prix > effective && cocktail.prix > 0) {
+      return Math.round(((cocktail.prix - effective) / cocktail.prix) * 100);
+    }
+    return null;
   }
 
   ngOnDestroy(): void {
@@ -1196,5 +1249,38 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
    */
   closeAngelShotModal(): void {
     this.isAngelShotModalOpen.set(false);
+  }
+
+  /**
+   * Checks whether the pay-at-table patron mobile settlement module is enabled.
+   */
+  isQrPayAtTableEnabled(): boolean {
+    return this.featureFlagService ? this.featureFlagService.isModuleEnabled(EstablishmentModule.QR_PAY_AT_TABLE) : true;
+  }
+
+  /**
+   * Opens the pay-at-table mobile bill settlement modal.
+   */
+  openPaymentModal(): void {
+    this.isPaymentModalOpen.set(true);
+  }
+
+  /**
+   * Closes the pay-at-table mobile settlement modal.
+   */
+  closePaymentModal(): void {
+    this.isPaymentModalOpen.set(false);
+  }
+
+  /**
+   * Handler when a mobile payment succeeds.
+   */
+  onPaymentCompleted(res: PaymentSuccessResponse): void {
+    if (res.tableLiberated) {
+      // Table freed after 100% settlement
+      this.tableNumero = null;
+      this.step = 'table';
+      this.cdr.markForCheck();
+    }
   }
 }

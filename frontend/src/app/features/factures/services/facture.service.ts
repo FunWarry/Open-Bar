@@ -93,6 +93,28 @@ export class FactureService {
   }
 
   /**
+   * Persists an individual split share settlement directly for a table.
+   *
+   * @param tableId Scanned table ID
+   * @param request Settlement details for this specific guest part
+   * @returns Observable of saved FactureReglement
+   */
+  encaisserPartTable(tableId: number, request: EncaisserPartRequest): Observable<FactureReglement> {
+    return this.http.post<FactureReglement>(`${this.apiUrl}/table/${tableId}/split/encaisser`, request);
+  }
+
+  /**
+   * Persists an individual split share settlement directly for a bar tab.
+   *
+   * @param tabId Bar tab ID
+   * @param request Settlement details for this specific guest part
+   * @returns Observable of saved FactureReglement
+   */
+  encaisserPartTab(tabId: number, request: EncaisserPartRequest): Observable<FactureReglement> {
+    return this.http.post<FactureReglement>(`${this.apiUrl}/tab/${tabId}/split/encaisser`, request);
+  }
+
+  /**
    * Retrieves all recorded split share settlements for a given invoice.
    *
    * @param factureId Target invoice ID
