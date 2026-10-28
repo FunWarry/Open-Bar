@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonContent, IonHeader, IonToolbar, IonButtons,
@@ -76,6 +77,9 @@ export class FactureSplitComponent implements OnInit {
   }
   set facture(val: Facture | null) {
     this._facture = val;
+    if (val?.id && !this.factureId) {
+      this.factureId = val.id;
+    }
     this.initFactureState();
   }
 
@@ -711,34 +715,38 @@ export class FactureSplitComponent implements OnInit {
       items: part.items,
     };
 
-    if (this.factureId) {
-      this.factureService.encaisserPart(this.factureId, request).subscribe({
-        next: async () => {
-          // Clean unit assignments for this guest
-          Object.keys(this.unitAssignments).forEach(key => {
-            if (this.unitAssignments[key] === guestIndex) {
-              delete this.unitAssignments[key];
-            }
-          });
+    const targetFactureId = this.factureId || this.facture?.id;
+    if (targetFactureId) {
+      this.factureId = targetFactureId;
+      try {
+        await firstValueFrom(this.factureService.encaisserPart(targetFactureId, request));
 
-          const toast = await this.toastCtrl.create({
-            message: String(this.transloco.translate('SPLIT.PART_PAID_SUCCESS', { guest: guestName, mode: data.modePaiement })),
-            duration: 2500,
-            color: 'success'
-          });
-          await toast.present();
+        // Clean unit assignments for this guest
+        Object.keys(this.unitAssignments).forEach(key => {
+          if (this.unitAssignments[key] === guestIndex) {
+            delete this.unitAssignments[key];
+          }
+        });
 
-          this.loadFacture();
-        },
-        error: async (err) => {
-          const toast = await this.toastCtrl.create({
-            message: err?.error?.message || String(this.transloco.translate('ENCAISSEMENT.ERROR_SETTLEMENT')),
-            duration: 3500,
-            color: 'danger'
-          });
-          await toast.present();
-        }
-      });
+        const toast = await this.toastCtrl.create({
+          message: String(this.transloco.translate('SPLIT.PART_PAID_SUCCESS', { guest: guestName, mode: data.modePaiement })),
+          duration: 2500,
+          color: 'success'
+        });
+        await toast.present();
+
+        this.loadFacture();
+      } catch (err: unknown) {
+        const message = (err && typeof err === 'object' && 'error' in err && (err as { error?: { message?: string } }).error?.message)
+          ? (err as { error?: { message?: string } }).error?.message
+          : String(this.transloco.translate('ENCAISSEMENT.ERROR_SETTLEMENT'));
+        const toast = await this.toastCtrl.create({
+          message,
+          duration: 3500,
+          color: 'danger'
+        });
+        await toast.present();
+      }
     }
   }
 
