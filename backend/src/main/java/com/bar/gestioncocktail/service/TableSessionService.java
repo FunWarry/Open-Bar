@@ -455,7 +455,7 @@ public class TableSessionService {
             }
         }
         String tableUrl = buildSessionOrderUrl(baseUrl, tableNumero, sessionToken);
-        int dimension = size > 0 ? Math.min(Math.max(size, 100), 2048) : 300;
+        int dimension = size > 0 ? Math.clamp(size, 100, 2048) : 300;
 
         if ("SVG".equalsIgnoreCase(format)) {
             String svg = (qrCodeService != null) ? qrCodeService.generateSvg(tableUrl, dimension) : "<svg></svg>";

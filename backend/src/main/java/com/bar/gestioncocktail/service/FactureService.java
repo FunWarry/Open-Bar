@@ -1550,50 +1550,10 @@ public class FactureService {
     private FactureReglementDTO encaisserPartInternal(Long factureId, EncaisserPartRequest request) {
         Facture facture = factureRepository.findById(factureId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_PREFIX + factureId));
-        if (facture.getDateFacture() != null) {
-            checkDateNotClosed(facture.getDateFacture().toLocalDate());
-        }
-        checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
-        checkTillOpenedIfCashPayment(request.modePaiement(), java.time.LocalDate.now(timeService.getZoneId()));
+        validateSplitInputs(facture, request);
 
-        if (facture.isReglee()) {
-            throw new BusinessException("Invoice " + facture.getNumero() + " is already fully settled");
-        }
         BigDecimal invoiceTarget = resolveInvoiceTarget(facture);
-        BigDecimal amountToRecord = request.montant();
-        if (amountToRecord == null || amountToRecord.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException("Split settlement amount must be strictly positive");
-        }
-        if (request.pourboire() != null && request.pourboire().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BusinessException("Tip amount cannot be negative");
-        }
-
-        com.bar.gestioncocktail.model.FactureReglement reglement = new com.bar.gestioncocktail.model.FactureReglement();
-        reglement.setFacture(facture);
-        reglement.setNomConvive(request.nomConvive());
-        reglement.setPartIndex(request.partIndex());
-        reglement.setTotalParts(request.totalParts());
-        reglement.setMontant(amountToRecord);
-        BigDecimal tip = request.pourboire() != null ? request.pourboire() : BigDecimal.ZERO;
-        reglement.setPourboire(tip);
-        reglement.setTotalRegle(request.totalRegle() != null ? request.totalRegle() : amountToRecord.add(tip));
-        reglement.setModePaiement(request.modePaiement());
-        reglement.setTypeSplit(request.typeSplit());
-        reglement.setDateReglement(timeService.now());
-
-        if (request.items() != null && !request.items().isEmpty()) {
-            try {
-                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                reglement.setItemsJson(mapper.writeValueAsString(request.items()));
-            } catch (Exception _) {
-                reglement.setItemsJson("[]");
-            }
-        } else {
-            reglement.setItemsJson("[]");
-        }
-
-        populateTpeFields(reglement, request);
-
+        com.bar.gestioncocktail.model.FactureReglement reglement = buildFactureReglement(facture, request);
         com.bar.gestioncocktail.model.FactureReglement saved = factureReglementRepository.save(reglement);
         if (facture.getReglements() == null) {
             facture.setReglements(new ArrayList<>());
@@ -1606,19 +1566,73 @@ public class FactureService {
             throw new BusinessException("Total settled amount (" + totalPaidSoFar + ") exceeds invoice total (" + invoiceTarget + ")");
         }
 
+        saved = adjustExcessRounding(saved, totalPaidSoFar, invoiceTarget);
+        checkAndFinalizeSplitSettlement(facture, factureId, allReglements, invoiceTarget);
+
+        return FactureReglementDTO.from(saved);
+    }
+
+    private void validateSplitInputs(Facture facture, EncaisserPartRequest request) {
+        if (facture.getDateFacture() != null) {
+            checkDateNotClosed(facture.getDateFacture().toLocalDate());
+        }
+        checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
+        checkTillOpenedIfCashPayment(request.modePaiement(), java.time.LocalDate.now(timeService.getZoneId()));
+
+        if (facture.isReglee()) {
+            throw new BusinessException("Invoice " + facture.getNumero() + " is already fully settled");
+        }
+        BigDecimal amountToRecord = request.montant();
+        if (amountToRecord == null || amountToRecord.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Split settlement amount must be strictly positive");
+        }
+        if (request.pourboire() != null && request.pourboire().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("Tip amount cannot be negative");
+        }
+    }
+
+    private com.bar.gestioncocktail.model.FactureReglement buildFactureReglement(Facture facture, EncaisserPartRequest request) {
+        com.bar.gestioncocktail.model.FactureReglement reglement = new com.bar.gestioncocktail.model.FactureReglement();
+        reglement.setFacture(facture);
+        reglement.setNomConvive(request.nomConvive());
+        reglement.setPartIndex(request.partIndex());
+        reglement.setTotalParts(request.totalParts());
+        reglement.setMontant(request.montant());
+        BigDecimal tip = request.pourboire() != null ? request.pourboire() : BigDecimal.ZERO;
+        reglement.setPourboire(tip);
+        reglement.setTotalRegle(request.totalRegle() != null ? request.totalRegle() : request.montant().add(tip));
+        reglement.setModePaiement(request.modePaiement());
+        reglement.setTypeSplit(request.typeSplit());
+        reglement.setDateReglement(timeService.now());
+        reglement.setItemsJson(serializeSplitItems(request.items()));
+        populateTpeFields(reglement, request);
+        return reglement;
+    }
+
+    private String serializeSplitItems(List<?> items) {
+        if (items == null || items.isEmpty()) {
+            return "[]";
+        }
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            return mapper.writeValueAsString(items);
+        } catch (Exception _) {
+            return "[]";
+        }
+    }
+
+    private com.bar.gestioncocktail.model.FactureReglement adjustExcessRounding(
+            com.bar.gestioncocktail.model.FactureReglement saved, BigDecimal totalPaidSoFar, BigDecimal invoiceTarget) {
         BigDecimal excess = totalPaidSoFar.subtract(invoiceTarget);
         if (excess.compareTo(BigDecimal.ZERO) > 0 && excess.compareTo(new BigDecimal("0.05")) <= 0) {
             BigDecimal adjustedMontant = saved.getMontant().subtract(excess);
             if (adjustedMontant.compareTo(BigDecimal.ZERO) > 0) {
                 saved.setMontant(adjustedMontant);
                 saved.setTotalRegle(adjustedMontant.add(saved.getPourboire()));
-                saved = factureReglementRepository.save(saved);
+                return factureReglementRepository.save(saved);
             }
         }
-
-        checkAndFinalizeSplitSettlement(facture, factureId, allReglements, invoiceTarget);
-
-        return FactureReglementDTO.from(saved);
+        return saved;
     }
 
     /**

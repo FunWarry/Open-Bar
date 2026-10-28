@@ -414,6 +414,18 @@ function evaluateJavaLineSonarRules(rel, line, lineNumber, isTestFile) {
     lineIssues++;
   }
 
+  // Rule java:S6885 — Use Math.clamp instead of Math.min/Math.max (Java 21+)
+  if (/Math\.(?:min\s*\(\s*Math\.max|max\s*\(\s*Math\.min)/.test(codeWithoutStrings)) {
+    logFail(`Sonar java:S6885 at ${rel}:${lineNumber}: Use "Math.clamp" instead of "Math.min" or "Math.max".`);
+    lineIssues++;
+  }
+
+  // Rule java:S9439 — Redundant array creation expression in declaration
+  if (/\[\]\s+\w+\s*=\s*new\s+\w+\[\]\s*\{/.test(codeWithoutStrings)) {
+    logFail(`Sonar java:S9439 at ${rel}:${lineNumber}: Remove the "new Type[]" prefix; the declaration already specifies the array type.`);
+    lineIssues++;
+  }
+
   return lineIssues;
 }
 

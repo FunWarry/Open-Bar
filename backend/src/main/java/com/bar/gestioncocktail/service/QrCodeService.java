@@ -189,7 +189,7 @@ public class QrCodeService {
     }
 
     private int clampDimension(int dimension) {
-        return Math.min(Math.max(dimension, MIN_QR_DIMENSION), MAX_QR_DIMENSION);
+        return Math.clamp(dimension, MIN_QR_DIMENSION, MAX_QR_DIMENSION);
     }
 
     private String escapeWifiSpecialChars(String text) {
