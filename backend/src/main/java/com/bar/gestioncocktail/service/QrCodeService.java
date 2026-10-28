@@ -23,6 +23,9 @@ import java.util.Map;
 @Service
 public class QrCodeService {
 
+    private static final int MIN_QR_DIMENSION = 100;
+    private static final int MAX_QR_DIMENSION = 2048;
+
     private final QRCodeWriter qrCodeWriter;
 
     /**
@@ -77,7 +80,8 @@ public class QrCodeService {
      */
     public String generateSvg(String content, int size) {
         try {
-            BitMatrix bitMatrix = encodeBitMatrix(content, size, size);
+            int clampedSize = clampDimension(size);
+            BitMatrix bitMatrix = encodeBitMatrix(content, clampedSize, clampedSize);
             int matrixWidth = bitMatrix.getWidth();
             int matrixHeight = bitMatrix.getHeight();
 
@@ -85,7 +89,7 @@ public class QrCodeService {
             svg.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
             svg.append("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 ")
                .append(matrixWidth).append(" ").append(matrixHeight)
-               .append("\" width=\"").append(size).append("\" height=\"").append(size)
+               .append("\" width=\"").append(clampedSize).append("\" height=\"").append(clampedSize)
                .append("\" shape-rendering=\"crispEdges\">\n");
             svg.append("  <rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/>\n");
             svg.append("  <path fill=\"#000000\" d=\"");
@@ -179,9 +183,13 @@ public class QrCodeService {
         hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.M);
         hints.put(EncodeHintType.MARGIN, 1); // 1-module margin for compact badges
 
-        int w = Math.max(width, 100);
-        int h = Math.max(height, 100);
+        int w = clampDimension(width);
+        int h = clampDimension(height);
         return qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, w, h, hints);
+    }
+
+    private int clampDimension(int dimension) {
+        return Math.min(Math.max(dimension, MIN_QR_DIMENSION), MAX_QR_DIMENSION);
     }
 
     private String escapeWifiSpecialChars(String text) {

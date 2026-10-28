@@ -120,8 +120,12 @@ public class TableCartService {
         }
 
         if (dto.getVarianteId() != null) {
-            varianteRepository.findById(dto.getVarianteId())
+            CocktailVariante variante = varianteRepository.findById(dto.getVarianteId())
                     .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + dto.getVarianteId()));
+            if (variante.getCocktail() != null && variante.getCocktail().getId() != null
+                    && !variante.getCocktail().getId().equals(cocktail.getId())) {
+                throw new BusinessException("Variant does not belong to cocktail " + cocktail.getNom());
+            }
         }
 
         validateItemPricing(dto, cocktail);
@@ -215,6 +219,7 @@ public class TableCartService {
         if (!item.getTableId().equals(tableId)) {
             throw new BusinessException("Cart item does not belong to table " + tableId);
         }
+        validateItemGuestOwnership(item, dto.getGuestSessionId());
 
         if (dto.getQuantite() <= 0) {
             tableCartItemRepository.delete(item);
@@ -248,6 +253,7 @@ public class TableCartService {
         if (!item.getTableId().equals(tableId)) {
             throw new BusinessException("Cart item does not belong to table " + tableId);
         }
+        validateItemGuestOwnership(item, guestSessionId);
 
         tableCartItemRepository.delete(item);
 
@@ -255,6 +261,14 @@ public class TableCartService {
         broadcastCart(tableId, updatedCart);
         log.info("Removed cart item {} from table {} cart", itemId, tableId);
         return updatedCart;
+    }
+
+    private void validateItemGuestOwnership(TableCartItem item, String callerGuestSessionId) {
+        if (item.getGuestSessionId() != null && !item.getGuestSessionId().isBlank()
+                && callerGuestSessionId != null && !callerGuestSessionId.isBlank()
+                && !item.getGuestSessionId().equals(callerGuestSessionId)) {
+            throw new BusinessException("You can only modify or remove your own cart items");
+        }
     }
 
     /**

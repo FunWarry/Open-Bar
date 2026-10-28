@@ -710,5 +710,51 @@ class TableCartServiceTest {
         TableCartResponseDTO result = tableCartService.addItem(1L, request);
         assertThat(result).isNotNull();
     }
+
+    @Test
+    @DisplayName("addItem: throws BusinessException when variant belongs to a different cocktail")
+    void addItem_whenVariantBelongsToDifferentCocktail_throwsBusinessException() {
+        Cocktail otherCocktail = new Cocktail();
+        otherCocktail.setId(99L);
+
+        CocktailVariante foreignVariante = new CocktailVariante();
+        foreignVariante.setId(20L);
+        foreignVariante.setCocktail(otherCocktail);
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+        when(cocktailRepository.findById(10L)).thenReturn(Optional.of(mockCocktail));
+        when(varianteRepository.findById(20L)).thenReturn(Optional.of(foreignVariante));
+
+        TableCartItemRequestDTO request = new TableCartItemRequestDTO("guest-1", "Alice", 10L, 20L, 1, null);
+
+        assertThatThrownBy(() -> tableCartService.addItem(1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Variant does not belong to cocktail");
+    }
+
+    @Test
+    @DisplayName("updateItem and removeItem: throws BusinessException when different guest attempts to modify or delete item")
+    void updateAndRemoveItem_whenDifferentGuestSessionId_throwsBusinessException() {
+        TableCartItem item = new TableCartItem();
+        item.setId(55L);
+        item.setTableId(1L);
+        item.setGuestSessionId("guest-owner");
+        item.setQuantite(2);
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+        when(tableCartItemRepository.findById(55L)).thenReturn(Optional.of(item));
+
+        TableCartItemUpdateRequestDTO updateRequest = new TableCartItemUpdateRequestDTO();
+        updateRequest.setGuestSessionId("guest-intruder");
+        updateRequest.setQuantite(5);
+
+        assertThatThrownBy(() -> tableCartService.updateItem(1L, 55L, updateRequest))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("You can only modify or remove your own cart items");
+
+        assertThatThrownBy(() -> tableCartService.removeItem(1L, 55L, "guest-intruder"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("You can only modify or remove your own cart items");
+    }
 }
 

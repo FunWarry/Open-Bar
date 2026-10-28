@@ -259,6 +259,7 @@ public class FactureService {
     public Facture updateFacture(Long id, Facture factureDetails) {
         Facture facture = factureRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_ID_PREFIX + id));
+        checkInvoiceNotFinalized(facture);
 
         facture.setTable(factureDetails.getTable());
         facture.setItems(factureDetails.getItems());
@@ -276,6 +277,7 @@ public class FactureService {
 
     @Transactional
     public void deleteFacture(Long id) {
+        factureRepository.findById(id).ifPresent(this::checkInvoiceNotFinalized);
         factureRepository.deleteById(id);
     }
 /**
@@ -290,6 +292,7 @@ public class FactureService {
     public Facture ajouterItem(Long factureId, FactureItem item) {
         Facture facture = factureRepository.findById(factureId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_ID_PREFIX + factureId));
+        checkInvoiceNotFinalized(facture);
 
         facture.getItems().add(item);
         facture.setTotal(
@@ -309,6 +312,7 @@ public class FactureService {
     public Facture retirerItem(Long factureId, Long itemId) {
         Facture facture = factureRepository.findById(factureId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_ID_PREFIX + factureId));
+        checkInvoiceNotFinalized(facture);
 
         facture.getItems().removeIf(item -> item.getId().equals(itemId));
 
@@ -321,6 +325,12 @@ public class FactureService {
         facture.setTotal(total);
 
         return factureRepository.save(facture);
+    }
+
+    private void checkInvoiceNotFinalized(Facture facture) {
+        if (facture != null && facture.isFinalized()) {
+            throw new BusinessException("Invoice " + facture.getNumero() + " is finalized and immutable.");
+        }
     }
 /**
      * Settles and closes an invoice with a chosen payment method and optional tip.
@@ -931,6 +941,7 @@ public class FactureService {
 
     private BigDecimal applyDiscountAndTip(Facture facture, EncaissementRequestDTO request) {
         BigDecimal subTotalTTC = facture.getTotal() != null ? facture.getTotal() : BigDecimal.ZERO;
+        validateDiscountAndTipInputs(request, subTotalTTC);
         BigDecimal discount = BigDecimal.ZERO;
 
         if (request.remiseMontant() != null && request.remiseMontant().compareTo(BigDecimal.ZERO) > 0) {
@@ -947,6 +958,22 @@ public class FactureService {
         }
         facture.setTotalTTC(netTTC);
         return netTTC;
+    }
+
+    private void validateDiscountAndTipInputs(EncaissementRequestDTO request, BigDecimal subTotalTTC) {
+        if (request.remisePourcentage() != null
+                && (request.remisePourcentage().compareTo(BigDecimal.ZERO) < 0
+                || request.remisePourcentage().compareTo(BigDecimal.valueOf(100)) > 0)) {
+            throw new BusinessException("Discount percentage must be between 0 and 100");
+        }
+        if (request.remiseMontant() != null
+                && (request.remiseMontant().compareTo(BigDecimal.ZERO) < 0
+                || request.remiseMontant().compareTo(subTotalTTC) > 0)) {
+            throw new BusinessException("Discount amount cannot be negative or exceed invoice subtotal");
+        }
+        if (request.pourboire() != null && request.pourboire().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("Tip amount cannot be negative");
+        }
     }
 
     private void markOrdersAsSettled(List<Commande> activeCommandes) {
@@ -1534,6 +1561,12 @@ public class FactureService {
         }
         BigDecimal invoiceTarget = resolveInvoiceTarget(facture);
         BigDecimal amountToRecord = request.montant();
+        if (amountToRecord == null || amountToRecord.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Split settlement amount must be strictly positive");
+        }
+        if (request.pourboire() != null && request.pourboire().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("Tip amount cannot be negative");
+        }
 
         com.bar.gestioncocktail.model.FactureReglement reglement = new com.bar.gestioncocktail.model.FactureReglement();
         reglement.setFacture(facture);

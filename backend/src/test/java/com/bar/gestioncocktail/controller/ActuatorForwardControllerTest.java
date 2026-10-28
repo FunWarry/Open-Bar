@@ -52,9 +52,9 @@ class ActuatorForwardControllerTest {
     }
 
     @Test
-    @DisplayName("getHealth - returns 503 DOWN when database connection throws SQLException")
+    @DisplayName("getHealth - returns 503 DOWN with redacted error when database connection throws SQLException")
     void getHealth_returnsDownWhenException() throws SQLException {
-        when(dataSource.getConnection()).thenThrow(new SQLException("Connection refused"));
+        when(dataSource.getConnection()).thenThrow(new SQLException("Connection refused to internal host 10.0.0.12:5432"));
 
         ActuatorForwardController controller = new ActuatorForwardController(dataSource, "1.0.0");
         ResponseEntity<Map<String, Object>> response = controller.getHealth();
@@ -62,6 +62,9 @@ class ActuatorForwardControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody()).containsEntry("status", "DOWN");
+        assertThat(response.getBody().toString())
+                .doesNotContain("10.0.0.12")
+                .contains("Database connection check failed");
     }
 
     @Test

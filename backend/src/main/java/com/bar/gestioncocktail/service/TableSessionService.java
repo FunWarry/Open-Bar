@@ -450,12 +450,12 @@ public class TableSessionService {
             Long canonicalTableId = (table != null && table.getId() != null) ? table.getId() : tableId;
             Optional<TableSession> active = tableSessionRepository
                     .findFirstByTableIdAndStatusOrderByOpenedAtDesc(canonicalTableId, TableSessionStatus.ACTIVE);
-            if (active.isPresent()) {
+            if (active.isPresent() && active.get().getOwnerGuestSessionId() == null) {
                 sessionToken = active.get().getSessionToken();
             }
         }
         String tableUrl = buildSessionOrderUrl(baseUrl, tableNumero, sessionToken);
-        int dimension = size > 0 ? size : 300;
+        int dimension = size > 0 ? Math.min(Math.max(size, 100), 2048) : 300;
 
         if ("SVG".equalsIgnoreCase(format)) {
             String svg = (qrCodeService != null) ? qrCodeService.generateSvg(tableUrl, dimension) : "<svg></svg>";

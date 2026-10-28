@@ -62,6 +62,14 @@ public class EmployeeShiftService {
      * @return List of employee shifts
      */
     public List<EmployeeShift> getShiftsByUserId(Long userId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !isManagerOrAdmin(auth) && userRepository != null) {
+            userRepository.findById(userId).ifPresent(targetUser -> {
+                if (targetUser.getUsername() != null && !targetUser.getUsername().equals(auth.getName())) {
+                    throw new AccessDeniedException("You are not authorized to view shifts of another employee");
+                }
+            });
+        }
         return shiftRepository.findByUserId(userId);
     }
 
@@ -240,6 +248,15 @@ public class EmployeeShiftService {
         }
         if (request.heureFin() != null && !request.heureFin().equals(shift.getHeureFin())) {
             throw new AccessDeniedException("Only a manager can modify the planned end time");
+        }
+        if (shift.getHeuresPrevues() != null && request.heuresPrevues() != null
+                && request.heuresPrevues().compareTo(shift.getHeuresPrevues()) != 0) {
+            throw new AccessDeniedException("Only a manager can modify the planned work hours");
+        }
+        if (request.heuresSup() != null
+                && (request.heuresSup().compareTo(BigDecimal.ZERO) < 0
+                || request.heuresSup().compareTo(BigDecimal.valueOf(16)) > 0)) {
+            throw new AccessDeniedException("Overtime hours must be between 0 and 16");
         }
     }
 
