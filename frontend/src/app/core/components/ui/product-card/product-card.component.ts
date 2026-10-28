@@ -82,6 +82,16 @@ export class ProductCardComponent {
     return this.companionGlassTitle?.trim() || this.secondaryGlasswareNom?.trim() || null;
   }
 
+  /**
+   * Computed percentage discount when this item has an active Happy Hour promotional rate.
+   */
+  get discountPercentage(): number | null {
+    if (this.isHappyHour && this.originalPrice != null && this.originalPrice > this.price && this.originalPrice > 0) {
+      return Math.round(((this.originalPrice - this.price) / this.originalPrice) * 100);
+    }
+    return null;
+  }
+
   constructor() {
     addIcons({ addOutline, removeOutline, informationCircleOutline });
   }

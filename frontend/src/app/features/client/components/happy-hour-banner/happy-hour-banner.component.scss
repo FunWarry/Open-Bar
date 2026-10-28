@@ -1,0 +1,200 @@
+.hh-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  margin: 12px 0 16px 0;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.hh-banner-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hh-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.hh-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.hh-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hh-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hh-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  font-family: var(--font-display, 'Outfit', sans-serif);
+}
+
+.hh-scope-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--semantic-warning) 22%, transparent);
+  color: var(--semantic-warning);
+  border: 1px solid color-mix(in srgb, var(--semantic-warning) 40%, transparent);
+  white-space: nowrap;
+}
+
+.hh-teaser-desc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+.hh-banner-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Active Banner Styling */
+.hh-banner-active {
+  background: color-mix(in srgb, var(--semantic-warning) 12%, var(--background-surface-1));
+  border: 1px solid color-mix(in srgb, var(--semantic-warning) 45%, transparent);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--semantic-warning) 15%, transparent);
+}
+
+.hh-icon-active {
+  background: color-mix(in srgb, var(--semantic-warning) 25%, transparent);
+  color: var(--semantic-warning);
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+.hh-flame-icon {
+  font-size: 22px;
+}
+
+.hh-countdown-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--semantic-warning);
+  color: var(--text-on-accent);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--semantic-warning) 40%, transparent);
+  animation: pulse-countdown 1.5s infinite alternate ease-in-out;
+}
+
+.hh-timer-icon {
+  font-size: 16px;
+}
+
+/* Upcoming Teaser Styling */
+.hh-banner-upcoming {
+  background: color-mix(in srgb, var(--primary) 10%, var(--background-surface-1));
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+.hh-icon-upcoming {
+  background: color-mix(in srgb, var(--primary) 20%, transparent);
+  color: var(--primary);
+}
+
+.hh-teaser-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 20%, transparent);
+  color: var(--primary);
+  border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+@keyframes pulse-glow {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--semantic-warning) 30%, transparent);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 10px 2px color-mix(in srgb, var(--semantic-warning) 40%, transparent);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--semantic-warning) 30%, transparent);
+  }
+}
+
+@keyframes pulse-countdown {
+  0% {
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--semantic-warning) 35%, transparent);
+  }
+  100% {
+    box-shadow: 0 3px 14px color-mix(in srgb, var(--semantic-warning) 65%, transparent);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+  .hh-banner {
+    padding: 10px 12px;
+    margin: 8px 0 12px 0;
+  }
+
+  .hh-banner-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .hh-banner-right {
+    width: 100%;
+  }
+
+  .hh-countdown-pill {
+    width: 100%;
+    justify-content: center;
+    padding: 8px 12px;
+  }
+
+  .hh-teaser-badge {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

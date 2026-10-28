@@ -190,6 +190,11 @@
               <span class="happy-hour-badge" data-testid="cocktail-details-hh-badge">
                 {{ 'PRICING.HAPPY_HOUR_BADGE' | transloco }}
               </span>
+              @if (getDiscountPercentage(cocktail)) {
+                <span class="discount-percent-badge" data-testid="cocktail-details-discount-badge">
+                  -{{ getDiscountPercentage(cocktail) }}%
+                </span>
+              }
             }
             <span class="cocktail-details-price" [class.discounted]="isHappyHour(cocktail)" data-testid="cocktail-details-price">
               {{ getEffectivePrice(cocktail) | appCurrency }}
@@ -525,6 +530,11 @@
         }
       </header>
 
+      <!-- Dynamic Happy Hour Countdown Banner & Upcoming Teaser -->
+      @if (isHappyHourEnabled) {
+        <app-happy-hour-banner></app-happy-hour-banner>
+      }
+
       <!-- Bannière Tournée Groupée / Période de grâce de 2 minutes -->
       @if (tableCartService.graceRemainingSeconds() > 0) {
         <div class="grace-period-banner" data-testid="grace-period-banner">
@@ -726,6 +736,11 @@
         <h1 class="card-title">{{ 'CLIENT.SHARED_CART_TITLE' | transloco: { table: tableNumero } }}</h1>
         <p class="card-subtitle">{{ 'CLIENT.SHARED_CART_SUBTITLE' | transloco }}</p>
       </div>
+
+      <!-- Dynamic Happy Hour Countdown Banner -->
+      @if (isHappyHourEnabled) {
+        <app-happy-hour-banner></app-happy-hour-banner>
+      }
 
       <div class="recap-invite-banner" data-testid="recap-invite-banner">
         <div class="banner-text">

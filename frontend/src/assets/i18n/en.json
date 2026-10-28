@@ -3959,7 +3959,17 @@
     "SAVINGS_BADGE": "Save {{amount}}",
     "ORIGINAL_PRICE": "Regular price: {{price}}",
     "DISCOUNT_APPLIED": "Happy Hour dynamic rate applied",
-    "REGULAR_PRICE": "Regular price"
+    "REGULAR_PRICE": "Regular price",
+    "HAPPY_HOUR_ACTIVE_TITLE": "🍸 Happy Hour is live!",
+    "HAPPY_HOUR_ENDS_IN": "Ends in {{ time }}",
+    "HAPPY_HOUR_UPCOMING_TITLE": "⏰ Happy Hour coming up!",
+    "HAPPY_HOUR_STARTS_IN": "Starts in {{ minutes }} minutes {{ target }}!",
+    "TARGET_ALL": "on the entire menu",
+    "TARGET_CATEGORIES": "on our {{ categories }}",
+    "TARGET_NAMED": "on {{ name }}",
+    "TOAST_HH_STARTED": "🍸 Happy Hour has started! Your discounts have been applied.",
+    "TOAST_HH_ENDED": "⏰ Happy Hour has ended. Cart recalculated with standard prices.",
+    "DISCOUNT_BADGE_PERCENT": "-{{ percent }}%"
   },
   "DAYS": {
     "MONDAY": "Monday",

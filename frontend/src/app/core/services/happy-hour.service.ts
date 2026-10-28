@@ -1,21 +1,24 @@
-import { inject, Injectable, signal, computed } from '@angular/core';
+import { inject, Injectable, signal, computed, OnDestroy } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, Subject, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  ActiveCountdownInfo,
   DayOfWeek,
   DiscountType,
   HappyHourRule,
   HappyHourRuleRequest,
-  PricingPreviewResult
+  HappyHourStateTransition,
+  PricingPreviewResult,
+  UpcomingTeaserInfo
 } from '../models/happy-hour.model';
 
 /**
  * Service managing Happy Hour dynamic pricing rules, live price calculation,
- * and rule simulation for establishment catalog items.
+ * real-time countdown banners, upcoming promotion teasers, and rule simulation.
  */
 @Injectable({ providedIn: 'root' })
-export class HappyHourService {
+export class HappyHourService implements OnDestroy {
   private readonly api = `${environment.apiUrl}/happy-hour`;
   private readonly http = inject(HttpClient);
 
@@ -33,6 +36,59 @@ export class HappyHourService {
     this.rulesSignal().filter(r => r.active && this.isRuleApplicableNow(r))
   );
 
+  /** Internal reactive signal for active Happy Hour countdown state. */
+  private readonly activeCountdownSignal = signal<ActiveCountdownInfo | null>(null);
+
+  /** Read-only signal exposing live active Happy Hour countdown banner information. */
+  readonly activeCountdown = this.activeCountdownSignal.asReadonly();
+
+  /** Internal reactive signal for upcoming Happy Hour teaser preview state. */
+  private readonly upcomingTeaserSignal = signal<UpcomingTeaserInfo | null>(null);
+
+  /** Read-only signal exposing upcoming Happy Hour teaser information (starts within <= 60m). */
+  readonly upcomingTeaser = this.upcomingTeaserSignal.asReadonly();
+
+  /** Event stream emitting whenever Happy Hour status transitions between active and inactive. */
+  readonly stateTransition$ = new Subject<HappyHourStateTransition>();
+
+  private tickerTimer: ReturnType<typeof setInterval> | null = null;
+  private wasActiveLastTick: boolean | null = null;
+
+  constructor() {
+    this.startLiveTicker();
+  }
+
+  /**
+   * Cleans up interval timers and event subjects upon service teardown.
+   */
+  ngOnDestroy(): void {
+    this.stopLiveTicker();
+    this.stateTransition$.complete();
+  }
+
+  /**
+   * Starts live 1-second interval ticker for updating countdown and teaser signals.
+   */
+  startLiveTicker(): void {
+    if (this.tickerTimer) {
+      return;
+    }
+    this.updateCountdownAndTeaser();
+    this.tickerTimer = setInterval(() => {
+      this.updateCountdownAndTeaser();
+    }, 1000);
+  }
+
+  /**
+   * Halts live interval ticker.
+   */
+  stopLiveTicker(): void {
+    if (this.tickerTimer) {
+      clearInterval(this.tickerTimer);
+      this.tickerTimer = null;
+    }
+  }
+
   /**
    * Fetches all configured Happy Hour rules from the backend.
    *
@@ -40,7 +96,10 @@ export class HappyHourService {
    */
   getAllRules(): Observable<HappyHourRule[]> {
     return this.http.get<HappyHourRule[]>(this.api).pipe(
-      tap(rules => this.rulesSignal.set(rules))
+      tap(rules => {
+        this.rulesSignal.set(rules);
+        this.updateCountdownAndTeaser();
+      })
     );
   }
 
@@ -284,6 +343,179 @@ export class HappyHourService {
     }
 
     return false;
+  }
+
+  /**
+   * Calculates the percentage discount between regular base price and promotional price.
+   *
+   * @param basePrice Non-discounted base price
+   * @param effectivePrice Promotional discounted price
+   * @returns Integer percentage saved (e.g. 25 for -25%), or null if no savings
+   */
+  calculateDiscountPercentage(basePrice: number, effectivePrice: number): number | null {
+    if (basePrice > effectivePrice && basePrice > 0) {
+      return Math.round(((basePrice - effectivePrice) / basePrice) * 100);
+    }
+    return null;
+  }
+
+  /**
+   * Computes the number of seconds remaining until the specified active rule window expires.
+   *
+   * @param rule Applicable Happy Hour rule
+   * @param date Evaluation timestamp
+   * @returns Remaining seconds (minimum 0)
+   */
+  getSecondsUntilEnd(rule: HappyHourRule, date: Date = new Date()): number {
+    const [endH, endM] = rule.endTime.substring(0, 5).split(':').map(Number);
+    const target = new Date(date);
+    target.setHours(endH, endM, 0, 0);
+
+    const start = rule.startTime.substring(0, 5);
+    const end = rule.endTime.substring(0, 5);
+    const timeStr = this.formatTimeString(date);
+
+    // If overnight rule and current time is before midnight, end target is tomorrow
+    if (start > end && timeStr >= start) {
+      target.setDate(target.getDate() + 1);
+    }
+
+    const diff = Math.floor((target.getTime() - date.getTime()) / 1000);
+    return Math.max(0, diff);
+  }
+
+  /**
+   * Computes the number of seconds until an upcoming rule starts, if scheduled within 60 minutes.
+   *
+   * @param rule Active rule definition
+   * @param date Evaluation timestamp
+   * @returns Remaining seconds until start (<= 3600), or null if not starting within 60 minutes
+   */
+  getSecondsUntilStart(rule: HappyHourRule, date: Date = new Date()): number | null {
+    if (!rule.active) {
+      return null;
+    }
+    const dayName = this.getDayOfWeek(date);
+    if (rule.daysOfWeek && rule.daysOfWeek.length > 0 && !rule.daysOfWeek.includes(dayName)) {
+      return null;
+    }
+
+    const [startH, startM] = rule.startTime.substring(0, 5).split(':').map(Number);
+    const target = new Date(date);
+    target.setHours(startH, startM, 0, 0);
+
+    const diff = Math.floor((target.getTime() - date.getTime()) / 1000);
+    if (diff > 0 && diff <= 3600) {
+      return diff;
+    }
+    return null;
+  }
+
+  /**
+   * Formats a duration in seconds into MM:SS or HH:MM:SS format.
+   *
+   * @param seconds Total seconds
+   * @returns Formatted time string
+   */
+  formatDuration(seconds: number): string {
+    const s = seconds % 60;
+    if (seconds >= 3600) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+    const m = Math.floor(seconds / 60);
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+
+  /**
+   * Resolves the transloco scope translation key and parameters for a rule.
+   *
+   * @param rule Target rule
+   * @returns Object containing translation key and optional interpolation params
+   */
+  getRuleScope(rule: HappyHourRule): { key: string; params?: Record<string, unknown> } {
+    if (rule.categories && rule.categories.length > 0) {
+      return {
+        key: 'PRICING.TARGET_CATEGORIES',
+        params: { categories: rule.categories.map(c => c.toLowerCase()).join(', ') }
+      };
+    }
+    if (rule.name && !rule.name.toLowerCase().includes('happy hour')) {
+      return {
+        key: 'PRICING.TARGET_NAMED',
+        params: { name: rule.name }
+      };
+    }
+    return { key: 'PRICING.TARGET_ALL' };
+  }
+
+  /**
+   * Recalculates the active countdown and upcoming teaser state signals based on the current time,
+   * detecting state transitions and broadcasting notification events.
+   *
+   * @param referenceDate Optional reference timestamp for testing
+   */
+  updateCountdownAndTeaser(referenceDate: Date = new Date()): void {
+    const activeRules = this.rulesSignal().filter(r => r.active && this.isRuleApplicableNow(r, referenceDate));
+
+    if (activeRules.length > 0) {
+      // Urgent-first: select rule expiring soonest
+      let soonestRule = activeRules[0];
+      let minRemainingSeconds = this.getSecondsUntilEnd(soonestRule, referenceDate);
+
+      for (let i = 1; i < activeRules.length; i++) {
+        const remaining = this.getSecondsUntilEnd(activeRules[i], referenceDate);
+        if (remaining < minRemainingSeconds) {
+          minRemainingSeconds = remaining;
+          soonestRule = activeRules[i];
+        }
+      }
+
+      const scope = this.getRuleScope(soonestRule);
+      this.activeCountdownSignal.set({
+        rule: soonestRule,
+        remainingSeconds: minRemainingSeconds,
+        formattedTime: this.formatDuration(minRemainingSeconds),
+        scopeDescriptionKey: scope.key,
+        scopeDescriptionParams: scope.params
+      });
+      this.upcomingTeaserSignal.set(null);
+
+      if (this.wasActiveLastTick === false) {
+        this.stateTransition$.next({ type: 'STARTED', rule: soonestRule });
+      }
+      this.wasActiveLastTick = true;
+    } else {
+      this.activeCountdownSignal.set(null);
+
+      if (this.wasActiveLastTick === true) {
+        this.stateTransition$.next({ type: 'ENDED' });
+      }
+      this.wasActiveLastTick = false;
+
+      // Look for upcoming rules starting within 60 minutes
+      const upcomingCandidates = this.rulesSignal()
+        .filter(r => r.active && !this.isRuleApplicableNow(r, referenceDate))
+        .map(rule => ({ rule, secondsUntilStart: this.getSecondsUntilStart(rule, referenceDate) }))
+        .filter((entry): entry is { rule: HappyHourRule; secondsUntilStart: number } => entry.secondsUntilStart != null);
+
+      if (upcomingCandidates.length > 0) {
+        upcomingCandidates.sort((a, b) => a.secondsUntilStart - b.secondsUntilStart);
+        const earliest = upcomingCandidates[0];
+        const minutesUntilStart = Math.ceil(earliest.secondsUntilStart / 60);
+        const scope = this.getRuleScope(earliest.rule);
+
+        this.upcomingTeaserSignal.set({
+          rule: earliest.rule,
+          minutesUntilStart,
+          scopeDescriptionKey: scope.key,
+          scopeDescriptionParams: scope.params
+        });
+      } else {
+        this.upcomingTeaserSignal.set(null);
+      }
+    }
   }
 
   private getDayOfWeek(date: Date): DayOfWeek {

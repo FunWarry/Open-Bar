@@ -48,6 +48,7 @@ public class TableCartService {
     private final TimeService timeService;
     private final CommandeRepository commandeRepository;
     private final TableAppelRepository tableAppelRepository;
+    private final HappyHourService happyHourService;
 
     /**
      * Constructs the table cart service with all required dependencies.
@@ -61,6 +62,7 @@ public class TableCartService {
      * @param timeService Application time service
      * @param commandeRepository Repository for order queries and updates
      * @param tableAppelRepository Repository for waiter and bill alerts
+     * @param happyHourService Happy Hour service for dynamic pricing calculation
      */
     public TableCartService(
             TableCartItemRepository tableCartItemRepository,
@@ -71,7 +73,8 @@ public class TableCartService {
             SimpMessagingTemplate messagingTemplate,
             TimeService timeService,
             CommandeRepository commandeRepository,
-            TableAppelRepository tableAppelRepository) {
+            TableAppelRepository tableAppelRepository,
+            HappyHourService happyHourService) {
         this.tableCartItemRepository = tableCartItemRepository;
         this.tableRepository = tableRepository;
         this.cocktailRepository = cocktailRepository;
@@ -81,6 +84,7 @@ public class TableCartService {
         this.timeService = timeService;
         this.commandeRepository = commandeRepository;
         this.tableAppelRepository = tableAppelRepository;
+        this.happyHourService = happyHourService;
     }
 
     /**
@@ -586,9 +590,20 @@ public class TableCartService {
                 ? variantesMap.get(item.getCocktailVarianteId())
                 : null;
 
-        BigDecimal unitPrice = item.getPrixOverride() != null ? item.getPrixOverride() : cocktail.getPrix();
-        if (item.getPrixOverride() == null && variante != null && variante.getPrixSupplement() != null) {
-            unitPrice = unitPrice.add(variante.getPrixSupplement());
+        BigDecimal unitPrice = item.getPrixOverride();
+        if (unitPrice == null) {
+            if (happyHourService != null) {
+                BigDecimal effective = happyHourService.resolveEffectivePrice(cocktail, variante, timeService.now());
+                if (effective != null) {
+                    unitPrice = effective;
+                }
+            }
+            if (unitPrice == null) {
+                unitPrice = cocktail.getPrix() != null ? cocktail.getPrix() : BigDecimal.ZERO;
+                if (variante != null && variante.getPrixSupplement() != null) {
+                    unitPrice = unitPrice.add(variante.getPrixSupplement());
+                }
+            }
         }
 
         BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(item.getQuantite()));
