@@ -4,6 +4,7 @@ import com.bar.gestioncocktail.event.InvoiceSettledEvent;
 import com.bar.gestioncocktail.event.TableLiberatedEvent;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.exception.BusinessException;
+import com.bar.gestioncocktail.dto.FactureReglementDTO;
 import com.bar.gestioncocktail.dto.MergeFacturesRequestDTO;
 import com.bar.gestioncocktail.dto.SplitAdditionRequest;
 import com.bar.gestioncocktail.dto.SplitMontantPartRequest;
@@ -2524,6 +2525,70 @@ class FactureServiceTest {
         assertThat(addition.items()).hasSize(2);
         verify(factureRepository).save(unpaidFacture);
         assertThat(unpaidFacture.getItems()).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("getTabAddition syncs active orders with unpaid invoice and calculates already paid amounts")
+    void getTabAddition_withExistingUnpaidFacture_syncsOrdersAndCalculatesPaid() {
+        com.bar.gestioncocktail.model.BarTab barTab = new com.bar.gestioncocktail.model.BarTab();
+        barTab.setId(33L);
+        barTab.setNom("Lounge");
+
+        Cocktail cocktail = new Cocktail();
+        cocktail.setId(555L);
+        cocktail.setNom("Mojito");
+
+        CommandeItem ci = new CommandeItem();
+        ci.setId(999L);
+        ci.setCocktail(cocktail);
+        ci.setQuantite(2);
+        ci.setPrixUnitaire(new BigDecimal("10.00"));
+
+        Commande cmd = new Commande();
+        cmd.setId(888L);
+        cmd.setBarTab(barTab);
+        cmd.setStatut(CommandeStatut.LIVREE);
+        cmd.setItems(List.of(ci));
+
+        Facture unpaidFacture = new Facture();
+        unpaidFacture.setId(330L);
+        unpaidFacture.setBarTab(barTab);
+        unpaidFacture.setReglee(false);
+        unpaidFacture.setItems(null); // tests null items initialization
+
+        com.bar.gestioncocktail.model.FactureReglement reg = new com.bar.gestioncocktail.model.FactureReglement();
+        reg.setId(1L);
+        reg.setFacture(unpaidFacture);
+        reg.setMontant(new BigDecimal("10.00"));
+        reg.setItemsJson("[{\"itemId\":999,\"description\":\"Mojito\",\"quantite\":1,\"prixUnitaire\":10.00,\"total\":10.00}]");
+
+        when(barTabRepository.findById(33L)).thenReturn(Optional.of(barTab));
+        when(commandeRepository.findByBarTab(barTab)).thenReturn(List.of(cmd));
+        when(factureRepository.findByBarTab(barTab)).thenReturn(List.of(unpaidFacture));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(330L)).thenReturn(List.of(reg));
+
+        TableAdditionResponseDTO addition = factureService.getTabAddition(33L);
+
+        assertThat(addition).isNotNull();
+        assertThat(addition.alreadyPaidAmount()).isEqualByComparingTo(new BigDecimal("10.00"));
+        assertThat(addition.remainingBalance()).isEqualByComparingTo(new BigDecimal("10.00"));
+        assertThat(addition.items()).hasSize(1);
+        assertThat(addition.items().get(0).quantitePayee()).isEqualTo(1);
+        assertThat(addition.items().get(0).quantite() - addition.items().get(0).quantitePayee()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("calculateAlreadyPaid returns zero for null or empty list and sums amounts otherwise")
+    void calculateAlreadyPaid_scenarios() {
+        assertThat(factureService.calculateAlreadyPaid(null)).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(factureService.calculateAlreadyPaid(List.of())).isEqualByComparingTo(BigDecimal.ZERO);
+
+        FactureReglementDTO r1 = new FactureReglementDTO(1L, 1L, "A", 1, 2, new BigDecimal("15.50"), null, new BigDecimal("15.50"), "CARTE", "EGAL", null, null);
+        FactureReglementDTO r2 = new FactureReglementDTO(2L, 1L, "B", 2, 2, null, null, BigDecimal.ZERO, "CARTE", "EGAL", null, null);
+        FactureReglementDTO r3 = new FactureReglementDTO(3L, 1L, "C", 2, 2, new BigDecimal("10.00"), null, new BigDecimal("10.00"), "CARTE", "EGAL", null, null);
+
+        BigDecimal sum = factureService.calculateAlreadyPaid(List.of(r1, r2, r3));
+        assertThat(sum).isEqualByComparingTo(new BigDecimal("25.50"));
     }
 }
 

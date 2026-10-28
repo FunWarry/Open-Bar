@@ -1192,6 +1192,71 @@ describe('EncaissementModalComponent', () => {
       expect(component.subTotalTTC).toBe(19.0);
       expect(component.billTotalTTC).toBe(28.0);
     });
+
+    it('should resolve TPE reference for tab and fallback correctly', () => {
+      component.table = undefined;
+      component.tab = { id: 2, nom: 'Terrasse' } as any;
+      expect((component as any).resolveTpeReference()).toBe('Tab Terrasse');
+
+      component.tab = undefined;
+      expect((component as any).resolveTpeReference()).toBe('Bar');
+    });
+
+    it('should map split modes to correct TypeSplit enums', () => {
+      component.splitMode = 'libre';
+      expect((component as any).resolveTypeSplit()).toBe('MONTANT_LIBRE');
+
+      component.splitMode = 'pourcentage';
+      expect((component as any).resolveTypeSplit()).toBe('POURCENTAGE');
+
+      component.splitMode = 'egal';
+      expect((component as any).resolveTypeSplit()).toBe('EGAL');
+    });
+
+    it('should persist part settlement via encaisserPartTab when tab is provided', fakeAsync(() => {
+      component.table = undefined;
+      component.tab = { id: 77, nom: 'BarTab' } as any;
+      component.unitAssignments['101_0'] = 0;
+      component.payerPartConvive(0);
+      component.partPaymentMode = 'CARTE';
+
+      factureServiceSpy.encaisserPartTab.and.returnValue(of({ id: 1 } as any));
+      component.validerReglementPart();
+      tick();
+
+      expect(factureServiceSpy.encaisserPartTab).toHaveBeenCalledWith(77, jasmine.any(Object));
+      expect(barTabServiceSpy.getTabAddition).toHaveBeenCalledWith(77);
+    }));
+
+    it('should persist part settlement via encaisserPart when only existingFactureId is available', fakeAsync(() => {
+      component.table = undefined;
+      component.tab = undefined;
+      component.addition = { ...mockAddition, existingFactureId: 99 };
+      component.unitAssignments['101_0'] = 0;
+      component.payerPartConvive(0);
+      component.partPaymentMode = 'CARTE';
+
+      factureServiceSpy.encaisserPart.and.returnValue(of({ id: 1 } as any));
+      component.validerReglementPart();
+      tick();
+
+      expect(factureServiceSpy.encaisserPart).toHaveBeenCalledWith(99, jasmine.any(Object));
+    }));
+
+    it('should display error toast when part settlement fails', fakeAsync(() => {
+      component.unitAssignments['101_0'] = 0;
+      component.payerPartConvive(0);
+      component.partPaymentMode = 'CARTE';
+
+      factureServiceSpy.encaisserPartTable.and.returnValue(throwError(() => ({ error: { message: 'Failed part' } })));
+      component.validerReglementPart();
+      tick();
+
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+        message: 'Failed part',
+        color: 'danger'
+      }));
+    }));
   });
 });
 
