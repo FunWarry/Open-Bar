@@ -7,7 +7,7 @@ import { TableBar } from '../../../core/models/table.model';
 import { Commande, CommandeStatut, CreateCommandeRequest, AjouterItemRequest } from '../../../core/models/commande.model';
 import { TableView } from '../models/table-view.model';
 import { TablePosition } from '../../plan-salle/models/table-position.model';
-import { Facture } from '../../factures/models/facture.model';
+import { Facture, FactureReglement } from '../../factures/models/facture.model';
 /**
  * Floor plan zone item with table lists.
  */
@@ -39,6 +39,7 @@ export interface TableAdditionItem {
   vatRate: string;
   isHappyHour?: boolean;
   basePrice?: number;
+  quantitePayee?: number;
 }
 
 export interface TableAdditionResponse {
@@ -56,6 +57,11 @@ export interface TableAdditionResponse {
   nombreArticles: number;
   hasUnpaidFacture: boolean;
   existingFactureId?: number;
+  tabId?: number;
+  tabNom?: string;
+  alreadyPaidAmount?: number;
+  remainingBalance?: number;
+  reglements?: FactureReglement[];
 }
 
 export interface EncaissementRequest {

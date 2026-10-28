@@ -182,11 +182,30 @@
             font-weight: 700;
             padding: 1px 6px;
             border-radius: 999px;
-            background: rgba(234, 179, 8, 0.18);
-            color: var(--semantic-warning, #eab308);
-            border: 1px solid rgba(234, 179, 8, 0.35);
+            background: color-mix(in srgb, var(--semantic-warning) 18%, transparent);
+            color: var(--semantic-warning);
+            border: 1px solid color-mix(in srgb, var(--semantic-warning) 35%, transparent);
             margin-left: 6px;
             vertical-align: middle;
+          }
+
+          .item-paid-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: var(--radius-pill, 10px);
+            background: color-mix(in srgb, var(--semantic-success) 16%, transparent);
+            color: var(--semantic-success);
+            border: 1px solid color-mix(in srgb, var(--semantic-success) 35%, transparent);
+            margin-left: 6px;
+            vertical-align: middle;
+
+            ion-icon {
+              font-size: 0.78rem;
+            }
           }
         }
 
@@ -227,6 +246,26 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+
+      &.paid-row {
+        color: var(--semantic-success);
+        font-weight: 600;
+
+        .paid-label {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .paid-value {
+          color: var(--semantic-success);
+        }
+      }
+
+      &.balance-row {
+        font-weight: 700;
+        color: var(--primary);
+      }
 
       &.sub-row {
         font-size: 0.88rem;
@@ -1202,6 +1241,105 @@
   flex-direction: column;
   gap: 12px;
 
+  .already-settled-summary-card {
+    background: color-mix(in srgb, var(--semantic-success) 8%, var(--background-surface-1));
+    border: 1px solid color-mix(in srgb, var(--semantic-success) 35%, transparent);
+    border-radius: var(--radius-md, 12px);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .settled-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .settled-card-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .settled-icon {
+          color: var(--semantic-success);
+          font-size: 1.1rem;
+        }
+
+        h5 {
+          margin: 0;
+          font-size: 0.9rem;
+          font-weight: 700;
+          color: var(--semantic-success);
+        }
+      }
+
+      .settled-total-badge {
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: var(--semantic-success);
+        background: color-mix(in srgb, var(--semantic-success) 15%, transparent);
+        padding: 3px 8px;
+        border-radius: var(--radius-sm, 6px);
+      }
+    }
+
+    .settled-reglements-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      .settled-reglement-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 10px;
+        background: var(--background-surface-1);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-sm, 6px);
+
+        .reglement-guest-info {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .guest-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+          }
+
+          .payment-method-tag {
+            font-size: 0.72rem;
+            padding: 2px 6px;
+            background: var(--background-surface-2);
+            border: 1px solid var(--border-medium);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 600;
+          }
+        }
+
+        .reglement-amount-info {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+
+          .reg-amount {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--semantic-success);
+          }
+
+          .reg-tip {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+          }
+        }
+      }
+    }
+  }
+
   /* 1. Pool Summary: Bill Items & Counters */
   .pool-summary-card {
     background: var(--background-surface-2);
@@ -1670,6 +1808,18 @@
                 margin-left: 2px;
               }
             }
+          }
+        }
+
+        .guest-card-pay-action {
+          margin-top: 6px;
+          padding-top: 8px;
+          border-top: 1px dashed var(--border-subtle);
+          display: flex;
+          justify-content: flex-end;
+
+          app-action-button {
+            width: 100%;
           }
         }
       }
