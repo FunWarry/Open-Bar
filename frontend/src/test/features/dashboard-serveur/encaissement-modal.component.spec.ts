@@ -120,7 +120,23 @@ describe('EncaissementModalComponent', () => {
       reglee: true
     } as any));
 
-    factureServiceSpy = jasmine.createSpyObj('FactureService', ['getFacturesByTable', 'genererFactureTable', 'genererFactureTab']);
+    factureServiceSpy = jasmine.createSpyObj('FactureService', [
+      'getFacturesByTable',
+      'genererFactureTable',
+      'genererFactureTab',
+      'encaisserPartTable',
+      'encaisserPartTab',
+      'encaisserPart'
+    ]);
+    factureServiceSpy.encaisserPartTable.and.returnValue(of({
+      id: 1,
+      factureId: 10,
+      nomConvive: 'Convive 1',
+      partIndex: 1,
+      montant: 9.0,
+      totalRegle: 9.0,
+      modePaiement: 'CARTE'
+    } as any));
     barTabServiceSpy = jasmine.createSpyObj('BarTabService', ['getTabAddition', 'encaisserTab']);
 
     paymentTerminalServiceSpy = jasmine.createSpyObj('PaymentTerminalService', [
@@ -1019,6 +1035,26 @@ describe('EncaissementModalComponent', () => {
       expect(component.tpeErrorMessage()).toBe('Chip read error');
     });
 
+    it('should handle asynchronous WebSocket broadcast update to ERROR status', () => {
+      const pendingTx: any = {
+        transactionId: 'tx-err-01',
+        status: 'INITIATED'
+      };
+      const errorTx: any = {
+        transactionId: 'tx-err-01',
+        status: 'ERROR',
+        message: 'No terminal IP address configured'
+      };
+
+      paymentTerminalServiceSpy.initiatePayment.and.returnValue(of(pendingTx));
+      paymentTerminalServiceSpy.watchPayment.and.returnValue(of(errorTx));
+
+      component.envoyerAuTpe(false);
+
+      expect(component.isTpeProcessing()).toBeFalse();
+      expect(component.tpeErrorMessage()).toBe('No terminal IP address configured');
+    });
+
     it('should handle HTTP error during initiatePayment gracefully', () => {
       paymentTerminalServiceSpy.initiatePayment.and.returnValue(throwError(() => ({
         error: { message: 'Terminal offline' }
@@ -1071,4 +1107,91 @@ describe('EncaissementModalComponent', () => {
       expect(component.partStates[0]?.tpeAutorisation).toBe('AUTH-PART-1');
     });
   });
+
+  describe('Mid-dinner individual split settlement', () => {
+    beforeEach(() => {
+      component.addition = { ...mockAddition };
+      component.splitMode = 'selection';
+      component.convives = [{ nom: 'Convive 1' }, { nom: 'Convive 2' }];
+    });
+
+    it('should initiate in-modal part settlement when payerPartConvive is called', () => {
+      component.unitAssignments['101_0'] = 0;
+
+      expect(component.getGuestTotal(0)).toBe(9.0);
+
+      component.payerPartConvive(0);
+
+      expect(component.settlingPartIndex).toBe(0);
+      expect(component.settlingPart).toBeTruthy();
+      expect(component.settlingPart?.nomConvive).toBe('Convive 1');
+      expect(component.settlingPart?.sousTotal).toBe(9.0);
+      expect(component.settlingPart?.items).toHaveSize(1);
+      expect(component.settlingPart?.items[0].itemId).toBe(101);
+    });
+
+    it('should persist part settlement to backend via encaisserPartTable, clean unit assignments and reload addition', fakeAsync(() => {
+      component.unitAssignments['101_0'] = 0;
+      component.payerPartConvive(0);
+
+      component.partPaymentMode = 'CARTE';
+      component.validerReglementPart();
+      tick();
+
+      expect(factureServiceSpy.encaisserPartTable).toHaveBeenCalledWith(1, jasmine.objectContaining({
+        nomConvive: 'Convive 1',
+        partIndex: 1,
+        montant: 9.0,
+        totalRegle: 9.0,
+        modePaiement: 'CARTE'
+      }));
+
+      expect(component.unitAssignments['101_0']).toBeUndefined();
+      expect(component.settlingPart).toBeNull();
+      expect(component.settlingPartIndex).toBeNull();
+      expect(component.partStates[0]?.reglee).toBeTrue();
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+      expect(dashboardServiceSpy.getTableAddition).toHaveBeenCalledWith(1);
+    }));
+
+    it('should exclude quantitePayee from splitUnits so settled items cannot be reassigned', () => {
+      component.addition = {
+        ...mockAddition,
+        items: [
+          {
+            ...mockItems[0],
+            quantite: 2,
+            quantitePayee: 1
+          }
+        ]
+      };
+
+      const units = component.splitUnits;
+      expect(units.filter(u => u.itemId === 101)).toHaveSize(1);
+    });
+
+    it('should calculate remainingBalance and subTotalTTC correctly when previous parts exist', () => {
+      component.addition = {
+        ...mockAddition,
+        alreadyPaidAmount: 9.0,
+        remainingBalance: 19.0,
+        reglements: [
+          {
+            id: 1,
+            factureId: 10,
+            nomConvive: 'Convive 1',
+            partIndex: 1,
+            montant: 9.0,
+            totalRegle: 9.0,
+            modePaiement: 'CARTE'
+          } as any
+        ]
+      };
+
+      expect(component.alreadyPaidAmount).toBe(9.0);
+      expect(component.subTotalTTC).toBe(19.0);
+      expect(component.billTotalTTC).toBe(28.0);
+    });
+  });
 });
+

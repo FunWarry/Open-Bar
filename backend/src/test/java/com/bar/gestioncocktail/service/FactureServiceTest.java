@@ -2137,4 +2137,82 @@ class FactureServiceTest {
         assertThat(saved.getTpeMaskedPan()).isEqualTo("************1111");
         assertThat(saved.getTpeSequence()).isEqualTo("000099");
     }
+
+    @Test
+    @DisplayName("encaisserPartTable delegates to encaisserPart with existing unpaid invoice")
+    void encaisserPartTable_withExistingUnpaidFacture_delegatesToEncaisserPart() {
+        TableEntity tableEntity = new TableEntity();
+        tableEntity.setId(1L);
+        tableEntity.setNumero(1);
+
+        Facture tableFacture = new Facture();
+        tableFacture.setId(42L);
+        tableFacture.setTable(tableEntity);
+        tableFacture.setTotalTTC(new BigDecimal("30.00"));
+        tableFacture.setReglee(false);
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(tableEntity));
+        when(factureRepository.findByTable(tableEntity)).thenReturn(List.of(tableFacture));
+        when(factureRepository.findById(42L)).thenReturn(Optional.of(tableFacture));
+        when(factureReglementRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(42L)).thenReturn(List.of());
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest Table", 1, 2, new BigDecimal("15.00"), BigDecimal.ZERO, new BigDecimal("15.00"), "CARTE", "SELECTION", List.of()
+        );
+
+        com.bar.gestioncocktail.dto.FactureReglementDTO result = factureService.encaisserPartTable(1L, req);
+
+        assertThat(result).isNotNull();
+        assertThat(result.factureId()).isEqualTo(42L);
+        assertThat(result.nomConvive()).isEqualTo("Guest Table");
+        assertThat(result.montant()).isEqualByComparingTo(new BigDecimal("15.00"));
+    }
+
+    @Test
+    @DisplayName("encaisserPartTable throws ResourceNotFoundException when table does not exist")
+    void encaisserPartTable_whenTableNotFound_throwsResourceNotFoundException() {
+        when(tableRepository.findById(999L)).thenReturn(Optional.empty());
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest", 1, 1, new BigDecimal("10.00"), BigDecimal.ZERO, new BigDecimal("10.00"), "CARTE", "EGAL", List.of()
+        );
+
+        assertThatThrownBy(() -> factureService.encaisserPartTable(999L, req))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Table not found with id: 999");
+    }
+
+    @Test
+    @DisplayName("encaisserPartTab delegates to encaisserPart with existing unpaid invoice")
+    void encaisserPartTab_withExistingUnpaidFacture_delegatesToEncaisserPart() {
+        com.bar.gestioncocktail.model.BarTab barTab = new com.bar.gestioncocktail.model.BarTab();
+        barTab.setId(88L);
+        barTab.setNom("VIP Tab");
+        barTab.setStatut(com.bar.gestioncocktail.model.BarTabStatus.ACTIVE);
+
+        Facture tabFacture = new Facture();
+        tabFacture.setId(880L);
+        tabFacture.setBarTab(barTab);
+        tabFacture.setTotalTTC(new BigDecimal("50.00"));
+        tabFacture.setReglee(false);
+
+        when(barTabRepository.findById(88L)).thenReturn(Optional.of(barTab));
+        when(factureRepository.findByBarTab(barTab)).thenReturn(List.of(tabFacture));
+        when(factureRepository.findById(880L)).thenReturn(Optional.of(tabFacture));
+        when(factureReglementRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(880L)).thenReturn(List.of());
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "VIP Guest", 1, 1, new BigDecimal("50.00"), BigDecimal.ZERO, new BigDecimal("50.00"), "ESPECES", "SELECTION", List.of()
+        );
+
+        com.bar.gestioncocktail.dto.FactureReglementDTO result = factureService.encaisserPartTab(88L, req);
+
+        assertThat(result).isNotNull();
+        assertThat(result.factureId()).isEqualTo(880L);
+        assertThat(result.nomConvive()).isEqualTo("VIP Guest");
+        assertThat(result.montant()).isEqualByComparingTo(new BigDecimal("50.00"));
+    }
 }
+

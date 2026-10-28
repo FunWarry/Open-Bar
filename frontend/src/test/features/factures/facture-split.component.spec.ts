@@ -697,5 +697,38 @@ describe('FactureSplitComponent', () => {
       component.calculateCustomPercentageSplit();
       expect(component.errorMessage).toBe('Pct error');
     });
+
+    it('settleGuestFromCard opens ReglementModalComponent and calls encaisserPart with guest selection', async () => {
+      component.facture = { ...mockFacture };
+      component.mode = 'itemized';
+      component.unitAssignments = { '10_0': 0 };
+
+      const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onWillDismiss']);
+      modalSpy.present.and.returnValue(Promise.resolve());
+      modalSpy.onWillDismiss.and.returnValue(Promise.resolve({
+        data: {
+          modePaiement: 'CARTE',
+          totalTotal: 8,
+          pourboire: 0
+        }
+      }));
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(modalSpy));
+      spyOn<any>(component, 'loadFacture');
+
+      await component.settleGuestFromCard(0);
+
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
+      expect(modalSpy.present).toHaveBeenCalled();
+      expect(factureServiceSpy.encaisserPart).toHaveBeenCalledWith(42, jasmine.objectContaining({
+        nomConvive: 'Convive 1',
+        partIndex: 1,
+        montant: 8,
+        modePaiement: 'CARTE',
+        typeSplit: 'SELECTION'
+      }));
+      expect(component.unitAssignments['10_0']).toBeUndefined();
+      expect((component as any).loadFacture).toHaveBeenCalled();
+    });
   });
 });
+
