@@ -48,4 +48,23 @@ describe('ProductCardComponent (Core Design System)', () => {
     expect(pill).toBeTruthy();
     expect(pill.textContent).toContain('Shot de Prosecco');
   });
+
+  it('should compute discountPercentage and render discount badge when under Happy Hour', () => {
+    component.price = 9.0;
+    component.originalPrice = 12.0;
+    component.isHappyHour = true;
+    fixture.detectChanges();
+
+    expect(component.discountPercentage).toBe(25);
+
+    const hhBadge = fixture.nativeElement.querySelector('[data-testid="product-card-hh-badge"]');
+    expect(hhBadge).toBeTruthy();
+
+    const discountBadge = fixture.nativeElement.querySelector('[data-testid="product-card-discount-badge"]');
+    expect(discountBadge).toBeTruthy();
+    expect(discountBadge.textContent.trim()).toBe('-25%');
+
+    const originalPriceEl = fixture.nativeElement.querySelector('[data-testid="product-card-original-price"]');
+    expect(originalPriceEl).toBeTruthy();
+  });
 });

@@ -71,6 +71,9 @@ class TableCartServiceTest {
     @Mock
     private TableAppelRepository tableAppelRepository;
 
+    @Mock
+    private HappyHourService happyHourService;
+
     @Spy
     private TimeService timeService = new TimeService(null);
 
@@ -569,7 +572,8 @@ class TableCartServiceTest {
                 messagingTemplate,
                 timeService,
                 null,
-                tableAppelRepository
+                tableAppelRepository,
+                happyHourService
         );
 
         when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
@@ -624,6 +628,34 @@ class TableCartServiceTest {
         // Must not throw BusinessException or RuntimeException
         tableCartService.broadcastTableOrders(1L);
         verify(messagingTemplate).convertAndSend(eq("/topic/tables/1/orders"), any(TableOrdersSummaryResponseDTO.class));
+    }
+
+    @Test
+    @DisplayName("getCart: uses HappyHourService to dynamically resolve promotional prices")
+    void getCart_resolvesPromotionalPriceWithHappyHourService() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+
+        TableCartItem item = new TableCartItem();
+        item.setId(100L);
+        item.setTableId(1L);
+        item.setCocktailId(mockCocktail.getId());
+        item.setQuantite(2);
+        item.setGuestSessionId("guest-1");
+        item.setGuestName("Alice");
+
+        when(tableCartItemRepository.findByTableIdOrderByCreatedAtAsc(1L)).thenReturn(List.of(item));
+        when(cocktailRepository.findAllById(List.of(mockCocktail.getId()))).thenReturn(List.of(mockCocktail));
+        when(happyHourService.resolveEffectivePrice(eq(mockCocktail), any(), any())).thenReturn(BigDecimal.valueOf(6.00));
+
+        TableCartResponseDTO result = tableCartService.getCart(1L);
+
+        assertThat(result).isNotNull();
+        assertThat(result.items()).hasSize(1);
+        TableCartItemResponseDTO itemDto = result.items().getFirst();
+        assertThat(itemDto.prixUnitaire()).isEqualByComparingTo(BigDecimal.valueOf(6.00));
+        assertThat(itemDto.totalLigne()).isEqualByComparingTo(BigDecimal.valueOf(12.00));
+        assertThat(result.totalPrice()).isEqualByComparingTo(BigDecimal.valueOf(12.00));
+        verify(happyHourService).resolveEffectivePrice(eq(mockCocktail), any(), any());
     }
 }
 
