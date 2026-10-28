@@ -80,6 +80,7 @@ public class WeekSchedulePublicationController {
      * @return 200 with the DTO if published, 204 No Content if not yet published
      */
     @GetMapping("/publication")
+    @PreAuthorize("isAuthenticated()")
     @Operation(
             summary = "Get week publication status",
             description = "Returns the publication record for a given week, or 204 if not yet published"

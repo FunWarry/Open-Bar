@@ -7,6 +7,7 @@ import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailVariante;
 import com.bar.gestioncocktail.model.Commande;
+import com.bar.gestioncocktail.model.CommandeItem;
 import com.bar.gestioncocktail.model.CommandeStatut;
 import com.bar.gestioncocktail.model.TableAppelStatut;
 import com.bar.gestioncocktail.model.TableAppelType;
@@ -443,7 +444,7 @@ class TableCartServiceTest {
         cmd1.setStatut(CommandeStatut.EN_ATTENTE);
         cmd1.setTotal(BigDecimal.valueOf(18.0));
         cmd1.setDateCommande(fixedNow.minusMinutes(10));
-        com.bar.gestioncocktail.model.CommandeItem item1 = new com.bar.gestioncocktail.model.CommandeItem();
+        CommandeItem item1 = new CommandeItem();
         item1.setQuantite(2);
         cmd1.setItems(List.of(item1));
 
@@ -493,7 +494,7 @@ class TableCartServiceTest {
         when(tableCartItemRepository.findById(99L)).thenReturn(Optional.of(item));
 
         assertThatThrownBy(() -> tableCartService.removeItem(1L, 99L, "guest-me"))
-                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("does not belong to table");
     }
 
@@ -544,7 +545,7 @@ class TableCartServiceTest {
     @DisplayName("handleTableLiberated: handles null event or null table gracefully")
     void handleTableLiberated_nullSafety() {
         tableCartService.handleTableLiberated(null);
-        tableCartService.handleTableLiberated(new com.bar.gestioncocktail.event.TableLiberatedEvent(null));
+        tableCartService.handleTableLiberated(new TableLiberatedEvent(null));
         verify(tableCartItemRepository, never()).deleteByTableId(anyLong());
     }
 
@@ -552,11 +553,11 @@ class TableCartServiceTest {
     @DisplayName("validateTableExists and resolveTable: throws BusinessException when tableId is null")
     void tableIdNull_throwsBusinessException() {
         assertThatThrownBy(() -> tableCartService.getCart(null))
-                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Table ID cannot be null");
 
         assertThatThrownBy(() -> tableCartService.getTableOrdersSummary(null))
-                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Table ID cannot be null");
     }
 
@@ -656,6 +657,104 @@ class TableCartServiceTest {
         assertThat(itemDto.totalLigne()).isEqualByComparingTo(BigDecimal.valueOf(12.00));
         assertThat(result.totalPrice()).isEqualByComparingTo(BigDecimal.valueOf(12.00));
         verify(happyHourService).resolveEffectivePrice(eq(mockCocktail), any(), any());
+    }
+
+    @Test
+    @DisplayName("addItem: throws BusinessException when standard item includes a prixOverride")
+    void addItem_whenStandardItemHasPrixOverride_throwsBusinessException() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+        when(cocktailRepository.findById(10L)).thenReturn(Optional.of(mockCocktail));
+
+        TableCartItemRequestDTO request = new TableCartItemRequestDTO("guest-1", "Bob", 10L, null, 1, null);
+        request.setIsMysteryDrink(false);
+        request.setPrixOverride(BigDecimal.ZERO);
+
+        assertThatThrownBy(() -> tableCartService.addItem(1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Price override is not allowed for standard menu items");
+    }
+
+    @Test
+    @DisplayName("addItem: throws BusinessException when mystery item has zero or sub-floor prixOverride")
+    void addItem_whenMysteryItemHasSubFloorPrixOverride_throwsBusinessException() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+        when(cocktailRepository.findById(10L)).thenReturn(Optional.of(mockCocktail));
+
+        TableCartItemRequestDTO request = TableCartItemRequestDTO.ofMysteryDrink(
+                "guest-1", "Bob", 10L, "[Mystery]", new BigDecimal("1.00")
+        );
+
+        assertThatThrownBy(() -> tableCartService.addItem(1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("below minimum allowed roulette price");
+    }
+
+    @Test
+    @DisplayName("addItem: accepts mystery mocktail priced at catalog floor when cheaper than roulette default")
+    void addItem_whenMysteryMocktailHasCatalogFloorPrice_succeeds() {
+        Cocktail cheapMocktail = new Cocktail();
+        cheapMocktail.setId(11L);
+        cheapMocktail.setNom("Syrup Water");
+        cheapMocktail.setIsMocktail(true);
+        cheapMocktail.setPrix(new BigDecimal("4.00"));
+        cheapMocktail.setDisponible(true);
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+        when(cocktailRepository.findById(11L)).thenReturn(Optional.of(cheapMocktail));
+        when(tableCartItemRepository.findByTableIdOrderByCreatedAtAsc(1L)).thenReturn(List.of());
+
+        TableCartItemRequestDTO request = TableCartItemRequestDTO.ofMysteryDrink(
+                "guest-1", "Bob", 11L, "[Mystery]", new BigDecimal("4.00")
+        );
+
+        TableCartResponseDTO result = tableCartService.addItem(1L, request);
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    @DisplayName("addItem: throws BusinessException when variant belongs to a different cocktail")
+    void addItem_whenVariantBelongsToDifferentCocktail_throwsBusinessException() {
+        Cocktail otherCocktail = new Cocktail();
+        otherCocktail.setId(99L);
+
+        CocktailVariante foreignVariante = new CocktailVariante();
+        foreignVariante.setId(20L);
+        foreignVariante.setCocktail(otherCocktail);
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+        when(cocktailRepository.findById(10L)).thenReturn(Optional.of(mockCocktail));
+        when(varianteRepository.findById(20L)).thenReturn(Optional.of(foreignVariante));
+
+        TableCartItemRequestDTO request = new TableCartItemRequestDTO("guest-1", "Alice", 10L, 20L, 1, null);
+
+        assertThatThrownBy(() -> tableCartService.addItem(1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Variant does not belong to cocktail");
+    }
+
+    @Test
+    @DisplayName("updateItem and removeItem: throws BusinessException when different guest attempts to modify or delete item")
+    void updateAndRemoveItem_whenDifferentGuestSessionId_throwsBusinessException() {
+        TableCartItem item = new TableCartItem();
+        item.setId(55L);
+        item.setTableId(1L);
+        item.setGuestSessionId("guest-owner");
+        item.setQuantite(2);
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+        when(tableCartItemRepository.findById(55L)).thenReturn(Optional.of(item));
+
+        TableCartItemUpdateRequestDTO updateRequest = new TableCartItemUpdateRequestDTO();
+        updateRequest.setGuestSessionId("guest-intruder");
+        updateRequest.setQuantite(5);
+
+        assertThatThrownBy(() -> tableCartService.updateItem(1L, 55L, updateRequest))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("You can only modify or remove your own cart items");
+
+        assertThatThrownBy(() -> tableCartService.removeItem(1L, 55L, "guest-intruder"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("You can only modify or remove your own cart items");
     }
 }
 

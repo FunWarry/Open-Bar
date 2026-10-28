@@ -41,6 +41,7 @@ public class RecipeStepTemplateController {
      * @return List of template response DTOs
      */
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get all step templates", description = "Retrieves all reusable preparation step templates, optionally filtered by action category.")
     @ApiResponse(responseCode = "200", description = "List of templates retrieved successfully")
     public ResponseEntity<List<RecipeStepTemplateResponseDTO>> getAllTemplates(
@@ -59,6 +60,7 @@ public class RecipeStepTemplateController {
      * @return Found template response DTO
      */
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get template by ID", description = "Retrieves a reusable preparation step template by its identifier.")
     @ApiResponse(responseCode = "200", description = "Template retrieved successfully")
     @ApiResponse(responseCode = "404", description = "Template not found")

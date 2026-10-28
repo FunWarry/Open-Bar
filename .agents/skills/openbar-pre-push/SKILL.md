@@ -30,7 +30,7 @@ Lancer directement le script dédié à la racine du projet :
 node scripts/pre-push-check.js
 ```
 
-### Les 5 Portes de Qualité Vérifiées
+### Les 10 Portes de Qualité Vérifiées
 
 1. **Parité Transloco i18n (`fr.json` vs `en.json`)** :
    - Extrait récursivement toutes les clés de `frontend/src/assets/i18n/fr.json` et `en.json`.
@@ -44,13 +44,26 @@ node scripts/pre-push-check.js
    - Analyse les fichiers `.scss` et `.css` modifiés.
    - Interdit les codes hexadécimaux (`#1a1a2e`) et RGB en dur. Exige les tokens CSS globaux de `variables.css` (`var(--background-surface-1)`, `var(--primary)`, etc.).
 
-4. **Zéro Erreur TypeScript & Fenêtre "Problems" IDE Propre** :
-   - Exécute `npx tsc --noEmit` sur le frontend.
-   - S'assure que le compilateur TypeScript ne lève aucune erreur ni warning de type.
+4. **Règles Sonar CSS / SCSS (`css:S9449` & `css:S9440`)** :
+   - Interdit `transition: all` et vérifie la présence de `@media (prefers-reduced-motion: reduce)` en cas d'animation.
 
-5. **Compilation Backend Java 22 / Spring Boot 4** :
-   - Exécute `mvn test-compile -q` sur le backend.
+5. **Complexité Cognitive TypeScript (`typescript:S3776 <= 15`)** :
+   - Analyse l'AST TypeScript pour bloquer toute méthode dépassant le seuil de complexité cognitive de 15.
+
+6. **Cohérence des Fins de Ligne (Zéro `CRLF`/`LF` Mixte)** :
+   - Vérifie qu'aucun fichier modifié ne mélange `\r\n` et `\n`, ce qui corrompt les buffers incrémentaux LSP d'Eclipse JDT LS (`redhat.java`).
+
+7. **Règles SonarLint Java sur Fichier Complet (`S9435`, `S6213`, `S2925`, `S2589`)** :
+   - Analyse l'intégralité des fichiers `.java` modifiés (et pas uniquement les lignes du diff PR) pour détecter les conditions ternaires inversées (`S9435`), l'identifiant restreint `record` (`S6213`), `Thread.sleep` dans les tests (`S2925`) et les vérifications nulles redondantes (`S2589`).
+
+8. **Zéro Erreur TypeScript (`npx tsc --noEmit`)** :
+   - Exécute `npx tsc --noEmit` sur le frontend.
+
+9. **Compilation Backend Java 22 / Spring Boot 4 (`mvn test-compile -q`)** :
    - Garantit que tous les DTOs, services, contrôleurs et tests compilent sans erreur.
+
+10. **Inspection Directe des Diagnostics Live de l'IDE (`redhat.java` JDT LS & `SonarQube for IDE`)** :
+    - Lit directement les journaux d'extensions d'Antigravity IDE (`%APPDATA%\Antigravity IDE\User\workspaceStorage\*\redhat.java\jdt_ws\.metadata\.log` et `%APPDATA%\Antigravity IDE\logs\*\window*\exthost\SonarSource.sonarlint-vscode\SonarQube for IDE.log`) afin que l'agent détecte systématiquement tout problème affiché dans l'onglet **Problems** de l'utilisateur.
 
 ---
 

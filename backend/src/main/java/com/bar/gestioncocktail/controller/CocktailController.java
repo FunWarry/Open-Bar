@@ -15,6 +15,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -64,9 +67,7 @@ public class CocktailController {
     @Operation(summary = "Get all cocktails", description = "Retrieves the complete list of cocktails.")
     @ApiResponse(responseCode = "200", description = "Cocktail list retrieved")
     public ResponseEntity<List<CocktailResponseDTO>> getAllCocktails() {
-        return ResponseEntity.ok(cocktailService.getAllCocktails().stream()
-            .map(CocktailResponseDTO::from)
-            .toList());
+        return ResponseEntity.ok(toResponseList(cocktailService.getAllCocktails()));
     }
 
     /**
@@ -103,9 +104,8 @@ public class CocktailController {
         @Parameter(description = "Filter for low-alcohol drinks (ABV > 0 and <= 10%)") @RequestParam(required = false) Boolean lowAbv,
         @Parameter(description = "Maximum alcohol by volume percentage") @RequestParam(required = false) BigDecimal maxAlcohol
     ) {
-        return ResponseEntity.ok(cocktailService.filterAndMatchCocktails(flavors, mocktail, vegan, glutenFree, lowAbv, maxAlcohol).stream()
-            .map(CocktailResponseDTO::from)
-            .toList());
+        return ResponseEntity.ok(toResponseList(
+            cocktailService.filterAndMatchCocktails(flavors, mocktail, vegan, glutenFree, lowAbv, maxAlcohol)));
     }
 
     /**
@@ -172,7 +172,7 @@ public class CocktailController {
     @ApiResponse(responseCode = "404", description = "Cocktail not found")
     public ResponseEntity<CocktailResponseDTO> getCocktailById(@Parameter(description = "Cocktail ID") @PathVariable Long id) {
         return cocktailService.getCocktailById(id)
-            .map(CocktailResponseDTO::from)
+            .map(this::toResponseDto)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
@@ -188,8 +188,7 @@ public class CocktailController {
     @ApiResponse(responseCode = "200", description = "Cocktail list retrieved")
     public ResponseEntity<List<CocktailResponseDTO>> getCocktailsByCategorie(
         @Parameter(description = "Cocktail category") @PathVariable CocktailCategorie categorie) {
-        return ResponseEntity.ok(cocktailService.getCocktailsByCategorie(categorie).stream()
-            .map(CocktailResponseDTO::from).toList());
+        return ResponseEntity.ok(toResponseList(cocktailService.getCocktailsByCategorie(categorie)));
     }
 
     /**
@@ -201,8 +200,7 @@ public class CocktailController {
     @Operation(summary = "List available cocktails", description = "Returns the list of cocktails whose availability is true.")
     @ApiResponse(responseCode = "200", description = "Available cocktails retrieved")
     public ResponseEntity<List<CocktailResponseDTO>> getCocktailsDisponibles() {
-        return ResponseEntity.ok(cocktailService.getCocktailsDisponibles().stream()
-            .map(CocktailResponseDTO::from).toList());
+        return ResponseEntity.ok(toResponseList(cocktailService.getCocktailsDisponibles()));
     }
 
     /**
@@ -214,8 +212,7 @@ public class CocktailController {
     @Operation(summary = "List seasonal cocktails")
     @ApiResponse(responseCode = "200", description = "Seasonal cocktails retrieved")
     public ResponseEntity<List<CocktailResponseDTO>> getCocktailsSaisonniers() {
-        return ResponseEntity.ok(cocktailService.getCocktailsSaisonniers().stream()
-            .map(CocktailResponseDTO::from).toList());
+        return ResponseEntity.ok(toResponseList(cocktailService.getCocktailsSaisonniers()));
     }
 
     /**
@@ -227,8 +224,7 @@ public class CocktailController {
     @Operation(summary = "List currently in-season cocktails")
     @ApiResponse(responseCode = "200", description = "In-season cocktails retrieved")
     public ResponseEntity<List<CocktailResponseDTO>> getCocktailsSaisonniersActuels() {
-        return ResponseEntity.ok(cocktailService.getCocktailsSaisonniersActuels().stream()
-            .map(CocktailResponseDTO::from).toList());
+        return ResponseEntity.ok(toResponseList(cocktailService.getCocktailsSaisonniersActuels()));
     }
 
     /**
@@ -242,8 +238,7 @@ public class CocktailController {
     @ApiResponse(responseCode = "200", description = "Search results retrieved")
     public ResponseEntity<List<CocktailResponseDTO>> searchCocktails(
         @Parameter(description = "Name search query") @RequestParam String nom) {
-        return ResponseEntity.ok(cocktailService.searchCocktails(nom).stream()
-            .map(CocktailResponseDTO::from).toList());
+        return ResponseEntity.ok(toResponseList(cocktailService.searchCocktails(nom)));
     }
 
     /**
@@ -417,6 +412,7 @@ public class CocktailController {
      * @return List of library cocktail template DTOs
      */
     @GetMapping("/library")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get cocktail library recipes", description = "Retrieves preconfigured recipes from the cocktail library matching filters.")
     @ApiResponse(responseCode = "200", description = "Library cocktails retrieved successfully")
     public ResponseEntity<List<CocktailLibraryItemDTO>> getLibraryCocktails(
@@ -435,6 +431,7 @@ public class CocktailController {
      * @return ConnectionWheelDTO containing connection wheel graph data
      */
     @GetMapping("/library/wheel")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get cocktail connection wheel data", description = "Retrieves dynamically generated chord diagram nodes, categories, and ingredient association edges for library or establishment scope.")
     @ApiResponse(responseCode = "200", description = "Connection wheel dataset retrieved successfully")
     public ResponseEntity<CocktailWheelDTO.ConnectionWheelDTO> getLibraryWheel(
@@ -461,6 +458,7 @@ public class CocktailController {
      * @return ConnectionWheelDTO containing connection wheel graph data
      */
     @GetMapping("/wheel")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get establishment connection wheel data", description = "Retrieves dynamically generated chord diagram for the establishment cocktail catalog.")
     @ApiResponse(responseCode = "200", description = "Connection wheel dataset retrieved successfully")
     public ResponseEntity<CocktailWheelDTO.ConnectionWheelDTO> getEstablishmentWheel(
@@ -497,6 +495,30 @@ public class CocktailController {
     public ResponseEntity<Void> reloadLibraryCatalog() {
         cocktailLibraryService.loadLibrary();
         return ResponseEntity.ok().build();
+    }
+
+    private List<CocktailResponseDTO> toResponseList(List<Cocktail> cocktails) {
+        boolean redact = isAnonymousCaller();
+        return cocktails.stream()
+                .map(c -> {
+                    CocktailResponseDTO dto = CocktailResponseDTO.from(c);
+                    return redact ? dto.redactForPublic() : dto;
+                })
+                .toList();
+    }
+
+    private CocktailResponseDTO toResponseDto(Cocktail cocktail) {
+        CocktailResponseDTO dto = CocktailResponseDTO.from(cocktail);
+        return isAnonymousCaller() ? dto.redactForPublic() : dto;
+    }
+
+    private boolean isAnonymousCaller() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof AnonymousAuthenticationToken) {
+            return true;
+        }
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ANONYMOUS".equals(a.getAuthority()));
     }
 }
 

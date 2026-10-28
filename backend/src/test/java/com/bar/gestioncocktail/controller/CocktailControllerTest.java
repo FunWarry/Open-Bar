@@ -1,6 +1,10 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.CocktailBatchDisponibiliteRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailFacetsDTO;
+import com.bar.gestioncocktail.dto.CocktailLibraryImportRequestDTO;
+import com.bar.gestioncocktail.dto.CocktailLibraryImportResultDTO;
+import com.bar.gestioncocktail.dto.CocktailLibraryItemDTO;
 import com.bar.gestioncocktail.dto.CocktailRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailResponseDTO;
 import com.bar.gestioncocktail.dto.CocktailWheelDTO;
@@ -18,6 +22,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -266,8 +273,8 @@ class CocktailControllerTest {
         cocktail.setDisponible(false);
         when(cocktailService.setDisponibiliteBatch(List.of(1L), false)).thenReturn(List.of(cocktail));
 
-        com.bar.gestioncocktail.dto.CocktailBatchDisponibiliteRequestDTO request =
-                new com.bar.gestioncocktail.dto.CocktailBatchDisponibiliteRequestDTO(List.of(1L), false);
+        CocktailBatchDisponibiliteRequestDTO request =
+                new CocktailBatchDisponibiliteRequestDTO(List.of(1L), false);
 
         ResponseEntity<List<CocktailResponseDTO>> response = cocktailController.updateDisponibiliteBatch(request);
 
@@ -280,7 +287,7 @@ class CocktailControllerTest {
     @Test
     @DisplayName("getLibraryCocktails - retrieves filtered library recipes")
     void getLibraryCocktailsSuccess() {
-        com.bar.gestioncocktail.dto.CocktailLibraryItemDTO item = new com.bar.gestioncocktail.dto.CocktailLibraryItemDTO(
+        CocktailLibraryItemDTO item = new CocktailLibraryItemDTO(
                 "lib_1", "Old Fashioned", "Classic bourbon cocktail", "ALCOOLISE", "IBA_CLASSICS", "BOURBON",
                 true, new BigDecimal("10.00"), new BigDecimal("32.0"), false, true, true,
                 "Old Fashioned", "assets/images/verres/verre_old_fashioned.png", "assets/images/verres/verre_old_fashioned.png",
@@ -289,7 +296,7 @@ class CocktailControllerTest {
         );
         when(cocktailLibraryService.getLibrary(null, null, null, null, null)).thenReturn(List.of(item));
 
-        ResponseEntity<List<com.bar.gestioncocktail.dto.CocktailLibraryItemDTO>> response =
+        ResponseEntity<List<CocktailLibraryItemDTO>> response =
                 cocktailController.getLibraryCocktails(null, null, null, null, null);
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
@@ -312,15 +319,15 @@ class CocktailControllerTest {
     @Test
     @DisplayName("importLibraryCocktails - imports selected library recipes into active catalog")
     void importLibraryCocktailsSuccess() {
-        com.bar.gestioncocktail.dto.CocktailLibraryImportRequestDTO req =
-                new com.bar.gestioncocktail.dto.CocktailLibraryImportRequestDTO(List.of("lib_1"), null);
-        com.bar.gestioncocktail.dto.CocktailLibraryImportResultDTO result =
-                new com.bar.gestioncocktail.dto.CocktailLibraryImportResultDTO(
+        CocktailLibraryImportRequestDTO req =
+                new CocktailLibraryImportRequestDTO(List.of("lib_1"), null);
+        CocktailLibraryImportResultDTO result =
+                new CocktailLibraryImportResultDTO(
                         1, 0, 3, 1, List.of("Old Fashioned"), List.of(), "Imported successfully"
                 );
         when(cocktailLibraryService.importCocktails(req)).thenReturn(result);
 
-        ResponseEntity<com.bar.gestioncocktail.dto.CocktailLibraryImportResultDTO> response =
+        ResponseEntity<CocktailLibraryImportResultDTO> response =
                 cocktailController.importLibraryCocktails(req);
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
@@ -336,5 +343,36 @@ class CocktailControllerTest {
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         verify(cocktailLibraryService).loadLibrary();
+    }
+
+    @Test
+    @DisplayName("getAllCocktails and getCocktailById - redact internal margins and recipe instructions for anonymous caller")
+    void getCocktailsRedactsFinancialMarginsAndRecipesForAnonymousCaller() {
+        cocktail.setInstructions("Secret bartender instructions");
+        when(cocktailService.getAllCocktails()).thenReturn(List.of(cocktail));
+        when(cocktailService.getCocktailById(1L)).thenReturn(Optional.of(cocktail));
+
+        AnonymousAuthenticationToken anon =
+                new AnonymousAuthenticationToken(
+                        "key", "anonymousUser",
+                        List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS")));
+        SecurityContextHolder.getContext().setAuthentication(anon);
+        try {
+            ResponseEntity<List<CocktailResponseDTO>> listResp = cocktailController.getAllCocktails();
+            CocktailResponseDTO item = listResp.getBody().get(0);
+            assertThat(item.nom()).isEqualTo("Mojito");
+            assertThat(item.instructions()).isNull();
+            assertThat(item.recipeCost()).isNull();
+            assertThat(item.sellingPriceHT()).isNull();
+            assertThat(item.grossMargin()).isNull();
+            assertThat(item.grossMarginPercentage()).isNull();
+            assertThat(item.recipeSteps()).isEmpty();
+
+            ResponseEntity<CocktailResponseDTO> singleResp = cocktailController.getCocktailById(1L);
+            assertThat(singleResp.getBody().instructions()).isNull();
+            assertThat(singleResp.getBody().recipeCost()).isNull();
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 }

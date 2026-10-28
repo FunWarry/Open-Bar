@@ -516,6 +516,28 @@ public record AppSettingsResponseDTO(
     public static AppSettingsResponseDTO from(AppSettings s) {
         return from(s, DEFAULT_TIMEZONE);
     }
+
+    /**
+     * Returns a copy of this DTO with sensitive internal infrastructure and financial fields redacted for anonymous callers.
+     *
+     * @return Redacted public-safe settings DTO
+     */
+    public AppSettingsResponseDTO redactForPublic() {
+        return new AppSettingsResponseDTO(
+            id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+            currencyCode, currencySymbol, currencyPosition, unitSystem, volumeUnit, weightUnit,
+            tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes,
+            clientBaseUrl, wifiSsid, null, wifiSecurity, wifiEnabled,
+            tableSessionValidationEnabled, defaultVatRate, null, null,
+            null, null, null, null, false,
+            null, null,
+            tpeEnabled, tpeSimulatorEnabled, null, null, null, null, null,
+            null, null, emergencyNumbersJson, null,
+            onlinePaymentProvider, stripePublishableKey, false, false, onlinePaymentCurrency,
+            null, null, null, false, null, false, false,
+            timeZone, updatedAt
+        );
+    }
 }
 
 

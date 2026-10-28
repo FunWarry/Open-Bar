@@ -132,9 +132,10 @@ public class PublicPaymentController {
             @Parameter(description = "Transaction reference", example = "pi_12345") @PathVariable String transactionId
     ) {
         byte[] pdfBytes = onlinePaymentService.generateReceiptPdf(transactionId);
+        String safeTxId = transactionId != null ? transactionId.replaceAll("[^a-zA-Z0-9_-]", "") : "receipt";
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"recu-" + transactionId + ".pdf\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"recu-" + safeTxId + ".pdf\"")
                 .body(pdfBytes);
     }
 

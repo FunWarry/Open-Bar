@@ -123,7 +123,7 @@ public class EmployeeShiftController {
      * @return List of shift DTOs for the user
      */
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or #userId == authentication.principal.id")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('SERVEUR') or hasRole('BARMAN')")
     @Operation(summary = "Get user shifts", description = "Retrieves work shifts for a given employee.")
     @ApiResponse(responseCode = "200", description = "User shifts retrieved")
     public ResponseEntity<List<EmployeeShiftResponseDTO>> getShiftsByUserId(@PathVariable Long userId) {

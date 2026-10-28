@@ -700,4 +700,60 @@ class OnlinePaymentServiceTest {
         assertFalse(testTable.isOccupee());
         verify(tableRepository, atLeastOnce()).save(testTable);
     }
+
+    @Test
+    @DisplayName("confirmSandboxPayment - throws BusinessException when transaction provider is STRIPE")
+    void confirmSandboxPayment_stripeTransaction_throwsBusinessException() {
+        OnlinePaymentTransaction tx = new OnlinePaymentTransaction();
+        tx.setTransactionId("pi_live_stripe_123");
+        tx.setTable(testTable);
+        tx.setProvider("STRIPE");
+        tx.setClientSecret("secret_stripe_123");
+
+        when(transactionRepository.findByTransactionId("pi_live_stripe_123")).thenReturn(Optional.of(tx));
+
+        ConfirmSandboxPaymentRequestDTO req = new ConfirmSandboxPaymentRequestDTO(
+                "pi_live_stripe_123", "secret_stripe_123", "card"
+        );
+
+        assertThrows(BusinessException.class, () -> onlinePaymentService.confirmSandboxPayment(10L, req));
+    }
+
+    @Test
+    @DisplayName("confirmSandboxPayment - throws BusinessException when active provider is STRIPE")
+    void confirmSandboxPayment_activeProviderStripe_throwsBusinessException() {
+        testSettings.setOnlinePaymentProvider("STRIPE");
+        when(stripePaymentProvider.isAvailable()).thenReturn(true);
+        when(stripePaymentProvider.getProviderName()).thenReturn("STRIPE");
+
+        OnlinePaymentTransaction tx = new OnlinePaymentTransaction();
+        tx.setTransactionId("tx_sandbox_001");
+        tx.setTable(testTable);
+        tx.setProvider("SANDBOX");
+        tx.setClientSecret("secret_001");
+
+        when(transactionRepository.findByTransactionId("tx_sandbox_001")).thenReturn(Optional.of(tx));
+
+        ConfirmSandboxPaymentRequestDTO req = new ConfirmSandboxPaymentRequestDTO(
+                "tx_sandbox_001", "secret_001", "card"
+        );
+
+        assertThrows(BusinessException.class, () -> onlinePaymentService.confirmSandboxPayment(10L, req));
+    }
+
+    @Test
+    @DisplayName("generateReceiptPdf - throws BusinessException when transaction is still PENDING")
+    void generateReceiptPdf_pendingTransaction_throwsBusinessException() {
+        Facture facture = new Facture();
+        facture.setId(55L);
+
+        OnlinePaymentTransaction tx = new OnlinePaymentTransaction();
+        tx.setTransactionId("tx_pending_pdf");
+        tx.setFacture(facture);
+        tx.setStatus("PENDING");
+
+        when(transactionRepository.findByTransactionId("tx_pending_pdf")).thenReturn(Optional.of(tx));
+
+        assertThrows(BusinessException.class, () -> onlinePaymentService.generateReceiptPdf("tx_pending_pdf"));
+    }
 }

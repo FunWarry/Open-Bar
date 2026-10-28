@@ -9,6 +9,7 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,12 +17,15 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-/**
- * STOMP ChannelInterceptor that validates JWT tokens on WebSocket CONNECT frames.
- */
 
+/**
+ * STOMP ChannelInterceptor that validates JWT tokens on WebSocket CONNECT frames
+ * and enforces role-based topic subscription and message sending permissions.
+ */
 @Component
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
+
+    private static final String ROLE_ANONYMOUS = "ROLE_ANONYMOUS";
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
@@ -42,6 +46,8 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             handleConnect(accessor, message);
         } else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
             handleSubscribe(accessor, message);
+        } else if (StompCommand.SEND.equals(accessor.getCommand())) {
+            handleSend(accessor, message);
         }
 
         return message;
@@ -60,7 +66,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         String guestId = resolveGuestIdentifier(guestSession, sessionToken, authorization);
         if (guestId != null) {
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    "guest:" + guestId, null, List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS")));
+                    "guest:" + guestId, null, List.of(new SimpleGrantedAuthority(ROLE_ANONYMOUS)));
             accessor.setUser(auth);
             return;
         }
@@ -102,13 +108,28 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             return;
         }
 
-        boolean isStaff = accessor.getUser() instanceof org.springframework.security.core.Authentication auth
-                && auth.getAuthorities().stream()
-                .noneMatch(a -> "ROLE_ANONYMOUS".equals(a.getAuthority()));
-
-        if (!isStaff) {
+        if (!isAuthenticatedStaff(accessor)) {
             throw new MessageDeliveryException(message, "Unauthorized topic subscription: " + destination);
         }
+    }
+
+    private void handleSend(StompHeaderAccessor accessor, Message<?> message) {
+        String destination = accessor.getDestination();
+        if (destination == null || !destination.startsWith("/app/")) {
+            return;
+        }
+
+        if (!isAuthenticatedStaff(accessor)) {
+            throw new MessageDeliveryException(message, "Unauthorized WebSocket command destination: " + destination);
+        }
+    }
+
+    private boolean isAuthenticatedStaff(StompHeaderAccessor accessor) {
+        return accessor.getUser() instanceof Authentication auth
+                && auth.getAuthorities() != null
+                && !auth.getAuthorities().isEmpty()
+                && auth.getAuthorities().stream()
+                .noneMatch(a -> ROLE_ANONYMOUS.equals(a.getAuthority()));
     }
 
     private boolean isProtectedTopic(String destination) {
@@ -117,6 +138,10 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                 || destination.startsWith("/topic/serveur")
                 || destination.startsWith("/topic/stock")
                 || destination.startsWith("/topic/schedule")
-                || destination.startsWith("/topic/reservations");
+                || destination.startsWith("/topic/reservations")
+                || destination.startsWith("/topic/bar-tabs")
+                || destination.startsWith("/topic/preparation")
+                || destination.startsWith("/topic/checklists")
+                || "/topic/tables".equals(destination);
     }
 }

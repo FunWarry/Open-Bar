@@ -6,6 +6,7 @@ import com.bar.gestioncocktail.dto.RefreshTokenRequest;
 import com.bar.gestioncocktail.dto.TokenRefreshResponse;
 import com.bar.gestioncocktail.dto.UserRequestDTO;
 import com.bar.gestioncocktail.dto.UserResponseDTO;
+import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.RefreshToken;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.model.UserRole;
@@ -21,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
@@ -29,6 +31,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -185,5 +188,25 @@ class AuthControllerTest {
         assertThat(resp1.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(resp2.getStatusCode().is2xxSuccessful()).isTrue();
         verify(refreshTokenService).deleteByUser(user);
+    }
+
+    @Test
+    @DisplayName("login - blocks brute-force after 5 failed authentication attempts")
+    void loginBruteForceLockout() {
+        LoginRequest request = new LoginRequest();
+        request.setUsername("bruteforceuser");
+        request.setPassword("wrongpass");
+
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenThrow(new BadCredentialsException("Bad credentials"));
+
+        for (int i = 0; i < 5; i++) {
+            assertThatThrownBy(() -> authController.login(request))
+                    .isInstanceOf(BadCredentialsException.class);
+        }
+
+        assertThatThrownBy(() -> authController.login(request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Too many failed attempts");
     }
 }

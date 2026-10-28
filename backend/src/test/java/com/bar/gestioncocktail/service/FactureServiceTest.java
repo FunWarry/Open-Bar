@@ -2590,5 +2590,86 @@ class FactureServiceTest {
         BigDecimal sum = factureService.calculateAlreadyPaid(List.of(r1, r2, r3));
         assertThat(sum).isEqualByComparingTo(new BigDecimal("25.50"));
     }
+
+    @Test
+    @DisplayName("NF525 immutability: rejects modifying or deleting a finalized invoice")
+    void finalizedInvoice_rejectsUpdateDeleteAndItemModification() {
+        Facture finalizedFacture = new Facture();
+        finalizedFacture.setId(500L);
+        finalizedFacture.setNumero("FAC-NF525-500");
+        finalizedFacture.setFinalized(true);
+
+        when(factureRepository.findById(500L)).thenReturn(Optional.of(finalizedFacture));
+
+        Facture updatePayload = new Facture();
+        FactureItem newItem = new FactureItem();
+
+        assertThatThrownBy(() -> factureService.updateFacture(500L, updatePayload))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("is finalized and immutable");
+        assertThatThrownBy(() -> factureService.deleteFacture(500L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("is finalized and immutable");
+        assertThatThrownBy(() -> factureService.ajouterItem(500L, newItem))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("is finalized and immutable");
+        assertThatThrownBy(() -> factureService.retirerItem(500L, 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("is finalized and immutable");
+    }
+
+    @Test
+    @DisplayName("encaisserTable and encaisserPart: rejects invalid discounts, negative tips, and non-positive split amounts")
+    void encaisserTableAndPart_rejectsInvalidFinancialInputs() {
+        TableEntity table = new TableEntity();
+        table.setId(2L);
+        table.setNumero(7);
+        table.setOccupee(true);
+
+        Facture unpaidFacture = new Facture();
+        unpaidFacture.setId(102L);
+        unpaidFacture.setNumero("FAC-2026-00102");
+        unpaidFacture.setTable(table);
+        unpaidFacture.setReglee(false);
+        unpaidFacture.setTotal(new BigDecimal("24.00"));
+        unpaidFacture.setTotalTTC(new BigDecimal("24.00"));
+
+        FactureItem fi = new FactureItem();
+        fi.setId(1L);
+        fi.setFacture(unpaidFacture);
+        fi.setQuantite(2);
+        fi.setPrixUnitaire(new BigDecimal("12.00"));
+        fi.setTotal(new BigDecimal("24.00"));
+        unpaidFacture.setItems(List.of(fi));
+
+        when(tableRepository.findById(2L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of());
+        when(factureRepository.findByTable(table)).thenReturn(List.of(unpaidFacture));
+        when(factureRepository.findById(102L)).thenReturn(Optional.of(unpaidFacture));
+
+        EncaissementRequestDTO excessivePercentage = new EncaissementRequestDTO(
+                "CARTE", BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("150.00"),
+                BigDecimal.ZERO, null, false, List.of()
+        );
+        assertThatThrownBy(() -> factureService.encaisserTable(2L, excessivePercentage))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Discount percentage must be between 0 and 100");
+
+        EncaissementRequestDTO negativeTip = new EncaissementRequestDTO(
+                "CARTE", new BigDecimal("-5.00"), BigDecimal.ZERO, BigDecimal.ZERO,
+                new BigDecimal("24.00"), null, false, List.of()
+        );
+        assertThatThrownBy(() -> factureService.encaisserTable(2L, negativeTip))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Tip amount cannot be negative");
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest negativeSplitAmount = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest 1", 1, 2, new BigDecimal("-10.00"), BigDecimal.ZERO,
+                new BigDecimal("-10.00"), "CARTE", "EGAL", List.of()
+        );
+        assertThatThrownBy(() -> factureService.encaisserPart(102L, negativeSplitAmount))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Split settlement amount must be strictly positive");
+    }
 }
 

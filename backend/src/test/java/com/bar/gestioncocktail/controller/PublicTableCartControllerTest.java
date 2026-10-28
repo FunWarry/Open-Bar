@@ -193,4 +193,28 @@ class PublicTableCartControllerTest {
         assertThat(response.getBody().status()).isEqualTo("OPEN");
         verify(tableCartService).finalizeGracePeriod(1L);
     }
+
+    @Test
+    @DisplayName("cart mutation endpoints reject operations when QR_ORDERING module is disabled")
+    void cartMutations_whenQrOrderingDisabled_throwBusinessException() {
+        when(establishmentConfigService.isModuleEnabled(any())).thenReturn(false);
+
+        TableCartItemRequestDTO addReq = new TableCartItemRequestDTO();
+        TableCartItemUpdateRequestDTO updateReq = new TableCartItemUpdateRequestDTO();
+        TableCartSubmitRequestDTO submitReq = new TableCartSubmitRequestDTO();
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> controller.addItem(1L, addReq))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .hasMessageContaining("Customer QR ordering is currently disabled");
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> controller.updateItem(1L, 10L, updateReq))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> controller.removeItem(1L, 10L, "guest-1"))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> controller.clearCart(1L))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> controller.submitCart(1L, submitReq))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> controller.finalizeGrace(1L))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class);
+    }
 }

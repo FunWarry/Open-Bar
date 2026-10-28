@@ -8,27 +8,54 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 /**
- * Service handling file uploads and local storage for cocktail photos.
+ * Service handling file uploads and local storage for cocktail photos, glassware illustrations, and checklist media.
  */
 @Service
 public class FileUploadService {
+
     private static final Logger log = LoggerFactory.getLogger(FileUploadService.class);
     private static final String UPLOAD_DIR = "uploads/cocktails";
+    private static final String GLASSWARE_UPLOAD_DIR = "uploads/glassware";
+    private static final String CHECKLIST_UPLOAD_DIR = "uploads/checklists";
+
     private static final long MAX_FILE_SIZE = 5L * 1024 * 1024; // 5 MB
+    private static final long CHECKLIST_MAX_FILE_SIZE = 50L * 1024 * 1024; // 50 MB
+
+    private static final String ERR_EMPTY_FILE = "Uploaded file is empty";
+    private static final String ERR_PATH_TRAVERSAL = "Invalid file path traversal";
+    private static final String ERR_IMAGE_SIZE = "File size exceeds maximum allowed limit of 5MB";
+    private static final String ERR_IMAGE_TYPE = "Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.";
+    private static final String ERR_IMAGE_EXT = "Invalid file extension. Only JPEG, PNG, GIF, and WebP are allowed.";
+
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
         "image/jpeg", "image/png", "image/webp", "image/gif"
     );
 
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
         ".jpg", ".jpeg", ".png", ".webp", ".gif"
+    );
+
+    private static final Set<String> CHECKLIST_ALLOWED_CONTENT_TYPES = Set.of(
+        "image/jpeg", "image/png", "image/webp", "image/gif",
+        "video/mp4", "video/webm", "video/quicktime"
+    );
+
+    private static final Set<String> CHECKLIST_ALLOWED_EXTENSIONS = Set.of(
+        ".jpg", ".jpeg", ".png", ".webp", ".gif", ".mp4", ".webm", ".mov"
+    );
+
+    private static final List<String> FORBIDDEN_MARKUP_SIGNATURES = List.of(
+        "<script", "<svg", "<!doctype html", "<html", "<?php"
     );
 
     /**
@@ -39,48 +66,8 @@ public class FileUploadService {
      * @return Relative URL path to access the stored image
      */
     public String storeCocktailPhoto(Long cocktailId, MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new BusinessException("Uploaded file is empty");
-        }
-
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new BusinessException("File size exceeds maximum allowed limit of 5MB");
-        }
-
-        String contentType = file.getContentType();
-        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
-            throw new BusinessException("Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.");
-        }
-
-        try {
-            Path uploadPath = Paths.get(UPLOAD_DIR).toAbsolutePath().normalize();
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            String extension = getFileExtension(file.getOriginalFilename());
-            if (!ALLOWED_EXTENSIONS.contains(extension)) {
-                throw new BusinessException("Invalid file extension. Only JPEG, PNG, GIF, and WebP are allowed.");
-            }
-            String newFilename = "cocktail_" + cocktailId + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
-            Path filePath = uploadPath.resolve(newFilename).normalize();
-            if (!filePath.startsWith(uploadPath)) {
-                throw new BusinessException("Invalid file path traversal");
-            }
-
-            try (InputStream inputStream = file.getInputStream()) {
-                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-            }
-
-            log.info("Successfully stored cocktail photo for ID {} at {}", cocktailId, filePath);
-            return "/uploads/cocktails/" + newFilename;
-        } catch (IOException e) {
-            log.error("Failed to store uploaded file for cocktail {}", cocktailId, e);
-            throw new BusinessException("Could not store the image file: " + e.getMessage());
-        }
+        return storeImageFile(file, UPLOAD_DIR, "/uploads/cocktails/", "cocktail_", cocktailId);
     }
-
-    private static final String GLASSWARE_UPLOAD_DIR = "uploads/glassware";
 
     /**
      * Saves an uploaded glassware photo to local file storage.
@@ -90,56 +77,8 @@ public class FileUploadService {
      * @return Relative URL path to access the stored image
      */
     public String storeGlasswarePhoto(Long glasswareId, MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new BusinessException("Uploaded file is empty");
-        }
-
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new BusinessException("File size exceeds maximum allowed limit of 5MB");
-        }
-
-        String contentType = file.getContentType();
-        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
-            throw new BusinessException("Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.");
-        }
-
-        try {
-            Path uploadPath = Paths.get(GLASSWARE_UPLOAD_DIR).toAbsolutePath().normalize();
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            String extension = getFileExtension(file.getOriginalFilename());
-            if (!ALLOWED_EXTENSIONS.contains(extension)) {
-                throw new BusinessException("Invalid file extension. Only JPEG, PNG, GIF, and WebP are allowed.");
-            }
-            String newFilename = "glassware_" + glasswareId + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
-            Path filePath = uploadPath.resolve(newFilename).normalize();
-            if (!filePath.startsWith(uploadPath)) {
-                throw new BusinessException("Invalid file path traversal");
-            }
-
-            try (InputStream inputStream = file.getInputStream()) {
-                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-            }
-
-            log.info("Successfully stored glassware photo for ID {} at {}", glasswareId, filePath);
-            return "/uploads/glassware/" + newFilename;
-        } catch (IOException e) {
-            log.error("Failed to store uploaded file for glassware {}", glasswareId, e);
-            throw new BusinessException("Could not store the image file: " + e.getMessage());
-        }
+        return storeImageFile(file, GLASSWARE_UPLOAD_DIR, "/uploads/glassware/", "glassware_", glasswareId);
     }
-
-    private static final String CHECKLIST_UPLOAD_DIR = "uploads/checklists";
-    private static final long CHECKLIST_MAX_FILE_SIZE = 50L * 1024 * 1024; // 50 MB
-    private static final Set<String> CHECKLIST_ALLOWED_CONTENT_TYPES = Set.of(
-        "image/jpeg", "image/png", "image/webp", "image/gif",
-        "video/mp4", "video/webm", "video/quicktime"
-    );
-    private static final Set<String> CHECKLIST_ALLOWED_EXTENSIONS = Set.of(
-        ".jpg", ".jpeg", ".png", ".webp", ".gif", ".mp4", ".webm", ".mov"
-    );
 
     /**
      * Saves an uploaded checklist image or tutorial video to local file storage.
@@ -149,7 +88,7 @@ public class FileUploadService {
      */
     public String storeChecklistMedia(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new BusinessException("Uploaded file is empty");
+            throw new BusinessException(ERR_EMPTY_FILE);
         }
 
         if (file.getSize() > CHECKLIST_MAX_FILE_SIZE) {
@@ -167,21 +106,9 @@ public class FileUploadService {
         }
 
         try {
-            Path uploadPath = Paths.get(CHECKLIST_UPLOAD_DIR).toAbsolutePath().normalize();
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
+            validateSafePayload(file);
             String newFilename = "checklist_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16) + extension;
-            Path filePath = uploadPath.resolve(newFilename).normalize();
-            if (!filePath.startsWith(uploadPath)) {
-                throw new BusinessException("Invalid file path traversal");
-            }
-
-            try (InputStream inputStream = file.getInputStream()) {
-                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-            }
-
+            Path filePath = saveFileToDirectory(file, CHECKLIST_UPLOAD_DIR, newFilename);
             log.info("Successfully stored checklist media at {}", filePath);
             return "/uploads/checklists/" + newFilename;
         } catch (IOException e) {
@@ -190,10 +117,86 @@ public class FileUploadService {
         }
     }
 
+    private String storeImageFile(MultipartFile file, String uploadDir, String urlPrefix, String filePrefix, Long entityId) {
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException(ERR_EMPTY_FILE);
+        }
+
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new BusinessException(ERR_IMAGE_SIZE);
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
+            throw new BusinessException(ERR_IMAGE_TYPE);
+        }
+
+        String extension = getFileExtension(file.getOriginalFilename());
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new BusinessException(ERR_IMAGE_EXT);
+        }
+
+        try {
+            validateSafePayload(file);
+            String newFilename = filePrefix + entityId + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
+            Path filePath = saveFileToDirectory(file, uploadDir, newFilename);
+            log.info("Successfully stored photo for ID {} at {}", entityId, filePath);
+            return urlPrefix + newFilename;
+        } catch (IOException e) {
+            log.error("Failed to store uploaded image for ID {}", entityId, e);
+            throw new BusinessException("Could not store the image file: " + e.getMessage());
+        }
+    }
+
+    private Path saveFileToDirectory(MultipartFile file, String directory, String filename) throws IOException {
+        Path uploadPath = Paths.get(directory).toAbsolutePath().normalize();
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+        Path filePath = uploadPath.resolve(filename).normalize();
+        if (!filePath.startsWith(uploadPath)) {
+            throw new BusinessException(ERR_PATH_TRAVERSAL);
+        }
+        try (InputStream inputStream = file.getInputStream()) {
+            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+        }
+        return filePath;
+    }
+
     private String getFileExtension(String filename) {
         if (filename == null || !filename.contains(".")) {
             return ".jpg";
         }
         return filename.substring(filename.lastIndexOf(".")).toLowerCase();
+    }
+
+    private void validateSafePayload(MultipartFile file) throws IOException {
+        try (InputStream is = file.getInputStream()) {
+            byte[] headerBytes = is.readNBytes(512);
+            if (isElfBinary(headerBytes)) {
+                throw new BusinessException("Invalid file content: executable binary payload rejected");
+            }
+            String headerText = new String(headerBytes, StandardCharsets.ISO_8859_1).toLowerCase();
+            if (containsForbiddenMarkup(headerText)) {
+                throw new BusinessException("Invalid file content: script or markup payload rejected");
+            }
+        }
+    }
+
+    private boolean isElfBinary(byte[] bytes) {
+        return bytes.length >= 4
+                && bytes[0] == 0x7F
+                && bytes[1] == 'E'
+                && bytes[2] == 'L'
+                && bytes[3] == 'F';
+    }
+
+    private boolean containsForbiddenMarkup(String headerText) {
+        for (String signature : FORBIDDEN_MARKUP_SIGNATURES) {
+            if (headerText.contains(signature)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

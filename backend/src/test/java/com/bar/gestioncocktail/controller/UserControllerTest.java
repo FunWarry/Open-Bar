@@ -10,22 +10,28 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.springframework.security.core.Authentication;
 
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
@@ -192,5 +198,45 @@ class UserControllerTest {
         UserRequestDTO request = new UserRequestDTO("testuser", "secret", "test@example.com", "Doe", "John", Set.of(UserRole.SERVEUR));
         ResponseEntity<UserResponseDTO> response = userController.updateCurrentUser(null, request);
         assertThat(response.getStatusCode().value()).isEqualTo(401);
+    }
+
+    @Test
+    @DisplayName("updateCurrentUser - strips roles to prevent privilege escalation to ADMIN")
+    void updateCurrentUserStripsRoles() {
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn("testuser");
+        when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(user));
+        when(userService.updateUser(eq(1L), any(User.class))).thenReturn(user);
+
+        UserRequestDTO request = new UserRequestDTO("testuser", "secret", "test@example.com", "Doe", "John", Set.of(UserRole.ADMIN));
+        userController.updateCurrentUser(auth, request);
+
+        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        verify(userService).updateUser(eq(1L), captor.capture());
+        assertThat(captor.getValue().getRoles()).isNull();
+    }
+
+    @Test
+    @DisplayName("getUserById and changePassword - reject non-admin accessing another user ID")
+    void getUserByIdAndChangePasswordRejectOtherUser() {
+        User nonAdmin = new User();
+        nonAdmin.setId(2L);
+        nonAdmin.setUsername("serveur1");
+        nonAdmin.setRoles(Set.of(UserRole.SERVEUR));
+
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(
+                        "serveur1", null, List.of(new SimpleGrantedAuthority("ROLE_SERVEUR")));
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        try {
+            when(userService.getUserByUsername("serveur1")).thenReturn(Optional.of(nonAdmin));
+
+            assertThatThrownBy(() -> userController.getUserById(1L))
+                    .isInstanceOf(AccessDeniedException.class);
+            assertThatThrownBy(() -> userController.changePassword(1L, "hackedPass"))
+                    .isInstanceOf(AccessDeniedException.class);
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 }

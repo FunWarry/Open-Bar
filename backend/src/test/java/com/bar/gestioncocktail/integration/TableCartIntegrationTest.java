@@ -34,6 +34,7 @@ class TableCartIntegrationTest extends BaseIntegrationTest {
     private final TableCartItemRepository tableCartItemRepository;
     private final CocktailRepository cocktailRepository;
     private final IngredientRepository ingredientRepository;
+    private final HappyHourRuleRepository happyHourRuleRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
@@ -41,11 +42,13 @@ class TableCartIntegrationTest extends BaseIntegrationTest {
                              TableCartItemRepository tableCartItemRepository,
                              CocktailRepository cocktailRepository,
                              IngredientRepository ingredientRepository,
+                             HappyHourRuleRepository happyHourRuleRepository,
                              ApplicationEventPublisher eventPublisher) {
         this.tableRepository = tableRepository;
         this.tableCartItemRepository = tableCartItemRepository;
         this.cocktailRepository = cocktailRepository;
         this.ingredientRepository = ingredientRepository;
+        this.happyHourRuleRepository = happyHourRuleRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -55,6 +58,7 @@ class TableCartIntegrationTest extends BaseIntegrationTest {
     @BeforeEach
     void setUpData() {
         tableCartItemRepository.deleteAll();
+        happyHourRuleRepository.deleteAll();
 
         Ingredient rum = new Ingredient();
         rum.setNom("Rhum Cart Test " + System.currentTimeMillis());

@@ -1,10 +1,13 @@
 package com.bar.gestioncocktail.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 /**
  * DTO representing an individual item in a public QR order.
@@ -43,8 +46,9 @@ public class PublicCommandeItemRequestDTO {
     @Schema(description = "Whether this item is a mystery drink", example = "true")
     private Boolean isMysteryDrink = false;
 
+    @DecimalMin(value = "0.01", message = "Override price must be strictly positive")
     @Schema(description = "Optional override unit price", example = "7.50")
-    private java.math.BigDecimal prixOverride;
+    private BigDecimal prixOverride;
 
     /**
      * Backward-compatible 4-argument constructor.
@@ -74,7 +78,7 @@ public class PublicCommandeItemRequestDTO {
      * @param prixOverride Optional override unit price
      */
     public PublicCommandeItemRequestDTO(Long cocktailId, Long varianteId, int quantite, String notes,
-                                         Boolean isMysteryDrink, java.math.BigDecimal prixOverride) {
+                                         Boolean isMysteryDrink, BigDecimal prixOverride) {
         this.cocktailId = cocktailId;
         this.varianteId = varianteId;
         this.quantite = quantite;

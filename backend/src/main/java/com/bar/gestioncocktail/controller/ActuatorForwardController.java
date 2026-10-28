@@ -79,7 +79,7 @@ public class ActuatorForwardController {
             isOverallHealthy = false;
             log.warn("Database healthcheck failed: {}", ex.getMessage());
             dbDetails.put(KEY_STATUS, "DOWN");
-            dbDetails.put(KEY_ERROR, ex.getMessage());
+            dbDetails.put(KEY_ERROR, "Database connection check failed");
         }
         components.put("db", dbDetails);
 
@@ -98,8 +98,9 @@ public class ActuatorForwardController {
                 isOverallHealthy = false;
             }
         } catch (Exception ex) {
+            log.warn("Disk space healthcheck failed: {}", ex.getMessage());
             diskDetails.put(KEY_STATUS, "UNKNOWN");
-            diskDetails.put(KEY_ERROR, ex.getMessage());
+            diskDetails.put(KEY_ERROR, "Disk space check failed");
         }
         components.put("diskSpace", diskDetails);
 

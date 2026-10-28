@@ -48,6 +48,7 @@ public class IngredientController {
      * @return list of all ingredient DTOs
      */
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "List all ingredients (ADMIN/MANAGER/BARMAN)")
     @ApiResponse(responseCode = "200", description = "Ingredient list retrieved")
     public ResponseEntity<List<IngredientResponseDTO>> getAllIngredients() {
@@ -107,6 +108,7 @@ public class IngredientController {
      * @return ingredient response DTO
      */
     @GetMapping("/by-barcode")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Find ingredient by barcode or QR code (ADMIN/MANAGER/BARMAN/SERVEUR)")
     @ApiResponse(responseCode = "200", description = "Ingredient found")
     @ApiResponse(responseCode = "404", description = "Ingredient not found for barcode")
@@ -140,6 +142,7 @@ public class IngredientController {
      * @return Ingredient DTO
      */
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get ingredient by ID")
     @ApiResponse(responseCode = "200", description = "Ingredient found")
     @ApiResponse(responseCode = "404", description = "Ingredient not found")
@@ -156,6 +159,7 @@ public class IngredientController {
      * @return List of ingredients on stock alert
      */
     @GetMapping("/seuil-alerte")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "List ingredients below stock alert threshold")
     @ApiResponse(responseCode = "200", description = "List of alerting ingredients")
     public ResponseEntity<List<IngredientResponseDTO>> getIngredientsBySeuilAlerte() {
@@ -170,6 +174,7 @@ public class IngredientController {
      * @return Matching ingredients
      */
     @GetMapping("/search")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Search ingredients by name")
     @ApiResponse(responseCode = "200", description = "Search results")
     public ResponseEntity<List<IngredientResponseDTO>> searchIngredients(@RequestParam String nom) {
@@ -184,6 +189,7 @@ public class IngredientController {
      * @return List of ingredients
      */
     @GetMapping("/fournisseur/{fournisseur}")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "List ingredients by supplier")
     @ApiResponse(responseCode = "200", description = "List retrieved")
     public ResponseEntity<List<IngredientResponseDTO>> getIngredientsByFournisseur(@PathVariable String fournisseur) {
@@ -198,6 +204,7 @@ public class IngredientController {
      * @return List of ingredients
      */
     @GetMapping("/unite-mesure/{uniteMesure}")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "List ingredients by unit of measurement")
     @ApiResponse(responseCode = "200", description = "List retrieved")
     public ResponseEntity<List<IngredientResponseDTO>> getIngredientsByUniteMesure(@PathVariable String uniteMesure) {

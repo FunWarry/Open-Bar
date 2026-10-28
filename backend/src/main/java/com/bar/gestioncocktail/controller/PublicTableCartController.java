@@ -69,9 +69,7 @@ public class PublicTableCartController {
     public ResponseEntity<TableCartResponseDTO> addItem(
             @Parameter(description = "Table identifier", example = "5") @PathVariable Long tableId,
             @Valid @RequestBody TableCartItemRequestDTO dto) {
-        if (!establishmentConfigService.isModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.QR_CLIENT_ORDERING)) {
-            throw new com.bar.gestioncocktail.exception.BusinessException("Customer QR ordering is currently disabled for this establishment.");
-        }
+        verifyQrOrderingEnabled();
         TableCartResponseDTO cart = tableCartService.addItem(tableId, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(cart);
     }
@@ -92,6 +90,7 @@ public class PublicTableCartController {
             @Parameter(description = "Table identifier", example = "5") @PathVariable Long tableId,
             @Parameter(description = "Cart item identifier", example = "1") @PathVariable Long itemId,
             @Valid @RequestBody TableCartItemUpdateRequestDTO dto) {
+        verifyQrOrderingEnabled();
         TableCartResponseDTO cart = tableCartService.updateItem(tableId, itemId, dto);
         return ResponseEntity.ok(cart);
     }
@@ -112,6 +111,7 @@ public class PublicTableCartController {
             @Parameter(description = "Table identifier", example = "5") @PathVariable Long tableId,
             @Parameter(description = "Cart item identifier", example = "1") @PathVariable Long itemId,
             @Parameter(description = "Optional guest session identifier") @RequestParam(required = false) String guestSessionId) {
+        verifyQrOrderingEnabled();
         TableCartResponseDTO cart = tableCartService.removeItem(tableId, itemId, guestSessionId);
         return ResponseEntity.ok(cart);
     }
@@ -128,6 +128,7 @@ public class PublicTableCartController {
     @ApiResponse(responseCode = "404", description = "Table not found")
     public ResponseEntity<TableCartResponseDTO> clearCart(
             @Parameter(description = "Table identifier", example = "5") @PathVariable Long tableId) {
+        verifyQrOrderingEnabled();
         TableCartResponseDTO cart = tableCartService.clearCart(tableId);
         return ResponseEntity.ok(cart);
     }
@@ -148,9 +149,7 @@ public class PublicTableCartController {
     public ResponseEntity<PublicCommandeResponseDTO> submitCart(
             @Parameter(description = "Table identifier", example = "5") @PathVariable Long tableId,
             @Valid @RequestBody TableCartSubmitRequestDTO dto) {
-        if (!establishmentConfigService.isModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.QR_CLIENT_ORDERING)) {
-            throw new com.bar.gestioncocktail.exception.BusinessException("Customer QR ordering is currently disabled for this establishment.");
-        }
+        verifyQrOrderingEnabled();
         PublicCommandeResponseDTO order = tableCartService.submitCart(tableId, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(order);
     }
@@ -181,7 +180,14 @@ public class PublicTableCartController {
     @ApiResponse(responseCode = "200", description = "Grace period finalized")
     public ResponseEntity<TableCartResponseDTO> finalizeGrace(
             @Parameter(description = "Table identifier", example = "5") @PathVariable Long tableId) {
+        verifyQrOrderingEnabled();
         TableCartResponseDTO cart = tableCartService.finalizeGracePeriod(tableId);
         return ResponseEntity.ok(cart);
+    }
+
+    private void verifyQrOrderingEnabled() {
+        if (!establishmentConfigService.isModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.QR_CLIENT_ORDERING)) {
+            throw new com.bar.gestioncocktail.exception.BusinessException("Customer QR ordering is currently disabled for this establishment.");
+        }
     }
 }

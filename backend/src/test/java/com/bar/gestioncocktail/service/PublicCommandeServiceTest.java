@@ -1,6 +1,9 @@
 package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.*;
+import com.bar.gestioncocktail.event.OrderCreatedEvent;
+import com.bar.gestioncocktail.event.OrderUpdatedEvent;
+import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.exception.StockInsuffisantException;
 import com.bar.gestioncocktail.model.*;
@@ -13,19 +16,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import com.bar.gestioncocktail.event.OrderCreatedEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-
-import org.mockito.Spy;
 
 @ExtendWith(MockitoExtension.class)
 class PublicCommandeServiceTest {
@@ -85,7 +87,7 @@ class PublicCommandeServiceTest {
         cocktail.setPrix(BigDecimal.valueOf(8.50));
         cocktail.setIngredients(List.of(cocktailIngredient));
 
-        org.mockito.Mockito.lenient().when(tableSessionService.isSessionValidForOrder(any(), any())).thenReturn(true);
+        lenient().when(tableSessionService.isSessionValidForOrder(any(), any())).thenReturn(true);
     }
 
     @Test
@@ -179,7 +181,7 @@ class PublicCommandeServiceTest {
         existing.setStatut(CommandeStatut.EN_ATTENTE);
         existing.setTable(table);
         existing.setTotal(BigDecimal.valueOf(10.0));
-        existing.setItems(new java.util.ArrayList<>());
+        existing.setItems(new ArrayList<>());
 
         PublicCommandeItemRequestDTO newItemDTO = new PublicCommandeItemRequestDTO(100L, null, 2, "Extra mint");
 
@@ -192,7 +194,7 @@ class PublicCommandeServiceTest {
 
         assertNotNull(response);
         assertEquals(0, BigDecimal.valueOf(27.0).compareTo(existing.getTotal())); // 10.0 + (2 * 8.50)
-        verify(eventPublisher).publishEvent(any(com.bar.gestioncocktail.event.OrderUpdatedEvent.class));
+        verify(eventPublisher).publishEvent(any(OrderUpdatedEvent.class));
         assertEquals(8, response.getTempsEstimeMinutes()); // 5 + (1 * 3)
     }
 
@@ -213,8 +215,101 @@ class PublicCommandeServiceTest {
 
         when(commandeRepository.findById(50L)).thenReturn(Optional.of(existing));
 
-        assertThrows(com.bar.gestioncocktail.exception.BusinessException.class, () ->
+        assertThrows(BusinessException.class, () ->
                 publicCommandeService.ajouterArticlesACommande(50L, List.of())
         );
+    }
+
+    @Test
+    void creerCommandePublique_whenStandardDrinkHasPrixOverride_throwsBusinessException() {
+        PublicCommandeItemRequestDTO itemDTO = new PublicCommandeItemRequestDTO(
+                100L, null, 1, "Attempt free drink", false, BigDecimal.ZERO
+        );
+        PublicCommandeRequestDTO requestDTO = new PublicCommandeRequestDTO();
+        requestDTO.setTableId(1L);
+        requestDTO.setItems(List.of(itemDTO));
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(cocktailRepository.findById(100L)).thenReturn(Optional.of(cocktail));
+
+        assertThrows(BusinessException.class, () ->
+                publicCommandeService.creerCommandePublique(requestDTO)
+        );
+    }
+
+    @Test
+    void creerCommandePublique_whenMysteryDrinkHasZeroOrLowPrixOverride_throwsBusinessException() {
+        PublicCommandeItemRequestDTO zeroPriceMystery = new PublicCommandeItemRequestDTO(
+                100L, null, 1, "[Mystery Drink]", true, BigDecimal.ZERO
+        );
+        PublicCommandeRequestDTO requestDTO = new PublicCommandeRequestDTO();
+        requestDTO.setTableId(1L);
+        requestDTO.setItems(List.of(zeroPriceMystery));
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(cocktailRepository.findById(100L)).thenReturn(Optional.of(cocktail));
+
+        assertThrows(BusinessException.class, () ->
+                publicCommandeService.creerCommandePublique(requestDTO)
+        );
+
+        PublicCommandeItemRequestDTO lowPriceMystery = new PublicCommandeItemRequestDTO(
+                100L, null, 1, "[Mystery Drink]", true, new BigDecimal("2.00")
+        );
+        requestDTO.setItems(List.of(lowPriceMystery));
+
+        assertThrows(BusinessException.class, () ->
+                publicCommandeService.creerCommandePublique(requestDTO)
+        );
+    }
+
+    @Test
+    void creerCommandePublique_whenMysteryDrinkHasValidRoulettePrice_usesMysteryPrice() {
+        PublicCommandeItemRequestDTO validMystery = new PublicCommandeItemRequestDTO(
+                100L, null, 1, "[Mystery Drink]", true, new BigDecimal("7.50")
+        );
+        PublicCommandeRequestDTO requestDTO = new PublicCommandeRequestDTO();
+        requestDTO.setTableId(1L);
+        requestDTO.setItems(List.of(validMystery));
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(cocktailRepository.findById(100L)).thenReturn(Optional.of(cocktail));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(inv -> {
+            Commande c = inv.getArgument(0);
+            c.setId(77L);
+            return c;
+        });
+
+        PublicCommandeResponseDTO response = publicCommandeService.creerCommandePublique(requestDTO);
+        assertNotNull(response);
+        assertEquals(0, new BigDecimal("7.50").compareTo(response.getTotal()));
+    }
+
+    @Test
+    void creerCommandePublique_whenMysteryDrinkIsMocktailWithoutOverride_usesFloorOrCatalogPrice() {
+        Cocktail mocktail = new Cocktail();
+        mocktail.setId(101L);
+        mocktail.setNom("Virgin Mojito");
+        mocktail.setIsMocktail(true);
+        mocktail.setPrix(new BigDecimal("4.50"));
+
+        PublicCommandeItemRequestDTO mysteryMocktail = new PublicCommandeItemRequestDTO(
+                101L, null, 1, "[Mystery Mocktail]", true, null
+        );
+        PublicCommandeRequestDTO requestDTO = new PublicCommandeRequestDTO();
+        requestDTO.setTableId(1L);
+        requestDTO.setItems(List.of(mysteryMocktail));
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(cocktailRepository.findById(101L)).thenReturn(Optional.of(mocktail));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(inv -> {
+            Commande c = inv.getArgument(0);
+            c.setId(78L);
+            return c;
+        });
+
+        PublicCommandeResponseDTO response = publicCommandeService.creerCommandePublique(requestDTO);
+        assertNotNull(response);
+        assertEquals(0, new BigDecimal("4.50").compareTo(response.getTotal()));
     }
 }

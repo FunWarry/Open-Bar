@@ -369,6 +369,22 @@ class RouletteServiceTest {
         }
 
         @Test
+        @DisplayName("verifyDisplayPin blocks brute-force enumeration after 5 failed attempts")
+        void verifyDisplayPinBlocksBruteForceAfterFiveFailedAttempts() {
+            EstablishmentConfig config = new EstablishmentConfig();
+            config.setRouletteDisplayPin("7777");
+            when(establishmentConfigService.getConfig()).thenReturn(config);
+
+            for (int i = 0; i < 5; i++) {
+                assertThat(rouletteService.verifyDisplayPin("000" + i).valid()).isFalse();
+            }
+
+            assertThatThrownBy(() -> rouletteService.verifyDisplayPin("7777"))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("Too many failed attempts");
+        }
+
+        @Test
         @DisplayName("getDisplayPin returns current PIN")
         void getDisplayPinReturnsCurrentPin() {
             EstablishmentConfig config = new EstablishmentConfig();

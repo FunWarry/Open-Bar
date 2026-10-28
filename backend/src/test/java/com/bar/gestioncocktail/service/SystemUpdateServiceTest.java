@@ -493,4 +493,18 @@ class SystemUpdateServiceTest {
         assertThat(offline.hasUpdate()).isFalse();
         assertThat(offline.isOffline()).isTrue();
     }
+
+    @Test
+    @DisplayName("triggerUpdate - rejects targetVersion with command injection characters")
+    void triggerUpdate_rejectsMaliciousTargetVersion() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.SYSTEM_UPDATES)).thenReturn(true);
+        when(tableRepository.findByOccupee(true)).thenReturn(Collections.emptyList());
+        when(commandeRepository.countByStatutIn(any())).thenReturn(0L);
+
+        SystemUpdateRequest maliciousRequest = new SystemUpdateRequest("0.8.1; rm -rf /", UpdateChannel.STABLE);
+
+        assertThatThrownBy(() -> service.triggerUpdate(maliciousRequest))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Invalid target version format");
+    }
 }

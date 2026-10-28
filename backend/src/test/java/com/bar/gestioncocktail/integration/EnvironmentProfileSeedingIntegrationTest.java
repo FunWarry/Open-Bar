@@ -55,6 +55,7 @@ class EnvironmentProfileSeedingIntegrationTest extends BaseIntegrationTest {
     @DisplayName("POST /api/setup/seed-demo triggers demo dataset generation successfully")
     void seedDemoData_executesSuccessfully() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post("/api/setup/seed-demo")
+                        .header("Authorization", "Bearer " + getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"));

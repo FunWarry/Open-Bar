@@ -75,4 +75,19 @@ class DefaultEscPosSocketClientTest {
         assertThatThrownBy(() -> client.send("127.0.0.1", targetPort, new byte[] { 1, 2, 3 }, 100))
                 .isInstanceOf(IOException.class);
     }
+
+    @Test
+    @DisplayName("send rejects privileged, database, or link-local SSRF targets")
+    void send_forbiddenPortOrHost_throwsIllegalArgumentException() {
+        byte[] payload = { 1, 2, 3 };
+        assertThatThrownBy(() -> client.send("127.0.0.1", 80, payload, 500))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("outside allowed peripheral range");
+        assertThatThrownBy(() -> client.send("127.0.0.1", 5432, payload, 500))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("outside allowed peripheral range");
+        assertThatThrownBy(() -> client.send("169.254.169.254", 9100, payload, 500))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Target IP address is not an allowed peripheral address");
+    }
 }

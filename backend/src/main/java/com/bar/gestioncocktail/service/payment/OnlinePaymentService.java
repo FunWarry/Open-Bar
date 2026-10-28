@@ -1,6 +1,7 @@
 package com.bar.gestioncocktail.service.payment;
 
 import com.bar.gestioncocktail.dto.*;
+import com.bar.gestioncocktail.event.TableLiberatedEvent;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.*;
@@ -43,6 +44,9 @@ public class OnlinePaymentService {
 
     private static final String ERR_TABLE_NOT_FOUND = "Table not found: ";
     private static final String ERR_TRANSACTION_NOT_FOUND = "Transaction not found: ";
+    private static final String ERR_RECEIPT_NOT_SETTLED = "Receipt is only available for settled transactions.";
+    private static final String DEFAULT_GUEST_NAME = "Client QR";
+    private static final String DEFAULT_SPLIT_TYPE = "TOTALITE";
 
     private final OnlinePaymentTransactionRepository transactionRepository;
     private final TableRepository tableRepository;
@@ -227,42 +231,17 @@ public class OnlinePaymentService {
         TableEntity table = tableRepository.findById(tableId)
                 .orElseThrow(() -> new ResourceNotFoundException(ERR_TABLE_NOT_FOUND + tableId));
 
-        // Idempotency check: if intent already exists with this key, return it
+        validatePaymentIntentAmounts(request);
+
         Optional<OnlinePaymentTransaction> existing = transactionRepository.findByIdempotencyKey(request.idempotencyKey());
         if (existing.isPresent()) {
-            OnlinePaymentTransaction tx = existing.get();
-            log.info("Idempotent hit for transaction {} with key {}", tx.getTransactionId(), request.idempotencyKey());
-            return new PaymentIntentResponseDTO(
-                    tx.getTransactionId(),
-                    tx.getClientSecret(),
-                    tx.getAmount(),
-                    tx.getTip(),
-                    tx.getTotalCharged(),
-                    tx.getCurrency(),
-                    tx.getProvider(),
-                    STRIPE_PROVIDER.equalsIgnoreCase(tx.getProvider()) ? appSettingsService.getSettings().getStripePublishableKey() : null
-            );
+            return buildIdempotentIntentResponse(tableId, existing.get(), request.idempotencyKey());
         }
 
-        // Live addition check
         TableBillSummaryResponseDTO billSummary = internalGetTableBillSummary(table, tableId, request.guestName());
-        if (billSummary.totalTTC().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException("No active items on bill for table " + table.getNumero());
-        }
-        if (billSummary.isFullySettled()) {
-            throw new BusinessException("Table " + table.getNumero() + " addition is already fully settled.");
-        }
+        validateBillSummaryForPayment(table, billSummary, request.amount());
 
         BigDecimal requestedAmount = request.amount();
-        BigDecimal remaining = billSummary.remainingBalance();
-
-        // Enforce server-side security: requested amount cannot exceed remaining balance
-        if (requestedAmount.compareTo(remaining.add(EPSILON)) > 0) {
-            throw new BusinessException(
-                    "Requested amount (" + requestedAmount + " €) exceeds remaining table balance (" + remaining + " €)"
-            );
-        }
-
         BigDecimal safeTip = request.tip() != null ? request.tip() : BigDecimal.ZERO;
         BigDecimal totalCharged = requestedAmount.add(safeTip);
 
@@ -281,7 +260,6 @@ public class OnlinePaymentService {
                 request.typeSplit()
         );
 
-        // Ensure pending invoice exists
         FactureResponseDTO pendingInvoice = factureService.genererFactureTable(tableId);
         Facture facture = factureRepository.findById(pendingInvoice.id()).orElse(null);
 
@@ -289,7 +267,7 @@ public class OnlinePaymentService {
         transaction.setTransactionId(result.transactionId());
         transaction.setTable(table);
         transaction.setFacture(facture);
-        transaction.setGuestName(request.guestName() != null && !request.guestName().isBlank() ? request.guestName().trim() : "Client QR");
+        transaction.setGuestName(request.guestName() != null && !request.guestName().isBlank() ? request.guestName().trim() : DEFAULT_GUEST_NAME);
         transaction.setAmount(requestedAmount);
         transaction.setTip(safeTip);
         transaction.setTotalCharged(totalCharged);
@@ -300,7 +278,7 @@ public class OnlinePaymentService {
         transaction.setCustomerEmail(request.customerEmail());
         transaction.setClientSecret(result.clientSecret());
         transaction.setItemsJson(request.itemsJson());
-        transaction.setTypeSplit(request.typeSplit() != null ? request.typeSplit() : "TOTALITE");
+        transaction.setTypeSplit(request.typeSplit() != null ? request.typeSplit() : DEFAULT_SPLIT_TYPE);
         transaction.setLiberateTableRequested(Boolean.TRUE.equals(request.liberateTable()));
 
         transactionRepository.save(transaction);
@@ -315,6 +293,53 @@ public class OnlinePaymentService {
                 result.provider(),
                 result.publishableKey()
         );
+    }
+
+    private void validatePaymentIntentAmounts(PaymentIntentRequestDTO request) {
+        if (request.amount() == null || request.amount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Payment amount must be strictly positive.");
+        }
+        if (request.tip() != null && request.tip().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("Tip amount cannot be negative.");
+        }
+    }
+
+    private PaymentIntentResponseDTO buildIdempotentIntentResponse(
+            Long tableId,
+            OnlinePaymentTransaction tx,
+            String idempotencyKey) {
+        if (tx.getTable() != null && tx.getTable().getId() != null && !tx.getTable().getId().equals(tableId)) {
+            throw new BusinessException("Transaction idempotency key belongs to another table.");
+        }
+        log.info("Idempotent hit for transaction {} with key {}", tx.getTransactionId(), idempotencyKey);
+        return new PaymentIntentResponseDTO(
+                tx.getTransactionId(),
+                tx.getClientSecret(),
+                tx.getAmount(),
+                tx.getTip(),
+                tx.getTotalCharged(),
+                tx.getCurrency(),
+                tx.getProvider(),
+                STRIPE_PROVIDER.equalsIgnoreCase(tx.getProvider()) ? appSettingsService.getSettings().getStripePublishableKey() : null
+        );
+    }
+
+    private void validateBillSummaryForPayment(
+            TableEntity table,
+            TableBillSummaryResponseDTO billSummary,
+            BigDecimal requestedAmount) {
+        if (billSummary.totalTTC().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("No active items on bill for table " + table.getNumero());
+        }
+        if (billSummary.isFullySettled()) {
+            throw new BusinessException("Table " + table.getNumero() + " addition is already fully settled.");
+        }
+        BigDecimal remaining = billSummary.remainingBalance();
+        if (requestedAmount.compareTo(remaining.add(EPSILON)) > 0) {
+            throw new BusinessException(
+                    "Requested amount (" + requestedAmount + " €) exceeds remaining table balance (" + remaining + " €)"
+            );
+        }
     }
 
     /**
@@ -333,7 +358,16 @@ public class OnlinePaymentService {
             throw new BusinessException("Transaction does not belong to table " + tableId);
         }
 
-        if (transaction.getClientSecret() != null && !transaction.getClientSecret().equals(request.clientSecret())) {
+        if (transaction.getProvider() != null && !"SANDBOX".equalsIgnoreCase(transaction.getProvider())) {
+            throw new BusinessException("Sandbox confirmation is not allowed for non-sandbox transactions.");
+        }
+
+        PaymentGatewayProvider activeProvider = resolveProvider();
+        if (activeProvider != null && STRIPE_PROVIDER.equalsIgnoreCase(activeProvider.getProviderName())) {
+            throw new BusinessException("Sandbox payment confirmation is disabled when live Stripe provider is active.");
+        }
+
+        if (transaction.getClientSecret() == null || !transaction.getClientSecret().equals(request.clientSecret())) {
             throw new BusinessException("Invalid client secret for transaction confirmation.");
         }
 
@@ -416,14 +450,14 @@ public class OnlinePaymentService {
         int nextPartIndex = existingReglements.size() + 1;
 
         EncaisserPartRequest partRequest = new EncaisserPartRequest(
-                transaction.getGuestName() != null ? transaction.getGuestName() : "Client QR",
+                transaction.getGuestName() != null ? transaction.getGuestName() : DEFAULT_GUEST_NAME,
                 nextPartIndex,
                 nextPartIndex,
                 transaction.getAmount(),
                 transaction.getTip(),
                 transaction.getTotalCharged(),
                 PAYMENT_METHOD_ONLINE,
-                transaction.getTypeSplit() != null ? transaction.getTypeSplit() : "TOTALITE",
+                transaction.getTypeSplit() != null ? transaction.getTypeSplit() : DEFAULT_SPLIT_TYPE,
                 null, // items will be read from json
                 transaction.getTransactionId(),
                 "ONLINE_GATEWAY",
@@ -494,7 +528,7 @@ public class OnlinePaymentService {
         tableRepository.save(table);
 
         if (eventPublisher != null) {
-            eventPublisher.publishEvent(new com.bar.gestioncocktail.event.TableLiberatedEvent(table));
+            eventPublisher.publishEvent(new TableLiberatedEvent(table));
         }
         log.info("Table {} liberated following patron online mobile checkout.", table.getNumero());
         return true;
@@ -536,6 +570,9 @@ public class OnlinePaymentService {
         if (facture == null) {
             throw new BusinessException("No invoice associated with transaction " + transactionId);
         }
+        if (transaction.getStatus() != null && !STATUS_SUCCEEDED.equalsIgnoreCase(transaction.getStatus())) {
+            throw new BusinessException(ERR_RECEIPT_NOT_SETTLED);
+        }
 
         return pdfService.generateFacturePdf(facture);
     }
@@ -558,6 +595,9 @@ public class OnlinePaymentService {
         Facture facture = transaction.getFacture();
         if (facture == null) {
             throw new BusinessException("No invoice linked to transaction " + transaction.getTransactionId());
+        }
+        if (transaction.getStatus() != null && !STATUS_SUCCEEDED.equalsIgnoreCase(transaction.getStatus())) {
+            throw new BusinessException(ERR_RECEIPT_NOT_SETTLED);
         }
 
         byte[] pdfBytes = pdfService.generateFacturePdf(facture);
