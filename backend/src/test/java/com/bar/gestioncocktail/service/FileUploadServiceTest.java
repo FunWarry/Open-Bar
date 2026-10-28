@@ -198,4 +198,21 @@ class FileUploadServiceTest {
 
         assertTrue(ex.getMessage().contains("exceeds maximum allowed limit"));
     }
+
+    @Test
+    @DisplayName("Should reject uploaded file containing script or HTML payload disguised as JPEG")
+    void shouldRejectScriptPayloadDisguisedAsImage() {
+        MockMultipartFile xssFile = new MockMultipartFile(
+            "file",
+            "malicious.jpg",
+            "image/jpeg",
+            "<script>alert('xss')</script>".getBytes()
+        );
+
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+            fileUploadService.storeCocktailPhoto(1L, xssFile)
+        );
+
+        assertTrue(ex.getMessage().contains("script or markup payload rejected"));
+    }
 }

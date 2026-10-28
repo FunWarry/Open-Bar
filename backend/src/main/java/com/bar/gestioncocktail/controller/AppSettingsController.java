@@ -48,13 +48,27 @@ public class AppSettingsController {
      * @return Establishment settings DTO
      */
     @GetMapping
-    @Operation(summary = "Get establishment settings", description = "Public endpoint to retrieve establishment branding and alert thresholds.")
+    @Operation(summary = "Get establishment settings", description = "Public endpoint to retrieve establishment branding and alert thresholds. Sensitive fields are redacted for unauthenticated callers.")
     @ApiResponse(responseCode = "200", description = "Settings retrieved successfully")
     public ResponseEntity<AppSettingsResponseDTO> getSettings() {
         String tz = (timeService != null && timeService.getZoneId() != null)
                 ? timeService.getZoneId().getId()
                 : AppSettingsResponseDTO.DEFAULT_TIMEZONE;
-        return ResponseEntity.ok(AppSettingsResponseDTO.from(appSettingsService.getSettings(), tz));
+        AppSettingsResponseDTO dto = AppSettingsResponseDTO.from(appSettingsService.getSettings(), tz);
+        if (isAnonymousCaller()) {
+            dto = dto.redactForPublic();
+        }
+        return ResponseEntity.ok(dto);
+    }
+
+    private boolean isAnonymousCaller() {
+        org.springframework.security.core.Authentication auth =
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof org.springframework.security.authentication.AnonymousAuthenticationToken) {
+            return true;
+        }
+        return auth != null && auth.getAuthorities() != null && auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ANONYMOUS".equals(a.getAuthority()));
     }
 
     /**

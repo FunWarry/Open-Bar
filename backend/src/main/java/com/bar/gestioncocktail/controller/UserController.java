@@ -128,7 +128,10 @@ public class UserController {
         }
         User currentUser = userService.getUserByUsername(authentication.getName())
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + authentication.getName()));
-        return ResponseEntity.ok(UserResponseDTO.from(userService.updateUser(currentUser.getId(), request.toEntity())));
+        User updatedData = request.toEntity();
+        // Prevent horizontal/vertical privilege escalation: users cannot modify their own roles via /api/users/me
+        updatedData.setRoles(null);
+        return ResponseEntity.ok(UserResponseDTO.from(userService.updateUser(currentUser.getId(), updatedData)));
     }
 
     /**
@@ -164,17 +167,19 @@ public class UserController {
     }
 
     /**
-     * Retrieves a user by identifier.
+     * Retrieves a user by identifier (restricted to administrators or the user themselves).
      *
      * @param id User identifier
      * @return User DTO
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get user by ID")
     @ApiResponse(responseCode = "200", description = "User found")
+    @ApiResponse(responseCode = "403", description = "Access denied")
     @ApiResponse(responseCode = "404", description = "User not found")
     public ResponseEntity<UserResponseDTO> getUserById(@Parameter(description = "User ID") @PathVariable Long id) {
+        checkAdminOrSelf(id);
         return userService.getUserById(id)
             .map(UserResponseDTO::from)
             .map(ResponseEntity::ok)
@@ -214,46 +219,67 @@ public class UserController {
     }
 
     /**
-     * Checks username availability (public endpoint for signup/creation validation).
+     * Checks username availability (restricted to ADMIN and MANAGER).
      *
      * @param username Username to test
      * @return True if username is already taken, false otherwise
      */
     @GetMapping("/check-username/{username}")
-    @Operation(summary = "Check username availability", description = "Public endpoint for uniqueness verification.")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Check username availability (ADMIN, MANAGER)", description = "Endpoint for uniqueness verification.")
     @ApiResponse(responseCode = "200", description = "Uniqueness check result")
     public ResponseEntity<Boolean> checkUsernameExists(@PathVariable String username) {
         return ResponseEntity.ok(userService.existsByUsername(username));
     }
 
     /**
-     * Checks email availability.
+     * Checks email availability (restricted to ADMIN and MANAGER).
      *
      * @param email Email address to test
      * @return True if email already exists, false otherwise
      */
     @GetMapping("/check-email/{email}")
-    @Operation(summary = "Check email availability", description = "Public endpoint for uniqueness verification.")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Check email availability (ADMIN, MANAGER)", description = "Endpoint for uniqueness verification.")
     @ApiResponse(responseCode = "200", description = "Uniqueness check result")
     public ResponseEntity<Boolean> checkEmailExists(@PathVariable String email) {
         return ResponseEntity.ok(userService.existsByEmail(email));
     }
 
     /**
-     * Updates a user's password.
+     * Updates a user's password (restricted to administrators or the user themselves).
      *
      * @param id User identifier
      * @param newPassword New password string
      * @return HTTP 200 OK
      */
     @PutMapping("/{id}/password")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Change user password")
     @ApiResponse(responseCode = "200", description = "Password updated")
+    @ApiResponse(responseCode = "403", description = "Access denied")
     public ResponseEntity<Void> changePassword(
         @PathVariable Long id,
         @RequestBody String newPassword) {
+        checkAdminOrSelf(id);
         userService.getUserById(id).ifPresent(user -> userService.changePassword(user, newPassword));
         return ResponseEntity.ok().build();
+    }
+
+    private void checkAdminOrSelf(Long targetUserId) {
+        Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return;
+        }
+        boolean isAdmin = auth.getAuthorities() != null && auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()) || "ADMIN".equals(a.getAuthority()));
+        if (isAdmin) {
+            return;
+        }
+        User caller = userService.getUserByUsername(auth.getName()).orElse(null);
+        if (caller == null || !targetUserId.equals(caller.getId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Access denied: you may only access or modify your own user account");
+        }
     }
 }

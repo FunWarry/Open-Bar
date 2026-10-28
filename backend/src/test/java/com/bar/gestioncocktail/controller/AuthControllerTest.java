@@ -186,4 +186,24 @@ class AuthControllerTest {
         assertThat(resp2.getStatusCode().is2xxSuccessful()).isTrue();
         verify(refreshTokenService).deleteByUser(user);
     }
+
+    @Test
+    @DisplayName("login - blocks brute-force after 5 failed authentication attempts")
+    void loginBruteForceLockout() {
+        LoginRequest request = new LoginRequest();
+        request.setUsername("bruteforceuser");
+        request.setPassword("wrongpass");
+
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenThrow(new org.springframework.security.authentication.BadCredentialsException("Bad credentials"));
+
+        for (int i = 0; i < 5; i++) {
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> authController.login(request))
+                    .isInstanceOf(org.springframework.security.authentication.BadCredentialsException.class);
+        }
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> authController.login(request))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .hasMessageContaining("Too many failed attempts");
+    }
 }

@@ -62,6 +62,7 @@ public class FileUploadService {
             if (!ALLOWED_EXTENSIONS.contains(extension)) {
                 throw new BusinessException("Invalid file extension. Only JPEG, PNG, GIF, and WebP are allowed.");
             }
+            validateSafePayload(file);
             String newFilename = "cocktail_" + cocktailId + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
             Path filePath = uploadPath.resolve(newFilename).normalize();
             if (!filePath.startsWith(uploadPath)) {
@@ -113,6 +114,7 @@ public class FileUploadService {
             if (!ALLOWED_EXTENSIONS.contains(extension)) {
                 throw new BusinessException("Invalid file extension. Only JPEG, PNG, GIF, and WebP are allowed.");
             }
+            validateSafePayload(file);
             String newFilename = "glassware_" + glasswareId + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
             Path filePath = uploadPath.resolve(newFilename).normalize();
             if (!filePath.startsWith(uploadPath)) {
@@ -167,6 +169,7 @@ public class FileUploadService {
         }
 
         try {
+            validateSafePayload(file);
             Path uploadPath = Paths.get(CHECKLIST_UPLOAD_DIR).toAbsolutePath().normalize();
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
@@ -195,5 +198,23 @@ public class FileUploadService {
             return ".jpg";
         }
         return filename.substring(filename.lastIndexOf(".")).toLowerCase();
+    }
+
+    private void validateSafePayload(MultipartFile file) throws IOException {
+        try (InputStream is = file.getInputStream()) {
+            byte[] headerBytes = is.readNBytes(512);
+            if (headerBytes.length >= 4 && headerBytes[0] == 0x7F && headerBytes[1] == 'E'
+                    && headerBytes[2] == 'L' && headerBytes[3] == 'F') {
+                throw new BusinessException("Invalid file content: executable binary payload rejected");
+            }
+            String headerText = new String(headerBytes, java.nio.charset.StandardCharsets.ISO_8859_1).toLowerCase();
+            if (headerText.contains("<script")
+                    || headerText.contains("<svg")
+                    || headerText.contains("<!doctype html")
+                    || headerText.contains("<html")
+                    || headerText.contains("<?php")) {
+                throw new BusinessException("Invalid file content: script or markup payload rejected");
+            }
+        }
     }
 }

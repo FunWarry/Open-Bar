@@ -227,10 +227,20 @@ public class OnlinePaymentService {
         TableEntity table = tableRepository.findById(tableId)
                 .orElseThrow(() -> new ResourceNotFoundException(ERR_TABLE_NOT_FOUND + tableId));
 
+        if (request.amount() == null || request.amount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Payment amount must be strictly positive.");
+        }
+        if (request.tip() != null && request.tip().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("Tip amount cannot be negative.");
+        }
+
         // Idempotency check: if intent already exists with this key, return it
         Optional<OnlinePaymentTransaction> existing = transactionRepository.findByIdempotencyKey(request.idempotencyKey());
         if (existing.isPresent()) {
             OnlinePaymentTransaction tx = existing.get();
+            if (tx.getTable() != null && tx.getTable().getId() != null && !tx.getTable().getId().equals(tableId)) {
+                throw new BusinessException("Transaction idempotency key belongs to another table.");
+            }
             log.info("Idempotent hit for transaction {} with key {}", tx.getTransactionId(), request.idempotencyKey());
             return new PaymentIntentResponseDTO(
                     tx.getTransactionId(),
@@ -333,7 +343,16 @@ public class OnlinePaymentService {
             throw new BusinessException("Transaction does not belong to table " + tableId);
         }
 
-        if (transaction.getClientSecret() != null && !transaction.getClientSecret().equals(request.clientSecret())) {
+        if (transaction.getProvider() != null && !"SANDBOX".equalsIgnoreCase(transaction.getProvider())) {
+            throw new BusinessException("Sandbox confirmation is not allowed for non-sandbox transactions.");
+        }
+
+        PaymentGatewayProvider activeProvider = resolveProvider();
+        if (activeProvider != null && STRIPE_PROVIDER.equalsIgnoreCase(activeProvider.getProviderName())) {
+            throw new BusinessException("Sandbox payment confirmation is disabled when live Stripe provider is active.");
+        }
+
+        if (transaction.getClientSecret() == null || !transaction.getClientSecret().equals(request.clientSecret())) {
             throw new BusinessException("Invalid client secret for transaction confirmation.");
         }
 
@@ -536,6 +555,9 @@ public class OnlinePaymentService {
         if (facture == null) {
             throw new BusinessException("No invoice associated with transaction " + transactionId);
         }
+        if (transaction.getStatus() != null && !STATUS_SUCCEEDED.equalsIgnoreCase(transaction.getStatus())) {
+            throw new BusinessException("Receipt is only available for settled transactions.");
+        }
 
         return pdfService.generateFacturePdf(facture);
     }
@@ -558,6 +580,9 @@ public class OnlinePaymentService {
         Facture facture = transaction.getFacture();
         if (facture == null) {
             throw new BusinessException("No invoice linked to transaction " + transaction.getTransactionId());
+        }
+        if (transaction.getStatus() != null && !STATUS_SUCCEEDED.equalsIgnoreCase(transaction.getStatus())) {
+            throw new BusinessException("Receipt is only available for settled transactions.");
         }
 
         byte[] pdfBytes = pdfService.generateFacturePdf(facture);

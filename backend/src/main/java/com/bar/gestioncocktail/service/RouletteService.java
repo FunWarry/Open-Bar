@@ -36,10 +36,11 @@ public class RouletteService {
     private final EstablishmentConfigService establishmentConfigService;
     private final SimpMessagingTemplate messagingTemplate;
     private final TimeService timeService;
+    private final com.bar.gestioncocktail.security.LoginAttemptService loginAttemptService;
     private final java.security.SecureRandom random = new java.security.SecureRandom();
 
     /**
-     * Constructs the RouletteService with all required dependencies.
+     * Backward-compatible constructor initializing a default brute-force protection service.
      *
      * @param sectorRepository           Wheel sectors repository
      * @param cocktailRepository         Cocktail repository
@@ -57,6 +58,33 @@ public class RouletteService {
             EstablishmentConfigService establishmentConfigService,
             SimpMessagingTemplate messagingTemplate,
             TimeService timeService) {
+        this(sectorRepository, cocktailRepository, tableRepository, tableCartService,
+                establishmentConfigService, messagingTemplate, timeService,
+                new com.bar.gestioncocktail.security.LoginAttemptService());
+    }
+
+    /**
+     * Constructs the RouletteService with all required dependencies including brute-force rate limiting.
+     *
+     * @param sectorRepository           Wheel sectors repository
+     * @param cocktailRepository         Cocktail repository
+     * @param tableRepository            Table repository
+     * @param tableCartService           Table cart service for adding won drinks
+     * @param establishmentConfigService Establishment configuration and feature flags
+     * @param messagingTemplate          STOMP messaging template for live broadcasts
+     * @param timeService                Application time service
+     * @param loginAttemptService        Brute-force rate limiting service for PIN verification
+     */
+    @org.springframework.beans.factory.annotation.Autowired
+    public RouletteService(
+            RouletteWheelSectorRepository sectorRepository,
+            CocktailRepository cocktailRepository,
+            TableRepository tableRepository,
+            TableCartService tableCartService,
+            EstablishmentConfigService establishmentConfigService,
+            SimpMessagingTemplate messagingTemplate,
+            TimeService timeService,
+            com.bar.gestioncocktail.security.LoginAttemptService loginAttemptService) {
         this.sectorRepository = sectorRepository;
         this.cocktailRepository = cocktailRepository;
         this.tableRepository = tableRepository;
@@ -64,6 +92,9 @@ public class RouletteService {
         this.establishmentConfigService = establishmentConfigService;
         this.messagingTemplate = messagingTemplate;
         this.timeService = timeService;
+        this.loginAttemptService = loginAttemptService != null
+                ? loginAttemptService
+                : new com.bar.gestioncocktail.security.LoginAttemptService();
     }
 
     /**
@@ -665,12 +696,20 @@ public class RouletteService {
      */
     @Transactional(readOnly = true)
     public RoulettePinVerificationResponseDTO verifyDisplayPin(String pin) {
+        String attemptKey = "roulette-pin";
+        loginAttemptService.checkAllowed(attemptKey);
         if (pin == null || pin.isBlank()) {
+            loginAttemptService.recordFailure(attemptKey);
             return new RoulettePinVerificationResponseDTO(false);
         }
         EstablishmentConfig config = establishmentConfigService.getConfig();
         String currentPin = config.getRouletteDisplayPin();
         boolean valid = pin.trim().equals(currentPin);
+        if (valid) {
+            loginAttemptService.recordSuccess(attemptKey);
+        } else {
+            loginAttemptService.recordFailure(attemptKey);
+        }
         return new RoulettePinVerificationResponseDTO(valid);
     }
 

@@ -83,6 +83,18 @@ public class SetupController {
     @Operation(summary = "Generate complete test demo dataset", description = "Populates database with floors, zones, tables, staff users, shifts, orders, and invoices.")
     @ApiResponse(responseCode = "200", description = "Demo dataset generated successfully")
     public ResponseEntity<Map<String, String>> seedDemoData() {
+        SetupStatusDTO status = setupService.getSetupStatus();
+        if (status != null && status.initialized()) {
+            org.springframework.security.core.Authentication auth =
+                    org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            boolean isAdmin = auth != null && auth.isAuthenticated() && auth.getAuthorities() != null
+                    && auth.getAuthorities().stream()
+                            .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()) || "ADMIN".equals(a.getAuthority()));
+            if (!isAdmin) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "Administrator privileges are required to seed demo data on an already initialized system");
+            }
+        }
         if (sampleDataSeederService.isPresent()) {
             sampleDataSeederService.get().seedAllDemoData();
             return ResponseEntity.ok(Map.of(

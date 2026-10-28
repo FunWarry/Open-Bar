@@ -1,6 +1,7 @@
 package com.bar.gestioncocktail.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -44,6 +45,7 @@ public class TableCartItemRequestDTO {
     @Schema(description = "Whether this is a mystery drink won on the roulette", example = "true")
     private Boolean isMysteryDrink = false;
 
+    @DecimalMin(value = "0.01", message = "Override price must be strictly positive")
     @Schema(description = "Optional override unit price for mystery drinks", example = "7.50")
     private java.math.BigDecimal prixOverride;
 

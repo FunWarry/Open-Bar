@@ -357,6 +357,9 @@ public class SystemUpdateService {
             SystemUpdateCheckDTO check = checkForUpdates(request.channel());
             targetVer = check.latestVersion();
         }
+        if (targetVer == null || !targetVer.matches("^[vV]?\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9._-]+)?$")) {
+            throw new BusinessException("Invalid target version format: " + sanitizeForLog(targetVer));
+        }
 
         String timestamp = LocalDateTime.now(DEFAULT_ZONE).format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
         String snapshotId = "openbar_pre_update_" + cleanVersion(this.currentVersion) + "_" + timestamp;

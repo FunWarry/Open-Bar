@@ -157,4 +157,39 @@ class WebSocketAuthInterceptorTest {
         Message<?> result = interceptor.preSend(message, messageChannel);
         assertNotNull(result);
     }
+
+    @Test
+    void testPreSendSubscribeAdditionalProtectedTopicsRejectedForGuest() {
+        for (String topic : java.util.List.of("/topic/bar-tabs", "/topic/preparation/BAR", "/topic/checklists", "/topic/tables")) {
+            StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+            accessor.setDestination(topic);
+            accessor.setUser(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                    "guest:123", null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
+            accessor.setLeaveMutable(true);
+            Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+            assertThrows(MessageDeliveryException.class, () -> interceptor.preSend(message, messageChannel));
+        }
+    }
+
+    @Test
+    void testPreSendSendToAppDestinationRejectedForGuestAndAllowedForStaff() {
+        StompHeaderAccessor guestAccessor = StompHeaderAccessor.create(StompCommand.SEND);
+        guestAccessor.setDestination("/app/commandes/nouvelle");
+        guestAccessor.setUser(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                "guest:123", null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
+        guestAccessor.setLeaveMutable(true);
+        Message<?> guestMessage = MessageBuilder.createMessage(new byte[0], guestAccessor.getMessageHeaders());
+
+        assertThrows(MessageDeliveryException.class, () -> interceptor.preSend(guestMessage, messageChannel));
+
+        StompHeaderAccessor staffAccessor = StompHeaderAccessor.create(StompCommand.SEND);
+        staffAccessor.setDestination("/app/commandes/nouvelle");
+        staffAccessor.setUser(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                "serveur1", null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_SERVEUR"))));
+        staffAccessor.setLeaveMutable(true);
+        Message<?> staffMessage = MessageBuilder.createMessage(new byte[0], staffAccessor.getMessageHeaders());
+
+        assertNotNull(interceptor.preSend(staffMessage, messageChannel));
+    }
 }

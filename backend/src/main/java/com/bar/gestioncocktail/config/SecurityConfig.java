@@ -39,9 +39,10 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
     private final CorsOriginResolver corsOriginResolver;
+    private final org.springframework.core.env.Environment environment;
 
     /**
-     * Constructs SecurityConfig with required filters and CORS origin resolver.
+     * Backward-compatible constructor without Environment.
      *
      * @param jwtAuthenticationFilter JWT authentication filter
      * @param jwtAuthorizationFilter JWT authorization filter
@@ -51,14 +52,33 @@ public class SecurityConfig {
             JwtAuthenticationFilter jwtAuthenticationFilter,
             JwtAuthorizationFilter jwtAuthorizationFilter,
             CorsOriginResolver corsOriginResolver) {
+        this(jwtAuthenticationFilter, jwtAuthorizationFilter, corsOriginResolver, null);
+    }
+
+    /**
+     * Constructs SecurityConfig with required filters, CORS origin resolver, and runtime environment.
+     *
+     * @param jwtAuthenticationFilter JWT authentication filter
+     * @param jwtAuthorizationFilter JWT authorization filter
+     * @param corsOriginResolver Resolver for CORS allowed origins
+     * @param environment Spring runtime environment for profile inspection
+     */
+    @org.springframework.beans.factory.annotation.Autowired
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            JwtAuthorizationFilter jwtAuthorizationFilter,
+            CorsOriginResolver corsOriginResolver,
+            org.springframework.core.env.Environment environment) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.jwtAuthorizationFilter = jwtAuthorizationFilter;
         this.corsOriginResolver = corsOriginResolver;
+        this.environment = environment;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         try {
+            boolean prodProfile = isProductionProfile();
             return http
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .csrf(csrf -> csrf
@@ -71,31 +91,53 @@ public class SecurityConfig {
                                 }
                             }))
                     .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                    .authorizeHttpRequests(auth -> auth
-                            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                            .requestMatchers(
-                                    "/api/auth/**",
-                                    "/api/setup/**",
-                                    "/api/settings",
-                                    "/api/ws/**",
-                                    "/ws/**",
-                                    "/api/client/**",
-                                    "/api/public/**",
-                                    "/api/roulette/public/**",
+                    .authorizeHttpRequests(auth -> {
+                        auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                .requestMatchers("/api/auth/register").hasRole("ADMIN")
+                                .requestMatchers(
+                                        "/api/cocktails/library",
+                                        "/api/cocktails/library/**",
+                                        "/api/cocktails/wheel",
+                                        "/api/cocktails/margin-analytics",
+                                        "/api/cocktails/*/margin",
+                                        "/api/cocktails/by-ingredient/**")
+                                .authenticated();
+                        if (prodProfile) {
+                            auth.requestMatchers(
                                     "/v3/api-docs/**",
                                     "/api-docs/**",
                                     "/api-docs",
                                     "/swagger-ui/**",
-                                    "/swagger-ui.html",
-                                    "/uploads/**",
-                                    "/actuator/health",
-                                    "/actuator/info",
-                                    "/api/actuator/health",
-                                    "/api/actuator/info")
-                            .permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/cocktails", "/api/cocktails/**", "/api/establishment/modules", "/api/happy-hour", "/api/happy-hour/**")
-                            .permitAll()
-                            .anyRequest().authenticated())
+                                    "/swagger-ui.html")
+                                    .hasRole("ADMIN");
+                        } else {
+                            auth.requestMatchers(
+                                    "/v3/api-docs/**",
+                                    "/api-docs/**",
+                                    "/api-docs",
+                                    "/swagger-ui/**",
+                                    "/swagger-ui.html")
+                                    .permitAll();
+                        }
+                        auth.requestMatchers(
+                                        "/api/auth/**",
+                                        "/api/setup/**",
+                                        "/api/settings",
+                                        "/api/ws/**",
+                                        "/ws/**",
+                                        "/api/client/**",
+                                        "/api/public/**",
+                                        "/api/roulette/public/**",
+                                        "/uploads/**",
+                                        "/actuator/health",
+                                        "/actuator/info",
+                                        "/api/actuator/health",
+                                        "/api/actuator/info")
+                                .permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/cocktails", "/api/cocktails/**", "/api/establishment/modules", "/api/happy-hour", "/api/happy-hour/**")
+                                .permitAll()
+                                .anyRequest().authenticated();
+                    })
                     .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                     .addFilterAfter(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
                     .exceptionHandling(ex -> ex
@@ -143,5 +185,17 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private boolean isProductionProfile() {
+        if (environment == null || environment.getActiveProfiles() == null) {
+            return false;
+        }
+        for (String profile : environment.getActiveProfiles()) {
+            if ("prod".equalsIgnoreCase(profile) || "production".equalsIgnoreCase(profile)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

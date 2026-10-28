@@ -657,5 +657,35 @@ class TableCartServiceTest {
         assertThat(result.totalPrice()).isEqualByComparingTo(BigDecimal.valueOf(12.00));
         verify(happyHourService).resolveEffectivePrice(eq(mockCocktail), any(), any());
     }
+
+    @Test
+    @DisplayName("addItem: throws BusinessException when standard item includes a prixOverride")
+    void addItem_whenStandardItemHasPrixOverride_throwsBusinessException() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+        when(cocktailRepository.findById(10L)).thenReturn(Optional.of(mockCocktail));
+
+        TableCartItemRequestDTO request = new TableCartItemRequestDTO("guest-1", "Bob", 10L, null, 1, null);
+        request.setIsMysteryDrink(false);
+        request.setPrixOverride(BigDecimal.ZERO);
+
+        assertThatThrownBy(() -> tableCartService.addItem(1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Price override is not allowed for standard menu items");
+    }
+
+    @Test
+    @DisplayName("addItem: throws BusinessException when mystery item has zero or sub-floor prixOverride")
+    void addItem_whenMysteryItemHasSubFloorPrixOverride_throwsBusinessException() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+        when(cocktailRepository.findById(10L)).thenReturn(Optional.of(mockCocktail));
+
+        TableCartItemRequestDTO request = TableCartItemRequestDTO.ofMysteryDrink(
+                "guest-1", "Bob", 10L, "[Mystery]", new BigDecimal("1.00")
+        );
+
+        assertThatThrownBy(() -> tableCartService.addItem(1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("below minimum allowed roulette price");
+    }
 }
 

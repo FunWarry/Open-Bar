@@ -40,6 +40,7 @@ public class GlasswareController {
      * @return List of glassware response DTOs
      */
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get all glassware", description = "Returns the list of all available glassware items ordered by name")
     @ApiResponse(responseCode = "200", description = "List of glassware retrieved successfully")
     public ResponseEntity<List<GlasswareResponseDTO>> getAll() {
@@ -53,6 +54,7 @@ public class GlasswareController {
      * @return Glassware response DTO
      */
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get glassware by ID", description = "Retrieves details of a specific glassware item")
     @ApiResponse(responseCode = "200", description = "Glassware retrieved successfully")
     @ApiResponse(responseCode = "404", description = "Glassware not found")

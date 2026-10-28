@@ -32,6 +32,7 @@ public class EstablishmentClosureController {
      * @return List of EstablishmentClosureDTO
      */
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get all establishment closures", description = "Retrieves all weekly recurring closed days and one-off/annual holiday closures.")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved closures list")
     public List<EstablishmentClosureDTO> getAllClosures() {

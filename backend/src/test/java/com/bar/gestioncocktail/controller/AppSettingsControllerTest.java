@@ -141,4 +141,33 @@ class AppSettingsControllerTest {
         assertThat(response.getHeaders().getFirst(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION)).contains("wifi-qrcode.svg");
         assertThat(new String(java.util.Objects.requireNonNull(response.getBody()))).isEqualTo("<svg></svg>");
     }
+
+    @Test
+    @DisplayName("getSettings redacts sensitive fields when caller is anonymous")
+    void getSettingsRedactsSensitiveFieldsForAnonymousCaller() {
+        settings.setWifiPassword("super-secret-wifi");
+        settings.setBarPrinterIp("192.168.1.200");
+        settings.setTpeBarIp("192.168.1.201");
+        settings.setSmtpHost("smtp.internal.lan");
+        settings.setSmtpUsername("bar-mailer");
+        when(appSettingsService.getSettings()).thenReturn(settings);
+
+        org.springframework.security.authentication.AnonymousAuthenticationToken anon =
+                new org.springframework.security.authentication.AnonymousAuthenticationToken(
+                        "key", "anonymousUser",
+                        java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ANONYMOUS")));
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(anon);
+        try {
+            ResponseEntity<AppSettingsResponseDTO> response = appSettingsController.getSettings();
+            AppSettingsResponseDTO body = java.util.Objects.requireNonNull(response.getBody());
+            assertThat(body.establishmentName()).isEqualTo("OpenBar");
+            assertThat(body.wifiPassword()).isNull();
+            assertThat(body.barPrinterIp()).isNull();
+            assertThat(body.tpeBarIp()).isNull();
+            assertThat(body.smtpHost()).isNull();
+            assertThat(body.smtpUsername()).isNull();
+        } finally {
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        }
+    }
 }

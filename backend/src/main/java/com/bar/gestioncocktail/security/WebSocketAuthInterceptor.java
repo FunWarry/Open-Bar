@@ -42,6 +42,8 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             handleConnect(accessor, message);
         } else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
             handleSubscribe(accessor, message);
+        } else if (StompCommand.SEND.equals(accessor.getCommand())) {
+            handleSend(accessor, message);
         }
 
         return message;
@@ -102,13 +104,28 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             return;
         }
 
-        boolean isStaff = accessor.getUser() instanceof org.springframework.security.core.Authentication auth
-                && auth.getAuthorities().stream()
-                .noneMatch(a -> "ROLE_ANONYMOUS".equals(a.getAuthority()));
-
-        if (!isStaff) {
+        if (!isAuthenticatedStaff(accessor)) {
             throw new MessageDeliveryException(message, "Unauthorized topic subscription: " + destination);
         }
+    }
+
+    private void handleSend(StompHeaderAccessor accessor, Message<?> message) {
+        String destination = accessor.getDestination();
+        if (destination == null || !destination.startsWith("/app/")) {
+            return;
+        }
+
+        if (!isAuthenticatedStaff(accessor)) {
+            throw new MessageDeliveryException(message, "Unauthorized WebSocket command destination: " + destination);
+        }
+    }
+
+    private boolean isAuthenticatedStaff(StompHeaderAccessor accessor) {
+        return accessor.getUser() instanceof org.springframework.security.core.Authentication auth
+                && auth.getAuthorities() != null
+                && !auth.getAuthorities().isEmpty()
+                && auth.getAuthorities().stream()
+                .noneMatch(a -> "ROLE_ANONYMOUS".equals(a.getAuthority()));
     }
 
     private boolean isProtectedTopic(String destination) {
@@ -117,6 +134,10 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                 || destination.startsWith("/topic/serveur")
                 || destination.startsWith("/topic/stock")
                 || destination.startsWith("/topic/schedule")
-                || destination.startsWith("/topic/reservations");
+                || destination.startsWith("/topic/reservations")
+                || destination.startsWith("/topic/bar-tabs")
+                || destination.startsWith("/topic/preparation")
+                || destination.startsWith("/topic/checklists")
+                || "/topic/tables".equals(destination);
     }
 }

@@ -193,4 +193,44 @@ class UserControllerTest {
         ResponseEntity<UserResponseDTO> response = userController.updateCurrentUser(null, request);
         assertThat(response.getStatusCode().value()).isEqualTo(401);
     }
+
+    @Test
+    @DisplayName("updateCurrentUser - strips roles to prevent privilege escalation to ADMIN")
+    void updateCurrentUserStripsRoles() {
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn("testuser");
+        when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(user));
+        when(userService.updateUser(eq(1L), any(User.class))).thenReturn(user);
+
+        UserRequestDTO request = new UserRequestDTO("testuser", "secret", "test@example.com", "Doe", "John", Set.of(UserRole.ADMIN));
+        userController.updateCurrentUser(auth, request);
+
+        org.mockito.ArgumentCaptor<User> captor = org.mockito.ArgumentCaptor.forClass(User.class);
+        verify(userService).updateUser(eq(1L), captor.capture());
+        assertThat(captor.getValue().getRoles()).isNull();
+    }
+
+    @Test
+    @DisplayName("getUserById and changePassword - reject non-admin accessing another user ID")
+    void getUserByIdAndChangePasswordRejectOtherUser() {
+        User nonAdmin = new User();
+        nonAdmin.setId(2L);
+        nonAdmin.setUsername("serveur1");
+        nonAdmin.setRoles(Set.of(UserRole.SERVEUR));
+
+        org.springframework.security.authentication.UsernamePasswordAuthenticationToken auth =
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                        "serveur1", null, List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_SERVEUR")));
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+        try {
+            when(userService.getUserByUsername("serveur1")).thenReturn(Optional.of(nonAdmin));
+
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> userController.getUserById(1L))
+                    .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> userController.changePassword(1L, "hackedPass"))
+                    .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+        } finally {
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        }
+    }
 }

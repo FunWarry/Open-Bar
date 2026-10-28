@@ -337,4 +337,35 @@ class CocktailControllerTest {
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         verify(cocktailLibraryService).loadLibrary();
     }
+
+    @Test
+    @DisplayName("getAllCocktails and getCocktailById - redact internal margins and recipe instructions for anonymous caller")
+    void getCocktailsRedactsFinancialMarginsAndRecipesForAnonymousCaller() {
+        cocktail.setInstructions("Secret bartender instructions");
+        when(cocktailService.getAllCocktails()).thenReturn(List.of(cocktail));
+        when(cocktailService.getCocktailById(1L)).thenReturn(Optional.of(cocktail));
+
+        org.springframework.security.authentication.AnonymousAuthenticationToken anon =
+                new org.springframework.security.authentication.AnonymousAuthenticationToken(
+                        "key", "anonymousUser",
+                        List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ANONYMOUS")));
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(anon);
+        try {
+            ResponseEntity<List<CocktailResponseDTO>> listResp = cocktailController.getAllCocktails();
+            CocktailResponseDTO item = listResp.getBody().get(0);
+            assertThat(item.nom()).isEqualTo("Mojito");
+            assertThat(item.instructions()).isNull();
+            assertThat(item.recipeCost()).isNull();
+            assertThat(item.sellingPriceHT()).isNull();
+            assertThat(item.grossMargin()).isNull();
+            assertThat(item.grossMarginPercentage()).isNull();
+            assertThat(item.recipeSteps()).isEmpty();
+
+            ResponseEntity<CocktailResponseDTO> singleResp = cocktailController.getCocktailById(1L);
+            assertThat(singleResp.getBody().instructions()).isNull();
+            assertThat(singleResp.getBody().recipeCost()).isNull();
+        } finally {
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        }
+    }
 }

@@ -35,8 +35,11 @@ public class PublicCommandeService {
     private final TimeService timeService;
     private final TableSessionService tableSessionService;
     private final HappyHourService happyHourService;
+    private final EstablishmentConfigService establishmentConfigService;
 
-    @Autowired
+    /**
+     * Backward-compatible constructor without establishment configuration service.
+     */
     public PublicCommandeService(
             CommandeRepository commandeRepository,
             TableRepository tableRepository,
@@ -46,6 +49,24 @@ public class PublicCommandeService {
             TimeService timeService,
             TableSessionService tableSessionService,
             HappyHourService happyHourService) {
+        this(commandeRepository, tableRepository, cocktailRepository, varianteRepository,
+                eventPublisher, timeService, tableSessionService, happyHourService, null);
+    }
+
+    /**
+     * Full constructor with establishment configuration service for module and mystery pricing validation.
+     */
+    @Autowired
+    public PublicCommandeService(
+            CommandeRepository commandeRepository,
+            TableRepository tableRepository,
+            CocktailRepository cocktailRepository,
+            CocktailVarianteRepository varianteRepository,
+            ApplicationEventPublisher eventPublisher,
+            TimeService timeService,
+            TableSessionService tableSessionService,
+            HappyHourService happyHourService,
+            EstablishmentConfigService establishmentConfigService) {
         this.commandeRepository = commandeRepository;
         this.tableRepository = tableRepository;
         this.cocktailRepository = cocktailRepository;
@@ -54,6 +75,7 @@ public class PublicCommandeService {
         this.timeService = timeService;
         this.tableSessionService = tableSessionService;
         this.happyHourService = happyHourService;
+        this.establishmentConfigService = establishmentConfigService;
     }
 
     /**
@@ -104,6 +126,10 @@ public class PublicCommandeService {
     }
 
     private CommandeItem construireCommandeItem(PublicCommandeItemRequestDTO itemDto, Commande commande) {
+        if (itemDto.getQuantite() <= 0) {
+            throw new com.bar.gestioncocktail.exception.BusinessException("Order item quantity must be at least 1");
+        }
+
         Cocktail cocktail = cocktailRepository.findById(itemDto.getCocktailId())
                 .orElseThrow(() -> new ResourceNotFoundException("Cocktail not found with id: " + itemDto.getCocktailId()));
 
@@ -118,12 +144,33 @@ public class PublicCommandeService {
             prixUnitaire = prixUnitaire.add(variante.getPrixSupplement());
         }
 
-        if (itemDto.getPrixOverride() != null) {
-            prixUnitaire = itemDto.getPrixOverride();
-        } else if (happyHourService != null) {
-            BigDecimal effectivePrice = happyHourService.resolveEffectivePrice(cocktail, variante, timeService.now());
-            if (effectivePrice != null) {
-                prixUnitaire = effectivePrice;
+        boolean isMystery = Boolean.TRUE.equals(itemDto.getIsMysteryDrink());
+        if (isMystery) {
+            if (establishmentConfigService != null
+                    && !establishmentConfigService.isModuleEnabled(EstablishmentModule.MYSTERY_ROULETTE)) {
+                throw new com.bar.gestioncocktail.exception.BusinessException("Mystery Roulette module is disabled");
+            }
+            BigDecimal minMysteryPrice = resolveMinimumMysteryPrice(cocktail);
+            if (itemDto.getPrixOverride() != null) {
+                if (itemDto.getPrixOverride().compareTo(BigDecimal.ZERO) <= 0
+                        || itemDto.getPrixOverride().compareTo(minMysteryPrice) < 0) {
+                    throw new com.bar.gestioncocktail.exception.BusinessException(
+                            "Invalid mystery drink price override: below minimum allowed roulette price");
+                }
+                prixUnitaire = itemDto.getPrixOverride();
+            } else {
+                prixUnitaire = minMysteryPrice;
+            }
+        } else {
+            if (itemDto.getPrixOverride() != null) {
+                throw new com.bar.gestioncocktail.exception.BusinessException(
+                        "Price override is not allowed for standard menu items");
+            }
+            if (happyHourService != null) {
+                BigDecimal effectivePrice = happyHourService.resolveEffectivePrice(cocktail, variante, timeService.now());
+                if (effectivePrice != null) {
+                    prixUnitaire = effectivePrice;
+                }
             }
         }
 
@@ -136,8 +183,30 @@ public class PublicCommandeService {
         item.setQuantite(itemDto.getQuantite());
         item.setPrixUnitaire(prixUnitaire);
         item.setNotes(itemDto.getNotes());
-        item.setIsMysteryDrink(itemDto.getIsMysteryDrink() != null && itemDto.getIsMysteryDrink());
+        item.setIsMysteryDrink(isMystery);
         return item;
+    }
+
+    private BigDecimal resolveMinimumMysteryPrice(Cocktail cocktail) {
+        EstablishmentConfig config = establishmentConfigService != null ? establishmentConfigService.getConfig() : null;
+        boolean isMocktail = Boolean.TRUE.equals(cocktail.getIsMocktail())
+                || cocktail.getCategorie() == CocktailCategorie.SANS_ALCOOL;
+        BigDecimal configuredPrice;
+        if (isMocktail) {
+            configuredPrice = (config != null && config.getRoulettePriceMocktail() != null)
+                    ? config.getRoulettePriceMocktail()
+                    : new BigDecimal("5.50");
+        } else {
+            configuredPrice = (config != null && config.getRoulettePriceCocktail() != null)
+                    ? config.getRoulettePriceCocktail()
+                    : new BigDecimal("7.50");
+        }
+        if (cocktail.getPrix() != null
+                && cocktail.getPrix().compareTo(BigDecimal.ZERO) > 0
+                && cocktail.getPrix().compareTo(configuredPrice) < 0) {
+            return cocktail.getPrix();
+        }
+        return configuredPrice;
     }
 
     private void verifierDisponibiliteIngredients(Cocktail cocktail, int quantite) {
