@@ -215,4 +215,21 @@ class FileUploadServiceTest {
 
         assertTrue(ex.getMessage().contains("script or markup payload rejected"));
     }
+
+    @Test
+    @DisplayName("Should reject uploaded file containing ELF binary header disguised as PNG")
+    void shouldRejectElfBinaryPayloadDisguisedAsImage() {
+        MockMultipartFile elfFile = new MockMultipartFile(
+            "file",
+            "binary.png",
+            "image/png",
+            new byte[]{0x7F, 'E', 'L', 'F', 0x02, 0x01, 0x01, 0x00}
+        );
+
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+            fileUploadService.storeChecklistMedia(elfFile)
+        );
+
+        assertTrue(ex.getMessage().contains("executable binary payload rejected"));
+    }
 }

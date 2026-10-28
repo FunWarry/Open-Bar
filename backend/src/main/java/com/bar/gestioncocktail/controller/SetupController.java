@@ -89,7 +89,7 @@ public class SetupController {
         SetupStatusDTO status = setupService.getSetupStatus();
         if (status != null && status.initialized()) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            boolean isAdmin = auth != null && auth.isAuthenticated() && auth.getAuthorities() != null
+            boolean isAdmin = auth != null && auth.isAuthenticated()
                     && auth.getAuthorities().stream()
                             .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()) || "ADMIN".equals(a.getAuthority()));
             if (!isAdmin) {

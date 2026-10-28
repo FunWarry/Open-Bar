@@ -274,7 +274,7 @@ public class UserController {
         if (auth == null || !auth.isAuthenticated()) {
             return;
         }
-        boolean isAdmin = auth.getAuthorities() != null && auth.getAuthorities().stream()
+        boolean isAdmin = auth.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()) || "ADMIN".equals(a.getAuthority()));
         if (isAdmin) {
             return;

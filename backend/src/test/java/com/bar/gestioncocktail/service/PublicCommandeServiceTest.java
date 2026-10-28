@@ -284,4 +284,32 @@ class PublicCommandeServiceTest {
         assertNotNull(response);
         assertEquals(0, new BigDecimal("7.50").compareTo(response.getTotal()));
     }
+
+    @Test
+    void creerCommandePublique_whenMysteryDrinkIsMocktailWithoutOverride_usesFloorOrCatalogPrice() {
+        Cocktail mocktail = new Cocktail();
+        mocktail.setId(101L);
+        mocktail.setNom("Virgin Mojito");
+        mocktail.setIsMocktail(true);
+        mocktail.setPrix(new BigDecimal("4.50"));
+
+        PublicCommandeItemRequestDTO mysteryMocktail = new PublicCommandeItemRequestDTO(
+                101L, null, 1, "[Mystery Mocktail]", true, null
+        );
+        PublicCommandeRequestDTO requestDTO = new PublicCommandeRequestDTO();
+        requestDTO.setTableId(1L);
+        requestDTO.setItems(List.of(mysteryMocktail));
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(cocktailRepository.findById(101L)).thenReturn(Optional.of(mocktail));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(inv -> {
+            Commande c = inv.getArgument(0);
+            c.setId(78L);
+            return c;
+        });
+
+        PublicCommandeResponseDTO response = publicCommandeService.creerCommandePublique(requestDTO);
+        assertNotNull(response);
+        assertEquals(0, new BigDecimal("4.50").compareTo(response.getTotal()));
+    }
 }

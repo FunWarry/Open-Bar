@@ -688,5 +688,27 @@ class TableCartServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("below minimum allowed roulette price");
     }
+
+    @Test
+    @DisplayName("addItem: accepts mystery mocktail priced at catalog floor when cheaper than roulette default")
+    void addItem_whenMysteryMocktailHasCatalogFloorPrice_succeeds() {
+        Cocktail cheapMocktail = new Cocktail();
+        cheapMocktail.setId(11L);
+        cheapMocktail.setNom("Syrup Water");
+        cheapMocktail.setIsMocktail(true);
+        cheapMocktail.setPrix(new BigDecimal("4.00"));
+        cheapMocktail.setDisponible(true);
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(mockTable));
+        when(cocktailRepository.findById(11L)).thenReturn(Optional.of(cheapMocktail));
+        when(tableCartItemRepository.findByTableIdOrderByCreatedAtAsc(1L)).thenReturn(List.of());
+
+        TableCartItemRequestDTO request = TableCartItemRequestDTO.ofMysteryDrink(
+                "guest-1", "Bob", 11L, "[Mystery]", new BigDecimal("4.00")
+        );
+
+        TableCartResponseDTO result = tableCartService.addItem(1L, request);
+        assertThat(result).isNotNull();
+    }
 }
 

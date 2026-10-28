@@ -48,20 +48,24 @@ class LoginAttemptServiceTest {
 
     @Test
     @DisplayName("Should automatically unblock after lockout window expires")
-    void shouldUnblockWhenLockoutExpires() throws InterruptedException {
-        LoginAttemptService service = new LoginAttemptService(2, 0L);
+    void shouldUnblockWhenLockoutExpires() {
+        LoginAttemptService service = new LoginAttemptService(2, -1L);
 
         service.recordFailure("roulette-pin");
         service.recordFailure("roulette-pin");
-        Thread.sleep(10);
 
         assertThat(service.isBlocked("roulette-pin")).isFalse();
         service.checkAllowed("roulette-pin");
+        service.recordFailure("roulette-pin");
+        assertThat(service.isBlocked("roulette-pin")).isFalse();
     }
 
     @Test
-    @DisplayName("Should handle null keys and resetAll cleanly")
+    @DisplayName("Should handle null keys, default constructor, and resetAll cleanly")
     void shouldHandleNullKeyAndResetAll() {
+        LoginAttemptService defaultService = new LoginAttemptService();
+        assertThat(defaultService.isBlocked("login:test")).isFalse();
+
         LoginAttemptService service = new LoginAttemptService(1, 60L);
 
         service.recordFailure(null);

@@ -517,7 +517,7 @@ public class CocktailController {
         if (auth instanceof AnonymousAuthenticationToken) {
             return true;
         }
-        return auth != null && auth.getAuthorities() != null && auth.getAuthorities().stream()
+        return auth != null && auth.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_ANONYMOUS".equals(a.getAuthority()));
     }
 }

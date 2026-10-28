@@ -187,7 +187,7 @@ public class SecurityConfig {
     }
 
     private boolean isProductionProfile() {
-        if (environment == null || environment.getActiveProfiles() == null) {
+        if (environment == null) {
             return false;
         }
         for (String profile : environment.getActiveProfiles()) {

@@ -154,7 +154,7 @@ public class TableCartService {
     private BigDecimal resolveMinimumMysteryPrice(Cocktail cocktail) {
         boolean isMocktail = Boolean.TRUE.equals(cocktail.getIsMocktail())
                 || cocktail.getCategorie() == CocktailCategorie.SANS_ALCOOL;
-        BigDecimal configuredPrice = isMocktail ? new BigDecimal("5.50") : new BigDecimal("7.50");
+        BigDecimal configuredPrice = new BigDecimal(isMocktail ? "5.50" : "7.50");
         if (cocktail.getPrix() != null
                 && cocktail.getPrix().compareTo(BigDecimal.ZERO) > 0
                 && cocktail.getPrix().compareTo(configuredPrice) < 0) {

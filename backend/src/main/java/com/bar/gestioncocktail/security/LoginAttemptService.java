@@ -1,6 +1,7 @@
 package com.bar.gestioncocktail.security;
 
 import com.bar.gestioncocktail.exception.BusinessException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -33,6 +34,7 @@ public class LoginAttemptService {
     /**
      * Default constructor using standard brute-force thresholds (5 attempts, 15 minutes lockout).
      */
+    @Autowired
     public LoginAttemptService() {
         this(DEFAULT_MAX_ATTEMPTS, DEFAULT_LOCKOUT_SECONDS);
     }
@@ -67,11 +69,11 @@ public class LoginAttemptService {
      */
     public boolean isBlocked(String key) {
         String normalizedKey = normalizeKey(key);
-        AttemptRecord record = attempts.get(normalizedKey);
-        if (record == null || record.lockedUntil == null) {
+        AttemptRecord attemptRecord = attempts.get(normalizedKey);
+        if (attemptRecord == null || attemptRecord.lockedUntil == null) {
             return false;
         }
-        if (Instant.now().isBefore(record.lockedUntil)) {
+        if (Instant.now().isBefore(attemptRecord.lockedUntil)) {
             return true;
         }
         attempts.remove(normalizedKey);
