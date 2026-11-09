@@ -43,7 +43,7 @@
     "idb": "^8.0.4",
     "konva": "^10.7.1",
     "rxjs": "~7.8.0",
-    "tslib": "^2.3.0",
+    "tslib": "^2.9.1",
     "zone.js": "~0.16.0"
   },
   "devDependencies": {
