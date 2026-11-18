@@ -51,6 +51,7 @@ public class SupplierInvoiceParserService {
     private static final String DATE_TIME_STRING = "DateTimeString";
     private static final String KEYWORD_TOTAL = "TOTAL";
     private static final String KEYWORD_TVA = "TVA";
+    private static final String KEYWORD_MONTANT = "MONTANT";
 
     private static final Pattern SIREN_PATTERN = Pattern.compile("(?iu)(?:siren|siret)[\\s.:]*(\\d{9})(?:\\d{5})?");
     private static final Pattern VAT_PATTERN = Pattern.compile("(?iu)(?:tva|vat)[\\s.:]*(FR[0-9A-Z]{2}\\d{9})");
@@ -698,13 +699,13 @@ public class SupplierInvoiceParserService {
     }
 
     private boolean isTotalHtLine(String upper) {
-        return (upper.contains(KEYWORD_TOTAL) || upper.contains("MONTANT") || upper.contains("NET"))
+        return (upper.contains(KEYWORD_TOTAL) || upper.contains(KEYWORD_MONTANT) || upper.contains("NET"))
                 && upper.contains("HT")
                 && !upper.contains("TTC");
     }
 
     private boolean isTotalVatLine(String upper) {
-        return (upper.contains(KEYWORD_TOTAL) || upper.contains("MONTANT") || upper.contains("%") || upper.contains(":"))
+        return (upper.contains(KEYWORD_TOTAL) || upper.contains(KEYWORD_MONTANT) || upper.contains("%") || upper.contains(":"))
                 && (upper.contains(KEYWORD_TVA) || upper.contains("VAT"));
     }
 
@@ -712,7 +713,7 @@ public class SupplierInvoiceParserService {
         return upper.contains("TOTAL TTC")
                 || upper.contains("NET A PAYER")
                 || upper.contains("NET À PAYER")
-                || upper.contains("MONTANT TTC");
+                || upper.contains(KEYWORD_MONTANT + " TTC");
     }
 
     private BigDecimal extractAmountFromLine(String line) {
