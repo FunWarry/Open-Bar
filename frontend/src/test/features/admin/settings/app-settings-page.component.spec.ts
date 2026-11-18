@@ -918,6 +918,7 @@ describe('AppSettingsPageComponent', () => {
         systemUpdates: false,
         angelShotSafety: false,
         qrPayAtTable: false,
+        facturXInvoiceImport: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -940,6 +941,7 @@ describe('AppSettingsPageComponent', () => {
         systemUpdates: false,
         angelShotSafety: false,
         qrPayAtTable: false,
+        facturXInvoiceImport: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });
