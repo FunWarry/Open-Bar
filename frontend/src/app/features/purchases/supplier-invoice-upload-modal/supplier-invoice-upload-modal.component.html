@@ -1,0 +1,145 @@
+<app-modal
+  [title]="'purchases.invoices.uploadModal.title' | transloco"
+  [subtitle]="'purchases.invoices.uploadModal.subtitle' | transloco"
+  [icon]="'cloud-upload-outline'"
+  [size]="'md'"
+  (closeModal)="dismiss()">
+
+  <div class="upload-container">
+    @if (!uploadResult()) {
+      <!-- Drop zone area -->
+      <button
+        type="button"
+        class="drop-zone"
+        [class.dragging]="isDragging()"
+        [attr.aria-label]="'purchases.invoices.uploadModal.dragDropPrompt' | transloco"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+        (click)="fileInput.click()"
+        data-testid="invoice-drop-zone">
+
+        <input
+          #fileInput
+          id="invoice-file-input"
+          type="file"
+          accept=".pdf,.xml"
+          aria-label="Invoice file upload"
+          (change)="onFileSelected($event)"
+          style="display: none"
+          data-testid="invoice-file-input" />
+
+        <div class="drop-zone-content">
+          <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+          <h3>{{ 'purchases.invoices.uploadModal.dragDropPrompt' | transloco }}</h3>
+          <p class="format-hint">{{ 'purchases.invoices.uploadModal.supportedFormats' | transloco }}</p>
+          <div class="badge-row">
+            <span class="tech-badge"><ion-icon name="shield-checkmark-outline"></ion-icon> Factur-X / EN 16931</span>
+            <span class="tech-badge"><ion-icon name="layers-outline"></ion-icon> ZUGFeRD 2.x</span>
+            <span class="tech-badge"><ion-icon name="document-text-outline"></ion-icon> Standard PDF</span>
+          </div>
+        </div>
+      </button>
+
+      <!-- Selected file preview card -->
+      @if (selectedFile(); as file) {
+        <div class="file-preview-card" data-testid="selected-file-preview">
+          <div class="file-info">
+            <ion-icon name="document-text-outline" class="file-icon"></ion-icon>
+            <div class="file-meta">
+              <span class="file-name">{{ file.name }}</span>
+              <span class="file-size">{{ (file.size / 1024).toFixed(1) }} KB</span>
+            </div>
+          </div>
+          <app-action-button
+            variant="ghost"
+            size="small"
+            icon="close-outline"
+            (actionClick)="clearFile()"
+            data-testid="clear-selected-file-btn">
+          </app-action-button>
+        </div>
+      }
+    } @else {
+      <!-- Upload & parsing summary result -->
+      @if (uploadResult(); as result) {
+        <div class="result-container" data-testid="invoice-parsing-result">
+          <div class="result-header" [class.warning-state]="result.duplicate">
+            <ion-icon [name]="result.duplicate ? 'alert-circle-outline' : 'checkmark-circle-outline'"></ion-icon>
+            <div>
+              <h4>{{ result.message }}</h4>
+              <span class="format-tag">{{ result.invoice.format }} ({{ result.invoice.profile }})</span>
+            </div>
+          </div>
+
+          <div class="summary-grid">
+            <div class="summary-cell">
+              <span class="cell-label">{{ 'purchases.invoices.invoiceNumber' | transloco }}</span>
+              <span class="cell-value bold">{{ result.invoice.invoiceNumber }}</span>
+            </div>
+            <div class="summary-cell">
+              <span class="cell-label">{{ 'purchases.invoices.supplier' | transloco }}</span>
+              <span class="cell-value">{{ result.invoice.supplierName || ('purchases.invoices.unmatchedSupplier' | transloco) }}</span>
+            </div>
+            <div class="summary-cell">
+              <span class="cell-label">{{ 'purchases.invoices.date' | transloco }}</span>
+              <span class="cell-value">{{ result.invoice.invoiceDate }}</span>
+            </div>
+            <div class="summary-cell">
+              <span class="cell-label">{{ 'purchases.invoices.totalHt' | transloco }}</span>
+              <span class="cell-value highlight">{{ result.invoice.totalHt.toFixed(2) }} €</span>
+            </div>
+            <div class="summary-cell">
+              <span class="cell-label">{{ 'purchases.invoices.totalTtc' | transloco }}</span>
+              <span class="cell-value">{{ result.invoice.totalTtc.toFixed(2) }} €</span>
+            </div>
+            <div class="summary-cell">
+              <span class="cell-label">{{ 'purchases.invoices.linesCount' | transloco }}</span>
+              <span class="cell-value">{{ result.invoice.items.length }}</span>
+            </div>
+          </div>
+
+          @if (result.warnings && result.warnings.length > 0) {
+            <div class="warning-box">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              <ul>
+                @for (w of result.warnings; track w) {
+                  <li>{{ w }}</li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+
+  <div slot="footer" class="modal-footer-actions">
+    <app-action-button
+      variant="secondary"
+      (actionClick)="dismiss()"
+      data-testid="upload-modal-cancel-btn">
+      {{ 'COMMON.CANCEL' | transloco }}
+    </app-action-button>
+
+    @if (!uploadResult()) {
+      <app-action-button
+        variant="primary"
+        icon="cloud-upload-outline"
+        [disabled]="!selectedFile() || isUploading()"
+        [loading]="isUploading()"
+        (actionClick)="uploadAndParse()"
+        data-testid="upload-modal-submit-btn">
+        {{ 'purchases.invoices.uploadModal.submitBtn' | transloco }}
+      </app-action-button>
+    } @else {
+      <app-action-button
+        variant="primary"
+        icon="checkmark-circle-outline"
+        (actionClick)="finish()"
+        data-testid="upload-modal-continue-btn">
+        {{ 'purchases.invoices.uploadModal.continueBtn' | transloco }}
+      </app-action-button>
+    }
+  </div>
+</app-modal>

@@ -63,6 +63,9 @@ export class SupplierFormModalComponent implements OnInit {
       codePostal: [this.supplier?.codePostal || '', [Validators.maxLength(20)]],
       ville: [this.supplier?.ville || '', [Validators.maxLength(100)]],
       siret: [this.supplier?.siret || '', [Validators.maxLength(50)]],
+      siren: [this.supplier?.siren || '', [Validators.maxLength(20)]],
+      vatNumber: [this.supplier?.vatNumber || '', [Validators.maxLength(30)]],
+      codeFournisseur: [this.supplier?.codeFournisseur || '', [Validators.maxLength(50)]],
       notes: [this.supplier?.notes || '', [Validators.maxLength(2000)]],
       actif: [this.supplier ? this.supplier.actif : true]
     });

@@ -23,6 +23,7 @@ import com.bar.gestioncocktail.model.EstablishmentConfig;
  * @param systemUpdates        Whether automated OTA software update service and snapshots are enabled
  * @param angelShotSafety      Whether Angel Shot patron safety protocol and real-time emergency dispatch are enabled
  * @param qrPayAtTable         Whether patron pay-at-table direct online mobile settlement is enabled
+ * @param facturXInvoiceImport Whether automated supplier invoice import via Factur-X & PDF parsing is enabled
  */
 public record EstablishmentModulesDTO(
         boolean cuisineKds,
@@ -42,8 +43,31 @@ public record EstablishmentModulesDTO(
         boolean checklistsProcedures,
         boolean systemUpdates,
         boolean angelShotSafety,
-        boolean qrPayAtTable
+        boolean qrPayAtTable,
+        boolean facturXInvoiceImport
 ) {
+    public EstablishmentModulesDTO(
+            boolean cuisineKds,
+            boolean happyHour,
+            boolean employeeManagement,
+            boolean floorPlan,
+            boolean qrClientOrdering,
+            boolean stockTracking,
+            boolean cashDrawer,
+            boolean barTabs,
+            boolean cocktailLibrary,
+            boolean suppliersManagement,
+            boolean inventoryAudit,
+            boolean mysteryRoulette,
+            boolean paymentTerminal,
+            boolean tableReservations,
+            boolean checklistsProcedures,
+            boolean systemUpdates,
+            boolean angelShotSafety,
+            boolean qrPayAtTable
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, tableReservations, checklistsProcedures, systemUpdates, angelShotSafety, qrPayAtTable, true);
+    }
     public EstablishmentModulesDTO(
             boolean cuisineKds,
             boolean happyHour,
@@ -256,7 +280,8 @@ public record EstablishmentModulesDTO(
                 isEnabled(config.getModuleChecklistsProceduresEnabled()),
                 isEnabled(config.getModuleSystemUpdatesEnabled()),
                 isEnabled(config.getModuleAngelShotSafetyEnabled()),
-                isEnabled(config.getModuleQrPayAtTableEnabled())
+                isEnabled(config.getModuleQrPayAtTableEnabled()),
+                isEnabled(config.getModuleFacturXInvoiceImportEnabled())
         );
     }
 
@@ -270,6 +295,6 @@ public record EstablishmentModulesDTO(
      * @return New instance with all flags set to true
      */
     public static EstablishmentModulesDTO defaultEnabled() {
-        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);
+        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);
     }
 }

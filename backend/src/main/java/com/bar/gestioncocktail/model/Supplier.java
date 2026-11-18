@@ -57,6 +57,22 @@ public class Supplier {
     @Column(nullable = false)
     private boolean actif = true;
 
+    @Size(max = 20, message = "SIREN cannot exceed 20 characters")
+    @Column(name = "siren", length = 20)
+    private String siren;
+
+    @Size(max = 20, message = "SIRET cannot exceed 20 characters")
+    @Column(name = "siret", length = 20)
+    private String siret;
+
+    @Size(max = 30, message = "VAT number cannot exceed 30 characters")
+    @Column(name = "vat_number", length = 30)
+    private String vatNumber;
+
+    @Size(max = 50, message = "Supplier reference code cannot exceed 50 characters")
+    @Column(name = "code_fournisseur", length = 50)
+    private String codeFournisseur;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -177,6 +193,38 @@ public class Supplier {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getSiren() {
+        return siren;
+    }
+
+    public void setSiren(String siren) {
+        this.siren = siren;
+    }
+
+    public String getSiret() {
+        return siret;
+    }
+
+    public void setSiret(String siret) {
+        this.siret = siret;
+    }
+
+    public String getVatNumber() {
+        return vatNumber;
+    }
+
+    public void setVatNumber(String vatNumber) {
+        this.vatNumber = vatNumber;
+    }
+
+    public String getCodeFournisseur() {
+        return codeFournisseur;
+    }
+
+    public void setCodeFournisseur(String codeFournisseur) {
+        this.codeFournisseur = codeFournisseur;
     }
 
     @Override

@@ -223,6 +223,7 @@ describe('AppSettingsPageComponent', () => {
       systemUpdates: true,
       angelShotSafety: true,
       qrPayAtTable: true,
+      facturXInvoiceImport: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
 
@@ -887,6 +888,7 @@ describe('AppSettingsPageComponent', () => {
         systemUpdates: true,
         angelShotSafety: true,
         qrPayAtTable: true,
+        facturXInvoiceImport: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -992,6 +994,7 @@ describe('AppSettingsPageComponent', () => {
         systemUpdates: false,
         angelShotSafety: false,
         qrPayAtTable: false,
+        facturXInvoiceImport: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();
