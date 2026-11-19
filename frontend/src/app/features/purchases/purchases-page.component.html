@@ -53,6 +53,16 @@
             <ion-icon name="add-outline"></ion-icon>
             <span>{{ 'SUPPLIERS.NEW_SUPPLIER_BTN' | transloco }}</span>
           </button>
+        } @else if (activeTab() === 'invoices') {
+          <button
+            type="button"
+            class="btn-action btn-primary"
+            (click)="openUploadInvoiceModal()"
+            data-testid="upload-invoice-btn"
+          >
+            <ion-icon name="cloud-upload-outline"></ion-icon>
+            <span>{{ 'purchases.invoices.uploadBtn' | transloco }}</span>
+          </button>
         }
       </div>
     </div>
@@ -102,6 +112,21 @@
         </div>
         <span class="tab-label-full">{{ 'PURCHASES.TAB_PAMP' | transloco }}</span>
         <span class="tab-label-short">{{ 'PURCHASES.TAB_PAMP_SHORT' | transloco }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'invoices'"
+        (click)="selectTab('invoices')"
+        data-testid="purchases-tab-invoices"
+      >
+        <div class="tab-icon-wrap">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <span class="tab-count">{{ supplierInvoices().length }}</span>
+        </div>
+        <span class="tab-label-full">{{ 'purchases.invoices.tabTitle' | transloco }}</span>
+        <span class="tab-label-short">{{ 'purchases.invoices.tabShort' | transloco }}</span>
       </button>
     </nav>
   </header>
@@ -448,6 +473,171 @@
           </tbody>
         </table>
       </div>
+    </section>
+  }
+
+  <!-- Tab Content: Invoices (Factur-X & PDF) -->
+  @if (activeTab() === 'invoices') {
+    <section class="tab-content" data-testid="invoices-section">
+      <!-- Search bar -->
+      <div class="search-bar-row">
+        <app-search-bar
+          [placeholder]="'purchases.invoices.searchPlaceholder' | transloco"
+          [value]="searchQuery()"
+          (valueChange)="searchQuery.set($event)"
+          testId="invoices-search-input"
+        ></app-search-bar>
+      </div>
+
+      <!-- Status Filters -->
+      <div class="filters-bar" data-testid="invoice-filters-bar">
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="invoiceStatusFilter() === 'ALL'"
+          (click)="invoiceStatusFilter.set('ALL')"
+          data-testid="filter-inv-status-all">
+          {{ 'purchases.invoices.filterAll' | transloco }}
+        </button>
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="invoiceStatusFilter() === 'PENDING_REVIEW'"
+          (click)="invoiceStatusFilter.set('PENDING_REVIEW')"
+          data-testid="filter-inv-status-pending">
+          {{ 'purchases.invoices.status.PENDING_REVIEW' | transloco }}
+        </button>
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="invoiceStatusFilter() === 'RECONCILED'"
+          (click)="invoiceStatusFilter.set('RECONCILED')"
+          data-testid="filter-inv-status-reconciled">
+          {{ 'purchases.invoices.status.RECONCILED' | transloco }}
+        </button>
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="invoiceStatusFilter() === 'DISCREPANCY_CONFIRMED'"
+          (click)="invoiceStatusFilter.set('DISCREPANCY_CONFIRMED')"
+          data-testid="filter-inv-status-discrepancy">
+          {{ 'purchases.invoices.status.DISCREPANCY_CONFIRMED' | transloco }}
+        </button>
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="invoiceStatusFilter() === 'APPLIED'"
+          (click)="invoiceStatusFilter.set('APPLIED')"
+          data-testid="filter-inv-status-applied">
+          {{ 'purchases.invoices.status.APPLIED' | transloco }}
+        </button>
+      </div>
+
+      <!-- Invoices List / Empty State -->
+      @if (filteredInvoices().length === 0) {
+        <app-empty-state
+          [title]="'purchases.invoices.emptyTitle' | transloco"
+          [subtitle]="'purchases.invoices.emptyMessage' | transloco"
+          icon="document-text-outline">
+          <app-action-button
+            variant="primary"
+            icon="cloud-upload-outline"
+            (actionClick)="openUploadInvoiceModal()"
+            testId="empty-upload-invoice-btn"
+            data-testid="empty-upload-invoice-btn">
+            {{ 'purchases.invoices.uploadBtn' | transloco }}
+          </app-action-button>
+        </app-empty-state>
+      } @else {
+        <div class="cards-grid" data-testid="invoices-grid">
+          @for (inv of filteredInvoices(); track inv.id) {
+            <app-card
+              [accentColor]="getInvoiceAccentColor(inv.status)"
+              [testId]="'invoice-card-' + inv.id">
+              <div card-header class="card-header-flex">
+                <div class="badge-group">
+                  <span class="status-pill status-{{ inv.status.toLowerCase() }}">
+                    {{ 'purchases.invoices.status.' + inv.status | transloco }}
+                  </span>
+                  <span class="format-pill format-{{ inv.format.toLowerCase() }}">
+                    {{ inv.format }}
+                  </span>
+                  <span
+                    class="compliance-pill compliance-{{ inv.legalComplianceStatus.toLowerCase() }}">
+                    <ion-icon name="shield-checkmark-outline"></ion-icon>
+                    {{ 'purchases.invoices.complianceStatus.' + inv.legalComplianceStatus | transloco }}
+                  </span>
+                </div>
+                <span class="invoice-date">{{ inv.invoiceDate || ('COMMON.NOT_SPECIFIED' | transloco) }}</span>
+              </div>
+
+              <div card-content class="card-body-content">
+                <div class="main-info">
+                  <h3 class="card-title">{{ inv.invoiceNumber }}</h3>
+                  <p class="supplier-subtitle">
+                    <ion-icon name="business-outline"></ion-icon>
+                    <strong>{{ inv.supplierName || inv.supplierNameRaw || ('purchases.invoices.unmatchedSupplier' | transloco) }}</strong>
+                  </p>
+                </div>
+
+                <div class="details-row">
+                  <div class="detail-item">
+                    <span class="detail-label">{{ 'purchases.invoices.totalHt' | transloco }}</span>
+                    <strong class="detail-value highlight">{{ inv.totalHt.toFixed(2) }} €</strong>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">{{ 'purchases.invoices.totalTtc' | transloco }}</span>
+                    <strong class="detail-value">{{ inv.totalTtc.toFixed(2) }} €</strong>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">{{ 'purchases.invoices.linesCount' | transloco }}</span>
+                    <span class="detail-value">{{ inv.items ? inv.items.length : 0 }}</span>
+                  </div>
+                  @if (inv.purchaseOrderReference) {
+                    <div class="detail-item">
+                      <span class="detail-label">{{ 'purchases.invoices.matchedPo' | transloco }}</span>
+                      <span class="po-badge">{{ inv.purchaseOrderReference }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <div card-footer class="card-actions-bar">
+                <button
+                  type="button"
+                  class="btn-card btn-primary"
+                  (click)="openReconcileModal(inv)"
+                  [attr.data-testid]="'reconcile-invoice-btn-' + inv.id">
+                  <ion-icon name="sync-outline"></ion-icon>
+                  <span>{{ (inv.status === 'APPLIED' ? 'purchases.invoices.viewReconciliation' : 'purchases.invoices.reconcileBtn') | transloco }}</span>
+                </button>
+
+                @if (inv.format === 'FACTUR_X' || inv.profile === 'EN 16931') {
+                  <button
+                    type="button"
+                    class="btn-card btn-ghost"
+                    (click)="downloadInvoiceXml(inv)"
+                    [attr.data-testid]="'download-xml-btn-' + inv.id"
+                    [title]="'purchases.invoices.downloadFacturXXml' | transloco">
+                    <ion-icon name="download-outline"></ion-icon>
+                  </button>
+                }
+
+                @if (inv.status !== 'APPLIED') {
+                  <button
+                    type="button"
+                    class="btn-card btn-danger"
+                    (click)="confirmDeleteInvoice(inv)"
+                    [attr.data-testid]="'delete-invoice-btn-' + inv.id"
+                    [title]="'COMMON.DELETE' | transloco">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </button>
+                }
+              </div>
+            </app-card>
+          }
+        </div>
+      }
     </section>
   }
   </div>

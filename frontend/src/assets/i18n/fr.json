@@ -3820,7 +3820,10 @@
     "SMTP_PORT": "Port SMTP",
     "SMTP_USERNAME": "Identifiant / Utilisateur SMTP",
     "SMTP_PASSWORD": "Mot de passe SMTP",
-    "SMTP_FROM": "Adresse expéditeur (From)"
+    "SMTP_FROM": "Adresse expéditeur (From)",
+    "MODULE_FACTUR_X_INVOICE_IMPORT_TITLE": "Import Factures & Factur-X",
+    "MODULE_FACTUR_X_INVOICE_IMPORT_DESC": "Import automatisé des factures fournisseurs (Factur-X hybride XML/PDF, PDF), réconciliation avec les commandes, alertes écarts de prix et intégration en stock 1-clic avec recalcul PAMP.",
+    "MODULES_ROUTE_FACTURX": "Facturation Électronique & Factur-X"
   },
   "SAFETY": {
     "ACTIVE_ALERTS_TITLE": "Urgences Angel Shot actives ({{ count }})",
@@ -4506,7 +4509,10 @@
     "DELETE_SUCCESS": "Fournisseur supprimé.",
     "DELETE_ERROR": "Erreur lors de la suppression du fournisseur.",
     "MIGRATE_SUCCESS": "{{ count }} fournisseur(s) migré(s) avec succès !",
-    "MIGRATE_ERROR": "Erreur lors de la migration des fournisseurs."
+    "MIGRATE_ERROR": "Erreur lors de la migration des fournisseurs.",
+    "SIREN": "Numéro SIREN (9 chiffres)",
+    "VAT_NUMBER": "Numéro de TVA Intracommunautaire",
+    "CODE": "Code Fournisseur interne"
   },
   "INVENTORY": {
     "PAGE_TITLE": "Inventaires Physiques & Démarque",
@@ -5153,6 +5159,94 @@
     "GRAND_TOTAL": "Total physique",
     "RESET": "Réinitialiser",
     "EMPTY_HINT": "Saisissez les quantités de chaque coupure pour calculer automatiquement le total."
+  },
+  "purchases": {
+    "invoices": {
+      "tabTitle": "Factures Fournisseurs (Factur-X)",
+      "tabShort": "Factures",
+      "uploadBtn": "Importer Facture",
+      "searchPlaceholder": "Rechercher par numéro, fournisseur...",
+      "filterAll": "Toutes",
+      "emptyTitle": "Aucune facture importée",
+      "emptyMessage": "Importez vos factures d'achat Factur-X (XML ou PDF hybride) ou PDF pour un rapprochement automatique avec vos commandes.",
+      "unmatchedSupplier": "Fournisseur non reconnu",
+      "totalHt": "Total HT",
+      "totalTtc": "Total TTC",
+      "linesCount": "Lignes",
+      "matchedPo": "Commande liée",
+      "downloadFacturXXml": "Télécharger Factur-X (XML)",
+      "invoiceNumber": "Numéro de facture",
+      "supplier": "Fournisseur",
+      "date": "Date de facturation",
+      "format": "Format",
+      "legalStatus": "Conformité légale",
+      "matched": "Associé",
+      "duplicateNotice": "Cette facture a déjà été importée (détection par empreinte SHA-256).",
+      "uploadSuccess": "Facture importée et analysée avec succès.",
+      "reconciliationSaved": "Rapprochement enregistré en brouillon.",
+      "applySuccess": "Rapprochement appliqué avec succès : stocks et PAMP mis à jour.",
+      "deleteSuccess": "Facture supprimée avec succès.",
+      "deleteError": "Erreur lors de la suppression de la facture.",
+      "downloadXmlError": "Erreur lors du téléchargement du fichier XML Factur-X.",
+      "status": {
+        "PENDING_REVIEW": "À vérifier",
+        "RECONCILED": "Rapprochée",
+        "DISCREPANCY_CONFIRMED": "Écarts détectés",
+        "APPLIED": "Stock intégré"
+      },
+      "itemStatus": {
+        "MATCHED": "Conforme",
+        "PRICE_VARIANCE": "Écart de prix",
+        "QUANTITY_VARIANCE": "Écart de quantité",
+        "MISSING_ORDER_ITEM": "Article manquant",
+        "UNRECOGNIZED_ITEM": "Article non reconnu",
+        "SUBSTITUTE_ITEM": "Article substitué",
+        "IGNORED": "Ignoré"
+      },
+      "table": {
+        "designation": "Désignation",
+        "packaging": "Conditionnement",
+        "qtyInvoiced": "Qté Facturée",
+        "qtyOrdered": "Qté Cde",
+        "unitPriceInvoiced": "Prix Facturé HT",
+        "unitPriceOrdered": "Prix Cde HT",
+        "variance": "Écart",
+        "status": "Statut",
+        "catalogMatch": "Ingrédient Catalogue"
+      },
+      "uploadModal": {
+        "title": "Importer une Facture Fournisseur",
+        "subtitle": "Format Factur-X (hybride XML/PDF) ou PDF standard avec extraction automatique",
+        "dragDropPrompt": "Glissez-déposez votre facture ici ou cliquez pour parcourir",
+        "supportedFormats": "Formats supportés : PDF hybride Factur-X / ZUGFeRD, PDF standard, XML Factur-X (max 15 Mo)",
+        "submitBtn": "Analyser et importer",
+        "continueBtn": "Passer au rapprochement"
+      },
+      "reconcileModal": {
+        "title": "Rapprochement Facture & Réception Stock",
+        "selectPoLabel": "Bon de Commande de rattachement",
+        "poPlaceholder": "Sélectionner un bon de commande...",
+        "variancesDetected": "Écarts de prix ou de quantités détectés",
+        "mapIngredientPrompt": "Associer à un ingrédient du catalogue...",
+        "notesLabel": "Notes de rapprochement",
+        "notesPlaceholder": "Commentaires ou justifications sur les écarts...",
+        "saveBtn": "Enregistrer brouillon",
+        "applyBtn": "Intégrer en stock & Recalculer PAMP",
+        "noLines": "Aucune ligne de facture à rapprocher."
+      },
+      "applyModal": {
+        "title": "Confirmer l'intégration en stock",
+        "message": "Êtes-vous sûr de vouloir intégrer les quantités et mettre à jour le PAMP pour la facture {{ invoiceNumber }} (Total HT: {{ totalHt }} €) ?",
+        "confirmBtn": "Intégrer en stock"
+      },
+      "deleteModal": {
+        "title": "Supprimer la facture",
+        "message": "Êtes-vous sûr de vouloir supprimer définitivement la facture {{ invoiceNumber }} ?"
+      },
+      "errors": {
+        "invalidFormat": "Format de fichier non pris en charge. Veuillez sélectionner un fichier PDF ou XML.",
+        "uploadFailed": "Échec du téléversement ou de l'analyse de la facture."
+      }
+    }
   }
 }
-

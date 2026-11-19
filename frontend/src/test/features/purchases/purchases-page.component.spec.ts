@@ -6,9 +6,11 @@ import { PurchasesPageComponent } from '../../../app/features/purchases/purchase
 import { SupplierService } from '../../../app/core/services/supplier.service';
 import { PurchaseOrderService } from '../../../app/core/services/purchase-order.service';
 import { IngredientService } from '../../../app/core/services/ingredient.service';
+import { SupplierInvoiceService } from '../../../app/core/services/supplier-invoice.service';
 import { Supplier } from '../../../app/core/models/supplier.model';
 import { PurchaseOrder } from '../../../app/core/models/purchase-order.model';
 import { Ingredient } from '../../../app/core/models/ingredient.model';
+import { SupplierInvoice } from '../../../app/core/models/supplier-invoice.model';
 
 describe('PurchasesPageComponent', () => {
   let component: PurchasesPageComponent;
@@ -19,6 +21,52 @@ describe('PurchasesPageComponent', () => {
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let alertCtrlSpy: jasmine.SpyObj<AlertController>;
+  let supplierInvoiceServiceSpy: jasmine.SpyObj<SupplierInvoiceService>;
+
+  const mockInvoices: SupplierInvoice[] = [
+    {
+      id: 1,
+      invoiceNumber: 'INV-2026-001',
+      supplierId: 1,
+      supplierName: 'Brasserie du Mont-Blanc',
+      invoiceDate: '2026-03-15',
+      dueDate: '2026-04-15',
+      totalHt: 250.0,
+      totalVat: 50.0,
+      totalTtc: 300.0,
+      currency: 'EUR',
+      status: 'PENDING_REVIEW',
+      format: 'FACTUR_X',
+      profile: 'EN 16931',
+      fileName: 'factur-x.xml',
+      fileChecksum: 'abc12345',
+      legalComplianceStatus: 'COMPLIANT',
+      createdAt: '2026-03-15T10:00:00',
+      updatedAt: '2026-03-15T10:00:00',
+      items: []
+    },
+    {
+      id: 2,
+      invoiceNumber: 'INV-2026-002',
+      supplierId: 2,
+      supplierName: 'Distillerie des Alpes',
+      invoiceDate: '2026-03-16',
+      dueDate: '2026-04-16',
+      totalHt: 100.0,
+      totalVat: 20.0,
+      totalTtc: 120.0,
+      currency: 'EUR',
+      status: 'APPLIED',
+      format: 'STANDARD_PDF',
+      profile: 'HEURISTIC_PDF',
+      fileName: 'metro.pdf',
+      fileChecksum: 'def67890',
+      legalComplianceStatus: 'COMPLIANT',
+      createdAt: '2026-03-16T10:00:00',
+      updatedAt: '2026-03-16T10:00:00',
+      items: []
+    }
+  ];
 
   const mockSuppliers: Supplier[] = [
     {
@@ -94,10 +142,12 @@ describe('PurchasesPageComponent', () => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     alertCtrlSpy = jasmine.createSpyObj('AlertController', ['create']);
+    supplierInvoiceServiceSpy = jasmine.createSpyObj('SupplierInvoiceService', ['getInvoices', 'deleteInvoice', 'downloadXml']);
 
     supplierServiceSpy.getAll.and.returnValue(of(mockSuppliers));
     purchaseOrderServiceSpy.getAll.and.returnValue(of(mockOrders));
     ingredientServiceSpy.getAll.and.returnValue(of(mockIngredients));
+    supplierInvoiceServiceSpy.getInvoices.and.returnValue(of(mockInvoices));
     toastCtrlSpy.create.and.returnValue(Promise.resolve({ present: () => Promise.resolve() } as any));
 
     await TestBed.configureTestingModule({
@@ -109,6 +159,7 @@ describe('PurchasesPageComponent', () => {
         { provide: SupplierService, useValue: supplierServiceSpy },
         { provide: PurchaseOrderService, useValue: purchaseOrderServiceSpy },
         { provide: IngredientService, useValue: ingredientServiceSpy },
+        { provide: SupplierInvoiceService, useValue: supplierInvoiceServiceSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: AlertController, useValue: alertCtrlSpy }
@@ -455,6 +506,92 @@ describe('PurchasesPageComponent', () => {
     it('should map getSupplierAccentColor correctly', () => {
       expect(component.getSupplierAccentColor(true)).toBe('primary');
       expect(component.getSupplierAccentColor(false)).toBe('none');
+    });
+  });
+
+  describe('Supplier Invoices Tab', () => {
+    it('should switch to invoices tab and filter by status and query', () => {
+      component.activeTab.set('invoices');
+      component.supplierInvoices.set(mockInvoices);
+
+      component.invoiceStatusFilter.set('ALL');
+      expect(component.filteredInvoices()).toHaveSize(2);
+
+      component.invoiceStatusFilter.set('PENDING_REVIEW');
+      expect(component.filteredInvoices()).toHaveSize(1);
+      expect(component.filteredInvoices()[0].invoiceNumber).toBe('INV-2026-001');
+
+      component.invoiceStatusFilter.set('APPLIED');
+      expect(component.filteredInvoices()).toHaveSize(1);
+      expect(component.filteredInvoices()[0].invoiceNumber).toBe('INV-2026-002');
+
+      component.invoiceStatusFilter.set('ALL');
+      component.searchQuery.set('Alpes');
+      expect(component.filteredInvoices()).toHaveSize(1);
+      expect(component.filteredInvoices()[0].supplierName).toBe('Distillerie des Alpes');
+    });
+
+    it('should map getInvoiceAccentColor correctly', () => {
+      expect(component.getInvoiceAccentColor('APPLIED')).toBe('success');
+      expect(component.getInvoiceAccentColor('RECONCILED')).toBe('primary');
+      expect(component.getInvoiceAccentColor('DISCREPANCY_CONFIRMED')).toBe('warning');
+      expect(component.getInvoiceAccentColor('PENDING_REVIEW')).toBe('none');
+    });
+
+    it('should open upload invoice modal and handle confirmation', async () => {
+      const modalMock = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(
+          Promise.resolve({ data: mockInvoices[0], role: 'confirm' })
+        )
+      };
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
+      spyOn(component, 'openReconcileModal').and.returnValue(Promise.resolve());
+
+      await component.openUploadInvoiceModal();
+
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
+      expect(modalMock.present).toHaveBeenCalled();
+      expect(component.openReconcileModal).toHaveBeenCalledWith(mockInvoices[0]);
+    });
+
+    it('should open reconcile modal and refresh data', async () => {
+      const modalMock = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(
+          Promise.resolve({ data: null, role: 'dismiss' })
+        )
+      };
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
+      spyOn(component, 'loadAllData');
+
+      await component.openReconcileModal(mockInvoices[0]);
+
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
+      expect(component.loadAllData).toHaveBeenCalled();
+    });
+
+    it('should confirm and delete an invoice', async () => {
+      supplierInvoiceServiceSpy.deleteInvoice.and.returnValue(of(void 0));
+      let deleteHandler: (() => void) | undefined;
+      alertCtrlSpy.create.and.callFake((opts: any) => {
+        deleteHandler = opts.buttons.find((b: any) => b.role === 'destructive')?.handler;
+        return Promise.resolve({ present: () => Promise.resolve() } as any);
+      });
+
+      await component.confirmDeleteInvoice(mockInvoices[0]);
+      expect(alertCtrlSpy.create).toHaveBeenCalled();
+
+      deleteHandler?.();
+      expect(supplierInvoiceServiceSpy.deleteInvoice).toHaveBeenCalledWith(1);
+    });
+
+    it('should download invoice XML', () => {
+      const blob = new Blob(['<xml></xml>'], { type: 'application/xml' });
+      supplierInvoiceServiceSpy.downloadXml.and.returnValue(of(blob));
+
+      component.downloadInvoiceXml(mockInvoices[0]);
+      expect(supplierInvoiceServiceSpy.downloadXml).toHaveBeenCalledWith(1);
     });
   });
 });

@@ -137,6 +137,10 @@ public class SupplierService {
         supplier.setConditionsPaiement(request.conditionsPaiement());
         supplier.setNotes(request.notes());
         supplier.setActif(request.actif() == null || request.actif());
+        supplier.setSiren(request.siren());
+        supplier.setSiret(request.siret());
+        supplier.setVatNumber(request.vatNumber());
+        supplier.setCodeFournisseur(request.codeFournisseur());
 
         Supplier saved = supplierRepository.save(supplier);
         return SupplierDTO.from(saved);
@@ -165,6 +169,18 @@ public class SupplierService {
         supplier.setNotes(request.notes());
         if (request.actif() != null) {
             supplier.setActif(request.actif());
+        }
+        if (request.siren() != null) {
+            supplier.setSiren(request.siren());
+        }
+        if (request.siret() != null) {
+            supplier.setSiret(request.siret());
+        }
+        if (request.vatNumber() != null) {
+            supplier.setVatNumber(request.vatNumber());
+        }
+        if (request.codeFournisseur() != null) {
+            supplier.setCodeFournisseur(request.codeFournisseur());
         }
 
         Supplier updated = supplierRepository.save(supplier);

@@ -19,6 +19,10 @@ import java.time.LocalDateTime;
  * @param actif              Whether supplier is actively active
  * @param createdAt          Record creation timestamp
  * @param updatedAt          Last update timestamp
+ * @param siren              French 9-digit SIREN identifier
+ * @param siret              French 14-digit SIRET establishment identifier
+ * @param vatNumber          European intra-community VAT identification number
+ * @param codeFournisseur    Internal supplier alphanumeric identifier code
  */
 @Schema(description = "Beverage and produce supplier representation")
 public record SupplierDTO(
@@ -32,8 +36,28 @@ public record SupplierDTO(
         String notes,
         Boolean actif,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        String siren,
+        String siret,
+        String vatNumber,
+        String codeFournisseur
 ) {
+    public SupplierDTO(
+            Long id,
+            String nom,
+            String contactNom,
+            String email,
+            String telephone,
+            String adresse,
+            String conditionsPaiement,
+            String notes,
+            Boolean actif,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+    ) {
+        this(id, nom, contactNom, email, telephone, adresse, conditionsPaiement, notes, actif, createdAt, updatedAt, null, null, null, null);
+    }
+
     /**
      * Constructs a {@link SupplierDTO} from a {@link Supplier} JPA entity.
      *
@@ -55,7 +79,11 @@ public record SupplierDTO(
                 s.getNotes(),
                 s.getActif(),
                 s.getCreatedAt(),
-                s.getUpdatedAt()
+                s.getUpdatedAt(),
+                s.getSiren(),
+                s.getSiret(),
+                s.getVatNumber(),
+                s.getCodeFournisseur()
         );
     }
 }

@@ -1,0 +1,204 @@
+<app-modal
+  [title]="('purchases.invoices.reconcileModal.title' | transloco) + ' ' + invoice.invoiceNumber"
+  [subtitle]="invoice.supplierName || ('purchases.invoices.unmatchedSupplier' | transloco)"
+  [icon]="'document-text-outline'"
+  [size]="'xl'"
+  (closeModal)="dismiss()">
+
+  <div class="reconcile-modal-body">
+    <!-- Header Summary Strip -->
+    <div class="header-strip">
+      <div class="meta-pill">
+        <span class="label">{{ 'purchases.invoices.date' | transloco }}:</span>
+        <span class="val">{{ invoice.invoiceDate || ('COMMON.NOT_SPECIFIED' | transloco) }}</span>
+      </div>
+      <div class="meta-pill">
+        <span class="label">{{ 'purchases.invoices.format' | transloco }}:</span>
+        <span class="badge" [class.badge-facturx]="invoice.format === 'FACTUR_X'">{{ invoice.format }}</span>
+      </div>
+      <div class="meta-pill">
+        <span class="label">{{ 'purchases.invoices.legalStatus' | transloco }}:</span>
+        <span class="badge" [class.badge-success]="invoice.legalComplianceStatus === 'COMPLIANT'" [class.badge-warning]="invoice.legalComplianceStatus === 'WARNINGS'">
+          {{ 'purchases.invoices.complianceStatus.' + invoice.legalComplianceStatus | transloco }}
+        </span>
+      </div>
+      <div class="meta-pill">
+        <span class="label">{{ 'purchases.invoices.totalHt' | transloco }}:</span>
+        <span class="val bold highlight">{{ invoice.totalHt.toFixed(2) }} €</span>
+      </div>
+      <div class="meta-pill">
+        <span class="label">{{ 'purchases.invoices.totalTtc' | transloco }}:</span>
+        <span class="val bold">{{ invoice.totalTtc.toFixed(2) }} €</span>
+      </div>
+    </div>
+
+    <!-- PO Association Section -->
+    <div class="po-selection-bar" data-testid="po-selection-bar">
+      <div class="selection-control">
+        <span class="control-label">{{ 'purchases.invoices.reconcileModal.selectPoLabel' | transloco }}</span>
+        <app-searchable-select
+          [options]="poOptions()"
+          [ngModel]="selectedPoId()"
+          (ngModelChange)="onPurchaseOrderSelected($event)"
+          [placeholder]="'purchases.invoices.reconcileModal.poPlaceholder' | transloco"
+          data-testid="reconcile-po-select">
+        </app-searchable-select>
+      </div>
+
+      @if (invoice.format === 'FACTUR_X' || invoice.profile === 'EN 16931') {
+        <app-action-button
+          variant="ghost"
+          size="small"
+          icon="download-outline"
+          (actionClick)="downloadXml()"
+          data-testid="download-facturx-xml-btn">
+          {{ 'purchases.invoices.downloadFacturXXml' | transloco }}
+        </app-action-button>
+      }
+    </div>
+
+    <!-- Reconciliation Warnings banner if discrepancies -->
+    @if (reconciliation(); as rec) {
+      @if (rec.reconciliationWarnings && rec.reconciliationWarnings.length > 0) {
+        <div class="discrepancy-banner" data-testid="reconciliation-warnings-banner">
+          <ion-icon name="warning-outline"></ion-icon>
+          <div class="banner-content">
+            <h4>{{ 'purchases.invoices.reconcileModal.variancesDetected' | transloco }}</h4>
+            <ul>
+              @for (w of rec.reconciliationWarnings; track w) {
+                <li>{{ w }}</li>
+              }
+            </ul>
+          </div>
+        </div>
+      }
+    }
+
+    <!-- Diff Lines Table Area -->
+    <div class="diff-table-container" data-testid="reconciliation-diff-table">
+      @if (isLoading()) {
+        <div class="loading-state">
+          <ion-icon name="sync-outline" class="spin-icon"></ion-icon>
+          <span>{{ 'COMMON.LOADING' | transloco }}</span>
+        </div>
+      } @else if (reconciliation(); as rec) {
+        <div class="table-responsive">
+          <table class="reconcile-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>{{ 'purchases.invoices.table.designation' | transloco }}</th>
+                <th>{{ 'purchases.invoices.table.packaging' | transloco }}</th>
+                <th class="num">{{ 'purchases.invoices.table.qtyInvoiced' | transloco }}</th>
+                <th class="num">{{ 'purchases.invoices.table.qtyOrdered' | transloco }}</th>
+                <th class="num">{{ 'purchases.invoices.table.unitPriceInvoiced' | transloco }}</th>
+                <th class="num">{{ 'purchases.invoices.table.unitPriceOrdered' | transloco }}</th>
+                <th>{{ 'purchases.invoices.table.variance' | transloco }}</th>
+                <th>{{ 'purchases.invoices.table.status' | transloco }}</th>
+                <th>{{ 'purchases.invoices.table.catalogMatch' | transloco }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (line of rec.lines; track line.invoiceItemId || line.lineNumber) {
+                <tr [class.row-missing]="line.status === 'MISSING_ORDER_ITEM'" [class.row-variance]="line.status === 'PRICE_VARIANCE' || line.status === 'QUANTITY_VARIANCE'">
+                  <td class="cell-line-num">{{ line.lineNumber || '-' }}</td>
+                  <td class="cell-designation">
+                    <span class="product-name">{{ line.designation }}</span>
+                    @if (line.productReference) {
+                      <span class="ref-sub">{{ line.productReference }}</span>
+                    }
+                  </td>
+                  <td class="cell-packaging">{{ line.packaging || '-' }}</td>
+                  <td class="num cell-qty-invoiced">
+                    <strong>{{ line.quantityInvoiced }}</strong>
+                  </td>
+                  <td class="num cell-qty-ordered">{{ line.quantityOrdered }}</td>
+                  <td class="num cell-price-invoiced">
+                    <strong>{{ line.unitPriceInvoiced.toFixed(2) }} €</strong>
+                  </td>
+                  <td class="num cell-price-ordered">{{ line.unitPriceOrdered.toFixed(2) }} €</td>
+                  <td class="cell-variance">
+                    @if (line.priceVariancePercent !== 0) {
+                      <span
+                        class="variance-chip"
+                        [class.chip-up]="line.priceVariancePercent > 0"
+                        [class.chip-down]="line.priceVariancePercent < 0">
+                        <ion-icon [name]="line.priceVariancePercent > 0 ? 'trending-up-outline' : 'trending-down-outline'"></ion-icon>
+                        {{ line.priceVariancePercent > 0 ? '+' : '' }}{{ line.priceVariancePercent.toFixed(1) }}%
+                      </span>
+                    } @else {
+                      <span class="variance-chip chip-ok">0.0%</span>
+                    }
+                  </td>
+                  <td class="cell-status">
+                    <span class="status-pill status-{{ line.status.toLowerCase() }}">
+                      {{ 'purchases.invoices.itemStatus.' + line.status | transloco }}
+                    </span>
+                  </td>
+                  <td class="cell-mapping">
+                    @if (line.isNewOrUnrecognized) {
+                      <app-searchable-select
+                        [options]="ingredientOptions()"
+                        [ngModel]="line.matchedIngredientId"
+                        (ngModelChange)="onIngredientSelected(line, $event)"
+                        [placeholder]="'purchases.invoices.reconcileModal.mapIngredientPrompt' | transloco"
+                        data-testid="map-ingredient-select">
+                      </app-searchable-select>
+                    } @else {
+                      <span class="matched-name">
+                        <ion-icon name="shield-checkmark-outline"></ion-icon>
+                        {{ line.matchedIngredientName || ('purchases.invoices.matched' | transloco) }}
+                      </span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <!-- Notes section -->
+    <div class="reconcile-notes-bar">
+      <app-input-field
+        [label]="'purchases.invoices.reconcileModal.notesLabel' | transloco"
+        [placeholder]="'purchases.invoices.reconcileModal.notesPlaceholder' | transloco"
+        [ngModel]="notes()"
+        (ngModelChange)="notes.set($event)"
+        data-testid="reconcile-notes-input">
+      </app-input-field>
+    </div>
+  </div>
+
+  <div slot="footer" class="modal-footer-actions">
+    <app-action-button
+      variant="secondary"
+      (actionClick)="dismiss()"
+      data-testid="reconcile-modal-cancel-btn">
+      {{ 'COMMON.CLOSE' | transloco }}
+    </app-action-button>
+
+    @if (invoice.status !== 'APPLIED') {
+      <app-action-button
+        variant="ghost"
+        icon="sync-outline"
+        [loading]="isSaving()"
+        [disabled]="isSaving() || isApplying()"
+        (actionClick)="saveReconciliation()"
+        data-testid="save-reconciliation-btn">
+        {{ 'purchases.invoices.reconcileModal.saveBtn' | transloco }}
+      </app-action-button>
+
+      <app-action-button
+        variant="primary"
+        icon="checkmark-done-outline"
+        [loading]="isApplying()"
+        [disabled]="isApplying() || isSaving() || !reconciliation()?.canAutoApply"
+        (actionClick)="confirmAndApply()"
+        data-testid="apply-invoice-stock-btn">
+        {{ 'purchases.invoices.reconcileModal.applyBtn' | transloco }}
+      </app-action-button>
+    }
+  </div>
+</app-modal>

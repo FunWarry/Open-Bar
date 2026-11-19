@@ -24,7 +24,10 @@ import {
   trashOutline,
   syncOutline,
   downloadOutline,
-  searchOutline
+  searchOutline,
+  cloudUploadOutline,
+  shieldCheckmarkOutline,
+  layersOutline
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Supplier, SupplierCreateRequest } from '../../core/models/supplier.model';
@@ -33,20 +36,28 @@ import {
   PurchaseOrderCreateRequest,
   PurchaseOrderStatus
 } from '../../core/models/purchase-order.model';
+import {
+  SupplierInvoice,
+  SupplierInvoiceStatus
+} from '../../core/models/supplier-invoice.model';
 import { Ingredient } from '../../core/models/ingredient.model';
 import { SupplierService } from '../../core/services/supplier.service';
 import { PurchaseOrderService } from '../../core/services/purchase-order.service';
 import { IngredientService } from '../../core/services/ingredient.service';
+import { SupplierInvoiceService } from '../../core/services/supplier-invoice.service';
 import { SupplierFormModalComponent } from './supplier-form-modal/supplier-form-modal.component';
 import { PurchaseOrderFormModalComponent } from './purchase-order-form-modal/purchase-order-form-modal.component';
 import { PurchaseOrderReceptionModalComponent } from './purchase-order-reception-modal/purchase-order-reception-modal.component';
 import { PurchaseOrderDetailModalComponent } from './purchase-order-detail-modal/purchase-order-detail-modal.component';
+import { SupplierInvoiceUploadModalComponent } from './supplier-invoice-upload-modal/supplier-invoice-upload-modal.component';
+import { SupplierInvoiceReconcileModalComponent } from './supplier-invoice-reconcile-modal/supplier-invoice-reconcile-modal.component';
 import { BarcodeScannerModalComponent, BarcodeScannerResult } from '../../core/components/ui/barcode-scanner-modal/barcode-scanner-modal.component';
 import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
 import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
 import { CardComponent, CardAccentColor } from '../../core/components/ui/card/card.component';
+import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
 
-export type PurchasesTab = 'orders' | 'suppliers' | 'pamp';
+export type PurchasesTab = 'orders' | 'suppliers' | 'pamp' | 'invoices';
 
 /**
  * Main management view for suppliers, purchase orders, goods intake, and PAMP recalculation.
@@ -65,13 +76,15 @@ export type PurchasesTab = 'orders' | 'suppliers' | 'pamp';
     TranslocoPipe,
     EmptyStateComponent,
     SearchBarComponent,
-    CardComponent
+    CardComponent,
+    ActionButtonComponent
   ]
 })
 export class PurchasesPageComponent implements OnInit {
   private readonly supplierService = inject(SupplierService);
   private readonly purchaseOrderService = inject(PurchaseOrderService);
   private readonly ingredientService = inject(IngredientService);
+  private readonly supplierInvoiceService = inject(SupplierInvoiceService);
   private readonly modalCtrl = inject(ModalController);
   private readonly toastCtrl = inject(ToastController);
   private readonly alertCtrl = inject(AlertController);
@@ -79,11 +92,13 @@ export class PurchasesPageComponent implements OnInit {
 
   activeTab = signal<PurchasesTab>('orders');
   statusFilter = signal<PurchaseOrderStatus | 'ALL'>('ALL');
+  invoiceStatusFilter = signal<SupplierInvoiceStatus | 'ALL'>('ALL');
   searchQuery = signal('');
 
   suppliers = signal<Supplier[]>([]);
   purchaseOrders = signal<PurchaseOrder[]>([]);
   ingredients = signal<Ingredient[]>([]);
+  supplierInvoices = signal<SupplierInvoice[]>([]);
   isLoading = signal(false);
 
   constructor() {
@@ -101,13 +116,35 @@ export class PurchasesPageComponent implements OnInit {
       trashOutline,
       syncOutline,
       downloadOutline,
-      searchOutline
+      searchOutline,
+      cloudUploadOutline,
+      shieldCheckmarkOutline,
+      layersOutline
     });
   }
 
   /**
    * Resolves semantic accent border color for purchase order status.
    */
+  /**
+   * Resolves semantic accent border color for supplier invoice status.
+   */
+  getInvoiceAccentColor(status: SupplierInvoiceStatus): CardAccentColor {
+    switch (status) {
+      case 'APPLIED':
+        return 'success';
+      case 'RECONCILED':
+        return 'primary';
+      case 'DISCREPANCY_CONFIRMED':
+        return 'warning';
+      case 'REJECTED':
+        return 'danger';
+      case 'PENDING_REVIEW':
+      default:
+        return 'none';
+    }
+  }
+
   getOrderAccentColor(status: PurchaseOrderStatus): CardAccentColor {
     switch (status) {
       case 'RECEIVED':
@@ -152,6 +189,15 @@ export class PurchasesPageComponent implements OnInit {
 
     this.ingredientService.getAll().subscribe({
       next: (ings) => this.ingredients.set(ings),
+      error: () => {}
+    });
+
+    this.loadInvoices();
+  }
+
+  loadInvoices(): void {
+    this.supplierInvoiceService.getInvoices().subscribe({
+      next: (invs) => this.supplierInvoices.set(invs),
       error: () => {}
     });
   }
@@ -203,6 +249,27 @@ export class PurchasesPageComponent implements OnInit {
       i.codeBarre?.toLowerCase().includes(q) ||
       i.defaultSupplierNom?.toLowerCase().includes(q)
     );
+  });
+
+  /**
+   * Filtered supplier invoices based on status and search query.
+   */
+  filteredInvoices = computed(() => {
+    const filter = this.invoiceStatusFilter();
+    const query = this.searchQuery().toLowerCase().trim();
+    let invoices = this.supplierInvoices();
+    if (filter !== 'ALL') {
+      invoices = invoices.filter(inv => inv.status === filter);
+    }
+    if (query) {
+      invoices = invoices.filter(inv =>
+        inv.invoiceNumber.toLowerCase().includes(query) ||
+        Boolean(inv.supplierName?.toLowerCase().includes(query)) ||
+        Boolean(inv.purchaseOrderReference?.toLowerCase().includes(query)) ||
+        Boolean(inv.supplierSiren?.includes(query))
+      );
+    }
+    return invoices;
   });
 
   selectTab(tab: PurchasesTab): void {
@@ -440,6 +507,82 @@ export class PurchasesPageComponent implements OnInit {
       this.searchQuery.set(data.barcode);
       this.activeTab.set('pamp');
     }
+  }
+
+  // --- Supplier Invoice Actions ---
+
+  async openUploadInvoiceModal(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: SupplierInvoiceUploadModalComponent,
+      cssClass: 'modal-md openbar-modal-md'
+    });
+
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss<SupplierInvoice>();
+
+    if (role === 'confirm' && data) {
+      this.loadInvoices();
+      this.activeTab.set('invoices');
+      await this.openReconcileModal(data);
+    } else {
+      this.loadInvoices();
+    }
+  }
+
+  async openReconcileModal(invoice: SupplierInvoice): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: SupplierInvoiceReconcileModalComponent,
+      componentProps: { invoice },
+      cssClass: 'modal-xl openbar-modal-xl'
+    });
+
+    await modal.present();
+    await modal.onWillDismiss();
+    this.loadAllData();
+  }
+
+  async confirmDeleteInvoice(invoice: SupplierInvoice): Promise<void> {
+    const alert = await this.alertCtrl.create({
+      header: this.transloco.translate('purchases.invoices.deleteModal.title'),
+      message: this.transloco.translate('purchases.invoices.deleteModal.message', {
+        invoiceNumber: invoice.invoiceNumber
+      }),
+      buttons: [
+        { text: this.transloco.translate('COMMON.CANCEL'), role: 'cancel' },
+        {
+          text: this.transloco.translate('COMMON.DELETE'),
+          role: 'destructive',
+          handler: () => {
+            this.supplierInvoiceService.deleteInvoice(invoice.id).subscribe({
+              next: () => {
+                void this.showToast(this.transloco.translate('purchases.invoices.deleteSuccess'), 'success');
+                this.loadInvoices();
+              },
+              error: (err) => {
+                void this.showToast(err?.error?.message || 'Delete failed', 'danger');
+              }
+            });
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  downloadInvoiceXml(invoice: SupplierInvoice): void {
+    this.supplierInvoiceService.downloadXml(invoice.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `factur-x-${invoice.invoiceNumber}.xml`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        void this.showToast('XML not available for this invoice', 'warning');
+      }
+    });
   }
 
   private async showToast(message: string, color: 'success' | 'warning' | 'danger'): Promise<void> {

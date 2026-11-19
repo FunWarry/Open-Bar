@@ -30,6 +30,7 @@ const DEFAULT_MODULES: EstablishmentModules = {
   systemUpdates: true,
   angelShotSafety: true,
   qrPayAtTable: true,
+  facturXInvoiceImport: true,
 };
 
 /**
@@ -104,6 +105,11 @@ export class FeatureFlagService implements OnDestroy {
   /** Computed signal for QR_PAY_AT_TABLE capability status. */
   readonly qrPayAtTableEnabled = computed(() => this.modules().qrPayAtTable);
 
+  /** Computed signal for FACTUR_X_INVOICE_IMPORT capability status. */
+  readonly facturXInvoiceImportEnabled = computed(
+    () => this.modules().facturXInvoiceImport && this.modules().suppliersManagement
+  );
+
   constructor() {
     this.initWebSocketSubscription();
     this.loadModules().subscribe();
@@ -159,6 +165,8 @@ export class FeatureFlagService implements OnDestroy {
         return current.angelShotSafety;
       case EstablishmentModule.QR_PAY_AT_TABLE:
         return current.qrPayAtTable;
+      case EstablishmentModule.FACTUR_X_INVOICE_IMPORT:
+        return current.facturXInvoiceImport && current.suppliersManagement;
       default:
         return true;
     }
@@ -285,6 +293,12 @@ export class FeatureFlagService implements OnDestroy {
         break;
       case EstablishmentModule.ANGEL_SHOT_SAFETY:
         current.angelShotSafety = enabled;
+        break;
+      case EstablishmentModule.QR_PAY_AT_TABLE:
+        current.qrPayAtTable = enabled;
+        break;
+      case EstablishmentModule.FACTUR_X_INVOICE_IMPORT:
+        current.facturXInvoiceImport = enabled;
         break;
     }
     return this.updateModules(current);

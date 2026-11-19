@@ -11,6 +11,9 @@ export interface Supplier {
   codePostal?: string;
   ville?: string;
   siret?: string;
+  siren?: string;
+  vatNumber?: string;
+  codeFournisseur?: string;
   conditionsPaiement?: string;
   notes?: string;
   actif: boolean;
@@ -30,6 +33,9 @@ export interface SupplierCreateRequest {
   codePostal?: string;
   ville?: string;
   siret?: string;
+  siren?: string;
+  vatNumber?: string;
+  codeFournisseur?: string;
   conditionsPaiement?: string;
   notes?: string;
   actif?: boolean;

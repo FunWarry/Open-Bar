@@ -178,7 +178,11 @@ class SupplierServiceTest {
                     "130 Rue des Brasseurs, 74000 Annecy",
                     "45 days net",
                     "Updated notes",
-                    true
+                    true,
+                    "399315613",
+                    "39931561300010",
+                    "FR12399315613",
+                    "SUP-MB-01"
             );
 
             when(supplierRepository.findById(1L)).thenReturn(Optional.of(sampleSupplier));
@@ -190,6 +194,10 @@ class SupplierServiceTest {
             assertThat(updated.contactNom()).isEqualTo("Nouveau Contact");
             assertThat(updated.conditionsPaiement()).isEqualTo("45 days net");
             assertThat(updated.notes()).isEqualTo("Updated notes");
+            assertThat(updated.siren()).isEqualTo("399315613");
+            assertThat(updated.siret()).isEqualTo("39931561300010");
+            assertThat(updated.vatNumber()).isEqualTo("FR12399315613");
+            assertThat(updated.codeFournisseur()).isEqualTo("SUP-MB-01");
         }
 
         @Test
