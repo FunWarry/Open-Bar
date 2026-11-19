@@ -105,7 +105,13 @@ public enum EstablishmentModule {
      * Pay-at-table patron direct mobile settlement via online payment gateway (Stripe Elements,
      * Apple Pay, Google Pay, itemized or equal split billing, and digital receipts).
      */
-    QR_PAY_AT_TABLE
+    QR_PAY_AT_TABLE,
+
+    /**
+     * Automated supplier invoice import via Factur-X XML and PDF parsing, Purchase Order (PO)
+     * reconciliation, discrepancy alerts, and automatic stock intake with PAMP / WAC recalculation.
+     */
+    FACTUR_X_INVOICE_IMPORT
 }
 
 

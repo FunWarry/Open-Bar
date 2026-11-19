@@ -42,4 +42,28 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
      * @return optional supplier
      */
     Optional<Supplier> findByNomIgnoreCase(String nom);
+
+    /**
+     * Finds a supplier by French 9-digit SIREN identifier.
+     *
+     * @param siren SIREN code
+     * @return optional supplier
+     */
+    Optional<Supplier> findBySiren(String siren);
+
+    /**
+     * Finds a supplier by French 14-digit SIRET identifier.
+     *
+     * @param siret SIRET code
+     * @return optional supplier
+     */
+    Optional<Supplier> findBySiret(String siret);
+
+    /**
+     * Finds a supplier by European intra-community VAT identification number.
+     *
+     * @param vatNumber VAT number
+     * @return optional supplier
+     */
+    Optional<Supplier> findByVatNumber(String vatNumber);
 }

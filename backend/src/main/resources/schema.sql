@@ -83,6 +83,10 @@ CREATE TABLE IF NOT EXISTS suppliers (
     conditions_paiement VARCHAR(100),
     notes TEXT,
     actif BOOLEAN NOT NULL DEFAULT true,
+    siren VARCHAR(20),
+    siret VARCHAR(20),
+    vat_number VARCHAR(30),
+    code_fournisseur VARCHAR(50),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -583,6 +587,7 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     module_bar_tabs_enabled BOOLEAN DEFAULT true,
     module_cocktail_library_enabled BOOLEAN DEFAULT true,
     module_suppliers_management_enabled BOOLEAN DEFAULT true,
+    module_factur_x_invoice_import_enabled BOOLEAN DEFAULT true,
     module_inventory_audit_enabled BOOLEAN DEFAULT true,
     module_mystery_roulette_enabled BOOLEAN DEFAULT true,
     module_payment_terminal_enabled BOOLEAN DEFAULT true,
@@ -840,6 +845,74 @@ CREATE TABLE IF NOT EXISTS purchase_order_delivery_items (
 
 CREATE INDEX IF NOT EXISTS idx_po_delivery_items_delivery ON purchase_order_delivery_items(delivery_id);
 CREATE INDEX IF NOT EXISTS idx_po_delivery_items_ingredient ON purchase_order_delivery_items(ingredient_id);
+
+-- 15b. Supplier Invoices (Factur-X & PDF Parsing, PO Reconciliation, and Automated Stock Intake)
+CREATE TABLE IF NOT EXISTS supplier_invoices (
+    id BIGSERIAL PRIMARY KEY,
+    invoice_number VARCHAR(100) NOT NULL,
+    supplier_id BIGINT REFERENCES suppliers(id) ON DELETE SET NULL,
+    supplier_name_raw VARCHAR(255),
+    supplier_siren VARCHAR(20),
+    supplier_siret VARCHAR(20),
+    supplier_vat_number VARCHAR(30),
+    customer_name VARCHAR(255),
+    customer_siren VARCHAR(20),
+    invoice_date DATE,
+    due_date DATE,
+    delivery_date DATE,
+    order_reference VARCHAR(100),
+    delivery_note_reference VARCHAR(100),
+    total_ht DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    total_vat DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    total_ttc DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    currency VARCHAR(10) NOT NULL DEFAULT 'EUR',
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING_REVIEW',
+    format VARCHAR(50) NOT NULL DEFAULT 'FACTUR_X',
+    profile VARCHAR(50) DEFAULT 'EN 16931',
+    file_name VARCHAR(255),
+    file_checksum VARCHAR(64),
+    raw_xml_content TEXT,
+    legal_compliance_status VARCHAR(50) NOT NULL DEFAULT 'COMPLIANT',
+    compliance_details TEXT,
+    reconciliation_notes TEXT,
+    purchase_order_id BIGINT REFERENCES purchase_orders(id) ON DELETE SET NULL,
+    delivery_id BIGINT REFERENCES purchase_order_deliveries(id) ON DELETE SET NULL,
+    reviewed_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    reviewed_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_supplier_invoices_number ON supplier_invoices(invoice_number);
+CREATE INDEX IF NOT EXISTS idx_supplier_invoices_supplier ON supplier_invoices(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_supplier_invoices_status ON supplier_invoices(status);
+CREATE INDEX IF NOT EXISTS idx_supplier_invoices_po ON supplier_invoices(purchase_order_id);
+CREATE INDEX IF NOT EXISTS idx_supplier_invoices_checksum ON supplier_invoices(file_checksum);
+
+CREATE TABLE IF NOT EXISTS supplier_invoice_items (
+    id BIGSERIAL PRIMARY KEY,
+    invoice_id BIGINT NOT NULL REFERENCES supplier_invoices(id) ON DELETE CASCADE,
+    line_number INTEGER NOT NULL DEFAULT 1,
+    product_reference VARCHAR(100),
+    designation VARCHAR(255) NOT NULL,
+    packaging VARCHAR(100),
+    quantity_invoiced DECIMAL(10,3) NOT NULL,
+    unit_price_ht DECIMAL(10,4) NOT NULL,
+    discount_amount DECIMAL(10,2) DEFAULT 0.00,
+    vat_rate DECIMAL(5,2) NOT NULL DEFAULT 20.00,
+    line_total_ht DECIMAL(12,2) NOT NULL,
+    line_total_ttc DECIMAL(12,2) NOT NULL,
+    matched_ingredient_id BIGINT REFERENCES ingredients(id) ON DELETE SET NULL,
+    matched_po_item_id BIGINT REFERENCES purchase_order_items(id) ON DELETE SET NULL,
+    reconciliation_status VARCHAR(50) NOT NULL DEFAULT 'MATCHED',
+    variance_details TEXT,
+    suggested_packaging_capacity DECIMAL(10,3) DEFAULT 1.000,
+    effective_received_quantity DECIMAL(10,3),
+    effective_unit_price_ht DECIMAL(10,4)
+);
+
+CREATE INDEX IF NOT EXISTS idx_supplier_invoice_items_invoice ON supplier_invoice_items(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_supplier_invoice_items_ing ON supplier_invoice_items(matched_ingredient_id);
 
 -- 16. Periodic Physical Inventory Audit & Variance Reconciliation
 CREATE TABLE IF NOT EXISTS inventory_audit_sessions (

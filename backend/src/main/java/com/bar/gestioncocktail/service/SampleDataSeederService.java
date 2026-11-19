@@ -97,6 +97,7 @@ public class SampleDataSeederService {
     private static final String KEY_MEDIA_URL = "mediaUrl";
     private static final String KEY_VIDEO_EMBED_URL = "videoEmbedUrl";
     private static final String KEY_CODE = "code";
+    private static final String KEY_INGREDIENT_NOM = "ingredientNom";
     private static final String DEFAULT_SERVEUR_USERNAME = "serveur1";
 
     private final UserRepository userRepository;
@@ -138,6 +139,7 @@ public class SampleDataSeederService {
     private final ChecklistRunRepository checklistRunRepository;
     private final SafetyAlertRepository safetyAlertRepository;
     private final GlasswareRepository glasswareRepository;
+    private final SupplierInvoiceRepository supplierInvoiceRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -183,7 +185,8 @@ public class SampleDataSeederService {
             @org.springframework.beans.factory.annotation.Autowired(required = false) ChecklistTemplateRepository checklistTemplateRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) ChecklistRunRepository checklistRunRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) SafetyAlertRepository safetyAlertRepository,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) GlasswareRepository glasswareRepository) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) GlasswareRepository glasswareRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) SupplierInvoiceRepository supplierInvoiceRepository) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -223,6 +226,7 @@ public class SampleDataSeederService {
         this.checklistRunRepository = checklistRunRepository;
         this.safetyAlertRepository = safetyAlertRepository;
         this.glasswareRepository = glasswareRepository;
+        this.supplierInvoiceRepository = supplierInvoiceRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -450,6 +454,7 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedCashDrawerSessionsFromJson(root.get("cash_drawer_sessions"), usersMap), "seedCashDrawerSessions");
             safelyInTransaction(() -> seedBarTabsFromJson(root.get("bar_tabs"), usersMap), "seedBarTabs");
             safelyInTransaction(() -> seedSuppliersAndOrdersFromJson(root.get("suppliers"), root.get("purchase_orders"), usersMap), "seedSuppliersAndOrders");
+            safelyInTransaction(() -> seedSupplierInvoicesFromJson(root.get("supplier_invoices"), usersMap), "seedSupplierInvoices");
             safelyInTransaction(() -> seedReservationsFromJson(root.get("reservations"), tablesMap), "seedReservations");
             safelyInTransaction(() -> seedChecklistsFromJson(root.get("checklist_templates"), root.get("checklist_runs"), usersMap), "seedChecklists");
 
@@ -1737,7 +1742,7 @@ public class SampleDataSeederService {
     }
 
     private Optional<StockMovement> buildStockMovementFromNode(JsonNode mNode, Map<String, User> usersMap) {
-        String ingredientName = mNode.get("ingredientNom").asText();
+        String ingredientName = mNode.get(KEY_INGREDIENT_NOM).asText();
         Ingredient ing = ingredientRepository.findByNomIgnoreCase(ingredientName).orElse(null);
         if (ing == null) {
             return Optional.empty();
@@ -2138,7 +2143,7 @@ public class SampleDataSeederService {
         if (itemsNode == null || !itemsNode.isArray()) return items;
 
         for (JsonNode itNode : itemsNode) {
-            String ingNom = itNode.get("ingredientNom").asText();
+            String ingNom = itNode.get(KEY_INGREDIENT_NOM).asText();
             BigDecimal unitPrice = new BigDecimal(itNode.get("prixUnitaireHt").asText());
             Ingredient ing = findOrCreateIngredient(ingNom, unitPrice);
 
@@ -2226,6 +2231,86 @@ public class SampleDataSeederService {
                 ingredientRepository.save(ing);
             }
         });
+    }
+
+    private void seedSupplierInvoicesFromJson(JsonNode invoicesNode, Map<String, User> usersMap) {
+        if (invoicesNode == null || !invoicesNode.isArray() || supplierInvoiceRepository == null || supplierInvoiceRepository.count() > 0) {
+            return;
+        }
+
+        User adminUser = usersMap.get("admin");
+        Map<String, Supplier> suppliersByName = new HashMap<>();
+        if (supplierRepository != null) {
+            supplierRepository.findAll().forEach(s -> suppliersByName.put(s.getNom(), s));
+        }
+        Map<String, Ingredient> ingredientsByName = new HashMap<>();
+        if (ingredientRepository != null) {
+            ingredientRepository.findAll().forEach(ing -> ingredientsByName.put(ing.getNom(), ing));
+        }
+
+        for (JsonNode invNode : invoicesNode) {
+            SupplierInvoice invoice = buildInvoiceFromNode(invNode, suppliersByName, adminUser);
+            JsonNode itemsNode = invNode.get(KEY_ITEMS);
+            if (itemsNode != null && itemsNode.isArray()) {
+                for (JsonNode itNode : itemsNode) {
+                    invoice.addItem(buildInvoiceItemFromNode(itNode, ingredientsByName));
+                }
+            }
+            supplierInvoiceRepository.save(invoice);
+        }
+        log.info("Seeded demo supplier invoices into database.");
+    }
+
+    private SupplierInvoice buildInvoiceFromNode(JsonNode invNode, Map<String, Supplier> suppliersByName, User adminUser) {
+        SupplierInvoice invoice = new SupplierInvoice();
+        invoice.setInvoiceNumber(invNode.get("invoiceNumber").asText());
+        String suppNom = invNode.path("supplierNom").asText(null);
+        Supplier supplier = suppNom != null ? suppliersByName.get(suppNom) : null;
+        invoice.setSupplier(supplier);
+        invoice.setSupplierNameRaw(suppNom);
+        invoice.setSupplierSiren(invNode.path("supplierSiren").asText(null));
+        invoice.setSupplierVatNumber(invNode.path("supplierVatNumber").asText(null));
+        invoice.setCustomerName(invNode.path("customerName").asText("OpenBar SARL"));
+        invoice.setCustomerSiren(invNode.path("customerSiren").asText("732829320"));
+        invoice.setInvoiceDate(LocalDate.parse(invNode.path("invoiceDate").asText("2026-11-10")));
+        invoice.setDueDate(LocalDate.parse(invNode.path("dueDate").asText("2026-12-10")));
+        if (invNode.has("deliveryDate")) {
+            invoice.setDeliveryDate(LocalDate.parse(invNode.get("deliveryDate").asText()));
+        }
+        invoice.setOrderReference(invNode.path("orderReference").asText(null));
+        invoice.setDeliveryNoteReference(invNode.path("deliveryNoteReference").asText(null));
+        invoice.setTotalHt(new BigDecimal(invNode.path("totalHt").asText("0.00")));
+        invoice.setTotalVat(new BigDecimal(invNode.path("totalVat").asText("0.00")));
+        invoice.setTotalTtc(new BigDecimal(invNode.path("totalTtc").asText("0.00")));
+        invoice.setStatus(SupplierInvoiceStatus.valueOf(invNode.path(KEY_STATUS).asText("PENDING_REVIEW")));
+        invoice.setFormat(SupplierInvoiceFormat.valueOf(invNode.path("format").asText("FACTUR_X")));
+        invoice.setProfile(invNode.path("profile").asText("EN 16931"));
+        invoice.setLegalComplianceStatus(SupplierInvoiceComplianceStatus.valueOf(invNode.path("legalComplianceStatus").asText("COMPLIANT")));
+        invoice.setReviewedBy(adminUser);
+        return invoice;
+    }
+
+    private SupplierInvoiceItem buildInvoiceItemFromNode(JsonNode itNode, Map<String, Ingredient> ingredientsByName) {
+        SupplierInvoiceItem item = new SupplierInvoiceItem();
+        item.setLineNumber(itNode.path("lineNumber").asInt(1));
+        item.setProductReference(itNode.path("productReference").asText(null));
+        item.setDesignation(itNode.path("designation").asText("Product"));
+        item.setPackaging(itNode.path("packaging").asText("Unité"));
+        item.setQuantityInvoiced(new BigDecimal(itNode.path("quantityInvoiced").asText("1.0")));
+        item.setUnitPriceHt(new BigDecimal(itNode.path("unitPriceHt").asText("0.0")));
+        item.setVatRate(new BigDecimal(itNode.path("vatRate").asText("20.00")));
+        item.setLineTotalHt(new BigDecimal(itNode.path("lineTotalHt").asText("0.0")));
+        item.setLineTotalTtc(new BigDecimal(itNode.path("lineTotalTtc").asText("0.0")));
+        String ingNom = itNode.path(KEY_INGREDIENT_NOM).asText(null);
+        if (ingNom != null && ingredientsByName.containsKey(ingNom)) {
+            item.setMatchedIngredient(ingredientsByName.get(ingNom));
+        }
+        if (itNode.has("reconciliationStatus")) {
+            item.setReconciliationStatus(InvoiceItemReconciliationStatus.valueOf(itNode.get("reconciliationStatus").asText()));
+        }
+        item.setVarianceDetails(itNode.path("varianceDetails").asText(null));
+        item.setSuggestedPackagingCapacity(new BigDecimal(itNode.path("suggestedPackagingCapacity").asText("1.0")));
+        return item;
     }
 
     private void seedReservationsFromJson(JsonNode node, Map<Integer, TableEntity> tablesMap) {

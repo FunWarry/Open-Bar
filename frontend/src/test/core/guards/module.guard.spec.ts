@@ -41,6 +41,7 @@ describe('ModuleGuard', () => {
     systemUpdates: true,
     angelShotSafety: true,
     qrPayAtTable: true,
+    facturXInvoiceImport: true,
   };
 
   beforeEach(() => {

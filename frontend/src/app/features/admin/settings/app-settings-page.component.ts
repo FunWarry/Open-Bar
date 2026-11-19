@@ -397,6 +397,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     systemUpdates: true,
     angelShotSafety: true,
     qrPayAtTable: true,
+    facturXInvoiceImport: true,
   };
   initialThemeMode: AppTheme = 'dark';
   initialColors: CustomThemeColors = { ...DEFAULT_FIGMA_PALETTE };
@@ -753,6 +754,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       systemUpdates: [true],
       angelShotSafety: [true],
       qrPayAtTable: [true],
+      facturXInvoiceImport: [true],
     });
 
     this.etabForm = this.fb.group({
@@ -2102,14 +2104,15 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       !!current.checklistsProcedures === target.checklistsProcedures &&
       !!current.systemUpdates === target.systemUpdates &&
       !!current.angelShotSafety === target.angelShotSafety &&
-      !!current.qrPayAtTable === target.qrPayAtTable
+      !!current.qrPayAtTable === target.qrPayAtTable &&
+      !!current.facturXInvoiceImport === target.facturXInvoiceImport
     );
   }
 
   /**
    * Total count of available modular capabilities.
    */
-  readonly totalModulesCount = 18;
+  readonly totalModulesCount = 19;
 
   /**
    * Computes the number of currently active modules in modulesForm.

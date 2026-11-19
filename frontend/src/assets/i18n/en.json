@@ -3820,7 +3820,10 @@
     "SMTP_PORT": "SMTP Port",
     "SMTP_USERNAME": "SMTP Username / Auth account",
     "SMTP_PASSWORD": "SMTP Password",
-    "SMTP_FROM": "Sender email address (From)"
+    "SMTP_FROM": "Sender email address (From)",
+    "MODULE_FACTUR_X_INVOICE_IMPORT_TITLE": "Invoice Import & Factur-X",
+    "MODULE_FACTUR_X_INVOICE_IMPORT_DESC": "Automated supplier invoice import (Factur-X hybrid XML/PDF, PDF), purchase order reconciliation, price variance alerts, and 1-click stock intake with WAC recalculation.",
+    "MODULES_ROUTE_FACTURX": "E-Invoicing & Factur-X"
   },
   "SAFETY": {
     "ACTIVE_ALERTS_TITLE": "Active Angel Shot Emergencies ({{ count }})",
@@ -4506,7 +4509,10 @@
     "DELETE_SUCCESS": "Supplier deleted.",
     "DELETE_ERROR": "Error deleting supplier.",
     "MIGRATE_SUCCESS": "{{ count }} supplier(s) successfully migrated!",
-    "MIGRATE_ERROR": "Error migrating suppliers."
+    "MIGRATE_ERROR": "Error migrating suppliers.",
+    "SIREN": "SIREN Number (9 digits)",
+    "VAT_NUMBER": "Intra-Community VAT Number",
+    "CODE": "Internal Supplier Code"
   },
   "INVENTORY": {
     "PAGE_TITLE": "Physical Inventory & Shrinkage",
@@ -5153,6 +5159,94 @@
     "GRAND_TOTAL": "Physical total",
     "RESET": "Reset",
     "EMPTY_HINT": "Enter the quantity of each denomination to compute the physical total automatically."
+  },
+  "purchases": {
+    "invoices": {
+      "tabTitle": "Supplier Invoices (Factur-X)",
+      "tabShort": "Invoices",
+      "uploadBtn": "Import Invoice",
+      "searchPlaceholder": "Search by number, supplier...",
+      "filterAll": "All",
+      "emptyTitle": "No invoices imported",
+      "emptyMessage": "Import your Factur-X supplier invoices (XML or hybrid PDF) or standard PDF for automated reconciliation with purchase orders.",
+      "unmatchedSupplier": "Unmatched Supplier",
+      "totalHt": "Total Excl. VAT",
+      "totalTtc": "Total Incl. VAT",
+      "linesCount": "Lines",
+      "matchedPo": "Linked Order",
+      "downloadFacturXXml": "Download Factur-X (XML)",
+      "invoiceNumber": "Invoice Number",
+      "supplier": "Supplier",
+      "date": "Invoice Date",
+      "format": "Format",
+      "legalStatus": "Legal Compliance",
+      "matched": "Matched",
+      "duplicateNotice": "This invoice has already been imported (detected via SHA-256 checksum).",
+      "uploadSuccess": "Invoice imported and parsed successfully.",
+      "reconciliationSaved": "Reconciliation draft saved successfully.",
+      "applySuccess": "Reconciliation applied successfully: stocks and WAC updated.",
+      "deleteSuccess": "Invoice deleted successfully.",
+      "deleteError": "Failed to delete the invoice.",
+      "downloadXmlError": "Failed to download Factur-X XML file.",
+      "status": {
+        "PENDING_REVIEW": "Pending Review",
+        "RECONCILED": "Reconciled",
+        "DISCREPANCY_CONFIRMED": "Discrepancy Detected",
+        "APPLIED": "Stock Applied"
+      },
+      "itemStatus": {
+        "MATCHED": "Matched",
+        "PRICE_VARIANCE": "Price Variance",
+        "QUANTITY_VARIANCE": "Quantity Variance",
+        "MISSING_ORDER_ITEM": "Missing Item",
+        "UNRECOGNIZED_ITEM": "Unrecognized Item",
+        "SUBSTITUTE_ITEM": "Substitute Item",
+        "IGNORED": "Ignored"
+      },
+      "table": {
+        "designation": "Description",
+        "packaging": "Packaging",
+        "qtyInvoiced": "Invoiced Qty",
+        "qtyOrdered": "Ordered Qty",
+        "unitPriceInvoiced": "Invoiced Unit Price Excl. VAT",
+        "unitPriceOrdered": "Ordered Unit Price Excl. VAT",
+        "variance": "Variance",
+        "status": "Status",
+        "catalogMatch": "Catalog Ingredient"
+      },
+      "uploadModal": {
+        "title": "Import Supplier Invoice",
+        "subtitle": "Factur-X hybrid XML/PDF format or standard PDF with automated extraction",
+        "dragDropPrompt": "Drag and drop your invoice here or click to browse",
+        "supportedFormats": "Supported formats: Hybrid PDF Factur-X / ZUGFeRD, standard PDF, Factur-X XML (max 15 MB)",
+        "submitBtn": "Analyze and Import",
+        "continueBtn": "Proceed to Reconciliation"
+      },
+      "reconcileModal": {
+        "title": "Invoice Reconciliation & Stock Intake",
+        "selectPoLabel": "Target Purchase Order",
+        "poPlaceholder": "Select a purchase order...",
+        "variancesDetected": "Price or quantity variances detected",
+        "mapIngredientPrompt": "Map to a catalog ingredient...",
+        "notesLabel": "Reconciliation notes",
+        "notesPlaceholder": "Comments or justifications on variances...",
+        "saveBtn": "Save Draft",
+        "applyBtn": "Intake Stock & Recalculate WAC",
+        "noLines": "No invoice lines to reconcile."
+      },
+      "applyModal": {
+        "title": "Confirm Stock Intake",
+        "message": "Are you sure you want to intake stock quantities and update WAC for invoice {{ invoiceNumber }} (Total Excl. VAT: {{ totalHt }} €)?",
+        "confirmBtn": "Intake Stock"
+      },
+      "deleteModal": {
+        "title": "Delete Invoice",
+        "message": "Are you sure you want to permanently delete invoice {{ invoiceNumber }}?"
+      },
+      "errors": {
+        "invalidFormat": "Unsupported file format. Please select a PDF or XML file.",
+        "uploadFailed": "Failed to upload or analyze the invoice."
+      }
+    }
   }
 }
-

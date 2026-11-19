@@ -15,6 +15,10 @@ import jakarta.validation.constraints.Size;
  * @param conditionsPaiement Payment terms (e.g. 30 days net)
  * @param notes              Administrative notes
  * @param actif              Whether supplier is active
+ * @param siren              French 9-digit SIREN identifier
+ * @param siret              French 14-digit SIRET establishment identifier
+ * @param vatNumber          European intra-community VAT identification number
+ * @param codeFournisseur    Internal supplier alphanumeric identifier code
  */
 @Schema(description = "Payload for creating or editing a supplier")
 public record SupplierCreateRequest(
@@ -39,9 +43,34 @@ public record SupplierCreateRequest(
 
         String notes,
 
-        Boolean actif
+        Boolean actif,
+
+        @Size(max = 20, message = "SIREN cannot exceed 20 characters")
+        String siren,
+
+        @Size(max = 20, message = "SIRET cannot exceed 20 characters")
+        String siret,
+
+        @Size(max = 30, message = "VAT number cannot exceed 30 characters")
+        String vatNumber,
+
+        @Size(max = 50, message = "Supplier reference code cannot exceed 50 characters")
+        String codeFournisseur
 ) {
+    public SupplierCreateRequest(
+            String nom,
+            String contactNom,
+            String email,
+            String telephone,
+            String adresse,
+            String conditionsPaiement,
+            String notes,
+            Boolean actif
+    ) {
+        this(nom, contactNom, email, telephone, adresse, conditionsPaiement, notes, actif, null, null, null, null);
+    }
+
     public SupplierCreateRequest(String nom) {
-        this(nom, null, null, null, null, null, null, true);
+        this(nom, null, null, null, null, null, null, true, null, null, null, null);
     }
 }

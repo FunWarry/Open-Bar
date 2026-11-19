@@ -170,6 +170,10 @@ flowchart TD
         PURCHASE_ORDERS -->|"1:N"| PURCHASE_ORDER_DELIVERIES["purchase_order_deliveries (Bons de livraison)"]
         PURCHASE_ORDER_DELIVERIES -->|"1:N"| PURCHASE_ORDER_DELIVERY_ITEMS["purchase_order_delivery_items"]
         PURCHASE_ORDER_DELIVERY_ITEMS -->|"N:1"| INGREDIENTS
+        SUPPLIERS -->|"1:N"| SUPPLIER_INVOICES["supplier_invoices (Factures Fournisseurs)"]
+        SUPPLIER_INVOICES -->|"1:N"| SUPPLIER_INVOICE_ITEMS["supplier_invoice_items"]
+        SUPPLIER_INVOICES -.->|"reconciles"| PURCHASE_ORDERS
+        SUPPLIER_INVOICE_ITEMS -.->|"maps to"| INGREDIENTS
         INVENTORY_AUDIT_SESSIONS["inventory_audit_sessions (Physical Stocktakes)"] -->|"1:N"| INVENTORY_AUDIT_ITEMS["inventory_audit_items"]
         INVENTORY_AUDIT_ITEMS -->|"N:1"| INGREDIENTS
         INVENTORY_AUDIT_ITEMS -->|"1:N"| INVENTORY_AUDIT_LOCATION_COUNTS["inventory_audit_location_counts"]
@@ -177,7 +181,9 @@ flowchart TD
 ```
 
 *Standalone configuration & logging tables*:
-- `suppliers` : Supplier contacts and delivery terms (`name`, `contact_name`, `email`, `phone`, `address`, `notes`, `active`)
+- `suppliers` : Supplier contacts, Siren/Siret, VAT number, and payment terms (`nom`, `contact_nom`, `email`, `telephone`, `adresse`, `conditions_paiement`, `notes`, `actif`, `siren`, `siret`, `vat_number`, `code_fournisseur`)
+- `supplier_invoices` : Electronic supplier invoices parsed from Factur-X XML or PDF heuristics (`invoice_number`, `supplier_id`, `supplier_name_raw`, `supplier_siren`, `supplier_vat_number`, `invoice_date`, `due_date`, `order_reference`, `delivery_note_reference`, `total_ht`, `total_vat`, `total_ttc`, `format: FACTUR_X|STANDARD_PDF|XML_DIRECT`, `status: PENDING_REVIEW|RECONCILED|DISCREPANCY|APPLIED`, `legal_compliance_status: COMPLIANT|WARNINGS|NON_COMPLIANT`, `purchase_order_id`, `file_checksum`, `file_name`, `raw_xml_content`)
+- `supplier_invoice_items` : Line items on supplier invoices (`invoice_id`, `line_number`, `product_reference`, `designation`, `quantity_invoiced`, `unit_price_ht`, `line_total_ht`, `vat_rate`, `line_total_ttc`, `packaging`, `suggested_packaging_capacity`, `matched_ingredient_id`, `reconciliation_status: MATCHED|PRICE_VARIANCE|QUANTITY_VARIANCE|UNEXPECTED_ITEM|MISSING_ORDER_ITEM|UNRECOGNIZED_INGREDIENT`)
 - `purchase_orders` : Purchase orders placed with suppliers (`supplier_id`, `reference`, `status: DRAFT|ORDERED|PARTIALLY_DELIVERED|DELIVERED|CANCELLED`, `total_ht`, `expected_delivery_date`, `created_at`)
 - `purchase_order_items` : Line items on purchase orders (`purchase_order_id`, `ingredient_id`, `package_quantity`, `package_price_ht`, `line_total_ht`, `delivered_quantity`)
 - `purchase_order_deliveries` : Goods reception delivery slips / BL (`purchase_order_id`, `delivery_reference`, `delivery_date`, `notes`, `received_by`)

@@ -20,6 +20,7 @@ export enum EstablishmentModule {
   SYSTEM_UPDATES = 'SYSTEM_UPDATES',
   ANGEL_SHOT_SAFETY = 'ANGEL_SHOT_SAFETY',
   QR_PAY_AT_TABLE = 'QR_PAY_AT_TABLE',
+  FACTUR_X_INVOICE_IMPORT = 'FACTUR_X_INVOICE_IMPORT',
 }
 
 /**
@@ -44,6 +45,7 @@ export interface EstablishmentModules {
   systemUpdates: boolean;
   angelShotSafety: boolean;
   qrPayAtTable: boolean;
+  facturXInvoiceImport: boolean;
 }
 
 /**
@@ -74,6 +76,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     systemUpdates: true,
     angelShotSafety: true,
     qrPayAtTable: true,
+    facturXInvoiceImport: true,
   },
   RESTAURANT: {
     cuisineKds: true,
@@ -94,6 +97,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     systemUpdates: true,
     angelShotSafety: true,
     qrPayAtTable: true,
+    facturXInvoiceImport: true,
   },
   FOOD_TRUCK: {
     cuisineKds: true,
@@ -114,6 +118,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     systemUpdates: true,
     angelShotSafety: false,
     qrPayAtTable: true,
+    facturXInvoiceImport: false,
   },
   NIGHTCLUB: {
     cuisineKds: false,
@@ -134,5 +139,6 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     systemUpdates: true,
     angelShotSafety: true,
     qrPayAtTable: true,
+    facturXInvoiceImport: true,
   },
 };

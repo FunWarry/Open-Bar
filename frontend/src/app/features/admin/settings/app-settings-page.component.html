@@ -765,6 +765,18 @@
                           </div>
                           <p class="threshold-desc">{{ 'SETTINGS.MODULE_QR_PAY_AT_TABLE_DESC' | transloco }}</p>
                         </div>
+
+                        <!-- Module 19: FACTUR_X_INVOICE_IMPORT -->
+                        <div class="threshold-row" data-testid="module-row-facturx-invoice-import">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="document-text-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_FACTUR_X_INVOICE_IMPORT_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="facturXInvoiceImport" data-testid="toggle-module-facturx-invoice-import"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_FACTUR_X_INVOICE_IMPORT_DESC' | transloco }}</p>
+                        </div>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -1154,6 +1166,26 @@
                                 </span>
                               </div>
                               <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_ANGEL_SHOT' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 19. Factur-X & Import Factures Fournisseurs -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('facturXInvoiceImport')"
+                            [class.node-inactive]="!isModuleControlActive('facturXInvoiceImport')"
+                            data-testid="preview-node-facturx-invoice-import">
+                            <div class="node-icon-box">
+                              <ion-icon name="document-text-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_FACTUR_X_INVOICE_IMPORT_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('facturXInvoiceImport')">
+                                  {{ (isModuleControlActive('facturXInvoiceImport') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_PURCHASES' | transloco }}</span>
                             </div>
                           </div>
                         </div>

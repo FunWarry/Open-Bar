@@ -436,9 +436,10 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 29 octobre 2026 — Audit de sécurité approfondi, durcissement multi-couches & suite qualité pré-push (#616 / #617).
+> Dernière mise à jour : 19 novembre 2026 — Import Automatisé Factures Fournisseurs Factur-X & Parsing PDF (#560 / #632).
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
+| Import Automatisé Factures Fournisseurs via Factur-X & Parsing PDF, Rapprochement 3-Voies & Entrée Stock 1-Clic (#560 / #632) | ✅ | ✅ | ✅ |
 | Audit de sécurité complet & durcissement multi-couches (anti-commandes gratuites, NF525, SSRF, panier QR, Actuator, Sonar) (#616 / #617) | ✅ | ✅ | ✅ |
 | Saisie Rapide Pertes & Dégustations Barman, Speed Rail & Doses Bouteille (#566 / #599) | ✅ | ✅ | ✅ |
 | Mises à jour OTA automatisées, snapshot BDD, healthcheck & auto-rollback (#568 / #592) | ✅ | ✅ | ✅ |

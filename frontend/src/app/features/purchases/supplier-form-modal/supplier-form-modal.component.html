@@ -86,12 +86,37 @@
         ></app-input-field>
       </div>
 
-      <app-input-field
-        formControlName="siret"
-        [label]="'SUPPLIERS.SIRET' | transloco"
-        placeholder="12345678900012"
-        testId="supplier-input-siret"
-      ></app-input-field>
+      <div class="form-row-2">
+        <app-input-field
+          formControlName="siren"
+          [label]="'SUPPLIERS.SIREN' | transloco"
+          placeholder="123456789"
+          testId="supplier-input-siren"
+        ></app-input-field>
+
+        <app-input-field
+          formControlName="siret"
+          [label]="'SUPPLIERS.SIRET' | transloco"
+          placeholder="12345678900012"
+          testId="supplier-input-siret"
+        ></app-input-field>
+      </div>
+
+      <div class="form-row-2">
+        <app-input-field
+          formControlName="vatNumber"
+          [label]="'SUPPLIERS.VAT_NUMBER' | transloco"
+          placeholder="FR12123456789"
+          testId="supplier-input-vat"
+        ></app-input-field>
+
+        <app-input-field
+          formControlName="codeFournisseur"
+          [label]="'SUPPLIERS.CODE' | transloco"
+          placeholder="SUP-001"
+          testId="supplier-input-code"
+        ></app-input-field>
+      </div>
 
       <div class="field-item">
         <label for="supplier-form-notes-field" class="field-label">{{ 'SUPPLIERS.NOTES' | transloco }}</label>

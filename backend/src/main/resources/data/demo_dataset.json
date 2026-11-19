@@ -3879,5 +3879,108 @@
       "tableLiberated": false,
       "createdAt": "2026-10-25T20:30:00"
     }
+  ],
+  "supplier_invoices": [
+    {
+      "invoiceNumber": "FA-2026-089",
+      "supplierNom": "Distillerie des Alpes",
+      "supplierSiren": "512839201",
+      "supplierVatNumber": "FR12512839201",
+      "customerName": "OpenBar SARL",
+      "customerSiren": "732829320",
+      "invoiceDate": "2026-11-10",
+      "dueDate": "2026-12-10",
+      "deliveryDate": "2026-11-12",
+      "orderReference": "PO-2026-001",
+      "deliveryNoteReference": "BL-2026-0089",
+      "totalHt": 340.00,
+      "totalVat": 68.00,
+      "totalTtc": 408.00,
+      "status": "APPLIED",
+      "format": "FACTUR_X",
+      "profile": "EN 16931",
+      "legalComplianceStatus": "COMPLIANT",
+      "items": [
+        {
+          "lineNumber": 1,
+          "productReference": "DIS-RHUM-01",
+          "designation": "Rhum Blanc Agricole 1L",
+          "packaging": "Carton de 6",
+          "quantityInvoiced": 12.0,
+          "unitPriceHt": 20.00,
+          "vatRate": 20.00,
+          "lineTotalHt": 240.00,
+          "lineTotalTtc": 288.00,
+          "ingredientNom": "Rhum Blanc",
+          "reconciliationStatus": "MATCHED",
+          "suggestedPackagingCapacity": 6.0
+        },
+        {
+          "lineNumber": 2,
+          "productReference": "DIS-GIN-01",
+          "designation": "Gin Botanique 70cl",
+          "packaging": "Carton de 6",
+          "quantityInvoiced": 5.0,
+          "unitPriceHt": 20.00,
+          "vatRate": 20.00,
+          "lineTotalHt": 100.00,
+          "lineTotalTtc": 120.00,
+          "ingredientNom": "Gin",
+          "reconciliationStatus": "MATCHED",
+          "suggestedPackagingCapacity": 6.0
+        }
+      ]
+    },
+    {
+      "invoiceNumber": "FA-2026-104",
+      "supplierNom": "Grossiste Boissons Rhône",
+      "supplierSiren": "382910482",
+      "supplierVatNumber": "FR45382910482",
+      "customerName": "OpenBar SARL",
+      "customerSiren": "732829320",
+      "invoiceDate": "2026-11-15",
+      "dueDate": "2026-12-15",
+      "deliveryDate": "2026-11-16",
+      "orderReference": "PO-2026-002",
+      "deliveryNoteReference": "BL-GBR-9921",
+      "totalHt": 185.00,
+      "totalVat": 37.00,
+      "totalTtc": 222.00,
+      "status": "PENDING_REVIEW",
+      "format": "FACTUR_X",
+      "profile": "EN 16931",
+      "legalComplianceStatus": "COMPLIANT",
+      "items": [
+        {
+          "lineNumber": 1,
+          "productReference": "GBR-CIT-01",
+          "designation": "Citron Vert Extra",
+          "packaging": "Colis 5kg",
+          "quantityInvoiced": 10.0,
+          "unitPriceHt": 14.50,
+          "vatRate": 20.00,
+          "lineTotalHt": 145.00,
+          "lineTotalTtc": 174.00,
+          "ingredientNom": "Citron Vert",
+          "reconciliationStatus": "PRICE_VARIANCE",
+          "varianceDetails": "Price variance: +2.50€ (+20.8%) vs PO",
+          "suggestedPackagingCapacity": 5.0
+        },
+        {
+          "lineNumber": 2,
+          "productReference": "GBR-SUC-01",
+          "designation": "Sirop de Canne 1L",
+          "packaging": "Bouteille",
+          "quantityInvoiced": 10.0,
+          "unitPriceHt": 4.00,
+          "vatRate": 20.00,
+          "lineTotalHt": 40.00,
+          "lineTotalTtc": 48.00,
+          "ingredientNom": "Sirop de Canne",
+          "reconciliationStatus": "MATCHED",
+          "suggestedPackagingCapacity": 1.0
+        }
+      ]
+    }
   ]
 }

@@ -160,7 +160,7 @@ class PurchaseOrderControllerTest {
     @Test
     @DisplayName("downloadPurchaseOrderPdf - generates PDF and returns application/pdf byte stream")
     void downloadPurchaseOrderPdf_returnsPdfStream() {
-        byte[] pdfBytes = new byte[]{1, 2, 3, 4};
+        byte[] pdfBytes = {1, 2, 3, 4};
         when(purchaseOrderService.findOrderEntity(10L)).thenReturn(sampleOrder);
         when(pdfService.generatePurchaseOrderPdf(sampleOrder)).thenReturn(pdfBytes);
 
