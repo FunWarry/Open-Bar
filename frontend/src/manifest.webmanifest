@@ -1,0 +1,27 @@
+{
+  "id": "/",
+  "name": "OpenBar — Gestion de bar en temps réel",
+  "short_name": "OpenBar",
+  "description": "Gestion de bar en temps réel : prise de commande, préparation, plan de salle et encaissement.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#0f0f1a",
+  "background_color": "#0f0f1a",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
