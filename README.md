@@ -25,6 +25,7 @@
 
 <p align="center">
   <a href="#-pourquoi-openbar--les-arguments-de-vente"><strong>Arguments de Vente</strong></a> •
+  <a href="#-pourquoi-nous-choisir--comparatif-avec-les-principaux-concurrents"><strong>Comparatif Concurrence</strong></a> •
   <a href="#-le-socle-indispensable-fonctionnalit%C3%A9s-de-base"><strong>Fonctionnalités de Base</strong></a> •
   <a href="#-les-innovations-exclusives-openbar"><strong>Innovations Exclusives</strong></a> •
   <a href="#-modules-m%C3%A9tier-plug-and-play"><strong>Modules Plug & Play</strong></a> •
@@ -68,6 +69,48 @@ Un samedi soir à 22h, la connexion Internet du quartier est coupée ? **Votre �
 - Journal d'audit continu des opérations de caisse.
 - Export du **Fichier des Écritures Comptables (FEC)** en 1 clic pour votre expert-comptable.
 - Modules de réconciliation des pertes, casse et consommations du personnel 100% conformes à la loi anti-fraude.
+
+---
+
+## 🥊 Pourquoi nous choisir ? (Comparatif avec les principaux concurrents)
+
+Le marché des caisses et logiciels de bar est dominé par des acteurs historiques ou des géants du SaaS qui ont bâti leur modèle sur l'enfermement propriétaire et les frais cachés.
+
+Voici comment **OpenBar** se positionne face aux leaders du marché en France et à l'international :
+
+| Critère & Capacité Clé | 🍹 OpenBar | 🍏 Popina | 🍏 L'Addition | 🍔 Zelty | 🇺🇸 Lightspeed / Toast | 💳 SumUp / Tiller |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Commission sur encaissements CB** | **0% (Zéro)** | 1,2% à 1,5% | 0% (si contrat TPE) | 1,4% à 2,0% | 1,4% à 2,9% + fixe | 1,25% à 1,75% |
+| **Matériel imposé (Vendor Lock-in)** | **Zéro (BYOH)**<br>Android, iOS, PC, Pi 5 | ❌ iPad Apple obligatoire | ❌ Pack Apple (iPads + Mac mini ~3000€) | ❌ iPad / Écrans Elo propriétaires | ❌ Terminaux fermés ($400-$1200) | ❌ iPad Apple obligatoire |
+| **Résilience 100% Hors-Ligne (Coupure Internet)** | **✅ Autonome à 100%**<br>(Wi-Fi local sub-50ms) | ❌ Bloqué ou très dégradé | ⚠️ Local complexe (Airport/Mac) | ❌ Bloqué net sans 4G/Fibre | ⚠️ Mode dégradé risqué (buffer) | ❌ Bloqué net sans 4G/Fibre |
+| **Liberté d'Hébergement des Données** | **Maison (BYOH)** ou **Cloud France (K8s)** | ❌ Cloud US/Propriétaire | ⚠️ Mac mini sur place | ❌ Cloud propriétaire | ❌ Cloud US multi-tenant | ❌ Cloud propriétaire |
+| **Mode Rush Batching Barman** | **✅ Inclus nativement**<br>(Cumul auto des tournées) | ❌ Inexistant | ❌ Inexistant | ❌ Inexistant | ❌ Inexistant | ❌ Inexistant |
+| **Génie Mixologique & Roue des Saveurs** | **✅ Fiches cl/gouttes**<br>+ Roue des accords IBA | ❌ Simple SKU avec prix | ❌ Simple SKU avec prix | ❌ Axé cuisine burger/pizza | ❌ Simple SKU avec prix | ❌ Simple SKU avec prix |
+| **Animation Gamifiée (Roulette TV)** | **✅ Inclus nativement**<br>(Écran TV déporté) | ❌ Inexistant | ❌ Inexistant | ❌ Inexistant | ❌ Inexistant | ❌ Inexistant |
+| **Jaugeage Visuel & Inventaire Bouteilles** | **✅ Jauge tactile**<br>(10% à 90% par zone) | ⚠️ Déstockage basique | ⚠️ Déstockage basique | ⚠️ Module payant (+49€/m) | ⚠️ Module payant cher | ❌ Très basique |
+| **Liaison Directe TPE Bancaire (IP)** | **✅ Protocole Concert IP**<br>(Zéro ressaisie) | ⚠️ Passerelle payante | ✅ TPE bancaire classique | ⚠️ Middleware payant | ❌ Réseau fermé | ⚠️ Lecteur Bluetooth lent |
+| **Commande Client QR Code & Panier Partagé** | **✅ Inclus nativement**<br>(Zéro app à installer) | ⚠️ Option payante | ❌ Inexistant | ⚠️ Option payante (+39€/m) | ⚠️ Option payante ($) | ❌ Inexistant |
+| **Conformité Fiscale NF525 & Export FEC** | **✅ Scellement SHA-256**<br>+ FEC en 1 clic | ✅ Conforme | ✅ Conforme | ✅ Conforme | ⚠️ US / Partiel | ✅ Conforme |
+
+---
+
+### 🔍 En quoi OpenBar fait la différence au quotidien ?
+
+#### 1. Face à Popina & L'Addition : Fini le « racket » Apple et les devis à 4 000 €
+Popina et L'Addition vous enferment dans l'écosystème Apple : vous êtes contraint d'acheter des iPads récents, des bornes Wi-Fi propriétaires et parfois un Mac mini dédié, pour une facture matérielle initiale dépassant les 3 000 € à 5 000 €. 
+- **Avec OpenBar** : Utilisez **n'importe quel smartphone, tablette ou PC** déjà présent dans votre établissement. Un simple boîtier à 80 € (Raspberry Pi 5) ou un PC de bureau existant suffit pour faire tourner tout le bar.
+
+#### 2. Face à Zelty : Un outil pensé pour l'artisanat du cocktail, pas pour les chaînes de fast-food
+Zelty est taillé pour les franchises de burgers et la restauration rapide avec des dizaines de modules payants à empiler (KDS +29 €/mois, Click & Collect +39 €/mois, Stocks +49 €/mois), portant la facture à plus de 250 € par mois et par point de vente.
+- **Avec OpenBar** : Notre système a été conçu au comptoir pour les débits de boissons, pubs et bars à cocktails. Le KDS, les ardoises au comptoir, la roue des accords gustatifs et les variations de recettes sont incluses sans surcoût.
+
+#### 3. Face à Lightspeed & Toast : Zéro commission sur votre chiffre d'affaires
+Les géants américains comme Toast ou Lightspeed imposent leurs propres passerelles de paiement ou appliquent des pénalités financières exorbitantes si vous utilisez vos propres terminaux bancaires. Sur une saison à 200 000 € de chiffre d'affaires, une commission de 2% représente **4 000 € prélevés directement sur votre bénéfice net**.
+- **Avec OpenBar** : **0% de commission**. Nous raccordons directement vos TPE bancaires professionnels de votre banque via le protocole réseau IP Concert. Vous gardez 100% de votre marge.
+
+#### 4. Face à SumUp / Tiller : Une vraie bête de course taillée pour le coup de feu
+SumUp propose des solutions d'entrée de gamme adaptées aux petits commerces de détail, mais montrant rapidement leurs limites le vendredi soir : lecteurs Bluetooth qui se déconnectent, latence de validation, absence de plan de salle dynamique digne de ce nom et impossibilité de gérer des tournées groupées.
+- **Avec OpenBar** : La communication locale par WebSocket STOMP garantit une **latence inférieure à 50ms**. Le mode Rush Batching agrège vos tournées de verres pour que vos barmans ne perdent pas une seconde.
 
 ---
 
