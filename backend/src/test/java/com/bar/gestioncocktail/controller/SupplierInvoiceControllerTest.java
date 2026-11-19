@@ -6,6 +6,8 @@ import com.bar.gestioncocktail.repository.SupplierInvoiceRepository;
 import com.bar.gestioncocktail.repository.UserRepository;
 import com.bar.gestioncocktail.service.InvoiceReconciliationService;
 import com.bar.gestioncocktail.service.SupplierInvoiceParserService;
+import com.bar.gestioncocktail.exception.BusinessException;
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -23,10 +25,12 @@ import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -79,7 +83,7 @@ class SupplierInvoiceControllerTest {
         sampleInvoice.setSupplierSiren("399315613");
         sampleInvoice.setSupplierSiret("39931561300010");
         sampleInvoice.setSupplierVatNumber("FR12399315613");
-        sampleInvoice.setInvoiceDate(LocalDate.of(2026, 3, 10));
+        sampleInvoice.setInvoiceDate(LocalDate.of(2026, Month.MARCH, 10));
         sampleInvoice.setTotalHt(new BigDecimal("214.50"));
         sampleInvoice.setTotalVat(new BigDecimal("42.90"));
         sampleInvoice.setTotalTtc(new BigDecimal("257.40"));
@@ -166,6 +170,27 @@ class SupplierInvoiceControllerTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().id()).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("Should list invoices with supplier filter")
+        void shouldListInvoicesWithSupplierFilter() {
+            when(supplierInvoiceRepository.findBySupplierIdOrderByInvoiceDateDesc(10L))
+                    .thenReturn(List.of(sampleInvoice));
+
+            ResponseEntity<List<SupplierInvoiceDTO>> response = invoiceController.getAllInvoices(null, 10L);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Should throw ResourceNotFoundException when invoice not found by ID")
+        void shouldThrowWhenInvoiceNotFound() {
+            when(supplierInvoiceRepository.findById(99L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> invoiceController.getInvoiceById(99L))
+                    .isInstanceOf(ResourceNotFoundException.class);
         }
     }
 
@@ -266,6 +291,17 @@ class SupplierInvoiceControllerTest {
         }
 
         @Test
+        @DisplayName("Should throw BusinessException when downloading XML for invoice without XML content")
+        void shouldThrowWhenNoXmlContent() {
+            sampleInvoice.setRawXmlContent(null);
+            when(supplierInvoiceRepository.findById(1L)).thenReturn(Optional.of(sampleInvoice));
+
+            assertThatThrownBy(() -> invoiceController.downloadXml(1L))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("No embedded XML");
+        }
+
+        @Test
         @DisplayName("Should delete invoice returning 204 No Content")
         void shouldDeleteInvoice() {
             when(supplierInvoiceRepository.findById(1L)).thenReturn(Optional.of(sampleInvoice));
@@ -274,6 +310,17 @@ class SupplierInvoiceControllerTest {
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
             verify(supplierInvoiceRepository).delete(sampleInvoice);
+        }
+
+        @Test
+        @DisplayName("Should throw BusinessException when attempting to delete an applied invoice")
+        void shouldThrowWhenDeletingAppliedInvoice() {
+            sampleInvoice.setStatus(SupplierInvoiceStatus.APPLIED);
+            when(supplierInvoiceRepository.findById(1L)).thenReturn(Optional.of(sampleInvoice));
+
+            assertThatThrownBy(() -> invoiceController.deleteInvoice(1L))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("Cannot delete invoice");
         }
     }
 }

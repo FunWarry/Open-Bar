@@ -109,6 +109,7 @@ export async function setupMockApi(page: Page): Promise<void> {
     systemUpdates: true,
     angelShotSafety: true,
     qrPayAtTable: true,
+    facturXInvoiceImport: true,
   };
 
   await page.route('**/api/establishment/modules**', async (route) => {
@@ -127,6 +128,19 @@ export async function setupMockApi(page: Page): Promise<void> {
       contentType: 'application/json',
       body: JSON.stringify(currentModules),
     });
+  });
+
+  // Supplier Invoices mock endpoint
+  await page.route('**/api/purchases/invoices**', async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([]),
+      });
+      return;
+    }
+    await route.fallback();
   });
 
   // Angel Shot and Patron Safety Alerts

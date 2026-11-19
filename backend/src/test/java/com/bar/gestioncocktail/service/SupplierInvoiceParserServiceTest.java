@@ -9,6 +9,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import com.bar.gestioncocktail.exception.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -24,11 +25,13 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.Mockito.*;
 
@@ -128,6 +131,43 @@ class SupplierInvoiceParserServiceTest {
             </rsm:CrossIndustryInvoice>
             """;
 
+    private static final String SAMPLE_UBL_XML = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+                     xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+                     xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+                <cbc:ID>UBL-2026-001</cbc:ID>
+                <cbc:IssueDate>2026-03-12</cbc:IssueDate>
+                <cbc:DueDate>2026-04-12</cbc:DueDate>
+                <cac:AccountingSupplierParty>
+                    <cac:Party>
+                        <cac:PartyName>
+                            <cbc:Name>France Boissons</cbc:Name>
+                        </cac:PartyName>
+                        <cac:PartyLegalEntity>
+                            <cbc:CompanyID>399315613</cbc:CompanyID>
+                        </cac:PartyLegalEntity>
+                    </cac:Party>
+                </cac:AccountingSupplierParty>
+                <cac:LegalMonetaryTotal>
+                    <cbc:LineExtensionAmount>80.00</cbc:LineExtensionAmount>
+                    <cbc:TaxExclusiveAmount>80.00</cbc:TaxExclusiveAmount>
+                    <cbc:TaxInclusiveAmount>96.00</cbc:TaxInclusiveAmount>
+                </cac:LegalMonetaryTotal>
+                <cac:InvoiceLine>
+                    <cbc:ID>1</cbc:ID>
+                    <cbc:InvoicedQuantity>4</cbc:InvoicedQuantity>
+                    <cbc:LineExtensionAmount>80.00</cbc:LineExtensionAmount>
+                    <cac:Item>
+                        <cbc:Name>Rhum Havana Club 3 Ans 70cl</cbc:Name>
+                    </cac:Item>
+                    <cac:Price>
+                        <cbc:PriceAmount>20.00</cbc:PriceAmount>
+                    </cac:Price>
+                </cac:InvoiceLine>
+            </Invoice>
+            """;
+
     @Nested
     @DisplayName("Factur-X XML Ingestion")
     class FacturXXmlIngestionTests {
@@ -175,6 +215,29 @@ class SupplierInvoiceParserServiceTest {
                     () -> assertThat(hash1).isEqualTo(hash2),
                     () -> assertThat(hash1).hasSize(64)
             );
+        }
+
+        @Test
+        @DisplayName("Should parse standard UBL electronic invoice XML")
+        void shouldParseUblXmlDirectly() {
+            byte[] xmlBytes = SAMPLE_UBL_XML.getBytes(StandardCharsets.UTF_8);
+            MockMultipartFile file = new MockMultipartFile("file", "ubl-invoice.xml", "application/xml", xmlBytes);
+            when(supplierRepository.findBySiren("399315613")).thenReturn(Optional.of(metroSupplier));
+
+            SupplierInvoice invoice = parserService.parseInvoice(file);
+
+            assertThat(invoice).isNotNull();
+            assertThat(invoice.getInvoiceNumber()).isEqualTo("UBL-2026-001");
+            assertThat(invoice.getItems()).hasSize(1);
+            assertThat(invoice.getItems().getFirst().getDesignation()).isEqualTo("Rhum Havana Club 3 Ans 70cl");
+        }
+
+        @Test
+        @DisplayName("Should throw BusinessException when uploaded file is empty or corrupted")
+        void shouldThrowWhenFileCorrupted() {
+            MockMultipartFile file = new MockMultipartFile("file", "corrupt.pdf", "application/pdf", new byte[]{0, 1, 2});
+            assertThatThrownBy(() -> parserService.parseInvoice(file))
+                    .isInstanceOf(BusinessException.class);
         }
     }
 
@@ -231,8 +294,8 @@ class SupplierInvoiceParserServiceTest {
         void shouldPassComplianceForValidInvoice() {
             SupplierInvoice invoice = new SupplierInvoice();
             invoice.setInvoiceNumber("INV-001");
-            invoice.setInvoiceDate(LocalDate.of(2026, 3, 15));
-            invoice.setDueDate(LocalDate.of(2026, 4, 15));
+            invoice.setInvoiceDate(LocalDate.of(2026, Month.MARCH, 15));
+            invoice.setDueDate(LocalDate.of(2026, Month.APRIL, 15));
             invoice.setSupplierNameRaw("Test Bar");
             invoice.setSupplierSiren("732829320"); // Valid Luhn
             invoice.setSupplierVatNumber("FR12732829320");
@@ -280,6 +343,27 @@ class SupplierInvoiceParserServiceTest {
                     () -> assertThat(report.complianceIssues().stream().anyMatch(i -> i.contains("SIREN"))).isTrue(),
                     () -> assertThat(report.complianceIssues().stream().anyMatch(i -> i.contains("mismatch") || i.contains("Total"))).isTrue()
             );
+        }
+
+        @Test
+        @DisplayName("Should audit invoice with WARNINGS when VAT number is missing")
+        void shouldAuditInvoiceWithWarnings() {
+            SupplierInvoice invoice = new SupplierInvoice();
+            invoice.setInvoiceNumber("INV-WARN-01");
+            invoice.setInvoiceDate(LocalDate.of(2026, Month.MARCH, 20));
+            invoice.setDueDate(LocalDate.of(2026, Month.APRIL, 20));
+            invoice.setSupplierNameRaw("Test Warnings");
+            invoice.setSupplierSiren("732829320"); // Valid Luhn
+            invoice.setSupplierVatNumber(null); // Missing VAT -> warning
+            invoice.setTotalHt(new BigDecimal("100.00"));
+            invoice.setTotalVat(new BigDecimal("20.00"));
+            invoice.setTotalTtc(new BigDecimal("120.00"));
+
+            SupplierInvoiceComplianceReportDTO report = parserService.auditFrenchCompliance(invoice);
+
+            assertThat(report.status()).isEqualTo(SupplierInvoiceComplianceStatus.WARNINGS);
+            assertThat(report.complianceWarnings()).anyMatch(issue -> issue.contains("TVA") || issue.contains("VAT"));
+            assertThat(report.complianceIssues()).isEmpty();
         }
     }
 

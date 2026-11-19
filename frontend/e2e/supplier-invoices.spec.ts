@@ -32,7 +32,7 @@ test.describe('Supplier Invoices & Factur-X Ingestion Flow', () => {
     await expect(pendingFilter).toBeVisible();
 
     // 5. Open invoice upload modal
-    const uploadBtn = page.locator('[data-testid="upload-invoice-btn"], [data-testid="empty-upload-invoice-btn"]').first();
+    const uploadBtn = page.locator('[data-testid="upload-invoice-btn"], [data-testid="empty-upload-invoice-btn"], [data-testid="purchases-upload-invoice-btn"]').first();
     await expect(uploadBtn).toBeVisible();
     await uploadBtn.click();
 

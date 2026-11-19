@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { getTranslocoTestingModule } from '../../../transloco-testing.module';
 import { SupplierInvoiceReconcileModalComponent } from '../../../../app/features/purchases/supplier-invoice-reconcile-modal/supplier-invoice-reconcile-modal.component';
 import { SupplierInvoiceService } from '../../../../app/core/services/supplier-invoice.service';
@@ -219,5 +219,62 @@ describe('SupplierInvoiceReconcileModalComponent', () => {
   it('should dismiss modal on cancel', () => {
     component.dismiss();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null, 'cancel');
+  });
+
+  it('should ignore quantity changes when value is NaN or negative or line has no itemId', () => {
+    const invalidEvent = { target: { value: '-5' } } as unknown as Event;
+    component.onQuantityChanged(mockLine, invalidEvent);
+    expect(component.adjustments().has(101)).toBeFalse();
+
+    const nanEvent = { target: { value: 'not-a-number' } } as unknown as Event;
+    component.onQuantityChanged(mockLine, nanEvent);
+    expect(component.adjustments().has(101)).toBeFalse();
+
+    const noIdLine = { ...mockLine, invoiceItemId: 0 };
+    component.onQuantityChanged(noIdLine, { target: { value: '10' } } as unknown as Event);
+    expect(component.adjustments().has(0)).toBeFalse();
+  });
+
+  it('should handle error when saving reconciliation adjustments', () => {
+    invoiceServiceSpy.reconcileInvoice.and.returnValue(throwError(() => ({ error: { message: 'Reconcile failed' } })));
+    component.saveReconciliation();
+    expect(component.isSaving()).toBeFalse();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('should handle error when applying invoice', async () => {
+    invoiceServiceSpy.applyInvoice.and.returnValue(throwError(() => ({ error: { message: 'Apply failed' } })));
+    let alertHandler: (() => void) | undefined;
+    alertCtrlSpy.create.and.callFake((options: unknown) => {
+      const opts = options as { buttons: Array<{ handler?: () => void }> };
+      alertHandler = opts.buttons.find(b => b.handler)?.handler;
+      return Promise.resolve(alertSpy);
+    });
+
+    await component.confirmAndApply();
+    alertHandler?.();
+
+    expect(component.isApplying()).toBeFalse();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('should download Factur-X XML when available', () => {
+    const blob = new Blob(['<xml></xml>'], { type: 'application/xml' });
+    invoiceServiceSpy.downloadXml.and.returnValue(of(blob));
+
+    component.downloadXml();
+    expect(invoiceServiceSpy.downloadXml).toHaveBeenCalledWith(1);
+  });
+
+  it('should handle error when XML download fails', () => {
+    invoiceServiceSpy.downloadXml.and.returnValue(throwError(() => new Error('Not found')));
+
+    component.downloadXml();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('should return empty poOptions when candidatePurchaseOrders is empty', () => {
+    component.reconciliation.set({ ...mockReconciliation, candidatePurchaseOrders: [] });
+    expect(component.poOptions()).toEqual([]);
   });
 });

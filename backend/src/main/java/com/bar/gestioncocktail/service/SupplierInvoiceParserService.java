@@ -151,25 +151,33 @@ public class SupplierInvoiceParserService {
         }
     }
 
+    private static String sanitizeLog(String input) {
+        if (input == null) {
+            return "unknown";
+        }
+        return input.replace('\n', '_').replace('\r', '_');
+    }
+
     private SupplierInvoice parsePdfInvoice(byte[] pdfBytes, String filename) {
+        String safeFilename = sanitizeLog(filename);
         try (PDDocument document = Loader.loadPDF(pdfBytes)) {
             byte[] embeddedXmlBytes = extractEmbeddedFacturXXml(document);
             if (embeddedXmlBytes != null && embeddedXmlBytes.length > 0) {
-                log.info("Embedded Factur-X XML detected in PDF: {}", filename);
+                log.info("Embedded Factur-X XML detected in PDF: {}", safeFilename);
                 SupplierInvoice invoice = parseXmlInvoice(embeddedXmlBytes, filename);
                 invoice.setFormat(SupplierInvoiceFormat.FACTUR_X);
                 invoice.setRawXmlContent(new String(embeddedXmlBytes, StandardCharsets.UTF_8));
                 return invoice;
             }
 
-            log.info("No embedded Factur-X XML found. Parsing PDF using heuristic text extraction: {}", filename);
+            log.info("No embedded Factur-X XML found. Parsing PDF using heuristic text extraction: {}", safeFilename);
             PDFTextStripper stripper = new PDFTextStripper();
             String text = stripper.getText(document);
             SupplierInvoice invoice = parsePdfTextHeuristically(text, filename);
             invoice.setFormat(SupplierInvoiceFormat.STANDARD_PDF);
             return invoice;
         } catch (IOException e) {
-            log.error("Failed to parse PDF invoice: {}", filename, e);
+            log.error("Failed to parse PDF invoice: {}", safeFilename, e);
             throw new BusinessException("Failed to parse PDF document: " + e.getMessage());
         }
     }
@@ -242,7 +250,7 @@ public class SupplierInvoiceParserService {
                 return parseGenericXmlInvoice();
             }
         } catch (Exception e) {
-            log.error("Failed to parse XML invoice: {}", filename, e);
+            log.error("Failed to parse XML invoice: {}", sanitizeLog(filename), e);
             throw new BusinessException("Invalid electronic invoice XML content: " + e.getMessage());
         }
     }

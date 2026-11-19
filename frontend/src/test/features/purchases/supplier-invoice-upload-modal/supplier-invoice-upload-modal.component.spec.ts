@@ -146,6 +146,21 @@ describe('SupplierInvoiceUploadModalComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalled();
   });
 
+  it('should notify user when uploaded file is a duplicate invoice', () => {
+    const file = new File(['content'], 'test.pdf', { type: 'application/pdf' });
+    component.selectedFile.set(file);
+    invoiceServiceSpy.uploadInvoice.and.returnValue(of({
+      ...mockUploadResponse,
+      duplicate: true
+    }));
+
+    component.uploadAndParse();
+
+    expect(component.isUploading()).toBeFalse();
+    expect(component.uploadResult()?.duplicate).toBeTrue();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
   it('should handle upload errors gracefully', () => {
     const file = new File(['content'], 'test.pdf', { type: 'application/pdf' });
     component.selectedFile.set(file);

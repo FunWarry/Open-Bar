@@ -58,7 +58,7 @@
             type="button"
             class="btn-action btn-primary"
             (click)="openUploadInvoiceModal()"
-            data-testid="purchases-upload-invoice-btn"
+            data-testid="upload-invoice-btn"
           >
             <ion-icon name="cloud-upload-outline"></ion-icon>
             <span>{{ 'purchases.invoices.uploadBtn' | transloco }}</span>
@@ -543,6 +543,7 @@
             variant="primary"
             icon="cloud-upload-outline"
             (actionClick)="openUploadInvoiceModal()"
+            testId="empty-upload-invoice-btn"
             data-testid="empty-upload-invoice-btn">
             {{ 'purchases.invoices.uploadBtn' | transloco }}
           </app-action-button>

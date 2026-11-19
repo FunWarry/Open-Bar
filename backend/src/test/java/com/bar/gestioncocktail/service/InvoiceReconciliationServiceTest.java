@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -218,6 +219,17 @@ class InvoiceReconciliationServiceTest {
             assertThat(updated.purchaseOrderId()).isEqualTo(200L);
             verify(supplierInvoiceRepository).save(invoice);
         }
+
+        @Test
+        @DisplayName("Should throw BusinessException when attempting to reconcile an already applied invoice")
+        void shouldThrowWhenReconcilingAppliedInvoice() {
+            invoice.setStatus(SupplierInvoiceStatus.APPLIED);
+            when(supplierInvoiceRepository.findById(1L)).thenReturn(Optional.of(invoice));
+
+            assertThatThrownBy(() -> reconciliationService.reconcileInvoice(1L, null, testUser))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("already been applied");
+        }
     }
 
     @Nested
@@ -227,7 +239,7 @@ class InvoiceReconciliationServiceTest {
         @Test
         @DisplayName("Should intake stock, recalculate WAC and create delivery record")
         void shouldIntakeStockAndRecalculateWac() {
-            when(timeService.now()).thenReturn(LocalDateTime.of(2026, 3, 18, 14, 0));
+            when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.MARCH, 18, 14, 0));
             when(supplierInvoiceRepository.findById(1L)).thenReturn(Optional.of(invoice));
             invoice.setPurchaseOrder(purchaseOrder);
             invoiceItem2.setMatchedIngredient(rumIngredient); // map item 2 so all items are mapped
@@ -262,6 +274,43 @@ class InvoiceReconciliationServiceTest {
             assertThatThrownBy(() -> reconciliationService.applyInvoice(1L, testUser))
                     .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("already been applied");
+        }
+
+        @Test
+        @DisplayName("Should throw BusinessException when attempting to apply invoice with unmapped items")
+        void shouldThrowWhenApplyingWithUnmappedItems() {
+            when(supplierInvoiceRepository.findById(1L)).thenReturn(Optional.of(invoice));
+            invoiceItem2.setMatchedIngredient(null); // Unmapped item!
+
+            assertThatThrownBy(() -> reconciliationService.applyInvoice(1L, testUser))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("must be mapped to an ingredient");
+        }
+
+        @Test
+        @DisplayName("Should create automated purchase order when applying invoice without prior PO")
+        void shouldCreateAutomatedPoWhenApplyingInvoiceWithoutPo() {
+            when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.MARCH, 18, 14, 0));
+            invoice.setPurchaseOrder(null);
+            invoiceItem2.setMatchedIngredient(rumIngredient);
+            when(supplierInvoiceRepository.findById(1L)).thenReturn(Optional.of(invoice));
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenAnswer(i -> {
+                PurchaseOrder po = i.getArgument(0);
+                po.setId(999L);
+                return po;
+            });
+            when(purchaseOrderDeliveryRepository.save(any(PurchaseOrderDelivery.class))).thenAnswer(i -> {
+                PurchaseOrderDelivery pod = i.getArgument(0);
+                pod.setId(888L);
+                return pod;
+            });
+            when(supplierInvoiceRepository.save(any(SupplierInvoice.class))).thenAnswer(i -> i.getArgument(0));
+
+            SupplierInvoiceDTO result = reconciliationService.applyInvoice(1L, testUser);
+
+            assertThat(result).isNotNull();
+            assertThat(result.status()).isEqualTo(SupplierInvoiceStatus.APPLIED);
+            verify(purchaseOrderRepository, atLeastOnce()).save(any(PurchaseOrder.class));
         }
     }
 }
