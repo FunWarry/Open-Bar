@@ -101,7 +101,7 @@ frontend/src/
 
 **Key Architectural Decisions:**
 - Angular Material → **Abandoned** → Ionic 9+
-- Capacitor → **Abandoned** → PWA (`@angular/pwa`, Service Worker)
+- Capacitor → **Abandoned** → PWA (`@angular/service-worker`, `manifest.webmanifest`, `ngsw-config.json`)
 - NgRx → **Auth only** — all other state uses direct services + Angular signals
 - Tests → **`src/test/`** (mirror Maven structure, never co-located with source components)
 - Styling → **Adaptive Theme System** using CSS variables from `variables.css` (no hardcoded hex/RGB colors)
