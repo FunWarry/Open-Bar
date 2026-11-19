@@ -128,6 +128,7 @@ Skills in `.agents/skills/` define reusable workflows for this project:
 | `openbar-dev` | "add feature X" / "generate component" | Generate code following OpenBar conventions |
 | `openbar-ticket` | "implement issue #N" / "treat ticket #N" | Full ticket pipeline with Grill-Me interview & Boost strategic engineering (cadrage → deep thinking → branch → impl → tests → PR → merge) |
 | `openbar-fast-ticket` | "fast ticket #N" / "traite le bugfix #N" | Express automated pipeline for minor tickets & bugfixes |
+| `openbar-create-ticket` | "crée un ticket" / "add issue" | Standardized GitHub issue creation with mandatory Priority (P0/P1/P2) and Size (XS/S/M/L/XL) on labels & Project V2 board |
 | `openbar-test-gen` | "génère les tests pour X" / "test pyramid" | Full test pyramid generator (Karma, JUnit 5, seeder, Playwright) |
 | `openbar-pre-push` | "pre-push" / "valide avant push" | Fast local pre-push validation suite (i18n, zero problems, CSS, compilation) |
 | `openbar-ci-watch` | "watch CI" / "surveille la CI" | Autonomous CI & SonarCloud watcher with log diagnosis and auto-patching |
@@ -142,6 +143,8 @@ Skills in `.agents/skills/` define reusable workflows for this project:
 |---------|-----|
 | Project | `PVT_kwHOBOlRss4Bac05` |
 | Status field | `PVTSSF_lAHOBOlRss4Bac05zhVUX3s` |
+| Priority field | `PVTSSF_lAHOBOlRss4Bac05zhVUX7w` |
+| Size field | `PVTSSF_lAHOBOlRss4Bac05zhVUX70` |
 
 | Status | Option ID |
 |--------|-----------|
@@ -149,6 +152,20 @@ Skills in `.agents/skills/` define reusable workflows for this project:
 | In progress | `47fc9ee4` |
 | In review | `df73e18b` |
 | Done | `98236657` |
+
+| Priority | Option ID |
+|----------|-----------|
+| P0 (Critical) | `79628723` |
+| P1 (High) | `0a877460` |
+| P2 (Normal) | `da944a9c` |
+
+| Size | Option ID | Effort |
+|------|-----------|--------|
+| XS | `6c6483d2` | ~1-2h |
+| S | `f784b110` | ~half-day |
+| M | `7515a9f1` | ~1-2 days |
+| L | `817d0097` | ~3-5 days |
+| XL | `db339eb2` | > 1 week (Epic) |
 
 ---
 
