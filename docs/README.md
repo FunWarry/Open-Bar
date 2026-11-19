@@ -1,7 +1,7 @@
 # 📚 OpenBar — Documentation & Guides
 
-Bienvenue dans l'espace documentaire d'**OpenBar**.  
-Ce répertoire regroupe les guides techniques, l'historique des sessions d'architecture et les spécifications du système.
+Bienvenue dans l'espace documentaire officiel d'**OpenBar**.  
+Ce répertoire regroupe les spécifications fonctionnelles, les guides d'architecture logicielle, les manuels d'exploitation système et les politiques de journalisation.
 
 ---
 
@@ -9,14 +9,17 @@ Ce répertoire regroupe les guides techniques, l'historique des sessions d'archi
 
 | Document | Emplacement | Public & Rôle |
 |----------|-------------|---------------|
-| **Présentation Globale** | [`README.md`](../README.md) | Showcase produit, modules, fonctionnalités clés, démarrage rapide |
-| **Cahier des Charges (CDC)** | [`CDC.md`](../CDC.md) | Spécifications fonctionnelles complètes, matrice des fonctionnalités, modèle de données |
+| **Présentation Globale** | [`README.md`](../README.md) | Showcase produit, modules, fonctionnalités clés, démarrage rapide en 60s |
+| **Cahier des Charges (CDC)** | [`docs/CDC.md`](CDC.md) | Spécifications fonctionnelles complètes, matrice des 10 modules, modèle de données |
 | **Guide Technique & Architecture** | [`docs/TECHNICAL_GUIDE.md`](TECHNICAL_GUIDE.md) | Architecture logicielle, protocoles réseau (Concert IP, ESC/POS), STOMP, conformité fiscale |
 | **Guide Journalisation & Logs** | [`docs/LOGS_GUIDE.md`](LOGS_GUIDE.md) | Architecture centralisée des logs, conteneur Logrotate RPi 5, accès temps réel & dépannage |
 | **Guide Frontend** | [`frontend/README.md`](../frontend/README.md) | Architecture Angular 22 / Ionic 9, signaux, design tokens, tests Karma & Playwright |
 | **Guide Backend** | [`backend/README.md`](../backend/README.md) | Architecture Spring Boot 4.1.1, modèle relationnel, DTOs immuables, sécurité JWT |
-| **Instructions Claude / Agent** | [`CLAUDE.md`](../CLAUDE.md) | Règles de développement, conventions, checklists et commandes optimisées RTK |
+| **Conditions Générales (CGU)** | [`TERMS_OF_SERVICE.md`](../TERMS_OF_SERVICE.md) | Conditions d'utilisation, conformité légale & RGPD / données locales |
+| **Licence Logicielle** | [`LICENSE.md`](../LICENSE.md) | Licence Propriétaire Commerciale OpenBar |
+| **Guide Développeur Interne** | [`CONTRIBUTING.md`](../CONTRIBUTING.md) | Règles de développement, conventions de commit et standards internes |
 | **Règles AI Agents** | [`.agents/AGENTS.md`](../.agents/AGENTS.md) | Règles absolues de qualité (zéro problème IDE, parité i18n, conventions) |
+| **État des Fonctionnalités** | [`.agents/knowledge/features-state.md`](../.agents/knowledge/features-state.md) | Matrice exhaustive des features, tests et couverture métier |
 
 ---
 
@@ -24,19 +27,17 @@ Ce répertoire regroupe les guides techniques, l'historique des sessions d'archi
 
 ```
 docs/
-├── README.md               # Le présent fichier d'index
-├── TECHNICAL_GUIDE.md      # Guide d'architecture et d'ingénierie système détaillé
-└── sessions/               # Traces des sessions de travail et décisions d'architecture
-    ├── 2026-06-15-critique-projet.md
-    └── 2026-06-22-sprint-tests-securite.md
+├── README.md               # Le présent fichier d'index documentaire
+├── CDC.md                  # Cahier des charges fonctionnel, matrice des modules & roadmap
+├── TECHNICAL_GUIDE.md      # Guide d'architecture, protocoles réseau (TPE, ESC/POS) & exploitation
+└── LOGS_GUIDE.md           # Architecture des logs, conteneur Logrotate & rotation en production
 ```
 
 ---
 
-## 📜 Historique des Sessions Majeures
+## 🎯 Ressources Externes Clés
 
-| Date | Fichier | Sujet Traité |
-|------|---------|--------------|
-| 2026-06-15 | [`critique-projet.md`](sessions/2026-06-15-critique-projet.md) | Critique globale du projet (CDC, architecture, sécurité, dette) |
-| 2026-06-22 | [`sprint-tests-securite.md`](sessions/2026-06-22-sprint-tests-securite.md) | Sprint : refresh token JWT (PR #100), export PDF (PR #101), saisonnalité (PR #102), couverture tests (PR #103) |
-| 2026-10-03 | — | Sortie v0.8.0 : Bar Tabs (#538/#539), Monétique TPE Concert IP (:8888), Inventaire physique, Refonte documentaire promotionnelle |
+- **Dépôt GitHub** : [https://github.com/FunWarry/Open-Bar](https://github.com/FunWarry/Open-Bar)
+- **Kanban & Roadmap** : [GitHub Projects OpenBar](https://github.com/users/FunWarry/projects/3/views/1)
+- **Design System Figma** : FileKey `XSVwFk64kgtqgUN9n5qoMw` (8 pages, 60+ composants atomiques)
+- **Qualité & Couverture** : [SonarCloud OpenBar Dashboard](https://sonarcloud.io/summary/new_code?id=FunWarry_Open-Bar)

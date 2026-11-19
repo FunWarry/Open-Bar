@@ -157,16 +157,16 @@ Examples: `feat/#188-vue-client-qr`, `fix/#189-date-livraison`
 
 ---
 
-## Ticket Pipeline (`openbar-ticket` — 10 Steps)
+## Ticket Pipeline (`openbar-ticket` — 10 Steps with Grill-Me & Boost)
 
-1. Read issue (`gh issue view <N>`) + move to "In progress" on GitHub Projects board
+1. Read issue (`gh issue view <N>`) + move to "In progress" + **Grill-Me interview** (interactive requirements/design alignment with user) + **Boost analysis** (deep thinking, 5-perspective strategic plan)
 2. Create dedicated branch: `git checkout -b <type>/#N-<description>`
-3. Implement feature/fix (atomic conventional commits, English docs, i18n parity)
-4. Write comprehensive tests (nominal + error + edge cases)
-5. Validate locally: `tsc --noEmit` + `ng test` + `mvn test` + `sonar-scan.ps1`
+3. Implement feature/fix (Boost execution rigor, atomic conventional commits, English docs, i18n parity, Design System components only)
+4. Write comprehensive tests (Pyramid: Karma, JUnit 5, integration, Playwright E2E, and `demo_dataset.json` seeding)
+5. Validate locally: `node scripts/pre-push-check.js` + `tsc --noEmit` + `ng test` + `mvn test` + `sonar-scan.ps1` (0 IDE problems)
 6. Push + create PR targeting `dev` branch + move board status to "In review"
-7. Self-review / code-review checklist
-8. Wait for 100% green CI + SonarCloud Quality Gate PASSED
+7. Self-review / code-review checklist & Boost multi-perspective audit
+8. Wait for 100% green CI + SonarCloud Quality Gate PASSED (`openbar-ci-watch`)
 9. Address review suggestions (e.g., automated Copilot reviewer)
 10. Merge (merge commit, never squash) + delete branches + sync Knowledge Items (`openbar-ki-update`) + close issue (Done)
 

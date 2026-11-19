@@ -126,7 +126,7 @@ Skills in `.agents/skills/` define reusable workflows for this project:
 | `openbar-check` | "check env" / start of session | Verify dev environment (17 checks) |
 | `openbar-install` | "setup project" / after ❌ in check | Install/repair the full dev environment |
 | `openbar-dev` | "add feature X" / "generate component" | Generate code following OpenBar conventions |
-| `openbar-ticket` | "implement issue #N" / "treat ticket #N" | Full ticket pipeline (branch → impl → tests → PR → merge) |
+| `openbar-ticket` | "implement issue #N" / "treat ticket #N" | Full ticket pipeline with Grill-Me interview & Boost strategic engineering (cadrage → deep thinking → branch → impl → tests → PR → merge) |
 | `openbar-fast-ticket` | "fast ticket #N" / "traite le bugfix #N" | Express automated pipeline for minor tickets & bugfixes |
 | `openbar-test-gen` | "génère les tests pour X" / "test pyramid" | Full test pyramid generator (Karma, JUnit 5, seeder, Playwright) |
 | `openbar-pre-push` | "pre-push" / "valide avant push" | Fast local pre-push validation suite (i18n, zero problems, CSS, compilation) |

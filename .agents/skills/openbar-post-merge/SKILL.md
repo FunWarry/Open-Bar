@@ -92,17 +92,14 @@ gh issue close <NUMERO_TICKET> --repo FunWarry/Open-Bar
    - Nouveaux rôles / permissions ou contrats DTO majeurs → Mettre à jour la section architecture.
    - Bug connu résolu → Retirer des "Points d'Attention Critiques".
 
-3. **Fichier `CLAUDE.md`** *(si présent à la racine)* :
-   - Mettre à jour le tableau "Features implémentées vs. manquantes".
-
 ---
 
 ### Étape 5 — Commit et Push des KIs sur `dev`
 
-Une fois les fichiers de documentation (`.agents/knowledge/` et/ou `CLAUDE.md`) mis à jour :
+Une fois les fichiers de documentation (`.agents/knowledge/`) mis à jour :
 
 ```powershell
-git add .agents/knowledge/ CLAUDE.md
+git add .agents/knowledge/
 git commit -m "docs: sync Knowledge Items & features state after PR #<NUMERO_PR> merge"
 git push origin dev
 ```

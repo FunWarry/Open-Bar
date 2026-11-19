@@ -90,20 +90,6 @@ Mettre à jour `updated_at` dans le fichier `metadata.json` du KI modifié :
 
 ---
 
-## Mise à jour du tableau dans CLAUDE.md
-
-**Obligatoire après chaque feature mergée** — le tableau "Features implémentées vs. manquantes" dans `CLAUDE.md` doit aussi être synchronisé :
-
-```bash
-# Localiser la ligne du ticket dans CLAUDE.md et mettre à jour les colonnes
-# Puis committer directement sur dev :
-git add CLAUDE.md
-git commit -m "docs: mise à jour features — #<NUMERO> implémenté"
-git push origin dev
-```
-
----
-
 ## Exemple concret — Après merge PR #188 (Vue Client QR Code)
 
 ```markdown
@@ -134,4 +120,4 @@ git push origin dev
 - [ ] `architecture.md` : topics WebSocket mis à jour si nouveau topic
 - [ ] `architecture.md` : bugs connus mis à jour si bug corrigé
 - [ ] `metadata.json` : `updated_at` mis à jour pour chaque KI modifié
-- [ ] `CLAUDE.md` : tableau features mis à jour + commit sur `dev`
+- [ ] Commit et push des KIs (`.agents/knowledge/`) sur `dev`

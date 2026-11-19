@@ -22,21 +22,24 @@
 
 ## 1. Contexte et objectifs
 
-OpenBar digitalise et fluidifie l'ensemble du cycle opérationnel d'un bar : prise de commande → préparation → service → facturation, avec communication temps réel entre les acteurs, 100% en réseau local, sans abonnement cloud récurrent et sans dépendance à Internet.
+OpenBar digitalise et fluidifie l'ensemble du cycle opérationnel d'un bar : prise de commande → préparation → service → facturation, avec communication temps réel entre les acteurs.  
+Le projet est désormais un **logiciel privé et propriétaire** commercialisé sous forme d'**abonnement mensuel** avec une liberté totale sur le mode d'hébergement :
+1. **Hébergement Maison (On-Premise / BYOH)** : Exécution sur le matériel déjà existant du bar (PC de caisse, mini-PC, ou Raspberry Pi 5 conseillé). **Aucun matériel n'est fourni ni vendu** : nous apportons le logiciel et le conseil architectural.
+2. **Hébergement Cloud en France** : Déploiement clé en main sur cluster souverain français (OVHcloud / Scaleway) avec isolation étanche des données par établissement (`Database-per-Tenant`).
 
 ### Problème adressé
 
 - Coordination inefficace entre serveurs et barmans (tickets papier, appels oraux)
-- Vulnérabilité critique aux pannes Internet des solutions SaaS cloud
+- Vulnérabilité critique aux pannes Internet des solutions SaaS cloud classiques
 - Erreurs de caisse et double saisie des montants sur les terminaux bancaires (TPE)
 - Absence de visibilité temps réel sur l'état des commandes et le délai d'attente
 - Gestion manuelle des stocks et absence d'inventaire physique fiable
-- Coûts exorbitants d'abonnement au terminal et commissions cachées
+- Coûts exorbitants d'abonnement au terminal et commissions cachées sur les encaissements
 - Facturation longue, complexe et gestion fastidieuse du partage de l'addition
 
 ### Solution
 
-Système d'exploitation complet pour bar et restaurant sur réseau local, avec WebSocket pour la communication temps réel (< 50ms) entre serveurs, barmans, cuisine, caisse et clients, liaison directe TPE par protocole Concert IP, et modularité totale.
+Système d'exploitation complet pour bar et restaurant, avec WebSocket pour la communication temps réel (< 50ms) entre serveurs, barmans, cuisine, caisse et clients, liaison directe TPE par protocole Concert IP, et modularité totale sous abonnement mensuel transparent.
 
 ---
 
@@ -52,7 +55,7 @@ Système d'exploitation complet pour bar et restaurant sur réseau local, avec W
 | ORM | JPA / Hibernate + Lombok | 1.18.34 | Entités Java, DTOs Java Records avec `from(Entity)` |
 | Sécurité | Spring Security + JWT | JJWT **0.13.0** | Filtres custom, rotation refresh tokens, timeout 4h |
 | Assainissement HTML | Jsoup | 1.23.2 | Nettoyage XSS global sur tous les DTOs textuels |
-| Temps réel | WebSocket STOMP | via Spring | 11 topics actifs |
+| Temps réel | WebSocket STOMP | via Spring | 13 topics actifs |
 | PDF | OpenPDF | 2.0.3 | Factures A4, Z-Reports scellés, fiches de stocktake |
 | QR Code | ZXing | 3.5.4 | Génération matricielle PNG et chevalets vectoriels |
 | Frontend | Angular | **22.2.0** | Standalone components, Signals, routing lazy-loaded |
@@ -77,9 +80,10 @@ Système d'exploitation complet pour bar et restaurant sur réseau local, avec W
 | Documentation API | **Springdoc OpenAPI 3.1.1** | Swagger UI interactif pour synchronisation front/back |
 | Documentation Code | **JavaDoc + TSDoc** | JavaDoc obligatoire backend, TSDoc obligatoire frontend |
 | i18n | **Transloco** (`@jsverse/transloco`) | Lazy loading natif, typage strict, parité FR/EN |
-| Déploiement prod | **Nginx sur mini-PC local** (Raspberry Pi 5) | Réseau WiFi du bar, zéro dépendance internet |
+| Déploiement prod | **Modèle Dual au choix : On-Premise (BYOH) ou Cloud France** | **Option A** : Serveur local sur matériel existant (PC/mini-PC ou Raspberry Pi 5 conseillé — zéro matériel vendu). **Option B** : Cluster managé en France (OVHcloud / Scaleway) avec isolation étanche par établissement (`Database-per-Tenant`). |
+| Modèle Commercial | **Abonnement mensuel privé & propriétaire** | Forfait mensuel sans commission sur les encaissements, code source propriétaire fermé. |
 
-> **PWA locale** : L'app tourne sur le réseau WiFi du bar. La coupure internet n'a aucun impact. Service Worker cache l'app shell (cache-first) et rejoue les requêtes POST/PUT en attente à la reconnexion WiFi.
+> **Déploiement Hybride & Autonomie** : En mode On-Premise, l'app tourne sur le réseau WiFi du bar sans aucune dépendance Internet. En mode Cloud France, les établissements sont cloisonnés de manière hermétique au niveau données et calculs.
 
 #### Design
 
@@ -239,7 +243,7 @@ flowchart LR
 
 ---
 
-## 5. WebSocket STOMP (11 Topics Actifs)
+## 5. WebSocket STOMP (13 Topics Actifs)
 
 | Topic | Événement & Rôle | Consommateurs |
 |-------|------------------|---------------|
@@ -255,6 +259,7 @@ flowchart LR
 | `/topic/establishment/modules`| Toggle à chaud des modules d'établissement | Tous les postes connectés |
 | `/topic/bar-tabs` | Ouverture, transfert, mise à jour ou clôture d'ardoise | Barman, Serveur, Manager |
 | `/topic/inventory-audits` | Démarrage, comptage ou finalisation de stocktake | Barman, Manager |
+| `/topic/tpe/{terminalId}` | Statut transactionnel et acquittement paiement CB | Caisse, Serveur |
 
 ---
 

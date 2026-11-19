@@ -4,10 +4,14 @@
 
 **OpenBar** is a real-time bar management application designed to digitize the complete cycle: order intake → preparation → service → billing.
 
-- **Repo**: `FunWarry/Open-Bar` (GitHub)
+- **Project Status**: Private proprietary commercial software (no longer open-source)
+- **Commercial Model**: Monthly subscription per establishment (zero transaction commissions)
+- **Repo**: `FunWarry/Open-Bar` (GitHub private)
 - **GitHub Project**: `PVT_kwHOBOlRss4Bac05`
 - **Figma**: `XSVwFk64kgtqgUN9n5qoMw`
-- **Target Deployment**: Local PWA on mini-PC / Raspberry Pi 5 over local bar Wi-Fi network (no internet dependency required for local operations)
+- **Target Deployment (Dual Model)**:
+  - **Option A (On-Premise / BYOH)**: Local PWA on customer's existing hardware (mini-PC, POS terminal, or advised Raspberry Pi 5). Zero hardware sold or provided. 100% autonomous local Wi-Fi.
+  - **Option B (French Sovereign Cloud)**: Managed cluster deployment in France (OVHcloud / Scaleway) with strict tenant isolation (`Database-per-Tenant`, dedicated K8s namespaces, NetworkPolicies).
 
 ---
 

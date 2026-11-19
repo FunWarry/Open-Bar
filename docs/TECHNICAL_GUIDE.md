@@ -17,7 +17,7 @@
 8. [Ardoises Bar Tabs & Audit d'Inventaire Physique](#8-ardoises-bar-tabs--audit-dinventaire-physique)
 9. [Impression Réseau Directe ESC/POS (TCP 9100)](#9-impression-réseau-directe-escpos-tcp-9100)
 10. [Conformité Légale, Clôture Z-Report & Export FEC](#10-conformité-légale-clôture-z-report--export-fec)
-11. [Déploiement Embarqué & Reverse Proxy Nginx TLS](#11-déploiement-embarqué--reverse-proxy-nginx-tls)
+11. [Modèles de Déploiement : On-Premise (BYOH) & Cloud Cluster France](#11-modèles-de-déploiement--on-premise-byoh--cloud-cluster-france)
 12. [Sauvegardes Automatiques & Disaster Recovery](#12-sauvegardes-automatiques--disaster-recovery)
 13. [Journalisation, Rotation des Logs & Exploitation](#13-journalisation-rotation-des-logs--exploitation)
 14. [Sécurité & Durcissement en Production](#14-sécurité--durcissement-en-production)
@@ -51,7 +51,7 @@ OpenBar est conçu selon 4 axiomes fondamentaux :
 | **Framework Backend** | **Spring Boot** | **4.1.1** | Injection de dépendances, JPA, REST, validation Bean Validation. |
 | **Sécurité** | **Spring Security + JJWT** | **0.13.0** | JWT asymétrique/HMAC-SHA, rotation des refresh tokens, session timeout 4h. |
 | **Base de Données** | **PostgreSQL** | **15 / 16** | BDD relationnelle ACID, migrations déclaratives `schema.sql`. |
-| **Temps Réel** | **WebSocket STOMP** | Natif Spring | Broker STOMP en mémoire, 11 topics avec filtres par rôle/table. |
+| **Temps Réel** | **WebSocket STOMP** | Natif Spring | Broker STOMP en mémoire, 13 topics avec filtres par rôle/table. |
 | **Monétique TPE** | **Concert IP Socket** | Natif Java | Communication socket TCP directe vers port 8888 du terminal carte. |
 | **Impression Réseau** | **ESC/POS Socket Client** | Natif Java | Client socket TCP brut vers port 9100, protocole binaire CP850. |
 | **Génération PDF** | **OpenPDF** | **2.0.3** | Factures A4, Z-Reports certifiés et chevalets de table pliables. |
@@ -239,21 +239,108 @@ OpenBar intègre nativement les obligations fiscales françaises (CGI article 28
 
 ---
 
-## 11. Déploiement Embarqué & Reverse Proxy Nginx TLS
+## 11. Modèles de Déploiement : On-Premise (BYOH) & Cloud Cluster France
 
-Pour garantir le fonctionnement du scanner QR caméra et l'enregistrement du Service Worker PWA sur les navigateurs mobiles modernes, Nginx gère la terminaison TLS locale :
+OpenBar propose deux modes d'exploitation sous abonnement mensuel, répondant à deux philosophies d'infrastructure :
 
-### Ports et Redirection
-- **Port 80** : Redirection 301 permanente vers HTTPS (port 443).
-- **Port 443** : TLS 1.2 & TLS 1.3 avec chiffrement moderne.
-- **En-tête de permissions** : `Permissions-Policy: camera=(self)` indispensable pour autoriser le flux vidéo WebRTC sur les terminaux clients.
+```mermaid
+flowchart TD
+    subgraph OptionA ["🏠 OPTION A : ON-PREMISE (HÉBERGEMENT MAISON / BYOH)"]
+        direction TB
+        Hardware["💻 Matériel Existant du Bar (BYOH)\n(Mini-PC, PC caisse, ou RPi 5 conseillé)"]
+        LAN["📶 Réseau Wi-Fi Local Isolé (LAN)"]
+        Docker["🐳 Docker Compose Local\n(Spring Boot + Nginx TLS + PostgreSQL)"]
+        TerminauxA["📱 Tablettes & TPE en direct sur le Wi-Fi"]
+        
+        Hardware --> Docker --> LAN --> TerminauxA
+    end
 
-### Génération des Certificats Réseau Local (SAN)
-```bash
-# Génère les certificats avec Subject Alternative Names (openbar.lan, localhost, IP locale)
-./scripts/generate-local-certs.sh       # Linux / macOS
-.\scripts\generate-local-certs.ps1      # Windows PowerShell
+    subgraph OptionB ["🇫🇷 OPTION B : CLOUD SOUVERAIN EN FRANCE (CLUSTER K8S)"]
+        direction TB
+        CloudProvider["☁️ Datacenter Français (OVHcloud / Scaleway Kapsule)"]
+        K8sCluster["☸️ Cluster Kubernetes Managé (Multi-Tenant Étanche)"]
+        
+        subgraph Tenant1 ["Namespace: bar-chez-georges"]
+            B1["☕ Pod Spring Boot"]
+            DB1[("🐘 BDD PostgreSQL Dédiée")]
+            B1 --> DB1
+        end
+        
+        subgraph Tenant2 ["Namespace: bar-le-baryton"]
+            B2["☕ Pod Spring Boot"]
+            DB2[("🐘 BDD PostgreSQL Dédiée")]
+            B2 --> DB2
+        end
+        
+        CloudProvider --> K8sCluster
+        K8sCluster --> Tenant1
+        K8sCluster --> Tenant2
+    end
 ```
+
+---
+
+### Option A — Hébergement Maison sur Matériel Existant (On-Premise / BYOH)
+
+> ⚠️ **Politique Matérielle Stricte (Aucun matériel vendu)** :  
+> OpenBar ne vend, ne loue et ne fournit **aucun matériel physique**. L'exploitant utilise son matériel existant ou achète librement son équipement. OpenBar apporte le logiciel sous abonnement et les conseils d'architecture.
+
+1. **Recommandations Matérielles Conseillées (Guides & Dimensionnement)** :
+   - **Configuration Recommandée (Économique & Compacte)** : **Raspberry Pi 5 (8 Go RAM)** avec carte MicroSD A2 haute endurance ou boîtier SSD NVMe USB-C. Consommation ~12W, zéro bruit, autonomie sur onduleur de plusieurs heures.
+   - **Alternative PC de Caisse / Mini-PC** : Tout mini-PC moderne (ex : processeur Intel N100 / AMD Ryzen, 8 à 16 Go RAM, SSD NVMe 256 Go) sous Linux (Debian 12 / Ubuntu 24.04 LTS).
+2. **Autonomie Réseau Local Absolue** :
+   - Fonctionnement 100% autonome sur le Wi-Fi de l'établissement sans aucune dépendance Internet.
+   - Reverse proxy Nginx embarqué gérant la terminaison TLS locale pour les flux caméra QR et PWA :
+     - Port 80 (HTTP 301 vers 443)
+     - Port 443 (TLS 1.2 / 1.3 avec Subject Alternative Names)
+     - En-tête WebRTC : `Permissions-Policy: camera=(self)`
+
+---
+
+### Option B — Cloud Souverain Hébergé en France (Cluster Kubernetes & Séparation Étanche)
+
+Pour les exploitants préférant une infrastructure infogérée sans administration système locale, OpenBar est déployable dans le cloud.
+
+#### 1. Choix des Fournisseurs Cloud en France
+- **OVHcloud (Gravelines, Roubaix, Strasbourg)** : Solution souveraine française, excellente compétitivité tarifaire, Managed Kubernetes Service certifié CNCF.
+- **Scaleway (Région Paris fr-par, datacenters DC4/DC5)** : Kapsule (Kubernetes managé), volumes NVMe haute performance, isolation réseau VPC native.
+
+#### 2. Architecture de Séparation Étanche entre Établissements (Garanties Anti-Fuite)
+Pour opérer un cluster partagé tout en garantissant une étanchéité absolue entre les différents bars (indispensable pour le secret des affaires, la conformité RGPD et la certification fiscale) :
+
+1. **Isolation des Données : Modèle `Database-per-Tenant` (Hermétique)** :
+   - Chaque bar dispose de sa **propre base de données PostgreSQL indépendante** (ou instance de base isolée managée).
+   - **Zéro table partagée** : aucune possibilité technique qu'une requête SQL d'un bar puisse accéder aux commandes, recettes ou chiffres d'affaires d'un autre bar.
+   - Les clôtures de caisse journalières Z-Report scellées SHA-256 et les exports FEC sont rigoureusement confinés à la base du client.
+
+2. **Isolation des Calculs : 1 Namespace Kubernetes par Bar** :
+   - Chaque établissement est encapsulé dans son propre namespace K8s (ex : `ns-bar-georges`, `ns-bar-baryton`).
+   - Les pods applicatifs (Spring Boot API + frontend statique) sont dédiés à ce client.
+
+3. **Sécurité Réseau Intra-Cluster : `NetworkPolicies` Strictes (Zero-Trust)** :
+   ```yaml
+   apiVersion: networking.k8s.io/v1
+   kind: NetworkPolicy
+   metadata:
+     name: isolate-tenant-traffic
+     namespace: ns-bar-georges
+   spec:
+     podSelector: {}
+     ingress:
+     - from:
+       - namespaceSelector:
+           matchLabels:
+             kubernetes.io/metadata.name: ingress-nginx
+       - podSelector: {}
+   ```
+   - Tout trafic réseau provenant d'un namespace d'un autre bar est **immédiatement rejeté par le kernel (Cilium / Calico)**.
+
+4. **Cloisonnement des Performances : `ResourceQuota` & `LimitRange`** :
+   - Empêche le phénomène de *"Noisy Neighbor"* : un rush massif de commandes sur le Bar A ne peut en aucun cas consommer les ressources CPU/RAM du Bar B.
+
+5. **Routage Ingress TLS Dédié par Établissement** :
+   - Ingress Nginx / Traefik avec sous-domaine dédié : `georges.openbar.fr`, `baryton.openbar.fr`.
+   - Certificats TLS Let's Encrypt automatiques par sous-domaine.
 
 ---
 

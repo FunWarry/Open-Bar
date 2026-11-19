@@ -1,17 +1,20 @@
 ---
 name: openbar-ticket
 description: |
-  Pipeline complet de traitement d'un ticket GitHub OpenBar : branche dédiée -> implémentation -> tests -> build -> PR -> auto-critique -> CI vert -> review Copilot -> merge -> clôture.
+  Pipeline complet de traitement d'un ticket GitHub OpenBar intégrant nativement Grill-Me (cadrage interactif & interview de conception) et Boost (deep thinking, planification stratégique multi-perspectives & vérification rigoureuse) : cadrage interactif -> réflexion stratégique -> branche dédiée -> implémentation -> tests -> build -> PR -> auto-critique approfondie -> CI vert -> review Copilot -> merge -> clôture.
 
   Quand utiliser ce skill:
   - Traiter / implémenter un ticket GitHub sur OpenBar
   - "Traite le ticket #X"
   - "Implémente l'issue #X"
+  - Traitement complet et approfondi d'une issue avec interview utilisateur (grill-me) et ingénierie stratégique (boost)
 ---
 
 # Skill : openbar-ticket
 
-Pipeline complet de traitement d'un ticket GitHub : branche dédiée → implémentation → tests → build → PR → auto-critique → CI vert → review Copilot → merge → clôture.
+Pipeline complet de traitement d'un ticket GitHub enrichi des démarches **Grill-Me** (cadrage interactif & interview de conception) et **Boost** (deep thinking, planification stratégique multi-perspectives & vérification rigoureuse).
+
+Ce workflow garantit qu'aucune décision n'est prise à l'aveugle, que l'architecture est pensée en profondeur sous tous les angles critiques (sécurité, UI/UX, responsive, modularité, tests) et que l'exécution respecte 100% des règles absolues du projet OpenBar.
 
 ## Quand utiliser ce skill
 
@@ -19,10 +22,20 @@ Pipeline complet de traitement d'un ticket GitHub : branche dédiée → implém
 
 ---
 
+## Les Piliers Clés : Grill-Me & Boost intégrés
+
+| Pilier | Moment clé | Rôle dans le pipeline |
+|--------|------------|------------------------|
+| 🎯 **Grill-Me** | Dès la découverte du ticket (Étape 1b) | **Interview interactive obligatoire** : l'agent interroge l'utilisateur (via `ask_question`) pour lever toutes les ambiguïtés, trancher les choix de conception, valider les règles métier, les composants UI et les cas limites avant de coder. |
+| 🚀 **Boost** | Cadrage initial (Étape 1c) & Revue (Étape 7) | **Deep thinking & ingénierie multi-perspectives** : analyse approfondie sous 5 angles (Backend, Frontend, Modularité Plug-and-Play, Responsive 3 tiers, Tests/Seeding), anticipation des risques/régressions, plan stratégique détaillé et vérification rigoureuse. |
+
+---
+
 ## Pipeline — 10 étapes obligatoires
 
-### Étape 1 — Lire le ticket et se synchroniser
+### Étape 1 — Lire le ticket, se synchroniser et cadrer (Grill-Me & Boost)
 
+#### 1.1 Synchronisation & Prise en charge
 ```bash
 gh issue view <NUMERO> --repo FunWarry/Open-Bar
 rtk git checkout dev && rtk git pull origin dev
@@ -30,7 +43,7 @@ rtk git checkout dev && rtk git pull origin dev
 
 - Identifier le **type** : `feat` · `fix` · `docs` · `chore` · `refactor`
 - Identifier une **description courte** (2-4 mots, kebab-case, sans accent)
-- Évaluer la **complexité** pour calibrer l'effort de review (voir étape 6)
+- Évaluer la **complexité** pour calibrer l'effort de review (voir étape 7)
 - Passer le ticket en **"In progress"** sur le board :
 
 ```bash
@@ -46,6 +59,37 @@ rtk gh api graphql -f query='mutation {
 
 ---
 
+#### 1.2 Phase Grill-Me — Cadrage Interactif & Interview de Conception (OBLIGATOIRE)
+> 🎯 **Principe Grill-Me : Ne JAMAIS supposer à l'aveugle.**
+> Avant de toucher au code ou de figer une architecture, mener un entretien de cadrage interactif avec l'utilisateur pour trancher les zones d'ombre, les options UX/UI et les arbitrages techniques.
+
+1. **Utiliser systématiquement l'outil `ask_question`** lorsque des choix ou des alternatives existent (options à choix multiples claires avec option recommandée en premier).
+2. **Questions clés à investiguer systématiquement :**
+   - **Périmètre & Exigences Métier :** Quels sont les critères d'acceptation précis ? Qu'est-ce qui est strictement dans le scope vs explicitement hors scope ?
+   - **Expérience Utilisateur (UX) & Design System :** Quel comportement sur mobile (< 768px) vs tablette POS (768-1024px) vs desktop (> 1024px) ? Quels composants partagés du Design System doivent être réutilisés (`app-searchable-select`, `app-modal`, `app-action-button`, etc.) ?
+   - **Règles Métier & Cas d'Erreur :** Que se passe-t-il en cas de données vides, de coupure réseau, d'erreur serveur ou de permissions insuffisantes ?
+   - **Sécurité & Permissions :** Quels rôles ont accès à cette fonctionnalité (`ROLE_SERVEUR`, `ROLE_BARMAN`, `ROLE_MANAGER`, `ROLE_ADMIN`) ? Quelles annotations `@PreAuthorize` appliquer ?
+   - **Modularité Plug-and-Play :** Cette fonctionnalité doit-elle être activable/désactivable par établissement (`EstablishmentModule`) ? Quel statut par défaut ?
+3. **Attendre et intégrer les réponses de l'utilisateur** avant de passer à la planification technique.
+
+---
+
+#### 1.3 Phase Boost — Deep Thinking & Planification Stratégique Multi-Perspectives (OBLIGATOIRE)
+> 🚀 **Principe Boost : Réflexion approfondie et stratégie rigoureuse.**
+> Analyser le ticket sous toutes les facettes de l'ingénierie logicielle pour anticiper chaque impact avant d'écrire la moindre ligne de code.
+
+1. **Analyse sous 5 perspectives fondamentales :**
+   - **Perspective Backend :** Respect de l'architecture Spring Boot 4 / Java 22, injection par constructeur stricte, DTOs Java record (`from(Entity)`), transactions `@Transactional`, gestion des exceptions (`ResourceNotFoundException`, `BusinessException`), documentation JavaDoc & annotations OpenAPI exhaustives en anglais, zéro `@SuppressWarnings`.
+   - **Perspective Frontend :** Architecture Angular 22 standalone, composants Ionic 9, interdiction absolue des contrôles HTML bruts (Design System obligatoire), zéro couleur en dur (variables CSS adaptatives du thème), parité stricte Transloco `fr.json` et `en.json`, TSDoc en anglais.
+   - **Perspective Multi-Device & Responsive :** Garantie des 3 tiers (Mobile smartphone < 768px colonne unique touch hit target ≥ 44px, Tablette 768-1024px grille tactile dense, Desktop > 1024px vue de supervision multi-colonnes).
+   - **Perspective Modularité Plug-and-Play :** Intégration backend (`EstablishmentModule`), protection des routes frontend (`ModuleGuard`), toggle dans les paramètres (`AppSettingsPageComponent`) et l'onboarding (`/setup`).
+   - **Perspective Tests & Données de Démo :** Pyramide complète (Karma, JUnit 5, Testcontainers, Playwright E2E) et enrichissement immédiat de `demo_dataset.json` et `SampleDataSeederService.java` pour tests manuels directs.
+2. **Élaboration du Plan d'Action Stratégique Boost :**
+   - Structurer un plan séquentiel d'implémentation clair et validé (Backend → Frontend → Tests → Seeder → Pre-push).
+   - Anticiper les risques de régression et les impacts collatéraux sur l'existant.
+
+---
+
 ### Étape 2 — Créer la branche dédiée
 
 **Convention :** `<type>/#<numero>-<description-courte>`
@@ -58,15 +102,24 @@ rtk git checkout -b feat/#<numero>-<description>
 
 ---
 
-### Étape 3 — Implémenter
+### Étape 3 — Implémenter avec rigueur d'ingénierie Boost
 
-Suivre les conventions de `openbar-dev`.
+Appliquer strictement les conventions de `openbar-dev` et les décisions d'architecture arrêtées lors du **Grill-Me**.
 
-**Règle de documentation :**
-- **Documentation code OBLIGATOIRE** sur chaque composant/service/DTO/controller/guard/interceptor/store créé ou modifié.
-- **TOUTE la documentation (JavaDoc, TSDoc, annotations OpenAPI) DOIT ÊTRE RÉDIGÉE EN ANGLAIS**.
-- **INTERDICTION d'utiliser `@SuppressWarnings`** : résoudre directement les problèmes de code.
-- **Vérification et réutilisation de composants UI OBLIGATOIRE** : avant de coder ou modifier un élément d'interface (search bar, dropdown filtrable, modal, badge, boutons, chips), inspecter systématiquement `frontend/src/app/core/components/ui/` pour réutiliser les composants existants (`SearchBarComponent`, `SearchableSelectComponent`, `InputFieldComponent`, etc.). Si un pattern récurrent apparaît ou peut être factorisé de manière rentable, le transformer en composant UI autonome pour garantir 100% de réutilisabilité et d'uniformité visuelle et technique.
+**Règles d'Exécution Boost :**
+- **Fidélité au Cadrage Grill-Me** : implémenter exactement les choix validés avec l'utilisateur (UX, règles métier, granularité des modules).
+- **Documentation code OBLIGATOIRE (en Anglais)** sur chaque composant/service/DTO/controller/guard/interceptor/store créé ou modifié (JavaDoc, TSDoc, annotations OpenAPI `@Tag`, `@Operation`, `@ApiResponse`).
+- **INTERDICTION ABSOLUE d'utiliser `@SuppressWarnings`** : résoudre directement et proprement chaque problème ou warning.
+- **INTERDICTION STRICTE DES CONTRÔLES HTML BRUTS (Design System Obligatoire)** :
+  - ❌ Pas de `<select>` / `<ion-select>` ➡️ `<app-searchable-select>` (`SearchableSelectComponent`)
+  - ❌ Pas de `<input type="checkbox">` ➡️ `<app-checkbox-field>` (`CheckboxFieldComponent`) ou `<app-toggle-switch>` (`ToggleSwitchComponent`)
+  - ❌ Pas de `<button>` ➡️ `<app-action-button>` (`ActionButtonComponent`)
+  - ❌ Pas de `<input type="text">` / `type="number"` ➡️ `<app-input-field>` (`InputFieldComponent`)
+  - ❌ Pas de puces de filtrage bricolées ➡️ `<app-filter-chip>` (`FilterChipComponent`)
+  - ❌ Pas de modals personnalisées avec backdrop ad-hoc ➡️ `<app-modal>` (`ModalComponent`)
+- **Responsive 3 tiers systématique** : tester et adapter en direct l'affichage pour Mobile (< 768px), Tablette (768-1024px) et Desktop (> 1024px).
+- **Zéro couleur en dur** : n'utiliser que les variables CSS du thème de `theme/variables.css`.
+- **Parité i18n systématique** : chaque clé de texte doit être ajoutée simultanément dans `fr.json` et `en.json`.
 
 **Commits atomiques en conventional commits :**
 
@@ -206,7 +259,9 @@ EOF
 
 ---
 
-### Étape 7 — Auto-critique
+### Étape 7 — Auto-critique & Audit Approfondi Boost (Deep Review)
+
+Adopter la rigueur d'analyse **Boost** : auditer le code sous toutes les perspectives techniques et vérifier la conformité avec les arbitrages du **Grill-Me**.
 
 **Calibrer l'effort selon la complexité du ticket :**
 
@@ -226,12 +281,13 @@ EOF
 - ⏭ Style subjectif sans impact → ignorer
 - ⏭ Refactoring hors scope → créer un ticket séparé
 
-**Questions systématiques :**
-1. Zéro erreur TypeScript sur les fichiers modifiés ?
-2. Tests : cas nominal + cas d'erreur + cas limites couverts ?
-3. Templates HTML cohérents avec les modèles TypeScript ?
-4. Aucun `any` non justifié ?
-5. Conventions backend respectées (`@Transactional`, injection constructeur, DTO) ?
+**Grille d'Audit Approfondi Boost (Vérification Multi-Perspectives) :**
+1. **Conformité Grill-Me :** Les décisions validées avec l'utilisateur ont-elles été respectées à 100% sans dérive de périmètre ni omission ?
+2. **Qualité & Types :** Zéro erreur TypeScript, zéro `any` résiduel, zéro problème dans la fenêtre Problems de l'IDE (`@[current_problems]`).
+3. **Sécurité :** Contrôle des accès `@PreAuthorize`, absence d'injection, validation des entrées, pas de fuite de données sensibles dans les DTOs ou les logs.
+4. **Design System & Responsive :** Aucun contrôle HTML brut, composants UI partagés réutilisés, variables CSS adaptatives respectées, rendu impeccable sur Smartphone (< 768px), Tablette (768-1024px) et Desktop (> 1024px).
+5. **Couverture de Tests :** Pyramide complète (unitaires, non-régression, intégration, Playwright E2E) et jeu de données de démo (`demo_dataset.json`) mis à jour.
+6. **Conventions Backend & Frontend :** Injection par constructeur, DTOs immuables, `@Transactional`, parité Transloco `fr.json` et `en.json`, documentation en anglais partout.
 
 ---
 
@@ -317,16 +373,6 @@ rtk git push origin --delete <branche>
 rtk git fetch --prune
 ```
 
-**Mettre à jour le tableau des features dans `CLAUDE.md` :**
-
-Localiser la ligne du ticket dans le tableau "Features implémentées vs. manquantes" de `CLAUDE.md` et mettre à jour les colonnes Backend / Frontend / Tests avec ✅. Si la feature n'est pas dans le tableau, l'ajouter.
-
-```bash
-rtk git add CLAUDE.md
-rtk git commit -m "docs: mise à jour features — #<NUMERO> implémenté"
-rtk git push origin dev
-```
-
 **Clôturer le ticket sur le board (Done) :**
 ```bash
 rtk gh api graphql -f query='mutation {
@@ -344,10 +390,15 @@ gh issue close <NUMERO> --repo FunWarry/Open-Bar
 **Mettre à jour les Knowledge Items (KIs) — OBLIGATOIRE après chaque merge :**
 
 Déclencher le skill `openbar-ki-update` pour synchroniser les KIs avec l'état réel du projet :
-- Mettre à jour `features-state.md` (tableau features Backend ✅ / Frontend ✅ / Tests ✅)
+- Mettre à jour `features-state.md` (tableau des features Backend ✅ / Frontend ✅ / Tests ✅)
 - Mettre à jour `architecture.md` si nouvelle entité, nouveau topic WS, ou bug corrigé
 - Mettre à jour `conventions.md` si nouveau pattern de code établi
-- Committer les KIs sur `dev` si ce sont des fichiers du workspace (`.agents/knowledge/`)
+- Committer les KIs sur `dev` (`.agents/knowledge/`) :
+```bash
+rtk git add .agents/knowledge/
+rtk git commit -m "docs: sync Knowledge Items & features state after #<NUMERO> merge"
+rtk git push origin dev
+```
 
 > ⚠️ Les KIs sont la mémoire inter-sessions d'Antigravity — un KI obsolète entraîne des régressions à la session suivante.
 
@@ -371,6 +422,8 @@ Déclencher le skill `openbar-ki-update` pour synchroniser les KIs avec l'état 
 
 ## Checklist avant de merger
 
+- [ ] **Cadrage interactif Grill-Me validé** : toutes les décisions d'architecture, UX et règles métier ont été clarifiées et tranchées avec l'utilisateur
+- [ ] **Ingénierie & Revue Boost validées** : réflexion multi-perspectives approfondie effectuée, zéro contournement ni compromis technique
 - [ ] Zéro erreur TypeScript (`rtk tsc --noEmit | grep -v node_modules`)
 - [ ] **Zéro problème dans la fenêtre Problems de l'IDE** (`@[current_problems]` 100% vide, 0 warning, 0 error)
 - [ ] **Architecture Plug-and-Play respectée** : feature activable/désactivable dans les paramètres (`AppSettingsPageComponent`) et l'onboarding (`/setup`)
@@ -385,8 +438,7 @@ Déclencher le skill `openbar-ki-update` pour synchroniser les KIs avec l'état 
 - [ ] PR description complète (résumé, tests, plan de test manuel)
 - [ ] Board : In progress → In review → Done
 - [ ] Branche locale supprimée après merge
-- [ ] `CLAUDE.md` mis à jour (tableau features)
-- [ ] **KIs mis à jour** (`openbar-ki-update`) — features-state.md, architecture.md si nécessaire
+- [ ] **KIs mis à jour** (`openbar-ki-update`) — `features-state.md` (tableau features), `architecture.md` si nécessaire
 - [ ] **`fr.json` + `en.json` mis à jour** si le ticket touché le frontend (même commit que le composant)
 - [ ] **Onboarding & Configuration mis à jour** si la feature nécessite d'être configurée ou initialisée (`/setup`, `OnboardingComponent`, `AppSettingsPageComponent`)
 - [ ] **Données de test et démo plateforme mises à jour** (`demo_dataset.json`, `SampleDataSeederService.java`) pour tester immédiatement en mode dev/test avec les bonnes données

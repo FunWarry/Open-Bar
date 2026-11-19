@@ -5,7 +5,7 @@
 <h1 align="center">🍹 OpenBar</h1>
 
 <p align="center">
-  <strong>L'OS de gestion de bar et d'établissement nouvelle génération : temps réel, 100% autonome en réseau local, sans abonnement cloud, conforme loi anti-fraude TVA et taillé pour le rush.</strong>
+  <strong>L'OS de gestion de bar et d'établissement nouvelle génération : temps réel, abonnement mensuel transparent, choix libre entre hébergement sur votre matériel existant ou cloud souverain en France, conforme loi anti-fraude TVA et taillé pour le rush.</strong>
 </p>
 
 <p align="center">
@@ -18,7 +18,8 @@
   <a href="https://angular.dev"><img src="https://img.shields.io/badge/Angular-22.2.0-DD0031?logo=angular&logoColor=white" alt="Angular 22.2" /></a>
   <a href="https://ionicframework.com"><img src="https://img.shields.io/badge/Ionic-9.0.5-3880FF?logo=ionic&logoColor=white" alt="Ionic 9.0.5" /></a>
   <a href="https://jsverse.github.io/transloco/"><img src="https://img.shields.io/badge/i18n-Transloco%20100%25-007ACC" alt="Transloco" /></a>
-  <a href="#-licence--conditions-dexploitation"><img src="https://img.shields.io/badge/License-Source--Available-amber.svg" alt="License" /></a>
+  <a href="#-licence--conditions-dexploitation"><img src="https://img.shields.io/badge/License-Proprietary-red.svg" alt="License" /></a>
+  <a href="#-architecture--r%C3%A9silience-locale"><img src="https://img.shields.io/badge/Hosting-On--Premise%20(BYOH)%20%7C%20Cloud%20France-007ACC" alt="Hosting" /></a>
 </p>
 
 <p align="center">
@@ -28,25 +29,27 @@
   <a href="#-aper%C3%A7u-des-interfaces"><strong>Showcase UI</strong></a> •
   <a href="#-architecture--r%C3%A9silience-locale"><strong>Architecture</strong></a> •
   <a href="#-d%C3%A9marrage-rapide-en-60-secondes"><strong>Quickstart</strong></a> •
-  <a href="docs/TECHNICAL_GUIDE.md"><strong>Guide Technique 📖</strong></a>
+  <a href="docs/TECHNICAL_GUIDE.md"><strong>Guide Technique 📖</strong></a> •
+  <a href="docs/CDC.md"><strong>Cahier des Charges 📋</strong></a>
 </p>
 
 ---
 
 ## 💡 Pourquoi OpenBar ?
 
-Gérer un bar, une brasserie ou un événement pendant le coup de feu ne devrait pas être une source constante de stress technique.
+Gérer un bar, une brasserie ou un événement pendant le coup de feu ne devrait pas être une source constante de stress technique ou de surfacturation.
 
 Aujourd'hui, la quasi-totalité des exploitants font face à un constat accablant :
-1. **Le piège des abonnements Cloud prohibitifs** : 70 € à 160 € par mois et par tablette, plus des commissions sur chaque encaissement. Des milliers d'euros engloutis chaque année pour un simple logiciel de caisse.
-2. **Le cauchemar des coupures Internet** : Dès que la box Wi-Fi s'arrête un vendredi soir à 22h, les logiciels SaaS cloud se bloquent net. Impossible de commander, impossible d'envoyer les bons au barman, impossible d'encaisser les clients.
+1. **Le piège des abonnements opaques avec commissions** : Des logiciels SaaS qui prélèvent des commissions sur chaque encaissement et obligent à acheter leur matériel propriétaire fermé à prix d'or.
+2. **Le cauchemar des coupures Internet** : Dès que la box Wi-Fi s'arrête un vendredi soir à 22h, les logiciels SaaS cloud se bloquent net. Impossible de commander, d'envoyer les bons au barman ou d'encaisser les clients.
 3. **Le chaos des commandes et des stocks** : Bons papier perdus, barmans qui crient au milieu de la musique, erreurs de saisie sur le TPE bancaire, bouteilles coulées sans traçabilité et perte de marge brute.
 
 ### La Vision OpenBar
 
-> **Donner aux exploitants l'indépendance technologique totale : un système ultra-performant, élégant, économique et résilient, qui fonctionne sans dépendance Internet.**
+> **Un OS moderne sous abonnement mensuel clair, avec liberté totale d'hébergement : sur votre propre matériel existant ou dans notre cloud souverain hébergé en France.**
 
-- 🚫 **100% Indépendant d'Internet** : OpenBar s'exécute sur votre propre réseau local (sur un simple Raspberry Pi 5 ou un mini-PC). Même si toute la ville perd sa connexion Internet, votre établissement encaisse et sert à pleine vitesse.
+- 🏠 **Hébergement Maison sur votre matériel existant (BYOH)** : Faites tourner OpenBar directement sur votre matériel de bar existant (PC de caisse, mini-PC) ou sur un simple Raspberry Pi 5. **Nous ne vendons aucun matériel**, vous restez 100% maître de vos équipements tout en profitant de nos conseils d'architecture. Zéro dépendance Internet : votre bar tourne même si la connexion du quartier est coupée.
+- 🇫🇷 **Hébergement Cloud en France** : Préférez une formule clé en main hébergée sur nos clusters sécurisés en France (OVHcloud / Scaleway), avec une séparation étanche des données par établissement (`Database-per-Tenant`).
 - ⚡ **Latence Réactive Sub-50ms** : Grâce au WebSocket STOMP, une commande prise en terrasse s'affiche instantanément sur le Kanban du barman et l'écran KDS de la cuisine.
 - 💳 **Intégration TPE Bancaire Directe** : Connexion IP directe aux terminaux de paiement (protocole Concert). Fini les montants saisis à la main sur le TPE : la caisse pilote le terminal sans erreur possible.
 - 🍸 **Génie Mixologique & Roue des Accords** : Roue de correspondances gustatives interactive (accords d'arômes, variantes de recettes, calcul automatique du coût matière au centilitre).
@@ -322,18 +325,21 @@ OpenBar s'astreint à des critères d'assurance qualité stricts :
 
 ---
 
-## ⚖️ Licence & Conditions d'Exploitation
+## ⚖️ Licence & Modèle Commercial (Abonnement Mensuel)
 
-OpenBar est distribué sous licence **Source-Available Non-Commerciale**.
+OpenBar est un logiciel commercial privé et propriétaire, protégé par le droit d'auteur et distribué sous [**Licence Propriétaire OpenBar**](LICENSE.md).  
+Pour le détail des obligations, mentions légales et gouvernance des données, consultez nos [**Conditions Générales d'Utilisation & de Vente (CGU/CGV)**](TERMS_OF_SERVICE.md).
 
-- **Usage Éducatif, Personnel & Recherche** : Le code source est librement consultable, modifiable et déployable gratuitement à des fins d'apprentissage, d'audit technique ou pour des projets strictement non lucratifs.
-- **Exploitation Commerciale en Établissement** : Toute utilisation d'OpenBar dans le cadre de l'exploitation d'une activité commerciale lucrative (bar, brasserie, restaurant, food-truck, discothèque, festival payant) requiert l'acquisition préalable d'une **Licence Commerciale d'Exploitation**.
+### 💳 Modèle d'Abonnement Mensuel & Liberté d'Hébergement
+- **Abonnement Mensuel Transparent** : Facturation par établissement, sans commission sur les encaissements ni frais cachés.
+- **Politique Matérielle (Bring Your Own Hardware — Aucun matériel vendu)** : OpenBar ne vend, ne loue et ne fournit **aucun matériel physique**. Vous installez l'application sur votre équipement déjà présent (PC de caisse, mini-PC) ou sur du matériel libre que vous achetez vous-même (conseillé : Raspberry Pi 5). Nous vous fournissons la documentation et les recommandations de dimensionnement.
+- **Cloud Souverain Français** : Option d'hébergement managé clé en main sur cluster souverain en France (OVHcloud / Scaleway) garantissant une isolation stricte des données et bases (`Database-per-Tenant`).
 
-### 💼 Obtenir une Licence Commerciale ou un Accompagnement Matériel
-Pour déployer OpenBar dans votre établissement ou commander une box serveur clé en main prête à brancher :
-- **Auteur & Lead Développeur** : Mathéo Gevraise ([@FunWarry](https://github.com/FunWarry))
-- **Dépôt GitHub** : [https://github.com/FunWarry/Open-Bar](https://github.com/FunWarry/Open-Bar)
-- **Kanban & Roadmap Publique** : [GitHub Projects OpenBar](https://github.com/users/FunWarry/projects/3/views/1)
+### 💼 Souscrire un Abonnement ou Demander un Déploiement
+Pour activer un abonnement OpenBar ou échanger sur vos besoins :
+- **Auteur & Fondateur** : Mathéo Gevraise ([@FunWarry](https://github.com/FunWarry))
+- **Dépôt & Administration Privée** : [https://github.com/FunWarry/Open-Bar](https://github.com/FunWarry/Open-Bar)
+- **Kanban & Roadmap** : [GitHub Projects OpenBar](https://github.com/users/FunWarry/projects/3/views/1)
 
 ---
 
