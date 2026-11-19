@@ -138,6 +138,25 @@ class SupplierInvoiceControllerTest {
             assertThat(response.getBody().duplicate()).isTrue();
             assertThat(response.getBody().invoice().id()).isEqualTo(1L);
         }
+
+        @Test
+        @DisplayName("Should return 200 OK with duplicate flag when file was previously imported and applied")
+        void shouldReturnDuplicateResponseWhenAlreadyApplied() {
+            MockMultipartFile file = new MockMultipartFile(
+                    "file", "factur-x.xml", "application/xml", "<xml/>".getBytes()
+            );
+
+            sampleInvoice.setStatus(SupplierInvoiceStatus.APPLIED);
+            when(invoiceParserService.parseInvoice(file)).thenReturn(sampleInvoice);
+            when(supplierInvoiceRepository.findByFileChecksum("a1b2c3d4")).thenReturn(Optional.of(sampleInvoice));
+
+            ResponseEntity<SupplierInvoiceUploadResponseDTO> response = invoiceController.uploadInvoice(file, authentication);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().duplicate()).isTrue();
+            assertThat(response.getBody().message()).contains("already been imported and applied");
+        }
     }
 
     @Nested
@@ -179,6 +198,17 @@ class SupplierInvoiceControllerTest {
                     .thenReturn(List.of(sampleInvoice));
 
             ResponseEntity<List<SupplierInvoiceDTO>> response = invoiceController.getAllInvoices(null, 10L);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Should list all invoices when no filters provided")
+        void shouldListAllInvoicesWhenNoFiltersProvided() {
+            when(supplierInvoiceRepository.findAllByOrderByCreatedAtDesc()).thenReturn(List.of(sampleInvoice));
+
+            ResponseEntity<List<SupplierInvoiceDTO>> response = invoiceController.getAllInvoices(null, null);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).hasSize(1);
@@ -242,6 +272,23 @@ class SupplierInvoiceControllerTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
             verify(reconciliationService).reconcileInvoice(eq(1L), eq(request), any());
+        }
+
+        @Test
+        @DisplayName("Should resolve user from authentication when reconciling invoice")
+        void shouldResolveUserFromAuthentication() {
+            User user = new User();
+            user.setId(5L);
+            user.setUsername("john_doe");
+            when(authentication.getName()).thenReturn("john_doe");
+            when(userRepository.findByUsername("john_doe")).thenReturn(Optional.of(user));
+            when(reconciliationService.reconcileInvoice(eq(1L), any(), eq(user))).thenReturn(sampleInvoiceDto);
+
+            SupplierInvoiceReconcileRequest request = new SupplierInvoiceReconcileRequest(100L, "Draft notes", List.of());
+            ResponseEntity<SupplierInvoiceDTO> response = invoiceController.reconcileInvoice(1L, request, authentication);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            verify(reconciliationService).reconcileInvoice(1L, request, user);
         }
 
         @Test

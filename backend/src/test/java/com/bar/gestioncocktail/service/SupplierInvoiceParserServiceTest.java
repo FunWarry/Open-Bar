@@ -5,8 +5,12 @@ import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import com.bar.gestioncocktail.repository.SupplierRepository;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary;
+import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
+import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import com.bar.gestioncocktail.exception.BusinessException;
@@ -20,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -27,7 +32,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -239,6 +246,54 @@ class SupplierInvoiceParserServiceTest {
             assertThatThrownBy(() -> parserService.parseInvoice(file))
                     .isInstanceOf(BusinessException.class);
         }
+
+        @Test
+        @DisplayName("Should throw BusinessException when uploaded file is null")
+        void shouldThrowWhenFileIsNull() {
+            assertThatThrownBy(() -> parserService.parseInvoice(null))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("cannot be empty");
+        }
+
+        @Test
+        @DisplayName("Should throw BusinessException when file format is unsupported")
+        void shouldThrowWhenFileUnsupported() {
+            MockMultipartFile file = new MockMultipartFile("file", "inv.txt", "text/plain", "hello".getBytes(StandardCharsets.UTF_8));
+            assertThatThrownBy(() -> parserService.parseInvoice(file))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("Unsupported invoice file format");
+        }
+
+        @Test
+        @DisplayName("Should parse embedded Factur-X XML from PDF")
+        void shouldParseEmbeddedFacturXFromPdf() throws IOException {
+            byte[] pdfBytes = createPdfWithEmbeddedFacturX(SAMPLE_FACTURX_XML);
+            MockMultipartFile file = new MockMultipartFile("file", "invoice_facturx.pdf", "application/pdf", pdfBytes);
+            when(supplierRepository.findBySiren("399315613")).thenReturn(Optional.of(metroSupplier));
+
+            SupplierInvoice invoice = parserService.parseInvoice(file);
+
+            assertThat(invoice.getFormat()).isEqualTo(SupplierInvoiceFormat.FACTUR_X);
+            assertThat(invoice.getInvoiceNumber()).isEqualTo("FA-2026-9901");
+            assertThat(invoice.getItems()).isNotEmpty();
+        }
+
+        @Test
+        @DisplayName("Should parse generic XML when root element is not standard Factur-X")
+        void shouldParseGenericXml() {
+            String genericXml = """
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <GenericInvoice>
+                        <Header><ID>GEN-2026</ID></Header>
+                    </GenericInvoice>
+                    """;
+            MockMultipartFile file = new MockMultipartFile("file", "generic.xml", "application/xml", genericXml.getBytes(StandardCharsets.UTF_8));
+
+            SupplierInvoice invoice = parserService.parseInvoice(file);
+
+            assertThat(invoice.getProfile()).isEqualTo("GENERIC_XML");
+            assertThat(invoice.getInvoiceNumber()).startsWith("INV-");
+        }
     }
 
     @Nested
@@ -282,6 +337,59 @@ class SupplierInvoiceParserServiceTest {
                     () -> assertThat(invoice.getTotalTtc()).isEqualByComparingTo(new BigDecimal("64.80")),
                     () -> assertThat(invoice.getItems()).isNotEmpty()
             );
+        }
+
+        @Test
+        @DisplayName("Should detect distributor suppliers in heuristic PDF parsing")
+        void shouldDetectDistributorSuppliersInPdf() throws IOException {
+            List<String> suppliers = List.of(
+                    "METRO France",
+                    "TRANSGOURMET SAS",
+                    "COMPTOIR DES BOISSONS C10",
+                    "PROMOCASH Grossiste",
+                    "SYSCO France Distribution"
+            );
+            for (String sName : suppliers) {
+                byte[] pdfBytes = createPdfWithText("FACTURE\n" + sName + "\nN Facture: FC-123\nDate: 15/03/2026\nTotal HT: 10.00\nTotal TTC: 12.00");
+                MockMultipartFile file = new MockMultipartFile("file", "inv.pdf", "application/pdf", pdfBytes);
+                SupplierInvoice invoice = parserService.parseInvoice(file);
+                assertThat(invoice.getSupplierNameRaw()).isNotBlank();
+            }
+        }
+
+        @Test
+        @DisplayName("Should extract packaging capacity and carton pattern correctly")
+        void shouldExtractPackagingCapacity() throws IOException {
+            byte[] pdfBytes = createPdfWithText("""
+                    METRO Cash & Carry
+                    N Facture: FC-999
+                    Date: 15/03/2026
+                    Article                              Qté    P.U. HT    Total HT
+                    Colis 6 x 75cl Gin Normand           2      20.00      40.00
+                    Total HT : 40.00 €
+                    Total TTC : 48.00 €
+                    """);
+            MockMultipartFile file = new MockMultipartFile("file", "inv.pdf", "application/pdf", pdfBytes);
+            SupplierInvoice invoice = parserService.parseInvoice(file);
+            assertThat(invoice.getItems()).isNotEmpty();
+            assertThat(invoice.getItems().getFirst().getSuggestedPackagingCapacity()).isEqualByComparingTo(new BigDecimal("6"));
+        }
+
+        @Test
+        @DisplayName("Should recalculate totals when header totals are zero or absent")
+        void shouldRecalculateTotalsWhenZero() throws IOException {
+            byte[] pdfBytes = createPdfWithText("""
+                    METRO Cash & Carry
+                    N Facture: FC-888
+                    Date: 15/03/2026
+                    Article                    Qté    P.U. HT    Total HT
+                    Sirop Menthe 1L            2      5.00       10.00
+                    Jus Ananas 1L              3      3.00       9.00
+                    """);
+            MockMultipartFile file = new MockMultipartFile("file", "inv.pdf", "application/pdf", pdfBytes);
+            SupplierInvoice invoice = parserService.parseInvoice(file);
+            assertThat(invoice.getTotalHt()).isEqualByComparingTo(new BigDecimal("19.00"));
+            assertThat(invoice.getTotalTtc()).isGreaterThan(BigDecimal.ZERO);
         }
     }
 
@@ -364,6 +472,97 @@ class SupplierInvoiceParserServiceTest {
             assertThat(report.status()).isEqualTo(SupplierInvoiceComplianceStatus.WARNINGS);
             assertThat(report.complianceWarnings()).anyMatch(issue -> issue.contains("TVA") || issue.contains("VAT"));
             assertThat(report.complianceIssues()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should detect line total arithmetic mismatch against header total HT")
+        void shouldDetectLineTotalMismatch() {
+            SupplierInvoice invoice = new SupplierInvoice();
+            invoice.setInvoiceNumber("INV-003");
+            invoice.setSupplierNameRaw("Test Bar");
+            invoice.setSupplierSiren("732829320");
+            invoice.setTotalHt(new BigDecimal("100.00"));
+            invoice.setTotalVat(new BigDecimal("20.00"));
+            invoice.setTotalTtc(new BigDecimal("120.00"));
+
+            SupplierInvoiceItem item = new SupplierInvoiceItem();
+            item.setLineNumber(1);
+            item.setDesignation("Rhum");
+            item.setLineTotalHt(new BigDecimal("50.00")); // Mismatch: 50 != 100
+            invoice.addItem(item);
+
+            SupplierInvoiceComplianceReportDTO report = parserService.auditFrenchCompliance(invoice);
+
+            assertThat(report.isMathConsistent()).isFalse();
+            assertThat(report.complianceIssues()).anyMatch(i -> i.contains("Line total mismatch"));
+        }
+
+        @Test
+        @DisplayName("Should detect missing mandatory legal mentions like invoice number or supplier name")
+        void shouldDetectMissingLegalMentions() {
+            SupplierInvoice invoice = new SupplierInvoice();
+            invoice.setInvoiceNumber(null);
+            invoice.setSupplierNameRaw("   ");
+            invoice.setSupplierSiren(null);
+
+            SupplierInvoiceComplianceReportDTO report = parserService.auditFrenchCompliance(invoice);
+
+            assertThat(report.hasMandatoryLegalMentions()).isFalse();
+            assertThat(report.hasValidSiren()).isFalse();
+            assertThat(report.complianceIssues()).anyMatch(i -> i.contains("invoice reference number"));
+            assertThat(report.complianceIssues()).anyMatch(i -> i.contains("Missing seller identification"));
+            assertThat(report.complianceIssues()).anyMatch(i -> i.contains("Missing seller SIREN"));
+        }
+
+        @Test
+        @DisplayName("Should detect invalid SIREN with non-numeric chars or bad length")
+        void shouldDetectBadSirenLengthAndNonDigits() {
+            SupplierInvoice inv1 = new SupplierInvoice();
+            inv1.setInvoiceNumber("INV-1");
+            inv1.setSupplierNameRaw("Test");
+            inv1.setSupplierSiren("123");
+
+            SupplierInvoiceComplianceReportDTO rep1 = parserService.auditFrenchCompliance(inv1);
+            assertThat(rep1.hasValidSiren()).isFalse();
+
+            SupplierInvoice inv2 = new SupplierInvoice();
+            inv2.setInvoiceNumber("INV-2");
+            inv2.setSupplierNameRaw("Test");
+            inv2.setSupplierSiren("73282932A");
+
+            SupplierInvoiceComplianceReportDTO rep2 = parserService.auditFrenchCompliance(inv2);
+            assertThat(rep2.hasValidSiren()).isFalse();
+        }
+    }
+
+    private byte[] createPdfWithEmbeddedFacturX(String xmlContent) throws IOException {
+        try (PDDocument doc = new PDDocument()) {
+            PDPage page = new PDPage();
+            doc.addPage(page);
+            try (PDPageContentStream stream = new PDPageContentStream(doc, page)) {
+                stream.beginText();
+                stream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+                stream.newLineAtOffset(50, 700);
+                stream.showText("Invoice with embedded Factur-X XML");
+                stream.endText();
+            }
+
+            PDEmbeddedFilesNameTreeNode efTree = new PDEmbeddedFilesNameTreeNode();
+            PDComplexFileSpecification fs = new PDComplexFileSpecification();
+            fs.setFile("factur-x.xml");
+            PDEmbeddedFile ef = new PDEmbeddedFile(doc, new ByteArrayInputStream(xmlContent.getBytes(StandardCharsets.UTF_8)));
+            fs.setEmbeddedFile(ef);
+            Map<String, PDComplexFileSpecification> map = new HashMap<>();
+            map.put("factur-x.xml", fs);
+            efTree.setNames(map);
+
+            PDDocumentNameDictionary names = new PDDocumentNameDictionary(doc.getDocumentCatalog());
+            names.setEmbeddedFiles(efTree);
+            doc.getDocumentCatalog().setNames(names);
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            doc.save(baos);
+            return baos.toByteArray();
         }
     }
 

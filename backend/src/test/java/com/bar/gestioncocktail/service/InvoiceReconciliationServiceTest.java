@@ -182,6 +182,57 @@ class InvoiceReconciliationServiceTest {
         }
 
         @Test
+        @DisplayName("Should detect missing ordered item when purchase order item is not on invoice")
+        void shouldDetectMissingOrderedItem() {
+            Ingredient vodka = new Ingredient();
+            vodka.setId(102L);
+            vodka.setNom("Vodka Grey Goose");
+
+            PurchaseOrderItem poItem2 = new PurchaseOrderItem();
+            poItem2.setId(502L);
+            poItem2.setPurchaseOrder(purchaseOrder);
+            poItem2.setIngredient(vodka);
+            poItem2.setQuantiteCommandee(new BigDecimal("5"));
+            poItem2.setPrixUnitaireHt(new BigDecimal("25.00"));
+            purchaseOrder.getItems().add(poItem2);
+
+            when(supplierInvoiceRepository.findById(1L)).thenReturn(Optional.of(invoice));
+            when(purchaseOrderRepository.findById(200L)).thenReturn(Optional.of(purchaseOrder));
+
+            SupplierInvoiceReconciliationDTO preview = reconciliationService.getReconciliationPreview(1L, 200L);
+
+            assertThat(preview.lines()).anyMatch(line ->
+                    line.status() == InvoiceItemReconciliationStatus.MISSING_ORDER_ITEM
+                    && "Vodka Grey Goose".equals(line.designation())
+            );
+        }
+
+        @Test
+        @DisplayName("Should return empty candidate orders when invoice supplier is null")
+        void shouldReturnEmptyCandidateOrdersWhenSupplierIsNull() {
+            invoice.setSupplier(null);
+            when(supplierInvoiceRepository.findById(1L)).thenReturn(Optional.of(invoice));
+
+            SupplierInvoiceReconciliationDTO preview = reconciliationService.getReconciliationPreview(1L, null);
+
+            assertThat(preview).isNotNull();
+            assertThat(preview.candidatePurchaseOrders()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should match candidate order by invoice order reference")
+        void shouldMatchCandidateOrderByOrderReference() {
+            invoice.setOrderReference("PO-2026-0042");
+            when(supplierInvoiceRepository.findById(1L)).thenReturn(Optional.of(invoice));
+            when(purchaseOrderRepository.findBySupplierIdOrderByDateCommandeDesc(10L))
+                    .thenReturn(List.of(purchaseOrder));
+
+            SupplierInvoiceReconciliationDTO preview = reconciliationService.getReconciliationPreview(1L, null);
+
+            assertThat(preview.selectedPurchaseOrderId()).isEqualTo(200L);
+        }
+
+        @Test
         @DisplayName("Should throw ResourceNotFoundException when invoice does not exist")
         void shouldThrowWhenInvoiceNotFound() {
             when(supplierInvoiceRepository.findById(999L)).thenReturn(Optional.empty());
@@ -229,6 +280,32 @@ class InvoiceReconciliationServiceTest {
             assertThatThrownBy(() -> reconciliationService.reconcileInvoice(1L, null, testUser))
                     .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("already been applied");
+        }
+
+        @Test
+        @DisplayName("Should assign supplier from PO if invoice supplier was initially null")
+        void shouldAssignSupplierFromPoWhenInvoiceSupplierNull() {
+            invoice.setSupplier(null);
+            when(supplierInvoiceRepository.findById(1L)).thenReturn(Optional.of(invoice));
+            when(purchaseOrderRepository.findById(200L)).thenReturn(Optional.of(purchaseOrder));
+            when(supplierInvoiceRepository.save(any(SupplierInvoice.class))).thenAnswer(i -> i.getArgument(0));
+
+            SupplierInvoiceReconcileRequest request = new SupplierInvoiceReconcileRequest(200L, "Linked PO", List.of());
+            SupplierInvoiceDTO updated = reconciliationService.reconcileInvoice(1L, request, testUser);
+
+            assertThat(updated).isNotNull();
+            assertThat(invoice.getSupplier()).isEqualTo(supplier);
+        }
+
+        @Test
+        @DisplayName("Should handle null request and null itemAdjustments gracefully")
+        void shouldHandleNullRequest() {
+            when(supplierInvoiceRepository.findById(1L)).thenReturn(Optional.of(invoice));
+            when(supplierInvoiceRepository.save(any(SupplierInvoice.class))).thenAnswer(i -> i.getArgument(0));
+
+            SupplierInvoiceDTO updated = reconciliationService.reconcileInvoice(1L, null, testUser);
+
+            assertThat(updated).isNotNull();
         }
     }
 
@@ -311,6 +388,33 @@ class InvoiceReconciliationServiceTest {
             assertThat(result).isNotNull();
             assertThat(result.status()).isEqualTo(SupplierInvoiceStatus.APPLIED);
             verify(purchaseOrderRepository, atLeastOnce()).save(any(PurchaseOrder.class));
+        }
+
+        @Test
+        @DisplayName("Should record delivery note reference and packaging capacity on stock apply")
+        void shouldRecordDeliveryNoteReferenceAndPackagingCapacity() {
+            when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.MARCH, 18, 14, 0));
+            invoice.setPurchaseOrder(purchaseOrder);
+            invoice.setDeliveryNoteReference("BL-2026-999");
+            invoiceItem1.setSuggestedPackagingCapacity(new BigDecimal("6"));
+            invoiceItem2.setMatchedIngredient(rumIngredient);
+            rumIngredient.setDefaultSupplier(null);
+
+            when(supplierInvoiceRepository.findById(1L)).thenReturn(Optional.of(invoice));
+            when(purchaseOrderService.calculateWeightedAverageCost(any(), any(), any(), any()))
+                    .thenReturn(new BigDecimal("30.00"));
+            when(purchaseOrderDeliveryRepository.save(any(PurchaseOrderDelivery.class))).thenAnswer(i -> {
+                PurchaseOrderDelivery pod = i.getArgument(0);
+                pod.setId(889L);
+                return pod;
+            });
+            when(supplierInvoiceRepository.save(any(SupplierInvoice.class))).thenAnswer(i -> i.getArgument(0));
+
+            SupplierInvoiceDTO result = reconciliationService.applyInvoice(1L, testUser);
+
+            assertThat(result).isNotNull();
+            assertThat(rumIngredient.getDefaultSupplier()).isEqualTo(supplier);
+            verify(purchaseOrderDeliveryRepository).save(argThat(pod -> "BL-2026-999".equals(pod.getBonLivraisonRef())));
         }
     }
 }

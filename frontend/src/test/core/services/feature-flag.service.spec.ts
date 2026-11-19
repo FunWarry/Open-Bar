@@ -72,6 +72,8 @@ describe('FeatureFlagService', () => {
     expect(service.cuisineKdsEnabled()).toBeTrue();
     expect(service.happyHourEnabled()).toBeFalse();
     expect(service.cocktailLibraryEnabled()).toBeTrue();
+    expect(service.facturXInvoiceImportEnabled()).toBeTrue();
+    expect(service.qrPayAtTableEnabled()).toBeTrue();
   });
 
   it('should verify individual module capabilities via isModuleEnabled', () => {
@@ -85,6 +87,8 @@ describe('FeatureFlagService', () => {
     expect(service.isModuleEnabled(EstablishmentModule.COCKTAIL_LIBRARY)).toBeTrue();
     expect(service.isModuleEnabled(EstablishmentModule.TABLE_RESERVATIONS)).toBeTrue();
     expect(service.tableReservationsEnabled()).toBeTrue();
+    expect(service.isModuleEnabled(EstablishmentModule.FACTUR_X_INVOICE_IMPORT)).toBeTrue();
+    expect(service.isModuleEnabled(EstablishmentModule.QR_PAY_AT_TABLE)).toBeTrue();
   });
 
   it('should update modules via PUT /api/establishment/modules', () => {
@@ -185,6 +189,8 @@ describe('FeatureFlagService', () => {
       EstablishmentModule.QR_CLIENT_ORDERING,
       EstablishmentModule.STOCK_TRACKING,
       EstablishmentModule.TABLE_RESERVATIONS,
+      EstablishmentModule.QR_PAY_AT_TABLE,
+      EstablishmentModule.FACTUR_X_INVOICE_IMPORT,
     ];
 
     for (const mod of modulesToTest) {
