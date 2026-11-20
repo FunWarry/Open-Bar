@@ -110,7 +110,117 @@ export async function setupMockApi(page: Page): Promise<void> {
     angelShotSafety: true,
     qrPayAtTable: true,
     facturXInvoiceImport: true,
+    stripeTerminalConnect: true,
+    cloudRelay: true,
   };
+
+  let cloudRelayStatus: Record<string, unknown> = {
+    moduleEnabled: true,
+    relayEnabled: true,
+    connectionState: 'SIMULATED',
+    venueSlug: 'le-shaker-paris',
+    customDomain: 'commande.leshaker.fr',
+    baseDomain: 'open-bar.eu',
+    publicUrl: 'https://commande.leshaker.fr',
+    tunnelEndpoint: 'wss://relay.open-bar.eu/ws/tunnel',
+    pairingTokenConfigured: true,
+    connectedSince: new Date().toISOString(),
+    lastHeartbeatAt: new Date().toISOString(),
+    lastError: null,
+    reconnectAttempt: 0,
+    nextRetryInSeconds: 0,
+    activeStreams: 1,
+    totalProxiedRequests: 24,
+    totalProxiedWsFrames: 52,
+    averageLatencyMs: 18,
+    simulatorMode: true,
+    clientsEnabled: true,
+    staffEnabled: true,
+    adminEnabled: true,
+    remoteTpeEnabled: true,
+    remotePrintingEnabled: true,
+    allowedRoles: ['SERVEUR', 'BARMAN', 'MANAGER', 'ADMIN'],
+  };
+
+  await page.route('**/api/public/branding**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        establishmentName: 'Le Shaker Paris',
+        venueSlug: 'le-shaker-paris',
+        customDomain: 'commande.leshaker.fr',
+        primaryColor: '#6c7fe8',
+        primaryColorStrong: '#5a68d6',
+        logoUrl: null,
+        bannerImageUrl: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1200&q=80',
+        defaultTheme: 'DARK',
+        cloudRelayEnabled: true,
+        tunnelConnected: cloudRelayStatus['connectionState'] === 'SIMULATED' || cloudRelayStatus['connectionState'] === 'CONNECTED',
+        clientsEnabled: true,
+        staffEnabled: true,
+        effectivePublicUrl: 'https://commande.leshaker.fr',
+        localFallbackUrl: 'https://openbar.local',
+        wifiEnabled: true,
+        wifiSsid: 'LeShaker-Guest',
+      }),
+    });
+  });
+
+  await page.route('**/api/public/cloud-relay/health**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        establishmentName: 'Le Shaker Paris',
+        venueSlug: 'le-shaker-paris',
+        customDomain: 'commande.leshaker.fr',
+        primaryColor: '#6c7fe8',
+        primaryColorStrong: '#5a68d6',
+        logoUrl: null,
+        bannerImageUrl: null,
+        defaultTheme: 'DARK',
+        cloudRelayEnabled: true,
+        tunnelConnected: cloudRelayStatus['connectionState'] === 'SIMULATED' || cloudRelayStatus['connectionState'] === 'CONNECTED',
+        clientsEnabled: true,
+        staffEnabled: true,
+        effectivePublicUrl: 'https://commande.leshaker.fr',
+        localFallbackUrl: 'https://openbar.local',
+        wifiEnabled: true,
+        wifiSsid: 'LeShaker-Guest',
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/cloud-relay/status**', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(cloudRelayStatus) });
+  });
+
+  await page.route('**/api/admin/cloud-relay/connect**', async (route) => {
+    cloudRelayStatus = { ...cloudRelayStatus, connectionState: 'SIMULATED' };
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(cloudRelayStatus) });
+  });
+
+  await page.route('**/api/admin/cloud-relay/disconnect**', async (route) => {
+    cloudRelayStatus = { ...cloudRelayStatus, connectionState: 'DISCONNECTED' };
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(cloudRelayStatus) });
+  });
+
+  await page.route('**/api/admin/cloud-relay/test**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        latencyMs: 18,
+        status: 'SIMULATED_OK',
+        message: 'Cloud Relay simulator connected and subdomain routing verified.',
+        resolvedPublicUrl: 'https://commande.leshaker.fr',
+        dnsVerified: true,
+        tlsReady: true,
+      }),
+    });
+  });
 
   await page.route('**/api/establishment/modules**', async (route) => {
     if (route.request().method() === 'PUT') {

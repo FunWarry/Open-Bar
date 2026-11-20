@@ -208,6 +208,7 @@ describe('AppSettingsPageComponent', () => {
       cashDrawerEnabled: () => true,
       angelShotSafetyEnabled: () => true,
       stripeTerminalConnectEnabled: () => true,
+      cloudRelayEnabled: () => true,
     });
     featureFlagServiceSpy.loadModules.and.returnValue(of({
       cuisineKds: true,
@@ -230,6 +231,7 @@ describe('AppSettingsPageComponent', () => {
       qrPayAtTable: true,
       facturXInvoiceImport: true,
       stripeTerminalConnect: true,
+      cloudRelay: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
 
@@ -966,6 +968,7 @@ describe('AppSettingsPageComponent', () => {
         qrPayAtTable: true,
         facturXInvoiceImport: true,
         stripeTerminalConnect: true,
+        cloudRelay: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -997,6 +1000,7 @@ describe('AppSettingsPageComponent', () => {
         qrPayAtTable: false,
         facturXInvoiceImport: false,
         stripeTerminalConnect: false,
+        cloudRelay: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -1021,6 +1025,7 @@ describe('AppSettingsPageComponent', () => {
         qrPayAtTable: false,
         facturXInvoiceImport: false,
         stripeTerminalConnect: false,
+        cloudRelay: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });
@@ -1077,6 +1082,7 @@ describe('AppSettingsPageComponent', () => {
         qrPayAtTable: false,
         facturXInvoiceImport: false,
         stripeTerminalConnect: false,
+        cloudRelay: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -1824,10 +1830,39 @@ describe('AppSettingsPageComponent', () => {
   });
 
   describe('Dual-Tier TPE Monetization & Module Count', () => {
-    it('should expose all 20 modular capabilities including STRIPE_TERMINAL_CONNECT', () => {
-      expect(component.totalModulesCount).toBe(20);
+    it('should expose all 21 modular capabilities including STRIPE_TERMINAL_CONNECT and CLOUD_RELAY', () => {
+      expect(component.totalModulesCount).toBe(21);
       expect(component.modulesForm.get('stripeTerminalConnect')).toBeTruthy();
+      expect(component.modulesForm.get('cloudRelay')).toBeTruthy();
     });
+
+    it('should toggle Cloud Relay allowed roles and persist Cloud Relay settings in saveAll()', fakeAsync(() => {
+      component.appSettingsForm.patchValue({
+        cloudRelayEnabled: true,
+        venueSlug: 'le-shaker-paris',
+        customDomain: 'commande.leshaker.fr',
+        cloudRelayClientsEnabled: true,
+        cloudRelayStaffEnabled: true,
+        cloudRelayRemoteTpeEnabled: false,
+      });
+
+      component.toggleCloudRelayRole('BARMAN');
+      expect(component.isCloudRelayRoleSelected('BARMAN')).toBeFalse();
+
+      component.saveAll();
+      tick();
+
+      expect(appSettingsServiceSpy.updateSettings).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          cloudRelayEnabled: true,
+          venueSlug: 'le-shaker-paris',
+          customDomain: 'commande.leshaker.fr',
+          cloudRelayClientsEnabled: true,
+          cloudRelayStaffEnabled: true,
+          cloudRelayRemoteTpeEnabled: false,
+        })
+      );
+    }));
 
     it('should patch and save Option 3 Stripe Terminal Connect fields in saveAll()', fakeAsync(() => {
       component.appSettingsForm.patchValue({

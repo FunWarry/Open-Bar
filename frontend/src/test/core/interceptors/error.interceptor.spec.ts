@@ -10,9 +10,11 @@ import {
   HttpTestingController,
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
+import { Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { TranslocoService } from '@jsverse/transloco';
 import { errorInterceptor } from '../../../app/core/interceptors/error.interceptor';
+import { CloudRelayService } from '../../../app/core/services/cloud-relay.service';
 
 describe('errorInterceptor', () => {
   let http: HttpClient;
@@ -226,5 +228,51 @@ describe('errorInterceptor', () => {
 
     const req = httpMock.expectOne('/api/forbidden');
     req.flush('Forbidden', { status: 403, statusText: 'Forbidden' });
+  });
+
+  it('maps RELAY_REMOTE_TPE_DISABLED errorCode to dedicated Cloud Relay fallback message', (done) => {
+    translocoSpy.translate.and.callFake((key: any) => key as any);
+
+    http.post('/api/tpe/pay', {}).subscribe({
+      error: () => {
+        expect(toastCtrlSpy.create).toHaveBeenCalledOnceWith(
+          jasmine.objectContaining({
+            message: 'Remote TPE payment dispatch via Cloud Relay is disabled.'
+          })
+        );
+        done();
+      },
+    });
+
+    const req = httpMock.expectOne('/api/tpe/pay');
+    req.flush(
+      { errorCode: 'RELAY_REMOTE_TPE_DISABLED' },
+      { status: 403, statusText: 'Forbidden' }
+    );
+  });
+
+  it('marks Cloud Relay offline and redirects on 503 CLOUD_RELAY_OFFLINE', (done) => {
+    const cloudRelayService = TestBed.inject(CloudRelayService);
+    expect(cloudRelayService.tunnelOfflineDetected()).toBeFalse();
+    translocoSpy.translate.and.callFake((key: any) => key as any);
+
+    http.get('/api/public/tables/1/session').subscribe({
+      error: (err: HttpErrorResponse) => {
+        expect(err.status).toBe(503);
+        expect(cloudRelayService.tunnelOfflineDetected()).toBeTrue();
+        expect(toastCtrlSpy.create).toHaveBeenCalledOnceWith(
+          jasmine.objectContaining({
+            message: 'Venue tunnel is offline. Please connect to the bar Wi-Fi or ask waitstaff.'
+          })
+        );
+        done();
+      },
+    });
+
+    const req = httpMock.expectOne('/api/public/tables/1/session');
+    req.flush(
+      { errorCode: 'CLOUD_RELAY_OFFLINE' },
+      { status: 503, statusText: 'Service Unavailable' }
+    );
   });
 });

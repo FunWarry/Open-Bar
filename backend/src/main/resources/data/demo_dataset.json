@@ -9,7 +9,8 @@
       "roles": [
         "ADMIN",
         "MANAGER"
-      ]
+      ],
+      "remoteAccessEnabled": true
     },
     {
       "username": "manager",
@@ -19,7 +20,8 @@
       "prenom": "Sophie",
       "roles": [
         "MANAGER"
-      ]
+      ],
+      "remoteAccessEnabled": true
     },
     {
       "username": "serveur1",
@@ -29,7 +31,8 @@
       "prenom": "Lucas",
       "roles": [
         "SERVEUR"
-      ]
+      ],
+      "remoteAccessEnabled": true
     },
     {
       "username": "serveur2",
@@ -39,7 +42,8 @@
       "prenom": "Camille",
       "roles": [
         "SERVEUR"
-      ]
+      ],
+      "remoteAccessEnabled": true
     },
     {
       "username": "serveur3",
@@ -49,7 +53,8 @@
       "prenom": "Thomas",
       "roles": [
         "SERVEUR"
-      ]
+      ],
+      "remoteAccessEnabled": true
     },
     {
       "username": "barman1",
@@ -59,7 +64,8 @@
       "prenom": "Antoine",
       "roles": [
         "BARMAN"
-      ]
+      ],
+      "remoteAccessEnabled": true
     },
     {
       "username": "barman2",
@@ -69,7 +75,8 @@
       "prenom": "Emma",
       "roles": [
         "BARMAN"
-      ]
+      ],
+      "remoteAccessEnabled": true
     },
     {
       "username": "runner1",
@@ -79,7 +86,8 @@
       "prenom": "Maxime",
       "roles": [
         "SERVEUR"
-      ]
+      ],
+      "remoteAccessEnabled": true
     },
     {
       "username": "extra1",
@@ -89,7 +97,8 @@
       "prenom": "Léa",
       "roles": [
         "SERVEUR"
-      ]
+      ],
+      "remoteAccessEnabled": false
     }
   ],
   "etages": [

@@ -43,6 +43,7 @@ describe('ModuleGuard', () => {
     qrPayAtTable: true,
     facturXInvoiceImport: true,
     stripeTerminalConnect: true,
+    cloudRelay: true,
   };
 
   beforeEach(() => {

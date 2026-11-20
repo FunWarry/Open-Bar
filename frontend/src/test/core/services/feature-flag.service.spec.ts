@@ -38,6 +38,7 @@ describe('FeatureFlagService', () => {
     qrPayAtTable: true,
     facturXInvoiceImport: true,
     stripeTerminalConnect: true,
+    cloudRelay: true,
   };
 
   beforeEach(() => {
@@ -76,6 +77,7 @@ describe('FeatureFlagService', () => {
     expect(service.facturXInvoiceImportEnabled()).toBeTrue();
     expect(service.qrPayAtTableEnabled()).toBeTrue();
     expect(service.stripeTerminalConnectEnabled()).toBeTrue();
+    expect(service.cloudRelayEnabled()).toBeTrue();
   });
 
   it('should verify individual module capabilities via isModuleEnabled', () => {
@@ -92,6 +94,7 @@ describe('FeatureFlagService', () => {
     expect(service.isModuleEnabled(EstablishmentModule.FACTUR_X_INVOICE_IMPORT)).toBeTrue();
     expect(service.isModuleEnabled(EstablishmentModule.QR_PAY_AT_TABLE)).toBeTrue();
     expect(service.isModuleEnabled(EstablishmentModule.STRIPE_TERMINAL_CONNECT)).toBeTrue();
+    expect(service.isModuleEnabled(EstablishmentModule.CLOUD_RELAY)).toBeTrue();
   });
 
   it('should update modules via PUT /api/establishment/modules', () => {
@@ -172,6 +175,7 @@ describe('FeatureFlagService', () => {
       qrPayAtTable: false,
       facturXInvoiceImport: false,
       stripeTerminalConnect: false,
+      cloudRelay: false,
     };
 
     wsSubject.next({ body: JSON.stringify(wsUpdate) });
@@ -195,6 +199,7 @@ describe('FeatureFlagService', () => {
       EstablishmentModule.TABLE_RESERVATIONS,
       EstablishmentModule.QR_PAY_AT_TABLE,
       EstablishmentModule.FACTUR_X_INVOICE_IMPORT,
+      EstablishmentModule.CLOUD_RELAY,
     ];
 
     for (const mod of modulesToTest) {
