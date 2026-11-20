@@ -257,6 +257,7 @@ flowchart LR
 | `/topic/preparation/snack` | Order routed to snack workstation |
 | `/topic/establishment/modules` | Real-time establishment modular capabilities synchronization |
 | `/topic/checklists` | Real-time operational checklists & SOP procedure session lifecycle events |
+| `/topic/license` | Real-time establishment license status & grace-period summary broadcasts |
 
 ---
 
@@ -297,6 +298,16 @@ Establishment features are decoupled into 9 switchable capabilities:
 | `GET` | `/api/shifts/{id}/history` | MANAGER, ADMIN | Immutable history of a single shift |
 | `GET` | `/api/schedule/audit-log?week=&userId=` | MANAGER, ADMIN | Weekly schedule audit log (optional staff filter) |
 | `GET` | `/api/schedule/at?week=&at=` | All authenticated | Time-travel replay reconstructing schedule at timestamp T |
+
+---
+
+## Hybrid Offline/Online DRM Licensing Engine (#635)
+
+- **Configuration (`LicenseProperties`, prefix `openbar.licensing`)**: `enforced` (`true` in `prod`, `false` in `dev`/`test`), `public-key-pem` (ECDSA X.509 SPKI PEM), `rsa-public-key-pem` (optional RSA PEM), `grace-period-days` (default `2`), `sync-enabled`, `sync-url`, `sync-interval-ms` (`21600000`).
+- **Entity & Table**: `LicenseRecord` mapped to `license_records` storing signed JWT, `establishment_id`, `plan`, `licensed_modules_json`, `issued_at`, `expires_at`, monotonic `last_seen_at` anti-rollback high-water mark, and online sync telemetry.
+- **Enforcement & Grace Window**: `LicenseService` grants a 2-day `GRACE_PERIOD` post-expiration before throwing `LicenseExpiredException` (`HTTP 402 Payment Required` with `LICENSE_EXPIRED`) on order creation (`CommandeService.createCommande`, `PublicCommandeService.creerCommandePublique`) when `enforced=true`, while keeping `GET` invoices, Z-reports (`/api/factures/daily-recap`), and audit logs accessible. Module entitlements intersect with `EstablishmentConfigService`.
+- **REST Endpoints**: `GET /api/admin/license` (`ADMIN`, `MANAGER`), `GET /api/admin/license/status` (authenticated), `POST /api/admin/license/activate` (`ADMIN`), `POST /api/admin/license/sync` (`ADMIN`), `DELETE /api/admin/license` (`ADMIN`).
+- **Frontend**: Dedicated `/admin/license` (`LicensePageComponent`), global staff `<app-license-banner>`, `LicenseService` signals + `/topic/license` WebSocket listener, and `402` toast mapping in `errorInterceptor`.
 
 ---
 
