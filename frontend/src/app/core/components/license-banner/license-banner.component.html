@@ -48,3 +48,43 @@
     </div>
   </aside>
 }
+
+@if (showCommissionBanner()) {
+  @let cSummary = monetizationService?.summary();
+  <aside
+    class="license-banner"
+    [class.tone-grace]="commissionTone() === 'grace'"
+    [class.tone-expired]="commissionTone() === 'expired'"
+    role="alert"
+    data-testid="monetization-global-banner">
+    <div class="license-banner-content">
+      <div class="license-banner-icon">
+        <ion-icon [name]="commissionTone() === 'grace' ? 'warning-outline' : 'lock-closed-outline'"></ion-icon>
+      </div>
+      <div class="license-banner-text">
+        <strong class="banner-title" data-testid="monetization-banner-title">
+          @if (cSummary?.invoiceStatus === 'OVERDUE') {
+            {{ 'MONETIZATION.BANNER.OVERDUE_TITLE' | transloco:{ amount: cSummary?.pendingAmount ?? 0 } }}
+          } @else {
+            {{ 'MONETIZATION.BANNER.GRACE_TITLE' | transloco:{ amount: cSummary?.pendingAmount ?? 0, hours: cSummary?.graceHoursRemaining ?? 0 } }}
+          }
+        </strong>
+        <span class="banner-desc">
+          {{ (cSummary?.tpeCardLocked ? 'MONETIZATION.BANNER.LOCKED_DESC' : 'MONETIZATION.BANNER.GRACE_DESC') | transloco }}
+        </span>
+      </div>
+    </div>
+    <div class="license-banner-actions">
+      @if (canManageLicense$ | async) {
+        <app-action-button
+          [variant]="commissionTone() === 'grace' ? 'warning' : 'primary'"
+          size="small"
+          icon="key-outline"
+          testId="monetization-banner-manage-btn"
+          (btnClick)="goToLicenseSettings()">
+          {{ 'MONETIZATION.BANNER.MANAGE_BTN' | transloco }}
+        </app-action-button>
+      }
+    </div>
+  </aside>
+}

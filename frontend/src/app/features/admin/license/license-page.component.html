@@ -337,5 +337,252 @@
         </ion-card>
       </div>
     </div>
+
+    <!-- =============================================================== -->
+    <!-- DUAL-TIER TPE MONETIZATION & NF525 COMMISSION LEDGER SECTION    -->
+    <!-- =============================================================== -->
+    @if (monetizationDashboard(); as mon) {
+      <section class="monetization-section" data-testid="monetization-section">
+        <div class="monetization-header">
+          <div class="header-text">
+            <div class="header-eyebrow">
+              <ion-icon name="receipt-outline"></ion-icon>
+              <span>{{ 'MONETIZATION.EYEBROW' | transloco }}</span>
+            </div>
+            <h2 class="section-title" data-testid="monetization-section-title">{{ 'MONETIZATION.TITLE' | transloco }}</h2>
+            <p class="page-subtitle">{{ 'MONETIZATION.SUBTITLE' | transloco }}</p>
+          </div>
+
+          <div class="monetization-controls">
+            <div class="period-select-wrap">
+              <app-searchable-select
+                [label]="'MONETIZATION.PERIOD_LABEL' | transloco"
+                [options]="periodOptions"
+                [ngModel]="selectedPeriod"
+                (ngModelChange)="onPeriodChange($event)"
+                testId="select-monetization-period">
+              </app-searchable-select>
+            </div>
+          </div>
+        </div>
+
+        @if (mon.summary.shouldShowBanner) {
+          <div
+            class="status-callout"
+            [class.callout-warning]="mon.summary.invoiceStatus !== 'OVERDUE'"
+            [class.callout-danger]="mon.summary.invoiceStatus === 'OVERDUE'"
+            data-testid="monetization-grace-callout">
+            <ion-icon name="warning-outline"></ion-icon>
+            <div class="callout-body">
+              <strong>
+                @if (mon.summary.invoiceStatus === 'OVERDUE') {
+                  {{ 'MONETIZATION.BANNER.OVERDUE_TITLE' | transloco:{ amount: mon.summary.pendingAmount } }}
+                } @else {
+                  {{ 'MONETIZATION.BANNER.GRACE_TITLE' | transloco:{ amount: mon.summary.pendingAmount, hours: mon.summary.graceHoursRemaining } }}
+                }
+              </strong>
+              <p>
+                {{ (mon.summary.tpeCardLocked ? 'MONETIZATION.BANNER.LOCKED_DESC' : 'MONETIZATION.BANNER.GRACE_DESC') | transloco }}
+              </p>
+            </div>
+          </div>
+        }
+
+        <!-- Dual-Tier Comparison & Volume KPIs -->
+        <div class="kpi-grid">
+          <app-stat-card
+            layout="horizontal"
+            [color]="mon.rates.activeTier === 'CONCERT_IP_OFFLINE' ? 'warning' : 'neutral'"
+            [title]="'MONETIZATION.KPI.OPTION1_TITLE' | transloco"
+            [value]="(mon.option1Commission | appCurrency)"
+            [subtext]="('MONETIZATION.KPI.OPTION1_SUB' | transloco:{ count: mon.option1Count, rate: formatTierRate(mon.rates.option1RateBps, mon.rates.option1FixedCents) })"
+            testId="kpi-monetization-option1">
+            <ion-icon stat-icon name="key-outline"></ion-icon>
+          </app-stat-card>
+
+          <app-stat-card
+            layout="horizontal"
+            [color]="mon.rates.activeTier === 'STRIPE_TERMINAL_CONNECT' ? 'success' : 'neutral'"
+            [title]="'MONETIZATION.KPI.OPTION3_TITLE' | transloco"
+            [value]="(mon.option3Commission | appCurrency)"
+            [subtext]="('MONETIZATION.KPI.OPTION3_SUB' | transloco:{ count: mon.option3Count, rate: formatTierRate(mon.rates.option3RateBps, mon.rates.option3FixedCents) })"
+            testId="kpi-monetization-option3">
+            <ion-icon stat-icon name="shield-checkmark-outline"></ion-icon>
+          </app-stat-card>
+
+          <app-stat-card
+            layout="horizontal"
+            color="primary"
+            [title]="'MONETIZATION.KPI.VOLUME_TITLE' | transloco"
+            [value]="((mon.option1Volume + mon.option3Volume) | appCurrency)"
+            [subtext]="('MONETIZATION.KPI.VOLUME_SUB' | transloco:{ period: mon.billingPeriod })"
+            testId="kpi-monetization-volume">
+            <ion-icon stat-icon name="receipt-outline"></ion-icon>
+          </app-stat-card>
+
+          <app-stat-card
+            layout="horizontal"
+            [color]="verificationResult()?.valid !== false ? 'success' : 'danger'"
+            [title]="'MONETIZATION.KPI.INTEGRITY_TITLE' | transloco"
+            [value]="(verificationResult()?.valid !== false ? 'MONETIZATION.INTEGRITY.VALID' : 'MONETIZATION.INTEGRITY.BROKEN') | transloco"
+            [subtext]="('MONETIZATION.KPI.INTEGRITY_SUB' | transloco:{ count: verificationResult()?.verifiedEntries ?? 0 })"
+            testId="kpi-monetization-integrity">
+            <ion-icon stat-icon name="shield-checkmark-outline"></ion-icon>
+          </app-stat-card>
+        </div>
+
+        <!-- Portal Proof Export & Online Billing Actions Card -->
+        <ion-card class="license-card" data-testid="monetization-actions-card">
+          <ion-card-header>
+            <ion-card-title class="card-title">
+              <ion-icon name="cloud-done-outline"></ion-icon>
+              <span>{{ 'MONETIZATION.COLLECTION.TITLE' | transloco }}</span>
+              <ion-badge [color]="mon.rates.activeTier === 'STRIPE_TERMINAL_CONNECT' ? 'success' : 'warning'" data-testid="badge-active-tier">
+                {{ ('MONETIZATION.TIERS.' + mon.rates.activeTier) | transloco }}
+              </ion-badge>
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p class="card-desc">{{ 'MONETIZATION.COLLECTION.DESC' | transloco }}</p>
+
+            <div class="meta-rows">
+              <div class="meta-row">
+                <span class="meta-label">{{ 'MONETIZATION.INTEGRITY.TIP_HASH' | transloco }}</span>
+                <code class="mono-pill small" data-testid="monetization-tip-hash">{{ verificationResult()?.tipHash || mon.integrity.tipHash }}</code>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">{{ 'MONETIZATION.COLLECTION.LAST_EXPORT' | transloco }}</span>
+                <span class="meta-value">{{ mon.lastExportedAt ? (mon.lastExportedAt | date:'medium') : ('LICENSE.KPI.NEVER_SYNCED' | transloco) }}</span>
+              </div>
+            </div>
+
+            @if (commissionSyncFeedback(); as fb) {
+              <div class="sync-feedback" data-testid="monetization-sync-feedback">{{ fb }}</div>
+            }
+
+            <div class="card-actions-row">
+              <app-action-button
+                variant="primary"
+                size="small"
+                icon="document-attach-outline"
+                [loading]="isExportingProof()"
+                testId="btn-export-monthly-proof"
+                (btnClick)="downloadMonthlyProof()">
+                {{ 'MONETIZATION.ACTIONS.DOWNLOAD_PROOF' | transloco }}
+              </app-action-button>
+
+              <app-action-button
+                variant="secondary"
+                size="small"
+                icon="copy-outline"
+                testId="btn-copy-proof-token"
+                (btnClick)="copyProofToken()">
+                {{ 'MONETIZATION.ACTIONS.COPY_PROOF_TOKEN' | transloco }}
+              </app-action-button>
+
+              <app-action-button
+                variant="secondary"
+                size="small"
+                icon="shield-checkmark-outline"
+                [loading]="isVerifyingLedger()"
+                testId="btn-verify-ledger"
+                (btnClick)="verifyLedgerIntegrity()">
+                {{ 'MONETIZATION.ACTIONS.VERIFY_CHAIN' | transloco }}
+              </app-action-button>
+
+              @if (isAdmin()) {
+                <app-action-button
+                  variant="secondary"
+                  size="small"
+                  icon="refresh-outline"
+                  [loading]="isSyncingCommissions()"
+                  testId="btn-sync-commissions"
+                  (btnClick)="syncCommissionOnline()">
+                  {{ 'MONETIZATION.ACTIONS.SYNC_BILLING' | transloco }}
+                </app-action-button>
+              }
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Sealed Card Transaction Ledger (Desktop Table + Mobile Cards) -->
+        <ion-card class="license-card" data-testid="monetization-ledger-card">
+          <ion-card-header>
+            <ion-card-title class="card-title">
+              <ion-icon name="receipt-outline"></ion-icon>
+              <span>{{ 'MONETIZATION.LEDGER.TITLE' | transloco }}</span>
+              <ion-badge color="medium">{{ mon.entries.length }}</ion-badge>
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            @if (mon.entries.length === 0) {
+              <p class="card-desc" data-testid="monetization-ledger-empty">{{ 'MONETIZATION.LEDGER.EMPTY' | transloco }}</p>
+            } @else {
+              <!-- Desktop & Tablet Table -->
+              <div class="table-scroll-container ledger-desktop-table" data-testid="monetization-ledger-table">
+                <table class="ledger-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>{{ 'MONETIZATION.LEDGER.COL_INVOICE' | transloco }}</th>
+                      <th>{{ 'MONETIZATION.LEDGER.COL_SOURCE' | transloco }}</th>
+                      <th>{{ 'MONETIZATION.LEDGER.COL_GROSS' | transloco }}</th>
+                      <th>{{ 'MONETIZATION.LEDGER.COL_COMMISSION' | transloco }}</th>
+                      <th>{{ 'MONETIZATION.LEDGER.COL_STATUS' | transloco }}</th>
+                      <th>{{ 'MONETIZATION.LEDGER.COL_HASH' | transloco }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (entry of mon.entries; track entry.id) {
+                      <tr [attr.data-testid]="'ledger-row-' + entry.sequenceNumber">
+                        <td><code>#{{ entry.sequenceNumber }}</code></td>
+                        <td>{{ entry.invoiceNumber || entry.externalTransactionId || '—' }}</td>
+                        <td>
+                          <ion-badge [color]="entry.source === 'STRIPE_TERMINAL_CONNECT' ? 'success' : 'primary'">
+                            {{ ('MONETIZATION.SOURCES.' + entry.source) | transloco }}
+                          </ion-badge>
+                        </td>
+                        <td>{{ entry.grossAmount | appCurrency }}</td>
+                        <td><strong>{{ entry.commissionAmount | appCurrency }}</strong></td>
+                        <td>
+                          <ion-badge [color]="entry.status === 'SETTLED_AT_SOURCE' || entry.status === 'SYNCED_ONLINE' ? 'success' : 'warning'">
+                            {{ ('MONETIZATION.STATUSES.' + entry.status) | transloco }}
+                          </ion-badge>
+                        </td>
+                        <td><code class="mono-pill small">{{ shortenHash(entry.entryHash) }}</code></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Mobile Cards (< 768px) -->
+              <div class="ledger-mobile-list" data-testid="monetization-ledger-mobile">
+                @for (entry of mon.entries; track entry.id) {
+                  <div class="ledger-mobile-card">
+                    <div class="ledger-mobile-top">
+                      <code>#{{ entry.sequenceNumber }}</code>
+                      <ion-badge [color]="entry.source === 'STRIPE_TERMINAL_CONNECT' ? 'success' : 'primary'">
+                        {{ ('MONETIZATION.SOURCES.' + entry.source) | transloco }}
+                      </ion-badge>
+                    </div>
+                    <div class="ledger-mobile-mid">
+                      <span>{{ entry.invoiceNumber || entry.externalTransactionId || '—' }}</span>
+                      <strong>{{ entry.grossAmount | appCurrency }} → {{ entry.commissionAmount | appCurrency }}</strong>
+                    </div>
+                    <div class="ledger-mobile-bot">
+                      <ion-badge [color]="entry.status === 'SETTLED_AT_SOURCE' || entry.status === 'SYNCED_ONLINE' ? 'success' : 'warning'">
+                        {{ ('MONETIZATION.STATUSES.' + entry.status) | transloco }}
+                      </ion-badge>
+                      <code class="mono-pill small">{{ shortenHash(entry.entryHash) }}</code>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </ion-card-content>
+        </ion-card>
+      </section>
+    }
   }
 </div>

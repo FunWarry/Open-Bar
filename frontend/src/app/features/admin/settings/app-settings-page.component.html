@@ -22,6 +22,37 @@
     </div>
   </header>
 
+  @if (monetizationService?.shouldShowBanner()) {
+    @let monSummary = monetizationService?.summary();
+    <div
+      class="settings-commission-alert"
+      [class.is-overdue]="monSummary?.invoiceStatus === 'OVERDUE'"
+      role="alert"
+      data-testid="settings-commission-grace-banner">
+      <div class="alert-left">
+        <ion-icon [name]="monSummary?.invoiceStatus === 'OVERDUE' ? 'lock-closed-outline' : 'warning-outline'"></ion-icon>
+        <div class="alert-text">
+          <strong>
+            @if (monSummary?.invoiceStatus === 'OVERDUE') {
+              {{ 'MONETIZATION.BANNER.OVERDUE_TITLE' | transloco:{ amount: monSummary?.pendingAmount ?? 0 } }}
+            } @else {
+              {{ 'MONETIZATION.BANNER.GRACE_TITLE' | transloco:{ amount: monSummary?.pendingAmount ?? 0, hours: monSummary?.graceHoursRemaining ?? 0 } }}
+            }
+          </strong>
+          <span>{{ (monSummary?.tpeCardLocked ? 'MONETIZATION.BANNER.LOCKED_DESC' : 'MONETIZATION.BANNER.GRACE_DESC') | transloco }}</span>
+        </div>
+      </div>
+      <app-action-button
+        variant="warning"
+        size="small"
+        icon="key-outline"
+        testId="btn-settings-open-monetization"
+        (btnClick)="goToLicenseMonetization()">
+        {{ 'MONETIZATION.BANNER.MANAGE_BTN' | transloco }}
+      </app-action-button>
+    </div>
+  }
+
   <!-- Navigation Tabs -->
   <nav class="settings-tabs-nav" data-testid="settings-tabs">
     <button
@@ -792,6 +823,18 @@
                           </div>
                           <p class="threshold-desc">{{ 'SETTINGS.MODULE_FACTUR_X_INVOICE_IMPORT_DESC' | transloco }}</p>
                         </div>
+
+                        <!-- Module 20: STRIPE_TERMINAL_CONNECT -->
+                        <div class="threshold-row" data-testid="module-row-stripe-terminal-connect">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="card-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_STRIPE_TERMINAL_CONNECT_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="stripeTerminalConnect" data-testid="toggle-module-stripe-terminal-connect"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_STRIPE_TERMINAL_CONNECT_DESC' | transloco }}</p>
+                        </div>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -1201,6 +1244,26 @@
                                 </span>
                               </div>
                               <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_PURCHASES' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 20. Option 3 Stripe Terminal Connect -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('stripeTerminalConnect')"
+                            [class.node-inactive]="!isModuleControlActive('stripeTerminalConnect')"
+                            data-testid="preview-node-stripe-terminal-connect">
+                            <div class="node-icon-box">
+                              <ion-icon name="card-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_STRIPE_TERMINAL_CONNECT_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('stripeTerminalConnect')">
+                                  {{ (isModuleControlActive('stripeTerminalConnect') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_TPE_CONNECT' | transloco }}</span>
                             </div>
                           </div>
                         </div>
@@ -2782,6 +2845,66 @@
 
               <ion-card-content>
                 <p class="section-lead">{{ 'SETTINGS.TPE_SUBTITLE' | transloco }}</p>
+
+                <!-- Dual-Tier TPE Monetization Mode & Stripe Connect -->
+                <div class="monetization-settings-box" data-testid="card-tpe-monetization-mode">
+                  <div class="monetization-box-header">
+                    <div class="monetization-box-title">
+                      <ion-icon name="shield-checkmark-outline"></ion-icon>
+                      <span>{{ 'SETTINGS.TPE_MONETIZATION_TITLE' | transloco }}</span>
+                    </div>
+                    <app-action-button
+                      variant="secondary"
+                      size="small"
+                      icon="receipt-outline"
+                      testId="btn-open-monetization-ledger"
+                      (btnClick)="goToLicenseMonetization()">
+                      {{ 'SETTINGS.TPE_MONETIZATION_LEDGER_BTN' | transloco }}
+                    </app-action-button>
+                  </div>
+
+                  <p class="toggle-desc">{{ 'SETTINGS.TPE_MONETIZATION_DESC' | transloco }}</p>
+
+                  @if (stripeTerminalConnectEnabled()) {
+                    <div class="field-item">
+                      <app-searchable-select
+                        formControlName="tpeMonetizationMode"
+                        [label]="'SETTINGS.TPE_MONETIZATION_MODE_LABEL' | transloco"
+                        [options]="tpeMonetizationModeOptions"
+                        testId="select-tpe-monetization-mode">
+                      </app-searchable-select>
+                    </div>
+                  }
+
+                  @if (appSettingsForm.get('tpeMonetizationMode')?.value === 'STRIPE_TERMINAL' && stripeTerminalConnectEnabled()) {
+                    <div class="hardware-global-config-grid" data-testid="stripe-terminal-connect-fields">
+                      <div class="field-item">
+                        <app-input-field
+                          formControlName="stripeConnectedAccountId"
+                          [label]="'SETTINGS.STRIPE_CONNECTED_ACCOUNT_LABEL' | transloco"
+                          placeholder="acct_1234567890"
+                          testId="input-stripe-connected-account">
+                        </app-input-field>
+                      </div>
+                      <div class="field-item">
+                        <app-input-field
+                          formControlName="stripeTerminalLocationId"
+                          [label]="'SETTINGS.STRIPE_TERMINAL_LOCATION_LABEL' | transloco"
+                          placeholder="tml_1234567890"
+                          testId="input-stripe-terminal-location">
+                        </app-input-field>
+                      </div>
+                      <div class="field-item">
+                        <app-input-field
+                          formControlName="stripeTerminalReaderId"
+                          [label]="'SETTINGS.STRIPE_TERMINAL_READER_LABEL' | transloco"
+                          placeholder="tmr_wisepos_e_01"
+                          testId="input-stripe-terminal-reader">
+                        </app-input-field>
+                      </div>
+                    </div>
+                  }
+                </div>
 
                 <!-- Network TPE & Simulator Toggles -->
                 <div class="tpe-toggles-grid">

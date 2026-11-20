@@ -3356,3 +3356,91 @@ ion-col {
   }
 }
 
+/* ============================================================== */
+/* DUAL-TIER TPE MONETIZATION & COMMISSION WARNING BANNER         */
+/* ============================================================== */
+.settings-commission-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 18px;
+  margin-bottom: 18px;
+  border-radius: var(--radius-lg, 12px);
+  background: var(--status-waiting-15);
+  border: 1px solid var(--semantic-warning);
+  flex-wrap: wrap;
+
+  &.is-overdue {
+    background: var(--status-canceled-15);
+    border-color: var(--semantic-danger);
+  }
+
+  .alert-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+
+    ion-icon {
+      font-size: 1.4rem;
+      color: var(--semantic-warning);
+      flex-shrink: 0;
+    }
+  }
+
+  &.is-overdue .alert-left ion-icon {
+    color: var(--semantic-danger);
+  }
+
+  .alert-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    strong {
+      font-size: 0.92rem;
+      color: var(--text-primary);
+    }
+
+    span {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+  }
+}
+
+.monetization-settings-box {
+  padding: 16px;
+  margin-bottom: 18px;
+  border-radius: var(--radius-md, 10px);
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .monetization-box-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .monetization-box-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 0.96rem;
+    color: var(--text-primary);
+
+    ion-icon {
+      color: var(--primary);
+      font-size: 1.2rem;
+    }
+  }
+}
+

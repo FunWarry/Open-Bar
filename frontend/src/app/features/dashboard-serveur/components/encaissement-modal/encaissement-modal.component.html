@@ -501,7 +501,7 @@
                   (click)="envoyerAuTpe(false)"
                   (keydown.enter)="envoyerAuTpe(false)"
                   (keyup.enter)="envoyerAuTpe(false)"
-                  [disabled]="isSubmitting || isTpeProcessing()"
+                  [disabled]="isSubmitting || isTpeProcessing() || isTpeCommissionLocked()"
                   data-testid="btn-tpe-send-single"
                   class="btn-tpe-trigger">
                   <ion-icon name="card-outline" slot="start"></ion-icon>
@@ -917,7 +917,7 @@
                       (click)="envoyerAuTpe(true)"
                       (keydown.enter)="envoyerAuTpe(true)"
                       (keyup.enter)="envoyerAuTpe(true)"
-                      [disabled]="isTpeProcessing()"
+                      [disabled]="isTpeProcessing() || isTpeCommissionLocked()"
                       data-testid="btn-tpe-send-part"
                       class="btn-tpe-trigger">
                       <ion-icon name="card-outline" slot="start"></ion-icon>

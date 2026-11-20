@@ -21,6 +21,7 @@ export enum EstablishmentModule {
   ANGEL_SHOT_SAFETY = 'ANGEL_SHOT_SAFETY',
   QR_PAY_AT_TABLE = 'QR_PAY_AT_TABLE',
   FACTUR_X_INVOICE_IMPORT = 'FACTUR_X_INVOICE_IMPORT',
+  STRIPE_TERMINAL_CONNECT = 'STRIPE_TERMINAL_CONNECT',
 }
 
 /**
@@ -46,6 +47,7 @@ export interface EstablishmentModules {
   angelShotSafety: boolean;
   qrPayAtTable: boolean;
   facturXInvoiceImport: boolean;
+  stripeTerminalConnect: boolean;
 }
 
 /**
@@ -77,6 +79,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     angelShotSafety: true,
     qrPayAtTable: true,
     facturXInvoiceImport: true,
+    stripeTerminalConnect: true,
   },
   RESTAURANT: {
     cuisineKds: true,
@@ -98,6 +101,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     angelShotSafety: true,
     qrPayAtTable: true,
     facturXInvoiceImport: true,
+    stripeTerminalConnect: true,
   },
   FOOD_TRUCK: {
     cuisineKds: true,
@@ -119,6 +123,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     angelShotSafety: false,
     qrPayAtTable: true,
     facturXInvoiceImport: false,
+    stripeTerminalConnect: true,
   },
   NIGHTCLUB: {
     cuisineKds: false,
@@ -140,5 +145,6 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     angelShotSafety: true,
     qrPayAtTable: true,
     facturXInvoiceImport: true,
+    stripeTerminalConnect: true,
   },
 };

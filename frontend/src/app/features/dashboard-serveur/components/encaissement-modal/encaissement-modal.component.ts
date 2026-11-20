@@ -40,6 +40,7 @@ import { BarTab } from '../../../../core/models/bar-tab.model';
 import { BarTabService } from '../../../../core/services/bar-tab.service';
 import { PaymentTerminalService } from '../../../../core/services/payment-terminal.service';
 import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
+import { MonetizationService } from '../../../../core/services/monetization.service';
 import { TpePaymentRequestDTO, TpePaymentResponseDTO, TpeTerminalRole } from '../../../../core/models/tpe.model';
 
 /**
@@ -215,12 +216,14 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
   private readonly barTabService = inject(BarTabService, { optional: true });
   private readonly paymentTerminalService = inject(PaymentTerminalService);
   private readonly featureFlagService = inject(FeatureFlagService);
+  private readonly monetizationService = inject(MonetizationService, { optional: true });
   private readonly modalCtrl = inject(ModalController);
   private readonly toastCtrl = inject(ToastController);
   private readonly transloco = inject(TranslocoService);
   private readonly destroy$ = new Subject<void>();
 
   readonly paymentTerminalEnabled = this.featureFlagService.paymentTerminalEnabled;
+  readonly isTpeCommissionLocked = () => Boolean(this.monetizationService?.isTpeCardLocked());
   readonly activeTpeTransaction = signal<TpePaymentResponseDTO | null>(null);
   readonly isTpeProcessing = signal<boolean>(false);
   readonly tpeErrorMessage = signal<string | null>(null);
@@ -802,6 +805,10 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
    */
   envoyerAuTpe(isPart: boolean = false): void {
     if (this.isTpeProcessing()) return;
+    if (this.isTpeCommissionLocked()) {
+      this.tpeErrorMessage.set(this.transloco.translate('MONETIZATION.BANNER.LOCKED_DESC'));
+      return;
+    }
 
     const amount = isPart ? this.partTotalNetAPayer : this.totalNetAPayer;
     if (amount <= 0) return;
@@ -910,36 +917,15 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
    */
   validerEncaissement(): void {
     if (!this.addition || this.isSubmitting) return;
-
     if (this.modePaiement === 'ESPECES' && this.montantRecu !== null && this.montantRecu < this.totalNetAPayer) {
       return;
     }
 
     this.isSubmitting = true;
-    const req: EncaissementRequest = {
-      modePaiement: this.modePaiement,
-      pourboire: this.pourboire > 0 ? this.pourboire : undefined,
-      remiseMontant: this.discountMode === 'fixed' && this.discountFixed > 0 ? this.discountFixed : undefined,
-      remisePourcentage: this.discountMode === 'percent' && this.discountPercent > 0 ? this.discountPercent : undefined,
-      montantRecu: this.modePaiement === 'ESPECES' && this.montantRecu ? this.montantRecu : undefined,
-      notes: this.notes.trim() || undefined,
-      libererTable: this.libererTable,
-      commandeIds: this.addition.commandeIds,
-      tpeAutorisation: this.tpeMetadata.tpeAutorisation,
-      tpeTerminalId: this.tpeMetadata.tpeTerminalId,
-      tpeCardBrand: this.tpeMetadata.tpeCardBrand,
-      tpeMaskedPan: this.tpeMetadata.tpeMaskedPan,
-      tpeSequence: this.tpeMetadata.tpeSequence
-    };
+    const req = this.buildSettlementRequest();
     this.tpeMetadata = {};
 
-    let settlement$: Observable<Facture> | null = null;
-    if (this.tab && this.barTabService) {
-      settlement$ = this.barTabService.encaisserTab(this.tab.id, req);
-    } else if (this.table) {
-      settlement$ = this.dashboardService.encaisserTable(this.table.id, req);
-    }
-
+    const settlement$ = this.resolveSettlementObservable(req);
     if (!settlement$) {
       this.isSubmitting = false;
       return;
@@ -952,18 +938,7 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: async (facture: Facture) => {
-          this.settledFacture = facture;
-          const targetName = this.tab ? this.tab.nom : (this.table?.nom || `Table ${this.table?.id}`);
-          const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('ENCAISSEMENT.SUCCESS_TOAST', {
-              numero: facture.numero,
-              table: targetName
-            }),
-            duration: 3000,
-            color: 'success'
-          });
-          await toast.present();
-          await this.modalCtrl.dismiss({ action: 'settled', facture });
+          await this.handleSettlementSuccess(facture);
         },
         error: async (err: { error?: { message?: string } }) => {
           const msg = err?.error?.message || this.transloco.translate('ENCAISSEMENT.ERROR_SETTLEMENT');
@@ -975,6 +950,49 @@ export class EncaissementModalComponent implements OnInit, OnDestroy {
           await toast.present();
         }
       });
+  }
+
+  private buildSettlementRequest(): EncaissementRequest {
+    return {
+      modePaiement: this.modePaiement,
+      pourboire: this.pourboire > 0 ? this.pourboire : undefined,
+      remiseMontant: this.discountMode === 'fixed' && this.discountFixed > 0 ? this.discountFixed : undefined,
+      remisePourcentage: this.discountMode === 'percent' && this.discountPercent > 0 ? this.discountPercent : undefined,
+      montantRecu: this.modePaiement === 'ESPECES' && this.montantRecu ? this.montantRecu : undefined,
+      notes: this.notes.trim() || undefined,
+      libererTable: this.libererTable,
+      commandeIds: this.addition!.commandeIds,
+      tpeAutorisation: this.tpeMetadata.tpeAutorisation,
+      tpeTerminalId: this.tpeMetadata.tpeTerminalId,
+      tpeCardBrand: this.tpeMetadata.tpeCardBrand,
+      tpeMaskedPan: this.tpeMetadata.tpeMaskedPan,
+      tpeSequence: this.tpeMetadata.tpeSequence
+    };
+  }
+
+  private resolveSettlementObservable(req: EncaissementRequest): Observable<Facture> | null {
+    if (this.tab && this.barTabService) {
+      return this.barTabService.encaisserTab(this.tab.id, req);
+    }
+    if (this.table) {
+      return this.dashboardService.encaisserTable(this.table.id, req);
+    }
+    return null;
+  }
+
+  private async handleSettlementSuccess(facture: Facture): Promise<void> {
+    this.settledFacture = facture;
+    const targetName = this.tab ? this.tab.nom : (this.table?.nom || `Table ${this.table?.id}`);
+    const toast = await this.toastCtrl.create({
+      message: this.transloco.translate('ENCAISSEMENT.SUCCESS_TOAST', {
+        numero: facture.numero,
+        table: targetName
+      }),
+      duration: 3000,
+      color: 'success'
+    });
+    await toast.present();
+    await this.modalCtrl.dismiss({ action: 'settled', facture });
   }
 
   /**

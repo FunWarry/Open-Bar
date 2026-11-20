@@ -365,3 +365,97 @@
     align-items: stretch;
   }
 }
+
+/* Dual-Tier TPE Monetization & Commission Ledger */
+.monetization-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.monetization-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.section-title {
+  margin: 4px 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.period-select-wrap {
+  min-width: 210px;
+}
+
+.table-scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ledger-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.ledger-table th,
+.ledger-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-medium);
+  white-space: nowrap;
+}
+
+.ledger-table th {
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.ledger-mobile-list {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ledger-mobile-card {
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ledger-mobile-top,
+.ledger-mobile-mid,
+.ledger-mobile-bot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 767px) {
+  .ledger-desktop-table {
+    display: none;
+  }
+
+  .ledger-mobile-list {
+    display: flex;
+  }
+
+  .period-select-wrap {
+    width: 100%;
+  }
+}

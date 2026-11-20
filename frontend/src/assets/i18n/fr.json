@@ -3443,6 +3443,16 @@
     "SMTP_FROM": "Adresse expéditeur (From)",
     "MODULE_FACTUR_X_INVOICE_IMPORT_TITLE": "Import Factures & Factur-X",
     "MODULE_FACTUR_X_INVOICE_IMPORT_DESC": "Import automatisé des factures fournisseurs (Factur-X hybride XML/PDF, PDF), réconciliation avec les commandes, alertes écarts de prix et intégration en stock 1-clic avec recalcul PAMP.",
+    "MODULE_STRIPE_TERMINAL_CONNECT_TITLE": "Smart TPE Stripe Terminal Connect (Option 3)",
+    "MODULE_STRIPE_TERMINAL_CONNECT_DESC": "Terminaux Android WisePOS E avec split automatique Stripe Connect et prélèvement temps réel de la marge plateforme avantageuse.",
+    "MODULES_ROUTE_TPE_CONNECT": "/admin/settings?tab=printers & /admin/license",
+    "TPE_MONETIZATION_TITLE": "Motorisation & Monétisation TPE (Option 1 vs Option 3)",
+    "TPE_MONETIZATION_DESC": "Choisissez entre votre TPE bancaire traditionnel en Concert IP (Option 1 — facturation mensuelle sur journal NF525) ou un Smart TPE Stripe Terminal Connect (Option 3 — split temps réel à la source).",
+    "TPE_MONETIZATION_LEDGER_BTN": "Journal Commissions & Z-Export",
+    "TPE_MONETIZATION_MODE_LABEL": "Mode TPE actif",
+    "STRIPE_CONNECTED_ACCOUNT_LABEL": "ID Compte Connect Stripe (acct_...)",
+    "STRIPE_TERMINAL_LOCATION_LABEL": "ID Emplacement Stripe Terminal (tml_...)",
+    "STRIPE_TERMINAL_READER_LABEL": "ID Lecteur WisePOS E (tmr_...)",
     "BTN_MANAGE_LICENSE": "Gérer la licence (/admin/license)"
   },
   "SAFETY": {
@@ -4728,6 +4738,84 @@
       "SYNC_FAILED": "Erreur lors de la synchronisation en ligne.",
       "DEACTIVATE_FAILED": "Impossible de désactiver la licence.",
       "COPY_FAILED": "Impossible de copier dans le presse-papier."
+    }
+  },
+  "MONETIZATION": {
+    "EYEBROW": "Moteur Dual-Tier Monétique & NF525",
+    "TITLE": "Commissions TPE & Journal Cryptographique",
+    "SUBTITLE": "Suivi des volumes carte (Option 1 Concert IP hors-ligne vs Option 3 Stripe Terminal Connect), vérification de chaîne SHA-256 et export mensuel de preuve Z pour openbar.fr.",
+    "PERIOD_LABEL": "Période de facturation",
+    "KPI": {
+      "OPTION1_TITLE": "Option 1 — Concert IP / CB",
+      "OPTION1_SUB": "{{ count }} tx · Tarif {{ rate }}",
+      "OPTION3_TITLE": "Option 3 — Stripe Terminal",
+      "OPTION3_SUB": "{{ count }} tx · Tarif {{ rate }}",
+      "VOLUME_TITLE": "Volume Carte Cumulé",
+      "VOLUME_SUB": "Période {{ period }}",
+      "INTEGRITY_TITLE": "Chaîne SHA-256",
+      "INTEGRITY_SUB": "{{ count }} écritures vérifiées"
+    },
+    "TIERS": {
+      "CONCERT_IP_OFFLINE": "Option 1 · Concert IP / Hors-ligne",
+      "STRIPE_TERMINAL_CONNECT": "Option 3 · Stripe Terminal Connect"
+    },
+    "SOURCES": {
+      "CONCERT_IP_TPE": "TPE Concert IP",
+      "MANUAL_CB": "CB Manuelle",
+      "STRIPE_TERMINAL_CONNECT": "Stripe Terminal"
+    },
+    "STATUSES": {
+      "ACCUMULATED": "Accumulée",
+      "SYNCED_ONLINE": "Sync. en ligne",
+      "EXPORTED_OFFLINE": "Exportée (Z)",
+      "SETTLED_AT_SOURCE": "Prélevée source",
+      "INVOICED_PENDING": "Facture en attente"
+    },
+    "INTEGRITY": {
+      "VALID": "Intègre (SHA-256)",
+      "BROKEN": "Rupture détectée",
+      "TIP_HASH": "Empreinte de tête (SHA-256)"
+    },
+    "COLLECTION": {
+      "TITLE": "Collecte & Preuve Mensuelle de Renouvellement",
+      "DESC": "En mode connecté, les volumes Option 1 sont transmis au service Stripe Billing. En environnement isolé (air-gapped), téléchargez le justificatif Z signé pour débloquer le jeton mensuel sur openbar.fr.",
+      "LAST_EXPORT": "Dernier export Z signé"
+    },
+    "ACTIONS": {
+      "DOWNLOAD_PROOF": "Exporter Preuve Z (.json)",
+      "COPY_PROOF_TOKEN": "Copier Jeton Preuve",
+      "VERIFY_CHAIN": "Vérifier SHA-256",
+      "SYNC_BILLING": "Synchroniser Stripe Billing"
+    },
+    "BANNER": {
+      "GRACE_TITLE": "Facture de commission en attente ({{ amount }} €) — Période de grâce ({{ hours }}h restantes)",
+      "OVERDUE_TITLE": "Facture de commission échue ({{ amount }} €) — Délai de grâce expiré",
+      "GRACE_DESC": "Synchronisez la facturation en ligne ou exportez votre preuve mensuelle Z pour renouveler votre licence sur openbar.fr.",
+      "LOCKED_DESC": "Les paiements TPE carte sont temporairement verrouillés jusqu'au règlement de la facture de commission.",
+      "MANAGE_BTN": "Régulariser"
+    },
+    "LEDGER": {
+      "TITLE": "Grand Livre Scellé des Transactions Carte",
+      "EMPTY": "Aucune transaction carte enregistrée sur cette période.",
+      "COL_INVOICE": "Facture / Réf.",
+      "COL_SOURCE": "Canal TPE",
+      "COL_GROSS": "Montant Brut",
+      "COL_COMMISSION": "Commission",
+      "COL_STATUS": "Statut",
+      "COL_HASH": "Sceau SHA-256"
+    },
+    "TOASTS": {
+      "CHAIN_VALID": "Chaîne cryptographique SHA-256 vérifiée et intègre.",
+      "CHAIN_BROKEN": "Anomalie détectée dans la chaîne SHA-256 du journal !",
+      "PROOF_EXPORTED": "Preuve mensuelle Z signée générée et téléchargée.",
+      "TOKEN_COPIED": "Jeton de preuve mensuel copié dans le presse-papier.",
+      "SYNC_SUCCESS": "Volumes carte synchronisés avec Stripe Billing.",
+      "SYNC_OFFLINE": "Serveur de facturation injoignable — mode hors-ligne maintenu."
+    },
+    "ERRORS": {
+      "VERIFY_FAILED": "Échec de vérification de la chaîne SHA-256.",
+      "EXPORT_FAILED": "Impossible de générer la preuve mensuelle.",
+      "SYNC_FAILED": "Échec lors de la synchronisation de facturation."
     }
   }
 }
