@@ -11,7 +11,8 @@ import {
   statsChartOutline, receiptOutline, wineOutline, cardOutline,
   nutritionOutline, settingsOutline, documentTextOutline, chevronBackOutline,
   chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline,
-  libraryOutline, cartOutline, clipboardOutline, closeOutline, checkboxOutline
+  libraryOutline, cartOutline, clipboardOutline, closeOutline, checkboxOutline,
+  keyOutline
 } from 'ionicons/icons';
 import { tableRestaurantOutline } from '../../icons/custom-icons';
 import { selectCurrentUser } from '../../store/auth.selectors';
@@ -60,6 +61,7 @@ export const SIDEBAR_NAV_ITEMS: NavItemDef[] = [
   { id: 'nav-inventory', route: '/inventory', icon: 'clipboard-outline', labelKey: 'NAV.INVENTORY', roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.INVENTORY_AUDIT, section: 'admin' },
   { id: 'nav-users', route: '/admin/users', icon: 'people-outline', labelKey: 'NAV.USERS', roles: ['ADMIN'], section: 'admin' },
   { id: 'nav-admin', route: '/admin', icon: 'settings-outline', labelKey: 'NAV.ADMIN', roles: ['ADMIN'], section: 'admin' },
+  { id: 'nav-license', route: '/admin/license', icon: 'key-outline', labelKey: 'NAV.LICENSE', roles: ['ADMIN', 'MANAGER'], section: 'admin' },
   { id: 'nav-audit-logs', route: '/admin/audit-logs', icon: 'document-text-outline', labelKey: 'NAV.AUDIT_LOGS', roles: ['ADMIN'], section: 'admin' },
 ];
 
@@ -119,7 +121,7 @@ export class SidebarComponent implements OnDestroy {
       nutritionOutline, settingsOutline, documentTextOutline, chevronBackOutline,
       chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline,
       libraryOutline, tableRestaurantOutline, cartOutline, clipboardOutline, closeOutline,
-      checkboxOutline
+      checkboxOutline, keyOutline
     });
 
     this.currentUser$ = this.store.select(selectCurrentUser);

@@ -1,0 +1,337 @@
+<div class="license-page" data-testid="license-page">
+  <header class="license-header">
+    <div class="header-text">
+      <div class="header-eyebrow">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        <span>{{ 'LICENSE.EYEBROW' | transloco }}</span>
+      </div>
+      <h1 class="page-title" data-testid="license-page-title">{{ 'LICENSE.TITLE' | transloco }}</h1>
+      <p class="page-subtitle">{{ 'LICENSE.SUBTITLE' | transloco }}</p>
+    </div>
+
+    <div class="header-actions">
+      <app-action-button
+        variant="secondary"
+        size="small"
+        icon="refresh-outline"
+        [loading]="isLoading()"
+        testId="btn-refresh-license"
+        (btnClick)="loadLicenseStatus()">
+        {{ 'LICENSE.ACTIONS.REFRESH' | transloco }}
+      </app-action-button>
+    </div>
+  </header>
+
+  @if (isLoading() && !license()) {
+    <div class="loading-box" data-testid="license-loading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>{{ 'COMMON.LOADING' | transloco }}</span>
+    </div>
+  } @else if (license(); as info) {
+    <!-- KPI Summary Row -->
+    <section class="kpi-grid">
+      <app-stat-card
+        layout="horizontal"
+        [color]="statusColor()"
+        [title]="'LICENSE.KPI.STATUS' | transloco"
+        [value]="getStatusLabelKey(info.status) | transloco"
+        [subtext]="info.orderCreationAllowed ? ('LICENSE.KPI.POS_ACTIVE' | transloco) : ('LICENSE.KPI.POS_LOCKED' | transloco)"
+        testId="kpi-license-status">
+        <ion-icon stat-icon name="shield-checkmark-outline"></ion-icon>
+      </app-stat-card>
+
+      <app-stat-card
+        layout="horizontal"
+        color="purple"
+        [title]="'LICENSE.KPI.PLAN' | transloco"
+        [value]="info.plan || 'COMMUNITY'"
+        [subtext]="info.activationMode !== 'NONE' ? (('LICENSE.MODE.' + info.activationMode) | transloco) : ('LICENSE.MODE.NONE' | transloco)"
+        testId="kpi-license-plan">
+        <ion-icon stat-icon name="key-outline"></ion-icon>
+      </app-stat-card>
+
+      <app-stat-card
+        layout="horizontal"
+        [color]="info.status === 'GRACE_PERIOD' ? 'warning' : 'info'"
+        [title]="'LICENSE.KPI.VALIDITY' | transloco"
+        [value]="validityStatValue()"
+        [subtext]="info.status === 'GRACE_PERIOD' ? ('LICENSE.KPI.GRACE_SUBTEXT' | transloco) : ('LICENSE.KPI.EXPIRY_SUBTEXT' | transloco)"
+        testId="kpi-license-validity">
+        <ion-icon stat-icon name="time-outline"></ion-icon>
+      </app-stat-card>
+
+      <app-stat-card
+        layout="horizontal"
+        [color]="info.lastSyncStatus === 'SUCCESS' || info.lastSyncStatus === 'UP_TO_DATE' ? 'success' : 'neutral'"
+        [title]="'LICENSE.KPI.SYNC' | transloco"
+        [value]="('LICENSE.SYNC_STATUS.' + (info.lastSyncStatus || 'NONE')) | transloco"
+        [subtext]="info.lastSyncAt ? (info.lastSyncAt | date:'short') : ('LICENSE.KPI.NEVER_SYNCED' | transloco)"
+        testId="kpi-license-sync">
+        <ion-icon stat-icon [name]="info.lastSyncStatus === 'OFFLINE' ? 'cloud-offline-outline' : 'cloud-done-outline'"></ion-icon>
+      </app-stat-card>
+    </section>
+
+    <!-- Contextual Status Callout -->
+    @if (info.status === 'GRACE_PERIOD') {
+      <div class="status-callout callout-warning" data-testid="license-grace-callout">
+        <ion-icon name="warning-outline"></ion-icon>
+        <div class="callout-body">
+          <strong>{{ 'LICENSE.CALLOUT.GRACE_TITLE' | transloco:{ hours: info.graceHoursRemaining } }}</strong>
+          <p>{{ 'LICENSE.CALLOUT.GRACE_DESC' | transloco }}</p>
+        </div>
+      </div>
+    } @else if (!info.orderCreationAllowed) {
+      <div class="status-callout callout-danger" data-testid="license-expired-callout">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <div class="callout-body">
+          <strong>{{ 'LICENSE.CALLOUT.LOCKED_TITLE' | transloco }}</strong>
+          <p>{{ 'LICENSE.CALLOUT.LOCKED_DESC' | transloco }}</p>
+          <div class="callout-links">
+            <a routerLink="/factures" class="callout-link" data-testid="link-readonly-invoices">
+              <ion-icon name="receipt-outline"></ion-icon>
+              <span>{{ 'LICENSE.CALLOUT.INVOICES_LINK' | transloco }}</span>
+            </a>
+            <a routerLink="/factures/recap" class="callout-link" data-testid="link-readonly-zreport">
+              <ion-icon name="receipt-outline"></ion-icon>
+              <span>{{ 'LICENSE.CALLOUT.ZREPORT_LINK' | transloco }}</span>
+            </a>
+            <a routerLink="/admin/audit-logs" class="callout-link" data-testid="link-readonly-audit">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+              <span>{{ 'LICENSE.CALLOUT.AUDIT_LINK' | transloco }}</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    } @else if (info.status === 'COMMUNITY') {
+      <div class="status-callout callout-info" data-testid="license-community-callout">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <div class="callout-body">
+          <strong>{{ 'LICENSE.CALLOUT.COMMUNITY_TITLE' | transloco }}</strong>
+          <p>{{ 'LICENSE.CALLOUT.COMMUNITY_DESC' | transloco }}</p>
+        </div>
+      </div>
+    }
+
+    <!-- Main 2-Column Responsive Grid -->
+    <div class="license-grid">
+      <!-- Left Column: Offline Key Entry + Online Sync -->
+      <div class="grid-col">
+        <!-- Offline Activation Card -->
+        <ion-card class="license-card" data-testid="offline-activation-card">
+          <ion-card-header>
+            <ion-card-title class="card-title">
+              <ion-icon name="key-outline"></ion-icon>
+              <span>{{ 'LICENSE.OFFLINE.TITLE' | transloco }}</span>
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p class="card-desc">{{ 'LICENSE.OFFLINE.DESC' | transloco }}</p>
+
+            @if (!isAdmin()) {
+              <div class="readonly-notice" data-testid="license-readonly-notice">
+                <ion-icon name="lock-closed-outline"></ion-icon>
+                <span>{{ 'LICENSE.OFFLINE.ADMIN_ONLY' | transloco }}</span>
+              </div>
+            } @else {
+              <div class="token-entry-group">
+                <label class="field-label" for="offline-jwt-input">{{ 'LICENSE.OFFLINE.INPUT_LABEL' | transloco }}</label>
+                <ion-textarea
+                  id="offline-jwt-input"
+                  class="jwt-textarea"
+                  rows="5"
+                  [autoGrow]="true"
+                  [(ngModel)]="offlineTokenInput"
+                  [placeholder]="'LICENSE.OFFLINE.INPUT_PLACEHOLDER' | transloco"
+                  data-testid="input-offline-license-token">
+                </ion-textarea>
+
+                <input
+                  #licenseFileInput
+                  type="file"
+                  accept=".lic,.jwt,.txt,text/plain"
+                  class="hidden-file-input"
+                  (change)="onFileSelected($event)"
+                  data-testid="input-offline-license-file" />
+
+                @if (activationError(); as errMsg) {
+                  <div class="inline-error" data-testid="license-activation-error">
+                    <ion-icon name="warning-outline"></ion-icon>
+                    <span>{{ errMsg }}</span>
+                  </div>
+                }
+
+                <div class="card-actions-row">
+                  <app-action-button
+                    variant="secondary"
+                    size="small"
+                    icon="document-attach-outline"
+                    testId="btn-upload-license-file"
+                    (btnClick)="triggerFilePicker()">
+                    {{ 'LICENSE.OFFLINE.UPLOAD_FILE' | transloco }}
+                  </app-action-button>
+
+                  <app-action-button
+                    variant="primary"
+                    size="small"
+                    icon="checkmark-circle-outline"
+                    [loading]="isActivating()"
+                    [disabled]="!offlineTokenInput.trim()"
+                    testId="btn-activate-offline-license"
+                    (btnClick)="activateOffline()">
+                    {{ 'LICENSE.OFFLINE.ACTIVATE_BTN' | transloco }}
+                  </app-action-button>
+                </div>
+              </div>
+            }
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Online Sync Card -->
+        <ion-card class="license-card" data-testid="online-sync-card">
+          <ion-card-header>
+            <ion-card-title class="card-title">
+              <ion-icon name="cloud-done-outline"></ion-icon>
+              <span>{{ 'LICENSE.SYNC.TITLE' | transloco }}</span>
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p class="card-desc">{{ 'LICENSE.SYNC.DESC' | transloco }}</p>
+
+            <div class="meta-rows">
+              <div class="meta-row">
+                <span class="meta-label">{{ 'LICENSE.SYNC.LAST_STATUS' | transloco }}</span>
+                <ion-badge [color]="info.lastSyncStatus === 'SUCCESS' || info.lastSyncStatus === 'UP_TO_DATE' ? 'success' : 'medium'" data-testid="sync-status-badge">
+                  {{ ('LICENSE.SYNC_STATUS.' + (info.lastSyncStatus || 'NONE')) | transloco }}
+                </ion-badge>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">{{ 'LICENSE.SYNC.LAST_AT' | transloco }}</span>
+                <span class="meta-value">{{ info.lastSyncAt ? (info.lastSyncAt | date:'medium') : ('LICENSE.KPI.NEVER_SYNCED' | transloco) }}</span>
+              </div>
+              @if (info.lastSyncError) {
+                <div class="meta-row">
+                  <span class="meta-label">{{ 'LICENSE.SYNC.DIAGNOSTIC' | transloco }}</span>
+                  <span class="meta-value meta-warn">{{ info.lastSyncError }}</span>
+                </div>
+              }
+            </div>
+
+            @if (syncFeedback(); as msg) {
+              <div class="sync-feedback" data-testid="license-sync-feedback">{{ msg }}</div>
+            }
+
+            @if (isAdmin()) {
+              <div class="card-actions-row">
+                <app-action-button
+                  variant="secondary"
+                  size="small"
+                  icon="refresh-outline"
+                  [loading]="isSyncing()"
+                  testId="btn-sync-license-online"
+                  (btnClick)="syncOnline()">
+                  {{ 'LICENSE.SYNC.SYNC_NOW_BTN' | transloco }}
+                </app-action-button>
+
+                @if (info.maskedToken) {
+                  <app-action-button
+                    variant="danger"
+                    size="small"
+                    icon="trash-outline"
+                    [loading]="isDeactivating()"
+                    testId="btn-deactivate-license"
+                    (btnClick)="confirmDeactivate()">
+                    {{ 'LICENSE.ACTIONS.DEACTIVATE' | transloco }}
+                  </app-action-button>
+                }
+              </div>
+            }
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <!-- Right Column: Cryptographic Diagnostics + Module Entitlements -->
+      <div class="grid-col">
+        <!-- Venue & Cryptographic Identity Card -->
+        <ion-card class="license-card" data-testid="license-details-card">
+          <ion-card-header>
+            <ion-card-title class="card-title">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+              <span>{{ 'LICENSE.DETAILS.TITLE' | transloco }}</span>
+              <ion-badge [color]="statusBadgeColor()" data-testid="license-status-badge">
+                {{ getStatusLabelKey(info.status) | transloco }}
+              </ion-badge>
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="meta-rows">
+              <div class="meta-row">
+                <span class="meta-label">{{ 'LICENSE.DETAILS.VENUE_ID' | transloco }}</span>
+                <div class="meta-value-inline">
+                  <code class="mono-pill" data-testid="venue-establishment-id">{{ info.venueEstablishmentId }}</code>
+                  <app-action-button
+                    variant="ghost"
+                    size="small"
+                    icon="copy-outline"
+                    iconSlot="icon-only"
+                    testId="btn-copy-venue-id"
+                    (btnClick)="copyVenueId()">
+                  </app-action-button>
+                </div>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">{{ 'LICENSE.DETAILS.BOUND_ID' | transloco }}</span>
+                <code class="mono-pill" data-testid="license-bound-id">{{ info.establishmentId || '—' }}</code>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">{{ 'LICENSE.DETAILS.ISSUED_AT' | transloco }}</span>
+                <span class="meta-value">{{ info.issuedAt ? (info.issuedAt | date:'medium') : '—' }}</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">{{ 'LICENSE.DETAILS.EXPIRES_AT' | transloco }}</span>
+                <span class="meta-value" data-testid="license-expires-at">{{ info.expiresAt ? (info.expiresAt | date:'medium') : '—' }}</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">{{ 'LICENSE.DETAILS.GRACE_ENDS_AT' | transloco }}</span>
+                <span class="meta-value">{{ info.graceEndsAt ? (info.graceEndsAt | date:'medium') : '—' }}</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">{{ 'LICENSE.DETAILS.PUBKEY_FINGERPRINT' | transloco }}</span>
+                <code class="mono-pill small" data-testid="license-pubkey-fingerprint">{{ info.publicKeyFingerprint }}</code>
+              </div>
+              @if (info.maskedToken) {
+                <div class="meta-row">
+                  <span class="meta-label">{{ 'LICENSE.DETAILS.TOKEN_PREVIEW' | transloco }}</span>
+                  <code class="mono-pill small" data-testid="license-masked-token">{{ info.maskedToken }}</code>
+                </div>
+              }
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Licensed Modules Matrix -->
+        <ion-card class="license-card" data-testid="licensed-modules-card">
+          <ion-card-header>
+            <ion-card-title class="card-title">
+              <ion-icon name="apps-outline"></ion-icon>
+              <span>{{ 'LICENSE.MODULES.TITLE' | transloco }}</span>
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p class="card-desc">{{ 'LICENSE.MODULES.DESC' | transloco }}</p>
+            <div class="modules-matrix">
+              @for (mod of allModules; track mod) {
+                @let included = isModuleIncluded(mod);
+                <div class="module-pill" [class.locked]="!included" [attr.data-testid]="'license-module-' + mod">
+                  <span class="module-name">{{ mod }}</span>
+                  <ion-badge [color]="included ? 'success' : 'medium'">
+                    {{ (included ? 'LICENSE.MODULES.INCLUDED' : 'LICENSE.MODULES.LOCKED') | transloco }}
+                  </ion-badge>
+                </div>
+              }
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+  }
+</div>

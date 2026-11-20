@@ -23,6 +23,7 @@ import { StartupReadinessService } from './core/services/startup-readiness.servi
 import { StartupOverlayComponent } from './core/components/startup-overlay/startup-overlay.component';
 import { ModalHistoryService } from './core/services/modal-history.service';
 import { BrandLogoComponent } from './core/components/ui/brand-logo/brand-logo.component';
+import { LicenseBannerComponent } from './core/components/license-banner/license-banner.component';
 
 /**
  * Root component of the OpenBar application.
@@ -36,7 +37,7 @@ import { BrandLogoComponent } from './core/components/ui/brand-logo/brand-logo.c
   imports: [
     RouterOutlet, NavbarComponent, SidebarComponent, NotificationPanelComponent,
     AsyncPipe, UpperCasePipe, TranslocoModule, IonIcon, StartupOverlayComponent,
-    BrandLogoComponent
+    BrandLogoComponent, LicenseBannerComponent
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true

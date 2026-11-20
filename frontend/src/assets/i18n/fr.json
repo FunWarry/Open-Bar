@@ -538,7 +538,8 @@
     "PURCHASES": "Fournisseurs & Commandes",
     "INVENTORY": "Inventaire physique",
     "MENU": "Menu",
-    "NOTIFICATIONS": "Notifications"
+    "NOTIFICATIONS": "Notifications",
+    "LICENSE": "Licence"
   },
   "AUDIO_SETTINGS": {
     "TITLE": "Alertes Sonores & Volume",
@@ -791,7 +792,11 @@
     "CLIENT_MENU_TITLE": "Commande par QR Code",
     "CLIENT_MENU_DESC": "Permettez à vos clients de consulter la carte et commander depuis leur smartphone.",
     "CLIENT_MENU_FEAT_1": "Scan immédiat du QR code de la table",
-    "CLIENT_MENU_FEAT_2": "Suivi en temps réel de l'état d'avancement de la commande"
+    "CLIENT_MENU_FEAT_2": "Suivi en temps réel de l'état d'avancement de la commande",
+    "ADMIN_LICENSE_TITLE": "Activation de la licence OpenBar",
+    "ADMIN_LICENSE_DESC": "Activez votre licence commerciale en ligne ou hors-ligne via un jeton JWT signé (compatible installations isolées).",
+    "ADMIN_LICENSE_FEAT_1": "Synchronisation automatique ou saisie manuelle hors-ligne sur /admin/license",
+    "ADMIN_LICENSE_FEAT_2": "Période de grâce de 2 jours et accès préservé aux factures & rapports Z"
   },
   "CLIENT_QR": {
     "TITLE": "Scanner le QR Code",
@@ -1925,7 +1930,8 @@
     "NOT_FOUND": "Ressource introuvable",
     "SERVER": "Erreur serveur",
     "FORM_INVALID": "Veuillez corriger les erreurs du formulaire",
-    "GENERIC": "Une erreur inattendue est survenue"
+    "GENERIC": "Une erreur inattendue est survenue",
+    "LICENSE_EXPIRED": "Licence expirée : la prise de commandes est verrouillée. Les factures et rapports Z restent accessibles."
   },
   "ERROR_404": {
     "CODE": "404",
@@ -2388,7 +2394,8 @@
       "ADD_INGREDIENT": "Nouveau Stock Ingrédient",
       "DAILY_RECAP": "Récapitulatif Journée & Z-Report",
       "INVOICES_LIST": "Historique des Factures",
-      "SYSTEM_UPDATES": "Mises à jour système"
+      "SYSTEM_UPDATES": "Mises à jour système",
+      "LICENSE": "Gestion de licence"
     }
   },
   "EMPLOYEES": {
@@ -3435,7 +3442,8 @@
     "SMTP_PASSWORD": "Mot de passe SMTP",
     "SMTP_FROM": "Adresse expéditeur (From)",
     "MODULE_FACTUR_X_INVOICE_IMPORT_TITLE": "Import Factures & Factur-X",
-    "MODULE_FACTUR_X_INVOICE_IMPORT_DESC": "Import automatisé des factures fournisseurs (Factur-X hybride XML/PDF, PDF), réconciliation avec les commandes, alertes écarts de prix et intégration en stock 1-clic avec recalcul PAMP."
+    "MODULE_FACTUR_X_INVOICE_IMPORT_DESC": "Import automatisé des factures fournisseurs (Factur-X hybride XML/PDF, PDF), réconciliation avec les commandes, alertes écarts de prix et intégration en stock 1-clic avec recalcul PAMP.",
+    "BTN_MANAGE_LICENSE": "Gérer la licence (/admin/license)"
   },
   "SAFETY": {
     "ACTIVE_ALERTS_TITLE": "Urgences Angel Shot actives ({{ count }})",
@@ -4606,6 +4614,120 @@
         "invalidFormat": "Format de fichier non pris en charge. Veuillez sélectionner un fichier PDF ou XML.",
         "uploadFailed": "Échec du téléversement ou de l'analyse de la facture."
       }
+    }
+  },
+  "LICENSE": {
+    "EYEBROW": "DRM Hybride Hors-Ligne / En Ligne",
+    "TITLE": "Licence & Abonnement OpenBar",
+    "SUBTITLE": "Vérification cryptographique asymétrique (ECDSA / RSA), synchronisation automatique et activation manuelle hors-ligne pour établissements isolés.",
+    "ACTIONS": {
+      "REFRESH": "Actualiser",
+      "DEACTIVATE": "Désactiver la licence"
+    },
+    "KPI": {
+      "STATUS": "Statut Licence",
+      "PLAN": "Formule Active",
+      "VALIDITY": "Validité / Grâce",
+      "SYNC": "Dernière Synchro",
+      "POS_ACTIVE": "Prise de commandes active",
+      "POS_LOCKED": "Prise de commandes verrouillée",
+      "GRACE_SUBTEXT": "Heures restantes (grâce 2 jours)",
+      "EXPIRY_SUBTEXT": "Jours avant expiration",
+      "NEVER_SYNCED": "Jamais synchronisé"
+    },
+    "STATUS": {
+      "VALID": "Valide",
+      "GRACE_PERIOD": "Période de grâce",
+      "EXPIRED": "Expirée",
+      "UNLICENSED": "Sans licence",
+      "COMMUNITY": "Communauté / Évaluation",
+      "INVALID": "Invalide",
+      "UNKNOWN": "Inconnu"
+    },
+    "MODE": {
+      "ONLINE": "Synchronisation en ligne",
+      "OFFLINE": "Activation hors-ligne",
+      "SEEDED": "Licence démo préchargée",
+      "NONE": "Aucune clé commerciale"
+    },
+    "SYNC_STATUS": {
+      "SUCCESS": "Synchronisée",
+      "UP_TO_DATE": "À jour",
+      "OFFLINE": "Hors-ligne",
+      "FAILED": "Échec",
+      "NONE": "Aucune"
+    },
+    "BANNER": {
+      "GRACE_TITLE": "Abonnement expiré — Période de grâce active ({{ hours }}h restantes)",
+      "GRACE_DESC": "La prise de commandes reste ouverte pendant le délai de grâce de 2 jours. Renouvelez ou synchronisez votre licence.",
+      "EXPIRED_TITLE": "Licence expirée — Prise de commandes verrouillée",
+      "EXPIRED_DESC": "Les nouvelles commandes sont bloquées. La consultation des factures historiques, rapports Z et journaux d'audit reste disponible.",
+      "VIEW_INVOICES": "Factures & Rapports",
+      "MANAGE_BTN": "Gérer la licence"
+    },
+    "CALLOUT": {
+      "GRACE_TITLE": "Période de grâce de 2 jours en cours ({{ hours }}h restantes)",
+      "GRACE_DESC": "Votre abonnement est arrivé à échéance mais le service reste opérationnel durant 48 heures avant le verrouillage de la prise de commandes.",
+      "LOCKED_TITLE": "Création de commandes verrouillée (HTTP 402)",
+      "LOCKED_DESC": "Activez une clé de licence hors-ligne valide ou synchronisez votre abonnement en ligne pour débloquer la prise de commandes. Vos archives fiscales restent 100 % accessibles.",
+      "INVOICES_LINK": "Consulter les factures",
+      "ZREPORT_LINK": "Rapports Z & Clôture",
+      "AUDIT_LINK": "Exports & Logs d'audit",
+      "COMMUNITY_TITLE": "Mode Communauté / Évaluation actif",
+      "COMMUNITY_DESC": "Usage non-commercial ou environnement de développement : toutes les fonctionnalités restent actives sans clé commerciale."
+    },
+    "OFFLINE": {
+      "TITLE": "Activation manuelle hors-ligne",
+      "DESC": "Pour les bars sans accès Internet (air-gapped), collez le jeton JWT signé ou importez un fichier .lic / .jwt.",
+      "INPUT_LABEL": "Jeton de licence JWT signé",
+      "INPUT_PLACEHOLDER": "eyJhbGciOiJFUzI1NiJ9.eyJlc3RhYmxpc2htZW50SWQiOi...",
+      "UPLOAD_FILE": "Importer fichier (.lic / .jwt)",
+      "ACTIVATE_BTN": "Activer la licence",
+      "ADMIN_ONLY": "Seul un administrateur (ROLE_ADMIN) peut activer, synchroniser ou révoquer la clé de licence."
+    },
+    "SYNC": {
+      "TITLE": "Synchronisation en ligne automatique",
+      "DESC": "OpenBar interroge périodiquement le serveur de licences lorsqu'une connexion Internet est détectée. En cas de coupure réseau, les licences hors-ligne restent valides.",
+      "LAST_STATUS": "Dernier résultat",
+      "LAST_AT": "Dernière tentative",
+      "DIAGNOSTIC": "Diagnostic",
+      "SYNC_NOW_BTN": "Synchroniser maintenant"
+    },
+    "DETAILS": {
+      "TITLE": "Identité & Diagnostic Cryptographique",
+      "VENUE_ID": "ID Établissement (SIRET)",
+      "BOUND_ID": "ID lié dans le jeton",
+      "ISSUED_AT": "Émise le",
+      "EXPIRES_AT": "Expire le",
+      "GRACE_ENDS_AT": "Fin de grâce (J+2)",
+      "PUBKEY_FINGERPRINT": "Empreinte clé publique (SHA-256)",
+      "TOKEN_PREVIEW": "Aperçu du jeton"
+    },
+    "MODULES": {
+      "TITLE": "Modules autorisés par la licence",
+      "DESC": "Les modules ci-dessous reflètent les droits cryptographiques accordés par votre formule active.",
+      "INCLUDED": "Inclus",
+      "LOCKED": "Non inclus"
+    },
+    "DEACTIVATE_MODAL": {
+      "TITLE": "Désactiver la licence commerciale ?",
+      "MESSAGE": "Cette action supprimera la clé de licence enregistrée sur cet établissement.",
+      "CONFIRM": "Désactiver"
+    },
+    "TOASTS": {
+      "ACTIVATED": "Licence activée et vérifiée cryptographiquement.",
+      "SYNCED": "Nouvelle licence récupérée et activée en ligne.",
+      "SYNC_CHECKED": "Vérification en ligne effectuée.",
+      "DEACTIVATED": "Licence commerciale désactivée.",
+      "ID_COPIED": "Identifiant établissement copié."
+    },
+    "ERRORS": {
+      "LOAD_FAILED": "Impossible de charger le statut de la licence.",
+      "INVALID_JWT_FORMAT": "Format JWT invalide : 3 segments séparés par des points sont requis.",
+      "ACTIVATION_FAILED": "Échec de vérification ou d'activation de la clé de licence.",
+      "SYNC_FAILED": "Erreur lors de la synchronisation en ligne.",
+      "DEACTIVATE_FAILED": "Impossible de désactiver la licence.",
+      "COPY_FAILED": "Impossible de copier dans le presse-papier."
     }
   }
 }

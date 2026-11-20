@@ -64,6 +64,15 @@ export class OnboardingService {
         roleTarget: 'ADMIN',
         featureHighlightsKeys: ['ONBOARDING.ADMIN_MODULES_FEAT_1', 'ONBOARDING.ADMIN_MODULES_FEAT_2'],
         routeAction: '/admin/settings?tab=modules'
+      },
+      {
+        id: 'admin_license',
+        titleKey: 'ONBOARDING.ADMIN_LICENSE_TITLE',
+        descriptionKey: 'ONBOARDING.ADMIN_LICENSE_DESC',
+        illustrationEmoji: '🔑',
+        roleTarget: 'ADMIN',
+        featureHighlightsKeys: ['ONBOARDING.ADMIN_LICENSE_FEAT_1', 'ONBOARDING.ADMIN_LICENSE_FEAT_2'],
+        routeAction: '/admin/license'
       }
     ],
     MANAGER: [
