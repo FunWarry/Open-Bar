@@ -12,7 +12,6 @@ import com.bar.gestioncocktail.model.LicenseRecord;
 import com.bar.gestioncocktail.model.LicenseStatus;
 import com.bar.gestioncocktail.repository.EstablishmentConfigRepository;
 import com.bar.gestioncocktail.repository.LicenseRecordRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +24,6 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 /**
@@ -115,9 +113,7 @@ public class LicenseService {
      */
     @Transactional(readOnly = true)
     public LicenseStatusDTO getLicenseStatus() {
-        Optional<LicenseRecord> optEntity = licenseRecordRepository.findById(LicenseRecord.SINGLETON_ID);
-        String venueId = resolveVenueEstablishmentId();
-        return evaluateLicenseStatus(optEntity.orElse(null), venueId);
+        return getLicenseStatusInternal();
     }
 
     /**
@@ -127,8 +123,7 @@ public class LicenseService {
      */
     @Transactional(readOnly = true)
     public LicenseSummaryDTO getLicenseSummary() {
-        LicenseStatusDTO full = getLicenseStatus();
-        return toSummary(full);
+        return toSummary(getLicenseStatusInternal());
     }
 
     /**
@@ -150,10 +145,7 @@ public class LicenseService {
      */
     @Transactional(readOnly = true)
     public String resolveVenueEstablishmentId() {
-        return establishmentConfigRepository.findById(EstablishmentConfig.SINGLETON_ID)
-                .map(EstablishmentConfig::getSiret)
-                .filter(siret -> siret != null && !siret.isBlank())
-                .orElse(DEFAULT_VENUE_ID);
+        return resolveVenueEstablishmentIdInternal();
     }
 
     /**
@@ -167,7 +159,7 @@ public class LicenseService {
     @Transactional
     public LicenseStatusDTO activateLicense(String rawToken, String activationMode, String actorUsername) {
         LicenseCryptoService.ParsedLicenseClaims claims = licenseCryptoService.parseAndVerify(rawToken);
-        String venueId = resolveVenueEstablishmentId();
+        String venueId = resolveVenueEstablishmentIdInternal();
         validateEstablishmentMatch(claims.establishmentId(), venueId);
 
         Instant now = clock.instant();
@@ -214,7 +206,7 @@ public class LicenseService {
         updateHighWaterMark(entity, clock.instant());
 
         LicenseRecord saved = licenseRecordRepository.save(entity);
-        LicenseStatusDTO statusDto = evaluateLicenseStatus(saved, resolveVenueEstablishmentId());
+        LicenseStatusDTO statusDto = evaluateLicenseStatus(saved, resolveVenueEstablishmentIdInternal());
         broadcastLicenseChange(statusDto);
         return statusDto;
     }
@@ -257,7 +249,7 @@ public class LicenseService {
      */
     @Transactional(readOnly = true)
     public void assertOrderCreationAllowed() {
-        LicenseStatusDTO statusDto = getLicenseStatus();
+        LicenseStatusDTO statusDto = getLicenseStatusInternal();
         if (!statusDto.orderCreationAllowed()) {
             String message = switch (statusDto.status()) {
                 case UNLICENSED -> "No active commercial license is installed. Please activate a license key in Admin License settings.";
@@ -279,7 +271,7 @@ public class LicenseService {
         if (module == null) {
             return true;
         }
-        LicenseStatusDTO statusDto = getLicenseStatus();
+        LicenseStatusDTO statusDto = getLicenseStatusInternal();
         if (statusDto.allModulesLicensed()) {
             return true;
         }
@@ -290,6 +282,19 @@ public class LicenseService {
         return modules != null && (modules.contains(WILDCARD_ALL)
                 || modules.contains("ALL")
                 || modules.contains(module.name()));
+    }
+
+    private LicenseStatusDTO getLicenseStatusInternal() {
+        Optional<LicenseRecord> optEntity = licenseRecordRepository.findById(LicenseRecord.SINGLETON_ID);
+        String venueId = resolveVenueEstablishmentIdInternal();
+        return evaluateLicenseStatus(optEntity.orElse(null), venueId);
+    }
+
+    private String resolveVenueEstablishmentIdInternal() {
+        return establishmentConfigRepository.findById(EstablishmentConfig.SINGLETON_ID)
+                .map(EstablishmentConfig::getSiret)
+                .filter(siret -> siret != null && !siret.isBlank())
+                .orElse(DEFAULT_VENUE_ID);
     }
 
     private LicenseStatusDTO evaluateLicenseStatus(LicenseRecord entity, String venueId) {

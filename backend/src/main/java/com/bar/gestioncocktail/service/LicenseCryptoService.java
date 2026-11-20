@@ -115,7 +115,7 @@ public class LicenseCryptoService {
                 formatted.append(hex, i, i + 2);
             }
             return formatted.toString();
-        } catch (NoSuchAlgorithmException | IllegalArgumentException ex) {
+        } catch (NoSuchAlgorithmException | IllegalArgumentException | BusinessException ex) {
             log.warn("Could not compute public key fingerprint: {}", ex.getMessage());
             return "INVALID";
         }
@@ -224,25 +224,39 @@ public class LicenseCryptoService {
         if (modulesObj == null) {
             return List.of("*");
         }
-        List<String> result = new ArrayList<>();
+        List<String> result;
         if (modulesObj instanceof Collection<?> collection) {
-            for (Object item : collection) {
-                if (item != null) {
-                    String trimmed = String.valueOf(item).trim().toUpperCase(Locale.ROOT);
-                    if (!trimmed.isEmpty()) {
-                        result.add(trimmed);
-                    }
-                }
-            }
+            result = collectCollectionModules(collection);
         } else if (modulesObj instanceof String str) {
-            for (String token : str.split(",")) {
-                String trimmed = token.trim().toUpperCase(Locale.ROOT);
+            result = collectCsvModules(str);
+        } else {
+            result = List.of();
+        }
+        return result.isEmpty() ? List.of("*") : List.copyOf(result);
+    }
+
+    private List<String> collectCollectionModules(Collection<?> collection) {
+        List<String> result = new ArrayList<>();
+        for (Object item : collection) {
+            if (item != null) {
+                String trimmed = String.valueOf(item).trim().toUpperCase(Locale.ROOT);
                 if (!trimmed.isEmpty()) {
                     result.add(trimmed);
                 }
             }
         }
-        return result.isEmpty() ? List.of("*") : List.copyOf(result);
+        return result;
+    }
+
+    private List<String> collectCsvModules(String rawCsv) {
+        List<String> result = new ArrayList<>();
+        for (String token : rawCsv.split(",")) {
+            String trimmed = token.trim().toUpperCase(Locale.ROOT);
+            if (!trimmed.isEmpty()) {
+                result.add(trimmed);
+            }
+        }
+        return result;
     }
 
     /**

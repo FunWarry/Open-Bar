@@ -210,19 +210,15 @@ export class LicensePageComponent implements OnInit, OnDestroy {
   }
 
   /** Reads a selected text/JWT license file into the offline token textarea. */
-  onFileSelected(event: Event): void {
+  async onFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement | null;
     const file = input?.files?.[0];
     if (!file) {
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = typeof reader.result === 'string' ? reader.result.trim() : '';
-      this.offlineTokenInput = text;
-      this.activationError.set(null);
-    };
-    reader.readAsText(file);
+    const text = (await file.text()).trim();
+    this.offlineTokenInput = text;
+    this.activationError.set(null);
     input.value = '';
   }
 

@@ -33,6 +33,10 @@ import java.util.Map;
 public class LicenseSyncService {
 
     private static final Logger log = LoggerFactory.getLogger(LicenseSyncService.class);
+    private static final String STATUS_OFFLINE = "OFFLINE";
+    private static final String STATUS_FAILED = "FAILED";
+    private static final String STATUS_UP_TO_DATE = "UP_TO_DATE";
+    private static final String STATUS_SUCCESS = "SUCCESS";
 
     private final LicenseService licenseService;
     private final LicenseProperties licenseProperties;
@@ -118,7 +122,7 @@ public class LicenseSyncService {
         String syncUrl = licenseProperties.getSyncUrl();
         if (syncUrl == null || syncUrl.isBlank()) {
             LicenseStatusDTO current = licenseService.getLicenseStatus();
-            return new LicenseSyncResultDTO(false, false, "OFFLINE", "No license sync URL configured", current);
+            return new LicenseSyncResultDTO(false, false, STATUS_OFFLINE, "No license sync URL configured", current);
         }
 
         try {
@@ -146,24 +150,24 @@ public class LicenseSyncService {
             return handleSyncHttpResponse(response, existingToken, actorUsername);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            licenseService.recordSyncAttempt("OFFLINE", "Sync interrupted");
+            licenseService.recordSyncAttempt(STATUS_OFFLINE, "Sync interrupted");
             return new LicenseSyncResultDTO(
-                    false, false, "OFFLINE",
+                    false, false, STATUS_OFFLINE,
                     "Online license sync was interrupted",
                     licenseService.getLicenseStatus()
             );
         } catch (IOException ex) {
             log.debug("License sync offline (server unreachable): {}", ex.getMessage());
-            licenseService.recordSyncAttempt("OFFLINE", "Network unreachable: " + ex.getMessage());
+            licenseService.recordSyncAttempt(STATUS_OFFLINE, "Network unreachable: " + ex.getMessage());
             return new LicenseSyncResultDTO(
-                    false, false, "OFFLINE",
+                    false, false, STATUS_OFFLINE,
                     "Internet or licensing server unreachable — continuing in offline mode",
                     licenseService.getLicenseStatus()
             );
         } catch (IllegalArgumentException | BusinessException ex) {
-            licenseService.recordSyncAttempt("FAILED", ex.getMessage());
+            licenseService.recordSyncAttempt(STATUS_FAILED, ex.getMessage());
             return new LicenseSyncResultDTO(
-                    false, false, "FAILED",
+                    false, false, STATUS_FAILED,
                     ex.getMessage(),
                     licenseService.getLicenseStatus()
             );
@@ -177,9 +181,9 @@ public class LicenseSyncService {
 
         int statusCode = response.statusCode();
         if (statusCode == 204) {
-            licenseService.recordSyncAttempt("UP_TO_DATE", null);
+            licenseService.recordSyncAttempt(STATUS_UP_TO_DATE, null);
             return new LicenseSyncResultDTO(
-                    false, true, "UP_TO_DATE",
+                    false, true, STATUS_UP_TO_DATE,
                     "License is already up to date",
                     licenseService.getLicenseStatus()
             );
@@ -187,9 +191,9 @@ public class LicenseSyncService {
 
         if (statusCode < 200 || statusCode >= 300) {
             String errMsg = "Licensing server returned HTTP " + statusCode;
-            licenseService.recordSyncAttempt("FAILED", errMsg);
+            licenseService.recordSyncAttempt(STATUS_FAILED, errMsg);
             return new LicenseSyncResultDTO(
-                    false, true, "FAILED",
+                    false, true, STATUS_FAILED,
                     errMsg,
                     licenseService.getLicenseStatus()
             );
@@ -203,9 +207,9 @@ public class LicenseSyncService {
             }
 
             if (returnedToken.isEmpty() || returnedToken.equals(existingToken)) {
-                licenseService.recordSyncAttempt("UP_TO_DATE", null);
+                licenseService.recordSyncAttempt(STATUS_UP_TO_DATE, null);
                 return new LicenseSyncResultDTO(
-                        false, true, "UP_TO_DATE",
+                        false, true, STATUS_UP_TO_DATE,
                         "License verified with licensing server — no update required",
                         licenseService.getLicenseStatus()
                 );
@@ -213,16 +217,16 @@ public class LicenseSyncService {
 
             LicenseStatusDTO updated = licenseService.activateLicense(returnedToken, "ONLINE", actorUsername);
             return new LicenseSyncResultDTO(
-                    true, true, "SUCCESS",
+                    true, true, STATUS_SUCCESS,
                     "License token synchronized and verified successfully",
                     updated
             );
         } catch (Exception ex) {
             String errMsg = "Rejected invalid sync payload: " + ex.getMessage();
             log.warn(errMsg);
-            licenseService.recordSyncAttempt("FAILED", errMsg);
+            licenseService.recordSyncAttempt(STATUS_FAILED, errMsg);
             return new LicenseSyncResultDTO(
-                    false, true, "FAILED",
+                    false, true, STATUS_FAILED,
                     errMsg,
                     licenseService.getLicenseStatus()
             );

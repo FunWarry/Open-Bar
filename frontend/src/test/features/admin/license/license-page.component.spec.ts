@@ -200,4 +200,48 @@ describe('LicensePageComponent', () => {
     const notice = fixture.nativeElement.querySelector('[data-testid="license-readonly-notice"]');
     expect(notice).toBeTruthy();
   });
+
+  it('should handle file selection, clipboard copy, status badges, and error branches', async () => {
+    const file = new File(['  header.payload.fromfile  '], 'license.jwt', { type: 'text/plain' });
+    const mockInput = { files: [file], value: 'fake' } as unknown as HTMLInputElement;
+    await component.onFileSelected({ target: mockInput } as unknown as Event);
+    expect(component.offlineTokenInput).toBe('header.payload.fromfile');
+    expect(mockInput.value).toBe('');
+
+    // Trigger empty file picker branch
+    await component.onFileSelected({ target: { files: [] } } as unknown as Event);
+
+    // Status computations for GRACE_PERIOD, COMMUNITY, EXPIRED
+    component.license.set({ ...validLicense, status: 'GRACE_PERIOD', graceHoursRemaining: 16 });
+    expect(component.validityStatValue()).toBe('16h');
+    expect(component.statusBadgeColor()).toBe('warning');
+    expect(component.statusColor()).toBe('warning');
+
+    component.license.set({ ...validLicense, status: 'COMMUNITY', allModulesLicensed: true });
+    expect(component.validityStatValue()).toBe('∞');
+    expect(component.isModuleIncluded(EstablishmentModule.CUISINE_KDS)).toBeTrue();
+
+    component.license.set({ ...validLicense, status: 'EXPIRED', orderCreationAllowed: false });
+    expect(component.validityStatValue()).toBe('0');
+    expect(component.statusBadgeColor()).toBe('danger');
+    expect(component.getStatusLabelKey(null)).toBe('LICENSE.STATUS.UNKNOWN');
+
+    // Clipboard copy
+    const writeTextSpy = spyOn(navigator.clipboard, 'writeText').and.resolveTo();
+    await component.copyVenueId();
+    expect(writeTextSpy).toHaveBeenCalledWith('73282932000074');
+
+    // Error branches on load / sync / deactivate
+    licenseServiceSpy.getFullStatus.and.returnValue(throwError(() => new Error('Network')));
+    component.loadLicenseStatus();
+    expect(component.isLoading()).toBeFalse();
+
+    licenseServiceSpy.syncOnline.and.returnValue(throwError(() => new Error('Sync err')));
+    component.syncOnline();
+    expect(component.isSyncing()).toBeFalse();
+
+    licenseServiceSpy.deactivateLicense.and.returnValue(throwError(() => new Error('Deactivate err')));
+    await component.confirmDeactivate();
+    expect(component.isDeactivating()).toBeFalse();
+  });
 });

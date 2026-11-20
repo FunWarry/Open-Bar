@@ -172,26 +172,30 @@ public class EstablishmentConfigService {
             return raw;
         }
         return new EstablishmentModulesDTO(
-                raw.cuisineKds() && licenseService.isModuleLicensed(EstablishmentModule.CUISINE_KDS),
-                raw.happyHour() && licenseService.isModuleLicensed(EstablishmentModule.HAPPY_HOUR),
-                raw.employeeManagement() && licenseService.isModuleLicensed(EstablishmentModule.EMPLOYEE_MANAGEMENT),
-                raw.floorPlan() && licenseService.isModuleLicensed(EstablishmentModule.FLOOR_PLAN),
-                raw.qrClientOrdering() && licenseService.isModuleLicensed(EstablishmentModule.QR_CLIENT_ORDERING),
-                raw.stockTracking() && licenseService.isModuleLicensed(EstablishmentModule.STOCK_TRACKING),
-                raw.cashDrawer() && licenseService.isModuleLicensed(EstablishmentModule.CASH_DRAWER),
-                raw.barTabs() && licenseService.isModuleLicensed(EstablishmentModule.BAR_TABS),
-                raw.cocktailLibrary() && licenseService.isModuleLicensed(EstablishmentModule.COCKTAIL_LIBRARY),
-                raw.suppliersManagement() && licenseService.isModuleLicensed(EstablishmentModule.SUPPLIERS_MANAGEMENT),
-                raw.inventoryAudit() && licenseService.isModuleLicensed(EstablishmentModule.INVENTORY_AUDIT),
-                raw.mysteryRoulette() && licenseService.isModuleLicensed(EstablishmentModule.MYSTERY_ROULETTE),
-                raw.paymentTerminal() && licenseService.isModuleLicensed(EstablishmentModule.PAYMENT_TERMINAL),
-                raw.tableReservations() && licenseService.isModuleLicensed(EstablishmentModule.TABLE_RESERVATIONS),
-                raw.checklistsProcedures() && licenseService.isModuleLicensed(EstablishmentModule.CHECKLISTS_PROCEDURES),
-                raw.systemUpdates() && licenseService.isModuleLicensed(EstablishmentModule.SYSTEM_UPDATES),
-                raw.angelShotSafety() && licenseService.isModuleLicensed(EstablishmentModule.ANGEL_SHOT_SAFETY),
-                raw.qrPayAtTable() && licenseService.isModuleLicensed(EstablishmentModule.QR_PAY_AT_TABLE),
-                raw.facturXInvoiceImport() && licenseService.isModuleLicensed(EstablishmentModule.FACTUR_X_INVOICE_IMPORT)
+                isAllowed(raw.cuisineKds(), EstablishmentModule.CUISINE_KDS),
+                isAllowed(raw.happyHour(), EstablishmentModule.HAPPY_HOUR),
+                isAllowed(raw.employeeManagement(), EstablishmentModule.EMPLOYEE_MANAGEMENT),
+                isAllowed(raw.floorPlan(), EstablishmentModule.FLOOR_PLAN),
+                isAllowed(raw.qrClientOrdering(), EstablishmentModule.QR_CLIENT_ORDERING),
+                isAllowed(raw.stockTracking(), EstablishmentModule.STOCK_TRACKING),
+                isAllowed(raw.cashDrawer(), EstablishmentModule.CASH_DRAWER),
+                isAllowed(raw.barTabs(), EstablishmentModule.BAR_TABS),
+                isAllowed(raw.cocktailLibrary(), EstablishmentModule.COCKTAIL_LIBRARY),
+                isAllowed(raw.suppliersManagement(), EstablishmentModule.SUPPLIERS_MANAGEMENT),
+                isAllowed(raw.inventoryAudit(), EstablishmentModule.INVENTORY_AUDIT),
+                isAllowed(raw.mysteryRoulette(), EstablishmentModule.MYSTERY_ROULETTE),
+                isAllowed(raw.paymentTerminal(), EstablishmentModule.PAYMENT_TERMINAL),
+                isAllowed(raw.tableReservations(), EstablishmentModule.TABLE_RESERVATIONS),
+                isAllowed(raw.checklistsProcedures(), EstablishmentModule.CHECKLISTS_PROCEDURES),
+                isAllowed(raw.systemUpdates(), EstablishmentModule.SYSTEM_UPDATES),
+                isAllowed(raw.angelShotSafety(), EstablishmentModule.ANGEL_SHOT_SAFETY),
+                isAllowed(raw.qrPayAtTable(), EstablishmentModule.QR_PAY_AT_TABLE),
+                isAllowed(raw.facturXInvoiceImport(), EstablishmentModule.FACTUR_X_INVOICE_IMPORT)
         );
+    }
+
+    private boolean isAllowed(boolean rawFlag, EstablishmentModule module) {
+        return rawFlag && licenseService.isModuleLicensed(module);
     }
 
     /**

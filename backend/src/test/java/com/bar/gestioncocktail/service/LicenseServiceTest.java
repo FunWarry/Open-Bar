@@ -217,5 +217,52 @@ class LicenseServiceTest {
 
         assertThat(licenseService.isModuleLicensed(EstablishmentModule.FLOOR_PLAN)).isTrue();
         assertThat(licenseService.isModuleLicensed(EstablishmentModule.CUISINE_KDS)).isFalse();
+        assertThat(licenseService.isModuleLicensed(null)).isTrue();
+    }
+
+    @Test
+    void getLicenseSummaryAndStoredToken_andWildcardMatch_covered() {
+        String token = signToken("*", "ENTERPRISE", List.of("*"), FIXED_NOW.plus(5, ChronoUnit.DAYS));
+        LicenseRecord stored = new LicenseRecord();
+        stored.setLicenseToken(token);
+        when(licenseRecordRepository.findById(LicenseRecord.SINGLETON_ID)).thenReturn(Optional.of(stored));
+
+        var summary = licenseService.getLicenseSummary();
+        assertThat(summary.status()).isEqualTo(LicenseStatus.VALID);
+        assertThat(summary.orderCreationAllowed()).isTrue();
+        assertThat(licenseService.getStoredToken()).isEqualTo(token);
+        assertThat(licenseService.isModuleLicensed(EstablishmentModule.CUISINE_KDS)).isTrue();
+    }
+
+    @Test
+    void storedCorruptedToken_returnsInvalidAndBlocksOrders() {
+        LicenseRecord stored = new LicenseRecord();
+        stored.setLicenseToken("bad.jwt.token");
+        stored.setPlan("PRO");
+        when(licenseRecordRepository.findById(LicenseRecord.SINGLETON_ID)).thenReturn(Optional.of(stored));
+
+        LicenseStatusDTO status = licenseService.getLicenseStatus();
+        assertThat(status.status()).isEqualTo(LicenseStatus.INVALID);
+        assertThat(status.orderCreationAllowed()).isFalse();
+        assertThatThrownBy(() -> licenseService.assertOrderCreationAllowed())
+                .isInstanceOf(LicenseExpiredException.class)
+                .hasMessageContaining("failed verification");
+    }
+
+    @Test
+    void deactivateRecordSyncAndTouchHighWaterMark_covered() {
+        LicenseRecord stored = new LicenseRecord();
+        stored.setLicenseToken("some.jwt.token");
+        stored.setLastSeenAt(FIXED_NOW.minus(1, ChronoUnit.HOURS));
+        when(licenseRecordRepository.findById(LicenseRecord.SINGLETON_ID)).thenReturn(Optional.of(stored));
+        when(licenseRecordRepository.save(any(LicenseRecord.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        licenseService.recordSyncAttempt("OFFLINE", "Network unreachable");
+        licenseService.touchClockHighWaterMark();
+        LicenseStatusDTO afterDeactivate = licenseService.deactivateLicense();
+
+        assertThat(afterDeactivate.status()).isEqualTo(LicenseStatus.UNLICENSED);
+        assertThat(afterDeactivate.activationMode()).isEqualTo("NONE");
+        verify(notificationService).notifierLicenceMiseAJour(any());
     }
 }

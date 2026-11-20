@@ -145,8 +145,12 @@
                   data-testid="input-offline-license-token">
                 </ion-textarea>
 
+                <label class="hidden-file-input" for="offline-license-file-input">
+                  {{ 'LICENSE.OFFLINE.UPLOAD_FILE' | transloco }}
+                </label>
                 <input
                   #licenseFileInput
+                  id="offline-license-file-input"
                   type="file"
                   accept=".lic,.jwt,.txt,text/plain"
                   class="hidden-file-input"

@@ -151,4 +151,35 @@ class LicenseSyncServiceTest {
         verify(licenseService).recordSyncAttempt("FAILED", "Licensing server returned HTTP 500");
         verify(licenseService, never()).deactivateLicense();
     }
+
+    @Test
+    void syncNow_blankOrInvalidUrlAndSameTokenAndInterrupted_covered() throws Exception {
+        properties.setSyncUrl("");
+        when(licenseService.getLicenseStatus()).thenReturn(sampleStatus);
+        assertThat(syncService.syncNow("admin").syncStatus()).isEqualTo("OFFLINE");
+
+        properties.setSyncUrl("ftp://invalid.example.com/sync");
+        assertThat(syncService.syncNow("admin").syncStatus()).isEqualTo("FAILED");
+
+        properties.setSyncUrl("https://licensing.open-bar.eu/api/v1/licenses/sync");
+        when(licenseService.resolveVenueEstablishmentId()).thenReturn("73282932000074");
+        when(licenseService.getStoredToken()).thenReturn("same.jwt.token");
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn("{\"token\":\"same.jwt.token\"}");
+        when(httpClient.send(any(HttpRequest.class), eq(HttpResponse.BodyHandlers.ofString())))
+                .thenReturn(mockHttpResponse);
+        assertThat(syncService.syncNow("admin").syncStatus()).isEqualTo("UP_TO_DATE");
+
+        when(httpClient.send(any(HttpRequest.class), eq(HttpResponse.BodyHandlers.ofString())))
+                .thenThrow(new InterruptedException("interrupted"));
+        assertThat(syncService.syncNow("admin").syncStatus()).isEqualTo("OFFLINE");
+        Thread.interrupted();
+    }
+
+    @Test
+    void scheduledSync_respectsSyncEnabledFlag() {
+        properties.setSyncEnabled(false);
+        syncService.scheduledSync();
+        verify(licenseService).touchClockHighWaterMark();
+    }
 }

@@ -189,4 +189,45 @@ class LicenseCryptoServiceTest {
         String fingerprint = service.getPublicKeyFingerprint();
         assertThat(fingerprint).matches("([0-9A-F]{2}:){15}[0-9A-F]{2}");
     }
+
+    @Test
+    void parseAndVerify_blankOrMalformedToken_throwsBusinessException() {
+        LicenseCryptoService service = createService(ecPublicKeyPem, "");
+        assertThatThrownBy(() -> service.parseAndVerify("   "))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("cannot be blank");
+        assertThatThrownBy(() -> service.parseAndVerify("only.two"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("compact 3-part");
+    }
+
+    @Test
+    void parseAndVerify_csvModulesAndMissingSubject_covered() {
+        LicenseCryptoService service = createService(ecPublicKeyPem, "");
+        String token = Jwts.builder()
+                .claim("establishmentId", "73282932000074")
+                .claim("modules", "floor_plan, happy_hour")
+                .expiration(Date.from(Instant.now().plus(5, ChronoUnit.DAYS)))
+                .signWith(ecKeyPair.getPrivate(), Jwts.SIG.ES256)
+                .compact();
+
+        LicenseCryptoService.ParsedLicenseClaims claims = service.parseAndVerify(token);
+        assertThat(claims.licensedModules()).containsExactly("FLOOR_PLAN", "HAPPY_HOUR");
+        assertThat(claims.plan()).isEqualTo("PRO");
+
+        String missingSubToken = Jwts.builder()
+                .claim("plan", "PRO")
+                .expiration(Date.from(Instant.now().plus(5, ChronoUnit.DAYS)))
+                .signWith(ecKeyPair.getPrivate(), Jwts.SIG.ES256)
+                .compact();
+        assertThatThrownBy(() -> service.parseAndVerify(missingSubToken))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("missing mandatory establishmentId");
+    }
+
+    @Test
+    void getPublicKeyFingerprint_unconfiguredOrInvalidPem_returnsFallback() {
+        assertThat(createService("", "").getPublicKeyFingerprint()).isEqualTo("UNCONFIGURED");
+        assertThat(createService("not-a-valid-pem", "").getPublicKeyFingerprint()).isEqualTo("INVALID");
+    }
 }
