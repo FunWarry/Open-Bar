@@ -14,7 +14,7 @@ Ce répertoire regroupe les spécifications fonctionnelles, les guides d'archite
 | **Guide Technique & Architecture** | [`docs/TECHNICAL_GUIDE.md`](TECHNICAL_GUIDE.md) | Architecture logicielle, protocoles réseau (Concert IP, ESC/POS), STOMP, conformité fiscale |
 | **Guide Journalisation & Logs** | [`docs/LOGS_GUIDE.md`](LOGS_GUIDE.md) | Architecture centralisée des logs, conteneur Logrotate RPi 5, accès temps réel & dépannage |
 | **Guide Frontend** | [`frontend/README.md`](../frontend/README.md) | Architecture Angular 22 / Ionic 9, signaux, design tokens, tests Karma & Playwright |
-| **Guide Backend** | [`backend/README.md`](../backend/README.md) | Architecture Spring Boot 4.1.1, modèle relationnel, DTOs immuables, sécurité JWT |
+| **Guide Backend** | [`backend/README.md`](../backend/README.md) | Architecture Spring Boot 4.2.0, modèle relationnel, DTOs immuables, sécurité JWT |
 | **Conditions Générales (CGU)** | [`TERMS_OF_SERVICE.md`](../TERMS_OF_SERVICE.md) | Conditions d'utilisation, conformité légale & RGPD / données locales |
 | **Licence Logicielle** | [`LICENSE.md`](../LICENSE.md) | Licence Propriétaire Commerciale OpenBar |
 | **Guide Développeur Interne** | [`CONTRIBUTING.md`](../CONTRIBUTING.md) | Règles de développement, conventions de commit et standards internes |

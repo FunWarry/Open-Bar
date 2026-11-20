@@ -14,7 +14,7 @@
   <a href="https://sonarcloud.io/summary/new_code?id=FunWarry_Open-Bar"><img src="https://sonarcloud.io/api/project_badges/measure?project=FunWarry_Open-Bar&metric=coverage" alt="SonarCloud Coverage" /></a>
   <a href="https://github.com/FunWarry/Open-Bar/releases"><img src="https://img.shields.io/github/v/release/FunWarry/Open-Bar?color=blue&label=version" alt="Version" /></a>
   <a href="https://openjdk.org/projects/jdk/22/"><img src="https://img.shields.io/badge/Java-22%20(pinned)-ED8B00?logo=openjdk&logoColor=white" alt="Java 22" /></a>
-  <a href="https://spring.io/projects/spring-boot"><img src="https://img.shields.io/badge/Spring%20Boot-4.1.1-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot 4.1.1" /></a>
+  <a href="https://spring.io/projects/spring-boot"><img src="https://img.shields.io/badge/Spring%20Boot-4.2.0-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot 4.2.0" /></a>
   <a href="https://angular.dev"><img src="https://img.shields.io/badge/Angular-22.2.0-DD0031?logo=angular&logoColor=white" alt="Angular 22.2" /></a>
   <a href="https://ionicframework.com"><img src="https://img.shields.io/badge/Ionic-9.0.5-3880FF?logo=ionic&logoColor=white" alt="Ionic 9.0.5" /></a>
   <a href="https://jsverse.github.io/transloco/"><img src="https://img.shields.io/badge/i18n-Transloco%20100%25-007ACC" alt="Transloco" /></a>
@@ -326,7 +326,7 @@ flowchart LR
     subgraph ServeurLocal ["Serveur Embarqué Local (Raspberry Pi 5 / Mini-PC)"]
         Nginx["🌐 Reverse Proxy Nginx\n(HTTPS :443 + HTTP :80 ➔ 301)"]
         PWA["📦 Angular 22.2 PWA\n(Mise en cache Service Worker)"]
-        Backend["☕ Spring Boot 4.1.1\n(WebSocket STOMP + Événements)"]
+        Backend["☕ Spring Boot 4.2.0\n(WebSocket STOMP + Événements)"]
         Postgres[("🐘 Base PostgreSQL Persistante")]
         Backup["💾 Sauvegardes Quotidiennes Automatisées\n(Cron 03h00 + Rétention)"]
     end

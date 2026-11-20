@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.1</version>
+        <version>4.2.0</version>
         <relativePath/>
     </parent>
     
@@ -20,17 +20,16 @@
     <properties>
         <java.version>22</java.version>
         <jjwt.version>0.13.0</jjwt.version>
-        <spring-security.version>7.0.5</spring-security.version>
-        <spring-framework.version>7.0.7</spring-framework.version>
-        <tomcat.version>10.1.54</tomcat.version>
-        <postgresql.version>42.7.13</postgresql.version>
         <assertj.version>3.27.7</assertj.version>
         <sonar.coverage.exclusions>**/dto/**,**/model/**,**/GestionCocktailApplication.java,**/DockerDbInitializer.java,**/service/*SeederService.java</sonar.coverage.exclusions>
-        <logback.version>1.5.34</logback.version>
         <testcontainers.version>1.21.4</testcontainers.version>
         <commons-compress.version>1.28.0</commons-compress.version>
         <jsoup.version>1.23.2</jsoup.version>
         <zxing.version>3.5.4</zxing.version>
+        <asm.version>9.11.1</asm.version>
+        <jackson-2-bom.version>2.23.0</jackson-2-bom.version>
+        <jackson-bom.version>3.3.0</jackson-bom.version>
+        <commons-codec.version>1.23.0</commons-codec.version>
     </properties>
 
     <dependencyManagement>
@@ -39,6 +38,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
                 <version>${commons-compress.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>${asm.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -104,6 +108,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.vaadin.external.google</groupId>
+                    <artifactId>android-json</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -144,7 +154,17 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>3.1.1</version>
+            <version>3.2.1</version>
+        </dependency>
+
+        <!-- Jackson 2 (used by jjwt-jackson & legacy serialization helpers) -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
 
         <!-- HTML & XSS Sanitization -->

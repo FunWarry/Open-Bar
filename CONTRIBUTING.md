@@ -18,7 +18,7 @@ All code must adhere to the highest engineering standards: zero IDE problems, st
 
 | Component | Technology | Version | Notes |
 |-----------|------------|---------|-------|
-| Backend | Spring Boot | **4.1.1** | Java 22 (pinned — Lombok 1.18.34 incompatible with JDK 23+) |
+| Backend | Spring Boot | **4.2.0** | Java 22 (pinned — Lombok 1.18.34 incompatible with JDK 23+) |
 | Frontend | Angular | **22.2.0** | Ionic 9.0.5 (Angular Material is strictly forbidden) |
 | State | NgRx 22 / Signals | — | Auth store in NgRx; feature business state in Signals & Services |
 | i18n | Transloco | **8.4.0** | Strict 100% translation parity in `fr.json` and `en.json` |
