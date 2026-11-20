@@ -478,7 +478,7 @@ public class CloudRelayTunnelService {
     public long computeBackoffDelayMs(int attempt) {
         long base = Math.max(250L, properties.getReconnectInitialDelayMs());
         long max = Math.max(base, properties.getReconnectMaxDelayMs());
-        int shift = Math.min(Math.max(attempt - 1, 0), 10);
+        int shift = Math.clamp((long) attempt - 1L, 0, 10);
         long delay = base * (1L << shift);
         return Math.min(delay, max);
     }

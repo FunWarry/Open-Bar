@@ -408,4 +408,35 @@ describe('AppSettingsService', () => {
       expect(now).toBeGreaterThan(0);
     });
   });
+
+  describe('Cloud Relay Effective Public Base URL', () => {
+    it('resolves custom domain, venue slug subdomain, clientBaseUrl, or browser origin', () => {
+      expect(service.getEffectiveClientBaseUrl({
+        ...mockSettings,
+        cloudRelayEnabled: true,
+        customDomain: 'Commande.LeShaker.fr',
+        venueSlug: 'le-shaker',
+      })).toBe('https://commande.leshaker.fr');
+
+      expect(service.getEffectiveClientBaseUrl({
+        ...mockSettings,
+        cloudRelayEnabled: true,
+        customDomain: undefined,
+        venueSlug: 'le-shaker',
+      }, 'open-bar.eu')).toBe('https://le-shaker.open-bar.eu');
+
+      expect(service.getEffectiveClientBaseUrl({
+        ...mockSettings,
+        cloudRelayEnabled: false,
+        clientBaseUrl: 'https://192.168.1.25:4200/',
+      })).toBe('https://192.168.1.25:4200');
+
+      const fallbackOrigin = service.getEffectiveClientBaseUrl({
+        ...mockSettings,
+        cloudRelayEnabled: false,
+        clientBaseUrl: undefined,
+      });
+      expect(fallbackOrigin).toBeTruthy();
+    });
+  });
 });

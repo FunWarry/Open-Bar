@@ -495,5 +495,56 @@ class AppSettingsServiceTest {
         assertThat(updated.getSmtpAuth()).isTrue();
         assertThat(updated.getSmtpStarttls()).isTrue();
     }
+
+    @Test
+    @DisplayName("updateSettings persists Cloud Relay & white-label fields and resolves effective public URL")
+    void updateSettings_persistsCloudRelayAndResolvesPublicUrl() {
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+        when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        AppSettingsUpdateRequest req = new AppSettingsUpdateRequest(
+                "#6c7fe8", "#5a68d6", null, "Le Shaker", DefaultTheme.DARK,
+                "EUR", "€", CurrencyPosition.AFTER,
+                com.bar.gestioncocktail.model.UnitSystem.METRIC_CL, "cl", "g",
+                3, 5, 10,
+                "https://192.168.1.10:4200/", null, null, null, false, false,
+                null, null, null,
+                null, null, null, 9100, false, null, null,
+                false, false, null, null, null, null, null,
+                null, null, null, null,
+                null, null, null, null, "EUR",
+                null, 587, null, null, null, false, false,
+                "CONCERT_IP", null, null, null,
+                true, "  Le-Shaker  ", "Commande.LeShaker.fr",
+                "  https://cdn.example.com/banner.jpg ", "secret-pair-token",
+                true, true, false, false, true,
+                "[\"SERVEUR\",\"MANAGER\"]"
+        );
+
+        AppSettings updated = appSettingsService.updateSettings(req);
+
+        assertThat(updated.getCloudRelayEnabled()).isTrue();
+        assertThat(updated.getVenueSlug()).isEqualTo("le-shaker");
+        assertThat(updated.getCustomDomain()).isEqualTo("commande.leshaker.fr");
+        assertThat(updated.getBannerImageUrl()).isEqualTo("https://cdn.example.com/banner.jpg");
+        assertThat(updated.getRelayPairingToken()).isEqualTo("secret-pair-token");
+        assertThat(updated.getCloudRelayAdminEnabled()).isFalse();
+        assertThat(updated.getCloudRelayRemoteTpeEnabled()).isFalse();
+        assertThat(updated.getCloudRelayRemotePrintingEnabled()).isTrue();
+        assertThat(updated.getCloudRelayAllowedRolesJson()).isEqualTo("[\"SERVEUR\",\"MANAGER\"]");
+
+        assertThat(appSettingsService.resolveEffectivePublicBaseUrl(updated, "open-bar.eu", true))
+                .isEqualTo("https://commande.leshaker.fr");
+
+        updated.setCustomDomain(null);
+        assertThat(appSettingsService.resolveEffectivePublicBaseUrl(updated, "open-bar.eu", true))
+                .isEqualTo("https://le-shaker.open-bar.eu");
+
+        updated.setCloudRelayEnabled(false);
+        assertThat(appSettingsService.resolveEffectivePublicBaseUrl(updated, "open-bar.eu", true))
+                .isEqualTo("https://192.168.1.10:4200");
+        assertThat(appSettingsService.resolveEffectivePublicBaseUrl(updated))
+                .isEqualTo("https://192.168.1.10:4200");
+    }
 }
 

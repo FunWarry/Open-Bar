@@ -23,6 +23,7 @@ import { TpePublicConfig } from '../../../../app/core/models/tpe.model';
 import { SafetyAlertService } from '../../../../app/core/services/safety-alert.service';
 import { LicenseService } from '../../../../app/core/services/license.service';
 import { MonetizationService } from '../../../../app/core/services/monetization.service';
+import { CloudRelayService } from '../../../../app/core/services/cloud-relay.service';
 
 const mockTpePublicConfig: TpePublicConfig = {
   enabled: true,
@@ -55,6 +56,7 @@ describe('AppSettingsPageComponent', () => {
   let safetyAlertServiceSpy: jasmine.SpyObj<SafetyAlertService>;
   let licenseServiceSpy: jasmine.SpyObj<LicenseService>;
   let monetizationServiceSpy: jasmine.SpyObj<MonetizationService>;
+  let cloudRelayServiceSpy: jasmine.SpyObj<CloudRelayService>;
 
   const mockEtab: EstablishmentConfig = {
     id: 1,
@@ -111,11 +113,13 @@ describe('AppSettingsPageComponent', () => {
       'saveDiscountTiersLocally',
       'getStorageLocations',
       'saveStorageLocationsLocally',
+      'getEffectiveClientBaseUrl',
     ]);
     appSettingsServiceSpy.getSettings.and.returnValue(of(mockAppSettings));
     appSettingsServiceSpy.updateSettings.and.returnValue(of(mockAppSettings));
     appSettingsServiceSpy.getDiscountTiers.and.returnValue([...DEFAULT_DISCOUNT_TIERS]);
     appSettingsServiceSpy.getStorageLocations.and.returnValue([...DEFAULT_STORAGE_LOCATIONS]);
+    appSettingsServiceSpy.getEffectiveClientBaseUrl.and.returnValue('https://le-shaker.open-bar.eu');
 
     printerServiceSpy = jasmine.createSpyObj('PrinterService', [
       'getStatus',
@@ -334,6 +338,25 @@ describe('AppSettingsPageComponent', () => {
       billingHistory: [],
     }));
 
+    cloudRelayServiceSpy = jasmine.createSpyObj('CloudRelayService', [
+      'getStatus',
+      'connect',
+      'disconnect',
+      'runDiagnostics',
+    ]);
+    cloudRelayServiceSpy.getStatus.and.returnValue(of(null));
+    cloudRelayServiceSpy.connect.and.returnValue(of(null));
+    cloudRelayServiceSpy.disconnect.and.returnValue(of(null));
+    cloudRelayServiceSpy.runDiagnostics.and.returnValue(of({
+      success: true,
+      latencyMs: 18,
+      status: 'SIMULATED_OK',
+      message: 'Verified',
+      resolvedPublicUrl: 'https://le-shaker.open-bar.eu',
+      dnsVerified: true,
+      tlsReady: true,
+    }));
+
     await TestBed.configureTestingModule({
       imports: [
         AppSettingsPageComponent,
@@ -358,6 +381,7 @@ describe('AppSettingsPageComponent', () => {
         { provide: SafetyAlertService, useValue: safetyAlertServiceSpy },
         { provide: LicenseService, useValue: licenseServiceSpy },
         { provide: MonetizationService, useValue: monetizationServiceSpy },
+        { provide: CloudRelayService, useValue: cloudRelayServiceSpy },
         { provide: AppUpdateService, useValue: appUpdateServiceSpy },
         { provide: ThemeService, useValue: themeServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
@@ -1848,6 +1872,36 @@ describe('AppSettingsPageComponent', () => {
 
       component.toggleCloudRelayRole('BARMAN');
       expect(component.isCloudRelayRoleSelected('BARMAN')).toBeFalse();
+      component.toggleCloudRelayRole('BARMAN');
+      expect(component.isCloudRelayRoleSelected('BARMAN')).toBeTrue();
+
+      expect(component.getEffectivePublicUrlPreview()).toBe('https://le-shaker.open-bar.eu');
+
+      component.connectCloudRelay();
+      expect(cloudRelayServiceSpy.connect).toHaveBeenCalled();
+
+      component.disconnectCloudRelay();
+      expect(cloudRelayServiceSpy.disconnect).toHaveBeenCalled();
+
+      component.testCloudRelayConnection();
+      expect(cloudRelayServiceSpy.runDiagnostics).toHaveBeenCalled();
+      expect(component.cloudRelayDiagnostic()?.status).toBe('SIMULATED_OK');
+
+      cloudRelayServiceSpy.runDiagnostics.and.returnValue(of({
+        success: false,
+        latencyMs: 0,
+        status: 'MISCONFIGURED',
+        message: 'Slug required',
+        resolvedPublicUrl: 'https://openbar.local',
+        dnsVerified: false,
+        tlsReady: false,
+      }));
+      component.testCloudRelayConnection();
+      expect(component.cloudRelayDiagnostic()?.status).toBe('MISCONFIGURED');
+
+      cloudRelayServiceSpy.runDiagnostics.and.returnValue(throwError(() => new Error('Network')));
+      component.testCloudRelayConnection();
+      expect(component.isTestingCloudRelay()).toBeFalse();
 
       component.saveAll();
       tick();

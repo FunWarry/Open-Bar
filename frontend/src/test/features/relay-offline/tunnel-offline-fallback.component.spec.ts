@@ -98,4 +98,23 @@ describe('TunnelOfflineFallbackComponent', () => {
     expect(component.countdown()).toBe(15);
     expect(routerSpy.navigate).not.toHaveBeenCalled();
   }));
+
+  it('should copy Wi-Fi SSID to clipboard and trigger countdown retry at zero', fakeAsync(() => {
+    const writeTextSpy = jasmine.createSpy('writeText').and.returnValue(Promise.resolve());
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: writeTextSpy },
+      configurable: true
+    });
+    cloudRelaySpy.checkRelayHealth.and.returnValue(of({ ...healthyBranding, tunnelConnected: false }));
+
+    fixture.detectChanges();
+    component.copyWifiSsid();
+    tick(2100);
+    expect(writeTextSpy).toHaveBeenCalledWith('LeShaker-WiFi');
+    expect(component.copiedWifi()).toBeFalse();
+
+    component.countdown.set(1);
+    tick(1000);
+    expect(cloudRelaySpy.checkRelayHealth).toHaveBeenCalled();
+  }));
 });
