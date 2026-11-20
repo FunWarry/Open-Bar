@@ -111,7 +111,13 @@ public enum EstablishmentModule {
      * Automated supplier invoice import via Factur-X XML and PDF parsing, Purchase Order (PO)
      * reconciliation, discrepancy alerts, and automatic stock intake with PAMP / WAC recalculation.
      */
-    FACTUR_X_INVOICE_IMPORT
+    FACTUR_X_INVOICE_IMPORT,
+
+    /**
+     * Turnkey Smart TPE integration via Stripe Terminal Connect (WisePOS E / PayFac),
+     * automatically splitting platform application fees at the source.
+     */
+    STRIPE_TERMINAL_CONNECT
 }
 
 

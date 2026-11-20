@@ -243,6 +243,27 @@ public class LicenseService {
     }
 
     /**
+     * Retrieves optional monetization rate-schedule and commission billing claims embedded
+     * inside the currently installed signed license JWT token.
+     *
+     * @return Optional {@link LicenseCryptoService.LicenseMonetizationClaims}
+     */
+    @Transactional(readOnly = true)
+    public Optional<LicenseCryptoService.LicenseMonetizationClaims> getActiveMonetizationClaims() {
+        Optional<LicenseRecord> optEntity = licenseRecordRepository.findById(LicenseRecord.SINGLETON_ID);
+        if (optEntity.isEmpty() || optEntity.get().getLicenseToken() == null || optEntity.get().getLicenseToken().isBlank()) {
+            return Optional.empty();
+        }
+        try {
+            LicenseCryptoService.ParsedLicenseClaims claims = licenseCryptoService.parseAndVerify(optEntity.get().getLicenseToken());
+            validateEstablishmentMatch(claims.establishmentId(), resolveVenueEstablishmentIdInternal());
+            return Optional.ofNullable(claims.monetization());
+        } catch (BusinessException _) {
+            return Optional.empty();
+        }
+    }
+
+    /**
      * Enforces order-taking eligibility before creating a new customer order.
      * Allows orders when valid, in community mode, or within the 2-day grace period;
      * throws {@link LicenseExpiredException} (HTTP 402) once expired beyond grace when enforcement is active.

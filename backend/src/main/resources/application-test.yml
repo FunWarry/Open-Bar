@@ -17,6 +17,10 @@ openbar:
       MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEE0qs4A6+KX3AvmPGRENPgbcKhJGG
       SKEafioWglNu1pHNsPgsqFIisYfMx+kkrC/2uarRS0Y0JxJ+bihF4Uy1VA==
       -----END PUBLIC KEY-----
+  monetization:
+    sync-enabled: false
+    enforce-grace-lock: false
+    stripe-terminal-simulator-fallback: true
 
 logging:
   file:

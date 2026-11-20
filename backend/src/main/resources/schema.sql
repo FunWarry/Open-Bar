@@ -1202,3 +1202,76 @@ CREATE TABLE IF NOT EXISTS license_records (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Dual-Tier TPE Payment Monetization Engine (#653)
+ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_stripe_terminal_connect_enabled BOOLEAN DEFAULT true;
+
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS tpe_monetization_mode VARCHAR(30) DEFAULT 'CONCERT_IP';
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS stripe_connected_account_id VARCHAR(120);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS stripe_terminal_location_id VARCHAR(120);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS stripe_terminal_reader_id VARCHAR(120);
+
+CREATE TABLE IF NOT EXISTS card_commission_ledger (
+    id BIGSERIAL PRIMARY KEY,
+    sequence_number BIGINT NOT NULL UNIQUE,
+    billing_period VARCHAR(7) NOT NULL,
+    establishment_id VARCHAR(100) NOT NULL,
+    facture_id BIGINT,
+    reglement_id BIGINT,
+    invoice_number VARCHAR(60),
+    external_transaction_id VARCHAR(120),
+    tpe_authorization_code VARCHAR(80),
+    tpe_terminal_id VARCHAR(80),
+    card_brand VARCHAR(50),
+    masked_pan VARCHAR(50),
+    tier VARCHAR(40) NOT NULL,
+    source VARCHAR(40) NOT NULL,
+    status VARCHAR(40) NOT NULL,
+    gross_amount DECIMAL(10,2) NOT NULL,
+    rate_bps INTEGER NOT NULL,
+    fixed_fee_cents INTEGER NOT NULL,
+    commission_amount DECIMAL(10,2) NOT NULL,
+    currency VARCHAR(3) NOT NULL DEFAULT 'EUR',
+    previous_hash VARCHAR(64) NOT NULL,
+    entry_hash VARCHAR(64) NOT NULL UNIQUE,
+    recorded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    synced_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_commission_ledger_period ON card_commission_ledger(billing_period);
+CREATE INDEX IF NOT EXISTS idx_commission_ledger_facture ON card_commission_ledger(facture_id);
+CREATE INDEX IF NOT EXISTS idx_commission_ledger_ext_tx ON card_commission_ledger(external_transaction_id);
+CREATE INDEX IF NOT EXISTS idx_commission_ledger_status ON card_commission_ledger(status);
+
+CREATE TABLE IF NOT EXISTS commission_billing_records (
+    id BIGSERIAL PRIMARY KEY,
+    billing_period VARCHAR(7) NOT NULL UNIQUE,
+    establishment_id VARCHAR(100) NOT NULL,
+    active_tier VARCHAR(40) NOT NULL DEFAULT 'CONCERT_IP_OFFLINE',
+    option1_volume DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    option1_count BIGINT NOT NULL DEFAULT 0,
+    option1_commission DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    option3_volume DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    option3_count BIGINT NOT NULL DEFAULT 0,
+    option3_commission DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    total_commission_due DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    invoice_status VARCHAR(30) NOT NULL DEFAULT 'NONE',
+    remote_invoice_id VARCHAR(120),
+    pending_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    grace_started_at TIMESTAMP,
+    grace_ends_at TIMESTAMP,
+    last_sync_at TIMESTAMP,
+    last_sync_status VARCHAR(30) DEFAULT 'NONE',
+    last_sync_error VARCHAR(500),
+    last_exported_at TIMESTAMP,
+    last_export_hash VARCHAR(64),
+    end_ledger_hash VARCHAR(64),
+    z_report_refs_json TEXT,
+    settled_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_commission_billing_status ON commission_billing_records(invoice_status);
+CREATE INDEX IF NOT EXISTS idx_commission_billing_remote_inv ON commission_billing_records(remote_invoice_id);
+

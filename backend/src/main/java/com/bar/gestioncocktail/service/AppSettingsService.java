@@ -228,6 +228,18 @@ public class AppSettingsService {
         if (request.tpeTerminalsJson() != null) {
             current.setTpeTerminalsJson(request.tpeTerminalsJson());
         }
+        if (request.tpeMonetizationMode() != null && !request.tpeMonetizationMode().isBlank()) {
+            current.setTpeMonetizationMode(request.tpeMonetizationMode().trim().toUpperCase());
+        }
+        if (request.stripeConnectedAccountId() != null) {
+            current.setStripeConnectedAccountId(request.stripeConnectedAccountId().trim());
+        }
+        if (request.stripeTerminalLocationId() != null) {
+            current.setStripeTerminalLocationId(request.stripeTerminalLocationId().trim());
+        }
+        if (request.stripeTerminalReaderId() != null) {
+            current.setStripeTerminalReaderId(request.stripeTerminalReaderId().trim());
+        }
     }
 
     private void applyEmergencyNumbers(AppSettings current, AppSettingsUpdateRequest request) {

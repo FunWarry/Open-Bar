@@ -66,4 +66,13 @@ public interface DailyCashClosureRepository extends JpaRepository<DailyCashClosu
      * @return Number of matching closures
      */
     long countByClosureNumberStartingWith(String prefix);
+
+    /**
+     * Retrieves all certified register closures within an inclusive date range ordered chronologically.
+     *
+     * @param start Start closure date (inclusive)
+     * @param end   End closure date (inclusive)
+     * @return Chronologically ordered closures
+     */
+    List<DailyCashClosure> findByClosureDateBetweenOrderByClosureDateAsc(LocalDate start, LocalDate end);
 }

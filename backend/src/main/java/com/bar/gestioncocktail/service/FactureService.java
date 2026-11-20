@@ -94,6 +94,27 @@ public class FactureService {
     private final EstablishmentConfigService establishmentConfigService;
     private final BarTabRepository barTabRepository;
     private final NotificationService notificationService;
+    private final com.bar.gestioncocktail.service.monetization.CommissionLedgerService commissionLedgerService;
+
+    /**
+     * Backward-compatible constructor for unit tests without commission ledger dependency.
+     */
+    public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
+            CommandeRepository commandeRepository, ApplicationEventPublisher eventPublisher,
+            UserRepository userRepository, EntityManager entityManager, AuditLogService auditLogService,
+            AvoirCreditRepository avoirCreditRepository, TimeService timeService,
+            FactureReglementRepository factureReglementRepository,
+            HappyHourService happyHourService,
+            DailyCashClosureRepository dailyCashClosureRepository,
+            com.bar.gestioncocktail.repository.CashDrawerSessionRepository cashDrawerSessionRepository,
+            EstablishmentConfigService establishmentConfigService,
+            BarTabRepository barTabRepository,
+            NotificationService notificationService) {
+        this(factureRepository, tableRepository, commandeRepository, eventPublisher, userRepository, entityManager,
+                auditLogService, avoirCreditRepository, timeService, factureReglementRepository, happyHourService,
+                dailyCashClosureRepository, cashDrawerSessionRepository, establishmentConfigService,
+                barTabRepository, notificationService, null);
+    }
 
     @org.springframework.beans.factory.annotation.Autowired
     public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
@@ -106,7 +127,8 @@ public class FactureService {
             com.bar.gestioncocktail.repository.CashDrawerSessionRepository cashDrawerSessionRepository,
             EstablishmentConfigService establishmentConfigService,
             BarTabRepository barTabRepository,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            com.bar.gestioncocktail.service.monetization.CommissionLedgerService commissionLedgerService) {
         this.factureRepository = factureRepository;
         this.tableRepository = tableRepository;
         this.commandeRepository = commandeRepository;
@@ -123,6 +145,7 @@ public class FactureService {
         this.establishmentConfigService = establishmentConfigService;
         this.barTabRepository = barTabRepository;
         this.notificationService = notificationService;
+        this.commissionLedgerService = commissionLedgerService;
     }
 
     private void checkTillOpenedIfCashPayment(String modePaiement, java.time.LocalDate date) {
@@ -376,6 +399,7 @@ public class FactureService {
         liberateTableOnSettlement(facture);
 
         Facture saved = factureRepository.save(facture);
+        recordCardCommissionForDirectSettlement(saved, modePaiement);
         auditLogService.logAction(null, "REGLEMENT_FACTURE", ENTITY_FACTURE, saved.getId(),
                 "Payment settlement of invoice " + saved.getNumero() + " (" + modePaiement + ")", null);
         return saved;
@@ -547,6 +571,11 @@ public class FactureService {
         }
 
         Facture savedFacture = factureRepository.save(facture);
+        recordCardCommissionIfApplicable(
+                savedFacture, null, request.modePaiement(), netTTC,
+                savedFacture.getTpeAutorisation(), savedFacture.getTpeTerminalId(),
+                savedFacture.getTpeCardBrand(), savedFacture.getTpeMaskedPan(), savedFacture.getTpeSequence()
+        );
 
         markOrdersAsSettled(activeCommandes);
         releaseTableIfRequested(table, request.shouldLibererTable());
@@ -766,6 +795,11 @@ public class FactureService {
         }
 
         Facture savedFacture = factureRepository.save(facture);
+        recordCardCommissionIfApplicable(
+                savedFacture, null, request.modePaiement(), netTTC,
+                savedFacture.getTpeAutorisation(), savedFacture.getTpeTerminalId(),
+                savedFacture.getTpeCardBrand(), savedFacture.getTpeMaskedPan(), savedFacture.getTpeSequence()
+        );
 
         markOrdersAsSettled(activeCommandes);
 
@@ -1567,6 +1601,11 @@ public class FactureService {
         }
 
         saved = adjustExcessRounding(saved, totalPaidSoFar, invoiceTarget);
+        recordCardCommissionIfApplicable(
+                facture, saved, saved.getModePaiement(), saved.getTotalRegle(),
+                saved.getTpeAutorisation(), saved.getTpeTerminalId(),
+                saved.getTpeCardBrand(), saved.getTpeMaskedPan(), saved.getTpeSequence()
+        );
         checkAndFinalizeSplitSettlement(facture, factureId, allReglements, invoiceTarget);
 
         return FactureReglementDTO.from(saved);
@@ -1750,6 +1789,87 @@ public class FactureService {
             reglement.setTpeMaskedPan(request.tpeMaskedPan());
             reglement.setTpeSequence(request.tpeSequence());
         }
+    }
+
+    private void recordCardCommissionForDirectSettlement(Facture saved, String modePaiement) {
+        if (commissionLedgerService == null || !isPosCardPaymentMode(modePaiement)) {
+            return;
+        }
+        List<com.bar.gestioncocktail.model.FactureReglement> reglements = saved.getReglements();
+        if (reglements != null && !reglements.isEmpty()) {
+            com.bar.gestioncocktail.model.FactureReglement last = reglements.getLast();
+            if ("SOLDE".equalsIgnoreCase(last.getTypeSplit())) {
+                recordCardCommissionIfApplicable(
+                        saved, last, modePaiement, last.getTotalRegle(),
+                        saved.getTpeAutorisation(), saved.getTpeTerminalId(),
+                        saved.getTpeCardBrand(), saved.getTpeMaskedPan(), saved.getTpeSequence()
+                );
+            }
+            return;
+        }
+        BigDecimal settledAmount = saved.getTotalTTC() != null ? saved.getTotalTTC() : saved.getTotal();
+        recordCardCommissionIfApplicable(
+                saved, null, modePaiement, settledAmount,
+                saved.getTpeAutorisation(), saved.getTpeTerminalId(),
+                saved.getTpeCardBrand(), saved.getTpeMaskedPan(), saved.getTpeSequence()
+        );
+    }
+
+    private void recordCardCommissionIfApplicable(
+            Facture facture,
+            com.bar.gestioncocktail.model.FactureReglement reglement,
+            String modePaiement,
+            BigDecimal amount,
+            String tpeAutorisation,
+            String tpeTerminalId,
+            String tpeCardBrand,
+            String tpeMaskedPan,
+            String tpeSequence) {
+        if (commissionLedgerService == null || !isPosCardPaymentMode(modePaiement)
+                || amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+        com.bar.gestioncocktail.model.CardCommissionSource source =
+                resolveCommissionSource(modePaiement, tpeAutorisation, tpeTerminalId);
+        String extTxId = (tpeSequence != null && !tpeSequence.isBlank()) ? tpeSequence : tpeAutorisation;
+        commissionLedgerService.recordCardSettlement(
+                new com.bar.gestioncocktail.service.monetization.CommissionLedgerService.CardSettlementRecordCommand(
+                        facture.getId(),
+                        reglement != null ? reglement.getId() : null,
+                        facture.getNumero(),
+                        extTxId,
+                        tpeAutorisation,
+                        tpeTerminalId,
+                        tpeCardBrand,
+                        tpeMaskedPan,
+                        source,
+                        amount,
+                        "EUR"
+                )
+        );
+    }
+
+    private boolean isPosCardPaymentMode(String modePaiement) {
+        if (modePaiement == null || modePaiement.isBlank()) {
+            return false;
+        }
+        String norm = modePaiement.trim().toUpperCase();
+        return "CARTE".equals(norm) || "CB".equals(norm) || "CARD".equals(norm)
+                || "CARTE_BANCAIRE".equals(norm) || "STRIPE_TERMINAL".equals(norm);
+    }
+
+    private com.bar.gestioncocktail.model.CardCommissionSource resolveCommissionSource(
+            String modePaiement, String tpeAutorisation, String tpeTerminalId) {
+        boolean isStripeTerminal = "STRIPE_TERMINAL".equalsIgnoreCase(modePaiement)
+                || (tpeTerminalId != null && (tpeTerminalId.startsWith("ST-") || tpeTerminalId.startsWith("tmr_")))
+                || (tpeAutorisation != null && tpeAutorisation.startsWith("pi_"));
+        if (isStripeTerminal) {
+            return com.bar.gestioncocktail.model.CardCommissionSource.STRIPE_TERMINAL_CONNECT;
+        }
+        if (tpeAutorisation != null && !tpeAutorisation.isBlank()) {
+            return com.bar.gestioncocktail.model.CardCommissionSource.CONCERT_IP_TPE;
+        }
+        return com.bar.gestioncocktail.model.CardCommissionSource.MANUAL_CB;
     }
 
     /**

@@ -8,8 +8,11 @@ import com.bar.gestioncocktail.model.TpeTerminalRole;
 import com.bar.gestioncocktail.model.TpeTransactionStatus;
 import com.bar.gestioncocktail.service.AppSettingsService;
 import com.bar.gestioncocktail.service.EstablishmentConfigService;
+import com.bar.gestioncocktail.service.monetization.CommissionLedgerService;
+import com.bar.gestioncocktail.service.monetization.StripeTerminalConnectService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +40,8 @@ public class PaymentTerminalService {
     private final EstablishmentConfigService establishmentConfigService;
     private final ConcertSocketClient concertSocketClient;
     private final SimpMessagingTemplate messagingTemplate;
+    private final StripeTerminalConnectService stripeTerminalConnectService;
+    private final CommissionLedgerService commissionLedgerService;
 
     private final Map<String, TpePaymentResponseDTO> activeTransactions = new ConcurrentHashMap<>();
     private final Map<String, Boolean> cancelledTransactions = new ConcurrentHashMap<>();
@@ -44,7 +49,7 @@ public class PaymentTerminalService {
     private final SecureRandom secureRandom = new SecureRandom();
 
     /**
-     * Constructor injection.
+     * Backward-compatible constructor injection for unit tests.
      *
      * @param appSettingsService         Establishment visual and hardware settings service
      * @param establishmentConfigService Modular capability flag verification service
@@ -57,10 +62,34 @@ public class PaymentTerminalService {
             ConcertSocketClient concertSocketClient,
             SimpMessagingTemplate messagingTemplate
     ) {
+        this(appSettingsService, establishmentConfigService, concertSocketClient, messagingTemplate, null, null);
+    }
+
+    /**
+     * Constructor injection with Option 3 Stripe Terminal Connect and commission grace enforcement.
+     *
+     * @param appSettingsService           Establishment visual and hardware settings service
+     * @param establishmentConfigService   Modular capability flag verification service
+     * @param concertSocketClient          Low-level TCP client for Concert protocol
+     * @param messagingTemplate            STOMP message broker template
+     * @param stripeTerminalConnectService Option 3 Stripe Terminal Connect service
+     * @param commissionLedgerService      Monetization ledger & grace-period enforcement service
+     */
+    @Autowired
+    public PaymentTerminalService(
+            AppSettingsService appSettingsService,
+            EstablishmentConfigService establishmentConfigService,
+            ConcertSocketClient concertSocketClient,
+            SimpMessagingTemplate messagingTemplate,
+            StripeTerminalConnectService stripeTerminalConnectService,
+            CommissionLedgerService commissionLedgerService
+    ) {
         this.appSettingsService = appSettingsService;
         this.establishmentConfigService = establishmentConfigService;
         this.concertSocketClient = concertSocketClient;
         this.messagingTemplate = messagingTemplate;
+        this.stripeTerminalConnectService = stripeTerminalConnectService;
+        this.commissionLedgerService = commissionLedgerService;
     }
 
     /**
@@ -72,25 +101,33 @@ public class PaymentTerminalService {
      */
     public TpePaymentResponseDTO initiatePayment(TpePaymentRequestDTO request) {
         establishmentConfigService.checkModuleEnabled(EstablishmentModule.PAYMENT_TERMINAL);
+        if (commissionLedgerService != null) {
+            commissionLedgerService.assertTpeCardAllowed();
+        }
 
         AppSettings settings = appSettingsService.getSettings();
         String transactionId = UUID.randomUUID().toString();
         String currencyCode = request.resolveCurrencyCode();
-        String terminalId = (settings.getTpeTerminalId() != null && !settings.getTpeTerminalId().isBlank())
-                ? settings.getTpeTerminalId().trim()
-                : "01";
+        boolean useStripeTerminal = isStripeTerminalActive(settings);
+        String terminalId = resolveInitialTerminalId(settings, useStripeTerminal);
 
         TpePaymentResponseDTO initial = TpePaymentResponseDTO.initiated(
                 transactionId,
                 request.montant(),
                 currencyCode,
                 terminalId,
-                "Transaction dispatched to terminal"
+                useStripeTerminal ? "Transaction dispatched to Stripe Terminal" : "Transaction dispatched to terminal"
         );
         activeTransactions.put(transactionId, initial);
         cancelledTransactions.put(transactionId, false);
 
         broadcastStatus(initial);
+
+        if (useStripeTerminal) {
+            executorService.submit(() -> stripeTerminalConnectService.executeTerminalPayment(
+                    transactionId, request, activeTransactions, cancelledTransactions, currencyCode));
+            return initial;
+        }
 
         boolean isSimulator = Boolean.TRUE.equals(settings.getTpeSimulatorEnabled())
                 || "mock".equalsIgnoreCase(request.terminalIp())
@@ -103,6 +140,26 @@ public class PaymentTerminalService {
         }
 
         return initial;
+    }
+
+    private boolean isStripeTerminalActive(AppSettings settings) {
+        return stripeTerminalConnectService != null
+                && settings != null
+                && "STRIPE_TERMINAL".equalsIgnoreCase(settings.getTpeMonetizationMode())
+                && establishmentConfigService.isModuleEnabled(EstablishmentModule.STRIPE_TERMINAL_CONNECT);
+    }
+
+    private String resolveInitialTerminalId(AppSettings settings, boolean useStripeTerminal) {
+        if (useStripeTerminal) {
+            if (settings != null && settings.getStripeTerminalReaderId() != null
+                    && !settings.getStripeTerminalReaderId().isBlank()) {
+                return settings.getStripeTerminalReaderId().trim();
+            }
+            return "ST-WISEPOS";
+        }
+        return (settings != null && settings.getTpeTerminalId() != null && !settings.getTpeTerminalId().isBlank())
+                ? settings.getTpeTerminalId().trim()
+                : "01";
     }
 
     /**

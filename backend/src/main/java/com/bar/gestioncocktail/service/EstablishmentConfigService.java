@@ -190,7 +190,8 @@ public class EstablishmentConfigService {
                 isAllowed(raw.systemUpdates(), EstablishmentModule.SYSTEM_UPDATES),
                 isAllowed(raw.angelShotSafety(), EstablishmentModule.ANGEL_SHOT_SAFETY),
                 isAllowed(raw.qrPayAtTable(), EstablishmentModule.QR_PAY_AT_TABLE),
-                isAllowed(raw.facturXInvoiceImport(), EstablishmentModule.FACTUR_X_INVOICE_IMPORT)
+                isAllowed(raw.facturXInvoiceImport(), EstablishmentModule.FACTUR_X_INVOICE_IMPORT),
+                isAllowed(raw.stripeTerminalConnect(), EstablishmentModule.STRIPE_TERMINAL_CONNECT)
         );
     }
 
@@ -268,6 +269,7 @@ public class EstablishmentConfigService {
         applyModuleIfPresent(config, EstablishmentModule.ANGEL_SHOT_SAFETY, request.angelShotSafety());
         applyModuleIfPresent(config, EstablishmentModule.QR_PAY_AT_TABLE, request.qrPayAtTable());
         applyModuleIfPresent(config, EstablishmentModule.FACTUR_X_INVOICE_IMPORT, request.facturXInvoiceImport());
+        applyModuleIfPresent(config, EstablishmentModule.STRIPE_TERMINAL_CONNECT, request.stripeTerminalConnect());
     }
 
     private void applyModuleIfPresent(EstablishmentConfig config, EstablishmentModule module, Boolean enabled) {

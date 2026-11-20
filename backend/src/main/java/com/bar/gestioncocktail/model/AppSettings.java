@@ -261,6 +261,33 @@ public class AppSettings {
     private String onlinePaymentCurrency = "EUR";
 
     /**
+     * Active physical TPE hardware mode ("CONCERT_IP" for Option 1 or "STRIPE_TERMINAL" for Option 3).
+     */
+    @Column(name = "tpe_monetization_mode", length = 30)
+    private String tpeMonetizationMode = "CONCERT_IP";
+
+    /**
+     * Stripe Connect destination account identifier (acct_...) for Option 3 Smart TPE PayFac splits.
+     */
+    @Size(max = 120, message = "Stripe Connected Account ID cannot exceed 120 characters")
+    @Column(name = "stripe_connected_account_id", length = 120)
+    private String stripeConnectedAccountId;
+
+    /**
+     * Stripe Terminal Location identifier (tml_...) for Option 3 WisePOS E reader pairing.
+     */
+    @Size(max = 120, message = "Stripe Terminal Location ID cannot exceed 120 characters")
+    @Column(name = "stripe_terminal_location_id", length = 120)
+    private String stripeTerminalLocationId;
+
+    /**
+     * Stripe Terminal Reader identifier (tmr_...) for Option 3 WisePOS E hardware.
+     */
+    @Size(max = 120, message = "Stripe Terminal Reader ID cannot exceed 120 characters")
+    @Column(name = "stripe_terminal_reader_id", length = 120)
+    private String stripeTerminalReaderId;
+
+    /**
      * SMTP Host server for digital receipt email delivery.
      */
     @Column(name = "smtp_host")
@@ -383,6 +410,38 @@ public class AppSettings {
 
     public void setOnlinePaymentCurrency(String onlinePaymentCurrency) {
         this.onlinePaymentCurrency = onlinePaymentCurrency;
+    }
+
+    public String getTpeMonetizationMode() {
+        return (tpeMonetizationMode != null && !tpeMonetizationMode.isBlank()) ? tpeMonetizationMode : "CONCERT_IP";
+    }
+
+    public void setTpeMonetizationMode(String tpeMonetizationMode) {
+        this.tpeMonetizationMode = tpeMonetizationMode;
+    }
+
+    public String getStripeConnectedAccountId() {
+        return stripeConnectedAccountId;
+    }
+
+    public void setStripeConnectedAccountId(String stripeConnectedAccountId) {
+        this.stripeConnectedAccountId = stripeConnectedAccountId;
+    }
+
+    public String getStripeTerminalLocationId() {
+        return stripeTerminalLocationId;
+    }
+
+    public void setStripeTerminalLocationId(String stripeTerminalLocationId) {
+        this.stripeTerminalLocationId = stripeTerminalLocationId;
+    }
+
+    public String getStripeTerminalReaderId() {
+        return stripeTerminalReaderId;
+    }
+
+    public void setStripeTerminalReaderId(String stripeTerminalReaderId) {
+        this.stripeTerminalReaderId = stripeTerminalReaderId;
     }
 
     public String getSmtpHost() {

@@ -54,6 +54,21 @@ openbar:
     sync-url: ${OPENBAR_LICENSING_SYNC_URL:https://licensing.open-bar.eu/api/v1/licenses/sync}
     sync-interval-ms: ${OPENBAR_LICENSING_SYNC_INTERVAL_MS:21600000}
     sync-timeout-ms: ${OPENBAR_LICENSING_SYNC_TIMEOUT_MS:5000}
+  monetization:
+    default-tier: ${OPENBAR_MONETIZATION_DEFAULT_TIER:CONCERT_IP_OFFLINE}
+    option1-rate-bps: ${OPENBAR_MONETIZATION_OPTION1_RATE_BPS:120}
+    option1-fixed-cents: ${OPENBAR_MONETIZATION_OPTION1_FIXED_CENTS:10}
+    option3-rate-bps: ${OPENBAR_MONETIZATION_OPTION3_RATE_BPS:45}
+    option3-fixed-cents: ${OPENBAR_MONETIZATION_OPTION3_FIXED_CENTS:5}
+    billing-sync-url: ${OPENBAR_MONETIZATION_SYNC_URL:https://licensing.open-bar.eu/api/v1/monetization/sync}
+    sync-enabled: ${OPENBAR_MONETIZATION_SYNC_ENABLED:false}
+    sync-timeout-ms: ${OPENBAR_MONETIZATION_SYNC_TIMEOUT_MS:5000}
+    grace-period-days: ${OPENBAR_MONETIZATION_GRACE_DAYS:7}
+    enforce-grace-lock: ${OPENBAR_MONETIZATION_ENFORCE_GRACE_LOCK:false}
+    hmac-secret: ${OPENBAR_MONETIZATION_HMAC_SECRET:}
+    stripe-platform-secret-key: ${STRIPE_PLATFORM_SECRET_KEY:}
+    stripe-connect-webhook-secret: ${STRIPE_CONNECT_WEBHOOK_SECRET:}
+    stripe-terminal-simulator-fallback: ${OPENBAR_STRIPE_TERMINAL_SIMULATOR_FALLBACK:true}
 
 server:
   port: ${SERVER_PORT:8080}
