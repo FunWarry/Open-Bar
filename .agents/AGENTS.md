@@ -127,6 +127,7 @@ Skills in `.agents/skills/` define reusable workflows for this project:
 | `openbar-install` | "setup project" / after ❌ in check | Install/repair the full dev environment |
 | `openbar-dev` | "add feature X" / "generate component" | Generate code following OpenBar conventions |
 | `openbar-ticket` | "implement issue #N" / "treat ticket #N" | Full ticket pipeline with Grill-Me interview & Boost strategic engineering (cadrage → deep thinking → branch → impl → tests → PR → merge) |
+| `openbar-parallel-ticket` | "ticket #N en parallèle" / "worktree ticket #N" | Full ticket pipeline isolated in a dedicated Git Worktree for concurrent multi-agent / multi-conversation work |
 | `openbar-fast-ticket` | "fast ticket #N" / "traite le bugfix #N" | Express automated pipeline for minor tickets & bugfixes |
 | `openbar-create-ticket` | "crée un ticket" / "add issue" | Standardized GitHub issue creation with mandatory Priority (P0/P1/P2) and Size (XS/S/M/L/XL) on labels & Project V2 board |
 | `openbar-test-gen` | "génère les tests pour X" / "test pyramid" | Full test pyramid generator (Karma, JUnit 5, seeder, Playwright) |
