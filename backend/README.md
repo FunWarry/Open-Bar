@@ -1,7 +1,7 @@
 # ☕ OpenBar — Backend API & Services
 
 > **Serveur REST & Broker WebSocket temps réel pour OpenBar**  
-> Développé avec **Spring Boot 4.1.1**, **Java 22 (épinglé)**, **PostgreSQL 15/16**, et **JJWT 0.13.0**.
+> Développé avec **Spring Boot 4.2.0**, **Java 22 (épinglé)**, **PostgreSQL 15/16**, et **JJWT 0.13.0**.
 
 ---
 
@@ -24,7 +24,7 @@ Le backend d'OpenBar fournit l'ensemble des services métiers, la persistance re
 | Couche | Technologie | Version | Détails & Rôle |
 |--------|-------------|---------|----------------|
 | **Runtime** | **Java** | **22 (épinglé)** | Lombok 1.18.34 incompatible JDK 23+. JDK 22 obligatoire pour compiler. |
-| **Framework** | **Spring Boot** | **4.1.1** | Gestionnaire IoC, Spring Data JPA, validation Bean Validation, Spring Security. |
+| **Framework** | **Spring Boot** | **4.2.0** | Gestionnaire IoC, Spring Data JPA, validation Bean Validation, Spring Security. |
 | **Sécurité** | **Spring Security + JJWT** | **0.13.0** | Authentification stateless JWT, rotation refresh tokens, contrôle `@PreAuthorize`. |
 | **Base de Données** | **PostgreSQL** | **15 / 16** | Stockage ACID, intégrité référentielle, indexation avancée. |
 | **Temps Réel** | **WebSocket STOMP** | Natif Spring | Broker STOMP en mémoire, 11 topics avec routage sélectif. |
@@ -33,7 +33,7 @@ Le backend d'OpenBar fournit l'ensemble des services métiers, la persistance re
 | **Génération PDF** | **OpenPDF** | **2.0.3** | Émission de factures A4, Z-Reports certifiés et chevalets de table QR. |
 | **Génération QR** | **ZXing** | **3.5.4** | Rendu matriciel PNG et SVG pour les tables et le Wi-Fi invité. |
 | **Assainissement HTML** | **Jsoup** | **1.23.2** | Protection contre les injections XSS sur l'ensemble des DTOs textuels. |
-| **Documentation API** | **Springdoc OpenAPI** | **3.1.0** | Swagger UI interactif et génération du contrat OpenAPI v3. |
+| **Documentation API** | **Springdoc OpenAPI** | **3.2.1** | Swagger UI interactif et génération du contrat OpenAPI v3. |
 
 ---
 

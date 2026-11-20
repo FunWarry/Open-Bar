@@ -9,7 +9,7 @@
 
 1. [Principes d'Ingénierie & Contraintes](#1-principes-dingénierie--contraintes)
 2. [Stack Technique Détaillée & Versions](#2-stack-technique-détaillée--versions)
-3. [Architecture Backend (Spring Boot 4.1.1)](#3-architecture-backend-spring-boot-411)
+3. [Architecture Backend (Spring Boot 4.2.0)](#3-architecture-backend-spring-boot-420)
 4. [Architecture Frontend (Angular 22 + Ionic 9)](#4-architecture-frontend-angular-22--ionic-9)
 5. [Modèle de Données Relationnel](#5-modèle-de-données-relationnel)
 6. [Communication Temps Réel (WebSocket STOMP)](#6-communication-temps-réel-websocket-stomp)
@@ -48,7 +48,7 @@ OpenBar est conçu selon 4 axiomes fondamentaux :
 | Couche | Technologie | Version | Détails & Rôle |
 |--------|-------------|---------|----------------|
 | **Runtime Backend** | **Java** | **22 (épinglé)** | Lombok 1.18.34 incompatible JDK 23+. JDK 22 requis pour compilation. |
-| **Framework Backend** | **Spring Boot** | **4.1.1** | Injection de dépendances, JPA, REST, validation Bean Validation. |
+| **Framework Backend** | **Spring Boot** | **4.2.0** | Injection de dépendances, JPA, REST, validation Bean Validation. |
 | **Sécurité** | **Spring Security + JJWT** | **0.13.0** | JWT asymétrique/HMAC-SHA, rotation des refresh tokens, session timeout 4h. |
 | **Base de Données** | **PostgreSQL** | **15 / 16** | BDD relationnelle ACID, migrations déclaratives `schema.sql`. |
 | **Temps Réel** | **WebSocket STOMP** | Natif Spring | Broker STOMP en mémoire, 13 topics avec filtres par rôle/table. |
@@ -67,7 +67,7 @@ OpenBar est conçu selon 4 axiomes fondamentaux :
 
 ---
 
-## 3. Architecture Backend (Spring Boot 4.1.1)
+## 3. Architecture Backend (Spring Boot 4.2.0)
 
 Le backend respecte une architecture en couches étanche **Controller → Service → Repository** avec découplage événementiel :
 
