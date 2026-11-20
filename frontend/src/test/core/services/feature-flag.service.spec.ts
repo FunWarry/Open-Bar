@@ -37,6 +37,7 @@ describe('FeatureFlagService', () => {
     angelShotSafety: true,
     qrPayAtTable: true,
     facturXInvoiceImport: true,
+    stripeTerminalConnect: true,
   };
 
   beforeEach(() => {
@@ -168,6 +169,7 @@ describe('FeatureFlagService', () => {
       angelShotSafety: false,
       qrPayAtTable: false,
       facturXInvoiceImport: false,
+      stripeTerminalConnect: false,
     };
 
     wsSubject.next({ body: JSON.stringify(wsUpdate) });

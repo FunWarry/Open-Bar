@@ -5,7 +5,9 @@ import { provideMockStore } from '@ngrx/store/testing';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { LicenseBannerComponent } from '../../../app/core/components/license-banner/license-banner.component';
 import { LicenseService } from '../../../app/core/services/license.service';
+import { MonetizationService } from '../../../app/core/services/monetization.service';
 import { LicenseSummaryInfo } from '../../../app/core/models/license.model';
+import { MonetizationSummary } from '../../../app/core/models/monetization.model';
 import { selectCurrentUser } from '../../../app/core/store/auth.selectors';
 
 describe('LicenseBannerComponent', () => {
@@ -15,17 +17,26 @@ describe('LicenseBannerComponent', () => {
   let summarySig: ReturnType<typeof signal<LicenseSummaryInfo | null>>;
   let graceSig: ReturnType<typeof signal<boolean>>;
   let showBannerSig: ReturnType<typeof signal<boolean>>;
+  let monSummarySig: ReturnType<typeof signal<MonetizationSummary | null>>;
+  let monShowBannerSig: ReturnType<typeof signal<boolean>>;
 
   beforeEach(async () => {
     summarySig = signal<LicenseSummaryInfo | null>(null);
     graceSig = signal<boolean>(false);
     showBannerSig = signal<boolean>(false);
+    monSummarySig = signal<MonetizationSummary | null>(null);
+    monShowBannerSig = signal<boolean>(false);
     routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate']);
 
     const licenseServiceStub = {
       summary: summarySig,
       isInGracePeriod: graceSig,
       shouldShowStaffBanner: showBannerSig,
+    };
+
+    const monetizationServiceStub = {
+      summary: monSummarySig,
+      shouldShowBanner: monShowBannerSig,
     };
 
     await TestBed.configureTestingModule({
@@ -38,6 +49,7 @@ describe('LicenseBannerComponent', () => {
       ],
       providers: [
         { provide: LicenseService, useValue: licenseServiceStub },
+        { provide: MonetizationService, useValue: monetizationServiceStub },
         { provide: Router, useValue: routerSpy },
         provideMockStore({
           selectors: [{ selector: selectCurrentUser, value: { id: 1, username: 'admin', roles: ['ADMIN'] } }],
@@ -99,5 +111,26 @@ describe('LicenseBannerComponent', () => {
 
     component.goToInvoices();
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/factures']);
+  });
+
+  it('should render monetization commission grace banner when pending commission invoice is active', () => {
+    monSummarySig.set({
+      activeTier: 'CONCERT_IP_OFFLINE',
+      billingPeriod: '2026-11',
+      invoiceStatus: 'GRACE_PERIOD',
+      remoteInvoiceId: 'in_comm_1',
+      pendingAmount: 19.5,
+      graceEndsAt: '2026-11-26T00:00:00Z',
+      graceHoursRemaining: 36,
+      enforceGraceLock: false,
+      tpeCardLocked: false,
+      shouldShowBanner: true,
+    });
+    monShowBannerSig.set(true);
+    fixture.detectChanges();
+
+    const banner = fixture.nativeElement.querySelector('[data-testid="monetization-global-banner"]');
+    expect(banner).toBeTruthy();
+    expect(banner.classList).toContain('tone-grace');
   });
 });
