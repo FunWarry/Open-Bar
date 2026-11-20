@@ -11,6 +11,8 @@ import com.bar.gestioncocktail.model.TpeTerminalRole;
 import com.bar.gestioncocktail.model.TpeTransactionStatus;
 import com.bar.gestioncocktail.service.AppSettingsService;
 import com.bar.gestioncocktail.service.EstablishmentConfigService;
+import com.bar.gestioncocktail.service.monetization.CommissionLedgerService;
+import com.bar.gestioncocktail.service.monetization.StripeTerminalConnectService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -427,5 +429,38 @@ class PaymentTerminalServiceTest {
         assertThat(res.success()).isTrue();
         assertThat(res.responseTimeMs()).isEqualTo(55L);
         verify(socketClient).testConnection("10.0.0.50", 9999, 4000);
+    }
+
+    @Test
+    @DisplayName("Should enforce commission grace lock and route Option 3 Stripe Terminal payments when enabled")
+    void shouldEnforceGraceLockAndRouteOption3StripeTerminal() {
+        StripeTerminalConnectService connectService = org.mockito.Mockito.mock(StripeTerminalConnectService.class);
+        CommissionLedgerService ledgerService = org.mockito.Mockito.mock(CommissionLedgerService.class);
+        PaymentTerminalService option3Service = new PaymentTerminalService(
+                appSettingsService, establishmentConfigService, socketClient,
+                messagingTemplate, connectService, ledgerService);
+
+        TpePaymentRequestDTO req = new TpePaymentRequestDTO(
+                new BigDecimal("35.00"), "EUR", TpeTerminalRole.BAR, null, null, "Table 12");
+
+        // 1. Overdue commission lock rejects TPE card initiation
+        org.mockito.Mockito.doThrow(new BusinessException("Overdue commission invoice"))
+                .when(ledgerService).assertTpeCardAllowed();
+        assertThatThrownBy(() -> option3Service.initiatePayment(req))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Overdue commission");
+
+        // 2. When allowed and STRIPE_TERMINAL mode + module enabled, delegates to StripeTerminalConnectService
+        org.mockito.Mockito.doNothing().when(ledgerService).assertTpeCardAllowed();
+        mockSettings.setTpeMonetizationMode("STRIPE_TERMINAL");
+        mockSettings.setStripeTerminalReaderId("tmr_bar_wisepos");
+        when(appSettingsService.getSettings()).thenReturn(mockSettings);
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.STRIPE_TERMINAL_CONNECT)).thenReturn(true);
+
+        TpePaymentResponseDTO res = option3Service.initiatePayment(req);
+        assertThat(res.terminalId()).isEqualTo("tmr_bar_wisepos");
+        assertThat(res.message()).contains("Stripe Terminal");
+        await().atMost(Duration.ofSeconds(3)).untilAsserted(() ->
+                verify(connectService).executeTerminalPayment(eq(res.transactionId()), eq(req), any(), any(), eq("EUR")));
     }
 }

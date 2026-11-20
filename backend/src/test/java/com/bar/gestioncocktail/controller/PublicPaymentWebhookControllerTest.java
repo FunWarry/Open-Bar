@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.service.monetization.StripeTerminalConnectService;
 import com.bar.gestioncocktail.service.payment.OnlinePaymentService;
 import com.bar.gestioncocktail.service.payment.PaymentWebhookResult;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +25,8 @@ class PublicPaymentWebhookControllerTest {
 
     @Mock
     private OnlinePaymentService onlinePaymentService;
+    @Mock
+    private StripeTerminalConnectService stripeTerminalConnectService;
 
     @InjectMocks
     private PublicPaymentWebhookController controller;
@@ -54,5 +57,23 @@ class PublicPaymentWebhookControllerTest {
                 .containsEntry("received", true)
                 .containsEntry("status", "SUCCEEDED")
                 .containsEntry("transactionId", "pi_stripe_123");
+    }
+
+    @Test
+    @DisplayName("handleStripeConnectWebhook - delegates to StripeTerminalConnectService and handles unconfigured service")
+    void handleStripeConnectWebhook_nominalAndNullFallback() {
+        PaymentWebhookResult connectRes = new PaymentWebhookResult(
+                "in_conn_1", "SUCCEEDED", "invoice", BigDecimal.TEN, "EUR", null);
+        when(stripeTerminalConnectService.handleStripeConnectWebhook("{\"type\":\"invoice.payment_succeeded\"}", "sig"))
+                .thenReturn(connectRes);
+
+        ResponseEntity<Map<String, Object>> response = controller.handleStripeConnectWebhook(
+                "{\"type\":\"invoice.payment_succeeded\"}", "sig");
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).containsEntry("status", "SUCCEEDED").containsEntry("transactionId", "in_conn_1");
+
+        PublicPaymentWebhookController withoutConnect = new PublicPaymentWebhookController(onlinePaymentService);
+        ResponseEntity<Map<String, Object>> fallback = withoutConnect.handleStripeConnectWebhook("{}", "sig");
+        assertThat(fallback.getStatusCode().value()).isEqualTo(500);
     }
 }

@@ -141,6 +141,7 @@ import { PaymentTerminalService } from '../../../core/services/payment-terminal.
 import { TpeTerminalRole } from '../../../core/models/tpe.model';
 import { SafetyAlertService } from '../../../core/services/safety-alert.service';
 import { LicenseService } from '../../../core/services/license.service';
+import { MonetizationService } from '../../../core/services/monetization.service';
 /**
  * Active configuration tab on the admin settings page.
  */
@@ -303,6 +304,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   private readonly paymentTerminalService = inject(PaymentTerminalService);
   private readonly safetyAlertService = inject(SafetyAlertService);
   readonly licenseService = inject(LicenseService);
+  readonly monetizationService = inject(MonetizationService, { optional: true });
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
@@ -310,6 +312,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   readonly qrClientOrderingEnabled = this.featureFlagService.qrClientOrderingEnabled;
   readonly qrPayAtTableEnabled = this.featureFlagService.qrPayAtTableEnabled;
   readonly angelShotSafetyEnabled = this.featureFlagService.angelShotSafetyEnabled;
+  readonly stripeTerminalConnectEnabled = this.featureFlagService.stripeTerminalConnectEnabled;
 
   readonly roulettePin = signal<string>('7777');
   readonly isRegeneratingPin = signal<boolean>(false);
@@ -401,6 +404,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     angelShotSafety: true,
     qrPayAtTable: true,
     facturXInvoiceImport: true,
+    stripeTerminalConnect: true,
   };
   initialThemeMode: AppTheme = 'dark';
   initialColors: CustomThemeColors = { ...DEFAULT_FIGMA_PALETTE };
@@ -494,6 +498,11 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   readonly paymentProviderOptions: SearchableOption<string>[] = [
     { value: 'SANDBOX', label: 'Sandbox / Simulateur local (Démo)', subLabel: 'Transactions locales sans frais bancaires ni clé API', badge: 'Dev', badgeType: 'neutral' },
     { value: 'STRIPE', label: 'Stripe Gateway (CB, Apple Pay, Google Pay)', subLabel: 'Passerelle sécurisée Stripe Elements', badge: 'Live', badgeType: 'primary' },
+  ];
+
+  readonly tpeMonetizationModeOptions: SearchableOption<string>[] = [
+    { value: 'CONCERT_IP', label: 'Option 1 — TPE Bancaire Concert IP / Offline', subLabel: 'Commission différée (1.20% + 0.10€) — Sync ou export Z mensuel', badge: 'Option 1', badgeType: 'warning' },
+    { value: 'STRIPE_TERMINAL', label: 'Option 3 — Smart TPE Stripe Terminal Connect (WisePOS E)', subLabel: 'Split temps réel à la source (0.45% + 0.05€)', badge: 'Option 3', badgeType: 'primary' },
   ];
 
   readonly ticketFormatOptions: SearchableOption<'80mm' | '58mm'>[] = [
@@ -685,6 +694,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     }
 
     this.loadAllSettings();
+    this.monetizationService?.getDashboard().pipe(takeUntil(this.destroy$), catchError(() => of(null))).subscribe();
   }
 
   ngOnDestroy(): void {
@@ -759,6 +769,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       angelShotSafety: [true],
       qrPayAtTable: [true],
       facturXInvoiceImport: [true],
+      stripeTerminalConnect: [true],
     });
 
     this.etabForm = this.fb.group({
@@ -820,6 +831,10 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       tpePort: [8888, [Validators.min(1), Validators.max(65535)]],
       tpeTerminalId: ['POS01', [Validators.maxLength(50)]],
       tpeTimeoutSeconds: [90, [Validators.min(5), Validators.max(300)]],
+      tpeMonetizationMode: ['CONCERT_IP'],
+      stripeConnectedAccountId: ['', [Validators.maxLength(120)]],
+      stripeTerminalLocationId: ['', [Validators.maxLength(120)]],
+      stripeTerminalReaderId: ['', [Validators.maxLength(120)]],
       cashDiscrepancyToleranceThreshold: [5.0, [Validators.required, Validators.min(0), Validators.max(1000)]],
       onlinePaymentProvider: ['SANDBOX'],
       stripePublishableKey: [''],
@@ -2109,14 +2124,20 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       !!current.systemUpdates === target.systemUpdates &&
       !!current.angelShotSafety === target.angelShotSafety &&
       !!current.qrPayAtTable === target.qrPayAtTable &&
-      !!current.facturXInvoiceImport === target.facturXInvoiceImport
+      !!current.facturXInvoiceImport === target.facturXInvoiceImport &&
+      !!current.stripeTerminalConnect === target.stripeTerminalConnect
     );
   }
 
   /**
    * Total count of available modular capabilities.
    */
-  readonly totalModulesCount = 19;
+  readonly totalModulesCount = 20;
+
+  /** Navigates to the administrative license and monetization ledger console. */
+  goToLicenseMonetization(): void {
+    void this.router.navigate(['/admin/license']);
+  }
 
   /**
    * Computes the number of currently active modules in modulesForm.

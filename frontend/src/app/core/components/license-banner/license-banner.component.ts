@@ -8,12 +8,14 @@ import { addIcons } from 'ionicons';
 import { warningOutline, lockClosedOutline, keyOutline, receiptOutline } from 'ionicons/icons';
 import { map } from 'rxjs/operators';
 import { LicenseService } from '../../services/license.service';
+import { MonetizationService } from '../../services/monetization.service';
 import { selectCurrentUser } from '../../store/auth.selectors';
 import { ActionButtonComponent } from '../ui/action-button/action-button.component';
 
 /**
  * Persistent top banner alerting authenticated staff when the establishment license
- * is inside its 2-day expiration grace period or has expired and locked new order creation.
+ * is inside its 2-day expiration grace period or has expired, OR when a monthly
+ * TPE commission invoice is pending/overdue.
  */
 @Component({
   selector: 'app-license-banner',
@@ -25,6 +27,7 @@ import { ActionButtonComponent } from '../ui/action-button/action-button.compone
 })
 export class LicenseBannerComponent {
   readonly licenseService = inject(LicenseService);
+  readonly monetizationService = inject(MonetizationService, { optional: true });
   private readonly router = inject(Router);
   private readonly store = inject(Store, { optional: true });
 
@@ -38,6 +41,14 @@ export class LicenseBannerComponent {
   /** Computed severity class ('grace' or 'expired'). */
   readonly bannerTone = computed<'grace' | 'expired'>(() =>
     this.licenseService.isInGracePeriod() ? 'grace' : 'expired'
+  );
+
+  /** True when a commission invoice warning banner should be shown. */
+  readonly showCommissionBanner = computed(() => Boolean(this.monetizationService?.shouldShowBanner()));
+
+  /** Computed severity class for the commission banner. */
+  readonly commissionTone = computed<'grace' | 'expired'>(() =>
+    this.monetizationService?.summary()?.invoiceStatus === 'OVERDUE' ? 'expired' : 'grace'
   );
 
   constructor() {

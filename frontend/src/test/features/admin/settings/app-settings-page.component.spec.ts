@@ -21,6 +21,8 @@ import { ESTABLISHMENT_PRESETS, EstablishmentPresetType } from '../../../../app/
 import { PaymentTerminalService } from '../../../../app/core/services/payment-terminal.service';
 import { TpePublicConfig } from '../../../../app/core/models/tpe.model';
 import { SafetyAlertService } from '../../../../app/core/services/safety-alert.service';
+import { LicenseService } from '../../../../app/core/services/license.service';
+import { MonetizationService } from '../../../../app/core/services/monetization.service';
 
 const mockTpePublicConfig: TpePublicConfig = {
   enabled: true,
@@ -51,6 +53,8 @@ describe('AppSettingsPageComponent', () => {
   let routerSpy: jasmine.SpyObj<Router>;
   let paymentTerminalServiceSpy: jasmine.SpyObj<PaymentTerminalService>;
   let safetyAlertServiceSpy: jasmine.SpyObj<SafetyAlertService>;
+  let licenseServiceSpy: jasmine.SpyObj<LicenseService>;
+  let monetizationServiceSpy: jasmine.SpyObj<MonetizationService>;
 
   const mockEtab: EstablishmentConfig = {
     id: 1,
@@ -203,6 +207,7 @@ describe('AppSettingsPageComponent', () => {
       qrClientOrderingEnabled: () => true,
       cashDrawerEnabled: () => true,
       angelShotSafetyEnabled: () => true,
+      stripeTerminalConnectEnabled: () => true,
     });
     featureFlagServiceSpy.loadModules.and.returnValue(of({
       cuisineKds: true,
@@ -224,6 +229,7 @@ describe('AppSettingsPageComponent', () => {
       angelShotSafety: true,
       qrPayAtTable: true,
       facturXInvoiceImport: true,
+      stripeTerminalConnect: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
 
@@ -258,6 +264,74 @@ describe('AppSettingsPageComponent', () => {
     safetyAlertServiceSpy = jasmine.createSpyObj('SafetyAlertService', ['downloadRestroomNoticePdf']);
     safetyAlertServiceSpy.downloadRestroomNoticePdf.and.returnValue(of(new Blob(['pdf-data'], { type: 'application/pdf' })));
 
+    licenseServiceSpy = jasmine.createSpyObj('LicenseService', ['getFullStatus', 'loadSummary'], {
+      summary: () => null,
+      detailedStatus: () => null,
+      isInGracePeriod: () => false,
+      isOrderCreationLocked: () => false,
+      shouldShowStaffBanner: () => false,
+    });
+
+    monetizationServiceSpy = jasmine.createSpyObj('MonetizationService', [
+      'getDashboard',
+      'loadSummary',
+      'verifyIntegrity',
+      'exportMonthlyProof',
+      'syncOnline',
+    ], {
+      summary: () => null,
+      dashboard: () => null,
+      shouldShowBanner: () => false,
+      isTpeCardLocked: () => false,
+    });
+    monetizationServiceSpy.getDashboard.and.returnValue(of({
+      billingPeriod: '2026-11',
+      venueEstablishmentId: '73282932000074',
+      rates: {
+        activeTier: 'CONCERT_IP_OFFLINE',
+        option1RateBps: 120,
+        option1FixedCents: 10,
+        option3RateBps: 45,
+        option3FixedCents: 5,
+        tpeHardwareMode: 'CONCERT_IP',
+        stripeTerminalModuleEnabled: true,
+        stripeConnectAccountConfigured: false,
+      },
+      summary: {
+        activeTier: 'CONCERT_IP_OFFLINE',
+        billingPeriod: '2026-11',
+        invoiceStatus: 'NONE',
+        remoteInvoiceId: null,
+        pendingAmount: 0,
+        graceEndsAt: null,
+        graceHoursRemaining: 0,
+        enforceGraceLock: false,
+        tpeCardLocked: false,
+        shouldShowBanner: false,
+      },
+      option1Volume: 0,
+      option1Count: 0,
+      option1Commission: 0,
+      option3Volume: 0,
+      option3Count: 0,
+      option3Commission: 0,
+      totalCommissionDue: 0,
+      lastSyncAt: null,
+      lastSyncStatus: 'NONE',
+      lastSyncError: null,
+      lastExportedAt: null,
+      integrity: {
+        valid: true,
+        totalEntries: 0,
+        verifiedEntries: 0,
+        tipHash: '0'.repeat(64),
+        brokenSequenceNumber: null,
+        message: 'Genesis',
+      },
+      entries: [],
+      billingHistory: [],
+    }));
+
     await TestBed.configureTestingModule({
       imports: [
         AppSettingsPageComponent,
@@ -280,6 +354,8 @@ describe('AppSettingsPageComponent', () => {
         { provide: PrinterService, useValue: printerServiceSpy },
         { provide: PaymentTerminalService, useValue: paymentTerminalServiceSpy },
         { provide: SafetyAlertService, useValue: safetyAlertServiceSpy },
+        { provide: LicenseService, useValue: licenseServiceSpy },
+        { provide: MonetizationService, useValue: monetizationServiceSpy },
         { provide: AppUpdateService, useValue: appUpdateServiceSpy },
         { provide: ThemeService, useValue: themeServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
@@ -889,6 +965,7 @@ describe('AppSettingsPageComponent', () => {
         angelShotSafety: true,
         qrPayAtTable: true,
         facturXInvoiceImport: true,
+        stripeTerminalConnect: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -919,6 +996,7 @@ describe('AppSettingsPageComponent', () => {
         angelShotSafety: false,
         qrPayAtTable: false,
         facturXInvoiceImport: false,
+        stripeTerminalConnect: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -942,6 +1020,7 @@ describe('AppSettingsPageComponent', () => {
         angelShotSafety: false,
         qrPayAtTable: false,
         facturXInvoiceImport: false,
+        stripeTerminalConnect: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });
@@ -997,6 +1076,7 @@ describe('AppSettingsPageComponent', () => {
         angelShotSafety: false,
         qrPayAtTable: false,
         facturXInvoiceImport: false,
+        stripeTerminalConnect: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -1741,6 +1821,34 @@ describe('AppSettingsPageComponent', () => {
       expect(appSettingsServiceSpy.updateSettings).toHaveBeenCalled();
       expect(safetyAlertServiceSpy.downloadRestroomNoticePdf).toHaveBeenCalled();
     });
+  });
+
+  describe('Dual-Tier TPE Monetization & Module Count', () => {
+    it('should expose all 20 modular capabilities including STRIPE_TERMINAL_CONNECT', () => {
+      expect(component.totalModulesCount).toBe(20);
+      expect(component.modulesForm.get('stripeTerminalConnect')).toBeTruthy();
+    });
+
+    it('should patch and save Option 3 Stripe Terminal Connect fields in saveAll()', fakeAsync(() => {
+      component.appSettingsForm.patchValue({
+        tpeMonetizationMode: 'STRIPE_TERMINAL',
+        stripeConnectedAccountId: 'acct_test_12345',
+        stripeTerminalLocationId: 'tml_loc_999',
+        stripeTerminalReaderId: 'tmr_reader_888',
+      });
+
+      component.saveAll();
+      tick();
+
+      expect(appSettingsServiceSpy.updateSettings).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          tpeMonetizationMode: 'STRIPE_TERMINAL',
+          stripeConnectedAccountId: 'acct_test_12345',
+          stripeTerminalLocationId: 'tml_loc_999',
+          stripeTerminalReaderId: 'tmr_reader_888',
+        })
+      );
+    }));
   });
 });
 

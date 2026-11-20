@@ -6,9 +6,11 @@ import { ModalController, ToastController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { LicensePageComponent } from '../../../../app/features/admin/license/license-page.component';
 import { LicenseService } from '../../../../app/core/services/license.service';
+import { MonetizationService } from '../../../../app/core/services/monetization.service';
 import { FeatureFlagService } from '../../../../app/core/services/feature-flag.service';
 import { selectCurrentUser } from '../../../../app/core/store/auth.selectors';
 import { LicenseStatusInfo, LicenseSyncResult } from '../../../../app/core/models/license.model';
+import { MonetizationDashboard } from '../../../../app/core/models/monetization.model';
 import {
   ESTABLISHMENT_PRESETS,
   EstablishmentModule,
@@ -19,6 +21,7 @@ describe('LicensePageComponent', () => {
   let component: LicensePageComponent;
   let fixture: ComponentFixture<LicensePageComponent>;
   let licenseServiceSpy: jasmine.SpyObj<LicenseService>;
+  let monetizationServiceSpy: jasmine.SpyObj<MonetizationService>;
   let featureFlagSpy: jasmine.SpyObj<FeatureFlagService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
@@ -56,6 +59,61 @@ describe('LicensePageComponent', () => {
     ]);
     licenseServiceSpy.getFullStatus.and.returnValue(of(validLicense));
 
+    monetizationServiceSpy = jasmine.createSpyObj<MonetizationService>('MonetizationService', [
+      'getDashboard',
+      'verifyIntegrity',
+      'exportMonthlyProof',
+      'syncOnline',
+    ]);
+    const mockMonDashboard: MonetizationDashboard = {
+      billingPeriod: '2026-11',
+      venueEstablishmentId: '73282932000074',
+      rates: {
+        activeTier: 'CONCERT_IP_OFFLINE',
+        option1RateBps: 120,
+        option1FixedCents: 10,
+        option3RateBps: 45,
+        option3FixedCents: 5,
+        tpeHardwareMode: 'CONCERT_IP',
+        stripeTerminalModuleEnabled: true,
+        stripeConnectAccountConfigured: false,
+      },
+      summary: {
+        activeTier: 'CONCERT_IP_OFFLINE',
+        billingPeriod: '2026-11',
+        invoiceStatus: 'NONE',
+        remoteInvoiceId: null,
+        pendingAmount: 0,
+        graceEndsAt: null,
+        graceHoursRemaining: 0,
+        enforceGraceLock: false,
+        tpeCardLocked: false,
+        shouldShowBanner: false,
+      },
+      option1Volume: 80.5,
+      option1Count: 2,
+      option1Commission: 1.17,
+      option3Volume: 64.0,
+      option3Count: 1,
+      option3Commission: 0.34,
+      totalCommissionDue: 1.17,
+      lastSyncAt: null,
+      lastSyncStatus: 'NONE',
+      lastSyncError: null,
+      lastExportedAt: null,
+      integrity: {
+        valid: true,
+        totalEntries: 3,
+        verifiedEntries: 3,
+        tipHash: 'abcdef1234567890abcdef1234567890',
+        brokenSequenceNumber: null,
+        message: 'Verified 3 entries',
+      },
+      entries: [],
+      billingHistory: [],
+    };
+    monetizationServiceSpy.getDashboard.and.returnValue(of(mockMonDashboard));
+
     featureFlagSpy = jasmine.createSpyObj<FeatureFlagService>('FeatureFlagService', ['loadModules']);
     featureFlagSpy.loadModules.and.returnValue(of(ESTABLISHMENT_PRESETS.BAR));
 
@@ -89,6 +147,14 @@ describe('LicensePageComponent', () => {
       providers: [
         provideRouter([]),
         provideMockStore({
+          initialState: {
+            auth: {
+              user: null,
+              token: null,
+              isAuthenticated: false,
+              error: null,
+            },
+          },
           selectors: [
             {
               selector: selectCurrentUser,
@@ -105,6 +171,7 @@ describe('LicensePageComponent', () => {
           ],
         }),
         { provide: LicenseService, useValue: licenseServiceSpy },
+        { provide: MonetizationService, useValue: monetizationServiceSpy },
         { provide: FeatureFlagService, useValue: featureFlagSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
@@ -243,5 +310,94 @@ describe('LicensePageComponent', () => {
     licenseServiceSpy.deactivateLicense.and.returnValue(throwError(() => new Error('Deactivate err')));
     await component.confirmDeactivate();
     expect(component.isDeactivating()).toBeFalse();
+  });
+
+  it('should verify SHA-256 ledger integrity, export monthly proof, and sync online commissions', async () => {
+    monetizationServiceSpy.verifyIntegrity.and.returnValue(
+      of({
+        valid: true,
+        totalEntries: 3,
+        verifiedEntries: 3,
+        tipHash: '1234567890abcdef1234567890abcdef',
+        brokenSequenceNumber: null,
+        message: 'Verified',
+      })
+    );
+    component.verifyLedgerIntegrity();
+    expect(monetizationServiceSpy.verifyIntegrity).toHaveBeenCalled();
+    expect(component.verificationResult()?.valid).toBeTrue();
+
+    monetizationServiceSpy.exportMonthlyProof.and.returnValue(
+      of({
+        billingPeriod: '2026-11',
+        establishmentId: '73282932000074',
+        generatedAt: '2026-11-20T15:00:00Z',
+        option1Volume: 80.5,
+        option1Count: 2,
+        option1Commission: 1.17,
+        option3Volume: 64.0,
+        option3Count: 1,
+        option3Commission: 0.34,
+        totalCommissionDue: 1.17,
+        startLedgerHash: '0'.repeat(64),
+        endLedgerHash: 'a'.repeat(64),
+        ledgerChainValid: true,
+        zReports: [],
+        canonicalPayloadDigest: 'b'.repeat(64),
+        hmacSignature: 'c'.repeat(64),
+        compactProofToken: 'compact-token-123',
+      })
+    );
+    component.downloadMonthlyProof();
+    expect(monetizationServiceSpy.exportMonthlyProof).toHaveBeenCalled();
+    expect(component.lastExportedProof()?.compactProofToken).toBe('compact-token-123');
+
+    const writeTextSpy = spyOn(navigator.clipboard, 'writeText').and.resolveTo();
+    await component.copyProofToken();
+    expect(writeTextSpy).toHaveBeenCalledWith('compact-token-123');
+
+    monetizationServiceSpy.syncOnline.and.returnValue(
+      of({
+        synced: true,
+        onlineReachable: true,
+        syncStatus: 'SUCCESS',
+        syncedEntriesCount: 2,
+        message: 'Synced with Stripe Billing',
+        summary: {
+          activeTier: 'CONCERT_IP_OFFLINE',
+          billingPeriod: '2026-11',
+          invoiceStatus: 'PENDING',
+          remoteInvoiceId: 'in_1',
+          pendingAmount: 1.17,
+          graceEndsAt: null,
+          graceHoursRemaining: 0,
+          enforceGraceLock: false,
+          tpeCardLocked: false,
+          shouldShowBanner: true,
+        },
+      })
+    );
+    component.syncCommissionOnline();
+    expect(monetizationServiceSpy.syncOnline).toHaveBeenCalled();
+    expect(component.commissionSyncFeedback()).toBe('Synced with Stripe Billing');
+    expect(component.formatTierRate(120, 10)).toBe('1.20% + 0.10€');
+    expect(component.shortenHash('short')).toBe('short');
+    expect(component.shortenHash('abcdef1234567890abcdef1234567890')).toContain('…');
+
+    component.onPeriodChange('2026-10');
+    expect(component.selectedPeriod).toBe('2026-10');
+    expect(monetizationServiceSpy.getDashboard).toHaveBeenCalledWith('2026-10');
+
+    monetizationServiceSpy.verifyIntegrity.and.returnValue(throwError(() => new Error('Verify err')));
+    component.verifyLedgerIntegrity();
+    expect(component.isVerifyingLedger()).toBeFalse();
+
+    monetizationServiceSpy.exportMonthlyProof.and.returnValue(throwError(() => new Error('Export err')));
+    component.downloadMonthlyProof();
+    expect(component.isExportingProof()).toBeFalse();
+
+    monetizationServiceSpy.syncOnline.and.returnValue(throwError(() => new Error('Sync err')));
+    component.syncCommissionOnline();
+    expect(component.isSyncingCommissions()).toBeFalse();
   });
 });

@@ -3987,5 +3987,40 @@
     "licenseToken": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3MzI4MjkzMjAwMDA3NCIsImVzdGFibGlzaG1lbnRJZCI6IjczMjgyOTMyMDAwMDc0IiwicGxhbiI6IkVOVEVSUFJJU0UiLCJsaWNlbnNlZE1vZHVsZXMiOlsiKiJdLCJpYXQiOjE3OTUxODA5NDEsImV4cCI6MjExNDM4MDc5OX0.1zvIUd2cGC3UM48zdFrc-xdxO-BJ3JtS0P9nhRg5iPU72QkN0AIaicIhFWMPuYvwIRkrI8dK_jbVLbsDi3hw2g",
     "activationMode": "SEEDED",
     "activatedBy": "seeder"
-  }
+  },
+  "card_commission_ledger": [
+    {
+      "invoiceNumber": "FAC-2026-00012",
+      "externalTransactionId": "tx-demo-concert-001",
+      "tpeAuthorizationCode": "AUTH-892101",
+      "tpeTerminalId": "01",
+      "cardBrand": "CB",
+      "maskedPan": "************4242",
+      "source": "CONCERT_IP_TPE",
+      "grossAmount": "48.00",
+      "currency": "EUR"
+    },
+    {
+      "invoiceNumber": "FAC-2026-00013",
+      "externalTransactionId": "tx-demo-manual-002",
+      "tpeAuthorizationCode": null,
+      "tpeTerminalId": "POS-01",
+      "cardBrand": "VISA",
+      "maskedPan": "************1098",
+      "source": "MANUAL_CB",
+      "grossAmount": "32.50",
+      "currency": "EUR"
+    },
+    {
+      "invoiceNumber": "FAC-2026-00014",
+      "externalTransactionId": "pi_demo_wisepos_003",
+      "tpeAuthorizationCode": "pi_demo_wisepos_003",
+      "tpeTerminalId": "ST-WISEPOS-01",
+      "cardBrand": "MASTERCARD",
+      "maskedPan": "************8814",
+      "source": "STRIPE_TERMINAL_CONNECT",
+      "grossAmount": "64.00",
+      "currency": "EUR"
+    }
+  ]
 }

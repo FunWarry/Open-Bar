@@ -42,6 +42,7 @@ describe('ModuleGuard', () => {
     angelShotSafety: true,
     qrPayAtTable: true,
     facturXInvoiceImport: true,
+    stripeTerminalConnect: true,
   };
 
   beforeEach(() => {

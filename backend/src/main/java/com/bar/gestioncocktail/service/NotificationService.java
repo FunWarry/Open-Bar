@@ -30,6 +30,7 @@ public class NotificationService {
     private static final String TOPIC_RESERVATIONS = "/topic/reservations";
     private static final String TOPIC_SAFETY_ALERTS = "/topic/safety-alerts";
     private static final String TOPIC_LICENSE = "/topic/license";
+    private static final String TOPIC_MONETIZATION = "/topic/monetization";
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -247,6 +248,15 @@ public class NotificationService {
      */
     public void notifierLicenceMiseAJour(com.bar.gestioncocktail.dto.LicenseSummaryDTO licenseSummary) {
         messagingTemplate.convertAndSend(TOPIC_LICENSE, licenseSummary);
+    }
+
+    /**
+     * Broadcasts dual-tier TPE monetization and commission grace updates over /topic/monetization.
+     *
+     * @param summary Updated lightweight monetization summary DTO
+     */
+    public void notifierMonetizationMiseAJour(com.bar.gestioncocktail.dto.MonetizationSummaryDTO summary) {
+        messagingTemplate.convertAndSend(TOPIC_MONETIZATION, summary);
     }
 
     /**

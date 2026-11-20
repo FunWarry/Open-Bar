@@ -13,11 +13,17 @@
  * 8. Zero IDE Problems / Frontend TypeScript compilation (npx tsc --noEmit)
  * 9. Backend compilation check (mvn test-compile)
  * 10. Live IDE Extension Diagnostics (Eclipse JDT LS redhat.java & SonarQube for IDE logs)
+ * 11. Optional Diff Coverage Gate >= 80% matching SonarCloud (--with-coverage or --coverage-only)
  */
 
 const fs = require('node:fs');
 const path = require('node:path');
 const { execSync } = require('node:child_process');
+
+const CLI_ARGS = new Set(process.argv.slice(2));
+const WITH_COVERAGE = CLI_ARGS.has('--with-coverage');
+const COVERAGE_ONLY = CLI_ARGS.has('--coverage-only');
+const NEW_COVERAGE_THRESHOLD = 80;
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const FRONTEND_DIR = path.join(ROOT_DIR, 'frontend');
@@ -397,7 +403,7 @@ function evaluateJavaLineSonarRules(rel, line, lineNumber, isTestFile) {
   }
 
   // Rule java:S6213 — Restricted identifier 'record' used as variable/parameter name
-  if (/\b(?:var|final\s+[\w<>]+|[A-Z][\w<>]*)\s+record\s*[=,;)]/.test(codeWithoutStrings)) {
+  if (/\b[\w<>\[\]]+\s+record\s*[=,;)]/.test(codeWithoutStrings)) {
     logFail(`Sonar java:S6213 at ${rel}:${lineNumber}: Rename variable 'record' to avoid restricted identifier.`);
     lineIssues++;
   }
@@ -433,6 +439,7 @@ function evaluateJavaLineSonarRules(rel, line, lineNumber, isTestFile) {
 function checkJavaSonarRules(modifiedFiles) {
   logStep('Full-File Backend Java Sonar Quality Rules (S9435, S6213, S2925, S2589)');
   const javaFiles = modifiedFiles.filter(f => f.endsWith('.java'));
+  const diffLines = collectDiffAddedLines();
 
   let issues = 0;
   for (const rel of javaFiles) {
@@ -445,11 +452,49 @@ function checkJavaSonarRules(modifiedFiles) {
     lines.forEach((line, idx) => {
       issues += evaluateJavaLineSonarRules(rel, line, idx + 1, isTestFile);
     });
+
+    if (!isTestFile) {
+      issues += checkJavaRepeatedStringLiterals(rel, lines, diffLines.get(rel));
+    }
   }
 
   if (issues === 0) {
     logPass('All modified Java files pass full-file SonarLint static checks.');
   }
+}
+
+function collectLineLiterals(line, strRegex, counts) {
+  const trimmed = line.trim();
+  if (trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('@') || trimmed.startsWith('import ')) {
+    return;
+  }
+  let m;
+  while ((m = strRegex.exec(trimmed)) !== null) {
+    const lit = m[1];
+    if (!lit.includes(' ') && (lit.includes('/') || lit.includes('.'))) continue;
+    counts.set(lit, (counts.get(lit) || 0) + 1);
+  }
+}
+
+function checkJavaRepeatedStringLiterals(rel, lines, addedLineSet) {
+  if (!addedLineSet || addedLineSet.size === 0) {
+    return 0;
+  }
+  const diffCounts = new Map();
+  const strRegex = /"([^"\\]{5,})"/g;
+  lines.forEach((rawLine, idx) => {
+    if (addedLineSet.has(idx + 1)) {
+      collectLineLiterals(rawLine, strRegex, diffCounts);
+    }
+  });
+  let dupIssues = 0;
+  for (const [lit, count] of diffCounts.entries()) {
+    if (count >= 3) {
+      logFail(`Sonar java:S1192 at ${rel}: Define a constant instead of duplicating literal "${lit}" (${count} times in added/modified lines).`);
+      dupIssues++;
+    }
+  }
+  return dupIssues;
 }
 
 function findActiveJdtLogPath(wsStorageDir) {
@@ -610,6 +655,10 @@ function inspectSonarLintLog(ideBase) {
 // --- Check 10: Live IDE Extension Diagnostics (redhat.java JDT LS & SonarQube for IDE) ---
 function checkLiveIdeDiagnostics() {
   logStep('Live IDE Extension Diagnostics (Eclipse JDT LS & SonarQube for IDE)');
+  if (ROOT_DIR.includes(`${path.sep}.worktrees${path.sep}`)) {
+    logPass('Git worktree detected (.worktrees/*); skipping root IDE JDT LS cache check.');
+    return;
+  }
   const appData = process.env.APPDATA;
   if (!appData) {
     logPass('APPDATA not set (CI/headless environment); skipping local IDE log inspection.');
@@ -640,19 +689,167 @@ function checkLiveIdeDiagnostics() {
   }
 }
 
+// --- Check 11: Diff Coverage Gate (>= 80% matching SonarCloud Quality Gate) ---
+function resolveBaseDiffRef() {
+  try {
+    runCommand('git rev-parse --verify origin/dev', ROOT_DIR);
+    return 'origin/dev';
+  } catch {
+    return 'dev';
+  }
+}
+
+function recordHunkAddedLines(hunkHeader, targetSet) {
+  const m = hunkHeader.match(/\+(\d+)(?:,(\d+))?/);
+  if (!m) return;
+  const start = Number.parseInt(m[1], 10);
+  const count = m[2] === undefined ? 1 : Number.parseInt(m[2], 10);
+  for (let i = 0; i < count; i++) {
+    targetSet.add(start + i);
+  }
+}
+
+function collectDiffAddedLines() {
+  const baseRef = resolveBaseDiffRef();
+  const raw = runCommand(`git diff -U0 ${baseRef}`, ROOT_DIR);
+  const map = new Map();
+  let currentFile = null;
+  for (const line of raw.split(/\r?\n/)) {
+    if (line.startsWith('+++ b/')) {
+      currentFile = line.slice(6).trim();
+      if (!map.has(currentFile)) map.set(currentFile, new Set());
+      continue;
+    }
+    if (currentFile && line.startsWith('@@ ')) {
+      recordHunkAddedLines(line, map.get(currentFile));
+    }
+  }
+  return map;
+}
+
+function parseJacocoCoverage(jacocoXmlPath) {
+  const result = new Map();
+  if (!fs.existsSync(jacocoXmlPath)) return result;
+  const xml = fs.readFileSync(jacocoXmlPath, 'utf8');
+  const pkgRegex = /<package\s+name="([^"]+)">([\s\S]*?)<\/package>/g;
+  let pm;
+  while ((pm = pkgRegex.exec(xml)) !== null) {
+    const pkg = pm[1];
+    const sfRegex = /<sourcefile\s+name="([^"]+)">([\s\S]*?)<\/sourcefile>/g;
+    let sm;
+    while ((sm = sfRegex.exec(pm[2])) !== null) {
+      const rel = `backend/src/main/java/${pkg}/${sm[1]}`;
+      const linesMap = new Map();
+      const lineRegex = /<line\s+nr="(\d+)"[^>]*\bci="(\d+)"/g;
+      let lm;
+      while ((lm = lineRegex.exec(sm[2])) !== null) {
+        linesMap.set(Number.parseInt(lm[1], 10), Number.parseInt(lm[2], 10) > 0);
+      }
+      result.set(rel, linesMap);
+    }
+  }
+  return result;
+}
+
+function parseLcovCoverage(lcovPath) {
+  const result = new Map();
+  if (!fs.existsSync(lcovPath)) return result;
+  const content = fs.readFileSync(lcovPath, 'utf8');
+  let currentRel = null;
+  for (const rawLine of content.split(/\r?\n/)) {
+    if (rawLine.startsWith('SF:')) {
+      const norm = rawLine.slice(3).trim().replaceAll('\\', '/');
+      const idx = norm.indexOf('src/app/');
+      currentRel = idx >= 0 ? `frontend/${norm.slice(idx)}` : norm;
+      if (!result.has(currentRel)) result.set(currentRel, new Map());
+    } else if (currentRel && rawLine.startsWith('DA:')) {
+      const [nrStr, hitsStr] = rawLine.slice(3).split(',');
+      result.get(currentRel).set(Number.parseInt(nrStr, 10), Number.parseInt(hitsStr, 10) > 0);
+    }
+  }
+  return result;
+}
+
+function runCoverageSuites() {
+  console.log('  Running backend Maven tests + JaCoCo report...');
+  execSync('mvn test jacoco:report -q', { cwd: BACKEND_DIR, stdio: 'inherit' });
+  console.log('  Running frontend Karma tests with code coverage...');
+  execSync('npx ng test --watch=false --code-coverage --browsers=ChromeHeadless', {
+    cwd: FRONTEND_DIR,
+    stdio: 'inherit'
+  });
+}
+
+function countFileDiffCoverage(addedSet, fileCov) {
+  let covered = 0;
+  let total = 0;
+  if (!fileCov) return { covered, total };
+  for (const lineNr of addedSet) {
+    if (fileCov.has(lineNr)) {
+      total++;
+      if (fileCov.get(lineNr)) covered++;
+    }
+  }
+  return { covered, total };
+}
+
+function checkDiffCoverageGate() {
+  if (!WITH_COVERAGE && !COVERAGE_ONLY) {
+    return;
+  }
+  logStep(`Diff Coverage Gate (>= ${NEW_COVERAGE_THRESHOLD}% matching SonarCloud)`);
+
+  if (WITH_COVERAGE) {
+    runCoverageSuites();
+  }
+
+  const jacocoXml = path.join(BACKEND_DIR, 'target/site/jacoco/jacoco.xml');
+  const lcovFile = path.join(FRONTEND_DIR, 'coverage/gestion-cocktail-frontend/lcov.info');
+  if (!fs.existsSync(jacocoXml) && !fs.existsSync(lcovFile)) {
+    logFail('No JaCoCo (jacoco.xml) or Karma (lcov.info) coverage report found. Re-run with --with-coverage.');
+    return;
+  }
+
+  const diffLines = collectDiffAddedLines();
+  const javaCov = parseJacocoCoverage(jacocoXml);
+  const tsCov = parseLcovCoverage(lcovFile);
+
+  let covered = 0;
+  let total = 0;
+  for (const [rel, addedSet] of diffLines.entries()) {
+    const counts = countFileDiffCoverage(addedSet, javaCov.get(rel) || tsCov.get(rel));
+    covered += counts.covered;
+    total += counts.total;
+  }
+
+  if (total === 0) {
+    logPass('No coverable diff lines found against base branch.');
+    return;
+  }
+  const pct = Number(((covered / total) * 100).toFixed(1));
+  if (pct < NEW_COVERAGE_THRESHOLD) {
+    logFail(`Diff coverage is ${pct}% (${covered}/${total} lines), below the ${NEW_COVERAGE_THRESHOLD}% SonarCloud Quality Gate!`);
+  } else {
+    logPass(`Diff coverage is ${pct}% (${covered}/${total} lines >= ${NEW_COVERAGE_THRESHOLD}%).`);
+  }
+}
+
 // Run all checks
 console.log('\x1b[1m🚀 Running OpenBar Pre-Push Verification Suite...\x1b[0m');
-checkI18nParity();
-const modifiedFiles = getModifiedFiles();
-checkNoSuppressWarnings(modifiedFiles);
-checkNoHardcodedColors(modifiedFiles);
-checkCssSonarQuality(modifiedFiles);
-checkCognitiveComplexity(modifiedFiles);
-checkConsistentLineEndings(modifiedFiles);
-checkJavaSonarRules(modifiedFiles);
-checkTypeScript();
-checkBackendCompile();
-checkLiveIdeDiagnostics();
+if (!COVERAGE_ONLY) {
+  checkI18nParity();
+  const modifiedFiles = getModifiedFiles();
+  checkNoSuppressWarnings(modifiedFiles);
+  checkNoHardcodedColors(modifiedFiles);
+  checkCssSonarQuality(modifiedFiles);
+  checkCognitiveComplexity(modifiedFiles);
+  checkConsistentLineEndings(modifiedFiles);
+  checkJavaSonarRules(modifiedFiles);
+  checkTypeScript();
+  checkBackendCompile();
+  checkLiveIdeDiagnostics();
+}
+checkDiffCoverageGate();
 
 if (hasErrors) {
   console.error('\n\x1b[41m\x1b[37m ✖ PRE-PUSH CHECKS FAILED: Please fix reported issues before pushing! \x1b[0m\n');

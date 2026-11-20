@@ -84,12 +84,15 @@ public class LicenseCryptoService {
         }
         Instant issuedAt = claims.getIssuedAt() != null ? claims.getIssuedAt().toInstant() : null;
 
+        LicenseMonetizationClaims monetization = extractMonetizationClaims(claims);
+
         return new ParsedLicenseClaims(
                 establishmentId,
                 plan,
                 modules,
                 issuedAt,
-                expiration.toInstant()
+                expiration.toInstant(),
+                monetization
         );
     }
 
@@ -259,6 +262,115 @@ public class LicenseCryptoService {
         return result;
     }
 
+    private LicenseMonetizationClaims extractMonetizationClaims(Claims claims) {
+        String tpeTier = extractOptionalString(claims, "tpeTier");
+        Integer option1RateBps = extractOptionalInt(claims, "option1RateBps");
+        Integer option1FixedCents = extractOptionalInt(claims, "option1FixedCents");
+        Integer option3RateBps = extractOptionalInt(claims, "option3RateBps");
+        Integer option3FixedCents = extractOptionalInt(claims, "option3FixedCents");
+        String commissionStatus = extractOptionalString(claims, "commissionStatus");
+        java.math.BigDecimal pendingCommissionAmount = extractOptionalDecimal(claims, "pendingCommissionAmount");
+        String pendingCommissionInvoiceId = extractOptionalString(claims, "pendingCommissionInvoiceId");
+        Instant commissionGraceEndsAt = extractOptionalInstant(claims, "commissionGraceEndsAt");
+
+        if (tpeTier == null && option1RateBps == null && option1FixedCents == null
+                && option3RateBps == null && option3FixedCents == null && commissionStatus == null
+                && pendingCommissionAmount == null && pendingCommissionInvoiceId == null && commissionGraceEndsAt == null) {
+            return null;
+        }
+        return new LicenseMonetizationClaims(
+                tpeTier,
+                option1RateBps,
+                option1FixedCents,
+                option3RateBps,
+                option3FixedCents,
+                commissionStatus,
+                pendingCommissionAmount,
+                pendingCommissionInvoiceId,
+                commissionGraceEndsAt
+        );
+    }
+
+    private String extractOptionalString(Claims claims, String key) {
+        Object val = claims.get(key);
+        if (val == null) {
+            return null;
+        }
+        String trimmed = String.valueOf(val).trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private Integer extractOptionalInt(Claims claims, String key) {
+        Object val = claims.get(key);
+        if (val instanceof Number num) {
+            return num.intValue();
+        }
+        if (val instanceof String str && !str.isBlank()) {
+            try {
+                return Integer.parseInt(str.trim());
+            } catch (NumberFormatException _) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private java.math.BigDecimal extractOptionalDecimal(Claims claims, String key) {
+        Object val = claims.get(key);
+        if (val instanceof Number num) {
+            return java.math.BigDecimal.valueOf(num.doubleValue()).setScale(2, java.math.RoundingMode.HALF_UP);
+        }
+        if (val instanceof String str && !str.isBlank()) {
+            try {
+                return new java.math.BigDecimal(str.trim()).setScale(2, java.math.RoundingMode.HALF_UP);
+            } catch (NumberFormatException _) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private Instant extractOptionalInstant(Claims claims, String key) {
+        Object val = claims.get(key);
+        if (val instanceof Number num) {
+            return Instant.ofEpochSecond(num.longValue());
+        }
+        if (val instanceof String str && !str.isBlank()) {
+            try {
+                return Instant.parse(str.trim());
+            } catch (Exception _) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Optional monetization rate-schedule and commission billing claims embedded in a signed license JWT.
+     *
+     * @param tpeTier                    Entitled TPE monetization tier
+     * @param option1RateBps             Option 1 percentage fee in basis points
+     * @param option1FixedCents          Option 1 fixed fee in cents
+     * @param option3RateBps             Option 3 percentage fee in basis points
+     * @param option3FixedCents          Option 3 fixed fee in cents
+     * @param commissionStatus           Remote commission billing status
+     * @param pendingCommissionAmount    Outstanding commission amount
+     * @param pendingCommissionInvoiceId Remote invoice ID
+     * @param commissionGraceEndsAt      UTC deadline of commission grace period
+     */
+    public record LicenseMonetizationClaims(
+            String tpeTier,
+            Integer option1RateBps,
+            Integer option1FixedCents,
+            Integer option3RateBps,
+            Integer option3FixedCents,
+            String commissionStatus,
+            java.math.BigDecimal pendingCommissionAmount,
+            String pendingCommissionInvoiceId,
+            Instant commissionGraceEndsAt
+    ) {
+    }
+
     /**
      * Immutable representation of verified claims extracted from a signed JWT license token.
      *
@@ -267,13 +379,27 @@ public class LicenseCryptoService {
      * @param licensedModules List of unlocked module identifiers or '*'
      * @param issuedAt        Token issuance instant (may be null)
      * @param expiresAt       Token expiration instant (mandatory)
+     * @param monetization    Optional dual-tier TPE monetization claims
      */
     public record ParsedLicenseClaims(
             String establishmentId,
             String plan,
             List<String> licensedModules,
             Instant issuedAt,
-            Instant expiresAt
+            Instant expiresAt,
+            LicenseMonetizationClaims monetization
     ) {
+        /**
+         * Backwards-compatible 5-argument constructor without monetization claims.
+         */
+        public ParsedLicenseClaims(
+                String establishmentId,
+                String plan,
+                List<String> licensedModules,
+                Instant issuedAt,
+                Instant expiresAt
+        ) {
+            this(establishmentId, plan, licensedModules, issuedAt, expiresAt, null);
+        }
     }
 }

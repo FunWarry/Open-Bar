@@ -230,4 +230,38 @@ class LicenseCryptoServiceTest {
         assertThat(createService("", "").getPublicKeyFingerprint()).isEqualTo("UNCONFIGURED");
         assertThat(createService("not-a-valid-pem", "").getPublicKeyFingerprint()).isEqualTo("INVALID");
     }
+
+    @Test
+    void parseAndVerify_extractsMonetizationAndGraceClaims() {
+        LicenseCryptoService service = createService(ecPublicKeyPem, "");
+        Instant exp = Instant.now().plus(20, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS);
+        Instant graceEnd = Instant.now().plus(3, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS);
+
+        String token = Jwts.builder()
+                .subject("73282932000074")
+                .claim("plan", "ENTERPRISE")
+                .claim("tpeTier", "STRIPE_TERMINAL_CONNECT")
+                .claim("option1RateBps", 120)
+                .claim("option1FixedCents", 10)
+                .claim("option3RateBps", 45)
+                .claim("option3FixedCents", 5)
+                .claim("commissionStatus", "GRACE_PERIOD")
+                .claim("pendingCommissionAmount", "18.45")
+                .claim("pendingCommissionInvoiceId", "in_grace_77")
+                .claim("commissionGraceEndsAt", graceEnd.toString())
+                .expiration(Date.from(exp))
+                .signWith(ecKeyPair.getPrivate(), Jwts.SIG.ES256)
+                .compact();
+
+        LicenseCryptoService.ParsedLicenseClaims claims = service.parseAndVerify(token);
+
+        assertThat(claims.monetization()).isNotNull();
+        assertThat(claims.monetization().tpeTier()).isEqualTo("STRIPE_TERMINAL_CONNECT");
+        assertThat(claims.monetization().option1RateBps()).isEqualTo(120);
+        assertThat(claims.monetization().option3RateBps()).isEqualTo(45);
+        assertThat(claims.monetization().commissionStatus()).isEqualTo("GRACE_PERIOD");
+        assertThat(claims.monetization().pendingCommissionAmount()).isEqualByComparingTo("18.45");
+        assertThat(claims.monetization().pendingCommissionInvoiceId()).isEqualTo("in_grace_77");
+        assertThat(claims.monetization().commissionGraceEndsAt()).isEqualTo(graceEnd);
+    }
 }

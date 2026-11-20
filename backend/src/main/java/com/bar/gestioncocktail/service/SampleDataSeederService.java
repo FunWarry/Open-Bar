@@ -142,6 +142,8 @@ public class SampleDataSeederService {
     private final SupplierInvoiceRepository supplierInvoiceRepository;
     private final LicenseRecordRepository licenseRecordRepository;
     private final LicenseService licenseService;
+    private final CardCommissionLedgerRepository cardCommissionLedgerRepository;
+    private final com.bar.gestioncocktail.service.monetization.CommissionLedgerService commissionLedgerService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -190,7 +192,9 @@ public class SampleDataSeederService {
             @org.springframework.beans.factory.annotation.Autowired(required = false) GlasswareRepository glasswareRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) SupplierInvoiceRepository supplierInvoiceRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) LicenseRecordRepository licenseRecordRepository,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) LicenseService licenseService) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) LicenseService licenseService,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) CardCommissionLedgerRepository cardCommissionLedgerRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) com.bar.gestioncocktail.service.monetization.CommissionLedgerService commissionLedgerService) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -233,6 +237,8 @@ public class SampleDataSeederService {
         this.supplierInvoiceRepository = supplierInvoiceRepository;
         this.licenseRecordRepository = licenseRecordRepository;
         this.licenseService = licenseService;
+        this.cardCommissionLedgerRepository = cardCommissionLedgerRepository;
+        this.commissionLedgerService = commissionLedgerService;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -446,6 +452,7 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedTableSessionsFromJson(root.get("table_sessions"), tablesMap), "seedTableSessions");
             safelyInTransaction(this::seedSettingsAndConfig, "seedSettingsAndConfig");
             safelyInTransaction(() -> seedLicenseFromJson(root.get("license")), "seedLicense");
+            safelyInTransaction(() -> seedCommissionLedgerFromJson(root.get("card_commission_ledger")), "seedCommissionLedger");
 
             List<Cocktail> cocktails = cocktailRepository.findAll();
             if (!cocktails.isEmpty()) {
@@ -2614,6 +2621,40 @@ public class SampleDataSeederService {
             licenseService.activateLicense(token, mode, actor);
         } catch (Exception e) {
             log.warn("Could not seed demo license token: {}", e.getMessage());
+        }
+    }
+
+    private void seedCommissionLedgerFromJson(JsonNode ledgerNode) {
+        if (ledgerNode == null || !ledgerNode.isArray()
+                || cardCommissionLedgerRepository == null || commissionLedgerService == null) {
+            return;
+        }
+        if (cardCommissionLedgerRepository.count() > 0) {
+            return;
+        }
+        for (JsonNode entryNode : ledgerNode) {
+            try {
+                CardCommissionSource source = CardCommissionSource.valueOf(
+                        entryNode.path("source").asText("CONCERT_IP_TPE"));
+                BigDecimal gross = new BigDecimal(entryNode.path("grossAmount").asText("0.00"));
+                commissionLedgerService.recordCardSettlement(
+                        new com.bar.gestioncocktail.service.monetization.CommissionLedgerService.CardSettlementRecordCommand(
+                                null,
+                                null,
+                                entryNode.path("invoiceNumber").asText("FAC-DEMO"),
+                                entryNode.path("externalTransactionId").asText(null),
+                                entryNode.path("tpeAuthorizationCode").asText(null),
+                                entryNode.path("tpeTerminalId").asText("01"),
+                                entryNode.path("cardBrand").asText("CB"),
+                                entryNode.path("maskedPan").asText("************4242"),
+                                source,
+                                gross,
+                                entryNode.path("currency").asText("EUR")
+                        )
+                );
+            } catch (Exception e) {
+                log.warn("Could not seed card commission ledger entry: {}", e.getMessage());
+            }
         }
     }
 }

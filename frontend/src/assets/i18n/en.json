@@ -3443,6 +3443,16 @@
     "SMTP_FROM": "Sender email address (From)",
     "MODULE_FACTUR_X_INVOICE_IMPORT_TITLE": "Invoice Import & Factur-X",
     "MODULE_FACTUR_X_INVOICE_IMPORT_DESC": "Automated supplier invoice import (Factur-X hybrid XML/PDF, PDF), purchase order reconciliation, price variance alerts, and 1-click stock intake with WAC recalculation.",
+    "MODULE_STRIPE_TERMINAL_CONNECT_TITLE": "Smart TPE Stripe Terminal Connect (Option 3)",
+    "MODULE_STRIPE_TERMINAL_CONNECT_DESC": "WisePOS E smart Android terminals with automated Stripe Connect split and lower real-time platform fee deduction at the source.",
+    "MODULES_ROUTE_TPE_CONNECT": "/admin/settings?tab=printers & /admin/license",
+    "TPE_MONETIZATION_TITLE": "Dual-Tier TPE Monetization Mode (Option 1 vs Option 3)",
+    "TPE_MONETIZATION_DESC": "Choose between traditional Concert IP bank terminals (Option 1 — monthly NF525 ledger billing) or turnkey Stripe Terminal Connect readers (Option 3 — real-time split at source).",
+    "TPE_MONETIZATION_LEDGER_BTN": "Commission Ledger & Z-Export",
+    "TPE_MONETIZATION_MODE_LABEL": "Active TPE Mode",
+    "STRIPE_CONNECTED_ACCOUNT_LABEL": "Stripe Connected Account ID (acct_...)",
+    "STRIPE_TERMINAL_LOCATION_LABEL": "Stripe Terminal Location ID (tml_...)",
+    "STRIPE_TERMINAL_READER_LABEL": "WisePOS E Reader ID (tmr_...)",
     "BTN_MANAGE_LICENSE": "Manage License (/admin/license)"
   },
   "SAFETY": {
@@ -4728,6 +4738,84 @@
       "SYNC_FAILED": "Error during online license synchronization.",
       "DEACTIVATE_FAILED": "Failed to deactivate license.",
       "COPY_FAILED": "Unable to copy to clipboard."
+    }
+  },
+  "MONETIZATION": {
+    "EYEBROW": "Dual-Tier Payment Monetization & NF525",
+    "TITLE": "TPE Commissions & Cryptographic Ledger",
+    "SUBTITLE": "Track card transaction volumes (Option 1 offline Concert IP vs Option 3 Stripe Terminal Connect), verify SHA-256 chain seals, and export signed monthly Z-report proof for openbar.fr.",
+    "PERIOD_LABEL": "Billing Period",
+    "KPI": {
+      "OPTION1_TITLE": "Option 1 — Concert IP / CB",
+      "OPTION1_SUB": "{{ count }} tx · Rate {{ rate }}",
+      "OPTION3_TITLE": "Option 3 — Stripe Terminal",
+      "OPTION3_SUB": "{{ count }} tx · Rate {{ rate }}",
+      "VOLUME_TITLE": "Total Card Volume",
+      "VOLUME_SUB": "Period {{ period }}",
+      "INTEGRITY_TITLE": "SHA-256 Chain",
+      "INTEGRITY_SUB": "{{ count }} verified entries"
+    },
+    "TIERS": {
+      "CONCERT_IP_OFFLINE": "Option 1 · Concert IP / Offline",
+      "STRIPE_TERMINAL_CONNECT": "Option 3 · Stripe Terminal Connect"
+    },
+    "SOURCES": {
+      "CONCERT_IP_TPE": "Concert IP TPE",
+      "MANUAL_CB": "Manual Card",
+      "STRIPE_TERMINAL_CONNECT": "Stripe Terminal"
+    },
+    "STATUSES": {
+      "ACCUMULATED": "Accumulated",
+      "SYNCED_ONLINE": "Synced Online",
+      "EXPORTED_OFFLINE": "Exported (Z)",
+      "SETTLED_AT_SOURCE": "Settled at Source",
+      "INVOICED_PENDING": "Invoice Pending"
+    },
+    "INTEGRITY": {
+      "VALID": "Intact (SHA-256)",
+      "BROKEN": "Chain Tampered",
+      "TIP_HASH": "Chain Tip Hash (SHA-256)"
+    },
+    "COLLECTION": {
+      "TITLE": "Collection & Monthly Portal Renewal Proof",
+      "DESC": "When connected, Option 1 volumes sync to central Stripe Billing. For air-gapped bars, download the signed monthly Z-report proof to unlock next month's JWT on openbar.fr.",
+      "LAST_EXPORT": "Last Signed Z-Export"
+    },
+    "ACTIONS": {
+      "DOWNLOAD_PROOF": "Export Z-Proof (.json)",
+      "COPY_PROOF_TOKEN": "Copy Proof Token",
+      "VERIFY_CHAIN": "Verify SHA-256",
+      "SYNC_BILLING": "Sync Stripe Billing"
+    },
+    "BANNER": {
+      "GRACE_TITLE": "Pending commission invoice ({{ amount }} €) — Grace period active ({{ hours }}h remaining)",
+      "OVERDUE_TITLE": "Overdue commission invoice ({{ amount }} €) — Grace period expired",
+      "GRACE_DESC": "Sync billing online or export your signed monthly Z-report proof to renew your license on openbar.fr.",
+      "LOCKED_DESC": "Card terminal payments are temporarily locked until the overdue commission invoice is settled.",
+      "MANAGE_BTN": "Resolve Billing"
+    },
+    "LEDGER": {
+      "TITLE": "Sealed Card Transaction Commission Ledger",
+      "EMPTY": "No card transactions recorded for this billing period.",
+      "COL_INVOICE": "Invoice / Ref.",
+      "COL_SOURCE": "TPE Channel",
+      "COL_GROSS": "Gross Amount",
+      "COL_COMMISSION": "Commission",
+      "COL_STATUS": "Status",
+      "COL_HASH": "SHA-256 Seal"
+    },
+    "TOASTS": {
+      "CHAIN_VALID": "SHA-256 cryptographic chain verified intact.",
+      "CHAIN_BROKEN": "Tampering or chain break detected in SHA-256 ledger!",
+      "PROOF_EXPORTED": "Signed monthly Z-report proof generated and downloaded.",
+      "TOKEN_COPIED": "Monthly proof token copied to clipboard.",
+      "SYNC_SUCCESS": "Card volumes synchronized with Stripe Billing.",
+      "SYNC_OFFLINE": "Central billing unreachable — continuing in offline mode."
+    },
+    "ERRORS": {
+      "VERIFY_FAILED": "Failed to verify SHA-256 ledger chain.",
+      "EXPORT_FAILED": "Failed to generate monthly Z-report proof.",
+      "SYNC_FAILED": "Error synchronizing commission ledger."
     }
   }
 }

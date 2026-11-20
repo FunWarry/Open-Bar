@@ -37,6 +37,7 @@ describe('FeatureFlagService', () => {
     angelShotSafety: true,
     qrPayAtTable: true,
     facturXInvoiceImport: true,
+    stripeTerminalConnect: true,
   };
 
   beforeEach(() => {
@@ -74,6 +75,7 @@ describe('FeatureFlagService', () => {
     expect(service.cocktailLibraryEnabled()).toBeTrue();
     expect(service.facturXInvoiceImportEnabled()).toBeTrue();
     expect(service.qrPayAtTableEnabled()).toBeTrue();
+    expect(service.stripeTerminalConnectEnabled()).toBeTrue();
   });
 
   it('should verify individual module capabilities via isModuleEnabled', () => {
@@ -89,6 +91,7 @@ describe('FeatureFlagService', () => {
     expect(service.tableReservationsEnabled()).toBeTrue();
     expect(service.isModuleEnabled(EstablishmentModule.FACTUR_X_INVOICE_IMPORT)).toBeTrue();
     expect(service.isModuleEnabled(EstablishmentModule.QR_PAY_AT_TABLE)).toBeTrue();
+    expect(service.isModuleEnabled(EstablishmentModule.STRIPE_TERMINAL_CONNECT)).toBeTrue();
   });
 
   it('should update modules via PUT /api/establishment/modules', () => {
@@ -168,6 +171,7 @@ describe('FeatureFlagService', () => {
       angelShotSafety: false,
       qrPayAtTable: false,
       facturXInvoiceImport: false,
+      stripeTerminalConnect: false,
     };
 
     wsSubject.next({ body: JSON.stringify(wsUpdate) });

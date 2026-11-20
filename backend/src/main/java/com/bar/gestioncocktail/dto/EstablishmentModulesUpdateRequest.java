@@ -21,8 +21,9 @@ package com.bar.gestioncocktail.dto;
  * @param checklistsProcedures Optional new status for Checklists & Procedures module
  * @param systemUpdates        Optional new status for System Updates module
  * @param angelShotSafety      Optional new status for Angel Shot Safety module
- * @param qrPayAtTable         Optional new status for QR Pay-at-Table module
- * @param facturXInvoiceImport Optional new status for Factur-X & PDF supplier invoice import module
+ * @param qrPayAtTable            Optional new status for QR Pay-at-Table module
+ * @param facturXInvoiceImport    Optional new status for Factur-X & PDF supplier invoice import module
+ * @param stripeTerminalConnect   Optional new status for Option 3 Stripe Terminal Connect smart TPE module
  */
 public record EstablishmentModulesUpdateRequest(
         Boolean cuisineKds,
@@ -43,8 +44,32 @@ public record EstablishmentModulesUpdateRequest(
         Boolean systemUpdates,
         Boolean angelShotSafety,
         Boolean qrPayAtTable,
-        Boolean facturXInvoiceImport
+        Boolean facturXInvoiceImport,
+        Boolean stripeTerminalConnect
 ) {
+    public EstablishmentModulesUpdateRequest(
+            Boolean cuisineKds,
+            Boolean happyHour,
+            Boolean employeeManagement,
+            Boolean floorPlan,
+            Boolean qrClientOrdering,
+            Boolean stockTracking,
+            Boolean cashDrawer,
+            Boolean barTabs,
+            Boolean cocktailLibrary,
+            Boolean suppliersManagement,
+            Boolean inventoryAudit,
+            Boolean mysteryRoulette,
+            Boolean paymentTerminal,
+            Boolean tableReservations,
+            Boolean checklistsProcedures,
+            Boolean systemUpdates,
+            Boolean angelShotSafety,
+            Boolean qrPayAtTable,
+            Boolean facturXInvoiceImport
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, tableReservations, checklistsProcedures, systemUpdates, angelShotSafety, qrPayAtTable, facturXInvoiceImport, null);
+    }
     public EstablishmentModulesUpdateRequest(
             Boolean cuisineKds,
             Boolean happyHour,

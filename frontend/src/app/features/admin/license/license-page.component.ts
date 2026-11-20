@@ -45,13 +45,22 @@ import {
   timeOutline,
 } from 'ionicons/icons';
 import { LicenseService } from '../../../core/services/license.service';
+import { MonetizationService } from '../../../core/services/monetization.service';
 import { FeatureFlagService } from '../../../core/services/feature-flag.service';
 import { LicenseStatus, LicenseStatusInfo } from '../../../core/models/license.model';
+import {
+  CommissionSyncResult,
+  LedgerVerificationResult,
+  MonetizationDashboard,
+  MonthlyCommissionProof,
+} from '../../../core/models/monetization.model';
 import { EstablishmentModule } from '../../../core/models/establishment-module.model';
 import { selectCurrentUser } from '../../../core/store/auth.selectors';
 import { StatCardComponent, StatCardColor } from '../../../core/components/ui/stat-card/stat-card.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { ConfirmModalComponent, ConfirmModalResult } from '../../../core/components/ui/confirm-modal/confirm-modal.component';
+import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 
 /**
  * Administrative License Management page (/admin/license).
@@ -78,6 +87,8 @@ import { ConfirmModalComponent, ConfirmModalResult } from '../../../core/compone
     TranslocoPipe,
     StatCardComponent,
     ActionButtonComponent,
+    SearchableSelectComponent,
+    AppCurrencyPipe,
   ],
   templateUrl: './license-page.component.html',
   styleUrls: ['./license-page.component.css'],
@@ -87,6 +98,7 @@ export class LicensePageComponent implements OnInit, OnDestroy {
   @ViewChild('licenseFileInput') licenseFileInput?: ElementRef<HTMLInputElement>;
 
   private readonly licenseService = inject(LicenseService);
+  private readonly monetizationService = inject(MonetizationService, { optional: true });
   private readonly featureFlagService = inject(FeatureFlagService);
   private readonly transloco = inject(TranslocoService);
   private readonly toastCtrl = inject(ToastController);
@@ -99,6 +111,28 @@ export class LicensePageComponent implements OnInit, OnDestroy {
 
   /** Loaded detailed license snapshot. */
   readonly license = signal<LicenseStatusInfo | null>(null);
+
+  /** Loaded dual-tier TPE monetization dashboard snapshot. */
+  readonly monetizationDashboard = signal<MonetizationDashboard | null>(null);
+
+  /** Selected YYYY-MM billing period for commission inspection and Z-report export. */
+  selectedPeriod = this.resolveCurrentYearMonth();
+
+  /** Selectable recent billing period options for SearchableSelect. */
+  readonly periodOptions: SearchableOption<string>[] = this.buildRecentPeriodOptions();
+
+  /** Latest explicit SHA-256 ledger integrity verification report. */
+  readonly verificationResult = signal<LedgerVerificationResult | null>(null);
+
+  /** Last exported monthly offline Z-report proof bundle. */
+  readonly lastExportedProof = signal<MonthlyCommissionProof | null>(null);
+
+  /** In-flight flags for monetization operations. */
+  readonly isMonetizationLoading = signal<boolean>(false);
+  readonly isVerifyingLedger = signal<boolean>(false);
+  readonly isExportingProof = signal<boolean>(false);
+  readonly isSyncingCommissions = signal<boolean>(false);
+  readonly commissionSyncFeedback = signal<string | null>(null);
 
   /** Loading flag for initial fetch. */
   readonly isLoading = signal<boolean>(true);
@@ -178,6 +212,7 @@ export class LicensePageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.observeUserRole();
     this.loadLicenseStatus();
+    this.loadMonetizationDashboard();
   }
 
   /** @inheritdoc */
@@ -326,6 +361,185 @@ export class LicensePageComponent implements OnInit, OnDestroy {
   getStatusLabelKey(status?: LicenseStatus | null): string {
     if (!status) return 'LICENSE.STATUS.UNKNOWN';
     return `LICENSE.STATUS.${status}`;
+  }
+
+  /** Loads the dual-tier TPE monetization and commission ledger dashboard for the selected month. */
+  loadMonetizationDashboard(period: string = this.selectedPeriod): void {
+    if (!this.monetizationService) {
+      return;
+    }
+    this.isMonetizationLoading.set(true);
+    this.monetizationService
+      .getDashboard(period)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: data => {
+          this.monetizationDashboard.set(data);
+          this.verificationResult.set(data?.integrity ?? null);
+          this.isMonetizationLoading.set(false);
+        },
+        error: () => {
+          this.isMonetizationLoading.set(false);
+        },
+      });
+  }
+
+  /** Handles billing period dropdown change. */
+  onPeriodChange(period: string | null): void {
+    if (!period) return;
+    this.selectedPeriod = period;
+    this.loadMonetizationDashboard(period);
+  }
+
+  /** Executes a SHA-256 chain verification audit across the local card commission ledger. */
+  verifyLedgerIntegrity(): void {
+    if (!this.monetizationService) return;
+    this.isVerifyingLedger.set(true);
+    this.monetizationService
+      .verifyIntegrity()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: res => {
+          this.verificationResult.set(res);
+          this.isVerifyingLedger.set(false);
+          void this.showToast(
+            res?.valid ? 'MONETIZATION.TOASTS.CHAIN_VALID' : 'MONETIZATION.TOASTS.CHAIN_BROKEN',
+            res?.valid ? 'success' : 'danger'
+          );
+        },
+        error: () => {
+          this.isVerifyingLedger.set(false);
+          void this.showToast('MONETIZATION.ERRORS.VERIFY_FAILED', 'danger');
+        },
+      });
+  }
+
+  /** Downloads the signed monthly Z-report & card commission proof as a JSON file for openbar.fr. */
+  downloadMonthlyProof(): void {
+    if (!this.monetizationService) return;
+    this.isExportingProof.set(true);
+    this.monetizationService
+      .exportMonthlyProof(this.selectedPeriod)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: proof => {
+          this.lastExportedProof.set(proof);
+          this.isExportingProof.set(false);
+          this.triggerJsonFileDownload(proof);
+          this.loadMonetizationDashboard(this.selectedPeriod);
+          void this.showToast('MONETIZATION.TOASTS.PROOF_EXPORTED', 'success');
+        },
+        error: () => {
+          this.isExportingProof.set(false);
+          void this.showToast('MONETIZATION.ERRORS.EXPORT_FAILED', 'danger');
+        },
+      });
+  }
+
+  /** Copies the compact Base64url monthly proof token for manual portal renewal. */
+  async copyProofToken(): Promise<void> {
+    if (!this.monetizationService) return;
+    const cached = this.lastExportedProof();
+    if (cached?.compactProofToken) {
+      await this.writeClipboard(cached.compactProofToken, 'MONETIZATION.TOASTS.TOKEN_COPIED');
+      return;
+    }
+    this.monetizationService
+      .exportMonthlyProof(this.selectedPeriod)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: async proof => {
+          this.lastExportedProof.set(proof);
+          await this.writeClipboard(proof.compactProofToken, 'MONETIZATION.TOASTS.TOKEN_COPIED');
+        },
+        error: () => {
+          void this.showToast('MONETIZATION.ERRORS.EXPORT_FAILED', 'danger');
+        },
+      });
+  }
+
+  /** Synchronizes Option 1 card volume receipts online with the central Stripe Billing service. */
+  syncCommissionOnline(): void {
+    if (!this.monetizationService) return;
+    this.isSyncingCommissions.set(true);
+    this.commissionSyncFeedback.set(null);
+    this.monetizationService
+      .syncOnline(this.selectedPeriod)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: CommissionSyncResult) => {
+          this.isSyncingCommissions.set(false);
+          this.commissionSyncFeedback.set(res?.message || null);
+          this.loadMonetizationDashboard(this.selectedPeriod);
+          void this.showToast(
+            res?.onlineReachable ? 'MONETIZATION.TOASTS.SYNC_SUCCESS' : 'MONETIZATION.TOASTS.SYNC_OFFLINE',
+            res?.onlineReachable ? 'success' : 'warning'
+          );
+        },
+        error: () => {
+          this.isSyncingCommissions.set(false);
+          void this.showToast('MONETIZATION.ERRORS.SYNC_FAILED', 'danger');
+        },
+      });
+  }
+
+  /** Formats rate basis points + fixed cents into a concise display string (e.g. 1.20% + 0.10€). */
+  formatTierRate(rateBps: number, fixedCents: number): string {
+    const pct = (rateBps / 100).toFixed(2);
+    const fixed = (fixedCents / 100).toFixed(2);
+    return `${pct}% + ${fixed}€`;
+  }
+
+  /** Truncates a 64-char SHA-256 hash for compact display. */
+  shortenHash(hash?: string | null): string {
+    if (!hash || hash.length < 16) return hash || '—';
+    return `${hash.slice(0, 8)}…${hash.slice(-6)}`;
+  }
+
+  private triggerJsonFileDownload(proof: MonthlyCommissionProof): void {
+    try {
+      const json = JSON.stringify(proof, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `openbar-commission-proof-${proof.billingPeriod}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // Ignore in headless/non-DOM unit test environments
+    }
+  }
+
+  private async writeClipboard(text: string, toastKey: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(text);
+      void this.showToast(toastKey, 'info');
+    } catch {
+      void this.showToast('LICENSE.ERRORS.COPY_FAILED', 'warning');
+    }
+  }
+
+  private resolveCurrentYearMonth(): string {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${now.getFullYear()}-${month}`;
+  }
+
+  private buildRecentPeriodOptions(): SearchableOption<string>[] {
+    const options: SearchableOption<string>[] = [];
+    const now = new Date();
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      options.push({
+        value: val,
+        label: val,
+        badge: i === 0 ? 'LIVE' : undefined,
+        badgeType: i === 0 ? 'primary' : 'neutral',
+      });
+    }
+    return options;
   }
 
   private executeDeactivate(): void {

@@ -31,6 +31,7 @@ const DEFAULT_MODULES: EstablishmentModules = {
   angelShotSafety: true,
   qrPayAtTable: true,
   facturXInvoiceImport: true,
+  stripeTerminalConnect: true,
 };
 
 /**
@@ -110,6 +111,11 @@ export class FeatureFlagService implements OnDestroy {
     () => this.modules().facturXInvoiceImport && this.modules().suppliersManagement
   );
 
+  /** Computed signal for STRIPE_TERMINAL_CONNECT capability status. */
+  readonly stripeTerminalConnectEnabled = computed(
+    () => this.modules().stripeTerminalConnect && this.modules().paymentTerminal
+  );
+
   constructor() {
     this.initWebSocketSubscription();
     this.loadModules().subscribe();
@@ -167,6 +173,8 @@ export class FeatureFlagService implements OnDestroy {
         return current.qrPayAtTable;
       case EstablishmentModule.FACTUR_X_INVOICE_IMPORT:
         return current.facturXInvoiceImport && current.suppliersManagement;
+      case EstablishmentModule.STRIPE_TERMINAL_CONNECT:
+        return current.stripeTerminalConnect && current.paymentTerminal;
       default:
         return true;
     }
@@ -299,6 +307,9 @@ export class FeatureFlagService implements OnDestroy {
         break;
       case EstablishmentModule.FACTUR_X_INVOICE_IMPORT:
         current.facturXInvoiceImport = enabled;
+        break;
+      case EstablishmentModule.STRIPE_TERMINAL_CONNECT:
+        current.stripeTerminalConnect = enabled;
         break;
     }
     return this.updateModules(current);

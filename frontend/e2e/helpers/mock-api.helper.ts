@@ -2735,6 +2735,199 @@ export async function setupMockApi(page: Page): Promise<void> {
     }
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(mockLicenseState) });
   });
+
+  // Dual-tier TPE payment monetization & commission ledger endpoints
+  let mockMonetizationSummary = {
+    activeTier: 'CONCERT_IP_OFFLINE',
+    billingPeriod: '2026-11',
+    invoiceStatus: 'GRACE_PERIOD',
+    remoteInvoiceId: 'in_demo_comm_01',
+    pendingAmount: 1.17,
+    graceEndsAt: '2026-11-26T00:00:00Z',
+    graceHoursRemaining: 48,
+    enforceGraceLock: false,
+    tpeCardLocked: false,
+    shouldShowBanner: true,
+  };
+
+  await page.route('**/api/admin/monetization/status', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(mockMonetizationSummary),
+    });
+  });
+
+  await page.route('**/api/admin/monetization/dashboard**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        billingPeriod: '2026-11',
+        venueEstablishmentId: '73282932000074',
+        rates: {
+          activeTier: 'CONCERT_IP_OFFLINE',
+          option1RateBps: 120,
+          option1FixedCents: 10,
+          option3RateBps: 45,
+          option3FixedCents: 5,
+          tpeHardwareMode: 'CONCERT_IP',
+          stripeTerminalModuleEnabled: true,
+          stripeConnectAccountConfigured: false,
+        },
+        summary: mockMonetizationSummary,
+        option1Volume: 80.5,
+        option1Count: 2,
+        option1Commission: 1.17,
+        option3Volume: 64.0,
+        option3Count: 1,
+        option3Commission: 0.34,
+        totalCommissionDue: 1.17,
+        lastSyncAt: null,
+        lastSyncStatus: 'NONE',
+        lastSyncError: null,
+        lastExportedAt: null,
+        integrity: {
+          valid: true,
+          totalEntries: 3,
+          verifiedEntries: 3,
+          tipHash: 'a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890',
+          brokenSequenceNumber: null,
+          message: 'All 3 card commission ledger entries verified intact.',
+        },
+        entries: [
+          {
+            id: 1,
+            sequenceNumber: 1,
+            billingPeriod: '2026-11',
+            establishmentId: '73282932000074',
+            factureId: 101,
+            reglementId: null,
+            invoiceNumber: 'FAC-2026-00012',
+            externalTransactionId: 'tx-demo-concert-001',
+            tpeAuthorizationCode: 'AUTH-892101',
+            tpeTerminalId: '01',
+            cardBrand: 'CB',
+            maskedPan: '************4242',
+            tier: 'CONCERT_IP_OFFLINE',
+            source: 'CONCERT_IP_TPE',
+            status: 'ACCUMULATED',
+            grossAmount: 48.0,
+            rateBps: 120,
+            fixedFeeCents: 10,
+            commissionAmount: 0.68,
+            currency: 'EUR',
+            previousHash: '0'.repeat(64),
+            entryHash: '1'.repeat(64),
+            recordedAt: '2026-11-20T10:00:00Z',
+            syncedAt: null,
+          },
+          {
+            id: 2,
+            sequenceNumber: 2,
+            billingPeriod: '2026-11',
+            establishmentId: '73282932000074',
+            factureId: 102,
+            reglementId: null,
+            invoiceNumber: 'FAC-2026-00014',
+            externalTransactionId: 'pi_demo_wisepos_003',
+            tpeAuthorizationCode: 'pi_demo_wisepos_003',
+            tpeTerminalId: 'ST-WISEPOS-01',
+            cardBrand: 'MASTERCARD',
+            maskedPan: '************8814',
+            tier: 'STRIPE_TERMINAL_CONNECT',
+            source: 'STRIPE_TERMINAL_CONNECT',
+            status: 'SETTLED_AT_SOURCE',
+            grossAmount: 64.0,
+            rateBps: 45,
+            fixedFeeCents: 5,
+            commissionAmount: 0.34,
+            currency: 'EUR',
+            previousHash: '1'.repeat(64),
+            entryHash: 'a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890',
+            recordedAt: '2026-11-20T11:30:00Z',
+            syncedAt: '2026-11-20T11:30:00Z',
+          },
+        ],
+        billingHistory: [],
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/monetization/verify', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        valid: true,
+        totalEntries: 3,
+        verifiedEntries: 3,
+        tipHash: 'a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890',
+        brokenSequenceNumber: null,
+        message: 'All 3 card commission ledger entries verified intact.',
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/monetization/export-proof**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        billingPeriod: '2026-11',
+        establishmentId: '73282932000074',
+        generatedAt: '2026-11-20T15:00:00Z',
+        option1Volume: 80.5,
+        option1Count: 2,
+        option1Commission: 1.17,
+        option3Volume: 64.0,
+        option3Count: 1,
+        option3Commission: 0.34,
+        totalCommissionDue: 1.17,
+        startLedgerHash: '0'.repeat(64),
+        endLedgerHash: 'a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890',
+        ledgerChainValid: true,
+        zReports: [],
+        canonicalPayloadDigest: 'b'.repeat(64),
+        hmacSignature: 'c'.repeat(64),
+        compactProofToken: 'openbar-proof-token-demo',
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/monetization/sync**', async (route) => {
+    mockMonetizationSummary = {
+      ...mockMonetizationSummary,
+      invoiceStatus: 'SETTLED',
+      pendingAmount: 0,
+      shouldShowBanner: false,
+    };
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        synced: true,
+        onlineReachable: true,
+        syncStatus: 'SUCCESS',
+        syncedEntriesCount: 2,
+        message: 'Synchronized 2 card volume entries with central Stripe Billing',
+        summary: mockMonetizationSummary,
+      }),
+    });
+  });
+
+  await page.route('**/api/tpe/stripe-terminal/connection-token', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        secret: 'pst_test_sim_e2e_1234',
+        simulator: true,
+        readerId: 'tmr_wisepos_01',
+        locationId: 'tml_bar_01',
+      }),
+    });
+  });
 }
 
 

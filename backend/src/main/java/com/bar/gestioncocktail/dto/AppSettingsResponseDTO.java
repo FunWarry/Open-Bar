@@ -95,9 +95,53 @@ public record AppSettingsResponseDTO(
     String smtpFrom,
     Boolean smtpAuth,
     Boolean smtpStarttls,
+    String tpeMonetizationMode,
+    String stripeConnectedAccountId,
+    String stripeTerminalLocationId,
+    String stripeTerminalReaderId,
     String timeZone,
     LocalDateTime updatedAt
 ) {
+    /**
+     * Backwards-compatible 56-parameter constructor before Stripe Terminal Connect TPE fields were introduced.
+     */
+    public AppSettingsResponseDTO(
+            Long id, String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            String volumeUnit, String weightUnit,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity,
+            Boolean wifiEnabled, Boolean tableSessionValidationEnabled,
+            BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
+            BigDecimal warningGrossMarginPercentage, String barPrinterIp,
+            String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
+            Boolean directPrintingEnabled, String cashDenominationsJson,
+            String storageLocationsJson, Boolean tpeEnabled, Boolean tpeSimulatorEnabled,
+            String tpeBarIp, String tpeFloorIp, Integer tpePort,
+            String tpeTerminalId, Integer tpeTimeoutSeconds,
+            String printersJson, String tpeTerminalsJson, String emergencyNumbersJson,
+            BigDecimal cashDiscrepancyToleranceThreshold,
+            String onlinePaymentProvider, String stripePublishableKey,
+            Boolean stripeSecretKeyConfigured, Boolean stripeWebhookSecretConfigured,
+            String onlinePaymentCurrency, String smtpHost, Integer smtpPort,
+            String smtpUsername, Boolean smtpConfigured, String smtpFrom,
+            Boolean smtpAuth, Boolean smtpStarttls, String timeZone, LocalDateTime updatedAt) {
+        this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem, volumeUnit, weightUnit,
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes,
+                clientBaseUrl, wifiSsid, wifiPassword, wifiSecurity, wifiEnabled,
+                tableSessionValidationEnabled, defaultVatRate, targetGrossMarginPercentage,
+                warningGrossMarginPercentage, barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp,
+                printerPort, directPrintingEnabled, cashDenominationsJson, storageLocationsJson,
+                tpeEnabled, tpeSimulatorEnabled, tpeBarIp, tpeFloorIp, tpePort, tpeTerminalId,
+                tpeTimeoutSeconds, printersJson, tpeTerminalsJson, emergencyNumbersJson,
+                cashDiscrepancyToleranceThreshold, onlinePaymentProvider, stripePublishableKey,
+                stripeSecretKeyConfigured, stripeWebhookSecretConfigured, onlinePaymentCurrency,
+                smtpHost, smtpPort, smtpUsername, smtpConfigured, smtpFrom, smtpAuth, smtpStarttls,
+                "CONCERT_IP", null, null, null, timeZone, updatedAt);
+    }
     /** Default fallback timezone identifier. */
     public static final String DEFAULT_TIMEZONE = "SYSTEM";
 
@@ -502,6 +546,10 @@ public record AppSettingsResponseDTO(
             resolveString(s.getSmtpFrom(), DEFAULT_SMTP_FROM),
             Boolean.TRUE.equals(s.getSmtpAuth()),
             Boolean.TRUE.equals(s.getSmtpStarttls()),
+            resolveString(s.getTpeMonetizationMode(), "CONCERT_IP"),
+            s.getStripeConnectedAccountId(),
+            s.getStripeTerminalLocationId(),
+            s.getStripeTerminalReaderId(),
             resolveString(timeZone, DEFAULT_TIMEZONE),
             s.getUpdatedAt()
         );
@@ -535,6 +583,7 @@ public record AppSettingsResponseDTO(
             null, null, emergencyNumbersJson, null,
             onlinePaymentProvider, stripePublishableKey, false, false, onlinePaymentCurrency,
             null, null, null, false, null, false, false,
+            null, null, null, null,
             timeZone, updatedAt
         );
     }

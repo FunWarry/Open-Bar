@@ -1,12 +1,14 @@
 package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.*;
+import com.bar.gestioncocktail.service.monetization.StripeTerminalConnectService;
 import com.bar.gestioncocktail.service.tpe.PaymentTerminalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,18 +18,33 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/tpe")
-@Tag(name = "Payment Terminals (TPE)", description = "Operations for local payment terminals via Concert / CB IP protocol")
+@Tag(name = "Payment Terminals (TPE)", description = "Operations for local payment terminals via Concert / CB IP protocol and Stripe Terminal Connect")
 public class TpeController {
 
     private final PaymentTerminalService paymentTerminalService;
+    private final StripeTerminalConnectService stripeTerminalConnectService;
 
     /**
-     * Constructor injection.
+     * Backward-compatible constructor injection for unit tests.
      *
      * @param paymentTerminalService TPE transaction and hardware communication service
      */
     public TpeController(PaymentTerminalService paymentTerminalService) {
+        this(paymentTerminalService, null);
+    }
+
+    /**
+     * Constructor injection with Stripe Terminal Connect service.
+     *
+     * @param paymentTerminalService       TPE transaction and hardware communication service
+     * @param stripeTerminalConnectService Option 3 Stripe Terminal Connect service
+     */
+    @Autowired
+    public TpeController(
+            PaymentTerminalService paymentTerminalService,
+            StripeTerminalConnectService stripeTerminalConnectService) {
         this.paymentTerminalService = paymentTerminalService;
+        this.stripeTerminalConnectService = stripeTerminalConnectService;
     }
 
     /**
@@ -109,5 +126,22 @@ public class TpeController {
     public ResponseEntity<TpePublicConfigDTO> getConfig() {
         TpePublicConfigDTO config = paymentTerminalService.getPublicConfig();
         return ResponseEntity.ok(config);
+    }
+
+    /**
+     * Creates a short-lived Stripe Terminal ConnectionToken for Option 3 smart Android readers (WisePOS E).
+     *
+     * @return {@link StripeTerminalConnectionTokenDTO}
+     */
+    @PostMapping("/stripe-terminal/connection-token")
+    @PreAuthorize("hasAnyRole('SERVEUR', 'BARMAN', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Create Stripe Terminal connection token", description = "Issues a Stripe Terminal SDK ConnectionToken for WisePOS E smart readers or local simulator.")
+    @ApiResponse(responseCode = "200", description = "Connection token created successfully")
+    @ApiResponse(responseCode = "403", description = "Access denied or STRIPE_TERMINAL_CONNECT module disabled")
+    public ResponseEntity<StripeTerminalConnectionTokenDTO> createStripeTerminalConnectionToken() {
+        if (stripeTerminalConnectService == null) {
+            return ResponseEntity.internalServerError().build();
+        }
+        return ResponseEntity.ok(stripeTerminalConnectService.createConnectionToken());
     }
 }
