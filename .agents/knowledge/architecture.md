@@ -263,6 +263,7 @@ flowchart LR
 | `/topic/checklists` | Real-time operational checklists & SOP procedure session lifecycle events |
 | `/topic/license` | Real-time establishment license status & grace-period summary broadcasts |
 | `/topic/monetization` | Real-time TPE commission ledger, billing sync & grace-period lock broadcasts |
+| `/topic/cloud-relay` | Real-time outbound Cloud Relay tunnel state, reconnect attempts & access policy updates |
 
 ---
 
@@ -282,6 +283,7 @@ Establishment features are decoupled into 9 switchable capabilities:
 | **Bar Tabs (Ardoises)** | `BAR_TABS` | `/serveur/ardoises`, running customer tabs without table requirement, tab settlement |
 | **Cocktail Library Import** | `COCKTAIL_LIBRARY` | `/cocktails` (import button & catalog wizard), `/setup` (menu population step), `/api/cocktails/library` |
 | **Stripe Terminal Connect** | `STRIPE_TERMINAL_CONNECT` | Option 3 turnkey TPE onboarding & `/api/tpe/stripe-terminal/connection-token`, Connect fee splits |
+| **Cloud Relay Reverse Tunnel** | `CLOUD_RELAY` | Outbound WSS reverse tunnel, `<venue-slug>.open-bar.eu` / custom CNAME routing, white-label branding & 3-tier access matrix |
 
 ### Establishment Presets
 - **BAR**: CUISINE_KDS ❌, HAPPY_HOUR ✅, EMPLOYEE_MANAGEMENT ✅, FLOOR_PLAN ✅, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅, CASH_DRAWER ✅, BAR_TABS ✅, COCKTAIL_LIBRARY ✅
@@ -324,6 +326,17 @@ Establishment features are decoupled into 9 switchable capabilities:
 - **Enforcement & Hardware Routing**: `PaymentTerminalService` blocks Option 1 Concert IP TPE dispatches once overdue beyond the 7-day grace period (`cardTpeLocked`), while Option 3 (`STRIPE_TERMINAL_CONNECT`) splits platform application fees automatically via Stripe Connect (`StripeTerminalConnectService`) and reconciles Connect webhooks (`POST /api/public/payments/webhook/connect`).
 - **REST Endpoints**: `/api/admin/monetization/status` (authenticated), `/api/admin/monetization/dashboard`, `/ledger`, `/verify`, `/export-proof`, `/export-proof/download`, `/sync` (`ADMIN`, `MANAGER`), and `POST /api/tpe/stripe-terminal/connection-token`.
 - **Frontend**: Integrated Option 1/Option 3 management tab on `/admin/license` (`LicensePageComponent`), mode/hardware settings in `AppSettingsPageComponent`, `<app-license-banner>` overdue countdown warning, POS lock feedback in `EncaissementModalComponent`, `MonetizationService` signals, and `/topic/monetization` STOMP listener.
+
+---
+
+## Cloud Relay Outbound Reverse Tunnel & White-Label Routing (#654)
+
+- **Configuration (`CloudRelayProperties`, prefix `openbar.relay`)**: `enabled` (default `false` for air-gapped startup), `simulator-enabled` (`true` in dev/test, `false` in `prod`), `base-domain` (`open-bar.eu`), `relay-url` (`wss://relay.open-bar.eu/ws/tunnel`), `local-target-url`, `reconnect-initial-delay-ms` (`1000`), `reconnect-max-delay-ms` (`32000`).
+- **Outbound Tunnel & Frame Dispatching**: `CloudRelayTunnelService` opens an outbound JDK `WebSocket` tunnel with `REGISTER`, heartbeat `PING`/`PONG` latency tracking, and exponential backoff; `RelayLocalDispatcher` validates relative paths against SSRF/CRLF injection and forwards multiplexed `HTTP_REQUEST` / `WS_OPEN` / `WS_FRAME` frames to local Spring Boot endpoints with constant-time verified `X-OpenBar-Via-Relay` + `X-OpenBar-Relay-Token` provenance headers.
+- **Tenant Subdomain, Custom CNAME & White-Label Branding**: `TenantHostContextFilter` validates `<venue-slug>.<baseDomain>` and `customDomain` host headers (`421 TENANT_HOST_MISMATCH`); `PublicBrandingController` exposes `/api/public/branding` & `/api/public/cloud-relay/health`; `AppSettingsService.resolveEffectivePublicBaseUrl(...)` feeds QR URLs across `TableService`, `TableSessionService`, and `PdfService`.
+- **3-Tier Configurable Universal Access Matrix**: `CloudRelayAccessService` & `CloudRelayAccessFilter` (+ `AuthController`, `PaymentTerminalService`, `EscPosPrintingService`, `UserController` `/me` protection) enforce global category flags (`cloudRelayClientsEnabled`, `cloudRelayStaffEnabled`, `cloudRelayAdminEnabled`, `cloudRelayRemoteTpeEnabled`, `cloudRelayRemotePrintingEnabled`), `cloudRelayAllowedRolesJson`, and per-user `User.remoteAccessEnabled` (`503 CLOUD_RELAY_OFFLINE` / `403 RELAY_*`).
+- **REST & WebSocket**: `/api/admin/cloud-relay/{status,connect,disconnect,test,simulator/disconnect,simulator/reconnect}` (`ADMIN`, `MANAGER`), `/api/public/branding`, `/api/public/cloud-relay/health`, and STOMP `/topic/cloud-relay`.
+- **Frontend**: `CloudRelayService`, `WhiteLabelBrandingService`, `CLOUD_RELAY` (`EstablishmentModule` #21), `/admin/settings` Cloud Relay config + White-Label inputs + access matrix + diagnostics, `/admin/users` `remoteAccessEnabled` toggle, branded `ClientCommandeComponent` & `LoginComponent`, `errorInterceptor` `503`/`403` handling, and `/relay-offline` (`TunnelOfflineFallbackComponent`).
 
 ---
 
