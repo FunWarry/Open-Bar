@@ -20,6 +20,8 @@
     "perf:billing": "node ../tests/load/run-load-tests.js --scenario=billing",
     "perf:all": "node ../tests/load/run-load-tests.js --scenario=all",
     "perf:profile": "node ../scripts/benchmark-profile.js --duration=60",
+    "i18n:scan": "node ../scripts/prune-unused-i18n.js --dry-run",
+    "i18n:prune": "node ../scripts/prune-unused-i18n.js --fix",
     "docker:app:start": "node ../tests/load/run-load-tests.js --scenario=smoke",
     "sonar": "npm run test:ci && npx sonar-scanner -Dsonar.qualitygate.wait=true"
   },
