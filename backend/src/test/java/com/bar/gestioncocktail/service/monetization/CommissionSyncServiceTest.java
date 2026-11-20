@@ -157,5 +157,21 @@ class CommissionSyncServiceTest {
         assertTrue(errRes.onlineReachable());
         assertEquals("FAILED", errRes.syncStatus());
         assertTrue(errRes.message().contains("HTTP 502"));
+
+        properties.setBillingSyncUrl("ftp://invalid.example/sync");
+        CommissionSyncResultDTO badScheme = syncService.syncNow(YearMonth.of(2026, Month.NOVEMBER), "admin");
+        assertFalse(badScheme.synced());
+        assertEquals("FAILED", badScheme.syncStatus());
+
+        properties.setBillingSyncUrl("https://api.openbar.fr/v1/billing/sync");
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpResponse.body()).thenReturn("{not-valid-json");
+        CommissionSyncResultDTO badJson = syncService.syncNow(YearMonth.of(2026, Month.NOVEMBER), "admin");
+        assertFalse(badJson.synced());
+        assertEquals("FAILED", badJson.syncStatus());
+
+        when(httpResponse.body()).thenReturn("{\"invoiceId\":\"in_ok\",\"invoiceStatus\":\"INVALID_ENUM\",\"graceEndsAt\":\"bad-date\"}");
+        CommissionSyncResultDTO lenientJson = syncService.syncNow(YearMonth.of(2026, Month.NOVEMBER), "admin");
+        assertTrue(lenientJson.synced());
     }
 }

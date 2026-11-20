@@ -328,5 +328,26 @@ class CommissionLedgerServiceTest {
         assertTrue(jwtSummary.shouldShowBanner());
 
         assertNotNull(service.getDashboard(YearMonth.of(2026, Month.NOVEMBER)));
+
+        assertThrows(BusinessException.class, () -> service.recordCardSettlement(
+                new CommissionLedgerService.CardSettlementRecordCommand(
+                        1L, null, "FAC-ERR", "tx-err", "A", "01", "CB", "****",
+                        CardCommissionSource.CONCERT_IP_TPE, BigDecimal.ZERO, "EUR")));
+
+        CardCommissionLedgerEntry tampered = new CardCommissionLedgerEntry();
+        tampered.setSequenceNumber(1L);
+        tampered.setPreviousHash(CommissionLedgerService.GENESIS_HASH);
+        tampered.setEntryHash("tampered_digest_000");
+        tampered.setTier(TpeMonetizationTier.CONCERT_IP_OFFLINE);
+        tampered.setSource(CardCommissionSource.CONCERT_IP_TPE);
+        tampered.setGrossAmount(new BigDecimal("10.00"));
+        tampered.setCommissionAmount(new BigDecimal("0.22"));
+        tampered.setCurrency("EUR");
+        tampered.setRecordedAt(fixedClock.instant());
+        when(ledgerRepository.findAllByOrderBySequenceNumberAsc()).thenReturn(List.of(tampered));
+
+        LedgerVerificationDTO tamperReport = service.verifyLedgerIntegrity();
+        assertFalse(tamperReport.valid());
+        assertEquals(1L, tamperReport.brokenSequenceNumber());
     }
 }

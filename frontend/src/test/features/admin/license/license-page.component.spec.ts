@@ -381,5 +381,23 @@ describe('LicensePageComponent', () => {
     expect(monetizationServiceSpy.syncOnline).toHaveBeenCalled();
     expect(component.commissionSyncFeedback()).toBe('Synced with Stripe Billing');
     expect(component.formatTierRate(120, 10)).toBe('1.20% + 0.10€');
+    expect(component.shortenHash('short')).toBe('short');
+    expect(component.shortenHash('abcdef1234567890abcdef1234567890')).toContain('…');
+
+    component.onPeriodChange('2026-10');
+    expect(component.selectedPeriod).toBe('2026-10');
+    expect(monetizationServiceSpy.getDashboard).toHaveBeenCalledWith('2026-10');
+
+    monetizationServiceSpy.verifyIntegrity.and.returnValue(throwError(() => new Error('Verify err')));
+    component.verifyLedgerIntegrity();
+    expect(component.isVerifyingLedger()).toBeFalse();
+
+    monetizationServiceSpy.exportMonthlyProof.and.returnValue(throwError(() => new Error('Export err')));
+    component.downloadMonthlyProof();
+    expect(component.isExportingProof()).toBeFalse();
+
+    monetizationServiceSpy.syncOnline.and.returnValue(throwError(() => new Error('Sync err')));
+    component.syncCommissionOnline();
+    expect(component.isSyncingCommissions()).toBeFalse();
   });
 });
