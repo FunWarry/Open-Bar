@@ -1,0 +1,182 @@
+<ion-modal
+  [isOpen]="!!cocktail"
+  [keepContentsMounted]="true"
+  (didDismiss)="onClose()"
+  class="cocktail-detail-bottom-sheet app-modal-host"
+  data-testid="cocktail-details-modal">
+  <ng-template>
+    @if (cocktail; as drink) {
+      <div class="detail-sheet-shell">
+        <div class="bottom-sheet-drag-handle" aria-hidden="true">
+          <span class="drag-pill"></span>
+        </div>
+        <app-modal
+      size="md"
+      [title]="drink.nom"
+      titleTestId="cocktail-details-title"
+      closeButtonTestId="btn-close-cocktail-details"
+      (dismiss)="onClose()">
+      <div class="cocktail-detail-body" data-testid="cocktail-details-card">
+        <!-- Compact Horizontal Hero Header -->
+        <div class="cocktail-hero-compact">
+          <div class="hero-thumb-box">
+            <img
+              [src]="resolveImageUrl(drink.imageUrl)"
+              [alt]="drink.nom"
+              class="hero-thumb-img"
+              (error)="onImageError($event)"
+              data-testid="cocktail-details-image" />
+          </div>
+          <div class="hero-meta">
+            <span class="product-category-pill" [ngStyle]="getCategoryPillStyle()" data-testid="cocktail-details-category">
+              <span class="dot-indicator" [style.background-color]="getCategoryDotColor(drink.categorie)"></span>
+              {{ ('COCKTAILS.CATEGORIES.' + drink.categorie) | transloco }}
+            </span>
+
+            <div class="cocktail-details-price-row">
+              @if (isHappyHour && drink.prix > effectivePrice) {
+                <span class="original-price-struck" data-testid="cocktail-details-original-price">
+                  {{ drink.prix | appCurrency }}
+                </span>
+                <span class="happy-hour-badge" data-testid="cocktail-details-hh-badge">
+                  {{ 'PRICING.HAPPY_HOUR_BADGE' | transloco }}
+                </span>
+                @if (discountPercentage) {
+                  <span class="discount-percent-badge" data-testid="cocktail-details-discount-badge">
+                    -{{ discountPercentage }}%
+                  </span>
+                }
+              }
+              <span class="cocktail-details-price" [class.discounted]="isHappyHour" data-testid="cocktail-details-price">
+                {{ effectivePrice | appCurrency }}
+              </span>
+            </div>
+
+            @if (drink.description) {
+              <p class="cocktail-details-desc" data-testid="cocktail-details-desc">{{ drink.description }}</p>
+            }
+          </div>
+        </div>
+
+        <!-- Aromatic & Dietary Tags -->
+        <div class="cocktail-details-tags">
+          @if (drink.isMocktail || drink.categorie === 'SANS_ALCOOL') {
+            <span class="product-dietary-tag mocktail-tag">🍹 {{ 'COCKTAILS.MOCKTAIL' | transloco }}</span>
+          } @else if (drink.alcoholLevel != null && drink.alcoholLevel > 0) {
+            <span class="product-dietary-tag abv-tag">🍸 {{ drink.alcoholLevel }}% ABV</span>
+          }
+          @if (drink.isVegan) {
+            <span class="product-dietary-tag vegan-tag">🌱 {{ 'COCKTAILS.VEGAN' | transloco }}</span>
+          }
+          @if (drink.isGlutenFree) {
+            <span class="product-dietary-tag gluten-free-tag">🌾 {{ 'COCKTAILS.GLUTEN_FREE' | transloco }}</span>
+          }
+          @for (flavor of drink.flavorProfiles || []; track flavor) {
+            <span class="product-flavor-tag">{{ ('COCKTAIL.FLAVOR_' + flavor) | transloco }}</span>
+          }
+        </div>
+
+        <!-- Glassware Section -->
+        @if (hasGlassware(drink)) {
+          <div class="cocktail-glassware-section" data-testid="cocktail-glassware-section">
+            <span class="glassware-section-label">🍸 {{ 'COCKTAILS.GLASSWARE_SECTION_TITLE' | transloco }}</span>
+            <div class="glassware-chips-list">
+              @if (drink.glasses && drink.glasses.length > 0) {
+                @for (glass of drink.glasses; track glass.id || glass.glassOrder) {
+                  <span class="glassware-item-chip" [class.primary-glass]="glass.isPrimary" data-testid="cocktail-glass-chip">
+                    {{ glass.isPrimary ? '🍸' : '🥃' }}
+                    {{ glass.roleLabel || glass.glasswareNom }}
+                  </span>
+                }
+              } @else {
+                @if (drink.glassware) {
+                  <span class="glassware-item-chip primary-glass" data-testid="cocktail-glass-chip">
+                    🍸 {{ drink.glassware.nom }}
+                  </span>
+                }
+                @if (drink.secondaryGlassware || drink.companionGlassTitle) {
+                  <span class="glassware-item-chip companion-glass" data-testid="cocktail-glass-chip">
+                    🥃 {{ drink.companionGlassTitle || drink.secondaryGlassware?.nom }}
+                  </span>
+                }
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Ingredients Section (strictly WITHOUT recipe quantities or units) -->
+        <div class="cocktail-ingredients-section" data-testid="cocktail-ingredients-section">
+          <div class="ingredients-section-header">
+            <span class="ingredients-section-icon">🌿</span>
+            <div>
+              <h3 class="ingredients-section-title">{{ 'CLIENT.INGREDIENTS_SECTION_TITLE' | transloco }}</h3>
+              <p class="ingredients-section-subtitle">{{ 'CLIENT.INGREDIENTS_SECTION_SUBTITLE' | transloco }}</p>
+            </div>
+          </div>
+
+          <div class="ingredients-list" data-testid="cocktail-ingredients-list">
+            @for (ing of drink.ingredients; track ing.id || ing.ingredientId || ing.ingredientNom) {
+              <div class="ingredient-item-chip" data-testid="cocktail-ingredient-item">
+                <span class="ingredient-bullet"></span>
+                <span class="ingredient-name" data-testid="ingredient-name">{{ ing.ingredientNom }}</span>
+                @if (ing.allergens && ing.allergens.length > 0) {
+                  <span class="ingredient-allergen-badge" data-testid="ingredient-allergen-badge">
+                    ⚠️ {{ ing.allergens.join(', ') }}
+                  </span>
+                }
+              </div>
+            } @empty {
+              <p class="empty-ingredients-text" data-testid="empty-ingredients-text">
+                {{ 'CLIENT.NO_INGREDIENTS_LISTED' | transloco }}
+              </p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Sticky Bottom-Sheet Footer -->
+      <div slot="footer" class="cocktail-details-footer">
+        <div class="details-cart-controls">
+          @if (quantity > 0) {
+            <app-action-button
+              variant="secondary"
+              size="small"
+              icon="remove-outline"
+              iconSlot="icon-only"
+              testId="modal-cocktail-minus"
+              (btnClick)="onRemove()">
+            </app-action-button>
+            <span class="quantity-badge" data-testid="modal-cocktail-qty">{{ quantity }}</span>
+            <app-action-button
+              variant="primary"
+              size="small"
+              icon="add-outline"
+              iconSlot="icon-only"
+              testId="modal-cocktail-plus"
+              (btnClick)="onAdd()">
+            </app-action-button>
+          } @else {
+            <app-action-button
+              variant="primary"
+              size="medium"
+              icon="add-outline"
+              testId="modal-cocktail-plus"
+              (btnClick)="onAdd()">
+              {{ 'CLIENT.ADD_TO_CART_BTN' | transloco }}
+            </app-action-button>
+          }
+        </div>
+
+        <app-action-button
+          variant="secondary"
+          size="medium"
+          testId="btn-close-details-footer"
+          (btnClick)="onClose()">
+          {{ 'CLIENT.CLOSE_DETAILS_BTN' | transloco }}
+        </app-action-button>
+      </div>
+    </app-modal>
+      </div>
+    }
+  </ng-template>
+</ion-modal>

@@ -69,6 +69,12 @@ export class ProductCardComponent {
   /** Name of the secondary glassware entity. */
   @Input() secondaryGlasswareNom?: string;
 
+  /** Whether to render the card in dense compact grid mode for mobile browsing. */
+  @Input() compact = false;
+
+  /** Default fallback glassware asset when no cocktail image is set or loading fails. */
+  readonly fallbackImageUrl = 'assets/images/verres/verre_tumbler.png';
+
   /** Event emitted when the add/increment button is clicked. */
   @Output() addClick = new EventEmitter<void>();
 
@@ -77,6 +83,13 @@ export class ProductCardComponent {
 
   /** Event emitted when the card is clicked to inspect cocktail details / ingredients. */
   @Output() cardClick = new EventEmitter<void>();
+
+  /**
+   * Resolves the effective image source URL with fallback glassware icon when missing.
+   */
+  get effectiveImageUrl(): string {
+    return this.resolveImageUrl(this.imageUrl) || this.fallbackImageUrl;
+  }
 
   get companionDescription(): string | null {
     return this.companionGlassTitle?.trim() || this.secondaryGlasswareNom?.trim() || null;
@@ -112,7 +125,22 @@ export class ProductCardComponent {
    * @param event Optional triggering event
    */
   onCardClick(event?: Event): void {
+    if (event instanceof KeyboardEvent && event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
     this.cardClick.emit();
+  }
+
+  /**
+   * Replaces broken image sources with the standard glassware fallback asset.
+   *
+   * @param event Image error event
+   */
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement | null;
+    if (img && !img.src.endsWith(this.fallbackImageUrl)) {
+      img.src = this.fallbackImageUrl;
+    }
   }
 
   /**

@@ -81,7 +81,7 @@
       data-testid="invite-modal-backdrop">
       <div class="step-card invite-card" data-testid="invite-friends-modal">
         <div class="modal-close-bar">
-          <button type="button" class="modal-close-btn" (click)="closeInviteModal()" aria-label="Fermer" data-testid="btn-close-invite-modal">
+          <button type="button" class="modal-close-btn" (click)="closeInviteModal()" [attr.aria-label]="'COMMON.CLOSE' | transloco" data-testid="btn-close-invite-modal">
             <ion-icon name="close-outline"></ion-icon>
           </button>
         </div>
@@ -148,175 +148,16 @@
   }
 
   <!-- Modale Détails du Cocktail & Ingrédients (sans quantités) -->
-  @if (selectedCocktailForDetails(); as cocktail) {
-    <dialog
-      class="nickname-modal-backdrop cocktail-details-dialog"
-      open
-      (keydown.escape)="closeCocktailDetails()"
-      (click)="onDetailsBackdropClick($event)"
-      data-testid="cocktail-details-modal">
-      <div class="step-card cocktail-details-card" data-testid="cocktail-details-card" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
-        <div class="modal-close-bar">
-          <button type="button" class="modal-close-btn" (click)="closeCocktailDetails()" aria-label="Fermer" data-testid="btn-close-cocktail-details">
-            <ion-icon name="close-outline"></ion-icon>
-          </button>
-        </div>
-
-        @if (cocktail.imageUrl) {
-          <div class="cocktail-details-image-wrapper">
-            <img
-              [src]="cocktail.imageUrl"
-              [alt]="cocktail.nom"
-              class="cocktail-details-img"
-              (error)="$any($event.target).src = 'assets/images/verres/verre_tumbler.png'"
-              data-testid="cocktail-details-image" />
-          </div>
-        }
-
-        <div class="cocktail-details-header">
-          <div class="cocktail-details-title-row">
-            <h2 class="cocktail-details-title" data-testid="cocktail-details-title">{{ cocktail.nom }}</h2>
-            <span class="product-category-pill" [ngStyle]="getCategoryPillStyle(cocktail.categorie)" data-testid="cocktail-details-category">
-              <span class="dot-indicator" [style.background-color]="getCategoryDotColor(cocktail.categorie)"></span>
-              {{ ('COCKTAILS.CATEGORIES.' + cocktail.categorie) | transloco }}
-            </span>
-          </div>
-
-          <div class="cocktail-details-price-row">
-            @if (isHappyHour(cocktail) && cocktail.prix > getEffectivePrice(cocktail)) {
-              <span class="original-price-struck" data-testid="cocktail-details-original-price">
-                {{ cocktail.prix | appCurrency }}
-              </span>
-              <span class="happy-hour-badge" data-testid="cocktail-details-hh-badge">
-                {{ 'PRICING.HAPPY_HOUR_BADGE' | transloco }}
-              </span>
-              @if (getDiscountPercentage(cocktail)) {
-                <span class="discount-percent-badge" data-testid="cocktail-details-discount-badge">
-                  -{{ getDiscountPercentage(cocktail) }}%
-                </span>
-              }
-            }
-            <span class="cocktail-details-price" [class.discounted]="isHappyHour(cocktail)" data-testid="cocktail-details-price">
-              {{ getEffectivePrice(cocktail) | appCurrency }}
-            </span>
-          </div>
-
-          @if (cocktail.description) {
-            <p class="cocktail-details-desc" data-testid="cocktail-details-desc">{{ cocktail.description }}</p>
-          }
-
-          <!-- Profils aromatiques et diététiques -->
-          <div class="cocktail-details-tags">
-            @if (cocktail.isMocktail || cocktail.categorie === 'SANS_ALCOOL') {
-              <span class="product-dietary-tag mocktail-tag">🍹 {{ 'COCKTAILS.MOCKTAIL' | transloco }}</span>
-            } @else if (cocktail.alcoholLevel != null && cocktail.alcoholLevel > 0) {
-              <span class="product-dietary-tag abv-tag">🍸 {{ cocktail.alcoholLevel }}% ABV</span>
-            }
-            @if (cocktail.isVegan) {
-              <span class="product-dietary-tag vegan-tag">🌱 {{ 'COCKTAILS.VEGAN' | transloco }}</span>
-            }
-            @if (cocktail.isGlutenFree) {
-              <span class="product-dietary-tag gluten-free-tag">🌾 {{ 'COCKTAILS.GLUTEN_FREE' | transloco }}</span>
-            }
-            @for (flavor of cocktail.flavorProfiles || []; track flavor) {
-              <span class="product-flavor-tag">{{ ('COCKTAIL.FLAVOR_' + flavor) | transloco }}</span>
-            }
-          </div>
-
-          @if (cocktail.glassware || cocktail.secondaryGlassware || (cocktail.glasses && cocktail.glasses.length > 0)) {
-            <div class="cocktail-glassware-section" data-testid="cocktail-glassware-section">
-              <span class="glassware-section-label">🍸 {{ 'COCKTAILS.GLASSWARE_SECTION_TITLE' | transloco }} :</span>
-              <div class="glassware-chips-list">
-                @if (cocktail.glasses && cocktail.glasses.length > 0) {
-                  @for (glass of cocktail.glasses; track glass.id || glass.glassOrder) {
-                    <span class="glassware-item-chip" [class.primary-glass]="glass.isPrimary" data-testid="cocktail-glass-chip">
-                      {{ glass.isPrimary ? '🍸' : '🥃' }}
-                      {{ glass.roleLabel || glass.glasswareNom }}
-                    </span>
-                  }
-                } @else {
-                  @if (cocktail.glassware) {
-                    <span class="glassware-item-chip primary-glass" data-testid="cocktail-glass-chip">
-                      🍸 {{ cocktail.glassware.nom }}
-                    </span>
-                  }
-                  @if (cocktail.secondaryGlassware || cocktail.companionGlassTitle) {
-                    <span class="glassware-item-chip companion-glass" data-testid="cocktail-glass-chip">
-                      🥃 {{ cocktail.companionGlassTitle || cocktail.secondaryGlassware?.nom }}
-                    </span>
-                  }
-                }
-              </div>
-            </div>
-          }
-        </div>
-
-        <!-- Section Ingrédients (strictement SANS quantités) -->
-        <div class="cocktail-ingredients-section" data-testid="cocktail-ingredients-section">
-          <div class="ingredients-section-header">
-            <span class="ingredients-section-icon">🌿</span>
-            <div>
-              <h3 class="ingredients-section-title">{{ 'CLIENT.INGREDIENTS_SECTION_TITLE' | transloco }}</h3>
-              <p class="ingredients-section-subtitle">{{ 'CLIENT.INGREDIENTS_SECTION_SUBTITLE' | transloco }}</p>
-            </div>
-          </div>
-
-          <div class="ingredients-list" data-testid="cocktail-ingredients-list">
-            @for (ing of cocktail.ingredients; track ing.id || ing.ingredientId || ing.ingredientNom) {
-              <div class="ingredient-item-chip" data-testid="cocktail-ingredient-item">
-                <span class="ingredient-bullet"></span>
-                <span class="ingredient-name" data-testid="ingredient-name">{{ ing.ingredientNom }}</span>
-                @if (ing.allergens && ing.allergens.length > 0) {
-                  <span class="ingredient-allergen-badge" data-testid="ingredient-allergen-badge">
-                    ⚠️ {{ ing.allergens.join(', ') }}
-                  </span>
-                }
-              </div>
-            } @empty {
-              <p class="empty-ingredients-text" data-testid="empty-ingredients-text">
-                {{ 'CLIENT.NO_INGREDIENTS_LISTED' | transloco }}
-              </p>
-            }
-          </div>
-        </div>
-
-        <!-- Actions de la modale (quantité & fermeture) -->
-        <div class="cocktail-details-footer">
-          <div class="details-cart-controls">
-            <div class="quantity-stepper-mini modal-stepper">
-              @if (getItemQuantity(cocktail.id) > 0) {
-                <button
-                  type="button"
-                  class="stepper-btn btn-minus"
-                  (click)="removeFromCart(cocktail.id)"
-                  aria-label="Decrease quantity"
-                  data-testid="modal-cocktail-minus">
-                  <ion-icon name="remove-outline"></ion-icon>
-                </button>
-                <span class="quantity-badge" data-testid="modal-cocktail-qty">{{ getItemQuantity(cocktail.id) }}</span>
-              }
-              <button
-                type="button"
-                class="stepper-btn btn-plus"
-                (click)="addToCart(cocktail)"
-                aria-label="Increase quantity"
-                data-testid="modal-cocktail-plus">
-                <ion-icon name="add-outline"></ion-icon>
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            class="details-close-btn"
-            (click)="closeCocktailDetails()"
-            data-testid="btn-close-details-footer">
-            {{ 'CLIENT.CLOSE_DETAILS_BTN' | transloco }}
-          </button>
-        </div>
-      </div>
-    </dialog>
-  }
+  <app-client-cocktail-detail-modal
+    [cocktail]="selectedCocktailForDetails()"
+    [quantity]="selectedCocktailQuantity"
+    [effectivePrice]="selectedCocktailEffectivePrice"
+    [isHappyHour]="selectedCocktailIsHappyHour"
+    [discountPercentage]="selectedCocktailDiscountPercentage"
+    (closed)="closeCocktailDetails()"
+    (addItem)="addToCart($event)"
+    (removeItem)="removeFromCart($event)">
+  </app-client-cocktail-detail-modal>
 
   <!-- Modale Hôte : Validation des demandes pour rejoindre la table -->
   @if (isSessionValid && tableCartService.isOwner() && tableCartService.pendingJoinRequests().length > 0) {
@@ -506,19 +347,6 @@
           (openPayment)="openPaymentModal()">
         </app-table-assistance-bar>
 
-        @if (isQrPayAtTableEnabled() && tableNumero) {
-          <div class="pay-at-table-action-box">
-            <button
-              type="button"
-              class="pay-at-table-trigger-btn"
-              data-testid="btn-pay-at-table-trigger"
-              (click)="openPaymentModal()">
-              <ion-icon name="card-outline"></ion-icon>
-              <span>{{ 'CLIENT.PAYMENT.LAUNCHER_BTN' | transloco }}</span>
-            </button>
-          </div>
-        }
-
         @if (isSafetyModuleEnabled() && tableNumero) {
           <div class="discreet-safety-container">
             <button
@@ -560,42 +388,58 @@
         </div>
       }
 
-      <!-- Mystery Drink Gamification Hero Banner -->
-      @if (isMysteryRouletteEnabled) {
-        <div class="roulette-hero-card" data-testid="roulette-hero-card">
-          <div class="roulette-hero-content">
-            <div class="roulette-hero-icon-box">
-              <span class="roulette-dice-icon">🎲</span>
-            </div>
-            <div class="roulette-hero-text">
-              <div class="roulette-hero-title-row">
-                <h2 class="roulette-hero-title">{{ 'ROULETTE.TITLE' | transloco }}</h2>
-                <span class="roulette-hero-badge">{{ 'ROULETTE.HERO_BADGE' | transloco }}</span>
-              </div>
-              <p class="roulette-hero-desc">{{ 'ROULETTE.SUBTITLE_INDECISIVE' | transloco }}</p>
-            </div>
-            <button
-              type="button"
-              class="roulette-hero-cta-btn"
-              (click)="openRouletteModal()"
-              data-testid="btn-hero-open-roulette"
-            >
-              <ion-icon name="sparkles-outline" aria-hidden="true"></ion-icon>
-              <span>{{ 'ROULETTE.HERO_CTA' | transloco }}</span>
-            </button>
-          </div>
+      <!-- Search, Filters Toggle & View Mode Switch -->
+      <div class="menu-controls-toolbar">
+        <div class="search-bar-wrapper">
+          <app-search-bar
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="applyCombinedFilters()"
+            [placeholder]="'COCKTAILS.SEARCH_PLACEHOLDER' | transloco"
+            [debounce]="0"
+            testId="client-cocktail-search-input">
+          </app-search-bar>
         </div>
-      }
 
-      <!-- Search Bar -->
-      <div class="search-bar-wrapper">
-        <app-search-bar
-          [(ngModel)]="searchQuery"
-          (ngModelChange)="applyCombinedFilters()"
-          [placeholder]="'COCKTAILS.SEARCH_PLACEHOLDER' | transloco"
-          [debounce]="0"
-          testId="client-cocktail-search-input">
-        </app-search-bar>
+        <div class="toolbar-actions-group">
+          <app-action-button
+            type="button"
+            [variant]="activeAdvancedFiltersCount > 0 || isAdvancedFiltersOpen() ? 'primary' : 'secondary'"
+            size="small"
+            icon="options-outline"
+            [title]="'CLIENT.FILTERS_TOGGLE_ARIA' | transloco"
+            (btnClick)="toggleAdvancedFilters()"
+            testId="btn-toggle-advanced-filters">
+            <span class="filters-btn-label">{{ 'CLIENT.FILTERS_BTN' | transloco }}</span>
+            @if (activeAdvancedFiltersCount > 0) {
+              <span class="filters-count-badge" data-testid="advanced-filters-count-badge">
+                {{ activeAdvancedFiltersCount }}
+              </span>
+            }
+          </app-action-button>
+
+          <ion-segment
+            mode="ios"
+            class="view-mode-segment"
+            [value]="viewMode()"
+            (ionChange)="onViewModeSegmentChange($event)"
+            [attr.aria-label]="'CLIENT.VIEW_MODE_TOGGLE_ARIA' | transloco"
+            data-testid="menu-view-mode-toggle">
+            <ion-segment-button
+              value="compact"
+              [title]="'CLIENT.VIEW_MODE_COMPACT' | transloco"
+              [attr.aria-label]="'CLIENT.VIEW_MODE_COMPACT' | transloco"
+              data-testid="btn-view-mode-compact">
+              <ion-icon name="grid-outline"></ion-icon>
+            </ion-segment-button>
+            <ion-segment-button
+              value="detailed"
+              [title]="'CLIENT.VIEW_MODE_DETAILED' | transloco"
+              [attr.aria-label]="'CLIENT.VIEW_MODE_DETAILED' | transloco"
+              data-testid="btn-view-mode-detailed">
+              <ion-icon name="list-outline"></ion-icon>
+            </ion-segment-button>
+          </ion-segment>
+        </div>
       </div>
 
       <!-- Figma Category Dot Filter Pills -->
@@ -614,49 +458,53 @@
         }
       </div>
 
-      <!-- Allergen Filter Pills Row -->
-      <div class="allergen-pills-row" data-testid="allergen-filter-section">
-        <span class="allergen-filter-label">
-          <ion-icon name="funnel-outline"></ion-icon>
-          {{ 'COCKTAILS.ALLERGENS.EXCLUDE_LABEL' | transloco }}
-        </span>
-        @for (allergen of availableAllergens; track allergen.key) {
-          <button
-            type="button"
-            class="figma-allergen-pill"
-            [class.excluded]="selectedAllergens.includes(allergen.key)"
-            (click)="toggleAllergenFilter(allergen.key)"
-            [attr.data-testid]="'allergen-filter-' + allergen.key.toLowerCase()">
-            <ion-icon [name]="allergen.icon"></ion-icon>
-            {{ 'COCKTAILS.ALLERGENS.SANS_PREFIX' | transloco }} {{ allergen.labelKey | transloco }}
-            @if (selectedAllergens.includes(allergen.key)) {
-              <span class="allergen-close-icon">✕</span>
+      <!-- Collapsible Advanced Filters Panel (Allergens + Flavor/Dietary Matcher) -->
+      @if (isAdvancedFiltersOpen()) {
+        <div class="advanced-filters-panel" data-testid="advanced-filters-panel">
+          <div class="allergen-pills-row" data-testid="allergen-filter-section">
+            <span class="allergen-filter-label">
+              <ion-icon name="funnel-outline"></ion-icon>
+              {{ 'COCKTAILS.ALLERGENS.EXCLUDE_LABEL' | transloco }}
+            </span>
+            @for (allergen of availableAllergens; track allergen.key) {
+              <button
+                type="button"
+                class="figma-allergen-pill"
+                [class.excluded]="selectedAllergens.includes(allergen.key)"
+                (click)="toggleAllergenFilter(allergen.key)"
+                [attr.data-testid]="'allergen-filter-' + allergen.key.toLowerCase()">
+                <ion-icon [name]="allergen.icon"></ion-icon>
+                {{ 'COCKTAILS.ALLERGENS.SANS_PREFIX' | transloco }} {{ allergen.labelKey | transloco }}
+                @if (selectedAllergens.includes(allergen.key)) {
+                  <span class="allergen-close-icon">✕</span>
+                }
+              </button>
             }
-          </button>
-        }
-        @if (selectedAllergens.length > 0) {
-          <button
-            type="button"
-            class="figma-clear-allergens-btn"
-            (click)="clearAllergenFilters()"
-            data-testid="clear-allergen-filters-btn">
-            <ion-icon name="close-circle-outline"></ion-icon>
-            {{ 'COCKTAILS.ALLERGENS.CLEAR_ALL' | transloco }}
-          </button>
-        }
-      </div>
+            @if (selectedAllergens.length > 0) {
+              <button
+                type="button"
+                class="figma-clear-allergens-btn"
+                (click)="clearAllergenFilters()"
+                data-testid="clear-allergen-filters-btn">
+                <ion-icon name="close-circle-outline"></ion-icon>
+                {{ 'COCKTAILS.ALLERGENS.CLEAR_ALL' | transloco }}
+              </button>
+            }
+          </div>
 
-      <!-- Interactive Cocktail Matcher Filter Bar -->
-      <app-cocktail-matcher-bar
-        [facets]="catalogFacets"
-        [activeFlavors]="selectedFlavors"
-        [mocktail]="filterMocktail"
-        [vegan]="filterVegan"
-        [glutenFree]="filterGlutenFree"
-        [lowAbv]="filterLowAbv"
-        (filtersChange)="onMatcherFiltersChange($event)"
-        (resetFilters)="onResetMatcherFilters()">
-      </app-cocktail-matcher-bar>
+          <app-cocktail-matcher-bar
+            [compact]="isMobileViewport()"
+            [facets]="catalogFacets"
+            [activeFlavors]="selectedFlavors"
+            [mocktail]="filterMocktail"
+            [vegan]="filterVegan"
+            [glutenFree]="filterGlutenFree"
+            [lowAbv]="filterLowAbv"
+            (filtersChange)="onMatcherFiltersChange($event)"
+            (resetFilters)="onResetMatcherFilters()">
+          </app-cocktail-matcher-bar>
+        </div>
+      }
 
       @if (isLoading) {
         <div class="loading-box">
@@ -664,7 +512,12 @@
           <p>{{ 'COMMON.LOADING' | transloco }}</p>
         </div>
       } @else {
-        <div class="cocktails-grid">
+        <div
+          class="cocktails-grid"
+          [class.compact-grid]="viewMode() === 'compact'"
+          [class.detailed-grid]="viewMode() === 'detailed'"
+          [attr.data-view-mode]="viewMode()"
+          data-testid="cocktails-grid">
           @for (cocktail of filteredCocktails; track cocktail.id) {
             <app-product-card
               [title]="cocktail.nom"
@@ -682,6 +535,7 @@
               [quantity]="getItemQuantity(cocktail.id)"
               [companionGlassTitle]="cocktail.companionGlassTitle"
               [secondaryGlasswareNom]="cocktail.secondaryGlassware?.nom"
+              [compact]="viewMode() === 'compact'"
               (cardClick)="openCocktailDetails(cocktail)"
               (addClick)="addToCart(cocktail)"
               (removeClick)="removeFromCart(cocktail.id)"
@@ -712,21 +566,6 @@
             <button class="recap-btn" (click)="goToRecap()" data-testid="btn-view-recap">{{ 'CLIENT.VIEW_RECAP' | transloco }}</button>
           </div>
         </div>
-      }
-
-      <!-- Floating Roulette Quick Action Button -->
-      @if (isMysteryRouletteEnabled) {
-        <button
-          type="button"
-          class="floating-roulette-fab"
-          [class.above-cart]="totalItemsCount > 0"
-          (click)="openRouletteModal()"
-          [attr.aria-label]="'ROULETTE.TITLE' | transloco"
-          data-testid="floating-roulette-fab"
-        >
-          <span class="fab-dice">🎲</span>
-          <span class="fab-text">{{ 'ROULETTE.TITLE' | transloco }}</span>
-        </button>
       }
     </div>
   }
@@ -868,7 +707,7 @@
       data-testid="table-orders-modal">
       <div class="step-card table-orders-card" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
         <div class="modal-close-bar">
-          <button type="button" class="modal-close-btn" (click)="closeTableOrdersModal()" aria-label="Fermer" data-testid="btn-close-table-orders">
+          <button type="button" class="modal-close-btn" (click)="closeTableOrdersModal()" [attr.aria-label]="'COMMON.CLOSE' | transloco" data-testid="btn-close-table-orders">
             <ion-icon name="close-outline"></ion-icon>
           </button>
         </div>

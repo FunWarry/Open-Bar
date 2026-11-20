@@ -9,7 +9,7 @@
       }
       <div class="modal-title-group">
         <div class="modal-title-row">
-          <h2 class="modal-title" data-testid="app-modal-title">{{ title }}</h2>
+          <h2 class="modal-title" [attr.data-testid]="titleTestId">{{ title }}</h2>
           @if (badgeText) {
             <span class="modal-badge" data-testid="app-modal-badge">{{ badgeText }}</span>
           }
