@@ -2,6 +2,35 @@
   display: block;
 }
 
+.remote-access-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+
+  .remote-access-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    .section-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .section-hint {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+  }
+}
+
 .user-dialog-form {
   display: flex;
   flex-direction: column;

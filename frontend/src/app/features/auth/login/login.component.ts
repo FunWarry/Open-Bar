@@ -13,6 +13,7 @@ import { InputFieldComponent } from '../../../core/components/ui/input-field/inp
 import { PasswordInputComponent } from '../../../core/components/ui/password-input/password-input.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { BrandLogoComponent } from '../../../core/components/ui/brand-logo/brand-logo.component';
+import { WhiteLabelBrandingService } from '../../../core/services/white-label-branding.service';
 
 /**
  * Login Component allowing users to sign in to their OpenBar workspace.
@@ -40,6 +41,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   private readonly setupService = inject(SetupService);
   private readonly authService = inject(AuthService);
   private readonly onboardingService = inject(OnboardingService);
+  readonly brandingService = inject(WhiteLabelBrandingService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   constructor(

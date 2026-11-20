@@ -62,6 +62,7 @@ import { ClientCocktailDetailModalComponent } from '../components/client-cocktai
 import { HappyHourBannerComponent } from '../components/happy-hour-banner/happy-hour-banner.component';
 import { BrandLogoComponent } from '../../../core/components/ui/brand-logo/brand-logo.component';
 import { PaymentSuccessResponse } from '../../../core/models/payment.model';
+import { WhiteLabelBrandingService } from '../../../core/services/white-label-branding.service';
 
 const MOBILE_BREAKPOINT_PX = 768;
 const VIEW_MODE_STORAGE_KEY = 'openbar_client_menu_view_mode';
@@ -122,6 +123,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   private readonly toastCtrl = inject(ToastController);
   private readonly modalCtrl = inject(ModalController, { optional: true });
   private readonly featureFlagService = inject(FeatureFlagService, { optional: true });
+  readonly brandingService = inject(WhiteLabelBrandingService);
   private readonly translocoService = inject(TranslocoService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();

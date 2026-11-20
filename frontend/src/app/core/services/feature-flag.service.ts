@@ -32,6 +32,7 @@ const DEFAULT_MODULES: EstablishmentModules = {
   qrPayAtTable: true,
   facturXInvoiceImport: true,
   stripeTerminalConnect: true,
+  cloudRelay: true,
 };
 
 /**
@@ -116,6 +117,9 @@ export class FeatureFlagService implements OnDestroy {
     () => this.modules().stripeTerminalConnect && this.modules().paymentTerminal
   );
 
+  /** Computed signal for CLOUD_RELAY capability status. */
+  readonly cloudRelayEnabled = computed(() => this.modules().cloudRelay);
+
   constructor() {
     this.initWebSocketSubscription();
     this.loadModules().subscribe();
@@ -175,6 +179,8 @@ export class FeatureFlagService implements OnDestroy {
         return current.facturXInvoiceImport && current.suppliersManagement;
       case EstablishmentModule.STRIPE_TERMINAL_CONNECT:
         return current.stripeTerminalConnect && current.paymentTerminal;
+      case EstablishmentModule.CLOUD_RELAY:
+        return current.cloudRelay;
       default:
         return true;
     }
@@ -310,6 +316,9 @@ export class FeatureFlagService implements OnDestroy {
         break;
       case EstablishmentModule.STRIPE_TERMINAL_CONNECT:
         current.stripeTerminalConnect = enabled;
+        break;
+      case EstablishmentModule.CLOUD_RELAY:
+        current.cloudRelay = enabled;
         break;
     }
     return this.updateModules(current);

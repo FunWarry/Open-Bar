@@ -81,6 +81,18 @@ export interface AppSettings {
   smtpFrom?: string;
   smtpAuth?: boolean;
   smtpStarttls?: boolean;
+  cloudRelayEnabled?: boolean;
+  venueSlug?: string;
+  customDomain?: string;
+  bannerImageUrl?: string | null;
+  relayPairingToken?: string;
+  relayPairingTokenConfigured?: boolean;
+  cloudRelayClientsEnabled?: boolean;
+  cloudRelayStaffEnabled?: boolean;
+  cloudRelayAdminEnabled?: boolean;
+  cloudRelayRemoteTpeEnabled?: boolean;
+  cloudRelayRemotePrintingEnabled?: boolean;
+  cloudRelayAllowedRolesJson?: string;
   updatedAt: string | null;
 }
 

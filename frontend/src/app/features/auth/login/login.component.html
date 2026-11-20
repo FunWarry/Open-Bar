@@ -3,38 +3,39 @@
   <div class="ambient-glow glow-2"></div>
 
   <div class="login-card">
+    @if (brandingService.bannerImageUrl()) {
+    <div class="login-white-label-banner" data-testid="login-white-label-banner">
+      <img [src]="brandingService.bannerImageUrl()" [alt]="brandingService.establishmentName()" />
+    </div>
+    }
     <div class="card-brand">
+      @if (brandingService.logoUrl()) {
+      <img [src]="brandingService.logoUrl()" [alt]="brandingService.establishmentName()"
+        class="login-venue-logo" data-testid="login-venue-logo" />
+      } @else {
       <app-brand-logo variant="full" size="xl" testId="login-brand-logo"></app-brand-logo>
-      <h1 class="sr-only login-title">OpenBar</h1>
+      }
+      <h1 class="sr-only login-title">{{ brandingService.establishmentName() }}</h1>
+      @if (brandingService.establishmentName() !== 'OpenBar') {
+      <span class="login-venue-badge" data-testid="login-venue-branding">{{ brandingService.establishmentName() }}</span>
+      }
     </div>
     <p class="login-subtitle">{{ 'AUTH.LOGIN_TITLE' | transloco }}</p>
 
     <div class="divider"></div>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-      <app-input-field
-        formControlName="username"
-        [label]="'AUTH.USERNAME' | transloco"
-        placeholder="admin@openbar.local"
-        icon="mail-outline"
-        [required]="true"
-        autocomplete="username"
-        testId="login-username"
-        [errorMessage]="
+      <app-input-field formControlName="username" [label]="'AUTH.USERNAME' | transloco"
+        placeholder="admin@openbar.local" icon="mail-outline" [required]="true" autocomplete="username"
+        testId="login-username" [errorMessage]="
           loginForm.get('username')?.touched && loginForm.get('username')?.hasError('required')
             ? ('AUTH.REQUIRED_USER' | transloco)
             : undefined
         ">
       </app-input-field>
 
-      <app-password-input
-        formControlName="password"
-        [label]="'AUTH.PASSWORD' | transloco"
-        placeholder="••••••••"
-        [required]="true"
-        autocomplete="current-password"
-        testId="login-password"
-        [errorMessage]="
+      <app-password-input formControlName="password" [label]="'AUTH.PASSWORD' | transloco" placeholder="••••••••"
+        [required]="true" autocomplete="current-password" testId="login-password" [errorMessage]="
           loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required')
             ? ('AUTH.REQUIRED_PASS' | transloco)
             : undefined
@@ -42,21 +43,16 @@
       </app-password-input>
 
       @if (errorMessage) {
-        <div class="error-toast" data-testid="login-error">
-          <div class="toast-accent"></div>
-          <div class="toast-content">
-            <span class="toast-icon">✕</span>
-            <span class="toast-message">{{ errorMessage }}</span>
-          </div>
+      <div class="error-toast" data-testid="login-error">
+        <div class="toast-accent"></div>
+        <div class="toast-content">
+          <span class="toast-icon">✕</span>
+          <span class="toast-message">{{ errorMessage }}</span>
         </div>
+      </div>
       }
 
-      <app-action-button
-        type="submit"
-        variant="primary"
-        size="large"
-        expand="block"
-        testId="login-btn"
+      <app-action-button type="submit" variant="primary" size="large" expand="block" testId="login-btn"
         [disabled]="loginForm.invalid">
         {{ 'AUTH.LOGIN_BTN' | transloco }}
       </app-action-button>

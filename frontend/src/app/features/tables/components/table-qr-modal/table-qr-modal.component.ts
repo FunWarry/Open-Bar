@@ -102,7 +102,10 @@ export class TableQrModalComponent implements OnInit, OnDestroy {
     if (!this.table) {
       return;
     }
-    const baseUrl = this.settings?.clientBaseUrl || (typeof window !== 'undefined' ? window.location.origin : 'https://openbar.lan');
+    const baseUrl =
+      this.appSettingsService.getEffectiveClientBaseUrl?.(this.settings)
+      || this.settings?.clientBaseUrl
+      || (typeof window !== 'undefined' ? window.location.origin : 'https://openbar.lan');
     const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     this.orderUrl = `${cleanBase}/client/commande?table=${this.table.numero}`;
   }

@@ -9,7 +9,7 @@ import {
   Validators
 } from '@angular/forms';
 import { User } from '../../../../core/models/user.model';
-import { ModalController, IonIcon } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   close,
@@ -30,6 +30,7 @@ import { InputFieldComponent } from '../../../../core/components/ui/input-field/
 import { PasswordInputComponent } from '../../../../core/components/ui/password-input/password-input.component';
 import { FilterChipComponent } from '../../../../core/components/ui/filter-chip/filter-chip.component';
 import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
+import { ToggleSwitchComponent } from '../../../../core/components/ui/toggle-switch/toggle-switch.component';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
@@ -60,7 +61,7 @@ interface AvailableRoleItem {
     PasswordInputComponent,
     FilterChipComponent,
     ActionButtonComponent,
-    IonIcon,
+    ToggleSwitchComponent,
     TranslocoPipe
   ]
 })
@@ -106,7 +107,8 @@ export class UserDialogComponent implements OnInit {
         email: ['', [Validators.required, Validators.email]],
         password: ['', [Validators.minLength(6)]],
         confirmPassword: [''],
-        roles: [[], [Validators.required, Validators.minLength(1)]]
+        roles: [[], [Validators.required, Validators.minLength(1)]],
+        remoteAccessEnabled: [true]
       },
       { validators: [this.passwordMatchValidator] }
     );
@@ -119,7 +121,8 @@ export class UserDialogComponent implements OnInit {
         nom: this.data.nom || '',
         prenom: this.data.prenom || '',
         email: this.data.email,
-        roles: this.data.roles || []
+        roles: this.data.roles || [],
+        remoteAccessEnabled: this.data.remoteAccessEnabled ?? true
       });
       this.userForm.get('password')?.clearValidators();
       this.userForm.get('confirmPassword')?.clearValidators();
