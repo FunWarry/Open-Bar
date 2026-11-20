@@ -22,6 +22,7 @@ import * as allIcons from 'ionicons/icons';
 import { StartupReadinessService } from './core/services/startup-readiness.service';
 import { StartupOverlayComponent } from './core/components/startup-overlay/startup-overlay.component';
 import { ModalHistoryService } from './core/services/modal-history.service';
+import { BrandLogoComponent } from './core/components/ui/brand-logo/brand-logo.component';
 
 /**
  * Root component of the OpenBar application.
@@ -34,7 +35,8 @@ import { ModalHistoryService } from './core/services/modal-history.service';
   styleUrls: ['./app.component.css'],
   imports: [
     RouterOutlet, NavbarComponent, SidebarComponent, NotificationPanelComponent,
-    AsyncPipe, UpperCasePipe, TranslocoModule, IonIcon, StartupOverlayComponent
+    AsyncPipe, UpperCasePipe, TranslocoModule, IonIcon, StartupOverlayComponent,
+    BrandLogoComponent
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true

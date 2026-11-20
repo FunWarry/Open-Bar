@@ -29,7 +29,6 @@ import { ThemeService } from '../../services/theme.service';
 import { AudioSettingsPopoverComponent } from '../audio-settings/audio-settings-popover.component';
 import { FeatureFlagService } from '../../services/feature-flag.service';
 import { SafetyStaffModalComponent } from '../ui/safety-staff-modal/safety-staff-modal.component';
-import { BrandLogoComponent } from '../ui/brand-logo/brand-logo.component';
 
 /** Map from URL prefix to translation key for page titles. */
 const ROUTE_TITLE_MAP: Record<string, string> = {
@@ -90,7 +89,6 @@ const ROLE_COLORS: Record<string, string> = {
     AsyncPipe, UpperCasePipe, TranslocoPipe,
     AudioSettingsPopoverComponent,
     SafetyStaffModalComponent,
-    BrandLogoComponent,
   ],
 })
 export class NavbarComponent implements OnInit, OnDestroy {

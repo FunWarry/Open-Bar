@@ -3,6 +3,8 @@
 ion-toolbar {
   --min-height: 56px;
   height: 56px;
+  --padding-start: 4px;
+  --padding-end: 4px;
   --background: var(--background-surface-1);
   --color: var(--text-primary);
   --border-color: var(--border-medium);
@@ -13,7 +15,7 @@ ion-toolbar {
   position: relative;
 }
 
-/* Start-slot buttons and brand logo */
+/* Start-slot controls */
 .topbar-start-group {
   display: flex;
   align-items: center;
@@ -27,40 +29,6 @@ ion-toolbar {
   min-height: 44px;
   font-size: 24px;
   --color: var(--text-primary);
-}
-
-.topbar-logo-btn {
-  background: transparent;
-  border: none;
-  padding: 0 8px;
-  margin: 0;
-  font-family: var(--font, 'Inter', sans-serif);
-  font-weight: 700;
-  font-size: 18px;
-  color: var(--primary);
-  letter-spacing: -0.01em;
-  cursor: pointer;
-  flex-shrink: 0;
-  min-width: fit-content;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-}
-
-.topbar-logo-btn:hover {
-  opacity: 0.85;
-}
-
-/* Logo / app name — clickable */
-.topbar-logo {
-  font-family: var(--font, 'Inter', sans-serif);
-  font-weight: 700;
-  font-size: 18px;
-  color: var(--primary);
-  letter-spacing: -0.01em;
-  cursor: pointer;
-  flex-shrink: 0;
-  min-width: fit-content;
 }
 
 /* Dynamic page title — 100% centered horizontally and vertically on large screens */

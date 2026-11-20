@@ -34,28 +34,10 @@
   height: 56px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 0 12px;
   border-bottom: 1px solid var(--border-medium);
   flex-shrink: 0;
-}
-
-button.sidebar-brand,
-.sidebar-brand {
-  display: inline-flex;
-  align-items: center;
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  font-family: inherit;
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--primary, #6c7fe8);
-  letter-spacing: -0.5px;
-  cursor: pointer;
-  white-space: nowrap;
-  user-select: none;
 }
 
 .sidebar.collapsed .sidebar-header {
@@ -283,7 +265,6 @@ button.sidebar-brand,
   }
 
   .sidebar.collapsed .nav-label,
-  .sidebar.collapsed .sidebar-brand,
   .sidebar.collapsed .role-name,
   .sidebar.collapsed .username,
   .sidebar.collapsed .logout-btn {
@@ -291,7 +272,7 @@ button.sidebar-brand,
   }
 
   .sidebar.collapsed .sidebar-header {
-    justify-content: space-between;
+    justify-content: flex-end;
     padding: 0 12px;
   }
 

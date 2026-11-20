@@ -3,6 +3,18 @@
 } @else {
   @if (showNavbar$ | async) {
     <div class="app-layout">
+      <button
+        type="button"
+        class="shell-brand-btn"
+        [class.in-topbar]="!navigationService.isMobile() && navigationService.isSidebarCollapsed()"
+        [class.in-mobile-topbar]="navigationService.isMobile() && !navigationService.isMobileSidebarOpen()"
+        [class.in-mobile-drawer]="navigationService.isMobile() && navigationService.isMobileSidebarOpen()"
+        (click)="navigationService.navigateToHome()"
+        (keyup.enter)="navigationService.navigateToHome()"
+        data-testid="shell-brand-logo"
+        [attr.aria-label]="'NAV.HOME' | transloco">
+        <app-brand-logo variant="horizontal" size="sm" testId="app-shell-brand-logo"></app-brand-logo>
+      </button>
       @if (navigationService.isMobileSidebarOpen()) {
         <button
           type="button"
