@@ -159,6 +159,8 @@ flowchart TD
         TABLES -->|"1:N"| FACTURES["factures"]
         FACTURES -->|"1:N"| FACTURE_ITEMS["facture_items"]
         FACTURES -->|"1:N"| FACTURE_REGLEMENTS["facture_reglements (Splits)"]
+        FACTURES -.->|"CB fees"| CARD_COMMISSION_LEDGER["card_commission_ledger (SHA-256 Chain)"]
+        CARD_COMMISSION_LEDGER -.->|"monthly"| COMMISSION_BILLING_RECORDS["commission_billing_records (Billing & Grace)"]
         CASH_DRAWER_SESSIONS["cash_drawer_sessions (Till Sessions)"] -->|"1:N"| CASH_MOVEMENTS["cash_movements (Cash in / drop / paid out)"]
         CASH_DRAWER_SESSIONS -.->|"closing"| DAILY_CASH_CLOSURES["daily_cash_closures (Rapports Z)"]
         BAR_TABS["bar_tabs (Customer Running Ledgers)"] -->|"1:N"| COMMANDES
@@ -202,8 +204,10 @@ flowchart TD
 - `establishment_closures` : Exceptional closures and recurring holidays
 - `shift_presets` : Predefined shift templates (duration, breaks)
 - `week_schedule_publications` : Publication log of employee schedules
-- `app_settings` : Global establishment settings singleton (currency, anti-fraud toggles, legal data, margin alert thresholds target/warning, default VAT rate, direct ESC/POS printer IPs & dynamic JSON array configuration for bar, kitchen, cash desk on port 9100, Concert IP / CB payment terminal TCP client configuration and dynamic JSON array, and toggles)
-- `tpe_terminals` : Handled via Concert IP protocol over local network (`ConcertSocketClient`, `PaymentTerminalService`, `/api/tpe`); stores transaction metadata on `factures` and `facture_reglements` (`tpe_autorisation`, `tpe_terminal_id`, `tpe_card_brand`, `tpe_masked_pan`, `tpe_sequence`)
+- `app_settings` : Global establishment settings singleton (currency, anti-fraud toggles, legal data, margin alert thresholds target/warning, default VAT rate, direct ESC/POS printer IPs & dynamic JSON array configuration for bar, kitchen, cash desk on port 9100, Concert IP / CB payment terminal TCP client configuration and dynamic JSON array, dual-tier TPE monetization mode `tpe_monetization_mode` plus Stripe Terminal Connect `stripe_connected_account_id`, `stripe_terminal_location_id`, `stripe_terminal_reader_id`, and toggles)
+- `tpe_terminals` : Handled via Concert IP protocol over local network (`ConcertSocketClient`, `PaymentTerminalService`, `/api/tpe`) or Stripe Terminal Connect (`/api/tpe/stripe-terminal/connection-token`); stores transaction metadata on `factures` and `facture_reglements` (`tpe_autorisation`, `tpe_terminal_id`, `tpe_card_brand`, `tpe_masked_pan`, `tpe_sequence`)
+- `card_commission_ledger` : Tamper-evident SHA-256 hash-chained ledger of every settled card transaction (`sequence_number`, `billing_period`, `tier`, `source`, `status`, `gross_amount`, `rate_bps`, `fixed_fee_cents`, `commission_amount`, `previous_hash`, `entry_hash`)
+- `commission_billing_records` : Monthly aggregation, billing invoice sync status, offline signed proof hash, and 7-day grace-window tracking (`billing_period`, `active_tier`, `option1_*`, `option3_*`, `total_commission_due`, `invoice_status`, `grace_started_at`, `grace_ends_at`, `end_ledger_hash`)
 - `happy_hour_rules`, `happy_hour_days`, `happy_hour_categories`, `happy_hour_cocktails` : Promotional Happy Hour & dynamic schedule-based pricing rule engine
 - `stock_movements` : Audit log of stock losses, breakages, expired ingredients, spills, staff tastings, and shrinkage (`ingredient_id`, `quantity`, `unit`, `reason`, `reported_by`, `cost`, `notes`, `recorded_at`)
 
@@ -258,6 +262,7 @@ flowchart LR
 | `/topic/establishment/modules` | Real-time establishment modular capabilities synchronization |
 | `/topic/checklists` | Real-time operational checklists & SOP procedure session lifecycle events |
 | `/topic/license` | Real-time establishment license status & grace-period summary broadcasts |
+| `/topic/monetization` | Real-time TPE commission ledger, billing sync & grace-period lock broadcasts |
 
 ---
 
@@ -276,6 +281,7 @@ Establishment features are decoupled into 9 switchable capabilities:
 | **Cash Drawer (Caisse)** | `CASH_DRAWER` | `/factures/caisse`, till sessions, cash-in/drop/paid-out, X/Z reports |
 | **Bar Tabs (Ardoises)** | `BAR_TABS` | `/serveur/ardoises`, running customer tabs without table requirement, tab settlement |
 | **Cocktail Library Import** | `COCKTAIL_LIBRARY` | `/cocktails` (import button & catalog wizard), `/setup` (menu population step), `/api/cocktails/library` |
+| **Stripe Terminal Connect** | `STRIPE_TERMINAL_CONNECT` | Option 3 turnkey TPE onboarding & `/api/tpe/stripe-terminal/connection-token`, Connect fee splits |
 
 ### Establishment Presets
 - **BAR**: CUISINE_KDS ❌, HAPPY_HOUR ✅, EMPLOYEE_MANAGEMENT ✅, FLOOR_PLAN ✅, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅, CASH_DRAWER ✅, BAR_TABS ✅, COCKTAIL_LIBRARY ✅
@@ -308,6 +314,16 @@ Establishment features are decoupled into 9 switchable capabilities:
 - **Enforcement & Grace Window**: `LicenseService` grants a 2-day `GRACE_PERIOD` post-expiration before throwing `LicenseExpiredException` (`HTTP 402 Payment Required` with `LICENSE_EXPIRED`) on order creation (`CommandeService.createCommande`, `PublicCommandeService.creerCommandePublique`) when `enforced=true`, while keeping `GET` invoices, Z-reports (`/api/factures/daily-recap`), and audit logs accessible. Module entitlements intersect with `EstablishmentConfigService`.
 - **REST Endpoints**: `GET /api/admin/license` (`ADMIN`, `MANAGER`), `GET /api/admin/license/status` (authenticated), `POST /api/admin/license/activate` (`ADMIN`), `POST /api/admin/license/sync` (`ADMIN`), `DELETE /api/admin/license` (`ADMIN`).
 - **Frontend**: Dedicated `/admin/license` (`LicensePageComponent`), global staff `<app-license-banner>`, `LicenseService` signals + `/topic/license` WebSocket listener, and `402` toast mapping in `errorInterceptor`.
+
+---
+
+## Dual-Tier TPE Monetization & SHA-256 Commission Ledger Engine (#653)
+
+- **Configuration (`MonetizationProperties`, prefix `openbar.monetization`)**: Dual-tier rates (`option1-rate-bps: 25` + `5` cents for `CONCERT_IP_OFFLINE`; `option3-rate-bps: 60` + `5` cents for `STRIPE_TERMINAL_CONNECT`), `grace-period-days: 7`, `sync-enabled`, `sync-url`, `sync-interval-ms`, and `signing-secret`.
+- **Entities & Tables**: `CardCommissionLedgerEntry` (`card_commission_ledger`) maintains an immutable, sequential (`sequence_number`, `previous_hash` → `entry_hash`) SHA-256 chain of card transactions created by `FactureService` and Stripe Terminal webhooks; `CommissionBillingRecord` (`commission_billing_records`) tracks monthly Option 1 / Option 3 volumes, commission balances, remote portal billing status, Z-report hash seals, and 7-day overdue grace windows.
+- **Enforcement & Hardware Routing**: `PaymentTerminalService` blocks Option 1 Concert IP TPE dispatches once overdue beyond the 7-day grace period (`cardTpeLocked`), while Option 3 (`STRIPE_TERMINAL_CONNECT`) splits platform application fees automatically via Stripe Connect (`StripeTerminalConnectService`) and reconciles Connect webhooks (`POST /api/public/payments/webhook/connect`).
+- **REST Endpoints**: `/api/admin/monetization/status` (authenticated), `/api/admin/monetization/dashboard`, `/ledger`, `/verify`, `/export-proof`, `/export-proof/download`, `/sync` (`ADMIN`, `MANAGER`), and `POST /api/tpe/stripe-terminal/connection-token`.
+- **Frontend**: Integrated Option 1/Option 3 management tab on `/admin/license` (`LicensePageComponent`), mode/hardware settings in `AppSettingsPageComponent`, `<app-license-banner>` overdue countdown warning, POS lock feedback in `EncaissementModalComponent`, `MonetizationService` signals, and `/topic/monetization` STOMP listener.
 
 ---
 
