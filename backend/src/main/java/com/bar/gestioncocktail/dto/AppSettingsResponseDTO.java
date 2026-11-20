@@ -99,9 +99,66 @@ public record AppSettingsResponseDTO(
     String stripeConnectedAccountId,
     String stripeTerminalLocationId,
     String stripeTerminalReaderId,
+    Boolean cloudRelayEnabled,
+    String venueSlug,
+    String customDomain,
+    String bannerImageUrl,
+    Boolean relayPairingTokenConfigured,
+    Boolean cloudRelayClientsEnabled,
+    Boolean cloudRelayStaffEnabled,
+    Boolean cloudRelayAdminEnabled,
+    Boolean cloudRelayRemoteTpeEnabled,
+    Boolean cloudRelayRemotePrintingEnabled,
+    String cloudRelayAllowedRolesJson,
     String timeZone,
     LocalDateTime updatedAt
 ) {
+    /**
+     * Backwards-compatible 60-parameter constructor before Cloud Relay & White-Label fields were introduced.
+     */
+    public AppSettingsResponseDTO(
+            Long id, String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            String volumeUnit, String weightUnit,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity,
+            Boolean wifiEnabled, Boolean tableSessionValidationEnabled,
+            BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
+            BigDecimal warningGrossMarginPercentage, String barPrinterIp,
+            String kitchenPrinterIp, String cashDeskPrinterIp, Integer printerPort,
+            Boolean directPrintingEnabled, String cashDenominationsJson,
+            String storageLocationsJson, Boolean tpeEnabled, Boolean tpeSimulatorEnabled,
+            String tpeBarIp, String tpeFloorIp, Integer tpePort,
+            String tpeTerminalId, Integer tpeTimeoutSeconds,
+            String printersJson, String tpeTerminalsJson, String emergencyNumbersJson,
+            BigDecimal cashDiscrepancyToleranceThreshold,
+            String onlinePaymentProvider, String stripePublishableKey,
+            Boolean stripeSecretKeyConfigured, Boolean stripeWebhookSecretConfigured,
+            String onlinePaymentCurrency, String smtpHost, Integer smtpPort,
+            String smtpUsername, Boolean smtpConfigured, String smtpFrom,
+            Boolean smtpAuth, Boolean smtpStarttls,
+            String tpeMonetizationMode, String stripeConnectedAccountId,
+            String stripeTerminalLocationId, String stripeTerminalReaderId,
+            String timeZone, LocalDateTime updatedAt) {
+        this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem, volumeUnit, weightUnit,
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes,
+                clientBaseUrl, wifiSsid, wifiPassword, wifiSecurity, wifiEnabled,
+                tableSessionValidationEnabled, defaultVatRate, targetGrossMarginPercentage,
+                warningGrossMarginPercentage, barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp,
+                printerPort, directPrintingEnabled, cashDenominationsJson, storageLocationsJson,
+                tpeEnabled, tpeSimulatorEnabled, tpeBarIp, tpeFloorIp, tpePort, tpeTerminalId,
+                tpeTimeoutSeconds, printersJson, tpeTerminalsJson, emergencyNumbersJson,
+                cashDiscrepancyToleranceThreshold, onlinePaymentProvider, stripePublishableKey,
+                stripeSecretKeyConfigured, stripeWebhookSecretConfigured, onlinePaymentCurrency,
+                smtpHost, smtpPort, smtpUsername, smtpConfigured, smtpFrom, smtpAuth, smtpStarttls,
+                tpeMonetizationMode, stripeConnectedAccountId, stripeTerminalLocationId, stripeTerminalReaderId,
+                false, null, null, null, false, true, true, true, true, true,
+                "[\"SERVEUR\",\"BARMAN\",\"MANAGER\",\"ADMIN\"]",
+                timeZone, updatedAt);
+    }
     /**
      * Backwards-compatible 56-parameter constructor before Stripe Terminal Connect TPE fields were introduced.
      */
@@ -550,6 +607,17 @@ public record AppSettingsResponseDTO(
             s.getStripeConnectedAccountId(),
             s.getStripeTerminalLocationId(),
             s.getStripeTerminalReaderId(),
+            Boolean.TRUE.equals(s.getCloudRelayEnabled()),
+            s.getVenueSlug(),
+            s.getCustomDomain(),
+            s.getBannerImageUrl(),
+            hasText(s.getRelayPairingToken()),
+            s.getCloudRelayClientsEnabled(),
+            s.getCloudRelayStaffEnabled(),
+            s.getCloudRelayAdminEnabled(),
+            s.getCloudRelayRemoteTpeEnabled(),
+            s.getCloudRelayRemotePrintingEnabled(),
+            s.getCloudRelayAllowedRolesJson(),
             resolveString(timeZone, DEFAULT_TIMEZONE),
             s.getUpdatedAt()
         );
@@ -584,6 +652,8 @@ public record AppSettingsResponseDTO(
             onlinePaymentProvider, stripePublishableKey, false, false, onlinePaymentCurrency,
             null, null, null, false, null, false, false,
             null, null, null, null,
+            cloudRelayEnabled, venueSlug, customDomain, bannerImageUrl, false,
+            cloudRelayClientsEnabled, false, false, false, false, null,
             timeZone, updatedAt
         );
     }

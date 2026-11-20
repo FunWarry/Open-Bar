@@ -18,6 +18,7 @@ import java.util.Set;
  * @param nom Last name
  * @param prenom First name
  * @param roles Set of roles to assign to the user
+ * @param remoteAccessEnabled Whether this user is allowed to log in and operate via the Cloud Relay tunnel
  */
 public record UserRequestDTO(
     @NotBlank(message = "Username is required")
@@ -40,8 +41,24 @@ public record UserRequestDTO(
     @Size(max = 50, message = "First name cannot exceed 50 characters")
     String prenom,
 
-    Set<UserRole> roles
+    Set<UserRole> roles,
+
+    Boolean remoteAccessEnabled
 ) {
+    /**
+     * Backward-compatible 6-parameter constructor before per-user Cloud Relay access control.
+     */
+    public UserRequestDTO(
+            String username,
+            String password,
+            String email,
+            String nom,
+            String prenom,
+            Set<UserRole> roles
+    ) {
+        this(username, password, email, nom, prenom, roles, null);
+    }
+
     /**
      * Converts this DTO into a {@link User} JPA entity.
      *
@@ -57,6 +74,7 @@ public record UserRequestDTO(
         if (roles != null) {
             user.setRoles(roles);
         }
+        user.setRemoteAccessEnabled(remoteAccessEnabled);
         return user;
     }
 }

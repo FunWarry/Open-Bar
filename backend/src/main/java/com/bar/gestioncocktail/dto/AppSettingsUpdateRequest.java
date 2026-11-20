@@ -175,8 +175,71 @@ public record AppSettingsUpdateRequest(
     @Size(max = 120, message = "Stripe Terminal Location ID cannot exceed 120 characters")
     String stripeTerminalLocationId,
     @Size(max = 120, message = "Stripe Terminal Reader ID cannot exceed 120 characters")
-    String stripeTerminalReaderId
+    String stripeTerminalReaderId,
+
+    Boolean cloudRelayEnabled,
+    @Pattern(regexp = "^$|^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$", message = "Venue slug must be lowercase alphanumeric with hyphens")
+    @Size(max = 63, message = "Venue slug cannot exceed 63 characters")
+    String venueSlug,
+    @Pattern(regexp = "^$|^[a-zA-Z0-9][a-zA-Z0-9.-]{0,251}[a-zA-Z0-9]\\.[a-zA-Z]{2,63}$", message = "Custom domain must be a valid hostname")
+    @Size(max = 255, message = "Custom domain cannot exceed 255 characters")
+    String customDomain,
+    @Pattern(regexp = "^$|^https?://.+|^/uploads/.+", message = "Banner image URL must be a valid http(s) or /uploads/ URL")
+    @Size(max = 2048, message = "Banner image URL cannot exceed 2048 characters")
+    String bannerImageUrl,
+    @Size(max = 512, message = "Relay pairing token cannot exceed 512 characters")
+    String relayPairingToken,
+    Boolean cloudRelayClientsEnabled,
+    Boolean cloudRelayStaffEnabled,
+    Boolean cloudRelayAdminEnabled,
+    Boolean cloudRelayRemoteTpeEnabled,
+    Boolean cloudRelayRemotePrintingEnabled,
+    String cloudRelayAllowedRolesJson
 ) {
+    /**
+     * Backwards-compatible 57-parameter constructor before Cloud Relay & White-Label fields were introduced.
+     */
+    public AppSettingsUpdateRequest(
+            String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition, UnitSystem unitSystem,
+            String volumeUnit, String weightUnit,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled,
+            Boolean tableSessionValidationEnabled, java.math.BigDecimal defaultVatRate,
+            java.math.BigDecimal targetGrossMarginPercentage, java.math.BigDecimal warningGrossMarginPercentage,
+            String barPrinterIp, String kitchenPrinterIp, String cashDeskPrinterIp,
+            Integer printerPort, Boolean directPrintingEnabled, String cashDenominationsJson,
+            String storageLocationsJson, Boolean tpeEnabled, Boolean tpeSimulatorEnabled,
+            String tpeBarIp, String tpeFloorIp, Integer tpePort,
+            String tpeTerminalId, Integer tpeTimeoutSeconds,
+            String printersJson, String tpeTerminalsJson,
+            String emergencyNumbersJson,
+            java.math.BigDecimal cashDiscrepancyToleranceThreshold,
+            String onlinePaymentProvider, String stripePublishableKey,
+            String stripeSecretKey, String stripeWebhookSecret,
+            String onlinePaymentCurrency, String smtpHost, Integer smtpPort,
+            String smtpUsername, String smtpPassword, String smtpFrom,
+            Boolean smtpAuth, Boolean smtpStarttls,
+            String tpeMonetizationMode, String stripeConnectedAccountId,
+            String stripeTerminalLocationId, String stripeTerminalReaderId
+    ) {
+        this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, unitSystem, volumeUnit, weightUnit,
+                tempsAlerteWarningMinutes, tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes,
+                clientBaseUrl, wifiSsid, wifiPassword, wifiSecurity, wifiEnabled,
+                tableSessionValidationEnabled, defaultVatRate, targetGrossMarginPercentage,
+                warningGrossMarginPercentage, barPrinterIp, kitchenPrinterIp, cashDeskPrinterIp,
+                printerPort, directPrintingEnabled, cashDenominationsJson, storageLocationsJson,
+                tpeEnabled, tpeSimulatorEnabled, tpeBarIp, tpeFloorIp, tpePort, tpeTerminalId,
+                tpeTimeoutSeconds, printersJson, tpeTerminalsJson, emergencyNumbersJson,
+                cashDiscrepancyToleranceThreshold, onlinePaymentProvider, stripePublishableKey,
+                stripeSecretKey, stripeWebhookSecret, onlinePaymentCurrency, smtpHost, smtpPort,
+                smtpUsername, smtpPassword, smtpFrom, smtpAuth, smtpStarttls,
+                tpeMonetizationMode, stripeConnectedAccountId, stripeTerminalLocationId, stripeTerminalReaderId,
+                null, null, null, null, null, null, null, null, null, null, null);
+    }
     /**
      * Backwards-compatible 53-parameter constructor before Stripe Terminal Connect TPE fields were introduced.
      */

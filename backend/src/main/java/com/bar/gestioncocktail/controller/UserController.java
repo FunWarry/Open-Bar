@@ -132,8 +132,9 @@ public class UserController {
         User currentUser = userService.getUserByUsername(authentication.getName())
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + authentication.getName()));
         User updatedData = request.toEntity();
-        // Prevent horizontal/vertical privilege escalation: users cannot modify their own roles via /api/users/me
+        // Prevent horizontal/vertical privilege escalation: users cannot modify their own roles or remote access via /api/users/me
         updatedData.setRoles(null);
+        updatedData.setRemoteAccessEnabled(null);
         return ResponseEntity.ok(UserResponseDTO.from(userService.updateUser(currentUser.getId(), updatedData)));
     }
 

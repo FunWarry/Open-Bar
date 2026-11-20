@@ -159,6 +159,9 @@ public class EstablishmentConfig {
     @Column(name = "module_stripe_terminal_connect_enabled")
     private Boolean moduleStripeTerminalConnectEnabled = true;
 
+    @Column(name = "module_cloud_relay_enabled")
+    private Boolean moduleCloudRelayEnabled = true;
+
     @Column(name = "roulette_price_cocktail", precision = 10, scale = 2)
     private BigDecimal roulettePriceCocktail = new BigDecimal("7.50");
 
@@ -499,6 +502,14 @@ public class EstablishmentConfig {
         this.moduleStripeTerminalConnectEnabled = moduleStripeTerminalConnectEnabled;
     }
 
+    public Boolean getModuleCloudRelayEnabled() {
+        return this.moduleCloudRelayEnabled;
+    }
+
+    public void setModuleCloudRelayEnabled(Boolean moduleCloudRelayEnabled) {
+        this.moduleCloudRelayEnabled = moduleCloudRelayEnabled;
+    }
+
     public BigDecimal getRoulettePriceCocktail() {
         return this.roulettePriceCocktail != null ? this.roulettePriceCocktail : new BigDecimal("7.50");
     }
@@ -588,6 +599,7 @@ public class EstablishmentConfig {
             case QR_PAY_AT_TABLE -> isEnabledOrDefault(this.moduleQrPayAtTableEnabled);
             case FACTUR_X_INVOICE_IMPORT -> isEnabledOrDefault(this.moduleSuppliersManagementEnabled) && isEnabledOrDefault(this.moduleFacturXInvoiceImportEnabled);
             case STRIPE_TERMINAL_CONNECT -> isEnabledOrDefault(this.modulePaymentTerminalEnabled) && isEnabledOrDefault(this.moduleStripeTerminalConnectEnabled);
+            case CLOUD_RELAY -> isEnabledOrDefault(this.moduleCloudRelayEnabled);
             default -> true;
         };
     }
@@ -666,6 +678,9 @@ public class EstablishmentConfig {
                 break;
             case STRIPE_TERMINAL_CONNECT:
                 this.moduleStripeTerminalConnectEnabled = enabled;
+                break;
+            case CLOUD_RELAY:
+                this.moduleCloudRelayEnabled = enabled;
                 break;
             default:
                 break;

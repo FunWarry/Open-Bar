@@ -31,9 +31,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 /**
- * Service managing the lifecycle, validation, and anti-fraud verification of ephemeral table sessions.
+ * Service managing the lifecycle, validation, and anti-fraud verification of
+ * ephemeral table sessions.
  * <p>
- * Ensures table QR codes are bounded to active on-premise dining sessions and invalidates sessions
+ * Ensures table QR codes are bounded to active on-premise dining sessions and
+ * invalidates sessions
  * upon table liberation or bill settlement.
  */
 @Service
@@ -57,13 +59,16 @@ public class TableSessionService {
     /**
      * Constructs the table session service with required dependencies.
      *
-     * @param tableSessionRepository Repository managing table session persistence
-     * @param appSettingsService Service retrieving global establishment settings
-     * @param timeService System time provider
-     * @param qrCodeService Service for QR code generation
-     * @param tableRepository Repository for floor plan table entities
+     * @param tableSessionRepository     Repository managing table session
+     *                                   persistence
+     * @param appSettingsService         Service retrieving global establishment
+     *                                   settings
+     * @param timeService                System time provider
+     * @param qrCodeService              Service for QR code generation
+     * @param tableRepository            Repository for floor plan table entities
      * @param tableJoinRequestRepository Repository for table join requests
-     * @param messagingTemplate STOMP messaging template for real-time notifications
+     * @param messagingTemplate          STOMP messaging template for real-time
+     *                                   notifications
      */
     @Autowired
     public TableSessionService(
@@ -84,7 +89,8 @@ public class TableSessionService {
     }
 
     /**
-     * Resolves a table entity by either its primary key ID or its visible table number (numero).
+     * Resolves a table entity by either its primary key ID or its visible table
+     * number (numero).
      *
      * @param tableIdOrNumero Primary key ID or visible table number
      * @return Resolved {@link TableEntity} or empty
@@ -101,7 +107,8 @@ public class TableSessionService {
     }
 
     /**
-     * Retrieves an existing active session for the given table or creates a new one if none exists or if expired.
+     * Retrieves an existing active session for the given table or creates a new one
+     * if none exists or if expired.
      *
      * @param tableId Identifier of the table
      * @return An active {@link TableSession}
@@ -112,10 +119,12 @@ public class TableSessionService {
     }
 
     /**
-     * Validates a session token against a given table identifier and establishment settings.
+     * Validates a session token against a given table identifier and establishment
+     * settings.
      *
-     * @param tableId Table identifier or table number
-     * @param sessionToken Ephemeral token supplied by patron interface (may be null/empty)
+     * @param tableId      Table identifier or table number
+     * @param sessionToken Ephemeral token supplied by patron interface (may be
+     *                     null/empty)
      * @return DTO indicating whether session is authorized for ordering
      */
     @Transactional
@@ -124,20 +133,25 @@ public class TableSessionService {
     }
 
     /**
-     * Validates a session token with querying guest context and manages table ownership.
+     * Validates a session token with querying guest context and manages table
+     * ownership.
      *
-     * @param tableId Table identifier or table number
-     * @param sessionToken Ephemeral token supplied by patron interface (may be null/empty)
+     * @param tableId        Table identifier or table number
+     * @param sessionToken   Ephemeral token supplied by patron interface (may be
+     *                       null/empty)
      * @param guestSessionId Session identifier of the querying guest
-     * @param guestName Nickname of the querying guest
-     * @return DTO indicating whether session is authorized for ordering, owner status, and message
+     * @param guestName      Nickname of the querying guest
+     * @return DTO indicating whether session is authorized for ordering, owner
+     *         status, and message
      */
     @Transactional
-    public TableSessionResponseDTO validateSession(Long tableId, String sessionToken, String guestSessionId, String guestName) {
+    public TableSessionResponseDTO validateSession(Long tableId, String sessionToken, String guestSessionId,
+            String guestName) {
         return doValidateSession(tableId, sessionToken, guestSessionId, guestName);
     }
 
-    private TableSessionResponseDTO doValidateSession(Long tableId, String sessionToken, String guestSessionId, String guestName) {
+    private TableSessionResponseDTO doValidateSession(Long tableId, String sessionToken, String guestSessionId,
+            String guestName) {
         TableEntity table = resolveTable(tableId).orElse(null);
         Long canonicalTableId = (table != null && table.getId() != null) ? table.getId() : tableId;
         boolean isTableFree = (table != null && !table.isOccupee());
@@ -161,7 +175,8 @@ public class TableSessionService {
             activeSession = tableSessionRepository.save(activeSession);
             log.info("Assigned guest owner of free table {}", canonicalTableId);
         }
-        return TableSessionResponseDTO.from(activeSession, true, "Active table session initialized for free table", guestSessionId);
+        return TableSessionResponseDTO.from(activeSession, true, "Active table session initialized for free table",
+                guestSessionId);
     }
 
     private TableSessionResponseDTO validateOccupiedTableSession(
@@ -225,15 +240,14 @@ public class TableSessionService {
                 "Table is occupied. Join approval required.",
                 session.getOwnerGuestSessionId(),
                 session.getOwnerGuestName(),
-                false
-        );
+                false);
     }
 
     /**
      * Submits a request to join an active table session.
      *
      * @param tableId Table identifier
-     * @param dto Join request payload
+     * @param dto     Join request payload
      * @return Created join request DTO
      */
     @Transactional
@@ -250,7 +264,8 @@ public class TableSessionService {
 
         if (tableJoinRequestRepository != null) {
             Optional<TableJoinRequest> existing = tableJoinRequestRepository
-                    .findFirstByTableIdAndApplicantSessionIdOrderByCreatedAtDesc(canonicalTableId, dto.applicantSessionId());
+                    .findFirstByTableIdAndApplicantSessionIdOrderByCreatedAtDesc(canonicalTableId,
+                            dto.applicantSessionId());
             if (existing.isPresent() && existing.get().getStatus() == TableJoinRequestStatus.PENDING) {
                 TableJoinRequest req = existing.get();
                 req.setApplicantName(dto.applicantName());
@@ -277,9 +292,9 @@ public class TableSessionService {
     /**
      * Responds to an applicant's table join request (accept or reject).
      *
-     * @param tableId Table identifier
+     * @param tableId   Table identifier
      * @param requestId Request identifier
-     * @param dto Approval action payload
+     * @param dto       Approval action payload
      * @return Updated join request DTO with session token if accepted
      */
     @Transactional
@@ -291,7 +306,8 @@ public class TableSessionService {
                 .findFirstByTableIdAndStatusOrderByOpenedAtDesc(canonicalTableId, TableSessionStatus.ACTIVE)
                 .orElseThrow(() -> new ResourceNotFoundException("No active session for table " + tableId));
 
-        if (activeSession.getOwnerGuestSessionId() != null && !activeSession.getOwnerGuestSessionId().equals(dto.ownerSessionId())) {
+        if (activeSession.getOwnerGuestSessionId() != null
+                && !activeSession.getOwnerGuestSessionId().equals(dto.ownerSessionId())) {
             throw new BusinessException("Unauthorized: Only the table owner can approve or reject join requests");
         }
 
@@ -323,7 +339,7 @@ public class TableSessionService {
     /**
      * Checks current status of a join request for an applicant.
      *
-     * @param tableId Table identifier
+     * @param tableId            Table identifier
      * @param applicantSessionId Applicant guest session UUID
      * @return Latest join request DTO with token if approved
      */
@@ -358,7 +374,7 @@ public class TableSessionService {
     /**
      * Retrieves all pending join requests for a table awaiting owner approval.
      *
-     * @param tableId Table identifier
+     * @param tableId        Table identifier
      * @param ownerSessionId Owner session UUID
      * @return List of pending join requests
      */
@@ -389,7 +405,8 @@ public class TableSessionService {
     private void broadcastOwnerJoinRequest(Long tableId, TableJoinRequest req) {
         if (messagingTemplate != null) {
             try {
-                messagingTemplate.convertAndSend(TOPIC_TABLES_PREFIX + tableId + "/owner", TableJoinRequestDTO.from(req, null));
+                messagingTemplate.convertAndSend(TOPIC_TABLES_PREFIX + tableId + "/owner",
+                        TableJoinRequestDTO.from(req, null));
             } catch (Exception e) {
                 log.warn("Failed to broadcast join request to table owner: {}", e.getMessage());
             }
@@ -399,7 +416,8 @@ public class TableSessionService {
     private void broadcastApplicantJoinResponse(Long tableId, String applicantSessionId, TableJoinRequestDTO dto) {
         if (messagingTemplate != null && applicantSessionId != null) {
             try {
-                messagingTemplate.convertAndSend(TOPIC_TABLES_PREFIX + tableId + "/join-requests/" + applicantSessionId, dto);
+                messagingTemplate.convertAndSend(TOPIC_TABLES_PREFIX + tableId + "/join-requests/" + applicantSessionId,
+                        dto);
             } catch (Exception e) {
                 log.warn("Failed to broadcast join response to applicant: {}", e.getMessage());
             }
@@ -409,7 +427,8 @@ public class TableSessionService {
     private void broadcastOwnerJoinRequestResolved(Long tableId, TableJoinRequest req) {
         if (messagingTemplate != null) {
             try {
-                messagingTemplate.convertAndSend(TOPIC_TABLES_PREFIX + tableId + "/owner", TableJoinRequestDTO.from(req, null));
+                messagingTemplate.convertAndSend(TOPIC_TABLES_PREFIX + tableId + "/owner",
+                        TableJoinRequestDTO.from(req, null));
             } catch (Exception e) {
                 log.warn("Failed to broadcast join request resolution to owner: {}", e.getMessage());
             }
@@ -431,13 +450,15 @@ public class TableSessionService {
     }
 
     /**
-     * Generates a QR code image (PNG or SVG) encoding the collaborative table ordering URL.
+     * Generates a QR code image (PNG or SVG) encoding the collaborative table
+     * ordering URL.
      *
-     * @param tableId Identifier or number of the table
-     * @param token Ephemeral session token (optional)
-     * @param format Image format ("PNG" or "SVG")
-     * @param size Target dimension in pixels
-     * @param customBaseUrl Optional custom client base URL (e.g. from patron browser origin)
+     * @param tableId       Identifier or number of the table
+     * @param token         Ephemeral session token (optional)
+     * @param format        Image format ("PNG" or "SVG")
+     * @param size          Target dimension in pixels
+     * @param customBaseUrl Optional custom client base URL (e.g. from patron
+     *                      browser origin)
      * @return Image byte array
      */
     @Transactional(readOnly = true)
@@ -470,8 +491,14 @@ public class TableSessionService {
         }
         if (appSettingsService != null) {
             AppSettings settings = appSettingsService.getSettings();
-            if (settings != null && settings.getClientBaseUrl() != null && !settings.getClientBaseUrl().isBlank()) {
-                return settings.getClientBaseUrl();
+            if (settings != null) {
+                String resolved = appSettingsService.resolveEffectivePublicBaseUrl(settings);
+                if (resolved != null && !resolved.isBlank()) {
+                    return resolved;
+                }
+                if (settings.getClientBaseUrl() != null && !settings.getClientBaseUrl().isBlank()) {
+                    return settings.getClientBaseUrl();
+                }
             }
         }
         return "https://openbar.lan";
@@ -501,7 +528,8 @@ public class TableSessionService {
     }
 
     /**
-     * Invalidates all active sessions associated with the specified table by marking them CLOSED.
+     * Invalidates all active sessions associated with the specified table by
+     * marking them CLOSED.
      *
      * @param tableId Identifier of the table to invalidate sessions for
      */
@@ -545,7 +573,8 @@ public class TableSessionService {
         if (tableId == null) {
             return;
         }
-        List<TableSession> activeSessions = tableSessionRepository.findByTableIdAndStatus(tableId, TableSessionStatus.ACTIVE);
+        List<TableSession> activeSessions = tableSessionRepository.findByTableIdAndStatus(tableId,
+                TableSessionStatus.ACTIVE);
         if (!activeSessions.isEmpty()) {
             for (TableSession session : activeSessions) {
                 session.setStatus(TableSessionStatus.CLOSED);
@@ -556,9 +585,10 @@ public class TableSessionService {
     }
 
     /**
-     * Verifies whether an incoming order placement submission contains a valid session token.
+     * Verifies whether an incoming order placement submission contains a valid
+     * session token.
      *
-     * @param tableId Table identifier
+     * @param tableId      Table identifier
      * @param sessionToken Submitted ephemeral session token
      * @return {@code true} if allowed, {@code false} if unauthorized
      */
@@ -607,7 +637,8 @@ public class TableSessionService {
     }
 
     /**
-     * Listens for table liberation events across the application (e.g. server liberation or invoice settlement)
+     * Listens for table liberation events across the application (e.g. server
+     * liberation or invoice settlement)
      * and invalidates active session tokens.
      *
      * @param event Published table liberation event

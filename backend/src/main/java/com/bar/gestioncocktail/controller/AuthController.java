@@ -14,10 +14,14 @@ import com.bar.gestioncocktail.security.LoginAttemptService;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.service.RefreshTokenService;
 import com.bar.gestioncocktail.service.UserService;
+import com.bar.gestioncocktail.service.relay.CloudRelayAccessService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,6 +51,7 @@ public class AuthController {
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
     private final LoginAttemptService loginAttemptService;
+    private final CloudRelayAccessService cloudRelayAccessService;
 
     /**
      * Backward-compatible constructor initializing a default brute-force protection service.
@@ -61,11 +66,11 @@ public class AuthController {
             JwtTokenProvider jwtTokenProvider,
             UserService userService,
             RefreshTokenService refreshTokenService) {
-        this(authenticationManager, jwtTokenProvider, userService, refreshTokenService, new LoginAttemptService());
+        this(authenticationManager, jwtTokenProvider, userService, refreshTokenService, new LoginAttemptService(), null);
     }
 
     /**
-     * Constructs the controller with authentication, token, and brute-force protection dependencies.
+     * Backward-compatible constructor without Cloud Relay access service.
      *
      * @param authenticationManager Spring Security authentication manager
      * @param jwtTokenProvider      JWT token provider service
@@ -73,18 +78,39 @@ public class AuthController {
      * @param refreshTokenService   Refresh token management service
      * @param loginAttemptService   Brute-force rate limiting service
      */
-    @Autowired
     public AuthController(
             AuthenticationManager authenticationManager,
             JwtTokenProvider jwtTokenProvider,
             UserService userService,
             RefreshTokenService refreshTokenService,
             LoginAttemptService loginAttemptService) {
+        this(authenticationManager, jwtTokenProvider, userService, refreshTokenService, loginAttemptService, null);
+    }
+
+    /**
+     * Constructs the controller with authentication, token, brute-force protection, and Cloud Relay dependencies.
+     *
+     * @param authenticationManager   Spring Security authentication manager
+     * @param jwtTokenProvider        JWT token provider service
+     * @param userService             User management service
+     * @param refreshTokenService     Refresh token management service
+     * @param loginAttemptService     Brute-force rate limiting service
+     * @param cloudRelayAccessService Optional Cloud Relay tunnel access enforcement service
+     */
+    @Autowired
+    public AuthController(
+            AuthenticationManager authenticationManager,
+            JwtTokenProvider jwtTokenProvider,
+            UserService userService,
+            RefreshTokenService refreshTokenService,
+            LoginAttemptService loginAttemptService,
+            CloudRelayAccessService cloudRelayAccessService) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userService = userService;
         this.refreshTokenService = refreshTokenService;
         this.loginAttemptService = loginAttemptService != null ? loginAttemptService : new LoginAttemptService();
+        this.cloudRelayAccessService = cloudRelayAccessService;
     }
 
     /**
@@ -97,6 +123,7 @@ public class AuthController {
     @Operation(summary = "Authenticate user", description = "Validates user credentials and returns JWT access token along with refresh token.")
     @ApiResponse(responseCode = "200", description = "Authentication successful")
     @ApiResponse(responseCode = "401", description = "Invalid credentials")
+    @ApiResponse(responseCode = "403", description = "Remote Cloud Relay access disabled for user or role")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         String attemptKey = "login:" + (loginRequest.getUsername() != null ? loginRequest.getUsername() : "unknown");
         loginAttemptService.checkAllowed(attemptKey);
@@ -114,9 +141,15 @@ public class AuthController {
         loginAttemptService.recordSuccess(attemptKey);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String accessToken = jwtTokenProvider.generateToken(authentication);
         User user = userService.getUserByUsername(loginRequest.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        HttpServletRequest currentRequest = RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attrs
+                ? attrs.getRequest()
+                : null;
+        if (cloudRelayAccessService != null && currentRequest != null) {
+            cloudRelayAccessService.assertLoginAllowedIfTunnel(currentRequest, user);
+        }
+        String accessToken = jwtTokenProvider.generateToken(authentication);
         List<String> userRoles = new ArrayList<>();
         if (user.getRoles() != null) {
             for (UserRole role : user.getRoles()) {

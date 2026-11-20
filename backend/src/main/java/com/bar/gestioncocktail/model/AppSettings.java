@@ -329,6 +329,57 @@ public class AppSettings {
     @Column(name = "smtp_starttls")
     private Boolean smtpStarttls = false;
 
+    /** Whether outbound reverse Cloud Relay tunnel connectivity is active for this venue. */
+    @Column(name = "cloud_relay_enabled")
+    private Boolean cloudRelayEnabled = false;
+
+    /** Dedicated venue subdomain slug under the Cloud Relay base domain (e.g. {@code le-shaker}). */
+    @Pattern(regexp = "^$|^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$", message = "Venue slug must be lowercase alphanumeric with hyphens (1-63 chars)")
+    @Size(max = 63, message = "Venue slug cannot exceed 63 characters")
+    @Column(name = "venue_slug", length = 63)
+    private String venueSlug;
+
+    /** Optional white-label custom domain CNAME (e.g. {@code commande.monbar.fr}). */
+    @Pattern(regexp = "^$|^[a-zA-Z0-9][a-zA-Z0-9.-]{0,251}[a-zA-Z0-9]\\.[a-zA-Z]{2,63}$", message = "Custom domain must be a valid hostname")
+    @Size(max = 255, message = "Custom domain cannot exceed 255 characters")
+    @Column(name = "custom_domain", length = 255)
+    private String customDomain;
+
+    /** Optional white-label hero banner image URL displayed on patron & login screens. */
+    @Pattern(regexp = "^$|^https?://.+|^/uploads/.+", message = "Banner image URL must be a valid http(s) or /uploads/ URL")
+    @Size(max = 2048, message = "Banner image URL cannot exceed 2048 characters")
+    @Column(name = "banner_image_url", length = 2048)
+    private String bannerImageUrl;
+
+    /** Secret pairing token authenticating this local instance to the Cloud Relay gateway. */
+    @Size(max = 512, message = "Relay pairing token cannot exceed 512 characters")
+    @Column(name = "relay_pairing_token", length = 512)
+    private String relayPairingToken;
+
+    /** Whether patrons (QR ordering, pay-at-table, public routes) can access the bar via Cloud Relay. */
+    @Column(name = "cloud_relay_clients_enabled")
+    private Boolean cloudRelayClientsEnabled = true;
+
+    /** Whether authenticated staff (SERVEUR, BARMAN, MANAGER) can access OpenBar via Cloud Relay. */
+    @Column(name = "cloud_relay_staff_enabled")
+    private Boolean cloudRelayStaffEnabled = true;
+
+    /** Whether administrative endpoints and settings are accessible via Cloud Relay. */
+    @Column(name = "cloud_relay_admin_enabled")
+    private Boolean cloudRelayAdminEnabled = true;
+
+    /** Whether card payment terminal (TPE) dispatch is permitted from Cloud Relay requests. */
+    @Column(name = "cloud_relay_remote_tpe_enabled")
+    private Boolean cloudRelayRemoteTpeEnabled = true;
+
+    /** Whether direct ESC/POS LAN printing is permitted from Cloud Relay requests. */
+    @Column(name = "cloud_relay_remote_printing_enabled")
+    private Boolean cloudRelayRemotePrintingEnabled = true;
+
+    /** JSON array of UserRole names permitted to access OpenBar through the Cloud Relay tunnel. */
+    @Column(name = "cloud_relay_allowed_roles_json", columnDefinition = "TEXT")
+    private String cloudRelayAllowedRolesJson = "[\"SERVEUR\",\"BARMAN\",\"MANAGER\",\"ADMIN\"]";
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
@@ -498,6 +549,96 @@ public class AppSettings {
 
     public void setSmtpStarttls(Boolean smtpStarttls) {
         this.smtpStarttls = smtpStarttls;
+    }
+
+    public Boolean getCloudRelayEnabled() {
+        return Boolean.TRUE.equals(cloudRelayEnabled);
+    }
+
+    public void setCloudRelayEnabled(Boolean cloudRelayEnabled) {
+        this.cloudRelayEnabled = cloudRelayEnabled;
+    }
+
+    public String getVenueSlug() {
+        return venueSlug;
+    }
+
+    public void setVenueSlug(String venueSlug) {
+        this.venueSlug = venueSlug;
+    }
+
+    public String getCustomDomain() {
+        return customDomain;
+    }
+
+    public void setCustomDomain(String customDomain) {
+        this.customDomain = customDomain;
+    }
+
+    public String getBannerImageUrl() {
+        return bannerImageUrl;
+    }
+
+    public void setBannerImageUrl(String bannerImageUrl) {
+        this.bannerImageUrl = bannerImageUrl;
+    }
+
+    public String getRelayPairingToken() {
+        return relayPairingToken;
+    }
+
+    public void setRelayPairingToken(String relayPairingToken) {
+        this.relayPairingToken = relayPairingToken;
+    }
+
+    public Boolean getCloudRelayClientsEnabled() {
+        return cloudRelayClientsEnabled == null || cloudRelayClientsEnabled;
+    }
+
+    public void setCloudRelayClientsEnabled(Boolean cloudRelayClientsEnabled) {
+        this.cloudRelayClientsEnabled = cloudRelayClientsEnabled;
+    }
+
+    public Boolean getCloudRelayStaffEnabled() {
+        return cloudRelayStaffEnabled == null || cloudRelayStaffEnabled;
+    }
+
+    public void setCloudRelayStaffEnabled(Boolean cloudRelayStaffEnabled) {
+        this.cloudRelayStaffEnabled = cloudRelayStaffEnabled;
+    }
+
+    public Boolean getCloudRelayAdminEnabled() {
+        return cloudRelayAdminEnabled == null || cloudRelayAdminEnabled;
+    }
+
+    public void setCloudRelayAdminEnabled(Boolean cloudRelayAdminEnabled) {
+        this.cloudRelayAdminEnabled = cloudRelayAdminEnabled;
+    }
+
+    public Boolean getCloudRelayRemoteTpeEnabled() {
+        return cloudRelayRemoteTpeEnabled == null || cloudRelayRemoteTpeEnabled;
+    }
+
+    public void setCloudRelayRemoteTpeEnabled(Boolean cloudRelayRemoteTpeEnabled) {
+        this.cloudRelayRemoteTpeEnabled = cloudRelayRemoteTpeEnabled;
+    }
+
+    public Boolean getCloudRelayRemotePrintingEnabled() {
+        return cloudRelayRemotePrintingEnabled == null || cloudRelayRemotePrintingEnabled;
+    }
+
+    public void setCloudRelayRemotePrintingEnabled(Boolean cloudRelayRemotePrintingEnabled) {
+        this.cloudRelayRemotePrintingEnabled = cloudRelayRemotePrintingEnabled;
+    }
+
+    public String getCloudRelayAllowedRolesJson() {
+        return (cloudRelayAllowedRolesJson != null && !cloudRelayAllowedRolesJson.isBlank())
+                ? cloudRelayAllowedRolesJson
+                : "[\"SERVEUR\",\"BARMAN\",\"MANAGER\",\"ADMIN\"]";
+    }
+
+    public void setCloudRelayAllowedRolesJson(String cloudRelayAllowedRolesJson) {
+        this.cloudRelayAllowedRolesJson = cloudRelayAllowedRolesJson;
     }
 
     public LocalDateTime getUpdatedAt() {

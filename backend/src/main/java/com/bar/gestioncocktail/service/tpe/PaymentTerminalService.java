@@ -10,6 +10,7 @@ import com.bar.gestioncocktail.service.AppSettingsService;
 import com.bar.gestioncocktail.service.EstablishmentConfigService;
 import com.bar.gestioncocktail.service.monetization.CommissionLedgerService;
 import com.bar.gestioncocktail.service.monetization.StripeTerminalConnectService;
+import com.bar.gestioncocktail.service.relay.CloudRelayAccessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,7 @@ public class PaymentTerminalService {
     private final SimpMessagingTemplate messagingTemplate;
     private final StripeTerminalConnectService stripeTerminalConnectService;
     private final CommissionLedgerService commissionLedgerService;
+    private final CloudRelayAccessService cloudRelayAccessService;
 
     private final Map<String, TpePaymentResponseDTO> activeTransactions = new ConcurrentHashMap<>();
     private final Map<String, Boolean> cancelledTransactions = new ConcurrentHashMap<>();
@@ -62,20 +64,12 @@ public class PaymentTerminalService {
             ConcertSocketClient concertSocketClient,
             SimpMessagingTemplate messagingTemplate
     ) {
-        this(appSettingsService, establishmentConfigService, concertSocketClient, messagingTemplate, null, null);
+        this(appSettingsService, establishmentConfigService, concertSocketClient, messagingTemplate, null, null, null);
     }
 
     /**
-     * Constructor injection with Option 3 Stripe Terminal Connect and commission grace enforcement.
-     *
-     * @param appSettingsService           Establishment visual and hardware settings service
-     * @param establishmentConfigService   Modular capability flag verification service
-     * @param concertSocketClient          Low-level TCP client for Concert protocol
-     * @param messagingTemplate            STOMP message broker template
-     * @param stripeTerminalConnectService Option 3 Stripe Terminal Connect service
-     * @param commissionLedgerService      Monetization ledger & grace-period enforcement service
+     * Backward-compatible constructor without CloudRelayAccessService.
      */
-    @Autowired
     public PaymentTerminalService(
             AppSettingsService appSettingsService,
             EstablishmentConfigService establishmentConfigService,
@@ -84,12 +78,39 @@ public class PaymentTerminalService {
             StripeTerminalConnectService stripeTerminalConnectService,
             CommissionLedgerService commissionLedgerService
     ) {
+        this(appSettingsService, establishmentConfigService, concertSocketClient, messagingTemplate,
+                stripeTerminalConnectService, commissionLedgerService, null);
+    }
+
+    /**
+     * Constructor injection with Option 3 Stripe Terminal Connect, commission grace enforcement,
+     * and Cloud Relay remote TPE access policy checks.
+     *
+     * @param appSettingsService           Establishment visual and hardware settings service
+     * @param establishmentConfigService   Modular capability flag verification service
+     * @param concertSocketClient          Low-level TCP client for Concert protocol
+     * @param messagingTemplate            STOMP message broker template
+     * @param stripeTerminalConnectService Option 3 Stripe Terminal Connect service
+     * @param commissionLedgerService      Monetization ledger & grace-period enforcement service
+     * @param cloudRelayAccessService      Cloud Relay access policy enforcement service
+     */
+    @Autowired
+    public PaymentTerminalService(
+            AppSettingsService appSettingsService,
+            EstablishmentConfigService establishmentConfigService,
+            ConcertSocketClient concertSocketClient,
+            SimpMessagingTemplate messagingTemplate,
+            StripeTerminalConnectService stripeTerminalConnectService,
+            CommissionLedgerService commissionLedgerService,
+            CloudRelayAccessService cloudRelayAccessService
+    ) {
         this.appSettingsService = appSettingsService;
         this.establishmentConfigService = establishmentConfigService;
         this.concertSocketClient = concertSocketClient;
         this.messagingTemplate = messagingTemplate;
         this.stripeTerminalConnectService = stripeTerminalConnectService;
         this.commissionLedgerService = commissionLedgerService;
+        this.cloudRelayAccessService = cloudRelayAccessService;
     }
 
     /**
@@ -101,6 +122,9 @@ public class PaymentTerminalService {
      */
     public TpePaymentResponseDTO initiatePayment(TpePaymentRequestDTO request) {
         establishmentConfigService.checkModuleEnabled(EstablishmentModule.PAYMENT_TERMINAL);
+        if (cloudRelayAccessService != null) {
+            cloudRelayAccessService.assertRemoteTpeAllowedInCurrentRequest();
+        }
         if (commissionLedgerService != null) {
             commissionLedgerService.assertTpeCardAllowed();
         }

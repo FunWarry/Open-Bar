@@ -1044,8 +1044,14 @@ public class PdfService {
     }
 
     private String resolveTableUrl(AppSettings settings, int tableNumero) {
+        String resolved = (appSettingsService != null)
+                ? appSettingsService.resolveEffectivePublicBaseUrl(settings)
+                : null;
+        String baseUrl = (resolved != null && !resolved.isBlank())
+                ? resolved
+                : settings.getClientBaseUrl();
         return (qrCodeService != null)
-            ? qrCodeService.buildTableOrderUrl(settings.getClientBaseUrl(), tableNumero)
+            ? qrCodeService.buildTableOrderUrl(baseUrl, tableNumero)
             : DEFAULT_TABLE_URL_PREFIX + tableNumero;
     }
 

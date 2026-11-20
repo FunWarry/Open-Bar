@@ -458,8 +458,13 @@ public class TableService {
         String clientBaseUrl = "https://openbar.lan";
         if (appSettingsService != null) {
             com.bar.gestioncocktail.model.AppSettings settings = appSettingsService.getSettings();
-            if (settings != null && settings.getClientBaseUrl() != null && !settings.getClientBaseUrl().isBlank()) {
-                clientBaseUrl = settings.getClientBaseUrl();
+            if (settings != null) {
+                String resolved = appSettingsService.resolveEffectivePublicBaseUrl(settings);
+                if (resolved != null && !resolved.isBlank()) {
+                    clientBaseUrl = resolved;
+                } else if (settings.getClientBaseUrl() != null && !settings.getClientBaseUrl().isBlank()) {
+                    clientBaseUrl = settings.getClientBaseUrl();
+                }
             }
         }
 

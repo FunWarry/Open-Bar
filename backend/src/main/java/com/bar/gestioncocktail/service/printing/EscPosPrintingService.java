@@ -39,9 +39,30 @@ public class EscPosPrintingService {
     private final org.springframework.beans.factory.ObjectProvider<com.bar.gestioncocktail.service.CashDrawerService> cashDrawerServiceProvider;
     private final EscPosFormatter escPosFormatter;
     private final EscPosSocketClient socketClient;
+    private final com.bar.gestioncocktail.service.relay.CloudRelayAccessService cloudRelayAccessService;
 
     /**
-     * Constructs the printing service with required repositories, configuration, formatter, and socket client.
+     * Backward-compatible constructor for unit tests.
+     */
+    public EscPosPrintingService(
+            AppSettingsService appSettingsService,
+            EstablishmentConfigService establishmentConfigService,
+            CommandeRepository commandeRepository,
+            FactureRepository factureRepository,
+            com.bar.gestioncocktail.repository.DailyCashClosureRepository dailyCashClosureRepository,
+            com.bar.gestioncocktail.repository.CashDrawerSessionRepository cashDrawerSessionRepository,
+            com.bar.gestioncocktail.repository.CashMovementRepository cashMovementRepository,
+            org.springframework.beans.factory.ObjectProvider<com.bar.gestioncocktail.service.CashDrawerService> cashDrawerServiceProvider,
+            EscPosFormatter escPosFormatter,
+            EscPosSocketClient socketClient) {
+        this(appSettingsService, establishmentConfigService, commandeRepository, factureRepository,
+                dailyCashClosureRepository, cashDrawerSessionRepository, cashMovementRepository,
+                cashDrawerServiceProvider, escPosFormatter, socketClient, null);
+    }
+
+    /**
+     * Constructs the printing service with required repositories, configuration, formatter, socket client,
+     * and Cloud Relay remote printing policy enforcement.
      *
      * @param appSettingsService Application settings service
      * @param establishmentConfigService Legal establishment configuration service
@@ -53,6 +74,7 @@ public class EscPosPrintingService {
      * @param cashDrawerServiceProvider Optional cash drawer service provider
      * @param escPosFormatter ESC/POS binary command stream formatter
      * @param socketClient TCP raw socket client
+     * @param cloudRelayAccessService Optional Cloud Relay access policy service
      */
     @Autowired
     public EscPosPrintingService(
@@ -65,7 +87,8 @@ public class EscPosPrintingService {
             com.bar.gestioncocktail.repository.CashMovementRepository cashMovementRepository,
             org.springframework.beans.factory.ObjectProvider<com.bar.gestioncocktail.service.CashDrawerService> cashDrawerServiceProvider,
             EscPosFormatter escPosFormatter,
-            EscPosSocketClient socketClient) {
+            EscPosSocketClient socketClient,
+            com.bar.gestioncocktail.service.relay.CloudRelayAccessService cloudRelayAccessService) {
         this.appSettingsService = appSettingsService;
         this.establishmentConfigService = establishmentConfigService;
         this.commandeRepository = commandeRepository;
@@ -76,6 +99,7 @@ public class EscPosPrintingService {
         this.cashDrawerServiceProvider = cashDrawerServiceProvider;
         this.escPosFormatter = escPosFormatter;
         this.socketClient = socketClient;
+        this.cloudRelayAccessService = cloudRelayAccessService;
     }
 
     /**
@@ -378,6 +402,9 @@ public class EscPosPrintingService {
     }
 
     private PrintResultDTO sendSafely(String ip, int port, byte[] data, PrinterRole role) {
+        if (cloudRelayAccessService != null) {
+            cloudRelayAccessService.assertRemotePrintingAllowedInCurrentRequest();
+        }
         long start = System.currentTimeMillis();
         try {
             socketClient.send(ip, port, data, DEFAULT_TIMEOUT_MS);
