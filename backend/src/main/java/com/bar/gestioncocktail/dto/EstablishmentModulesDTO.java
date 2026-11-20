@@ -25,6 +25,7 @@ import com.bar.gestioncocktail.model.EstablishmentConfig;
  * @param qrPayAtTable            Whether patron pay-at-table direct online mobile settlement is enabled
  * @param facturXInvoiceImport    Whether automated supplier invoice import via Factur-X & PDF parsing is enabled
  * @param stripeTerminalConnect   Whether Option 3 Stripe Terminal Connect smart TPE integration is enabled
+ * @param cloudRelay              Whether outbound Cloud Relay tunnel and white-label remote access are enabled
  */
 public record EstablishmentModulesDTO(
         boolean cuisineKds,
@@ -46,8 +47,33 @@ public record EstablishmentModulesDTO(
         boolean angelShotSafety,
         boolean qrPayAtTable,
         boolean facturXInvoiceImport,
-        boolean stripeTerminalConnect
+        boolean stripeTerminalConnect,
+        boolean cloudRelay
 ) {
+    public EstablishmentModulesDTO(
+            boolean cuisineKds,
+            boolean happyHour,
+            boolean employeeManagement,
+            boolean floorPlan,
+            boolean qrClientOrdering,
+            boolean stockTracking,
+            boolean cashDrawer,
+            boolean barTabs,
+            boolean cocktailLibrary,
+            boolean suppliersManagement,
+            boolean inventoryAudit,
+            boolean mysteryRoulette,
+            boolean paymentTerminal,
+            boolean tableReservations,
+            boolean checklistsProcedures,
+            boolean systemUpdates,
+            boolean angelShotSafety,
+            boolean qrPayAtTable,
+            boolean facturXInvoiceImport,
+            boolean stripeTerminalConnect
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, tableReservations, checklistsProcedures, systemUpdates, angelShotSafety, qrPayAtTable, facturXInvoiceImport, stripeTerminalConnect, true);
+    }
     public EstablishmentModulesDTO(
             boolean cuisineKds,
             boolean happyHour,
@@ -307,7 +333,8 @@ public record EstablishmentModulesDTO(
                 isEnabled(config.getModuleAngelShotSafetyEnabled()),
                 isEnabled(config.getModuleQrPayAtTableEnabled()),
                 isEnabled(config.getModuleFacturXInvoiceImportEnabled()),
-                isEnabled(config.getModuleStripeTerminalConnectEnabled())
+                isEnabled(config.getModuleStripeTerminalConnectEnabled()),
+                isEnabled(config.getModuleCloudRelayEnabled())
         );
     }
 
@@ -321,6 +348,6 @@ public record EstablishmentModulesDTO(
      * @return New instance with all flags set to true
      */
     public static EstablishmentModulesDTO defaultEnabled() {
-        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);
+        return new EstablishmentModulesDTO(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);
     }
 }

@@ -69,6 +69,15 @@ openbar:
     stripe-platform-secret-key: ${STRIPE_PLATFORM_SECRET_KEY:}
     stripe-connect-webhook-secret: ${STRIPE_CONNECT_WEBHOOK_SECRET:}
     stripe-terminal-simulator-fallback: ${OPENBAR_STRIPE_TERMINAL_SIMULATOR_FALLBACK:true}
+  relay:
+    enabled: ${OPENBAR_RELAY_ENABLED:false}
+    relay-url: ${OPENBAR_RELAY_URL:wss://relay.open-bar.eu/ws/tunnel}
+    base-domain: ${OPENBAR_RELAY_BASE_DOMAIN:open-bar.eu}
+    simulator-enabled: ${OPENBAR_RELAY_SIMULATOR_ENABLED:true}
+    reconnect-initial-delay-ms: ${OPENBAR_RELAY_RECONNECT_INITIAL_MS:1000}
+    reconnect-max-delay-ms: ${OPENBAR_RELAY_RECONNECT_MAX_MS:60000}
+    heartbeat-interval-ms: ${OPENBAR_RELAY_HEARTBEAT_MS:15000}
+    local-target-url: ${OPENBAR_RELAY_LOCAL_TARGET_URL:http://127.0.0.1:8080}
 
 server:
   port: ${SERVER_PORT:8080}

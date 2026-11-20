@@ -22,6 +22,7 @@ export enum EstablishmentModule {
   QR_PAY_AT_TABLE = 'QR_PAY_AT_TABLE',
   FACTUR_X_INVOICE_IMPORT = 'FACTUR_X_INVOICE_IMPORT',
   STRIPE_TERMINAL_CONNECT = 'STRIPE_TERMINAL_CONNECT',
+  CLOUD_RELAY = 'CLOUD_RELAY',
 }
 
 /**
@@ -48,6 +49,7 @@ export interface EstablishmentModules {
   qrPayAtTable: boolean;
   facturXInvoiceImport: boolean;
   stripeTerminalConnect: boolean;
+  cloudRelay: boolean;
 }
 
 /**
@@ -80,6 +82,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     qrPayAtTable: true,
     facturXInvoiceImport: true,
     stripeTerminalConnect: true,
+    cloudRelay: true,
   },
   RESTAURANT: {
     cuisineKds: true,
@@ -102,6 +105,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     qrPayAtTable: true,
     facturXInvoiceImport: true,
     stripeTerminalConnect: true,
+    cloudRelay: true,
   },
   FOOD_TRUCK: {
     cuisineKds: true,
@@ -124,6 +128,7 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     qrPayAtTable: true,
     facturXInvoiceImport: false,
     stripeTerminalConnect: true,
+    cloudRelay: true,
   },
   NIGHTCLUB: {
     cuisineKds: false,
@@ -146,5 +151,6 @@ export const ESTABLISHMENT_PRESETS: Record<Exclude<EstablishmentPresetType, 'CUS
     qrPayAtTable: true,
     facturXInvoiceImport: true,
     stripeTerminalConnect: true,
+    cloudRelay: true,
   },
 };

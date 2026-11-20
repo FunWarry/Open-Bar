@@ -43,6 +43,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Set<UserRole> roles = new HashSet<>();
 
+    @Column(name = "remote_access_enabled", nullable = false)
+    private Boolean remoteAccessEnabled = true;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -100,6 +103,14 @@ public class User {
 
     public void setRoles(Set<UserRole> roles) {
         this.roles = roles;
+    }
+
+    public Boolean getRemoteAccessEnabled() {
+        return remoteAccessEnabled == null || remoteAccessEnabled;
+    }
+
+    public void setRemoteAccessEnabled(Boolean remoteAccessEnabled) {
+        this.remoteAccessEnabled = remoteAccessEnabled;
     }
 
     public LocalDateTime getCreatedAt() {

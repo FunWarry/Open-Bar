@@ -8,6 +8,7 @@ export interface User {
   nom?: string;
   prenom?: string;
   roles: string[];
+  remoteAccessEnabled?: boolean;
   enabled: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;

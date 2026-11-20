@@ -24,6 +24,7 @@ import { StartupOverlayComponent } from './core/components/startup-overlay/start
 import { ModalHistoryService } from './core/services/modal-history.service';
 import { BrandLogoComponent } from './core/components/ui/brand-logo/brand-logo.component';
 import { LicenseBannerComponent } from './core/components/license-banner/license-banner.component';
+import { WhiteLabelBrandingService } from './core/services/white-label-branding.service';
 
 /**
  * Root component of the OpenBar application.
@@ -57,7 +58,8 @@ export class AppComponent implements OnInit {
     private readonly sessionTimeoutService: SessionTimeoutService,
     public readonly startupService: StartupReadinessService,
     public readonly navigationService: NavigationService,
-    private readonly modalHistoryService: ModalHistoryService
+    private readonly modalHistoryService: ModalHistoryService,
+    private readonly whiteLabelBrandingService: WhiteLabelBrandingService
   ) {
     addIcons(allIcons);
     const isAuth$ = this.store.select(selectIsAuthenticated);
@@ -68,6 +70,7 @@ export class AppComponent implements OnInit {
         url.includes('/setup') ||
         url.includes('/client') ||
         url.includes('/qr-client') ||
+        url.includes('/relay-offline') ||
         url.includes('/404')
       );
     };
@@ -107,6 +110,7 @@ export class AppComponent implements OnInit {
       this.appSettingsService.getSettings().subscribe({
         error: () => { /* Preserve default design system settings if the backend API is unreachable */ },
       });
+      this.whiteLabelBrandingService.loadBranding().subscribe();
     });
     this.sessionTimeoutService.init();
     this.appUpdateService.initStartupCheck();

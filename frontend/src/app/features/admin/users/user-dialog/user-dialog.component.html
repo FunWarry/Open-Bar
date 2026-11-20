@@ -92,9 +92,9 @@
     <!-- Roles section with Filter Chips -->
     <div class="roles-selection-section">
       <div class="section-label-row">
-        <label class="section-label">
+        <span class="section-label">
           {{ 'USERS.ASSIGNED_ROLES' | transloco }} <span class="required-star">*</span>
-        </label>
+        </span>
         <span class="section-hint">{{ 'USERS.ROLES_HELP' | transloco }}</span>
       </div>
 
@@ -113,6 +113,18 @@
       @if (userForm.get('roles')?.touched && userForm.get('roles')?.hasError('required')) {
         <p class="error-hint" data-testid="role-required-error">{{ 'USERS.ROLE_REQUIRED' | transloco }}</p>
       }
+    </div>
+
+    <!-- Cloud Relay Remote Access Policy per User -->
+    <div class="remote-access-section" data-testid="user-remote-access-section">
+      <div class="remote-access-info">
+        <span class="section-label">{{ 'USERS.REMOTE_ACCESS_LABEL' | transloco }}</span>
+        <span class="section-hint">{{ 'USERS.REMOTE_ACCESS_HINT' | transloco }}</span>
+      </div>
+      <app-toggle-switch
+        formControlName="remoteAccessEnabled"
+        testId="toggle-user-remote-access">
+      </app-toggle-switch>
     </div>
   </form>
 

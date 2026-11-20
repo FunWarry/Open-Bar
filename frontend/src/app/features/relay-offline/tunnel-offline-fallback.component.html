@@ -1,0 +1,91 @@
+<div class="fallback-container" data-testid="tunnel-offline-fallback">
+  <div class="fallback-card">
+    <div class="fallback-brand-header">
+      @if (brandingService.logoUrl()) {
+        <img
+          [src]="brandingService.logoUrl()"
+          [alt]="brandingService.establishmentName()"
+          class="venue-logo-img"
+          data-testid="fallback-venue-logo" />
+      } @else {
+        <app-brand-logo variant="icon" size="md" testId="fallback-default-logo"></app-brand-logo>
+      }
+      <h1 class="venue-name" data-testid="fallback-venue-name">{{ brandingService.establishmentName() }}</h1>
+    </div>
+
+    <div class="offline-status-badge" data-testid="fallback-status-badge">
+      <ion-icon name="cloud-offline-outline"></ion-icon>
+      <span>{{ 'RELAY_FALLBACK.STATUS_BADGE' | transloco }}</span>
+    </div>
+
+    <h2 class="fallback-title">{{ 'RELAY_FALLBACK.TITLE' | transloco }}</h2>
+    <p class="fallback-desc">{{ 'RELAY_FALLBACK.DESCRIPTION' | transloco }}</p>
+
+    <div class="fallback-options-grid">
+      <!-- Option 1: Venue Local Wi-Fi -->
+      <div class="option-card" data-testid="fallback-wifi-card">
+        <div class="option-icon-wrap wifi-icon">
+          <ion-icon name="wifi-outline"></ion-icon>
+        </div>
+        <div class="option-body">
+          <h3>{{ 'RELAY_FALLBACK.WIFI_TITLE' | transloco }}</h3>
+          @if (brandingService.wifiEnabled() && brandingService.wifiSsid()) {
+            <p class="option-detail">
+              {{ 'RELAY_FALLBACK.WIFI_NETWORK_LABEL' | transloco }}
+              <strong data-testid="fallback-wifi-ssid">{{ brandingService.wifiSsid() }}</strong>
+            </p>
+            <div class="option-inline-actions">
+              <app-action-button
+                variant="secondary"
+                size="small"
+                (clicked)="copyWifiSsid()"
+                testId="btn-copy-fallback-wifi">
+                <ion-icon [name]="copiedWifi() ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+                {{ (copiedWifi() ? 'COMMON.COPIED' : 'RELAY_FALLBACK.COPY_WIFI_BTN') | transloco }}
+              </app-action-button>
+            </div>
+          } @else {
+            <p class="option-detail">{{ 'RELAY_FALLBACK.WIFI_GENERIC_HINT' | transloco }}</p>
+          }
+          <p class="local-url-hint" data-testid="fallback-local-url">
+            {{ 'RELAY_FALLBACK.LOCAL_ADDRESS_HINT' | transloco: { url: brandingService.localFallbackUrl() } }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Option 2: Order directly via waitstaff -->
+      <div class="option-card" data-testid="fallback-staff-card">
+        <div class="option-icon-wrap staff-icon">
+          <ion-icon name="restaurant-outline"></ion-icon>
+        </div>
+        <div class="option-body">
+          <h3>{{ 'RELAY_FALLBACK.STAFF_TITLE' | transloco }}</h3>
+          <p class="option-detail">{{ 'RELAY_FALLBACK.STAFF_DESC' | transloco }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="fallback-actions">
+      <app-action-button
+        variant="primary"
+        size="large"
+        expand="block"
+        [disabled]="isChecking()"
+        (clicked)="retryConnection()"
+        testId="btn-retry-tunnel">
+        <ion-icon name="refresh-outline"></ion-icon>
+        {{ 'RELAY_FALLBACK.RETRY_BTN' | transloco: { seconds: countdown() } }}
+      </app-action-button>
+
+      <app-action-button
+        variant="secondary"
+        size="medium"
+        expand="block"
+        (clicked)="openLocalFallback()"
+        testId="btn-open-local-fallback">
+        <ion-icon name="wifi-outline"></ion-icon>
+        {{ 'RELAY_FALLBACK.OPEN_LOCAL_BTN' | transloco }}
+      </app-action-button>
+    </div>
+  </div>
+</div>

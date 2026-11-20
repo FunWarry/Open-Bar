@@ -61,6 +61,9 @@ public class UserService implements UserDetailsService {
 
     public User createUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (user.getRemoteAccessEnabled() == null) {
+            user.setRemoteAccessEnabled(Boolean.TRUE);
+        }
         user.setCreatedAt(timeService.now());
         user.setUpdatedAt(timeService.now());
         return userRepository.save(user);
@@ -91,6 +94,9 @@ public class UserService implements UserDetailsService {
         }
         if (updatedData.getRoles() != null && !updatedData.getRoles().isEmpty()) {
             existing.setRoles(updatedData.getRoles());
+        }
+        if (updatedData.getRemoteAccessEnabled() != null) {
+            existing.setRemoteAccessEnabled(updatedData.getRemoteAccessEnabled());
         }
         if (updatedData.getPassword() != null && !updatedData.getPassword().isBlank()) {
             existing.setPassword(passwordEncoder.encode(updatedData.getPassword()));

@@ -39,12 +39,15 @@ public class EstablishmentConfigService {
     }
 
     /**
-     * Constructs EstablishmentConfigService with repository, real-time notification service,
+     * Constructs EstablishmentConfigService with repository, real-time notification
+     * service,
      * and DRM licensing service for entitlement enforcement.
      *
-     * @param establishmentConfigRepository Repository for establishment config persistence
+     * @param establishmentConfigRepository Repository for establishment config
+     *                                      persistence
      * @param notificationService           Service for STOMP WebSocket broadcasts
-     * @param licenseService                Licensing service enforcing module entitlements
+     * @param licenseService                Licensing service enforcing module
+     *                                      entitlements
      */
     @org.springframework.beans.factory.annotation.Autowired
     public EstablishmentConfigService(
@@ -103,7 +106,8 @@ public class EstablishmentConfigService {
      * establishment and unlocked by the active license.
      *
      * @param module Capability module to check
-     * @return True if enabled and licensed, false otherwise (defaults to true if module is null)
+     * @return True if enabled and licensed, false otherwise (defaults to true if
+     *         module is null)
      */
     @Transactional(readOnly = true)
     public boolean isModuleEnabled(EstablishmentModule module) {
@@ -115,7 +119,8 @@ public class EstablishmentConfigService {
     }
 
     /**
-     * Asserts that a given capability module is enabled and licensed, otherwise throwing a
+     * Asserts that a given capability module is enabled and licensed, otherwise
+     * throwing a
      * {@link BusinessException}.
      *
      * @param module Module to verify
@@ -191,8 +196,8 @@ public class EstablishmentConfigService {
                 isAllowed(raw.angelShotSafety(), EstablishmentModule.ANGEL_SHOT_SAFETY),
                 isAllowed(raw.qrPayAtTable(), EstablishmentModule.QR_PAY_AT_TABLE),
                 isAllowed(raw.facturXInvoiceImport(), EstablishmentModule.FACTUR_X_INVOICE_IMPORT),
-                isAllowed(raw.stripeTerminalConnect(), EstablishmentModule.STRIPE_TERMINAL_CONNECT)
-        );
+                isAllowed(raw.stripeTerminalConnect(), EstablishmentModule.STRIPE_TERMINAL_CONNECT),
+                isAllowed(raw.cloudRelay(), EstablishmentModule.CLOUD_RELAY));
     }
 
     private boolean isAllowed(boolean rawFlag, EstablishmentModule module) {
@@ -270,6 +275,7 @@ public class EstablishmentConfigService {
         applyModuleIfPresent(config, EstablishmentModule.QR_PAY_AT_TABLE, request.qrPayAtTable());
         applyModuleIfPresent(config, EstablishmentModule.FACTUR_X_INVOICE_IMPORT, request.facturXInvoiceImport());
         applyModuleIfPresent(config, EstablishmentModule.STRIPE_TERMINAL_CONNECT, request.stripeTerminalConnect());
+        applyModuleIfPresent(config, EstablishmentModule.CLOUD_RELAY, request.cloudRelay());
     }
 
     private void applyModuleIfPresent(EstablishmentConfig config, EstablishmentModule module, Boolean enabled) {

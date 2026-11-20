@@ -3444,3 +3444,92 @@ ion-col {
   }
 }
 
+/* --- Cloud Relay & White-Label Settings --- */
+.cloud-relay-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.relay-status-badge {
+  margin-left: auto;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: var(--background-surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-medium);
+
+  &.connected {
+    color: var(--semantic-success);
+    border-color: var(--semantic-success);
+  }
+}
+
+.relay-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.relay-diag-banner {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  background: var(--background-surface-2);
+  border: 1px solid var(--semantic-warning);
+  color: var(--text-primary);
+
+  &.ok {
+    border-color: var(--semantic-success);
+  }
+
+  .diag-url {
+    color: var(--text-secondary);
+    margin-left: 6px;
+  }
+}
+
+.relay-access-matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+
+  .matrix-title {
+    margin: 0;
+    font-size: 0.94rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .matrix-desc {
+    margin: 0 0 4px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+}
+
+.relay-roles-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+
+  .roles-picker-label {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .roles-chips-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+

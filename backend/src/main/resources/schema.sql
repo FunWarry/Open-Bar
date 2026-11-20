@@ -1275,3 +1275,19 @@ CREATE TABLE IF NOT EXISTS commission_billing_records (
 CREATE INDEX IF NOT EXISTS idx_commission_billing_status ON commission_billing_records(invoice_status);
 CREATE INDEX IF NOT EXISTS idx_commission_billing_remote_inv ON commission_billing_records(remote_invoice_id);
 
+-- Outbound Reverse Cloud Relay Tunnel, Subdomains, White-Label & Configurable Access (#654)
+ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS module_cloud_relay_enabled BOOLEAN DEFAULT true;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS remote_access_enabled BOOLEAN NOT NULL DEFAULT true;
+
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS cloud_relay_enabled BOOLEAN DEFAULT false;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS venue_slug VARCHAR(63);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS custom_domain VARCHAR(255);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS banner_image_url VARCHAR(2048);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS relay_pairing_token VARCHAR(512);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS cloud_relay_clients_enabled BOOLEAN DEFAULT true;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS cloud_relay_staff_enabled BOOLEAN DEFAULT true;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS cloud_relay_admin_enabled BOOLEAN DEFAULT true;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS cloud_relay_remote_tpe_enabled BOOLEAN DEFAULT true;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS cloud_relay_remote_printing_enabled BOOLEAN DEFAULT true;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS cloud_relay_allowed_roles_json TEXT DEFAULT '["SERVEUR","BARMAN","MANAGER","ADMIN"]';
+

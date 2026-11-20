@@ -24,6 +24,7 @@ package com.bar.gestioncocktail.dto;
  * @param qrPayAtTable            Optional new status for QR Pay-at-Table module
  * @param facturXInvoiceImport    Optional new status for Factur-X & PDF supplier invoice import module
  * @param stripeTerminalConnect   Optional new status for Option 3 Stripe Terminal Connect smart TPE module
+ * @param cloudRelay              Optional new status for Cloud Relay tunnel module
  */
 public record EstablishmentModulesUpdateRequest(
         Boolean cuisineKds,
@@ -45,8 +46,33 @@ public record EstablishmentModulesUpdateRequest(
         Boolean angelShotSafety,
         Boolean qrPayAtTable,
         Boolean facturXInvoiceImport,
-        Boolean stripeTerminalConnect
+        Boolean stripeTerminalConnect,
+        Boolean cloudRelay
 ) {
+    public EstablishmentModulesUpdateRequest(
+            Boolean cuisineKds,
+            Boolean happyHour,
+            Boolean employeeManagement,
+            Boolean floorPlan,
+            Boolean qrClientOrdering,
+            Boolean stockTracking,
+            Boolean cashDrawer,
+            Boolean barTabs,
+            Boolean cocktailLibrary,
+            Boolean suppliersManagement,
+            Boolean inventoryAudit,
+            Boolean mysteryRoulette,
+            Boolean paymentTerminal,
+            Boolean tableReservations,
+            Boolean checklistsProcedures,
+            Boolean systemUpdates,
+            Boolean angelShotSafety,
+            Boolean qrPayAtTable,
+            Boolean facturXInvoiceImport,
+            Boolean stripeTerminalConnect
+    ) {
+        this(cuisineKds, happyHour, employeeManagement, floorPlan, qrClientOrdering, stockTracking, cashDrawer, barTabs, cocktailLibrary, suppliersManagement, inventoryAudit, mysteryRoulette, paymentTerminal, tableReservations, checklistsProcedures, systemUpdates, angelShotSafety, qrPayAtTable, facturXInvoiceImport, stripeTerminalConnect, null);
+    }
     public EstablishmentModulesUpdateRequest(
             Boolean cuisineKds,
             Boolean happyHour,

@@ -117,7 +117,13 @@ public enum EstablishmentModule {
      * Turnkey Smart TPE integration via Stripe Terminal Connect (WisePOS E / PayFac),
      * automatically splitting platform application fees at the source.
      */
-    STRIPE_TERMINAL_CONNECT
+    STRIPE_TERMINAL_CONNECT,
+
+    /**
+     * Outbound reverse Cloud Relay tunnel, dedicated per-venue subdomains,
+     * custom domain CNAME routing, white-label branding, and configurable universal remote access.
+     */
+    CLOUD_RELAY
 }
 
 

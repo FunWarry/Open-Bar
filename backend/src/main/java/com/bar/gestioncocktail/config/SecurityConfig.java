@@ -1,7 +1,9 @@
 package com.bar.gestioncocktail.config;
 
+import com.bar.gestioncocktail.security.CloudRelayAccessFilter;
 import com.bar.gestioncocktail.security.JwtAuthenticationFilter;
 import com.bar.gestioncocktail.security.JwtAuthorizationFilter;
+import com.bar.gestioncocktail.security.TenantHostContextFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -35,7 +37,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@EnableConfigurationProperties({JwtProperties.class, LicenseProperties.class, MonetizationProperties.class})
+@EnableConfigurationProperties({JwtProperties.class, LicenseProperties.class, MonetizationProperties.class, CloudRelayProperties.class})
 public class SecurityConfig {
 
     private static final String ROLE_ADMIN = "ADMIN";
@@ -51,6 +53,8 @@ public class SecurityConfig {
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
     private final CorsOriginResolver corsOriginResolver;
     private final Environment environment;
+    private final TenantHostContextFilter tenantHostContextFilter;
+    private final CloudRelayAccessFilter cloudRelayAccessFilter;
 
     /**
      * Backward-compatible constructor without Environment.
@@ -63,34 +67,57 @@ public class SecurityConfig {
             JwtAuthenticationFilter jwtAuthenticationFilter,
             JwtAuthorizationFilter jwtAuthorizationFilter,
             CorsOriginResolver corsOriginResolver) {
-        this(jwtAuthenticationFilter, jwtAuthorizationFilter, corsOriginResolver, null);
+        this(jwtAuthenticationFilter, jwtAuthorizationFilter, corsOriginResolver, null, null, null);
     }
 
     /**
-     * Constructs SecurityConfig with required filters, CORS origin resolver, and runtime environment.
+     * Backward-compatible constructor without Cloud Relay filters.
      *
      * @param jwtAuthenticationFilter JWT authentication filter
      * @param jwtAuthorizationFilter JWT authorization filter
      * @param corsOriginResolver Resolver for CORS allowed origins
      * @param environment Spring runtime environment for profile inspection
      */
-    @Autowired
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             JwtAuthorizationFilter jwtAuthorizationFilter,
             CorsOriginResolver corsOriginResolver,
             Environment environment) {
+        this(jwtAuthenticationFilter, jwtAuthorizationFilter, corsOriginResolver, environment, null, null);
+    }
+
+    /**
+     * Constructs SecurityConfig with required filters, CORS origin resolver, runtime environment,
+     * and Cloud Relay tenant/access filters.
+     *
+     * @param jwtAuthenticationFilter JWT authentication filter
+     * @param jwtAuthorizationFilter  JWT authorization filter
+     * @param corsOriginResolver      Resolver for CORS allowed origins
+     * @param environment             Spring runtime environment for profile inspection
+     * @param tenantHostContextFilter Multi-tenant subdomain/CNAME host context filter
+     * @param cloudRelayAccessFilter  Configurable Cloud Relay tunnel access enforcement filter
+     */
+    @Autowired
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            JwtAuthorizationFilter jwtAuthorizationFilter,
+            CorsOriginResolver corsOriginResolver,
+            Environment environment,
+            TenantHostContextFilter tenantHostContextFilter,
+            CloudRelayAccessFilter cloudRelayAccessFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.jwtAuthorizationFilter = jwtAuthorizationFilter;
         this.corsOriginResolver = corsOriginResolver;
         this.environment = environment;
+        this.tenantHostContextFilter = tenantHostContextFilter;
+        this.cloudRelayAccessFilter = cloudRelayAccessFilter;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         try {
             boolean prodProfile = isProductionProfile();
-            return http
+            http
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .csrf(csrf -> csrf
                             .csrfTokenRepository(new PassthroughCsrfTokenRepository())
@@ -138,7 +165,14 @@ public class SecurityConfig {
                                 .anyRequest().authenticated();
                     })
                     .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                    .addFilterAfter(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
+                    .addFilterAfter(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
+            if (tenantHostContextFilter != null) {
+                http.addFilterBefore(tenantHostContextFilter, JwtAuthenticationFilter.class);
+            }
+            if (cloudRelayAccessFilter != null) {
+                http.addFilterAfter(cloudRelayAccessFilter, JwtAuthorizationFilter.class);
+            }
+            return http
                     .exceptionHandling(ex -> ex
                             .authenticationEntryPoint((request, response, authException) -> writeError(
                                     response,

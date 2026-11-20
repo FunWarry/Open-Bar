@@ -11,13 +11,8 @@
     </div>
 
     <div class="hero-actions">
-      <app-action-button
-        variant="primary"
-        size="medium"
-        icon="person-add"
-        (btnClick)="openCreateDialog()"
-        testId="create-user-btn"
-        data-testid="create-user-btn">
+      <app-action-button variant="primary" size="medium" icon="person-add" (btnClick)="openCreateDialog()"
+        testId="create-user-btn" data-testid="create-user-btn">
         {{ 'USERS.NEW_EMPLOYEE_BTN' | transloco }}
       </app-action-button>
     </div>
@@ -26,53 +21,28 @@
   <!-- ── Executive KPI Summary Cards (5 Cards) ─────────────────────────────── -->
   <section class="kpis-section" data-testid="users-kpis-grid">
     <div class="kpis-grid">
-      <app-stat-card
-        [label]="'USERS.KPIS.TOTAL_USERS' | transloco"
-        [value]="totalUsersCount"
-        [subtext]="'USERS.KPIS.TOTAL_USERS_SUB' | transloco"
-        icon="people-outline"
-        color="primary"
-        size="sm"
+      <app-stat-card [label]="'USERS.KPIS.TOTAL_USERS' | transloco" [value]="totalUsersCount"
+        [subtext]="'USERS.KPIS.TOTAL_USERS_SUB' | transloco" icon="people-outline" color="primary" size="sm"
         testId="stat-total-users">
       </app-stat-card>
 
-      <app-stat-card
-        [label]="'USERS.KPIS.ADMINS' | transloco"
-        [value]="adminsCount"
-        [subtext]="'USERS.KPIS.ADMINS_SUB' | transloco"
-        icon="shield-checkmark-outline"
-        color="danger"
-        size="sm"
+      <app-stat-card [label]="'USERS.KPIS.ADMINS' | transloco" [value]="adminsCount"
+        [subtext]="'USERS.KPIS.ADMINS_SUB' | transloco" icon="shield-checkmark-outline" color="danger" size="sm"
         testId="stat-admins">
       </app-stat-card>
 
-      <app-stat-card
-        [label]="'USERS.KPIS.MANAGERS' | transloco"
-        [value]="managersCount"
-        [subtext]="'USERS.KPIS.MANAGERS_SUB' | transloco"
-        icon="briefcase-outline"
-        color="warning"
-        size="sm"
+      <app-stat-card [label]="'USERS.KPIS.MANAGERS' | transloco" [value]="managersCount"
+        [subtext]="'USERS.KPIS.MANAGERS_SUB' | transloco" icon="briefcase-outline" color="warning" size="sm"
         testId="stat-managers">
       </app-stat-card>
 
-      <app-stat-card
-        [label]="'USERS.KPIS.WAITERS' | transloco"
-        [value]="waitersCount"
-        [subtext]="'USERS.KPIS.WAITERS_SUB' | transloco"
-        icon="restaurant-outline"
-        color="primary"
-        size="sm"
+      <app-stat-card [label]="'USERS.KPIS.WAITERS' | transloco" [value]="waitersCount"
+        [subtext]="'USERS.KPIS.WAITERS_SUB' | transloco" icon="restaurant-outline" color="primary" size="sm"
         testId="stat-waiters">
       </app-stat-card>
 
-      <app-stat-card
-        [label]="'USERS.KPIS.BARTENDERS' | transloco"
-        [value]="bartendersCount"
-        [subtext]="'USERS.KPIS.BARTENDERS_SUB' | transloco"
-        icon="wine-outline"
-        color="success"
-        size="sm"
+      <app-stat-card [label]="'USERS.KPIS.BARTENDERS' | transloco" [value]="bartendersCount"
+        [subtext]="'USERS.KPIS.BARTENDERS_SUB' | transloco" icon="wine-outline" color="success" size="sm"
         testId="stat-bartenders">
       </app-stat-card>
     </div>
@@ -82,25 +52,15 @@
   <section class="filter-section">
     <div class="filter-toolbar">
       <div class="search-wrapper">
-        <app-search-bar
-          [(ngModel)]="searchQuery"
-          (searchChange)="onSearchChange()"
-          [placeholder]="'USERS.SEARCH_PLACEHOLDER' | transloco"
-          testId="user-search-input">
+        <app-search-bar [(ngModel)]="searchQuery" (searchChange)="onSearchChange()"
+          [placeholder]="'USERS.SEARCH_PLACEHOLDER' | transloco" testId="user-search-input">
         </app-search-bar>
       </div>
 
       <div class="role-select-box">
-        <app-searchable-select
-          [options]="roleSelectOptions"
-          [(ngModel)]="selectedRole"
-          (ngModelChange)="onRoleChange()"
-          [multiple]="false"
-          [placeholder]="'USERS.ALL_ROLES' | transloco"
-          [clearable]="false"
-          [enableSearch]="false"
-          size="default"
-          testId="user-role-select">
+        <app-searchable-select [options]="roleSelectOptions" [(ngModel)]="selectedRole" (ngModelChange)="onRoleChange()"
+          [multiple]="false" [placeholder]="'USERS.ALL_ROLES' | transloco" [clearable]="false" [enableSearch]="false"
+          size="default" testId="user-role-select">
         </app-searchable-select>
       </div>
 
@@ -115,221 +75,195 @@
   <main class="content-area">
     <!-- Loading State -->
     @if (loading) {
-      <div class="loading-state" data-testid="users-loading">
-        <ion-spinner name="crescent" color="primary"></ion-spinner>
-        <p>{{ 'COMMON.LOADING' | transloco }}</p>
-      </div>
+    <div class="loading-state" data-testid="users-loading">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>{{ 'COMMON.LOADING' | transloco }}</p>
+    </div>
     }
 
     @if (!loading) {
-      <!-- Empty State -->
-      @if (users.length === 0) {
-        <div class="empty-state-wrapper" data-testid="empty-users-state">
-          <app-empty-state
-            icon="people-outline"
-            [title]="'USERS.NO_USERS' | transloco"
-            [subtitle]="'USERS.EMPTY_SUBTEXT' | transloco"
-            [actionLabel]="'USERS.RESET_FILTERS' | transloco"
-            (actionClick)="resetFilters()">
-          </app-empty-state>
-        </div>
-      }
+    <!-- Empty State -->
+    @if (users.length === 0) {
+    <div class="empty-state-wrapper" data-testid="empty-users-state">
+      <app-empty-state icon="people-outline" [title]="'USERS.NO_USERS' | transloco"
+        [subtitle]="'USERS.EMPTY_SUBTEXT' | transloco" [actionLabel]="'USERS.RESET_FILTERS' | transloco"
+        (actionClick)="resetFilters()">
+      </app-empty-state>
+    </div>
+    }
 
-      <!-- Users Content (Desktop Table + Mobile/Tablet Cards) -->
-      @if (users.length > 0) {
-        <!-- 1. Desktop Data Table View (> 1024px) -->
-        <div class="desktop-table-container" data-testid="users-desktop-table">
-          <table class="users-table">
-            <thead>
-              <tr>
-                <th scope="col" class="th-user">{{ 'USERS.TABLE.USER' | transloco }}</th>
-                <th scope="col" class="th-contact">{{ 'USERS.TABLE.CONTACT' | transloco }}</th>
-                <th scope="col" class="th-roles">{{ 'USERS.TABLE.ROLES' | transloco }}</th>
-                <th scope="col" class="th-status">{{ 'USERS.TABLE.STATUS' | transloco }}</th>
-                <th scope="col" class="th-date">{{ 'USERS.TABLE.CREATED_AT' | transloco }}</th>
-                <th scope="col" class="th-actions text-end">{{ 'USERS.TABLE.ACTIONS' | transloco }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (user of users; track trackById($index, user)) {
-                <tr class="table-row" [attr.data-testid]="'user-row-' + user.id">
-                  <!-- User identity & avatar -->
-                  <td class="td-user">
-                    <div class="user-cell">
-                      <app-user-avatar
-                        [name]="getDisplayName(user)"
-                        [role]="getUserPrimaryRole(user.roles)"
-                        size="medium"
-                        [testId]="'avatar-table-' + user.id">
-                      </app-user-avatar>
-                      <div class="user-cell-meta">
-                        <span class="user-name">{{ getDisplayName(user) }}</span>
-                        <span class="user-handle">@{{ user.username }}</span>
-                      </div>
-                    </div>
-                  </td>
-
-                  <!-- Contact / email -->
-                  <td class="td-contact">
-                    <div class="email-cell">
-                      <ion-icon name="mail-outline"></ion-icon>
-                      <span>{{ user.email }}</span>
-                    </div>
-                  </td>
-
-                  <!-- Role Badges -->
-                  <td class="td-roles">
-                    <div class="roles-cell">
-                      @for (role of user.roles; track role) {
-                        <app-role-badge
-                          [role]="getUserPrimaryRole([role])"
-                          [testId]="'table-role-' + user.id + '-' + role.toLowerCase()">
-                        </app-role-badge>
-                      }
-                    </div>
-                  </td>
-
-                  <!-- Status -->
-                  <td class="td-status">
-                    <span class="status-pill" [class.active]="user.enabled !== false">
-                      <span class="status-dot"></span>
-                      <span>{{ (user.enabled !== false ? 'USERS.STATUS_ACTIVE' : 'USERS.STATUS_INACTIVE') | transloco }}</span>
-                    </span>
-                  </td>
-
-                  <!-- Creation date -->
-                  <td class="td-date">
-                    <div class="date-cell">
-                      <ion-icon name="calendar-outline"></ion-icon>
-                      <span>{{ formatDate(user.createdAt) }}</span>
-                    </div>
-                  </td>
-
-                  <!-- Actions -->
-                  <td class="td-actions text-end">
-                    <div class="actions-cell">
-                      <app-action-button
-                        variant="secondary"
-                        size="small"
-                        icon="create-outline"
-                        (btnClick)="openEditDialog(user)"
-                        [testId]="'table-edit-btn-' + user.id"
-                        [attr.data-testid]="'table-edit-btn-' + user.id">
-                        {{ 'COMMON.EDIT' | transloco }}
-                      </app-action-button>
-
-                      <app-action-button
-                        variant="danger"
-                        size="small"
-                        icon="trash-outline"
-                        (btnClick)="openDeleteDialog(user)"
-                        [testId]="'table-delete-btn-' + user.id"
-                        [attr.data-testid]="'table-delete-btn-' + user.id">
-                        {{ 'COMMON.DELETE' | transloco }}
-                      </app-action-button>
-                    </div>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-
-        <!-- 2. Mobile & Tablet Cards View (<= 1024px) -->
-        <div class="users-cards-grid" data-testid="user-list">
+    <!-- Users Content (Desktop Table + Mobile/Tablet Cards) -->
+    @if (users.length > 0) {
+    <!-- 1. Desktop Data Table View (> 1024px) -->
+    <div class="desktop-table-container" data-testid="users-desktop-table">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th scope="col" class="th-user">{{ 'USERS.TABLE.USER' | transloco }}</th>
+            <th scope="col" class="th-contact">{{ 'USERS.TABLE.CONTACT' | transloco }}</th>
+            <th scope="col" class="th-roles">{{ 'USERS.TABLE.ROLES' | transloco }}</th>
+            <th scope="col" class="th-status">{{ 'USERS.TABLE.STATUS' | transloco }}</th>
+            <th scope="col" class="th-date">{{ 'USERS.TABLE.CREATED_AT' | transloco }}</th>
+            <th scope="col" class="th-actions text-end">{{ 'USERS.TABLE.ACTIONS' | transloco }}</th>
+          </tr>
+        </thead>
+        <tbody>
           @for (user of users; track trackById($index, user)) {
-            <article
-              class="user-card"
-              [attr.data-testid]="'user-item-' + user.id">
-
-              <!-- Top/Left: Avatar & Identity -->
-              <div class="card-identity">
-                <div class="avatar-box">
-                  <app-user-avatar
-                    [name]="getDisplayName(user)"
-                    [role]="getUserPrimaryRole(user.roles)"
-                    size="medium"
-                    [testId]="'avatar-' + user.id">
-                  </app-user-avatar>
-                  <span
-                    class="status-indicator"
-                    [class.active]="user.enabled !== false"
-                    [title]="user.enabled !== false ? ('USERS.STATUS_ACTIVE' | transloco) : ('USERS.STATUS_INACTIVE' | transloco)">
-                  </span>
-                </div>
-
-                <div class="identity-info">
-                  <div class="name-row">
-                    <h2 class="user-display-name">{{ getDisplayName(user) }}</h2>
-                    @if (user.prenom || user.nom) {
-                      <span class="username-tag">@{{ user.username }}</span>
-                    }
-                  </div>
-
-                  <div class="email-row">
-                    <ion-icon name="mail-outline"></ion-icon>
-                    <span class="user-email">{{ user.email }}</span>
-                  </div>
-
-                  <!-- Role Badges -->
-                  <div class="roles-row">
-                    @for (role of user.roles; track role) {
-                      <app-role-badge
-                        [role]="getUserPrimaryRole([role])"
-                        [testId]="'role-badge-' + user.id + '-' + role.toLowerCase()">
-                      </app-role-badge>
-                    }
-                  </div>
-
-                  <div class="date-row">
-                    <ion-icon name="calendar-outline"></ion-icon>
-                    <span>{{ formatDate(user.createdAt) }}</span>
-                  </div>
+          <tr class="table-row" [attr.data-testid]="'user-row-' + user.id">
+            <!-- User identity & avatar -->
+            <td class="td-user">
+              <div class="user-cell">
+                <app-user-avatar [name]="getDisplayName(user)" [role]="getUserPrimaryRole(user.roles)" size="medium"
+                  [testId]="'avatar-table-' + user.id">
+                </app-user-avatar>
+                <div class="user-cell-meta">
+                  <span class="user-name">{{ getDisplayName(user) }}</span>
+                  <span class="user-handle">@{{ user.username }}</span>
                 </div>
               </div>
+            </td>
 
-              <!-- Bottom/Right: Actions -->
-              <div class="card-actions">
-                <app-action-button
-                  variant="secondary"
-                  size="small"
-                  icon="create-outline"
-                  (btnClick)="openEditDialog(user)"
-                  [testId]="'edit-user-btn-' + user.id"
-                  [attr.data-testid]="'edit-user-btn-' + user.id">
+            <!-- Contact / email -->
+            <td class="td-contact">
+              <div class="email-cell">
+                <ion-icon name="mail-outline"></ion-icon>
+                <span>{{ user.email }}</span>
+              </div>
+            </td>
+
+            <!-- Role Badges -->
+            <td class="td-roles">
+              <div class="roles-cell">
+                @for (role of user.roles; track role) {
+                <app-role-badge [role]="getUserPrimaryRole([role])"
+                  [testId]="'table-role-' + user.id + '-' + role.toLowerCase()">
+                </app-role-badge>
+                }
+              </div>
+            </td>
+
+            <!-- Status -->
+            <td class="td-status">
+              <div class="status-pills-stack">
+                <span class="status-pill" [class.active]="user.enabled !== false">
+                  <span class="status-dot"></span>
+                  <span>{{ (user.enabled !== false ? 'USERS.STATUS_ACTIVE' : 'USERS.STATUS_INACTIVE') | transloco
+                    }}</span>
+                </span>
+                <span class="remote-pill" [class.allowed]="user.remoteAccessEnabled !== false"
+                  [attr.data-testid]="'user-remote-badge-' + user.id">
+                  {{ (user.remoteAccessEnabled !== false ? 'USERS.REMOTE_ACCESS_ON' : 'USERS.REMOTE_ACCESS_OFF') |
+                  transloco }}
+                </span>
+              </div>
+            </td>
+
+            <!-- Creation date -->
+            <td class="td-date">
+              <div class="date-cell">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <span>{{ formatDate(user.createdAt) }}</span>
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td class="td-actions text-end">
+              <div class="actions-cell">
+                <app-action-button variant="secondary" size="small" icon="create-outline"
+                  (btnClick)="openEditDialog(user)" [testId]="'table-edit-btn-' + user.id"
+                  [attr.data-testid]="'table-edit-btn-' + user.id">
                   {{ 'COMMON.EDIT' | transloco }}
                 </app-action-button>
 
-                <app-action-button
-                  variant="danger"
-                  size="small"
-                  icon="trash-outline"
-                  (btnClick)="openDeleteDialog(user)"
-                  [testId]="'delete-user-btn-' + user.id"
-                  [attr.data-testid]="'delete-user-btn-' + user.id">
+                <app-action-button variant="danger" size="small" icon="trash-outline"
+                  (btnClick)="openDeleteDialog(user)" [testId]="'table-delete-btn-' + user.id"
+                  [attr.data-testid]="'table-delete-btn-' + user.id">
                   {{ 'COMMON.DELETE' | transloco }}
                 </app-action-button>
               </div>
-            </article>
+            </td>
+          </tr>
           }
-        </div>
-      }
+        </tbody>
+      </table>
+    </div>
 
-      <!-- Pagination Footer -->
-      @if (totalElements > 0) {
-        <div class="pagination-wrapper" data-testid="pagination-users">
-          <app-pagination
-            [currentPage]="currentPage + 1"
-            [totalItems]="totalElements"
-            [pageSize]="pageSize"
-            [pageSizeOptions]="pageSizeOptions"
-            [showPageSize]="true"
-            testId="users-pagination"
-            (pageChange)="onPageChange($event)"
-            (pageSizeChange)="changePageSize($event)">
-          </app-pagination>
+    <!-- 2. Mobile & Tablet Cards View (<= 1024px) -->
+    <div class="users-cards-grid" data-testid="user-list">
+      @for (user of users; track trackById($index, user)) {
+      <article class="user-card" [attr.data-testid]="'user-item-' + user.id">
+
+        <!-- Top/Left: Avatar & Identity -->
+        <div class="card-identity">
+          <div class="avatar-box">
+            <app-user-avatar [name]="getDisplayName(user)" [role]="getUserPrimaryRole(user.roles)" size="medium"
+              [testId]="'avatar-' + user.id">
+            </app-user-avatar>
+            <span class="status-indicator" [class.active]="user.enabled !== false"
+              [title]="user.enabled !== false ? ('USERS.STATUS_ACTIVE' | transloco) : ('USERS.STATUS_INACTIVE' | transloco)">
+            </span>
+          </div>
+
+          <div class="identity-info">
+            <div class="name-row">
+              <h2 class="user-display-name">{{ getDisplayName(user) }}</h2>
+              @if (user.prenom || user.nom) {
+              <span class="username-tag">@{{ user.username }}</span>
+              }
+            </div>
+
+            <div class="email-row">
+              <ion-icon name="mail-outline"></ion-icon>
+              <span class="user-email">{{ user.email }}</span>
+            </div>
+
+            <!-- Role Badges -->
+            <div class="roles-row">
+              @for (role of user.roles; track role) {
+              <app-role-badge [role]="getUserPrimaryRole([role])"
+                [testId]="'role-badge-' + user.id + '-' + role.toLowerCase()">
+              </app-role-badge>
+              }
+            </div>
+
+            <div class="date-row">
+              <ion-icon name="calendar-outline"></ion-icon>
+              <span>{{ formatDate(user.createdAt) }}</span>
+              <span class="remote-pill" [class.allowed]="user.remoteAccessEnabled !== false"
+                [attr.data-testid]="'mobile-user-remote-badge-' + user.id">
+                {{ (user.remoteAccessEnabled !== false ? 'USERS.REMOTE_ACCESS_ON' : 'USERS.REMOTE_ACCESS_OFF') |
+                transloco }}
+              </span>
+            </div>
+          </div>
         </div>
+
+        <!-- Bottom/Right: Actions -->
+        <div class="card-actions">
+          <app-action-button variant="secondary" size="small" icon="create-outline" (btnClick)="openEditDialog(user)"
+            [testId]="'edit-user-btn-' + user.id" [attr.data-testid]="'edit-user-btn-' + user.id">
+            {{ 'COMMON.EDIT' | transloco }}
+          </app-action-button>
+
+          <app-action-button variant="danger" size="small" icon="trash-outline" (btnClick)="openDeleteDialog(user)"
+            [testId]="'delete-user-btn-' + user.id" [attr.data-testid]="'delete-user-btn-' + user.id">
+            {{ 'COMMON.DELETE' | transloco }}
+          </app-action-button>
+        </div>
+      </article>
       }
+    </div>
+    }
+
+    <!-- Pagination Footer -->
+    @if (totalElements > 0) {
+    <div class="pagination-wrapper" data-testid="pagination-users">
+      <app-pagination [currentPage]="currentPage + 1" [totalItems]="totalElements" [pageSize]="pageSize"
+        [pageSizeOptions]="pageSizeOptions" [showPageSize]="true" testId="users-pagination"
+        (pageChange)="onPageChange($event)" (pageSizeChange)="changePageSize($event)">
+      </app-pagination>
+    </div>
+    }
     }
   </main>
 </div>

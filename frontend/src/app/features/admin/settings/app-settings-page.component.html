@@ -23,34 +23,36 @@
   </header>
 
   @if (monetizationService?.shouldShowBanner()) {
-    @let monSummary = monetizationService?.summary();
-    <div
-      class="settings-commission-alert"
-      [class.is-overdue]="monSummary?.invoiceStatus === 'OVERDUE'"
-      role="alert"
-      data-testid="settings-commission-grace-banner">
-      <div class="alert-left">
-        <ion-icon [name]="monSummary?.invoiceStatus === 'OVERDUE' ? 'lock-closed-outline' : 'warning-outline'"></ion-icon>
-        <div class="alert-text">
-          <strong>
-            @if (monSummary?.invoiceStatus === 'OVERDUE') {
-              {{ 'MONETIZATION.BANNER.OVERDUE_TITLE' | transloco:{ amount: monSummary?.pendingAmount ?? 0 } }}
-            } @else {
-              {{ 'MONETIZATION.BANNER.GRACE_TITLE' | transloco:{ amount: monSummary?.pendingAmount ?? 0, hours: monSummary?.graceHoursRemaining ?? 0 } }}
-            }
-          </strong>
-          <span>{{ (monSummary?.tpeCardLocked ? 'MONETIZATION.BANNER.LOCKED_DESC' : 'MONETIZATION.BANNER.GRACE_DESC') | transloco }}</span>
+    @let monSummary = monetizationService.summary();
+    @if (monSummary) {
+      <div
+        class="settings-commission-alert"
+        [class.is-overdue]="monSummary.invoiceStatus === 'OVERDUE'"
+        role="alert"
+        data-testid="settings-commission-grace-banner">
+        <div class="alert-left">
+          <ion-icon [name]="monSummary.invoiceStatus === 'OVERDUE' ? 'lock-closed-outline' : 'warning-outline'"></ion-icon>
+          <div class="alert-text">
+            <strong>
+              @if (monSummary.invoiceStatus === 'OVERDUE') {
+                {{ 'MONETIZATION.BANNER.OVERDUE_TITLE' | transloco:{ amount: monSummary.pendingAmount } }}
+              } @else {
+                {{ 'MONETIZATION.BANNER.GRACE_TITLE' | transloco:{ amount: monSummary.pendingAmount, hours: monSummary.graceHoursRemaining } }}
+              }
+            </strong>
+            <span>{{ (monSummary.tpeCardLocked ? 'MONETIZATION.BANNER.LOCKED_DESC' : 'MONETIZATION.BANNER.GRACE_DESC') | transloco }}</span>
+          </div>
         </div>
+        <app-action-button
+          variant="warning"
+          size="small"
+          icon="key-outline"
+          testId="btn-settings-open-monetization"
+          (btnClick)="goToLicenseMonetization()">
+          {{ 'MONETIZATION.BANNER.MANAGE_BTN' | transloco }}
+        </app-action-button>
       </div>
-      <app-action-button
-        variant="warning"
-        size="small"
-        icon="key-outline"
-        testId="btn-settings-open-monetization"
-        (btnClick)="goToLicenseMonetization()">
-        {{ 'MONETIZATION.BANNER.MANAGE_BTN' | transloco }}
-      </app-action-button>
-    </div>
+    }
   }
 
   <!-- Navigation Tabs -->
@@ -105,7 +107,7 @@
       <span>{{ 'SETTINGS.TAB_THEME' | transloco }}</span>
     </button>
 
-    @if (qrClientOrderingEnabled()) {
+    @if (qrClientOrderingEnabled() || cloudRelayEnabled()) {
       <button
         type="button"
         class="tab-btn"
@@ -835,6 +837,18 @@
                           </div>
                           <p class="threshold-desc">{{ 'SETTINGS.MODULE_STRIPE_TERMINAL_CONNECT_DESC' | transloco }}</p>
                         </div>
+
+                        <!-- Module 21: CLOUD_RELAY -->
+                        <div class="threshold-row" data-testid="module-row-cloud-relay">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="globe-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_CLOUD_RELAY_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="cloudRelay" data-testid="toggle-module-cloud-relay"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_CLOUD_RELAY_DESC' | transloco }}</p>
+                        </div>
                       </div>
                     </ion-card-content>
                   </ion-card>
@@ -1264,6 +1278,26 @@
                                 </span>
                               </div>
                               <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_TPE_CONNECT' | transloco }}</span>
+                            </div>
+                          </div>
+
+                          <!-- 21. Cloud Relay Reverse Tunnel -->
+                          <div
+                            class="blueprint-node"
+                            [class.node-active]="isModuleControlActive('cloudRelay')"
+                            [class.node-inactive]="!isModuleControlActive('cloudRelay')"
+                            data-testid="preview-node-cloud-relay">
+                            <div class="node-icon-box">
+                              <ion-icon name="globe-outline"></ion-icon>
+                            </div>
+                            <div class="node-info">
+                              <div class="node-title-row">
+                                <span class="node-title">{{ 'SETTINGS.MODULE_CLOUD_RELAY_TITLE' | transloco }}</span>
+                                <span class="status-chip" [class.active]="isModuleControlActive('cloudRelay')">
+                                  {{ (isModuleControlActive('cloudRelay') ? 'SETTINGS.MODULES_STATUS_ACTIVE' : 'SETTINGS.MODULES_STATUS_INACTIVE') | transloco }}
+                                </span>
+                              </div>
+                              <span class="node-route">{{ 'SETTINGS.MODULES_ROUTE_CLOUD_RELAY' | transloco }}</span>
                             </div>
                           </div>
                         </div>
@@ -2503,6 +2537,173 @@
                           testId="input-smtp-from">
                         </app-input-field>
                       </div>
+
+                      <!-- Cloud Relay 4G/5G Reverse Tunnel, White-Label & Configurable Access -->
+                      @if (cloudRelayEnabled()) {
+                        <div class="divider-line"></div>
+
+                        <div class="cloud-relay-section" data-testid="card-cloud-relay-settings">
+                          <div class="form-section-subtitle">
+                            <ion-icon name="globe-outline"></ion-icon>
+                            <span>{{ 'SETTINGS.CLOUD_RELAY_TITLE' | transloco }}</span>
+                            @if (cloudRelayService?.status(); as relayStatus) {
+                              <span
+                                class="relay-status-badge"
+                                [class.connected]="relayStatus.connectionState === 'CONNECTED' || relayStatus.connectionState === 'SIMULATED'"
+                                data-testid="badge-cloud-relay-state">
+                                {{ relayStatus.connectionState }}
+                              </span>
+                            }
+                          </div>
+                          <p class="section-intro-text">{{ 'SETTINGS.CLOUD_RELAY_DESC' | transloco }}</p>
+
+                          <div class="toggle-row-box">
+                            <div class="toggle-info">
+                              <label class="toggle-title" for="cloud-relay-enabled-toggle">{{ 'SETTINGS.CLOUD_RELAY_ENABLE_LABEL' | transloco }}</label>
+                              <span class="toggle-desc">{{ 'SETTINGS.CLOUD_RELAY_ENABLE_HINT' | transloco }}</span>
+                            </div>
+                            <ion-toggle
+                              id="cloud-relay-enabled-toggle"
+                              formControlName="cloudRelayEnabled"
+                              data-testid="toggle-cloud-relay-enabled">
+                            </ion-toggle>
+                          </div>
+
+                          <div class="form-row-2">
+                            <app-input-field
+                              formControlName="venueSlug"
+                              [label]="'SETTINGS.CLOUD_RELAY_SLUG_LABEL' | transloco"
+                              [helperText]="'SETTINGS.CLOUD_RELAY_SLUG_HINT' | transloco"
+                              placeholder="le-shaker-paris"
+                              testId="input-cloud-relay-slug">
+                            </app-input-field>
+
+                            <app-input-field
+                              formControlName="customDomain"
+                              [label]="'SETTINGS.CLOUD_RELAY_CUSTOM_DOMAIN_LABEL' | transloco"
+                              [helperText]="'SETTINGS.CLOUD_RELAY_CUSTOM_DOMAIN_HINT' | transloco"
+                              placeholder="commande.monbar.fr"
+                              testId="input-cloud-relay-custom-domain">
+                            </app-input-field>
+                          </div>
+
+                          <div class="form-row-2">
+                            <app-input-field
+                              formControlName="bannerImageUrl"
+                              [label]="'SETTINGS.CLOUD_RELAY_BANNER_LABEL' | transloco"
+                              [helperText]="'SETTINGS.CLOUD_RELAY_BANNER_HINT' | transloco"
+                              placeholder="https://cdn.example.com/banner.jpg"
+                              testId="input-cloud-relay-banner">
+                            </app-input-field>
+
+                            <app-input-field
+                              formControlName="relayPairingToken"
+                              type="password"
+                              [label]="'SETTINGS.CLOUD_RELAY_TOKEN_LABEL' | transloco"
+                              [helperText]="'SETTINGS.CLOUD_RELAY_TOKEN_HINT' | transloco"
+                              placeholder="ob_relay_..."
+                              testId="input-cloud-relay-token">
+                            </app-input-field>
+                          </div>
+
+                          <div class="relay-actions-row">
+                            <app-action-button
+                              variant="primary"
+                              size="small"
+                              icon="rocket-outline"
+                              (btnClick)="connectCloudRelay()"
+                              testId="btn-cloud-relay-connect">
+                              {{ 'SETTINGS.CLOUD_RELAY_CONNECT_BTN' | transloco }}
+                            </app-action-button>
+                            <app-action-button
+                              variant="secondary"
+                              size="small"
+                              icon="close-outline"
+                              (btnClick)="disconnectCloudRelay()"
+                              testId="btn-cloud-relay-disconnect">
+                              {{ 'SETTINGS.CLOUD_RELAY_DISCONNECT_BTN' | transloco }}
+                            </app-action-button>
+                            <app-action-button
+                              variant="secondary"
+                              size="small"
+                              icon="speedometer-outline"
+                              [disabled]="isTestingCloudRelay()"
+                              (btnClick)="testCloudRelayConnection()"
+                              testId="btn-cloud-relay-test">
+                              {{ 'SETTINGS.CLOUD_RELAY_TEST_BTN' | transloco }}
+                            </app-action-button>
+                          </div>
+
+                          @if (cloudRelayDiagnostic(); as diag) {
+                            <div class="relay-diag-banner" [class.ok]="diag.success" data-testid="cloud-relay-diagnostic-result">
+                              <strong>{{ diag.status }}</strong> — {{ diag.message }}
+                              @if (diag.resolvedPublicUrl) {
+                                <span class="diag-url">({{ diag.resolvedPublicUrl }})</span>
+                              }
+                            </div>
+                          }
+
+                          <!-- Universal Configurable Access Matrix -->
+                          <div class="relay-access-matrix" data-testid="cloud-relay-access-matrix">
+                            <h4 class="matrix-title">{{ 'SETTINGS.CLOUD_RELAY_ACCESS_MATRIX_TITLE' | transloco }}</h4>
+                            <p class="matrix-desc">{{ 'SETTINGS.CLOUD_RELAY_ACCESS_MATRIX_DESC' | transloco }}</p>
+
+                            <div class="toggle-row-box">
+                              <div class="toggle-info">
+                                <label class="toggle-title" for="relay-clients-toggle">{{ 'SETTINGS.CLOUD_RELAY_CLIENTS_LABEL' | transloco }}</label>
+                                <span class="toggle-desc">{{ 'SETTINGS.CLOUD_RELAY_CLIENTS_HINT' | transloco }}</span>
+                              </div>
+                              <ion-toggle id="relay-clients-toggle" formControlName="cloudRelayClientsEnabled" data-testid="toggle-relay-clients"></ion-toggle>
+                            </div>
+
+                            <div class="toggle-row-box">
+                              <div class="toggle-info">
+                                <label class="toggle-title" for="relay-staff-toggle">{{ 'SETTINGS.CLOUD_RELAY_STAFF_LABEL' | transloco }}</label>
+                                <span class="toggle-desc">{{ 'SETTINGS.CLOUD_RELAY_STAFF_HINT' | transloco }}</span>
+                              </div>
+                              <ion-toggle id="relay-staff-toggle" formControlName="cloudRelayStaffEnabled" data-testid="toggle-relay-staff"></ion-toggle>
+                            </div>
+
+                            <div class="toggle-row-box">
+                              <div class="toggle-info">
+                                <label class="toggle-title" for="relay-admin-toggle">{{ 'SETTINGS.CLOUD_RELAY_ADMIN_LABEL' | transloco }}</label>
+                                <span class="toggle-desc">{{ 'SETTINGS.CLOUD_RELAY_ADMIN_HINT' | transloco }}</span>
+                              </div>
+                              <ion-toggle id="relay-admin-toggle" formControlName="cloudRelayAdminEnabled" data-testid="toggle-relay-admin"></ion-toggle>
+                            </div>
+
+                            <div class="toggle-row-box">
+                              <div class="toggle-info">
+                                <label class="toggle-title" for="relay-tpe-toggle">{{ 'SETTINGS.CLOUD_RELAY_TPE_LABEL' | transloco }}</label>
+                                <span class="toggle-desc">{{ 'SETTINGS.CLOUD_RELAY_TPE_HINT' | transloco }}</span>
+                              </div>
+                              <ion-toggle id="relay-tpe-toggle" formControlName="cloudRelayRemoteTpeEnabled" data-testid="toggle-relay-remote-tpe"></ion-toggle>
+                            </div>
+
+                            <div class="toggle-row-box">
+                              <div class="toggle-info">
+                                <label class="toggle-title" for="relay-printing-toggle">{{ 'SETTINGS.CLOUD_RELAY_PRINTING_LABEL' | transloco }}</label>
+                                <span class="toggle-desc">{{ 'SETTINGS.CLOUD_RELAY_PRINTING_HINT' | transloco }}</span>
+                              </div>
+                              <ion-toggle id="relay-printing-toggle" formControlName="cloudRelayRemotePrintingEnabled" data-testid="toggle-relay-remote-printing"></ion-toggle>
+                            </div>
+
+                            <div class="relay-roles-picker">
+                              <span class="roles-picker-label">{{ 'SETTINGS.CLOUD_RELAY_ALLOWED_ROLES_LABEL' | transloco }}</span>
+                              <div class="roles-chips-wrap">
+                                @for (role of cloudRelayRoleChoices; track role) {
+                                  <app-filter-chip
+                                    [label]="role"
+                                    [active]="isCloudRelayRoleSelected(role)"
+                                    (chipClick)="toggleCloudRelayRole(role)"
+                                    [testId]="'relay-role-chip-' + role">
+                                  </app-filter-chip>
+                                }
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      }
                     </ion-card-content>
                   </ion-card>
                 </ion-col>
@@ -2526,8 +2727,8 @@
                           <ion-icon name="qr-code-outline" class="mockup-qr-icon"></ion-icon>
                           <span class="mockup-scan-text">{{ 'TABLES.QR_SCAN_INSTRUCTION' | transloco }}</span>
                         </div>
-                        <div class="mockup-url-text">
-                          {{ (appSettingsForm.get('clientBaseUrl')?.value || 'https://openbar.lan') }}/client/commande?table=4
+                        <div class="mockup-url-text" data-testid="preview-stand-url">
+                          {{ getEffectivePublicUrlPreview() }}/client/commande?table=4
                         </div>
 
                         @if (appSettingsForm.get('wifiEnabled')?.value && appSettingsForm.get('wifiSsid')?.value) {

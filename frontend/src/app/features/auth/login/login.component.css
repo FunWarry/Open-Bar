@@ -56,6 +56,34 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 8px;
+}
+
+.login-white-label-banner {
+  margin: -40px -40px 8px;
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+  max-height: 110px;
+
+  img {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.login-venue-logo {
+  max-height: 64px;
+  max-width: 180px;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.login-venue-badge {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .login-title {

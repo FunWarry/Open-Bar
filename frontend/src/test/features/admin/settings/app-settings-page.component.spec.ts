@@ -23,6 +23,7 @@ import { TpePublicConfig } from '../../../../app/core/models/tpe.model';
 import { SafetyAlertService } from '../../../../app/core/services/safety-alert.service';
 import { LicenseService } from '../../../../app/core/services/license.service';
 import { MonetizationService } from '../../../../app/core/services/monetization.service';
+import { CloudRelayService } from '../../../../app/core/services/cloud-relay.service';
 
 const mockTpePublicConfig: TpePublicConfig = {
   enabled: true,
@@ -55,6 +56,7 @@ describe('AppSettingsPageComponent', () => {
   let safetyAlertServiceSpy: jasmine.SpyObj<SafetyAlertService>;
   let licenseServiceSpy: jasmine.SpyObj<LicenseService>;
   let monetizationServiceSpy: jasmine.SpyObj<MonetizationService>;
+  let cloudRelayServiceSpy: jasmine.SpyObj<CloudRelayService>;
 
   const mockEtab: EstablishmentConfig = {
     id: 1,
@@ -111,11 +113,13 @@ describe('AppSettingsPageComponent', () => {
       'saveDiscountTiersLocally',
       'getStorageLocations',
       'saveStorageLocationsLocally',
+      'getEffectiveClientBaseUrl',
     ]);
     appSettingsServiceSpy.getSettings.and.returnValue(of(mockAppSettings));
     appSettingsServiceSpy.updateSettings.and.returnValue(of(mockAppSettings));
     appSettingsServiceSpy.getDiscountTiers.and.returnValue([...DEFAULT_DISCOUNT_TIERS]);
     appSettingsServiceSpy.getStorageLocations.and.returnValue([...DEFAULT_STORAGE_LOCATIONS]);
+    appSettingsServiceSpy.getEffectiveClientBaseUrl.and.returnValue('https://le-shaker.open-bar.eu');
 
     printerServiceSpy = jasmine.createSpyObj('PrinterService', [
       'getStatus',
@@ -208,6 +212,7 @@ describe('AppSettingsPageComponent', () => {
       cashDrawerEnabled: () => true,
       angelShotSafetyEnabled: () => true,
       stripeTerminalConnectEnabled: () => true,
+      cloudRelayEnabled: () => true,
     });
     featureFlagServiceSpy.loadModules.and.returnValue(of({
       cuisineKds: true,
@@ -230,6 +235,7 @@ describe('AppSettingsPageComponent', () => {
       qrPayAtTable: true,
       facturXInvoiceImport: true,
       stripeTerminalConnect: true,
+      cloudRelay: true,
     }));
     featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
 
@@ -332,6 +338,25 @@ describe('AppSettingsPageComponent', () => {
       billingHistory: [],
     }));
 
+    cloudRelayServiceSpy = jasmine.createSpyObj('CloudRelayService', [
+      'getStatus',
+      'connect',
+      'disconnect',
+      'runDiagnostics',
+    ]);
+    cloudRelayServiceSpy.getStatus.and.returnValue(of(null));
+    cloudRelayServiceSpy.connect.and.returnValue(of(null));
+    cloudRelayServiceSpy.disconnect.and.returnValue(of(null));
+    cloudRelayServiceSpy.runDiagnostics.and.returnValue(of({
+      success: true,
+      latencyMs: 18,
+      status: 'SIMULATED_OK',
+      message: 'Verified',
+      resolvedPublicUrl: 'https://le-shaker.open-bar.eu',
+      dnsVerified: true,
+      tlsReady: true,
+    }));
+
     await TestBed.configureTestingModule({
       imports: [
         AppSettingsPageComponent,
@@ -356,6 +381,7 @@ describe('AppSettingsPageComponent', () => {
         { provide: SafetyAlertService, useValue: safetyAlertServiceSpy },
         { provide: LicenseService, useValue: licenseServiceSpy },
         { provide: MonetizationService, useValue: monetizationServiceSpy },
+        { provide: CloudRelayService, useValue: cloudRelayServiceSpy },
         { provide: AppUpdateService, useValue: appUpdateServiceSpy },
         { provide: ThemeService, useValue: themeServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
@@ -966,6 +992,7 @@ describe('AppSettingsPageComponent', () => {
         qrPayAtTable: true,
         facturXInvoiceImport: true,
         stripeTerminalConnect: true,
+        cloudRelay: true,
       };
       component.applyModulesPreset('FOOD_TRUCK');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -997,6 +1024,7 @@ describe('AppSettingsPageComponent', () => {
         qrPayAtTable: false,
         facturXInvoiceImport: false,
         stripeTerminalConnect: false,
+        cloudRelay: false,
       });
       expect(component.activeModulesCount).toBe(4);
 
@@ -1021,6 +1049,7 @@ describe('AppSettingsPageComponent', () => {
         qrPayAtTable: false,
         facturXInvoiceImport: false,
         stripeTerminalConnect: false,
+        cloudRelay: false,
       });
       expect(component.activeModulesCount).toBe(0);
     });
@@ -1077,6 +1106,7 @@ describe('AppSettingsPageComponent', () => {
         qrPayAtTable: false,
         facturXInvoiceImport: false,
         stripeTerminalConnect: false,
+        cloudRelay: false,
       };
       component.applyModulesPreset('RESTAURANT');
       expect(component.modulesForm.dirty).toBeTrue();
@@ -1824,10 +1854,69 @@ describe('AppSettingsPageComponent', () => {
   });
 
   describe('Dual-Tier TPE Monetization & Module Count', () => {
-    it('should expose all 20 modular capabilities including STRIPE_TERMINAL_CONNECT', () => {
-      expect(component.totalModulesCount).toBe(20);
+    it('should expose all 21 modular capabilities including STRIPE_TERMINAL_CONNECT and CLOUD_RELAY', () => {
+      expect(component.totalModulesCount).toBe(21);
       expect(component.modulesForm.get('stripeTerminalConnect')).toBeTruthy();
+      expect(component.modulesForm.get('cloudRelay')).toBeTruthy();
     });
+
+    it('should toggle Cloud Relay allowed roles and persist Cloud Relay settings in saveAll()', fakeAsync(() => {
+      component.appSettingsForm.patchValue({
+        cloudRelayEnabled: true,
+        venueSlug: 'le-shaker-paris',
+        customDomain: 'commande.leshaker.fr',
+        cloudRelayClientsEnabled: true,
+        cloudRelayStaffEnabled: true,
+        cloudRelayRemoteTpeEnabled: false,
+      });
+
+      component.toggleCloudRelayRole('BARMAN');
+      expect(component.isCloudRelayRoleSelected('BARMAN')).toBeFalse();
+      component.toggleCloudRelayRole('BARMAN');
+      expect(component.isCloudRelayRoleSelected('BARMAN')).toBeTrue();
+
+      expect(component.getEffectivePublicUrlPreview()).toBe('https://le-shaker.open-bar.eu');
+
+      component.connectCloudRelay();
+      expect(cloudRelayServiceSpy.connect).toHaveBeenCalled();
+
+      component.disconnectCloudRelay();
+      expect(cloudRelayServiceSpy.disconnect).toHaveBeenCalled();
+
+      component.testCloudRelayConnection();
+      expect(cloudRelayServiceSpy.runDiagnostics).toHaveBeenCalled();
+      expect(component.cloudRelayDiagnostic()?.status).toBe('SIMULATED_OK');
+
+      cloudRelayServiceSpy.runDiagnostics.and.returnValue(of({
+        success: false,
+        latencyMs: 0,
+        status: 'MISCONFIGURED',
+        message: 'Slug required',
+        resolvedPublicUrl: 'https://openbar.local',
+        dnsVerified: false,
+        tlsReady: false,
+      }));
+      component.testCloudRelayConnection();
+      expect(component.cloudRelayDiagnostic()?.status).toBe('MISCONFIGURED');
+
+      cloudRelayServiceSpy.runDiagnostics.and.returnValue(throwError(() => new Error('Network')));
+      component.testCloudRelayConnection();
+      expect(component.isTestingCloudRelay()).toBeFalse();
+
+      component.saveAll();
+      tick();
+
+      expect(appSettingsServiceSpy.updateSettings).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          cloudRelayEnabled: true,
+          venueSlug: 'le-shaker-paris',
+          customDomain: 'commande.leshaker.fr',
+          cloudRelayClientsEnabled: true,
+          cloudRelayStaffEnabled: true,
+          cloudRelayRemoteTpeEnabled: false,
+        })
+      );
+    }));
 
     it('should patch and save Option 3 Stripe Terminal Connect fields in saveAll()', fakeAsync(() => {
       component.appSettingsForm.patchValue({

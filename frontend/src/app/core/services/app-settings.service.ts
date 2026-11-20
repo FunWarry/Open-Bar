@@ -376,6 +376,30 @@ export class AppSettingsService {
   }
 
   /**
+   * Resolves the effective public base URL for customer QR codes (custom CNAME domain,
+   * Cloud Relay subdomain, or local clientBaseUrl fallback).
+   *
+   * @param settingsOverride Optional settings snapshot
+   * @param baseDomain Cloud Relay base domain (defaults to {@code open-bar.eu})
+   */
+  getEffectiveClientBaseUrl(settingsOverride?: AppSettings | null, baseDomain = 'open-bar.eu'): string {
+    const s = settingsOverride ?? this.currentSettings;
+    if (s?.cloudRelayEnabled) {
+      if (s.customDomain?.trim()) {
+        return `https://${s.customDomain.trim().toLowerCase()}`;
+      }
+      if (s.venueSlug?.trim()) {
+        return `https://${s.venueSlug.trim().toLowerCase()}.${baseDomain}`;
+      }
+    }
+    if (s?.clientBaseUrl?.trim()) {
+      const clean = s.clientBaseUrl.trim();
+      return clean.endsWith('/') ? clean.slice(0, -1) : clean;
+    }
+    return typeof window !== 'undefined' ? window.location.origin : 'https://openbar.lan';
+  }
+
+  /**
    * Injects custom branding colors as CSS custom properties over default tokens.
    */
   applyTokens(settings: Pick<AppSettings, 'primaryColor' | 'primaryColorStrong'>): void {

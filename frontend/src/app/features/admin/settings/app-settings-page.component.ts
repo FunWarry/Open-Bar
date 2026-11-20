@@ -124,7 +124,10 @@ import { AuthService } from '../../../core/services/auth.service';
 import { OnboardingService } from '../../../core/services/onboarding.service';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
+import { FilterChipComponent } from '../../../core/components/ui/filter-chip/filter-chip.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
+import { CloudRelayService } from '../../../core/services/cloud-relay.service';
+import { CloudRelayDiagnostic } from '../../../core/models/cloud-relay.model';
 import { TicketReceiptComponent } from '../../factures/ticket-receipt/ticket-receipt.component';
 import { Facture } from '../../factures/models/facture.model';
 import { ThemeCustomizerComponent } from '../../theme/theme-customizer.component';
@@ -278,6 +281,7 @@ export const WEIGHT_UNIT_CHOICES = [
     TranslocoPipe,
     ActionButtonComponent,
     InputFieldComponent,
+    FilterChipComponent,
     SearchableSelectComponent,
     TicketReceiptComponent,
     HappyHourConfigComponent,
@@ -305,6 +309,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   private readonly safetyAlertService = inject(SafetyAlertService);
   readonly licenseService = inject(LicenseService);
   readonly monetizationService = inject(MonetizationService, { optional: true });
+  readonly cloudRelayService = inject(CloudRelayService, { optional: true });
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
@@ -313,6 +318,12 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   readonly qrPayAtTableEnabled = this.featureFlagService.qrPayAtTableEnabled;
   readonly angelShotSafetyEnabled = this.featureFlagService.angelShotSafetyEnabled;
   readonly stripeTerminalConnectEnabled = this.featureFlagService.stripeTerminalConnectEnabled;
+  readonly cloudRelayEnabled = this.featureFlagService.cloudRelayEnabled;
+
+  readonly cloudRelayAllowedRoles = signal<string[]>(['SERVEUR', 'BARMAN', 'MANAGER', 'ADMIN']);
+  readonly isTestingCloudRelay = signal<boolean>(false);
+  readonly cloudRelayDiagnostic = signal<CloudRelayDiagnostic | null>(null);
+  readonly cloudRelayRoleChoices = ['SERVEUR', 'BARMAN', 'MANAGER', 'ADMIN'] as const;
 
   readonly roulettePin = signal<string>('7777');
   readonly isRegeneratingPin = signal<boolean>(false);
@@ -405,6 +416,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     qrPayAtTable: true,
     facturXInvoiceImport: true,
     stripeTerminalConnect: true,
+    cloudRelay: true,
   };
   initialThemeMode: AppTheme = 'dark';
   initialColors: CustomThemeColors = { ...DEFAULT_FIGMA_PALETTE };
@@ -770,6 +782,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       qrPayAtTable: [true],
       facturXInvoiceImport: [true],
       stripeTerminalConnect: [true],
+      cloudRelay: [true],
     });
 
     this.etabForm = this.fb.group({
@@ -848,6 +861,17 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       smtpFrom: [''],
       smtpAuth: [true],
       smtpStarttls: [true],
+      cloudRelayEnabled: [false],
+      venueSlug: ['', [Validators.pattern(/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/), Validators.maxLength(63)]],
+      customDomain: ['', [Validators.maxLength(255)]],
+      bannerImageUrl: ['', [Validators.maxLength(2048)]],
+      relayPairingToken: ['', [Validators.maxLength(512)]],
+      cloudRelayClientsEnabled: [true],
+      cloudRelayStaffEnabled: [true],
+      cloudRelayAdminEnabled: [true],
+      cloudRelayRemoteTpeEnabled: [true],
+      cloudRelayRemotePrintingEnabled: [true],
+      cloudRelayAllowedRolesJson: ['["SERVEUR","BARMAN","MANAGER","ADMIN"]'],
     }, { validators: [thresholdPriorityValidator, marginThresholdPriorityValidator] });
 
     const currentColors = this.themeService.currentCustomColors;
@@ -918,6 +942,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
             this.configuredEmergencyNumbers.set(this.resolveEmergencyNumbers(appSettings));
             this.configuredPrinters.set(this.resolvePrinters(appSettings));
             this.configuredTpeTerminals.set(this.resolveTpeTerminals(appSettings));
+            this.cloudRelayAllowedRoles.set(this.parseAllowedRoles(appSettings.cloudRelayAllowedRolesJson));
           } else {
             this.configuredDenominations.set([...DEFAULT_EUR_DENOMINATIONS]);
             this.configuredDiscountTiers.set(this.appSettingsService.getDiscountTiers());
@@ -925,6 +950,14 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
             this.configuredEmergencyNumbers.set(this.resolveEmergencyNumbers(null));
             this.configuredPrinters.set(this.resolvePrinters(null));
             this.configuredTpeTerminals.set(this.resolveTpeTerminals(null));
+            this.cloudRelayAllowedRoles.set(['SERVEUR', 'BARMAN', 'MANAGER', 'ADMIN']);
+          }
+
+          if (this.cloudRelayService) {
+            this.cloudRelayService.getStatus().pipe(
+              takeUntil(this.destroy$),
+              catchError(() => of(null))
+            ).subscribe();
           }
 
           if (modules) {
@@ -2005,6 +2038,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       discountTiersJson: JSON.stringify(this.configuredDiscountTiers()),
       storageLocationsJson: JSON.stringify(this.configuredStorageLocations()),
       emergencyNumbersJson: JSON.stringify(this.configuredEmergencyNumbers()),
+      cloudRelayAllowedRolesJson: JSON.stringify(this.cloudRelayAllowedRoles()),
     };
 
     const updatePayload: Record<string, any> = {
@@ -2125,18 +2159,111 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       !!current.angelShotSafety === target.angelShotSafety &&
       !!current.qrPayAtTable === target.qrPayAtTable &&
       !!current.facturXInvoiceImport === target.facturXInvoiceImport &&
-      !!current.stripeTerminalConnect === target.stripeTerminalConnect
+      !!current.stripeTerminalConnect === target.stripeTerminalConnect &&
+      !!current.cloudRelay === target.cloudRelay
     );
   }
 
   /**
    * Total count of available modular capabilities.
    */
-  readonly totalModulesCount = 20;
+  readonly totalModulesCount = 21;
 
   /** Navigates to the administrative license and monetization ledger console. */
   goToLicenseMonetization(): void {
     void this.router.navigate(['/admin/license']);
+  }
+
+  /** Checks whether a staff role is authorized to connect through the Cloud Relay tunnel. */
+  isCloudRelayRoleSelected(role: string): boolean {
+    return this.cloudRelayAllowedRoles().includes(role);
+  }
+
+  /** Toggles a staff role in the Cloud Relay allowed roles list. */
+  toggleCloudRelayRole(role: string): void {
+    const current = [...this.cloudRelayAllowedRoles()];
+    const idx = current.indexOf(role);
+    if (idx >= 0) {
+      current.splice(idx, 1);
+    } else {
+      current.push(role);
+    }
+    this.cloudRelayAllowedRoles.set(current);
+    this.appSettingsForm.patchValue({ cloudRelayAllowedRolesJson: JSON.stringify(current) });
+    this.appSettingsForm.markAsDirty();
+  }
+
+  /** Computes live preview of the resolved public URL for QR codes and patron links. */
+  getEffectivePublicUrlPreview(): string {
+    const formVal = this.appSettingsForm?.value || {};
+    return this.appSettingsService.getEffectiveClientBaseUrl({
+      ...this.initialAppSettingsValue,
+      ...formVal,
+      cloudRelayEnabled: !!formVal.cloudRelayEnabled && this.cloudRelayEnabled(),
+    } as AppSettings);
+  }
+
+  /** Triggers immediate outbound Cloud Relay tunnel connection. */
+  connectCloudRelay(): void {
+    if (!this.cloudRelayService) return;
+    this.cloudRelayService.connect().pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        void this.showToast(this.translocoService.translate('SETTINGS.CLOUD_RELAY_CONNECT_SUCCESS'), 'success');
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        void this.showToast(this.translocoService.translate('SETTINGS.CLOUD_RELAY_ACTION_ERROR'), 'danger');
+      }
+    });
+  }
+
+  /** Gracefully disconnects the outbound Cloud Relay tunnel. */
+  disconnectCloudRelay(): void {
+    if (!this.cloudRelayService) return;
+    this.cloudRelayService.disconnect().pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        void this.showToast(this.translocoService.translate('SETTINGS.CLOUD_RELAY_DISCONNECT_SUCCESS'), 'info');
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        void this.showToast(this.translocoService.translate('SETTINGS.CLOUD_RELAY_ACTION_ERROR'), 'danger');
+      }
+    });
+  }
+
+  /** Executes on-demand Cloud Relay subdomain, CNAME DNS, and latency diagnostics. */
+  testCloudRelayConnection(): void {
+    if (!this.cloudRelayService) return;
+    this.isTestingCloudRelay.set(true);
+    this.cloudRelayService.runDiagnostics().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (diag) => {
+        this.isTestingCloudRelay.set(false);
+        this.cloudRelayDiagnostic.set(diag);
+        if (diag?.success) {
+          void this.showToast(this.translocoService.translate('SETTINGS.CLOUD_RELAY_TEST_SUCCESS'), 'success');
+        } else {
+          void this.showToast(diag?.message || this.translocoService.translate('SETTINGS.CLOUD_RELAY_ACTION_ERROR'), 'warning');
+        }
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.isTestingCloudRelay.set(false);
+        void this.showToast(this.translocoService.translate('SETTINGS.CLOUD_RELAY_ACTION_ERROR'), 'danger');
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private parseAllowedRoles(rawJson?: string | null): string[] {
+    if (!rawJson) {
+      return ['SERVEUR', 'BARMAN', 'MANAGER', 'ADMIN'];
+    }
+    try {
+      const parsed = JSON.parse(rawJson);
+      return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : ['SERVEUR', 'BARMAN', 'MANAGER', 'ADMIN'];
+    } catch {
+      return ['SERVEUR', 'BARMAN', 'MANAGER', 'ADMIN'];
+    }
   }
 
   /**

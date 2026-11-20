@@ -73,6 +73,15 @@ export class OnboardingService {
         roleTarget: 'ADMIN',
         featureHighlightsKeys: ['ONBOARDING.ADMIN_LICENSE_FEAT_1', 'ONBOARDING.ADMIN_LICENSE_FEAT_2'],
         routeAction: '/admin/license'
+      },
+      {
+        id: 'admin_cloud_relay',
+        titleKey: 'ONBOARDING.ADMIN_CLOUD_RELAY_TITLE',
+        descriptionKey: 'ONBOARDING.ADMIN_CLOUD_RELAY_DESC',
+        illustrationEmoji: '🌐',
+        roleTarget: 'ADMIN',
+        featureHighlightsKeys: ['ONBOARDING.ADMIN_CLOUD_RELAY_FEAT_1', 'ONBOARDING.ADMIN_CLOUD_RELAY_FEAT_2'],
+        routeAction: '/admin/settings?tab=qr'
       }
     ],
     MANAGER: [

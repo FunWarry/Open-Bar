@@ -525,6 +525,8 @@ public class SampleDataSeederService {
                 }
             }
 
+            boolean remoteAccessEnabled = !uNode.has("remoteAccessEnabled") || uNode.get("remoteAccessEnabled").asBoolean(true);
+
             User user = userRepository.findByUsername(username)
                     .or(() -> userRepository.findByEmail(email))
                     .map(existing -> {
@@ -534,6 +536,7 @@ public class SampleDataSeederService {
                         existing.setNom(nom);
                         existing.setPrenom(prenom);
                         existing.setRoles(roles);
+                        existing.setRemoteAccessEnabled(remoteAccessEnabled);
                         existing.setUpdatedAt(timeService.now());
                         return userRepository.save(existing);
                     }).orElseGet(() -> {
@@ -544,6 +547,7 @@ public class SampleDataSeederService {
                         u.setNom(nom);
                         u.setPrenom(prenom);
                         u.setRoles(roles);
+                        u.setRemoteAccessEnabled(remoteAccessEnabled);
                         u.setCreatedAt(timeService.now());
                         u.setUpdatedAt(timeService.now());
                         return userRepository.save(u);
@@ -1574,13 +1578,23 @@ public class SampleDataSeederService {
     private void seedSettingsAndConfig() {
         if (!appSettingsRepository.existsById(AppSettings.SINGLETON_ID)) {
             AppSettings defaultSettings = new AppSettings();
+            defaultSettings.setEstablishmentName("Le Shaker Paris");
+            defaultSettings.setVenueSlug("le-shaker-paris");
+            defaultSettings.setBannerImageUrl("https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1200&q=80");
+            defaultSettings.setCloudRelayEnabled(false);
+            defaultSettings.setCloudRelayClientsEnabled(true);
+            defaultSettings.setCloudRelayStaffEnabled(true);
+            defaultSettings.setCloudRelayAdminEnabled(true);
+            defaultSettings.setCloudRelayRemoteTpeEnabled(true);
+            defaultSettings.setCloudRelayRemotePrintingEnabled(true);
+            defaultSettings.setCloudRelayAllowedRolesJson("[\"SERVEUR\",\"BARMAN\",\"MANAGER\",\"ADMIN\"]");
             defaultSettings.setTpeEnabled(true);
             defaultSettings.setTpeSimulatorEnabled(true);
             defaultSettings.setTpePort(8888);
             defaultSettings.setTpeTerminalId("01");
             defaultSettings.setTpeTimeoutSeconds(45);
             appSettingsRepository.save(defaultSettings);
-            log.info("Seeded default AppSettings singleton with TPE configuration.");
+            log.info("Seeded default AppSettings singleton with TPE & Cloud Relay configuration.");
         }
         EstablishmentConfig config = establishmentConfigRepository.findById(EstablishmentConfig.SINGLETON_ID)
                 .orElseGet(() -> {

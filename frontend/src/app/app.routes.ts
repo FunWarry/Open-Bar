@@ -566,6 +566,10 @@ export const routes: Routes = [
 
   // Onboarding & Fallback
   {
+    path: 'relay-offline',
+    loadComponent: () => import('./features/relay-offline/tunnel-offline-fallback.component').then(m => m.TunnelOfflineFallbackComponent)
+  },
+  {
     path: 'onboarding',
     loadComponent: () => import('./features/onboarding/onboarding.component').then(m => m.OnboardingComponent),
     canActivate: [AuthGuard]

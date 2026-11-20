@@ -31,6 +31,7 @@ public class NotificationService {
     private static final String TOPIC_SAFETY_ALERTS = "/topic/safety-alerts";
     private static final String TOPIC_LICENSE = "/topic/license";
     private static final String TOPIC_MONETIZATION = "/topic/monetization";
+    private static final String TOPIC_CLOUD_RELAY = "/topic/cloud-relay";
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -257,6 +258,15 @@ public class NotificationService {
      */
     public void notifierMonetizationMiseAJour(com.bar.gestioncocktail.dto.MonetizationSummaryDTO summary) {
         messagingTemplate.convertAndSend(TOPIC_MONETIZATION, summary);
+    }
+
+    /**
+     * Broadcasts Cloud Relay tunnel status & configuration updates over /topic/cloud-relay.
+     *
+     * @param status Updated Cloud Relay tunnel status DTO
+     */
+    public void notifierCloudRelayMiseAJour(com.bar.gestioncocktail.dto.relay.CloudRelayStatusDTO status) {
+        messagingTemplate.convertAndSend(TOPIC_CLOUD_RELAY, status);
     }
 
     /**

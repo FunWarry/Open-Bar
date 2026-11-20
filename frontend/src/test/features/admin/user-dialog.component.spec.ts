@@ -128,7 +128,31 @@ describe('UserDialogComponent', () => {
       nom: 'New',
       prenom: 'User',
       email: 'new@bar.com',
-      roles: ['BARMAN']
+      roles: ['BARMAN'],
+      remoteAccessEnabled: true
+    }));
+  });
+
+  it('populates and toggles remoteAccessEnabled when editing an existing user', () => {
+    component.data = {
+      id: 10,
+      username: 'bartender',
+      email: 'bar@openbar.local',
+      roles: ['BARMAN'],
+      remoteAccessEnabled: false,
+      enabled: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    component.ngOnInit();
+
+    expect(component.userForm.get('remoteAccessEnabled')?.value).toBeFalse();
+
+    component.userForm.patchValue({ remoteAccessEnabled: true });
+    component.onSubmit();
+
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(jasmine.objectContaining({
+      remoteAccessEnabled: true
     }));
   });
 
