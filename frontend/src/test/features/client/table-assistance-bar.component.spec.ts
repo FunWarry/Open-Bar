@@ -134,7 +134,7 @@ describe('TableAssistanceBarComponent', () => {
     component.canPayOnline = true;
     fixture.detectChanges();
 
-    const payBtn = fixture.nativeElement.querySelector('.pay-online-btn');
+    const payBtn = fixture.nativeElement.querySelector('[data-testid="btn-pay-at-table-trigger"]');
     expect(payBtn).toBeTruthy();
     payBtn.click();
 

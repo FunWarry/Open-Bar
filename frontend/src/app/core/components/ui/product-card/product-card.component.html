@@ -1,121 +1,182 @@
 <div
   class="product-card-container"
+  [class.compact]="compact"
+  [attr.data-view-mode]="compact ? 'compact' : 'detailed'"
   [attr.data-testid]="testId"
   [attr.aria-label]="title + ' - ' + ('CLIENT.INGREDIENTS_HINT' | transloco)"
   (click)="onCardClick($event)"
   (keydown)="onCardClick($event)">
-  @if (imageUrl) {
-    <div class="product-image-wrapper">
+  @if (compact) {
+    <div class="product-image-wrapper compact-image-wrapper">
       <img
-        [src]="resolveImageUrl(imageUrl)"
+        [src]="effectiveImageUrl"
         [alt]="title"
         class="product-img"
-        (error)="$any($event.target).src = 'assets/images/verres/verre_tumbler.png'" />
-    </div>
-  }
-  <div class="product-details">
-    <div class="product-header">
-      <div class="product-title-group">
-        <h3 class="product-title">{{ title }}</h3>
-        <button
-          type="button"
-          class="info-pill-hint"
-          [title]="'CLIENT.INGREDIENTS_HINT' | transloco"
-          [attr.aria-label]="'CLIENT.INGREDIENTS_HINT' | transloco"
-          (click)="onCardClick($event)"
-          data-testid="product-card-info-btn">
-          <ion-icon name="information-circle-outline"></ion-icon>
-        </button>
-      </div>
+        (error)="onImageError($event)" />
       @if (category) {
-        <span class="product-category-pill" [ngStyle]="getCategoryPillStyle(category)" data-testid="product-category-badge">
+        <span
+          class="compact-category-dot"
+          data-testid="product-compact-category-dot"
+          [title]="('COCKTAILS.CATEGORIES.' + category) | transloco">
           <span class="dot-indicator" [style.background-color]="getCategoryDotColor(category)"></span>
-          {{ ('COCKTAILS.CATEGORIES.' + category) | transloco }}
+        </span>
+      }
+      @if (isHappyHour && discountPercentage) {
+        <span class="discount-percent-badge compact-hh-badge" data-testid="product-card-discount-badge">
+          -{{ discountPercentage }}%
         </span>
       }
     </div>
-    @if (description) {
-      <p class="product-desc">{{ description }}</p>
-    }
-    @if (flavorProfiles && flavorProfiles.length > 0) {
-      <div class="product-flavors-row">
-        @for (flavor of flavorProfiles; track flavor) {
-          <span class="product-flavor-tag" [attr.data-testid]="'card-flavor-' + flavor">
-            {{ ('COCKTAIL.FLAVOR_' + flavor) | transloco }}
-          </span>
-        }
-      </div>
-    }
-    <div class="product-dietary-row">
-      @if (isMocktail) {
-        <span class="product-dietary-tag mocktail-tag" data-testid="card-tag-mocktail">
-          🍹 {{ 'COCKTAILS.MOCKTAIL' | transloco }}
-        </span>
-      } @else if (alcoholLevel != null && alcoholLevel > 0) {
-        <span class="product-dietary-tag abv-tag" data-testid="card-tag-abv">
-          🍸 {{ alcoholLevel }}% ABV
-        </span>
-      }
-      @if (isVegan) {
-        <span class="product-dietary-tag vegan-tag" data-testid="card-tag-vegan">
-          🌱 {{ 'COCKTAILS.VEGAN' | transloco }}
-        </span>
-      }
-      @if (isGlutenFree) {
-        <span class="product-dietary-tag gluten-free-tag" data-testid="card-tag-gluten-free">
-          🌾 {{ 'COCKTAILS.GLUTEN_FREE' | transloco }}
-        </span>
-      }
-    </div>
-    @if (companionDescription) {
-      <div class="product-companion-row" data-testid="product-card-companion-row">
-        <span class="product-companion-pill" data-testid="product-card-companion-pill">
-          ✨ {{ 'COCKTAILS.SERVED_WITH' | transloco: { glass: companionDescription } }}
-        </span>
-      </div>
-    }
-    <div class="product-footer">
-      <div class="product-price-stack">
-        @if (isHappyHour && originalPrice != null && originalPrice > price) {
-          <div class="hh-pill-row">
+    <div class="product-details compact-details">
+      <h3 class="product-title" data-testid="product-card-title">{{ title }}</h3>
+      <div class="product-footer compact-footer">
+        <div class="product-price-stack">
+          @if (isHappyHour && originalPrice != null && originalPrice > price) {
             <span class="original-price-struck" data-testid="product-card-original-price">
               {{ originalPrice | currency:'EUR' }}
             </span>
-            <span class="happy-hour-badge" data-testid="product-card-hh-badge">
-              {{ 'PRICING.HAPPY_HOUR_BADGE' | transloco }}
-            </span>
-            @if (discountPercentage) {
-              <span class="discount-percent-badge" data-testid="product-card-discount-badge">
-                -{{ discountPercentage }}%
-              </span>
-            }
-          </div>
-        }
-        <span class="product-price" [class.discounted]="isHappyHour" data-testid="product-card-price">
-          {{ price | currency:'EUR' }}
-        </span>
-      </div>
-      <div class="quantity-stepper-mini" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
-        @if (quantity > 0) {
+          }
+          <span class="product-price" [class.discounted]="isHappyHour" data-testid="product-card-price">
+            {{ price | currency:'EUR' }}
+          </span>
+        </div>
+        <div class="quantity-stepper-mini" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+          @if (quantity > 0) {
+            <button
+              type="button"
+              class="stepper-btn btn-minus"
+              (click)="onRemove($event)"
+              aria-label="Decrease quantity"
+              data-testid="product-card-minus">
+              <ion-icon name="remove-outline"></ion-icon>
+            </button>
+            <span class="quantity-badge" data-testid="product-card-qty">{{ quantity }}</span>
+          }
           <button
             type="button"
-            class="stepper-btn btn-minus"
-            (click)="onRemove($event)"
-            aria-label="Decrease quantity"
-            data-testid="product-card-minus">
-            <ion-icon name="remove-outline"></ion-icon>
+            class="stepper-btn btn-plus"
+            (click)="onAdd($event)"
+            aria-label="Increase quantity"
+            data-testid="product-card-plus">
+            <ion-icon name="add-outline"></ion-icon>
           </button>
-          <span class="quantity-badge" data-testid="product-card-qty">{{ quantity }}</span>
-        }
-        <button
-          type="button"
-          class="stepper-btn btn-plus"
-          (click)="onAdd($event)"
-          aria-label="Increase quantity"
-          data-testid="product-card-plus">
-          <ion-icon name="add-outline"></ion-icon>
-        </button>
+        </div>
       </div>
     </div>
-  </div>
+  } @else {
+    @if (imageUrl) {
+      <div class="product-image-wrapper">
+        <img
+          [src]="resolveImageUrl(imageUrl)"
+          [alt]="title"
+          class="product-img"
+          (error)="onImageError($event)" />
+      </div>
+    }
+    <div class="product-details">
+      <div class="product-header">
+        <div class="product-title-group">
+          <h3 class="product-title">{{ title }}</h3>
+          <button
+            type="button"
+            class="info-pill-hint"
+            [title]="'CLIENT.INGREDIENTS_HINT' | transloco"
+            [attr.aria-label]="'CLIENT.INGREDIENTS_HINT' | transloco"
+            (click)="onCardClick($event)"
+            data-testid="product-card-info-btn">
+            <ion-icon name="information-circle-outline"></ion-icon>
+          </button>
+        </div>
+        @if (category) {
+          <span class="product-category-pill" [ngStyle]="getCategoryPillStyle(category)" data-testid="product-category-badge">
+            <span class="dot-indicator" [style.background-color]="getCategoryDotColor(category)"></span>
+            {{ ('COCKTAILS.CATEGORIES.' + category) | transloco }}
+          </span>
+        }
+      </div>
+      @if (description) {
+        <p class="product-desc">{{ description }}</p>
+      }
+      @if (flavorProfiles && flavorProfiles.length > 0) {
+        <div class="product-flavors-row">
+          @for (flavor of flavorProfiles; track flavor) {
+            <span class="product-flavor-tag" [attr.data-testid]="'card-flavor-' + flavor">
+              {{ ('COCKTAIL.FLAVOR_' + flavor) | transloco }}
+            </span>
+          }
+        </div>
+      }
+      <div class="product-dietary-row">
+        @if (isMocktail) {
+          <span class="product-dietary-tag mocktail-tag" data-testid="card-tag-mocktail">
+            🍹 {{ 'COCKTAILS.MOCKTAIL' | transloco }}
+          </span>
+        } @else if (alcoholLevel != null && alcoholLevel > 0) {
+          <span class="product-dietary-tag abv-tag" data-testid="card-tag-abv">
+            🍸 {{ alcoholLevel }}% ABV
+          </span>
+        }
+        @if (isVegan) {
+          <span class="product-dietary-tag vegan-tag" data-testid="card-tag-vegan">
+            🌱 {{ 'COCKTAILS.VEGAN' | transloco }}
+          </span>
+        }
+        @if (isGlutenFree) {
+          <span class="product-dietary-tag gluten-free-tag" data-testid="card-tag-gluten-free">
+            🌾 {{ 'COCKTAILS.GLUTEN_FREE' | transloco }}
+          </span>
+        }
+      </div>
+      @if (companionDescription) {
+        <div class="product-companion-row" data-testid="product-card-companion-row">
+          <span class="product-companion-pill" data-testid="product-card-companion-pill">
+            ✨ {{ 'COCKTAILS.SERVED_WITH' | transloco: { glass: companionDescription } }}
+          </span>
+        </div>
+      }
+      <div class="product-footer">
+        <div class="product-price-stack">
+          @if (isHappyHour && originalPrice != null && originalPrice > price) {
+            <div class="hh-pill-row">
+              <span class="original-price-struck" data-testid="product-card-original-price">
+                {{ originalPrice | currency:'EUR' }}
+              </span>
+              <span class="happy-hour-badge" data-testid="product-card-hh-badge">
+                {{ 'PRICING.HAPPY_HOUR_BADGE' | transloco }}
+              </span>
+              @if (discountPercentage) {
+                <span class="discount-percent-badge" data-testid="product-card-discount-badge">
+                  -{{ discountPercentage }}%
+                </span>
+              }
+            </div>
+          }
+          <span class="product-price" [class.discounted]="isHappyHour" data-testid="product-card-price">
+            {{ price | currency:'EUR' }}
+          </span>
+        </div>
+        <div class="quantity-stepper-mini" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+          @if (quantity > 0) {
+            <button
+              type="button"
+              class="stepper-btn btn-minus"
+              (click)="onRemove($event)"
+              aria-label="Decrease quantity"
+              data-testid="product-card-minus">
+              <ion-icon name="remove-outline"></ion-icon>
+            </button>
+            <span class="quantity-badge" data-testid="product-card-qty">{{ quantity }}</span>
+          }
+          <button
+            type="button"
+            class="stepper-btn btn-plus"
+            (click)="onAdd($event)"
+            aria-label="Increase quantity"
+            data-testid="product-card-plus">
+            <ion-icon name="add-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

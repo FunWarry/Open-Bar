@@ -62,6 +62,9 @@ export class ModalComponent implements OnInit, OnChanges {
   /** Whether to show the top-right close icon button */
   @Input() showCloseButton = true;
 
+  /** Optional custom data-testid attribute for the modal title element */
+  @Input() titleTestId = 'app-modal-title';
+
   /** Optional custom data-testid attribute for the close button */
   @Input() closeButtonTestId = 'app-modal-close-btn';
 

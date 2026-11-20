@@ -1,11 +1,11 @@
-import { Component, OnInit, OnDestroy, inject, signal, effect, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, inject, signal, effect, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { ToastController, ModalController, IonIcon } from '@ionic/angular';
+import { ToastController, ModalController, IonIcon, IonSegment, IonSegmentButton } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   funnelOutline,
@@ -32,7 +32,10 @@ import {
   checkmarkCircleOutline,
   alertCircleOutline,
   sparklesOutline,
-  cardOutline
+  cardOutline,
+  gridOutline,
+  listOutline,
+  optionsOutline
 } from 'ionicons/icons';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { CocktailService } from '../../../core/services/cocktail.service';
@@ -55,14 +58,23 @@ import { RouletteSpinResult } from '../../../core/models/roulette.model';
 import { RouletteModalComponent } from '../components/roulette-modal/roulette-modal.component';
 import { AngelShotModalComponent } from '../components/angel-shot-modal/angel-shot-modal.component';
 import { ClientPaymentModalComponent } from '../components/client-payment-modal/client-payment-modal.component';
+import { ClientCocktailDetailModalComponent } from '../components/client-cocktail-detail-modal/client-cocktail-detail-modal.component';
 import { HappyHourBannerComponent } from '../components/happy-hour-banner/happy-hour-banner.component';
 import { BrandLogoComponent } from '../../../core/components/ui/brand-logo/brand-logo.component';
 import { PaymentSuccessResponse } from '../../../core/models/payment.model';
+
+const MOBILE_BREAKPOINT_PX = 768;
+const VIEW_MODE_STORAGE_KEY = 'openbar_client_menu_view_mode';
 
 /**
  * Navigation steps for the customer QR order lifecycle.
  */
 export type ClientCommandeStep = 'table' | 'menu' | 'recap';
+
+/**
+ * Cocktail catalog display density modes for the customer menu.
+ */
+export type ClientMenuViewMode = 'compact' | 'detailed';
 
 /**
  * Client Commande Component allowing public customers to select a table, browse the menu,
@@ -83,6 +95,8 @@ export type ClientCommandeStep = 'table' | 'menu' | 'recap';
     AppCurrencyPipe,
     TranslocoModule,
     IonIcon,
+    IonSegment,
+    IonSegmentButton,
     InputFieldComponent,
     ActionButtonComponent,
     SearchBarComponent,
@@ -91,6 +105,7 @@ export type ClientCommandeStep = 'table' | 'menu' | 'recap';
     TableAssistanceBarComponent,
     AngelShotModalComponent,
     ClientPaymentModalComponent,
+    ClientCocktailDetailModalComponent,
     HappyHourBannerComponent,
     BrandLogoComponent
   ]
@@ -169,6 +184,11 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   readonly tableOwnerName = signal<string | null>(null);
   readonly showTableOrdersModal = signal<boolean>(false);
   readonly isPaymentModalOpen = signal<boolean>(false);
+  private hasManualViewModeOverride = this.readStoredViewMode() !== null;
+  private hasManualFiltersToggle = false;
+  readonly isMobileViewport = signal<boolean>(this.detectMobileViewport());
+  readonly viewMode = signal<ClientMenuViewMode>(this.resolveInitialViewMode());
+  readonly isAdvancedFiltersOpen = signal<boolean>(!this.detectMobileViewport());
   joinRequestNameForm!: FormGroup;
   orderNotes = '';
 
@@ -200,7 +220,10 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
       checkmarkCircleOutline,
       alertCircleOutline,
       sparklesOutline,
-      cardOutline
+      cardOutline,
+      gridOutline,
+      listOutline,
+      optionsOutline
     });
 
     effect(() => {
@@ -390,14 +413,130 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Handles click on modal backdrop to dismiss dialog.
-   *
-   * @param event Mouse click event
+   * Cart quantity for the cocktail currently displayed in the detail modal.
    */
-  onDetailsBackdropClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('cocktail-details-dialog')) {
-      this.closeCocktailDetails();
+  get selectedCocktailQuantity(): number {
+    const c = this.selectedCocktailForDetails();
+    return c ? this.getItemQuantity(c.id) : 0;
+  }
+
+  /**
+   * Effective promotional or catalog price for the cocktail in the detail modal.
+   */
+  get selectedCocktailEffectivePrice(): number {
+    const c = this.selectedCocktailForDetails();
+    return c ? this.getEffectivePrice(c) : 0;
+  }
+
+  /**
+   * Indicates whether Happy Hour pricing applies to the cocktail in the detail modal.
+   */
+  get selectedCocktailIsHappyHour(): boolean {
+    const c = this.selectedCocktailForDetails();
+    return c ? this.isHappyHour(c) : false;
+  }
+
+  /**
+   * Integer discount percentage for the cocktail currently open in the detail modal.
+   */
+  get selectedCocktailDiscountPercentage(): number | null {
+    const c = this.selectedCocktailForDetails();
+    return c ? this.getDiscountPercentage(c) : null;
+  }
+
+  /**
+   * Synchronizes responsive defaults on viewport resize unless overridden manually.
+   */
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    const mobile = this.detectMobileViewport();
+    this.isMobileViewport.set(mobile);
+    if (!this.hasManualViewModeOverride) {
+      this.viewMode.set(mobile ? 'compact' : 'detailed');
     }
+    if (!this.hasManualFiltersToggle) {
+      this.isAdvancedFiltersOpen.set(!mobile);
+    }
+  }
+
+  /**
+   * Switches cocktail grid display density and persists the guest preference.
+   *
+   * @param mode Target display mode ('compact' or 'detailed')
+   */
+  setViewMode(mode: ClientMenuViewMode): void {
+    this.hasManualViewModeOverride = true;
+    this.viewMode.set(mode);
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
+      } catch {
+        // Ignore storage errors in restricted browsing contexts
+      }
+    }
+  }
+
+  /**
+   * Toggles between compact 2-column and detailed card display modes.
+   */
+  toggleViewMode(): void {
+    this.setViewMode(this.viewMode() === 'compact' ? 'detailed' : 'compact');
+  }
+
+  /**
+   * Handles Ionic segment change events for the menu view density switch.
+   *
+   * @param event IonSegment change event
+   */
+  onViewModeSegmentChange(event: Event): void {
+    const value = (event as CustomEvent<{ value?: string }>).detail?.value;
+    if (value === 'compact' || value === 'detailed') {
+      this.setViewMode(value);
+    }
+  }
+
+  /**
+   * Toggles the collapsible advanced flavor, dietary, and allergen filter panel.
+   */
+  toggleAdvancedFilters(): void {
+    this.hasManualFiltersToggle = true;
+    this.isAdvancedFiltersOpen.update((open) => !open);
+  }
+
+  /**
+   * Counts active advanced filter selections across allergens, flavors, and dietary flags.
+   */
+  get activeAdvancedFiltersCount(): number {
+    let count = this.selectedAllergens.length + this.selectedFlavors.length;
+    if (this.filterMocktail) count++;
+    if (this.filterVegan) count++;
+    if (this.filterGlutenFree) count++;
+    if (this.filterLowAbv) count++;
+    return count;
+  }
+
+  private detectMobileViewport(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT_PX;
+  }
+
+  private readStoredViewMode(): ClientMenuViewMode | null {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+    try {
+      const stored = window.localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+      return stored === 'compact' || stored === 'detailed' ? stored : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private resolveInitialViewMode(): ClientMenuViewMode {
+    const stored = this.readStoredViewMode();
+    if (stored) {
+      return stored;
+    }
+    return this.detectMobileViewport() ? 'compact' : 'detailed';
   }
 
   /**

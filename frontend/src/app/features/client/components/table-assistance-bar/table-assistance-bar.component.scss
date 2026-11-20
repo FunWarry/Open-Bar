@@ -103,6 +103,27 @@
   }
 }
 
+@media (max-width: 520px) {
+  .table-assistance-bar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2, 8px);
+  }
+
+  .table-assistance-bar.has-pay-online .pay-online-btn {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+
+  .assistance-btn {
+    min-width: 0;
+    min-height: var(--touch-target-min, 44px);
+    padding: 8px 10px;
+    font-size: 12.5px;
+    gap: 6px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .assistance-btn {
     transition: none;

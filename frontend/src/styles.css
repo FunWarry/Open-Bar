@@ -1201,6 +1201,13 @@ ion-modal.modal-md {
   --max-height: 88vh;
 }
 
+ion-modal.cocktail-detail-bottom-sheet {
+  --width: min(520px, 94vw);
+  --max-width: 94vw;
+  --height: auto;
+  --max-height: min(85dvh, 85vh);
+}
+
 ion-modal.modal-lg {
   --width: 860px;
   --max-width: 95vw;
@@ -1417,12 +1424,17 @@ ion-modal.zone-manager-modal-container::part(content) {
   ion-modal.variante-modal,
   ion-modal.transfert-modal-container,
   ion-modal.bar-tab-modal-container,
-  ion-modal.bar-tab-transfer-modal-container {
+  ion-modal.bar-tab-transfer-modal-container,
+  ion-modal.cocktail-detail-bottom-sheet {
     --width: 100vw;
     --max-width: 100vw;
     --height: auto;
     --max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 16px);
     --border-radius: 20px 20px 0 0;
+  }
+
+  ion-modal.cocktail-detail-bottom-sheet {
+    --max-height: calc(88dvh - env(safe-area-inset-top, 0px));
   }
 
   ion-modal.encaissement-modal-container {
@@ -1441,7 +1453,8 @@ ion-modal.zone-manager-modal-container::part(content) {
   html body ion-modal::part(content),
   html body ion-modal.purchase-order-modal-container::part(content),
   html body ion-modal.table-detail-modal-container::part(content),
-  html body ion-modal.barcode-scanner-modal-container::part(content) {
+  html body ion-modal.barcode-scanner-modal-container::part(content),
+  html body ion-modal.cocktail-detail-bottom-sheet::part(content) {
     border-radius: 20px 20px 0 0;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
@@ -1456,6 +1469,10 @@ ion-modal.zone-manager-modal-container::part(content) {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+  }
+
+  html body ion-modal.cocktail-detail-bottom-sheet::part(content) {
+    max-height: calc(88dvh - env(safe-area-inset-top, 0px));
   }
 
   /* Universal scrollable body inside any modal */
@@ -1525,9 +1542,7 @@ ion-modal.zone-manager-modal-container::part(content) {
   ion-modal.quick-waste-modal-container {
     --width: 100vw;
     --max-width: 100vw;
-    --height: 92vh;
     --height: 92dvh;
-    --max-height: 95vh;
     --max-height: 95dvh;
     --border-radius: 20px 20px 0 0;
   }

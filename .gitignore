@@ -75,3 +75,4 @@ frontend/reports/
 /data/
 .scannerwork/
 .sonar/
+.worktrees/

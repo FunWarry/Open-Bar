@@ -1,6 +1,8 @@
 .client-container {
   position: relative;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -110,8 +112,8 @@
   position: relative;
   z-index: 10;
   width: 100%;
-  max-width: 520px;
-  padding-bottom: calc(130px + env(safe-area-inset-bottom, 0px));
+  max-width: 100%;
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
 }
 
 .menu-header {
@@ -202,8 +204,70 @@
   font-size: 15px;
 }
 
-/* Search & Filter Controls */
+/* Search, Filters Toggle & View Mode Controls */
+.menu-controls-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  margin-bottom: var(--space-3, 12px);
+  width: 100%;
+}
+
 .search-bar-wrapper {
+  flex: 1 1 220px;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.toolbar-actions-group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  flex-shrink: 0;
+}
+
+.filters-btn-label {
+  white-space: nowrap;
+}
+
+.filters-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--background-surface-1);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.view-mode-segment {
+  width: auto;
+  min-height: 36px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 10px);
+  padding: 2px;
+  flex-shrink: 0;
+
+  ion-segment-button {
+    --indicator-color: var(--primary);
+    --color: var(--text-secondary);
+    --color-checked: var(--text-on-accent);
+    min-width: 38px;
+    min-height: 32px;
+    margin: 0;
+  }
+}
+
+.advanced-filters-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
   margin-bottom: var(--space-3, 12px);
 }
 
@@ -337,9 +401,25 @@
 }
 
 .cocktails-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: var(--space-3, 12px);
+  width: 100%;
+  align-items: stretch;
+}
+
+.cocktails-grid.compact-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cocktails-grid.detailed-grid {
+  grid-template-columns: 1fr;
+  gap: var(--space-3, 12px);
+}
+
+.empty-box {
+  grid-column: 1 / -1;
 }
 
 .loading-box,
@@ -914,213 +994,7 @@ dialog.invite-dialog-modal {
   opacity: 0.9;
 }
 
-/* Cocktail Details & Ingredients Modal */
-dialog.cocktail-details-dialog {
-  border: none;
-  background: rgba(0, 0, 0, 0.75);
-  padding: var(--space-4, 16px);
-  margin: 0;
-  max-width: none;
-  max-height: none;
-  width: 100vw;
-  height: 100vh;
-}
-
-.cocktail-details-card {
-  margin-top: 0;
-  animation: fadeInModal 0.25s ease-out;
-  position: relative;
-  max-width: 480px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: var(--space-4, 16px);
-  background: var(--background-surface-1);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-lg, 16px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3, 12px);
-}
-
-.cocktail-details-image-wrapper {
-  width: 100%;
-  height: 180px;
-  border-radius: var(--radius-md, 8px);
-  overflow: hidden;
-  background: var(--background-surface-2);
-}
-
-.cocktail-details-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.cocktail-details-header {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.cocktail-details-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.cocktail-details-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.2;
-}
-
-.cocktail-details-price-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.cocktail-details-price-row .happy-hour-badge {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--semantic-success) 20%, transparent);
-  color: var(--semantic-success);
-  border: 1px solid var(--semantic-success);
-  letter-spacing: 0.03em;
-}
-
-.cocktail-details-price-row .discount-percent-badge {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--semantic-success);
-  color: var(--text-on-accent);
-  letter-spacing: 0.03em;
-  box-shadow: 0 1px 4px color-mix(in srgb, var(--semantic-success) 35%, transparent);
-}
-
-.cocktail-details-price {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--primary);
-}
-
-.cocktail-details-desc {
-  margin: 0;
-  font-size: 14px;
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-.cocktail-details-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-/* Ingredients Section */
-.cocktail-ingredients-section {
-  background: var(--background-surface-2);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-md, 8px);
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.ingredients-section-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.ingredients-section-icon {
-  font-size: 22px;
-  line-height: 1;
-}
-
-.ingredients-section-title {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.ingredients-section-subtitle {
-  margin: 2px 0 0;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.ingredients-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding-top: 4px;
-}
-
-.ingredient-item-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--background-surface-3);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-full, 9999px);
-  padding: 5px 12px;
-  font-size: 13px;
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.ingredient-bullet {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--primary);
-  flex-shrink: 0;
-}
-
-.ingredient-name {
-  white-space: nowrap;
-}
-
-.ingredient-allergen-badge {
-  font-size: 10px;
-  background: var(--semantic-warning);
-  color: var(--background-bg-0);
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: var(--radius-full, 9999px);
-}
-
-.empty-ingredients-text {
-  font-size: 13px;
-  color: var(--text-secondary);
-  font-style: italic;
-  margin: 4px 0;
-}
-
-/* Modal Footer & Actions */
-.cocktail-details-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 6px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-medium);
-}
-
+/* Shared Modal Close Button (used in Table Orders & Invite modals) */
 .details-close-btn {
   background: var(--background-surface-2);
   border: 1px solid var(--border-medium);
@@ -1510,144 +1384,6 @@ dialog.cocktail-details-dialog {
   vertical-align: middle;
 }
 
-/* Mystery Drink Gamification Hero Promotion Banner */
-.roulette-hero-card {
-  position: relative;
-  margin-bottom: 18px;
-  background: linear-gradient(135deg, var(--background-surface-2) 0%, var(--background-surface-3) 100%);
-  border: 1.5px solid var(--primary);
-  border-radius: var(--radius-lg, 18px);
-  padding: 16px 20px;
-  box-shadow: 0 4px 20px rgba(108, 127, 232, 0.2);
-  overflow: hidden;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-}
-
-.roulette-hero-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(108, 127, 232, 0.35);
-  border-color: var(--primary-light);
-}
-
-.roulette-hero-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.roulette-hero-icon-box {
-  width: 52px;
-  height: 52px;
-  border-radius: var(--radius-md, 16px);
-  background: linear-gradient(135deg, var(--primary) 0%, var(--border-selected) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
-  box-shadow: 0 4px 14px rgba(108, 127, 232, 0.35);
-  flex-shrink: 0;
-}
-
-.roulette-hero-text {
-  flex: 1;
-  min-width: 200px;
-}
-
-.roulette-hero-title-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 4px;
-}
-
-.roulette-hero-title {
-  margin: 0;
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  letter-spacing: -0.01em;
-}
-
-.roulette-hero-badge {
-  font-size: 10.5px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 2px 8px;
-  border-radius: var(--radius-full, 9999px);
-  background: rgba(108, 127, 232, 0.15);
-  border: 1px solid var(--primary);
-  color: var(--primary-light);
-}
-
-.roulette-hero-desc {
-  margin: 0;
-  font-size: 0.88rem;
-  color: var(--text-secondary);
-  line-height: 1.4;
-}
-
-.roulette-hero-cta-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 22px;
-  background: linear-gradient(135deg, var(--primary-strong) 0%, var(--border-selected) 100%);
-  border: 1px solid var(--primary-light);
-  border-radius: var(--radius-full, 9999px);
-  color: var(--text-on-accent);
-  font-size: 0.95rem;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(108, 127, 232, 0.4);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  white-space: nowrap;
-}
-
-.roulette-hero-cta-btn:hover {
-  transform: scale(1.04);
-  box-shadow: 0 6px 20px rgba(108, 127, 232, 0.6);
-}
-
-.roulette-hero-cta-btn ion-icon {
-  font-size: 1.2rem;
-}
-
-/* Floating Roulette Action Button */
-.floating-roulette-fab {
-  position: fixed;
-  bottom: 24px;
-  right: 20px;
-  z-index: 990;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, var(--primary-strong) 0%, var(--border-selected) 100%);
-  border: 2px solid var(--primary-light);
-  border-radius: var(--radius-full, 9999px);
-  color: var(--text-on-accent);
-  font-size: 0.92rem;
-  font-weight: 800;
-  box-shadow: 0 6px 24px rgba(108, 127, 232, 0.45);
-  cursor: pointer;
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.floating-roulette-fab:hover {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 8px 30px rgba(108, 127, 232, 0.65);
-}
-
-.floating-roulette-fab.above-cart {
-  bottom: 84px;
-}
-
-.floating-roulette-fab .fab-dice {
-  font-size: 1.3rem;
-}
-
 @media (max-width: 767px) {
   .client-container {
     padding: var(--space-3, 12px);
@@ -1667,6 +1403,7 @@ dialog.cocktail-details-dialog {
   .nickname-modal-backdrop .step-card {
     border-radius: 16px 16px 0 0;
     max-height: 90vh;
+    max-height: 90dvh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     margin: 0;
@@ -1674,20 +1411,125 @@ dialog.cocktail-details-dialog {
     max-width: 100%;
   }
 
-  .roulette-hero-content {
-    flex-direction: column;
-    align-items: flex-start;
+  .menu-header {
+    margin-bottom: var(--space-3, 12px);
   }
 
-  .roulette-hero-cta-btn {
+  .menu-title {
+    font-size: 18px;
+  }
+
+  .header-badges-row {
+    gap: 6px;
+  }
+
+  .guest-badge-btn,
+  .invite-badge-btn,
+  .table-orders-badge-btn,
+  .roulette-launcher-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    min-height: 36px;
+  }
+
+  .allergen-pills-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 2px 2px 6px;
+    margin-bottom: var(--space-1, 4px);
+  }
+
+  .view-mode-segment ion-segment-button {
+    min-width: var(--touch-target-min, 44px);
+    min-height: var(--touch-target-min, 44px);
+  }
+}
+
+@media (max-width: 540px) {
+  .menu-controls-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .search-bar-wrapper {
+    flex: 1 1 100%;
+  }
+
+  .toolbar-actions-group {
     width: 100%;
+    justify-content: space-between;
+  }
+
+  .recap-invite-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .banner-invite-btn {
     justify-content: center;
+    min-height: var(--touch-target-min, 44px);
+  }
+
+  .recap-item {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .floating-cart-bar {
+    width: calc(100% - 20px);
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .cart-summary {
+    min-width: 0;
+    font-size: 13px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .cart-action {
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .recap-btn {
+    min-height: var(--touch-target-min, 44px);
+    padding: 8px 12px;
+    white-space: nowrap;
   }
 }
 
 @media (min-width: 768px) {
   .menu-view {
-    max-width: 860px;
+    max-width: 900px;
+  }
+
+  .cocktails-grid.detailed-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .cocktails-grid.compact-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .menu-view {
+    max-width: 1120px;
+  }
+
+  .cocktails-grid.detailed-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .cocktails-grid.compact-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
   }
 }
 
@@ -1726,97 +1568,6 @@ dialog.cocktail-details-dialog {
   border-color: var(--border-medium);
   background: var(--background-surface-3);
   transform: translateY(-1px);
-}
-
-/* Glassware section in cocktail details modal */
-.cocktail-glassware-section {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 8px;
-  padding: 8px 12px;
-  background: var(--background-surface-2);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-sm, 8px);
-}
-
-.glassware-section-label {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-secondary);
-}
-
-.glassware-chips-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.glassware-item-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: var(--background-surface-1);
-  color: var(--text-primary);
-  border: 1px solid var(--border-medium);
-}
-
-.glassware-item-chip.primary-glass {
-  border-color: color-mix(in srgb, var(--primary) 40%, transparent);
-  color: var(--primary-light);
-}
-
-.glassware-item-chip.companion-glass {
-  background: color-mix(in srgb, var(--primary) 15%, transparent);
-  border-color: color-mix(in srgb, var(--primary) 45%, transparent);
-  color: var(--primary-light);
-}
-
-/* Pay at Table Launcher Button */
-.pay-at-table-action-box {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  margin-top: 10px;
-}
-
-.pay-at-table-trigger-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  max-width: 400px;
-  min-height: 44px;
-  padding: 10px 18px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong, var(--primary)) 100%);
-  color: var(--text-on-primary, #ffffff);
-  border: none;
-  border-radius: var(--radius-full, 9999px);
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(108, 127, 232, 0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-  ion-icon {
-    font-size: 20px;
-  }
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(108, 127, 232, 0.45);
-  }
-
-  &:active {
-    transform: translateY(1px);
-  }
 }
 
 .bill-pay-cta-row {
@@ -1862,8 +1613,7 @@ dialog.cocktail-details-dialog {
 
 @media (prefers-reduced-motion: reduce) {
   .nickname-card,
-  .invite-card,
-  .cocktail-details-card {
+  .invite-card {
     animation: none;
   }
 
@@ -1871,19 +1621,10 @@ dialog.cocktail-details-dialog {
     animation: none;
   }
 
-  .floating-cart-view-btn,
-  .btn-filter,
-  .product-action-btn,
-  .cart-item-remove-btn,
-  .cart-checkout-btn,
   .modal-close-btn,
   .recap-btn,
   .roulette-launcher-btn,
-  .roulette-hero-card,
-  .roulette-hero-cta-btn,
-  .floating-roulette-fab,
   .discreet-safety-trigger,
-  .pay-at-table-trigger-btn,
   .bill-pay-cta-btn,
   .footer-pay-btn {
     transition: none;

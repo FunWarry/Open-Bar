@@ -1,0 +1,358 @@
+.detail-sheet-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  max-height: inherit;
+  overflow: hidden;
+  background: var(--background-surface-1);
+
+  app-modal {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+  }
+}
+
+.bottom-sheet-drag-handle {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-2, 8px) 0 var(--space-1, 4px);
+  background: var(--background-surface-1);
+  flex-shrink: 0;
+}
+
+.drag-pill {
+  width: 40px;
+  height: 4px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--border-medium);
+}
+
+.cocktail-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+}
+
+.cocktail-hero-compact {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3, 12px);
+}
+
+.hero-thumb-box {
+  width: 76px;
+  height: 76px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md, 10px);
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+
+.hero-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.product-category-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--border-medium);
+  font-size: 11px;
+  font-weight: 600;
+  max-width: 100%;
+}
+
+.dot-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cocktail-details-price-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.original-price-struck {
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.happy-hour-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in srgb, var(--semantic-success) 20%, transparent);
+  color: var(--semantic-success);
+  border: 1px solid var(--semantic-success);
+}
+
+.discount-percent-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--semantic-success);
+  color: var(--text-on-accent);
+}
+
+.cocktail-details-price {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.cocktail-details-price.discounted {
+  color: var(--semantic-success);
+}
+
+.cocktail-details-desc {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.cocktail-details-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.product-dietary-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--background-surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-medium);
+
+  &.vegan-tag {
+    color: var(--semantic-success);
+  }
+
+  &.mocktail-tag {
+    color: var(--semantic-info);
+  }
+
+  &.gluten-free-tag {
+    color: var(--semantic-warning);
+  }
+
+  &.abv-tag {
+    color: var(--primary-light);
+  }
+}
+
+.product-flavor-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--background-surface-2);
+  color: var(--primary-light);
+  border: 1px solid var(--border-medium);
+}
+
+.cocktail-glassware-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 10px);
+}
+
+.glassware-section-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+
+.glassware-chips-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.glassware-item-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm, 6px);
+  background: var(--background-surface-1);
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
+
+  &.primary-glass {
+    border-color: color-mix(in srgb, var(--primary) 40%, transparent);
+    color: var(--primary-light);
+  }
+
+  &.companion-glass {
+    background: color-mix(in srgb, var(--primary) 15%, transparent);
+    border-color: color-mix(in srgb, var(--primary) 45%, transparent);
+    color: var(--primary-light);
+  }
+}
+
+.cocktail-ingredients-section {
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 10px);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ingredients-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ingredients-section-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.ingredients-section-title {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ingredients-section-subtitle {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.ingredients-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ingredient-item-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--background-surface-3);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-pill, 999px);
+  padding: 5px 11px;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.ingredient-bullet {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  flex-shrink: 0;
+}
+
+.ingredient-name {
+  overflow-wrap: break-word;
+}
+
+.ingredient-allergen-badge {
+  font-size: 10.5px;
+  background: var(--semantic-warning);
+  color: var(--background-bg-0);
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill, 999px);
+}
+
+.empty-ingredients-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 2px 0;
+}
+
+.cocktail-details-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+  width: 100%;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.details-cart-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quantity-badge {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 24px;
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .bottom-sheet-drag-handle {
+    display: flex;
+  }
+
+  .hero-thumb-box {
+    width: 68px;
+    height: 68px;
+  }
+
+  .cocktail-details-footer {
+    flex-wrap: wrap;
+    gap: var(--space-2, 8px);
+  }
+}
