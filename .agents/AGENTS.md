@@ -135,6 +135,9 @@ Skills in `.agents/skills/` define reusable workflows for this project:
 | `openbar-ci-watch` | "watch CI" / "surveille la CI" | Autonomous CI & SonarCloud watcher with log diagnosis and auto-patching |
 | `openbar-post-merge` | "post-merge" / "after merge PR #X" | Post-merge cleanup, issue/board closure & KI sync |
 | `openbar-ki-update` | "update KIs" / after PR merged | Sync knowledge base with project state |
+| `openbar-i18n-clean` | "clean i18n" / "prune i18n" | Analyse statique & élagage sécurisé des clés de traduction orphelines (parité 100% stricte) |
+| `openbar-i18n-add-key` | "ajoute une traduction" / "add translation key" | Ajout dédoublonné d'une clé i18n avec recherche anti-duplication et validation d'usage réel |
+| `openbar-i18n-add-lang` | "ajoute une langue" / "add language" | Pipeline complet d'intégration d'une nouvelle langue (dictionnaire, config Transloco, UI, tests) |
 
 ---
 
