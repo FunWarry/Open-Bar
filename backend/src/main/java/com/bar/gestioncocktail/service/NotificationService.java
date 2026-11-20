@@ -29,6 +29,7 @@ public class NotificationService {
     private static final String TOPIC_BAR_TABS = "/topic/bar-tabs";
     private static final String TOPIC_RESERVATIONS = "/topic/reservations";
     private static final String TOPIC_SAFETY_ALERTS = "/topic/safety-alerts";
+    private static final String TOPIC_LICENSE = "/topic/license";
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -237,6 +238,15 @@ public class NotificationService {
     public void notifierAlerteSecuriteResolue(Object payload) {
         messagingTemplate.convertAndSend(TOPIC_SAFETY_ALERTS, payload);
         messagingTemplate.convertAndSend(TOPIC_SERVEUR_APPELS, payload);
+    }
+
+    /**
+     * Broadcasts establishment license status updates over WebSocket topic /topic/license.
+     *
+     * @param licenseSummary Updated lightweight license summary DTO
+     */
+    public void notifierLicenceMiseAJour(com.bar.gestioncocktail.dto.LicenseSummaryDTO licenseSummary) {
+        messagingTemplate.convertAndSend(TOPIC_LICENSE, licenseSummary);
     }
 
     /**

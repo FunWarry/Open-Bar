@@ -2958,7 +2958,7 @@
   "cash_drawer_sessions": [
     {
       "daysAgo": 1,
-      "openingFloat": 150.00,
+      "openingFloat": 150,
       "status": "CLOSED",
       "openedByUsername": "manager",
       "closedByUsername": "manager",
@@ -2970,9 +2970,9 @@
         "2e": 4,
         "1e": 2
       },
-      "theoreticalCash": 380.00,
-      "actualCash": 380.00,
-      "cashVariance": 0.00,
+      "theoreticalCash": 380,
+      "actualCash": 380,
+      "cashVariance": 0,
       "closingDenominationsJson": {
         "50e": 4,
         "20e": 6,
@@ -2985,7 +2985,7 @@
       "movements": [
         {
           "type": "CASH_DROP",
-          "amount": 100.00,
+          "amount": 100,
           "reason": "Transfert de sécurité vers le coffre",
           "receiptReference": "DROP-20261024-01",
           "performedByUsername": "manager",
@@ -2998,7 +2998,7 @@
     },
     {
       "daysAgo": 0,
-      "openingFloat": 150.00,
+      "openingFloat": 150,
       "status": "OPEN",
       "openedByUsername": "manager",
       "notes": "Ouverture de caisse matinale",
@@ -3011,7 +3011,7 @@
       "movements": [
         {
           "type": "CASH_IN",
-          "amount": 50.00,
+          "amount": 50,
           "reason": "Apport de monnaie rouleaux pièces",
           "receiptReference": "DEP-001",
           "minutesAgo": 120,
@@ -3022,7 +3022,7 @@
         },
         {
           "type": "CASH_DROP",
-          "amount": 50.00,
+          "amount": 50,
           "reason": "Écrémage billets coffre",
           "receiptReference": "ECR-001",
           "minutesAgo": 60,
@@ -3868,9 +3868,9 @@
     {
       "transactionId": "tx_demo_pay_at_table_001",
       "tableNumero": 4,
-      "amount": 25.00,
-      "tipAmount": 2.50,
-      "totalAmount": 27.50,
+      "amount": 25,
+      "tipAmount": 2.5,
+      "totalAmount": 27.5,
       "splitMode": "EQUAL_SPLIT",
       "provider": "SANDBOX",
       "status": "SUCCEEDED",
@@ -3893,9 +3893,9 @@
       "deliveryDate": "2026-11-12",
       "orderReference": "PO-2026-001",
       "deliveryNoteReference": "BL-2026-0089",
-      "totalHt": 340.00,
-      "totalVat": 68.00,
-      "totalTtc": 408.00,
+      "totalHt": 340,
+      "totalVat": 68,
+      "totalTtc": 408,
       "status": "APPLIED",
       "format": "FACTUR_X",
       "profile": "EN 16931",
@@ -3906,28 +3906,28 @@
           "productReference": "DIS-RHUM-01",
           "designation": "Rhum Blanc Agricole 1L",
           "packaging": "Carton de 6",
-          "quantityInvoiced": 12.0,
-          "unitPriceHt": 20.00,
-          "vatRate": 20.00,
-          "lineTotalHt": 240.00,
-          "lineTotalTtc": 288.00,
+          "quantityInvoiced": 12,
+          "unitPriceHt": 20,
+          "vatRate": 20,
+          "lineTotalHt": 240,
+          "lineTotalTtc": 288,
           "ingredientNom": "Rhum Blanc",
           "reconciliationStatus": "MATCHED",
-          "suggestedPackagingCapacity": 6.0
+          "suggestedPackagingCapacity": 6
         },
         {
           "lineNumber": 2,
           "productReference": "DIS-GIN-01",
           "designation": "Gin Botanique 70cl",
           "packaging": "Carton de 6",
-          "quantityInvoiced": 5.0,
-          "unitPriceHt": 20.00,
-          "vatRate": 20.00,
-          "lineTotalHt": 100.00,
-          "lineTotalTtc": 120.00,
+          "quantityInvoiced": 5,
+          "unitPriceHt": 20,
+          "vatRate": 20,
+          "lineTotalHt": 100,
+          "lineTotalTtc": 120,
           "ingredientNom": "Gin",
           "reconciliationStatus": "MATCHED",
-          "suggestedPackagingCapacity": 6.0
+          "suggestedPackagingCapacity": 6
         }
       ]
     },
@@ -3943,9 +3943,9 @@
       "deliveryDate": "2026-11-16",
       "orderReference": "PO-2026-002",
       "deliveryNoteReference": "BL-GBR-9921",
-      "totalHt": 185.00,
-      "totalVat": 37.00,
-      "totalTtc": 222.00,
+      "totalHt": 185,
+      "totalVat": 37,
+      "totalTtc": 222,
       "status": "PENDING_REVIEW",
       "format": "FACTUR_X",
       "profile": "EN 16931",
@@ -3956,31 +3956,36 @@
           "productReference": "GBR-CIT-01",
           "designation": "Citron Vert Extra",
           "packaging": "Colis 5kg",
-          "quantityInvoiced": 10.0,
-          "unitPriceHt": 14.50,
-          "vatRate": 20.00,
-          "lineTotalHt": 145.00,
-          "lineTotalTtc": 174.00,
+          "quantityInvoiced": 10,
+          "unitPriceHt": 14.5,
+          "vatRate": 20,
+          "lineTotalHt": 145,
+          "lineTotalTtc": 174,
           "ingredientNom": "Citron Vert",
           "reconciliationStatus": "PRICE_VARIANCE",
           "varianceDetails": "Price variance: +2.50€ (+20.8%) vs PO",
-          "suggestedPackagingCapacity": 5.0
+          "suggestedPackagingCapacity": 5
         },
         {
           "lineNumber": 2,
           "productReference": "GBR-SUC-01",
           "designation": "Sirop de Canne 1L",
           "packaging": "Bouteille",
-          "quantityInvoiced": 10.0,
-          "unitPriceHt": 4.00,
-          "vatRate": 20.00,
-          "lineTotalHt": 40.00,
-          "lineTotalTtc": 48.00,
+          "quantityInvoiced": 10,
+          "unitPriceHt": 4,
+          "vatRate": 20,
+          "lineTotalHt": 40,
+          "lineTotalTtc": 48,
           "ingredientNom": "Sirop de Canne",
           "reconciliationStatus": "MATCHED",
-          "suggestedPackagingCapacity": 1.0
+          "suggestedPackagingCapacity": 1
         }
       ]
     }
-  ]
+  ],
+  "license": {
+    "licenseToken": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3MzI4MjkzMjAwMDA3NCIsImVzdGFibGlzaG1lbnRJZCI6IjczMjgyOTMyMDAwMDc0IiwicGxhbiI6IkVOVEVSUFJJU0UiLCJsaWNlbnNlZE1vZHVsZXMiOlsiKiJdLCJpYXQiOjE3OTUxODA5NDEsImV4cCI6MjExNDM4MDc5OX0.1zvIUd2cGC3UM48zdFrc-xdxO-BJ3JtS0P9nhRg5iPU72QkN0AIaicIhFWMPuYvwIRkrI8dK_jbVLbsDi3hw2g",
+    "activationMode": "SEEDED",
+    "activatedBy": "seeder"
+  }
 }

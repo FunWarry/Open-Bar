@@ -538,7 +538,8 @@
     "PURCHASES": "Purchases & Suppliers",
     "INVENTORY": "Physical Inventory",
     "MENU": "Menu",
-    "NOTIFICATIONS": "Notifications"
+    "NOTIFICATIONS": "Notifications",
+    "LICENSE": "License"
   },
   "AUDIO_SETTINGS": {
     "TITLE": "Sound Alerts & Volume",
@@ -791,7 +792,11 @@
     "CLIENT_MENU_TITLE": "QR Code Ordering",
     "CLIENT_MENU_DESC": "Allow customers to browse menu and order directly from their smartphone.",
     "CLIENT_MENU_FEAT_1": "Instant table QR code scanning",
-    "CLIENT_MENU_FEAT_2": "Real-time order preparation tracking"
+    "CLIENT_MENU_FEAT_2": "Real-time order preparation tracking",
+    "ADMIN_LICENSE_TITLE": "OpenBar License Activation",
+    "ADMIN_LICENSE_DESC": "Activate your commercial license online or offline using a signed JWT token (compatible with air-gapped venues).",
+    "ADMIN_LICENSE_FEAT_1": "Automatic online sync or manual offline entry on /admin/license",
+    "ADMIN_LICENSE_FEAT_2": "2-day grace period and preserved access to invoices & Z-reports"
   },
   "CLIENT_QR": {
     "TITLE": "Scan QR Code",
@@ -1925,7 +1930,8 @@
     "NOT_FOUND": "Resource not found",
     "SERVER": "Server error",
     "FORM_INVALID": "Please correct the errors in the form",
-    "GENERIC": "An unexpected error occurred"
+    "GENERIC": "An unexpected error occurred",
+    "LICENSE_EXPIRED": "License expired: order creation is locked. Historical invoices and Z-reports remain accessible."
   },
   "ERROR_404": {
     "CODE": "404",
@@ -2388,7 +2394,8 @@
       "ADD_INGREDIENT": "New Ingredient Stock",
       "DAILY_RECAP": "Daily Settlement & Z-Report",
       "INVOICES_LIST": "Invoices History",
-      "SYSTEM_UPDATES": "System Updates"
+      "SYSTEM_UPDATES": "System Updates",
+      "LICENSE": "License Management"
     }
   },
   "EMPLOYEES": {
@@ -3435,7 +3442,8 @@
     "SMTP_PASSWORD": "SMTP Password",
     "SMTP_FROM": "Sender email address (From)",
     "MODULE_FACTUR_X_INVOICE_IMPORT_TITLE": "Invoice Import & Factur-X",
-    "MODULE_FACTUR_X_INVOICE_IMPORT_DESC": "Automated supplier invoice import (Factur-X hybrid XML/PDF, PDF), purchase order reconciliation, price variance alerts, and 1-click stock intake with WAC recalculation."
+    "MODULE_FACTUR_X_INVOICE_IMPORT_DESC": "Automated supplier invoice import (Factur-X hybrid XML/PDF, PDF), purchase order reconciliation, price variance alerts, and 1-click stock intake with WAC recalculation.",
+    "BTN_MANAGE_LICENSE": "Manage License (/admin/license)"
   },
   "SAFETY": {
     "ACTIVE_ALERTS_TITLE": "Active Angel Shot Emergencies ({{ count }})",
@@ -4606,6 +4614,120 @@
         "invalidFormat": "Unsupported file format. Please select a PDF or XML file.",
         "uploadFailed": "Failed to upload or analyze the invoice."
       }
+    }
+  },
+  "LICENSE": {
+    "EYEBROW": "Hybrid Offline / Online DRM",
+    "TITLE": "OpenBar License & Subscription",
+    "SUBTITLE": "Asymmetric cryptographic verification (ECDSA / RSA), automatic background sync, and manual offline activation for air-gapped venues.",
+    "ACTIONS": {
+      "REFRESH": "Refresh",
+      "DEACTIVATE": "Deactivate License"
+    },
+    "KPI": {
+      "STATUS": "License Status",
+      "PLAN": "Active Plan",
+      "VALIDITY": "Validity / Grace",
+      "SYNC": "Last Sync",
+      "POS_ACTIVE": "Order-taking active",
+      "POS_LOCKED": "Order-taking locked",
+      "GRACE_SUBTEXT": "Hours left (2-day grace)",
+      "EXPIRY_SUBTEXT": "Days until expiration",
+      "NEVER_SYNCED": "Never synced"
+    },
+    "STATUS": {
+      "VALID": "Valid",
+      "GRACE_PERIOD": "Grace Period",
+      "EXPIRED": "Expired",
+      "UNLICENSED": "Unlicensed",
+      "COMMUNITY": "Community / Evaluation",
+      "INVALID": "Invalid",
+      "UNKNOWN": "Unknown"
+    },
+    "MODE": {
+      "ONLINE": "Online Sync",
+      "OFFLINE": "Offline Activation",
+      "SEEDED": "Preloaded Demo License",
+      "NONE": "No commercial key"
+    },
+    "SYNC_STATUS": {
+      "SUCCESS": "Synced",
+      "UP_TO_DATE": "Up to date",
+      "OFFLINE": "Offline",
+      "FAILED": "Failed",
+      "NONE": "None"
+    },
+    "BANNER": {
+      "GRACE_TITLE": "Subscription expired — Grace period active ({{ hours }}h remaining)",
+      "GRACE_DESC": "Order-taking remains open during the 2-day grace window. Please renew or sync your license.",
+      "EXPIRED_TITLE": "License expired — Order-taking locked",
+      "EXPIRED_DESC": "New orders are blocked. Read-only access to historical invoices, Z-reports, and audit logs remains available.",
+      "VIEW_INVOICES": "Invoices & Reports",
+      "MANAGE_BTN": "Manage License"
+    },
+    "CALLOUT": {
+      "GRACE_TITLE": "2-Day Grace Period Active ({{ hours }}h remaining)",
+      "GRACE_DESC": "Your subscription has expired, but order-taking remains operational for 48 hours before locking.",
+      "LOCKED_TITLE": "Order Creation Locked (HTTP 402)",
+      "LOCKED_DESC": "Activate a valid offline license key or sync online to unlock order creation. All historical fiscal records remain 100% accessible.",
+      "INVOICES_LINK": "View Historical Invoices",
+      "ZREPORT_LINK": "Z-Reports & Closure",
+      "AUDIT_LINK": "Audit Exports & Logs",
+      "COMMUNITY_TITLE": "Community / Evaluation Mode Active",
+      "COMMUNITY_DESC": "Non-commercial or development environment: all features remain unlocked without a commercial license key."
+    },
+    "OFFLINE": {
+      "TITLE": "Manual Offline Activation",
+      "DESC": "For air-gapped or network-isolated bars, paste your signed JWT license token or import a .lic / .jwt file.",
+      "INPUT_LABEL": "Signed JWT License Token",
+      "INPUT_PLACEHOLDER": "eyJhbGciOiJFUzI1NiJ9.eyJlc3RhYmxpc2htZW50SWQiOi...",
+      "UPLOAD_FILE": "Import File (.lic / .jwt)",
+      "ACTIVATE_BTN": "Activate License",
+      "ADMIN_ONLY": "Only an Administrator (ROLE_ADMIN) can activate, sync, or revoke the venue license key."
+    },
+    "SYNC": {
+      "TITLE": "Automatic Online Synchronization",
+      "DESC": "OpenBar periodically checks the licensing authority when internet connectivity is detected. Offline venues seamlessly retain their valid local license.",
+      "LAST_STATUS": "Last Outcome",
+      "LAST_AT": "Last Attempt",
+      "DIAGNOSTIC": "Diagnostic",
+      "SYNC_NOW_BTN": "Sync Now"
+    },
+    "DETAILS": {
+      "TITLE": "Identity & Cryptographic Diagnostics",
+      "VENUE_ID": "Venue Establishment ID (SIRET)",
+      "BOUND_ID": "Token Bound ID",
+      "ISSUED_AT": "Issued At",
+      "EXPIRES_AT": "Expires At",
+      "GRACE_ENDS_AT": "Grace Ends At (+2d)",
+      "PUBKEY_FINGERPRINT": "Public Key Fingerprint (SHA-256)",
+      "TOKEN_PREVIEW": "Token Preview"
+    },
+    "MODULES": {
+      "TITLE": "Licensed Module Entitlements",
+      "DESC": "Modules below reflect the cryptographic entitlements granted by your active subscription plan.",
+      "INCLUDED": "Included",
+      "LOCKED": "Locked"
+    },
+    "DEACTIVATE_MODAL": {
+      "TITLE": "Deactivate commercial license?",
+      "MESSAGE": "This will remove the stored license key from this establishment.",
+      "CONFIRM": "Deactivate"
+    },
+    "TOASTS": {
+      "ACTIVATED": "License verified cryptographically and activated.",
+      "SYNCED": "Updated license fetched and activated online.",
+      "SYNC_CHECKED": "Online license check completed.",
+      "DEACTIVATED": "Commercial license deactivated.",
+      "ID_COPIED": "Establishment ID copied to clipboard."
+    },
+    "ERRORS": {
+      "LOAD_FAILED": "Unable to load license status.",
+      "INVALID_JWT_FORMAT": "Invalid JWT format: expected 3 dot-separated segments.",
+      "ACTIVATION_FAILED": "Failed to verify or activate license token.",
+      "SYNC_FAILED": "Error during online license synchronization.",
+      "DEACTIVATE_FAILED": "Failed to deactivate license.",
+      "COPY_FAILED": "Unable to copy to clipboard."
     }
   }
 }

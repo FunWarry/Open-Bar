@@ -67,7 +67,11 @@ public class CommandeService {
     private final HappyHourService happyHourService;
     private final EstablishmentConfigService establishmentConfigService;
     private final com.bar.gestioncocktail.repository.UserRepository userRepository;
+    private final LicenseService licenseService;
 
+    /**
+     * Constructs CommandeService without license enforcement (backward-compatible constructor for unit tests).
+     */
     public CommandeService(
             CommandeRepository commandeRepository,
             CommandeItemRepository commandeItemRepository,
@@ -81,6 +85,41 @@ public class CommandeService {
             HappyHourService happyHourService,
             EstablishmentConfigService establishmentConfigService,
             com.bar.gestioncocktail.repository.UserRepository userRepository) {
+        this(
+                commandeRepository,
+                commandeItemRepository,
+                ingredientRepository,
+                tableRepository,
+                cocktailRepository,
+                cocktailVarianteRepository,
+                cocktailIngredientRepository,
+                eventPublisher,
+                timeService,
+                happyHourService,
+                establishmentConfigService,
+                userRepository,
+                null
+        );
+    }
+
+    /**
+     * Constructs CommandeService with full order lifecycle and DRM licensing dependencies.
+     */
+    @org.springframework.beans.factory.annotation.Autowired
+    public CommandeService(
+            CommandeRepository commandeRepository,
+            CommandeItemRepository commandeItemRepository,
+            IngredientRepository ingredientRepository,
+            TableRepository tableRepository,
+            CocktailRepository cocktailRepository,
+            CocktailVarianteRepository cocktailVarianteRepository,
+            CocktailIngredientRepository cocktailIngredientRepository,
+            ApplicationEventPublisher eventPublisher,
+            TimeService timeService,
+            HappyHourService happyHourService,
+            EstablishmentConfigService establishmentConfigService,
+            com.bar.gestioncocktail.repository.UserRepository userRepository,
+            LicenseService licenseService) {
         this.commandeRepository = commandeRepository;
         this.commandeItemRepository = commandeItemRepository;
         this.ingredientRepository = ingredientRepository;
@@ -93,6 +132,7 @@ public class CommandeService {
         this.happyHourService = happyHourService;
         this.establishmentConfigService = establishmentConfigService;
         this.userRepository = userRepository;
+        this.licenseService = licenseService;
     }
 /**
      * Retrieves all orders registered in the system.
@@ -187,6 +227,10 @@ public class CommandeService {
                 log.info("Idempotent order creation requested. Returning existing order id={}", existing.get().getId());
                 return existing.get();
             }
+        }
+
+        if (licenseService != null) {
+            licenseService.assertOrderCreationAllowed();
         }
 
         LocalDateTime now = timeService.now();

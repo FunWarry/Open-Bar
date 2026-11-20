@@ -11,6 +11,16 @@ spring:
 server:
   port: ${SERVER_PORT:8081}
 
+openbar:
+  licensing:
+    enforced: ${OPENBAR_LICENSING_ENFORCED:false}
+    sync-enabled: ${OPENBAR_LICENSING_SYNC_ENABLED:false}
+    public-key-pem: |
+      -----BEGIN PUBLIC KEY-----
+      MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEE0qs4A6+KX3AvmPGRENPgbcKhJGG
+      SKEafioWglNu1pHNsPgsqFIisYfMx+kkrC/2uarRS0Y0JxJ+bihF4Uy1VA==
+      -----END PUBLIC KEY-----
+
 logging:
   level:
     org.springframework.security: DEBUG

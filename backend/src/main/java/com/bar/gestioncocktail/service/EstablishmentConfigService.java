@@ -23,10 +23,11 @@ public class EstablishmentConfigService {
 
     private final EstablishmentConfigRepository establishmentConfigRepository;
     private final NotificationService notificationService;
+    private final LicenseService licenseService;
 
     /**
      * Constructs EstablishmentConfigService with repository and real-time
-     * notification service.
+     * notification service (backward-compatible constructor for unit tests).
      *
      * @param establishmentConfigRepository Repository for establishment config
      *                                      persistence
@@ -34,8 +35,25 @@ public class EstablishmentConfigService {
      */
     public EstablishmentConfigService(EstablishmentConfigRepository establishmentConfigRepository,
             @Lazy NotificationService notificationService) {
+        this(establishmentConfigRepository, notificationService, null);
+    }
+
+    /**
+     * Constructs EstablishmentConfigService with repository, real-time notification service,
+     * and DRM licensing service for entitlement enforcement.
+     *
+     * @param establishmentConfigRepository Repository for establishment config persistence
+     * @param notificationService           Service for STOMP WebSocket broadcasts
+     * @param licenseService                Licensing service enforcing module entitlements
+     */
+    @org.springframework.beans.factory.annotation.Autowired
+    public EstablishmentConfigService(
+            EstablishmentConfigRepository establishmentConfigRepository,
+            @Lazy NotificationService notificationService,
+            LicenseService licenseService) {
         this.establishmentConfigRepository = establishmentConfigRepository;
         this.notificationService = notificationService;
+        this.licenseService = licenseService;
     }
 
     /**
@@ -82,42 +100,49 @@ public class EstablishmentConfigService {
 
     /**
      * Checks if a given capability module is currently enabled for the
-     * establishment.
+     * establishment and unlocked by the active license.
      *
      * @param module Capability module to check
-     * @return True if enabled, false otherwise (defaults to true if module is null)
+     * @return True if enabled and licensed, false otherwise (defaults to true if module is null)
      */
     @Transactional(readOnly = true)
     public boolean isModuleEnabled(EstablishmentModule module) {
         if (module == null) {
             return true;
         }
-        return getConfigInternal().isModuleEnabled(module);
+        return getConfigInternal().isModuleEnabled(module)
+                && (licenseService == null || licenseService.isModuleLicensed(module));
     }
 
     /**
-     * Asserts that a given capability module is enabled, otherwise throwing a
+     * Asserts that a given capability module is enabled and licensed, otherwise throwing a
      * {@link BusinessException}.
      *
      * @param module Module to verify
-     * @throws BusinessException if the capability module is disabled
+     * @throws BusinessException if the capability module is disabled or unlicensed
      */
     @Transactional(readOnly = true)
     public void checkModuleEnabled(EstablishmentModule module) {
-        if (module != null && !getConfigInternal().isModuleEnabled(module)) {
+        if (module == null) {
+            return;
+        }
+        if (!getConfigInternal().isModuleEnabled(module)) {
             throw new BusinessException("Module '" + module + "' is currently disabled for this establishment");
+        }
+        if (licenseService != null && !licenseService.isModuleLicensed(module)) {
+            throw new BusinessException("Module '" + module + "' is not included in the active license plan");
         }
     }
 
     /**
      * Retrieves the current configuration status of all modular establishment
-     * capabilities.
+     * capabilities intersected with active license entitlements.
      *
      * @return {@link EstablishmentModulesDTO}
      */
     @Transactional(readOnly = true)
     public EstablishmentModulesDTO getModulesDTO() {
-        return EstablishmentModulesDTO.from(getConfigInternal());
+        return maskUnlicensedModules(EstablishmentModulesDTO.from(getConfigInternal()));
     }
 
     /**
@@ -130,16 +155,47 @@ public class EstablishmentConfigService {
     @Transactional
     public EstablishmentModulesDTO updateModules(EstablishmentModulesUpdateRequest request) {
         if (request == null) {
-            return EstablishmentModulesDTO.from(getConfigInternal());
+            return maskUnlicensedModules(EstablishmentModulesDTO.from(getConfigInternal()));
         }
         EstablishmentConfig config = getConfigInternal();
         applyModuleUpdates(config, request);
         EstablishmentConfig saved = establishmentConfigRepository.save(config);
-        EstablishmentModulesDTO modulesDTO = EstablishmentModulesDTO.from(saved);
+        EstablishmentModulesDTO modulesDTO = maskUnlicensedModules(EstablishmentModulesDTO.from(saved));
         if (notificationService != null) {
             notificationService.notifierModulesMisAJour(modulesDTO);
         }
         return modulesDTO;
+    }
+
+    private EstablishmentModulesDTO maskUnlicensedModules(EstablishmentModulesDTO raw) {
+        if (licenseService == null) {
+            return raw;
+        }
+        return new EstablishmentModulesDTO(
+                isAllowed(raw.cuisineKds(), EstablishmentModule.CUISINE_KDS),
+                isAllowed(raw.happyHour(), EstablishmentModule.HAPPY_HOUR),
+                isAllowed(raw.employeeManagement(), EstablishmentModule.EMPLOYEE_MANAGEMENT),
+                isAllowed(raw.floorPlan(), EstablishmentModule.FLOOR_PLAN),
+                isAllowed(raw.qrClientOrdering(), EstablishmentModule.QR_CLIENT_ORDERING),
+                isAllowed(raw.stockTracking(), EstablishmentModule.STOCK_TRACKING),
+                isAllowed(raw.cashDrawer(), EstablishmentModule.CASH_DRAWER),
+                isAllowed(raw.barTabs(), EstablishmentModule.BAR_TABS),
+                isAllowed(raw.cocktailLibrary(), EstablishmentModule.COCKTAIL_LIBRARY),
+                isAllowed(raw.suppliersManagement(), EstablishmentModule.SUPPLIERS_MANAGEMENT),
+                isAllowed(raw.inventoryAudit(), EstablishmentModule.INVENTORY_AUDIT),
+                isAllowed(raw.mysteryRoulette(), EstablishmentModule.MYSTERY_ROULETTE),
+                isAllowed(raw.paymentTerminal(), EstablishmentModule.PAYMENT_TERMINAL),
+                isAllowed(raw.tableReservations(), EstablishmentModule.TABLE_RESERVATIONS),
+                isAllowed(raw.checklistsProcedures(), EstablishmentModule.CHECKLISTS_PROCEDURES),
+                isAllowed(raw.systemUpdates(), EstablishmentModule.SYSTEM_UPDATES),
+                isAllowed(raw.angelShotSafety(), EstablishmentModule.ANGEL_SHOT_SAFETY),
+                isAllowed(raw.qrPayAtTable(), EstablishmentModule.QR_PAY_AT_TABLE),
+                isAllowed(raw.facturXInvoiceImport(), EstablishmentModule.FACTUR_X_INVOICE_IMPORT)
+        );
+    }
+
+    private boolean isAllowed(boolean rawFlag, EstablishmentModule module) {
+        return rawFlag && licenseService.isModuleLicensed(module);
     }
 
     /**

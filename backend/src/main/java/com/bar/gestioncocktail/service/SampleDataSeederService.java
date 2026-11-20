@@ -140,6 +140,8 @@ public class SampleDataSeederService {
     private final SafetyAlertRepository safetyAlertRepository;
     private final GlasswareRepository glasswareRepository;
     private final SupplierInvoiceRepository supplierInvoiceRepository;
+    private final LicenseRecordRepository licenseRecordRepository;
+    private final LicenseService licenseService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -186,7 +188,9 @@ public class SampleDataSeederService {
             @org.springframework.beans.factory.annotation.Autowired(required = false) ChecklistRunRepository checklistRunRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) SafetyAlertRepository safetyAlertRepository,
             @org.springframework.beans.factory.annotation.Autowired(required = false) GlasswareRepository glasswareRepository,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) SupplierInvoiceRepository supplierInvoiceRepository) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) SupplierInvoiceRepository supplierInvoiceRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) LicenseRecordRepository licenseRecordRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) LicenseService licenseService) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -227,6 +231,8 @@ public class SampleDataSeederService {
         this.safetyAlertRepository = safetyAlertRepository;
         this.glasswareRepository = glasswareRepository;
         this.supplierInvoiceRepository = supplierInvoiceRepository;
+        this.licenseRecordRepository = licenseRecordRepository;
+        this.licenseService = licenseService;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -439,6 +445,7 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedSafetyAlertsFromJson(root.get("safety_alerts"), tablesMap), "seedSafetyAlerts");
             safelyInTransaction(() -> seedTableSessionsFromJson(root.get("table_sessions"), tablesMap), "seedTableSessions");
             safelyInTransaction(this::seedSettingsAndConfig, "seedSettingsAndConfig");
+            safelyInTransaction(() -> seedLicenseFromJson(root.get("license")), "seedLicense");
 
             List<Cocktail> cocktails = cocktailRepository.findAll();
             if (!cocktails.isEmpty()) {
@@ -2587,6 +2594,26 @@ public class SampleDataSeederService {
                 rItem.setCompletedBy(run.getCompletedBy());
             }
             run.addItem(rItem);
+        }
+    }
+
+    private void seedLicenseFromJson(JsonNode licenseNode) {
+        if (licenseNode == null || licenseRecordRepository == null || licenseService == null) {
+            return;
+        }
+        if (licenseRecordRepository.count() > 0) {
+            return;
+        }
+        String token = licenseNode.has("licenseToken") ? licenseNode.get("licenseToken").asText("").trim() : "";
+        if (token.isEmpty()) {
+            return;
+        }
+        String mode = licenseNode.has("activationMode") ? licenseNode.get("activationMode").asText("SEEDED") : "SEEDED";
+        String actor = licenseNode.has("activatedBy") ? licenseNode.get("activatedBy").asText("seeder") : "seeder";
+        try {
+            licenseService.activateLicense(token, mode, actor);
+        } catch (Exception e) {
+            log.warn("Could not seed demo license token: {}", e.getMessage());
         }
     }
 }

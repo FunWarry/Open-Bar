@@ -35,7 +35,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@EnableConfigurationProperties(JwtProperties.class)
+@EnableConfigurationProperties({JwtProperties.class, LicenseProperties.class})
 public class SecurityConfig {
 
     private static final String ROLE_ADMIN = "ADMIN";

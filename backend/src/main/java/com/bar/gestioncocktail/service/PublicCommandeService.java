@@ -49,9 +49,10 @@ public class PublicCommandeService {
     private final TimeService timeService;
     private final TableSessionService tableSessionService;
     private final HappyHourService happyHourService;
+    private final LicenseService licenseService;
 
     /**
-     * Constructs the public order service with required repositories and services.
+     * Constructs the public order service (backward-compatible constructor for unit tests).
      *
      * @param commandeRepository Repository for orders
      * @param tableRepository Repository for tables
@@ -71,6 +72,43 @@ public class PublicCommandeService {
             TimeService timeService,
             TableSessionService tableSessionService,
             HappyHourService happyHourService) {
+        this(
+                commandeRepository,
+                tableRepository,
+                cocktailRepository,
+                varianteRepository,
+                eventPublisher,
+                timeService,
+                tableSessionService,
+                happyHourService,
+                null
+        );
+    }
+
+    /**
+     * Constructs the public order service with required repositories, services, and DRM license guard.
+     *
+     * @param commandeRepository Repository for orders
+     * @param tableRepository Repository for tables
+     * @param cocktailRepository Repository for cocktails
+     * @param varianteRepository Repository for cocktail variants
+     * @param eventPublisher Spring event publisher
+     * @param timeService Application time service
+     * @param tableSessionService Table session validation service
+     * @param happyHourService Happy hour pricing service
+     * @param licenseService Licensing service enforcing order-taking eligibility
+     */
+    @org.springframework.beans.factory.annotation.Autowired
+    public PublicCommandeService(
+            CommandeRepository commandeRepository,
+            TableRepository tableRepository,
+            CocktailRepository cocktailRepository,
+            CocktailVarianteRepository varianteRepository,
+            ApplicationEventPublisher eventPublisher,
+            TimeService timeService,
+            TableSessionService tableSessionService,
+            HappyHourService happyHourService,
+            LicenseService licenseService) {
         this.commandeRepository = commandeRepository;
         this.tableRepository = tableRepository;
         this.cocktailRepository = cocktailRepository;
@@ -79,6 +117,7 @@ public class PublicCommandeService {
         this.timeService = timeService;
         this.tableSessionService = tableSessionService;
         this.happyHourService = happyHourService;
+        this.licenseService = licenseService;
     }
 
     /**
@@ -88,6 +127,9 @@ public class PublicCommandeService {
      * @return Created order response DTO
      */
     public PublicCommandeResponseDTO creerCommandePublique(PublicCommandeRequestDTO dto) {
+        if (licenseService != null) {
+            licenseService.assertOrderCreationAllowed();
+        }
         if (tableSessionService != null && !tableSessionService.isSessionValidForOrder(dto.getTableId(), dto.getSessionToken())) {
             throw new InvalidTableSessionException("Invalid or expired table session token for table " + dto.getTableId());
         }

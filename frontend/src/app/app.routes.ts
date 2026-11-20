@@ -306,6 +306,12 @@ export const routes: Routes = [
     redirectTo: '/admin/system',
     pathMatch: 'full'
   },
+  {
+    path: 'admin/license',
+    loadComponent: () => import('./features/admin/license/license-page.component').then(m => m.LicensePageComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER'] }
+  },
 
   // Bartender (English route + /barman)
   {

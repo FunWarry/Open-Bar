@@ -1,0 +1,50 @@
+@if (licenseService.shouldShowStaffBanner()) {
+  @let summary = licenseService.summary();
+  <aside
+    class="license-banner"
+    [class.tone-grace]="bannerTone() === 'grace'"
+    [class.tone-expired]="bannerTone() === 'expired'"
+    role="alert"
+    data-testid="license-global-banner">
+    <div class="license-banner-content">
+      <div class="license-banner-icon">
+        <ion-icon [name]="bannerTone() === 'grace' ? 'warning-outline' : 'lock-closed-outline'"></ion-icon>
+      </div>
+      <div class="license-banner-text">
+        @if (bannerTone() === 'grace') {
+          <strong class="banner-title" data-testid="license-banner-title">
+            {{ 'LICENSE.BANNER.GRACE_TITLE' | transloco:{ hours: summary?.graceHoursRemaining ?? 0 } }}
+          </strong>
+          <span class="banner-desc">{{ 'LICENSE.BANNER.GRACE_DESC' | transloco }}</span>
+        } @else {
+          <strong class="banner-title" data-testid="license-banner-title">
+            {{ 'LICENSE.BANNER.EXPIRED_TITLE' | transloco }}
+          </strong>
+          <span class="banner-desc">{{ 'LICENSE.BANNER.EXPIRED_DESC' | transloco }}</span>
+        }
+      </div>
+    </div>
+    <div class="license-banner-actions">
+      @if (bannerTone() === 'expired') {
+        <app-action-button
+          variant="secondary"
+          size="small"
+          icon="receipt-outline"
+          testId="license-banner-invoices-btn"
+          (btnClick)="goToInvoices()">
+          {{ 'LICENSE.BANNER.VIEW_INVOICES' | transloco }}
+        </app-action-button>
+      }
+      @if (canManageLicense$ | async) {
+        <app-action-button
+          [variant]="bannerTone() === 'grace' ? 'warning' : 'primary'"
+          size="small"
+          icon="key-outline"
+          testId="license-banner-manage-btn"
+          (btnClick)="goToLicenseSettings()">
+          {{ 'LICENSE.BANNER.MANAGE_BTN' | transloco }}
+        </app-action-button>
+      }
+    </div>
+  </aside>
+}

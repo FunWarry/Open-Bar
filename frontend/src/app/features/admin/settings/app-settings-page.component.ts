@@ -84,6 +84,7 @@ import {
   flameOutline,
   walkOutline,
   mailOutline,
+  keyOutline,
 } from 'ionicons/icons';
 import { HappyHourConfigComponent } from './components/happy-hour-config/happy-hour-config.component';
 import { LegalComponent, LegalTab } from '../../legal/legal.component';
@@ -139,6 +140,7 @@ import { FeatureFlagService } from '../../../core/services/feature-flag.service'
 import { PaymentTerminalService } from '../../../core/services/payment-terminal.service';
 import { TpeTerminalRole } from '../../../core/models/tpe.model';
 import { SafetyAlertService } from '../../../core/services/safety-alert.service';
+import { LicenseService } from '../../../core/services/license.service';
 /**
  * Active configuration tab on the admin settings page.
  */
@@ -300,6 +302,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   private readonly rouletteService = inject(RouletteService);
   private readonly paymentTerminalService = inject(PaymentTerminalService);
   private readonly safetyAlertService = inject(SafetyAlertService);
+  readonly licenseService = inject(LicenseService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
@@ -604,6 +607,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       flameOutline,
       walkOutline,
       mailOutline,
+      keyOutline,
     });
     this.initForms();
   }
@@ -2367,6 +2371,13 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       position: 'bottom',
     });
     await toast.present();
+  }
+
+  /**
+   * Navigates directly to the dedicated License Management console (/admin/license).
+   */
+  navigateToLicensePage(): void {
+    void this.router.navigate(['/admin/license']);
   }
 
   /**

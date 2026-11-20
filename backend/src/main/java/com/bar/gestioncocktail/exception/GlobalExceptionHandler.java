@@ -81,6 +81,22 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles expired or missing commercial license order-taking blocks (HTTP 402 Payment Required).
+     *
+     * @param ex Intercepted license expiration exception
+     * @return HTTP 402 Payment Required response with machine-readable code
+     */
+    @ExceptionHandler(LicenseExpiredException.class)
+    public ResponseEntity<ErrorResponse> handleLicenseExpired(LicenseExpiredException ex) {
+        ErrorResponse body = ErrorResponse.builder(
+                HttpStatus.PAYMENT_REQUIRED.value(),
+                "Payment Required",
+                ex.getMessage()
+        ).fieldErrors(Map.of("code", "LICENSE_EXPIRED")).build();
+        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(body);
+    }
+
+    /**
      * Handles authentication failures (HTTP 401).
      *
      * @param ex Authentication exception

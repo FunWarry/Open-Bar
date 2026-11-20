@@ -2638,6 +2638,103 @@ export async function setupMockApi(page: Page): Promise<void> {
       body: JSON.stringify({ sent: true })
     });
   });
+
+  // Mock Hybrid Offline/Online DRM Licensing Engine
+  let mockLicenseState = {
+    status: 'VALID',
+    plan: 'ENTERPRISE',
+    establishmentId: '73282932000074',
+    venueEstablishmentId: '73282932000074',
+    issuedAt: '2026-11-01T00:00:00Z',
+    expiresAt: '2026-12-31T23:59:59Z',
+    graceEndsAt: '2027-01-02T23:59:59Z',
+    daysRemaining: 41,
+    graceHoursRemaining: 0,
+    licensedModules: ['*'],
+    allModulesLicensed: true,
+    orderCreationAllowed: true,
+    enforced: true,
+    lastSyncAt: '2026-11-20T08:00:00Z',
+    lastSyncStatus: 'SUCCESS',
+    lastSyncError: null as string | null,
+    activationMode: 'SEEDED',
+    activatedBy: 'seeder',
+    publicKeyFingerprint: 'A1:B2:C3:D4:E5:F6:07:18:29:3A:4B:5C:6D:7E:8F:90',
+    maskedToken: 'eyJhbGciOiJF...demo',
+  };
+
+  await page.route('**/api/admin/license/status', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: mockLicenseState.status,
+        plan: mockLicenseState.plan,
+        expiresAt: mockLicenseState.expiresAt,
+        graceEndsAt: mockLicenseState.graceEndsAt,
+        graceHoursRemaining: mockLicenseState.graceHoursRemaining,
+        orderCreationAllowed: mockLicenseState.orderCreationAllowed,
+        enforced: mockLicenseState.enforced,
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/license/activate', async (route) => {
+    const body = route.request().postDataJSON() as { licenseToken?: string };
+    const tok = body?.licenseToken ?? '';
+    if (!tok.includes('.')) {
+      await route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ message: 'Invalid signature' }) });
+      return;
+    }
+    mockLicenseState = {
+      ...mockLicenseState,
+      status: 'VALID',
+      plan: 'PRO',
+      licensedModules: ['FLOOR_PLAN', 'HAPPY_HOUR'],
+      allModulesLicensed: false,
+      orderCreationAllowed: true,
+      activationMode: 'OFFLINE',
+      activatedBy: 'admin',
+      maskedToken: tok.slice(0, 10) + '...' + tok.slice(-6),
+    };
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(mockLicenseState) });
+  });
+
+  await page.route('**/api/admin/license/sync', async (route) => {
+    mockLicenseState = {
+      ...mockLicenseState,
+      lastSyncAt: new Date().toISOString(),
+      lastSyncStatus: 'OFFLINE',
+      lastSyncError: 'Network unreachable (simulated offline mode)',
+    };
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        synced: false,
+        reachable: false,
+        syncStatus: 'OFFLINE',
+        message: 'Internet or licensing server unreachable — continuing in offline mode',
+        license: mockLicenseState,
+      }),
+    });
+  });
+
+  await page.route('**/api/admin/license', async (route) => {
+    if (route.request().method() === 'DELETE') {
+      mockLicenseState = {
+        ...mockLicenseState,
+        status: 'UNLICENSED',
+        plan: 'COMMUNITY',
+        orderCreationAllowed: false,
+        allModulesLicensed: false,
+        licensedModules: [],
+        maskedToken: '',
+        activationMode: 'NONE',
+      };
+    }
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(mockLicenseState) });
+  });
 }
 
 

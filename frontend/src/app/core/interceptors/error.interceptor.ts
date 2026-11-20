@@ -9,6 +9,7 @@ const FALLBACK_MESSAGES: Record<string, string> = {
   'ERRORS.UNAUTHORIZED': 'Access denied.',
   'ERRORS.FORBIDDEN': 'Forbidden.',
   'ERRORS.NOT_FOUND': 'Resource not found.',
+  'ERRORS.LICENSE_EXPIRED': 'License expired: order creation is locked. Historical invoices and reports remain accessible.',
   'ERRORS.SERVER': 'Unexpected server error.',
 };
 
@@ -65,6 +66,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
  */
 function getErrorKey(status: number): string {
   if (status === 0)   return 'ERRORS.NETWORK';
+  if (status === 402) return 'ERRORS.LICENSE_EXPIRED';
   if (status === 403) return 'ERRORS.FORBIDDEN';
   if (status === 404) return 'ERRORS.NOT_FOUND';
   return 'ERRORS.SERVER';
