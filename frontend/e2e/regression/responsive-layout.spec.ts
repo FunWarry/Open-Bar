@@ -75,7 +75,11 @@ test.describe('Responsive Layout & Visibility E2E Suite', () => {
   test('should guarantee zero horizontal page overflow on mobile smartphone viewports (<768px)', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
 
-    const targetRoutes = ['/serveur', '/barman', '/factures', '/client/commande'];
+    await page.addInitScript(() => {
+      localStorage.setItem('openbar_guest_name', 'Alex');
+    });
+
+    const targetRoutes = ['/serveur', '/barman', '/factures', '/client/commande', '/client/commande?table=1&token=active-mock-session-token'];
     for (const route of targetRoutes) {
       await page.goto(route);
       await page.waitForLoadState('domcontentloaded');

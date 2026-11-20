@@ -82,6 +82,7 @@ describe('ClientCommandeComponent', () => {
   };
 
   beforeEach(async () => {
+    window.localStorage.removeItem('openbar_client_menu_view_mode');
     cocktailServiceSpy = jasmine.createSpyObj('CocktailService', ['getAll', 'getFacets', 'matchCocktails']);
     tableSessionServiceSpy = jasmine.createSpyObj('TableSessionService', [
       'validateSession',
@@ -98,7 +99,8 @@ describe('ClientCommandeComponent', () => {
     tableSessionServiceSpy.respondToJoinRequest.and.returnValue(of({ id: 1, tableId: 4, applicantSessionId: 'guest-peer', applicantName: 'Peer', status: 'APPROVED', sessionToken: 'tok-peer' }));
     tableSessionServiceSpy.getPendingJoinRequests.and.returnValue(of([]));
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
-    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create', 'dismiss']);
+    modalCtrlSpy.dismiss.and.resolveTo(true);
     featureFlagServiceSpy = jasmine.createSpyObj('FeatureFlagService', ['isModuleEnabled']);
     featureFlagServiceSpy.isModuleEnabled.and.returnValue(true);
     websocketServiceSpy = jasmine.createSpyObj('WebSocketService', ['watch']);
@@ -206,6 +208,10 @@ describe('ClientCommandeComponent', () => {
     fixture = TestBed.createComponent(ClientCommandeComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    window.localStorage.removeItem('openbar_client_menu_view_mode');
   });
 
   it('should create', () => {
@@ -890,7 +896,7 @@ describe('ClientCommandeComponent', () => {
       expect(emptyText).toBeTruthy();
     });
 
-    it('should close details modal via closeCocktailDetails, close button, and backdrop click', () => {
+    it('should close details modal via closeCocktailDetails, header button, footer button, and modal didDismiss', () => {
       component.openCocktailDetails(cocktailWithIngredients);
       fixture.detectChanges();
       expect(component.selectedCocktailForDetails()).not.toBeNull();
@@ -910,10 +916,12 @@ describe('ClientCommandeComponent', () => {
       fixture.detectChanges();
       expect(component.selectedCocktailForDetails()).toBeNull();
 
-      // Re-open and test backdrop click
+      // Re-open and test ion-modal didDismiss event
       component.openCocktailDetails(cocktailWithIngredients);
-      const fakeBackdropEvent = { target: { classList: { contains: (cls: string) => cls === 'cocktail-details-dialog' } } } as any;
-      component.onDetailsBackdropClick(fakeBackdropEvent);
+      fixture.detectChanges();
+      const ionModal = fixture.nativeElement.querySelector('[data-testid="cocktail-details-modal"]') as HTMLElement;
+      ionModal.dispatchEvent(new CustomEvent('didDismiss'));
+      fixture.detectChanges();
       expect(component.selectedCocktailForDetails()).toBeNull();
     });
 
@@ -1322,6 +1330,80 @@ describe('ClientCommandeComponent', () => {
 
       expect(component.tableNumero).toBe(4);
       expect(component.step).toBe('menu');
+    });
+  });
+
+  describe('Roulette & Payment Deduplication, Adaptive View Mode & Collapsible Filters', () => {
+    beforeEach(() => {
+      component.tableNumero = 4;
+      component.isSessionValid = true;
+      component.step = 'menu';
+      fixture.detectChanges();
+    });
+
+    it('should render a single roulette trigger in the header and remove hero/FAB duplicates', () => {
+      const headerLaunchers = fixture.nativeElement.querySelectorAll('[data-testid="btn-open-roulette-modal"]');
+      const heroCards = fixture.nativeElement.querySelectorAll('[data-testid="roulette-hero-card"]');
+      const heroButtons = fixture.nativeElement.querySelectorAll('[data-testid="btn-hero-open-roulette"]');
+      const floatingFabs = fixture.nativeElement.querySelectorAll('[data-testid="floating-roulette-fab"]');
+
+      expect(headerLaunchers).toHaveSize(1);
+      expect(heroCards).toHaveSize(0);
+      expect(heroButtons).toHaveSize(0);
+      expect(floatingFabs).toHaveSize(0);
+    });
+
+    it('should render only one pay-at-table trigger inside the assistance bar', () => {
+      const payTriggers = fixture.nativeElement.querySelectorAll('[data-testid="btn-pay-at-table-trigger"]');
+      expect(payTriggers).toHaveSize(1);
+    });
+
+    it('should switch view mode via toggle, segment change, and persist preference in localStorage', () => {
+      component.setViewMode('compact');
+      fixture.detectChanges();
+
+      const grid = fixture.nativeElement.querySelector('[data-testid="cocktails-grid"]') as HTMLElement;
+      expect(component.viewMode()).toBe('compact');
+      expect(grid.getAttribute('data-view-mode')).toBe('compact');
+      expect(grid.classList.contains('compact-grid')).toBeTrue();
+      expect(window.localStorage.getItem('openbar_client_menu_view_mode')).toBe('compact');
+
+      component.toggleViewMode();
+      fixture.detectChanges();
+      expect(component.viewMode()).toBe('detailed');
+      expect(grid.getAttribute('data-view-mode')).toBe('detailed');
+      expect(grid.classList.contains('detailed-grid')).toBeTrue();
+      expect(window.localStorage.getItem('openbar_client_menu_view_mode')).toBe('detailed');
+
+      component.onViewModeSegmentChange(new CustomEvent('ionChange', { detail: { value: 'compact' } }));
+      expect(component.viewMode()).toBe('compact');
+    });
+
+    it('should load persisted view mode preference from localStorage on creation', () => {
+      window.localStorage.setItem('openbar_client_menu_view_mode', 'compact');
+      const recreated = TestBed.createComponent(ClientCommandeComponent);
+      expect(recreated.componentInstance.viewMode()).toBe('compact');
+    });
+
+    it('should toggle collapsible advanced filters panel and count active filters', () => {
+      const initialOpen = component.isAdvancedFiltersOpen();
+      component.toggleAdvancedFilters();
+      fixture.detectChanges();
+
+      expect(component.isAdvancedFiltersOpen()).toBe(!initialOpen);
+      if (component.isAdvancedFiltersOpen()) {
+        expect(fixture.nativeElement.querySelector('[data-testid="advanced-filters-panel"]')).toBeTruthy();
+      } else {
+        expect(fixture.nativeElement.querySelector('[data-testid="advanced-filters-panel"]')).toBeNull();
+      }
+
+      component.selectedAllergens = ['LAIT', 'GLUTEN'];
+      component.selectedFlavors = ['FRUITY'];
+      component.filterMocktail = true;
+      component.filterVegan = true;
+      component.filterGlutenFree = false;
+      component.filterLowAbv = true;
+      expect(component.activeAdvancedFiltersCount).toBe(6);
     });
   });
 });
