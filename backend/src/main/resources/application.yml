@@ -47,6 +47,13 @@ openbar:
     ota-script-ps1: ${OPENBAR_OTA_SCRIPT_PS1:scripts/ota-update.ps1}
     backup-dir: ${OPENBAR_BACKUP_DIR:backups}
     status-file: ${OPENBAR_STATUS_FILE:backups/update-status.json}
+  licensing:
+    enforced: ${OPENBAR_LICENSING_ENFORCED:false}
+    grace-period-days: ${OPENBAR_LICENSING_GRACE_DAYS:2}
+    sync-enabled: ${OPENBAR_LICENSING_SYNC_ENABLED:false}
+    sync-url: ${OPENBAR_LICENSING_SYNC_URL:https://licensing.open-bar.eu/api/v1/licenses/sync}
+    sync-interval-ms: ${OPENBAR_LICENSING_SYNC_INTERVAL_MS:21600000}
+    sync-timeout-ms: ${OPENBAR_LICENSING_SYNC_TIMEOUT_MS:5000}
 
 server:
   port: ${SERVER_PORT:8080}

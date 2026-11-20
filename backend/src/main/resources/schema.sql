@@ -1183,3 +1183,22 @@ CREATE INDEX IF NOT EXISTS idx_online_payments_transaction_id ON online_payment_
 CREATE INDEX IF NOT EXISTS idx_online_payments_idempotency ON online_payment_transactions(idempotency_key);
 CREATE INDEX IF NOT EXISTS idx_online_payments_status ON online_payment_transactions(status);
 
+-- Hybrid Offline/Online DRM Licensing Engine
+CREATE TABLE IF NOT EXISTS license_records (
+    id BIGINT PRIMARY KEY,
+    license_token TEXT,
+    establishment_id VARCHAR(100),
+    plan VARCHAR(50),
+    licensed_modules_json TEXT,
+    issued_at TIMESTAMP,
+    expires_at TIMESTAMP,
+    last_seen_at TIMESTAMP,
+    last_sync_at TIMESTAMP,
+    last_sync_status VARCHAR(30) DEFAULT 'NONE',
+    last_sync_error VARCHAR(500),
+    activation_mode VARCHAR(30) DEFAULT 'NONE',
+    activated_by VARCHAR(100),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
