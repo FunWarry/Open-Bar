@@ -5,6 +5,7 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { ToastController } from '@ionic/angular';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+import { BrandLogoComponent } from '../../../core/components/ui/brand-logo/brand-logo.component';
 
 /**
  * Client QR Code Scanner Component enabling public customers to scan a table QR Code
@@ -30,7 +31,8 @@ import { ActionButtonComponent } from '../../../core/components/ui/action-button
     ReactiveFormsModule,
     TranslocoModule,
     InputFieldComponent,
-    ActionButtonComponent
+    ActionButtonComponent,
+    BrandLogoComponent
   ]
 })
 export class ClientQrScannerComponent implements OnInit, OnDestroy {

@@ -56,6 +56,7 @@ import { RouletteModalComponent } from '../components/roulette-modal/roulette-mo
 import { AngelShotModalComponent } from '../components/angel-shot-modal/angel-shot-modal.component';
 import { ClientPaymentModalComponent } from '../components/client-payment-modal/client-payment-modal.component';
 import { HappyHourBannerComponent } from '../components/happy-hour-banner/happy-hour-banner.component';
+import { BrandLogoComponent } from '../../../core/components/ui/brand-logo/brand-logo.component';
 import { PaymentSuccessResponse } from '../../../core/models/payment.model';
 
 /**
@@ -90,7 +91,8 @@ export type ClientCommandeStep = 'table' | 'menu' | 'recap';
     TableAssistanceBarComponent,
     AngelShotModalComponent,
     ClientPaymentModalComponent,
-    HappyHourBannerComponent
+    HappyHourBannerComponent,
+    BrandLogoComponent
   ]
 })
 export class ClientCommandeComponent implements OnInit, OnDestroy {

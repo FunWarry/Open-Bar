@@ -20,7 +20,7 @@
             (keyup.enter)="navigationService.navigateToHome()"
             class="topbar-logo-btn"
             data-testid="topbar-logo">
-            OpenBar
+            <app-brand-logo variant="horizontal" size="sm" testId="topbar-brand-logo"></app-brand-logo>
           </button>
         } @else {
           <button
@@ -29,7 +29,7 @@
             (keyup.enter)="navigationService.navigateToHome()"
             class="topbar-logo-btn show-on-mobile"
             data-testid="topbar-logo">
-            OpenBar
+            <app-brand-logo variant="horizontal" size="sm" testId="topbar-brand-logo"></app-brand-logo>
           </button>
         }
       </ion-buttons>

@@ -23,7 +23,11 @@
       <ion-card class="onboarding-card" data-testid="onboarding-step-card">
         <ion-card-content class="card-content-inner">
           <div class="illustration-circle">
-            <span class="emoji-icon">{{ currentStep.illustrationEmoji }}</span>
+            @if (currentStep.id === 'welcome') {
+              <app-brand-logo variant="icon" size="lg" [decorative]="true" testId="onboarding-brand-logo"></app-brand-logo>
+            } @else {
+              <span class="emoji-icon">{{ currentStep.illustrationEmoji }}</span>
+            }
           </div>
 
           <h1 class="step-title" data-testid="onboarding-step-title">

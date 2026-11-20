@@ -20,6 +20,7 @@ import { User } from '../../models/user.model';
 import { NavigationService } from '../../services/navigation.service';
 import { FeatureFlagService } from '../../services/feature-flag.service';
 import { EstablishmentModule } from '../../models/establishment-module.model';
+import { BrandLogoComponent } from '../ui/brand-logo/brand-logo.component';
 
 /** Interface representing a single navigation item in the sidebar. */
 export interface NavItemDef {
@@ -91,6 +92,7 @@ const ROLE_COLORS: Record<string, string> = {
   imports: [
     IonIcon,
     RouterLink, RouterLinkActive, AsyncPipe, TranslocoPipe,
+    BrandLogoComponent,
   ],
 })
 export class SidebarComponent implements OnDestroy {

@@ -13,6 +13,7 @@ import { ClientPaymentModalComponent } from '../components/client-payment-modal/
 import { FeatureFlagService } from '../../../core/services/feature-flag.service';
 import { EstablishmentModule } from '../../../core/models/establishment-module.model';
 import { PaymentSuccessResponse } from '../../../core/models/payment.model';
+import { BrandLogoComponent } from '../../../core/components/ui/brand-logo/brand-logo.component';
 
 /**
  * Client Suivi Component for real-time tracking of a customer order via STOMP WebSocket,
@@ -31,7 +32,8 @@ import { PaymentSuccessResponse } from '../../../core/models/payment.model';
     TranslocoModule,
     ActionButtonComponent,
     TableAssistanceBarComponent,
-    ClientPaymentModalComponent
+    ClientPaymentModalComponent,
+    BrandLogoComponent
   ]
 })
 export class ClientSuiviComponent implements OnInit, OnDestroy {

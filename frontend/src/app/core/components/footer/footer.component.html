@@ -1,6 +1,9 @@
 <footer class="footer">
   <div class="footer-content">
-    <span>© 2024 OpenBar. {{ 'COMMON.ALL_RIGHTS_RESERVED' | transloco }}</span>
+    <span class="footer-brand">
+      <app-brand-logo variant="icon" size="xs" [decorative]="true" testId="footer-brand-logo"></app-brand-logo>
+      <span>© 2024 OpenBar. {{ 'COMMON.ALL_RIGHTS_RESERVED' | transloco }}</span>
+    </span>
     <span class="version">Version 1.0.0</span>
   </div>
 </footer>

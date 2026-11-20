@@ -2,7 +2,7 @@
   <div class="startup-card" data-testid="startup-card">
     <div class="startup-brand">
       <div class="icon-pulse-wrapper">
-        <ion-icon name="wine-outline" class="brand-icon" aria-hidden="true"></ion-icon>
+        <app-brand-logo variant="icon" size="md" [decorative]="true" class="brand-icon" testId="startup-brand-logo"></app-brand-logo>
         <span class="pulse-ring"></span>
       </div>
       <h1 class="startup-title" data-testid="startup-title">{{ 'STARTUP.TITLE' | transloco }}</h1>

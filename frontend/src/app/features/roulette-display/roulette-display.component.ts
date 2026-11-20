@@ -36,6 +36,7 @@ import { Subject, interval } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AppCurrencyPipe } from '../../core/pipes/app-currency.pipe';
 import { RouletteWheelComponent } from '../../core/components/ui/roulette-wheel/roulette-wheel.component';
+import { BrandLogoComponent } from '../../core/components/ui/brand-logo/brand-logo.component';
 import { RouletteService } from '../../core/services/roulette.service';
 import { RouletteAudioService, RouletteSoundProfile } from '../../core/services/roulette-audio.service';
 import { LanguageService } from '../../core/services/language.service';
@@ -70,7 +71,8 @@ interface RecentWinner {
     IonIcon,
     TranslocoModule,
     AppCurrencyPipe,
-    RouletteWheelComponent
+    RouletteWheelComponent,
+    BrandLogoComponent
   ],
   templateUrl: './roulette-display.component.html',
   styleUrl: './roulette-display.component.scss',

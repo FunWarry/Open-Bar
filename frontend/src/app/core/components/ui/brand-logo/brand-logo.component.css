@@ -1,0 +1,169 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  user-select: none;
+}
+
+.brand-logo-svg {
+  display: block;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.logo-grad-start {
+  stop-color: var(--brand-logo-grad-start);
+}
+
+.logo-grad-mid {
+  stop-color: var(--brand-logo-grad-mid);
+}
+
+.logo-grad-end {
+  stop-color: var(--brand-logo-grad-end);
+}
+
+.logo-text-start {
+  stop-color: var(--brand-logo-text-start);
+}
+
+.logo-text-end {
+  stop-color: var(--brand-logo-text-end);
+}
+
+.logo-glow-flood {
+  flood-color: var(--brand-logo-glow-color);
+  flood-opacity: var(--brand-logo-glow-opacity);
+}
+
+/* Full vertical lockup */
+.brand-logo--full .brand-logo-svg--full {
+  width: auto;
+  max-width: 100%;
+}
+
+.brand-logo--full.brand-logo--xs .brand-logo-svg--full {
+  height: 44px;
+}
+
+.brand-logo--full.brand-logo--sm .brand-logo-svg--full {
+  height: 64px;
+}
+
+.brand-logo--full.brand-logo--md .brand-logo-svg--full {
+  height: 88px;
+}
+
+.brand-logo--full.brand-logo--lg .brand-logo-svg--full {
+  height: 112px;
+}
+
+.brand-logo--full.brand-logo--xl .brand-logo-svg--full {
+  height: 136px;
+}
+
+/* Icon-only variant */
+.brand-logo--icon.brand-logo--xs .brand-logo-svg--icon {
+  width: 22px;
+  height: 22px;
+}
+
+.brand-logo--icon.brand-logo--sm .brand-logo-svg--icon {
+  width: 28px;
+  height: 28px;
+}
+
+.brand-logo--icon.brand-logo--md .brand-logo-svg--icon {
+  width: 42px;
+  height: 42px;
+}
+
+.brand-logo--icon.brand-logo--lg .brand-logo-svg--icon {
+  width: 64px;
+  height: 64px;
+}
+
+.brand-logo--icon.brand-logo--xl .brand-logo-svg--icon {
+  width: 88px;
+  height: 88px;
+}
+
+/* Horizontal variant */
+.brand-logo--horizontal {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.brand-logo--horizontal .brand-logo-svg--icon {
+  width: auto;
+}
+
+.brand-logo--horizontal.brand-logo--xs .brand-logo-svg--icon {
+  height: 22px;
+}
+
+.brand-logo--horizontal.brand-logo--sm .brand-logo-svg--icon {
+  height: 28px;
+}
+
+.brand-logo--horizontal.brand-logo--md .brand-logo-svg--icon {
+  height: 34px;
+}
+
+.brand-logo--horizontal.brand-logo--lg .brand-logo-svg--icon {
+  height: 44px;
+}
+
+.brand-logo--horizontal.brand-logo--xl .brand-logo-svg--icon {
+  height: 56px;
+}
+
+.brand-logo-wordmark {
+  font-family: var(--font, 'Montserrat', 'Inter', system-ui, sans-serif);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  white-space: nowrap;
+  background: linear-gradient(180deg, var(--brand-logo-text-start) 0%, var(--brand-logo-text-end) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-logo--horizontal.brand-logo--xs .brand-logo-wordmark {
+  font-size: 0.95rem;
+}
+
+.brand-logo--horizontal.brand-logo--sm .brand-logo-wordmark {
+  font-size: 1.15rem;
+}
+
+.brand-logo--horizontal.brand-logo--md .brand-logo-wordmark {
+  font-size: 1.35rem;
+}
+
+.brand-logo--horizontal.brand-logo--lg .brand-logo-wordmark {
+  font-size: 1.65rem;
+}
+
+.brand-logo--horizontal.brand-logo--xl .brand-logo-wordmark {
+  font-size: 2rem;
+}
+
+.brand-logo--monochrome .brand-logo-wordmark {
+  color: currentColor;
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
+}

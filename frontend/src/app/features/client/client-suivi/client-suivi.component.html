@@ -4,7 +4,7 @@
 
   @if (isLoading) {
     <div class="loading-card">
-      <span class="spinner-icon">🍹</span>
+      <app-brand-logo variant="icon" size="md" [decorative]="true" class="spinner-icon" testId="client-suivi-loading-logo"></app-brand-logo>
       <p>{{ 'CLIENT.LOADING' | transloco }}</p>
     </div>
   } @else if (commande) {

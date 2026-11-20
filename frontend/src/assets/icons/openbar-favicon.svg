@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Dark radial background matching OpenBar theme -->
+    <radialGradient id="faviconBgGrad" cx="50%" cy="42%" r="68%">
+      <stop offset="0%" stop-color="#1e1c42" />
+      <stop offset="100%" stop-color="#0f0f1a" />
+    </radialGradient>
+
+    <!-- Unified vertical gradient across all chalice strokes -->
+    <linearGradient id="iconGrad" gradientUnits="userSpaceOnUse" x1="0" y1="59" x2="0" y2="311">
+      <stop offset="0%" stop-color="#D4D2FF" />
+      <stop offset="45%" stop-color="#A8A4FF" />
+      <stop offset="100%" stop-color="#6963F5" />
+    </linearGradient>
+
+    <!-- Soft neon outer glow -->
+    <filter id="softGlow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feFlood flood-color="#7B75FF" flood-opacity="0.45" result="glowColor" />
+      <feComposite in="glowColor" in2="blur" operator="in" result="coloredBlur" />
+      <feMerge>
+        <feMergeNode in="coloredBlur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Rounded-square badge backdrop -->
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#faviconBgGrad)" stroke="#6963F5" stroke-opacity="0.35" stroke-width="6" />
+
+  <!-- Centered icon-only chalice mark -->
+  <g transform="translate(256, 256) scale(1.35) translate(-286.5, -185)" fill="none" stroke="url(#iconGrad)" stroke-width="11.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)">
+    <!-- Left "O" circle -->
+    <circle cx="242" cy="115" r="56" />
+
+    <!-- Outer left chalice curve -->
+    <path d="M 242 59 L 176 59 C 168 95, 178 135, 206 157" />
+
+    <!-- Upper "B" loop -->
+    <path d="M 314 59 L 372 59 C 402 59, 402 114, 372 114 L 352 114 C 318 114, 298 132, 286 150" />
+
+    <!-- Lower "B" loop descending into glass stem -->
+    <path d="M 372 114 C 410 114, 410 172, 372 172 L 348 172 C 314 172, 288 194, 288 232 L 288 282" />
+
+    <!-- Triangular glass base -->
+    <path d="M 288 282 L 222 311 L 354 311 Z" />
+  </g>
+</svg>

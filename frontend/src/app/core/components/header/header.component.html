@@ -1,7 +1,9 @@
 <ion-menu contentId="main-content">
   <ion-header>
     <ion-toolbar color="primary">
-      <ion-title>OpenBar</ion-title>
+      <ion-title>
+        <app-brand-logo variant="horizontal" size="xs" [monochrome]="true" testId="header-menu-brand-logo"></app-brand-logo>
+      </ion-title>
     </ion-toolbar>
   </ion-header>
   <ion-content>
@@ -47,7 +49,9 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>OpenBar</ion-title>
+    <ion-title>
+      <app-brand-logo variant="horizontal" size="xs" [monochrome]="true" testId="header-brand-logo"></app-brand-logo>
+    </ion-title>
     <ion-buttons slot="end">
       @if (currentUser$ | async; as user) {
         <ion-button id="header-user-trigger" data-testid="header-user-btn">

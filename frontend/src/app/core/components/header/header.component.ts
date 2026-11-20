@@ -17,6 +17,7 @@ import {RouterLink, RouterLinkActive} from '@angular/router';
 import {AsyncPipe} from '@angular/common';
 import {TranslocoPipe} from '@jsverse/transloco';
 import * as AuthActions from '../../store/auth.actions';
+import { BrandLogoComponent } from '../ui/brand-logo/brand-logo.component';
 
 /**
  * Application top header bar component presenting title branding and user quick actions.
@@ -30,7 +31,8 @@ import * as AuthActions from '../../store/auth.actions';
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonMenu, IonMenuButton, IonContent, IonList, IonItem, IonLabel,
-    IonPopover, RouterLink, RouterLinkActive, AsyncPipe, TranslocoPipe
+    IonPopover, RouterLink, RouterLinkActive, AsyncPipe, TranslocoPipe,
+    BrandLogoComponent
   ]
 })
 export class HeaderComponent {

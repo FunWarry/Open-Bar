@@ -13,7 +13,7 @@
         (click)="navigationService.navigateToHome()"
         (keyup.enter)="navigationService.navigateToHome()"
         data-testid="sidebar-brand">
-        OpenBar
+        <app-brand-logo variant="horizontal" size="sm" testId="sidebar-brand-logo"></app-brand-logo>
       </button>
     }
     @if (navigationService.isMobile()) {

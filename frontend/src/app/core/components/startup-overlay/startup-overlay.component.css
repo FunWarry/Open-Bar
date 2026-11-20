@@ -48,7 +48,9 @@
 }
 
 .brand-icon {
-  font-size: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: var(--primary);
   z-index: 2;
   animation: gentlePulse 2s ease-in-out infinite;
@@ -215,5 +217,14 @@
   }
   100% {
     left: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .startup-card,
+  .brand-icon,
+  .pulse-ring,
+  .progress-bar-indicator {
+    animation: none;
   }
 }

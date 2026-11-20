@@ -106,6 +106,16 @@ test.describe('PWA Manifest, Icons, Service Worker & Installability', () => {
     const manifestHref = await page.locator('link[rel="manifest"]').getAttribute('href');
     expect(manifestHref).toBe('manifest.webmanifest');
 
+    const svgFaviconHref = await page.locator('link[rel="icon"][type="image/svg+xml"]').getAttribute('href');
+    expect(svgFaviconHref).toBe('assets/icons/openbar-favicon.svg');
+
+    const svgFaviconResponse = await page.request.get('/assets/icons/openbar-favicon.svg');
+    expect(svgFaviconResponse.status()).toBe(200);
+    expect(await svgFaviconResponse.text()).toContain('<svg');
+
+    const loginBrandSvg = page.locator('[data-testid="login-brand-logo"] svg');
+    await expect(loginBrandSvg).toBeVisible();
+
     const themeColor = await page.locator('meta[name="theme-color"]').getAttribute('content');
     expect(themeColor).toBe('#0f0f1a');
 
