@@ -571,11 +571,7 @@ public class FactureService {
         }
 
         Facture savedFacture = factureRepository.save(facture);
-        recordCardCommissionIfApplicable(
-                savedFacture, null, request.modePaiement(), netTTC,
-                savedFacture.getTpeAutorisation(), savedFacture.getTpeTerminalId(),
-                savedFacture.getTpeCardBrand(), savedFacture.getTpeMaskedPan(), savedFacture.getTpeSequence()
-        );
+        recordCardCommissionIfApplicable(savedFacture, null, request.modePaiement(), netTTC);
 
         markOrdersAsSettled(activeCommandes);
         releaseTableIfRequested(table, request.shouldLibererTable());
@@ -795,11 +791,7 @@ public class FactureService {
         }
 
         Facture savedFacture = factureRepository.save(facture);
-        recordCardCommissionIfApplicable(
-                savedFacture, null, request.modePaiement(), netTTC,
-                savedFacture.getTpeAutorisation(), savedFacture.getTpeTerminalId(),
-                savedFacture.getTpeCardBrand(), savedFacture.getTpeMaskedPan(), savedFacture.getTpeSequence()
-        );
+        recordCardCommissionIfApplicable(savedFacture, null, request.modePaiement(), netTTC);
 
         markOrdersAsSettled(activeCommandes);
 
@@ -1601,11 +1593,7 @@ public class FactureService {
         }
 
         saved = adjustExcessRounding(saved, totalPaidSoFar, invoiceTarget);
-        recordCardCommissionIfApplicable(
-                facture, saved, saved.getModePaiement(), saved.getTotalRegle(),
-                saved.getTpeAutorisation(), saved.getTpeTerminalId(),
-                saved.getTpeCardBrand(), saved.getTpeMaskedPan(), saved.getTpeSequence()
-        );
+        recordCardCommissionIfApplicable(facture, saved, saved.getModePaiement(), saved.getTotalRegle());
         checkAndFinalizeSplitSettlement(facture, factureId, allReglements, invoiceTarget);
 
         return FactureReglementDTO.from(saved);
@@ -1799,36 +1787,34 @@ public class FactureService {
         if (reglements != null && !reglements.isEmpty()) {
             com.bar.gestioncocktail.model.FactureReglement last = reglements.getLast();
             if ("SOLDE".equalsIgnoreCase(last.getTypeSplit())) {
-                recordCardCommissionIfApplicable(
-                        saved, last, modePaiement, last.getTotalRegle(),
-                        saved.getTpeAutorisation(), saved.getTpeTerminalId(),
-                        saved.getTpeCardBrand(), saved.getTpeMaskedPan(), saved.getTpeSequence()
-                );
+                recordCardCommissionIfApplicable(saved, last, modePaiement, last.getTotalRegle());
             }
             return;
         }
         BigDecimal settledAmount = saved.getTotalTTC() != null ? saved.getTotalTTC() : saved.getTotal();
-        recordCardCommissionIfApplicable(
-                saved, null, modePaiement, settledAmount,
-                saved.getTpeAutorisation(), saved.getTpeTerminalId(),
-                saved.getTpeCardBrand(), saved.getTpeMaskedPan(), saved.getTpeSequence()
-        );
+        recordCardCommissionIfApplicable(saved, null, modePaiement, settledAmount);
     }
 
     private void recordCardCommissionIfApplicable(
             Facture facture,
             com.bar.gestioncocktail.model.FactureReglement reglement,
             String modePaiement,
-            BigDecimal amount,
-            String tpeAutorisation,
-            String tpeTerminalId,
-            String tpeCardBrand,
-            String tpeMaskedPan,
-            String tpeSequence) {
+            BigDecimal amount) {
         if (commissionLedgerService == null || !isPosCardPaymentMode(modePaiement)
                 || amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             return;
         }
+        String tpeAutorisation = reglement != null && reglement.getTpeAutorisation() != null
+                ? reglement.getTpeAutorisation() : facture.getTpeAutorisation();
+        String tpeTerminalId = reglement != null && reglement.getTpeTerminalId() != null
+                ? reglement.getTpeTerminalId() : facture.getTpeTerminalId();
+        String tpeCardBrand = reglement != null && reglement.getTpeCardBrand() != null
+                ? reglement.getTpeCardBrand() : facture.getTpeCardBrand();
+        String tpeMaskedPan = reglement != null && reglement.getTpeMaskedPan() != null
+                ? reglement.getTpeMaskedPan() : facture.getTpeMaskedPan();
+        String tpeSequence = reglement != null && reglement.getTpeSequence() != null
+                ? reglement.getTpeSequence() : facture.getTpeSequence();
+
         com.bar.gestioncocktail.model.CardCommissionSource source =
                 resolveCommissionSource(modePaiement, tpeAutorisation, tpeTerminalId);
         String extTxId = (tpeSequence != null && !tpeSequence.isBlank()) ? tpeSequence : tpeAutorisation;

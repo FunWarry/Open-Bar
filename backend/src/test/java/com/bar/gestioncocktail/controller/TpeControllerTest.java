@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.StripeTerminalConnectionTokenDTO;
 import com.bar.gestioncocktail.dto.TpeConnectionTestRequestDTO;
 import com.bar.gestioncocktail.dto.TpeConnectionTestResponseDTO;
 import com.bar.gestioncocktail.dto.TpePaymentRequestDTO;
@@ -7,6 +8,7 @@ import com.bar.gestioncocktail.dto.TpePaymentResponseDTO;
 import com.bar.gestioncocktail.dto.TpePublicConfigDTO;
 import com.bar.gestioncocktail.model.TpeTerminalRole;
 import com.bar.gestioncocktail.model.TpeTransactionStatus;
+import com.bar.gestioncocktail.service.monetization.StripeTerminalConnectService;
 import com.bar.gestioncocktail.service.tpe.PaymentTerminalService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +36,8 @@ class TpeControllerTest {
 
     @Mock
     private PaymentTerminalService paymentTerminalService;
+    @Mock
+    private StripeTerminalConnectService stripeTerminalConnectService;
 
     @InjectMocks
     private TpeController tpeController;
@@ -179,5 +183,22 @@ class TpeControllerTest {
         assertThat(dto.montant()).isEqualByComparingTo(new BigDecimal("101.20"));
         assertThat(dto.terminalRole()).isEqualTo(TpeTerminalRole.BAR);
         assertThat(dto.reference()).isEqualTo("Table 3");
+    }
+
+    @Test
+    @DisplayName("createStripeTerminalConnectionToken delegates to StripeTerminalConnectService and handles unconfigured service")
+    void createStripeTerminalConnectionToken_returnsTokenOrFallback() {
+        StripeTerminalConnectionTokenDTO tok = new StripeTerminalConnectionTokenDTO(
+                "pst_test_sim_abc", true, "tmr_1", "tml_1");
+        when(stripeTerminalConnectService.createConnectionToken()).thenReturn(tok);
+
+        TpeController withConnect = new TpeController(paymentTerminalService, stripeTerminalConnectService);
+        ResponseEntity<StripeTerminalConnectionTokenDTO> okRes = withConnect.createStripeTerminalConnectionToken();
+        assertThat(okRes.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(okRes.getBody().secret()).isEqualTo("pst_test_sim_abc");
+
+        TpeController withoutConnect = new TpeController(paymentTerminalService);
+        assertThat(withoutConnect.createStripeTerminalConnectionToken().getStatusCode())
+                .isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

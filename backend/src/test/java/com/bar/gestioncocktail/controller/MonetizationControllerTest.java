@@ -27,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.Month;
 import java.time.YearMonth;
 import java.util.List;
 
@@ -97,7 +98,7 @@ class MonetizationControllerTest {
                 BigDecimal.ZERO, 0L, BigDecimal.ZERO, new BigDecimal("1.30"),
                 null, "NONE", null, null, integrity, List.of(), List.of());
 
-        when(ledgerService.getDashboard(YearMonth.of(2026, 11))).thenReturn(dashboard);
+        when(ledgerService.getDashboard(YearMonth.of(2026, Month.NOVEMBER))).thenReturn(dashboard);
 
         ResponseEntity<MonetizationDashboardDTO> response = controller.getDashboard("2026-11");
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -113,7 +114,7 @@ class MonetizationControllerTest {
                 BigDecimal.ZERO, 0L, BigDecimal.ZERO, new BigDecimal("0.70"),
                 "0".repeat(64), "b".repeat(64), true, List.of(),
                 "d".repeat(64), "h".repeat(64), "tok");
-        when(ledgerService.exportMonthlyProof(YearMonth.of(2026, 11))).thenReturn(proof);
+        when(ledgerService.exportMonthlyProof(YearMonth.of(2026, Month.NOVEMBER))).thenReturn(proof);
 
         ResponseEntity<byte[]> response = controller.downloadMonthlyProof("2026-11", httpRequest);
 
@@ -130,7 +131,7 @@ class MonetizationControllerTest {
         MonetizationSummaryDTO summary = new MonetizationSummaryDTO(
                 TpeMonetizationTier.CONCERT_IP_OFFLINE, "2026-11", CommissionInvoiceStatus.PENDING,
                 "in_1", new BigDecimal("2.00"), null, 0L, false, false, true);
-        when(syncService.syncNow(eq(YearMonth.of(2026, 11)), any()))
+        when(syncService.syncNow(eq(YearMonth.of(2026, Month.NOVEMBER)), any()))
                 .thenReturn(new CommissionSyncResultDTO(true, true, "SUCCESS", 2, "Synced", summary));
 
         ResponseEntity<CommissionSyncResultDTO> response = controller.syncOnline("2026-11", httpRequest);
@@ -138,5 +139,28 @@ class MonetizationControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("SUCCESS", response.getBody().syncStatus());
         verify(auditLogService).logAction(any(), eq("SYNC_COMMISSION_LEDGER"), any(), eq(1L), any(), any());
+    }
+
+    @Test
+    @DisplayName("getLedger, verifyIntegrity, exportMonthlyProof, and parsePeriod edge cases")
+    void controllerEndpoints_coverRemainingBranches() {
+        when(ledgerRepository.findByBillingPeriodOrderBySequenceNumberAsc("2026-11")).thenReturn(List.of());
+        assertTrue(controller.getLedger("2026-11").getBody().isEmpty());
+
+        LedgerVerificationDTO report = new LedgerVerificationDTO(true, 2L, 2L, "tip", null, "OK");
+        when(ledgerService.verifyLedgerIntegrity()).thenReturn(report);
+        assertEquals("tip", controller.verifyIntegrity(httpRequest).getBody().tipHash());
+
+        MonthlyCommissionProofDTO proof = new MonthlyCommissionProofDTO(
+                "2026-11", "73282932000074", Instant.now(),
+                BigDecimal.TEN, 1L, BigDecimal.ONE,
+                BigDecimal.ZERO, 0L, BigDecimal.ZERO, BigDecimal.ONE,
+                "0".repeat(64), "b".repeat(64), true, List.of(),
+                "d".repeat(64), "h".repeat(64), "tok");
+        when(ledgerService.exportMonthlyProof(YearMonth.of(2026, Month.NOVEMBER))).thenReturn(proof);
+        assertEquals("tok", controller.exportMonthlyProof("2026-11", httpRequest).getBody().compactProofToken());
+
+        assertThrows(BusinessException.class, () -> controller.getDashboard("bad-period"));
+        assertNotNull(controller.getDashboard(null));
     }
 }

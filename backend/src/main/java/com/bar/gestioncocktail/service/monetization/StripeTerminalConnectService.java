@@ -51,6 +51,11 @@ public class StripeTerminalConnectService {
     private static final Logger log = LoggerFactory.getLogger(StripeTerminalConnectService.class);
     private static final String PAYMENTS_TOPIC = "/topic/payments";
     private static final ZoneId SYSTEM_ZONE = ZoneId.systemDefault();
+    private static final String STATUS_IGNORED = "IGNORED";
+    private static final String META_TX_ID = "openbarTransactionId";
+    private static final String META_READER_ID = "readerId";
+    private static final String DEFAULT_TERMINAL_ID = "ST-WISEPOS";
+    private static final String METHOD_CARD_PRESENT = "card_present";
 
     private final MonetizationProperties monetizationProperties;
     private final CommissionCalculator commissionCalculator;
@@ -90,29 +95,14 @@ public class StripeTerminalConnectService {
         String secretKey = resolveStripeSecretKey(settings);
 
         if (secretKey == null) {
-            if (isSimulatorAllowed(settings)) {
-                return new StripeTerminalConnectionTokenDTO(
-                        "pst_test_sim_" + UUID.randomUUID().toString().replace("-", ""),
-                        true,
-                        settings != null ? settings.getStripeTerminalReaderId() : "tmr_sim_wisepos",
-                        settings != null ? settings.getStripeTerminalLocationId() : "tml_sim_bar"
-                );
-            }
-            throw new BusinessException("Stripe Connect secret key is not configured for Stripe Terminal.");
+            return buildSimulatedConnectionToken(settings);
         }
 
         try {
-            ConnectionTokenCreateParams.Builder builder = ConnectionTokenCreateParams.builder();
-            if (settings != null && settings.getStripeTerminalLocationId() != null
-                    && !settings.getStripeTerminalLocationId().isBlank()) {
-                builder.setLocation(settings.getStripeTerminalLocationId().trim());
-            }
-            RequestOptions.RequestOptionsBuilder opts = RequestOptions.builder().setApiKey(secretKey);
-            if (settings != null && settings.getStripeConnectedAccountId() != null
-                    && !settings.getStripeConnectedAccountId().isBlank()) {
-                opts.setStripeAccount(settings.getStripeConnectedAccountId().trim());
-            }
-            ConnectionToken token = ConnectionToken.create(builder.build(), opts.build());
+            ConnectionToken token = ConnectionToken.create(
+                    buildConnectionTokenParams(settings),
+                    buildStripeRequestOptions(secretKey, settings)
+            );
             return new StripeTerminalConnectionTokenDTO(
                     token.getSecret(),
                     false,
@@ -123,6 +113,36 @@ public class StripeTerminalConnectService {
             log.error("Failed to create Stripe Terminal ConnectionToken: {}", ex.getMessage(), ex);
             throw new BusinessException("Stripe Terminal connection token error: " + ex.getMessage());
         }
+    }
+
+    private StripeTerminalConnectionTokenDTO buildSimulatedConnectionToken(AppSettings settings) {
+        if (!isSimulatorAllowed(settings)) {
+            throw new BusinessException("Stripe Connect secret key is not configured for Stripe Terminal.");
+        }
+        return new StripeTerminalConnectionTokenDTO(
+                "pst_test_sim_" + UUID.randomUUID().toString().replace("-", ""),
+                true,
+                settings != null ? settings.getStripeTerminalReaderId() : "tmr_sim_wisepos",
+                settings != null ? settings.getStripeTerminalLocationId() : "tml_sim_bar"
+        );
+    }
+
+    private ConnectionTokenCreateParams buildConnectionTokenParams(AppSettings settings) {
+        ConnectionTokenCreateParams.Builder builder = ConnectionTokenCreateParams.builder();
+        if (settings != null && settings.getStripeTerminalLocationId() != null
+                && !settings.getStripeTerminalLocationId().isBlank()) {
+            builder.setLocation(settings.getStripeTerminalLocationId().trim());
+        }
+        return builder.build();
+    }
+
+    private RequestOptions buildStripeRequestOptions(String secretKey, AppSettings settings) {
+        RequestOptions.RequestOptionsBuilder opts = RequestOptions.builder().setApiKey(secretKey);
+        if (settings != null && settings.getStripeConnectedAccountId() != null
+                && !settings.getStripeConnectedAccountId().isBlank()) {
+            opts.setStripeAccount(settings.getStripeConnectedAccountId().trim());
+        }
+        return opts.build();
     }
 
     /**
@@ -193,7 +213,7 @@ public class StripeTerminalConnectService {
      */
     public PaymentWebhookResult processVerifiedEvent(Event event) {
         if (event == null) {
-            return new PaymentWebhookResult(null, "IGNORED", null, BigDecimal.ZERO, "EUR", null);
+            return new PaymentWebhookResult(null, STATUS_IGNORED, null, BigDecimal.ZERO, "EUR", null);
         }
 
         EventDataObjectDeserializer deserializer = event.getDataObjectDeserializer();
@@ -204,22 +224,22 @@ public class StripeTerminalConnectService {
             case "payment_intent.payment_failed" -> handlePaymentIntentFailed(stripeObject);
             case "invoice.payment_succeeded" -> handleInvoicePaymentSucceeded(stripeObject);
             case "invoice.payment_failed" -> handleInvoicePaymentFailed(stripeObject);
-            default -> new PaymentWebhookResult(null, "IGNORED", null, BigDecimal.ZERO, "EUR", null);
+            default -> new PaymentWebhookResult(null, STATUS_IGNORED, null, BigDecimal.ZERO, "EUR", null);
         };
     }
 
     private PaymentWebhookResult handlePaymentIntentSucceeded(StripeObject stripeObject) {
         if (!(stripeObject instanceof PaymentIntent pi)) {
-            return new PaymentWebhookResult(null, "IGNORED", null, BigDecimal.ZERO, "EUR", null);
+            return new PaymentWebhookResult(null, STATUS_IGNORED, null, BigDecimal.ZERO, "EUR", null);
         }
         BigDecimal settledAmount = BigDecimal.valueOf(
                         pi.getAmountReceived() != null && pi.getAmountReceived() > 0 ? pi.getAmountReceived() : pi.getAmount())
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         String currency = pi.getCurrency() != null ? pi.getCurrency().toUpperCase() : "EUR";
-        String openbarTxId = pi.getMetadata() != null ? pi.getMetadata().get("openbarTransactionId") : null;
-        String terminalId = pi.getMetadata() != null && pi.getMetadata().get("readerId") != null
-                ? pi.getMetadata().get("readerId")
-                : "ST-WISEPOS";
+        String openbarTxId = pi.getMetadata() != null ? pi.getMetadata().get(META_TX_ID) : null;
+        String terminalId = pi.getMetadata() != null && pi.getMetadata().get(META_READER_ID) != null
+                ? pi.getMetadata().get(META_READER_ID)
+                : DEFAULT_TERMINAL_ID;
 
         commissionLedgerService.recordCardSettlement(new CommissionLedgerService.CardSettlementRecordCommand(
                 null,
@@ -251,17 +271,17 @@ public class StripeTerminalConnectService {
             ));
         }
 
-        return new PaymentWebhookResult(pi.getId(), "SUCCEEDED", "card_present", settledAmount, currency, pi.getReceiptEmail());
+        return new PaymentWebhookResult(pi.getId(), "SUCCEEDED", METHOD_CARD_PRESENT, settledAmount, currency, pi.getReceiptEmail());
     }
 
     private PaymentWebhookResult handlePaymentIntentFailed(StripeObject stripeObject) {
         if (!(stripeObject instanceof PaymentIntent pi)) {
-            return new PaymentWebhookResult(null, "IGNORED", null, BigDecimal.ZERO, "EUR", null);
+            return new PaymentWebhookResult(null, STATUS_IGNORED, null, BigDecimal.ZERO, "EUR", null);
         }
         BigDecimal amount = BigDecimal.valueOf(pi.getAmount() != null ? pi.getAmount() : 0L)
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         String currency = pi.getCurrency() != null ? pi.getCurrency().toUpperCase() : "EUR";
-        String openbarTxId = pi.getMetadata() != null ? pi.getMetadata().get("openbarTransactionId") : null;
+        String openbarTxId = pi.getMetadata() != null ? pi.getMetadata().get(META_TX_ID) : null;
         if (openbarTxId != null && !openbarTxId.isBlank()) {
             broadcastStatus(new TpePaymentResponseDTO(
                     openbarTxId,
@@ -269,7 +289,7 @@ public class StripeTerminalConnectService {
                     amount,
                     currency,
                     null,
-                    "ST-WISEPOS",
+                    DEFAULT_TERMINAL_ID,
                     null,
                     null,
                     null,
@@ -277,12 +297,12 @@ public class StripeTerminalConnectService {
                     LocalDateTime.now(SYSTEM_ZONE)
             ));
         }
-        return new PaymentWebhookResult(pi.getId(), "FAILED", "card_present", amount, currency, null);
+        return new PaymentWebhookResult(pi.getId(), "FAILED", METHOD_CARD_PRESENT, amount, currency, null);
     }
 
     private PaymentWebhookResult handleInvoicePaymentSucceeded(StripeObject stripeObject) {
         if (!(stripeObject instanceof Invoice invoice)) {
-            return new PaymentWebhookResult(null, "IGNORED", null, BigDecimal.ZERO, "EUR", null);
+            return new PaymentWebhookResult(null, STATUS_IGNORED, null, BigDecimal.ZERO, "EUR", null);
         }
         commissionLedgerService.markRemoteInvoiceSettled(invoice.getId());
         BigDecimal paid = BigDecimal.valueOf(invoice.getAmountPaid() != null ? invoice.getAmountPaid() : 0L)
@@ -293,7 +313,7 @@ public class StripeTerminalConnectService {
 
     private PaymentWebhookResult handleInvoicePaymentFailed(StripeObject stripeObject) {
         if (!(stripeObject instanceof Invoice invoice)) {
-            return new PaymentWebhookResult(null, "IGNORED", null, BigDecimal.ZERO, "EUR", null);
+            return new PaymentWebhookResult(null, STATUS_IGNORED, null, BigDecimal.ZERO, "EUR", null);
         }
         BigDecimal due = BigDecimal.valueOf(invoice.getAmountRemaining() != null ? invoice.getAmountRemaining() : 0L)
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
@@ -316,16 +336,16 @@ public class StripeTerminalConnectService {
             String readerId = (settings != null && settings.getStripeTerminalReaderId() != null
                     && !settings.getStripeTerminalReaderId().isBlank())
                     ? settings.getStripeTerminalReaderId().trim()
-                    : "ST-WISEPOS";
+                    : DEFAULT_TERMINAL_ID;
 
             PaymentIntentCreateParams.Builder params = PaymentIntentCreateParams.builder()
                     .setAmount(amountCents)
                     .setCurrency(currencyCode.toLowerCase())
-                    .addPaymentMethodType("card_present")
+                    .addPaymentMethodType(METHOD_CARD_PRESENT)
                     .setCaptureMethod(PaymentIntentCreateParams.CaptureMethod.AUTOMATIC)
-                    .putMetadata("openbarTransactionId", transactionId)
+                    .putMetadata(META_TX_ID, transactionId)
                     .putMetadata("openbarTier", TpeMonetizationTier.STRIPE_TERMINAL_CONNECT.name())
-                    .putMetadata("readerId", readerId)
+                    .putMetadata(META_READER_ID, readerId)
                     .putMetadata("reference", request.reference() != null ? request.reference() : "");
 
             if (settings != null && settings.getStripeConnectedAccountId() != null
@@ -367,7 +387,7 @@ public class StripeTerminalConnectService {
                     request.montant(),
                     currencyCode,
                     null,
-                    "ST-WISEPOS",
+                    DEFAULT_TERMINAL_ID,
                     null,
                     null,
                     null,

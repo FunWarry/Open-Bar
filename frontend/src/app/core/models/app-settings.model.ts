@@ -70,7 +70,7 @@ export interface AppSettings {
   stripeSecretKey?: string;
   stripeWebhookSecret?: string;
   onlinePaymentCurrency?: string;
-  tpeMonetizationMode?: 'CONCERT_IP' | 'STRIPE_TERMINAL' | string;
+  tpeMonetizationMode?: 'CONCERT_IP' | 'STRIPE_TERMINAL';
   stripeConnectedAccountId?: string;
   stripeTerminalLocationId?: string;
   stripeTerminalReaderId?: string;

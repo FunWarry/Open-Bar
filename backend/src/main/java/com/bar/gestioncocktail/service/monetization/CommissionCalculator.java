@@ -59,43 +59,30 @@ public class CommissionCalculator {
         Optional<LicenseCryptoService.LicenseMonetizationClaims> claimsOpt =
                 licenseService != null ? licenseService.getActiveMonetizationClaims() : Optional.empty();
 
-        int opt1Rate = monetizationProperties.getOption1RateBps();
-        int opt1Fixed = monetizationProperties.getOption1FixedCents();
-        int opt3Rate = monetizationProperties.getOption3RateBps();
-        int opt3Fixed = monetizationProperties.getOption3FixedCents();
-        TpeMonetizationTier activeTier = monetizationProperties.getDefaultTier();
-
         boolean stripeModuleEnabled = establishmentConfigService == null
                 || establishmentConfigService.isModuleEnabled(EstablishmentModule.STRIPE_TERMINAL_CONNECT);
 
         AppSettings settings = appSettingsService != null ? appSettingsService.getSettings() : null;
         String hardwareMode = settings != null ? settings.getTpeMonetizationMode() : "CONCERT_IP";
-        boolean connectAccountConfigured = settings != null
-                && settings.getStripeConnectedAccountId() != null
-                && !settings.getStripeConnectedAccountId().isBlank();
+        boolean connectAccountConfigured = isStripeAccountConfigured(settings);
 
-        if ("STRIPE_TERMINAL".equalsIgnoreCase(hardwareMode) && stripeModuleEnabled) {
-            activeTier = TpeMonetizationTier.STRIPE_TERMINAL_CONNECT;
-        } else {
-            activeTier = TpeMonetizationTier.CONCERT_IP_OFFLINE;
-        }
+        TpeMonetizationTier activeTier = ("STRIPE_TERMINAL".equalsIgnoreCase(hardwareMode) && stripeModuleEnabled)
+                ? TpeMonetizationTier.STRIPE_TERMINAL_CONNECT
+                : TpeMonetizationTier.CONCERT_IP_OFFLINE;
+
+        int opt1Rate = monetizationProperties.getOption1RateBps();
+        int opt1Fixed = monetizationProperties.getOption1FixedCents();
+        int opt3Rate = monetizationProperties.getOption3RateBps();
+        int opt3Fixed = monetizationProperties.getOption3FixedCents();
 
         if (claimsOpt.isPresent()) {
-            LicenseCryptoService.LicenseMonetizationClaims c = claimsOpt.get();
-            if (c.option1RateBps() != null && c.option1RateBps() >= 0) {
-                opt1Rate = c.option1RateBps();
-            }
-            if (c.option1FixedCents() != null && c.option1FixedCents() >= 0) {
-                opt1Fixed = c.option1FixedCents();
-            }
-            if (c.option3RateBps() != null && c.option3RateBps() >= 0) {
-                opt3Rate = c.option3RateBps();
-            }
-            if (c.option3FixedCents() != null && c.option3FixedCents() >= 0) {
-                opt3Fixed = c.option3FixedCents();
-            }
-            if (c.tpeTier() != null) {
-                activeTier = parseTierOrDefault(c.tpeTier(), activeTier);
+            LicenseCryptoService.LicenseMonetizationClaims claims = claimsOpt.get();
+            opt1Rate = positiveOrDefault(claims.option1RateBps(), opt1Rate);
+            opt1Fixed = positiveOrDefault(claims.option1FixedCents(), opt1Fixed);
+            opt3Rate = positiveOrDefault(claims.option3RateBps(), opt3Rate);
+            opt3Fixed = positiveOrDefault(claims.option3FixedCents(), opt3Fixed);
+            if (claims.tpeTier() != null) {
+                activeTier = parseTierOrDefault(claims.tpeTier(), activeTier);
             }
         }
 
@@ -109,6 +96,16 @@ public class CommissionCalculator {
                 stripeModuleEnabled,
                 connectAccountConfigured
         );
+    }
+
+    private boolean isStripeAccountConfigured(AppSettings settings) {
+        return settings != null
+                && settings.getStripeConnectedAccountId() != null
+                && !settings.getStripeConnectedAccountId().isBlank();
+    }
+
+    private int positiveOrDefault(Integer candidate, int fallback) {
+        return candidate != null && candidate >= 0 ? candidate : fallback;
     }
 
     /**

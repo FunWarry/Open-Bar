@@ -171,4 +171,35 @@ class StripeTerminalConnectServiceTest {
         assertEquals("FAILED", r2.status());
         verify(commissionLedgerService).markRemoteInvoicePaymentFailed("in_fail_2", new BigDecimal("18.00"));
     }
+
+    @Test
+    @DisplayName("handleStripeConnectWebhook and processVerifiedEvent - covers null, ignored, failed intent, and signature errors")
+    void webhookEdgeCases_covered() {
+        assertThrows(BusinessException.class, () -> service.handleStripeConnectWebhook("{}", "sig"));
+
+        properties.setStripeConnectWebhookSecret("whsec_test_secret");
+        assertThrows(BusinessException.class, () -> service.handleStripeConnectWebhook("{}", "bad_sig"));
+
+        assertEquals("IGNORED", service.processVerifiedEvent(null).status());
+
+        Event unknownEvt = mock(Event.class);
+        when(unknownEvt.getType()).thenReturn("customer.updated");
+        when(unknownEvt.getDataObjectDeserializer()).thenReturn(mock(EventDataObjectDeserializer.class));
+        assertEquals("IGNORED", service.processVerifiedEvent(unknownEvt).status());
+
+        PaymentIntent failedPi = new PaymentIntent();
+        failedPi.setId("pi_fail_1");
+        failedPi.setAmount(1950L);
+        failedPi.setCurrency("eur");
+        failedPi.setMetadata(Map.of("openbarTransactionId", "tx-fail-1"));
+        EventDataObjectDeserializer failDeser = mock(EventDataObjectDeserializer.class);
+        when(failDeser.getObject()).thenReturn(Optional.of(failedPi));
+        Event failEvt = mock(Event.class);
+        when(failEvt.getType()).thenReturn("payment_intent.payment_failed");
+        when(failEvt.getDataObjectDeserializer()).thenReturn(failDeser);
+
+        PaymentWebhookResult failRes = service.processVerifiedEvent(failEvt);
+        assertEquals("FAILED", failRes.status());
+        verify(messagingTemplate).convertAndSend(eq("/topic/payments"), any(TpePaymentResponseDTO.class));
+    }
 }

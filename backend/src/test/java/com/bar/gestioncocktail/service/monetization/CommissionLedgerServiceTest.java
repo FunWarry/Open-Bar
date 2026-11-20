@@ -34,6 +34,7 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -195,18 +196,18 @@ class CommissionLedgerServiceTest {
 
         DailyCashClosure zReport = new DailyCashClosure();
         zReport.setClosureNumber("Z-2026-001");
-        zReport.setClosureDate(LocalDate.of(2026, 11, 14));
+        zReport.setClosureDate(LocalDate.of(2026, Month.NOVEMBER, 14));
         zReport.setTotalRevenueTTC(new BigDecimal("420.00"));
         zReport.setSha256Hash("zhash123456");
 
         when(ledgerRepository.findAllByOrderBySequenceNumberAsc()).thenReturn(List.of(entry));
         when(ledgerRepository.findByBillingPeriodOrderBySequenceNumberAsc("2026-11")).thenReturn(List.of(entry));
         when(closureRepository.findByClosureDateBetweenOrderByClosureDateAsc(
-                LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 30))).thenReturn(List.of(zReport));
+                LocalDate.of(2026, Month.NOVEMBER, 1), LocalDate.of(2026, Month.NOVEMBER, 30))).thenReturn(List.of(zReport));
         when(billingRepository.findByBillingPeriod("2026-11")).thenReturn(Optional.empty());
         when(billingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        MonthlyCommissionProofDTO proof = service.exportMonthlyProof(YearMonth.of(2026, 11));
+        MonthlyCommissionProofDTO proof = service.exportMonthlyProof(YearMonth.of(2026, Month.NOVEMBER));
 
         assertEquals("2026-11", proof.billingPeriod());
         assertEquals(new BigDecimal("100.00"), proof.option1Volume());
@@ -257,5 +258,75 @@ class CommissionLedgerServiceTest {
 
         assertEquals(99L, res.getId());
         verify(ledgerRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("verifyLedgerIntegrity - returns genesis valid when empty and detects broken linkage")
+    void verifyLedgerIntegrity_emptyAndLinkageMismatch() {
+        when(ledgerRepository.findAllByOrderBySequenceNumberAsc()).thenReturn(List.of());
+        LedgerVerificationDTO emptyReport = service.verifyLedgerIntegrity();
+        assertTrue(emptyReport.valid());
+        assertEquals(0L, emptyReport.totalEntries());
+
+        CardCommissionLedgerEntry brokenLink = new CardCommissionLedgerEntry();
+        brokenLink.setSequenceNumber(1L);
+        brokenLink.setPreviousHash("bad-prev-hash");
+        when(ledgerRepository.findAllByOrderBySequenceNumberAsc()).thenReturn(List.of(brokenLink));
+
+        LedgerVerificationDTO mismatchReport = service.verifyLedgerIntegrity();
+        assertFalse(mismatchReport.valid());
+        assertEquals(1L, mismatchReport.brokenSequenceNumber());
+    }
+
+    @Test
+    @DisplayName("getDashboard, updateBillingStatus, markRemoteInvoiceSettled/Failed, and JWT claims fallback")
+    void dashboardBillingLifecycle_coversAllBranches() {
+        CommissionBillingRecord existing = new CommissionBillingRecord();
+        existing.setBillingPeriod("2026-11");
+        existing.setRemoteInvoiceId("in_99");
+        existing.setTotalCommissionDue(new BigDecimal("4.20"));
+
+        when(billingRepository.findByBillingPeriod("2026-11")).thenReturn(Optional.of(existing));
+        when(billingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(ledgerRepository.findByBillingPeriodOrderBySequenceNumberAsc("2026-11")).thenReturn(List.of());
+        when(ledgerRepository.findAllByOrderBySequenceNumberAsc()).thenReturn(List.of());
+
+        service.updateBillingStatus("2026-11", "in_99", CommissionInvoiceStatus.PENDING,
+                new BigDecimal("4.20"), null, "SUCCESS", null);
+        assertEquals(CommissionInvoiceStatus.PENDING, existing.getInvoiceStatus());
+        assertNotNull(existing.getGraceEndsAt());
+
+        when(billingRepository.findByRemoteInvoiceId("in_99")).thenReturn(Optional.of(existing));
+        service.markRemoteInvoicePaymentFailed("in_99", null);
+        assertEquals(CommissionInvoiceStatus.GRACE_PERIOD, existing.getInvoiceStatus());
+
+        service.markRemoteInvoiceSettled("in_99");
+        assertEquals(CommissionInvoiceStatus.SETTLED, existing.getInvoiceStatus());
+        assertEquals(BigDecimal.ZERO.setScale(2), existing.getPendingAmount());
+
+        when(billingRepository.findByRemoteInvoiceId("in_missing")).thenReturn(Optional.empty());
+        service.markRemoteInvoicePaymentFailed("in_missing", new BigDecimal("7.50"));
+
+        CardCommissionLedgerEntry opt1 = new CardCommissionLedgerEntry();
+        opt1.setId(10L);
+        opt1.setTier(TpeMonetizationTier.CONCERT_IP_OFFLINE);
+        opt1.setStatus(CardCommissionStatus.ACCUMULATED);
+        when(ledgerRepository.findAllById(List.of(10L))).thenReturn(List.of(opt1));
+        assertEquals(1, service.markEntriesSyncedOnline(List.of(10L)));
+        assertEquals(0, service.markEntriesSyncedOnline(List.of()));
+
+        when(billingRepository.findByInvoiceStatusInOrderByBillingPeriodDesc(any())).thenReturn(List.of());
+        when(licenseService.getActiveMonetizationClaims()).thenReturn(Optional.of(
+                new com.bar.gestioncocktail.service.LicenseCryptoService.LicenseMonetizationClaims(
+                        "CONCERT_IP_OFFLINE", 120, 10, 45, 5, "GRACE_PERIOD",
+                        new BigDecimal("9.99"), "in_jwt_1", fixedClock.instant().plusSeconds(7200)
+                )));
+
+        MonetizationSummaryDTO jwtSummary = service.getSummary();
+        assertEquals(CommissionInvoiceStatus.GRACE_PERIOD, jwtSummary.invoiceStatus());
+        assertEquals("in_jwt_1", jwtSummary.remoteInvoiceId());
+        assertTrue(jwtSummary.shouldShowBanner());
+
+        assertNotNull(service.getDashboard(YearMonth.of(2026, Month.NOVEMBER)));
     }
 }

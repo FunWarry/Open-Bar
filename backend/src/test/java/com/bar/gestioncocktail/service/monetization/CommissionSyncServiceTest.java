@@ -24,6 +24,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
+import java.time.Month;
 import java.time.YearMonth;
 import java.util.List;
 
@@ -84,14 +85,14 @@ class CommissionSyncServiceTest {
         entry.setStatus(CardCommissionStatus.ACCUMULATED);
 
         when(ledgerRepository.findByBillingPeriodOrderBySequenceNumberAsc("2026-11")).thenReturn(List.of(entry));
-        when(ledgerService.exportMonthlyProof(YearMonth.of(2026, 11))).thenReturn(sampleProof);
+        when(ledgerService.exportMonthlyProof(YearMonth.of(2026, Month.NOVEMBER))).thenReturn(sampleProof);
         when(ledgerService.markEntriesSyncedOnline(List.of(42L))).thenReturn(1);
         when(ledgerService.getSummary()).thenReturn(sampleSummary);
         when(httpClient.send(any(HttpRequest.class), eq(HttpResponse.BodyHandlers.ofString()))).thenReturn(httpResponse);
         when(httpResponse.statusCode()).thenReturn(200);
         when(httpResponse.body()).thenReturn("{\"invoiceId\":\"in_123\",\"invoiceStatus\":\"PENDING\",\"pendingAmount\":\"1.30\"}");
 
-        CommissionSyncResultDTO res = syncService.syncNow(YearMonth.of(2026, 11), "admin");
+        CommissionSyncResultDTO res = syncService.syncNow(YearMonth.of(2026, Month.NOVEMBER), "admin");
 
         assertTrue(res.synced());
         assertTrue(res.onlineReachable());
@@ -106,12 +107,12 @@ class CommissionSyncServiceTest {
     @DisplayName("syncNow - fails open cleanly with OFFLINE status on IOException")
     void syncNow_networkError_failsOpenOffline() throws Exception {
         when(ledgerRepository.findByBillingPeriodOrderBySequenceNumberAsc("2026-11")).thenReturn(List.of());
-        when(ledgerService.exportMonthlyProof(YearMonth.of(2026, 11))).thenReturn(sampleProof);
+        when(ledgerService.exportMonthlyProof(YearMonth.of(2026, Month.NOVEMBER))).thenReturn(sampleProof);
         when(ledgerService.getSummary()).thenReturn(sampleSummary);
         when(httpClient.send(any(HttpRequest.class), eq(HttpResponse.BodyHandlers.ofString())))
                 .thenThrow(new IOException("Connection timed out"));
 
-        CommissionSyncResultDTO res = syncService.syncNow(YearMonth.of(2026, 11), "admin");
+        CommissionSyncResultDTO res = syncService.syncNow(YearMonth.of(2026, Month.NOVEMBER), "admin");
 
         assertFalse(res.synced());
         assertFalse(res.onlineReachable());
@@ -122,15 +123,39 @@ class CommissionSyncServiceTest {
     @DisplayName("syncNow - returns UP_TO_DATE on HTTP 204")
     void syncNow_http204_returnsUpToDate() throws Exception {
         when(ledgerRepository.findByBillingPeriodOrderBySequenceNumberAsc("2026-11")).thenReturn(List.of());
-        when(ledgerService.exportMonthlyProof(YearMonth.of(2026, 11))).thenReturn(sampleProof);
+        when(ledgerService.exportMonthlyProof(YearMonth.of(2026, Month.NOVEMBER))).thenReturn(sampleProof);
         when(ledgerService.getSummary()).thenReturn(sampleSummary);
         when(httpClient.send(any(HttpRequest.class), eq(HttpResponse.BodyHandlers.ofString()))).thenReturn(httpResponse);
         when(httpResponse.statusCode()).thenReturn(204);
 
-        CommissionSyncResultDTO res = syncService.syncNow(YearMonth.of(2026, 11), "admin");
+        CommissionSyncResultDTO res = syncService.syncNow(YearMonth.of(2026, Month.NOVEMBER), "admin");
 
         assertFalse(res.synced());
         assertTrue(res.onlineReachable());
         assertEquals("UP_TO_DATE", res.syncStatus());
+    }
+
+    @Test
+    @DisplayName("syncNow & scheduledSync - covers blank URL, HTTP 500 error, and scheduler flag")
+    void syncNow_edgeCasesAndScheduler() throws Exception {
+        properties.setSyncEnabled(false);
+        syncService.scheduledSync();
+
+        properties.setBillingSyncUrl("");
+        when(ledgerService.getSummary()).thenReturn(sampleSummary);
+        CommissionSyncResultDTO blankRes = syncService.syncNow(YearMonth.of(2026, Month.NOVEMBER), "admin");
+        assertFalse(blankRes.synced());
+
+        properties.setBillingSyncUrl("https://api.openbar.fr/v1/billing/sync");
+        when(ledgerRepository.findByBillingPeriodOrderBySequenceNumberAsc("2026-11")).thenReturn(List.of());
+        when(ledgerService.exportMonthlyProof(YearMonth.of(2026, Month.NOVEMBER))).thenReturn(sampleProof);
+        when(httpClient.send(any(HttpRequest.class), eq(HttpResponse.BodyHandlers.ofString()))).thenReturn(httpResponse);
+        when(httpResponse.statusCode()).thenReturn(502);
+
+        CommissionSyncResultDTO errRes = syncService.syncNow(YearMonth.of(2026, Month.NOVEMBER), "admin");
+        assertFalse(errRes.synced());
+        assertTrue(errRes.onlineReachable());
+        assertEquals("FAILED", errRes.syncStatus());
+        assertTrue(errRes.message().contains("HTTP 502"));
     }
 }

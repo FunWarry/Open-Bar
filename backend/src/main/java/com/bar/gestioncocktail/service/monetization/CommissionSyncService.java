@@ -28,6 +28,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -106,7 +107,7 @@ public class CommissionSyncService {
             return;
         }
         try {
-            syncNow(YearMonth.now(), "scheduler");
+            syncNow(YearMonth.now(ZoneId.systemDefault()), "scheduler");
         } catch (Exception ex) {
             log.debug("Background commission sync skipped cleanly: {}", ex.getMessage());
         }
@@ -120,7 +121,7 @@ public class CommissionSyncService {
      * @return {@link CommissionSyncResultDTO}
      */
     public CommissionSyncResultDTO syncNow(YearMonth period, String actorUsername) {
-        YearMonth target = period != null ? period : YearMonth.now();
+        YearMonth target = period != null ? period : YearMonth.now(ZoneId.systemDefault());
         String periodStr = target.toString();
         String syncUrl = monetizationProperties.getBillingSyncUrl();
 

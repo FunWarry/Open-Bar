@@ -133,4 +133,15 @@ describe('MonetizationService', () => {
     store.refreshState();
     expect(service.summary()).toBeNull();
   });
+
+  it('downloadMonthlyProof() requests blob endpoint and handles loadSummary error gracefully', () => {
+    const blob = new Blob(['{}'], { type: 'application/json' });
+    service.downloadMonthlyProof('2026-11').subscribe(res => expect(res.size).toBeGreaterThan(0));
+    const blobReq = httpMock.expectOne(`${apiUrl}/export-proof/download?period=2026-11`);
+    expect(blobReq.request.responseType).toBe('blob');
+    blobReq.flush(blob);
+
+    service.loadSummary().subscribe(res => expect(res).toBeNull());
+    httpMock.expectOne(`${apiUrl}/status`).flush('Err', { status: 500, statusText: 'Server Error' });
+  });
 });

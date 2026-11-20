@@ -41,7 +41,6 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -194,6 +193,10 @@ public class CommissionLedgerService {
      */
     @Transactional(readOnly = true)
     public LedgerVerificationDTO verifyLedgerIntegrity() {
+        return computeLedgerVerification();
+    }
+
+    private LedgerVerificationDTO computeLedgerVerification() {
         List<CardCommissionLedgerEntry> entries = ledgerRepository.findAllByOrderBySequenceNumberAsc();
         if (entries.isEmpty()) {
             return new LedgerVerificationDTO(true, 0L, 0L, GENESIS_HASH, null,
@@ -234,7 +237,7 @@ public class CommissionLedgerService {
         String periodStr = targetPeriod.toString();
         String establishmentId = resolveEstablishmentId();
 
-        LedgerVerificationDTO integrity = verifyLedgerIntegrity();
+        LedgerVerificationDTO integrity = computeLedgerVerification();
         List<CardCommissionLedgerEntry> periodEntries =
                 ledgerRepository.findByBillingPeriodOrderBySequenceNumberAsc(periodStr);
 
@@ -253,8 +256,8 @@ public class CommissionLedgerService {
                 .toList();
 
         Instant now = clock.instant().truncatedTo(ChronoUnit.MILLIS);
-        String canonicalPayload = buildCanonicalProofPayload(
-                periodStr, establishmentId, now, totals, startHash, endHash, integrity.valid(), zReports);
+        String canonicalPayload = buildCanonicalProofPayload(new ProofPayloadInput(
+                periodStr, establishmentId, now, totals, startHash, endHash, integrity.valid(), zReports));
         String payloadDigest = sha256Hex(canonicalPayload);
         String hmacSig = computeHmacSha256Hex(canonicalPayload, establishmentId);
 
@@ -298,6 +301,10 @@ public class CommissionLedgerService {
      */
     @Transactional(readOnly = true)
     public MonetizationSummaryDTO getSummary() {
+        return resolveSummary();
+    }
+
+    private MonetizationSummaryDTO resolveSummary() {
         CommissionTierRatesDTO rates = commissionCalculator.resolveEffectiveRates();
         Instant now = clock.instant().truncatedTo(ChronoUnit.MILLIS);
 
@@ -338,7 +345,7 @@ public class CommissionLedgerService {
      */
     @Transactional(readOnly = true)
     public void assertTpeCardAllowed() {
-        MonetizationSummaryDTO summary = getSummary();
+        MonetizationSummaryDTO summary = resolveSummary();
         if (summary.tpeCardLocked()) {
             throw new BusinessException(
                     "Card terminal operations are temporarily locked because commission invoice "
@@ -360,8 +367,8 @@ public class CommissionLedgerService {
         String venueId = resolveEstablishmentId();
 
         CommissionTierRatesDTO rates = commissionCalculator.resolveEffectiveRates();
-        MonetizationSummaryDTO summary = getSummary();
-        LedgerVerificationDTO integrity = verifyLedgerIntegrity();
+        MonetizationSummaryDTO summary = resolveSummary();
+        LedgerVerificationDTO integrity = computeLedgerVerification();
 
         List<CardCommissionLedgerEntry> periodEntries =
                 ledgerRepository.findByBillingPeriodOrderBySequenceNumberAsc(periodStr);
@@ -418,42 +425,62 @@ public class CommissionLedgerService {
             Instant graceEndsAt,
             String syncStatus,
             String syncError) {
+        applyBillingStatusUpdate(billingPeriod, remoteInvoiceId, status, pendingAmount, graceEndsAt, syncStatus, syncError);
+    }
+
+    private void applyBillingStatusUpdate(
+            String billingPeriod,
+            String remoteInvoiceId,
+            CommissionInvoiceStatus status,
+            BigDecimal pendingAmount,
+            Instant graceEndsAt,
+            String syncStatus,
+            String syncError) {
         String targetPeriod = (billingPeriod != null && !billingPeriod.isBlank())
                 ? billingPeriod
                 : YearMonth.now(clock.withZone(ZoneId.systemDefault())).toString();
-        String estId = resolveEstablishmentId();
-        CommissionBillingRecord record = getOrCreateBillingRecord(targetPeriod, estId);
+        CommissionBillingRecord billingRecord = getOrCreateBillingRecord(targetPeriod, resolveEstablishmentId());
 
         if (remoteInvoiceId != null && !remoteInvoiceId.isBlank()) {
-            record.setRemoteInvoiceId(remoteInvoiceId);
+            billingRecord.setRemoteInvoiceId(remoteInvoiceId);
         }
-        if (status != null) {
-            record.setInvoiceStatus(status);
-            if (status == CommissionInvoiceStatus.SETTLED) {
-                record.setPendingAmount(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
-                record.setSettledAt(clock.instant());
-                record.setGraceStartedAt(null);
-                record.setGraceEndsAt(null);
-            } else if (status == CommissionInvoiceStatus.GRACE_PERIOD || status == CommissionInvoiceStatus.PENDING) {
-                if (record.getGraceStartedAt() == null) {
-                    record.setGraceStartedAt(clock.instant());
-                }
-                Instant resolvedGrace = graceEndsAt != null
-                        ? graceEndsAt
-                        : clock.instant().plus(Duration.ofDays(monetizationProperties.getGracePeriodDays()));
-                record.setGraceEndsAt(resolvedGrace);
-            }
-        }
+        applyInvoiceStatusTransition(billingRecord, status, graceEndsAt);
         if (pendingAmount != null && status != CommissionInvoiceStatus.SETTLED) {
-            record.setPendingAmount(pendingAmount.max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP));
+            billingRecord.setPendingAmount(pendingAmount.max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP));
         }
         if (syncStatus != null) {
-            record.setLastSyncAt(clock.instant());
-            record.setLastSyncStatus(syncStatus);
-            record.setLastSyncError(syncError != null && syncError.length() > 480 ? syncError.substring(0, 480) : syncError);
+            billingRecord.setLastSyncAt(clock.instant());
+            billingRecord.setLastSyncStatus(syncStatus);
+            billingRecord.setLastSyncError(syncError != null && syncError.length() > 480 ? syncError.substring(0, 480) : syncError);
         }
-        billingRepository.save(record);
+        billingRepository.save(billingRecord);
         broadcastSummary();
+    }
+
+    private void applyInvoiceStatusTransition(
+            CommissionBillingRecord billingRecord,
+            CommissionInvoiceStatus status,
+            Instant graceEndsAt) {
+        if (status == null) {
+            return;
+        }
+        billingRecord.setInvoiceStatus(status);
+        if (status == CommissionInvoiceStatus.SETTLED) {
+            billingRecord.setPendingAmount(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
+            billingRecord.setSettledAt(clock.instant());
+            billingRecord.setGraceStartedAt(null);
+            billingRecord.setGraceEndsAt(null);
+            return;
+        }
+        if (status == CommissionInvoiceStatus.GRACE_PERIOD || status == CommissionInvoiceStatus.PENDING) {
+            if (billingRecord.getGraceStartedAt() == null) {
+                billingRecord.setGraceStartedAt(clock.instant());
+            }
+            Instant resolvedGrace = graceEndsAt != null
+                    ? graceEndsAt
+                    : clock.instant().plus(Duration.ofDays(monetizationProperties.getGracePeriodDays()));
+            billingRecord.setGraceEndsAt(resolvedGrace);
+        }
     }
 
     /**
@@ -466,13 +493,13 @@ public class CommissionLedgerService {
         if (remoteInvoiceId == null || remoteInvoiceId.isBlank()) {
             return;
         }
-        billingRepository.findByRemoteInvoiceId(remoteInvoiceId).ifPresent(record -> {
-            record.setInvoiceStatus(CommissionInvoiceStatus.SETTLED);
-            record.setPendingAmount(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
-            record.setSettledAt(clock.instant());
-            record.setGraceStartedAt(null);
-            record.setGraceEndsAt(null);
-            billingRepository.save(record);
+        billingRepository.findByRemoteInvoiceId(remoteInvoiceId).ifPresent(billingRecord -> {
+            billingRecord.setInvoiceStatus(CommissionInvoiceStatus.SETTLED);
+            billingRecord.setPendingAmount(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
+            billingRecord.setSettledAt(clock.instant());
+            billingRecord.setGraceStartedAt(null);
+            billingRecord.setGraceEndsAt(null);
+            billingRepository.save(billingRecord);
             broadcastSummary();
         });
     }
@@ -491,7 +518,7 @@ public class CommissionLedgerService {
         Optional<CommissionBillingRecord> found = billingRepository.findByRemoteInvoiceId(remoteInvoiceId);
         if (found.isPresent()) {
             CommissionBillingRecord r = found.get();
-            updateBillingStatus(
+            applyBillingStatusUpdate(
                     r.getBillingPeriod(),
                     remoteInvoiceId,
                     CommissionInvoiceStatus.GRACE_PERIOD,
@@ -502,7 +529,7 @@ public class CommissionLedgerService {
             );
         } else {
             String currentPeriod = YearMonth.now(clock.withZone(ZoneId.systemDefault())).toString();
-            updateBillingStatus(
+            applyBillingStatusUpdate(
                     currentPeriod,
                     remoteInvoiceId,
                     CommissionInvoiceStatus.GRACE_PERIOD,
@@ -595,13 +622,13 @@ public class CommissionLedgerService {
         List<CardCommissionLedgerEntry> entries =
                 ledgerRepository.findByBillingPeriodOrderBySequenceNumberAsc(billingPeriod);
         PeriodTotals totals = computePeriodTotals(entries);
-        CommissionBillingRecord record = getOrCreateBillingRecord(billingPeriod, establishmentId);
-        applyTotalsToBillingRecord(record, totals);
-        record.setActiveTier(commissionCalculator.resolveEffectiveRates().activeTier());
+        CommissionBillingRecord billingRecord = getOrCreateBillingRecord(billingPeriod, establishmentId);
+        applyTotalsToBillingRecord(billingRecord, totals);
+        billingRecord.setActiveTier(commissionCalculator.resolveEffectiveRates().activeTier());
         if (!entries.isEmpty()) {
-            record.setEndLedgerHash(entries.getLast().getEntryHash());
+            billingRecord.setEndLedgerHash(entries.getLast().getEntryHash());
         }
-        billingRepository.save(record);
+        billingRepository.save(billingRecord);
     }
 
     private PeriodTotals computePeriodTotals(List<CardCommissionLedgerEntry> entries) {
@@ -633,14 +660,14 @@ public class CommissionLedgerService {
         );
     }
 
-    private void applyTotalsToBillingRecord(CommissionBillingRecord record, PeriodTotals totals) {
-        record.setOption1Volume(totals.opt1Vol());
-        record.setOption1Count(totals.opt1Count());
-        record.setOption1Commission(totals.opt1Comm());
-        record.setOption3Volume(totals.opt3Vol());
-        record.setOption3Count(totals.opt3Count());
-        record.setOption3Commission(totals.opt3Comm());
-        record.setTotalCommissionDue(totals.opt1Comm());
+    private void applyTotalsToBillingRecord(CommissionBillingRecord billingRecord, PeriodTotals totals) {
+        billingRecord.setOption1Volume(totals.opt1Vol());
+        billingRecord.setOption1Count(totals.opt1Count());
+        billingRecord.setOption1Commission(totals.opt1Comm());
+        billingRecord.setOption3Volume(totals.opt3Vol());
+        billingRecord.setOption3Count(totals.opt3Count());
+        billingRecord.setOption3Commission(totals.opt3Comm());
+        billingRecord.setTotalCommissionDue(totals.opt1Comm());
     }
 
     private void markOfflineExported(List<CardCommissionLedgerEntry> periodEntries) {
@@ -665,9 +692,9 @@ public class CommissionLedgerService {
     }
 
     private MonetizationSummaryDTO buildSummaryFromRecord(
-            TpeMonetizationTier activeTier, CommissionBillingRecord record, Instant now) {
-        CommissionInvoiceStatus status = record.getInvoiceStatus();
-        Instant graceEndsAt = record.getGraceEndsAt();
+            TpeMonetizationTier activeTier, CommissionBillingRecord billingRecord, Instant now) {
+        CommissionInvoiceStatus status = billingRecord.getInvoiceStatus();
+        Instant graceEndsAt = billingRecord.getGraceEndsAt();
         if ((status == CommissionInvoiceStatus.PENDING || status == CommissionInvoiceStatus.GRACE_PERIOD)
                 && graceEndsAt != null && now.isAfter(graceEndsAt)) {
             status = CommissionInvoiceStatus.OVERDUE;
@@ -678,15 +705,15 @@ public class CommissionLedgerService {
         boolean showBanner = status == CommissionInvoiceStatus.PENDING
                 || status == CommissionInvoiceStatus.GRACE_PERIOD
                 || status == CommissionInvoiceStatus.OVERDUE;
-        BigDecimal pendingAmt = record.getPendingAmount() != null && record.getPendingAmount().compareTo(BigDecimal.ZERO) > 0
-                ? record.getPendingAmount()
-                : record.getTotalCommissionDue();
+        BigDecimal pendingAmt = billingRecord.getPendingAmount() != null && billingRecord.getPendingAmount().compareTo(BigDecimal.ZERO) > 0
+                ? billingRecord.getPendingAmount()
+                : billingRecord.getTotalCommissionDue();
 
         return new MonetizationSummaryDTO(
                 activeTier,
-                record.getBillingPeriod(),
+                billingRecord.getBillingPeriod(),
                 status,
-                record.getRemoteInvoiceId(),
+                billingRecord.getRemoteInvoiceId(),
                 pendingAmt.setScale(2, RoundingMode.HALF_UP),
                 graceEndsAt,
                 graceHours,
@@ -748,32 +775,24 @@ public class CommissionLedgerService {
         }
     }
 
-    private String buildCanonicalProofPayload(
-            String period,
-            String establishmentId,
-            Instant generatedAt,
-            PeriodTotals totals,
-            String startHash,
-            String endHash,
-            boolean chainValid,
-            List<MonthlyCommissionProofDTO.ZReportDigestDTO> zReports) {
-        String zDigests = zReports.stream()
+    private String buildCanonicalProofPayload(ProofPayloadInput input) {
+        String zDigests = input.zReports().stream()
                 .map(z -> z.closureNumber() + ":" + z.closureDate() + ":" + z.sha256Hash())
                 .reduce((a, b) -> a + "," + b)
                 .orElse("");
         return String.join("|",
-                period,
-                establishmentId,
-                generatedAt.toString(),
-                totals.opt1Vol().toPlainString(),
-                String.valueOf(totals.opt1Count()),
-                totals.opt1Comm().toPlainString(),
-                totals.opt3Vol().toPlainString(),
-                String.valueOf(totals.opt3Count()),
-                totals.opt3Comm().toPlainString(),
-                startHash,
-                endHash,
-                String.valueOf(chainValid),
+                input.period(),
+                input.establishmentId(),
+                input.generatedAt().toString(),
+                input.totals().opt1Vol().toPlainString(),
+                String.valueOf(input.totals().opt1Count()),
+                input.totals().opt1Comm().toPlainString(),
+                input.totals().opt3Vol().toPlainString(),
+                String.valueOf(input.totals().opt3Count()),
+                input.totals().opt3Comm().toPlainString(),
+                input.startHash(),
+                input.endHash(),
+                String.valueOf(input.chainValid()),
                 zDigests
         );
     }
@@ -801,10 +820,7 @@ public class CommissionLedgerService {
 
     private String computeHmacSha256Hex(String payload, String establishmentId) {
         try {
-            String configured = monetizationProperties.getHmacSecret();
-            String keyMaterial = (configured != null && !configured.isBlank())
-                    ? configured
-                    : sha256Hex(establishmentId + ":" + (jwtProperties != null ? jwtProperties.getSecret() : "openbar-monetization"));
+            String keyMaterial = resolveHmacKeyMaterial(establishmentId);
             Mac mac = Mac.getInstance("HmacSHA256");
             mac.init(new SecretKeySpec(keyMaterial.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
             byte[] raw = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
@@ -813,6 +829,15 @@ public class CommissionLedgerService {
             log.warn("HMAC computation fallback triggered: {}", ex.getMessage());
             return sha256Hex(payload);
         }
+    }
+
+    private String resolveHmacKeyMaterial(String establishmentId) {
+        String configured = monetizationProperties.getHmacSecret();
+        if (configured != null && !configured.isBlank()) {
+            return configured;
+        }
+        String jwtSecret = jwtProperties != null ? jwtProperties.getSecret() : "openbar-monetization";
+        return sha256Hex(establishmentId + ":" + jwtSecret);
     }
 
     private String sha256Hex(String input) {
@@ -848,11 +873,23 @@ public class CommissionLedgerService {
     private void broadcastSummary() {
         if (notificationService != null) {
             try {
-                notificationService.notifierMonetizationMiseAJour(getSummary());
+                notificationService.notifierMonetizationMiseAJour(resolveSummary());
             } catch (Exception ex) {
                 log.debug("Could not broadcast monetization update: {}", ex.getMessage());
             }
         }
+    }
+
+    private record ProofPayloadInput(
+            String period,
+            String establishmentId,
+            Instant generatedAt,
+            PeriodTotals totals,
+            String startHash,
+            String endHash,
+            boolean chainValid,
+            List<MonthlyCommissionProofDTO.ZReportDigestDTO> zReports
+    ) {
     }
 
     private record PeriodTotals(
