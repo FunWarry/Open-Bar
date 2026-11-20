@@ -227,9 +227,13 @@ mcp__plugin_github_github__merge_pull_request(
 
 Une fois la PR mergée :
 
-**1. Supprimer le Worktree proprement :**
-```bash
+**1. Détacher la jonction `node_modules` puis supprimer le Worktree proprement :**
+> ⚠️ **Critique sous Windows :** Il faut **impérativement** détacher la jonction NTFS `node_modules` via `cmd /c rmdir` **avant** d'appeler `git worktree remove`, sinon Git laisse un dossier orphelin contenant la jonction et échoue à supprimer le répertoire complet.
+```powershell
+cmd /c rmdir .worktrees\ticket-<NUMERO>\frontend\node_modules
 git worktree remove .worktrees/ticket-<NUMERO> --force
+git worktree prune
+if (Test-Path .worktrees/ticket-<NUMERO>) { Remove-Item -Path .worktrees/ticket-<NUMERO> -Recurse -Force }
 ```
 
 **2. Supprimer les branches locale et distante :**
