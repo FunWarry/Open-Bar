@@ -10,6 +10,7 @@ import { OnboardingStep } from '../../core/models/onboarding-step.model';
 import { OnboardingService } from '../../core/services/onboarding.service';
 import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
 import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
+import { BrandLogoComponent } from '../../core/components/ui/brand-logo/brand-logo.component';
 
 /**
  * Interactive Onboarding Component displaying role-tailored tutorial cards
@@ -30,7 +31,8 @@ import { ActionButtonComponent } from '../../core/components/ui/action-button/ac
     IonCardContent,
     TranslocoModule,
     RoleBadgeComponent,
-    ActionButtonComponent
+    ActionButtonComponent,
+    BrandLogoComponent
   ]
 })
 export class OnboardingComponent implements OnInit, OnDestroy {

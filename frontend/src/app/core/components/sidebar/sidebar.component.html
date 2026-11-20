@@ -4,18 +4,8 @@
   data-testid="sidebar-container"
   aria-label="Sidebar Navigation">
 
-  <!-- Header: Brand Name + Collapse / Expand toggle button -->
+  <!-- Header: Collapse / Expand toggle button (brand logo is rendered persistently by app shell) -->
   <div class="sidebar-header">
-    @if (!isCollapsed()) {
-      <button
-        type="button"
-        class="sidebar-brand"
-        (click)="navigationService.navigateToHome()"
-        (keyup.enter)="navigationService.navigateToHome()"
-        data-testid="sidebar-brand">
-        OpenBar
-      </button>
-    }
     @if (navigationService.isMobile()) {
       <button
         type="button"

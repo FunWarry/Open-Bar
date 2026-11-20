@@ -1,0 +1,70 @@
+<span
+  [class]="'brand-logo brand-logo--' + variant + ' brand-logo--' + size"
+  [class.brand-logo--monochrome]="monochrome"
+  [attr.data-testid]="testId"
+  [attr.role]="decorative ? null : 'img'"
+  [attr.aria-label]="decorative ? null : label"
+  [attr.aria-hidden]="decorative ? 'true' : null">
+  <svg
+    class="brand-logo-svg"
+    [class.brand-logo-svg--full]="variant === 'full'"
+    [class.brand-logo-svg--icon]="variant !== 'full'"
+    xmlns="http://www.w3.org/2000/svg"
+    [attr.viewBox]="variant === 'full' ? '0 0 600 460' : '132 30 310 310'"
+    aria-hidden="true">
+    <defs>
+      <linearGradient [attr.id]="iconGradId" gradientUnits="userSpaceOnUse" x1="0" y1="59" x2="0" y2="311">
+        <stop offset="0%" class="logo-grad-start" />
+        <stop offset="45%" class="logo-grad-mid" />
+        <stop offset="100%" class="logo-grad-end" />
+      </linearGradient>
+
+      @if (variant === 'full') {
+        <linearGradient [attr.id]="textGradId" gradientUnits="userSpaceOnUse" x1="0" y1="345" x2="0" y2="415">
+          <stop offset="0%" class="logo-text-start" />
+          <stop offset="100%" class="logo-text-end" />
+        </linearGradient>
+      }
+
+      <filter [attr.id]="softGlowId" x="-25%" y="-25%" width="150%" height="150%">
+        <feGaussianBlur stdDeviation="5" result="blur" />
+        <feFlood class="logo-glow-flood" result="glowColor" />
+        <feComposite in="glowColor" in2="blur" operator="in" result="coloredBlur" />
+        <feMerge>
+          <feMergeNode in="coloredBlur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+    </defs>
+
+    <g
+      fill="none"
+      [attr.stroke]="monochrome ? 'currentColor' : iconStrokeUrl"
+      stroke-width="10.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      [attr.filter]="glow && !monochrome ? glowFilterUrl : null">
+      <circle cx="242" cy="115" r="56" />
+      <path d="M 242 59 L 176 59 C 168 95, 178 135, 206 157" />
+      <path d="M 314 59 L 372 59 C 402 59, 402 114, 372 114 L 352 114 C 318 114, 298 132, 286 150" />
+      <path d="M 372 114 C 410 114, 410 172, 372 172 L 348 172 C 314 172, 288 194, 288 232 L 288 282" />
+      <path d="M 288 282 L 222 311 L 354 311 Z" />
+    </g>
+
+    @if (variant === 'full') {
+      <text
+        x="300"
+        y="405"
+        text-anchor="middle"
+        [attr.fill]="monochrome ? 'currentColor' : textFillUrl"
+        font-family="'Montserrat', 'Poppins', 'Inter', system-ui, -apple-system, sans-serif"
+        font-size="84"
+        font-weight="700"
+        letter-spacing="-1.5">{{ label }}</text>
+    }
+  </svg>
+
+  @if (variant === 'horizontal') {
+    <span class="brand-logo-wordmark">{{ label }}</span>
+  }
+</span>

@@ -1,4 +1,4 @@
-import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, WritableSignal, ChangeDetectionStrategy } from '@angular/core';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from '../app/app.component';
@@ -29,18 +29,25 @@ describe('AppComponent', () => {
   let mockSessionTimeoutService: jasmine.SpyObj<SessionTimeoutService>;
   let mockStartupReadinessService: jasmine.SpyObj<StartupReadinessService>;
   let mockModalHistoryService: jasmine.SpyObj<ModalHistoryService>;
+  let mockNavigationService: jasmine.SpyObj<NavigationService>;
+  let isSidebarCollapsedSignal: WritableSignal<boolean>;
+  let isMobileSidebarOpenSignal: WritableSignal<boolean>;
+  let isMobileSignal: WritableSignal<boolean>;
   let router: Router;
 
   beforeEach(async () => {
     mockModalHistoryService = jasmine.createSpyObj('ModalHistoryService', [
       'init', 'destroy', 'dismissTopOverlay', 'getOverlayCount'
     ]);
-    const mockNavigationService = jasmine.createSpyObj('NavigationService', [
+    isSidebarCollapsedSignal = signal(false);
+    isMobileSidebarOpenSignal = signal(false);
+    isMobileSignal = signal(false);
+    mockNavigationService = jasmine.createSpyObj('NavigationService', [
       'navigateToHome', 'navigateToLogin', 'navigateToAdmin', 'navigateToUserProfile', 'toggleSidebarCollapse', 'setSidebarCollapsed', 'closeMobileSidebar'
     ], {
-      isSidebarCollapsed: signal(false),
-      isMobileSidebarOpen: signal(false),
-      isMobile: signal(false),
+      isSidebarCollapsed: isSidebarCollapsedSignal,
+      isMobileSidebarOpen: isMobileSidebarOpenSignal,
+      isMobile: isMobileSignal,
     });
 
     const mockWebSocketService = jasmine.createSpyObj('WebSocketService', [
@@ -210,5 +217,47 @@ describe('AppComponent', () => {
 
     const backdropEl = fixture.nativeElement.querySelector('[data-testid="notif-backdrop"]');
     expect(backdropEl).toBeNull();
+  }));
+
+  it('should render a single persistent shell brand logo that transitions between sidebar and topbar without duplication', fakeAsync(() => {
+    const fixture = TestBed.createComponent(AppComponent);
+    router.navigate(['/app-home']);
+    tick();
+    fixture.detectChanges();
+
+    const hostEl = fixture.nativeElement as HTMLElement;
+    const initialLogos = hostEl.querySelectorAll('[data-testid="app-shell-brand-logo"]');
+    expect(initialLogos).toHaveSize(1);
+    expect(hostEl.querySelector('[data-testid="sidebar-brand"]')).toBeNull();
+    expect(hostEl.querySelector('[data-testid="topbar-logo"]')).toBeNull();
+
+    const shellBtn = hostEl.querySelector('[data-testid="shell-brand-logo"]') as HTMLButtonElement;
+    expect(shellBtn).toBeTruthy();
+    expect(shellBtn.classList.contains('in-topbar')).toBeFalse();
+    expect(shellBtn.classList.contains('in-mobile-topbar')).toBeFalse();
+    expect(shellBtn.classList.contains('in-mobile-drawer')).toBeFalse();
+
+    // Collapse desktop sidebar: same DOM element glides to topbar
+    isSidebarCollapsedSignal.set(true);
+    fixture.detectChanges();
+    expect(hostEl.querySelectorAll('[data-testid="app-shell-brand-logo"]')).toHaveSize(1);
+    expect(hostEl.querySelector('[data-testid="shell-brand-logo"]')).toBe(shellBtn);
+    expect(shellBtn.classList.contains('in-topbar')).toBeTrue();
+
+    // Switch to mobile viewport with drawer closed -> drawer open
+    isMobileSignal.set(true);
+    isMobileSidebarOpenSignal.set(false);
+    fixture.detectChanges();
+    expect(shellBtn.classList.contains('in-mobile-topbar')).toBeTrue();
+    expect(shellBtn.classList.contains('in-mobile-drawer')).toBeFalse();
+
+    isMobileSidebarOpenSignal.set(true);
+    fixture.detectChanges();
+    expect(hostEl.querySelector('[data-testid="shell-brand-logo"]')).toBe(shellBtn);
+    expect(shellBtn.classList.contains('in-mobile-topbar')).toBeFalse();
+    expect(shellBtn.classList.contains('in-mobile-drawer')).toBeTrue();
+
+    shellBtn.click();
+    expect(mockNavigationService.navigateToHome).toHaveBeenCalled();
   }));
 });

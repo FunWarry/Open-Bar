@@ -143,5 +143,61 @@ test.describe('Responsive Layout & Visibility E2E Suite', () => {
     const userBtn = page.locator('[data-testid="topbar-user-btn"]');
     await expect(userBtn).toBeVisible();
   });
+
+  test('should render single persistent brand logo that glides smoothly between sidebar and topbar without duplication', async ({ page }) => {
+    // Desktop: expanded sidebar -> collapsed sidebar -> logo glides from sidebar into topbar
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/app-home');
+
+    const logos = page.locator('[data-testid="app-shell-brand-logo"]');
+    await expect(logos).toHaveCount(1);
+    await expect(logos.first()).toBeVisible();
+
+    const expandedBox = await logos.first().boundingBox();
+    expect(expandedBox).not.toBeNull();
+    expect(expandedBox!.x).toBeLessThan(40);
+    expect(expandedBox!.y).toBeLessThan(56);
+
+    const toggleBtn = page.locator('[data-testid="sidebar-toggle-btn"]');
+    await toggleBtn.click();
+
+    await expect(logos).toHaveCount(1);
+    await expect(logos.first()).toBeVisible();
+    await expect.poll(async () => (await logos.first().boundingBox())?.x ?? 0).toBeGreaterThanOrEqual(68);
+
+    const collapsedBox = await logos.first().boundingBox();
+    const toggleBox = await toggleBtn.boundingBox();
+    expect(collapsedBox).not.toBeNull();
+    expect(toggleBox).not.toBeNull();
+    expect(collapsedBox!.x).toBeLessThan(120);
+    expect(collapsedBox!.x).toBeGreaterThanOrEqual(toggleBox!.x + toggleBox!.width);
+
+    // Mobile: drawer closed (logo in topbar after burger) -> drawer open (logo glides into drawer header)
+    await page.setViewportSize({ width: 412, height: 915 });
+    await page.goto('/app-home');
+
+    await expect(logos).toHaveCount(1);
+    await expect(logos.first()).toBeVisible();
+
+    const burgerBtn = page.locator('[data-testid="topbar-burger-btn"]');
+    await expect(burgerBtn).toBeVisible();
+    await expect.poll(async () => (await logos.first().boundingBox())?.x ?? 0).toBeGreaterThanOrEqual(66);
+
+    const mobileTopbarBox = await logos.first().boundingBox();
+    const burgerBox = await burgerBtn.boundingBox();
+    expect(mobileTopbarBox).not.toBeNull();
+    expect(burgerBox).not.toBeNull();
+    expect(mobileTopbarBox!.x).toBeGreaterThanOrEqual(burgerBox!.x + burgerBox!.width - 2);
+
+    await burgerBtn.click();
+    await expect(logos).toHaveCount(1);
+    await expect(logos.first()).toBeVisible();
+    await expect.poll(async () => (await logos.first().boundingBox())?.x ?? 999).toBeLessThan(40);
+
+    const hasHorizontalOverflow = await page.evaluate(() => {
+      return document.documentElement.scrollWidth > window.innerWidth;
+    });
+    expect(hasHorizontalOverflow).toBe(false);
+  });
 });
 

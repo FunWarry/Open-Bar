@@ -23,6 +23,15 @@
   --primary-press: #4d5ac4;
   --primary-light: #aab4f3;
 
+  /* OpenBar Brand Logo Tokens (Dark Mode — default) */
+  --brand-logo-grad-start: #d4d2ff;
+  --brand-logo-grad-mid: #a8a4ff;
+  --brand-logo-grad-end: #6963f5;
+  --brand-logo-text-start: #f2f1ff;
+  --brand-logo-text-end: #d5d3ff;
+  --brand-logo-glow-color: #7b75ff;
+  --brand-logo-glow-opacity: 0.45;
+
   /* Thème — Text */
   --text-primary: #eceefb;
   --text-secondary: #a4add0;
@@ -288,6 +297,15 @@ body.light-theme,
   --primary-border: #6366f1;
   --primary-tint: #e0e7ff;
   --primary-tint-weak: rgba(79, 70, 229, 0.08);
+
+  /* OpenBar Brand Logo Tokens (Light Mode — WCAG AA high contrast) */
+  --brand-logo-grad-start: #7c74f7;
+  --brand-logo-grad-mid: #5b52e8;
+  --brand-logo-grad-end: #3f36c9;
+  --brand-logo-text-start: #1e1b4b;
+  --brand-logo-text-end: #4338ca;
+  --brand-logo-glow-color: #6366f1;
+  --brand-logo-glow-opacity: 0.2;
 
   /* Thème — Text */
   --text-primary: #0f172a;

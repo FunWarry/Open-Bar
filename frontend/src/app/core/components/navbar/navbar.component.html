@@ -1,7 +1,7 @@
 @if (shouldShowNavbar$ | async) {
   <ion-header>
     <ion-toolbar class="topbar-toolbar">
-      <!-- Left side: Hamburger on mobile + Brand Logo -->
+      <!-- Left side: Hamburger on mobile (brand logo is rendered persistently by app shell) -->
       <ion-buttons slot="start" class="topbar-start-group">
         <ion-button
           class="topbar-burger-btn show-on-mobile"
@@ -12,26 +12,6 @@
           [title]="'NAV.MENU' | transloco">
           <ion-icon slot="icon-only" name="menu-outline"></ion-icon>
         </ion-button>
-
-        @if (navigationService.isSidebarCollapsed()) {
-          <button
-            type="button"
-            (click)="navigationService.navigateToHome()"
-            (keyup.enter)="navigationService.navigateToHome()"
-            class="topbar-logo-btn"
-            data-testid="topbar-logo">
-            OpenBar
-          </button>
-        } @else {
-          <button
-            type="button"
-            (click)="navigationService.navigateToHome()"
-            (keyup.enter)="navigationService.navigateToHome()"
-            class="topbar-logo-btn show-on-mobile"
-            data-testid="topbar-logo">
-            OpenBar
-          </button>
-        }
       </ion-buttons>
 
       <!-- Dynamic page title (center, hidden on smaller screens) -->

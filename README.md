@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/FunWarry/Open-Bar/dev/frontend/src/assets/icons/icon-192x192.png" alt="OpenBar Logo" width="108" height="108" style="border-radius: 22%; box-shadow: 0 10px 25px rgba(0,0,0,0.2);" />
 </p>
 
-<h1 align="center">🍹 OpenBar</h1>
+<h1 align="center">OpenBar</h1>
 
 <p align="center">
   <strong>L'OS de caisse et de gestion nouvelle génération pour bars, brasseries et établissements de nuit : ultra-rapide, 0% de commission, liberté totale d'hébergement (sur votre matériel existant ou dans notre Cloud souverain français), résilience 100% hors-ligne et innovations mixologiques exclusives.</strong>

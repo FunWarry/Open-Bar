@@ -4,6 +4,7 @@ import { IonIcon, IonSpinner } from '@ionic/angular';
 import { TranslocoModule } from '@jsverse/transloco';
 import { StartupReadinessService } from '../../services/startup-readiness.service';
 import { ActionButtonComponent } from '../ui/action-button/action-button.component';
+import { BrandLogoComponent } from '../ui/brand-logo/brand-logo.component';
 
 /**
  * Startup waiting screen overlay displayed strictly during initial application cold-boot.
@@ -15,7 +16,7 @@ import { ActionButtonComponent } from '../ui/action-button/action-button.compone
 @Component({
   selector: 'app-startup-overlay',
   standalone: true,
-  imports: [CommonModule, IonIcon, IonSpinner, TranslocoModule, ActionButtonComponent],
+  imports: [CommonModule, IonIcon, IonSpinner, TranslocoModule, ActionButtonComponent, BrandLogoComponent],
   templateUrl: './startup-overlay.component.html',
   styleUrls: ['./startup-overlay.component.css'],
   changeDetection: ChangeDetectionStrategy.Eager

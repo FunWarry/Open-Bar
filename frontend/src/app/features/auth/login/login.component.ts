@@ -12,6 +12,7 @@ import { OnboardingService } from '../../../core/services/onboarding.service';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import { PasswordInputComponent } from '../../../core/components/ui/password-input/password-input.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+import { BrandLogoComponent } from '../../../core/components/ui/brand-logo/brand-logo.component';
 
 /**
  * Login Component allowing users to sign in to their OpenBar workspace.
@@ -28,7 +29,8 @@ import { ActionButtonComponent } from '../../../core/components/ui/action-button
     TranslocoModule,
     InputFieldComponent,
     PasswordInputComponent,
-    ActionButtonComponent
+    ActionButtonComponent,
+    BrandLogoComponent
   ]
 })
 export class LoginComponent implements OnInit, OnDestroy {

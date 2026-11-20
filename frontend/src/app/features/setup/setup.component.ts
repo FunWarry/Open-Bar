@@ -6,6 +6,7 @@ import { ToastController, ModalController, IonCheckbox } from '@ionic/angular';
 import { SetupService } from '../../core/services/setup.service';
 import { InputFieldComponent } from '../../core/components/ui/input-field/input-field.component';
 import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
+import { BrandLogoComponent } from '../../core/components/ui/brand-logo/brand-logo.component';
 import { LegalComponent, LegalTab } from '../legal/legal.component';
 
 /**
@@ -39,7 +40,8 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
     TranslocoModule,
     IonCheckbox,
     InputFieldComponent,
-    ActionButtonComponent
+    ActionButtonComponent,
+    BrandLogoComponent
   ]
 })
 export class SetupComponent implements OnInit {
