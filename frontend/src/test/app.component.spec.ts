@@ -227,7 +227,7 @@ describe('AppComponent', () => {
 
     const hostEl = fixture.nativeElement as HTMLElement;
     const initialLogos = hostEl.querySelectorAll('[data-testid="app-shell-brand-logo"]');
-    expect(initialLogos.length).toBe(1);
+    expect(initialLogos).toHaveSize(1);
     expect(hostEl.querySelector('[data-testid="sidebar-brand"]')).toBeNull();
     expect(hostEl.querySelector('[data-testid="topbar-logo"]')).toBeNull();
 
@@ -240,7 +240,7 @@ describe('AppComponent', () => {
     // Collapse desktop sidebar: same DOM element glides to topbar
     isSidebarCollapsedSignal.set(true);
     fixture.detectChanges();
-    expect(hostEl.querySelectorAll('[data-testid="app-shell-brand-logo"]').length).toBe(1);
+    expect(hostEl.querySelectorAll('[data-testid="app-shell-brand-logo"]')).toHaveSize(1);
     expect(hostEl.querySelector('[data-testid="shell-brand-logo"]')).toBe(shellBtn);
     expect(shellBtn.classList.contains('in-topbar')).toBeTrue();
 
