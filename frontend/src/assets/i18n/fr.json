@@ -257,7 +257,38 @@
       "MANAGERS": "Managers",
       "MANAGERS_SUB": "Gestion & supervision",
       "STAFF": "Équipe Salle & Bar",
-      "STAFF_SUB": "Serveurs & barmans"
+      "STAFF_SUB": "Serveurs & barmans",
+      "WAITERS": "Serveurs",
+      "WAITERS_SUB": "Service en salle",
+      "BARTENDERS": "Barmans",
+      "BARTENDERS_SUB": "Préparation du bar"
+    },
+    "CREATE_SUCCESS": "Utilisateur créé avec succès",
+    "CREATE_ERROR": "Erreur lors de la création de l'utilisateur",
+    "EDIT_SUCCESS": "Utilisateur modifié avec succès",
+    "EDIT_ERROR": "Erreur lors de la modification de l'utilisateur",
+    "DELETE_SUCCESS": "Utilisateur supprimé avec succès",
+    "DELETE_ERROR": "Erreur lors de la suppression de l'utilisateur",
+    "LOAD_ERROR": "Erreur lors du chargement des utilisateurs",
+    "DIALOG_SUBTITLE_CREATE": "Créez un nouveau compte avec rôles et identifiants sécurisés.",
+    "DIALOG_SUBTITLE_EDIT": "Modifiez les informations et rôles de l'utilisateur.",
+    "ROLES_HELP": "Sélectionnez un ou plusieurs rôles pour définir les permissions.",
+    "STATUS_ACTIVE": "Actif",
+    "STATUS_INACTIVE": "Inactif",
+    "TABLE": {
+      "USER": "Utilisateur",
+      "CONTACT": "Contact",
+      "ROLES": "Rôles",
+      "STATUS": "Statut",
+      "CREATED_AT": "Date de création",
+      "ACTIONS": "Actions"
+    },
+    "PASSWORD_STRENGTH": {
+      "LABEL": "Force du mot de passe",
+      "VERY_WEAK": "Très faible",
+      "WEAK": "Faible",
+      "MEDIUM": "Moyen",
+      "STRONG": "Fort"
     }
   },
   "CLIENT": {

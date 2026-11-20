@@ -257,7 +257,38 @@
       "MANAGERS": "Managers",
       "MANAGERS_SUB": "Management & supervision",
       "STAFF": "Floor & Bar Staff",
-      "STAFF_SUB": "Waiters & bartenders"
+      "STAFF_SUB": "Waiters & bartenders",
+      "WAITERS": "Waiters",
+      "WAITERS_SUB": "Floor service",
+      "BARTENDERS": "Bartenders",
+      "BARTENDERS_SUB": "Bar preparation"
+    },
+    "CREATE_SUCCESS": "User created successfully",
+    "CREATE_ERROR": "Error creating user",
+    "EDIT_SUCCESS": "User updated successfully",
+    "EDIT_ERROR": "Error updating user",
+    "DELETE_SUCCESS": "User deleted successfully",
+    "DELETE_ERROR": "Error deleting user",
+    "LOAD_ERROR": "Error loading users",
+    "DIALOG_SUBTITLE_CREATE": "Create a new account with roles and secure credentials.",
+    "DIALOG_SUBTITLE_EDIT": "Modify user information and role assignments.",
+    "ROLES_HELP": "Select one or more roles to define user permissions.",
+    "STATUS_ACTIVE": "Active",
+    "STATUS_INACTIVE": "Inactive",
+    "TABLE": {
+      "USER": "User",
+      "CONTACT": "Contact",
+      "ROLES": "Roles",
+      "STATUS": "Status",
+      "CREATED_AT": "Created date",
+      "ACTIONS": "Actions"
+    },
+    "PASSWORD_STRENGTH": {
+      "LABEL": "Password strength",
+      "VERY_WEAK": "Very weak",
+      "WEAK": "Weak",
+      "MEDIUM": "Medium",
+      "STRONG": "Strong"
     }
   },
   "CLIENT": {
