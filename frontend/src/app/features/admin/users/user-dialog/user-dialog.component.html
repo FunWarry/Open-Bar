@@ -1,17 +1,14 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-title>{{ (data ? 'USERS.EDIT_TITLE' : 'USERS.NEW_TITLE') | transloco }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="btn-close-dialog" [attr.aria-label]="'COMMON.CLOSE' | transloco">
-        <ion-icon slot="icon-only" name="close"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<app-modal
+  [title]="(data ? 'USERS.EDIT_TITLE' : 'USERS.NEW_TITLE') | transloco"
+  [subtitle]="(data ? 'USERS.DIALOG_SUBTITLE_EDIT' : 'USERS.DIALOG_SUBTITLE_CREATE') | transloco"
+  [icon]="data ? 'create-outline' : 'person-add'"
+  size="md"
+  (dismiss)="onCancel()"
+  titleTestId="user-dialog-title"
+  closeButtonTestId="btn-close-dialog">
 
-<ion-content class="modal-content-container">
-  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="user-dialog-form">
-    
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="user-dialog-form" id="userForm">
+    <!-- Username -->
     <app-input-field
       formControlName="username"
       [label]="'USERS.USERNAME_LABEL' | transloco"
@@ -22,6 +19,7 @@
       testId="input-username">
     </app-input-field>
 
+    <!-- First & Last Name row -->
     <div class="name-fields-row">
       <app-input-field
         formControlName="prenom"
@@ -40,6 +38,7 @@
       </app-input-field>
     </div>
 
+    <!-- Email -->
     <app-input-field
       formControlName="email"
       type="email"
@@ -51,57 +50,90 @@
       testId="input-email">
     </app-input-field>
 
-    <app-input-field
-      formControlName="password"
-      type="password"
-      [label]="(data ? 'USERS.NEW_PASSWORD_OPTIONAL' : 'USERS.PASSWORD_LABEL') | transloco"
-      placeholder="••••••••"
-      icon="lock-closed-outline"
-      [required]="!data"
-      [errorMessage]="userForm.get('password')?.hasError('minlength') && userForm.get('password')?.touched ? ('USERS.PASSWORD_MIN_LENGTH' | transloco) : ''"
-      testId="input-password">
-    </app-input-field>
+    <!-- Password with visibility toggle & strength meter -->
+    <div class="password-field-group">
+      <app-password-input
+        formControlName="password"
+        [label]="(data ? 'USERS.NEW_PASSWORD_OPTIONAL' : 'USERS.PASSWORD_LABEL') | transloco"
+        placeholder="••••••••"
+        [required]="!data"
+        [errorMessage]="userForm.get('password')?.hasError('minlength') && userForm.get('password')?.touched ? ('USERS.PASSWORD_MIN_LENGTH' | transloco) : ''"
+        testId="input-password">
+      </app-password-input>
 
-    <app-input-field
+      @if (userForm.get('password')?.value) {
+        <div class="password-strength-container" data-testid="password-strength-meter">
+          <div class="strength-header">
+            <span class="strength-title">{{ 'USERS.PASSWORD_STRENGTH.LABEL' | transloco }}</span>
+            <span class="strength-badge" [ngClass]="passwordStrengthClass">
+              {{ passwordStrengthLabelKey | transloco }}
+            </span>
+          </div>
+          <div class="strength-bars" [ngClass]="passwordStrengthClass">
+            <div class="bar" [class.filled]="passwordStrengthScore >= 1"></div>
+            <div class="bar" [class.filled]="passwordStrengthScore >= 2"></div>
+            <div class="bar" [class.filled]="passwordStrengthScore >= 3"></div>
+            <div class="bar" [class.filled]="passwordStrengthScore >= 4"></div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Confirm Password -->
+    <app-password-input
       formControlName="confirmPassword"
-      type="password"
       [label]="'USERS.CONFIRM_PASSWORD_LABEL' | transloco"
       placeholder="••••••••"
-      icon="shield-checkmark-outline"
       [required]="!data"
       [errorMessage]="userForm.hasError('passwordMismatch') && userForm.get('confirmPassword')?.touched ? ('USERS.PASSWORD_MISMATCH' | transloco) : ''"
       testId="input-confirm-password">
-    </app-input-field>
+    </app-password-input>
 
-    <fieldset class="roles-field-group">
-      <legend class="field-label">{{ 'USERS.ASSIGNED_ROLES' | transloco }} <span class="required-star">*</span></legend>
+    <!-- Roles section with Filter Chips -->
+    <div class="roles-selection-section">
+      <div class="section-label-row">
+        <label class="section-label">
+          {{ 'USERS.ASSIGNED_ROLES' | transloco }} <span class="required-star">*</span>
+        </label>
+        <span class="section-hint">{{ 'USERS.ROLES_HELP' | transloco }}</span>
+      </div>
+
       <div class="roles-chips-grid">
         @for (roleObj of availableRoles; track roleObj.value) {
-          <button
-            type="button"
-            class="role-chip-btn"
-            [class.selected]="isRoleSelected(roleObj.value)"
-            (click)="toggleRole(roleObj.value)"
-            [attr.data-testid]="'role-chip-' + roleObj.value">
-            <ion-icon [name]="isRoleSelected(roleObj.value) ? 'checkbox' : 'square-outline'"></ion-icon>
-            <span>{{ 'SHIFTS.FILTERS.' + roleObj.value | transloco }}</span>
-          </button>
+          <app-filter-chip
+            [label]="roleObj.labelKey | transloco"
+            [icon]="roleObj.icon"
+            [active]="isRoleSelected(roleObj.value)"
+            (chipClick)="toggleRole(roleObj.value)"
+            [testId]="'role-chip-' + roleObj.value">
+          </app-filter-chip>
         }
       </div>
+
       @if (userForm.get('roles')?.touched && userForm.get('roles')?.hasError('required')) {
-        <p class="error-hint">{{ 'USERS.ROLE_REQUIRED' | transloco }}</p>
+        <p class="error-hint" data-testid="role-required-error">{{ 'USERS.ROLE_REQUIRED' | transloco }}</p>
       }
-    </fieldset>
-
-    <div class="modal-actions-row">
-      <ion-button fill="outline" color="medium" (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="btn-cancel-user">
-        {{ 'COMMON.CANCEL' | transloco }}
-      </ion-button>
-      <ion-button color="primary" type="submit" [disabled]="userForm.invalid" data-testid="btn-submit-user">
-        <ion-icon slot="start" [name]="data ? 'checkmark-circle' : 'person-add'"></ion-icon>
-        {{ (data ? 'USERS.SUBMIT_EDIT' : 'USERS.SUBMIT_CREATE') | transloco }}
-      </ion-button>
     </div>
-
   </form>
-</ion-content>
+
+  <!-- Modal Footer Actions -->
+  <div modal-footer class="modal-footer-actions">
+    <app-action-button
+      variant="secondary"
+      size="medium"
+      (btnClick)="onCancel()"
+      testId="btn-cancel-user">
+      {{ 'COMMON.CANCEL' | transloco }}
+    </app-action-button>
+
+    <app-action-button
+      variant="primary"
+      size="medium"
+      [icon]="data ? 'checkmark-circle' : 'person-add'"
+      [disabled]="userForm.invalid"
+      (btnClick)="onSubmit()"
+      testId="btn-submit-user">
+      {{ (data ? 'USERS.SUBMIT_EDIT' : 'USERS.SUBMIT_CREATE') | transloco }}
+    </app-action-button>
+  </div>
+</app-modal>

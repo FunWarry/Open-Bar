@@ -29,8 +29,9 @@ describe('UserListComponent', () => {
   };
 
   beforeEach(() => {
-    userServiceSpy = jasmine.createSpyObj('UserService', ['getUsersPaged', 'createUser', 'updateUser', 'deleteUser']);
+    userServiceSpy = jasmine.createSpyObj('UserService', ['getUsersPaged', 'getUsers', 'createUser', 'updateUser', 'deleteUser']);
     userServiceSpy.getUsersPaged.and.returnValue(of(mockPageResponse));
+    userServiceSpy.getUsers.and.returnValue(of(mockUsers));
 
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
     toastSpy = { present: jasmine.createSpy('present').and.returnValue(Promise.resolve()) };
@@ -55,7 +56,7 @@ describe('UserListComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInit() loads paginated users', () => {
+  it('ngOnInit() loads paginated users and global stats', () => {
     expect(userServiceSpy.getUsersPaged).toHaveBeenCalledWith(0, 10, '', 'ALL');
     expect(component.users).toEqual(mockUsers);
     expect(component.loading).toBeFalse();
@@ -102,14 +103,6 @@ describe('UserListComponent', () => {
   it('trackById() returns user.id if present', () => {
     const user = { id: 42, username: 'test' } as User;
     expect(component.trackById(0, user)).toBe(42);
-  });
-
-  it('getRoleColor() returns correct colors per role', () => {
-    expect(component.getRoleColor('ADMIN')).toBe('tertiary');
-    expect(component.getRoleColor('MANAGER')).toBe('secondary');
-    expect(component.getRoleColor('SERVEUR')).toBe('primary');
-    expect(component.getRoleColor('BARMAN')).toBe('warning');
-    expect(component.getRoleColor('UNKNOWN')).toBe('medium');
   });
 
   it('onRoleChange() resets page and loads results', () => {
@@ -183,16 +176,16 @@ describe('UserListComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   });
 
-  it('openDeleteDialog() handles delete success and error', async () => {
+  it('openDeleteDialog() handles delete confirmation via ConfirmDeleteModalComponent', async () => {
     const mockModal = {
       present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
-      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: true }))
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { confirmed: true } }))
     };
     modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
 
     userServiceSpy.deleteUser.and.returnValue(of(undefined as any));
     await component.openDeleteDialog(mockUsers[0]);
-    expect(userServiceSpy.deleteUser).toHaveBeenCalled();
+    expect(userServiceSpy.deleteUser).toHaveBeenCalledWith(1);
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
 
     userServiceSpy.deleteUser.and.returnValue(throwError(() => ({ error: { message: 'Failed' } })));
@@ -213,18 +206,26 @@ describe('UserListComponent', () => {
     expect(component.getUserPrimaryRole([])).toBe('SERVEUR');
   });
 
-  it('KPI getters compute correct statistics', () => {
+  it('formatDate() formats date properly', () => {
+    expect(component.formatDate(undefined)).toBe('-');
+    expect(component.formatDate('2026-07-30T10:00:00Z')).toContain('2026');
+  });
+
+  it('KPI getters compute all 5 stats correctly', () => {
     component.users = [
       { id: 1, username: 'admin', roles: ['ADMIN'] } as User,
       { id: 2, username: 'manager', roles: ['MANAGER'] } as User,
       { id: 3, username: 'serveur', roles: ['SERVEUR'] } as User,
       { id: 4, username: 'barman', roles: ['BARMAN'] } as User
     ];
+    component.allUsers = component.users;
     component.totalElements = 4;
 
     expect(component.totalUsersCount).toBe(4);
     expect(component.adminsCount).toBe(1);
     expect(component.managersCount).toBe(1);
+    expect(component.waitersCount).toBe(1);
+    expect(component.bartendersCount).toBe(1);
     expect(component.staffCount).toBe(2);
   });
 

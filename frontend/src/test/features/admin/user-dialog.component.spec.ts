@@ -41,9 +41,10 @@ describe('UserDialogComponent', () => {
     expect(component).toBeTruthy();
     expect(component.userForm.get('username')?.value).toBe('');
     expect(component.userForm.get('roles')?.value).toEqual([]);
+    expect(component.userForm.get('password')?.validator).toBeTruthy();
   });
 
-  it('should prefill form when data is provided', () => {
+  it('should prefill form when data is provided and not require password', () => {
     component.data = mockUser;
     component.ngOnInit();
 
@@ -52,6 +53,7 @@ describe('UserDialogComponent', () => {
     expect(component.userForm.get('prenom')?.value).toBe('John');
     expect(component.userForm.get('email')?.value).toBe('john.doe@openbar.local');
     expect(component.userForm.get('roles')?.value).toEqual(['SERVEUR']);
+    expect(component.userForm.get('password')?.validator).toBeNull();
   });
 
   it('toggleRole() adds or removes roles from form value', () => {
@@ -63,6 +65,46 @@ describe('UserDialogComponent', () => {
 
     component.toggleRole('ADMIN');
     expect(component.isRoleSelected('ADMIN')).toBeFalse();
+  });
+
+  it('calculates password strength score, labels, and classes correctly', () => {
+    component.data = null;
+    component.ngOnInit();
+
+    // Empty
+    expect(component.passwordStrengthScore).toBe(0);
+    expect(component.passwordStrengthClass).toBe('very-weak');
+    expect(component.passwordStrengthLabelKey).toBe('USERS.PASSWORD_STRENGTH.VERY_WEAK');
+
+    // Weak
+    component.userForm.patchValue({ password: 'abc' });
+    expect(component.passwordStrengthScore).toBe(0);
+
+    // Medium
+    component.userForm.patchValue({ password: 'Password1' });
+    expect(component.passwordStrengthScore).toBeGreaterThanOrEqual(2);
+
+    // Strong
+    component.userForm.patchValue({ password: 'SuperSecretPassword2026!' });
+    expect(component.passwordStrengthScore).toBe(4);
+    expect(component.passwordStrengthClass).toBe('strong');
+    expect(component.passwordStrengthLabelKey).toBe('USERS.PASSWORD_STRENGTH.STRONG');
+  });
+
+  it('passwordMatchValidator checks password mismatch', () => {
+    component.data = null;
+    component.ngOnInit();
+
+    component.userForm.patchValue({
+      password: 'password123',
+      confirmPassword: 'differentPassword'
+    });
+    expect(component.userForm.hasError('passwordMismatch')).toBeTrue();
+
+    component.userForm.patchValue({
+      confirmPassword: 'password123'
+    });
+    expect(component.userForm.hasError('passwordMismatch')).toBeFalse();
   });
 
   it('onSubmit() calls modalCtrl.dismiss with form value if valid', () => {

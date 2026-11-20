@@ -24,12 +24,14 @@ import {
   mailOutline,
   createOutline,
   trashOutline,
-  restaurantOutline
+  restaurantOutline,
+  checkmarkCircleOutline,
+  closeCircleOutline
 } from 'ionicons/icons';
 import { User } from '../../../../core/models/user.model';
 import { UserService } from '../../../../core/services/user.service';
 import { UserDialogComponent } from '../user-dialog/user-dialog.component';
-import { DeleteUserDialogComponent } from '../delete-user-dialog/delete-user-dialog.component';
+import { ConfirmDeleteModalComponent } from '../../../../core/components/ui/confirm-delete-modal/confirm-delete-modal.component';
 import { SearchBarComponent } from '../../../../core/components/ui/search-bar/search-bar.component';
 import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
 import { StatCardComponent } from '../../../../core/components/ui/stat-card/stat-card.component';
@@ -38,7 +40,7 @@ import { UserAvatarComponent } from '../../../../core/components/ui/user-avatar/
 import { RoleBadgeComponent, UserRoleType } from '../../../../core/components/ui/role-badge/role-badge.component';
 import { EmptyStateComponent } from '../../../../core/components/ui/empty-state/empty-state.component';
 import { PaginationComponent } from '../../../../core/components/ui/pagination/pagination.component';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 /**
  * Component managing the administrator view for paginated user listing, executive KPI statistics,
@@ -84,14 +86,6 @@ export class UserListComponent implements OnInit {
 
   readonly pageSizeOptions = [5, 10, 20];
 
-  readonly availableRoles = [
-    { value: 'ALL', label: 'Tous les rôles' },
-    { value: 'ADMIN', label: 'Administrateur' },
-    { value: 'MANAGER', label: 'Manager' },
-    { value: 'SERVEUR', label: 'Serveur' },
-    { value: 'BARMAN', label: 'Barman' }
-  ];
-
   readonly roleSelectOptions: SearchableOption<string>[] = [
     { value: 'ALL', label: 'Tous les rôles' },
     { value: 'ADMIN', label: 'Administrateur', badge: 'ADMIN', badgeType: 'danger' },
@@ -103,7 +97,8 @@ export class UserListComponent implements OnInit {
   constructor(
     private readonly userService: UserService,
     private readonly modalCtrl: ModalController,
-    private readonly toastCtrl: ToastController
+    private readonly toastCtrl: ToastController,
+    private readonly transloco: TranslocoService
   ) {
     addIcons({
       personAdd,
@@ -121,7 +116,9 @@ export class UserListComponent implements OnInit {
       mailOutline,
       createOutline,
       trashOutline,
-      restaurantOutline
+      restaurantOutline,
+      checkmarkCircleOutline,
+      closeCircleOutline
     });
   }
 
@@ -147,15 +144,26 @@ export class UserListComponent implements OnInit {
     return pool.filter((u) => u.roles?.some((r) => r.toUpperCase() === 'MANAGER')).length;
   }
 
-  /** Count of staff accounts (waiters and bartenders). */
-  get staffCount(): number {
+  /** Count of waiter (SERVEUR) accounts. */
+  get waitersCount(): number {
     const pool = this.allUsers.length > 0 ? this.allUsers : this.users;
     return pool.filter((u) =>
       u.roles?.some((r) => {
         const upper = r.toUpperCase();
-        return upper === 'SERVEUR' || upper === 'BARMAN' || upper === 'WAITER';
+        return upper === 'SERVEUR' || upper === 'WAITER';
       })
     ).length;
+  }
+
+  /** Count of bartender (BARMAN) accounts. */
+  get bartendersCount(): number {
+    const pool = this.allUsers.length > 0 ? this.allUsers : this.users;
+    return pool.filter((u) => u.roles?.some((r) => r.toUpperCase() === 'BARMAN')).length;
+  }
+
+  /** Count of staff accounts (waiters and bartenders). Backward-compatibility helper. */
+  get staffCount(): number {
+    return this.waitersCount + this.bartendersCount;
   }
 
   /**
@@ -178,7 +186,7 @@ export class UserListComponent implements OnInit {
         },
         error: () => {
           this.loading = false;
-          this.showToast('Erreur lors du chargement des utilisateurs', 'danger');
+          this.showToast(this.transloco.translate('USERS.LOAD_ERROR'), 'danger');
         }
       });
   }
@@ -253,21 +261,6 @@ export class UserListComponent implements OnInit {
     return user.id ?? index;
   }
 
-  getRoleColor(role: string): string {
-    switch (role) {
-      case 'ADMIN':
-        return 'tertiary';
-      case 'MANAGER':
-        return 'secondary';
-      case 'SERVEUR':
-        return 'primary';
-      case 'BARMAN':
-        return 'warning';
-      default:
-        return 'medium';
-    }
-  }
-
   /**
    * Formats employee display name (full name if available, fallback to username).
    */
@@ -288,6 +281,23 @@ export class UserListComponent implements OnInit {
     return 'SERVEUR';
   }
 
+  /**
+   * Formats an ISO date string or Date object into a readable localized date.
+   */
+  formatDate(dateInput?: string | Date): string {
+    if (!dateInput) return '-';
+    try {
+      const d = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+      return d.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return String(dateInput);
+    }
+  }
+
   async openCreateDialog(): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: UserDialogComponent,
@@ -298,12 +308,12 @@ export class UserListComponent implements OnInit {
     if (data) {
       this.userService.createUser(data).subscribe({
         next: () => {
-          this.showToast('Utilisateur créé avec succès', 'success');
+          this.showToast(this.transloco.translate('USERS.CREATE_SUCCESS'), 'success');
           this.loadUsers();
           this.loadGlobalUserStats();
         },
         error: (err) => {
-          const msg = err?.error?.message || "Erreur lors de la création de l'utilisateur";
+          const msg = err?.error?.message || this.transloco.translate('USERS.CREATE_ERROR');
           this.showToast(msg, 'danger');
         }
       });
@@ -320,12 +330,12 @@ export class UserListComponent implements OnInit {
     if (data) {
       this.userService.updateUser(user.id, data).subscribe({
         next: () => {
-          this.showToast('Utilisateur modifié avec succès', 'success');
+          this.showToast(this.transloco.translate('USERS.EDIT_SUCCESS'), 'success');
           this.loadUsers();
           this.loadGlobalUserStats();
         },
         error: (err) => {
-          const msg = err?.error?.message || "Erreur lors de la modification de l'utilisateur";
+          const msg = err?.error?.message || this.transloco.translate('USERS.EDIT_ERROR');
           this.showToast(msg, 'danger');
         }
       });
@@ -334,21 +344,33 @@ export class UserListComponent implements OnInit {
 
   async openDeleteDialog(user: User): Promise<void> {
     const modal = await this.modalCtrl.create({
-      component: DeleteUserDialogComponent,
-      componentProps: { data: user },
-      cssClass: 'delete-modal'
+      component: ConfirmDeleteModalComponent,
+      componentProps: {
+        title: this.transloco.translate('USERS.DELETE_CONFIRM'),
+        itemName: this.getDisplayName(user),
+        warningMessage: this.transloco.translate('USERS.DELETE_WARNING'),
+        metaTags: [
+          { icon: 'mail-outline', text: user.email },
+          { icon: 'shield-checkmark-outline', text: (user.roles || []).join(', ') }
+        ],
+        detailsSummary: [
+          { label: this.transloco.translate('USERS.USERNAME_LABEL'), value: `@${user.username}` },
+          { label: this.transloco.translate('USERS.EMAIL_LABEL'), value: user.email }
+        ],
+        confirmBtnText: this.transloco.translate('COMMON.DELETE')
+      }
     });
     await modal.present();
-    const { data } = await modal.onWillDismiss();
-    if (data) {
+    const { data } = await modal.onDidDismiss();
+    if (data?.confirmed) {
       this.userService.deleteUser(user.id).subscribe({
         next: () => {
-          this.showToast('Utilisateur supprimé avec succès', 'success');
+          this.showToast(this.transloco.translate('USERS.DELETE_SUCCESS'), 'success');
           this.loadUsers();
           this.loadGlobalUserStats();
         },
         error: (err) => {
-          const msg = err?.error?.message || "Erreur lors de la suppression de l'utilisateur";
+          const msg = err?.error?.message || this.transloco.translate('USERS.DELETE_ERROR');
           this.showToast(msg, 'danger');
         }
       });

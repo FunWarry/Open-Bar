@@ -1,0 +1,166 @@
+:host {
+  display: block;
+}
+
+.user-dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 0;
+}
+
+.name-fields-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.password-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Password Strength Meter ──────────────────────────────────────────────── */
+.password-strength-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+
+  .strength-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+
+    .strength-title {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .strength-badge {
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      &.very-weak {
+        color: var(--semantic-danger, #eb445a);
+      }
+      &.weak {
+        color: var(--semantic-warning, #e0ac08);
+      }
+      &.medium {
+        color: var(--semantic-info, #3880ff);
+      }
+      &.strong {
+        color: var(--semantic-success, #2dd36f);
+      }
+    }
+  }
+
+  .strength-bars {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    height: 4px;
+
+    .bar {
+      border-radius: 2px;
+      background: var(--border-medium);
+      transition: background-color 0.2s ease;
+    }
+
+    &.very-weak .bar.filled {
+      background: var(--semantic-danger, #eb445a);
+    }
+    &.weak .bar.filled {
+      background: var(--semantic-warning, #e0ac08);
+    }
+    &.medium .bar.filled {
+      background: var(--semantic-info, #3880ff);
+    }
+    &.strong .bar.filled {
+      background: var(--semantic-success, #2dd36f);
+    }
+  }
+}
+
+/* ── Roles Selection Section ──────────────────────────────────────────────── */
+.roles-selection-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+
+  .section-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    .section-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+
+      .required-star {
+        color: var(--semantic-danger, #eb445a);
+      }
+    }
+
+    .section-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+  }
+
+  .roles-chips-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 4px;
+  }
+
+  .error-hint {
+    color: var(--semantic-danger, #eb445a);
+    font-size: 0.78rem;
+    margin: 4px 0 0;
+  }
+}
+
+/* ── Modal Footer Actions ─────────────────────────────────────────────────── */
+.modal-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+
+  @media (max-width: 640px) {
+    flex-direction: column-reverse;
+    gap: 8px;
+
+    app-action-button {
+      width: 100%;
+
+      ::ng-deep .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+}
