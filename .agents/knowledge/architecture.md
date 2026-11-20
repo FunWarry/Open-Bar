@@ -19,7 +19,7 @@
 
 | Layer | Technology | Version | Notes |
 |-------|------------|---------|-------|
-| Backend | Spring Boot | 4.1.1 | |
+| Backend | Spring Boot | 4.2.0 | |
 | Runtime | Java | 22 (pinned) | Lombok 1.18.34 incompatible with JDK 23+ compiler internals |
 | Database | PostgreSQL | — | Managed via Docker Compose |
 | ORM | JPA/Hibernate + Lombok `@Data` | via Spring | |
